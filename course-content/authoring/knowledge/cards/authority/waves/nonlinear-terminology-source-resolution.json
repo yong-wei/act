@@ -1,0 +1,80 @@
+{
+  "status": "four-term-source-semantics-resolved",
+  "method": "read-only original M1S evidence-id derivation and matching frozen textbook section hashes; no upstream state modified",
+  "privateProofLimitation": "Original private M1S packages/source-span run directory is unavailable; full private model request/review context cannot be reconstructed. Current textbook section hashes and public evidence-ref derivations match.",
+  "terms": [
+    {
+      "name": "扇区化零法",
+      "canonicalId": "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+      "evidenceRef": "cte:m1s-evidence:08fae241274ddf837ded0ff3",
+      "fragmentId": "cts:fragment-219a4af0d77f39b3a9c45353",
+      "textbookPath": "course-content/authoring/resources/textbooks/feedback-control-of-dynamic-systems/chapter-09/textbook.md",
+      "textbookSha256": "a64bb968039b9a1b61ac8c324b5613c19c36655fadaac5620bec1f9f107c824b",
+      "section": "9.5",
+      "sectionSha256": "afcc382bd5dd918c205ddc17939798b209c03dff6c595da4e888641772e5c67a",
+      "lines": [
+        1785,
+        1786
+      ],
+      "pdfPage": 708,
+      "meaning": "Transform sector [k1,k2] to a zero-lower-bound sector via H=G/(1+k1*G) and subtract the lower-slope term from the nonlinearity; not cancellation of the entire nonlinearity."
+    },
+    {
+      "name": "严格无源阻抗",
+      "canonicalId": "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+      "evidenceRef": "cte:m1s-evidence:c8026f07953032ef33762f34",
+      "fragmentId": "cts:fragment-558522e3cb1db6cfcf2942e5",
+      "textbookPath": "course-content/authoring/resources/textbooks/feedback-control-of-dynamic-systems/chapter-09/textbook.md",
+      "textbookSha256": "a64bb968039b9a1b61ac8c324b5613c19c36655fadaac5620bec1f9f107c824b",
+      "section": "9.5",
+      "sectionSha256": "afcc382bd5dd918c205ddc17939798b209c03dff6c595da4e888641772e5c67a",
+      "lines": [
+        1730,
+        1731
+      ],
+      "pdfPage": 707,
+      "meaning": "Original impedance definition Re Z(jw) > delta > 0 for all real frequencies; distinguish this uniform real-part lower bound from more general strictly-positive-real definitions."
+    },
+    {
+      "name": "积分器抗漂移控制方法",
+      "canonicalId": "ctkg:m1s-object-5df7a5c839136dcf822a286d",
+      "evidenceRefs": [
+        "cte:m1s-evidence:943aab8f4202b8d60d957ed0",
+        "cte:m1s-evidence:2ad2c6baeb4bc1fa85eabc7b",
+        "cte:m1s-evidence:d1e26dfe98be6266ba584f91"
+      ],
+      "textbookPath": "course-content/authoring/resources/textbooks/hu-shousong-auto-control-8th/chapter-08/textbook.md",
+      "textbookSha256": "9099b578a62641e4fea099cbbab1feb89fb4332b880f64abfb9f90176742c1a0",
+      "section": "8.6",
+      "sectionSha256": "e5543f0910d545e835fe7ecde997b47b3e19c90fc190c78360265c8b29fd144d",
+      "lines": [
+        2471,
+        2476
+      ],
+      "pdfPage": 448,
+      "meaning": "Integrator anti-windup local feedback activated by actuator saturation; not generic leakage or sensor drift removal."
+    },
+    {
+      "name": "l 阶积分逆系统",
+      "canonicalId": "ctkg:m1s-object-12e26eefe7617d594c305b67",
+      "evidenceRefs": [
+        "cte:m1s-evidence:54eb45a74640199469d0622e",
+        "cte:m1s-evidence:808545ffc706afd2755e781f",
+        "cte:m1s-evidence:e15abdbc6be8994c80da8b1d"
+      ],
+      "textbookPath": "course-content/authoring/resources/textbooks/hu-shousong-auto-control-8th/chapter-08/textbook.md",
+      "textbookSha256": "9099b578a62641e4fea099cbbab1feb89fb4332b880f64abfb9f90176742c1a0",
+      "section": "8.5",
+      "sectionSha256": "c68ea357ab2cb9f8d4ee73d5e5bcceee0397a5860ef47f98f855436fcae1f50a",
+      "lines": [
+        1908,
+        1932
+      ],
+      "pdfPage": 436,
+      "meaning": "l is lowercase Latin ell, the derivative/integrator order; input phi=y^(l), inverse block maps phi to u. A single OCR subscript t is inconsistent with the surrounding l notation.",
+      "proofLimit": "Original scan is unavailable; three text fragments and reconstructed evidence hashes agree, but image-level glyph verification is unavailable."
+    }
+  ],
+  "capturedExcerptsManifest": "course-content/authoring/knowledge/cards/authority/waves/nonlinear-source-evidence/manifest.json",
+  "hashCorrection": "Franklin file digest in initial investigator response omitted one hex digit; current file hash independently recomputed and investigator confirmed correction; section hash unchanged."
+}

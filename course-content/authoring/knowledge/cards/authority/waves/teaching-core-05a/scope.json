@@ -1,0 +1,58 @@
+{
+  "batchId": "teaching-core-05a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-05",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+      "name": "系统结构图模型",
+      "moduleId": "module-1",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+      "name": "框图化简",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:modeling-239e401e0fcc8485f3a0533d",
+      "name": "结构图等效化简法",
+      "moduleId": "module-2",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctc:modeling-7aef273143199795496abedb",
+      "name": "结构图等效代数运算",
+      "moduleId": "module-2",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctc:modeling-bddaef2510e39cbb62d60df2",
+      "name": "结构图环节方框",
+      "moduleId": "module-1",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctc:modeling-c499b71d908bd8fe4124c533",
+      "name": "结构图绘制规范步骤",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+      "name": "闭环反馈互联",
+      "moduleId": null,
+      "order": 7
+    }
+  ]
+}

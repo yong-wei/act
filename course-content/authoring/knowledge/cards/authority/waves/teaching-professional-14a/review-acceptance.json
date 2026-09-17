@@ -1,0 +1,15 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_professional14",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "bodyReview": "body-review.json",
+  "materializedBodyEqualityVerified": true,
+  "identityAndRelationsVerified": true,
+  "cardHashes": {
+    "ctkg:m1s-object-12e26eefe7617d594c305b67": "946738e5ef31d1ee06431a9718dade884cf06e080b97486539e3d7cedf0846c9",
+    "ctkg:m1s-object-2ce2e2dd44688b16823d91c2": "c70c6336e9f4b0eb4e52f97d3963fc4b878f5bd08b5ea151feb3814dc2971215",
+    "ctkg:m1s-object-32dfe929ff32d4e22799e9a1": "2c76dd26fcd6b3dad119415352c0c13dc939c0df2d11415c1b6b52fa285e3579",
+    "ctkg:m1s-object-5df7a5c839136dcf822a286d": "7a3f3f0294864c739cefda46e721ed9c202fad620036a29edd293ea2459f9b8a"
+  }
+}

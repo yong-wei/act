@@ -94,6 +94,28 @@ export interface PublishedResourceFeatureIndex {
   }>;
 }
 
+export function findPublishedCompanionInfograph(
+  index: Pick<PublishedResourceFeatureIndex, 'resources'>,
+  resource: Pick<PublishedResourceFeature, 'identity' | 'canonicalIds'>,
+): PublishedResourceFeature | null {
+  if (!resource.identity.resourceId.startsWith('act:card:')) return null;
+  const siblingId = resource.identity.resourceId.replace(/^act:card:/u, 'act:infographic:');
+  const tokenMatch = index.resources.find((entry) => (
+    entry.identity.resourceId === siblingId
+    && entry.executable
+    && entry.backend.kind === 'infographic'
+  ));
+  if (tokenMatch) return tokenMatch;
+  const ids = new Set(resource.canonicalIds);
+  if (ids.size === 0) return null;
+  const canonicalMatches = index.resources.filter((entry) => (
+    entry.executable
+    && entry.backend.kind === 'infographic'
+    && entry.canonicalIds.some((id) => ids.has(id))
+  ));
+  return canonicalMatches.length === 1 ? canonicalMatches[0] : null;
+}
+
 const SHA256 = /^[a-f0-9]{64}$/;
 const RESOURCE_ID = /^act:[a-z][a-z-]*:[^/\\\s\u0000-\u001f]+$/u;
 const REFERENCE_PATH = '/learning-resources/';

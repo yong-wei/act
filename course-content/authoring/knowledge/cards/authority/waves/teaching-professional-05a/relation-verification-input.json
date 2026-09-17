@@ -1,0 +1,374 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:00c33c72030aa254c651c5ad",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:57201d4d4f244aef4949d4d7",
+          "otherId": "ctkg:domainconcept:dd4c15f1669f9b04911032e5",
+          "label": "不定性（标量函数）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **不定性（标量函数）**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:95715441dd078290dd24e03e",
+          "otherId": "ctkg:domainconcept:1fe958ff9947220990074dbc",
+          "label": "正半定性（标量函数）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **正半定性（标量函数）**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:0324a99831f481138d024957",
+          "otherId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+          "label": "能量函数（李雅普诺夫）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **能量函数（李雅普诺夫）**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:1fe958ff9947220990074dbc",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:95715441dd078290dd24e03e",
+          "otherId": "ctkg:domainconcept:00c33c72030aa254c651c5ad",
+          "label": "正定性（标量函数）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **正定性（标量函数）**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:ad43564bf8f951bdec2966c6",
+          "otherId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+          "label": "能量函数（李雅普诺夫）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **能量函数（李雅普诺夫）**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:471808457837d110fa167faf",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:fe508bf4a0a6d9ea93d38c64",
+          "otherId": "ctkg:domainconcept:0dfe26d4bf0c2174a0a4b176",
+          "label": "负半定性（标量函数）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **负半定性（标量函数）**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:bdd1a7f84b827c9e65137963",
+          "otherId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+          "label": "能量函数（李雅普诺夫）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **能量函数（李雅普诺夫）**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0dfe26d4bf0c2174a0a4b176",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:fe508bf4a0a6d9ea93d38c64",
+          "otherId": "ctkg:domainconcept:471808457837d110fa167faf",
+          "label": "负定性（标量函数）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **负定性（标量函数）**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:28a787c6ea4332bfc6e0a82b",
+          "otherId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+          "label": "能量函数（李雅普诺夫）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **能量函数（李雅普诺夫）**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:1d07a161805def99e9afedb8",
+          "otherId": "ctkg:domainconcept:a3186afbaab04b331226cdc9",
+          "label": "不稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **不稳定性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:cc0ef02a669e628709bb56f5",
+          "otherId": "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+          "label": "渐近稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **渐近稳定性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:fa356160cad6f8019f12f596",
+          "otherId": "ctkg:domainconcept:5f49b022cd74414f3b342231",
+          "label": "一致稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **一致稳定性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:70381ab2cffc4d0e9873f4d2",
+          "otherId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+          "label": "平衡状态稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **平衡状态稳定性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:cc0ef02a669e628709bb56f5",
+          "otherId": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+          "label": "李雅普诺夫稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫稳定性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:02c8dcee2b7abf5f8d9fa6c3",
+          "otherId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+          "label": "李雅普诺夫意义下的稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫意义下的稳定性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:5f49b022cd74414f3b342231",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:fa356160cad6f8019f12f596",
+          "otherId": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+          "label": "李雅普诺夫稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫稳定性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:de3b390b021b6fa21d1af4a8",
+          "otherId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+          "label": "李雅普诺夫意义下的稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫意义下的稳定性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:d071dec567505ce641aa9b15",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:cbac7fcdc11cf365ee539038",
+          "otherId": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+          "label": "李雅普诺夫稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫稳定性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:5cd72ec3081cc936d3d1247c",
+          "otherId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+          "label": "李雅普诺夫意义下的稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫意义下的稳定性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:f713a296511f858ae3f3bfde",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:3caefdb79a430853e21767ae",
+          "otherId": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+          "label": "大范围稳定系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **大范围稳定系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:a2401bbcc0de741e4781c7ff",
+          "otherId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+          "label": "平衡状态稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **平衡状态稳定性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:392358eeafb52dcc4b1f8aa3",
+          "otherId": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+          "label": "李雅普诺夫稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫稳定性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+      "relations": [
+        {
+          "relationId": "ctkg:relation:cf367c5451cab1381ba34edc",
+          "otherId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+          "label": "平衡点",
+          "predicate": "applies_to",
+          "direction": "forward",
+          "renderedLine": "- **平衡点**（出边，关系：适用于）"
+        },
+        {
+          "relationId": "ctkg:relation:7c4b175e15c828c211b07f10",
+          "otherId": "ctc:modeling-6e03c54be64721caf66c75c5",
+          "label": "状态空间模型",
+          "predicate": "used_to_analyze",
+          "direction": "forward",
+          "renderedLine": "- **状态空间模型**（出边，关系：用于分析）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:628cf6baf701c8bd38c8aa4c",
+          "otherId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+          "label": "能量函数（李雅普诺夫）",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **能量函数（李雅普诺夫）**（入边，关系：前置于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+      "relations": [
+        {
+          "relationId": "ctkg:relation:1bf3690fd8a88ecbad9be6de",
+          "otherId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+          "label": "平衡点",
+          "predicate": "applies_to",
+          "direction": "forward",
+          "renderedLine": "- **平衡点**（出边，关系：适用于）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:0f8180e307e9dfd320e9cdfe",
+          "otherId": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+          "label": "正定函数",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **正定函数**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctkg:relation:3f600312a34e73d73ea9bbaf",
+          "otherId": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+          "label": "正定函数",
+          "predicate": "is_a",
+          "direction": "forward",
+          "renderedLine": "- **正定函数**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+      "relations": [
+        {
+          "relationId": "ctkg:relation:9fb9fdc07404a24c3a539ae3",
+          "otherId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+          "label": "李雅普诺夫函数",
+          "predicate": "is_a",
+          "direction": "forward",
+          "renderedLine": "- **李雅普诺夫函数**（入边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:628cf6baf701c8bd38c8aa4c",
+          "otherId": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+          "label": "李雅普诺夫函数候选",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **李雅普诺夫函数候选**（出边，关系：前置于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:0324a99831f481138d024957",
+          "otherId": "ctkg:domainconcept:00c33c72030aa254c651c5ad",
+          "label": "正定性（标量函数）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **正定性（标量函数）**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:4b98e3fbe8d7e5267277361f",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:84ca632688609ee2e8560d47",
+          "otherId": "ctkg:domainconcept:bcb984982bdc0a405f967351",
+          "label": "李雅普诺夫间接法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫间接法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:cd941a2d4f9e10c6337f3e93",
+          "otherId": "ctkg:domainconcept:9f33e6bc76dc80328b66a6dc",
+          "label": "李雅普诺夫直接法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫直接法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:215c1f442eab78a584b0c163",
+          "otherId": "ctkg:v3e-object-76a08234eba9eed51ed0733b",
+          "label": "李雅普诺夫第一方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫第一方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:8985a8b639467c8e28fad417",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:f86bfce311bf0866d12ef9e6",
+          "otherId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+          "label": "李雅普诺夫函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫函数**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:4dd126be0e388553bb5a4052",
+          "otherId": "ctkg:domainconcept:9f33e6bc76dc80328b66a6dc",
+          "label": "李雅普诺夫直接法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫直接法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:556e4d0d91f6a8be66b56815",
+          "otherId": "ctkg:domainconcept:b00a275496bb3493dc1436b9",
+          "label": "李雅普诺夫第二方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **李雅普诺夫第二方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:951014d55276cafabac48a25",
+      "relations": []
+    }
+  ]
+}

@@ -1,0 +1,254 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "relations": [
+        {
+          "relationId": "m1m:relation-7596642b3a87ef018e081786",
+          "otherId": "ctkg:v3e-object-80b836e636775916830b5a21",
+          "label": "相轨迹",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **相轨迹**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "m1m:relation-7dc5837603a125b44286831b",
+          "otherId": "ctkg:v3e-object-80b836e636775916830b5a21",
+          "label": "相轨迹",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **相轨迹**（入边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "m1m:relation-815dac2e658c14101eccf2f7",
+          "otherId": "ctkg:v3e-object-9e5c7acbf973dd58acd749ef",
+          "label": "分隔线",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **分隔线**（出边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "relations": [
+        {
+          "relationId": "m1m:relation-4001a0e2a7a4d7a9d4216de8",
+          "otherId": "ctkg:v3e-object-2b6644abd74af728f92d1b25",
+          "label": "等倾线",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **等倾线**（入边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "m1m:relation-89fa67a1253ec07a9ed95fe4",
+          "otherId": "ctkg:v3e-object-2b6644abd74af728f92d1b25",
+          "label": "等倾线",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **等倾线**（出边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "relations": [
+        {
+          "relationId": "m1m:relation-ffea29ebfafec3acb4280de1",
+          "otherId": "ctkg:v3e-object-a20d4b8eab718e1261ba5442",
+          "label": "奇线",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **奇线**（入边，关系：属于）"
+        },
+        {
+          "relationId": "m1m:relation-397616d8893f941f97ee897f",
+          "otherId": "ctkg:v3e-object-953374e261302cfdff02144d",
+          "label": "相平面",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **相平面**（出边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "m1m:relation-ffd984c0d348f15bf6c67de5",
+          "otherId": "ctkg:v3e-object-d5867ef3a2e3dc60bcbeeec5",
+          "label": "相变量",
+          "predicate": "derived_from",
+          "direction": "source_to_target",
+          "renderedLine": "- **相变量**（出边，关系：推导自）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "relations": [
+        {
+          "relationId": "m1m:relation-1425b1368c1c779e103070fb",
+          "otherId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+          "label": "奇点",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **奇点**（入边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "m1m:relation-8ce97dcfdcbc796cc48fa4f2",
+          "otherId": "ctkg:v3e-object-a20d4b8eab718e1261ba5442",
+          "label": "奇线",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **奇线**（入边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "m1m:relation-18d6e488c69166b558f8aacc",
+          "otherId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+          "label": "开关线",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **开关线**（入边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+      "relations": [
+        {
+          "relationId": "m1l:relation-1d852b7774fdd081078a76e5",
+          "otherId": "ctkg:v3e-object-bf30e8212ba68b5629f44826",
+          "label": "状态可控",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **状态可控**（出边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "relations": [
+        {
+          "relationId": "m1m:relation-c984c110f8a5673d8c9a3c01",
+          "otherId": "ctkg:v3e-object-80b836e636775916830b5a21",
+          "label": "相轨迹",
+          "predicate": "has_representation",
+          "direction": "source_to_target",
+          "renderedLine": "- **相轨迹**（出边，关系：有表示）"
+        },
+        {
+          "relationId": "m1m:relation-f29e62d490c43c065d8ed611",
+          "otherId": "ctkg:v3e-object-953374e261302cfdff02144d",
+          "label": "相平面",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **相平面**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "m1m:relation-a7f9436aa41388a7dfb62808",
+          "otherId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+          "label": "非线性系统",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **非线性系统**（出边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:0bedcdf97a62df3223b67ffc",
+          "otherId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+          "label": "实奇点",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **实奇点**（出边，关系：前置于）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:7943fb22cfd4aa58d62eb08f",
+          "otherId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+          "label": "虚奇点",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **虚奇点**（出边，关系：前置于）"
+        },
+        {
+          "relationId": "m1m:relation-1425b1368c1c779e103070fb",
+          "otherId": "ctkg:v3e-object-953374e261302cfdff02144d",
+          "label": "相平面",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **相平面**（出边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:0bedcdf97a62df3223b67ffc",
+          "otherId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+          "label": "奇点",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **奇点**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1m:relation-abb486c2e4be3a0c3e01e506",
+          "otherId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+          "label": "奇点",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **奇点**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:7943fb22cfd4aa58d62eb08f",
+          "otherId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+          "label": "奇点",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **奇点**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1m:relation-da7161a36646aa2f9222a3bc",
+          "otherId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+          "label": "奇点",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **奇点**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "relations": [
+        {
+          "relationId": "m1m:relation-18d6e488c69166b558f8aacc",
+          "otherId": "ctkg:v3e-object-953374e261302cfdff02144d",
+          "label": "相平面",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **相平面**（出边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "m1m:relation-76f7efcb55d9a3617667efa5",
+          "otherId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+          "label": "死区特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **死区特性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-81e6a121b3faedb016877a66",
+          "otherId": "ctkg:v3e-object-44abb05a48944f9fee9a9d01",
+          "label": "相平面法分析非线性系统",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **相平面法分析非线性系统**（出边，关系：组成部分属于）"
+        }
+      ]
+    }
+  ]
+}

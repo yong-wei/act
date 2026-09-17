@@ -1,0 +1,556 @@
+{
+  "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "canonicalType": "DomainConcept",
+      "label": "校正装置",
+      "aliases": [
+        "校正装置"
+      ],
+      "description": "如果通过调整放大器增益后仍然不能全面满足设计要求的性能指标，就需要在系统中增加一些参数及特性可按需要改变的校正装置，使系统性能全面满足设计要求。",
+      "teachingFields": {},
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.1",
+          "label": "自动控制原理（胡寿松，第8版） · 系统的设计与校正问题"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+        "canonicalType": "DomainConcept",
+        "label": "复合校正",
+        "aliases": [
+          "复合校正"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "robustness-sensitivity-analysis",
+            "visualRole": "robustness",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "method_kind"
+      },
+      {
+        "id": "ctkg:domainconcept:4b8188f6e3ad1985a3208055",
+        "canonicalType": "DomainConcept",
+        "label": "数字校正装置",
+        "aliases": [
+          "数字校正装置"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-design",
+            "visualRole": "discrete-design",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+        "canonicalType": "DomainConcept",
+        "label": "前馈校正",
+        "aliases": [
+          "前馈校正"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "robustness-sensitivity-analysis",
+            "visualRole": "robustness",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "method_kind"
+      },
+      {
+        "id": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+        "canonicalType": "DomainConcept",
+        "label": "PID控制器",
+        "aliases": [
+          "PID控制器"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-design",
+            "visualRole": "discrete-design",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-541559c8e5a59890e936ff2e",
+        "canonicalType": "KnowledgeStatement",
+        "label": "选用哪种校正方式，取决于系统中的信号性质、技术实现的方便性、可供选用的元件、抗扰性要求、经济性要求、环境使用条件以及设计者的经验等因素。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "classical-control-design",
+            "visualRole": "design",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+        "canonicalType": "DomainConcept",
+        "label": "反馈校正",
+        "aliases": [
+          "反馈校正"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "classical-control-design",
+            "visualRole": "design",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+        "canonicalType": "DomainConcept",
+        "label": "串联校正",
+        "aliases": [
+          "串联校正"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "classical-control-design",
+            "visualRole": "design",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "canonicalType": "DomainConcept",
+        "label": "校正装置",
+        "aliases": [
+          "校正装置"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "classical-control-design",
+            "visualRole": "design",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:m4-u2u5:prerequisite:0adafa75a139a49da712f807",
+        "predicate": "prerequisite",
+        "sourceId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "targetId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+        "direction": "earlier_to_later",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "prerequisite-order"
+      },
+      {
+        "id": "ctkg:m4-u2u5:prerequisite:0c88d500416231a3d1a7b5ee",
+        "predicate": "prerequisite",
+        "sourceId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "targetId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+        "direction": "earlier_to_later",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "prerequisite-order"
+      },
+      {
+        "id": "ctkg:m4-u2u5:prerequisite:37d31f4034ce16c11b2e90c7",
+        "predicate": "prerequisite",
+        "sourceId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "targetId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+        "direction": "earlier_to_later",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "prerequisite-order"
+      },
+      {
+        "id": "ctkg:m4-u2u5:prerequisite:6d116a7d590b482fbc1805df",
+        "predicate": "prerequisite",
+        "sourceId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "targetId": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+        "direction": "earlier_to_later",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "prerequisite-order"
+      },
+      {
+        "id": "ctkg:m4-u2u5:prerequisite:797c8775f199c318be66a5db",
+        "predicate": "prerequisite",
+        "sourceId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "targetId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+        "direction": "earlier_to_later",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "prerequisite-order"
+      },
+      {
+        "id": "ctkg:m5-d1:is_a:1546c2cbcf0e7f05c4c252e4",
+        "predicate": "is_a",
+        "sourceId": "ctkg:domainconcept:4b8188f6e3ad1985a3208055",
+        "targetId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      },
+      {
+        "id": "m1i:relation-334a542aa33755e99e8395d8",
+        "predicate": "is_a",
+        "sourceId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+        "targetId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      },
+      {
+        "id": "m1i:relation-5e63c61ac9809528ef5c70e8",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:v3e-object-541559c8e5a59890e936ff2e",
+        "targetId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1i:relation-86bfef7e2a2255c29166c9cb",
+        "predicate": "is_a",
+        "sourceId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+        "targetId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      },
+      {
+        "id": "m1i:relation-cef517ba96fce0e6365e6e71",
+        "predicate": "is_a",
+        "sourceId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+        "targetId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      },
+      {
+        "id": "m1i:relation-d19f57c84226165dc48e0cd6",
+        "predicate": "is_a",
+        "sourceId": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+        "targetId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      },
+      {
+        "id": "m1i:relation-f99a82775cf1fcf983cab363",
+        "predicate": "is_a",
+        "sourceId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+        "targetId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      }
+    ],
+    "boundaries": []
+  },
+  "sources": [
+    {
+      "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1662848c1ed2a7feaa036ea3729f76e5b5d7d303a4f3a39eda7d17cb30422bec.json",
+      "sha256": "7d3f0a9a3b0520dccd82f75f42681a4104ae3ecf2f65d219f922e6398454fb44",
+      "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+    },
+    {
+      "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1662848c1ed2a7feaa036ea3729f76e5b5d7d303a4f3a39eda7d17cb30422bec.json",
+      "sha256": "583083c989e0a9900ba324669f363757fae1bc9e41de8e566c575d07a1a825f7",
+      "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+    },
+    {
+      "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/previous/ctkg_v3e-object-f1df5739a34bf55489aeeeeb.md",
+      "sha256": "97bc302b3ee5993d88c99855dd57eaddf34b9d57688ec95e8708111c7e1d445d",
+      "kind": "previous-authoring-snapshot"
+    }
+  ]
+}

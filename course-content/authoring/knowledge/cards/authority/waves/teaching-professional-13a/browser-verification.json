@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> feedback-linearization node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "反馈线性化",
+  "representativeCanonicalId": "ctkg:m1s-object-1a565603bcbebd5ede41aa2d",
+  "authorityDomainId": "nonlinear-control-design",
+  "authorityDomainDisplayName": "非线性控制设计"
+}

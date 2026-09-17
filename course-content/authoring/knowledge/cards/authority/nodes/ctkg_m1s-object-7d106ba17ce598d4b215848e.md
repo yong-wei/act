@@ -1,0 +1,91 @@
+---
+node_id: ctkg_m1s-object-7d106ba17ce598d4b215848e
+authority_entity_id: "ctkg:m1s-object-7d106ba17ce598d4b215848e"
+name: "状态反馈控制设计方法"
+name_en: "State-Feedback Control Design"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consixt_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6399193dcb44f2e4040dc3d1e15e4511ae1dbe44de1fc3a4f02ca9297783f15a.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6399193dcb44f2e4040dc3d1e15e4511ae1dbe44de1fc3a4f02ca9297783f15a.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-13a/supporting-source-inventory.json"
+asset_refs: []
+---
+
+## 首页
+# 状态反馈控制设计方法 | State-Feedback Control Design
+
+一句话定义：状态反馈设计根据当前状态构造控制输入，并通过完整闭环分析证明所要求的稳定或性能性质。
+
+- 先确定平衡点、可用状态和设计区域。
+- 不必为稳定而取消所有非线性。
+- 状态反馈公式仍需检查执行能力与模型条件。
+
+---
+## 详情
+### 完整解释
+
+状态反馈把控制输入写成状态的函数u=φ(x)，再将它代回对象得到闭环。设计前应说明目标平衡点及维持它所需的稳态输入；若目标不是原点，可以采用偏差坐标，但不能只改变符号而漏掉平衡条件。
+
+选择反馈的方法可以包括线性化、反馈线性化、李雅普诺夫构造或其他适用工具。评价的关键是闭环是否满足目标及约束，而不是控制律是否具有某一种形式。尤其不能默认非线性项全部需要抵消。
+
+### 教学计算/推理例
+
+考虑归一化对象 $\dot x=-x^3+u$，目标为原点，状态可用且输入无限制。直接选择u=-2x，得到
+
+$$
+\dot x=-2x-x^3.
+$$
+
+取 $V=x^2/2$，则
+
+$$
+\dot V=x(-2x-x^3)=-2x^2-x^4\leq-4V.
+$$
+
+因此 $V(t)\leq V(0)e^{-4t}$，也就是 $|x(t)|\leq|x(0)|e^{-2t}$。V全局正定、径向无界，闭环向量场局部Lipschitz且轨迹受界限约束，可以向前延拓，因此这是全局指数稳定结论。
+
+该设计保留了原有的负三次项，它提供额外耗散。若采用精确抵消律 $u=x^3-2x$，也能得到线性闭环 $\dot x=-2x$，但控制输入不同。例如x=3时，保留耗散的反馈给u=-6，而精确抵消律给u=21。
+
+### 怎样比较这两种设计
+
+对本例，u=-2x已经提供所需指数界，三次项不妨碍稳定，不需要为了形式线性而消除它。但这不构成“所有保留非线性的设计都更好”的一般结论。比较控制量、响应速度、鲁棒性和约束时，应使用具体对象和同一组指标。
+
+原对象若有另一种符号或结构，不能照搬这个证明。比如三次项变成正号后，V导数也会改变，大状态下可能不再下降。因此设计结论依赖被代入的真实向量场，不只依赖反馈增益为负。
+
+### 状态与平衡条件
+
+本例目标原点所需稳态输入为0，反馈也在x=0时给出0。对非零目标，应先求满足原动态平衡的输入，再围绕相应状态误差设计；否则控制器可能在希望保持的位置仍产生非零状态导数。
+
+“状态可用”也是一个条件。如果只能测量部分输出，需要估计状态，并分析估计器与控制器组合后的行为。不能把未测状态直接代入控制公式，却略过获得它们的方式。
+
+### 适用条件与边界
+
+若执行器限幅，实际u不再始终等于-2x，应在限制后的闭环中重新核验吸引域和收敛速度。理想反馈的全局指数界不能不加检查地用于饱和系统。
+
+模型不确定性也应明确。本文已知三次项为负耗散，证明针对这个固定模型成立；如果参数变化改变其符号，原结论就不再自动覆盖。需要鲁棒保证时，应围绕声明的参数集合重新建立不等式。
+
+### 常见误区
+
+1. 以为稳定控制必须取消全部非线性。
+2. 不检查平衡输入就直接对状态做反馈。
+3. 状态不可测或输入被限幅时仍沿用理想证明。
+
+### 自检
+
+1. 本例从V导数如何得到状态指数界？
+2. x=3时两种反馈的输入差异说明了什么？
+
+**核对要点**：Vdot不大于-4V，开平方得到状态衰减率至少2；取消有利非线性不是实现该稳定目标的必要步骤，且可能需要更大控制量。
+
+### 关联节点
+
+- **全状态反馈**（无向，关系：相关）
+- **全状态反馈设计步骤**（无向，关系：相关）

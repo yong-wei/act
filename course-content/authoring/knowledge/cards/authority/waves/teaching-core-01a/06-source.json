@@ -1,0 +1,185 @@
+{
+  "canonicalId": "ctc:modeling-e4d5dedd058631068d41b452",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctc:modeling-e4d5dedd058631068d41b452",
+      "canonicalType": "DomainConcept",
+      "label": "机理建模与分析流程",
+      "aliases": [],
+      "description": "The process of analyzing a system: write time-domain differential equations from physical laws, determine inputs and outputs, compute the transfer function, and then analyze the transfer function to determine dynamic properties (e.g., via pole-zero locations, time response to standard inputs, or inverse Laplace transform).",
+      "teachingFields": {
+        "concept_kind": "analysis_method"
+      },
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctc:modeling-e4d5dedd058631068d41b452",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctc:modeling-1897336a3fe60360d9fea3aa",
+        "canonicalType": "DomainConcept",
+        "label": "动态系统建模规范步骤",
+        "aliases": [
+          "建模步骤"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "analysis_method"
+      },
+      {
+        "id": "ctc:modeling-e4d5dedd058631068d41b452",
+        "canonicalType": "DomainConcept",
+        "label": "机理建模与分析流程",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "analysis_method"
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:m5-d1:association:71f1d7b150fedaa883c2aba7",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-e4d5dedd058631068d41b452",
+        "targetId": "ctc:modeling-1897336a3fe60360d9fea3aa",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      }
+    ],
+    "boundaries": []
+  },
+  "sources": [
+    {
+      "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-682d472fc0962fb72fa91151ce22b7ce69282423d1a52f1471eb997aa5f6f7ae.json",
+      "sha256": "27df43250bc9a36b97fd85829df955ce1460cb2be993223630c19a5d4f987bf9",
+      "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+    },
+    {
+      "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-682d472fc0962fb72fa91151ce22b7ce69282423d1a52f1471eb997aa5f6f7ae.json",
+      "sha256": "3ec867ab97a195dd519a6a195f294cc85acbaaa378bc900c80c9fc390bd8e399",
+      "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+    },
+    {
+      "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-01a/previous/ctc_modeling-e4d5dedd058631068d41b452.md",
+      "sha256": "d3f0a67ef20962f6e7a6ef6d91047835f759f9aa0f895f07827d34697b1f56d0",
+      "kind": "previous-authoring-snapshot"
+    }
+  ]
+}

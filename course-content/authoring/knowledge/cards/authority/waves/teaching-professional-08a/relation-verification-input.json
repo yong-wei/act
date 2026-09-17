@@ -1,0 +1,100 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:9b5b7d8e1adf2c35463467a8",
+      "relations": [
+        {
+          "relationId": "m1o:rel-a448c828eb35f477c88d1ba5",
+          "otherId": "ctkg:domainconcept:28bfca2df331c329cea26464",
+          "label": "朱利稳定判据",
+          "predicate": "used_to_analyze",
+          "direction": "forward",
+          "renderedLine": "- **朱利稳定判据**（出边，关系：用于分析）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9e0ece5ddc1de81897928b5f",
+      "relations": [
+        {
+          "relationId": "m1k:relation-0937c295d94c27fb0cc44b7d",
+          "otherId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+          "label": "采样率",
+          "predicate": "derived_from",
+          "direction": "source_to_target",
+          "renderedLine": "- **采样率**（入边，关系：推导自）"
+        },
+        {
+          "relationId": "m1k:relation-d0584942aef2eab2c287422e",
+          "otherId": "ctkg:v3e-object-762239378940cb45b78991b3",
+          "label": "采样器",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **采样器**（出边，关系：适用于）"
+        },
+        {
+          "relationId": "m1k:relation-d1ee56f75f994a4db8d0a25c",
+          "otherId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+          "label": "采样率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **采样率**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:a183d0a0001c3553cc638558",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:bf027d00f4e69d3198aefe23",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:is_a:814462bc8c0ae6e6c19a7c4e",
+          "otherId": "ctkg:v3e-object-513a1e2247cca470ce88783f",
+          "label": "离散等效",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **离散等效**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:ce83d3fbc44ef18c69f416b2",
+          "otherId": "ctkg:domainconcept:38cc333389960ef01572e768",
+          "label": "纯离散等效系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **纯离散等效系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:465a5ddb6e659fe094700868",
+          "otherId": "ctkg:domainconcept:a45eae6f2246a7b9b35bf444",
+          "label": "连续到离散等效设计方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **连续到离散等效设计方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:a007da62df7bd509e16eab25",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:b33901638cba88f3f2ea5a20",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:edaf9f79af80774b7206d211",
+          "otherId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+          "label": "积分控制",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **积分控制**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:bb073f59e79dbee61e794fa1",
+      "relations": []
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "velocity_feedback": {
+      "plant": "y_ddot+y_dot=u",
+      "control": "u=K(r-y)-Kt*y_dot",
+      "zeroInitialState": true,
+      "closedReferenceTransfer": "K/[s^2+(1+Kt)s+K]",
+      "cases": [
+        {
+          "K": 4.0,
+          "Kt": 0.0,
+          "wn": 2.0,
+          "zeta": 0.25,
+          "stepOvershootPercent": 44.43442250884888,
+          "rampSteadyError": 0.25,
+          "initialStepControl": 4.0
+        },
+        {
+          "K": 4.0,
+          "Kt": 1.8,
+          "wn": 2.0,
+          "zeta": 0.7,
+          "stepOvershootPercent": 4.598791026026775,
+          "rampSteadyError": 0.7,
+          "initialStepControl": 4.0
+        },
+        {
+          "K": 36.0,
+          "Kt": 7.4,
+          "wn": 6.0,
+          "zeta": 0.7000000000000001,
+          "stepOvershootPercent": 4.598791026026775,
+          "rampSteadyError": 0.23333333333333334,
+          "initialStepControl": 36.0
+        }
+      ],
+      "PDOnErrorReferenceNumerator": "K+Kt*s",
+      "boundary": "measurement velocity feedback and error PD share denominator here, not reference numerator; ramp error and control effort must be checked"
+    },
+    "placement": {
+      "plant": "1/(s+1)",
+      "compensator": "2/(s+2)",
+      "seriesClosed": "2/(s^2+3s+4)",
+      "feedbackClosed": "(s+2)/(s^2+3s+4)",
+      "localFeedbackEquivalent": "(s+2)/(s^2+3s+4)",
+      "withOuterUnityLoop": "(s+2)/(s^2+4s+6)",
+      "boundary": "same characteristic denominator does not imply identical reference response; distinguish local equivalent and final outer closed loop",
+      "referencePrefilterOnly": "2/(s+2)^2",
+      "initialOutputSlopeSeries": 0,
+      "initialOutputSlopeFeedback": 1
+    },
+    "lead": {
+      "C": "(1+a*T*s)/(1+T*s)",
+      "a": 4.0,
+      "T": 0.25,
+      "zero": -1.0,
+      "pole": -4.0,
+      "maximumPhaseDegrees": 36.86989764584402,
+      "maximumPhaseFrequency": 2.0,
+      "magnitudeAtMaximum": 2.0,
+      "DCgain": 1,
+      "highFrequencyGain": 4.0,
+      "lowFrequencyPDApproximation": "1+(a-1)T*s",
+      "boundary": "positive phase and changed magnitude do not guarantee all closed-loop metrics improve"
+    },
+    "lag": {
+      "C": "(1+T*s)/(1+beta*T*s)",
+      "beta": 10.0,
+      "T": 1.0,
+      "zero": -1,
+      "pole": -0.1,
+      "DCgain": 1,
+      "highFrequencyGain": 0.1,
+      "minimumPhaseDegrees": -54.9031987724154,
+      "minimumPhaseFrequency": 0.31622776601683794,
+      "gainScaledByBeta": {
+        "DC": 10,
+        "highFrequency": 1
+      },
+      "boundary": "finite DC gain and no origin pole; lag is not an exact integrator and does not itself increase system type"
+    },
+    "lead_closed_example": {
+      "plant": "1/(s+1)",
+      "C": "(1+s)/(1+0.25s)",
+      "controllerState": "z_dot=-4z+e; u=4e-12z",
+      "plantState": "y_dot=-y+u",
+      "zeroStateReferenceTransfer": "4/(s+8)",
+      "fullInternalPoles": [
+        -8,
+        -1
+      ],
+      "baselineReferenceTransfer": "1/(s+2)",
+      "baselineT90": 1.151292546497023,
+      "leadT90": 0.28782313662425574,
+      "initialStepControlBaseline": 1,
+      "initialStepControlLead": 4,
+      "boundary": "nominal stable pole cancellation in zero-state reference channel; internal pole -1 remains"
+    },
+    "wrong_velocity_sign": {
+      "K": 4,
+      "Kt": -2,
+      "characteristic": [
+        1,
+        -1,
+        4
+      ],
+      "unstable": true
+    },
+    "lead_inverse_design": {
+      "desiredMaxPhaseDegrees": 30,
+      "desiredMaxPhaseFrequency": 2,
+      "a": 3.0,
+      "T": 0.2886751345948129,
+      "boundary": "network phase specification only; closed-loop crossover must be checked separately"
+    }
+  }
+}

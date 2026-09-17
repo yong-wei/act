@@ -1,0 +1,42 @@
+{
+  "status": "sections-checked",
+  "sources": [
+    {
+      "url": "https://pure.tue.nl/ws/portalfiles/portal/4322297/627149.pdf",
+      "title": "K. W. M. Evers (2006), Hot rolling multivariable model verification and QFT robust looper control",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/references/tue-qft.pdf",
+      "sha256": "26637532cfc60f60bbd9870007c0b0e77c293fa79ada5c895b148c52e61a84f1",
+      "status": "sections-checked",
+      "pages": "PDF 26-28, chapter Quantitative Feedback Theory",
+      "supports": "QFT templates, frequency specifications, Nichols bounds, nominal loop shaping and verification; original card example is limited to its declared frequency constraint."
+    },
+    {
+      "url": "https://arxiv.org/pdf/0811.0083",
+      "title": "Tuning PID and FOPID Controllers using the Integral Time Absolute Error Criterion",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/references/itae-controller-tuning.pdf",
+      "sha256": "b2408c7edbaf464b74fa986193546fe300ff4d2425a3b512c288df583dec3a8e",
+      "status": "sections-checked",
+      "pages": "PDF 4, IV Design of the Controller",
+      "supports": "ITAE performance criterion and controller-parameter tuning; not used to claim universal selectivity or global optimizer guarantees."
+    },
+    {
+      "url": "https://ocw.mit.edu/courses/6-241j-dynamic-systems-and-control-spring-2011/996025f6db0d90b00f11c44fc49b85f9_MIT6_241JS11_textbook.pdf",
+      "title": "MIT 6.241J, Lectures on Dynamic Systems and Control",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/references/mit-dynamic-systems-control.pdf",
+      "sha256": "2ec549c816c8ab043b38c41b62021f1a1ed09494ac83833990ef393682307ab5",
+      "status": "sections-checked",
+      "pages": "PDF 214-221; formulas visually checked on 216,217,219",
+      "sections": [
+        "20.2 Additive Representation of Uncertainty",
+        "20.3 Multiplicative Representation of Uncertainty",
+        "20.5 A Linear Fractional Description",
+        "20.6 The Small-Gain Theorem",
+        "20.7 Stability Robustness Analysis"
+      ],
+      "supports": "Stable perturbations with H-infinity norm at most one; nominal internal stability; strict small-gain inequality and possible conservatism for structured uncertainties.",
+      "extractionNote": "PDF text extraction corrupts some symbols; stable perturbation set and strict inequality were checked on rendered page 219."
+    }
+  ],
+  "kind": "supporting-research-record",
+  "workedExample": "Original parametric frequency template, feasible P-gain design, weighted robustness constraint, true closed-loop ITAE and PI zero-offset examples; final models pending."
+}

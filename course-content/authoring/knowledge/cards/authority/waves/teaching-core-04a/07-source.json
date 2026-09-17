@@ -1,0 +1,363 @@
+{
+  "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+      "canonicalType": "DomainConcept",
+      "label": "秩判据",
+      "aliases": [
+        "秩判据"
+      ],
+      "description": "线性定常连续系统完全可控的充分必要条件是 rank[B AB ... A^{n-1}B] = n，其中 n 为矩阵 A 的维数。",
+      "teachingFields": {},
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctkg:v3e-object-0bcf6a4d637bfd52fed52aca",
+        "canonicalType": "Formula",
+        "label": "\\operatorname{rank}\\left[\\begin{array}{llll} \\boldsymbol{B} & \\boldsymbol{A} \\boldsymbol{B} & \\cdots & \\boldsymbol{A}^{n-1} \\boldsymbol{B} \\end{array}\\right]=n",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+        "canonicalType": "DomainConcept",
+        "label": "秩判据",
+        "aliases": [
+          "秩判据"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-b249504792ef43b97772169a",
+        "canonicalType": "KnowledgeStatement",
+        "label": "采用反证法。反设系统为不完全可控，则根据格拉姆矩阵判据可知 W（0, t1） 为奇异，存在非零向量 α 使 α^T e^{-At} B = 0。将式求导直至 n-1 次，再令 t=0，得到 α^T B = 0, α^T A B = 0, ..., α^T A^{n-1} B = 0，即 α^T S = 0，这意味着 rank S < n，与已知 rank S = n 矛盾。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-bbde87998fe5c58705383e29",
+        "canonicalType": "DomainConcept",
+        "label": "可控性判别阵",
+        "aliases": [
+          "可控性判别阵"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-ef49dd72a21c3ad4ddcfd668",
+        "canonicalType": "KnowledgeStatement",
+        "label": "秩判据的充分性",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+        "canonicalType": "DomainConcept",
+        "label": "系统完全可控",
+        "aliases": [
+          "系统完全可控"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "m1l:relation-21d615b7dd040012b7cdd64a",
+        "predicate": "has_formula",
+        "sourceId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+        "targetId": "ctkg:v3e-object-0bcf6a4d637bfd52fed52aca",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "derivation-and-representation"
+      },
+      {
+        "id": "m1l:relation-4148f9f83bcbd4c4fea5d7a0",
+        "predicate": "has_component",
+        "sourceId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+        "targetId": "ctkg:v3e-object-bbde87998fe5c58705383e29",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "m1l:relation-59d4c7610a3a95c82bff5c43",
+        "predicate": "has_component",
+        "sourceId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+        "targetId": "ctkg:v3e-object-ef49dd72a21c3ad4ddcfd668",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "m1l:relation-8490c8ac62e48b1dee89e8d5",
+        "predicate": "has_component",
+        "sourceId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+        "targetId": "ctkg:v3e-object-b249504792ef43b97772169a",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "m1l:relation-b78698568d302d6af3298006",
+        "predicate": "has_component",
+        "sourceId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+        "targetId": "ctkg:v3e-object-0bcf6a4d637bfd52fed52aca",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "m1l:relation-ef9e1fcc64dc255e6165514f",
+        "predicate": "has_component",
+        "sourceId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+        "targetId": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      }
+    ],
+    "boundaries": []
+  }
+}

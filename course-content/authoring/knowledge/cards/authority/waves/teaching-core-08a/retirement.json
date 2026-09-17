@@ -1,0 +1,247 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:零点_2_c29600a1",
+      "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/零点_2_c29600a1.md",
+          "sha256": "724d361c4524cff6cd45da7d30c62b1fd5fe9d79210ce2d9d279319f1c65ff61",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/零点_2_c29600a1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/零点_2_c29600a1.md",
+          "sha256": "724d361c4524cff6cd45da7d30c62b1fd5fe9d79210ce2d9d279319f1c65ff61",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/零点_2_c29600a1.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:开环零点_4_95d21eca",
+      "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/开环零点_4_95d21eca.md",
+          "sha256": "43e5b7f27d6b991caf5e12ec95301ec73569d1f1cb68fddb2cdac623533b22f8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/开环零点_4_95d21eca.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/开环零点_4_95d21eca.md",
+          "sha256": "43e5b7f27d6b991caf5e12ec95301ec73569d1f1cb68fddb2cdac623533b22f8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/开环零点_4_95d21eca.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:开环传递函数_2_ee6bdacf",
+      "canonicalId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/开环传递函数_2_ee6bdacf.md",
+          "sha256": "9e62f0f2ce7c23218773239ca20a98907a9e6a31337d29de296b787d645d4022",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/开环传递函数_2_ee6bdacf.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/开环传递函数_2_ee6bdacf.md",
+          "sha256": "9e62f0f2ce7c23218773239ca20a98907a9e6a31337d29de296b787d645d4022",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/开环传递函数_2_ee6bdacf.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:开环传递函数_4_5b19827b",
+      "canonicalId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/开环传递函数_4_5b19827b.md",
+          "sha256": "6a60fa28c85b045878e706ce0f4c2ad895bb2e1af90eff8af98e6c5ba8c5ca83",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/开环传递函数_4_5b19827b.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/开环传递函数_4_5b19827b.md",
+          "sha256": "6a60fa28c85b045878e706ce0f4c2ad895bb2e1af90eff8af98e6c5ba8c5ca83",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/开环传递函数_4_5b19827b.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:开环传递函数_5_4c26df45",
+      "canonicalId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/开环传递函数_5_4c26df45.md",
+          "sha256": "69be4d7cf5f2bb364f2c12d51a95f068671bca13b90e8d7f36873135c2de3d98",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/开环传递函数_5_4c26df45.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/开环传递函数_5_4c26df45.md",
+          "sha256": "69be4d7cf5f2bb364f2c12d51a95f068671bca13b90e8d7f36873135c2de3d98",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/开环传递函数_5_4c26df45.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:开环传递函数定义_2_12002",
+      "canonicalId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/开环传递函数定义_2_12002.md",
+          "sha256": "6508aa2690dd6ab5ec7784aeb1341cc7a31e22ac45f31f49c3624dbef2feec95",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/开环传递函数定义_2_12002.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/开环传递函数定义_2_12002.md",
+          "sha256": "6508aa2690dd6ab5ec7784aeb1341cc7a31e22ac45f31f49c3624dbef2feec95",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/开环传递函数定义_2_12002.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:极点_1_1",
+      "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/极点_1_1.md",
+          "sha256": "ca657fccea4eeed0b1dece0fdf2aeaec2164b22d41d88997a511aba505c2f669",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/极点_1_1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/极点_1_1.md",
+          "sha256": "ca657fccea4eeed0b1dece0fdf2aeaec2164b22d41d88997a511aba505c2f669",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/极点_1_1.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:极点_1_2",
+      "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/极点_1_2.md",
+          "sha256": "41205e7042ef0c737c052904ff072b6fe455718866efa66afc8679ece7a2310f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/极点_1_2.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/极点_1_2.md",
+          "sha256": "41205e7042ef0c737c052904ff072b6fe455718866efa66afc8679ece7a2310f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/极点_1_2.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:极点_2_cc79a4c5",
+      "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/极点_2_cc79a4c5.md",
+          "sha256": "55e47bf7227c65e4b2ea885daa3830ca65d7ca8205e8bb2d44579a5f0f4d476b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/极点_2_cc79a4c5.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/极点_2_cc79a4c5.md",
+          "sha256": "55e47bf7227c65e4b2ea885daa3830ca65d7ca8205e8bb2d44579a5f0f4d476b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/极点_2_cc79a4c5.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:闭环极点_3_f9432bf3",
+      "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/闭环极点_3_f9432bf3.md",
+          "sha256": "7da04a1da79ce84d2f902d4b9cf4bd3c741793dc6de1749091f32baf0bd36a5b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/闭环极点_3_f9432bf3.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/闭环极点_3_f9432bf3.md",
+          "sha256": "7da04a1da79ce84d2f902d4b9cf4bd3c741793dc6de1749091f32baf0bd36a5b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/闭环极点_3_f9432bf3.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:闭环极点_4_f359fb50",
+      "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/闭环极点_4_f359fb50.md",
+          "sha256": "28b14a32dc5e3858482aab2f2d0072ed48ee7bd247953f62ea82fc912f8701ca",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/闭环极点_4_f359fb50.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/闭环极点_4_f359fb50.md",
+          "sha256": "28b14a32dc5e3858482aab2f2d0072ed48ee7bd247953f62ea82fc912f8701ca",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/闭环极点_4_f359fb50.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:闭环极点_9_a8bbda51",
+      "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/闭环极点_9_a8bbda51.md",
+          "sha256": "836327ce08b876b303a03ed9e5ae46780f687f106421e528aeec081cccab4e1f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/闭环极点_9_a8bbda51.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/闭环极点_9_a8bbda51.md",
+          "sha256": "836327ce08b876b303a03ed9e5ae46780f687f106421e528aeec081cccab4e1f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/闭环极点_9_a8bbda51.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:闭环零点_3_d83660dd",
+      "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/闭环零点_3_d83660dd.md",
+          "sha256": "3318f87a8591f0eccdfd4d730e9406a986dc41494b243136effd3fab1439d90a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/闭环零点_3_d83660dd.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/闭环零点_3_d83660dd.md",
+          "sha256": "3318f87a8591f0eccdfd4d730e9406a986dc41494b243136effd3fab1439d90a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/闭环零点_3_d83660dd.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:闭环零点_4_949a3b23",
+      "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/闭环零点_4_949a3b23.md",
+          "sha256": "2e5015ca5b15a719020720e02b90e0f739ec93fc6a71d90999823f8342ec1be7",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/闭环零点_4_949a3b23.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/闭环零点_4_949a3b23.md",
+          "sha256": "2e5015ca5b15a719020720e02b90e0f739ec93fc6a71d90999823f8342ec1be7",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/闭环零点_4_949a3b23.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:闭环零点_9_2ab177de",
+      "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/闭环零点_9_2ab177de.md",
+          "sha256": "89de1a1919016f08679c249d8039b3b0bfd2a9f2ca3f88b278e7e6f05b0aa10a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/authoring/闭环零点_9_2ab177de.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/闭环零点_9_2ab177de.md",
+          "sha256": "89de1a1919016f08679c249d8039b3b0bfd2a9f2ca3f88b278e7e6f05b0aa10a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/retired/runtime/闭环零点_9_2ab177de.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b21",
+  "replacementDigest": "5bdf4b24ead1ff3f867bfefbb9b33d14c04d86647478f77486938c63255dbf63"
+}

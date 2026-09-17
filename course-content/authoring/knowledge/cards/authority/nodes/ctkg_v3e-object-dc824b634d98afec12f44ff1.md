@@ -1,52 +1,76 @@
 ---
 node_id: ctkg_v3e-object-dc824b634d98afec12f44ff1
 authority_entity_id: "ctkg:v3e-object-dc824b634d98afec12f44ff1"
-name: Control canonical form
+name: "控制规范型"
+name_en: "Controller Canonical Form"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - Control
-  - canonical
-  - form
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e58924d9a36736a07653d1052aa9ad28d5c24416fe2252c37a36957d5cfb655d.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e58924d9a36736a07653d1052aa9ad28d5c24416fe2252c37a36957d5cfb655d.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-03a/previous/ctkg_v3e-object-dc824b634d98afec12f44ff1.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 6eb85aed11d5df10a7dc234c811b5cd114e9431c3d695816e558f5e68e15d56f -->
-
 ## 首页
+# 控制规范型 | Controller Canonical Form
 
-# Control canonical form
+一句话定义：本卡按来源采用上伴随控制规范型，把分母系数放在A的首行、输入B的首项设为1，便于表达单输入系统。
 
-**一句话定义**：Control canonical form：A canonical form of state-space representation where the system matrix is in upper companion form, with the coefficient…
-
-**核心直觉**：在图谱邻接中可把握：前置 → Pole placement b。
-
-**关联**：前置 → Pole placement b
+- 规范型约定包含状态顺序，不是唯一矩阵排列。
+- 首行系数排列及符号需要与分母一致。
+- 分子与直通项仍需由C、D正确表达。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-A canonical form of state-space representation where the system matrix is in upper companion form, with the coefficients of the characteristic polynomial appearing in the first row, and the input matrix has a single 1 in the first row. This form simplifies the calculation of state feedback gains for pole placement.
+对二阶严格真有理传递函数 $G=(b_1s+b_0)/(s^2+a_1s+a_0)$，本卡选择 $A=[[-a_1,-a_0],[1,0]]$、$B=[1,0]^T$、$C=[b_1,b_0]$、$D=0$。这是一种明确的上伴随排列。
+
+其他材料可能把分母系数放在最后一行，或按相反顺序排列状态。若同时正确变换A、B、C，仍可得到等价实现；不能只交换A中的行或系数，却保持其余矩阵不变。规范型名称相同不足以确定坐标约定。
+
+### 教学计算/推理例
+
+对 $G=(s+3)/(s^2+3s+2)$，得到 $A=[[-3,-2],[1,0]]$、$B=[1,0]^T$、$C=[1,3]$。其可控性矩阵为
+
+$$
+\mathcal C=[B\ AB]=\begin{pmatrix}1&-3\\0&1\end{pmatrix},\qquad \det\mathcal C=1.
+$$
+
+所以该二阶单输入实现完全可控。回算 $C(sI-A)^{-1}B$ 得到原传递函数，既验证分母也验证分子。
+
+再令状态交换矩阵 $P=[[0,1],[1,0]]$，新状态取 $\widetilde x=Px$。则 $\widetilde A=PAP^{-1}=[[0,1],[-2,-3]]$、$\widetilde B=[0,1]^T$、$\widetilde C=[3,1]$。这与首行形式外观不同，但输入输出等价。只交换A而忘记C，就不再是同一个输出定义。
+
+### 适用条件与边界
+
+从任意状态实现通过相似变换转到可控规范型，需要满足相应可控性条件。含不可控模态的系统不能在不改变状态维数或丢失模态的情况下，强行称为同一完全可控规范形式。若从传递函数直接构造可控实现，也仍要检查是否因零极点相消而不可观测、非最小。
+
+对多输入系统，规范形式有不同结构，不能简单把单输入方阵公式照搬。适当但非严格真有理传函还应先分离D，并对动态分子系数作正确处理；不能把原分子系数原封不动塞进C后忽略直通项。
+
+规范型便于代数推导，不一定在数值条件或物理解释上最适合所有实现。实际控制设计应同时考虑状态尺度、数值精度和测量可用性。矩阵表达的便利性不等于传感器已经能直接测得这些状态。
+
+### 常见误区
+
+1. 混用首行与末行规范型的B、C排列。
+2. 只看A特征多项式相同，就忽略输入和输出矩阵。
+3. 对不可控或多输入系统无条件套用单输入可控规范型。
+
+### 自检
+
+1. 本例上伴随形式的B为何是 $[1,0]^T$？
+2. 交换两个状态后，C应如何改变？
+
+**核对要点**：输入进入首个状态方程，与本卡约定匹配；C需变为 $[3,1]$，保持同一物理输出。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Pole placement b | 用于分析 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Control、canonical、form
+- **左伴随矩阵**（无向，关系：相关）
+- **状态系数方阵**（无向，关系：相关）
+- **一阶微分方程组状态空间模型**（无向，关系：相关）

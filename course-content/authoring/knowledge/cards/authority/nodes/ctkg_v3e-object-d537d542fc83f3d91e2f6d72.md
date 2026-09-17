@@ -1,52 +1,86 @@
 ---
 node_id: ctkg_v3e-object-d537d542fc83f3d91e2f6d72
 authority_entity_id: "ctkg:v3e-object-d537d542fc83f3d91e2f6d72"
-name: coulomb plus viscous friction
+name: "库仑加粘性摩擦"
+name_en: "Coulomb Plus Viscous Friction"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - coulomb
-  - plus
-  - viscous
-  - friction
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-63d75fe5441fbf205b93afb84242b7683d006639173e9471d6e06b75340a4655.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-63d75fe5441fbf205b93afb84242b7683d006639173e9471d6e06b75340a4655.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/previous/ctkg_v3e-object-d537d542fc83f3d91e2f6d72.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 0e618a1d9dfd7f1a9ec62637513f1ff15ab62d2e1530e815309913a92de59cb2 -->
-
 ## 首页
+# 库仑加粘性摩擦 | Coulomb Plus Viscous Friction
 
-# coulomb plus viscous friction
+一句话定义：库仑加粘性摩擦模型把近似恒定的滑动阻力与正比于速度的阻力相加，零速度处仍需独立处理静摩擦。
 
-**一句话定义**：coulomb plus viscous friction：coulomb plus viscous friction
-
-**关联**：后续 → memoryless nonlinearity、preloaded spring
+- 库仑项按速度符号变化，粘性项按速度大小变化。
+- 两项都应消耗相对运动的机械能。
+- 正向滑动解析式只适用于首次停止之前。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-coulomb plus viscous friction
+令 $F_f$ 为作用在物体上的摩擦力，非零相对速度下采用
+
+$$
+F_f=-F_c\operatorname{sgn}(v)-bv,\qquad F_c>0,\ b>0.
+$$
+
+对平动系统，$F_c$ 的单位为N，$b$ 为N·s/m；旋转系统则使用力矩和角速度对应的单位。摩擦功率为 $-F_c|v|-bv^2$，对非零速度严格为负。库仑项使低速滑动仍有有限阻力，粘性项使更高速度产生额外阻力。
+
+该表达式未唯一规定零速度处的力。物体能否粘着取决于外力和静摩擦上限；不能先把符号函数设为0，再把所得瞬间加速度当成完整的启动规律。
+
+### 教学计算/推理例
+
+质量 $m=2$ kg、$F_c=3$ N、$b=1$ N·s/m、初速度2 m/s，无其他切向力。正向滑动期间方程为 $2\dot v=-3-v$，解为
+
+$$
+v(t)=5e^{-t/2}-3.
+$$
+
+首次达到零速度的时刻为 $t_s=2\ln(5/3)\approx1.02165$ s。积分速度至该时刻得停止距离
+
+$$
+x_s=10(1-e^{-t_s/2})-3t_s=4-3t_s\approx0.93505\ \mathrm m.
+$$
+
+若只有库仑摩擦而无粘性项，同样质量和初速度的停止时间与距离均为 $4/3$。加入粘性阻力后，本例停止更早、距离更短，符合额外耗散的预期。达到零速度后保持静止，不能将正向滑动解继续延长到它的负渐近值 $-3$。
+
+瞬时核验也很直接：速度2 m/s时摩擦为 $-5$ N，功率 $-10$ W；速度 $-2$ m/s时摩擦为5 N，功率仍为 $-10$ W。反向滑动时库仑项必须换号。
+
+### 适用条件与边界
+
+这个组合模型忽略速度弱化、温度变化和接触弹性，参数适用范围应根据对象确定。静摩擦上限可以不同于滑动库仑摩擦大小，粘着阶段需要按力平衡求摩擦值。临界外力恰等于上限时的保持或启动约定也应明确。
+
+数值计算若一步跨过零速度却仍沿用原滑动分支，可能产生虚假的反向速度和来回切换。问题在于事件与状态规则，而非仅仅时间步长不够小。教学算例应以首次停止为分段边界并重新检查条件。
+
+### 常见误区
+
+1. 将 $-3-v$ 用于所有正负速度，忘记库仑项会反向。
+2. 把正向解析解的负渐近值当成真实最终速度。
+3. 只验证速度数值，不检查摩擦功率是否耗散。
+
+### 自检
+
+1. 本例停止时刻是否晚于只有库仑摩擦的情况？
+2. 达到零速度后，为什么不继续使用 $5e^{-t/2}-3$？
+
+**核对要点**：更早，约1.02165 s小于 $4/3$ s；原式以正向滑动为前提，停止后需使用静止条件。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | memoryless nonlinearity | 是一种 |
-| 后续 | preloaded spring | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、coulomb、plus、viscous、friction
+- **预加载弹簧**（无向，关系：相关）
+- **无记忆非线性**（入边，关系：前置于）
+- **无记忆非线性**（出边，关系：属于）

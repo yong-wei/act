@@ -1,0 +1,58 @@
+{
+  "batchId": "teaching-scale-01e",
+  "status": "accepted",
+  "topic": "频率响应与实验辨识",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "projection": {
+    "contract": "act-teaching-projection-current/v1",
+    "projectionId": "proj-64a5187e8e4a7b40ddf566ccd9683ec3cd85629ad8af9bab580c70256fb85fd4",
+    "projectionHash": "64a5187e8e4a7b40ddf566ccd9683ec3cd85629ad8af9bab580c70256fb85fd4",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.48",
+    "activatedAt": "2026-09-15T03:24:18.276Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "name": "频率响应",
+      "directGoal": true
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "name": "频率特性",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+      "name": "幅值谱",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+      "name": "幅频特性",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "name": "正弦稳态响应",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "name": "实验频率响应测定",
+      "directGoal": true
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+      "name": "频率特性实验确定方法",
+      "directGoal": false
+    }
+  ]
+}

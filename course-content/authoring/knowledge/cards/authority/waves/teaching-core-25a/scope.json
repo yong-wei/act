@@ -1,0 +1,70 @@
+{
+  "batchId": "teaching-core-25a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-25",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+      "name": "闭环控制系统带宽",
+      "moduleId": "module-1",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "name": "谐振峰值",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "name": "带宽",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+      "name": "低频段",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "name": "对数幅频渐近特性曲线",
+      "moduleId": "module-2",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+      "name": "带宽频率",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+      "name": "闭环带宽",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "name": "交接频率",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+      "name": "转折频率（拐角频率）",
+      "moduleId": "module-2",
+      "order": 9
+    }
+  ]
+}

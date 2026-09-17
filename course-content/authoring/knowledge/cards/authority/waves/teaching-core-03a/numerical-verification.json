@@ -1,0 +1,2064 @@
+{
+  "report": {
+    "status": "passed",
+    "batchId": "teaching-core-03a",
+    "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+    "cardCount": 6,
+    "cardIds": [
+      "ctc_modeling-34de45f2470f6c09c7d96698",
+      "ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "ctc_modeling-70629af71e754aac8b740638",
+      "ctc_modeling-70b08efcf6bb085e05de94cd",
+      "ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "ctkg_v3e-object-a24b53236c203ab7f9d5f504"
+    ],
+    "cardHashes": {
+      "ctc_modeling-34de45f2470f6c09c7d96698": "038d548cc080037c9c94afd184ff7260a45da636530e4f25da114e3a29552f89",
+      "ctc_modeling-4fe8840f2c796861bf5d2dae": "8a8e4c9bacfb2d63b318e30c408ca8d605ec278c939d2d3c9a578e81e216384e",
+      "ctc_modeling-70629af71e754aac8b740638": "e93c1ffde839f0022c43e6ddbaf6f11c0f2bdc988233ebb4c95637df4c8f876f",
+      "ctc_modeling-70b08efcf6bb085e05de94cd": "a74e4d251c0162b658388922d818122b8f29c414288dde4d5cc622910468fda1",
+      "ctc_modeling-f6875bd8fd4ad1250d8980d8": "7a7ea29cb9977f800776a3c443587e0e52f592f1ef6501cabe8b0edd8e73d74e",
+      "ctkg_v3e-object-a24b53236c203ab7f9d5f504": "959e776d190d3c9673c8aab385b87fd19d3d46f4c2d4821fcae8e6ec9cf18372"
+    },
+    "modelVerification": "reused fixed model-verification.json (verify-models.py not executed)",
+    "modelClaimsChecked": true,
+    "parserCardCount": 6,
+    "katexFormulaCount": 217,
+    "parserReadback": [
+      {
+        "cardId": "ctc_modeling-34de45f2470f6c09c7d96698",
+        "explanationChars": 1657
+      },
+      {
+        "cardId": "ctc_modeling-4fe8840f2c796861bf5d2dae",
+        "explanationChars": 1635
+      },
+      {
+        "cardId": "ctc_modeling-70629af71e754aac8b740638",
+        "explanationChars": 1702
+      },
+      {
+        "cardId": "ctc_modeling-70b08efcf6bb085e05de94cd",
+        "explanationChars": 1517
+      },
+      {
+        "cardId": "ctc_modeling-f6875bd8fd4ad1250d8980d8",
+        "explanationChars": 1465
+      },
+      {
+        "cardId": "ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+        "explanationChars": 1420
+      }
+    ],
+    "checkCount": 501,
+    "method": "source and SHA-256 identity, immutable-neighborhood relation verification, fixed model report, actual learner-card parser and KaTeX",
+    "runtimeWritten": false,
+    "reviewStatus": "pending-independent-review"
+  },
+  "checks": [
+    {
+      "check": "exact six scope cards",
+      "actual": true
+    },
+    {
+      "check": "scope IDs exact",
+      "actual": true
+    },
+    {
+      "check": "source inventory IDs exact",
+      "actual": true
+    },
+    {
+      "check": "scope lifecycle is authoring",
+      "actual": true
+    },
+    {
+      "check": "accepted scope remains pending",
+      "actual": true
+    },
+    {
+      "check": "captured revision exact",
+      "actual": true
+    },
+    {
+      "check": "authority snapshot exact",
+      "actual": true
+    },
+    {
+      "check": "authority release exact",
+      "actual": true
+    },
+    {
+      "check": "source backup count",
+      "actual": true
+    },
+    {
+      "check": "previous copy count",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "card release: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "card snapshot id: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "card status: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-89fdf81e813cc601c6af86a77304875a683ffefc23dd9637df926d8cbecb4029.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-89fdf81e813cc601c6af86a77304875a683ffefc23dd9637df926d8cbecb4029.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-89fdf81e813cc601c6af86a77304875a683ffefc23dd9637df926d8cbecb4029.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-89fdf81e813cc601c6af86a77304875a683ffefc23dd9637df926d8cbecb4029.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-89fdf81e813cc601c6af86a77304875a683ffefc23dd9637df926d8cbecb4029.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-89fdf81e813cc601c6af86a77304875a683ffefc23dd9637df926d8cbecb4029.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-89fdf81e813cc601c6af86a77304875a683ffefc23dd9637df926d8cbecb4029.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-89fdf81e813cc601c6af86a77304875a683ffefc23dd9637df926d8cbecb4029.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-89fdf81e813cc601c6af86a77304875a683ffefc23dd9637df926d8cbecb4029.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-89fdf81e813cc601c6af86a77304875a683ffefc23dd9637df926d8cbecb4029.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "card release: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "card snapshot id: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "card status: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0f95f0842912e634fd1e7434ff2f98d610a0e551f8cd94c134a4341eaf57641b.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0f95f0842912e634fd1e7434ff2f98d610a0e551f8cd94c134a4341eaf57641b.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0f95f0842912e634fd1e7434ff2f98d610a0e551f8cd94c134a4341eaf57641b.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0f95f0842912e634fd1e7434ff2f98d610a0e551f8cd94c134a4341eaf57641b.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0f95f0842912e634fd1e7434ff2f98d610a0e551f8cd94c134a4341eaf57641b.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0f95f0842912e634fd1e7434ff2f98d610a0e551f8cd94c134a4341eaf57641b.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0f95f0842912e634fd1e7434ff2f98d610a0e551f8cd94c134a4341eaf57641b.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0f95f0842912e634fd1e7434ff2f98d610a0e551f8cd94c134a4341eaf57641b.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0f95f0842912e634fd1e7434ff2f98d610a0e551f8cd94c134a4341eaf57641b.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0f95f0842912e634fd1e7434ff2f98d610a0e551f8cd94c134a4341eaf57641b.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "card release: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "card snapshot id: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "card status: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "card release: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "card snapshot id: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "card status: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "card release: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "card snapshot id: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "card status: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "card release: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "card snapshot id: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "card status: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "fixed model report passed",
+      "actual": true
+    },
+    {
+      "check": "fixed model stage",
+      "actual": true
+    },
+    {
+      "check": "equilibria exact",
+      "actual": true
+    },
+    {
+      "check": "equilibrium poles exact",
+      "actual": true
+    },
+    {
+      "check": "tangent slope exact",
+      "actual": true
+    },
+    {
+      "check": "tangent samples exact",
+      "actual": true
+    },
+    {
+      "check": "tangent larger remainder exact",
+      "actual": true
+    },
+    {
+      "check": "small-signal linear final exact",
+      "actual": true
+    },
+    {
+      "check": "small-signal nonlinear final exact",
+      "actual": true
+    },
+    {
+      "check": "small-signal term ratio exact",
+      "actual": true
+    },
+    {
+      "check": "small-signal grid difference exact",
+      "actual": true
+    },
+    {
+      "check": "non-equilibrium drift exact",
+      "actual": true
+    },
+    {
+      "check": "zero-jacobian linearization exact",
+      "actual": true
+    },
+    {
+      "check": "zero-jacobian minus trace exact",
+      "actual": true
+    },
+    {
+      "check": "zero-jacobian plus trace exact",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-34de45f2470f6c09c7d96698: \\delta u-4\\delta x-\\delta x^2",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-34de45f2470f6c09c7d96698: \\delta\\dot{x}\\approx -4\\delta x+\\delta u",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-34de45f2470f6c09c7d96698: 0.1\\left(1-e^{-4t}\\right)",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-4fe8840f2c796861bf5d2dae: 4.41",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-4fe8840f2c796861bf5d2dae: 4.4",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-4fe8840f2c796861bf5d2dae: 0.01",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-4fe8840f2c796861bf5d2dae: 6.25",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-4fe8840f2c796861bf5d2dae: 6.0",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-4fe8840f2c796861bf5d2dae: 0.25",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-70629af71e754aac8b740638: A=-4",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-70629af71e754aac8b740638: B=1",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-70629af71e754aac8b740638: \\frac1{s+4}",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-70629af71e754aac8b740638: 0.1\\left(1-e^{-4t}\\right)",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-70b08efcf6bb085e05de94cd: f_0=3",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-70b08efcf6bb085e05de94cd: 3+\\delta u-2\\delta x-\\delta x^2",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-70b08efcf6bb085e05de94cd: 3-2\\delta x+\\delta u",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-70b08efcf6bb085e05de94cd: 1.5\\left(1-e^{-2t}\\right)",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-f6875bd8fd4ad1250d8980d8: 0.0976177",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-f6875bd8fd4ad1250d8980d8: 0.025",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_modeling-f6875bd8fd4ad1250d8980d8: 0.00237145",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-object-a24b53236c203ab7f9d5f504: x_0=2",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-object-a24b53236c203ab7f9d5f504: x_0=-2",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-object-a24b53236c203ab7f9d5f504: 0.0912871",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-object-a24b53236c203ab7f9d5f504: 0.111803",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-object-a24b53236c203ab7f9d5f504: \\dot{x}=-x^3",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-object-a24b53236c203ab7f9d5f504: \\dot{x}=x^3",
+      "actual": true
+    },
+    {
+      "check": "simplified tangent is explicitly affine",
+      "actual": true
+    },
+    {
+      "check": "simplified tangent passes through operating point",
+      "actual": true
+    },
+    {
+      "check": "simplified tangent has original derivative",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-34de45f2470f6c09c7d96698",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70629af71e754aac8b740638",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-70b08efcf6bb085e05de94cd",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "actual": true
+    },
+    {
+      "check": "parser card count",
+      "actual": true
+    },
+    {
+      "check": "KaTeX formula count",
+      "actual": true
+    }
+  ]
+}

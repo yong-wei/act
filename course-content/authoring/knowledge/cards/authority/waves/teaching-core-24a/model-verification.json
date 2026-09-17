@@ -1,0 +1,88 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "first_order_frequency": {
+      "G": "2/(s+1)",
+      "samples": [
+        {
+          "omega": 0,
+          "real": 2.0,
+          "imag": -0.0,
+          "magnitude": 2.0,
+          "phaseDegrees": -0.0,
+          "magnitudeDb": 6.020599913279624
+        },
+        {
+          "omega": 0.1,
+          "real": 1.9801980198019802,
+          "imag": -0.19801980198019803,
+          "magnitude": 1.9900743804199783,
+          "phaseDegrees": -5.710593137499643,
+          "magnitudeDb": 5.977386175453199
+        },
+        {
+          "omega": 1,
+          "real": 1.0,
+          "imag": -1.0,
+          "magnitude": 1.4142135623730951,
+          "phaseDegrees": -45.0,
+          "magnitudeDb": 3.0102999566398125
+        },
+        {
+          "omega": 10,
+          "real": 0.019801980198019802,
+          "imag": -0.19801980198019803,
+          "magnitude": 0.19900743804199786,
+          "phaseDegrees": -84.28940686250037,
+          "magnitudeDb": -14.022613824546802
+        },
+        {
+          "omega": 100,
+          "real": 0.0001999800019998,
+          "imag": -0.01999800019998,
+          "magnitude": 0.019999000074993747,
+          "phaseDegrees": -89.42706130231652,
+          "magnitudeDb": -33.979834359489004
+        }
+      ],
+      "polarCircle": "(Re G-1)^2+(Im G)^2=1; positive frequencies trace lower semicircle from 2 toward 0",
+      "bodeAxes": "logarithmic positive omega vs magnitude dB and phase degrees",
+      "nicholsAxes": "phase degrees horizontal, magnitude dB vertical; both linear scales; omega is parameter"
+    },
+    "forced_response": {
+      "ode": "y_dot+y=2 sin(t); y(0)=0",
+      "exact": "sin(t)-cos(t)+exp(-t)",
+      "steady": "sqrt(2) sin(t-pi/4)",
+      "boundary": "frequency response describes asymptotic sinusoid only when transients decay"
+    },
+    "lead_design": {
+      "plantLoop": "2/[s(s+1)]",
+      "controller": "K(1+s/0.5)/(1+s/2)",
+      "K": 0.35355339059327373,
+      "crossover": 1.0,
+      "phaseDegrees": -98.13010235415598,
+      "phaseMarginDegrees": 81.86989764584402,
+      "closedCoefficients": [
+        0.5,
+        1.5,
+        2.414213562373095,
+        0.7071067811865475
+      ],
+      "routhPositive": true
+    },
+    "phase_boundary": {
+      "G": "1/(s+1)^3",
+      "omega": 10,
+      "continuousPhaseDegrees": -252.86822058750107,
+      "principalPhaseDegrees": 107.13177941249894,
+      "boundary": "branches differ by 360 degrees, unwrap before interpreting continuous phase"
+    },
+    "unstable_counterexample": {
+      "G": "1/(s-1)",
+      "input": "sin(t)",
+      "zeroStateResponse": "(exp(t)-sin(t)-cos(t))/2",
+      "boundary": "G(jw) exists but unstable transient prevents asymptotic sinusoidal steady response"
+    }
+  }
+}

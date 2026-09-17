@@ -1,0 +1,79 @@
+---
+node_id: ctkg_domainconcept_0ad2a338a492e954d3fc5429
+authority_entity_id: "ctkg:domainconcept:0ad2a338a492e954d3fc5429"
+name: "系统灵敏度"
+name_en: "System Sensitivity to Plant Variation"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f5920cdbaad03643ab53477ff750c65c7c58649302d06aff48c19aac345e2afa.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f5920cdbaad03643ab53477ff750c65c7c58649302d06aff48c19aac345e2afa.json"
+asset_refs: []
+---
+
+## 首页
+
+# 系统灵敏度 | System Sensitivity to Plant Variation
+
+**一句话定义**：在固定控制器和规定通道下，系统灵敏度衡量对象传递函数的小相对变化如何传到闭环传递函数。
+
+对象变化与某个物理参数变化不是同一个量，需要保留它们之间的关系。
+
+---
+
+## 详情
+
+### 完整解释
+
+对单位负反馈 $T=CP/(1+CP)$，固定控制器 $C$，把某频率处的对象值 $P$作为变化量，可求得归一化导数 $S_P^T=(P/T)\partial T/\partial P=1/(1+CP)$。它说明反馈如何传递对象的小相对变化。
+
+若实际改变的是参数 $\theta$，还应考虑参数如何影响对象。满足相应可微和非零条件时，可通过链式关系 $S_\theta^T=S_P^T S_\theta^P$理解。不能把对象对所有参数的灵敏度都假定为1，也不能在控制器同时随参数变化时仍只保留对象这一项。
+
+频率响应中的这些量一般是复数，不仅包含幅值变化。讨论某个输出指标时，应明确该指标与传递函数的联系，再作相应分析。
+
+### 教学计算/推理例
+
+取 $P(s)=p/(s+a)$、$C=2$，则 $T=2p/(s+a+2p)$。在名义 $p=a=1$处，系统对对象传递值的相对灵敏度为
+
+$$S_P^T(s)=\frac{s+1}{s+3}.$$
+
+对象对分子标量 $p$的归一化灵敏度为1，因此 $S_p^T=S_P^T$；在直流处为1/3。对象对极点参数 $a$的归一化灵敏度却是 $-a/(s+a)$，链式相乘得到
+
+$$S_a^T(s)=-\frac{a}{s+a+2p}.$$
+
+在同一名义直流点它为-1/3。一个对象的系统灵敏度函数，并不能替代全部参数到闭环的变化关系。
+
+名义模型中，$S_P^T(0)=1/3$，而高频极限趋于1。这表明相对变化传递的程度还与频率有关，不能把一个直流数字称作全频段恒定灵敏度。
+
+### 适用条件与边界
+
+以上关系用于局部微分变化。参数改变较大时，应重新计算对象与闭环；接近零点、极点或其他奇异位置时，归一化与近似也需要谨慎解释。未归一化变化有时比一个发散的相对比值更适合描述问题。
+
+系统稳定不意味着各频率的灵敏度都小。反馈回路接近临界复数点时，$1+CP$可能很小，即使仍稳定也会出现放大。因此减小灵敏度不能只追求一个频率处的增益，而应保留稳定性与其他通道要求。
+
+模型的结构误差也未必能用一个简单标量摄动代表。若参数变化移动多个零极点，或改变控制器本身，应把这些依赖纳入分析。当前函数是一个有明确条件的工具，不是所有不确定性的统一系数。
+
+### 常见误区
+
+1. 误区：$S_P^T$就是每个参数的闭环灵敏度。纠正：还要乘对象对该参数的归一化变化关系。
+2. 误区：直流灵敏度1/3说明所有频率都相同。纠正：本例高频趋于1，频率条件不能省略。
+
+### 自检
+
+1. 本例为什么 $p$与 $a$的闭环灵敏度符号不同？
+2. 如果控制器也依赖同一参数，为什么原推导不再完整？
+
+**核对要点**：参数影响对象的方式不同，链式关系保留了这种差异。控制器变化会带来额外依赖，不能继续按固定控制器只算对象项。
+
+### 关联节点
+
+- **参数变化**（无向，关系：相关）
+- **瞬态响应**（入边，关系：用于分析）
+- **参数不确定性**（无向，关系：相关）

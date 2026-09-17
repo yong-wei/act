@@ -1,0 +1,524 @@
+[
+  {
+    "cardId": "PID控制器_10_cfaedf40",
+    "resourceId": "act:card:PID控制器_10_cfaedf40",
+    "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "PID控制器_6_656b8b52",
+    "resourceId": "act:card:PID控制器_6_656b8b52",
+    "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "PID控制器_8_34f1aeb5",
+    "resourceId": "act:card:PID控制器_8_34f1aeb5",
+    "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "ctc_modeling-57fe9fb7d5fdd731b82b9408",
+    "resourceId": "act:card:ctc_modeling-57fe9fb7d5fdd731b82b9408",
+    "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctc modeling-57fe9fb7d5fdd731b82b9408"
+  },
+  {
+    "cardId": "ctc_modeling-c5b0f0ad36036b531f6bcdec",
+    "resourceId": "act:card:ctc_modeling-c5b0f0ad36036b531f6bcdec",
+    "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctc modeling-c5b0f0ad36036b531f6bcdec"
+  },
+  {
+    "cardId": "ctc_modeling-v2r-split-0045791b9009bbe457f6e17a",
+    "resourceId": "act:card:ctc_modeling-v2r-split-0045791b9009bbe457f6e17a",
+    "canonicalId": "ctc:modeling-v2r-split-0045791b9009bbe457f6e17a",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctc modeling-v2r-split-0045791b9009bbe457f6e17a"
+  },
+  {
+    "cardId": "ctc_v11g-5322cdb3c781cb7b9828732a",
+    "resourceId": "act:card:ctc_v11g-5322cdb3c781cb7b9828732a",
+    "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctc v11g-5322cdb3c781cb7b9828732a"
+  },
+  {
+    "cardId": "ctkg_v3e-canonical-55743366373a5197b074831b",
+    "resourceId": "act:card:ctkg_v3e-canonical-55743366373a5197b074831b",
+    "canonicalId": "ctkg:v3e-canonical-55743366373a5197b074831b",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-canonical-55743366373a5197b074831b"
+  },
+  {
+    "cardId": "ctkg_v3e-canonical-5feb0e2f507966e1ca9ac627",
+    "resourceId": "act:card:ctkg_v3e-canonical-5feb0e2f507966e1ca9ac627",
+    "canonicalId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-canonical-5feb0e2f507966e1ca9ac627"
+  },
+  {
+    "cardId": "ctkg_v3e-canonical-8d347fba98e0aff074800c8e",
+    "resourceId": "act:card:ctkg_v3e-canonical-8d347fba98e0aff074800c8e",
+    "canonicalId": "ctkg:v3e-canonical-8d347fba98e0aff074800c8e",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-canonical-8d347fba98e0aff074800c8e"
+  },
+  {
+    "cardId": "ctkg_v3e-canonical-a2746b2f0c88f376c4d86e7a",
+    "resourceId": "act:card:ctkg_v3e-canonical-a2746b2f0c88f376c4d86e7a",
+    "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-canonical-a2746b2f0c88f376c4d86e7a"
+  },
+  {
+    "cardId": "ctkg_v3e-canonical-ade112ca8305a54c0b76a828",
+    "resourceId": "act:card:ctkg_v3e-canonical-ade112ca8305a54c0b76a828",
+    "canonicalId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-canonical-ade112ca8305a54c0b76a828"
+  },
+  {
+    "cardId": "ctkg_v3e-canonical-eaee7091900b796af8d937c1",
+    "resourceId": "act:card:ctkg_v3e-canonical-eaee7091900b796af8d937c1",
+    "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-canonical-eaee7091900b796af8d937c1"
+  },
+  {
+    "cardId": "ctkg_v3e-object-003aff0599f6e3790bfdb93a",
+    "resourceId": "act:card:ctkg_v3e-object-003aff0599f6e3790bfdb93a",
+    "canonicalId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-003aff0599f6e3790bfdb93a"
+  },
+  {
+    "cardId": "ctkg_v3e-object-16f7c2fa5fc07204ca43c086",
+    "resourceId": "act:card:ctkg_v3e-object-16f7c2fa5fc07204ca43c086",
+    "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-16f7c2fa5fc07204ca43c086"
+  },
+  {
+    "cardId": "ctkg_v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+    "resourceId": "act:card:ctkg_v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+    "canonicalId": "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-1814aa5f9d6ef8ed0ef75dfa"
+  },
+  {
+    "cardId": "ctkg_v3e-object-224a99f37dc359e50c070e54",
+    "resourceId": "act:card:ctkg_v3e-object-224a99f37dc359e50c070e54",
+    "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-224a99f37dc359e50c070e54"
+  },
+  {
+    "cardId": "ctkg_v3e-object-22c09bec3824e6b6d0e4d83b",
+    "resourceId": "act:card:ctkg_v3e-object-22c09bec3824e6b6d0e4d83b",
+    "canonicalId": "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-22c09bec3824e6b6d0e4d83b"
+  },
+  {
+    "cardId": "ctkg_v3e-object-2352b539ff08187f42885709",
+    "resourceId": "act:card:ctkg_v3e-object-2352b539ff08187f42885709",
+    "canonicalId": "ctkg:v3e-object-2352b539ff08187f42885709",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-2352b539ff08187f42885709"
+  },
+  {
+    "cardId": "ctkg_v3e-object-376c29d091d24239e88fc4c4",
+    "resourceId": "act:card:ctkg_v3e-object-376c29d091d24239e88fc4c4",
+    "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-376c29d091d24239e88fc4c4"
+  },
+  {
+    "cardId": "ctkg_v3e-object-3e15ed6ae20f1d1e4d170e57",
+    "resourceId": "act:card:ctkg_v3e-object-3e15ed6ae20f1d1e4d170e57",
+    "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-3e15ed6ae20f1d1e4d170e57"
+  },
+  {
+    "cardId": "ctkg_v3e-object-4f3c574bf5cd52ae72e30600",
+    "resourceId": "act:card:ctkg_v3e-object-4f3c574bf5cd52ae72e30600",
+    "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-4f3c574bf5cd52ae72e30600"
+  },
+  {
+    "cardId": "ctkg_v3e-object-5104f48a9527029987e0519a",
+    "resourceId": "act:card:ctkg_v3e-object-5104f48a9527029987e0519a",
+    "canonicalId": "ctkg:v3e-object-5104f48a9527029987e0519a",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-5104f48a9527029987e0519a"
+  },
+  {
+    "cardId": "ctkg_v3e-object-58de4bcc9bc42be0ce31abb7",
+    "resourceId": "act:card:ctkg_v3e-object-58de4bcc9bc42be0ce31abb7",
+    "canonicalId": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-58de4bcc9bc42be0ce31abb7"
+  },
+  {
+    "cardId": "ctkg_v3e-object-655c25a7c9e926bc0004b983",
+    "resourceId": "act:card:ctkg_v3e-object-655c25a7c9e926bc0004b983",
+    "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-655c25a7c9e926bc0004b983"
+  },
+  {
+    "cardId": "ctkg_v3e-object-7e274b7e5ef258bd54400783",
+    "resourceId": "act:card:ctkg_v3e-object-7e274b7e5ef258bd54400783",
+    "canonicalId": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-7e274b7e5ef258bd54400783"
+  },
+  {
+    "cardId": "ctkg_v3e-object-8496155b16d82318d90949d0",
+    "resourceId": "act:card:ctkg_v3e-object-8496155b16d82318d90949d0",
+    "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-8496155b16d82318d90949d0"
+  },
+  {
+    "cardId": "ctkg_v3e-object-87119ed807a83a53c1444215",
+    "resourceId": "act:card:ctkg_v3e-object-87119ed807a83a53c1444215",
+    "canonicalId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-87119ed807a83a53c1444215"
+  },
+  {
+    "cardId": "ctkg_v3e-object-ac5da367d445afc46b4baca3",
+    "resourceId": "act:card:ctkg_v3e-object-ac5da367d445afc46b4baca3",
+    "canonicalId": "ctkg:v3e-object-ac5da367d445afc46b4baca3",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-ac5da367d445afc46b4baca3"
+  },
+  {
+    "cardId": "ctkg_v3e-object-ca9a0f1d11f07f2bbd471a38",
+    "resourceId": "act:card:ctkg_v3e-object-ca9a0f1d11f07f2bbd471a38",
+    "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-ca9a0f1d11f07f2bbd471a38"
+  },
+  {
+    "cardId": "ctkg_v3e-object-d09d1eba56a786a96d39d085",
+    "resourceId": "act:card:ctkg_v3e-object-d09d1eba56a786a96d39d085",
+    "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-d09d1eba56a786a96d39d085"
+  },
+  {
+    "cardId": "ctkg_v3e-object-dcb227bd6a2bb08a122e52d0",
+    "resourceId": "act:card:ctkg_v3e-object-dcb227bd6a2bb08a122e52d0",
+    "canonicalId": "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-dcb227bd6a2bb08a122e52d0"
+  },
+  {
+    "cardId": "ctkg_v3e-object-fb97ed4cffee0e2317af990e",
+    "resourceId": "act:card:ctkg_v3e-object-fb97ed4cffee0e2317af990e",
+    "canonicalId": "ctkg:v3e-object-fb97ed4cffee0e2317af990e",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-fb97ed4cffee0e2317af990e"
+  },
+  {
+    "cardId": "ctkg_v3e-object-fbebd7b09546031f82f974ed",
+    "resourceId": "act:card:ctkg_v3e-object-fbebd7b09546031f82f974ed",
+    "canonicalId": "ctkg:v3e-object-fbebd7b09546031f82f974ed",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "ctkg v3e-object-fbebd7b09546031f82f974ed"
+  },
+  {
+    "cardId": "单位脉冲函数_3_8a68d227",
+    "resourceId": "act:card:单位脉冲函数_3_8a68d227",
+    "canonicalId": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "奈奎斯特曲线_5_deaa0845",
+    "resourceId": "act:card:奈奎斯特曲线_5_deaa0845",
+    "canonicalId": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": "奈奎斯特曲线"
+  },
+  {
+    "cardId": "带宽频率_5_6996a44a",
+    "resourceId": "act:card:带宽频率_5_6996a44a",
+    "canonicalId": "ctkg:v3e-object-13e696ca025028445460f1df",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "带宽频率_6_8857a560",
+    "resourceId": "act:card:带宽频率_6_8857a560",
+    "canonicalId": "ctkg:v3e-object-13e696ca025028445460f1df",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "平衡状态_8_87899074",
+    "resourceId": "act:card:平衡状态_8_87899074",
+    "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "开环增益_1_3",
+    "resourceId": "act:card:开环增益_1_3",
+    "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "开环增益_3_d73dc120",
+    "resourceId": "act:card:开环增益_3_d73dc120",
+    "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "开环增益_6_9a930dd7",
+    "resourceId": "act:card:开环增益_6_9a930dd7",
+    "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "描述函数法_8_849fa8a1",
+    "resourceId": "act:card:描述函数法_8_849fa8a1",
+    "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "根轨迹_1_1",
+    "resourceId": "act:card:根轨迹_1_1",
+    "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "根轨迹_4_c19f8854",
+    "resourceId": "act:card:根轨迹_4_c19f8854",
+    "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "特征方程_1_2",
+    "resourceId": "act:card:特征方程_1_2",
+    "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "状态转移矩阵_9_dca84f8f",
+    "resourceId": "act:card:状态转移矩阵_9_dca84f8f",
+    "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "稳态误差_1_a34b94a7",
+    "resourceId": "act:card:稳态误差_1_a34b94a7",
+    "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "稳态误差_3_c0207063",
+    "resourceId": "act:card:稳态误差_3_c0207063",
+    "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "稳态误差_4_ef410c98",
+    "resourceId": "act:card:稳态误差_4_ef410c98",
+    "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "稳态误差_7_18e1e095",
+    "resourceId": "act:card:稳态误差_7_18e1e095",
+    "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "稳态跟踪误差_3_48c882fd",
+    "resourceId": "act:card:稳态跟踪误差_3_48c882fd",
+    "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "稳态跟踪误差_7_222f853d",
+    "resourceId": "act:card:稳态跟踪误差_7_222f853d",
+    "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "稳态跟踪误差_9_73c6314b",
+    "resourceId": "act:card:稳态跟踪误差_9_73c6314b",
+    "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "穿越频率_5_c4c2b93c",
+    "resourceId": "act:card:穿越频率_5_c4c2b93c",
+    "canonicalId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "等效开环传递函数_6_4575b989",
+    "resourceId": "act:card:等效开环传递函数_6_4575b989",
+    "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "阻尼比_3_b849784e",
+    "resourceId": "act:card:阻尼比_3_b849784e",
+    "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+    "active": true,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  },
+  {
+    "cardId": "阻尼比_4_bf7557b3",
+    "resourceId": "act:card:阻尼比_4_bf7557b3",
+    "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+    "active": false,
+    "required": false,
+    "sourcePath": null,
+    "title": null
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_core_damping_eleven",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "cardHashes": {
+    "ctc:v11g-11d00d2120a83f5e05efdb6e": "b4c5a848aa2be3680016335a7024490e185034025a7b596465be1843e4d1a901",
+    "ctc:v12g-b536959708e2d0fe3c8c791a": "51740f9473a8690246fe583db49fdbbd7c7bd938dd5a361df0c6265972ae95d4",
+    "ctkg:v3e-canonical-15b23d588244f407f6ed4b35": "5580ca076735f9c34ba78c3c62b906eb567827a48a09776cf4a64fde01c7f37a",
+    "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830": "a3941be03ce79fe861208273864e9ae7050453a52750769945090735a5bd2d7f",
+    "ctkg:v3e-canonical-40d0c236680874a1246a0536": "62f08756bb02f9f6af2619e74bbcc97e2f8b49ed8969b1b7e529bc6611930ecd",
+    "ctkg:v3e-canonical-6bb580c242f908566ab53b18": "22204426ac80db1fe2bb75e850f3e4ce5d0195369fc7ab9e0dbac8ca7108cb9f",
+    "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1": "93c9ddfe2888235f7f41584dcaf484431654021319338bcf6dd42471bd5f2efd",
+    "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb": "74fa5238d06e8b2502e125f1b2080867777bde60ab72a0715d5f117d26789edf",
+    "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98": "8f31dfd60336f0d7acf38a6ef35d55fff67384f530fd2f8a1acea6f24bcf029e",
+    "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55": "3bb8f3771ad118618b04ea77ccbfe0e0aab8fd465562158201c3af631703beb5",
+    "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f": "cc4ff12b15f5da095237090ef9529d6b4af405fb6654b4493af132a16729fcb7"
+  }
+}

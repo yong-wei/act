@@ -1,0 +1,83 @@
+{
+  "batchId": "teaching-core-27a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-27",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-c64dfb875b6343ff32d0acb2",
+      "name": "库仑干摩擦模型",
+      "moduleId": "module-5",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+      "name": "迟滞非线性",
+      "moduleId": "module-5",
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+      "name": "非线性系统",
+      "moduleId": "module-5",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+      "name": "饱和非线性",
+      "moduleId": "module-4",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+      "name": "死区",
+      "moduleId": "module-5",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "name": "摩擦特性",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+      "name": "继电器",
+      "moduleId": "module-5",
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "name": "间隙特性",
+      "moduleId": "module-5",
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "name": "饱和特性",
+      "moduleId": null,
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+      "name": "库仑加粘性摩擦",
+      "moduleId": "module-5",
+      "order": 10
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "name": "死区特性",
+      "moduleId": null,
+      "order": 11
+    }
+  ],
+  "accepted": true
+}

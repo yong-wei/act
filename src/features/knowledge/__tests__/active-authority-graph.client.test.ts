@@ -1396,7 +1396,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(resources?.querySelector('[data-active-resource-kind="信息图"]')).toBeNull();
   });
 
-  it('renders latex in the inspector description and knowledge card', async () => {
+  it('renders latex in the inspector knowledge card homepage and hides the graph default while a card is present', async () => {
     detailDescriptionOverride = '系统用 $G(s)$ 描述输入到输出的关系。';
     detailCardFieldOverride = {
       summary: '传递函数为 $G(s)$。',
@@ -1416,6 +1416,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(inspector?.querySelector('.katex')).not.toBeNull();
     expect(inspector?.querySelector('[aria-labelledby="active-detail-card"] .katex')).not.toBeNull();
     expect(inspector?.textContent).not.toContain('$G(s)$');
+    expect(inspector?.textContent).not.toContain('系统用');
+    expect(inspector?.querySelector('[data-inspector-card-detail]')).toBeNull();
   });
 
   it('reveals current one-hop types and model relations before neighborhood and detail return', async () => {
@@ -1609,6 +1611,8 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     expect(container.textContent).toContain('知识卡');
     expect(container.textContent).toContain('稳定性描述用于判断系统响应是否收敛。');
+    expect(container.textContent).toContain('先观察响应，再判断稳定性。');
+    expect(container.textContent).not.toContain('稳定性反映系统在扰动后的响应趋势。');
     expect(container.querySelector('img[alt="稳定性 信息图"]')).not.toBeNull();
     expect(container.textContent).not.toContain('internal-release');
     expect(container.textContent).not.toContain('internal-snapshot');
@@ -1622,8 +1626,31 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(imageUrl.pathname).not.toBe('/_next/image');
     await act(async () => image?.dispatchEvent(new Event('error')));
     expect(container.textContent).not.toContain('当前信息图暂时不可用。');
-    expect(container.textContent).toContain('稳定性反映系统在扰动后的响应趋势。');
     expect(container.querySelector('[aria-labelledby="active-detail-infograph"]')).toBeNull();
+
+    const toggle = container.querySelector<HTMLButtonElement>('[data-inspector-card-detail-toggle]');
+    expect(toggle).not.toBeNull();
+    await act(async () => toggle!.click());
+    expect(container.textContent).toContain('稳定性反映系统在扰动后的响应趋势。');
+  });
+
+  it('shows the graph default description when the node has no published teaching card', async () => {
+    detailLearningContentMode = 'unavailable';
+    detailDescriptionOverride = '图谱默认描述XYZ';
+    await act(async () => {
+      root.render(createElement(KnowledgeGraphWorkspace, {
+        viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+      }));
+    });
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const inspector = container.querySelector('[data-active-node-detail="node-concept"]');
+    expect(inspector?.textContent).toContain('图谱默认描述XYZ');
+    expect(inspector?.querySelector('[aria-labelledby="active-detail-card"]')).toBeNull();
+    expect(inspector?.querySelector('[data-inspector-card-detail-toggle]')).toBeNull();
   });
 
   it('omits optional learning panels when the current Teaching envelope is unavailable', async () => {

@@ -176,7 +176,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/传递函数_1_2.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md"
       ],
       "tags": [
         "传递函数",
@@ -231,7 +231,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/信号流图_1_2.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-9121dc2c97afa77f52ce0220.md"
       ],
       "tags": [
         "信号流图",
@@ -413,7 +413,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/建模_1_2.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-348746457d644126ff8ecf77.md"
       ],
       "tags": [
         "建模",
@@ -526,7 +526,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/拉氏变换_1_2.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-8c4354096b719a1d5e090da4.md"
       ],
       "tags": [
         "拉氏变换",
@@ -813,7 +813,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/极点_1_2.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-47995819305793bf4c946953.md"
       ],
       "tags": [
         "极点",
@@ -871,7 +871,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/模型结构相似性_1_2.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-1b36aff609b370e792d9dee6.md"
       ],
       "tags": [
         "模型迁移",

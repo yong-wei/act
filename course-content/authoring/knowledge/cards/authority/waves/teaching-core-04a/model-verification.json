@@ -1,0 +1,431 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "state_variables": {
+      "system": "q_ddot=u",
+      "state": "x=[q,v], v=q_dot",
+      "A": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "B": [
+        [
+          0.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "C": [
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "stateAndTime": "dimensionless teaching model",
+      "sameInputDifferentState": "u=0: [q0,v0]=[0,0] gives q=0; [0,1] gives q=t",
+      "boundary": "position alone does not determine future position; state coordinates need not be unique"
+    },
+    "complete_reachability": {
+      "A": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "B": [
+        [
+          0.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "initialState": [
+        0,
+        0
+      ],
+      "targetState": [
+        1,
+        0
+      ],
+      "horizon": 1,
+      "input": "u(t)=6-12t",
+      "trajectory": [
+        "3t^2-2t^3",
+        "6t-6t^2"
+      ],
+      "controllabilityMatrix": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "rank": 2,
+      "gramianAt1": [
+        [
+          0.3333333333333333,
+          0.5
+        ],
+        [
+          0.5,
+          1.0
+        ]
+      ],
+      "boundary": "finite-dimensional continuous LTI system with unconstrained input; actuator bounds can invalidate this specific maneuver"
+    },
+    "jordan": {
+      "transfer": "1/(s+1)^2",
+      "A": [
+        [
+          -1.0,
+          1.0
+        ],
+        [
+          0.0,
+          -1.0
+        ]
+      ],
+      "B": [
+        [
+          0.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "C": [
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "transition": "exp(-t)*[[1,t],[0,1]]",
+      "zeroInputFrom0_1": [
+        "t exp(-t)",
+        "exp(-t)"
+      ],
+      "boundary": "a repeated eigenvalue alone does not require a nontrivial Jordan block; -I is diagonalizable, unlike this minimal repeated-pole realization"
+    },
+    "collocation": {
+      "mechanicalEquation": "q_ddot+q_dot+2q=u",
+      "feedback": "u=-2 q_dot",
+      "sensingAndActuation": "same mass, same mechanical point; force actuator and velocity sensor",
+      "closedEquation": "q_ddot+3q_dot+2q=0",
+      "poles": [
+        -1,
+        -2
+      ],
+      "energy": "E=0.5 q_dot^2+q^2",
+      "energyDerivative": "-3 q_dot^2",
+      "boundary": "ideal static negative velocity feedback without delay or saturation; collocation alone is not a universal guarantee for arbitrary controllers"
+    },
+    "estimation_error": {
+      "A": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "B": [
+        [
+          0.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "C": [
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "L": [
+        [
+          9.0
+        ],
+        [
+          20.0
+        ]
+      ],
+      "definition": "e=x-x_hat",
+      "observer": "x_hat_dot=A x_hat+B u+L(y-C x_hat)",
+      "errorMatrix": [
+        [
+          -9.0,
+          1.0
+        ],
+        [
+          -20.0,
+          0.0
+        ]
+      ],
+      "errorPoles": [
+        -4,
+        -5
+      ],
+      "actualInitial": [
+        1,
+        0
+      ],
+      "estimatedInitial": [
+        0,
+        0
+      ],
+      "input": 1,
+      "boundary": "same known input, exact model and noiseless measurement; with additive measurement noise n the error equation includes -L n"
+    },
+    "pbh": {
+      "A": [
+        [
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -2.0
+        ]
+      ],
+      "B": [
+        [
+          1.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "C": [
+        [
+          1.0,
+          1.0
+        ]
+      ],
+      "checks": [
+        {
+          "eigenvalue": -1.0,
+          "controllabilityRank": 2,
+          "observabilityRank": 2
+        },
+        {
+          "eigenvalue": -2.0,
+          "controllabilityRank": 1,
+          "observabilityRank": 2
+        }
+      ],
+      "criterion": "rank[lambda I-A,B]=n; rank[[lambda I-A],[C]]=n at every eigenvalue",
+      "boundary": "use complex rank for complex eigenvalues; stable inaccessible mode is still inaccessible"
+    },
+    "rank_criterion": {
+      "A": [
+        [
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -2.0
+        ]
+      ],
+      "B": [
+        [
+          1.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "controllabilityMatrix": [
+        [
+          1.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "rank": 1,
+      "unreachableState": "x2 cannot be assigned by u; x2(t)=exp(-2t)x2(0)",
+      "controllableAlternativeB": [
+        [
+          1.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "alternativeRank": 2,
+      "boundary": "input coefficient B alone is insufficient; propagation through A also matters"
+    },
+    "pole_placement": {
+      "A": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "B": [
+        [
+          0.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "feedback": "u=-Kx",
+      "K": [
+        [
+          12.0,
+          7.0
+        ]
+      ],
+      "desiredPoles": [
+        -3,
+        -4
+      ],
+      "closedMatrix": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          -12.0,
+          -7.0
+        ]
+      ],
+      "characteristic": "s^2+7s+12",
+      "boundary": "full-state feedback and controllable pair; no claim of actuator limits or tracking without a reference design"
+    },
+    "diagonal_criterion": {
+      "distinctA": [
+        [
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -2.0
+        ]
+      ],
+      "goodB": [
+        [
+          1.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "badB": [
+        [
+          1.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "goodC": [
+        [
+          1.0,
+          1.0
+        ]
+      ],
+      "badC": [
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "rule": "with distinct eigenvalues in diagonal coordinates, no all-zero B row for controllability, no all-zero C column for observability",
+      "repeatedCounterexample": {
+        "A": [
+          [
+            -1.0,
+            -0.0
+          ],
+          [
+            -0.0,
+            -1.0
+          ]
+        ],
+        "B": [
+          [
+            1.0
+          ],
+          [
+            1.0
+          ]
+        ],
+        "controllabilityRank": 1
+      },
+      "boundary": "test applies to transformed B,C, and distinct eigenvalues; nonzero rows alone fail for repeated eigenvalues"
+    },
+    "output_controllability": {
+      "A": [
+        [
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -2.0
+        ]
+      ],
+      "B": [
+        [
+          1.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "D": 0,
+      "outputC": [
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "stateControllabilityRank": 1,
+      "outputControllabilityMatrix": [
+        [
+          1,
+          -1
+        ]
+      ],
+      "outputRank": 1,
+      "outputDimension": 1,
+      "uncontrollableOutputC": [
+        [
+          0.0,
+          1.0
+        ]
+      ],
+      "uncontrollableOutputRank": 0,
+      "boundary": "strictly proper model D=0, unconstrained input, finite horizon; output controllability does not imply full state controllability or observability"
+    }
+  }
+}

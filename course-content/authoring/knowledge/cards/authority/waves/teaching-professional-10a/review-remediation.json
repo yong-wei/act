@@ -1,0 +1,13 @@
+{
+  "status": "resolved",
+  "decision": "ACCEPT",
+  "issue": "Required section marker absent; existing stability/boundary prose unchanged",
+  "change": {
+    "oldHeading": "### 稳定性与可实现性",
+    "newHeading": "### 适用条件与边界"
+  },
+  "beforeSha256": "cba835fa3f8f247df35097cc8ec7c088c811f85b21eb530c384730f8d92a3b21",
+  "afterSha256": "42b26a48095a87af141e457ea2084d6f7f89a9a949177c7feb8a0fa75bd4527c",
+  "scope": "01.md single heading and corresponding materialized authoring node",
+  "targetedRereview": "Original reviewer verified sole heading substitution and both hashes; no new P0/P1."
+}

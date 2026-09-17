@@ -1,0 +1,167 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:d1e4537e013e1bf90e36b8e6",
+          "otherId": "ctkg:domainconcept:ad75410e5a16550ce25a6d8a",
+          "label": "一拍系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **一拍系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:3a18c6a2be51da766ca48a59",
+          "otherId": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
+          "label": "无纹波最小拍系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无纹波最小拍系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:is_a:65e1134999561c2903ac904d",
+          "otherId": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
+          "label": "无纹波最小拍系统",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **无纹波最小拍系统**（入边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:364221ded81ca2a0139d013a",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:c6369067ec8030897d0bebdf",
+          "otherId": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+          "label": "最小拍系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **最小拍系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:d20c847c72e5faf15fd88df2",
+          "otherId": "ctkg:domainconcept:60729cbdf747b39c2ff781bb",
+          "label": "直接z域补偿器设计方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **直接z域补偿器设计方法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:b41fdd1c1e41c5d353abddea",
+          "otherId": "ctkg:domainconcept:1126ce54b22f0fafb3f6e916",
+          "label": "无纹波最小拍系统设计方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无纹波最小拍系统设计方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:357a51cbd9882d80503815d3",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:2229152f37769c0299657845",
+          "otherId": "ctkg:domainconcept:48988e52fe44c4738e0647cf",
+          "label": "闭环脉冲传递函数 Φ(z)",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **闭环脉冲传递函数 Φ(z)**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:e64c6ad0fa1d0483faf9aa7c",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:24ae5f0bd1e12ecb77a5133e",
+          "otherId": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
+          "label": "无纹波最小拍系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无纹波最小拍系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:c350e4830f21858a16e4bdb6",
+          "otherId": "ctkg:domainconcept:1126ce54b22f0fafb3f6e916",
+          "label": "无纹波最小拍系统设计方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无纹波最小拍系统设计方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:24ae5f0bd1e12ecb77a5133e",
+          "otherId": "ctkg:domainconcept:e64c6ad0fa1d0483faf9aa7c",
+          "label": "纹波",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **纹波**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:3a18c6a2be51da766ca48a59",
+          "otherId": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+          "label": "最小拍系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **最小拍系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:is_a:65e1134999561c2903ac904d",
+          "otherId": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+          "label": "最小拍系统",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **最小拍系统**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:1126ce54b22f0fafb3f6e916",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:c350e4830f21858a16e4bdb6",
+          "otherId": "ctkg:domainconcept:e64c6ad0fa1d0483faf9aa7c",
+          "label": "纹波",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **纹波**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:fb70a9976d021c4e03f2b6a1",
+          "otherId": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
+          "label": "无纹波最小拍系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无纹波最小拍系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:b41fdd1c1e41c5d353abddea",
+          "otherId": "ctkg:domainconcept:364221ded81ca2a0139d013a",
+          "label": "最小拍系统设计方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **最小拍系统设计方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:ad75410e5a16550ce25a6d8a",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:d1e4537e013e1bf90e36b8e6",
+          "otherId": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+          "label": "最小拍系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **最小拍系统**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

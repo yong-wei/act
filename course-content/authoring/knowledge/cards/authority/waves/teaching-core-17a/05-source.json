@@ -1,0 +1,277 @@
+{
+  "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctc:v11g-e73425ff41e0f022a641c4cd",
+      "canonicalType": "DomainConcept",
+      "label": "前向通路首1根轨迹增益",
+      "aliases": [
+        "归一化前向增益"
+      ],
+      "description": "前向通路传递函数中分子多项式最高项系数归一化后的增益，记为K_G*。",
+      "teachingFields": {
+        "concept_kind": "mathematical_object"
+      },
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctc:modeling-00d2998755974a1329049aac",
+        "canonicalType": "DomainConcept",
+        "label": "增益",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+        "canonicalType": "DomainConcept",
+        "label": "反馈路径根轨迹增益",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "root-locus",
+            "visualRole": "root-locus",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "mathematical_object"
+      },
+      {
+        "id": "ctc:v11g-73552d8da29fbd2073b5f21a",
+        "canonicalType": "DomainConcept",
+        "label": "前向通路时间常数增益",
+        "aliases": [
+          "时间常数增益"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "root-locus",
+            "visualRole": "root-locus",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "mathematical_object"
+      },
+      {
+        "id": "ctc:v11g-e73425ff41e0f022a641c4cd",
+        "canonicalType": "DomainConcept",
+        "label": "前向通路首1根轨迹增益",
+        "aliases": [
+          "归一化前向增益"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "root-locus",
+            "visualRole": "root-locus",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "mathematical_object"
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:m4-u2u5:prerequisite:7c27a386da6cd4689718b344",
+        "predicate": "prerequisite",
+        "sourceId": "ctc:modeling-00d2998755974a1329049aac",
+        "targetId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+        "direction": "earlier_to_later",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "prerequisite-order"
+      },
+      {
+        "id": "ctkg:m5-d1:association:38e9470a325418eb99f7acad",
+        "predicate": "association",
+        "sourceId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+        "targetId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:d791d86a64f1fcf4f568079e",
+        "predicate": "association",
+        "sourceId": "ctc:v11g-73552d8da29fbd2073b5f21a",
+        "targetId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctr:m1e-bridge-relation-125e5a7c76a9c082319af337",
+        "predicate": "is_a",
+        "sourceId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+        "targetId": "ctc:modeling-00d2998755974a1329049aac",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      }
+    ],
+    "boundaries": []
+  }
+}

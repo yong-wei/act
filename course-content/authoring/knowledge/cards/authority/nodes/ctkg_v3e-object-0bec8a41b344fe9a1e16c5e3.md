@@ -1,50 +1,82 @@
 ---
 node_id: ctkg_v3e-object-0bec8a41b344fe9a1e16c5e3
 authority_entity_id: "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3"
-name: Hysteresis Nonlinearity
+name: "迟滞非线性"
+name_en: "Hysteresis Nonlinearity"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - Hysteresis
-  - Nonlinearity
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-4a8bfe8453f4773891535b199f38559f813087fb1aa2daefba52e931de7cc257.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-4a8bfe8453f4773891535b199f38559f813087fb1aa2daefba52e931de7cc257.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/previous/ctkg_v3e-object-0bec8a41b344fe9a1e16c5e3.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 6d58c460f88d24e62e8bae2ca4e84224d64079bc4cd99d2e784eea3606f66cc3 -->
-
 ## 首页
+# 迟滞非线性 | Hysteresis Nonlinearity
 
-# Hysteresis Nonlinearity
+一句话定义：迟滞非线性的输出不仅取决于当前输入，还取决于输入变化历史或内部状态，相同输入可以对应不同输出。
 
-**一句话定义**：Hysteresis Nonlinearity：Hysteresis Nonlinearity
-
-**关联**：前置 → Schmitt Trigger · 后续 → Schmitt Trigger
+- 迟滞必须给出状态与初始条件。
+- 上升和下降过程可具有不同切换阈值。
+- 迟滞与无记忆死区、饱和不是同一特性。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-Hysteresis Nonlinearity
+无记忆非线性可写成单值函数 $y=f(u)$；迟滞则通常需要状态 $q$，例如 $y=g(u,q)$，并说明 $q$ 如何随输入更新。只画一条普通输入输出函数而不保留分支，不能表达同一输入在不同历史下的不同输出。
+
+一个简单例子是带迟滞继电器。设输出只有 $+2$ 和 $-2$ 两个状态，上切换阈值为0.5，下切换阈值为 $-0.5$。本例约定：输入达到或超过上阈值时置为 $+2$；达到或低于下阈值时置为 $-2$；严格处于两阈值之间时保持旧状态。
+
+这样的双阈值结构使小幅输入波动未必引起反复切换。它并非简单把中间区间输出设为0：带内输出仍为历史保留的一个状态。这是它与死区最直接的区别。
+
+### 教学计算/推理例
+
+给定初始状态为 $-2$，依次施加输入序列
+
+$$
+u: 0,\ 0.6,\ 0,\ -0.6,\ 0,\ 0.6.
+$$
+
+按上述规则，输出依次为
+
+$$
+y: -2,\ 2,\ 2,\ -2,\ -2,\ 2.
+$$
+
+输入第一次为0时输出 $-2$；经过0.6后回到0，输出仍为2；再经过 $-0.6$ 后回到0，输出变为 $-2$。同一个输入0对应两种输出，差异完全由历史状态解释。
+
+如果遗漏初态，只给出“当前输入为0”，就无法唯一决定输出。如果将带内规则错写成 $y=0$，得到的将是另一个三值静态元件，而不再是本例两状态迟滞继电器。教学或程序实现都应明确相等阈值时的处理规则，避免边界含糊。
+
+### 适用条件与边界
+
+继电迟滞是示例，不代表所有迟滞都只有两个离散状态。磁滞、机械间隙和材料记忆可能具有连续分支或更复杂的历史依赖。某些模型还依赖变化速率，不能从本例无速率参数推断实际迟滞一律与速度无关。
+
+双阈值可减少阈值附近噪声引起的切换，但若噪声跨越两个阈值，输出仍会切换。阈值差还会改变控制精度和响应行为，因此“迟滞越大越好”也不成立。系统稳定性与周期振荡应结合整个反馈回路分析，不能单凭这条元件特性决定。
+
+### 常见误区
+
+1. 把带内保持旧值写成带内输出为0。
+2. 未给初态就声称任何输入都唯一决定输出。
+3. 将迟滞的双阈值作用当成任意幅度噪声下不切换的保证。
+
+### 自检
+
+1. 当前输入0.2、旧输出2，按本例规则新输出是多少？
+2. 同样输入0.2、旧输出 $-2$，结果是否相同？
+
+**核对要点**：0.2位于保持区，前者保持2，后者保持 $-2$；这正体现了历史依赖。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Schmitt Trigger | 是一种 |
-| 后续 | Schmitt Trigger | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Hysteresis、Nonlinearity
+- **施密特触发器**（出边，关系：前置于）
+- **施密特触发器**（入边，关系：属于）
+- **施密特触发器**（无向，关系：相关）

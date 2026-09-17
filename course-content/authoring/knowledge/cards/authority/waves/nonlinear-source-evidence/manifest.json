@@ -1,0 +1,54 @@
+{
+  "status": "captured",
+  "sourceMeaning": "Original public evidence refs reconstructed by readonly investigation; original private source-span package unavailable",
+  "excerpts": [
+    {
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/nonlinear-source-evidence/hu8-integral-inverse.md",
+      "sha256": "18aabe4a006f288f6fa8afdc1fb9126f3db461c8bbec51c9993d9d571a09873e",
+      "sourceRelativePath": "course-content/authoring/resources/textbooks/hu-shousong-auto-control-8th/chapter-08/textbook.md",
+      "sourceCheckout": "ACT main checkout; original file is not present in this resource worktree",
+      "originalFileSha256": "9099b578a62641e4fea099cbbab1feb89fb4332b880f64abfb9f90176742c1a0",
+      "lineRange": [
+        1904,
+        1934
+      ],
+      "captureKind": "exact Markdown text excerpt; referenced media not copied"
+    },
+    {
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/nonlinear-source-evidence/hu8-integrator-anti-windup.md",
+      "sha256": "a56b9f05b08d82b651d479a5f22a14cd977585857eaba7dda05234fd2a411eb1",
+      "sourceRelativePath": "course-content/authoring/resources/textbooks/hu-shousong-auto-control-8th/chapter-08/textbook.md",
+      "sourceCheckout": "ACT main checkout; original file is not present in this resource worktree",
+      "originalFileSha256": "9099b578a62641e4fea099cbbab1feb89fb4332b880f64abfb9f90176742c1a0",
+      "lineRange": [
+        2465,
+        2478
+      ],
+      "captureKind": "exact Markdown text excerpt; referenced media not copied"
+    },
+    {
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/nonlinear-source-evidence/franklin-strict-passive-impedance.md",
+      "sha256": "6a46e32d13be687afdfdcca7b48211a6906ec33a1ac4d3c52033a14e99724ec3",
+      "sourceRelativePath": "course-content/authoring/resources/textbooks/feedback-control-of-dynamic-systems/chapter-09/textbook.md",
+      "sourceCheckout": "ACT main checkout; original file is not present in this resource worktree",
+      "originalFileSha256": "a64bb968039b9a1b61ac8c324b5613c19c36655fadaac5620bec1f9f107c824b",
+      "lineRange": [
+        1725,
+        1740
+      ],
+      "captureKind": "exact Markdown text excerpt; referenced media not copied"
+    },
+    {
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/nonlinear-source-evidence/franklin-sector-shift.md",
+      "sha256": "3b53d82061a89356ae178827b39c5522c1f42467c99626bdfdb1f4bdad9f5402",
+      "sourceRelativePath": "course-content/authoring/resources/textbooks/feedback-control-of-dynamic-systems/chapter-09/textbook.md",
+      "sourceCheckout": "ACT main checkout; original file is not present in this resource worktree",
+      "originalFileSha256": "a64bb968039b9a1b61ac8c324b5613c19c36655fadaac5620bec1f9f107c824b",
+      "lineRange": [
+        1778,
+        1795
+      ],
+      "captureKind": "exact Markdown text excerpt; referenced media not copied"
+    }
+  ]
+}

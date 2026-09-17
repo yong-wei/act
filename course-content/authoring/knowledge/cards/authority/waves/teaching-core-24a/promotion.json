@@ -1,0 +1,14 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 6,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b35",
+  "retiredResources": [
+    "act:card:对数幅相曲线_5_891ca8c5",
+    "act:card:幅相频率特性曲线_5_018eef00",
+    "act:card:开环幅相特性曲线_5_fd86e289",
+    "act:card:频域分析_2_2e257d89",
+    "act:card:频域分析法_5_e5f3e350",
+    "act:card:频率响应法_5_1c7f0705",
+    "act:card:对数频率特性曲线_5_75c6945f"
+  ]
+}

@@ -1,0 +1,280 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:9499eb0030323926d1377185",
+          "otherId": "ctkg:v3e-object-c44c33ab59ce32f3a260d687",
+          "label": "2%准则下的调节时间",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **2%准则下的调节时间**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:cf8d9e943b91b858900aa7b3",
+          "otherId": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+          "label": "阶跃响应百分比超调量",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **阶跃响应百分比超调量**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:540b670e0bd1d87b2412419e",
+          "otherId": "m1r-v1d:object:84f8c0ae440c857460a505b3",
+          "label": "基于调节时间的 ω_n 选择",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **基于调节时间的 ω_n 选择**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:98afca8a05c9a9d908f08cb5",
+          "otherId": "ctkg:v3e-object-5c04a71914f42217047a20bf",
+          "label": "振荡周期",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **振荡周期**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:c8384aedfbd5ddd2d0f0d769",
+          "otherId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+          "label": "增益裕度",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **增益裕度**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:803b2dde9da2de1710452ba6",
+          "otherId": "ctkg:v3e-canonical-cdaeaeb76fbe3feb33aa40b3",
+          "label": "无阻尼自然频率 ω_n",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无阻尼自然频率 ω_n**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:2ad3696d73d30db56d0bc030",
+          "otherId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+          "label": "瞬态响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **瞬态响应**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:29a58971ef7214a158948e44",
+          "otherId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+          "label": "正弦稳态响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **正弦稳态响应**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:8941bbd26923a40f6bab8658",
+          "otherId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+          "label": "稳态误差e_ss",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **稳态误差e_ss**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-v3e-relation-25ca462bcbc935e3d43ca55c",
+          "otherId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+          "label": "动态性能指标",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **动态性能指标**（入边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:f2e5654ae968c5ca1d3c779d",
+          "otherId": "ctkg:v3e-object-7fd09957133988dbf413a2df",
+          "label": "时域法校正",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **时域法校正**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-7f1aba5005daf1165c899859",
+          "otherId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+          "label": "动态性能指标",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **动态性能指标**（入边，关系：包含组件）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:7b7febb989c64bd664ba2333",
+          "otherId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+          "label": "调节时间 t_s",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **调节时间 t_s**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-v3e-relation-c3f29f744624dd2d3000e265",
+          "otherId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+          "label": "动态性能指标",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **动态性能指标**（入边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:3f5bd9790dbe3f90cbc16b45",
+          "otherId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+          "label": "调节时间 t_s",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **调节时间 t_s**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:46ede18e5f4b727784926e40",
+          "otherId": "ctkg:v3e-canonical-9cfc0f6b382440f46c1f3302",
+          "label": "上升时间 T_r",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **上升时间 T_r**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:f38a74378672c3b79c181a2c",
+          "otherId": "ctkg:v3e-canonical-b13c33b1236afe625bffacb7",
+          "label": "调节时间 T_s",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **调节时间 T_s**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:35bdbd3ce97ff44cd6c2f613",
+          "otherId": "ctkg:v3e-canonical-d970bf0f83666cbccb0fbd76",
+          "label": "稳态",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **稳态**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:2ad3696d73d30db56d0bc030",
+          "otherId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+          "label": "稳态响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **稳态响应**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1p:v7r-rel-baf41320ff117e82ea6aec88",
+          "otherId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+          "label": "系统灵敏度",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **系统灵敏度**（出边，关系：用于分析）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:32bb013b7d778ccaa536ed29",
+          "otherId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+          "label": "临界阻尼",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **临界阻尼**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:fc3c2ffc6fa67fa6a66ef48c",
+          "otherId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+          "label": "稳态误差",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **稳态误差**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:fdce50cc384aa9be62f10716",
+          "otherId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+          "label": "动态过程",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **动态过程**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:f67943951596e10b96d09047",
+          "otherId": "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+          "label": "过阻尼",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **过阻尼**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:b9b6fc709755879e2fe70bfd",
+          "otherId": "ctc:v11g-67c03c5207c095a08e761361",
+          "label": "过阻尼系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **过阻尼系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:d7b7017a716eddbfc124da2e",
+          "otherId": "ctkg:v3e-canonical-26666fcfa05a85fef00fa4dd",
+          "label": "过阻尼二阶指标估算法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **过阻尼二阶指标估算法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:fdce50cc384aa9be62f10716",
+          "otherId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+          "label": "稳态过程",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **稳态过程**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

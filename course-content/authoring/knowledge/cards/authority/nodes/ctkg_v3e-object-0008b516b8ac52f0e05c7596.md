@@ -1,51 +1,81 @@
 ---
 node_id: ctkg_v3e-object-0008b516b8ac52f0e05c7596
 authority_entity_id: "ctkg:v3e-object-0008b516b8ac52f0e05c7596"
-name: 谐振峰值
+name: "谐振峰值"
+name_en: "Resonant Peak"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 谐振峰值
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a52b97e4134735ae9356ba87f7d027b830b0fdf4e86bc24360a536ff11448827.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a52b97e4134735ae9356ba87f7d027b830b0fdf4e86bc24360a536ff11448827.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/previous/ctkg_v3e-object-0008b516b8ac52f0e05c7596.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 12bc72d9152303e7963b6558143b9f97767851104c503a5894c963abbd841210 -->
-
 ## 首页
+# 谐振峰值 | Resonant Peak
 
-# 谐振峰值
+一句话定义：谐振峰值是指定闭环幅频响应的最大幅值；以分贝表示时，它是该幅值取 $20\log_{10}$ 后的值。
 
-**一句话定义**：闭环幅频特性的极大值，记为M_r(dB)。
-
-**关联**：前置 → 得到闭环对数幅频和相频曲线 · 后续 → 得到闭环对数幅频和相频曲线、谐振频率、带宽频率
+- 先区分线性幅值比与分贝数值。
+- 非零频率谐振峰是否存在取决于模型和阻尼。
+- 峰值频率、自然频率与带宽是不同指标。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-闭环幅频特性的极大值，记为M_r(dB)
+对稳定闭环通道 $T(j\omega)$，最大幅值可记为 $M_{r,\mathrm{lin}}=\max_{\omega\ge0}|T(j\omega)|$，相应分贝峰值为 $M_{r,\mathrm{dB}}=20\log_{10}M_{r,\mathrm{lin}}$。有些材料把 $M_r$ 用于线性值，有些用于分贝值，因此列公式时要明确约定。
+
+对单位直流增益、无零点的标准二阶低通系统
+
+$$
+T(s)=\frac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2},
+$$
+
+只有在 $0<\zeta<1/\sqrt2$ 时，幅频响应才在非零频率取得谐振峰，且
+
+$$
+\omega_r=\omega_n\sqrt{1-2\zeta^2},\qquad
+M_{r,\mathrm{lin}}=\frac1{2\zeta\sqrt{1-\zeta^2}}.
+$$
+
+当 $\zeta\ge1/\sqrt2$ 时，该标准模型的幅值从直流值1开始单调不增，没有高于直流值的非零频率谐振峰，最大值在零频。不能在此范围继续套用前述非零峰值频率公式。
+
+### 教学计算/推理例
+
+取 $\omega_n=4$ rad/s、$\zeta=0.5$。谐振频率为 $4\sqrt{0.5}\approx2.8284$ rad/s，峰值幅值比为 $1/(\sqrt{0.75})\approx1.1547$，分贝值约1.2494 dB。这意味着在谐振频率附近，同幅正弦参考的稳态输出幅值约放大到1.1547倍。
+
+自然频率为4 rad/s，并不是本例幅频峰值出现的位置。该系统的半功率带宽约5.0881 rad/s，也不同于谐振频率。把三个数并列，可以避免从同一幅图上混用“峰值位置”“模型参数”和“通带边界”。
+
+### 适用条件与边界
+
+公式仅适用于上述二阶无零点形式；增加零点、高阶模态或延迟后，应直接分析实际闭环幅频响应。若直流增益不是1，绝对峰值会随增益缩放；若讨论相对直流的峰值，应先归一化并写明基准。无阻尼系统在自然频率处可能发散，不属于这里稳定、有限峰值的情形。
+
+谐振峰提示某些频率会被放大，但不单独证明不稳定，也不能普遍换算成某个阶跃超调百分比。标准二阶模型中二者都受阻尼影响；脱离该模型，关联可能发生变化。
+
+### 常见误区
+
+1. 把1.1547这个幅值比标成1.1547 dB。
+2. 对任意阻尼比使用含平方根的非零谐振频率公式。
+3. 把自然频率或半功率带宽当作谐振频率。
+
+### 自检
+
+1. 本例1.1547与1.2494各表示什么？
+2. 若标准二阶模型的阻尼比为1，是否存在上述非零频率谐振峰？
+
+**核对要点**：前者是线性幅值比，后者为dB；阻尼比1时没有非零频率谐振峰，最大幅值位于直流。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 得到闭环对数幅频和相频曲线 | 用于分析 |
-| 后续 | 得到闭环对数幅频和相频曲线 | 关联 |
-| 后续 | 谐振频率 | 关联 |
-| 后续 | 带宽频率 | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、谐振峰值
+- **阻尼比**（无向，关系：相关）
+- **谐振频率**（无向，关系：相关）
+- **带宽频率**（无向，关系：相关）

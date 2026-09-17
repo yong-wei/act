@@ -1,36 +1,36 @@
 ---
 node_id: ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5
 authority_entity_id: "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5"
-name: Acceleration Error Constant (K a)
-name_en: Acceleration Error Constant (K_a)
+name: "加速度误差常数 (K_a)"
+name_en: "Acceleration Error Constant"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - Acceleration
-  - Error
-  - Constant
-  - (K
-  - a)
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9404b9667875d0dfb6fe72ff121ac90ce18fd7707d9c57ef6e8f09e0f6af8911.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9404b9667875d0dfb6fe72ff121ac90ce18fd7707d9c57ef6e8f09e0f6af8911.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/previous/ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 9b1dde58ffbe1bed6fec3250bf5377b7e18377347776e0ce74f27d800031bfc0 -->
-
 ## 首页
 
-# Acceleration Error Constant (K a) | Acceleration Error Constant (K_a)
+# 加速度误差常数 | Acceleration Error Constant
 
-**一句话定义**：Acceleration Error Constant (K a)：For a Type 2 system (two integrators in the loop transfer function), the constant defined as K_a = lim_{s->0} s^2 G D_c…
+**一句话定义**：加速度误差常数描述开环低频双积分作用，用于计算规定条件下抛物线指令的稳态误差。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：匀加速指令不断增加变化速度，系统需要比跟踪斜坡更强的低频跟踪能力。
+
+**关键公式**：
+$$K_a=\lim_{s\to0}s^2L(s).$$
+
+**学习目标**：从开环传递函数计算 $K_a$，检查闭环稳定性，并求匀加速指令的误差。
 
 ---
 
@@ -38,18 +38,32 @@ asset_refs: []
 
 ### 完整解释
 
-For a Type 2 system (two integrators in the loop transfer function), the constant defined as K_a = lim_{s->0} s^2 G D_cl(s). It determines the steady-state error to a parabolic (acceleration) input: e_ss = 1/K_a.
+这里采用线性定常、零初始状态、单位负反馈，令 $L(s)=C(s)P(s)$，误差定义为 $e=r-y$。$K_a$ 是整个开环通道的低频性质，不是控制器上名为“加速度增益”的旋钮。它与系统在原点处的净积分阶数有关，但不能单独说明闭环是否稳定。
+
+匀加速位置指令为 $r(t)=at^2/2$（$t\ge0$），其拉普拉斯变换是 $a/s^3$。由反馈方程得到 $E=R/(1+L)$，因此
+$$sE(s)=\frac{a}{s^2+s^2L(s)}.$$
+只有误差确实收敛、终值定理极点条件成立，才能得到 $e_{\mathrm{ss}}=a/K_a$。当 $K_a=0$ 时，这个表达式提示不存在有限的跟踪误差，但仍须根据原误差方程辨别增长或不稳定。存在两个积分器也不能免除稳定性检查。
+
+### 教学计算/推理例
+
+设船舶位置控制的归一化开环模型为
+$$L(s)=\frac{4(s+1)}{s^2},\qquad r(t)=t^2.$$
+指令的加速度为 $a=2$，所以 $R=2/s^3$，不是 $1/s^3$。由原反馈方程得到
+$$E(s)=\frac{2}{s(s+2)^2},\qquad sE(s)=\frac{2}{(s+2)^2}.$$
+闭环特征多项式为 $s^2+4s+4$，根均为 $-2$；$K_a=4$，故误差终值为 $2/4=0.5$。反变换得到 $e(t)=\tfrac12-(\tfrac12+t)e^{-2t}$，初始误差为零，最终趋于 $0.5$。这说明“输出一直增大”和“误差收敛”可以同时成立。这里的匀加速运动只在执行器未饱和的有限教学区间内有物理意义。
+
+### 常见误区与边界
+
+1. **误区**：两个积分器保证零抛物线误差。**纠正**：稳定的二型系统通常留下有限非零误差，本例为 $0.5$。
+2. **误区**：把 $t^2$ 称作单位加速度函数。**纠正**：其二阶导数为2；单位加速度对应 $t^2/2$。非单位测量反馈还须重新区分测量误差与实际位置误差。
+
+### 自检
+
+1. 同一模型改为 $r(t)=t^2/2$，误差终值是多少？
+2. 能否只计算 $K_a$ 而跳过闭环极点检查？
+
+**核对要点**：第一问为 $1/4$；不能跳过稳定性和终值条件，低频极限不能排除持续振荡或发散。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、Acceleration、Error、Constant、(K、a)
+- **加速度误差常数的极限公式**（对应公式）：图谱写为 $K_a=\lim_{s\to0}s^2G_c(s)G(s)$；本卡用 $L=G_cG$ 简写，二者描述同一开环通道。

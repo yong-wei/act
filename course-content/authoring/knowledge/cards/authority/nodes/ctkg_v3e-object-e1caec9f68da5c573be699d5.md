@@ -1,29 +1,39 @@
 ---
 node_id: ctkg_v3e-object-e1caec9f68da5c573be699d5
 authority_entity_id: "ctkg:v3e-object-e1caec9f68da5c573be699d5"
-name: 串联校正
+name: "串联校正"
+name_en: "Cascade Compensation"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - 串联校正
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96151abaaa346ff4f9a8c92d0c8193ec3288cd1bb0acd88ec80f344e0ada2626.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96151abaaa346ff4f9a8c92d0c8193ec3288cd1bb0acd88ec80f344e0ada2626.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01g/previous/ctkg_v3e-object-e1caec9f68da5c573be699d5.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 4dc477b179fd3a871a2aefd5b1c232882202bac7cf8674b29d4d66bfabd5b4e5 -->
-
 ## 首页
 
-# 串联校正
+# 串联校正 | Cascade Compensation
 
-**一句话定义**：串联校正装置一般接在系统误差测量点之后，串接于系统前向通道之中。
+**一句话定义**：串联校正把校正装置接在误差测量点之后，置于系统前向通道中。
 
-**关联**：后续 → 校正装置
+**核心直觉**：串联环节改变环路本身；参考前置滤波只改变参考通道，二者必须用不同闭环方程比较。
+
+**关键公式**：
+$$
+L(s)=C(s)G(s)H(s),\qquad
+\Phi(s)=\frac{C(s)G(s)}{1+C(s)G(s)H(s)}.
+$$
+
+**学习目标**：由插入位置写出环路和闭环，区分串联校正与前置滤波。
 
 ---
 
@@ -31,18 +41,36 @@ asset_refs: []
 
 ### 完整解释
 
-串联校正装置一般接在系统误差测量点之后，串接于系统前向通道之中。
+串联校正装置通常接在系统误差测量点之后，串接于前向通道，因此它属于改变环路的操作。对单位负反馈 $H(s)=1$，环路开环为 $L(s)=C(s)G(s)$，从参考到输出的闭环为 $C(s)G(s)/[1+C(s)G(s)]$。这与只在参考端乘一个前置滤波器不同：前置滤波器不直接进入反馈分母，但会改变参考到输出的整体传递函数。
+
+### 教学计算/推理例
+
+固定对象 $G(s)=1/(s+1)$ 和单位负反馈。已验算的串联环节为 $C(s)=4/(s+5)$，因此
+$$
+\Phi_{\mathrm{series}}(s)=\frac{4}{s^2+6s+9}=\frac{4}{(s+3)^2}.
+$$
+若保持控制器为 $C(s)=1$，改用参考前置滤波 $F(s)=4/(s+2)$，则被控闭环先是 $G/(1+G)=1/(s+2)$，参考到输出的结果为
+$$
+\Phi_{\mathrm{pre}}(s)=F(s)\frac{G(s)}{1+G(s)}=\frac{4}{(s+2)^2}.
+$$
+两个结果的分母不同，说明“把增益放在参考端”不能当成“在前向通道串联校正”。
+
+### 适用条件与边界
+
+上述推导采用理想线性定常对象、零初态、单位负反馈，频率量 $\omega$ 的单位为 $\mathrm{rad/s}$。实际插入点、传感器动态、执行器限制和测量噪声会改变等效环路；串联校正还可能改变噪声到控制器的高频增益，不能只比较参考阶跃的一个输出曲线。
+
+### 常见误区
+
+1. **误区**：串联一个 $4/(s+5)$ 与参考端乘 $4/(s+2)$ 是同一件事。**纠正**：前者进入反馈分母，后者只在参考通道，模型已给出不同闭环分母。
+2. **误区**：知道校正器传递函数就能跳过反馈符号。**纠正**：单位负反馈是本例的条件，换成其他反馈结构必须重新写 $L(s)$ 和 $\Phi(s)$。
+
+### 自检
+
+1. 串联校正为什么出现在开环 $L(s)$ 中，而参考前置滤波不直接出现在反馈分母中？
+2. 本例中串联校正和前置滤波的闭环分母分别是什么？
+
+**核对要点**：串联校正分母为 $(s+3)^2$，前置滤波结果分母为 $(s+2)^2$；差异来自插入位置。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 校正装置 | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、串联校正
+- **校正装置**（出边，关系：属于）

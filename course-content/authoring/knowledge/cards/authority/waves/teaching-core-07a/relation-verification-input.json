@@ -1,0 +1,88 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctc:modeling-07799c3f876317e36fe669f8",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:e0ed81b8d556d39fe8e44e3c",
+          "otherId": "ctc:modeling-987e08a63a394f1a848101dc",
+          "label": "信号流图阱节点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **信号流图阱节点**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-50ed406e4478b481d868adfb",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:254f6c2a0f63f64fe4832c15",
+          "otherId": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+          "label": "前向路径",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **前向路径**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:part_of:153a0cef1cf48b2ea444b233",
+          "otherId": "ctc:modeling-57c56ef58df2315f765a32dc",
+          "label": "梅森增益公式",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **梅森增益公式**（出边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:part_of:a214ae3bc7561b449379ecbb",
+          "otherId": "ctc:modeling-194b73effe783f6d40153135",
+          "label": "通路增益",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **通路增益**（入边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "ctr:867d63f77058b888a7feb534",
+          "otherId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+          "label": "信号流图",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **信号流图**（出边，关系：适用于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:23a122a9a5f3599905a1df1d",
+          "otherId": "ctc:modeling-7ef5ce337a4ffe79fc6bc123",
+          "label": "信号流图通路",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **信号流图通路**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-9b8a43928af77103270d5f9c",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:4bccd77a9c986813883a9493",
+          "otherId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+          "label": "回路",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **回路**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-e8a0502ecb67f574a5cb6c1b",
+      "relations": []
+    }
+  ]
+}

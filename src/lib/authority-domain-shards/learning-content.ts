@@ -171,6 +171,10 @@ function section(value: string, heading: string, next: string | null): string | 
 
 function cleanLearningText(value: string): string | null {
   const normalized = value
+    // Markdown math fences require their own lines for multiline expressions.
+    .replace(/\$\$([\s\S]*?)\$\$/g, (source, latex: string) => (
+      latex.includes('\n') ? `\n\n$$\n${latex.trim()}\n$$\n\n` : source
+    ))
     .replace(/<!--[^]*?-->/g, '')
     .replace(/`[^`]*`/g, '')
     .replace(/\[(.*?)\]\([^)]*\)/g, '$1')

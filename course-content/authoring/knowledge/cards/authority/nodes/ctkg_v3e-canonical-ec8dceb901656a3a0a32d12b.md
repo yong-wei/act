@@ -1,34 +1,36 @@
 ---
 node_id: ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b
 authority_entity_id: "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b"
-name: 稳定性
-name_en: Stability
+name: "稳定性"
+name_en: "Stability"
 category: 概念性
-batch: C
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 稳定性
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b9e6ef9dc0108ba4e981d23b358388df9f567591bf9ac25b434fa7e4a462a1ab.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b9e6ef9dc0108ba4e981d23b358388df9f567591bf9ac25b434fa7e4a462a1ab.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/previous/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md"
 asset_refs: []
 ---
-
-<!-- authority_source_sha256: 4dd33d6161aa72e95e7ec88a3c276d46d00eefe549d7b1a099f97858753e3d73 -->
 
 ## 首页
 
 # 稳定性 | Stability
 
-**一句话定义**：稳定性：Stability
+**一句话定义**：稳定性描述系统受小扰动后状态是否仍受控制，或有界输入是否产生有界输出，须先明确所用定义。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：扰动后不越走越远，与最终回到原处，是两个不同要求。
+
+**关键公式**：
+$$\operatorname{Re}\lambda_i(A)<0\quad\text{对全部特征值成立}.$$
+
+**学习目标**：区分稳定、渐近稳定和有界输入有界输出稳定，并识别极点判定的适用对象。
 
 ---
 
@@ -36,18 +38,32 @@ asset_refs: []
 
 ### 完整解释
 
-Stability
+对连续时间、有限维线性定常状态模型 $\dot x=Ax$，全部特征值严格位于左半平面等价于原点渐近稳定：足够小的初始扰动不仅保持小，而且随时间衰减至零。仅要求扰动始终保持小，是李雅普诺夫稳定；它允许不衰减的自由运动。对于虚轴特征值，还须检查相应的约旦块，不能只看实部等于零就判断稳定。
+
+输入输出稳定讨论另一件事：在零初始状态下，每个有界输入是否都产生有界输出。对有限维、因果、适当的有理传递函数，约简后全部极点严格在左半平面等价于有界输入有界输出稳定。若模型存在不可控或不可观的隐藏状态，输入输出稳定不一定保证内部状态稳定；不能把传递函数约消后的极点结论直接当作全部内部状态的结论。
+
+### 教学计算/推理例
+
+归一化船舶速度偏差满足 $\dot y=-2y$，初始偏差 $y(0)=0.1$，则 $y(t)=0.1e^{-2t}$，在1秒时约为0.01353，最终为零，原点渐近稳定。改为 $\dot y=0$，偏差始终为0.1：它保持小，但不回到零，因此稳定而非渐近稳定。
+
+再给后一模型加入输入，$\dot y=u$。零初态、单位阶跃输入产生 $y=t$，输出无界，所以积分器不满足有界输入有界输出稳定。这并不与它的零输入平衡状态稳定相矛盾，因为两次问题的输入条件和稳定定义不同。
+
+隐藏状态的反例为 $\dot x_1=-2x_1+u$、$\dot x_2=x_2$、$y=x_1$。其零状态输入输出传递函数是 $1/(s+2)$；但若 $x_2(0)=0.01$，该状态按 $0.01e^t$ 增长。仅观察输出可能看不到内部不稳定。工程建模与控制器实现时应检查实际状态，避免以代数约消掩盖风险。
+
+### 常见误区与边界
+
+1. **误区**：稳定就意味着快速、准确或没有超调。**纠正**：稳定是基本性质，调节时间、误差和超调是另外的性能要求。
+2. **误区**：任一非线性系统都可用全部线性化极点直接裁定。**纠正**：对光滑自治系统，平衡点线性化的特征值严格位于左半平面时支持局部渐近稳定判断；边界特征值和大范围运动需要进一步分析，不能套用全局结论。
+
+### 自检
+
+1. 积分器零输入时状态恒定，能否据此宣称它有界输入有界输出稳定？
+2. 隐藏状态反例为何需要检查 $A$ 而不能只检查 $G$？
+
+**核对要点**：不能，单位阶跃已给出输出无界反例；$G$ 只描述可见的输入输出通道，未必包含全部内部模式。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、稳定性
+- **有界输入有界输出稳定性**（后续）：把稳定性问题明确为零状态输入输出性质。
+- **平衡状态稳定性**（后续）：关注初始扰动后的状态行为，与输入输出定义相互补充。
+- **临界稳定**（后续）：需要进一步检查虚轴模式及所采用的稳定定义。

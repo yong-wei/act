@@ -1,0 +1,61 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "first_order_bandwidth": {
+      "T": "2/(0.5s+1)",
+      "dcGain": 2.0,
+      "relativeThresholdDb": -3.010299956639812,
+      "bandwidthRadPerSec": 2.0,
+      "absoluteLevelAtBandwidthDb": 3.0102999566398125,
+      "boundary": "relative to DC; not absolute -3dB for nonunit DC gain"
+    },
+    "second_order": {
+      "wn": 4.0,
+      "zeta": 0.5,
+      "resonantFrequency": 2.8284271247461903,
+      "resonantPeakRatio": 1.1547005383792517,
+      "resonantPeakDb": 1.2493873660830008,
+      "bandwidth": 5.088078598056276,
+      "boundary": "unit DC, stable second-order low-pass without zeros; resonance formula only 0<zeta<1/sqrt(2)"
+    },
+    "overdamped_counterexample": {
+      "wn": 4,
+      "zeta": 3.0,
+      "bandwidthToNaturalFrequency": 0.17142451961841004,
+      "boundary": "no universal factor-of-two bandwidth/natural-frequency rule for arbitrary damping"
+    },
+    "low_frequency": {
+      "L": "10(1+s/10)/[s(1+s)]",
+      "finiteCorners": [
+        1,
+        10
+      ],
+      "lowFrequencyAsymptoteDb": "20-20log10(omega)",
+      "atPoint1": {
+        "omega": 0.1,
+        "exactMagnitudeDb": 39.9572205349422,
+        "asymptoteMagnitudeDb": 40
+      },
+      "boundary": "integrator has no finite positive corner; low-frequency segment need not be horizontal"
+    },
+    "corner": {
+      "G": "1/(s+1)",
+      "corner": 1,
+      "exactAtCornerDb": -3.010299956639812,
+      "asymptoteAtCornerDb": 0,
+      "slopesDbPerDecade": [
+        0,
+        -20
+      ],
+      "boundary": "corner belongs to factor; not generally equal to gain crossover or closed-loop bandwidth"
+    },
+    "frequency_distinction": {
+      "loop": "2/(s+1)",
+      "closed": "2/(s+3)",
+      "openCorner": 1,
+      "gainCrossover": 1.7320508075688772,
+      "closedBandwidth": 3.0
+    }
+  }
+}

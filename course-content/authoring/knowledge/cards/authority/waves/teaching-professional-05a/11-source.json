@@ -1,0 +1,503 @@
+{
+  "canonicalId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫函数",
+      "aliases": [
+        "李雅普诺夫函数"
+      ],
+      "description": null,
+      "teachingFields": {},
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.3",
+          "label": "自动控制原理（胡寿松，第8版） · 李雅普诺夫稳定性分析"
+        },
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.3/item-3",
+          "label": "自动控制原理（胡寿松，第8版） · 李雅普诺夫第二法（直接法）"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctc:modeling-6e03c54be64721caf66c75c5",
+        "canonicalType": "DomainConcept",
+        "label": "状态空间模型",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "representation_kind"
+      },
+      {
+        "id": "ctf:c2527f7cc8ef612a6c7f9d8a",
+        "canonicalType": "Formula",
+        "label": "状态方程。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+        "canonicalType": "DomainConcept",
+        "label": "李雅普诺夫稳定性",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "lyapunov-stability",
+            "visualRole": "lyapunov",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+        "canonicalType": "DomainConcept",
+        "label": "能量函数（李雅普诺夫）",
+        "aliases": [
+          "能量函数（李雅普诺夫）"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "lyapunov-stability",
+            "visualRole": "lyapunov",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "canonicalType": "DomainConcept",
+        "label": "李雅普诺夫函数",
+        "aliases": [
+          "李雅普诺夫函数"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "lyapunov-stability",
+            "visualRole": "lyapunov",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:domainconcept:8985a8b639467c8e28fad417",
+        "canonicalType": "DomainConcept",
+        "label": "李雅普诺夫第二法（直接法）",
+        "aliases": [
+          "李雅普诺夫第二法（直接法）"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "lyapunov-stability",
+            "visualRole": "lyapunov",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+        "canonicalType": "DomainConcept",
+        "label": "正定函数",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "lyapunov-stability",
+            "visualRole": "lyapunov",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:formula:c6c179af450bbb6e6d309d25",
+        "canonicalType": "Formula",
+        "label": "李雅普诺夫函数导数条件",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "lyapunov-stability",
+            "visualRole": "lyapunov",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "canonicalType": "DomainConcept",
+        "label": "平衡点",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "nonlinear-system-analysis",
+            "visualRole": "nonlinear-analysis",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:m4-u2u5:prerequisite:0f8180e307e9dfd320e9cdfe",
+        "predicate": "prerequisite",
+        "sourceId": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+        "targetId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "direction": "earlier_to_later",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "prerequisite-order"
+      },
+      {
+        "id": "ctkg:m5-d1:association:f86bfce311bf0866d12ef9e6",
+        "predicate": "association",
+        "sourceId": "ctkg:domainconcept:8985a8b639467c8e28fad417",
+        "targetId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:relation:05d23df03bcb93f44437b1da",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:formula:c6c179af450bbb6e6d309d25",
+        "targetId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "ctkg:relation:1bf3690fd8a88ecbad9be6de",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "targetId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "ctkg:relation:3f600312a34e73d73ea9bbaf",
+        "predicate": "is_a",
+        "sourceId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "targetId": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      },
+      {
+        "id": "ctkg:relation:6f604997abc9199f7730639e",
+        "predicate": "used_to_analyze",
+        "sourceId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "targetId": "ctf:c2527f7cc8ef612a6c7f9d8a",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "ctkg:relation:9fb9fdc07404a24c3a539ae3",
+        "predicate": "is_a",
+        "sourceId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "targetId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      },
+      {
+        "id": "ctkg:relation:a5c8e81e4c1664786bd09c08",
+        "predicate": "used_to_analyze",
+        "sourceId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "targetId": "ctc:modeling-6e03c54be64721caf66c75c5",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "ctkg:relation:b5caef794518a4d2685859f9",
+        "predicate": "used_to_analyze",
+        "sourceId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "targetId": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      }
+    ],
+    "boundaries": []
+  }
+}

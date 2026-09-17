@@ -347,11 +347,41 @@ def build_runtime_relations(nodes_by_id: dict[str, dict[str, Any]], relation_rec
     ]
 
 
+def load_replacement_card_paths() -> dict[str, Path]:
+    record_path = AUTHORING_ROOT / 'knowledge' / 'resource-bindings' / 'card-replacements.json'
+    if not record_path.exists():
+        return {}
+    record = read_json(record_path)
+    authority = read_json(AUTHORING_ROOT / 'knowledge' / 'authority' / 'current.json')
+    if record.get('contract') != 'act-reviewed-card-replacements/v1' or record.get('status') != 'accepted':
+        raise ValueError('Invalid card replacement record')
+    if any(record.get('authority', {}).get(key) != authority.get(key)
+           for key in ('releaseId', 'releaseSetId', 'snapshotId', 'snapshotHash')):
+        raise ValueError('Card replacement Authority drift')
+    paths: dict[str, Path] = {}
+    for row in record['rows']:
+        card_id = row['cardId']
+        if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,199}', card_id):
+            raise ValueError('Unsafe replacement card id')
+        target = RUNTIME_ROOT / 'knowledge' / 'cards' / 'authority' / 'nodes' / f'{card_id}.md'
+        if hashlib.sha256(target.read_bytes()).hexdigest() != row['sha256']:
+            raise ValueError('Replacement card hash drift')
+        for resource_id in row['retiredResourceIds']:
+            if not resource_id.startswith('act:card:'):
+                raise ValueError('Invalid retired card resource')
+            node_id = resource_id[len('act:card:'):]
+            if node_id in paths:
+                raise ValueError('Duplicate retired card resource')
+            paths[node_id] = target
+    return paths
+
+
 def build_runtime_nodes(
     nodes_by_id: dict[str, dict[str, Any]],
     infograph_resource_by_node_id: dict[str, dict[str, str]],
 ) -> list[dict[str, Any]]:
     card_dir = RUNTIME_ROOT / 'knowledge' / 'cards' / 'nodes'
+    replacement_cards = load_replacement_card_paths()
     runtime_nodes: list[dict[str, Any]] = []
     ordered_nodes = sorted(
         nodes_by_id.values(),
@@ -369,7 +399,7 @@ def build_runtime_nodes(
         radius = ((chapter or 1) * 14) + (ring * 6)
         node_id = str(node['id'])
         resources: list[Any] = []
-        node_card_path = card_dir / f'{node_id}.md'
+        node_card_path = replacement_cards.get(node_id, card_dir / f'{node_id}.md')
         if node_card_path.exists():
             resources.append(str(node_card_path.relative_to(REPO_ROOT)).replace('\\', '/'))
         infograph_resource = infograph_resource_by_node_id.get(node_id)

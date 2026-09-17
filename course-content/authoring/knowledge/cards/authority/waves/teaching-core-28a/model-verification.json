@@ -1,0 +1,90 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "stable_limit_cycle": {
+      "cartesian": "xdot=(1-r^2)x-y; ydot=x+(1-r^2)y; r^2=x^2+y^2",
+      "radial": "rdot=r(1-r^2), theta_dot=1",
+      "cycleRadius": 1,
+      "period": 6.283185307179586,
+      "insideR05RadialRate": 0.375,
+      "outsideR2RadialRate": -6,
+      "origin": "equilibrium, not itself the cycle; nonzero initial radii converge to cycle",
+      "boundary": "isolated periodic orbit; harmonic oscillator family of circles is not a limit cycle"
+    },
+    "semistable_cycle": {
+      "cartesian": "xdot=(r^2-1)^2 x-y; ydot=x+(r^2-1)^2 y",
+      "radial": "rdot=r(r^2-1)^2; theta_dot=1",
+      "cycleRadius": 1,
+      "inside": "r rises toward1 asymptotically",
+      "outside": "r rises away from1",
+      "boundary": "attracts from one side and repels from other; not two-sided asymptotic stability"
+    },
+    "relay_describing_function": {
+      "input": "A sin(theta)",
+      "output": "M sign(sin(theta))",
+      "A": 2.0,
+      "M": 1.0,
+      "fundamentalSine": 1.2732395449446003,
+      "fundamentalCosine": 7.588059954682924e-16,
+      "N": 0.6366197723675814,
+      "NAtAmplitude1": 1.2732395447351628,
+      "NAtAmplitude2": 0.6366197723675814,
+      "negativeInverseAtAmplitude2": -1.5707963267948966,
+      "thirdHarmonicAmplitude": 0.4244131822067114,
+      "boundary": "fundamental approximation, not exact linear gain; A>0; third harmonic nonzero"
+    },
+    "harmonic_balance": {
+      "G": "1/[(s+1)(s+2)(s+3)]",
+      "relayM": 1,
+      "candidateOmega": 3.3166247903554,
+      "candidateAmplitudeAtRelayInput": 0.02122065907891938,
+      "describingGain": 60.0,
+      "negativeInverse": -0.016666666666666666,
+      "thirdToFirstAfterLinearPartAssumingSinusoidalInput": 0.018962670799619143,
+      "boundary": "candidate from 1+GN=0 only; existence/amplitude/stability need full nonlinear confirmation; no external periodic reference"
+    },
+    "quantization": {
+      "step": 0.25,
+      "law": "Q(x)=clip(delta floor(x/delta+0.5),-1,1)",
+      "tieRule": "half-step ties toward positive infinity before clipping",
+      "errorDefinition": "e=Q(x)-x",
+      "samples": [
+        [
+          -0.4,
+          -0.5,
+          -0.09999999999999998
+        ],
+        [
+          0,
+          0.0,
+          0.0
+        ],
+        [
+          0.125,
+          0.25,
+          0.125
+        ],
+        [
+          0.4,
+          0.5,
+          0.09999999999999998
+        ],
+        [
+          1,
+          1,
+          0
+        ],
+        [
+          1.6,
+          1,
+          -0.6000000000000001
+        ]
+      ],
+      "noOverloadBound": 0.125,
+      "overloadExampleError": -0.6000000000000001,
+      "uniformErrorVarianceIfAssumed": 0.005208333333333333,
+      "boundary": "bounded rounding error requires no overload; uniform independent noise is an additional approximation, not guaranteed by deterministic quantizer; sampling and amplitude quantization are distinct"
+    }
+  }
+}

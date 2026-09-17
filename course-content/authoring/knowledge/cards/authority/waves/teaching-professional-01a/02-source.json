@@ -1,0 +1,464 @@
+{
+  "canonicalId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "canonicalType": "DomainConcept",
+      "label": "采样过程",
+      "aliases": [
+        "采样过程"
+      ],
+      "description": "在采样控制系统中，把连续信号转变为脉冲序列的过程称为采样过程，简称采样。",
+      "teachingFields": {},
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.1/example-7.1/item-1",
+          "label": "自动控制原理（胡寿松，第8版） · 信号采样和复现"
+        },
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-1",
+          "label": "自动控制原理（胡寿松，第8版） · 采样过程"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+        "canonicalType": "DomainConcept",
+        "label": "采样过程",
+        "aliases": [
+          "采样过程"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-analysis",
+            "visualRole": "discrete",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-1b7b0dc48c95ff419467dd86",
+        "canonicalType": "DomainConcept",
+        "label": "模拟信号",
+        "aliases": [
+          "模拟信号"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-analysis",
+            "visualRole": "discrete",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-2b8cab8c3abd78d69532b5ef",
+        "canonicalType": "Formula",
+        "label": "E^{*}(s)=\\sum_{n=0}^{\\infty} e(n T) \\mathrm{e}^{-n T s}",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-analysis",
+            "visualRole": "discrete",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-2ca939471631d90bd6098990",
+        "canonicalType": "DomainConcept",
+        "label": "保持器",
+        "aliases": [
+          "保持器"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-analysis",
+            "visualRole": "discrete",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-2f789405f5a0a19199fa2e40",
+        "canonicalType": "KnowledgeStatement",
+        "label": "采样过程要丢失采样间隔之间的信息。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-analysis",
+            "visualRole": "discrete",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+        "canonicalType": "DomainConcept",
+        "label": "采样控制系统",
+        "aliases": [
+          "采样控制系统"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-analysis",
+            "visualRole": "discrete",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-6bf117c0f2dae6dc7780d72d",
+        "canonicalType": "KnowledgeStatement",
+        "label": "采样器每隔T秒闭合一次，闭合的持续时间为τ；采样器的输入e（t）为连续信号；输出e*（t）为宽度等于τ的调幅脉冲序列，在采样瞬时nT（n=0,1,2,...,∞）时出现。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-analysis",
+            "visualRole": "discrete",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-762239378940cb45b78991b3",
+        "canonicalType": "DomainConcept",
+        "label": "采样器",
+        "aliases": [
+          "采样器"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-analysis",
+            "visualRole": "discrete",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "m1k:relation-1d5963e9cca60ce4a3e7fa68",
+        "predicate": "has_formula",
+        "sourceId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+        "targetId": "ctkg:v3e-object-2b8cab8c3abd78d69532b5ef",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "derivation-and-representation"
+      },
+      {
+        "id": "m1k:relation-221e7e5ca4f39e8acf224fcd",
+        "predicate": "part_of",
+        "sourceId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+        "targetId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "m1k:relation-2a7a033730d56bb5d23d8f6d",
+        "predicate": "has_component",
+        "sourceId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+        "targetId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "m1k:relation-3cffec1aea53c2fe790005b4",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+        "targetId": "ctkg:v3e-object-1b7b0dc48c95ff419467dd86",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1k:relation-78a9cfc78bb0c25f66bf826a",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+        "targetId": "ctkg:v3e-object-2f789405f5a0a19199fa2e40",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1k:relation-93dfee93fc07d3c569481fa9",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+        "targetId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1k:relation-a068a63ebc8875c493c38b9c",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+        "targetId": "ctkg:v3e-object-762239378940cb45b78991b3",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1k:relation-cee3076305adedfb6ffd8556",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+        "targetId": "ctkg:v3e-object-6bf117c0f2dae6dc7780d72d",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      }
+    ],
+    "boundaries": []
+  }
+}

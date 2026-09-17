@@ -1,0 +1,167 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-256b7b4e6dd8071dc7ce3512",
+      "relations": [
+        {
+          "relationId": "m1k:relation-0d5ab4eab9c5b8475a7abde9",
+          "otherId": "ctkg:v3e-object-14c49cc217ebff19a8763b5b",
+          "label": "z变换算子",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **z变换算子**（入边，关系：属于）"
+        },
+        {
+          "relationId": "m1k:relation-c3ba910d6e68bb5a33725491",
+          "otherId": "ctkg:v3e-object-14c49cc217ebff19a8763b5b",
+          "label": "z变换算子",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **z变换算子**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1k:relation-c90d8fe54cd9d241d0f64c8d",
+          "otherId": "ctkg:v3e-object-0e2fd1303478a746919816fc",
+          "label": "级数求和法",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **级数求和法**（出边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "relations": [
+        {
+          "relationId": "m1k:relation-69d7b43f6bd234e401bbc819",
+          "otherId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+          "label": "采样率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **采样率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1k:relation-eb4e66fbf2387d2f0a2db1ea",
+          "otherId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+          "label": "采样率",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **采样率**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "m1k:relation-21ed554783c873d8b34ba75f",
+          "otherId": "ctkg:domainconcept:61472f9425cd8eaba17968db",
+          "label": "离散设计",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **离散设计**（出边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-54095598351974e2167111f2",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:19b488c24491ed5aecf9a5a6",
+          "otherId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+          "label": "保持器",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **保持器**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1k:relation-51c2bb4f4d0b2041c616167e",
+          "otherId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+          "label": "保持器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **保持器**（出边，关系：属于）"
+        },
+        {
+          "relationId": "m1k:relation-e585f03b2d941280d3312534",
+          "otherId": "ctkg:domainconcept:289e3beca59c9ef373836b12",
+          "label": "零阶保持器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **零阶保持器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-60dc281db22fe43eefe4ae57",
+      "relations": [
+        {
+          "relationId": "m1k:relation-570ceef69a465563954eaf4b",
+          "otherId": "ctkg:v3e-object-3d61744c1f15d0d0bbf20902",
+          "label": "精度",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **精度**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1k:relation-ce654235982aa783a028e5b7",
+          "otherId": "ctkg:v3e-object-3d61744c1f15d0d0bbf20902",
+          "label": "精度",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **精度**（出边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8092204c03a8af260e3e672f",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "relations": [
+        {
+          "relationId": "m1k:relation-bcfa823d21a8ae92dc93e024",
+          "otherId": "ctkg:v3e-object-476e6f531eebde6502af36f6",
+          "label": "w域中的劳斯稳定判据",
+          "predicate": "derived_from",
+          "direction": "source_to_target",
+          "renderedLine": "- **w域中的劳斯稳定判据**（入边，关系：推导自）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bd932075b5f988acebafc1b5",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:3b77c6f5a7d6c32b490f064b",
+          "otherId": "ctkg:domainconcept:a55a1dccfb81a726e05539cc",
+          "label": "连续校正离散化方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **连续校正离散化方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cc879188760f9c79394713cb",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:1cf328032f10c32fce39ba50",
+          "otherId": "ctkg:v3e-canonical-0c0b4e9e214ae42d511dda74",
+          "label": "s平面",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **s平面**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1k:relation-7a9e3841a9ecb88ecf0c4924",
+          "otherId": "ctkg:v3e-object-8f93b6b3842cc39fa81d8bc1",
+          "label": "主要带与次要带",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **主要带与次要带**（入边，关系：组成部分属于）"
+        }
+      ]
+    }
+  ]
+}

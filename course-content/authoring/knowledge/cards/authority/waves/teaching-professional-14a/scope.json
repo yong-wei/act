@@ -1,0 +1,44 @@
+{
+  "batchId": "teaching-professional-14a",
+  "status": "authoring",
+  "parentGroupId": "professional-source-specific-nonlinear-methods",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:m1s-object-12e26eefe7617d594c305b67",
+      "name": "l 阶积分逆系统",
+      "domain": "nonlinear-control-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+      "name": "严格无源阻抗",
+      "domain": "nonlinear-control-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+      "name": "扇区化零法",
+      "domain": "nonlinear-control-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-5df7a5c839136dcf822a286d",
+      "name": "积分器抗漂移控制方法",
+      "domain": "nonlinear-control-design",
+      "moduleId": null,
+      "order": 4
+    }
+  ]
+}

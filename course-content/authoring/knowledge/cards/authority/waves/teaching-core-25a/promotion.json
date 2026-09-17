@@ -1,0 +1,13 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 9,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b36",
+  "retiredResources": [
+    "act:card:谐振峰值Mr_5_b3a87785",
+    "act:card:谐振峰值_5_aa4903ab",
+    "act:card:带宽_5_58d2afcc",
+    "act:card:带宽_5_6730fda4",
+    "act:card:对数幅频渐近特性曲线_5_61c26fcf",
+    "act:card:交接频率_转折频率__5_8bca814b"
+  ]
+}

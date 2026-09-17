@@ -1,0 +1,91 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "equilibria": {
+      "system": "x_dot=u-x^2",
+      "stateAndTime": "dimensionless; x may have either sign",
+      "constantInput": 4,
+      "equilibria": [
+        -2,
+        2
+      ],
+      "linearPolesAtMinus2AndPlus2": [
+        4,
+        -4
+      ],
+      "classification": "-2 locally unstable; +2 locally asymptotically stable",
+      "boundary": "equilibrium requires both a state and the specified constant input"
+    },
+    "static_tangent": {
+      "g": "x^2",
+      "x0": 2,
+      "g0": 4,
+      "slope": 4,
+      "absoluteApproximation": "g(x) approximately 4+4(x-2)",
+      "incrementApproximation": "delta_g approximately 4 delta_x",
+      "exactRemainder": "delta_x^2",
+      "samples": [
+        {
+          "deltaX": 0.1,
+          "actual": 4.41,
+          "approximation": 4.4,
+          "absoluteRemainder": 0.010000000000000002
+        },
+        {
+          "deltaX": 0.5,
+          "actual": 6.25,
+          "approximation": 6.0,
+          "absoluteRemainder": 0.25
+        }
+      ],
+      "boundary": "a tangent is local; absolute g=4x would lose the operating-point offset"
+    },
+    "small_signal": {
+      "operatingPoint": {
+        "x0": 2,
+        "u0": 4
+      },
+      "exactIncrementEquation": "delta_x_dot=delta_u-4 delta_x-delta_x^2",
+      "linearIncrementEquation": "delta_x_dot=-4 delta_x+delta_u",
+      "incrementTransfer": "1/(s+4)",
+      "deltaInputStep": 0.4,
+      "initialIncrement": 0,
+      "linearStep": "0.1(1-exp(-4t))",
+      "linearFinalIncrement": 0.1,
+      "nonlinearFinalIncrement": 0.09761769634030326,
+      "maxAbsoluteDifferenceOn0To2Grid": 0.0023714464278831726,
+      "stateRangeOfLinearStep": [
+        0,
+        0.1
+      ],
+      "quadraticToLinearStateTermRatioAtDeltaX0_1": 0.025,
+      "boundary": "input size alone does not prove validity; check resulting state deviation and time interval"
+    },
+    "non_equilibrium": {
+      "x0": 1,
+      "u0": 4,
+      "constantDrift": 3,
+      "firstOrderEquation": "delta_x_dot approximately 3-2 delta_x+delta_u",
+      "boundary": "fixed non-equilibrium operating point does not permit deleting f0; a nominal trajectory requires its own time-dependent expansion"
+    },
+    "zero_jacobian_counterexample": {
+      "systems": [
+        "x_dot=-x^3",
+        "x_dot=x^3"
+      ],
+      "equilibrium": 0,
+      "bothLinearizations": "delta_x_dot=0",
+      "nonlinearConclusions": [
+        "asymptotically stable",
+        "unstable"
+      ],
+      "initialState": 0.1,
+      "xAt10ForMinusAndPlus": [
+        0.09128709291752769,
+        0.1118033988749895
+      ],
+      "boundary": "zero real-part eigenvalues make first-order stability inference inconclusive; analytic solutions show opposite behavior"
+    }
+  }
+}

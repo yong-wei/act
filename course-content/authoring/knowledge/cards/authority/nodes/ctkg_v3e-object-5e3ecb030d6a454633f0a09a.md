@@ -1,31 +1,31 @@
 ---
 node_id: ctkg_v3e-object-5e3ecb030d6a454633f0a09a
 authority_entity_id: "ctkg:v3e-object-5e3ecb030d6a454633f0a09a"
-name: 内模控制器
+name: "内模控制器"
+name_en: "Controller with a Reference Internal Model"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - 内模控制器
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-08d5bffc86ce67dacbd3de52a5d9e171fb6ca309b1187e4a8a13b227d9f41a79.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-08d5bffc86ce67dacbd3de52a5d9e171fb6ca309b1187e4a8a13b227d9f41a79.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/previous/ctkg_v3e-object-5e3ecb030d6a454633f0a09a.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 0074372fecfc9d63a3309af5465e76b5375d3f9080bbac49680a42763f89a48e -->
-
 ## 首页
 
-# 内模控制器
+# 内模控制器 | Controller with a Reference Internal Model
 
-**一句话定义**：一类校正控制器，通过在控制器中引入参考输入信号的内模，能以零稳态误差渐近跟踪各类参考输入信号。
+**一句话定义**：本卡的内模控制器包含与指定参考信号结构相匹配的动态，并在稳定闭环条件下实现相应渐近跟踪。
 
-**核心直觉**：在图谱邻接中可把握：前置 → 内模控制器设计方法 · 后续 → 内模。
-
-**关联**：前置 → 内模控制器设计方法 · 后续 → 内模
+这里讨论参考信号内模，不把它等同于所有含对象模型的工业控制架构。
 
 ---
 
@@ -33,19 +33,49 @@ asset_refs: []
 
 ### 完整解释
 
-一类校正控制器，通过在控制器中引入参考输入信号的内模，能以零稳态误差渐近跟踪各类参考输入信号。
+控制器中的内模应与跟踪任务相联系。针对常值、斜坡或特定频率信号，所需动态结构不同。增加结构后，还要确定参数并验证完整闭环稳定，不能只凭控制器包含某种模型就宣称可以跟踪任意输入。
+
+积分状态是常见的内模组成，但它们仍是实际状态，具有初值并影响控制量。输入输出函数中的约消不能替代内部状态分析。若目标信号本身无界，如斜坡，输出和控制作用也可能持续增长；这与稳定闭环的零输入模态衰减是不同概念。
+
+本例选择简单对象和明确的常值、斜坡信号类，展示控制器结构、误差函数和完整状态之间的联系，不提供对全部参考或未知对象的统一保证。
+
+### 教学计算/推理例
+
+对象为 $\dot x=-x+u,y=x$，控制器为
+
+$$\dot z_1=r-x,\qquad\dot z_2=z_1,\qquad u=2(r-x)+3z_1+z_2.$$
+
+其零状态传递形式是 $C(s)=2+3/s+1/s^2$。完整增广闭环特征多项式为 $(s+1)^3$，三个内部模态均稳定。
+
+对单位斜坡 $r=t$，原方程给出
+
+$$x(t)=t(1-e^{-t}),\qquad e(t)=te^{-t}.$$
+
+因此误差趋于零。同时 $z_1=1-(t+1)e^{-t}$、$z_2=t-2+(t+2)e^{-t}$，控制量为 $t+1-e^{-t}$。后两个量的增长对应持续增长的参考和所需对象作用，并不是零输入模态失稳。
+
+对单位阶跃，误差为 $(1-t)e^{-t}$，也趋于零。这些结果来自同一个稳定控制器的特定信号类。若只采用 $1+1/s$，本对象单位斜坡误差会趋于1，说明结构与目标类别确实相关。
+
+### 适用条件与边界
+
+理想斜坡持续增长会要求持续增长的控制量，有限执行器不可能据此获得任意时长的无限范围保证。实际任务应给出信号范围和约束，再判断模型是否适用。不能把数学渐近结果直接解释成所有实际工况都能实现。
+
+一般对象是否允许相应内模设计，还需要检查增广系统的可稳定性和调节条件。若参考换成另一类信号，应重新匹配其结构；当前两级积分并不自动实现所有频率正弦的精确跟踪。
+
+不同领域也可能用“内模控制”指特定的对象模型并联架构。阅读时应确认所指含义。本卡按来源的参考信号内模解释，不将另一套架构的性质移植进来。
+
+### 常见误区
+
+1. 误区：包含内模就能跟踪任意参考。纠正：应明确匹配的信号类、对象条件和完整闭环稳定性。
+2. 误区：斜坡下控制量增长就证明闭环不稳定。纠正：输入本身无界，应与零输入模态稳定性区分，同时检查实际约束。
+
+### 自检
+
+1. 本例斜坡误差趋零时，控制量为何仍随时间增长？
+2. 为什么不能把该控制器直接称为全部内模控制架构的通用实现？
+
+**核对要点**：持续增长的输出需要相应对象输入，参考并非有界常数。当前只验证参考信号内模的一种结构与信号类，其他架构和目标需要各自条件。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 内模 | 包含组件 |
-| 前置 | 内模控制器设计方法 | 应用于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、内模控制器
+- **内模**（出边，关系：包含组件）
+- **内模控制器设计方法**（入边，关系：适用于）

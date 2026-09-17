@@ -1,0 +1,122 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:6daaf5095018a332d359e2de",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:ae8d2ac000615bebe3cb4afb",
+          "otherId": "ctkg:domainconcept:58b32d6f599add0ab7eb86b5",
+          "label": "最小节拍组合校正方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **最小节拍组合校正方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:ee4c2d80f2497bad7cf570fc",
+          "otherId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+          "label": "时间常数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **时间常数**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+      "relations": [
+        {
+          "relationId": "ctkg:m3-v2m:relation:db216fb2c40509c55788bda7",
+          "otherId": "ctkg:m3-v2l:canonical-object:8754168bda2726334aedb505",
+          "label": "ITAE设计步骤",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **ITAE设计步骤**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:2bc6ecec04162e2083cc4d63",
+          "otherId": "m1r-v1d:concept:98c63b050a9e5228c4c87f54",
+          "label": "ITAE目标PID三步设计法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **ITAE目标PID三步设计法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-v3e-relation-bf08854a8f06a6f4ea529871",
+          "otherId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+          "label": "超调量",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **超调量**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:12cdac2feb6b83a8b2bd1996",
+          "otherId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+          "label": "稳态性能",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **稳态性能**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:fa6d3c49b7e75c81aa5ee96d",
+          "otherId": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+          "label": "动态性能",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **动态性能**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:7447cfa47f450dd2243872ec",
+          "otherId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+          "label": "稳态性能",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **稳态性能**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:fa6d3c49b7e75c81aa5ee96d",
+          "otherId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+          "label": "动态性能指标",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **动态性能指标**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:088329f05fb2b3f3df94ea13",
+          "otherId": "ctkg:v3e-canonical-0a39d839518b55dc77e9d083",
+          "label": "基于零极点位置的定性分析",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **基于零极点位置的定性分析**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:a3684e14104fc51c4071d2a5",
+          "otherId": "m1r-v1d:object:84f8c0ae440c857460a505b3",
+          "label": "基于调节时间的 ω_n 选择",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **基于调节时间的 ω_n 选择**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

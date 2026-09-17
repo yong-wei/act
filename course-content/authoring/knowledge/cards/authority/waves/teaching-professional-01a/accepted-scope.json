@@ -1,0 +1,94 @@
+{
+  "batchId": "teaching-professional-01a",
+  "status": "accepted",
+  "parentGroupId": "professional-sampling-foundations",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+      "name": "奈奎斯特-香农采样定理",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "name": "采样过程",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-18dc6cccc99e95f3ae794561",
+      "name": "混叠",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-241503a6440d96140036a51f",
+      "name": "抗混叠预滤波器",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+      "name": "采样率",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+      "name": "离散时间系统",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "name": "理想采样器",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "name": "采样控制系统",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8db9674c3550d1d151df7573",
+      "name": "周期采样",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+      "name": "离散信号",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 10
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd2b9611c4934fe067e8786a",
+      "name": "采样率选择",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 11
+    }
+  ],
+  "accepted": true
+}

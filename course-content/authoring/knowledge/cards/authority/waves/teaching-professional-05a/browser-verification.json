@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> Lyapunov-equation node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "李雅普诺夫方程",
+  "representativeCanonicalId": "ctkg:domainconcept:951014d55276cafabac48a25",
+  "authorityDomainId": "lyapunov-stability",
+  "authorityDomainDisplayName": "李雅普诺夫稳定性"
+}

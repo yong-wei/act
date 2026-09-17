@@ -1,52 +1,89 @@
 ---
 node_id: ctkg_domainconcept_6979e99f60e2642ff3d70d4b
 authority_entity_id: "ctkg:domainconcept:6979e99f60e2642ff3d70d4b"
-name: z-plane root locus
+name: "z平面根轨迹"
+name_en: "Root Locus in the z-Plane"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - z-plane
-  - root
-  - locus
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consixt_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-94c9027621a7b31e51c6a5c31ee3531fafb813e026f2778670ee13b7565fa5c1.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-94c9027621a7b31e51c6a5c31ee3531fafb813e026f2778670ee13b7565fa5c1.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-09a/previous/ctkg_domainconcept_6979e99f60e2642ff3d70d4b.md"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-09a/supporting-source-inventory.json"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 4b1c88691d17d613eeda8f3e850f0da213e336cbbb9ea22a8208a0498c9563c0 -->
-
 ## 首页
+# z平面根轨迹 | Root Locus in the z-Plane
 
-# z-plane root locus
+一句话定义：z平面根轨迹描述指定反馈结构中增益变化时闭环特征根的位置，用于分析离散闭环稳定与动态趋势。
 
-**一句话定义**：z-plane root locus是自动控制原理权威图谱中的领域概念。
-
-**关联**：（权威图邻接待补充）
+- 轨迹上的点是闭环极点，不是频率响应样值。
+- 离散渐近稳定区域为单位圆内。
+- 增益范围和反馈符号必须明确。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+给定离散开环传递函数G(z)，采用单位负反馈并令非负比例增益K变化，特征方程为 $1+KG(z)=0$。将它写成多项式方程，可以追踪每个K对应的闭环特征根。根轨迹把一系列闭环系统的极点位置放在同一z平面中，便于判断何时靠近稳定边界以及是否形成振荡模态。
+
+根轨迹方法的基本特征方程与连续情形相似，但稳定区域不同。离散系统要求相应内部模态的极点严格在单位圆内；不能把“实部为负”或“在虚轴左侧”直接当作离散稳定判断。
+
+### 教学计算/推理例
+
+取
+
+$$
+G(z)=\frac{0.1}{(z-0.6)(z-0.2)},\qquad K\geq0.
+$$
+
+单位负反馈特征方程为 $z^2-0.8z+0.12+0.1K=0$，解为
+
+$$
+z_{1,2}=0.4\pm\sqrt{0.04-0.1K}.
+$$
+
+K=0时，两条分支从0.6和0.2开始。随着K增大到0.4，两根在实轴0.4处相遇；再增大K，根成为共轭对，实部保持0.4，虚部沿上下方向增大。K=1时，根约为0.4±0.24495j，模长约0.46904，仍在单位圆内。
+
+当K大于0.4时，根的模平方等于 $0.12+0.1K$。令其为1得到K=8.8，此时根约为0.4±0.91652j，位于单位圆上。K更大时模长超过1，闭环失去渐近稳定。结合相遇前两个实根也都在单位圆内，可得本例的稳定增益范围 $0\leq K<8.8$。
+
+### 重根与边界的区别
+
+K=0.4时出现重根0.4，但这个重根严格位于单位圆内；即使状态实现含相应Jordan结构，矩阵幂中的多项式因子也被指数衰减压过，因此它不等于稳定边界。相反，K=8.8的根没有因为“仍在单位圆上”而获得渐近稳定。
+
+本例没有有限零点，两条分支最终远离有限区域，不能从“最初两个开环极点都稳定”推出任意增益仍稳定。根轨迹的用途恰好是观察反馈增益改变后的闭环，而不是只检查起始点。
+
+### 与响应的联系
+
+共轭极点的模长与角度共同影响离散振荡。模长越接近1，每步衰减通常越慢；角度影响每步相位变化。若要报告以秒计的振荡频率和衰减速度，还需要采样周期T，并结合具体输出与零点的影响，不能仅凭一幅根轨迹承诺全部时域指标。
+
+### 适用条件与边界
+
+本卡分析的是固定G、单位负反馈和K非负的特征根变化。改变反馈符号、动态补偿器或采样周期时，原轨迹不再直接适用。传递函数若有隐藏状态或约消，也需检查内部实现，避免只跟踪可见输入输出极点而漏掉内部风险。
+
+数值绘图只显示有限的增益样本。边界与重根附近应结合特征多项式、极点模长或代数判据核验，不能把图上的线宽或采样稀疏当成严格稳定区间的证明。本例给出解析根，因此可以直接检验关键增益。
+
+### 常见误区
+
+1. 用连续左半平面规则判断离散稳定性。
+2. 将单位圆内的重根当成必然不稳定。
+3. 只看开环起点稳定就认为任意K都稳定。
+
+### 自检
+
+1. 本例哪一个K产生重根，哪一个K到达单位圆？
+2. 为什么K=0.4与K=8.8不能归为同一种边界？
+
+**核对要点**：分别为0.4和8.8；前者重根模长小于1仍衰减，后者根模长等于1不再渐近衰减。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、z-plane、root、locus
+本卡的结论可由上述定义与计算例独立复核。

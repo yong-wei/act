@@ -1,50 +1,80 @@
 ---
 node_id: ctkg_domainconcept_f713a296511f858ae3f3bfde
 authority_entity_id: "ctkg:domainconcept:f713a296511f858ae3f3bfde"
-name: 大范围（全局）渐近稳定性
+name: "大范围（全局）渐近稳定性"
+name_en: "Global Asymptotic Stability"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - 大范围（全局）渐近稳定性
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+confifteent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-845a301d8d96d427123145661085f7bf7292b297dd7f690176ab0953647c1ea2.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-845a301d8d96d427123145661085f7bf7292b297dd7f690176ab0953647c1ea2.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-05a/previous/ctkg_domainconcept_f713a296511f858ae3f3bfde.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 96c670bf6cda6b3dd580bd505f9dc2d227629d2a3bfafc862c333b5b4899d367 -->
-
 ## 首页
+# 大范围（全局）渐近稳定性 | Global Asymptotic Stability
 
-# 大范围（全局）渐近稳定性
+一句话定义：全局渐近稳定要求平衡点稳定，并且整个状态空间内每个初始状态的解都能持续存在且最终趋向该平衡点。
 
-**一句话定义**：大范围（全局）渐近稳定性是自动控制原理权威图谱中的领域概念。
-
-**关联**：（权威图邻接待补充）
+- 全局结论必须覆盖任意大初始状态。
+- 径向无界的李雅普诺夫函数能帮助排除轨迹逃向无穷。
+- 局部线性化稳定不能单独证明全局稳定。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+局部渐近稳定只要求某个邻域中的轨迹趋向平衡点。全局渐近稳定将吸引范围扩大到整个状态空间，同时仍保留稳定性要求。若某些初值会有限时间发散、趋向其他平衡点或持续振荡，就不能宣称所选平衡点全局渐近稳定。
+
+对于自治系统，一个常见充分条件是存在全局正定、连续可微且径向无界的V，沿轨迹导数在非零点严格为负，并满足向量场局部Lipschitz等解的条件。径向无界表示状态范数趋于无穷时V也趋于无穷；因此固定V子水平集有界，结合不增性可以限制轨迹范围。
+
+### 教学计算/推理例
+
+取 $\dot x=-x-x^3$，选择 $V=x^2/2$，则
+
+$$
+\dot V=x(-x-x^3)=-x^2-x^4\leq-2V.
+$$
+
+V全局正定且径向无界。初始V值确定的闭区间是紧的正不变集合，光滑向量场在该有界区域中不会产生有限时间逃逸。积分上述不等式得到 $V(t)\leq V(t_0)e^{-2(t-t_0)}$，所以 $|x(t)|\leq|x(t_0)|e^{-(t-t_0)}$。这对任意初值成立，证明全局渐近稳定，且本例还具有全局指数上界。
+
+无论初始状态为0.1、10还是-100，向量场都将其推向原点。初值很大时三次项增加回归趋势，但全局结论并不是由几个大初值的数值试验获得，而是由适用于所有实数状态的函数不等式获得。
+
+### 局部结论的反例
+
+将系统改成 $\dot x=-x+x^3=x(x^2-1)$。原点处雅可比仍为-1，原点附近仍渐近稳定。然而当x大于1时导数为正，状态继续向正方向增长；当x小于-1时导数为负，状态向负方向远离。另有两个平衡点x=1与x=-1，因此原点不能吸引整个实数域。
+
+同一个候选V此时给出 $\dot V=-x^2+x^4$，仅在 $0<|x|<1$ 时为负。该符号范围直接揭示局部与全局结论的差别。原点吸引域为开区间(-1,1)，边界平衡点不会趋于原点，区间外也不受局部证明保护。
+
+### 适用条件与边界
+
+径向无界是常用全局定理中的充分条件，并不是所有可能全局证明都必须采用的唯一方法。若使用其他条件保证轨迹紧性，也可开展相应分析；但不能把它从某条定理中删除后继续原样声称该定理适用。
+
+全局正定也不自动径向无界，例如 $x^2/(1+x^2)$ 始终非负且唯一零点为原点，却在无穷远趋于1。V下降若缺少足够状态约束，可能无法排除状态逃向远处。对时变系统还应另行说明是否要求相对于初始时刻的一致性，本卡主要采用自治模型。
+
+### 常见误区
+
+1. 由原点雅可比稳定直接推断所有初值收敛。
+2. 将全局正定与径向无界当成同一个条件。
+3. 只验证几条大初值轨迹就声称覆盖整个状态空间。
+
+### 自检
+
+1. 本例的紧子水平集怎样帮助保证前向解存在？
+2. $\dot x=-x+x^3$ 为什么不可能在原点全局渐近稳定？
+
+**核对要点**：轨迹被限制在有界闭区间，光滑向量场的解可以持续延拓；还有±1两个平衡点，且外侧状态远离原点。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、大范围（全局）渐近稳定性
+- **大范围稳定系统**（无向，关系：相关）
+- **平衡状态稳定性**（无向，关系：相关）
+- **李雅普诺夫稳定性**（无向，关系：相关）

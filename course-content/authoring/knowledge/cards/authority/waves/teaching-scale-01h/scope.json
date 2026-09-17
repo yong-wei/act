@@ -1,0 +1,45 @@
+{
+  "batchId": "teaching-scale-01h",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "status": "authoring",
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+      "name": "性能指标",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+      "name": "调节与扰动抑制的系统类型",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+      "name": "全状态反馈设计步骤",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+      "name": "极点配置补偿器设计",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "name": "延迟环节",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "name": "校正装置",
+      "directGoal": true
+    }
+  ]
+}

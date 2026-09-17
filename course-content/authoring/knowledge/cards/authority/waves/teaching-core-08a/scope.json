@@ -1,0 +1,70 @@
+{
+  "batchId": "teaching-core-08a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-08",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+      "name": "严格真传递函数系统",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+      "name": "零点",
+      "moduleId": "module-3",
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+      "name": "复频域传递函数极点",
+      "moduleId": "module-1",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+      "name": "开环传递函数零点",
+      "moduleId": "module-3",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+      "name": "开环传递函数",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+      "name": "极点",
+      "moduleId": "module-1",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "name": "闭环极点",
+      "moduleId": "module-1",
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "name": "传输零点",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+      "name": "闭环零点",
+      "moduleId": null,
+      "order": 9
+    }
+  ]
+}

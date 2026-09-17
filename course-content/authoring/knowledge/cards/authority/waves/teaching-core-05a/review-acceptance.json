@@ -1,0 +1,22 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_core_blocks_mason",
+  "role": "simulation-domain-reviewer",
+  "findings": [
+    {
+      "id": "bare-qquad",
+      "disposition": "ACCEPT",
+      "status": "resolved"
+    }
+  ],
+  "focusedRereview": "passed",
+  "cardHashes": {
+    "ctc:modeling-1a01abb71d037ed52c2bc394": "9d45754d11e826fd0d9784a2dfcdbf069282b1c1972337fa7ba31b29e6e0d704",
+    "ctc:modeling-2088bbde171b2e9ef66070d5": "9bdc13af2259115e19c2611a74ee07b9dea69afb641a421e74e82731637b0fae",
+    "ctc:modeling-239e401e0fcc8485f3a0533d": "ceed55c5247987fe398595d79f18231b2c0f597d8796edb08bef23acee1d0e3b",
+    "ctc:modeling-7aef273143199795496abedb": "830cacd7c881cf1579509317b33fc012950e1972899ee25960d498a3743ae175",
+    "ctc:modeling-bddaef2510e39cbb62d60df2": "fa1a0738b49e5641ba0f1f618579b2c7549cce97593695656ad96b0308b63774",
+    "ctc:modeling-c499b71d908bd8fe4124c533": "ddd650e81c36c22f9d813432854d3bc0aa329b55506321dfea5a10ba457b2b76",
+    "ctc:modeling-e442dacbfef4a0d7ea3c4c15": "3b8372f9db757d305d8c1b19af3f7bec44e93526b2f9ccf5acc5617d4e49fffc"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "status": "supporting-source-captured",
+  "authorityScope": "Identity and relations remain governed by source-inventory.json. These are teaching references, not changes to upstream authority.",
+  "sources": [
+    {
+      "url": "https://www.egr.msu.edu/~khalil/NonlinearControl/Slides-Full/Lect_8.pdf",
+      "title": "Hassan K. Khalil, Nonlinear Control, Lecture 8: Time Varying and Perturbed Systems",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-05a/references/khalil-time-varying-systems.pdf",
+      "sha256": "25573b235e4db3751ba3dcfe27e1b50997102e7f87516456205e618ebc666869",
+      "pages": "8-11 (PDF page numbers, one-based)",
+      "supports": "uniform stability and uniform asymptotic stability; time-independent comparison bounds and derivative conditions"
+    },
+    {
+      "url": "https://underactuated.csail.mit.edu/lyapunov.html",
+      "title": "Russ Tedrake, Underactuated Robotics, Lyapunov Analysis",
+      "sections": [
+        "Lyapunov Functions",
+        "Global Stability",
+        "LaSalle’s Invariance Principle"
+      ],
+      "supports": "direct method, radial unboundedness, invariant-set reasoning",
+      "retrieval": "web page inspected; no local full-page snapshot"
+    }
+  ]
+}

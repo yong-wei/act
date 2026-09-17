@@ -164,7 +164,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/传递函数_1_5b0faf8b.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md"
       ],
       "tags": [
         "拉普拉斯变换",
@@ -379,7 +379,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/信号流图_2_372d4084.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-9121dc2c97afa77f52ce0220.md"
       ],
       "tags": [
         "线性系统",
@@ -498,7 +498,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/回路_2_e1adbdfa.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-v2r-5585bf06f0e579bc1c362ac2.md"
       ],
       "tags": [
         "闭合通路",
@@ -1101,7 +1101,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/闭环传递函数_2_5399c369.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-69118dc66489d66b1732901b.md"
       ],
       "tags": [
         "反馈连接",

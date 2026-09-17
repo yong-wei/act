@@ -1,36 +1,35 @@
 ---
 node_id: ctc_modeling-50ed406e4478b481d868adfb
 authority_entity_id: "ctc:modeling-50ed406e4478b481d868adfb"
-name: The determinant of the
-name_en: modeling_50ed406e4478b481d868adfb
+name: "第k条前向通路特征余子式"
+name_en: "Forward-Path Cofactor"
 category: 概念性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - The
-  - determinant
-  - of
-  - the
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6a9263f333257527dbbe8963438223f80be10ec39a38f24294e3eae4aaadd88e.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6a9263f333257527dbbe8963438223f80be10ec39a38f24294e3eae4aaadd88e.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-07a/previous/ctc_modeling-50ed406e4478b481d868adfb.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 9de7f959100a648f1e12001ba7df83e27a31682fa7455850d99c4dc5c6161d08 -->
-
 ## 首页
 
-# The determinant of the | modeling_50ed406e4478b481d868adfb
+# 第k条前向通路特征余子式 | Forward-Path Cofactor
 
-**一句话定义**：The determinant of the：The determinant of the signal flow graph with the loops touching the k-th forward path removed.
+**一句话定义**：$\Delta_k$ 是只使用与第 $k$ 条前向通路不接触的回路，按特征式规则构造的表达式。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：先把通路经过的节点圈清楚，再筛选可以留下的回路；每条通路可能留下不同回路。
+
+**关键公式**：本例 $\Delta_1=\Delta_2=1-L_2$，$\Delta_3=1-L_1$。
+
+**学习目标**：依据节点接触关系构造通路余子式，并将它与对应的通路增益配对。
 
 ---
 
@@ -38,18 +37,43 @@ asset_refs: []
 
 ### 完整解释
 
-The determinant of the signal flow graph with the loops touching the k-th forward path removed.
+余子式的下标 $k$ 指向一条明确的前向通路，不是任意矩阵行号，也不是任选一个回路的编号。构造时先找出通路上的全部节点，然后去掉与这些节点有交集的回路；剩下的回路再按“1、单回路和、不接触组合乘积”的规则形成 $\Delta_k$。
+
+如果没有任何回路可以留下，余子式为 1，而不是 0。单位常数项始终属于特征式的起点。计算余子式不意味着在原系统中真的切断回路或改变输入输出；它是梅森公式中的辅助代数量，原图仍按全部关系联立求解。
+
+### 教学计算/推理例
+
+共同无量纲图的节点关系为 $x=2r-0.1y$、$y=3x+r$、$q=4r+0.2q$、$z=y+0.5q$。两个基本回路的节点集合为 $L_1:\{x,y\}$ 和 $L_2:\{q\}$，增益分别为 $-3/10$ 与 $1/5$。
+
+第一条通路 $r\to x\to y\to z$ 经过 $x,y$，因此接触 $L_1$；它不经过 $q$，可留下 $L_2$。所以
+$$
+\Delta_1=1-L_2=\frac45.
+$$
+第二条通路 $r\to y\to z$ 虽不经过 $x$，但经过 $y$ 已足以与 $L_1$ 接触，因此仍有 $\Delta_2=4/5$。接触判断不是要求包含回路的全部节点。
+
+第三条通路 $r\to q\to z$ 接触 $L_2$，不接触 $L_1$，所以
+$$
+\Delta_3=1-L_1=\frac{13}{10}.
+$$
+三条通路增益为 $6,1,2$，配对后分子为 $6(4/5)+1(4/5)+2(13/10)=41/5$。若把 $\Delta_1$ 用于第三条通路，就会破坏这种接触关系对应。
+
+### 适用条件与边界
+
+“回路与通路不接触”检查的是节点集合。即使两者没有共用支路，只要共享节点就应排除该回路。复杂图中剩余多个回路时，还要继续判断它们相互之间是否接触，才能构造正确的乘积项。不要只保留单回路项而忽略合法的不接触组合，也不要把与通路接触的回路所参与的混合项留在余子式中。
+
+### 常见误区
+
+1. **误区**：第二条通路没有经过 $x$，就不接触 $x-y-x$ 回路。**纠正**：共同节点 $y$ 已足够构成接触。
+2. **误区**：删完所有回路后余子式为零。**纠正**：仍保留常数项 1。
+
+### 自检
+
+1. 为什么前两条通路的余子式相同？
+2. 第三条通路为何使用 $1-L_1$？
+
+**核对要点**：前两条都接触 $L_1$ 而不接触 $L_2$；第三条只接触 $L_2$，留下 $L_1$。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、The、determinant、of、the
+- **前向路径**（无向，关系：相关）
+- **梅森增益公式**（出边，关系：组成部分属于）

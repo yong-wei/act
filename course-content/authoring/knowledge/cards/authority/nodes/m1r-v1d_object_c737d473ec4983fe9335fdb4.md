@@ -1,0 +1,87 @@
+---
+node_id: m1r-v1d_object_c737d473ec4983fe9335fdb4
+authority_entity_id: "m1r-v1d:object:c737d473ec4983fe9335fdb4"
+name: "ITAE方法"
+name_en: "ITAE-Based Tuning Method"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consevent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-188197a61e2021b5694917d9fb2ce94f636abd939c3422ea523473b2b401b934.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-188197a61e2021b5694917d9fb2ce94f636abd939c3422ea523473b2b401b934.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/supporting-source-inventory.json"
+asset_refs: []
+---
+
+## 首页
+# ITAE方法 | ITAE-Based Tuning Method
+
+一句话定义：ITAE方法在明确的控制器参数范围与约束内，以时间加权绝对误差积分评价和选择参数。
+
+- 指标必须来自真实闭环误差。
+- 名义最优与最坏情况最优是不同问题。
+- 最优性结论要说明所比较的控制器族。
+
+---
+## 详情
+### 完整解释
+
+使用ITAE整定时，先固定对象、参考、初态、积分时域及允许控制结构，再计算 $J=\int t|e(t)|\,dt$。如果对象不确定，还要说明优化的是名义值、平均值还是允许集合中的最坏值。缺少这些定义，一个“最优参数”没有明确的比较范围。
+
+数值优化可以搜索复杂参数，但局部收敛不自动证明全局最优。下面用可解析的一参数控制器族，展示怎样同时检查闭环、输入约束、最坏参数和最终最优性，而不是只比较几条候选曲线。
+
+### 教学计算/推理例
+
+取对象 $\dot x=ku$，k为[0.8,1.2]内未知固定常数，输出x。采用 $u=p(r-x)$，p限制在[0.5,2]内，零初态单位阶跃r=1。要求输入幅值不超过2，并使全族最坏ITAE尽可能小。
+
+闭环解为 $x(t)=1-e^{-kpt}$，误差 $e(t)=e^{-kpt}$，控制输入 $u(t)=pe^{-kpt}$。由于k和p均为正，全部闭环稳定且控制输入从p单调下降，峰值为p，因而允许区间内均满足幅值不超过2。
+
+无限时域指标为
+
+$$
+J(k,p)=\int_0^\infty t e^{-kpt}\,dt
+=\frac{1}{k^2p^2}.
+$$
+
+固定p时，J随k增大而减小，所以最坏对象是k=0.8。最坏值 $J_{\max}(p)=1/(0.8p)^2$ 又随p增大而严格减小，因此允许区间内的最优参数是p=2，最坏ITAE为25/64，即0.390625。
+
+### 最优性的范围
+
+这个结论覆盖了整个连续参数区间，不只是试算p=0.5、1和2之后选最小值。其依据是从真实闭环积分得到的表达式及两个方向的严格单调性。名义k=1时p=2的ITAE为1/4，但最坏值为25/64，二者不能互相代替。
+
+最优性只限于本卡声明的正比例控制器族、参数范围、单位阶跃、零初态与输入限制。它没有证明p=2优于全部动态控制器，也没有证明对斜坡或扰动输入仍是同一个最优参数。更换任务后应重新定义和求解优化问题。
+
+### 数值计算怎样验证
+
+可以将每组参数的闭环微分方程独立求解，再积分t乘误差绝对值，与解析结果对照。应检查误差曲线确实满足原方程和初值，以及有限积分窗口是否遗漏重要尾部。
+
+如果实际闭环有振荡，绝对值不能省略；若存在非零稳态误差，无限时域ITAE可能发散，有限时长搜索得到的小数不能冒充完整指标。对高阶或受限系统，也不能默认输入峰值仍只出现在初始时刻。
+
+### 适用条件与边界
+
+本例对象没有遗漏动态、延迟或饱和非线性，输入界由所选参数范围直接满足。如果在控制输出之外临时加入限幅，实际误差方程就会改变，原来的1/(kp)²不一定再适用。
+
+ITAE偏重后期误差，但不是稳定性、鲁棒性或所有工程代价的替代品。设计可以同时设置输入、状态或频域约束，前提是把它们明确纳入可行集合，而不是只在得到较小积分值后宣称全部性能通过。
+
+### 常见误区
+
+1. 用名义ITAE最小代替全族最坏ITAE最小。
+2. 在有限几个点中最优，就声称连续参数区间内最优。
+3. 不说明控制器族就给出无条件的“全局最佳”参数。
+
+### 自检
+
+1. 本例为什么最坏对象取k=0.8？
+2. p=2的最优性由什么保证，又受什么范围限制？
+
+**核对要点**：J对正k严格递减；最坏指标对p严格递减且允许p至多2，结论仅针对所声明的比例控制器族与任务。
+
+### 关联节点
+
+本卡的结论可由上述定义与计算例独立复核。

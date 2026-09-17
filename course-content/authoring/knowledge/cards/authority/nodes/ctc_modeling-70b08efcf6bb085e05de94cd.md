@@ -1,52 +1,99 @@
 ---
 node_id: ctc_modeling-70b08efcf6bb085e05de94cd
 authority_entity_id: "ctc:modeling-70b08efcf6bb085e05de94cd"
-name: 领域概念
-name_en: modeling_70b08efcf6bb085e05de94cd
+name: "工作点泰勒级数近似"
+name_en: "Taylor Approximation at an Operating Point"
 category: 程序性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: analysis_method
-release_tier: silver
-tags:
-  - analysis_method
-  - silver
-  - 领域概念
-card_version: 1
+knowledge_type: X
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e70139ef05abf85b641d14ce55f80ab676d5db02fdbe49153ee8b2c7d0579e93.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/previous/ctc_modeling-70b08efcf6bb085e05de94cd.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 6111a0f0c1f9dc06ae280b41c5a3977522c537bdcd0f6863d23417b34e82b9a9 -->
-
 ## 首页
 
-# 领域概念 | modeling_70b08efcf6bb085e05de94cd
+# 工作点泰勒级数近似 | Taylor Approximation at an Operating Point
 
-**一句话定义**：领域概念：A method to approximate a nonlinear function g(x(t)) about an operating point x0 using a Taylor series expansion, negle…
+**一句话定义**：围绕给定工作点展开非线性方程并保留一阶项，得到描述附近变化的线性近似。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：工作点只说明“从哪里展开”；只有满足静止条件时，展开后的增量方程才没有漂移常项。
 
----
+**关键公式**：
+$$
+\delta\dot{x}\approx f(x_0,u_0)+f_x(x_0,u_0)\delta x+f_u(x_0,u_0)\delta u
+$$
+
+**学习目标**：能区分任意工作点与平衡点，保留非平衡展开中的常项，并说明名义轨迹为何需要时变展开。
 
 ## 详情
 
 ### 完整解释
 
-A method to approximate a nonlinear function g(x(t)) about an operating point x0 using a Taylor series expansion, neglecting higher-order terms to obtain a linear approximation.
+“工作点”是展开的参照位置，“平衡点”还多了一层动力学条件。对 $\dot{x}=f(x,u)$，令 $x=x_0+\delta x$、$u=u_0+\delta u$，一阶泰勒近似是
+$$
+\delta\dot{x}\approx f(x_0,u_0)+f_x(x_0,u_0)\delta x+f_u(x_0,u_0)\delta u.
+$$
+其中 $f(x_0,u_0)$ 是在该位置仍然存在的常量漂移。若工作点恰好满足 $f(x_0,u_0)=0$，它才退化为通常的平衡点增量模型；若不满足，删去常项就会把原本存在的运动趋势抹掉。
+
+固定系统仍取
+$$
+\dot{x}=u-x^2,
+$$
+但选取非平衡工作点 $x_0=1,u_0=4$。此时
+$$
+f_0=f(1,4)=4-1^2=3,
+\qquad
+f_x(1,4)=-2,
+\qquad
+f_u(1,4)=1.
+$$
+代入偏差变量后，精确关系为
+$$
+\delta\dot{x}=3+\delta u-2\delta x-\delta x^2.
+$$
+保留一阶项得到
+$$
+\delta\dot{x}\approx3-2\delta x+\delta u.
+$$
+常数 $3$ 是该工作点的初始漂移；它不是计算噪声，也不是可以凭“增量方程”四个字自动删掉的项。这里的工作点一词不保证系统会停在那里。
+
+### 教学计算/推理例
+
+令非平衡工作点仍为 $x_0=1,u_0=4$，输入不再增加，即 $\delta u=0$，并从工作点出发 $\delta x(0)=0$。一阶近似方程为
+$$
+\delta\dot{x}+2\delta x=3.
+$$
+其齐次解为 $C e^{-2t}$，常值特解由 $2\delta x=3$ 得 $\delta x=1.5$。利用初始条件 $C=-1.5$，完整答案为
+$$
+\delta x(t)=1.5\left(1-e^{-2t}\right).
+$$
+因此即使输入偏差为零，状态也会从 $x_0=1$ 开始移动；若错误地把 $f_0=3$ 删除，方程会变成 $\delta\dot{x}=-2\delta x$，并错误预测状态永远停在工作点。这个对照把“工作点”和“平衡点”的差别直接显现出来。
+
+若研究的是随时间变化的名义轨迹 $x_0(t),u_0(t)$，展开中心本身在移动，偏差方程中的系数一般随时间变化，且要同时满足轨迹方程。固定工作点的常系数例子不能被直接称为轨迹线性化。
+
+### 适用条件与边界
+
+工作点附近的一阶近似要求 $f$ 可微且偏差保持在局部范围内。判断能否使用无常项形式时，应先计算 $f(x_0,u_0)$；平衡条件必须由方程验证，而不是由“工作点”“稳态附近”等名称推断。若名义状态随时间移动，应使用沿轨迹的雅可比和相应的时变模型。这里的变量和时间采用无量纲教学约定。
+
+### 常见误区
+
+1. **误区**：任何工作点展开都可以直接写成 $\delta\dot{x}=A\delta x+B\delta u$。**纠正**：只有 $f(x_0,u_0)=0$ 时常项才消失。
+2. **误区**：输入偏差为零就代表系统不会运动。**纠正**：本例在非平衡工作点仍有漂移 $f_0=3$，状态会自行离开该点。
+
+### 自检
+
+1. 选取 $x_0=1,u_0=4$ 时，常项从哪里来？
+2. 如果展开中心改为随时间变化的名义轨迹，还需要改变什么？
+
+**核对要点**：常项是 $f(1,4)=3$，表示该点的净状态变化；沿名义轨迹展开时，展开中心和雅可比通常随时间变化，不能继续假设固定常系数。
 
 ### 关联节点
-
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`analysis_method`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-analysis_method、silver、领域概念

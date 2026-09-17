@@ -1,0 +1,89 @@
+{
+  "batchId": "teaching-core-12a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-12",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "name": "稳定时间",
+      "moduleId": "module-1",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+      "name": "振荡频率",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+      "name": "稳态响应",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+      "name": "峰值时间",
+      "moduleId": "module-2",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "name": "调节时间",
+      "moduleId": "module-1",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "name": "上升时间",
+      "moduleId": "module-1",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+      "name": "峰值时间T_p",
+      "moduleId": "module-2",
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+      "name": "瞬态响应",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "name": "临界阻尼响应",
+      "moduleId": null,
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+      "name": "稳态过程",
+      "moduleId": null,
+      "order": 10
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "name": "过阻尼响应",
+      "moduleId": null,
+      "order": 11
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+      "name": "动态过程",
+      "moduleId": null,
+      "order": 12
+    }
+  ],
+  "accepted": true
+}

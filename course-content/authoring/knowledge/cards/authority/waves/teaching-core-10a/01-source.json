@@ -1,0 +1,478 @@
+{
+  "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctc:modeling-5da44f2fc98d268259459e04",
+      "canonicalType": "DomainConcept",
+      "label": "脉冲响应",
+      "aliases": [],
+      "description": "v3T accepted candidate for impulse response.",
+      "teachingFields": {
+        "concept_kind": "theoretical_construct"
+      },
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.2/item-3",
+          "label": "自动控制原理（胡寿松，第8版） · 一阶系统的单位脉冲响应"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctc:modeling-5da44f2fc98d268259459e04",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctc:modeling-4ab0ef32a4b6e8688292e5d1",
+        "canonicalType": "DomainConcept",
+        "label": "单位脉冲信号",
+        "aliases": [
+          "脉冲"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-5da44f2fc98d268259459e04",
+        "canonicalType": "DomainConcept",
+        "label": "脉冲响应",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-865eb1c8824e157c2f05a903",
+        "canonicalType": "DomainConcept",
+        "label": "传递函数",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "representation_kind"
+      },
+      {
+        "id": "ctc:modeling-d1d778fef91f78f0d3490f87",
+        "canonicalType": "DomainConcept",
+        "label": "单位脉冲响应",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-e304e644d69b0f1be6d6eca4",
+        "canonicalType": "DomainConcept",
+        "label": "单位脉冲时域响应",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+        "canonicalType": "DomainConcept",
+        "label": "自然响应",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "time-domain-analysis",
+            "visualRole": "time",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctkg:v3e-canonical-85a8c51ad4bbae148e040776",
+        "canonicalType": "DomainConcept",
+        "label": "脉冲响应辨识传递函数",
+        "aliases": [
+          "利用单位脉冲响应求闭环传递函数的方法",
+          "脉冲响应求闭环"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "time-domain-analysis",
+            "visualRole": "time",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "analysis_method"
+      },
+      {
+        "id": "ctkg:v3e-canonical-ba083259586bdfcd0cee5de2",
+        "canonicalType": "KnowledgeStatement",
+        "label": "通过对系统施加大振幅窄脉冲，可以使用脉冲响应测试信号",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "time-domain-analysis",
+            "visualRole": "time",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-canonical-daf84a56d5b06c9372f9f94e",
+        "canonicalType": "KnowledgeStatement",
+        "label": "当 t >= 0 时脉冲响应为 h(t) = -e^{-t} + 3e^{-2t}，当 t < 0 时为 0。极点位于 s = -1 和 s = -2，零点位于 s = -1/2。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "time-domain-analysis",
+            "visualRole": "time",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:m5-d1:association:0dee0cc798d43f4c7e5b8d67",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-e304e644d69b0f1be6d6eca4",
+        "targetId": "ctc:modeling-5da44f2fc98d268259459e04",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:11a6ce8ddff72d200a2d018c",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-canonical-85a8c51ad4bbae148e040776",
+        "targetId": "ctc:modeling-5da44f2fc98d268259459e04",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:9d688cf8bcc44cd0031545ec",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-d1d778fef91f78f0d3490f87",
+        "targetId": "ctc:modeling-5da44f2fc98d268259459e04",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:c3ae8b205ab2aec95e7b1332",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-4ab0ef32a4b6e8688292e5d1",
+        "targetId": "ctc:modeling-5da44f2fc98d268259459e04",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctr:fdaabf40cd0904169cb9e499",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-865eb1c8824e157c2f05a903",
+        "targetId": "ctc:modeling-5da44f2fc98d268259459e04",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctr:m1f-bridge-relation-0ba4f7b34cf6815201d6cbed",
+        "predicate": "derived_from",
+        "sourceId": "ctkg:v3e-canonical-daf84a56d5b06c9372f9f94e",
+        "targetId": "ctc:modeling-5da44f2fc98d268259459e04",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "derivation-and-representation"
+      },
+      {
+        "id": "ctr:m1f-bridge-relation-452328e6785015ee2a1bbecd",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:v3e-canonical-ba083259586bdfcd0cee5de2",
+        "targetId": "ctc:modeling-5da44f2fc98d268259459e04",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "ctr:m1f-bridge-relation-ad5c8e4d866cbe9847b254cd",
+        "predicate": "is_a",
+        "sourceId": "ctc:modeling-5da44f2fc98d268259459e04",
+        "targetId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      }
+    ],
+    "boundaries": []
+  }
+}

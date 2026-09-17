@@ -1,0 +1,151 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:非最小相位环节_5_f40c2785",
+      "canonicalId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/非最小相位环节_5_f40c2785.md",
+          "sha256": "d0538ca2ced0b2d60de4fd4209a2a6726506686129e6ce058aaf7711e8b13156",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/authoring/非最小相位环节_5_f40c2785.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/非最小相位环节_5_f40c2785.md",
+          "sha256": "d0538ca2ced0b2d60de4fd4209a2a6726506686129e6ce058aaf7711e8b13156",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/runtime/非最小相位环节_5_f40c2785.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:奈奎斯特稳定判据_5_a1b34560",
+      "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/奈奎斯特稳定判据_5_a1b34560.md",
+          "sha256": "8643041ce6b0c8fb1fb25d8a6ac8487b38663efaae552ba45123450b6c81ae3f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/authoring/奈奎斯特稳定判据_5_a1b34560.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/奈奎斯特稳定判据_5_a1b34560.md",
+          "sha256": "8643041ce6b0c8fb1fb25d8a6ac8487b38663efaae552ba45123450b6c81ae3f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/runtime/奈奎斯特稳定判据_5_a1b34560.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:奈奎斯特稳定判据_奈氏判据__5_0355b06b",
+      "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/奈奎斯特稳定判据_奈氏判据__5_0355b06b.md",
+          "sha256": "329ddb71a9245a6f6155ce1f203f7a62b2f925b05635c32b3472b72909e5cbd0",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/authoring/奈奎斯特稳定判据_奈氏判据__5_0355b06b.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/奈奎斯特稳定判据_奈氏判据__5_0355b06b.md",
+          "sha256": "329ddb71a9245a6f6155ce1f203f7a62b2f925b05635c32b3472b72909e5cbd0",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/runtime/奈奎斯特稳定判据_奈氏判据__5_0355b06b.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:最小相位系统_5_89cbd2f0",
+      "canonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/最小相位系统_5_89cbd2f0.md",
+          "sha256": "3b6de2afc072b25e76598c9eb434bc3ebf0b21c13d46e8d342dded9abbd2ad90",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/authoring/最小相位系统_5_89cbd2f0.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/最小相位系统_5_89cbd2f0.md",
+          "sha256": "3b6de2afc072b25e76598c9eb434bc3ebf0b21c13d46e8d342dded9abbd2ad90",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/runtime/最小相位系统_5_89cbd2f0.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:最小相位系统_6_d74d6ebe",
+      "canonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/最小相位系统_6_d74d6ebe.md",
+          "sha256": "b3703edf1e54fdbf1da50ca46fb1733b93e2fbb95e2b4b6da971813df6039d43",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/authoring/最小相位系统_6_d74d6ebe.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/最小相位系统_6_d74d6ebe.md",
+          "sha256": "b3703edf1e54fdbf1da50ca46fb1733b93e2fbb95e2b4b6da971813df6039d43",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/runtime/最小相位系统_6_d74d6ebe.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:最小相位典型环节_5_2a7020fd",
+      "canonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/最小相位典型环节_5_2a7020fd.md",
+          "sha256": "c14092a166026fa65e49d233d15c8c461c8180a62d137b6a0c12d1bbff2506ad",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/authoring/最小相位典型环节_5_2a7020fd.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/最小相位典型环节_5_2a7020fd.md",
+          "sha256": "c14092a166026fa65e49d233d15c8c461c8180a62d137b6a0c12d1bbff2506ad",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/runtime/最小相位典型环节_5_2a7020fd.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:最小相位环节_5_b749dc72",
+      "canonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/最小相位环节_5_b749dc72.md",
+          "sha256": "1773b2ea01843230d20259a8993e0efeeb9b4a9f418e73854ba054aedf8d2fd9",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/authoring/最小相位环节_5_b749dc72.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/最小相位环节_5_b749dc72.md",
+          "sha256": "1773b2ea01843230d20259a8993e0efeeb9b4a9f418e73854ba054aedf8d2fd9",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/runtime/最小相位环节_5_b749dc72.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:非最小相位系统_4_65f682ce",
+      "canonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/非最小相位系统_4_65f682ce.md",
+          "sha256": "00424707fe73f199196f918b22a03bc91a421069b1f69f2734d550dbf9585677",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/authoring/非最小相位系统_4_65f682ce.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/非最小相位系统_4_65f682ce.md",
+          "sha256": "00424707fe73f199196f918b22a03bc91a421069b1f69f2734d550dbf9585677",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/runtime/非最小相位系统_4_65f682ce.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:非最小相位系统_5_02634a20",
+      "canonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/非最小相位系统_5_02634a20.md",
+          "sha256": "bfdc972a4c36b9520bc0724adafa095488fb770239a9fc9a2b9208de34838cc4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/authoring/非最小相位系统_5_02634a20.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/非最小相位系统_5_02634a20.md",
+          "sha256": "bfdc972a4c36b9520bc0724adafa095488fb770239a9fc9a2b9208de34838cc4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/runtime/非最小相位系统_5_02634a20.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b38",
+  "replacementDigest": "cbe9513abc0e812c5636a3247216a22c70b4a97e58616f2db71e0ac59f9a9bd1"
+}

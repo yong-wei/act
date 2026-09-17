@@ -1,0 +1,83 @@
+{
+  "batchId": "teaching-core-18a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-18",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+      "name": "出射角",
+      "moduleId": "module-3",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+      "name": "分离点",
+      "moduleId": "module-3",
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+      "name": "渐近线",
+      "moduleId": "module-3",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+      "name": "两步参数设计法",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+      "name": "到达角",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+      "name": "广义参数根轨迹",
+      "moduleId": "module-3",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+      "name": "根轨迹（双参数族）",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+      "name": "广义根轨迹",
+      "moduleId": "module-3",
+      "order": 8
+    },
+    {
+      "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+      "name": "渐近线质心",
+      "moduleId": "module-3",
+      "order": 9
+    },
+    {
+      "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+      "name": "开环极点",
+      "moduleId": "module-3",
+      "order": 10
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+      "name": "转折点",
+      "moduleId": null,
+      "order": 11
+    }
+  ],
+  "accepted": true
+}

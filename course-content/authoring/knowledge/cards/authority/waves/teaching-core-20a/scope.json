@@ -1,0 +1,76 @@
+{
+  "batchId": "teaching-core-20a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-20",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "name": "相位超前校正",
+      "moduleId": "module-3",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+      "name": "测速反馈控制改善系统性能的方法",
+      "moduleId": "module-3",
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "name": "测速反馈控制",
+      "moduleId": "module-3",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+      "name": "串联补偿器",
+      "moduleId": "module-4",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "name": "串联超前校正",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "name": "反馈校正",
+      "moduleId": "module-3",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "name": "速度反馈",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+      "name": "反馈补偿",
+      "moduleId": "module-3",
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+      "name": "相位滞后补偿器",
+      "moduleId": "module-3",
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f20650600a6b6301d29c6025",
+      "name": "最大超前角",
+      "moduleId": null,
+      "order": 10
+    }
+  ]
+}

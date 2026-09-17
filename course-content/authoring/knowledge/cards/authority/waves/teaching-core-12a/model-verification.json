@@ -1,0 +1,160 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "timeConvention": "normalized time",
+  "models": {
+    "settling_2percent": {
+      "T": "4/(s^2+2s+4)",
+      "band": 0.02,
+      "crossingTimes": [
+        1.1767445171977298,
+        1.2439120714018832,
+        2.8478217881648886,
+        3.3075679727293785,
+        4.038174486963997
+      ],
+      "firstEntry": 1.1767445171977298,
+      "lastCrossingSettling": 4.038174486963997,
+      "guaranteedTailAfter": 4.055864041654036,
+      "tailProof": "abs(y-1)<=2/sqrt(3)*exp(-t)",
+      "commonApproximation": 4,
+      "boundary": "settling means entering and remaining; exact last crossing differs from first entry and from 4/(zeta wn)"
+    },
+    "borderline_oscillation_frequency": {
+      "loop": "K/[s(s+1)(s+2)]",
+      "negativeUnityFeedback": true,
+      "characteristic": "s^3+3s^2+2s+K",
+      "criticalK": 6,
+      "factorizationAtCritical": "(s+3)(s^2+2)",
+      "poles": [
+        [
+          -3,
+          0
+        ],
+        [
+          0,
+          1.4142135623730951
+        ],
+        [
+          0,
+          -1.4142135623730951
+        ]
+      ],
+      "angularFrequency": "sqrt(2)",
+      "frequencyCyclesPerUnitTime": "sqrt(2)/(2pi)",
+      "criticalUnitStep": "1-(2/11)exp(-3t)-(9/11)cos(sqrt(2)t)-6/(11sqrt(2))sin(sqrt(2)t)",
+      "boundary": "this source refers to the borderline-gain oscillation, not a generic damped transient frequency; the critical step has persistent oscillation"
+    },
+    "steady_state_response": {
+      "G": "2/(s+1)",
+      "input": "sin(2t) for t>=0",
+      "zeroInitialState": true,
+      "steadyPart": "0.4sin(2t)-0.8cos(2t)",
+      "amplitude": "2/sqrt(5)",
+      "phaseRadians": "-atan(2)",
+      "decayingDifference": "0.8exp(-t)",
+      "boundary": "steady-state response may be periodic; y(t) need not have a constant limit"
+    },
+    "peak_time": {
+      "T": "4/(s^2+2s+4)",
+      "zeroInitialUnitStep": true,
+      "firstPeakTime": 1.8137993642342178,
+      "fractionalOvershoot": 0.16303353482158048,
+      "boundary": "time is measured from the specified input start; formula requires standard underdamped zero-free model"
+    },
+    "settling_band": {
+      "twoPercent": {
+        "band": 0.02,
+        "crossingTimes": [
+          1.1767445171977298,
+          1.2439120714018832,
+          2.8478217881648886,
+          3.3075679727293785,
+          4.038174486963997
+        ],
+        "firstEntry": 1.1767445171977298,
+        "lastCrossingSettling": 4.038174486963997,
+        "guaranteedTailAfter": 4.055864041654036,
+        "tailProof": "abs(y-1)<=2/sqrt(3)*exp(-t)"
+      },
+      "fivePercent": {
+        "band": 0.05,
+        "crossingTimes": [
+          1.131460369903055,
+          1.30145796587423,
+          2.644546610152154
+        ],
+        "firstEntry": 1.131460369903055,
+        "lastCrossingSettling": 2.644546610152154,
+        "guaranteedTailAfter": 3.1395733097798817,
+        "tailProof": "abs(y-1)<=2/sqrt(3)*exp(-t)"
+      },
+      "boundary": "report tolerance and reference scale; finite sampled windows alone do not prove remaining inside forever"
+    },
+    "rise_time": {
+      "sourceConvention": "first rise from zero to final value",
+      "zeroTo100": 1.2091995761561452,
+      "t10": 0.24411464790369156,
+      "t90": 1.0629011215678665,
+      "tenTo90Interval": 0.818786473664175,
+      "boundary": "0-100 and 10-90 are different conventions; monotone asymptotic models may have no finite 0-100 time"
+    },
+    "peak_time_origin": {
+      "sameBaseT": "4/(s^2+2s+4)",
+      "referenceDelay": 0.5,
+      "input": "H(t-0.5)",
+      "relativePeakTime": 1.8137993642342178,
+      "absolutePeakTime": 2.313799364234218,
+      "output": "0 before 0.5; base step response evaluated at t-0.5 afterward",
+      "boundary": "this shifts the reference start, not a new delay inserted inside the feedback loop"
+    },
+    "transient_response": {
+      "sameModelAsSteadyState": true,
+      "total": "0.4sin(2t)-0.8cos(2t)+0.8exp(-t)",
+      "transient": "0.8exp(-t)",
+      "zeroInputFromZeroState": 0,
+      "boundary": "a transient may arise in a zero-state forced response; it is not necessarily initial-state response"
+    },
+    "critical_damping_response": {
+      "T": "4/(s+2)^2",
+      "step": "1-(1+2t)exp(-2t)",
+      "derivative": "4t exp(-2t)",
+      "t90": 1.9448600849338027,
+      "tenTo90": 1.6789542807389966,
+      "zeroTo100": "no finite first arrival",
+      "boundary": "standard zero-free, zero-initial step; finite 10-90 does not imply finite 0-100"
+    },
+    "steady_process": {
+      "T": "1/(s+1)",
+      "input": "r=t for t>=0",
+      "output": "t-1+exp(-t)",
+      "asymptoticPart": "t-1",
+      "trackingError": "1-exp(-t)",
+      "steadyError": 1,
+      "boundary": "stable system output can grow under an unbounded ramp; asymptotic behavior need not be a finite constant"
+    },
+    "overdamped_response": {
+      "T": "4/(s^2+8s+4)",
+      "slowPole": -0.5358983848622456,
+      "fastPole": -7.464101615137754,
+      "step": "1+(pf exp(ps t)-ps exp(pf t))/(ps-pf)",
+      "initialValue": 0,
+      "initialSlope": 0,
+      "finalValue": 1,
+      "t90": 4.435709702009826,
+      "singleSlowPoleApproxInitialSlope": 0.5358983848622456,
+      "boundary": "a single-pole approximation can lose the true initial slope; do not call it an exact equivalent"
+    },
+    "dynamic_process": {
+      "T": "4/(s^2+2s+4)",
+      "input": "unit step",
+      "initialValue": 0,
+      "initialSlope": 0,
+      "initialAcceleration": 4,
+      "firstFinalValueCrossing": 1.2091995761561452,
+      "peakTime": 1.8137993642342178,
+      "twoPercentSettling": 4.038174486963997,
+      "boundary": "initial zero slope is not a pure delay; crossing the final value once is not the end of the transient"
+    }
+  }
+}

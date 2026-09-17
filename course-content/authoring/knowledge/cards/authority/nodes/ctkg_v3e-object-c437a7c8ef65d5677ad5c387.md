@@ -1,31 +1,38 @@
 ---
 node_id: ctkg_v3e-object-c437a7c8ef65d5677ad5c387
 authority_entity_id: "ctkg:v3e-object-c437a7c8ef65d5677ad5c387"
-name: Compensation
+name: "补偿"
+name_en: "Compensation"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - Compensation
-card_version: 1
+knowledge_type: C
+bloom_level: 评价
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6e4b0b9bd47b3dc19b522bb267273b23e6efc9629430b078b4bd49b98127ad24.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6e4b0b9bd47b3dc19b522bb267273b23e6efc9629430b078b4bd49b98127ad24.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01g/previous/ctkg_v3e-object-c437a7c8ef65d5677ad5c387.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 059edd25bcfece7bd42a0ccc372fe1f5ff50e27437198d2796f997b9d270e569 -->
-
 ## 首页
 
-# Compensation
+# 补偿 | Compensation
 
-**一句话定义**：Compensation：The alteration or adjustment of a control system in order to provide a suitable performance
+**一句话定义**：补偿是为获得适宜性能而改变或调整控制系统的完整设计过程。
 
-**核心直觉**：在图谱邻接中可把握：前置 → Output Compensation、Input Compensation、Feedback Compensation。
+**核心直觉**：先描述性能缺口和约束，再选择输入、输出、反馈或串联结构，最后重算并验证闭环。
 
-**关联**：前置 → Output Compensation、Input Compensation、Feedback Compensation
+**关键公式**：
+$$
+\text{性能目标}\ \longrightarrow\ \text{结构与参数选择}\ \longrightarrow\ \text{闭环验证}.
+$$
+
+**学习目标**：区分补偿过程与补偿器环节，并用执行器约束比较不同方案。
 
 ---
 
@@ -33,21 +40,33 @@ asset_refs: []
 
 ### 完整解释
 
-The alteration or adjustment of a control system in order to provide a suitable performance; adjustment of a system in order to make up for deficiencies or inadequacies.
+补偿不是某一个固定传递函数，而是对控制系统进行改变或调整，以弥补缺陷、满足性能要求。补偿过程至少要说明目标（例如稳态误差、速度或相位裕度）、插入位置（输入、输出、反馈或前向串联）、可用网络和信号节点的功率约束，然后以新的闭环模型检查结果。补偿器是这一过程可能选出的附加环节，二者不能互换。
+
+教学例把同一对象和单位阶跃下的控制量约束固定下来。若要求阶跃误差为 $10\%$，比例方案需要 $K=9$，零初态初始控制量为 $9$；但执行器上限为 $3$，因此该比例方案一开始就违反限制。另一个已验算的 PI 方案取 $K_p=2,K_i=1$，零初态初始控制量为 $2$，本单位阶跃的误差为 $0$。这不是“PI 无条件更好”的证明，而是一个受约束方案比较。
+
+### 教学计算/推理例
+
+对该例，比较顺序应是：先写出对象、反馈和输入，再计算候选控制器的初始控制量及稳态误差，随后检查执行器上限，最后重新核对稳定性和时域响应。比例方案的 $9>3$ 是明确的约束失败；PI 的控制量界限只对这个单位阶跃和这个对象得到验证，不能外推到任意输入、初始积分状态或饱和模型。
+
+### 适用条件与边界
+
+示例采用理想线性定常对象、零初态、单位负反馈、单位阶跃和给定执行器限制。频率设计中的 $\omega$ 采用 $\mathrm{rad/s}$。实际补偿还要考虑噪声、饱和、采样和未建模动态；改变输入或限制后，原比较不能直接复用。任何“改善”都应指明相对于哪个基线和哪个指标。
+
+### 常见误区
+
+1. **误区**：只把稳态误差压小就算补偿成功。**纠正**：本例的比例方案因初始控制量 $9$ 超过上限 $3$ 而不可用，约束和动态同样属于验收条件。
+2. **误区**：PI 在本例误差为零，所以对所有输入都不受限。**纠正**：验证范围明确限定为这个单位阶跃和模型，其他输入需重新计算控制量与饱和行为。
+
+### 自检
+
+1. 为什么 $K=9$ 能满足本例的 $10\%$ 阶跃误差目标，却仍不能作为可执行方案？
+2. “补偿器”与“补偿”在设计流程中分别回答什么问题？
+
+**核对要点**：$K=9$ 的初始控制量 $9$ 大于上限 $3$；补偿器是选用的环节，补偿是围绕目标、结构、参数和约束完成的调整与验证。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Output Compensation | 是一种 |
-| 前置 | Input Compensation | 是一种 |
-| 前置 | Feedback Compensation | 是一种 |
-| 前置 | Compensator | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、Compensation
+- **输出补偿**（入边，关系：属于）
+- **输入补偿**（入边，关系：属于）
+- **反馈补偿**（入边，关系：属于）
+- **补偿器**（无向，关系：相关）

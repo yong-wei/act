@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, graph domain -> precise full-state feedback node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "全状态反馈设计步骤"
+}

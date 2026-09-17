@@ -1,0 +1,271 @@
+{
+  "status": "passed",
+  "cardHashes": {
+    "ctc_modeling-47e8eb68c1aa5cd068c72e54": "700d13bcd71f233f886313a84fe9e9ce14aeabbf7be014ebe39b4a85902050d6",
+    "ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c": "0f20dc023122a3c56ca2caf14445d59dec02ee2f9541b7b736ef1c530b7a4902",
+    "ctkg_v3e-canonical-ab642a336bbbbafc6327f6f2": "fcd78b3ea0f224d5b67adae8f36a4d9763d9d09508e4c18f4e2013a045e0b1fe",
+    "ctkg_v3e-canonical-df3167f36376f526f6ec5562": "93ec07b3734bad853f8933388b68bd54456aabc9bbd54e6ad2b024b26c5002e7",
+    "ctkg_v3e-object-7aa500461c5109b7cffd9b19": "6a6a961f9e689fc5773a65c0edb14245b3dc10e52d9b0580dd889a1ecdc30556",
+    "ctkg_v3e-object-763fd65e573e7a65dfc4b79c": "d141a2220910a9fa83d55c54b70abf72504070b6c9e59cdda7fbbca42e049492",
+    "ctkg_m3-v1i_canonical-object_0aa3a61ec0920c38f4e34c4e": "d250b4c856f2feebf4df313666d435088fc3a452cb7d812ec769fa36e45ea7bc",
+    "ctkg_domainconcept_289e3beca59c9ef373836b12": "481bedd81a6f61000a04c38fbc65020b2a10d804aa9e942043d673ad65bb0aac",
+    "ctkg_v3e-object-7d3704ae133f6be94bf5991b": "7fd5a42835b7bd3855ebb053781b03a6079605d37815243c5d28f2d3a35bfeb3",
+    "ctkg_domainconcept_28bfca2df331c329cea26464": "8533543a0a7b7a34fc0192282acf691725611e49b1288447f7c1b917d44b261a",
+    "ctkg_v3e-object-133c90435f61b9a83b7d4aaf": "cb9dfebbc0ec6b5e832e5638d440467a6d4c236a410e9023caad0048008a3f22",
+    "ctkg_v3e-object-5592624b3ec200b86f7b744d": "0e0e99b0e1654c72d5ecf0aa9b144a0a38024e4e35c9a74647f76bcfe119b12f"
+  },
+  "checks": [
+    {
+      "check": "negative feedback final output",
+      "actual": 0.6666666666666359,
+      "expected": 0.6666666666666666,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "negative feedback K=9 unstable roots",
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "first order at 0.5 seconds",
+      "actual": 1.2642411176571116,
+      "expected": 1.264241,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "first order at 1.5 seconds",
+      "actual": 1.9004258632642703,
+      "expected": 1.900426,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "first order at 2.0 seconds",
+      "actual": 1.963368722222532,
+      "expected": 1.963369,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "first order 10-90 rise time",
+      "actual": 1.0986122886681098,
+      "expected": 1.098612,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "first order 2 percent settling",
+      "actual": 1.956011502714073,
+      "expected": 1.956012,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "damping from poles [1, 2, 4]",
+      "actual": 0.5000000000000001,
+      "expected": 0.5,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "damping from poles [1, 4, 16]",
+      "actual": 0.5000000000000001,
+      "expected": 0.5,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "critical damping",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "offset step overshoot percent",
+      "actual": 15.000000000000036,
+      "expected": 15,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "standard second order overshoot percent",
+      "actual": 16.303353482158048,
+      "expected": 16.303353,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Routh independent roots [1, 2, 3, 4]",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Routh independent roots [1, 2, 1, 4]",
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Routh independent roots [1, 3, 2, 7]",
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Nyquist at omega=1 real",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Nyquist at omega=1 imaginary",
+      "actual": -1.0,
+      "expected": -1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Nyquist circle residual",
+      "actual": 1.1102230246251565e-16,
+      "expected": 0,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "gain margin crossing real",
+      "actual": -0.33333333333333326,
+      "expected": -0.3333333333333333,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "gain margin crossing imaginary",
+      "actual": 3.48909435263061e-17,
+      "expected": 0,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "gain margin decibels",
+      "actual": 9.54242509439325,
+      "expected": 9.542425,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "gain boundary has imaginary-axis roots",
+      "actual": 1.1802759431576868e-16,
+      "expected": 0,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "normalized hold amplitude",
+      "actual": 0.9983341664682815,
+      "expected": 0.998334,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "hold phase degrees",
+      "actual": -5.729577951308233,
+      "expected": -5.729578,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "pulse first sample",
+      "actual": 0.09516258196404048,
+      "expected": 0.095163,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "pulse second sample",
+      "actual": 0.18126924692201823,
+      "expected": 0.181269,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Jury independent roots -0.7,0.1",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Jury inequalities -0.7,0.1",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Jury independent roots -1.3,0.24",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Jury inequalities -1.3,0.24",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Jury independent roots -1.2,0.2",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Jury inequalities -1.2,0.2",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Jury independent roots 0.2,0.5",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Jury inequalities 0.2,0.5",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "controllability rank",
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "controllability determinant",
+      "actual": -1.0,
+      "expected": -1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "uncontrollable example rank",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "observability rank",
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "observability determinant",
+      "actual": -1.0,
+      "expected": -1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "reconstructed state one",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "reconstructed state two",
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "equal modes unobservable",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 1e-06
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:正反馈系统_4_3cfad7f8",
+      "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/正反馈系统_4_3cfad7f8.md",
+          "sha256": "5405f8e41cff51c751f15946957f35563515930a77ab64783cdd051870dcd9c3",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-09a/retired/authoring/正反馈系统_4_3cfad7f8.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/正反馈系统_4_3cfad7f8.md",
+          "sha256": "5405f8e41cff51c751f15946957f35563515930a77ab64783cdd051870dcd9c3",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-09a/retired/runtime/正反馈系统_4_3cfad7f8.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:闭环传递函数_2_5399c369",
+      "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/闭环传递函数_2_5399c369.md",
+          "sha256": "3a9b7aa7fd7f184484941d30aed9569d737a2223dd9879c614e22ca09831d289",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-09a/retired/authoring/闭环传递函数_2_5399c369.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/闭环传递函数_2_5399c369.md",
+          "sha256": "3a9b7aa7fd7f184484941d30aed9569d737a2223dd9879c614e22ca09831d289",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-09a/retired/runtime/闭环传递函数_2_5399c369.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:闭环传递函数_4_8325ffbe",
+      "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/闭环传递函数_4_8325ffbe.md",
+          "sha256": "31f9c1004c88c3927183271f759fdd2482665429e79259101a0bc74be9e41cf1",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-09a/retired/authoring/闭环传递函数_4_8325ffbe.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/闭环传递函数_4_8325ffbe.md",
+          "sha256": "31f9c1004c88c3927183271f759fdd2482665429e79259101a0bc74be9e41cf1",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-09a/retired/runtime/闭环传递函数_4_8325ffbe.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:单位反馈控制系统_4_f1a4f937",
+      "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/单位反馈控制系统_4_f1a4f937.md",
+          "sha256": "44305a66a9a4820762ce04a5bb18fb8fb2fa4231d76caeebc8a5c33baf530035",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-09a/retired/authoring/单位反馈控制系统_4_f1a4f937.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/单位反馈控制系统_4_f1a4f937.md",
+          "sha256": "44305a66a9a4820762ce04a5bb18fb8fb2fa4231d76caeebc8a5c33baf530035",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-09a/retired/runtime/单位反馈控制系统_4_f1a4f937.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b20",
+  "replacementDigest": "bcb1a6da10234be9c2d1db4383c0e07def8b354ffdb50800ff3ff5397e875678"
+}

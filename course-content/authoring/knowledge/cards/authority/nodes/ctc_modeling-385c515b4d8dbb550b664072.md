@@ -1,36 +1,35 @@
 ---
 node_id: ctc_modeling-385c515b4d8dbb550b664072
 authority_entity_id: "ctc:modeling-385c515b4d8dbb550b664072"
-name: Input and output points
-name_en: modeling_385c515b4d8dbb550b664072
+name: "信号流图输入输出节点"
+name_en: "Input and Output Nodes"
 category: 概念性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - Input
-  - and
-  - output
-  - points
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e67140b535f3ab51a358f5ee6470aeccbc01505c16c77d0a8133bc2ca1bed2a1.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e67140b535f3ab51a358f5ee6470aeccbc01505c16c77d0a8133bc2ca1bed2a1.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-06a/previous/ctc_modeling-385c515b4d8dbb550b664072.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: d69b7ba3203c28c3521452e1260734d07e2397dd7e3a27ebdc466dc0fe12babd -->
-
 ## 首页
 
-# Input and output points | modeling_385c515b4d8dbb550b664072
+# 信号流图输入输出节点 | Input and Output Nodes
 
-**一句话定义**：Input and output points：Input and output points or junctions in a signal-flow graph.
+**一句话定义**：信号流图中的节点表示变量，输入源点没有入支路，输出汇点没有出支路。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：先看箭头如何连接，再判断节点的角色；把某个变量叫“输出”不一定让它成为纯汇点。
+
+**关键公式**：本例 $x=2r-0.1y$，$y=3x+r$，$z=y$。
+
+**学习目标**：区分输入源点、输出汇点和参与反馈的内部变量，理解单位支路引出输出的作用。
 
 ---
 
@@ -38,18 +37,41 @@ asset_refs: []
 
 ### 完整解释
 
-Input and output points or junctions in a signal-flow graph.
+信号流图把变量及其线性依赖关系写成有向图。一个节点接收所有入支路带来的贡献，其变量值由这些贡献相加得到；向外引出的多条支路则可以把同一变量用于多个关系。这是变量关系的表示，不是电流在物理接线点上被分流的规则。
+
+输入源点代表由图外独立给定的量，因此在这个图中没有入支路。输出汇点是读取结果的终点，没有出支路。一个参与反馈的变量即使是我们关心的结果，也可能仍有出支路；必要时可用单位增益支路将它引到另一个纯输出节点，这不会改变它原来的反馈作用。
+
+### 教学计算/推理例
+
+使用无量纲代数图：$r\to x$ 增益为 2，$x\to y$ 为 3，$y\to x$ 为 $-0.1$，$r\to y$ 为 1，$y\to z$ 为 1。全部节点关系为
+$$
+x=2r-0.1y,\qquad y=3x+r,\qquad z=y.
+$$
+节点 $r$ 没有入支路，是独立输入源点；$z$ 没有出支路，是输出汇点。$y$ 向 $x$ 提供反馈，也向 $z$ 提供输出，因此 $y$ 不是纯汇点。增设 $z$ 的目的只是把读取位置明确为汇点，不能因此删除 $y\to x$。
+
+当 $r=1$ 时，代入可得 $y=3(2-0.1y)+1$，即 $1.3y=7$。因此
+$$
+x=\frac{19}{13},\qquad y=z=\frac{70}{13}.
+$$
+$y$ 与 $z$ 数值相同，但它们在图中的连接角色不同：一个参与内部反馈，一个只接收结果。若错把 $y$ 当作没有出边的节点，便会丢失反馈，错误地得到 $y=7$。
+
+### 适用条件与边界
+
+本例没有动态元件，节点方程是同时成立的代数关系，不能把箭头的阅读顺序当成真实时间先后。多输入系统可有多个源点，多输出系统也可引出多个汇点。节点是否独立输入取决于所选建模范围；若把某个外部子系统纳入图内，原先输入节点也可能变为内部变量。
+
+### 常见误区
+
+1. **误区**：凡是名为输出的变量都没有出支路。**纠正**：关心的输出变量也可以参与反馈，本例的 $y$ 就如此。
+2. **误区**：引出一条输出支路会减少原节点送往反馈的信号。**纠正**：信号图不按物理分流规则分配变量值。
+
+### 自检
+
+1. 为什么本例用 $z$ 作为纯输出汇点？
+2. 删除 $y\to x$ 后还能否保持原输入输出关系？
+
+**核对要点**：$z$ 由单位支路读取 $y$ 且没有出边；删除反馈改变方程，输出会从 $70/13$ 变为 7。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、Input、and、output、points
+- **信号流图**（出边，关系：组成部分属于）
+- **梅森增益公式**（无向，关系：相关）

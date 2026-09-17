@@ -1,33 +1,35 @@
 ---
 node_id: ctc_modeling-8010502b57930c3dcb915af9
 authority_entity_id: "ctc:modeling-8010502b57930c3dcb915af9"
-name: 零点
-name_en: zero
+name: "零点"
+name_en: "Zero"
 category: 概念性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: theoretical_construct
-release_tier: gold
-tags:
-  - theoretical_construct
-  - gold
-  - 零点
-card_version: 1
+knowledge_type: C
+bloom_level: 理解
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-fa1fe0d3283ea57614d995d86d2750489c168e59e8077c3fc52d4404dcd0b5da.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-fa1fe0d3283ea57614d995d86d2750489c168e59e8077c3fc52d4404dcd0b5da.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/previous/ctc_modeling-8010502b57930c3dcb915af9.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 39b09754f5a100db92f490fbbad2315a76c8b4a5d7d962e6ffe0168ee0f24dd5 -->
-
 ## 首页
 
-# 零点 | zero
+# 零点 | Zero
 
-**一句话定义**：零点：v3T accepted candidate for zero.
+**一句话定义**：约简标量传递函数分子为零而分母不为零的复频域位置。
 
-**关联**：前置 → 开环零点、zeros of l s、nonminimum phase system · 后续 → 传递函数
+**核心直觉**：零点改变输入到输出的通道权重，极点才描述保留下来的自然模态。
+
+**关键公式**：$G(s)=\dfrac{s+2}{(s+1)(s+3)}$ 的有限零点为 $s=-2$。
+
+**学习目标**：先约去公共因子，再区分零点、极点和阶跃响应中的模态权重。
 
 ---
 
@@ -35,23 +37,59 @@ asset_refs: []
 
 ### 完整解释
 
-v3T accepted candidate for zero.
+对一个已经约简的标量有理传递函数，零点是分子为零且分母不为零的位置。它是输入输出通道的代数特征，不是系统自动产生的自然状态模态。判断前要先检查并约去分子、分母公共因子，否则会把已经消失的因素误当成零点或极点。
+
+零点会改变同一组极点对应的响应系数、初始斜率和频率响应形状。它不等于“输出必然在该时刻穿过零”的时间标记；零点位于 $s$ 平面，而时间响应是对 $s$ 域表达式进行逆变换后的函数。
+
+### 教学计算/推理例
+
+固定模型为
+$$
+G(s)=\frac{s+2}{(s+1)(s+3)}。
+$$
+约简后零点是 $-2$，极点是 $-1$ 和 $-3$。在零初始条件下施加单位阶跃，输出的绝对量为
+$$
+y(t)=\frac23-\frac12e^{-t}-\frac16e^{-3t},\qquad t\ge0。
+$$
+它从 $y(0^+)=0$ 开始，初始斜率为 $1$，最终趋于 $2/3$。这里的 $1$ 是绝对输出 $y(t)$ 的初始导数，不是另一个未说明的增量输出。
+
+保持相同极点，改用对照模型
+$$
+G_0(s)=\frac{2}{(s+1)(s+3)}
+$$
+时，单位阶跃输出为
+$$
+y_0(t)=\frac23-e^{-t}+\frac13e^{-3t}。
+$$
+其初始斜率为 $0$。两式的自然模态仍由 $-1$、$-3$ 决定，但分子不同使模态权重不同，这正是零点影响响应的地方。
+
+### 适用条件与边界
+
+本卡的定义针对约简后的标量有理传递函数和零初始条件阶跃例。多输入多输出系统要用整体传输矩阵的秩来讨论传输零点；单看某个元素的分子不能替代 MIMO 定义。闭环零点还必须说明所讨论的输入输出通道。
+
+### 常见误区
+
+1. **误区**：零点就是一个自然模态，所以会像极点一样单独产生 $e^{zt}$。**纠正**：自然模态由极点给出，零点主要改变输入输出响应中各模态的组合。
+2. **误区**：分子在 $s=-2$ 为零，就表示单位阶跃响应在 $t=2$ 秒穿过零。**纠正**：$-2$ 是 $s$ 平面位置，不是时间；是否穿越零要从完整的 $y(t)$ 判断。
+
+### 自检
+
+1. 固定模型的零点和极点分别是什么？
+2. 对照模型为什么初始斜率变为 $0$？
+
+**核对要点**：零点为 $-2$，极点为 $-1$、$-3$；对照分子改变了部分分式系数，使 $t=0^+$ 的绝对输出导数由 $1$ 变为 $0$。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 开环零点 | 是一种 |
-| 前置 | zeros of l s | 是一种 |
-| 后续 | 传递函数 | 派生自 |
-| 前置 | nonminimum phase system | 关联 |
-| 前置 | angle of arrival | 关联 |
-| 前置 | 根轨迹法 | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、gold、零点
+- **开环传递函数零点**（出边，关系：前置于）
+- **零极点偶极子**（无向，关系：相关）
+- **零极点增益形式**（无向，关系：相关）
+- **传递函数**（出边，关系：推导自）
+- **根轨迹法**（无向，关系：相关）
+- **到达角**（无向，关系：相关）
+- **开环分子多项式零点**（入边，关系：属于）
+- **非最小相位系统**（无向，关系：相关）
+- **当K从零增加到无穷大时，特征方程1+K P(s)=0的根轨迹起始于P(s)的极点，终止于P(s)的零点。**（入边，关系：适用于）
+- **开环传递函数零点**（入边，关系：属于）
+- **分子影响部分分式展开中的系数大小**（入边，关系：推导自）
+- **当 t >= 0 时脉冲响应为 h(t) = -e^{-t} + 3e^{-2t}，当 t < 0 时为 0。极点位于 s = -1 和 s = -2，零点位于 s = -1/2。**（入边，关系：推导自）

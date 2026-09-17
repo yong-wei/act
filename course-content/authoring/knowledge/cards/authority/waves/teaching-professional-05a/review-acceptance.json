@@ -1,0 +1,26 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_professional05",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "bodyReview": "body-review.json",
+  "materializedBodyEqualityVerified": true,
+  "identityAndRelationsVerified": true,
+  "cardHashes": {
+    "ctkg:domainconcept:00c33c72030aa254c651c5ad": "fc08a7ccec61e6e83d1909d70527fc65f6a47eeaae4be0f0c4606eba2ff80d84",
+    "ctkg:domainconcept:1fe958ff9947220990074dbc": "fa1b45fd73b78b0e40dfb77b4a9a2bfa30bca47ba6d4e3e0016c9c10ab8d738e",
+    "ctkg:domainconcept:471808457837d110fa167faf": "256422819e4a00b51cc5de91a2089b0a48e6fd5fc25297579ff0fc2248d96d0a",
+    "ctkg:domainconcept:0dfe26d4bf0c2174a0a4b176": "802db6c23176fe2a1eb3dba30b18748d0b958ce3615418c35a69905a8d266807",
+    "ctkg:domainconcept:0d613f0b723fa4a95a006064": "62fff65f837245d38a507c65d543e322cc6693e6f95f96b70edf69e7a2143262",
+    "ctkg:domainconcept:ce5faebdf847052fdb481b31": "c2f510b56f368f405c976cd9b929e3c57c96076e27ceb710b346edd9b4876417",
+    "ctkg:domainconcept:5f49b022cd74414f3b342231": "ac05d3fe9071db36a567931b6613c2e981028e643ed659f6eda4e50a1e271a03",
+    "ctkg:domainconcept:d071dec567505ce641aa9b15": "06d39c3830139d96d6fab3cb7f799d4e96cd44ab7c68031a920068bb18a6b1dc",
+    "ctkg:domainconcept:f713a296511f858ae3f3bfde": "62d1de3bc65fe1ead038640bdc022d56120c7afe98ead12bb991e0e1fae07c1b",
+    "ctkg:domainconcept:5e637ae64f351feabf64218f": "7ef9fc8a07ef8683af60cd283f86d57a8e2ee31ef5052946645653da1036a020",
+    "ctkg:domainconcept:4dd405f4b14b1c56c98340c1": "5b69408ae795bb248ed6c2e23fbd70c1579d2a5b030a55599708cb5bd8bfda92",
+    "ctkg:domainconcept:3ffc77366f538e92e13a0296": "bed10455caf7ab0510125de34af67282aae9ce8c7000c4d4842593444f557eb1",
+    "ctkg:domainconcept:4b98e3fbe8d7e5267277361f": "0b72d3ab3639dbfa06f5073265f0b7f41cb1687c9635bf4b8f7b24071101e639",
+    "ctkg:domainconcept:8985a8b639467c8e28fad417": "62f09ee183dc3291bbaee14c9d11db5d9957160e4e34cf3c40a98323b80f1fad",
+    "ctkg:domainconcept:951014d55276cafabac48a25": "69817e9814210d2f45192576e8b749d31f62bd7a660a938baa938595e86a4880"
+  }
+}

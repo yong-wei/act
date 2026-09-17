@@ -1,0 +1,141 @@
+{
+  "batchId": "teaching-professional-14a",
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "name": "l 阶积分逆系统",
+      "canonicalId": "ctkg:m1s-object-12e26eefe7617d594c305b67",
+      "cardId": "ctkg_m1s-object-12e26eefe7617d594c305b67",
+      "resourceId": "act:card:ctkg_m1s-object-12e26eefe7617d594c305b67",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m1s-object-12e26eefe7617d594c305b67.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b5f4014042e4cce9ecbb8c66aa9102cd82ffb8012bc0caffefaa471dcd500b4c.json",
+          "sha256": "cd1a454f312b35afd9b731db186e398964a5728047e90f6f4fae07985db807e6",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b5f4014042e4cce9ecbb8c66aa9102cd82ffb8012bc0caffefaa471dcd500b4c.json",
+          "sha256": "6f2b85972865bd56fa1b291a82419bdda50c76585e5090cb05c52bc634cd52e9",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/supporting-source-inventory.json",
+          "sha256": "9c29b9afa0bab4a56d45de6b8ecae5f9c7189c3a5b1fdbc4f12dc882adf608c7",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/01-source.json",
+      "sourceBackupSha256": "88c3eda2975ced8e9f2e4a9f9cbf4be43a4c31672dc63f275b8ce837fd1a4c63",
+      "cardSha256": "946738e5ef31d1ee06431a9718dade884cf06e080b97486539e3d7cedf0846c9",
+      "parsedExplanationChars": 1352
+    },
+    {
+      "order": 2,
+      "name": "严格无源阻抗",
+      "canonicalId": "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+      "cardId": "ctkg_m1s-object-2ce2e2dd44688b16823d91c2",
+      "resourceId": "act:card:ctkg_m1s-object-2ce2e2dd44688b16823d91c2",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m1s-object-2ce2e2dd44688b16823d91c2.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-d2e3d466aca4d5cf1fbf96233846d36b3203f4d9c6384620187e98c8a21eb8d1.json",
+          "sha256": "9a9e54fa60fbafcf29c0a9ae8626b96a2a0407149fb19fdc8c20674c5bc26989",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-d2e3d466aca4d5cf1fbf96233846d36b3203f4d9c6384620187e98c8a21eb8d1.json",
+          "sha256": "e39358162c9408ef8eca1e0a3e42422f3bb3f471a0ddde3730197aaf3a17bce6",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/supporting-source-inventory.json",
+          "sha256": "9c29b9afa0bab4a56d45de6b8ecae5f9c7189c3a5b1fdbc4f12dc882adf608c7",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/02-source.json",
+      "sourceBackupSha256": "3441bd47e5a4f2bad672f525cca7a82523361a2a4aa5c7f3ec81b1153455bc97",
+      "cardSha256": "c70c6336e9f4b0eb4e52f97d3963fc4b878f5bd08b5ea151feb3814dc2971215",
+      "parsedExplanationChars": 1392
+    },
+    {
+      "order": 3,
+      "name": "扇区化零法",
+      "canonicalId": "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+      "cardId": "ctkg_m1s-object-32dfe929ff32d4e22799e9a1",
+      "resourceId": "act:card:ctkg_m1s-object-32dfe929ff32d4e22799e9a1",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m1s-object-32dfe929ff32d4e22799e9a1.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a9aa951bb76c5a7e9eaee920e62e93339b23253533dd1ef525e39c3a12d4ad7e.json",
+          "sha256": "bc1c8eb1845042d9c8a0be348b51d982349a8bfd82b923726f1d3b15903d129f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a9aa951bb76c5a7e9eaee920e62e93339b23253533dd1ef525e39c3a12d4ad7e.json",
+          "sha256": "a8a538870ae8b36aa901d6717a0f4ce353130cc4c7417bd53a21ed40590fbeac",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/supporting-source-inventory.json",
+          "sha256": "9c29b9afa0bab4a56d45de6b8ecae5f9c7189c3a5b1fdbc4f12dc882adf608c7",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/03-source.json",
+      "sourceBackupSha256": "d8648d45b627134372eeae70dd953f2a57b4133f734fde571366fdf11130dacf",
+      "cardSha256": "2c76dd26fcd6b3dad119415352c0c13dc939c0df2d11415c1b6b52fa285e3579",
+      "parsedExplanationChars": 1423
+    },
+    {
+      "order": 4,
+      "name": "积分器抗漂移控制方法",
+      "canonicalId": "ctkg:m1s-object-5df7a5c839136dcf822a286d",
+      "cardId": "ctkg_m1s-object-5df7a5c839136dcf822a286d",
+      "resourceId": "act:card:ctkg_m1s-object-5df7a5c839136dcf822a286d",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m1s-object-5df7a5c839136dcf822a286d.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2a91b1c0f10ddc06ee57d672cbaa0d2492cc859460388c7c767d505c3b2f5375.json",
+          "sha256": "8ff36580726a99395db0a34766a6cbefeed6a6f8fb9205b9d0001e663ff0938e",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2a91b1c0f10ddc06ee57d672cbaa0d2492cc859460388c7c767d505c3b2f5375.json",
+          "sha256": "15b101cd8b9525d7155f63183de40b83e75ddea5685765e96d48d3ead454a56a",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/supporting-source-inventory.json",
+          "sha256": "9c29b9afa0bab4a56d45de6b8ecae5f9c7189c3a5b1fdbc4f12dc882adf608c7",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/04-source.json",
+      "sourceBackupSha256": "d4372cbf1fc6f6cd05a3b12e817b2929a249cc94532abb4cd1d377b0b8a90258",
+      "cardSha256": "7a3f3f0294864c739cefda46e721ed9c202fad620036a29edd293ea2459f9b8a",
+      "parsedExplanationChars": 1479
+    }
+  ],
+  "cardCount": 4,
+  "publicationStatus": "authoring",
+  "reviewStatus": "pending-independent-review",
+  "remaining": [],
+  "remainingCount": 0,
+  "method": "authoring cards bound to exact detail/neighborhood/previous source paths; no runtime writes"
+}

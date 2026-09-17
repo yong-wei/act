@@ -1,0 +1,218 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:fb00cb6d193357cc7decaac3",
+          "otherId": "ctc:v11g-2628d227495a3860151a16c1",
+          "label": "虚轴穿越",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **虚轴穿越**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:b3d517329b5e7e08e942cef6",
+          "otherId": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+          "label": "根轨迹渐近线倾角",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **根轨迹渐近线倾角**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:m1e-bridge-relation-60ec85175c466586d2794dc9",
+          "otherId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+          "label": "复频域传递函数极点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **复频域传递函数极点**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:a5c9f3dd51cd481f8eb501c0",
+          "otherId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+          "label": "根轨迹法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **根轨迹法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:part_of:15809ab713159e632f3dc63d",
+          "otherId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+          "label": "根轨迹（单参数）",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **根轨迹（单参数）**（出边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:37d577462235f9d11e16efa1",
+          "otherId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+          "label": "根轨迹法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **根轨迹法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:50d1433a1d4c22f035390129",
+          "otherId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+          "label": "根轨迹（单参数）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **根轨迹（单参数）**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:566c055880dcc1aac3a3feaf",
+          "otherId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+          "label": "根轨迹法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **根轨迹法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:is_a:c38f71050d42ef1a8075a55b",
+          "otherId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+          "label": "根轨迹参数整定法",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **根轨迹参数整定法**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+      "relations": [
+        {
+          "relationId": "ctr:m1e-bridge-relation-54154055583d22a57be29213",
+          "otherId": "ctc:modeling-8010502b57930c3dcb915af9",
+          "label": "零点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **零点**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:36df9d0845cb229a22f51f61",
+          "otherId": "ctc:v11g-bde559972a3c77718ce84d2e",
+          "label": "广义根轨迹",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **广义根轨迹**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctr:v12g-gold-relation-75d6a3b0571577c3cbd1d403",
+          "otherId": "ctc:v11g-bde559972a3c77718ce84d2e",
+          "label": "广义根轨迹",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **广义根轨迹**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctr:v13g-d852ce80de9252c70260542e",
+          "otherId": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+          "label": "常规根轨迹",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **常规根轨迹**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:070bb34299f9392d7d7aa28d",
+          "otherId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+          "label": "根轨迹法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **根轨迹法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+      "relations": [
+        {
+          "relationId": "ctr:v13g-3c7c23661cbd9f32dfb3714a",
+          "otherId": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+          "label": "常规根轨迹",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **常规根轨迹**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:36df9d0845cb229a22f51f61",
+          "otherId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+          "label": "广义参数根轨迹",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **广义参数根轨迹**（出边，关系：前置于）"
+        },
+        {
+          "relationId": "ctr:v12g-gold-relation-75d6a3b0571577c3cbd1d403",
+          "otherId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+          "label": "广义参数根轨迹",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **广义参数根轨迹**（入边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:b995577e9c5b91997eebbf67",
+          "otherId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+          "label": "复频域传递函数极点",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **复频域传递函数极点**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctr:m1e-bridge-relation-5cc99a98585a4c968d68951f",
+          "otherId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+          "label": "复频域传递函数极点",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **复频域传递函数极点**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:d9bc574da957a7f9e5008b29",
+          "otherId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+          "label": "转折频率（拐角频率）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **转折频率（拐角频率）**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

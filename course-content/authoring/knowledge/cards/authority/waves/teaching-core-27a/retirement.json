@@ -1,0 +1,135 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:非线性控制系统_1_1345e52b",
+      "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/非线性控制系统_1_1345e52b.md",
+          "sha256": "82610cc18c13d72af3cfa041268fa639262ad3733d43c90cab8cd212d4baf23b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/authoring/非线性控制系统_1_1345e52b.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/非线性控制系统_1_1345e52b.md",
+          "sha256": "82610cc18c13d72af3cfa041268fa639262ad3733d43c90cab8cd212d4baf23b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/runtime/非线性控制系统_1_1345e52b.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:非线性系统_8_4ccc0148",
+      "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/非线性系统_8_4ccc0148.md",
+          "sha256": "13ed331433e14d568e6d01208fffbd1298a83811a8e42df7ca036189c225d540",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/authoring/非线性系统_8_4ccc0148.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/非线性系统_8_4ccc0148.md",
+          "sha256": "13ed331433e14d568e6d01208fffbd1298a83811a8e42df7ca036189c225d540",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/runtime/非线性系统_8_4ccc0148.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:饱和非线性_8_deec42d7",
+      "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/饱和非线性_8_deec42d7.md",
+          "sha256": "c6924e955560fee41224e292eb6d9405e89692311c6287162031ac039949d809",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/authoring/饱和非线性_8_deec42d7.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/饱和非线性_8_deec42d7.md",
+          "sha256": "c6924e955560fee41224e292eb6d9405e89692311c6287162031ac039949d809",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/runtime/饱和非线性_8_deec42d7.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:摩擦特性_8_76db8f5b",
+      "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/摩擦特性_8_76db8f5b.md",
+          "sha256": "20bdf79cc361d4d17e5a2b3486a6f073fd0710b459e2f33dde561402a6f1d972",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/authoring/摩擦特性_8_76db8f5b.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/摩擦特性_8_76db8f5b.md",
+          "sha256": "20bdf79cc361d4d17e5a2b3486a6f073fd0710b459e2f33dde561402a6f1d972",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/runtime/摩擦特性_8_76db8f5b.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:间隙特性_8_51523138",
+      "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/间隙特性_8_51523138.md",
+          "sha256": "411eb566d4cb19c1a648dcf9bb6742b0b2ae3c331e2f1c8763c70edd4dcb4732",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/authoring/间隙特性_8_51523138.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/间隙特性_8_51523138.md",
+          "sha256": "411eb566d4cb19c1a648dcf9bb6742b0b2ae3c331e2f1c8763c70edd4dcb4732",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/runtime/间隙特性_8_51523138.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:饱和效应_8_c8c67f8e",
+      "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/饱和效应_8_c8c67f8e.md",
+          "sha256": "e2758711da002d02393ce50378aaaddd4f8e81667616ccd586708f01bed314d8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/authoring/饱和效应_8_c8c67f8e.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/饱和效应_8_c8c67f8e.md",
+          "sha256": "e2758711da002d02393ce50378aaaddd4f8e81667616ccd586708f01bed314d8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/runtime/饱和效应_8_c8c67f8e.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:饱和特性_8_e55b1fb5",
+      "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/饱和特性_8_e55b1fb5.md",
+          "sha256": "bbde551acc3c468496e71803e5640125a6eeaa2dbd0b8c62265d554e72d5207f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/authoring/饱和特性_8_e55b1fb5.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/饱和特性_8_e55b1fb5.md",
+          "sha256": "bbde551acc3c468496e71803e5640125a6eeaa2dbd0b8c62265d554e72d5207f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/runtime/饱和特性_8_e55b1fb5.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:死区特性_8_9ed850fc",
+      "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/死区特性_8_9ed850fc.md",
+          "sha256": "e49055b878c8e9313619c65007a001aac6d9a2e2b03adfae013ef5ed966cc59b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/authoring/死区特性_8_9ed850fc.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/死区特性_8_9ed850fc.md",
+          "sha256": "e49055b878c8e9313619c65007a001aac6d9a2e2b03adfae013ef5ed966cc59b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/retired/runtime/死区特性_8_9ed850fc.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b39",
+  "replacementDigest": "30442b017472a5127e1c1fc09f6bd8c465682db3585c286cd0021f4d1dab4f21"
+}

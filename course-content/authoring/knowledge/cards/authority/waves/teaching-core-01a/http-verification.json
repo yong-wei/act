@@ -1,0 +1,592 @@
+{
+  "status": "passed",
+  "baseUrl": "http://localhost:3004",
+  "authenticatedRole": "STUDENT",
+  "method": "authenticated HTTP GET of actual Next.js resource routes",
+  "completedReadingActions": 0,
+  "visualBrowserVerification": false,
+  "results": [
+    {
+      "name": "传递函数",
+      "resourceId": "act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "二阶系统",
+      "resourceId": "act:card:ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "系统型别",
+      "resourceId": "act:card:ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "稳态误差",
+      "resourceId": "act:card:ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "伯德图",
+      "resourceId": "act:card:ctkg_v3e-canonical-504581e399675b9792ab8502",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "相角裕度",
+      "resourceId": "act:card:ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "系统带宽",
+      "resourceId": "act:card:ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "积分控制器",
+      "resourceId": "act:card:ctc_v11g-c8c8aef0d010e68842be7236",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "PI控制器",
+      "resourceId": "act:card:ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "超前补偿",
+      "resourceId": "act:card:ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "串联滞后校正",
+      "resourceId": "act:card:ctkg_v3e-object-f9ac171d68c8622f62106397",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "根轨迹法",
+      "resourceId": "act:card:ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "负反馈回路",
+      "resourceId": "act:card:ctc_modeling-47e8eb68c1aa5cd068c72e54",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "一阶系统",
+      "resourceId": "act:card:ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "阻尼比",
+      "resourceId": "act:card:ctkg_v3e-canonical-ab642a336bbbbafc6327f6f2",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "超调量",
+      "resourceId": "act:card:ctkg_v3e-canonical-df3167f36376f526f6ec5562",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "劳斯表",
+      "resourceId": "act:card:ctkg_v3e-object-7aa500461c5109b7cffd9b19",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "奈奎斯特图",
+      "resourceId": "act:card:ctkg_v3e-object-763fd65e573e7a65dfc4b79c",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "增益裕度",
+      "resourceId": "act:card:ctkg_m3-v1i_canonical-object_0aa3a61ec0920c38f4e34c4e",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "零阶保持器",
+      "resourceId": "act:card:ctkg_domainconcept_289e3beca59c9ef373836b12",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "脉冲传递函数",
+      "resourceId": "act:card:ctkg_v3e-object-7d3704ae133f6be94bf5991b",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "朱利稳定判据",
+      "resourceId": "act:card:ctkg_domainconcept_28bfca2df331c329cea26464",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "可控性",
+      "resourceId": "act:card:ctkg_v3e-object-133c90435f61b9a83b7d4aaf",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "可观测性",
+      "resourceId": "act:card:ctkg_v3e-object-5592624b3ec200b86f7b744d",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "微分方程模型",
+      "resourceId": "act:card:ctc_90af7a0497e616bbe6249c30",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "增益",
+      "resourceId": "act:card:ctc_modeling-00d2998755974a1329049aac",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "拉普拉斯反变换",
+      "resourceId": "act:card:ctc_modeling-05fbe60f54c183c4e3ded892",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "动态控制系统",
+      "resourceId": "act:card:ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "复频域传递函数",
+      "resourceId": "act:card:ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "运算放大器积分器",
+      "resourceId": "act:card:ctc_modeling-b2fd214ec64665147e16ff9d",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "滞后补偿",
+      "resourceId": "act:card:ctc_v11g-21fba199a9fdef15887d600f",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "时间延迟",
+      "resourceId": "act:card:ctc_v11g-caa20b325717f0a3c570f16b",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "未建模动态",
+      "resourceId": "act:card:ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "相位裕度",
+      "resourceId": "act:card:ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "帕德近似",
+      "resourceId": "act:card:ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "时延",
+      "resourceId": "act:card:ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "部分分式展开的覆盖法",
+      "resourceId": "act:card:ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "误差信号",
+      "resourceId": "act:card:ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "傅里叶系数",
+      "resourceId": "act:card:ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "相频特性",
+      "resourceId": "act:card:ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "数学模型",
+      "resourceId": "act:card:ctc_modeling-7734a0845c335f160395bac0",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "常系数线性定常系统",
+      "resourceId": "act:card:ctc_modeling-c26fddc50074ec84707d5950",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "反馈控制系统",
+      "resourceId": "act:card:ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "扰动抑制",
+      "resourceId": "act:card:ctkg_domainconcept_42146fa04dc1459716346cc7",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "参数不确定性",
+      "resourceId": "act:card:ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "闭环系统",
+      "resourceId": "act:card:ctkg_domainconcept_fef4835248def04a043183ee",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "终值定理法求稳态误差",
+      "resourceId": "act:card:ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "单边拉普拉斯变换",
+      "resourceId": "act:card:ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "加速度误差常数 (K_a)",
+      "resourceId": "act:card:ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "稳态误差e_ss",
+      "resourceId": "act:card:ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "单位加速度函数",
+      "resourceId": "act:card:ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "直流增益",
+      "resourceId": "act:card:ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "叠加原理",
+      "resourceId": "act:card:ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "部分分式展开",
+      "resourceId": "act:card:ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "不同极点部分分式展开法",
+      "resourceId": "act:card:ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "拉普拉斯变换",
+      "resourceId": "act:card:ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "静态误差系数法求稳态误差",
+      "resourceId": "act:card:ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "终值定理",
+      "resourceId": "act:card:ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "稳态性能",
+      "resourceId": "act:card:ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "单位阶跃响应",
+      "resourceId": "act:card:ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "位置误差常数 (K_p)",
+      "resourceId": "act:card:ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "单位阶跃函数",
+      "resourceId": "act:card:ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "单位斜坡函数",
+      "resourceId": "act:card:ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "速度误差系数 (K_v)",
+      "resourceId": "act:card:ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "稳定性",
+      "resourceId": "act:card:ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "劳斯-赫尔维茨稳定性判据法",
+      "resourceId": "act:card:ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "劳斯-赫尔维茨稳定性判据",
+      "resourceId": "act:card:ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "穿越频率（相位）",
+      "resourceId": "act:card:ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "穿越频率（增益）",
+      "resourceId": "act:card:ctkg_v3e-object-7761615701fb4915a76924ff",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "幅值裕度",
+      "resourceId": "act:card:ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "截止频率",
+      "resourceId": "act:card:ctkg_v3e-object-232e387ed53e92abee078346",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "频率响应",
+      "resourceId": "act:card:ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "频率特性",
+      "resourceId": "act:card:ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "幅值谱",
+      "resourceId": "act:card:ctkg_v3e-object-3af39a858b2949296df5387f",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "幅频特性",
+      "resourceId": "act:card:ctkg_v3e-object-de873c97a924107857f79242",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "正弦稳态响应",
+      "resourceId": "act:card:ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "实验频率响应测定",
+      "resourceId": "act:card:ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "频率特性实验确定方法",
+      "resourceId": "act:card:ctkg_v3e-object-e80f5d56ce06409842363584",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "性能指标",
+      "resourceId": "act:card:ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "调节与扰动抑制的系统类型",
+      "resourceId": "act:card:ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "全状态反馈设计步骤",
+      "resourceId": "act:card:ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "极点配置补偿器设计",
+      "resourceId": "act:card:ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "延迟环节",
+      "resourceId": "act:card:ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "校正装置",
+      "resourceId": "act:card:ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "比例控制规律",
+      "resourceId": "act:card:ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "比例积分控制器",
+      "resourceId": "act:card:ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "积分补偿器",
+      "resourceId": "act:card:ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "补偿器",
+      "resourceId": "act:card:ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "补偿",
+      "resourceId": "act:card:ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "串联校正",
+      "resourceId": "act:card:ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "串联滞后-超前校正",
+      "resourceId": "act:card:ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "动态系统建模规范步骤",
+      "resourceId": "act:card:ctc_modeling-1897336a3fe60360d9fea3aa",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "动态系统",
+      "resourceId": "act:card:ctc_modeling-227e674315b4da2f1a20ee31",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "仿真保真度级别",
+      "resourceId": "act:card:ctc_modeling-30d05b970a0d4a71c9d243c3",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "物理系统模型相似性",
+      "resourceId": "act:card:ctc_modeling-5727d74e4587f60fe7b011ae",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "系统建模简化假设",
+      "resourceId": "act:card:ctc_modeling-c343400ab0cc996416d5a18a",
+      "status": 200,
+      "authoredContentServed": true
+    },
+    {
+      "name": "机理建模与分析流程",
+      "resourceId": "act:card:ctc_modeling-e4d5dedd058631068d41b452",
+      "status": 200,
+      "authoredContentServed": true
+    }
+  ]
+}

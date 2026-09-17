@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> z-root-locus node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "z平面根轨迹",
+  "representativeCanonicalId": "ctkg:domainconcept:6979e99f60e2642ff3d70d4b",
+  "authorityDomainId": "discrete-time-control-design",
+  "authorityDomainDisplayName": "离散时间控制设计"
+}

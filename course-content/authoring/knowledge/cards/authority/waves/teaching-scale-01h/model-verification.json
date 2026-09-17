@@ -1,0 +1,118 @@
+{
+  "status": "passed",
+  "cardAuthoringStatus": "not-yet-written",
+  "models": {
+    "performance": {
+      "plant": "4/(s^2+2s+4)",
+      "unitStepZeroInitial": true,
+      "overshootPercent": 16.30335348239733,
+      "peakTime": 1.8137993642346224,
+      "rise10to90": 0.818786473666373,
+      "settling2Percent": 4.038174487011916,
+      "settlingApproximation": 4,
+      "steadyError": 0
+    },
+    "disturbance_type": {
+      "plant": "1/s",
+      "C1_inputDisturbanceStepFinal": 0.9999999999990138,
+      "C1_outputDisturbanceStepFinal": 9.862111127745266e-13,
+      "PIcontroller": "1+1/s",
+      "PI_inputDisturbanceStepFinal": -1.978920214279279e-10,
+      "PI_inputDisturbanceRampFinal": 1.0000000021518796,
+      "reference": "zero",
+      "errorDefinition": "e=-y"
+    },
+    "state_feedback": {
+      "A": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "B": [
+        [
+          0.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "C": [
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "K": [
+        [
+          6.0,
+          5.0
+        ]
+      ],
+      "referencePrefilter": 6.0,
+      "desiredPoles": [
+        -2,
+        -3
+      ],
+      "stepAtLn2": 0.500000000000152,
+      "regulatorControlFromX10": -6
+    },
+    "observer_compensator": {
+      "L": [
+        [
+          9.0
+        ],
+        [
+          20.0
+        ]
+      ],
+      "observerPoles": [
+        -4,
+        -5
+      ],
+      "augmentedClosedPoles": [
+        -2,
+        -3,
+        -4,
+        -5
+      ],
+      "controllerStateMatrix": [
+        [
+          -9.0,
+          1.0
+        ],
+        [
+          -26.0,
+          -5.0
+        ]
+      ],
+      "errorAt1": [
+        -0.03957282055950939,
+        -0.23155383779297534
+      ]
+    },
+    "delay": {
+      "seconds": 0.25,
+      "omega": 4.0,
+      "amplitude": 1.0,
+      "phaseRadians": -1.0,
+      "phaseDegrees": -57.29577951308232,
+      "gainCrossover": 0.7861513777574551,
+      "originalPhaseMargin": 51.82729237298662,
+      "delayedPhaseMargin": 40.566503372012335
+    },
+    "correction_device": {
+      "plant": "1/(s+1)",
+      "controller": "1+1/s",
+      "closedTransfer": "1/(s+1)",
+      "baselineP1StepError": 0.5,
+      "PIstepError": 0,
+      "unitStepControl": 1,
+      "stableCancelledPole": -1
+    }
+  }
+}

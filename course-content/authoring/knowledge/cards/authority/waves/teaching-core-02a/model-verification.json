@@ -1,0 +1,87 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "attitude_disturbance": {
+      "equation": "J theta_ddot = u + d",
+      "J_kg_m2": 2,
+      "stepDisturbanceNm": 0.4,
+      "zeroInitialState": true,
+      "freeThetaRad": "0.1 t^2",
+      "controller": "u=-8 theta-4 theta_dot; reference=0",
+      "closedEquation": "2 theta_ddot+4 theta_dot+8 theta=0.4",
+      "thetaFinalRad": 0.05,
+      "finalControlNm": -0.4,
+      "boundary": "illustrative single-axis linear model; no claim that all spacecraft torques are constant or that PD rejects constant torque without offset"
+    },
+    "newton": {
+      "equation": "2 x_ddot=F-4 x_dot-8 x",
+      "massKg": 2,
+      "dampingNsPerM": 4,
+      "stiffnessNPerM": 8,
+      "stepForceN": 2,
+      "initialAccelerationMPerS2": 1,
+      "finalDisplacementM": 0.25,
+      "boundary": "inertial coordinate, linear spring and viscous damping, displacement from equilibrium"
+    },
+    "similar_first_order": {
+      "thermal": "C_th DeltaT_dot+DeltaT/R_th=P; C_th=2 J/K, R_th=0.5 K/W, P=2 W",
+      "electrical": "C V_dot+V/R=I; C=2 F, R=0.5 ohm, I=2 A",
+      "scaledCoordinates": "DeltaT/(1 K), V/(1 V), t/(1 s)",
+      "commonEquation": "z_prime+z=1",
+      "zeroInitialState": true,
+      "timeConstantSeconds": 1,
+      "atOneSecond": 0.6321205588285577,
+      "boundary": "linear lumped parameters and matched scaled inputs; physical temperature and voltage remain different quantities"
+    },
+    "isomorphic_second_order": {
+      "mechanical": "2 x_ddot+4 x_dot+8 x=2 step(t)",
+      "electrical": "0.5 q_ddot+q_dot+2 q=0.5 step(t)",
+      "electricalParameters": "L=0.5 H,R=1 ohm,C=0.5 F",
+      "scaledStateMap": "[x/(1 m), x_dot/(1 m/s)] <-> [q/(1 C), i/(1 A)]",
+      "scaledTime": "tau=t/(1 s)",
+      "commonEquation": "z_second+2 z_first+4 z=1",
+      "initialConditions": "both states zero",
+      "boundary": "state map requires matching derivative state and forcing, not merely equal pole locations"
+    },
+    "loading": {
+      "components": "R1=R2=1 ohm,C1=C2=1 F",
+      "nodalEquations": "v1_dot=u-2v1+v2; v2_dot=v1-v2",
+      "unbufferedTransfer": "1/(s^2+3s+1)",
+      "idealBufferedTransfer": "1/(s+1)^2",
+      "magnitudeAtOneRadPerSecond": {
+        "unbuffered": 0.3333333333333333,
+        "buffered": 0.5
+      },
+      "loadedPotentiometer": "total R=1 ohm, load=1 ohm, lower fraction alpha=0.5: output/input=0.4; unloaded=0.5",
+      "boundary": "buffer must isolate loading; multiplying isolated component transfers requires appropriate ports"
+    },
+    "series": {
+      "G1": "1/(s+1)",
+      "G2": "2/(s+2)",
+      "transfer": "2/((s+1)(s+2))",
+      "unitStep": "1-2 exp(-t)+exp(-2t)",
+      "finalValue": 1,
+      "zeroInitialState": true
+    },
+    "parallel": {
+      "G1": "1/(s+1)",
+      "G2": "2/(s+2)",
+      "output": "y=y1+y2",
+      "transfer": "(3s+4)/((s+1)(s+2))",
+      "unitStep": "2-exp(-t)-exp(-2t)",
+      "finalValue": 2,
+      "zeroInitialState": true
+    },
+    "sensor": {
+      "transferVPerRad": "2/(0.1s+1)",
+      "stepAngleRad": 0.1,
+      "outputAt0_1SecondsV": 0.1264241117658802,
+      "finalOutputV": 0.2,
+      "magnitudeAtOneRadPerSecondVPerRad": 1.9900743804199783,
+      "phaseDegrees": -5.710593137499643,
+      "calibration": "divide voltage by 2 V/rad; calibrated DC gain is 1 but lag remains",
+      "boundary": "no saturation, noise or calibration drift included; measured signal must share units with reference before subtraction"
+    }
+  }
+}

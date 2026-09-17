@@ -1,0 +1,46 @@
+{
+  "status": "source-preparation",
+  "kind": "supporting-research-record",
+  "workedExample": "Planned scalar integrator, scalar unstable LQR and finite-horizon terminal-penalty examples; not yet authored or accepted.",
+  "sources": [
+    {
+      "url": "https://underactuated.csail.mit.edu/lqr.html",
+      "title": "Russ Tedrake, Linear Quadratic Regulators",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-07a/references/mit-lqr.html",
+      "sha256": "45c7aa6f602f3440878e7b1db30f5a2ebfec0c80df77bf8e1282af8757d34dbc",
+      "sections": [
+        "Basic Derivation",
+        "Finite-horizon LQR",
+        "Time-varying LQR"
+      ]
+    },
+    {
+      "url": "https://underactuated.csail.mit.edu/dp.html",
+      "title": "Russ Tedrake, Dynamic Programming",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-06a/references/mit-dynamic-programming.html",
+      "sha256": "314f6e3bc611c3e777f4286ab02ceda77964bddc71fe2f520cd3ee9d6ecda012",
+      "status": "sections-checked",
+      "sections": [
+        "Formulating control design as an optimization",
+        "Additive cost",
+        "Optimal control as graph search"
+      ]
+    },
+    {
+      "url": "https://web.math.berkeley.edu/~evans/control.course.pdf",
+      "title": "Lawrence C. Evans, An Introduction to Mathematical Optimal Control Theory",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-06a/references/evans-optimal-control.pdf",
+      "sha256": "658ac09f16dee3c67d1373dacc43ff2cd619a2bd195180de87afaf8c98a684d6",
+      "status": "sections-checked",
+      "pages": "5; 41-43; 47-49; 72-76 (PDF pages)",
+      "sections": [
+        "1.1 payoff functional",
+        "4.1.1 Euler-Lagrange necessary conditions",
+        "4.3 Pontryagin maximum principle",
+        "5.1 dynamic programming"
+      ],
+      "signConvention": "Evans maximizes payoff. These cards minimize cost; Hamiltonian signs and costate transform consistently, and endpoint conditions are stated separately."
+    }
+  ],
+  "limitation": "Authority nodes lack textbook paragraph references. Do not repeat a detectability-free infinite-horizon stability claim for general semidefinite Q; verify precise hypotheses."
+}

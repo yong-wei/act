@@ -1,0 +1,103 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:测速反馈控制_3_4c2ec80f",
+      "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/测速反馈控制_3_4c2ec80f.md",
+          "sha256": "5b1db1dbb3a00196ca1c59f188fb0c3a9a0bb8c6b4674ce94196a6b1b6cb663a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/authoring/测速反馈控制_3_4c2ec80f.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/测速反馈控制_3_4c2ec80f.md",
+          "sha256": "5b1db1dbb3a00196ca1c59f188fb0c3a9a0bb8c6b4674ce94196a6b1b6cb663a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/runtime/测速反馈控制_3_4c2ec80f.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:串联补偿器_9_e0444c1f",
+      "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/串联补偿器_9_e0444c1f.md",
+          "sha256": "4d961e1ccf66c10ddaae7774390c2fd5d51f4411106dcf22ce98ac2465c76a70",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/authoring/串联补偿器_9_e0444c1f.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/串联补偿器_9_e0444c1f.md",
+          "sha256": "4d961e1ccf66c10ddaae7774390c2fd5d51f4411106dcf22ce98ac2465c76a70",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/runtime/串联补偿器_9_e0444c1f.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:串联超前校正_8_5d889b7d",
+      "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/串联超前校正_8_5d889b7d.md",
+          "sha256": "7006de1151963c6d1b612c002c7a6aab8966098f8730be270620d1a7b56449bb",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/authoring/串联超前校正_8_5d889b7d.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/串联超前校正_8_5d889b7d.md",
+          "sha256": "7006de1151963c6d1b612c002c7a6aab8966098f8730be270620d1a7b56449bb",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/runtime/串联超前校正_8_5d889b7d.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:反馈校正_6_c96d771b",
+      "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/反馈校正_6_c96d771b.md",
+          "sha256": "9ce9317e6127ed1a7e00a50962dc1f4aeda2655498b2a5ba8486f6cfe095f992",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/authoring/反馈校正_6_c96d771b.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/反馈校正_6_c96d771b.md",
+          "sha256": "9ce9317e6127ed1a7e00a50962dc1f4aeda2655498b2a5ba8486f6cfe095f992",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/runtime/反馈校正_6_c96d771b.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:速度反馈_3_2374effc",
+      "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/速度反馈_3_2374effc.md",
+          "sha256": "e4c36cb17955b3454130fcab5cd928dbd503147ea1e5b653b16962d5bb6da5ca",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/authoring/速度反馈_3_2374effc.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/速度反馈_3_2374effc.md",
+          "sha256": "e4c36cb17955b3454130fcab5cd928dbd503147ea1e5b653b16962d5bb6da5ca",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/runtime/速度反馈_3_2374effc.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:速度反馈_8_c94fe545",
+      "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/速度反馈_8_c94fe545.md",
+          "sha256": "d910536f50fcea7aa6329337f440c2697732081062c080ce5f31e1e22d13fd67",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/authoring/速度反馈_8_c94fe545.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/速度反馈_8_c94fe545.md",
+          "sha256": "d910536f50fcea7aa6329337f440c2697732081062c080ce5f31e1e22d13fd67",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/retired/runtime/速度反馈_8_c94fe545.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b32",
+  "replacementDigest": "fcd46ec1a76b67200e3a5a75a283a715aaedcd9d417cce4ac5371b01c85dbddd"
+}

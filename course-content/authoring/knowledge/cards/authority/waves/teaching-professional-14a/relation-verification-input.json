@@ -1,0 +1,29 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:m1s-object-12e26eefe7617d594c305b67",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-5df7a5c839136dcf822a286d",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:154c271f2f4990dbe530942a",
+          "otherId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+          "label": "PID控制器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **PID控制器**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

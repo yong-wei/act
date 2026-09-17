@@ -1,32 +1,35 @@
 ---
 node_id: ctkg_v3e-canonical-0fa44601675cb175f5df9562
 authority_entity_id: "ctkg:v3e-canonical-0fa44601675cb175f5df9562"
-name: Steady-state response
+name: "稳态响应"
+name_en: "Steady-State Response"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - Steady-state
-  - response
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-661106bf4189ad2878404b2931c6220af576141d61fe5d293d7b154660c238ae.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-661106bf4189ad2878404b2931c6220af576141d61fe5d293d7b154660c238ae.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/previous/ctkg_v3e-canonical-0fa44601675cb175f5df9562.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 1165cfb9fe8f15bbf1f1299488d2eae6b60a27533a61b903e8f177e0353fa0a6 -->
-
 ## 首页
 
-# Steady-state response
+# 稳态响应 | Steady-State Response
 
-**一句话定义**：Steady-state response：Steady-state response
+**一句话定义**：稳态响应描述瞬态衰减后保留下来的长期响应形式，它不一定是一个常数。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：正弦输入下，系统可以进入稳定的周期响应，而输出仍一直变化。
+
+**关键公式**：本例 $y(t)-y_{\mathrm{ss}}(t)=0.8e^{-t}\to0$。
+
+**学习目标**：区分稳态响应与稳态常数值，并由完整解识别长期周期部分。
 
 ---
 
@@ -34,18 +37,44 @@ asset_refs: []
 
 ### 完整解释
 
-Steady-state response
+“稳态”常被直觉理解为完全不动，但在线性系统分析中，它还可以表示长期保持的周期运动。判断某个函数是否是稳态响应，要看完整响应与它之间的差是否衰减，而不是只问输出是否存在一个常数极限。
+
+对稳定系统受到持续正弦输入的情形，长期响应通常保持同一频率，并具有由频率响应决定的幅值和相位。刚接通输入时还会有暂态，用来满足初始条件。长期部分单独在初始时刻的值，不一定等于实际初始输出。
+
+### 教学计算/推理例
+
+采用归一化模型 $G=2/(s+1)$，从零初态施加因果输入 $u(t)=\sin(2t)$。原方程为 $\dot y+y=2\sin(2t)$，完整解为
+$$
+y(t)=0.4\sin(2t)-0.8\cos(2t)+0.8e^{-t}.
+$$
+其中长期部分为
+$$
+y_{\mathrm{ss}}(t)=0.4\sin(2t)-0.8\cos(2t).
+$$
+它也可写为 $y_{\mathrm{ss}}=(2/\sqrt5)\sin[2t-\arctan(2)]$，幅值为 $2/\sqrt5$，相位为 $-\arctan(2)$，这里相位采用弧度。
+
+由于两者之差为 $0.8e^{-t}$，该差趋于零，说明完整响应逐渐接近长期周期形式。但 $y_{\mathrm{ss}}$ 本身持续振荡，所以 $\lim_{t\to\infty}y(t)$ 不存在一个有限常数值。
+
+在 $t=0$，长期部分等于 $-0.8$，暂态等于 $0.8$，相加才满足实际初值0。若从接通瞬间就只使用稳态公式，会漏掉这部分抵消，错误地给出非零初始输出。
+
+### 适用条件与边界
+
+本例系统稳定且线性定常，输入频率为固定的2。若输入改变频率或包含其他成分，应相应计算新的长期响应；若存在不衰减的自然模态，初态影响未必消失，不能直接套用这里的唯一长期形式。实际测量还应留出足够的暂态衰减时间，才便于估计稳态幅相。
+
+### 常见误区
+
+1. **误区**：稳态响应必须是常数。**纠正**：本例稳态为持续周期函数。
+2. **误区**：稳态公式应满足系统刚接通时的所有初态。**纠正**：完整解还包含暂态项。
+
+### 自检
+
+1. 哪个差值趋于零，说明进入本例稳态？
+2. 为什么不能将稳态响应简单写成一个 $y(\infty)$ 数字？
+
+**核对要点**：完整响应减长期周期部分为 $0.8e^{-t}$；长期输出仍随时间振荡。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、Steady-state、response
+- **瞬态响应**（无向，关系：相关）
+- **正弦稳态响应**（无向，关系：相关）
+- **稳态误差e_ss**（无向，关系：相关）

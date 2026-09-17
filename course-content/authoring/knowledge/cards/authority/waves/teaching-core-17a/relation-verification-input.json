@@ -1,0 +1,225 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:is_a:15c5bf574901c8d8c3df56b9",
+          "otherId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+          "label": "根轨迹增益",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **根轨迹增益**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:38e9470a325418eb99f7acad",
+          "otherId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+          "label": "前向通路首1根轨迹增益",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **前向通路首1根轨迹增益**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:6e6431d517b004d679e1e1fb",
+          "otherId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+          "label": "根轨迹法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **根轨迹法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:part_of:4bcc5053088fe44f9fced9e8",
+          "otherId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+          "label": "根轨迹（单参数）",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **根轨迹（单参数）**（出边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:is_a:e8ae0be0ca3be359474d2a70",
+          "otherId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+          "label": "根轨迹法",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **根轨迹法**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:a2a637e55b09bc967676e3bb",
+          "otherId": "ctc:v11g-160c78d3827065aca5585f55",
+          "label": "埃文斯根轨迹构造法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **埃文斯根轨迹构造法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+      "relations": [
+        {
+          "relationId": "ctr:v12g-gold-relation-5fc7a31b86b1698bf6238633",
+          "otherId": "ctkg:v3e-canonical-ab642a336bbbbafc6327f6f2",
+          "label": "阻尼比",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **阻尼比**（出边，关系：用于分析）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:is_a:c38f71050d42ef1a8075a55b",
+          "otherId": "ctc:v11g-546566f01ae374379ec78c1e",
+          "label": "两步参数设计法",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **两步参数设计法**（入边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:0a7b9730544666c0cdb5f732",
+          "otherId": "ctc:v11g-f3a9655898917afa28e9c600",
+          "label": "PID控制器试凑整定法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **PID控制器试凑整定法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:7c27a386da6cd4689718b344",
+          "otherId": "ctc:modeling-00d2998755974a1329049aac",
+          "label": "增益",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **增益**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctr:m1e-bridge-relation-125e5a7c76a9c082319af337",
+          "otherId": "ctc:modeling-00d2998755974a1329049aac",
+          "label": "增益",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **增益**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:38e9470a325418eb99f7acad",
+          "otherId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+          "label": "反馈路径根轨迹增益",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **反馈路径根轨迹增益**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:5af4b1e896a8f803e561548b",
+          "otherId": "ctc:modeling-00d2998755974a1329049aac",
+          "label": "增益",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **增益**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctr:m1e-bridge-relation-f521f2d723ad0768cc965dd3",
+          "otherId": "ctc:modeling-00d2998755974a1329049aac",
+          "label": "增益",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **增益**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:is_a:15c5bf574901c8d8c3df56b9",
+          "otherId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+          "label": "反馈路径根轨迹增益",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **反馈路径根轨迹增益**（入边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:part_of:00075599aaa3c92c41f77c30",
+          "otherId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+          "label": "根轨迹（单参数）",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **根轨迹（单参数）**（出边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:3b8d344d8454a85076c57115",
+          "otherId": "ctc:v11g-160c78d3827065aca5585f55",
+          "label": "埃文斯根轨迹构造法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **埃文斯根轨迹构造法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:part_of:41fa53bbeefcb965a7d3cbde",
+          "otherId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+          "label": "根轨迹（单参数）",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **根轨迹（单参数）**（出边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:a0a3ece411cf3224c93918ab",
+          "otherId": "ctc:v11g-160c78d3827065aca5585f55",
+          "label": "埃文斯根轨迹构造法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **埃文斯根轨迹构造法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "relations": [
+        {
+          "relationId": "ctr:m1e-bridge-relation-a4ab413432813e2c79d14848",
+          "otherId": "ctc:modeling-00d2998755974a1329049aac",
+          "label": "增益",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **增益**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:v13g-37ef59cba0b52495f0de0f65",
+          "otherId": "ctc:v11g-d25e6196c789c546f7a61064",
+          "label": "正反馈内回路",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **正反馈内回路**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:v13g-7e863c1eaacac0642d478fd6",
+          "otherId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+          "label": "非最小相位系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **非最小相位系统**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

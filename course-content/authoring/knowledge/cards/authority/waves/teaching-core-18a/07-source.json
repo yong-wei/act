@@ -1,0 +1,176 @@
+{
+  "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹（双参数族）",
+      "aliases": [
+        "根轨迹（双参数族）"
+      ],
+      "description": "A family of root loci for two parameters, illustrating the effect of both parameters on the roots of the characteristic equation.",
+      "teachingFields": {
+        "concept_kind": "representation_kind"
+      },
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "dorf-modern-control-systems-14th",
+          "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-07/section-7.4",
+          "label": "Modern Control Systems (Dorf/Bishop, 14th) · PARAMETER DESIGN BY THE ROOT LOCUS METHOD"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+        "canonicalType": "DomainConcept",
+        "label": "根轨迹（双参数族）",
+        "aliases": [
+          "根轨迹（双参数族）"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "root-locus",
+            "visualRole": "root-locus",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "representation_kind"
+      },
+      {
+        "id": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+        "canonicalType": "DomainConcept",
+        "label": "根轨迹法",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "root-locus",
+            "visualRole": "root-locus",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "analysis_method"
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:m5-d1:association:070bb34299f9392d7d7aa28d",
+        "predicate": "association",
+        "sourceId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+        "targetId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      }
+    ],
+    "boundaries": []
+  }
+}

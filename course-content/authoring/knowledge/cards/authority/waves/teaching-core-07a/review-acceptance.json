@@ -1,0 +1,15 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_core_blocks_mason",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "focusedRereview": "not-required",
+  "cardHashes": {
+    "ctc:0f418dc24d2aacaaafdcdcc0": "f4d663743ab6e5ea4d8fd1c9b0155b8fa73a06d7725e67ff7f6eab41f7f0214b",
+    "ctc:modeling-07799c3f876317e36fe669f8": "1c1f7cd379639a5eb663cfe17976a733206b323e52222052edfcf874e77b0435",
+    "ctc:modeling-50ed406e4478b481d868adfb": "c6d0a66f05531551c3302a107b8174dd2ba1c0b2dd2c371235f1e5314ff9daea",
+    "ctc:modeling-57c56ef58df2315f765a32dc": "ac481d39a4c2bc328c6bb2767cd0a913b484b7997b787281ab2b549d537c7f56",
+    "ctc:modeling-9b8a43928af77103270d5f9c": "a087f5fea21752050ef7f3bf7c3aba186136b0bc8b7ba3d60f00b27275ecb3d1",
+    "ctc:modeling-e8a0502ecb67f574a5cb6c1b": "7aa40eba176ab599bff16c3ac0fdfb4e09349ab2c89f07f584c00fae430509f3"
+  }
+}

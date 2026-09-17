@@ -1,0 +1,40 @@
+{
+  "batchId": "teaching-core-01a",
+  "status": "authoring",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "parentGroupId": "core-topic-01",
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-1897336a3fe60360d9fea3aa",
+      "name": "动态系统建模规范步骤"
+    },
+    {
+      "canonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+      "name": "动态系统"
+    },
+    {
+      "canonicalId": "ctc:modeling-30d05b970a0d4a71c9d243c3",
+      "name": "仿真保真度级别"
+    },
+    {
+      "canonicalId": "ctc:modeling-5727d74e4587f60fe7b011ae",
+      "name": "物理系统模型相似性"
+    },
+    {
+      "canonicalId": "ctc:modeling-c343400ab0cc996416d5a18a",
+      "name": "系统建模简化假设"
+    },
+    {
+      "canonicalId": "ctc:modeling-e4d5dedd058631068d41b452",
+      "name": "机理建模与分析流程"
+    }
+  ]
+}

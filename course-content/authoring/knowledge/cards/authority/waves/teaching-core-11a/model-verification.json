@@ -1,0 +1,212 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "timeConvention": "normalized time",
+  "models": {
+    "underdamped_system": {
+      "T": "4/(s^2+2s+4)",
+      "zeta": 0.5,
+      "wn": 2,
+      "wd": "sqrt(3)",
+      "poles": [
+        [
+          -0.9999999999999999,
+          1.732050807568877
+        ],
+        [
+          -0.9999999999999999,
+          -1.732050807568877
+        ]
+      ],
+      "unitStep": "1-exp(-t)(cos(sqrt(3)t)+sin(sqrt(3)t)/sqrt(3))",
+      "peakTime": 1.8137993642342178,
+      "fractionalOvershoot": 0.16303353482158048,
+      "boundary": "stable zero-free unit-DC-gain standard second-order system, zero initial state; not every higher-order complex pole implies the same visible step shape"
+    },
+    "natural_frequency_coefficients": {
+      "equation": "2 y_ddot+4 y_dot+8 y=8r",
+      "normalizedDenominator": "s^2+2s+4",
+      "wn": "sqrt(a0/a2)=2",
+      "zeta": 0.5,
+      "boundary": "normalize the leading coefficient before identifying wn; the coefficient 4 is wn squared, not wn"
+    },
+    "undamped_natural_frequency": {
+      "equation": "q_ddot+4q=0",
+      "initialState": [
+        1,
+        0
+      ],
+      "freeResponse": "cos(2t)",
+      "wn": 2,
+      "period": "pi",
+      "constantEnergy": 2,
+      "unitStepForUnityGainModel": "1-cos(2t)",
+      "boundary": "zero damping gives persistent oscillation, not convergence; wn is not generally the damped transient frequency"
+    },
+    "time_constant": {
+      "G": "3/(2s+1)",
+      "T": 2,
+      "DCGain": 3,
+      "unitStep": "3(1-exp(-t/2))",
+      "fractionAtT": 0.6321205588285577,
+      "outputAtT": 1.896361676485673,
+      "exact2PercentSettlingTime": 7.824046010856292,
+      "fourT": 8,
+      "boundary": "one time constant means 63.2 percent of the total change in this first-order model, not 63.2 percent of the input amplitude"
+    },
+    "damping_ratio": {
+      "normalizedMass": 1,
+      "stiffness": 4,
+      "criticalDampingCoefficient": 4,
+      "dampingCases": [
+        {
+          "c": 0,
+          "zeta": 0.0
+        },
+        {
+          "c": 2,
+          "zeta": 0.5
+        },
+        {
+          "c": 4,
+          "zeta": 1.0
+        },
+        {
+          "c": 8,
+          "zeta": 2.0
+        }
+      ],
+      "formula": "zeta=c/(2sqrt(mk))",
+      "boundary": "damping ratio is dimensionless and depends on mass/stiffness as well as damping coefficient"
+    },
+    "critical_damping": {
+      "T": "4/(s+2)^2",
+      "zeta": 1,
+      "wn": 2,
+      "poles": [
+        [
+          -2,
+          0
+        ],
+        [
+          -2,
+          0
+        ]
+      ],
+      "unitStep": "1-(1+2t)exp(-2t)",
+      "stepDerivative": "4t exp(-2t)",
+      "t90": 1.9448600849338027,
+      "boundary": "monotone standard zero-free step response; fastest nonoscillatory comparison only under matched model conditions such as fixed wn"
+    },
+    "natural_frequency_parameter_model": {
+      "equation": "T_m y_ddot+y_dot+K y=K r",
+      "T_m": 2.0,
+      "K": 8.0,
+      "wn": 2,
+      "zeta": 0.125,
+      "normalizedDenominator": "s^2+0.5s+4",
+      "poles": [
+        [
+          -0.24999999999999997,
+          1.984313483298443
+        ],
+        [
+          -0.24999999999999997,
+          -1.984313483298443
+        ]
+      ],
+      "boundary": "source formula sqrt(K/T_m) belongs to this parameterized model; changing K also changes zeta if T_m is fixed"
+    },
+    "natural_frequency_symbol": {
+      "poleGeometry": "wn=sqrt(sigma^2+wd^2)",
+      "basePoles": [
+        [
+          -0.9999999999999999,
+          1.732050807568877
+        ],
+        [
+          -0.9999999999999999,
+          -1.732050807568877
+        ]
+      ],
+      "wn2PeakTime": 1.8137993642342178,
+      "wn3PeakTime": 1.2091995761561452,
+      "sameZetaOvershoot": 0.16303353482158048,
+      "boundary": "wn is pole modulus for the standard underdamped pair, not its imaginary part; time scaling at fixed zeta preserves fractional overshoot"
+    },
+    "underdamped_range": {
+      "stableRange": "0<zeta<1",
+      "wn": 2,
+      "stableExample": {
+        "zeta": 0.5,
+        "poles": [
+          [
+            -0.9999999999999999,
+            1.732050807568877
+          ],
+          [
+            -0.9999999999999999,
+            -1.732050807568877
+          ]
+        ]
+      },
+      "undampedBoundary": {
+        "zeta": 0,
+        "poles": [
+          [
+            -0.0,
+            2.0000000000000004
+          ],
+          [
+            0.0,
+            -2.0000000000000004
+          ]
+        ]
+      },
+      "negativeDampingCounterexample": {
+        "zeta": -0.5,
+        "poles": [
+          [
+            0.9999999999999999,
+            1.732050807568877
+          ],
+          [
+            0.9999999999999999,
+            -1.732050807568877
+          ]
+        ]
+      },
+      "boundary": "complex poles with positive real part describe growing oscillation, not the stable underdamped case used here"
+    },
+    "overdamped": {
+      "zeta": 2,
+      "wn": 2,
+      "T": "4/(s^2+8s+4)",
+      "poles": [
+        [
+          -7.464101615137754,
+          0.0
+        ],
+        [
+          -0.5358983848622454,
+          0.0
+        ]
+      ],
+      "slowPole": "-4+2sqrt(3)",
+      "fastPole": "-4-2sqrt(3)",
+      "t90": 4.435709702009829,
+      "criticalT90AtSameWn": 1.9448600849338027,
+      "boundary": "standard zero-free unit-gain step response and fixed wn; more damping does not automatically mean faster settling across arbitrary systems"
+    },
+    "damped_natural_frequency": {
+      "zeta": 0.5,
+      "wn": 2,
+      "wd": "sqrt(3)",
+      "formula": "wd=wn sqrt(1-zeta^2)",
+      "transientPeriod": 3.6275987284684357,
+      "firstPeakTime": 1.8137993642342178,
+      "nextPositivePeakTime": 5.441398092702654,
+      "boundary": "adjacent maximum/minimum spacing is half a period; consecutive positive overshoot peaks are one full damped period apart"
+    }
+  }
+}

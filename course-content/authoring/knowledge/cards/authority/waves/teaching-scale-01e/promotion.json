@@ -1,0 +1,11 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 7,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b9",
+  "retiredResources": [
+    "act:card:频率特性_5_404adfdd",
+    "act:card:幅频特性_5_4e8408d2",
+    "act:card:正弦稳态响应_5_b6dc1100",
+    "act:card:频率响应实验_5_90116afd"
+  ]
+}

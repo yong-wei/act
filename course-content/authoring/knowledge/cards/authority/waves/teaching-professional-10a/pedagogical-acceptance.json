@@ -1,0 +1,7 @@
+{
+  "status": "accepted",
+  "cards": 7,
+  "goalId": "discrete-control-foundations",
+  "rationale": "用同一连续对象闭合样值最小拍与采样间无纹波的区别，并分别证明因果下界、平衡与幅值可行性。",
+  "sourceLimitation": "均有原教材定位；原创模型仅支持明确零初态参考任务，不泛化全部内部初态。"
+}

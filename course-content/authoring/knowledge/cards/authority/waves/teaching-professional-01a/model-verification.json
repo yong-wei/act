@@ -1,0 +1,132 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "aliasing": {
+      "sampleRateHz": 10.0,
+      "samplePeriodSeconds": 0.1,
+      "signals": [
+        "cos(2pi*2t)",
+        "cos(2pi*8t)"
+      ],
+      "samples": [
+        {
+          "k": 0,
+          "t": 0.0,
+          "cos2Hz": 1.0,
+          "cos8Hz": 1.0
+        },
+        {
+          "k": 1,
+          "t": 0.1,
+          "cos2Hz": 0.30901699437494745,
+          "cos8Hz": 0.30901699437494723
+        },
+        {
+          "k": 2,
+          "t": 0.2,
+          "cos2Hz": -0.8090169943749473,
+          "cos8Hz": -0.8090169943749477
+        },
+        {
+          "k": 3,
+          "t": 0.3,
+          "cos2Hz": -0.8090169943749475,
+          "cos8Hz": -0.8090169943749471
+        },
+        {
+          "k": 4,
+          "t": 0.4,
+          "cos2Hz": 0.30901699437494723,
+          "cos8Hz": 0.3090169943749482
+        },
+        {
+          "k": 5,
+          "t": 0.5,
+          "cos2Hz": 1.0,
+          "cos8Hz": 1.0
+        }
+      ],
+      "sameSamples": true,
+      "boundary": "deterministic signals alias too; reconstruction requires spectral assumptions; post-sampling filter cannot generally distinguish identical sample sequences"
+    },
+    "nyquist_boundary": {
+      "fsHz": 10.0,
+      "nyquistFrequencyHz": 5.0,
+      "bandlimitedSignalNyquistRateForB2Hz": 4,
+      "criticalSignal": "sin(2pi*5t)",
+      "criticalSamples": "all zero at k/10",
+      "strictGuarantee": "fs>2B for arbitrary strictly bandlimited signal under ideal infinite-sample reconstruction assumptions",
+      "boundary": "fs/2 frequency vs 2B required sampling rate; equality needs endpoint restrictions, not arbitrary phase guarantee"
+    },
+    "sample_hold": {
+      "plant": "xdot=-x+u; y=x",
+      "periodSeconds": 0.2,
+      "heldInput": "u(t)=u[k] for kT<=t<(k+1)T",
+      "exactRecurrence": "x[k+1]=a*x[k]+(1-a)*u[k]",
+      "a": 0.8187307530779818,
+      "inputCoefficient": 0.18126924692201818,
+      "unitStepSamples": [
+        0.0,
+        0.18126924692201818,
+        0.3296799539643608,
+        0.45118836390597367,
+        0.5506710358827784,
+        0.6321205588285577
+      ],
+      "intersampleAtPoint1": 0.09516258196404048,
+      "boundary": "continuous plant exists between samples; sequence is not impulse train; hold is distinct from sampling and quantization"
+    },
+    "sample_rate_design": {
+      "targetAngularFrequency": 5.0,
+      "periodsSeconds": [
+        0.02,
+        0.2
+      ],
+      "oneSampleDelayPhasesDegrees": [
+        -5.729577951308233,
+        -57.29577951308232
+      ],
+      "boundary": "same one-sample delay gives different physical phase lag; rate selection must consider dynamics, processing delay and bandwidth, not Nyquist threshold alone"
+    },
+    "prefilter": {
+      "analogFilter": "H(s)=1/(1+s/(2pi*3))",
+      "cutoffHz": 3.0,
+      "magnitudeAt2Hz": 0.8320502943378437,
+      "magnitudeAt8Hz": 0.3511234415883917,
+      "boundary": "finite-order filter attenuates rather than eliminates out-of-band components; affects desired band too; located before sampling"
+    },
+    "ideal_sampler": {
+      "timeModel": "x_s(t)=sum_k x(kT) delta(t-kT)",
+      "spectrumConvention": "angular frequency transform; X_s(jw)=1/T sum_m X(j(w-m ws)); ws=2pi/T",
+      "sequence": "x[k]=x(kT)",
+      "boundary": "Dirac impulses have weights not ordinary finite amplitudes; ideal sampler is mathematical abstraction, not finite-width pulse or zero-order hold"
+    },
+    "sampled_feedback": {
+      "plant": "xdot=-x+u",
+      "controller": "u[k]=2(r[k]-x[k])",
+      "hold": "zero order, immediate update without computational delay",
+      "pole": "3exp(-T)-2",
+      "samples": [
+        {
+          "period": 0.2,
+          "pole": 0.4561922592339456,
+          "stable": true
+        },
+        {
+          "period": 2.0,
+          "pole": -1.593994150290162,
+          "stable": false
+        }
+      ],
+      "constantReferenceEquilibrium": 0.6666666666666666,
+      "boundary": "different delay/hold requires a different recurrence"
+    },
+    "sampling_phase": {
+      "signal": "sin(2pi*5t)",
+      "period": 0.1,
+      "t0zero": "all zero",
+      "t0point05": "(-1)^k"
+    }
+  }
+}

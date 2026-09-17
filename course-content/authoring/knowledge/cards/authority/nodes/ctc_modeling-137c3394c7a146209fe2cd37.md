@@ -1,33 +1,35 @@
 ---
 node_id: ctc_modeling-137c3394c7a146209fe2cd37
 authority_entity_id: "ctc:modeling-137c3394c7a146209fe2cd37"
-name: 领域概念
-name_en: modeling_137c3394c7a146209fe2cd37
-category: 程序性
-coverage_role: necessary_prerequisite
-batch: A
-concept_kind: analysis_method
-release_tier: silver
-tags:
-  - analysis_method
-  - silver
-  - 领域概念
-card_version: 1
+name: "牛顿定律力学建模法"
+name_en: "Newtonian Mechanical Modeling"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8279515324f775261a01e59fadc31543af1f6479b156b61aea631488b358df99.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8279515324f775261a01e59fadc31543af1f6479b156b61aea631488b358df99.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/previous/ctc_modeling-137c3394c7a146209fe2cd37.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: b28881c893fd90032fd45834621f585c613296b2ff5dd73b5e09a7791ca709d7 -->
-
 ## 首页
 
-# 领域概念 | modeling_137c3394c7a146209fe2cd37
+# 牛顿定律力学建模法 | Newtonian Mechanical Modeling
 
-**一句话定义**：领域概念：Define convenient coordinates for position, velocity, and acceleration
+**一句话定义**：牛顿定律力学建模法通过确定坐标、分离物体和列出外力，把运动问题写成微分方程。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：先确定每个力相对于正方向的符号，再写方程；不要为了得到熟悉的形式反过来猜符号。
+
+**关键公式**：$m\ddot x=F-c\dot x-kx$。
+
+**学习目标**：从受力平衡建立质量—弹簧—阻尼模型，并用初始与稳态条件检查方程。
 
 ---
 
@@ -35,18 +37,39 @@ asset_refs: []
 
 ### 完整解释
 
-Define convenient coordinates for position, velocity, and acceleration; determine forces using a free-body diagram; write equations of motion from F = m a.
+选择惯性参考系后，把待研究物体从周围结构中分离，列出作用在它上的所有外力。坐标正方向一旦固定，位置、速度、加速度与外力都应按同一方向计符号。牛顿第二定律连接的是合外力与加速度，不能把速度直接放在惯性项上。
+
+对与固定支点连接的线性弹簧和黏性阻尼器，若 $x$ 从静态平衡位置开始计量，弹簧恢复力为 $-kx$，阻尼力为 $-c\dot x$。阻尼力反对相对运动；速度为负时它会指向正方向，因此负号并不意味着该力在所有时刻都朝同一方向。若支点本身移动，就需要用相对位移和相对速度重写元件力，不能继续机械使用此式。
+
+### 教学计算/推理例
+
+取质量 $m=2\,\mathrm{kg}$、阻尼系数 $c=4\,\mathrm{N\,s/m}$、刚度 $k=8\,\mathrm{N/m}$，外力为 $2\,\mathrm N$ 阶跃，初始位移和速度均为零。受力方程为
+$$
+2\ddot x=2-4\dot x-8x,
+\qquad \ddot x+2\dot x+4x=1.
+$$
+刚施加外力时弹簧力和阻尼力都为零，故 $\ddot x(0^+)=1\,\mathrm{m/s^2}$。最终静止时两个导数均为零，弹簧承受外力，故 $x_\infty=2/8=0.25\,\mathrm m$。零初态解析响应为
+$$
+x(t)=\frac14\left[1-e^{-t}\left(\cos\sqrt3t+\frac{\sin\sqrt3t}{\sqrt3}\right)\right].
+$$
+方程的根为 $-1\pm j\sqrt3$，负实部说明瞬态衰减；这与存在有限静态平衡位置一致。这里 $t$ 按秒计，指数中的系数具有相应时间单位。
+
+### 适用条件与边界
+
+模型假设质量集中、弹簧线性、阻尼与相对速度成正比。若装置竖直放置，使用静态平衡位置作原点时，重力已与预伸长弹簧力抵消；若改从自然长度计量，则必须显式列入重力。传递函数 $X/F=1/(2s^2+4s+8)$ 还要求零初态；非零初态不会改变该输入输出传函，但总响应要另加自由响应。
+
+### 常见误区
+
+1. **误区**：阻尼力总朝负方向。**纠正**：它反对相对速度，方向随速度改变。
+2. **误区**：所有竖直模型都可以直接删掉重力。**纠正**：只有坐标和平衡项处理一致时才能消去常量重力项。
+
+### 自检
+
+1. 为什么本例初始加速度由 $F/m$ 决定？
+2. 为什么最终位移由 $F/k$ 决定而与 $c$ 无关？
+
+**核对要点**：初始位移和速度为零，只有外力；静止平衡时惯性项与阻尼项为零。阻尼仍决定到达平衡的过程。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`analysis_method`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-analysis_method、silver、领域概念
+- **动态系统建模规范步骤**（出边，关系：属于）

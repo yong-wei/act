@@ -1,0 +1,82 @@
+{
+  "batchId": "teaching-core-28a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-28",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "name": "极限环",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+      "name": "幅度量化误差",
+      "moduleId": "module-5",
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "name": "继电特性",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "name": "半稳定极限环",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "name": "描述函数法",
+      "moduleId": "module-5",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+      "name": "自激振荡",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "name": "自振荡",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+      "name": "量化误差",
+      "moduleId": "module-5",
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "name": "描述函数",
+      "moduleId": "module-5",
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+      "name": "负倒描述函数",
+      "moduleId": null,
+      "order": 10
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+      "name": "量化",
+      "moduleId": "module-5",
+      "order": 11
+    }
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:fb00cb6d193357cc7decaac3",
+          "otherId": "ctc:v11g-1ebbddfa13931f700f437271",
+          "label": "出射角",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **出射角**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:b3981e68bc8bc08640500887",
+          "otherId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+          "label": "增益裕度",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **增益裕度**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:045641c19983bdf09e83f1a4",
+          "otherId": "ctkg:v3e-canonical-0c0b4e9e214ae42d511dda74",
+          "label": "s平面",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **s平面**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-44dd7f5fabc57f51d385ced7",
+          "otherId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+          "label": "右半平面（RHP）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **右半平面（RHP）**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-v3e-relation-44dd7f5fabc57f51d385ced7",
+          "otherId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+          "label": "左半平面 （LHP）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **左半平面 （LHP）**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+      "relations": [
+        {
+          "relationId": "ctr:m1g-750113544c0d4d81f0c0d6b2",
+          "otherId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+          "label": "中性稳定",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **中性稳定**（入边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:9d6f8553b3fee53d9597c664",
+          "otherId": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+          "label": "不稳定系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **不稳定系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:m1g-5aa444ad989c7a6942c53fa1",
+          "otherId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+          "label": "绝对稳定性",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **绝对稳定性**（入边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+      "relations": [
+        {
+          "relationId": "ctr:m1g-b920aa691ac013306c69628a",
+          "otherId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+          "label": "稳定系统",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **稳定系统**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:280e18a47aee14d4d4bbb549",
+          "otherId": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+          "label": "不稳定系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **不稳定系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:e60e55f6f2a9aae61cd7d11a",
+          "otherId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+          "label": "虚轴临界稳定状态",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **虚轴临界稳定状态**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:aea6294364be3cccf4bda889",
+          "otherId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+          "label": "稳定性",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **稳定性**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctr:m1g-3b2155df686145c24176dc4e",
+          "otherId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+          "label": "稳定性",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **稳定性**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:698d4b4172a6d39b3941822e",
+          "otherId": "ctkg:v3e-object-a9ee0638045ceeb7e66d2ba0",
+          "label": "无阻尼振荡",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无阻尼振荡**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:be9a4b53e0f4495056141fcd",
+          "otherId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+          "label": "稳定性",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **稳定性**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctr:m1g-f53695e909f87b46fc217f22",
+          "otherId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+          "label": "稳定性",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **稳定性**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:fe1bd08e67e2e45c4ee32914",
+          "otherId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+          "label": "稳定系统",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **稳定系统**（入边，关系：前置于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-905e09b9921961a6115e4603",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:0b69afc5586262357770c214",
+          "otherId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+          "label": "稳定性",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **稳定性**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctr:m1g-c624dbc651b12cc49c6d8d0f",
+          "otherId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+          "label": "稳定性",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **稳定性**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctr:m1g-047676f7b90cd837197dbec4",
+          "otherId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+          "label": "平衡状态稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **平衡状态稳定性**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

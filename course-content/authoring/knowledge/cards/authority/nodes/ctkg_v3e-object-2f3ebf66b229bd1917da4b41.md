@@ -1,55 +1,74 @@
 ---
 node_id: ctkg_v3e-object-2f3ebf66b229bd1917da4b41
 authority_entity_id: "ctkg:v3e-object-2f3ebf66b229bd1917da4b41"
-name: Gain Margin (GM)
+name: "增益裕度（GM）"
+name_en: "Gain Margin"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - Gain
-  - Margin
-  - (GM)
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-00b5720ce4b39f9a40944714bfc940e87f47270be248a65fde483adcfda98978.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-00b5720ce4b39f9a40944714bfc940e87f47270be248a65fde483adcfda98978.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/previous/ctkg_v3e-object-2f3ebf66b229bd1917da4b41.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 93e6611e46c3746575cb144c3e5be43b4c4acc9cb262d5e824451f0387b00605 -->
-
 ## 首页
+# 增益裕度（GM） | Gain Margin
 
-# Gain Margin (GM)
+一句话定义：增益裕度衡量在规定反馈结构下，环路增益乘以多大因子会到达闭环稳定边界。
 
-**一句话定义**：Gain Margin (GM)：The factor by which the gain can be increased (or decreased in certain cases) before instability results.
-
-**核心直觉**：在图谱邻接中可把握：前置 → Determining GM from root locus · 后续 → Determining GM from root locus、Determining GM from Bode plot。
-
-**关联**：前置 → Determining GM from root locus · 后续 → Determining GM from root locus、Determining GM from Bode plot
+- 常见单交越情形在相位为 $-180^\circ$ 处计算。
+- 线性增益因子和分贝裕度必须区分。
+- 多交越或开环不稳定系统需要完整稳定分析。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-The factor by which the gain can be increased (or decreased in certain cases) before instability results.
+对单位负反馈环路 $L(s)$，闭环特征条件为 $1+L(s)=0$。若把环路乘以正实数 $a$，在某个频率满足 $aL(j\omega)=-1$ 时可能到达稳定边界。在常见、名义闭环稳定且由单个负实轴交点限制增益增加的情形，令相位交越频率为 $\omega_p$，则
+
+$$
+GM=\frac1{|L(j\omega_p)|},\qquad GM_{\mathrm{dB}}=20\log_{10}GM.
+$$
+
+这里的GM是相对当前环路的乘数，不是控制器参数本身。读出边界后，应结合实际特征方程或Nyquist计数确认哪一侧稳定。某些结构存在多个稳定区间或增益下限，不能只报告一个“还能增大多少”的数字。
+
+### 教学计算/推理例
+
+取 $L=K/[(s+1)(s+2)(s+3)]$，名义 $K=10$。在 $\omega_p=\sqrt{11}\approx3.3166$ rad/s处，分母为负实数 $-60$，所以 $L(j\omega_p)=-1/6$。因此增益裕度为6倍，分贝裕度约15.5630 dB。
+
+单位负反馈的闭环特征多项式为 $s^3+6s^2+11s+6+K$。对正增益，Routh条件给出 $0<K<60$ 的稳定范围。在 $K=60$ 时，多项式为 $(s+6)(s^2+11)$，出现虚轴共轭根，已不再渐近稳定。名义10乘以6恰好达到60，与频域计算一致。
+
+“裕度6倍”意味着总增益可从10变到边界60，不能把它理解成将增益增加6个单位。工程设计也不应把边界值当作可放心使用的工作点；名义裕度要与模型变化和实际约束一起考虑。
+
+### 适用条件与边界
+
+若没有相位交越，在某些标准稳定环路中可报告该定义下增益裕度无穷，但这不表示系统能承受任意延迟或所有不确定性。若有多个负实轴交点，应核验各个候选边界及稳定区间。开环右半平面极点、虚轴极点和隐藏不稳定相消都会影响稳定判读，不能省略。
+
+增益裕度只针对指定的实数增益变化。控制器结构变化、相位误差或频率相关模型误差不等价于统一乘以一个常数，不能用同一个GM替代全部鲁棒性要求。
+
+### 常见误区
+
+1. 将6倍误写成6 dB；6倍实际约为15.563 dB。
+2. 在单位增益交越处读GM，混淆相位裕度的计算位置。
+3. 仅凭正的分贝裕度就断言任意结构稳定，而不检查计数和交越条件。
+
+### 自检
+
+1. 本例增益从10变为30，距边界还剩几倍？
+2. 取边界增益60时能否称闭环渐近稳定？
+
+**核对要点**：相对30还剩2倍；边界出现虚轴根，不能称为渐近稳定。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | Determining GM from root locus | 派生自 |
-| 后续 | Determining GM from Bode plot | 派生自 |
-| 前置 | Determining GM from root locus | 关联 |
-| 后续 | Determining GM from Bode plot | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Gain、Margin、(GM)
+- **从伯德图确定增益裕度**（出边，关系：推导自）
+- **从根轨迹确定增益裕度**（出边，关系：推导自）
+- **从伯德图确定增益裕度**（无向，关系：相关）

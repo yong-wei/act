@@ -1,50 +1,82 @@
 ---
 node_id: ctkg_v3e-object-f5e744188b4f574f567a1a8e
 authority_entity_id: "ctkg:v3e-object-f5e744188b4f574f567a1a8e"
-name: 状态转移矩阵
+name: "状态转移矩阵"
+name_en: "State-Transition Matrix"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 状态转移矩阵
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7250fa4a108754cea161edd30e14cf1d8ff0ddc71cd144de54e6ded2588d96ca.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7250fa4a108754cea161edd30e14cf1d8ff0ddc71cd144de54e6ded2588d96ca.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-03a/previous/ctkg_v3e-object-f5e744188b4f574f567a1a8e.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: e5d8fa69b121ee589f445b6b094234b21afc232d9f4508d2ef5427583d877df2 -->
-
 ## 首页
+# 状态转移矩阵 | State-Transition Matrix
 
-# 状态转移矩阵
+一句话定义：状态转移矩阵把线性系统某时刻的初始状态映射到另一时刻的零输入状态，并可用于构造受迫响应。
 
-**一句话定义**：矩阵指数函数 e^{A t}，记为 \Phi(t)，用于描述线性定常系统状态从初始时刻到任意时刻的转移。
-
-**核心直觉**：在图谱邻接中可把握：后续 → 矩阵指数函数。
-
-**关联**：后续 → 矩阵指数函数
+- 线性定常时为 $\Phi(t,t_0)=e^{A(t-t_0)}$。
+- 非零输入需另加状态转移加权的积分。
+- 一般时变系统不能直接套用瞬时矩阵指数。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-矩阵指数函数 e^{A t}，记为 \Phi(t)，用于描述线性定常系统状态从初始时刻到任意时刻的转移
+对 $\dot x=A(t)x$，状态转移矩阵满足 $\partial\Phi(t,t_0)/\partial t=A(t)\Phi(t,t_0)$ 和 $\Phi(t_0,t_0)=I$。解为 $x(t)=\Phi(t,t_0)x(t_0)$。适当条件下还满足转移组合关系 $\Phi(t,t_1)\Phi(t_1,t_0)=\Phi(t,t_0)$。
+
+若方程含输入 $B(t)u(t)$，完整解为
+
+$$
+x(t)=\Phi(t,t_0)x(t_0)+\int_{t_0}^{t}\Phi(t,\tau)B(\tau)u(\tau)\,d\tau.
+$$
+
+第一项是初态贡献，第二项是输入贡献。状态转移的“零输入”含义不能被误读为只能分析无输入系统；它同样构成受迫解的计算基础。
+
+### 教学计算/推理例
+
+对常矩阵 $A=[[-1,1],[0,-1]]$，令 $h=t-t_0$，则 $\Phi=e^{-h}[[1,h],[0,1]]$。若 $x(t_0)=(0,1)^T$ 且输入为0，得到 $x(t)=(h e^{-h},e^{-h})^T$。经过0.3再经过0.7的转移，与直接经过1的矩阵相同，反映同一常矩阵的时间组合性质。
+
+再看时变标量方程 $\dot x=-2tx$。直接积分得到
+
+$$
+\Phi(t,t_0)=e^{-(t^2-t_0^2)}.
+$$
+
+若错误地使用 $e^{A(t)(t-t_0)}$，会得到 $e^{-2t(t-t_0)}$，一般不同。比如 $t_0=0,t=1$，正确因子为 $e^{-1}$，错误式为 $e^{-2}$。即便是一维、没有矩阵不交换问题，也不能把瞬时系数乘时间间隔代替时间积分。
+
+### 适用条件与边界
+
+一般时变矩阵在不同时刻可能不交换，连 $e^{\int A(\tau)d\tau}$ 也不是无条件可用的公式。应以转移矩阵微分方程为定义，按具体结构解析或数值求解。定常公式是重要特例，不是对全部线性系统的统一代入法。
+
+状态转移矩阵通常可逆，但逆向转移的数学存在不表示反向物理过程稳定或容易实现。数值计算长时间反向传播可能放大误差；不能从可逆性直接推出可观测或可控，这些性质还涉及输出和输入矩阵。
+
+离散时间也有相应状态转移乘积，但含奇异状态矩阵时逆向性质可能不同。使用连续定常结论之前，应先核对时域、系数变化和模型假设。
+
+### 常见误区
+
+1. 非零输入时只写初态转移项。
+2. 用 $e^{A(t)(t-t_0)}$ 代替一般时变状态转移。
+3. 将转移矩阵可逆等同于系统可控或可观测。
+
+### 自检
+
+1. 时变标量例从0到1的正确转移因子是多少？
+2. 有输入时，除初态项外还缺哪一项？
+
+**核对要点**：$e^{-1}$；还需包含由 $\Phi(t,\tau)B(\tau)u(\tau)$ 积分形成的受迫响应。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 矩阵指数函数 | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、状态转移矩阵
+- **矩阵指数**（无向，关系：相关）
+- **状态系数方阵**（无向，关系：相关）
+- **状态空间轨迹**（无向，关系：相关）

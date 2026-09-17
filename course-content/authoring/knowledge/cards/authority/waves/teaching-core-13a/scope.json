@@ -1,0 +1,52 @@
+{
+  "batchId": "teaching-core-13a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-13",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:6daaf5095018a332d359e2de",
+      "name": "最小节拍响应",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+      "name": "时间常数τ1",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+      "name": "ITAE性能指标",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+      "name": "动态性能指标",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+      "name": "动态性能",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2",
+      "name": "使用时域指标的设计综合",
+      "moduleId": null,
+      "order": 6
+    }
+  ]
+}

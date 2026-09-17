@@ -1,0 +1,151 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:周期运动_极限环__8_e89ff8ed",
+      "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/周期运动_极限环__8_e89ff8ed.md",
+          "sha256": "a4c5e0d370297d7f780d4a04361af48d5f3de959a3131e96c71f870d71cc2e2a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/authoring/周期运动_极限环__8_e89ff8ed.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/周期运动_极限环__8_e89ff8ed.md",
+          "sha256": "a4c5e0d370297d7f780d4a04361af48d5f3de959a3131e96c71f870d71cc2e2a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/runtime/周期运动_极限环__8_e89ff8ed.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:极限环_8_146dec32",
+      "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/极限环_8_146dec32.md",
+          "sha256": "6ca991c2a8a1479b35e3af81550a94b5f1ee349d3230fa7c954423324ebcf496",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/authoring/极限环_8_146dec32.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/极限环_8_146dec32.md",
+          "sha256": "6ca991c2a8a1479b35e3af81550a94b5f1ee349d3230fa7c954423324ebcf496",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/runtime/极限环_8_146dec32.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:继电特性_8_0676d186",
+      "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/继电特性_8_0676d186.md",
+          "sha256": "4eafe972bc157de05cb71ca3cebb3299197f031dcd145b0a7a4d9b218a7a3d71",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/authoring/继电特性_8_0676d186.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/继电特性_8_0676d186.md",
+          "sha256": "4eafe972bc157de05cb71ca3cebb3299197f031dcd145b0a7a4d9b218a7a3d71",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/runtime/继电特性_8_0676d186.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:半稳定极限环_8_8ed583b7",
+      "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/半稳定极限环_8_8ed583b7.md",
+          "sha256": "0aa90693c1089284be863239b887ef9ee18810cd7eaf79382695f0200bebdfe2",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/authoring/半稳定极限环_8_8ed583b7.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/半稳定极限环_8_8ed583b7.md",
+          "sha256": "0aa90693c1089284be863239b887ef9ee18810cd7eaf79382695f0200bebdfe2",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/runtime/半稳定极限环_8_8ed583b7.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:自激振荡_8_711ef8ef",
+      "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/自激振荡_8_711ef8ef.md",
+          "sha256": "8c7c5c926ac4925c2c0ad98aad19b53f57e02b7870b6c2a4400cdc19b890d2dc",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/authoring/自激振荡_8_711ef8ef.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/自激振荡_8_711ef8ef.md",
+          "sha256": "8c7c5c926ac4925c2c0ad98aad19b53f57e02b7870b6c2a4400cdc19b890d2dc",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/runtime/自激振荡_8_711ef8ef.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:自振_8_3ed83301",
+      "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/自振_8_3ed83301.md",
+          "sha256": "dac27c411e4260667331e066b52da98ba1e8c5bd2de71fc688c02ba31a95c84c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/authoring/自振_8_3ed83301.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/自振_8_3ed83301.md",
+          "sha256": "dac27c411e4260667331e066b52da98ba1e8c5bd2de71fc688c02ba31a95c84c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/runtime/自振_8_3ed83301.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:自振荡_8_e3ee2aef",
+      "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/自振荡_8_e3ee2aef.md",
+          "sha256": "67436f4fdde6b7bc9d469404965d863dc2865137a4cca62f28fc773e24ced4f9",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/authoring/自振荡_8_e3ee2aef.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/自振荡_8_e3ee2aef.md",
+          "sha256": "67436f4fdde6b7bc9d469404965d863dc2865137a4cca62f28fc773e24ced4f9",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/runtime/自振荡_8_e3ee2aef.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:负倒描述函数_8_159ff256",
+      "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/负倒描述函数_8_159ff256.md",
+          "sha256": "c2126eb27a6374a2b6cbc442ee232746b53fa4425c6642efd314b8f3dcad2383",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/authoring/负倒描述函数_8_159ff256.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/负倒描述函数_8_159ff256.md",
+          "sha256": "c2126eb27a6374a2b6cbc442ee232746b53fa4425c6642efd314b8f3dcad2383",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/runtime/负倒描述函数_8_159ff256.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:量化_7_6cb6511b",
+      "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/量化_7_6cb6511b.md",
+          "sha256": "99e911d3bdf01d1efb2f0f56a1fbab077238875536f1a473dede38dbec81129b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/authoring/量化_7_6cb6511b.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/量化_7_6cb6511b.md",
+          "sha256": "99e911d3bdf01d1efb2f0f56a1fbab077238875536f1a473dede38dbec81129b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/retired/runtime/量化_7_6cb6511b.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b40",
+  "replacementDigest": "b451ea1a83a2dab6676f085d6e3e0a954181174ac35d0a2b00e8238555693936"
+}

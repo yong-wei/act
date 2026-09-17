@@ -1,0 +1,111 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "fast_pole": {
+      "T": "5/((s+1)(s+5))",
+      "step": "1-1.25exp(-t)+0.25exp(-5t)",
+      "unitGainReduced": "1/(s+1)",
+      "stepApproximation": "1-exp(-t)",
+      "maximumAbsoluteStepError": 0.1337480609952844,
+      "atTime": 0.40235947810852507,
+      "boundary": "fivefold pole separation does not certify a small error tolerance"
+    },
+    "near_zero": {
+      "T": "(10/1.01)(s+1.01)/((s+1)(s+10))",
+      "slowResidue": -0.01100110011001101,
+      "fastResidue": -0.988998899889989,
+      "boundary": "slow asymptotic rate alone does not quantify finite-time output importance"
+    },
+    "complex_pair": {
+      "T": "1.25/((s+5)(s^2+0.8s+0.25))",
+      "poles": [
+        [
+          -5,
+          0
+        ],
+        [
+          -0.4,
+          0.3
+        ],
+        [
+          -0.4,
+          -0.3
+        ]
+      ],
+      "reduced": "0.25/(s^2+0.8s+0.25)",
+      "zeta": 0.8,
+      "wn": 0.5,
+      "gridInterval": [
+        0,
+        40
+      ],
+      "gridSpacing": 0.01,
+      "observedMaximumStepDifference": 0.04216523937307326,
+      "boundary": "reported maximum is observed on the stated grid, not an all-time proof"
+    },
+    "zero_left": {
+      "T": "16(1+(0.2)s)/(s^2+4.8s+16)",
+      "zero": -5.0,
+      "initialOutput": 0,
+      "initialSlope": 3.2,
+      "boundary": "poles unchanged; response and inverse-motion possibility depend on the numerator"
+    },
+    "zero_right": {
+      "T": "16(1+(-0.2)s)/(s^2+4.8s+16)",
+      "zero": 5.0,
+      "initialOutput": 0,
+      "initialSlope": -3.2,
+      "boundary": "poles unchanged; response and inverse-motion possibility depend on the numerator"
+    },
+    "hidden_mode": {
+      "A": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "B": [
+        1,
+        0
+      ],
+      "C": [
+        1,
+        0
+      ],
+      "transfer": "1/(s+1)",
+      "unobservedState": "x2(0)*exp(t)",
+      "internallyAsymptoticallyStable": false
+    },
+    "modes": {
+      "A": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          -5
+        ]
+      ],
+      "initialState": [
+        1,
+        1
+      ],
+      "state": [
+        "exp(-t)",
+        "exp(-5t)"
+      ],
+      "outputC": [
+        0,
+        1
+      ],
+      "output": "exp(-5t)",
+      "boundary": "the slow state mode exists but is absent from this measured output"
+    }
+  }
+}

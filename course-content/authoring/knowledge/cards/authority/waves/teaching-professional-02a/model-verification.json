@@ -1,0 +1,108 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "z_transform": {
+      "sequence": "a^k for k>=0; a=0.5",
+      "transform": "z/(z-a)",
+      "roc": "abs(z)>abs(a)",
+      "atZ2": 1.3333333333333333,
+      "boundary": "bilateral inverse not unique without ROC; one-sided transform includes initial-condition terms"
+    },
+    "difference_equation": {
+      "equation": "y[k+1]=0.5y[k]+u[k]",
+      "oneSidedTransform": "z(Y-y[0])=0.5Y+U",
+      "zeroStateTransfer": "1/(z-0.5)",
+      "unitStepZeroInitial": "2(1-0.5^k)",
+      "nonzeroInitialExample": {
+        "y0": 2,
+        "u": 1,
+        "y": [
+          2.0,
+          2.0,
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "boundary": "transfer function describes zero state; initial response must be included separately"
+    },
+    "zoh": {
+      "continuous": "1/(s+1)",
+      "period": 0.2,
+      "a": 0.8187307530779818,
+      "b": 0.18126924692201818,
+      "discrete": "(1-a)/(z-a)",
+      "method": "sample continuous step response then multiply Z by 1-z^-1",
+      "boundary": "Z acts on sampled inverse-Laplace step response, not directly on a rational function of s; exact for declared held input and sample timing"
+    },
+    "foh_extrapolation": {
+      "law": "u(t)=u[k]+(u[k]-u[k-1])*(t-kT)/T",
+      "plant": "xdot=-x+u",
+      "period": 0.2,
+      "recurrence": "x[k+1]=a*x[k]+(1-a)*u[k]+c*(u[k]-u[k-1])",
+      "c": 0.0936537653899091,
+      "currentInputCoefficient": 0.2749230123119273,
+      "previousInputCoefficient": -0.0936537653899091,
+      "rampHistory": "u[k]=kT, including u[-1]=-T; x[0]=0",
+      "rampOutputSamples": [
+        0.01873075307798182,
+        0.07032004603563924,
+        0.14881163609402637,
+        0.24932896411722155,
+        0.3678794411714423
+      ],
+      "boundary": "causal extrapolating FOH from source; not interpolation using future sample u[k+1]; boundary reset possible for nonramp data"
+    },
+    "finite_word": {
+      "coefficientExact": 0.99,
+      "step": 0.125,
+      "roundedCoefficient": 1.0,
+      "effect": "asymptotically decaying scalar recursion becomes constant at coefficient1",
+      "signedFourBitTwoFractionRange": [
+        -2,
+        1.75
+      ],
+      "sum": 2.25,
+      "saturatingSum": 1.75,
+      "wrappingSum": -1.75,
+      "boundary": "rounding and overflow mode must be declared; no generic white-noise assumption"
+    },
+    "sampled_metrics": {
+      "response": "1-exp(-kT)",
+      "period": 0.2,
+      "twoPercentSampleSettlingIndex": 20,
+      "sampleTime": 4.0,
+      "continuousSettlingTime": 3.912023005428146,
+      "intersampleCounterexample": "1+0.1sin(2pi*t/T) has samples1 but peaks1.1",
+      "boundary": "sample-based threshold and true continuous intersample performance differ; sampled criterion requires all later sample errors within bound"
+    },
+    "source_w_convention": {
+      "mapping": "w=(z+1)/(z-1), z=(w+1)/(w-1)",
+      "atZ0": -1,
+      "atZpoint5": -3,
+      "z1": "maps to infinity",
+      "zMinus1": "maps to0",
+      "unitCircle": "w=-j cot(theta/2)",
+      "boundary": "source uses reciprocal Cayley convention; not same variable as Tustin s=(2/T)(z-1)/(z+1); preserve exceptional points and scale"
+    },
+    "tustin": {
+      "continuous": "1/(s+1)",
+      "period": 0.2,
+      "substitution": "s=(2/T)(z-1)/(z+1)",
+      "discrete": "(z+1)/[(2/T+1)z+(1-2/T)]",
+      "pole": 0.8181818181818182,
+      "zohPole": 0.8187307530779818,
+      "frequencyWarp": "Omega=2atan(omega*T/2)",
+      "boundary": "trapezoidal approximation, not exact ZOH equivalence; unit-circle frequency mapping is warped"
+    },
+    "exponential_mapping": {
+      "mapping": "z=exp(sT)",
+      "period": 0.2,
+      "stablePoleMinus1": 0.8187307530779818,
+      "frequencyPeriod": 31.41592653589793,
+      "boundary": "many-to-one in imaginary direction; LHP inside unit circle, axis on circle; not a claim that every discretization uses exponential pole mapping"
+    }
+  }
+}

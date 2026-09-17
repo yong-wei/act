@@ -1,0 +1,70 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:4e39f1797ea3333fc99d507f",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:sol-supplement:source:2fbc75456dfe61e6933cd4ee",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:sol-supplement:source:dab96b1e6e02733852005d63",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:sol-supplement:source:7f1c2a4b7defdf180cd358a9",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:93f9cb978a744de81099410b",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:9f4deb6962d0f249da0e0df2",
+          "otherId": "ctkg:v3e-object-a98f424dd074fcab4c1d1f23",
+          "label": "对称根轨迹法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **对称根轨迹法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:167437855628d86a9cbe81cd",
+          "otherId": "ctkg:v3e-object-b8d0052e096e5047cdccb00e",
+          "label": "线性二次型调节器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **线性二次型调节器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:97e97630ea05992f4d3e7e54",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:11c145594f329618fac331a2",
+          "otherId": "ctkg:v3e-object-a98f424dd074fcab4c1d1f23",
+          "label": "对称根轨迹法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **对称根轨迹法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:aafa34659d1dadb1c8412150",
+          "otherId": "ctkg:v3e-object-b8d0052e096e5047cdccb00e",
+          "label": "线性二次型调节器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **线性二次型调节器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:b3348e63f6c3f02324406434",
+      "relations": []
+    },
+    {
+      "canonicalId": "m1q:sol-supplement:concept:finite-horizon-optimal-state-feedback-law",
+      "relations": []
+    }
+  ]
+}

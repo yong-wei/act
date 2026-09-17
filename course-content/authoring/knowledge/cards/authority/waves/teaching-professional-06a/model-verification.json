@@ -1,0 +1,139 @@
+{
+  "status": "passed",
+  "arithmetic": "exact fractions; analytic universal arguments independently reviewed",
+  "models": {
+    "minimum_effort": {
+      "minimum": "1",
+      "optimalInput": "1",
+      "proof": "Cauchy-Schwarz with equality for constant input",
+      "perturbations": [
+        {
+          "epsilon": "-2",
+          "cost": "7/3"
+        },
+        {
+          "epsilon": "-1/2",
+          "cost": "13/12"
+        },
+        {
+          "epsilon": "0",
+          "cost": "1"
+        },
+        {
+          "epsilon": "1/3",
+          "cost": "28/27"
+        },
+        {
+          "epsilon": "2",
+          "cost": "7/3"
+        }
+      ]
+    },
+    "functional": {
+      "candidates": [
+        {
+          "u": [
+            "1"
+          ],
+          "x": [
+            "0",
+            "1"
+          ],
+          "effort": "1",
+          "runningTotal": "4/3"
+        },
+        {
+          "u": [
+            "0",
+            "2"
+          ],
+          "x": [
+            "0",
+            "0",
+            "1"
+          ],
+          "effort": "4/3",
+          "runningTotal": "23/15"
+        }
+      ]
+    },
+    "running_cost": {
+      "candidates": [
+        {
+          "u": [
+            "1"
+          ],
+          "x": [
+            "0",
+            "1"
+          ],
+          "effort": "1",
+          "runningTotal": "4/3"
+        },
+        {
+          "u": [
+            "0",
+            "2"
+          ],
+          "x": [
+            "0",
+            "0",
+            "1"
+          ],
+          "effort": "4/3",
+          "runningTotal": "23/15"
+        }
+      ],
+      "comparisonOnly": true
+    },
+    "terminal_cost": {
+      "cases": [
+        {
+          "F": "0",
+          "endpoint": "0",
+          "cost": "0"
+        },
+        {
+          "F": "1",
+          "endpoint": "1/2",
+          "cost": "1/2"
+        },
+        {
+          "F": "9",
+          "endpoint": "9/10",
+          "cost": "9/10"
+        }
+      ],
+      "freeTerminalState": true
+    },
+    "variations": {
+      "eta": "t*(1-t)",
+      "secondOrderIntegral": "1/3",
+      "globalProof": "J[t+eta]=1+integral(eta_prime^2) for zero endpoint eta"
+    },
+    "minimum_principle": {
+      "lambda": "-2",
+      "u": "1",
+      "fixedEndpoint": true,
+      "globalOptimalityProof": "separate Cauchy-Schwarz argument"
+    },
+    "dynamic_programming": {
+      "valueCoefficients": [
+        "1/3",
+        "1/2",
+        "1"
+      ],
+      "trajectory": [
+        "1",
+        "2/3",
+        "1/3"
+      ],
+      "inputs": [
+        "-1/3",
+        "-1/3"
+      ],
+      "cost": "1/3",
+      "greedyFirstThenOptimalCost": "1/2"
+    }
+  }
+}

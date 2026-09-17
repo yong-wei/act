@@ -1,0 +1,238 @@
+{
+  "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctkg:v3e-object-de873c97a924107857f79242",
+      "canonicalType": "DomainConcept",
+      "label": "幅频特性",
+      "aliases": [
+        "幅频特性"
+      ],
+      "description": "谐波输入下，输出响应中与输入同频率的谐波分量与谐波输入的幅值之比A(ω)。",
+      "teachingFields": {},
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-1",
+          "label": "自动控制原理（胡寿松，第8版） · 频率特性的基本概念"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctkg:v3e-object-de873c97a924107857f79242",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+        "canonicalType": "DomainConcept",
+        "label": "频率特性",
+        "aliases": [
+          "频率特性"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+        "canonicalType": "DomainConcept",
+        "label": "相频特性",
+        "aliases": [
+          "相频特性"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-de873c97a924107857f79242",
+        "canonicalType": "DomainConcept",
+        "label": "幅频特性",
+        "aliases": [
+          "幅频特性"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "m1h:relation-3762ad927cf0684b4808aecf",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+        "targetId": "ctkg:v3e-object-de873c97a924107857f79242",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1h:relation-ff7e50937f63eded0669b785",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+        "targetId": "ctkg:v3e-object-de873c97a924107857f79242",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      }
+    ],
+    "boundaries": []
+  },
+  "sources": [
+    {
+      "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f0ea7d3d56c211b130200112ed6275b5388762ecc0aec7cde1c60ccaab6feac8.json",
+      "sha256": "9fe17737fef5bbba58bf815bb77ce239389ed9ad7a686a7b52c7de288b42ae48",
+      "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+    },
+    {
+      "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f0ea7d3d56c211b130200112ed6275b5388762ecc0aec7cde1c60ccaab6feac8.json",
+      "sha256": "59696a2d22738dedb6755020f14a89f75df325801bb72fb19c75d5a8de948550",
+      "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+    },
+    {
+      "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/previous/ctkg_v3e-object-de873c97a924107857f79242.md",
+      "sha256": "918b35f6193150105b057b63d7ef247dad4536e7b18dd5c87f31bb67589703fe",
+      "kind": "previous-authoring-snapshot"
+    }
+  ]
+}

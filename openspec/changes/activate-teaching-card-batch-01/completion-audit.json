@@ -1,0 +1,477 @@
+{
+  "status": "passed",
+  "plannedTotal": 458,
+  "actualTotal": 458,
+  "scopeCounts": {
+    "retainedBaseline": 24,
+    "firstStage": 67,
+    "coreExtension": 252,
+    "professionalExtension": 115
+  },
+  "missingCanonicalIds": [],
+  "extraCanonicalIds": [],
+  "duplicateCanonicalIds": [],
+  "batchCount": 53,
+  "retainedBaselineCards": 24,
+  "independentlyReviewedNewCards": 434,
+  "independentlyReviewedBatchCount": 51,
+  "reviewedBodyHashesRechecked": 270,
+  "resolvedFindingsExplicitInReceipts": 15,
+  "unresolvedAcceptedBlockingFindings": 0,
+  "authoringRuntimeHashMismatches": 0,
+  "bindingReleaseId": "control-theory-engineering-v0.48-b55",
+  "bindingHash": "5db90c74201f2bd1cc5d631d30f25557e16cc78abae471a87d410fa3a56202b8",
+  "projectionId": "proj-0b28b53708c58f0b0e18b0fb2e0442d3d3b01e5e0a64a0d46ce5d3d045a77de7",
+  "replacementLedgerSha256": "4a78779d7ca662a280895904c331a2d656c674bf1c119137cb56a4afe6011d08",
+  "authoritySnapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+  "actualGeneratedPathCards": 458,
+  "authenticatedHTTPPages": 458,
+  "renderedMarkdownCards": 458,
+  "formulaCount": 8559,
+  "currentWorkingHead": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "worktreeContainsUncommittedChanges": true,
+  "serverPublished": false,
+  "learnerCompletionActions": 0,
+  "baselineReviewBoundary": "First 24 are the previously delivered and retained baseline without standalone review-acceptance receipts; the 434 scaled additions have independent accepted review receipts. No historical review record is fabricated.",
+  "provenanceLimits": [
+    "Some source nodes have no paragraph reference and are supported by explicitly bound frozen teaching literature.",
+    "Original private M1S source-span packages/scans were unavailable; recovered textbook excerpts, section hashes and public evidence-ref reconstruction support the four source-specific meanings without claiming a full private audit reconstruction.",
+    "A prior upstream relation context follow-up remains deferred; its problematic card projection was excluded and accepted review marks it resolved-in-card-projection.",
+    "A prior source sigma-sign context remains deferred; the new stability cards do not cite that ambiguous assertion and use explicit real-part conditions."
+  ],
+  "evidence": {
+    "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/integration.json": "1fd1e5ba0faafd6f5ce6d5cf4bc8f86b3e09bf35996185267de6f60f0ec6ed46",
+    "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/consumption-verification.json": "3749ae51a2a3c0b23943d326094cb873a93193042120cb58330143161a95ee2e",
+    "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/http-verification.json": "2a3fd09f1f3833729c5beb2379bb43e1a7195f8c3b2db395efe131d56d941ec1",
+    "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/browser-verification.json": "c6dfd76a4f9dd3215802e0a591d648328222078e998a34f47c71747724c49367",
+    "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-13a/browser-verification.json": "5b2dbc462b0858881f5ddb68c7bd15291db7d4820225d81c486c38b458370264",
+    "course-content/authoring/knowledge/cards/authority/waves/nonlinear-terminology-source-resolution.json": "aecbe8a77554accaa00d825fcdf178c2eb052fc041de7df4504e8f350b111cf2",
+    "course-content/authoring/knowledge/cards/authority/waves/nonlinear-source-evidence/manifest.json": "b0fb571f26bbcc5222a372af67f0f51e7605197a1a4ba230239b78f71f155e58"
+  },
+  "batches": [
+    {
+      "batchId": "teaching-batch-01",
+      "cards": 12,
+      "inventorySha256": "d43b5b91b2ecb849a0624f2fe817af5b3d1796be6800fd4d0ce203d9f8e389e3",
+      "independentReview": null,
+      "reviewSha256": null,
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-batch-02",
+      "cards": 12,
+      "inventorySha256": "33e9cfa4f820c632afe5984f764eca877f5795321358e818650ff410ab0ac498",
+      "independentReview": null,
+      "reviewSha256": null,
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-01a",
+      "cards": 6,
+      "inventorySha256": "a1f7b3946564a5a8cdb66dd5ed151a76d2690ce93d7b7d1f53a1c976fac7970a",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-01a/review-acceptance.json",
+      "reviewSha256": "cee17b3dda677f41e042dae92aa58ff5ecb277e7bc3f73cb71d9aff7b76c56a3",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-02a",
+      "cards": 8,
+      "inventorySha256": "9b3f0fea5a03837098f9351d5085aae3ded8cbe3226c5d3949a7da64d74767f9",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/review-acceptance.json",
+      "reviewSha256": "a320cdf7ce9d854803185ec09304742d035ea558f89f80923dee9cf80d154844",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-03a",
+      "cards": 6,
+      "inventorySha256": "dcfea61132268afbff6e46b15bd60247ed695b49b0ff083be536a40a6bf5737f",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/review-acceptance.json",
+      "reviewSha256": "c566e5a76eb2d56020c6f150ab43129a7d25b85cbbbc25ce53fd40560e2f1d5d",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-04a",
+      "cards": 10,
+      "inventorySha256": "cd8aa34b26fd90eae28e5977c457c7f1d8351626e58377ba5733ddd14941edbf",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/review-acceptance.json",
+      "reviewSha256": "eb16aa5a89894957c6c80fba201df27e7a9109d31f4dd29557b0a8991538ab96",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-05a",
+      "cards": 7,
+      "inventorySha256": "da35de96a5257fafb9f05e531319b4fa52d4d9208a25cffe96c17157a7ebee2a",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-05a/review-acceptance.json",
+      "reviewSha256": "e6922e3c18bb52358f76e6765cefd1c6e5fc49944819b331fb896a97f840ade9",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-06a",
+      "cards": 6,
+      "inventorySha256": "630cba99ee99265ed2e9f11467a575f83df1c5edbcaeb0796dcaad225f34f6c0",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-06a/review-acceptance.json",
+      "reviewSha256": "1ad0e303f482963255b491eea6640876deedf174f7c6a55866e8eae9935b81b1",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-07a",
+      "cards": 6,
+      "inventorySha256": "eb166035837e3b6407777a6dcac8cb4c2792627fc5bcecc40cf8c3723adbec93",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-07a/review-acceptance.json",
+      "reviewSha256": "3280eb95ce30e8cd21868b246c4358cd16344ab92e0f5e09edf5750d882a90df",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-08a",
+      "cards": 9,
+      "inventorySha256": "e148b3a9101e5a3365ced707d0d0e2e68d3aff88875eb6b3cc6648d0082d70fa",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/review-acceptance.json",
+      "reviewSha256": "4c62282cef3b345da0b56e889046bd17a4c078d7cff659d18817eb1dfe38c919",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-09a",
+      "cards": 7,
+      "inventorySha256": "4c1eb9df307d434b10e9a9e58217a9f1b7e7c7376f7308220583a16cb86b0a6e",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-09a/review-acceptance.json",
+      "reviewSha256": "12582de7f09a86c135ab76a20bd50547f408d5217f89cfaa2e92f5b57a244d07",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-10a",
+      "cards": 9,
+      "inventorySha256": "293472be260d097ac8902144122915382e41ab3e3d92d8ae1be795d84db5f6bf",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/review-acceptance.json",
+      "reviewSha256": "ef0914281d64c883b614a93f3a779a1a19360469607a1c90caf12656b4f98fa7",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-11a",
+      "cards": 11,
+      "inventorySha256": "307edb23b9ce1a13c148027eab944ed1c959224459f2ad9a8a65924cd27d2e0c",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/review-acceptance.json",
+      "reviewSha256": "7640b9cc24e0c89c73c030ad8f398fb6131083969a7e8c41fef3d9edd85c29fb",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-12a",
+      "cards": 12,
+      "inventorySha256": "4f865b56bb4a2440a8154ae815b5711d48a3e54a4114af268c437ee64d4d8f83",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/review-acceptance.json",
+      "reviewSha256": "e21d00855a50468886c43893c050547dc8939937115b8a4fec185b9bba14d230",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-core-13a",
+      "cards": 6,
+      "inventorySha256": "bb17312aab9a75de80ab9aa22139fb2e1747da013d14c91d4a5dd28db79a9655",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/review-acceptance.json",
+      "reviewSha256": "315809dec02fb0a103c02d4e32f6fc0924814a40fc121ba6f6b24e91a79a0c0c",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-14a",
+      "cards": 8,
+      "inventorySha256": "f07229e2b6cafa0bed45ddbfe6dc017d656fbe2d2eff7258410ee254e680f22c",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/review-acceptance.json",
+      "reviewSha256": "fcdfe78deda4228646bc0c5fc5f26a0b7abba63ea05fd57408462a85840ff5a3",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-15a",
+      "cards": 9,
+      "inventorySha256": "d99d7b7d20ea65859e641bd4874d21fd813253561842164b85c52690519538e2",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/review-acceptance.json",
+      "reviewSha256": "c8a2caf947774d7542d134616c59a95d71432ad957ce4941a3c848a99daefe7b",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-16a",
+      "cards": 7,
+      "inventorySha256": "33ba2ca73b1714ab1fc39ce0e4d7fd4de7f1ad2f14510f013ad0b90c34c602da",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-16a/review-acceptance.json",
+      "reviewSha256": "f0111d3d98b6cb4623ceb542e222f86e86b904b44f8b9b9530127ea81e5cf8ee",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-17a",
+      "cards": 9,
+      "inventorySha256": "8a594757f3e7d745215587ddf3aa28b5a13335d1639e67ae758d296c9facd536",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/review-acceptance.json",
+      "reviewSha256": "9636771c086758b1384e1bfc612d4455887aae2389602edcd29de9f0a712141a",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-18a",
+      "cards": 11,
+      "inventorySha256": "6fd7160e718944850450ca80ac6e875d2c9122e723ba6a7c17f6a861935d95e7",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/review-acceptance.json",
+      "reviewSha256": "f134a3bb5d0b03064548cec1a9bb914b4793b92c29fcb833e14923de59b34b69",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-19a",
+      "cards": 12,
+      "inventorySha256": "93cabae04ca4843da242f5982a81f758e204511b638a6d32df0a633b607e35eb",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/review-acceptance.json",
+      "reviewSha256": "80387c803596b53e635079e5d6a804d8718f3293b7e8d27ecce2d0bf32396685",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-20a",
+      "cards": 10,
+      "inventorySha256": "6beaaaf406a2b6bfa7d7b2a18c205e53fee4c3f2549aaae85125c1619e14676d",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/review-acceptance.json",
+      "reviewSha256": "45ad5fbbaa8d2510b7550a5681782ddf1992e82d754eb336ee1a5a0a1181cebd",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-21a",
+      "cards": 11,
+      "inventorySha256": "42daccdab8b685ff92eeb1ceab2baf82376df4717319d963bbc1017986a78f6f",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/review-acceptance.json",
+      "reviewSha256": "c301d5db9ff2ac790a31a425690e5631d7d0b02b8b37eae3da8a0fbd63358aab",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-22a",
+      "cards": 9,
+      "inventorySha256": "4a6d16d7997b4e9a3de8068bf301771e847efc3963680dd7b661a8b75c12aa8c",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-22a/review-acceptance.json",
+      "reviewSha256": "6e1fe57aade782eb52f0ff9fbd3e731c161789420eea399439ccefceb0b69676",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-23a",
+      "cards": 7,
+      "inventorySha256": "393ec3bd4e5c8beede5cc9b38931880f87f95b04146171263cbc4869d9f2d64a",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/review-acceptance.json",
+      "reviewSha256": "216dcf90e3aaab5f877541732f8cf916724338c6f6c59cd3be9b8688469c66bc",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-24a",
+      "cards": 6,
+      "inventorySha256": "6caeef2d74c91dac18242ad31f57638c70fcd406df989ef3dd1042f3aa1eaa40",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/review-acceptance.json",
+      "reviewSha256": "d7411248893612cb51aca930e38a918bf392e6b6d3edb3afb42e17317be184c5",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-25a",
+      "cards": 9,
+      "inventorySha256": "411793c75b8bcc47ddcb6fd2e2ecaae1e5d65fe7e68731e169de1f2068a48e86",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/review-acceptance.json",
+      "reviewSha256": "99b854bfc226c0e1c070b7ea6aca29b3b9b49f22fd99ce32638031cfa319f801",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-26a",
+      "cards": 9,
+      "inventorySha256": "f9d0fc681c9ab6b2753897309f3df3c8f71516dbb909a87b9ea0549604b6f6b4",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/review-acceptance.json",
+      "reviewSha256": "8a0d394ee140dfe04a8fbc5a205bb2b9c5f8fc8c2e1abb694898b83c2d4e20c4",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-27a",
+      "cards": 11,
+      "inventorySha256": "3fc2b9dd212a9e1020d1c4c17d83c203ee9299d970e055eddb47951911fa0df9",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/review-acceptance.json",
+      "reviewSha256": "9268cefe8b4aa0ddb66543d97fb58bec5a939746604a5ebe6f34fe7392c599cf",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-28a",
+      "cards": 11,
+      "inventorySha256": "c5864ed2933444cbf05732c66fb337a4096727068e4aacc42e89ece9fc7d6a9c",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/review-acceptance.json",
+      "reviewSha256": "4bc02ab935378e589dc9b0c81a69dbd9895a2db42d043377b2bc41449e2906a2",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-core-29a",
+      "cards": 10,
+      "inventorySha256": "9c99d149f94d83233038b4ae29d565adb99cc1c10cabe16c0fd7cbf7b885ac2d",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/review-acceptance.json",
+      "reviewSha256": "a848812dcb932380c2f34020923a47b69e332e707daea79175dd0bc676503c04",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-01a",
+      "cards": 11,
+      "inventorySha256": "de9607fe7690a211fe6f4a5b2aea2e308c58c8d2c8ee5abb6a1a758cf3620ca1",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-01a/review-acceptance.json",
+      "reviewSha256": "59d856a3bb986d29a171baf65a86d63561335b03ca2299e04c85d948376501a2",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-02a",
+      "cards": 9,
+      "inventorySha256": "fe773af75eaa183a8301a13cc739c6b0da7baf02ce23c65935d056e790002175",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-02a/review-acceptance.json",
+      "reviewSha256": "83410f684fd71df381d34b1da32ee987817fbd60a58df3bb3fb7a9ec4841a289",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-03a",
+      "cards": 10,
+      "inventorySha256": "b1b937600292ce663edc264a3f73aff352d720c35b5eb8e656600c0d68422084",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-03a/review-acceptance.json",
+      "reviewSha256": "85a405a63700c7cb5d0f9514a815094e397ace4da1861946f66cc41d70f46f27",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-04a",
+      "cards": 10,
+      "inventorySha256": "bfc6fbdb9dd928bdd65be73e8ff07a4461898449af297af2b18f7659f79e257c",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/review-acceptance.json",
+      "reviewSha256": "3f2a793a8edea0123ecad3f3dde0b9f2bc10aeae356ffdeb8568d601af1671ea",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-05a",
+      "cards": 15,
+      "inventorySha256": "5adcbc50ed60e2e973da7b8b8f8f119347a485ae34e545ae12114b77d9643f88",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-05a/review-acceptance.json",
+      "reviewSha256": "25fdd1512afdd56e5bf3e340c37f70a3aa51d7f63b14f9f7d5025dc3c8371580",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-06a",
+      "cards": 7,
+      "inventorySha256": "af1e1142de220ea021df6b504d3532f6fc1f35abdc7c33c2749ea5ef023a1c91",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-06a/review-acceptance.json",
+      "reviewSha256": "37bbc557cc2a1340241cfaf96fb9be1032baf2f6d53c6e714dbd0542c83c1ada",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-07a",
+      "cards": 8,
+      "inventorySha256": "42f234f0d384cdc58b350b2baba0e3077a4f4e80596ff52a7190f6915fa18c56",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-07a/review-acceptance.json",
+      "reviewSha256": "1113f64a17db9dd35fd17504cd2386d80501c9cd0060bdf7b056191e9d67ad76",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-08a",
+      "cards": 7,
+      "inventorySha256": "46c3a0b39b932d917f4ff18298c26adf7f514768514923b46142bf3a353a5d5d",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-08a/review-acceptance.json",
+      "reviewSha256": "cfa9033201e97b895cb45c9433424507e9bc77dd811641dd57d161f45a40375d",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-09a",
+      "cards": 6,
+      "inventorySha256": "496fb313bdbc61102298d2ae791711be89fdfcf73ffb14ae703647de4cf0aa50",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-09a/review-acceptance.json",
+      "reviewSha256": "ad11a06fb0487f4668dbceb2b7dc1d93354cdc54a9bb165101007def6b18c197",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-10a",
+      "cards": 7,
+      "inventorySha256": "71da9fbc86afd59f1899b34a94b35f5c9aa46636ae6c2a5bc570422fcc24e0d4",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/review-acceptance.json",
+      "reviewSha256": "f139fbc8d33b340d6b723df9e02c3e075ed7fcae053f216ea5197dc5d3da9c23",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-11a",
+      "cards": 8,
+      "inventorySha256": "50a595658e8dae5c570e012997493a1a7edcb15a260886814029ea33f82d463e",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/review-acceptance.json",
+      "reviewSha256": "d0b74b2458d9974f2753692215dc6b73a58d02e52a9be8d00b25c77c5c5832c6",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-12a",
+      "cards": 7,
+      "inventorySha256": "f4d5c44d90b524970abc1ecae6298930f51b051341a0274467604930c839c7bf",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/review-acceptance.json",
+      "reviewSha256": "8b5f0f986507edb7129085b8c9e7644e5561b9d52c9982b8780d158eb5f4ffd8",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-13a",
+      "cards": 6,
+      "inventorySha256": "997613a806f78140e04fd6ac6c32e4414d36fc9d5b061978059701301bc75d3e",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-13a/review-acceptance.json",
+      "reviewSha256": "0d1ab85e8fedf5f8b928702a5be8bf66ce7303c3fc03feb9c72215ae5a0d7a0a",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-professional-14a",
+      "cards": 4,
+      "inventorySha256": "fb04a7150e4660202a4abd1769b0b53e9f8afc97c646789a949f48b9b582067f",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/review-acceptance.json",
+      "reviewSha256": "46cd0b87348ca15ee70c40498433ee694e192d67f6e31eecff0e2ac7e9b057b9",
+      "bodyReviewPresent": true
+    },
+    {
+      "batchId": "teaching-scale-01",
+      "cards": 16,
+      "inventorySha256": "fd5543e3bce3906c1b1077937bf993ba2841b05452fa81a1dbff08c3d1fb1a6a",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/review-acceptance.json",
+      "reviewSha256": "2b384b4a7b7bc01725b4b170c1bd5842e191869308536cf247edd8f256f316f0",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-scale-01b",
+      "cards": 8,
+      "inventorySha256": "7f42672b239552d7b542e31fe98bb09bfd9e97a0891df7ef840083a9a752a14d",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01b/review-acceptance.json",
+      "reviewSha256": "46c6d7e57390c8a292c60bd06c5b374a34d4d8e2609612a3afae69295047d01e",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-scale-01c",
+      "cards": 8,
+      "inventorySha256": "ab4e02ba7f9819c183b8b6d9de806fe022c5c4cd0c139588b0f9ee12f48311b6",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/review-acceptance.json",
+      "reviewSha256": "574841649edf718ed12152e83c83a79d959a2a7f140da7868f959e45002d3556",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-scale-01d",
+      "cards": 8,
+      "inventorySha256": "38de102eeddc17aa32b93223bfce645df36815c9d8bc3a795108bc77dc16baac",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/review-acceptance.json",
+      "reviewSha256": "6ecd112d2ff317359f206951f4a70b2dc908b44c24265159c934942e2117e3f7",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-scale-01e",
+      "cards": 7,
+      "inventorySha256": "a88b79b62e0546ef614c410e056303865515d4f9ba59702df32d144216431c95",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/review-acceptance.json",
+      "reviewSha256": "d277fc9cedac18f5601d0c6f4ae2a2f688e2b3e23c4a037a9c3bf116efe93439",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-scale-01f",
+      "cards": 7,
+      "inventorySha256": "b4360f370aa1bf3f4ded95b0f4ba9e92b8632170a30e2430cd2d53b5ebc3d13a",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/review-acceptance.json",
+      "reviewSha256": "f9df7558955cd5831b37c20c771f39d1b0973088cc4ee28fe9a022665eb70e02",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-scale-01g",
+      "cards": 7,
+      "inventorySha256": "2f000b025a1d04d7390d89a92ec7120d76c24f9dbdd971416b41ebd6945d6899",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01g/review-acceptance.json",
+      "reviewSha256": "bf1ea9538792fa18f7c0e1410f42d4e047ee61c2b921edafe0d87f08d663deca",
+      "bodyReviewPresent": false
+    },
+    {
+      "batchId": "teaching-scale-01h",
+      "cards": 6,
+      "inventorySha256": "fb73cb86147a39a0416ac136c88a2da74c00682fc18ac9a98cfadca4c297b5ba",
+      "independentReview": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/review-acceptance.json",
+      "reviewSha256": "338a52b9fbdf9b084922790428021b5a3f0ed57424f5ed3605d147a5d88b80a1",
+      "bodyReviewPresent": false
+    }
+  ]
+}

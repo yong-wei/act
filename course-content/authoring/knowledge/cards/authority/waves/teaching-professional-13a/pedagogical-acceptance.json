@@ -1,0 +1,7 @@
+{
+  "status": "accepted",
+  "cards": 6,
+  "goalId": "nonlinear-control-foundations",
+  "rationale": "覆盖逆、状态反馈、KYP与跟踪，明确可逆性、初态、参考导数、内部有界性和输入条件。",
+  "sourceLimitation": "节点无逐段教材定位，以冻结官方讲义和原教材摘录支撑，不虚构上游出处。"
+}

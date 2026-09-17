@@ -1,0 +1,23 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/recover_review_metrics",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "residualRisks": [
+    "Four Authority node source metadata lists lack direct textbook entries; existing pinned shard and previous-card provenance verified."
+  ],
+  "cardHashes": {
+    "ctc:v11g-1c9f955b68fd25e1f4ad86f6": "9421d95e6a8a5eee66f0be6fd33cbee355fdecaab84fc114fd6d1e51e39b8f10",
+    "ctc:v11g-9dfc90c240d6bf3ebc285faf": "15c1a1ffb67852e6ad355c9c90701eab34379723c76a07194f01ab46dcbbe65d",
+    "ctkg:v3e-canonical-0fa44601675cb175f5df9562": "201bcb98e032fa9243e5f480b942a3477f4459418da26d76aa5737ab6a1f6f93",
+    "ctkg:v3e-canonical-9988510f6127d3086f4aa265": "d418a802d3f6591a4a716eed02e4b87f36d63a7042bd56bca55ca018ea113c0e",
+    "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609": "0ab2de4edbd9d5083f77d75fd991c1a6049b7aeadddd974b06be509452ecf6fa",
+    "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67": "ba4940f630381711c4bf43758030efd56824d3bc497a880a043b28d06da084e3",
+    "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa": "46d9e2120a698f4abe761133c2d445cb77ae80bd89ead62d73e3fd71c771e8af",
+    "ctkg:v3e-canonical-bd871a5da052c90d142e285a": "7dd30a8675755cd1e65223a0813d8153963f2b6438eb0d851cd0a7da87e87786",
+    "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc": "92dccd1badf36e783147c46bbe9855fa70e129c058972e26f9318911997a6176",
+    "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a": "8abb0a7ace33c7fce72074d19b5751781c63e7496541bb6875f4dcf778420d03",
+    "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486": "6a5ce10a3e7c972ac64644db0a51a2f2d22fd08640ed50b15a954226720f2472",
+    "ctkg:v3e-canonical-f9718484925341d6ce1dec78": "b07f84e3aab5c579ecac3233bc65cf1d3e7102159c32c734f5a4d3fcb350ffbb"
+  }
+}

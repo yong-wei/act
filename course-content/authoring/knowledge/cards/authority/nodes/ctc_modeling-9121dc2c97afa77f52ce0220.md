@@ -1,37 +1,35 @@
 ---
 node_id: ctc_modeling-9121dc2c97afa77f52ce0220
 authority_entity_id: "ctc:modeling-9121dc2c97afa77f52ce0220"
-name: signal flow graph
-name_en: signal_flow_graph
+name: "信号流图"
+name_en: "Signal-Flow Graph"
 category: 概念性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: representation_kind
-release_tier: gold
-tags:
-  - representation_kind
-  - gold
-  - signal
-  - flow
-  - graph
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-236216bf2e97508828738ffafab3fa88c471a08f0ef9e70019117155ec2ca482.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-236216bf2e97508828738ffafab3fa88c471a08f0ef9e70019117155ec2ca482.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-06a/previous/ctc_modeling-9121dc2c97afa77f52ce0220.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 4c232a2c6527c34911fe1646ad7471c1b16967c8596b371e3fc9f0926b7fec6a -->
-
 ## 首页
 
-# signal flow graph | signal_flow_graph
+# 信号流图 | Signal-Flow Graph
 
-**一句话定义**：signal flow graph：v3T accepted candidate for signal flow graph.
+**一句话定义**：信号流图用变量节点和带增益的有向支路表达线性方程之间的依赖关系。
 
-**核心直觉**：在图谱邻接中可把握：前置 → forward path、loop、formula for evaluating the · 后续 → 只有输入支路而没有输出支路的节点。
+**核心直觉**：图能帮助看清结构，但最终必须能够还原为同一组变量方程。
 
-**关联**：前置 → forward path、loop、formula for evaluating the · 后续 → 只有输入支路而没有输出支路的节点
+**关键公式**：每个内部节点等于所有入支路贡献之和。
+
+**学习目标**：在节点方程与有向图之间双向转换，并通过代入检查图的完整性。
 
 ---
 
@@ -39,21 +37,48 @@ asset_refs: []
 
 ### 完整解释
 
-v3T accepted candidate for signal flow graph.
+信号流图把每个待描述变量表示为一个节点，将方程中一个变量对另一个变量的贡献表示为有向支路。与只记住输入输出总公式相比，它更容易展示多条路径和反馈回路。读图时必须同时记录方向、增益、求和关系和独立输入，漏掉其中任何一项都可能改变系统。
+
+图的结构与方程是两种表达同一模型的方式。画出的线条是否整齐不能证明图正确；反向从图逐节点恢复方程，才是直接的检查方法。有反馈的图一般需要联立求解，不能从左向右只计算一次就结束。这里讨论代数关系，箭头不隐含时间延迟。
+
+### 教学计算/推理例
+
+规定无量纲变量 $r,x,y,z$，其中 $r$ 是独立输入，方程为
+$$
+x=2r-0.1y,\qquad y=3x+r,\qquad z=y.
+$$
+第一式对应 $r\to x$ 的增益 2 和 $y\to x$ 的增益 $-0.1$；第二式对应 $x\to y$ 的增益 3 和 $r\to y$ 的增益 1；第三式对应 $y\to z$ 的单位支路。五条支路缺一不可。
+
+消去 $x$ 得到 $y=3(2r-0.1y)+r=7r-0.3y$，所以
+$$
+y=z=\frac{70}{13}r,\qquad x=\frac{19}{13}r.
+$$
+取 $r=1$，分别代入三个节点方程即可检查解。也可写成
+$$
+\begin{bmatrix}1&0.1&0\\-3&1&0\\0&-1&1\end{bmatrix}
+\begin{bmatrix}x\\y\\z\end{bmatrix}
+=\begin{bmatrix}2\\1\\0\end{bmatrix}r.
+$$
+系数矩阵行列式为 $1.3$，非零，因此该代数图有唯一解。两条前向路径的增益为 6 与 1，它们的和为 7，但反馈使整图增益成为 $70/13$。路径和与完整解不能混淆。
+
+### 适用条件与边界
+
+本例所有支路都是常数，没有动态稳定性或时域响应结论。把增益换为传递函数时，需满足相应线性定常、零初态等条件，并检查代数或动态互联是否良定义。不同的信号流图可能表达相同的外部关系，但是否保留内部变量、扰动位置和状态条件，要按所需任务判断。
+
+### 常见误区
+
+1. **误区**：图中有负反馈，所以不必再解方程。**纠正**：负号只描述一项关系，总解仍由全部方程决定。
+2. **误区**：前向路径增益相加就是整图增益。**纠正**：有回路时还要考虑反馈作用，本例 7 与 $70/13$ 不同。
+
+### 自检
+
+1. 方程 $y=3x+r$ 对应几条入支路？
+2. 为什么系数矩阵的非零行列式对本例重要？
+
+**核对要点**：两条入支路分别来自 $x$ 和 $r$；非零行列式保证给定输入时内部变量具有唯一代数解。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | forward path | 属于 |
-| 前置 | loop | 属于 |
-| 后续 | 只有输入支路而没有输出支路的节点 | 包含组件 |
-| 前置 | formula for evaluating the | 应用于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`representation_kind`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-representation_kind、gold、signal、flow、graph
+- **回路**（入边，关系：组成部分属于）
+- **引出点**（无向，关系：相关）
+- **前向路径**（入边，关系：组成部分属于）

@@ -1,33 +1,31 @@
 ---
 node_id: ctkg_v3e-canonical-4ce9b77cff23117a65f42588
 authority_entity_id: "ctkg:v3e-canonical-4ce9b77cff23117a65f42588"
-name: 有零点的二阶系统
+name: "有零点的二阶系统"
+name_en: "Second-order System with a Zero"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 有零点的二阶系统
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-262e6755093e7ae7374e3c0162bd2e22393b85590cd769230f7083061fc16e63.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-262e6755093e7ae7374e3c0162bd2e22393b85590cd769230f7083061fc16e63.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/previous/ctkg_v3e-canonical-4ce9b77cff23117a65f42588.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 9e1ab02b0051d03689e0ff360a59c29ae6033dd482b596666c57bdbb9e3c38f3 -->
-
 ## 首页
 
-# 有零点的二阶系统
+# 有零点的二阶系统 | Second-order System with a Zero
 
-**一句话定义**：由于 PD 控制相当于给系统增加了一个闭环零点，-z=-1/T_d，故比例-微分控制的二阶系统称为有零点的二阶系统。
+**一句话定义**：有零点的二阶系统在二阶极点动态之外，还由分子零点改变输入到输出的响应形状。
 
-**核心直觉**：在图谱邻接中可把握：后续 → 二阶系统。
-
-**关联**：后续 → 二阶系统
+同样的二阶分母不保证同样的超调和初期运动，不能忽略分子直接套无零点公式。
 
 ---
 
@@ -35,18 +33,50 @@ asset_refs: []
 
 ### 完整解释
 
-由于 PD 控制相当于给系统增加了一个闭环零点，-z=-1/T_d，故比例-微分控制的二阶系统称为有零点的二阶系统。
+标准无零点二阶模型只有常数分子，其阶跃响应可由阻尼比、固有频率和静态增益描述。增加零点后，分子不再是常数，响应中各模态的组合系数会改变。极点仍决定指数衰减与振荡的时间形式，但零点会改变这些成分怎样组合成输出。
+
+教材中的比例微分控制语境常出现 $1+T_ds$ 这样的分子，它对应零点 $-1/T_d$。当 $T_d>0$ 时，该零点在左半平面。分析实际控制器时还须同时检查闭环分母，不能假定改变微分参数只改变零点而不改变极点。本卡先构造相同分母的两个响应，以单独观察零点的作用。
+
+对零初态，若新传递函数是在原传递函数上乘 $1+T_ds$，其阶跃响应可以写成原阶跃响应加上 $T_d$ 倍的时间导数，但需要检查原响应在起点的行为。这个关系有助于理解为何分子零点会改变初始斜率与峰值，不能被理解成所有零点对所有对象都有相同的改善作用。
+
+### 教学计算/推理例
+
+以无零点基准模型
+
+$$T_0(s)=\frac{16}{s^2+4.8s+16}$$
+
+为起点。零初态单位阶跃响应为
+
+$$y_0(t)=1-e^{-2.4t}\left[\cos(3.2t)+0.75\sin(3.2t)\right],$$
+
+其导数是 $\dot y_0(t)=5e^{-2.4t}\sin(3.2t)$。增加左半平面零点-5，取
+
+$$T_+(s)=\frac{16(1+0.2s)}{s^2+4.8s+16}.$$
+
+新响应为 $y_+=y_0+0.2\dot y_0$。因为 $y_0(0)=\dot y_0(0)=0$，输出初值仍为0；但 $\ddot y_0(0^+)=16$，所以新响应初始斜率为3.2，而基准响应初始斜率为0。极点完全相同，起始运动却不同。
+
+作为分子作用的对照，再取 $T_-(s)=16(1-0.2s)/(s^2+4.8s+16)$。它具有右半平面零点+5，响应 $y_-=y_0-0.2\dot y_0$，初始斜率为-3.2，但终值仍为1，因此最初向与最终目标相反的方向运动。这个对照不是通常的正微分系数PD设计，而是用于说明右半平面零点的影响。
+
+### 适用条件与边界
+
+三条传递函数都严格真有理、静态增益为1，分母稳定。上述响应关系限定零初态单位阶跃。实际对象中的零点可能来自结构、测量位置或反馈组合，未必能任意移动；即使可以改变，也需要检查闭环稳定性、噪声放大和控制器实现，而不是只追求某一幅值指标。
+
+右半平面零点造成的反向初动，不等于右半平面极点导致的发散。本对照中极点仍稳定，输出最终趋于1。零点约束响应形状，极点决定对应模态的增长或衰减，二者不能混淆。对于相对阶次不同或存在直接通道的模型，阶跃开始时还可能发生跳变，应重新处理初始条件。
+
+### 常见误区
+
+1. 误区：分母相同，阶跃超调和上升过程一定相同。纠正：零点改变模态系数，本例连初始斜率都不同。
+2. 误区：出现右半平面零点就等于系统有不稳定极点。纠正：零点与极点是不同对象；本例有反向初动但极点仍稳定。
+
+### 自检
+
+1. 为什么增加零点-5后输出初值仍为0，初始斜率却从0变为3.2？
+2. 对照模型的零点+5能否被解释为通常 $T_d>0$ 的比例微分零点？
+
+**核对要点**：新响应含原响应的导数，原初始速度为零而初始加速度非零。正微分时间对应左半平面零点；右半平面对照只用于分清分子效应，不能偷换控制器条件。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 二阶系统 | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、有零点的二阶系统
+- **二阶系统**（入边，关系：前置于）
+- **二阶系统**（出边，关系：属于）
+- **无零点的二阶系统**（无向，关系：相关）

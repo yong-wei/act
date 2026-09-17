@@ -1,0 +1,206 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:aec09ec83789bd1f6b290a38",
+          "otherId": "ctkg:v3e-object-c48bcd580d97376ade8dda83",
+          "label": "状态反馈镇定",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态反馈镇定**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-90cb506e62c400a0d92dd7e9",
+          "otherId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+          "label": "全状态反馈设计步骤",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **全状态反馈设计步骤**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:04db966e82bf3e2f22a2eb42",
+          "otherId": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+          "label": "状态反馈控制设计方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态反馈控制设计方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eb888786c5eb738a65d705f7",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:df37d31290f4c99feb026db0",
+          "otherId": "ctkg:v3e-object-cb18c47f552c6b128f9b52c8",
+          "label": "可检测性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **可检测性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7e19f05879897a5e2d7c3e97",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:8c48ff06103054c0af4355a4",
+          "otherId": "ctkg:v3e-object-6e5d7c7223f605f9c16bda61",
+          "label": "调节器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **调节器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-c3e9211ab3b9a9ba0d0e4897",
+          "otherId": "ctkg:v3e-object-3784992e294bb2f120cdc0df",
+          "label": "可控性矩阵",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **可控性矩阵**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:3a725c236570828854118410",
+          "otherId": "ctkg:v3e-object-c48bcd580d97376ade8dda83",
+          "label": "状态反馈镇定",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态反馈镇定**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:1f2dc188db849bd5ab3d8f60",
+          "otherId": "ctc:modeling-b778b7ffce8e779719191d7f",
+          "label": "状态观测器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态观测器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-a0a6fe64297624358285f144",
+          "otherId": "ctkg:v3e-object-8ecd4d6352467b3444880809",
+          "label": "降阶观测器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **降阶观测器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:890c99469ac5a82681a311c0",
+          "otherId": "ctkg:v3e-object-70598dd5728797c1595207c9",
+          "label": "卡尔曼滤波器",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **卡尔曼滤波器**（出边，关系：前置于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cb18c47f552c6b128f9b52c8",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:df37d31290f4c99feb026db0",
+          "otherId": "ctkg:v3e-object-eb888786c5eb738a65d705f7",
+          "label": "可镇定",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **可镇定**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:7b42b19c2b66c8151cd0d487",
+          "otherId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+          "label": "可观测性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **可观测性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba2eb78058c4284d923a28eb",
+      "relations": [
+        {
+          "relationId": "m1l:relation-eae19ba7d25c559a3ca8affa",
+          "otherId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+          "label": "全状态观测器",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **全状态观测器**（出边，关系：用于分析）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8ecd4d6352467b3444880809",
+      "relations": [
+        {
+          "relationId": "m1l:relation-a0a6fe64297624358285f144",
+          "otherId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+          "label": "全状态观测器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **全状态观测器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4b7254aa73329cdcc5057159",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:90ab6084dd80adad09ebb068",
+          "otherId": "ctkg:v3e-object-6e5d7c7223f605f9c16bda61",
+          "label": "调节器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **调节器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-d7e2285160861805a2f83dfd",
+          "otherId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+          "label": "全状态反馈设计步骤",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **全状态反馈设计步骤**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d9716ac7221be94d7e69f7d3",
+      "relations": [
+        {
+          "relationId": "m1l:relation-1e945745e6d9d6a8feb51757",
+          "otherId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+          "label": "可观测性",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **可观测性**（出边，关系：用于分析）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1946643d6912e8d8aeb2decb",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:667a7e485b28d50f04878488",
+          "otherId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+          "label": "环路增益",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **环路增益**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:91e36516aea8353299476ed4",
+          "otherId": "ctkg:domainconcept:9dd6e45819cbb414472fb7e4",
+          "label": "环路增益 L（s）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **环路增益 L（s）**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

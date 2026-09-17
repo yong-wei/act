@@ -1,50 +1,74 @@
 ---
 node_id: ctkg_v3e-object-69529eb08c9279e8b19dc4f6
 authority_entity_id: "ctkg:v3e-object-69529eb08c9279e8b19dc4f6"
-name: 交接频率
+name: "交接频率"
+name_en: "Breakpoint Frequency"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 交接频率
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9654a75c9f2bf58f88aabb6aabbd333b5f66e50f5867353418560558c04d60c1.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9654a75c9f2bf58f88aabb6aabbd333b5f66e50f5867353418560558c04d60c1.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/previous/ctkg_v3e-object-69529eb08c9279e8b19dc4f6.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: ce1631b9c8fc18995535c953ee7825556ba754a7d8d991e7ed607cc4ac4ef72a -->
-
 ## 首页
+# 交接频率 | Breakpoint Frequency
 
-# 交接频率
+一句话定义：对一阶惯性环节，交接频率是低频与高频幅值渐近线相交的频率，等于时间常数的倒数。
 
-**一句话定义**：惯性环节的对数幅频渐近特性曲线低频部分和高频部分两条直线交于 ω=1/T 处，称频率 1/T 为惯性环节的交接频率。
-
-**核心直觉**：在图谱邻接中可把握：后续 → 对数幅频渐近特性曲线。
-
-**关联**：后续 → 对数幅频渐近特性曲线
+- 对 $1/(1+Ts)$，交接频率为 $1/T$。
+- 交接发生在近似直线之间，精确曲线是平滑的。
+- 本术语在这里指渐近线交接，不指单位增益交越。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-惯性环节的对数幅频渐近特性曲线低频部分和高频部分两条直线交于 ω=1/T 处，称频率 1/T 为惯性环节的交接频率。
+设惯性环节 $G=K/(1+Ts)$，其中 $T>0$、$K>0$。其精确幅值分贝为
+
+$$
+L(\omega)=20\log_{10}K-10\log_{10}[1+(\omega T)^2].
+$$
+
+在 $\omega T\ll1$ 时，低频渐近线为 $20\log_{10}K$；在 $\omega T\gg1$ 时，高频渐近线为 $20\log_{10}K-20\log_{10}(\omega T)$。两线相等要求 $\omega T=1$，因此交接频率为 $\omega_t=1/T$。
+
+由于增益项同时出现在两条直线中，改变正增益 $K$ 会把幅值图整体上下平移，却不改变交接频率。精确相位为 $-\arctan(\omega T)$，在交接频率处为 $-45^\circ$；这也可作为简单惯性环节的核验点。
+
+### 教学计算/推理例
+
+取 $G=2/(0.5s+1)$，时间常数为0.5 s，交接频率为2 rad/s。低频渐近值为6.0206 dB；在交接处，精确幅值为 $2/\sqrt2=\sqrt2$，精确电平为3.0103 dB，相比渐近线交点低3.0103 dB。
+
+若把分子改为20，交接频率仍为2 rad/s，整条幅值曲线上移20 dB。虽然单位增益交越位置会随增益改变，交接频率仍由分母时间常数确定。若把时间常数改为1 s而保持分子2，交接频率则变为1 rad/s，表示惯性因子更早进入高频衰减区。
+
+该例若本身代表闭环参考通道，其相对直流半功率带宽恰好也是 $1/T$。这是单一一阶低通形式的结果，不意味着任意环路中的交接频率均等于闭环带宽。
+
+### 适用条件与边界
+
+“交接频率”需结合具体因子和上下文。一个多因子系统可有多个交接频率；相邻因子的幅值贡献相加后，整条曲线在某一个交接点的误差未必仍只有3 dB。积分因子没有这一类有限正时间常数交接点，不能把原点强行当作对数轴上的普通频率刻度。
+
+若用Hz表示频率，交接频率为 $f_t=1/(2\pi T)$；本例约0.3183 Hz。把 $1/T$ 写成Hz会多出 $2\pi$ 的换算错误。
+
+### 常见误区
+
+1. 把渐近线交接点当成精确幅值曲线上的点。
+2. 以为提高增益就能改变惯性因子的时间常数和交接频率。
+3. 将本定义下的交接频率与开环单位增益交越频率互换。
+
+### 自检
+
+1. 时间常数加倍，交接频率怎样变化？
+2. 本例的两条渐近线在2 rad/s相交，精确电平是多少？
+
+**核对要点**：交接频率减半；精确电平约3.0103 dB，而渐近线交点为6.0206 dB。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 对数幅频渐近特性曲线 | 属于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、交接频率
+- **对数幅频渐近特性曲线**（出边，关系：组成部分属于）

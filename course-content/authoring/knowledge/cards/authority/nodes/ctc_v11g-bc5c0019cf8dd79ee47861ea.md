@@ -1,34 +1,31 @@
 ---
 node_id: ctc_v11g-bc5c0019cf8dd79ee47861ea
 authority_entity_id: "ctc:v11g-bc5c0019cf8dd79ee47861ea"
-name: root contours
-name_en: root_contours
+name: "根轨迹（双参数族）"
+name_en: "Two-parameter Family of Root Loci"
 category: 概念性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: representation_kind
-release_tier: gold
-tags:
-  - representation_kind
-  - gold
-  - root
-  - contours
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7f41579cb8ee614458b3c9feada97f7d7232c8eb2d6b596315789ae2c9aa4732.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7f41579cb8ee614458b3c9feada97f7d7232c8eb2d6b596315789ae2c9aa4732.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/previous/ctc_v11g-bc5c0019cf8dd79ee47861ea.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 6432308e00d6aa549219fbb8197da33149c383927371ff4b8ffb49ac8532b628 -->
-
 ## 首页
 
-# root contours | root_contours
+# 根轨迹（双参数族） | Two-parameter Family of Root Loci
 
-**一句话定义**：root contours：A family of root loci for two parameters, illustrating the effect of both parameters on the roots of the characteristic…
+**一句话定义**：双参数根轨迹族用一组带固定参数标签的单参数轨迹，展示两个参数对特征根的共同影响。
 
-**关联**：（权威图邻接待补充）
+一张族图可以包含多条不同轨迹，不能把所有采样根任意连接成一条曲线。
 
 ---
 
@@ -36,18 +33,48 @@ asset_refs: []
 
 ### 完整解释
 
-A family of root loci for two parameters, illustrating the effect of both parameters on the roots of the characteristic equation.
+当特征方程含两个参数时，先固定其中一个参数的若干值，再分别扫描另一个参数，就得到一族根轨迹。每条曲线都有明确的固定值和扫描方向；只有保留这些标签，图形才可以解释参数变化的作用。
+
+如果两个参数同时任意变化，一个根的位置不再由单一标量唯一描述。若希望沿一条具体路径变化，需要另给两个参数之间的关系。没有这种关系时，二维参数网格只是若干样点，不应被随意连成一条“连续根轨迹”。
+
+根族可以帮助比较候选区域和寻找两步设计的起点，但有限几条轨迹不能自动证明整个参数平面都满足某个性能要求。需要完整区域结论时，应结合解析条件或足够明确的参数分析，而不是只凭少量曲线的视觉趋势。
+
+### 教学计算/推理例
+
+取特征方程
+
+$$s^2+as+K=0.$$
+
+分别固定 $a=1,2,3$，对每个固定值改变 $K$。根满足
+
+$$s=-\frac a2\pm\sqrt{\frac{a^2}{4}-K}.$$
+
+当 $K>a^2/4$时，根为共轭对，其实部分别固定为-0.5、-1和-1.5。它们属于三条不同的参数切片，不能把实部不同解释成同一条固定 $a$轨迹突然横跳。
+
+在共同的 $K=4$处，三组根分别为 $-0.5\pm j\sqrt{3.75}$、$-1\pm j\sqrt3$和 $-1.5\pm j\sqrt{1.75}$。比较这一列，可以观察改变 $a$的作用；沿某个固定 $a$的一行改变 $K$，观察的则是另一种作用。
+
+若以 $a=1,2,3$和 $K=1,4,9$形成九个计算点，原多项式求根都在左半平面。这些点是对模型的样例核对；本例整个正参数区域的严格稳定性，还可以由二阶系数条件 $a>0,K>0$直接推出，而不是由九个样点外推。
+
+### 适用条件与边界
+
+稳定区域和性能区域不同。即使所有正参数在本模型下稳定，也不表示阻尼、固有频率、超调或执行器约束全部相同。若任务要求特定指标，应将其对应条件加入参数平面，再检查候选是否满足。
+
+重根边界为 $K=a^2/4$，跨过它时根从实数变成共轭复数，或反向变化。数值绘图中要保留这一边界及根的重数，不要因求根排序变化而误连分支。二维网格越密也不自动解决分支标签与参数含义的问题。
+
+实际控制器可能使两个参数同时改变分子和分母，根族仍需建立在完整特征方程上。若采用简化模型，应明确简化条件，不能用仅包含两个系数的教学例替代真实对象全部动态。
+
+### 常见误区
+
+1. 误区：把双参数网格中的所有根按位置排序连接，就得到一条根轨迹。纠正：必须保留固定参数、扫描参数及连续路径关系。
+2. 误区：九个稳定样点证明整个二维参数区域稳定。纠正：区域结论需要解析条件或相应验证，不能只从有限点推断。
+
+### 自检
+
+1. 本例三个欠阻尼切片的固定实部分别是多少？
+2. 为什么本例可说明整个正参数区域稳定，却不能仅归功于九点求根？
+
+**核对要点**：分别为-0.5、-1和-1.5。区域结论来自二阶严格稳定条件 $a>0,K>0$，九点只是独立样例核对。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`representation_kind`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-representation_kind、gold、root、contours
+- **根轨迹法**（无向，关系：相关）

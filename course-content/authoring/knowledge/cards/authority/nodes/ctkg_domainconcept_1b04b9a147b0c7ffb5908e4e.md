@@ -1,50 +1,82 @@
 ---
 node_id: ctkg_domainconcept_1b04b9a147b0c7ffb5908e4e
 authority_entity_id: "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e"
-name: 最少拍系统
+name: "最小拍系统"
+name_en: "Deadbeat System"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - 最少拍系统
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consevent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b3e5fdcb5f57068bf1d4dcdcf03951ec0a2e62fdd5df27bfc98fb6392154ef22.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b3e5fdcb5f57068bf1d4dcdcf03951ec0a2e62fdd5df27bfc98fb6392154ef22.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/previous/ctkg_domainconcept_1b04b9a147b0c7ffb5908e4e.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 8409de69c383c19b5b1bf6fefac849ab077697da1651a1b29a886129dc401a61 -->
-
 ## 首页
+# 最小拍系统 | Deadbeat System
 
-# 最少拍系统
+一句话定义：在明确模型、参考类别和约束下，最小拍设计使所要求的响应经过尽可能少的采样步数进入指定稳态。
 
-**一句话定义**：最少拍系统是自动控制原理权威图谱中的领域概念。
-
-**关联**：（权威图邻接待补充）
+- 必须说明哪一种输入、初态和响应要有限拍整定。
+- 样值误差为零不保证采样间无纹波。
+- 不能为缩短拍数忽略因果性、稳定性或输入约束。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+“拍”指一次采样更新，有限拍整定指从某个有限整数N开始，所要求的样值保持指定稳态，而不只是逐渐接近。本卡讨论零初态、单位阶跃参考下的输出样值最小拍；它与要求任意内部初态都有限拍归零的状态死拍条件不同，不能混用。
+
+是否“最小”还取决于对象延迟、零点、控制器可实现性和执行器约束。仅构造一个有限拍方案，只证明有限拍可以达到；要说明拍数最少，还应给出不能更快的理由。下面通过严格因果对象的一拍下界与可实现方案说明这一点。
+
+### 教学计算/推理例
+
+取连续对象 $\dot x_1=-x_1+x_2$、$\dot x_2=-x_2+u$，输出y=x1，零初态，采样周期T=1，输入零阶保持。记a为 $e^{-1}$，则精确离散矩阵与传递函数为
+
+$$
+A_d=a\begin{pmatrix}1&1\\0&1\end{pmatrix},\quad
+B_d=\begin{pmatrix}1-2a\\1-a\end{pmatrix},\quad
+G(z)=\frac{(1-2a)z+a^2}{(z-a)^2}.
+$$
+
+令b=1-2a。在单位负反馈中选择 $C(z)=(z-a)^2/[(z-1)(bz+a^2)]$，可得到零初态参考到输出传递函数 $\Phi(z)=z^{-1}$。因此单位阶跃参考产生y[0]=0，之后y[1]、y[2]等全部等于1，样值误差一拍归零。
+
+由于对象严格因果，当前输入u[0]不能改变已经由零初态确定的y[0]，所以不可能零拍达到1。本例控制器因果、相关内部闭环模态稳定且无输入幅值限制，构造达到一拍，因此在所声明的样值任务中是一拍最小方案。
+
+### 为什么仍需查看其他状态
+
+达到y[1]=1时，第二状态为 $(1-a)/(1-2a)$，约2.392，而不是保持输出1所需的平衡值1。后续控制会调整内部状态，使采样输出仍等于1，但区间中间的输出可以偏离目标。原连续模型计算得到y(1.5)约为1.24737，尽管y[1]与y[2]都为1。
+
+因此“样值最小拍”与“连续输出从此不再变化”不是同一结论。这个例子的纹波会随稳定内部动态衰减，却不会因为样值已达标而立即消失。要设计无纹波的有限拍响应，需要进一步控制内部状态和保持输入。
+
+### 适用条件与边界
+
+本例对象极点a位于单位圆内，零点 $-a^2/(1-2a)$ 约为-0.51217，也在单位圆内。完整互连在未约消前的闭环特征根包含a、a、0和这个稳定零点，因此样值一拍的简化传递关系没有掩盖不稳定内部模态。
+
+这不意味着任意初态都一拍归零，也不能推广为对非最小相位对象同样可直接取 $\Phi(z)=z^{-1}$。若为了得到该形式必须约消不稳定零点、使用未来输入或超出执行器限制，目标就不再是合格的可实现最小拍方案。
+
+### 常见误区
+
+1. 不说明输入类别和初态，就宣称一切响应有限拍完成。
+2. 样值误差为零便认定采样间也没有变化。
+3. 只看约消后的传递函数而漏查内部稳定与输入要求。
+
+### 自检
+
+1. 本例为什么不能零拍达到单位阶跃参考？
+2. y(1.5)不等于1与样值一拍归零是否矛盾？
+
+**核对要点**：严格因果对象的当前输出由已有状态决定；不矛盾，前者是采样间连续输出，后者只约束整数采样时刻的输出。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、最少拍系统
+- **一拍系统**（无向，关系：相关）
+- **无纹波最小拍系统**（无向，关系：相关）
+- **无纹波最小拍系统**（入边，关系：属于）

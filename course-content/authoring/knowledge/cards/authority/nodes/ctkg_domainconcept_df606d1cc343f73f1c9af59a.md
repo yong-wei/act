@@ -1,51 +1,93 @@
 ---
 node_id: ctkg_domainconcept_df606d1cc343f73f1c9af59a
 authority_entity_id: "ctkg:domainconcept:df606d1cc343f73f1c9af59a"
-name: PID 数字控制器实现方法
+name: "PID 数字控制器实现方法"
+name_en: "Digital PID Implementation"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - PID
-  - 数字控制器实现方法
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consixt_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-252d3cfd451fd71948463a5c5f72edde218af1831ebf25b8c4316c2a6c6151af.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-252d3cfd451fd71948463a5c5f72edde218af1831ebf25b8c4316c2a6c6151af.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-09a/previous/ctkg_domainconcept_df606d1cc343f73f1c9af59a.md"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-09a/supporting-source-inventory.json"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: c63f5ef665c0261f9aea93bef68a6a57c6db82fe818bd13f1c346ba8f695ebc2 -->
-
 ## 首页
+# PID 数字控制器实现方法 | Digital PID Implementation
 
-# PID 数字控制器实现方法
+一句话定义：数字PID实现把比例、积分和微分滤波作用写成一致的差分更新，并明确采样周期、状态初值和输出时序。
 
-**一句话定义**：PID 数字控制器实现方法是自动控制原理权威图谱中的领域概念。
-
-**关联**：（权威图邻接待补充）
+- 控制器形式与离散化方法必须明确。
+- 内部状态更新需要保留正确的历史量。
+- 给定误差序列测试不等于完整闭环验收。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+并联PID可把输出写成 $u[k]=K_p e[k]+I[k]+D[k]$。比例项使用当前误差，积分项和滤波微分项则保留内部状态。不同的积分和微分离散化方法会产生不同递推式，不能只列Kp、Ki、Kd而省略采样周期、滤波时间常数和计算约定。
+
+本卡采用当前误差的后向矩形积分，以及后向Euler离散化的一阶滤波微分。每一拍先读取e[k]和保存的历史值，计算新I和D，随后组合u，最后保存当前误差，供下一拍使用。若先覆盖历史误差再求差分，微分项就会被错误消除。
+
+### 教学计算/推理例
+
+令Kp=1.5、Ki=2、Kd=0.05、采样周期T=0.1、微分滤波时间Tf=0.2。更新规则为
+
+$$
+I[k]=I[k-1]+\frac15 e[k],\qquad
+D[k]=\frac23D[k-1]+\frac16(e[k]-e[k-1]).
+$$
+
+初始值规定为e[-1]=I[-1]=D[-1]=0。给定误差序列 $e[0]=1$、$e[1]=1/2$、$e[2]=0$，逐拍计算如下。
+
+第0拍：比例项3/2、积分项1/5、微分项1/6，得到u[0]=28/15。第1拍：比例项3/4，积分累计为3/10；微分项为 $(2/3)(1/6)+(1/6)(-1/2)=1/36$，得到u[1]=97/90。第2拍：比例项为零，积分仍为3/10；微分项为 $(2/3)(1/36)-(1/12)=-7/108$，得到u[2]=127/540。
+
+误差在第三拍已经为零，输出却不必为零，因为积分保留了历史贡献，滤波微分也有尚未消失的状态。将“当前误差为零”误写成“PID所有项都为零”，会忽略控制器的动态记忆。
+
+### 与传递表达的一致性
+
+在零初态下，同一实现对应
+
+$$
+C(z)=K_p+\frac{K_iT}{1-z^{-1}}
++\frac{K_d(1-z^{-1})}{T_f(1-z^{-1})+T}.
+$$
+
+积分系数KiT为1/5，微分递推系数分别为Tf/(Tf+T)=2/3和Kd/(Tf+T)=1/6，与上面的差分规则一致。其他软件可能默认使用前向Euler或梯形积分，比较参数时应先核对方法，不能把同名PID当作完全相同的数字动态。
+
+### 输出限制与内部状态
+
+上述算例没有输出饱和、速率限制或抗积分饱和。若只把输出u截在允许区间，I和D仍按原方程更新，控制器状态与实际执行输入可能分离。要加入抗饱和，必须明确新的状态更新规则，不能在报告中把简单输出截幅称作已经具备完整抗饱和功能。
+
+初值也应与启动或模式切换要求一致。本文全部从零状态开始；实际控制器若需要保留历史或平滑切换，应按相应要求设置状态，并重新核验启动输入。
+
+### 适用条件与边界
+
+三个误差样值用于独立检查计算实现，未指定被控对象，因此不能据此证明闭环稳定、跟踪准确或抗扰性能。完整验收还需对象、测量通路、参考、延迟、执行器及实际采样条件，并检查闭环极点与时域行为。
+
+微分这里作用于误差。若改为测量微分以减小参考跳变引起的冲击，需要重新写清参考与测量通道，不能只把输入变量换名而忽略反馈符号。
+
+### 常见误区
+
+1. 没有说明积分与滤波离散化方法就比较PID参数。
+2. 当前误差为零便清除全部控制贡献。
+3. 用给定误差序列计算成功冒充闭环性能通过。
+
+### 自检
+
+1. 第2拍误差为零时，哪些项仍可能非零？
+2. 为什么本例不能证明某个对象已经稳定？
+
+**核对要点**：积分记忆和滤波微分状态仍可非零；本例只规定控制器输入序列，没有建立被控对象与反馈闭环。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、PID、数字控制器实现方法
+本卡的结论可由上述定义与计算例独立复核。

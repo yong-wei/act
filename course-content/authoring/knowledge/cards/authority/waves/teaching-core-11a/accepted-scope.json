@@ -1,0 +1,83 @@
+{
+  "batchId": "teaching-core-11a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-11",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+      "name": "欠阻尼系统",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+      "name": "固有频率",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+      "name": "无阻尼自然频率",
+      "moduleId": "module-2",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+      "name": "时间常数",
+      "moduleId": "module-2",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+      "name": "阻尼比ζ",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+      "name": "临界阻尼",
+      "moduleId": "module-1",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "name": "自然频率",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+      "name": "固有频率 ω_n",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "name": "欠阻尼",
+      "moduleId": "module-1",
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+      "name": "过阻尼",
+      "moduleId": "module-2",
+      "order": 10
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+      "name": "阻尼自然频率",
+      "moduleId": "module-2",
+      "order": 11
+    }
+  ],
+  "accepted": true
+}

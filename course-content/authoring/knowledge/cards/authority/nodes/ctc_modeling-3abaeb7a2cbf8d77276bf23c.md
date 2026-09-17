@@ -1,35 +1,35 @@
 ---
 node_id: ctc_modeling-3abaeb7a2cbf8d77276bf23c
 authority_entity_id: "ctc:modeling-3abaeb7a2cbf8d77276bf23c"
-name: 领域概念
-name_en: modeling_3abaeb7a2cbf8d77276bf23c
+name: "同构相似系统"
+name_en: "Isomorphic Analogous Systems"
 category: 概念性
-coverage_role: necessary_prerequisite
-batch: A
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 领域概念
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0c2eb422a62a37644c85a9455ae5dfd889b66441027cbd1859dbf366715943fe.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0c2eb422a62a37644c85a9455ae5dfd889b66441027cbd1859dbf366715943fe.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/previous/ctc_modeling-3abaeb7a2cbf8d77276bf23c.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 453fbf88567c2116c6901da0b627042a39b917df5468d770ac5cfd799452e734 -->
-
 ## 首页
 
-# 领域概念 | modeling_3abaeb7a2cbf8d77276bf23c
+# 同构相似系统 | Isomorphic Analogous Systems
 
-**一句话定义**：领域概念：Systems (e.g., electrical, mechanical, thermal, fluid) that share the same describing differential equations, allowing…
+**一句话定义**：同构相似系统强调在适当变量映射下，状态演化及其输入、输出关系具有一致的数学结构。
 
-**核心直觉**：在图谱邻接中可把握：前置 → The concept that analogous。
+**核心直觉**：相同极点只是部分信息；还要说清每个状态对应谁、输入如何缩放、初态如何匹配。
 
-**关联**：前置 → The concept that analogous
+**关键公式**：机械的 $[x,\dot x]$ 可在尺度明确时对应串联 RLC 的 $[q,i]$，其中 $i=\dot q$。
+
+**学习目标**：通过两个二阶系统建立完整状态对应，避免仅凭极点或曲线外观判断等价。
 
 ---
 
@@ -37,18 +37,42 @@ asset_refs: []
 
 ### 完整解释
 
-Systems (e.g., electrical, mechanical, thermal, fluid) that share the same describing differential equations, allowing solutions for one system to be extended to all analogous systems.
+机械振动与电路振荡都可能由储能元件之间的能量交换和耗散构成。相似性不仅体现在某条输出曲线呈衰减振荡，更体现在描述系统运动所需的状态如何一一对应。本卡采用力—电压类比：位移对应电荷、速度对应电流，质量对应电感、阻尼对应电阻、刚度对应电容的倒数。
+
+这些对应是建模关系，不是物理量的直接等式。状态必须包含足以确定后续运动的信息：只对应位移和电荷，却遗漏速度和电流，会无法确定非零初态下的完整响应。还应明确比较的输出，因为从同一个内部状态可以选择不同输出。
+
+### 教学计算/推理例
+
+机械系统取 $m=2\,\mathrm{kg}$、$c=4\,\mathrm{N\,s/m}$、$k=8\,\mathrm{N/m}$，施加 $2\,\mathrm N$ 阶跃。串联 RLC 取 $L=0.5\,\mathrm H$、$R=1\,\Omega$、$C=0.5\,\mathrm F$，施加 $0.5\,\mathrm V$ 阶跃。各状态初值均为零。两个原方程为
+$$
+2\ddot x+4\dot x+8x=2,
+\qquad 0.5\ddot q+\dot q+2q=0.5.
+$$
+用 $X=x/(1\,\mathrm m)$、$Q=q/(1\,\mathrm C)$、$\tau=t/(1\,\mathrm s)$ 缩放，均得 $z''+2z'+4z=1$。若 $z_1=z,z_2=z'$，共同状态方程为
+$$
+\frac{d}{d\tau}\begin{bmatrix}z_1\\z_2\end{bmatrix}
+=\begin{bmatrix}0&1\\-4&-2\end{bmatrix}\begin{bmatrix}z_1\\z_2\end{bmatrix}
++\begin{bmatrix}0\\1\end{bmatrix}.
+$$
+状态映射为 $[x/(1\,\mathrm m),\dot x/(1\,\mathrm{m/s})]$ 对应 $[q/(1\,\mathrm C),i/(1\,\mathrm A)]$。取第一状态为输出，终值分别为 $0.25\,\mathrm m$ 与 $0.25\,\mathrm C$。
+
+### 适用条件与边界
+
+共同极点 $-1\pm j\sqrt3$ 描述自然模态，但相同极点并不能单独决定输入增益、零点或输出响应。这里能比较整个过程，是因为方程、缩放输入、两个初始状态和输出选择都一致。真实系统若有非线性弹簧、电感饱和或额外支路，就要重新核验映射。
+
+### 常见误区
+
+1. **误区**：电压直接对应机械位移。**纠正**：本卡选定的力—电压类比中，外力对应电压，位移对应电荷。
+2. **误区**：同极点必然同响应。**纠正**：还需匹配输入、输出与初态。
+
+### 自检
+
+1. 电荷之外为什么还需要电流状态？
+2. 若改为测量电流，能否仍直接把它与机械位移曲线比较？
+
+**核对要点**：电流给出电荷的变化率；换输出后对应的机械量应是速度，不能继续沿用位移输出的比较。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | The concept that analogous | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、领域概念
+- **建模（流体储罐）**（无向，关系：相关）
+- **相似物理系统**（无向，关系：相关）

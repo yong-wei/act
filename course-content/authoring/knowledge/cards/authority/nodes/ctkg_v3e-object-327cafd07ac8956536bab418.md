@@ -1,33 +1,31 @@
 ---
 node_id: ctkg_v3e-object-327cafd07ac8956536bab418
 authority_entity_id: "ctkg:v3e-object-327cafd07ac8956536bab418"
-name: "Routh's method f"
-name_en: "Routh's method for parameter range determination"
+name: "劳斯法参数范围确定"
+name_en: "Parameter Ranges from the Routh Criterion"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - "Routh's"
-  - method
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0bdc312b99c416001cf2fec5673457d4e60e93936b94a29434f7b94899e7730c.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0bdc312b99c416001cf2fec5673457d4e60e93936b94a29434f7b94899e7730c.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-16a/previous/ctkg_v3e-object-327cafd07ac8956536bab418.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: d133f8aff93adce7d35c2b38b57987056973ec9fc6a1fd59452f1378165ca85b -->
-
 ## 首页
 
-# Routh's method f | Routh's method for parameter range determination
+# 劳斯法参数范围确定 | Parameter Ranges from the Routh Criterion
 
-**一句话定义**：Routh's method f：Routh's method is useful for determining the range of parameters for which a feedback system remains stable, especially…
+**一句话定义**：将特征多项式的参数保留在劳斯阵列中，通过第一列符号条件求出闭环严格稳定的参数范围。
 
-**核心直觉**：在图谱邻接中可把握：后续 → Stable System。
-
-**关联**：后续 → Stable System
+求出一个稳定样例不等于求出全部范围，边界点还需单独检查。
 
 ---
 
@@ -35,18 +33,49 @@ asset_refs: []
 
 ### 完整解释
 
-Routh's method is useful for determining the range of parameters for which a feedback system remains stable, especially when coefficients are in symbolic form.
+控制系统的特征多项式常含增益或其他设计参数。逐个参数数值求根可以检查样例，却不一定说明稳定区间在哪里。劳斯法可以把第一列各项写成参数表达式，将根严格位于左半平面的要求转化为不等式，再求这些条件的交集。
+
+开始时要确认闭环特征方程写对，反馈符号和对象分母不能省略。通常将最高次项系数取为正，再检查第一列严格同号。若递推时除以含参数的表达式，应保留它为零或改变符号的特殊情况，不能在化简过程中把可能的边界直接丢掉。
+
+全部多项式系数为正是一些低阶稳定判断的必要线索，但对三阶及更高阶并不充分。劳斯阵列中的组合项提供额外约束，正是参数范围分析不能只看原系数的原因。得到严格区间后，还应检查端点的根是否落在虚轴或原点，以及区间外如何变化。
+
+### 教学计算/推理例
+
+对负单位反馈回路 $L(s)=K/[s(s+1)(s+2)]$，闭环特征多项式是
+
+$$p(s)=s^3+3s^2+2s+K.$$
+
+劳斯阵列第一列为
+
+$$1,\qquad3,\qquad\frac{6-K}{3},\qquad K.$$
+
+要求这些项严格为正，得到 $K>0$与 $K<6$，所以稳定范围为 $0<K<6$。这两个条件来自不同位置，不能只保留其中一个。
+
+当 $K=6$时，$p(s)=(s+3)(s^2+2)$，出现虚轴共轭根；当 $K=0$时，$p(s)=s(s+1)(s+2)$，出现原点根。因此端点不在严格渐近稳定区间内。选择 $K=5$求根可验证区间内样例，选择 $K=7$则得到两个右半平面根，验证上边界外失稳。
+
+注意 $K=7$时原多项式的各项系数仍全部为正，但 $(6-K)/3<0$。这一反例清楚说明，正系数不能代替完整劳斯条件。求参数范围的关键，是把所有相关不等式共同保留。
+
+### 适用条件与边界
+
+劳斯判据适用于具有实系数的连续时间特征多项式。若包含纯时延等非多项式项，不能不加说明地直接使用有限阵列；若先作近似，应另外核验近似的有效性。离散时间模型也不能照搬左半平面要求。
+
+范围确定给出的是名义模型的稳定条件。实际参数存在不确定性时，需要检查它们是否仍落在允许区域内；即使稳定，也不意味着超调、误差或控制输入满足要求。参数区间是设计依据的一部分，而不是全部性能验收。
+
+遇到首列单零或全零行，应按相应规则处理并检查临界根。符号表达式中的平方、分母和正比例缩放也需要留意，不能通过不保号的运算改变不等式含义。先写清参数允许的物理范围，有助于排除不适用的数学分支。
+
+### 常见误区
+
+1. 误区：原系数全部为正就得到完整稳定范围。纠正：高阶多项式还需要组合条件，本例上界来自第三个第一列元素。
+2. 误区：验证几个增益样例就证明所有中间值稳定。纠正：样例只作核对，整个区间来自完整的不等式分析。
+
+### 自检
+
+1. 本例的两个严格不等式分别是什么？
+2. 为什么 $K=7$是“正系数不充分”的反例？
+
+**核对要点**：必须同时满足 $K>0$和 $6-K>0$。增益为7时原系数全正，但劳斯第一列出现符号变化，闭环存在右半平面根。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | Stable System | 用于分析 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Routh's、method
+- **稳定系统**（出边，关系：用于分析）
+- **反馈导致的不稳定性**（无向，关系：相关）

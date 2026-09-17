@@ -1,0 +1,135 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:临界增益与虚轴极点_1_5",
+      "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/临界增益与虚轴极点_1_5.md",
+          "sha256": "249a0e799b2734281aea271f5e3dcc0d870634138332c246e5657b5b2c94bb0f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/authoring/临界增益与虚轴极点_1_5.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/临界增益与虚轴极点_1_5.md",
+          "sha256": "249a0e799b2734281aea271f5e3dcc0d870634138332c246e5657b5b2c94bb0f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/runtime/临界增益与虚轴极点_1_5.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:根轨迹与虚轴交点_4_65c288cc",
+      "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/根轨迹与虚轴交点_4_65c288cc.md",
+          "sha256": "17ec99012a459e647064522717f1212d89616070b51785b3efdbb20af5db834d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/authoring/根轨迹与虚轴交点_4_65c288cc.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/根轨迹与虚轴交点_4_65c288cc.md",
+          "sha256": "17ec99012a459e647064522717f1212d89616070b51785b3efdbb20af5db834d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/runtime/根轨迹与虚轴交点_4_65c288cc.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:根轨迹与虚轴的交点_4_33b9d0e6",
+      "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/根轨迹与虚轴的交点_4_33b9d0e6.md",
+          "sha256": "e05829812c78a93a821abb5ec35442f3d64102903313ae7a55a1203d05d8083b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/authoring/根轨迹与虚轴的交点_4_33b9d0e6.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/根轨迹与虚轴的交点_4_33b9d0e6.md",
+          "sha256": "e05829812c78a93a821abb5ec35442f3d64102903313ae7a55a1203d05d8083b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/runtime/根轨迹与虚轴的交点_4_33b9d0e6.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:临界稳定_3_ca03ed18",
+      "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/临界稳定_3_ca03ed18.md",
+          "sha256": "e79114d5efb7e3f163da9d185cef14de27ff8006a1bec1b5198f36fe3a7ee3da",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/authoring/临界稳定_3_ca03ed18.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/临界稳定_3_ca03ed18.md",
+          "sha256": "e79114d5efb7e3f163da9d185cef14de27ff8006a1bec1b5198f36fe3a7ee3da",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/runtime/临界稳定_3_ca03ed18.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:条件稳定系统_5_dfd0b994",
+      "canonicalId": "ctkg:v3e-object-905e09b9921961a6115e4603",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/条件稳定系统_5_dfd0b994.md",
+          "sha256": "7cc66b6f58df15e0dc0f1db924d478fdb74ebe825abcf9228e52fc9e7c3eb2f2",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/authoring/条件稳定系统_5_dfd0b994.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/条件稳定系统_5_dfd0b994.md",
+          "sha256": "7cc66b6f58df15e0dc0f1db924d478fdb74ebe825abcf9228e52fc9e7c3eb2f2",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/runtime/条件稳定系统_5_dfd0b994.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:李雅普诺夫意义下的稳定性_9_9aaf4cd8",
+      "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/李雅普诺夫意义下的稳定性_9_9aaf4cd8.md",
+          "sha256": "720f15d0e959b195c4251d97d619bb83673c9df9ade7d6a281d0f21430373ef4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/authoring/李雅普诺夫意义下的稳定性_9_9aaf4cd8.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/李雅普诺夫意义下的稳定性_9_9aaf4cd8.md",
+          "sha256": "720f15d0e959b195c4251d97d619bb83673c9df9ade7d6a281d0f21430373ef4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/runtime/李雅普诺夫意义下的稳定性_9_9aaf4cd8.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:李雅普诺夫稳定性_9_de195f1c",
+      "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/李雅普诺夫稳定性_9_de195f1c.md",
+          "sha256": "9cc6a95d38c273c1a084025f2410f7bc8aacb641d3770e11c2b6acaf9633688a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/authoring/李雅普诺夫稳定性_9_de195f1c.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/李雅普诺夫稳定性_9_de195f1c.md",
+          "sha256": "9cc6a95d38c273c1a084025f2410f7bc8aacb641d3770e11c2b6acaf9633688a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/runtime/李雅普诺夫稳定性_9_de195f1c.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:运动稳定性_3_df61e98d",
+      "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/运动稳定性_3_df61e98d.md",
+          "sha256": "f6053129ba75650b2eec5071dc0a472d209fbd231a7ebab7b79f868c015e2b1f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/authoring/运动稳定性_3_df61e98d.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/运动稳定性_3_df61e98d.md",
+          "sha256": "f6053129ba75650b2eec5071dc0a472d209fbd231a7ebab7b79f868c015e2b1f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/retired/runtime/运动稳定性_3_df61e98d.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b27",
+  "replacementDigest": "39538992a2db10797a0630912b41067b7640a99ae18eb4f0069c0dec3d85ce02"
+}

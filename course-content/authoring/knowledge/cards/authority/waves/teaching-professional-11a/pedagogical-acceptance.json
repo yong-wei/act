@@ -1,0 +1,7 @@
+{
+  "status": "accepted",
+  "cards": 8,
+  "goalId": "robust-control-foundations",
+  "rationale": "明确集合、边界与保证，区分固定参数和动态误差，承接后续鲁棒设计与验证；避免混入只讲经典裕度的目标。",
+  "sourceLimitation": "一张有原教材定位，其余用冻结MIT讲义提供理论来源，原节点空描述不冒充教材。"
+}

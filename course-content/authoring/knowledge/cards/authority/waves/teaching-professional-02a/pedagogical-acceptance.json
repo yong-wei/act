@@ -1,0 +1,8 @@
+{
+  "status": "accepted-for-authoring-and-integration",
+  "reviewer": "/root/review_professional02_content",
+  "candidateOrigin": "teaching-scale-03/candidates.json",
+  "cards": 9,
+  "rationale": "承接采样基础，完成离散变换、保持、有限精度与性能分析；保留来源约定与各方法边界。",
+  "excludedCards": []
+}

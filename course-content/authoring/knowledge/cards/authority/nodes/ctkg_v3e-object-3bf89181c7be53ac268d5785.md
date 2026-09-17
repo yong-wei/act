@@ -1,52 +1,73 @@
 ---
 node_id: ctkg_v3e-object-3bf89181c7be53ac268d5785
 authority_entity_id: "ctkg:v3e-object-3bf89181c7be53ac268d5785"
-name: 带宽
-name_en: Bandwidth
+name: "带宽"
+name_en: "Bandwidth"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 带宽
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-692527fc47bf3b157ee147e959f524090fc24229e39442899ce3924be7cdca40.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-692527fc47bf3b157ee147e959f524090fc24229e39442899ce3924be7cdca40.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/previous/ctkg_v3e-object-3bf89181c7be53ac268d5785.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: f9455d0fe536d5b2b0374cdfeb32af2bd927d72b362854df9f8b8013150ab172 -->
-
 ## 首页
-
 # 带宽 | Bandwidth
 
-**一句话定义**：带宽：The bandwidth, ω_B, is a measure of a ability of the system to faithfully reproduce an input signal.
+一句话定义：带宽描述系统在给定幅值或性能准则下能够有效传递信号的频率范围，使用时必须说明通道和阈值。
 
-**核心直觉**：在图谱邻接中可把握：前置 → 自然频率、Resonant frequency。
-
-**关联**：前置 → 自然频率、Resonant frequency
+- 低通系统常以相对直流下降约3 dB的边界频率表示带宽。
+- “有效传递”并不意味着幅值、相位都完全不失真。
+- 不同通道与不同阈值可能得到不同带宽。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-The bandwidth, ω_B, is a measure of a ability of the system to faithfully reproduce an input signal.
+控制系统中的带宽常指闭环参考到输出通道的低通带宽。若该通道稳定，直流幅值有限且非零，常见约定是找到幅值下降到直流值 $1/\sqrt2$ 的频率 $\omega_B$。对从零频开始的单一通带，范围宽度可由上边界 $\omega_B$ 表示。
+
+这一约定主要约束幅值。在通带内仍可能有相位滞后、共振峰或幅值变化，因此“输入频率低于带宽”不等于输出逐点准确复制输入。对含多个频率分量的信号，各分量分别受到幅值和相位变化；要判断波形保真，应检查任务所需频段上的完整频率响应。
+
+### 教学计算/推理例
+
+取稳定低通通道 $T=2/(0.5s+1)$，按相对直流幅值定义有 $\omega_B=2$ rad/s。在该边界处
+
+$$
+\frac{|T(j2)|}{|T(0)|}=\frac1{\sqrt2},\qquad \arg T(j2)=-45^\circ.
+$$
+
+相对于直流放大倍数，幅值已下降约29.29%，并存在45度相位滞后。因此带宽边界是一个工程约定，不是“以内完全准确、以外完全不能传递”的开关。频率超过带宽后响应继续平滑衰减，而非立即变为零。
+
+对单位幅值、角频率0.2 rad/s的正弦输入，归一化幅值比为 $1/\sqrt{1.01}\approx0.9950$，相位约 $-5.7106^\circ$；在20 rad/s处，归一化幅值比约0.09950，相位约 $-84.2894^\circ$。这两个频点说明，离边界多远以及任务允许多少误差，比单纯比较“是否在带宽内”更有解释力。
+
+### 适用条件与边界
+
+上述例子分子为2，绝对输出幅值还包含直流增益2。若任务要求输出直接等于参考，还要处理静态标定或闭环精度，不能只检查归一化曲线。对带通系统，通常需说明下边界与上边界，带宽可以是二者之差；不能将低通直流阈值公式原样套用。
+
+增加带宽可能提高某些参考变化的跟随能力，也可能增加噪声通过、执行器动作及对未建模高频动态的敏感性。带宽是需要与其他约束共同选择的指标，并非越大越好。稳定性和信号幅值所处的线性范围也应先得到确认。
+
+### 常见误区
+
+1. 把带宽理解成理想砖墙滤波边界。
+2. 只检查幅值阈值，忽略相位导致的波形差异。
+3. 没有说明开环、闭环或传感器通道，就比较两个带宽数值。
+
+### 自检
+
+1. 在本例带宽边界，归一化输出幅值是否仍为1？
+2. 若要求小于5度的相位滞后，能否直接使用3 dB带宽作为充分条件？
+
+**核对要点**：为 $1/\sqrt2$，不是1；不能，带宽边界已有45度滞后，需按相位误差要求另行限定频率。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 自然频率 | 关联 |
-| 前置 | Resonant frequency | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、带宽
+- **谐振频率**（无向，关系：相关）
+- **固有频率**（无向，关系：相关）

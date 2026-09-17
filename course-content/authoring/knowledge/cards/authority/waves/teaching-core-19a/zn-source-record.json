@@ -1,0 +1,40 @@
+{
+  "kind": "supporting-research-record",
+  "capturedAt": "2026-09-16",
+  "subject": "Ziegler-Nichols ultimate-gain PID table and controller form",
+  "sources": [
+    {
+      "title": "George Kantor, Dynamical Systems Modeling, Lecture 3, 2021",
+      "url": "https://www.cs.cmu.edu/~cga/controls-intro-24/kantor/16299_03_Modeling.pdf",
+      "pages": [
+        1,
+        2
+      ],
+      "pdfSha256": "721fd4a5786d7de81242c0a7fe24abc91384ee5888cfbb5c25ff4d936a721a56",
+      "coverage": "open-loop stable premise on page 1; ideal PID equation and ultimate-gain table on page 2 visually checked; informal derivative commentary not used as a mathematical claim"
+    },
+    {
+      "title": "Ziegler and Nichols, Optimum Settings for Automatic Controllers, 1942",
+      "url": "https://doi.org/10.1115/1.4019264",
+      "coverage": "historical attribution, source investigator checked reprint; teaching example is independently chosen"
+    }
+  ],
+  "workedExample": {
+    "plant": "1/((s+1)(s+2)(s+3))",
+    "choiceReason": "strictly stable open-loop plant consistent with lecture premise; replaces preparatory integrating-plant example",
+    "negativeUnityFeedback": true,
+    "Ku": 60,
+    "Pu": "2*pi/sqrt(11)",
+    "idealForm": "Kp*(1+1/(Ti*s)+Td*s)",
+    "table": {
+      "Kp": "0.6 Ku",
+      "Ti": "Pu/2",
+      "Td": "Pu/8"
+    },
+    "parallelMapping": {
+      "Ki": "Kp/Ti",
+      "Kd": "Kp*Td"
+    }
+  },
+  "scope": "ultimate-gain method, not process-reaction-curve method or interacting PID; parameters form an initial candidate, not a performance guarantee"
+}

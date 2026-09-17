@@ -1,0 +1,39 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:可观测性格拉姆矩阵判据_9_13a109b3",
+      "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/可观测性格拉姆矩阵判据_9_13a109b3.md",
+          "sha256": "c61f4581e7a4b87ce053e7fbaf9d9091c21a8dc3af7008b1ec2d5871ef9c88c8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-16a/retired/authoring/可观测性格拉姆矩阵判据_9_13a109b3.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/可观测性格拉姆矩阵判据_9_13a109b3.md",
+          "sha256": "c61f4581e7a4b87ce053e7fbaf9d9091c21a8dc3af7008b1ec2d5871ef9c88c8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-16a/retired/runtime/可观测性格拉姆矩阵判据_9_13a109b3.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:格拉姆矩阵判据_9_a745338c",
+      "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/格拉姆矩阵判据_9_a745338c.md",
+          "sha256": "5cdde275a9d1d16fee8e7b2b968ac75138b8e38d8dc656b60ad894ff5d102950",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-16a/retired/authoring/格拉姆矩阵判据_9_a745338c.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/格拉姆矩阵判据_9_a745338c.md",
+          "sha256": "5cdde275a9d1d16fee8e7b2b968ac75138b8e38d8dc656b60ad894ff5d102950",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-16a/retired/runtime/格拉姆矩阵判据_9_a745338c.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b28",
+  "replacementDigest": "caff19b80401ea971e6a22f478794f209849341c336cbfa748720d0bece1099f"
+}

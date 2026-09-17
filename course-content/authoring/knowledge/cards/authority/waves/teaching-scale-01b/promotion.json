@@ -1,0 +1,9 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 8,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b5",
+  "retiredResources": [
+    "act:card:数学模型_2_b21e01f6",
+    "act:card:反馈控制系统_1_98dc667a"
+  ]
+}

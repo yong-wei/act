@@ -1,50 +1,76 @@
 ---
 node_id: ctkg_v3e-object-9e88045efd51f4067f98fe34
 authority_entity_id: "ctkg:v3e-object-9e88045efd51f4067f98fe34"
-name: "tf2ss: transfer "
-name_en: "tf2ss: transfer function to state-space conversion"
+name: "传递函数转状态空间"
+name_en: "Transfer Function to State Space"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - "tf2ss:"
-  - transfer
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-fb9f294f6c5aa284d91243fdfca1adfb9ea42004d0056fbf5ee9dff4133a4bad.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-fb9f294f6c5aa284d91243fdfca1adfb9ea42004d0056fbf5ee9dff4133a4bad.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-03a/previous/ctkg_v3e-object-9e88045efd51f4067f98fe34.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: f6a4d11b296c00156c78c174f2e5b4cbf55ab090ed2a7a498285f24949e884ba -->
-
 ## 首页
+# 传递函数转状态空间 | Transfer Function to State Space
 
-# tf2ss: transfer  | tf2ss: transfer function to state-space conversion
+一句话定义：传递函数转状态空间是构造矩阵 $A,B,C,D$，使零状态输入输出关系满足 $G(s)=C(sI-A)^{-1}B+D$。
 
-**一句话定义**：tf2ss: transfer ：Matlab command to convert transfer function to state-space representation in control canonical form.
-
-**关联**：（权威图邻接待补充）
+- 同一传递函数可以有多种状态实现。
+- 适当但非严格真有理模型需要直接通道D。
+- 外部传递函数不能唯一确定全部初态与内部模态。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-Matlab command to convert transfer function to state-space representation in control canonical form.
+对有理传递函数，通常先检查是否适当、整理分母与分子，再选择一种规范型实现。严格真有理部分可由动态状态描述，常数直通部分进入D。不同状态排序或相似变换会给出不同矩阵，因此不能把某个软件输出矩阵视为唯一正确答案。
+
+验证的直接办法是由所得状态方程消去状态或计算 $C(sI-A)^{-1}B+D$，看是否恢复原传递函数。只比较特征多项式不够，因为分子和直接通道也决定输入输出关系。
+
+### 教学计算/推理例
+
+取 $G(s)=(s+3)/(s^2+3s+2)$，选
+
+$$
+A=\begin{pmatrix}-3&-2\\1&0\end{pmatrix},\quad
+B=\begin{pmatrix}1\\0\end{pmatrix},\quad C=\begin{pmatrix}1&3\end{pmatrix},\quad D=0.
+$$
+
+零初态下，第二条状态方程给出 $sX_2=X_1$，第一条给出 $sX_1=-3X_1-2X_2+U$，因此 $X_2/U=1/(s^2+3s+2)$，$X_1/U=s/(s^2+3s+2)$。输出 $Y=X_1+3X_2$ 恰好恢复原分子。
+
+若原传递函数改为 $(2s^2+7s+7)/(s^2+3s+2)$，多项式除法得到 $2+(s+3)/(s^2+3s+2)$。保持上述动态矩阵，令 $D=2$ 即可。若仍设D为0，就漏掉直接通道，得到不同系统。
+
+### 适用条件与边界
+
+普通有限维状态空间形式 $\dot x=Ax+Bu,y=Cx+Du$ 的传递函数是适当的。若分子次数超过分母，不能不加处理就使用这种形式并声称得到同样的因果普通状态模型；可能需要输入导数等不同描述。
+
+即使传递函数相同，非最小实现也可能含有外部不可见状态。比如增加一个不与输入输出耦合的不稳定状态，不改变零状态传递函数，却改变内部稳定性。由传递函数构造实现后，应按任务检查最小性与内部模态，不能只看外部等式。
+
+初始状态的物理意义还依赖具体坐标。规范型状态通常是数学变量，未必直接等于实际位置或速度。将物理初态转换到实现坐标时，需要相应映射，不能任意把同一个数值向量复制到不同实现中。
+
+### 常见误区
+
+1. 认为同一传递函数只能对应一套矩阵。
+2. 非严格真有理模型仍强行令D为0。
+3. 回算外部传函相同就宣布所有内部状态与初态响应相同。
+
+### 自检
+
+1. 本例C为什么取 $[1,3]$ 而不是仅比较分母系数？
+2. 第二个传递函数中D应取多少？
+
+**核对要点**：C组合两个状态通道形成分子 $s+3$；多项式除法得到直通项2，因此D为2。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、tf2ss:、transfer
+- **传递函数**（无向，关系：相关）
+- **状态空间模型**（无向，关系：相关）

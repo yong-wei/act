@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> phase-plane-method node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "相平面法",
+  "representativeCanonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+  "authorityDomainId": "nonlinear-system-analysis",
+  "authorityDomainDisplayName": "非线性系统分析"
+}

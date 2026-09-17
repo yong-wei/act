@@ -1,0 +1,52 @@
+{
+  "batchId": "teaching-core-03a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-03",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+      "name": "线性化",
+      "moduleId": "module-1",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:modeling-4fe8840f2c796861bf5d2dae",
+      "name": "切线局部线性化法",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:modeling-70629af71e754aac8b740638",
+      "name": "平衡点泰勒级数线性化",
+      "moduleId": "module-1",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctc:modeling-70b08efcf6bb085e05de94cd",
+      "name": "工作点泰勒级数近似",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctc:modeling-f6875bd8fd4ad1250d8980d8",
+      "name": "微变小信号线性化法",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+      "name": "平衡点",
+      "moduleId": "module-5",
+      "order": 6
+    }
+  ]
+}

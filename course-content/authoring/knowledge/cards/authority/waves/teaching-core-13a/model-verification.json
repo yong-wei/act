@@ -1,0 +1,97 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "motor_time_constant": {
+      "assumptions": [
+        "negligible armature inductance",
+        "no load torque",
+        "zero initial speed",
+        "constant parameters"
+      ],
+      "equations": [
+        "V=Ra*i+Kb*w",
+        "J*dw/dt=Km*i-b*w"
+      ],
+      "parametersSI": {
+        "Ra": 2.0,
+        "J": 0.5,
+        "b": 0.1,
+        "Kb": 0.5,
+        "Km": 0.5,
+        "voltage": 4.0
+      },
+      "tauSeconds": 2.2222222222222223,
+      "steadySpeedRadPerSecond": 4.444444444444445,
+      "speedAtTau": 2.809424705904701,
+      "electromechanicalResidualBound": 8.849809773892048e-12
+    },
+    "itae": {
+      "equation": "T*dy/dt+y=1",
+      "zeroInitialState": true,
+      "T": 2.0,
+      "error": "exp(-t/T)",
+      "infiniteHorizonITAE": 3.9999999999999987,
+      "T1ITAE": 1.0,
+      "boundary": "comparison fixes normalized unit input and error units; a cost alone does not certify actuator constraints or optimality"
+    },
+    "second_order_A": {
+      "zeta": 0.6,
+      "wn": 4.0,
+      "polesReal": -2.4,
+      "polesImaginary": 3.2,
+      "overshootPercent": 9.478022484215476,
+      "peakTime": 0.9817477042468103,
+      "zeroTo100Rise": 0.6919679486213065,
+      "twoPercentSettling": 1.4857469696611825,
+      "twoPercentEnvelopeUpperBound": 1.7229860653093152,
+      "commonSettlingApproximation": 1.6666666666666667,
+      "allTwoPercentCrossings": [
+        0.6671480708481483,
+        0.7201642051670455,
+        1.4857469696611825
+      ]
+    },
+    "second_order_B": {
+      "zeta": 0.8,
+      "wn": 4.0,
+      "polesReal": -3.2,
+      "polesImaginary": 2.3999999999999995,
+      "overshootPercent": 1.5164619864546536,
+      "peakTime": 1.3089969389957474,
+      "zeroTo100Rise": 1.0408714769985457,
+      "twoPercentSettling": 0.9389603263274106,
+      "twoPercentEnvelopeUpperBound": 1.3821401966231677,
+      "commonSettlingApproximation": 1.25,
+      "allTwoPercentCrossings": [
+        0.9389603263274106
+      ]
+    },
+    "design": {
+      "specification": {
+        "overshootPercentMaximum": 10,
+        "twoPercentSettlingMaximum": 2,
+        "zeroTo100RiseMaximum": 0.8
+      },
+      "zetaMinimumFromOvershoot": 0.5911550337988976,
+      "candidate": "second_order_A",
+      "verifiedExactStandardModel": true,
+      "boundary": "no zeros, unit DC gain, zero initial state, unit step; extra poles or zeros require recomputation"
+    },
+    "minimum_beat": {
+      "T": "1/(s^3+1.9s^2+2.2s+1)",
+      "zeroInitialState": true,
+      "overshootPercent": 1.6513946751722575,
+      "numericallyLocatedTwoPercentSettling": 4.035446909636132,
+      "sourceRoundedSettling": 4.04,
+      "analyticTailGuaranteeAfter": 7.143713088698425,
+      "tailMethod": "sum abs(residue)*exp(real(pole)*t), all poles strictly stable",
+      "extremaBeforeTail": [
+        4.96494100599428
+      ],
+      "sourceContext": "continuous-time reference-response design, not finite-sample deadbeat",
+      "boundary": "settling and peak located numerically before analytic tail; no global time-optimality claim"
+    }
+  },
+  "sourceContextVerified": "local chapter 6 continuous-time minimum-beat; chapter 7 finite-sample minimum-beat is distinct"
+}

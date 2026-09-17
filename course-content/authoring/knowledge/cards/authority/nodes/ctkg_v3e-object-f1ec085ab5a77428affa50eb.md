@@ -1,31 +1,35 @@
 ---
 node_id: ctkg_v3e-object-f1ec085ab5a77428affa50eb
 authority_entity_id: "ctkg:v3e-object-f1ec085ab5a77428affa50eb"
-name: 极点配置
+name: "极点配置"
+name_en: "Pole Placement"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - 极点配置
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-d6b829189c03617e8ccc3de9876c62641e6a13f9fcf6a26032ee980265c5dce0.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-d6b829189c03617e8ccc3de9876c62641e6a13f9fcf6a26032ee980265c5dce0.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/previous/ctkg_v3e-object-f1ec085ab5a77428affa50eb.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: f7b8db26149d928dacf0391dd13e79d1b6a2421b4f0a2960901ddeb4d9648845 -->
-
 ## 首页
 
-# 极点配置
+# 极点配置 | Pole Placement
 
-**一句话定义**：极点配置。
+**一句话定义**：极点配置通过选择反馈增益，使闭环状态矩阵具有指定的特征值，从而设计其自然响应模态。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：先确认输入能够作用到要改变的模态，再用反馈改变它们；不可控模态不能靠状态反馈任意搬移。
+
+**关键公式**：对 $u=-Kx$，闭环矩阵为 $A-BK$。
+
+**学习目标**：从目标特征多项式求出状态反馈增益，并区分调节、跟踪和执行器可行性。
 
 ---
 
@@ -33,18 +37,44 @@ asset_refs: []
 
 ### 完整解释
 
-极点配置
+状态反馈把各状态按一定权重组合成输入。采用负号约定 $u=-Kx$ 时，代入原方程可得 $\dot x=(A-BK)x$。闭环自然响应的极点就是这个矩阵的特征值，所以设计必须连同反馈符号一起核验，不能把不同符号约定下的增益直接混用。
+
+完全可控的线性定常系统可以通过状态反馈配置整组极点；若存在不可控模态，它们不会被状态反馈任意改变。极点位置描述自然响应速度和振荡形式，但并不单独决定所有性能，例如控制量、测量噪声敏感度、输出零点和参考跟踪方式仍需分别分析。
+
+### 教学计算/推理例
+
+使用无量纲双积分器
+$$
+A=\begin{bmatrix}0&1\\0&0\end{bmatrix},\quad B=\begin{bmatrix}0\\1\end{bmatrix},\quad K=\begin{bmatrix}k_1&k_2\end{bmatrix}.
+$$
+其可控矩阵 $[B\;AB]=\begin{bmatrix}0&1\\1&0\end{bmatrix}$ 满秩。负状态反馈后
+$$
+A-BK=\begin{bmatrix}0&1\\-k_1&-k_2\end{bmatrix},\qquad
+\det(sI-A+BK)=s^2+k_2s+k_1.
+$$
+希望极点为 $-3,-4$，目标多项式为 $(s+3)(s+4)=s^2+7s+12$。逐项比较系数，得到 $k_1=12,k_2=7$，因此
+$$
+u=-12x_1-7x_2,\qquad A-BK=\begin{bmatrix}0&1\\-12&-7\end{bmatrix}.
+$$
+重新计算闭环特征多项式，确为 $s^2+7s+12$。这一步可以发现符号或增益次序错误，而不是只依赖系数匹配时的记忆。
+
+### 适用条件与边界
+
+这里是零参考调节问题：在理想模型中让状态回到原点。要跟踪一个非零参考，还需设计参考进入方式并检查稳态误差，不能把调节反馈直接当成完整跟踪控制器。本例也假定状态可直接获得；如果需要观测器，应另行设计估计动态，并在有噪声和约束时重新评价整体系统。极点配置没有自动满足输入幅值、变化率或模型不确定性要求。
+
+### 常见误区
+
+1. **误区**：极点越靠左，设计必然越好。**纠正**：更快动态可能需要更大控制量，也可能放大未建模因素的影响。
+2. **误区**：配置成功就能保证任意参考无静差。**纠正**：本例只设计零参考状态调节。
+
+### 自检
+
+1. 本例的 $k_1$ 与 $k_2$ 分别对应特征多项式哪一项？
+2. 为什么求增益前要检查可控性？
+
+**核对要点**：$k_1$ 是常数项，$k_2$ 是一次项；可控性决定能否任意配置全部状态模态。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、极点配置
+- **定理9-11：利用状态反馈任意配置闭环极点的充分必要条件是被控系统（9-227）可控。**（无向，关系：相关）
+- **定理9-12：用输出至状态微分的反馈任意配置闭环极点的充分必要条件是被控系统（9-227）可观测。**（无向，关系：相关）

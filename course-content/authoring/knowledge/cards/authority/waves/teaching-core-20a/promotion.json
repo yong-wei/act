@@ -1,0 +1,13 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 10,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b31",
+  "retiredResources": [
+    "act:card:测速反馈控制_3_4c2ec80f",
+    "act:card:串联补偿器_9_e0444c1f",
+    "act:card:串联超前校正_8_5d889b7d",
+    "act:card:反馈校正_6_c96d771b",
+    "act:card:速度反馈_3_2374effc",
+    "act:card:速度反馈_8_c94fe545"
+  ]
+}

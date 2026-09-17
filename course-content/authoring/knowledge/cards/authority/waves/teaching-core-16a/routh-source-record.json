@@ -1,0 +1,53 @@
+{
+  "kind": "supporting-research-record",
+  "capturedAt": "2026-09-16",
+  "subject": "Routh alpha-beta reduction, three-to-two worked example",
+  "sources": [
+    {
+      "title": "Hutton and Friedland (1975), Routh Approximations for Reducing Order of Linear, Time-Invariant Systems",
+      "url": "https://doi.org/10.1109/TAC.1975.1100953",
+      "verifiedVia": "https://researchwith.njit.edu/en/publications/routh-approximations-for-reducing-order-of-linear-time-invariant-/",
+      "coverage": "publication metadata and abstract only; original full text not accessed"
+    },
+    {
+      "title": "Sambariya and Prasad (2012), Stable Reduction Methods of Linear Dynamic Systems in Frequency Domain",
+      "url": "https://www.iitk.ac.in/npsc/Papers/NPSC2012/papers/12241.pdf",
+      "pages": [
+        2,
+        3
+      ],
+      "pdfSha256": "e3074a50de614a0cf39062fe5d52b17e6ed45acc8004deed53628932f34adfec",
+      "coverage": "alpha/beta tables and low-order polynomial recurrence visually checked; supporting algorithm exposition"
+    },
+    {
+      "title": "IIT Delhi Large Scale Systems, section 4.3.1",
+      "url": "https://web.iitd.ac.in/~janas/courses/material/eel879/sp_topics_01.pdf",
+      "printedPage": 53,
+      "pdfSha256": "eb207d24186bb0b894b5a8e412d0b8e914b5b30ab53bd01bbd31b9f25fe631ef",
+      "coverage": "reciprocal transformation and four-step overview; ambiguous continued-fraction typography not used as executable formula"
+    }
+  ],
+  "workedExample": {
+    "origin": "new teaching example, not the 1975 paper numerical example",
+    "G": "(2s^2+s+1)/(s^3+2s^2+s+1)",
+    "Ghat": "(s^2+s+2)/(s^3+s^2+2s+1)",
+    "alpha": [
+      1,
+      1,
+      1
+    ],
+    "beta": [
+      1,
+      1,
+      1
+    ],
+    "A1": "1+s",
+    "B1": "1",
+    "A2": "s^2+s+1",
+    "B2": "s+1",
+    "A3": "s^3+s^2+2s+1",
+    "B3": "s^2+s+2",
+    "reducedG": "(s+1)/(s^2+s+1)"
+  },
+  "scope": "specific stable strictly proper SISO model, no origin poles, ordinary nonzero Routh pivots; no global error or arbitrary-pole-deletion claim"
+}

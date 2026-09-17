@@ -279,7 +279,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/主导极点_3_4c4c6bbd.md",
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-23ce934816d236fcc2836d27.md",
         {
           "type": "infograph",
           "path": "course-content/runtime/knowledge/infographs/nodes/主导极点_3_4c4c6bbd.png",
@@ -412,7 +412,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/根轨迹法_2_e3f6c0c1.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-e8d4b4f1c63aa5a052b15538.md"
       ],
       "tags": [
         "3-5",
@@ -457,7 +457,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/根轨迹绘制规则_3_2f9e8cb3.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-4bb347d0f2aa8859a18073de.md"
       ],
       "tags": [
         "3-5",
@@ -506,7 +506,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/闭环极点_3_f9432bf3.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-47a2e3c44742b45c55ac902d.md"
       ],
       "tags": [
         "响应类型",
@@ -775,7 +775,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/带宽_5_6730fda4.md",
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-3bf89181c7be53ac268d5785.md",
         {
           "type": "infograph",
           "path": "course-content/runtime/knowledge/infographs/nodes/带宽_5_6730fda4.png",
@@ -837,7 +837,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md",
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1c159c9cc34ce696a62bf837.md",
         {
           "type": "infograph",
           "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
@@ -893,7 +893,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/自然频率_10_51a8b7d0.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7ee407860ee485f1e1b1f3d1.md"
       ],
       "tags": [
         "二阶系统",

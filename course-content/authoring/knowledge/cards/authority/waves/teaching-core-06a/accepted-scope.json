@@ -1,0 +1,53 @@
+{
+  "batchId": "teaching-core-06a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-06",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-385c515b4d8dbb550b664072",
+      "name": "信号流图输入输出节点",
+      "moduleId": "module-2",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+      "name": "回路增益",
+      "moduleId": "module-2",
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:modeling-5e62391de61ac1af304601cb",
+      "name": "信号流图支路",
+      "moduleId": "module-2",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+      "name": "信号流图",
+      "moduleId": "module-1",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+      "name": "前向路径",
+      "moduleId": "module-2",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+      "name": "回路",
+      "moduleId": "module-2",
+      "order": 6
+    }
+  ],
+  "accepted": true
+}

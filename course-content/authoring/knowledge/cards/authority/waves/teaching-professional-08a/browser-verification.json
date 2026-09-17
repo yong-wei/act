@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> sampling-period node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "采样周期",
+  "representativeCanonicalId": "ctkg:domainconcept:9e0ece5ddc1de81897928b5f",
+  "authorityDomainId": "discrete-time-control-design",
+  "authorityDomainDisplayName": "离散时间控制设计"
+}

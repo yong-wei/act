@@ -1,0 +1,135 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:欠阻尼二阶系统_3_242477a2",
+      "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/欠阻尼二阶系统_3_242477a2.md",
+          "sha256": "1e6c1318a05d633b7b096aaee657b8a16b16e2bbe499db535371ad025bc4364e",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/authoring/欠阻尼二阶系统_3_242477a2.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/欠阻尼二阶系统_3_242477a2.md",
+          "sha256": "1e6c1318a05d633b7b096aaee657b8a16b16e2bbe499db535371ad025bc4364e",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/runtime/欠阻尼二阶系统_3_242477a2.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:无阻尼自然频率_3_13001",
+      "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/无阻尼自然频率_3_13001.md",
+          "sha256": "227a0773cef24cc2154de5e17894312b8e0c6565a031047ae15682fa4c390bc0",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/authoring/无阻尼自然频率_3_13001.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/无阻尼自然频率_3_13001.md",
+          "sha256": "227a0773cef24cc2154de5e17894312b8e0c6565a031047ae15682fa4c390bc0",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/runtime/无阻尼自然频率_3_13001.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:时间常数_2_68356eae",
+      "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/时间常数_2_68356eae.md",
+          "sha256": "0ad3edacd7ed521c42ce946796d1e777aefbbb36d7a8f188f31f8048aa1068cb",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/authoring/时间常数_2_68356eae.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/时间常数_2_68356eae.md",
+          "sha256": "0ad3edacd7ed521c42ce946796d1e777aefbbb36d7a8f188f31f8048aa1068cb",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/runtime/时间常数_2_68356eae.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:时间常数_3_17162973",
+      "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/时间常数_3_17162973.md",
+          "sha256": "117206e4e3ea50881c9b73acd592e1da9f6856c9b678e8ac67978af0e2ff4423",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/authoring/时间常数_3_17162973.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/时间常数_3_17162973.md",
+          "sha256": "117206e4e3ea50881c9b73acd592e1da9f6856c9b678e8ac67978af0e2ff4423",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/runtime/时间常数_3_17162973.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:临界阻尼_1_3",
+      "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/临界阻尼_1_3.md",
+          "sha256": "a0b01a41046cf88135684e14ff361d28dd79ed5d322ff19db2d2f37bf1d25bba",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/authoring/临界阻尼_1_3.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/临界阻尼_1_3.md",
+          "sha256": "a0b01a41046cf88135684e14ff361d28dd79ed5d322ff19db2d2f37bf1d25bba",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/runtime/临界阻尼_1_3.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:自然频率_10_51a8b7d0",
+      "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/自然频率_10_51a8b7d0.md",
+          "sha256": "490716049fbb92bfe871631b119afac3f72f2dba5f990a46aee9b542ce43c0ec",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/authoring/自然频率_10_51a8b7d0.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/自然频率_10_51a8b7d0.md",
+          "sha256": "490716049fbb92bfe871631b119afac3f72f2dba5f990a46aee9b542ce43c0ec",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/runtime/自然频率_10_51a8b7d0.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:自然频率_3_ab7d6dc0",
+      "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/自然频率_3_ab7d6dc0.md",
+          "sha256": "df8fd3ee3f0adc3830ca08f5ae1ca987c907c2a1dd888f615d69e6cad108f4f3",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/authoring/自然频率_3_ab7d6dc0.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/自然频率_3_ab7d6dc0.md",
+          "sha256": "df8fd3ee3f0adc3830ca08f5ae1ca987c907c2a1dd888f615d69e6cad108f4f3",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/runtime/自然频率_3_ab7d6dc0.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:欠阻尼响应_3_c2d57b37",
+      "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/欠阻尼响应_3_c2d57b37.md",
+          "sha256": "fe4c5e46dc6c5aeaf4c8deb692737efa646a8925f8675f67eaef3ffc6c574ad1",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/authoring/欠阻尼响应_3_c2d57b37.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/欠阻尼响应_3_c2d57b37.md",
+          "sha256": "fe4c5e46dc6c5aeaf4c8deb692737efa646a8925f8675f67eaef3ffc6c574ad1",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/retired/runtime/欠阻尼响应_3_c2d57b37.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b23",
+  "replacementDigest": "410dd61cd40ee4f0ffba655e1c13e4ac58943c2221f56f1b8fa309f738d39a5a"
+}

@@ -1,32 +1,31 @@
 ---
 node_id: ctkg_v3e-object-b51bc504a48917b2c5ec25c3
 authority_entity_id: "ctkg:v3e-object-b51bc504a48917b2c5ec25c3"
-name: Feedback Compensation
+name: "反馈补偿"
+name_en: "Feedback-path Compensation"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - Feedback
-  - Compensation
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2b28e331d72927416a0197f27b67f303a4cca76c1a020f17f08a64b772fede32.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2b28e331d72927416a0197f27b67f303a4cca76c1a020f17f08a64b772fede32.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/previous/ctkg_v3e-object-b51bc504a48917b2c5ec25c3.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 9e7a0a6d2145b521bb0c39d3bebd2628f777b2b94e8d35531ad911d3c55259f3 -->
-
 ## 首页
 
-# Feedback Compensation
+# 反馈补偿 | Feedback-path Compensation
 
-**一句话定义**：Feedback Compensation：A compensation scheme where the compensator is placed in the feedback path.
+**一句话定义**：反馈补偿把补偿环节放在反馈通路中，通过改变回送信号影响闭环关系。
 
-**核心直觉**：在图谱邻接中可把握：前置 → Feedback compensation (as a scheme) · 后续 → Compensation。
-
-**关联**：前置 → Feedback compensation (as a scheme) · 后续 → Compensation
+即使与串联补偿具有相同回路乘积，参考传递函数也可能不同。
 
 ---
 
@@ -34,19 +33,48 @@ asset_refs: []
 
 ### 完整解释
 
-A compensation scheme where the compensator is placed in the feedback path.
+在非单位反馈中，比较点接收的是经过反馈环节处理的输出信号。若前向对象为 $G$、反馈补偿为 $H$，负反馈下参考传递函数为 $G/(1+GH)$。其中分子仍是前向对象，不能直接写成串联补偿的 $GH/(1+GH)$。
+
+这种差异说明连接位置是系统定义的一部分。相同的回路乘积给出相同形式的特征分母，并不保证参考、扰动和噪声通道完全相同。评价补偿效果时，应逐个说明关心的输入到输出关系。
+
+反馈补偿可以是测量滤波、局部动态反馈或其他明确结构，不能仅凭名称判断它会改善哪项性能。环节自身稳定也不保证连接后的闭环稳定，应实际检查特征方程与内部状态。
+
+### 教学计算/推理例
+
+取 $G(s)=1/(s+1)$，反馈环节 $H(s)=2/(s+2)$。由 $e=r-Hy,y=Ge$得到
+
+$$T_f(s)=\frac{G}{1+GH}=\frac{s+2}{s^2+3s+4}.$$
+
+若将同一个函数放在前向通路串联，并改为单位反馈，则参考函数为
+
+$$T_s(s)=\frac{HG}{1+HG}=\frac2{s^2+3s+4}.$$
+
+两者分母相同、直流增益也都为1/2，但零初态单位阶跃下，反馈放置的输出初始斜率为1，串联放置为0。原连接状态方程及解析响应都能核对这个差别。
+
+因此只比较闭环极点或终值还不够。分子改变了起始过程和模态系数，不能把同一特征分母当作全部响应等价的证明。
+
+### 适用条件与边界
+
+实际反馈环节若表示传感器，应同时注意回送量与参考信号是否处于同一尺度。若 $H(0)$不为1，比较点误差为零也未必意味着输出与原参考数值相同；必须结合信号定义解释稳态关系。本例选择 $H(0)=1$，只是为了隔离动态放置差异。
+
+若反馈补偿位于局部内环，应先求内环等效对象，再与外环连接；当前单回路公式不能直接代替多层反馈的全部关系。极零约消和隐藏内部状态也需要保留在适当的模型中。
+
+本卡比较的是参考输入通道，尚不能由此宣布噪声抑制或扰动性能哪种更好。对这些问题，应从各自注入位置推导函数，再结合真实模型和要求验证。
+
+### 常见误区
+
+1. 误区：反馈补偿分子应写成回路乘积 $GH$。纠正：当前参考关系分子为 $G$，具体取决于连接方式。
+2. 误区：分母和终值相同就代表两种放置完全等价。纠正：本例初始斜率不同，分子仍影响过程。
+
+### 自检
+
+1. 本例反馈与串联放置的参考分子分别是什么？
+2. 为什么初始斜率可以不同，而闭环极点仍相同？
+
+**核对要点**：分别为 $s+2$和2。极点由公共分母决定，分子改变响应系数和初始运动，不能只看极点作全部结论。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Feedback compensation (as a scheme) | 是一种 |
-| 后续 | Compensation | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、Feedback、Compensation
+- **补偿**（入边，关系：前置于）
+- **补偿**（出边，关系：属于）
+- **前馈补偿**（无向，关系：相关）

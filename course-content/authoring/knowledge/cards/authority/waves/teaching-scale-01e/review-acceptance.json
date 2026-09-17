@@ -1,0 +1,16 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_frequency_seven",
+  "role": "simulation-domain-reviewer",
+  "acceptedFindingGroups": 3,
+  "resolvedFindingGroups": 3,
+  "cardHashes": {
+    "ctkg:v3e-canonical-7e46e083227dc119d597d82b": "2f64b7c47f355060e18daec6afb52e5ca7f2ddb908d923ce9d1280eb37d30202",
+    "ctkg:v3e-object-38d4679bf3335318b0f4afb7": "5825fd56084c428f0c0f1eea51850fce9a5a831a04f54be3e650de6bf67a9bc3",
+    "ctkg:v3e-object-3af39a858b2949296df5387f": "1fbcdb61a3eb5d95b0a3885eca1290a70c910ae8a438425e4203dffb87ea09dd",
+    "ctkg:v3e-object-de873c97a924107857f79242": "cc5cbfcdaa0efb51e2972982002e45800c5c74a48ad482914e54c0ae7c06c284",
+    "ctkg:v3e-object-ee4c217b305b05786c0b89a9": "2551254803450ae9ac0cfd8995149411961a3901c653403e0ed286a531d6d213",
+    "ctkg:v3e-object-0ca481aed329f4e6c74c8d30": "b9a49b93411d66b39f55a92235b3740a0ed9370ed110f2a8be59abaf0c13aefd",
+    "ctkg:v3e-object-e80f5d56ce06409842363584": "2b8dfd6c6d7759f4998d5f6dd126e476e013c05fbae51b972ada0b93350f060a"
+  }
+}

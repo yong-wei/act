@@ -1,51 +1,77 @@
 ---
 node_id: ctkg_v3e-object-33f3fab8ae4fb405d2c60ad4
 authority_entity_id: "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4"
-name: Ideal sampler
+name: "理想采样器"
+name_en: "Ideal Sampler"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - Ideal
-  - sampler
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-4ab6d1b3c0e2d523b20612a9d808834e907e58533a5576bae6aace223be6d58a.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-4ab6d1b3c0e2d523b20612a9d808834e907e58533a5576bae6aace223be6d58a.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-01a/previous/ctkg_v3e-object-33f3fab8ae4fb405d2c60ad4.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 9c22aa4afde3c58284f12b01ca67f565ef8b5ecdcb8866e813f8984ecf3c2b0b -->
-
 ## 首页
+# 理想采样器 | Ideal Sampler
 
-# Ideal sampler
+一句话定义：理想采样器在指定时刻取得信号值，数学上常用冲激列与连续信号相乘来表示，不包含有限孔径或保持动态。
 
-**一句话定义**：Ideal sampler：Ideal sampler
-
-**关联**：后续 → Sampler
+- 冲激权重等于样值，不能把冲激理解为普通有限高度脉冲。
+- 样值序列与冲激列属于不同表示。
+- 理想模型便于推导频谱复制，但不等于实际器件全部行为。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-Ideal sampler
+周期为 $T_s$ 的理想采样冲激列为 $p(t)=\sum_k\delta(t-kT_s)$。对适当连续信号 $x(t)$，采样结果写成
+
+$$
+x_s(t)=x(t)p(t)=\sum_kx(kT_s)\delta(t-kT_s).
+$$
+
+序列 $x[k]=x(kT_s)$ 是每个时刻的数值列表；冲激列则是在连续时间分布意义下用冲激权重承载这些数值。冲激不是普通函数的有限峰值，图上的箭头高度只是权重标记，不能直接当成实际电压瞬时幅值。
+
+采用角频率傅里叶变换约定，理想采样使频谱按 $\omega_s=2\pi/T_s$ 周期复制：$X_s(j\omega)=T_s^{-1}\sum_mX[j(\omega-m\omega_s)]$。比例因子与所选冲激列归一化有关，使用不同约定时应同步调整，不能任意省去。
+
+### 教学计算/推理例
+
+设 $x(t)=\cos(2\pi\cdot2t)$，$T_s=0.1$ s。样值为 $x[k]=\cos(0.4\pi k)$，前几个值为1、0.30902、$-0.80902$。理想采样输出是在0、0.1、0.2秒等时刻具有这些权重的冲激，而不是在整个区间保持这些值的阶梯。
+
+如果随后接零阶保持器，才会在 $[kT_s,(k+1)T_s)$ 内保持第 $k$ 个数值。保持后的信号具有有限区间宽度和对应频率特性，不能在推导中与理想冲激采样器互换。
+
+同样10 Hz采样时，8 Hz余弦产生相同权重序列。冲激列表示并没有消除混叠；它只是把采样结果换成适合连续频域运算的形式。要判断能否重建，仍需带限条件或其他先验。
+
+### 适用条件与边界
+
+实际采样具有有限采集时间、采样保持、时钟抖动、量化及转换延迟等效应。理想模型把其中的取值时刻抽象出来，不包含这些误差。若采样时刻不均匀，冲激位置应写成实际的 $t_k$，固定间隔频谱复制公式不再直接适用。
+
+频谱推导还需使用与信号类别相容的变换解释；无限持续正弦的谱含冲激，应按广义函数理解。工程上可用有限观察窗近似分析，但要区分有限窗效应与采样混叠。
+
+理想采样器不会自行限制带外频率，也不会把幅值变成有限数字等级。抗混叠滤波、采样、量化、保持应分别列出，才能说明每一步改变了什么信息。
+
+### 常见误区
+
+1. 将冲激权重当作普通有限宽脉冲的峰值。
+2. 把理想采样器等同于零阶保持器。
+3. 认为换成冲激列表示后就不需要带限或抗混叠条件。
+
+### 自检
+
+1. 本例0.1秒处的冲激权重是多少？
+2. 若输出在0.1至0.2秒保持不变，是否仍是理想冲激采样本身？
+
+**核对要点**：约0.30902；区间保持属于保持器作用，理想采样只在离散时刻以冲激权重表示样值。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | Sampler | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Ideal、sampler
+- **采样器**（入边，关系：前置于）
+- **采样器**（出边，关系：属于）

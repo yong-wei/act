@@ -1,0 +1,213 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:1cf39d7e12faf619de1decf6",
+          "otherId": "ctc:modeling-4633e458d7b6508b49488fbb",
+          "label": "状态变量分析法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态变量分析法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:425ecb3a191501507a6d9649",
+          "otherId": "ctc:modeling-35ceac27e10f3aedb135cbab",
+          "label": "状态变量列向量",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态变量列向量**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:cf46148cd35b770aa02975a5",
+          "otherId": "ctc:modeling-279d8e08fb8dbe4bdfd80b95",
+          "label": "状态变量行向量",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态变量行向量**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-348746457d644126ff8ecf77",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:b199b8965417aba1edd5e64e",
+          "otherId": "ctkg:v3e-object-542c371afb4374a5f7b7be5f",
+          "label": "矩阵指数函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **矩阵指数函数**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-352b9bfe27ba1ab6b9c9672e",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
+      "relations": [
+        {
+          "relationId": "m1l:relation-2cce170b87a8d2f0ad1c6e45",
+          "otherId": "ctkg:v3e-object-03d6599e1da6eea96f210635",
+          "label": "选择 M = B N，使得估计误差动态特性与 r(t) 相互独立。",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **选择 M = B N，使得估计误差动态特性与 r(t) 相互独立。**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-0aaa275c9758af9cf1e97fb4",
+          "otherId": "ctkg:v3e-object-1c442cbf6e7d4166bf6f6e84",
+          "label": "在第一种情形下，选择 M 与 N 使估计误差 e(t) 独立于参考输入 r(t)。",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **在第一种情形下，选择 M 与 N 使估计误差 e(t) 独立于参考输入 r(t)。**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-c4e42fafe0bc01eb28f467a9",
+          "otherId": "ctkg:v3e-object-e87f83a8b5af259e69018445",
+          "label": "\\dot{\\mathbf{e}}(t)=(\\mathbf{A}-\\mathbf{L C}) \\mathbf{e}(t)",
+          "predicate": "has_formula",
+          "direction": "source_to_target",
+          "renderedLine": "- $\\dot{\\mathbf{e}}(t)=(\\mathbf{A}-\\mathbf{L C}) \\mathbf{e}(t)$（出边，关系：具有公式）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:3848dd152f7bb21800451374",
+          "otherId": "ctkg:v3e-object-7e0291af0b752655e0d98328",
+          "label": "一致可达",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **一致可达**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-c15f4a3ed1cee5d6d80241c2",
+          "otherId": "ctkg:v3e-object-902a7486fad0f7f8ea7accb9",
+          "label": "状态完全可达",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **状态完全可达**（入边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+      "relations": [
+        {
+          "relationId": "m1l:relation-2f91b218b3512b107c7cf70a",
+          "otherId": "ctkg:v3e-object-ade57f97833b42fe6394301d",
+          "label": "可控性PBH秩判据法",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **可控性PBH秩判据法**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+      "relations": [
+        {
+          "relationId": "m1l:relation-4148f9f83bcbd4c4fea5d7a0",
+          "otherId": "ctkg:v3e-object-bbde87998fe5c58705383e29",
+          "label": "可控性判别阵",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **可控性判别阵**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "m1l:relation-ef9e1fcc64dc255e6165514f",
+          "otherId": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+          "label": "系统完全可控",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **系统完全可控**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "m1l:relation-59d4c7610a3a95c82bff5c43",
+          "otherId": "ctkg:v3e-object-ef49dd72a21c3ad4ddcfd668",
+          "label": "秩判据的充分性",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **秩判据的充分性**（出边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "relations": [
+        {
+          "relationId": "m1l:relation-48bd2c2c761622b080733e65",
+          "otherId": "ctkg:v3e-object-b4a2f18f1716937654a70941",
+          "label": "定理9-11：利用状态反馈任意配置闭环极点的充分必要条件是被控系统（9-227）可控。",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **定理9-11：利用状态反馈任意配置闭环极点的充分必要条件是被控系统（9-227）可控。**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-96cf974fb5c379f09d602078",
+          "otherId": "ctkg:v3e-object-e857d38eb5632b3f764bad98",
+          "label": "定理9-12：用输出至状态微分的反馈任意配置闭环极点的充分必要条件是被控系统（9-227）可观测。",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **定理9-12：用输出至状态微分的反馈任意配置闭环极点的充分必要条件是被控系统（9-227）可观测。**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+      "relations": [
+        {
+          "relationId": "m1l:relation-16fc27450721c9ade8a51d5d",
+          "otherId": "ctkg:v3e-object-8d8c5b1f62747c3d046a53cb",
+          "label": "系统不可观测",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **系统不可观测**（出边，关系：适用于）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:97a22e72faeb149636f86ac8",
+          "otherId": "ctkg:v3e-object-3dcfcc93901edd979be43f5c",
+          "label": "对角标准型可控性判据",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **对角标准型可控性判据**（出边，关系：前置于）"
+        },
+        {
+          "relationId": "m1l:relation-dbb2d896a9450388edbd8f37",
+          "otherId": "ctkg:v3e-object-3dcfcc93901edd979be43f5c",
+          "label": "对角标准型可控性判据",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **对角标准型可控性判据**（入边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+      "relations": [
+        {
+          "relationId": "m1l:relation-dcd562f44f3100643048b6c4",
+          "otherId": "ctkg:v3e-object-a801b9509d0e105d9982661c",
+          "label": "一般线性时不变连续系统",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **一般线性时不变连续系统**（出边，关系：适用于）"
+        },
+        {
+          "relationId": "m1l:relation-50bc2adb1e27b51fa5b29083",
+          "otherId": "ctkg:v3e-object-5b731e732e53bf4a017c2b32",
+          "label": "状态可控性与输出可控性的区别",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态可控性与输出可控性的区别**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:谐振峰值Mr_5_b3a87785",
+      "canonicalId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/谐振峰值Mr_5_b3a87785.md",
+          "sha256": "d527dc36918b0758438f6a3c4339217d38561b00cc7b1b23d76b79c53105e2fc",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/authoring/谐振峰值Mr_5_b3a87785.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/谐振峰值Mr_5_b3a87785.md",
+          "sha256": "d527dc36918b0758438f6a3c4339217d38561b00cc7b1b23d76b79c53105e2fc",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/runtime/谐振峰值Mr_5_b3a87785.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:谐振峰值_5_aa4903ab",
+      "canonicalId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/谐振峰值_5_aa4903ab.md",
+          "sha256": "76d912196d8a35169ba2f82ae108274440467c014925c0fd71be44da99e83229",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/authoring/谐振峰值_5_aa4903ab.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/谐振峰值_5_aa4903ab.md",
+          "sha256": "76d912196d8a35169ba2f82ae108274440467c014925c0fd71be44da99e83229",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/runtime/谐振峰值_5_aa4903ab.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:带宽_5_58d2afcc",
+      "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/带宽_5_58d2afcc.md",
+          "sha256": "4ace33f3d407587fd936c974fc968002ee1f5155e5b969583f446f7236bba33c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/authoring/带宽_5_58d2afcc.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/带宽_5_58d2afcc.md",
+          "sha256": "4ace33f3d407587fd936c974fc968002ee1f5155e5b969583f446f7236bba33c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/runtime/带宽_5_58d2afcc.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:带宽_5_6730fda4",
+      "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/带宽_5_6730fda4.md",
+          "sha256": "779db471f7fcadcc31e136af8ea808aef891cfc006edcd9bd78f8970a12eddb4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/authoring/带宽_5_6730fda4.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/带宽_5_6730fda4.md",
+          "sha256": "779db471f7fcadcc31e136af8ea808aef891cfc006edcd9bd78f8970a12eddb4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/runtime/带宽_5_6730fda4.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:对数幅频渐近特性曲线_5_61c26fcf",
+      "canonicalId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/对数幅频渐近特性曲线_5_61c26fcf.md",
+          "sha256": "5ab368df8b9d1bb246468bee431f8d1285f822ae2d1fb67d92620e92f3d9bec3",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/authoring/对数幅频渐近特性曲线_5_61c26fcf.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/对数幅频渐近特性曲线_5_61c26fcf.md",
+          "sha256": "5ab368df8b9d1bb246468bee431f8d1285f822ae2d1fb67d92620e92f3d9bec3",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/runtime/对数幅频渐近特性曲线_5_61c26fcf.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:交接频率_转折频率__5_8bca814b",
+      "canonicalId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/交接频率_转折频率__5_8bca814b.md",
+          "sha256": "7cc0b27b2356eaa7ec6622bf6a58bed9f5fca20273ebbeece9f90294d6c70812",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/authoring/交接频率_转折频率__5_8bca814b.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/交接频率_转折频率__5_8bca814b.md",
+          "sha256": "7cc0b27b2356eaa7ec6622bf6a58bed9f5fca20273ebbeece9f90294d6c70812",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/retired/runtime/交接频率_转折频率__5_8bca814b.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b37",
+  "replacementDigest": "f4eea373b77eac12d7cd05a754befcb90393a567541c15f35c9fc4a4dcbcac56"
+}

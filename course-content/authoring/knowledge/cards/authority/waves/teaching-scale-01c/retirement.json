@@ -1,0 +1,135 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:单位阶跃响应_2_6a2a83b9",
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/单位阶跃响应_2_6a2a83b9.md",
+          "sha256": "2764985f791b57fe8027a02d65e4272f383d4dacf747a3dc1b6704399f828af9",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/authoring/单位阶跃响应_2_6a2a83b9.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/单位阶跃响应_2_6a2a83b9.md",
+          "sha256": "2764985f791b57fe8027a02d65e4272f383d4dacf747a3dc1b6704399f828af9",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/runtime/单位阶跃响应_2_6a2a83b9.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:单位阶跃响应_3_04fc55dc",
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/单位阶跃响应_3_04fc55dc.md",
+          "sha256": "24853416faf6f96340dd2e69b565e10c23283781bd84129a4abf6a41778d1ddf",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/authoring/单位阶跃响应_3_04fc55dc.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/单位阶跃响应_3_04fc55dc.md",
+          "sha256": "24853416faf6f96340dd2e69b565e10c23283781bd84129a4abf6a41778d1ddf",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/runtime/单位阶跃响应_3_04fc55dc.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:单位阶跃响应_9_dd4abbe1",
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/单位阶跃响应_9_dd4abbe1.md",
+          "sha256": "d78471562e955c7c6d77c66f60983f872564ee6a9b8135e42ca09765f43c51c4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/authoring/单位阶跃响应_9_dd4abbe1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/单位阶跃响应_9_dd4abbe1.md",
+          "sha256": "d78471562e955c7c6d77c66f60983f872564ee6a9b8135e42ca09765f43c51c4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/runtime/单位阶跃响应_9_dd4abbe1.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:阶跃响应_10_47ad4df2",
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/阶跃响应_10_47ad4df2.md",
+          "sha256": "209339bd975d547703656c33034445b1f1ca2edfa8ef555ca3e13bce7b618ec2",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/authoring/阶跃响应_10_47ad4df2.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/阶跃响应_10_47ad4df2.md",
+          "sha256": "209339bd975d547703656c33034445b1f1ca2edfa8ef555ca3e13bce7b618ec2",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/runtime/阶跃响应_10_47ad4df2.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:静态位置误差系数_3_58c09499",
+      "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/静态位置误差系数_3_58c09499.md",
+          "sha256": "001013b3800135cc456184fcdd52cc62280fa6eae58765584c8926ded8fb876c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/authoring/静态位置误差系数_3_58c09499.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/静态位置误差系数_3_58c09499.md",
+          "sha256": "001013b3800135cc456184fcdd52cc62280fa6eae58765584c8926ded8fb876c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/runtime/静态位置误差系数_3_58c09499.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:单位阶跃函数_3_c077ea6e",
+      "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/单位阶跃函数_3_c077ea6e.md",
+          "sha256": "79cf65d082ae4b3037e8fa39415749fe6f3b1c1672004de7e74bf4940dd65524",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/authoring/单位阶跃函数_3_c077ea6e.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/单位阶跃函数_3_c077ea6e.md",
+          "sha256": "79cf65d082ae4b3037e8fa39415749fe6f3b1c1672004de7e74bf4940dd65524",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/runtime/单位阶跃函数_3_c077ea6e.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:阶跃函数_1_8d0028b4",
+      "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/阶跃函数_1_8d0028b4.md",
+          "sha256": "1de802f3d29520fe0bf1736a52d79629ed310215c2ed05f59d0a0793037d174f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/authoring/阶跃函数_1_8d0028b4.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/阶跃函数_1_8d0028b4.md",
+          "sha256": "1de802f3d29520fe0bf1736a52d79629ed310215c2ed05f59d0a0793037d174f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/runtime/阶跃函数_1_8d0028b4.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:静态速度误差系数_3_ba8e28bb",
+      "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/静态速度误差系数_3_ba8e28bb.md",
+          "sha256": "91f7d9d979a41dd9d78f91e7145702423707b0d2e2bd87dffc00422d5ea9ad1c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/authoring/静态速度误差系数_3_ba8e28bb.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/静态速度误差系数_3_ba8e28bb.md",
+          "sha256": "91f7d9d979a41dd9d78f91e7145702423707b0d2e2bd87dffc00422d5ea9ad1c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01c/retired/runtime/静态速度误差系数_3_ba8e28bb.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b8",
+  "replacementDigest": "0ce38bdbc0c105ccbee8df4217370f798ce418bb60a780ee538bf6753a0480e5"
+}

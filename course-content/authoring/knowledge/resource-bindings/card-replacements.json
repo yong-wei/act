@@ -1,0 +1,3612 @@
+{
+  "contract": "act-reviewed-card-replacements/v1",
+  "status": "accepted",
+  "batchId": "teaching-batches-01-02-scale-01-01b-01d-01c-01f-01e-01h-01g-core-01a-core-02a-core-04a-core-03a-core-06a-core-05a-core-07a-core-09a-core-08a-core-10a-core-11a-core-12a-teaching-core-13a-teaching-core-14a-teaching-core-15a-teaching-core-16a-teaching-core-17a-teaching-core-18a-teaching-core-19a-teaching-core-20a-teaching-core-21a-teaching-core-22a-teaching-core-23a-teaching-core-24a-teaching-core-25a-teaching-core-26a-teaching-core-27a-teaching-core-28a-teaching-core-29a-teaching-professional-01a-teaching-professional-02a-teaching-professional-03a-teaching-professional-04a-teaching-professional-05a-teaching-professional-06a-teaching-professional-07a-teaching-professional-08a-teaching-professional-09a-teaching-professional-10a-teaching-professional-11a-teaching-professional-12a-teaching-professional-13a-teaching-professional-14a",
+  "authority": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+  },
+  "rows": [
+    {
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "cardId": "ctc_modeling-865eb1c8824e157c2f05a903",
+      "title": "传递函数",
+      "sha256": "fe919cdaeb00a4b3dce8ae048e569198c4a389640bded2589b2c3c61133cea97",
+      "retiredResourceIds": [
+        "act:card:传递函数_10_6c2d17e5",
+        "act:card:传递函数_1_1",
+        "act:card:传递函数_1_2",
+        "act:card:传递函数_1_5b0faf8b",
+        "act:card:传递函数_2_2c5e2589",
+        "act:card:传递函数_3_92e14aa2",
+        "act:card:传递函数_9_a86a3adf"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+      "cardId": "ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "title": "二阶系统",
+      "sha256": "b8a322683388f60d82a35f83dcb8e13c84ba114810f7b4f0288d336ed05fd2bc",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+      "cardId": "ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+      "title": "系统型别",
+      "sha256": "5e1fcdaf81ce38aacb668ccde2bb62bc3281618fe925012f51f321ede2f97fec",
+      "retiredResourceIds": [
+        "act:card:系统型别_3_5573c2c3",
+        "act:card:系统型别_5_13c42c40",
+        "act:card:系统型别_6_be6e63a4"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+      "cardId": "ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "title": "稳态误差",
+      "sha256": "43e2c4de7a216e5f82370ec69d39c0627de3f979d92dd9d7302b155c2277e937",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "cardId": "ctkg_v3e-canonical-504581e399675b9792ab8502",
+      "title": "伯德图",
+      "sha256": "444175566cac5d4fa2a0b8a7639765f21db6643f24271b94da7c0f2eb337ed4e",
+      "retiredResourceIds": [
+        "act:card:伯德图_6_1a069614"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "cardId": "ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "title": "相角裕度",
+      "sha256": "3733a2b18304b3f44341c95fd95983e466476fd3c9a47396c1f0848ee6853eab",
+      "retiredResourceIds": [
+        "act:card:相角裕度_5_5a74b451",
+        "act:card:相角裕度_6_b44a6a10",
+        "act:card:相角裕度γ_5_68528f7d"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+      "cardId": "ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "title": "系统带宽",
+      "sha256": "ca1900560d843ea2f33f438d5ee95a18880f076bf7321601f4e11eedbc7bd630",
+      "retiredResourceIds": [
+        "act:card:系统带宽_5_eaed82b2"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+      "cardId": "ctc_v11g-c8c8aef0d010e68842be7236",
+      "title": "积分控制器",
+      "sha256": "9908cebdd874ab8ebcfd8e3301681fa472dbe3b0e96eca5ef8ba9dc81b18a340",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "cardId": "ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "title": "PI控制器",
+      "sha256": "b14e583999c3887d306743e2c09a1ebcf878f48672e74c6aac564187b256b4b0",
+      "retiredResourceIds": [
+        "act:card:PI控制_4_d0d2c836",
+        "act:card:PI控制器_6_29ebe858",
+        "act:card:PI控制器_8_50f96fae"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "cardId": "ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "title": "超前补偿",
+      "sha256": "04734a71cbb5d6f3a64ff4484a3e915ce3919aa53ab1e88c83260736d198e97d",
+      "retiredResourceIds": [
+        "act:card:超前补偿_4_3d4fc55d"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+      "cardId": "ctkg_v3e-object-f9ac171d68c8622f62106397",
+      "title": "串联滞后校正",
+      "sha256": "478a916986f3ee4d27a7da744c76c15957d4cfa852829fb821f82b63a1b09044",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "cardId": "ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "title": "根轨迹法",
+      "sha256": "da1df20c2ad377ee8f740d2e4d3be22840ccfa425f89cad1d40e45ebaa4cbb4f",
+      "retiredResourceIds": [
+        "act:card:根轨迹法_2_e3f6c0c1",
+        "act:card:根轨迹法_4_4e598387"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+      "cardId": "ctc_modeling-47e8eb68c1aa5cd068c72e54",
+      "title": "负反馈回路",
+      "sha256": "700d13bcd71f233f886313a84fe9e9ce14aeabbf7be014ebe39b4a85902050d6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "cardId": "ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "title": "一阶系统",
+      "sha256": "0f20dc023122a3c56ca2caf14445d59dec02ee2f9541b7b736ef1c530b7a4902",
+      "retiredResourceIds": [
+        "act:card:一阶系统_3_4f3b29ce"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ab642a336bbbbafc6327f6f2",
+      "cardId": "ctkg_v3e-canonical-ab642a336bbbbafc6327f6f2",
+      "title": "阻尼比",
+      "sha256": "fcd78b3ea0f224d5b67adae8f36a4d9763d9d09508e4c18f4e2013a045e0b1fe",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+      "cardId": "ctkg_v3e-canonical-df3167f36376f526f6ec5562",
+      "title": "超调量",
+      "sha256": "93ec07b3734bad853f8933388b68bd54456aabc9bbd54e6ad2b024b26c5002e7",
+      "retiredResourceIds": [
+        "act:card:超调量_3_fc3f5b17",
+        "act:card:超调量_4_bad49999",
+        "act:card:超调量_6_f91c1939"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+      "cardId": "ctkg_v3e-object-7aa500461c5109b7cffd9b19",
+      "title": "劳斯表",
+      "sha256": "6a6a961f9e689fc5773a65c0edb14245b3dc10e52d9b0580dd889a1ecdc30556",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "cardId": "ctkg_v3e-object-763fd65e573e7a65dfc4b79c",
+      "title": "奈奎斯特图",
+      "sha256": "d141a2220910a9fa83d55c54b70abf72504070b6c9e59cdda7fbbca42e049492",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+      "cardId": "ctkg_m3-v1i_canonical-object_0aa3a61ec0920c38f4e34c4e",
+      "title": "增益裕度",
+      "sha256": "d250b4c856f2feebf4df313666d435088fc3a452cb7d812ec769fa36e45ea7bc",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:289e3beca59c9ef373836b12",
+      "cardId": "ctkg_domainconcept_289e3beca59c9ef373836b12",
+      "title": "零阶保持器",
+      "sha256": "481bedd81a6f61000a04c38fbc65020b2a10d804aa9e942043d673ad65bb0aac",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d3704ae133f6be94bf5991b",
+      "cardId": "ctkg_v3e-object-7d3704ae133f6be94bf5991b",
+      "title": "脉冲传递函数",
+      "sha256": "7fd5a42835b7bd3855ebb053781b03a6079605d37815243c5d28f2d3a35bfeb3",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:28bfca2df331c329cea26464",
+      "cardId": "ctkg_domainconcept_28bfca2df331c329cea26464",
+      "title": "朱利稳定判据",
+      "sha256": "8533543a0a7b7a34fc0192282acf691725611e49b1288447f7c1b917d44b261a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "cardId": "ctkg_v3e-object-133c90435f61b9a83b7d4aaf",
+      "title": "可控性",
+      "sha256": "cb9dfebbc0ec6b5e832e5638d440467a6d4c236a410e9023caad0048008a3f22",
+      "retiredResourceIds": [
+        "act:card:可控性_9_b22a45c8"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+      "cardId": "ctkg_v3e-object-5592624b3ec200b86f7b744d",
+      "title": "可观测性",
+      "sha256": "0e0e99b0e1654c72d5ecf0aa9b144a0a38024e4e35c9a74647f76bcfe119b12f",
+      "retiredResourceIds": [
+        "act:card:可观测性_9_b26c542c"
+      ]
+    },
+    {
+      "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+      "cardId": "ctc_90af7a0497e616bbe6249c30",
+      "title": "微分方程模型",
+      "sha256": "768fb007d8fdfc3cbcdc801aa30ec9058efaf303460e8598728245564efef2fb",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+      "cardId": "ctc_modeling-00d2998755974a1329049aac",
+      "title": "增益",
+      "sha256": "936aaf4b33f60bee3adaf1acdb462821d02a20d04284c6249c0567af69f70b2f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-05fbe60f54c183c4e3ded892",
+      "cardId": "ctc_modeling-05fbe60f54c183c4e3ded892",
+      "title": "拉普拉斯反变换",
+      "sha256": "e0c1a05b3a2c45b79630e86aa7a52a34f20c405619cb6ad9e3c83318aa962eef",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+      "cardId": "ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "title": "动态控制系统",
+      "sha256": "7a4d657192fa839e0e8e50723a2930f7770abf3b1cbda6eb72030890dc1f6a66",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+      "cardId": "ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "title": "复频域传递函数",
+      "sha256": "fd813ff326fa4abc0d716cba9ab635da7baf5e82c8b7e29c3a75920daf139479",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+      "cardId": "ctc_modeling-b2fd214ec64665147e16ff9d",
+      "title": "运算放大器积分器",
+      "sha256": "5d7efba9da04a4937d7bc9f1c3175d8c2892c6c5123a07ccd8a31b7f2edecf68",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+      "cardId": "ctc_v11g-21fba199a9fdef15887d600f",
+      "title": "滞后补偿",
+      "sha256": "8a73ebe262df30480b0f279c76e5a0f84b38f5ce4e889242706e9a248fec2eec",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+      "cardId": "ctc_v11g-caa20b325717f0a3c570f16b",
+      "title": "时间延迟",
+      "sha256": "39eb8a0c9435c87e2e51e4ad3a967e815beec4b8cd87d83624fe79af9a220057",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+      "cardId": "ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "title": "未建模动态",
+      "sha256": "f949f631aee46a051df80f3184f1d4755980efc48073f8ef79e033817426d07e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+      "cardId": "ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "title": "相位裕度",
+      "sha256": "372cd4e3a63107cbac0920ae6d771770bb3a26000e498e42afe4fc23fec0d81b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+      "cardId": "ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "title": "帕德近似",
+      "sha256": "91322e067e4c1b852b95ad6067a5071ffddfc82a885029e9bad6747e58f41a08",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2",
+      "cardId": "ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "title": "时延",
+      "sha256": "b04edf7cff94a291de31db982af37f7928548ca2d2dd15ac1322bc7d660e938e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+      "cardId": "ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "title": "部分分式展开的覆盖法",
+      "sha256": "197dff3ede7d434b0616425db42d7c8578517a8516fd6d4f239973a9130d4881",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "cardId": "ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "title": "误差信号",
+      "sha256": "820cccc45b6a93bbe442b254a2a5b8c0a97e964254ba075301aefcabb25dbbf5",
+      "retiredResourceIds": [
+        "act:card:误差_1_1"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+      "cardId": "ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "title": "傅里叶系数",
+      "sha256": "86b7bc4e98d4a8d18ed3fa6ec58dba7ad3f01da830fb33c6cf3403d1c8f966dc",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "cardId": "ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "title": "相频特性",
+      "sha256": "e65531815e43cab0510f92d2710a74037e9b90c19361754b220d69ae4e9dc63b",
+      "retiredResourceIds": [
+        "act:card:对数相频曲线_5_ac0666e1",
+        "act:card:相频特性_5_abda14da"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+      "cardId": "ctc_modeling-7734a0845c335f160395bac0",
+      "title": "数学模型",
+      "sha256": "16033f94ceb2b1a381d498beeed07d5edea26d53e88219f90ce612167ce87f17",
+      "retiredResourceIds": [
+        "act:card:数学模型_2_b21e01f6"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+      "cardId": "ctc_modeling-c26fddc50074ec84707d5950",
+      "title": "常系数线性定常系统",
+      "sha256": "e845d40bff0f3c0906851aba81cf9919052eda5a6ed5580c4e326a7da27b5ecd",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+      "cardId": "ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+      "title": "反馈控制系统",
+      "sha256": "fc6ffd75bd2ef5e1d022131720a43bcdd3beed514cbb70f6c605f4daf529e7c5",
+      "retiredResourceIds": [
+        "act:card:反馈控制系统_1_98dc667a"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+      "cardId": "ctkg_domainconcept_42146fa04dc1459716346cc7",
+      "title": "扰动抑制",
+      "sha256": "cf7290038d15b375b6721ee10a3d72cb46c3c52821180a70aa894ae12338f679",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+      "cardId": "ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+      "title": "参数不确定性",
+      "sha256": "0252f3cd0a39ca1f234544794d0ba4d30b0658bdf62a225a3d1c7b6a9aa94617",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+      "cardId": "ctkg_domainconcept_fef4835248def04a043183ee",
+      "title": "闭环系统",
+      "sha256": "c30290fa27a9fdb5b111a1ee324f59cf148eb9bdcc5049ba7eaa22cd1e281ec0",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-01549ef9b34888b89b55f224",
+      "cardId": "ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "title": "终值定理法求稳态误差",
+      "sha256": "ff29b58d82b22c968f357cf043dc5cb43b49f6f774b60d55cdee7733a471b737",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+      "cardId": "ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "title": "单边拉普拉斯变换",
+      "sha256": "eb1887e2ee192f03519b04c80dff1dce5cf9d2ff96acb3b6c136c95aabd0f8df",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "cardId": "ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "title": "加速度误差常数 (K_a)",
+      "sha256": "ecae3cbacb0ad30f7cf6fbfc3a51764deb5e189e24d81b04570919f7b5a0fe63",
+      "retiredResourceIds": [
+        "act:card:静态加速度误差系数_3_74752b9d"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+      "cardId": "ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "title": "稳态误差e_ss",
+      "sha256": "edc09635263173cad9eb4f24dfa620b5c1c646ac8a64b18382808a1171b894c6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+      "cardId": "ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "title": "单位加速度函数",
+      "sha256": "112dee2a5f6f666324748cf0c4bff755676f8f9ac14f2a2b132cf20ed516d033",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "cardId": "ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "title": "直流增益",
+      "sha256": "74b57d3e8640da38280306ce2adc15dca46688d82e94f508d230883db5c41e81",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+      "cardId": "ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "title": "叠加原理",
+      "sha256": "f35ff633e5e96cf6962ce7f21657497647377366449a8d9b9b1d676327a66c40",
+      "retiredResourceIds": [
+        "act:card:叠加原理_2_dda8499e"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+      "cardId": "ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "title": "部分分式展开",
+      "sha256": "5e6863fa2754a07a88c57930b9337c0b536076053d6ede7e2718a477f31215e5",
+      "retiredResourceIds": [
+        "act:card:部分分式展开_7_d822352e"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+      "cardId": "ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "title": "不同极点部分分式展开法",
+      "sha256": "e65498a00454f76e773341c6818992a2e014dfd9c354b3716cb68ae50374c463",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "cardId": "ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "title": "拉普拉斯变换",
+      "sha256": "80ba37f1766776c13ee319c16749e4f70dcca01f052ed91e6cada7ebadb6eb2b",
+      "retiredResourceIds": [
+        "act:card:拉普拉斯变换_2_c635236f",
+        "act:card:拉氏变换_1_2",
+        "act:card:拉氏变换_2_243496d4"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+      "cardId": "ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "title": "静态误差系数法求稳态误差",
+      "sha256": "1f348a46273079617bf6512c38e0f2974ebd332b1292b969e49d9b8371bab28f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "cardId": "ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "title": "终值定理",
+      "sha256": "d93701e3d81fabdc62654541249c4cce742124060c6cfefca91a9f97134b8ee8",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+      "cardId": "ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "title": "稳态性能",
+      "sha256": "4034263f3146445310445e3c1ccec1635782176b7955a0f206b88863b21734e2",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "cardId": "ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "title": "单位阶跃响应",
+      "sha256": "c69b7056181de11bf86e84aafcf9675f655af53528da552afad4dec8aedb9c88",
+      "retiredResourceIds": [
+        "act:card:单位阶跃响应_2_6a2a83b9",
+        "act:card:单位阶跃响应_3_04fc55dc",
+        "act:card:单位阶跃响应_9_dd4abbe1",
+        "act:card:阶跃响应_10_47ad4df2"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+      "cardId": "ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "title": "位置误差常数 (K_p)",
+      "sha256": "e86bc4ea39dfbfb591d127b77e66ba0101573133ac40e29ac94cad5be6da5eeb",
+      "retiredResourceIds": [
+        "act:card:静态位置误差系数_3_58c09499"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "cardId": "ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "title": "单位阶跃函数",
+      "sha256": "cd8f29a1f439f2f74bae7232e1e955acc4210d3e8b0d625259996666a5fcde38",
+      "retiredResourceIds": [
+        "act:card:单位阶跃函数_3_c077ea6e",
+        "act:card:阶跃函数_1_8d0028b4"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+      "cardId": "ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "title": "单位斜坡函数",
+      "sha256": "956900ff1ab7374305328a8ae5bc8f42e5fc9c1688f8aced88584314728e3c0b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "cardId": "ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "title": "速度误差系数 (K_v)",
+      "sha256": "75a3dad25af3617feacb835a9494ae70a8e217d8c58e1c94b7ecad2157943e4e",
+      "retiredResourceIds": [
+        "act:card:静态速度误差系数_3_ba8e28bb"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "cardId": "ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "title": "稳定性",
+      "sha256": "ef57417b72a326f66f63574651e0de38df2751cd221008c19fa3b09b46570214",
+      "retiredResourceIds": [
+        "act:card:稳定性_1_1",
+        "act:card:稳定性_1_7288b4ea",
+        "act:card:稳定性_3_72d04fbd",
+        "act:card:稳定性_4_b56bde88",
+        "act:card:稳定性_7_2e521218"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+      "cardId": "ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "title": "劳斯-赫尔维茨稳定性判据法",
+      "sha256": "7e0d38d75eead4fd56fa252ca2e4d549b4b5ebed7f724f331d134a5c3cceb2c7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "cardId": "ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "title": "劳斯-赫尔维茨稳定性判据",
+      "sha256": "d2f818c8ba0e8f1b3de94b5cd1baa619b0bd6c13faee6ecaf90a3e3874e14af8",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "cardId": "ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "title": "穿越频率（相位）",
+      "sha256": "02836f6326c5411f4900250ec11157a06c2da469f85bcd82ed10bd1a40eae482",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+      "cardId": "ctkg_v3e-object-7761615701fb4915a76924ff",
+      "title": "穿越频率（增益）",
+      "sha256": "6fcd63e3028fde779e4f92d3dfd8aa930eee6d63d9ff01623618d6bbe6a037d7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+      "cardId": "ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "title": "幅值裕度",
+      "sha256": "3d28338acf0f4d7bc08a255057a9ab7b2f022cf1a26c0c43a4b4b41efaec8ef4",
+      "retiredResourceIds": [
+        "act:card:幅值裕度_5_73af26a5",
+        "act:card:幅值裕度_6_29a8a2e1"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "cardId": "ctkg_v3e-object-232e387ed53e92abee078346",
+      "title": "截止频率",
+      "sha256": "8220eec62abf4263ec42e128390469190a2c687e450d8eebd8bf92582a09f875",
+      "retiredResourceIds": [
+        "act:card:截止频率_5_c7d09ff7",
+        "act:card:截止频率_6_d39c12b0",
+        "act:card:截止频率ωc_5_c67064fa"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "cardId": "ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "title": "频率响应",
+      "sha256": "2f64b7c47f355060e18daec6afb52e5ca7f2ddb908d923ce9d1280eb37d30202",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "cardId": "ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "title": "频率特性",
+      "sha256": "5825fd56084c428f0c0f1eea51850fce9a5a831a04f54be3e650de6bf67a9bc3",
+      "retiredResourceIds": [
+        "act:card:频率特性_5_404adfdd"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+      "cardId": "ctkg_v3e-object-3af39a858b2949296df5387f",
+      "title": "幅值谱",
+      "sha256": "1fbcdb61a3eb5d95b0a3885eca1290a70c910ae8a438425e4203dffb87ea09dd",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+      "cardId": "ctkg_v3e-object-de873c97a924107857f79242",
+      "title": "幅频特性",
+      "sha256": "cc5cbfcdaa0efb51e2972982002e45800c5c74a48ad482914e54c0ae7c06c284",
+      "retiredResourceIds": [
+        "act:card:幅频特性_5_4e8408d2"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "cardId": "ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "title": "正弦稳态响应",
+      "sha256": "2551254803450ae9ac0cfd8995149411961a3901c653403e0ed286a531d6d213",
+      "retiredResourceIds": [
+        "act:card:正弦稳态响应_5_b6dc1100"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "cardId": "ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "title": "实验频率响应测定",
+      "sha256": "b9a49b93411d66b39f55a92235b3740a0ed9370ed110f2a8be59abaf0c13aefd",
+      "retiredResourceIds": [
+        "act:card:频率响应实验_5_90116afd"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+      "cardId": "ctkg_v3e-object-e80f5d56ce06409842363584",
+      "title": "频率特性实验确定方法",
+      "sha256": "2b8dfd6c6d7759f4998d5f6dd126e476e013c05fbae51b972ada0b93350f060a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+      "cardId": "ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "title": "性能指标",
+      "sha256": "cded8f272fd95043f97161d593e8af6fa6f42beba9d87636935783dfaf94c447",
+      "retiredResourceIds": [
+        "act:card:性能指标_1_1",
+        "act:card:性能指标_6_6af5c715"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+      "cardId": "ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "title": "调节与扰动抑制的系统类型",
+      "sha256": "c263662ea8fee1d7a2ab1ea2083da31588502599e9c91dcc53b21d82fe547f4e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+      "cardId": "ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "title": "全状态反馈设计步骤",
+      "sha256": "ad202183f0a4e7bec7c0c2b0bf16acea77640cfe548c50a2d1d950823b1e58f0",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+      "cardId": "ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "title": "极点配置补偿器设计",
+      "sha256": "31bb564917b5563cd54d02129f1cf4d3f3173dccd55890078bcda3d8b264eff4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "cardId": "ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "title": "延迟环节",
+      "sha256": "7c1f8106007568d29e7d33a3e313c77442dd185492b3cbb4f1f6e84c7cf5a89b",
+      "retiredResourceIds": [
+        "act:card:延迟环节_5_a2771a34",
+        "act:card:纯延迟_2_8f4165fd"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "cardId": "ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "title": "校正装置",
+      "sha256": "3df3f0e0e8f965a5e520efc0ce4302b5a5139a4f6731025b81e60ec63f7f5b75",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+      "cardId": "ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "title": "比例控制规律",
+      "sha256": "13b3da63928a76816bba2ae770e0dbdef690ea3073287bb55415ec8c34b686ac",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+      "cardId": "ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "title": "比例积分控制器",
+      "sha256": "20ed1b6fa0ad7b672906f05a971768dee49062582492993555da86d419b532f6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+      "cardId": "ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "title": "积分补偿器",
+      "sha256": "292a6e8b943273fec4f26ba5c7ced548688acc340f7edc734a202407dd26b21e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "cardId": "ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "title": "补偿器",
+      "sha256": "800c2d3ce4501c916b92e4a9284c590d20a8248bc41e60a4f9d87e3095dc16c1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+      "cardId": "ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "title": "补偿",
+      "sha256": "b58144ac33798dca94f4070ee68101876622d1df49cb4e850d8cfa09b9cef9f4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+      "cardId": "ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "title": "串联校正",
+      "sha256": "ef52cb743efc680e11333d8349dcbb21e9f0de78b5e7025bd15e487267147b5d",
+      "retiredResourceIds": [
+        "act:card:串联校正_6_fede5751"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+      "cardId": "ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "title": "串联滞后-超前校正",
+      "sha256": "0dc73885c2e0961fe59843116d677a9cec574112b7be7c0511fa96dc2145abf1",
+      "retiredResourceIds": [
+        "act:card:串联滞后-超前校正_6_23ee8cb9"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-1897336a3fe60360d9fea3aa",
+      "cardId": "ctc_modeling-1897336a3fe60360d9fea3aa",
+      "title": "动态系统建模规范步骤",
+      "sha256": "4609c3f8a5f9659c672aea106ff6127fc5409fae25cc86a20c49ee96040dc9fc",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+      "cardId": "ctc_modeling-227e674315b4da2f1a20ee31",
+      "title": "动态系统",
+      "sha256": "4d2f41abb8fafc05a287ea7095c9e69fb59daa58e3fb375812b9bdda5e7d6a47",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-30d05b970a0d4a71c9d243c3",
+      "cardId": "ctc_modeling-30d05b970a0d4a71c9d243c3",
+      "title": "仿真保真度级别",
+      "sha256": "c5de7f6e3caa7bc649741f6f9c5029a736cd047b402f846c62d6c232947e1620",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-5727d74e4587f60fe7b011ae",
+      "cardId": "ctc_modeling-5727d74e4587f60fe7b011ae",
+      "title": "物理系统模型相似性",
+      "sha256": "7b700cb5240a420478eec761366fd0d20645683be7f1ff5f387075b30c70ba50",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-c343400ab0cc996416d5a18a",
+      "cardId": "ctc_modeling-c343400ab0cc996416d5a18a",
+      "title": "系统建模简化假设",
+      "sha256": "bbfffdf490e30299b629d0d1685a10ad78596818710ad3d0b368036187a32636",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-e4d5dedd058631068d41b452",
+      "cardId": "ctc_modeling-e4d5dedd058631068d41b452",
+      "title": "机理建模与分析流程",
+      "sha256": "7724e09eb34b04377fb541b792cb9711b8602cc0d9ce9bc5007dbac8a0790946",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:909e732d40f972bf760fa8ff",
+      "cardId": "ctc_909e732d40f972bf760fa8ff",
+      "title": "航天器姿态扰动力矩",
+      "sha256": "b1b0054b7baf4c02fc2ebdc1c020871871c69153a95c4903848f68da40301b75",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-137c3394c7a146209fe2cd37",
+      "cardId": "ctc_modeling-137c3394c7a146209fe2cd37",
+      "title": "牛顿定律力学建模法",
+      "sha256": "0da2ec34bc9d5fa7a6bc949857313c860e7f65a55268ad22778bfcda715ac6f2",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-1b36aff609b370e792d9dee6",
+      "cardId": "ctc_modeling-1b36aff609b370e792d9dee6",
+      "title": "相似物理系统",
+      "sha256": "66aa4497e4a6b0516618666effdf18cfc5fe43d917aa4846317e5c677373f271",
+      "retiredResourceIds": [
+        "act:card:模型结构相似性_1_2",
+        "act:card:相似系统_2_5477df89"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-3abaeb7a2cbf8d77276bf23c",
+      "cardId": "ctc_modeling-3abaeb7a2cbf8d77276bf23c",
+      "title": "同构相似系统",
+      "sha256": "220b9c40e93a1f7caf6b9b1dfc21e578a8037fedbfaa8a1c81b8c30dfba58e0a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-afa39b57a646673e84b55f09",
+      "cardId": "ctc_modeling-afa39b57a646673e84b55f09",
+      "title": "元件级联负载效应",
+      "sha256": "31140d2f87e31dc8e68deefb06658a21262aebf2294b4d11ca941ec0e4604dde",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
+      "cardId": "ctc_modeling-bb52102ba5f63982e27e329a",
+      "title": "并联连接",
+      "sha256": "1ca52f933abe9c4f82140fd28bed3fe1e944a1906e39e9c255fac0e2daaa0669",
+      "retiredResourceIds": [
+        "act:card:并联连接_2_0e5f1ec2"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+      "cardId": "ctc_modeling-ebf5a771fd114720de11f6e3",
+      "title": "串联连接",
+      "sha256": "6b0a539dc964ff3bd0d0e12177bd83fec63acc614d8d474e4843a9690a491f78",
+      "retiredResourceIds": [
+        "act:card:串联连接_2_98ee18bc"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+      "cardId": "ctkg_domainconcept_0a8044ae6cb529e98bc20bca",
+      "title": "测量组件（传感器）",
+      "sha256": "ed7462b57efc4e6690df75264ddbed8e62f05c19dac157065719dba4ebfa740a",
+      "retiredResourceIds": [
+        "act:card:测量元件_1_ad76ac2b"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
+      "cardId": "ctc_modeling-023f560241f0e47081f0f59e",
+      "title": "状态变量",
+      "sha256": "6f92ec1fea11117833a0d93cf0a46dac15fb4983bf96621dd73bfffaed243bec",
+      "retiredResourceIds": [
+        "act:card:状态变量_9_2dedb9d8",
+        "act:card:状态向量_9_a19c08fc"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-348746457d644126ff8ecf77",
+      "cardId": "ctc_modeling-348746457d644126ff8ecf77",
+      "title": "建模（约当标准型）",
+      "sha256": "b060f81518bac4d3e43f34901b6e7f63a88afe1b8658537428fdd2f73a50ac64",
+      "retiredResourceIds": [
+        "act:card:建模_1_2"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-352b9bfe27ba1ab6b9c9672e",
+      "cardId": "ctc_modeling-352b9bfe27ba1ab6b9c9672e",
+      "title": "传感器执行器同位配置",
+      "sha256": "4ce2f6ecee296bf684529c722c9a6912ef6219a03bb525b773c48fa4a9a8d226",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
+      "cardId": "ctkg_v3e-object-1f331a007aa3ca6c2c95d297",
+      "title": "估计误差",
+      "sha256": "b273187110b6c32f974ace635a38bfebda7a7adcf594402ab8a7f5af8d233e33",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+      "cardId": "ctkg_v3e-object-239fecfdb347e1a48fb9d7cc",
+      "title": "完全可达",
+      "sha256": "7196631562f26041e4190e18ec433db95627dae751881befcd91a3834f90fc3a",
+      "retiredResourceIds": [
+        "act:card:完全可达_9_f0aa6191"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+      "cardId": "ctkg_v3e-object-23a1c9229387ded552fbdbb3",
+      "title": "PBH秩判据",
+      "sha256": "6091d11e8a2c341c54d30459403dc1cd5f256f3d9bb5e9f4464724493d8b4291",
+      "retiredResourceIds": [
+        "act:card:PBH秩判据_9_bdf533f4",
+        "act:card:可观测性PBH秩判据_9_3ad87876"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+      "cardId": "ctkg_v3e-object-9b795692bacd0f13270cc086",
+      "title": "秩判据",
+      "sha256": "963b734f3ee9aa4859fb292f4010999b074aa36fe3120fa7fdb38d96ba1fed02",
+      "retiredResourceIds": [
+        "act:card:可观测性秩判据_9_92339d2c",
+        "act:card:秩判据_9_daff6c3c"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "cardId": "ctkg_v3e-object-f1ec085ab5a77428affa50eb",
+      "title": "极点配置",
+      "sha256": "f42a9ad75f350b68b8a383d7dc9707d9ca40bf6891a5ae7293cd848448b45eeb",
+      "retiredResourceIds": [
+        "act:card:极点配置_3_d367ec42",
+        "act:card:极点配置_9_b5578c51"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+      "cardId": "ctkg_v3e-object-fac170446815fe168f9a5469",
+      "title": "对角线规范型判据",
+      "sha256": "f62f16c8af4a9a309093e1afe218cee4695d1db9be7ef51c3e5a59d82608924a",
+      "retiredResourceIds": [
+        "act:card:可观测性对角线规范型判据_9_12b8f833",
+        "act:card:对角线规范型判据_9_db607dca"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+      "cardId": "ctkg_v3e-object-ff560d5d53d578d0bc57baeb",
+      "title": "输出可控性",
+      "sha256": "e84dfb2bdf01e3d45925654139ae289989350bd61d263b6208bb5b29aa25db3e",
+      "retiredResourceIds": [
+        "act:card:输出可控性_9_7c4fb777"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+      "cardId": "ctc_modeling-34de45f2470f6c09c7d96698",
+      "title": "线性化",
+      "sha256": "038d548cc080037c9c94afd184ff7260a45da636530e4f25da114e3a29552f89",
+      "retiredResourceIds": [
+        "act:card:增量线性化_8_9ba8e3a5",
+        "act:card:小偏差线性化_2_277afa67",
+        "act:card:小偏差线性化_8_a82063b7",
+        "act:card:非线性微分方程的线性化_2_caa86ba6"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-4fe8840f2c796861bf5d2dae",
+      "cardId": "ctc_modeling-4fe8840f2c796861bf5d2dae",
+      "title": "切线局部线性化法",
+      "sha256": "8a8e4c9bacfb2d63b318e30c408ca8d605ec278c939d2d3c9a578e81e216384e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-70629af71e754aac8b740638",
+      "cardId": "ctc_modeling-70629af71e754aac8b740638",
+      "title": "平衡点泰勒级数线性化",
+      "sha256": "e93c1ffde839f0022c43e6ddbaf6f11c0f2bdc988233ebb4c95637df4c8f876f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-70b08efcf6bb085e05de94cd",
+      "cardId": "ctc_modeling-70b08efcf6bb085e05de94cd",
+      "title": "工作点泰勒级数近似",
+      "sha256": "a74e4d251c0162b658388922d818122b8f29c414288dde4d5cc622910468fda1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-f6875bd8fd4ad1250d8980d8",
+      "cardId": "ctc_modeling-f6875bd8fd4ad1250d8980d8",
+      "title": "微变小信号线性化法",
+      "sha256": "7a7ea29cb9977f800776a3c443587e0e52f592f1ef6501cabe8b0edd8e73d74e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+      "cardId": "ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+      "title": "平衡点",
+      "sha256": "959e776d190d3c9673c8aab385b87fd19d3d46f4c2d4821fcae8e6ec9cf18372",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-385c515b4d8dbb550b664072",
+      "cardId": "ctc_modeling-385c515b4d8dbb550b664072",
+      "title": "信号流图输入输出节点",
+      "sha256": "98a56c6d89ce1bcbedda9075fc33b9e77defaf90bf9a560366d7689b2e1cb001",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+      "cardId": "ctc_modeling-4c7a0114a15c9e4039f6d193",
+      "title": "回路增益",
+      "sha256": "ab1c296db6f26a1f2d73a58584a44fc6a6a3ba8e9564668829c42e169ba6ef4e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-5e62391de61ac1af304601cb",
+      "cardId": "ctc_modeling-5e62391de61ac1af304601cb",
+      "title": "信号流图支路",
+      "sha256": "f80ea6ab0fb00ddf318cfb3c17374d31f0cfa3742134a2137e22d176e618bbb6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+      "cardId": "ctc_modeling-9121dc2c97afa77f52ce0220",
+      "title": "信号流图",
+      "sha256": "af9cc399063a52fd0507d46765eec053e1c3d4decc8e3715f5b318fbaf94fe00",
+      "retiredResourceIds": [
+        "act:card:信号流图_1_2",
+        "act:card:信号流图_2_372d4084"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+      "cardId": "ctc_modeling-a2b2e4c67cee79eef87f3b81",
+      "title": "前向路径",
+      "sha256": "32482ee938af57fd44bc0eddb067bf3bd4897fcf32de1596783e13140c808ed0",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+      "cardId": "ctc_modeling-v2r-5585bf06f0e579bc1c362ac2",
+      "title": "回路",
+      "sha256": "1648687a8e7510d85def2d0452ac7db462d3f7869ae03d70851658df2c8f7ebb",
+      "retiredResourceIds": [
+        "act:card:回路_2_e1adbdfa"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+      "cardId": "ctc_modeling-1a01abb71d037ed52c2bc394",
+      "title": "系统结构图模型",
+      "sha256": "9d45754d11e826fd0d9784a2dfcdbf069282b1c1972337fa7ba31b29e6e0d704",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+      "cardId": "ctc_modeling-2088bbde171b2e9ef66070d5",
+      "title": "框图化简",
+      "sha256": "9bdc13af2259115e19c2611a74ee07b9dea69afb641a421e74e82731637b0fae",
+      "retiredResourceIds": [
+        "act:card:结构图简化_2_6d86a775"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-239e401e0fcc8485f3a0533d",
+      "cardId": "ctc_modeling-239e401e0fcc8485f3a0533d",
+      "title": "结构图等效化简法",
+      "sha256": "ceed55c5247987fe398595d79f18231b2c0f597d8796edb08bef23acee1d0e3b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-7aef273143199795496abedb",
+      "cardId": "ctc_modeling-7aef273143199795496abedb",
+      "title": "结构图等效代数运算",
+      "sha256": "830cacd7c881cf1579509317b33fc012950e1972899ee25960d498a3743ae175",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-bddaef2510e39cbb62d60df2",
+      "cardId": "ctc_modeling-bddaef2510e39cbb62d60df2",
+      "title": "结构图环节方框",
+      "sha256": "fa1a0738b49e5641ba0f1f618579b2c7549cce97593695656ad96b0308b63774",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-c499b71d908bd8fe4124c533",
+      "cardId": "ctc_modeling-c499b71d908bd8fe4124c533",
+      "title": "结构图绘制规范步骤",
+      "sha256": "ddd650e81c36c22f9d813432854d3bc0aa329b55506321dfea5a10ba457b2b76",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+      "cardId": "ctc_modeling-e442dacbfef4a0d7ea3c4c15",
+      "title": "闭环反馈互联",
+      "sha256": "3b8372f9db757d305d8c1b19af3f7bec44e93526b2f9ccf5acc5617d4e49fffc",
+      "retiredResourceIds": [
+        "act:card:反馈连接_2_40a881cb"
+      ]
+    },
+    {
+      "canonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
+      "cardId": "ctc_0f418dc24d2aacaaafdcdcc0",
+      "title": "前向通路总增益",
+      "sha256": "f4d663743ab6e5ea4d8fd1c9b0155b8fa73a06d7725e67ff7f6eab41f7f0214b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-07799c3f876317e36fe669f8",
+      "cardId": "ctc_modeling-07799c3f876317e36fe669f8",
+      "title": "信号流图特征式",
+      "sha256": "1c1f7cd379639a5eb663cfe17976a733206b323e52222052edfcf874e77b0435",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-50ed406e4478b481d868adfb",
+      "cardId": "ctc_modeling-50ed406e4478b481d868adfb",
+      "title": "第k条前向通路特征余子式",
+      "sha256": "c6d0a66f05531551c3302a107b8174dd2ba1c0b2dd2c371235f1e5314ff9daea",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+      "cardId": "ctc_modeling-57c56ef58df2315f765a32dc",
+      "title": "梅森增益公式",
+      "sha256": "ac481d39a4c2bc328c6bb2767cd0a913b484b7997b787281ab2b549d537c7f56",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-9b8a43928af77103270d5f9c",
+      "cardId": "ctc_modeling-9b8a43928af77103270d5f9c",
+      "title": "不接触回路",
+      "sha256": "a087f5fea21752050ef7f3bf7c3aba186136b0bc8b7ba3d60f00b27275ecb3d1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-e8a0502ecb67f574a5cb6c1b",
+      "cardId": "ctc_modeling-e8a0502ecb67f574a5cb6c1b",
+      "title": "梅森公式通路余子式",
+      "sha256": "7aa40eba176ab599bff16c3ac0fdfb4e09349ab2c89f07f584c00fae430509f3",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+      "cardId": "ctc_v11g-2d0a8b878047bb6a5effc783",
+      "title": "等效单位反馈系统",
+      "sha256": "4b486d891b05a10ae5f4a8704a21573ca81961cd6cb57968aacca2e5751a99b3",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "cardId": "ctc_v11g-4aec82cd79a002c70fb185b3",
+      "title": "回路传递函数",
+      "sha256": "53cd3116992b1008efede3297294375315e2f0c216b5c9efe6f372eeec2dcdca",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+      "cardId": "ctc_v11g-5a7e22337cb506e673b9affe",
+      "title": "正反馈系统",
+      "sha256": "f5940f4450fffca77e05e4bcb0842cb4720775c9998d0e4f53f52860da99cbd7",
+      "retiredResourceIds": [
+        "act:card:正反馈系统_4_3cfad7f8"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+      "cardId": "ctc_v11g-69118dc66489d66b1732901b",
+      "title": "闭环传递函数",
+      "sha256": "634932d27811babcb6d47336f71ea8e0023002c288c74e69f5f1a9aff41ff441",
+      "retiredResourceIds": [
+        "act:card:闭环传递函数_2_5399c369",
+        "act:card:闭环传递函数_4_8325ffbe"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+      "cardId": "ctc_v11g-c7228e5d5d171b0633b246e3",
+      "title": "单位负反馈系统",
+      "sha256": "e332303db50e640dbfa94ab75815a931c1df9256c7109d9e2bc9585e2bce0341",
+      "retiredResourceIds": [
+        "act:card:单位反馈控制系统_4_f1a4f937"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+      "cardId": "ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "title": "开环系统",
+      "sha256": "50b8555f647262e101aca15590c42b80a9560fe06cb8ec7cf4941ab14e8a0d8a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-91f03880e67e6587b27f7039",
+      "cardId": "ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "title": "开环增益",
+      "sha256": "17b9f2f218a6f3f5a7b2907aee919b7155526c5ffa92d6a05480c2c68206c179",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+      "cardId": "ctc_modeling-71f0e8d834291c2c7d5e25b9",
+      "title": "严格真传递函数系统",
+      "sha256": "4a36d215e959a6d7430de866146717b751a238ac58c854fcf11496115b74d9fc",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+      "cardId": "ctc_modeling-8010502b57930c3dcb915af9",
+      "title": "零点",
+      "sha256": "61032dc9de359d6f8146a8183898f0979d6ba59b62dfb016e7a58fe1e23920ca",
+      "retiredResourceIds": [
+        "act:card:零点_2_c29600a1"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+      "cardId": "ctc_modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+      "title": "复频域传递函数极点",
+      "sha256": "41b06cd84b478ab3e7a66dac01964bdc9af0599a470cfc2d79931c98c7700aca",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+      "cardId": "ctc_v11g-95859dcad651c20058bf8726",
+      "title": "开环传递函数零点",
+      "sha256": "8018a67361a15a8d458aa22d3eb3682e44eac64ec040ab932ff3ee29de970f53",
+      "retiredResourceIds": [
+        "act:card:开环零点_4_95d21eca"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+      "cardId": "ctkg_m3-v1l_canonical-object_c5f7d0ab3bb3d165d6bbe99e",
+      "title": "开环传递函数",
+      "sha256": "279c996df42f4a30eef3f37b98ae0da8df3235e6a1595bef156fa554dc0348df",
+      "retiredResourceIds": [
+        "act:card:开环传递函数_2_ee6bdacf",
+        "act:card:开环传递函数_4_5b19827b",
+        "act:card:开环传递函数_5_4c26df45",
+        "act:card:开环传递函数定义_2_12002"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+      "cardId": "ctkg_v3e-canonical-47995819305793bf4c946953",
+      "title": "极点",
+      "sha256": "01f0b780939930662ec1cefbcc34630c2a8e6b45535e4d208611ebbdd43e8580",
+      "retiredResourceIds": [
+        "act:card:极点_1_1",
+        "act:card:极点_1_2",
+        "act:card:极点_2_cc79a4c5"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "cardId": "ctkg_v3e-canonical-47a2e3c44742b45c55ac902d",
+      "title": "闭环极点",
+      "sha256": "47abef9e65c65b3a8ac220556c02430019639092235e0183883c70c42803d946",
+      "retiredResourceIds": [
+        "act:card:闭环极点_3_f9432bf3",
+        "act:card:闭环极点_4_f359fb50",
+        "act:card:闭环极点_9_a8bbda51"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "cardId": "ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "title": "传输零点",
+      "sha256": "94bab0db30758ce74d69bd4ad51fd99938af8ad9cc294e4de736fd381fc522fb",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+      "cardId": "ctkg_v3e-canonical-ff87028e0a7bcda2c586a550",
+      "title": "闭环零点",
+      "sha256": "b8ce5943246773aacbbd8987a18599e2eba39086782468b4544303a65f614368",
+      "retiredResourceIds": [
+        "act:card:闭环零点_3_d83660dd",
+        "act:card:闭环零点_4_949a3b23",
+        "act:card:闭环零点_9_2ab177de"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+      "cardId": "ctc_modeling-5da44f2fc98d268259459e04",
+      "title": "脉冲响应",
+      "sha256": "02be894971985a99a090b5079f7c9250f1a1b30ea88cbd374fcd6800c3951853",
+      "retiredResourceIds": [
+        "act:card:单位脉冲响应_2_e56a0360",
+        "act:card:单位脉冲响应_3_a67aa116"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2w:source-object:2107b134aa2e942c147b9594",
+      "cardId": "ctkg_m3-v2w_source-object_2107b134aa2e942c147b9594",
+      "title": "用于拉普拉斯逆变换的 Heaviside 部分分式展开",
+      "sha256": "03e89e40797675db9e3dd73bf5a3930afd7eda94605701c2da141ab6480c477b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "cardId": "ctkg_v3e-canonical-0e5d22ed0afee37f65584d36",
+      "title": "正弦函数",
+      "sha256": "97e5f66aeefe839a7e02288e88f40d033665f2c2f4720f70b996f16f64120aa0",
+      "retiredResourceIds": [
+        "act:card:正弦函数_1_98499ac0"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "cardId": "ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "title": "自然响应",
+      "sha256": "043884b53e15c6de82233182786560e5727568f390bd27a92fd2deeee6faef13",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "cardId": "ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "title": "卷积",
+      "sha256": "923c9e57f62d756010d93bf176a0a9759e71ec0561d7b4bfda56b17ca18a8f7e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+      "cardId": "ctkg_v3e-canonical-303314b2f1d601cdba5e3f99",
+      "title": "阶跃输入",
+      "sha256": "a02f927c7788162cbd8651706ce34b46dc321dcea834583a12762c6e0e636b46",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "cardId": "ctkg_v3e-canonical-b03bdd7d909a44a2830459ca",
+      "title": "典型输入信号",
+      "sha256": "362d507db72378025e127e91cf227b39d612d18bea26ef797d95e6fa443dab52",
+      "retiredResourceIds": [
+        "act:card:典型输入信号_3_897a572d"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "cardId": "ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "title": "单位脉冲函数",
+      "sha256": "c57131a2f4781a05f0b5d1c849a99f710e6b8ca012a1615d2c2b6f95e3ff84d9",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "cardId": "ctkg_v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "title": "参考输入",
+      "sha256": "d00c5be87eaf2b6cdc0a13ebfdc1a7a3ccac08faff7ebd12e3fd28b278e337b7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+      "cardId": "ctc_v11g-11d00d2120a83f5e05efdb6e",
+      "title": "欠阻尼系统",
+      "sha256": "b4c5a848aa2be3680016335a7024490e185034025a7b596465be1843e4d1a901",
+      "retiredResourceIds": [
+        "act:card:欠阻尼二阶系统_3_242477a2"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+      "cardId": "ctc_v12g-b536959708e2d0fe3c8c791a",
+      "title": "固有频率",
+      "sha256": "51740f9473a8690246fe583db49fdbbd7c7bd938dd5a361df0c6265972ae95d4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+      "cardId": "ctkg_v3e-canonical-15b23d588244f407f6ed4b35",
+      "title": "无阻尼自然频率",
+      "sha256": "5580ca076735f9c34ba78c3c62b906eb567827a48a09776cf4a64fde01c7f37a",
+      "retiredResourceIds": [
+        "act:card:无阻尼自然频率_3_13001"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+      "cardId": "ctkg_v3e-canonical-3311578f3f7796d3b9ff0830",
+      "title": "时间常数",
+      "sha256": "a3941be03ce79fe861208273864e9ae7050453a52750769945090735a5bd2d7f",
+      "retiredResourceIds": [
+        "act:card:时间常数_2_68356eae",
+        "act:card:时间常数_3_17162973"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+      "cardId": "ctkg_v3e-canonical-40d0c236680874a1246a0536",
+      "title": "阻尼比ζ",
+      "sha256": "62f08756bb02f9f6af2619e74bbcc97e2f8b49ed8969b1b7e529bc6611930ecd",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+      "cardId": "ctkg_v3e-canonical-6bb580c242f908566ab53b18",
+      "title": "临界阻尼",
+      "sha256": "22204426ac80db1fe2bb75e850f3e4ce5d0195369fc7ab9e0dbac8ca7108cb9f",
+      "retiredResourceIds": [
+        "act:card:临界阻尼_1_3"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "cardId": "ctkg_v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "title": "自然频率",
+      "sha256": "93c9ddfe2888235f7f41584dcaf484431654021319338bcf6dd42471bd5f2efd",
+      "retiredResourceIds": [
+        "act:card:自然频率_10_51a8b7d0",
+        "act:card:自然频率_3_ab7d6dc0"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+      "cardId": "ctkg_v3e-canonical-9c5f83612d3255aa5805a9cb",
+      "title": "固有频率 ω_n",
+      "sha256": "74fa5238d06e8b2502e125f1b2080867777bde60ab72a0715d5f117d26789edf",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "cardId": "ctkg_v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "title": "欠阻尼",
+      "sha256": "8f31dfd60336f0d7acf38a6ef35d55fff67384f530fd2f8a1acea6f24bcf029e",
+      "retiredResourceIds": [
+        "act:card:欠阻尼响应_3_c2d57b37"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+      "cardId": "ctkg_v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+      "title": "过阻尼",
+      "sha256": "3bb8f3771ad118618b04ea77ccbfe0e0aab8fd465562158201c3af631703beb5",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+      "cardId": "ctkg_v3e-canonical-c6fafdb175fcf88882f8b91f",
+      "title": "阻尼自然频率",
+      "sha256": "cc4ff12b15f5da095237090ef9529d6b4af405fb6654b4493af132a16729fcb7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "cardId": "ctc_v11g-1c9f955b68fd25e1f4ad86f6",
+      "title": "稳定时间",
+      "sha256": "9421d95e6a8a5eee66f0be6fd33cbee355fdecaab84fc114fd6d1e51e39b8f10",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+      "cardId": "ctc_v11g-9dfc90c240d6bf3ebc285faf",
+      "title": "振荡频率",
+      "sha256": "15c1a1ffb67852e6ad355c9c90701eab34379723c76a07194f01ab46dcbbe65d",
+      "retiredResourceIds": [
+        "act:card:阻尼振荡频率_3_13002"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+      "cardId": "ctkg_v3e-canonical-0fa44601675cb175f5df9562",
+      "title": "稳态响应",
+      "sha256": "201bcb98e032fa9243e5f480b942a3477f4459418da26d76aa5737ab6a1f6f93",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+      "cardId": "ctkg_v3e-canonical-9988510f6127d3086f4aa265",
+      "title": "峰值时间",
+      "sha256": "d418a802d3f6591a4a716eed02e4b87f36d63a7042bd56bca55ca018ea113c0e",
+      "retiredResourceIds": [
+        "act:card:峰值时间_3_adc7ea95"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "cardId": "ctkg_v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "title": "调节时间",
+      "sha256": "0ab2de4edbd9d5083f77d75fd991c1a6049b7aeadddd974b06be509452ecf6fa",
+      "retiredResourceIds": [
+        "act:card:调节时间_10_fcbccf4e",
+        "act:card:调节时间_3_bc329c21",
+        "act:card:调节时间_6_c53f6314"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "cardId": "ctkg_v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "title": "上升时间",
+      "sha256": "ba4940f630381711c4bf43758030efd56824d3bc497a880a043b28d06da084e3",
+      "retiredResourceIds": [
+        "act:card:上升时间_3_6fa0ec00"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+      "cardId": "ctkg_v3e-canonical-b1fa48122cb30019661f9eaa",
+      "title": "峰值时间T_p",
+      "sha256": "46d9e2120a698f4abe761133c2d445cb77ae80bd89ead62d73e3fd71c771e8af",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+      "cardId": "ctkg_v3e-canonical-bd871a5da052c90d142e285a",
+      "title": "瞬态响应",
+      "sha256": "7dd30a8675755cd1e65223a0813d8153963f2b6438eb0d851cd0a7da87e87786",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "cardId": "ctkg_v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "title": "临界阻尼响应",
+      "sha256": "92dccd1badf36e783147c46bbe9855fa70e129c058972e26f9318911997a6176",
+      "retiredResourceIds": [
+        "act:card:临界阻尼响应_3_5839e0e4"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+      "cardId": "ctkg_v3e-canonical-c8eb5072bc1783d917169c9a",
+      "title": "稳态过程",
+      "sha256": "8abb0a7ace33c7fce72074d19b5751781c63e7496541bb6875f4dcf778420d03",
+      "retiredResourceIds": [
+        "act:card:稳态过程_3_6d95ec21"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "cardId": "ctkg_v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "title": "过阻尼响应",
+      "sha256": "6a5ce10a3e7c972ac64644db0a51a2f2d22fd08640ed50b15a954226720f2472",
+      "retiredResourceIds": [
+        "act:card:过阻尼二阶系统_3_e7258e8f",
+        "act:card:过阻尼响应_3_adf3867e"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+      "cardId": "ctkg_v3e-canonical-f9718484925341d6ce1dec78",
+      "title": "动态过程",
+      "sha256": "b07f84e3aab5c579ecac3233bc65cf1d3e7102159c32c734f5a4d3fcb350ffbb",
+      "retiredResourceIds": [
+        "act:card:动态过程_3_8a8051ec"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6daaf5095018a332d359e2de",
+      "cardId": "ctkg_domainconcept_6daaf5095018a332d359e2de",
+      "title": "最小节拍响应",
+      "sha256": "4613d44f1b0ebd623566beb53d9e2585368e990cca25f0a2e44193f029f5ca3a",
+      "retiredResourceIds": [
+        "act:card:最小节拍响应_6_24fab382",
+        "act:card:最小节拍响应系统_6_3e2a1672"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+      "cardId": "ctkg_m3-v1j_source-object_d32e165eaa3e5a71374cfbdd",
+      "title": "时间常数τ1",
+      "sha256": "8b0bf6360ae3b597b39e1bd32bb3c6cc09cc3086964acc4843119b51dd62f022",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+      "cardId": "ctkg_m3-v2l_canonical-object_94708a97f7508321feb998ea",
+      "title": "ITAE性能指标",
+      "sha256": "ce0aea82b1bfe5176506b04469dce48e3b4d2e51cb9950535781921067380eb8",
+      "retiredResourceIds": [
+        "act:card:ITAE性能指标_10_16ea2a23",
+        "act:card:ITAE最优性能_10_35da202b"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+      "cardId": "ctkg_v3e-canonical-137c2c4e6fd2c142416cd412",
+      "title": "动态性能指标",
+      "sha256": "a66193b8dc6937558ccaed359fca5237a9d2afcfe945c8ad1e9f7612b6bf1e76",
+      "retiredResourceIds": [
+        "act:card:动态性能指标_3_a10733c1"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+      "cardId": "ctkg_v3e-canonical-813c3692771aa00de2a18d93",
+      "title": "动态性能",
+      "sha256": "7ed7dcd7b4e8918311653b0cf325aba9a7409d18fdf3fb7648295afaa07613ed",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2",
+      "cardId": "ctkg_v3e-canonical-da95a03f3b851fcd7239eac2",
+      "title": "使用时域指标的设计综合",
+      "sha256": "8f0741e934bf5f9b41f853a756cf6d39fd4d754da96aa5dcb9fbc47a3ee60667",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+      "cardId": "ctc_v11g-13a9994c50acce777819aa2a",
+      "title": "闭环特征极点",
+      "sha256": "0adb9cf641130b3271864e57be19cb605c104d03287695812b7bb1dd24525716",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m3-v2h:source-object:552dae0908d9e549e2e5603d",
+      "cardId": "ctkg_m3-v2h_source-object_552dae0908d9e549e2e5603d",
+      "title": "高阶传递函数",
+      "sha256": "df8f86c5f9c59a74fb0e772a1b0822af1439ac2f55b8077141d500cf3a798248",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+      "cardId": "ctkg_v3e-canonical-0f7959abbcc9c7170d23770b",
+      "title": "非主导极点",
+      "sha256": "e380ac7d8b18e0707ba3d136c2ed99243e6ac91bd986477acd2d8b8a37689d2f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+      "cardId": "ctkg_v3e-canonical-23c4127cb1ffab795d290351",
+      "title": "系统模态",
+      "sha256": "ea397a8a14a17298abc4c8e815274cb653e9f16aaa5885c7a2b7268ab2b5b4fd",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+      "cardId": "ctkg_v3e-canonical-4ce9b77cff23117a65f42588",
+      "title": "有零点的二阶系统",
+      "sha256": "7cd4a030a75164ddce12562bf264036ec0d85922a9662288ce51a9028f055a8d",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+      "cardId": "ctkg_v3e-canonical-7147bc2427dae1863e06ef77",
+      "title": "闭环主导极点",
+      "sha256": "021150c4214c0b9da6d8faa449112f6b5e9d24643308142a51cb8a2409dffb03",
+      "retiredResourceIds": [
+        "act:card:闭环主导极点_3_de941720",
+        "act:card:闭环主导极点_4_0f26f554"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+      "cardId": "ctkg_v3e-canonical-cc82e137f42aa09df514e615",
+      "title": "利用闭环主导极点概念近似分析高阶系统",
+      "sha256": "596932d8915f67b28bc19f7481984447d48d47eabce77441c2e287e3736495dd",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+      "cardId": "ctkg_v3e-object-23ce934816d236fcc2836d27",
+      "title": "主导极点",
+      "sha256": "998f94993fd195e89377efce066636319971116aa5048507fba8f242ea2c8e91",
+      "retiredResourceIds": [
+        "act:card:主导极点_3_4c4c6bbd",
+        "act:card:主导极点_4_7b49c6c5",
+        "act:card:主导极点_5_5a720cf2"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+      "cardId": "ctc_v11g-2628d227495a3860151a16c1",
+      "title": "虚轴穿越",
+      "sha256": "94cc98d692f8ee42bb37ac5becd3fed5434a89a716c89dea4b599a631e927477",
+      "retiredResourceIds": [
+        "act:card:临界增益与虚轴极点_1_5",
+        "act:card:根轨迹与虚轴交点_4_65c288cc",
+        "act:card:根轨迹与虚轴的交点_4_33b9d0e6"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "cardId": "ctkg_v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "title": "左半平面 （LHP）",
+      "sha256": "5ec821578dd21f5d43328bd1dc24c6b6f7d6c79af2357a59576fb3ab2a1ea9da",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+      "cardId": "ctkg_v3e-canonical-8d146e4add26f71181e7c891",
+      "title": "右半平面（RHP）",
+      "sha256": "408b7b223d7671364e2f0fe28de0b3daa1de9bf199dc9c0b5e9582407a1eb121",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+      "cardId": "ctkg_v3e-object-51cfdcf1f943a39dfc550be1",
+      "title": "稳定系统",
+      "sha256": "a075663d1627495203d98063d092db7b1bca31bcba0fd3d4b7d13e5ffb2552c4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+      "cardId": "ctkg_v3e-object-570b74ec5294ac993add9b5f",
+      "title": "临界稳定系统",
+      "sha256": "145603b239325aa0882a7afb4cb947af4abe70426cb2f12820f4e81e32ac8536",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+      "cardId": "ctkg_v3e-object-863069c1389e01dcca80138a",
+      "title": "临界稳定",
+      "sha256": "b296562b8b874d1c95135e8901407eafd639c760f8dd5c3e00deb7c47197be9a",
+      "retiredResourceIds": [
+        "act:card:临界稳定_3_ca03ed18"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+      "cardId": "ctkg_v3e-object-865b301177a623225344064f",
+      "title": "有界输入有界输出稳定性",
+      "sha256": "328e3b93bccaaee14283b91c748463eb7dbfa35fc9773b7dc81c3a394322ef58",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-905e09b9921961a6115e4603",
+      "cardId": "ctkg_v3e-object-905e09b9921961a6115e4603",
+      "title": "条件稳定系统",
+      "sha256": "9a9034ce80e0b62dd3675e17830470a00461f4c8ee90371d630204791df4388d",
+      "retiredResourceIds": [
+        "act:card:条件稳定系统_5_dfd0b994"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+      "cardId": "ctkg_v3e-object-c36a6e957077c474e91e17ab",
+      "title": "运动稳定性",
+      "sha256": "6faf2821d594d8431359c6e433d93e2cd9b58ed450d38927ff90139e33399966",
+      "retiredResourceIds": [
+        "act:card:李雅普诺夫意义下的稳定性_9_9aaf4cd8",
+        "act:card:李雅普诺夫稳定性_9_de195f1c",
+        "act:card:运动稳定性_3_df61e98d"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2h:canonical-object:4f950081fe58a82e7fdd42aa",
+      "cardId": "ctkg_m3-v2h_canonical-object_4f950081fe58a82e7fdd42aa",
+      "title": "劳斯近似法",
+      "sha256": "eb91901d15e0ac932482f7a62a9395000ed97fad3a673af63ab072649db61838",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+      "cardId": "ctkg_v3e-object-1724fe5a62311ceb13ab05bd",
+      "title": "格拉姆矩阵判据",
+      "sha256": "cb40af414d6144383fc2f5cd2f174a5d8ceda6956e4df538ae683122aef2db19",
+      "retiredResourceIds": [
+        "act:card:可观测性格拉姆矩阵判据_9_13a109b3",
+        "act:card:格拉姆矩阵判据_9_a745338c"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+      "cardId": "ctkg_v3e-object-23665070dce851fbb0ebda8b",
+      "title": "辅助多项式",
+      "sha256": "6be04a9c62cd99d29c794f85519ed4e6599486ad416a09b4f9c6d4a5c0c5986b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+      "cardId": "ctkg_v3e-object-327cafd07ac8956536bab418",
+      "title": "劳斯法参数范围确定",
+      "sha256": "60cd1b96f57be17627a9357b5d3797936206e1dc68a37c0190ca0af2ba3b1b2a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+      "cardId": "ctkg_v3e-object-a5bc9701adc27b91f6da074b",
+      "title": "劳斯阵列第一列",
+      "sha256": "a264a777356b9a268bcf300c1d4f70616057719bda7199448cb4fe27a69e5de2",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+      "cardId": "ctkg_v3e-object-b3c5cdff9a0cefd89c42db14",
+      "title": "绝对稳定性",
+      "sha256": "a4d31cbac7a253d30bacc01b8be7855d8c956acb8fce923f769097a10873229a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+      "cardId": "ctkg_v3e-object-bc4ed78c68c59c9b4ab42d4d",
+      "title": "相对稳定性的轴偏移法",
+      "sha256": "bcf531b8b65ea7d58615718afb92818563a20ce1d836c929df4296cc43bca161",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+      "cardId": "ctc_v11g-076d3bf7d03f4a7a06d5371a",
+      "title": "反馈路径根轨迹增益",
+      "sha256": "e74bfd5e27fe26dba0419f3d0951e5eeeb9ded0ea04a3dfab5d60200c5bbfabd",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+      "cardId": "ctc_v11g-40aced4eb1298f7db801690b",
+      "title": "根轨迹分支",
+      "sha256": "325f3b06aceea0d0d64e210e78207a9a7c2e79f98e39aa0e98d80af97a81848b",
+      "retiredResourceIds": [
+        "act:card:根轨迹分支数_4_6a4bb718"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "cardId": "ctc_v11g-4bb347d0f2aa8859a18073de",
+      "title": "绘制根轨迹的七个步骤",
+      "sha256": "5693c490b6553603cbe29a9c60e94e54d3d1cbb3e0031ce9673f82c4ce47aed7",
+      "retiredResourceIds": [
+        "act:card:根轨迹完整法则_3_0f2e7b11",
+        "act:card:根轨迹绘制法则_4_f0ea9a49",
+        "act:card:根轨迹绘制规则_3_2f9e8cb3"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+      "cardId": "ctc_v11g-843da2b954f4e9b0d550f09a",
+      "title": "根轨迹参数整定法",
+      "sha256": "d855b403c8c229a61aeda93ca4a14719ef680bf9b62891dc865e5932cc6e9ccc",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+      "cardId": "ctc_v11g-e73425ff41e0f022a641c4cd",
+      "title": "前向通路首1根轨迹增益",
+      "sha256": "6883e5e2709c800e876362f90d7268e08d05f39bb2a57d7dbc88b5653cbc4bef",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "cardId": "ctc_v12g-15b7fb1d68889848e3c50c46",
+      "title": "根轨迹增益",
+      "sha256": "49fafcfd8fbda96f9d534631242f448a8bf870f9fae287ac74c4a3b807b1de2c",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+      "cardId": "ctc_v12g-b6ec19cda5342874277159e7",
+      "title": "实轴根轨迹",
+      "sha256": "d712d216de26244d18d9046f0a37dfa3982a9d2604e886fbcfb62fdd6b11226e",
+      "retiredResourceIds": [
+        "act:card:实轴上的根轨迹_4_af9cbf0a"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+      "cardId": "ctc_v12g-d1e6f12e1e95f6477c66bdc1",
+      "title": "根轨迹会合点",
+      "sha256": "643bc1aa1c89451ab3f4840117e6290d774a6c2551602354423819d718d4abbc",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "cardId": "ctc_v12g-e3580535c0a12b79e0509f97",
+      "title": "零度根轨迹",
+      "sha256": "895fc02e118cea12151a12399240b691a70786e61bd662b92575c249dfcb8eb2",
+      "retiredResourceIds": [
+        "act:card:根轨迹绘制法则_零度__4_205342a7",
+        "act:card:零度根轨迹_4_2cfd7e23"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+      "cardId": "ctc_v11g-1ebbddfa13931f700f437271",
+      "title": "出射角",
+      "sha256": "65ba366fc9fbfb5a49bb29af8b2cd11cb053a4b835d54b19f3b171910de5e710",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+      "cardId": "ctc_v11g-462227b4794133f894bdd0a8",
+      "title": "分离点",
+      "sha256": "04ebfbbe2c41deeb39882eae70b6da70b923c078fa884636fc872af6bc76dae6",
+      "retiredResourceIds": [
+        "act:card:根轨迹分离点_4_0e97795c"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+      "cardId": "ctc_v11g-4c152561a989c34245c538b6",
+      "title": "渐近线",
+      "sha256": "6be5b66d22c4d7bb18818691c99517b96bbbc08fbb95d6107e3c882077412789",
+      "retiredResourceIds": [
+        "act:card:根轨迹渐近线_4_6d89a195"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+      "cardId": "ctc_v11g-546566f01ae374379ec78c1e",
+      "title": "两步参数设计法",
+      "sha256": "b6ab594b9f1bca269793ccdfe4ddd438c3197348c4063946f3db235f26216da1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+      "cardId": "ctc_v11g-991f1cc82c973b44856c40f1",
+      "title": "到达角",
+      "sha256": "ac5014b04127686adacc4f53be70cbadf180cacfdf3a830a6a4bcfeb59a59600",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+      "cardId": "ctc_v11g-a3d09e397d88f3ae13bc9d89",
+      "title": "广义参数根轨迹",
+      "sha256": "a1e6f58d1e0cb2dda9a42731927fd5b2f698dacbec983b4031c831ebf4d0c2de",
+      "retiredResourceIds": [
+        "act:card:参数根轨迹_4_faab3aea"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+      "cardId": "ctc_v11g-bc5c0019cf8dd79ee47861ea",
+      "title": "根轨迹（双参数族）",
+      "sha256": "295b689e7597e95e4f7a8d97682267766af06c0618fda60dfb5b56fdfcadb7cb",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+      "cardId": "ctc_v11g-bde559972a3c77718ce84d2e",
+      "title": "广义根轨迹",
+      "sha256": "141353514a8631bc66253298e51ab4fe18f1ef7d6eaa0096a4d45bcefa3ad3f4",
+      "retiredResourceIds": [
+        "act:card:广义根轨迹_4_30f5ea13"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+      "cardId": "ctc_v11g-e00aa88647adaaf1c5d57462",
+      "title": "渐近线质心",
+      "sha256": "5d101ae4246778f465b6eb1ef817fea3ef6aa602a527438f850e73c4b4f3e106",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+      "cardId": "ctc_v11g-f0a551cbfb667c38018a1aa9",
+      "title": "开环极点",
+      "sha256": "5d9eb7c1db0fb1ee10c8313256bf98429c7f538a87d69e1f42ddffe5171ca75c",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+      "cardId": "ctkg_v3e-object-0946a016c136cdf4a417ed62",
+      "title": "转折点",
+      "sha256": "0d2d7a078afb1cc45b03d68b6e268be1d6ad46c0fabda5fe62b2f6f6c09eae6e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+      "cardId": "ctc_v11g-6bfefff084f66202b9af9dd4",
+      "title": "齐格勒-尼科尔斯PID整定方法",
+      "sha256": "b9d1777352e2ca821cc4510379d989aafca5b8fd0a94ccbea20de8719985c0b5",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+      "cardId": "ctc_v11g-93b322aec104af4eb69aa152",
+      "title": "PID整定",
+      "sha256": "a73c4f8f6809565b6f69ebe196e6d78e3e9d09a6eae25459d85e6cec38b059a4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+      "cardId": "ctc_v11g-f3a9655898917afa28e9c600",
+      "title": "PID控制器试凑整定法",
+      "sha256": "e1681235b7aeeeee54d4d4383a405c1644c4297064327aa4530ff33c93bced2a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+      "cardId": "ctkg_v3e-canonical-2624e6b30f6178715ae3b198",
+      "title": "比例-积分控制器",
+      "sha256": "e1a1a847fcf0237895fad01b741d7d3e85fb2ad4d447a72bd9dd3e8653fb6cf4",
+      "retiredResourceIds": [
+        "act:card:比例-积分控制器_3_2d540516"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "cardId": "ctkg_v3e-canonical-6db84c73a9b0e833400e64fc",
+      "title": "比例-微分控制",
+      "sha256": "92e0abf9a3ef9f48e76305f1e02e416c354130937dec1034f64ac4e33046145e",
+      "retiredResourceIds": [
+        "act:card:比例-微分控制_3_8428a70d",
+        "act:card:比例-微分控制器_3_3b512e79"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+      "cardId": "ctkg_v3e-object-01762eade052b1f22b1318c1",
+      "title": "P控制器",
+      "sha256": "e5b921312894507ab597db523c105bca2be21b75d97e081345e147661607eed3",
+      "retiredResourceIds": [
+        "act:card:P控制器_6_63f2f5eb",
+        "act:card:比例控制_1_1"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+      "cardId": "ctkg_v3e-object-2805a69722f0a741c2479d22",
+      "title": "PD控制器",
+      "sha256": "eba3a5140c855289d03e47aac95ca7391151d1e00954cf4f64c6146444d3e343",
+      "retiredResourceIds": [
+        "act:card:PD控制器_6_3eb1a935"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+      "cardId": "ctkg_v3e-object-35942e1152c99bd94bdecd00",
+      "title": "I控制器",
+      "sha256": "78b4182b324b45b736dacabc219f3cbc6ae5646e95dbddd1ca8bcd6c7b1571c8",
+      "retiredResourceIds": [
+        "act:card:I控制器_6_f0772f17"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+      "cardId": "ctkg_v3e-object-3d704911971a572aac4e975e",
+      "title": "等效增益",
+      "sha256": "00ba148d2520dec1582ffaddacb0d6168bf70489276d621179b7cd838c9206aa",
+      "retiredResourceIds": [
+        "act:card:等效增益_8_7913d7f5"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+      "cardId": "ctkg_v3e-object-508501381207b32fdb98c6c2",
+      "title": "比例系数",
+      "sha256": "4d98c9ec75ead9d0fcef3d07a6908af91e718e2861884d34040747f847031c91",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+      "cardId": "ctkg_v3e-object-9b3052d4d15a96d495d8e6f5",
+      "title": "积分控制规律",
+      "sha256": "d64c60f680a6bbda894dc73652212bb59716420bc1babe425294350162853b71",
+      "retiredResourceIds": [
+        "act:card:积分控制规律_6_01aa3db3"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+      "cardId": "ctkg_v3e-object-b84a9a5a29d23a93ad44adc8",
+      "title": "积分控制",
+      "sha256": "b105bd24590ccac4bab34ea84c8cfba7dc76bd49e13ea52d146f9bb86c4a6c73",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "cardId": "ctc_v11g-e85c0145d63244c46853c9cf",
+      "title": "相位超前校正",
+      "sha256": "6bd7ca753eb79df8c2d05f9e7d8480da4c647f80620021ae70ad932772c5da47",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+      "cardId": "ctkg_v3e-canonical-1647a1b078950a5b81783825",
+      "title": "测速反馈控制改善系统性能的方法",
+      "sha256": "f330727541a6b6499ff71aba080ed0cb17d1fd924087809c843b519cdd24951c",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "cardId": "ctkg_v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "title": "测速反馈控制",
+      "sha256": "78b2cbba8d1ea087b5369ff562b347522762ea97d95b6211531d0ba6414ada41",
+      "retiredResourceIds": [
+        "act:card:测速反馈控制_3_4c2ec80f"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+      "cardId": "ctkg_v3e-object-1b720d82e3de003a38fa57f6",
+      "title": "串联补偿器",
+      "sha256": "b03577df61100d69c1e32f161e3815791098b2e62ffc424a3746649c4e9080e3",
+      "retiredResourceIds": [
+        "act:card:串联补偿器_9_e0444c1f"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "cardId": "ctkg_v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "title": "串联超前校正",
+      "sha256": "2b3432b4f22b87ab35948011b182c13ecf5b56ac5e3aaff2dcf52f01099c96b5",
+      "retiredResourceIds": [
+        "act:card:串联超前校正_8_5d889b7d"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "cardId": "ctkg_v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "title": "反馈校正",
+      "sha256": "81a74aa5d803b864031d89c786375bcf56336868f7e820f2532df82d837aaad2",
+      "retiredResourceIds": [
+        "act:card:反馈校正_6_c96d771b"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "cardId": "ctkg_v3e-object-af9c2e9b81c0a2bc815ac424",
+      "title": "速度反馈",
+      "sha256": "3b0b1868f5fe7bc4d99bc915eeb7e9edc9fc765f64e62b817009b5518ae5b554",
+      "retiredResourceIds": [
+        "act:card:速度反馈_3_2374effc",
+        "act:card:速度反馈_8_c94fe545"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+      "cardId": "ctkg_v3e-object-b51bc504a48917b2c5ec25c3",
+      "title": "反馈补偿",
+      "sha256": "660eadc7a8f41f266fe871c11f89f48ef39a4cfe3c4b206d08a69c97631601da",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+      "cardId": "ctkg_v3e-object-b73224087c9c0475612e8635",
+      "title": "相位滞后补偿器",
+      "sha256": "d73fedd5104621ae95e5a0939fbfacbf6cd9eaf48dc50d61efe741eb6dadd7b5",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f20650600a6b6301d29c6025",
+      "cardId": "ctkg_v3e-object-f20650600a6b6301d29c6025",
+      "title": "最大超前角",
+      "sha256": "4c5953fedb45ab2a1c47e36046594dac2e49ff8600daa92eadfb59bbc4df5e27",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+      "cardId": "ctkg_domainconcept_0363df7227c5cb1dff5b1bf0",
+      "title": "前馈跟踪",
+      "sha256": "7185e12155a6ada30dd0f77c182d747d8503f513c5e696cee8b5e0ffaa062ad5",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+      "cardId": "ctkg_domainconcept_150c8a62277a497691a2f785",
+      "title": "复合控制",
+      "sha256": "bef9afcbace66cc0ec6618c101efe6d311dece10f49b41860c59c4b887cb8980",
+      "retiredResourceIds": [
+        "act:card:复合控制_3_a1570156",
+        "act:card:复合控制_6_31b7c736",
+        "act:card:复合控制方式_1_393383be"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:293e9989d6bd31c84819cbee",
+      "cardId": "ctkg_domainconcept_293e9989d6bd31c84819cbee",
+      "title": "前置滤波器",
+      "sha256": "48240ce3185aadacfd53f73da899507f5732bb186e72776bbee2b442d9913993",
+      "retiredResourceIds": [
+        "act:card:前置滤波器_10_56e8171d",
+        "act:card:前置滤波器_6_15e51383"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+      "cardId": "ctkg_domainconcept_39c18e7134f77be5c51cf41b",
+      "title": "复合校正",
+      "sha256": "b87adc6c1e083fdc4eb2017fad1402b95b09a05a9e4c5531089d90f12f23eb39",
+      "retiredResourceIds": [
+        "act:card:复合校正_6_b2a1b4b1"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:4ecbee25dbf52616b5613e8b",
+      "cardId": "ctkg_domainconcept_4ecbee25dbf52616b5613e8b",
+      "title": "前馈扰动抑制",
+      "sha256": "fdc52456d05c27f310a894450d4b99a421dac1a31e80f5bb459e384f89cc23a7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+      "cardId": "ctkg_domainconcept_9e92915575b3e20ce84b58ab",
+      "title": "前馈补偿",
+      "sha256": "7bec208d0cd750a79337be200fc171dbe19a777fd0c44ce015a1a72db6ddaaf1",
+      "retiredResourceIds": [
+        "act:card:前馈补偿_6_3bd3eb3b"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+      "cardId": "ctkg_domainconcept_f43cea262e16b94cb63c8b5a",
+      "title": "前馈校正",
+      "sha256": "998cd0b3a489ffa7f5989aa77db233de9e870d34313911f69be81031989f3d6f",
+      "retiredResourceIds": [
+        "act:card:前馈校正_6_40284f13"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2f:canonical-object:d9aed6663ee8a2f6ebc83e10",
+      "cardId": "ctkg_m3-v2f_canonical-object_d9aed6663ee8a2f6ebc83e10",
+      "title": "内模设计",
+      "sha256": "30f4388e73ff97748fee0e9320fb597cc62f4b343e0abe350d0f0d3825aafd18",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-128a0f144821b8292a40f391",
+      "cardId": "ctkg_v3e-canonical-128a0f144821b8292a40f391",
+      "title": "前馈控制",
+      "sha256": "39e533d46ec19cca50bb61e51564376ae1f5a7c4ecc1d06d1d238385f4a2e2c6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+      "cardId": "ctkg_v3e-canonical-5182a714c3b04737e54be937",
+      "title": "复合控制系统",
+      "sha256": "3fd170eee52e3ddfbee28d3eb06ac43d6c33f6a374a2ecf1bd66334a5f0b93d5",
+      "retiredResourceIds": [
+        "act:card:复合控制系统_6_cd8f5178"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+      "cardId": "ctkg_v3e-object-5e3ecb030d6a454633f0a09a",
+      "title": "内模控制器",
+      "sha256": "fdec509e03fff640773821d9e1461cede1c6fbd79de674c06e1e37dc4aa99516",
+      "retiredResourceIds": [
+        "act:card:内模控制器_9_b2d43456"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+      "cardId": "ctc_v11g-29bcae62e44c52ed219e6687",
+      "title": "对数灵敏度函数",
+      "sha256": "27b4622847fb8bde64ddfe015919d287107ed210da30f00bd83494c371bb4394",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+      "cardId": "ctkg_domainconcept_02e5b960f076b42478c001d9",
+      "title": "环路增益",
+      "sha256": "610ee01fd801035fc6d55f883f33f1211329589b75a615c152576c0d07ca288e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+      "cardId": "ctkg_domainconcept_0604292c26e5cf53196f390d",
+      "title": "灵敏度分析",
+      "sha256": "9ffbbc4af17fb384610566d853d8583826f33ff6914cbd67ec8727239efe1b0b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+      "cardId": "ctkg_domainconcept_0ad2a338a492e954d3fc5429",
+      "title": "系统灵敏度",
+      "sha256": "ed272f5f2c13793673b3a0037afb0e2c9fd0c287d7a2d9053db0480c6b56399d",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:72d64287614ba07da65b3adf",
+      "cardId": "ctkg_domainconcept_72d64287614ba07da65b3adf",
+      "title": "参数变化",
+      "sha256": "90aa0ef58f5ef541b1f0f1f00b80427b3008bf98a9963249426e064e4ba783c0",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+      "cardId": "ctkg_domainconcept_8d64003bec180e77672bfd72",
+      "title": "灵敏度函数",
+      "sha256": "bb260b2850d4ed172a440ca4e211c1438fe8ad7b8d7648357f12d3eff601c237",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+      "cardId": "ctkg_domainconcept_8f8da4642639723728daa0b5",
+      "title": "灵敏度",
+      "sha256": "28a16bafdc99f1ae7c6894ba9a06c1cda28c4b3da26c1e8693d5aba8a04544e4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+      "cardId": "ctkg_domainconcept_b4b55ece4a9aa3709e50f25c",
+      "title": "时域响应参数灵敏度",
+      "sha256": "b0f7f1b4ace95f5acdbb47c69144cab7706a6c787696ef3d072b2f367943c882",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:2ed1de38a2cdae7a9f98e0b4",
+      "cardId": "m1r-v1d_object_2ed1de38a2cdae7a9f98e0b4",
+      "title": "互补灵敏度函数",
+      "sha256": "0ba5e89cc8c7c65a11ae1e4419fd79610e6a3ff29667bfcd6daa5c2e97b2a171",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+      "cardId": "ctkg_domainconcept_11a8f8224c4c836f89b164de",
+      "title": "测量噪声衰减分析",
+      "sha256": "1134697952f93483a9252673a970c5ab3ddd403349fc208443571f8cacfed19a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+      "cardId": "ctkg_domainconcept_476f9c2afd87ac51ab2159d3",
+      "title": "测量噪声衰减",
+      "sha256": "a1e257652f181d34c87997154d9713869a8149363a10becf4fd82cbdf71d1c30",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+      "cardId": "ctkg_domainconcept_481adaa12fcb7e31a3b67683",
+      "title": "跟踪误差",
+      "sha256": "6474065a9811ec59becc3eeea959c8f648e0c9588a2fffe69598dc9ad0497f71",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+      "cardId": "ctkg_domainconcept_6a32bc0cf2176839753ef717",
+      "title": "误差全补偿条件",
+      "sha256": "2846ff4d72fa756c81410de83090ea95f2920ba1c95ea3bd2efc1eb3436ccc7f",
+      "retiredResourceIds": [
+        "act:card:误差全补偿条件_6_e4f909f0"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+      "cardId": "ctkg_domainconcept_b57ab6aa6e17654d63b792e1",
+      "title": "扰动抑制分析",
+      "sha256": "fa36c5bd27e5f5080507dc3f53690b3c25bf3053d1716e9e291da2e36e69864f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+      "cardId": "ctkg_domainconcept_d582399ff6cef0663ad4e2a7",
+      "title": "测量噪声信号",
+      "sha256": "aba21eb625f77b2d7318d9a182be4fda7170707f79aace04dcf10a6f5a95f266",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "cardId": "ctkg_v3e-object-84d4e25a62819cdb7ccb6caf",
+      "title": "零型系统",
+      "sha256": "b6174e4b2308e0794928d2df290edf299dafc594331ef8dd61b4097b7618331f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+      "cardId": "ctkg_v3e-canonical-589fba9b74d146b6eea6b269",
+      "title": "相位（频率响应）",
+      "sha256": "98d6f22e0d0b6c2d6177beba1ca1906156b1cbc06eea4b6e19447fa7b1af45b4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+      "cardId": "ctkg_v3e-object-191274d4aa5307678e583641",
+      "title": "伯德图（对数图）",
+      "sha256": "cbbc1dbb00209688d70038e5ac9891a617ad6e55493d77356b864255a813b267",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "cardId": "ctkg_v3e-object-27e0a7e37803fbebc1b6f65a",
+      "title": "对数幅相曲线",
+      "sha256": "889f631859e5e9cc4c2092ff9b1779ffd891d2c6c071e853fd29606f646a7947",
+      "retiredResourceIds": [
+        "act:card:对数幅相曲线_5_891ca8c5"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "cardId": "ctkg_v3e-object-2e2707d377000d69ac75b508",
+      "title": "幅相频率特性曲线",
+      "sha256": "4383a17bf86e86b004e452f312c93f2dd4e9ae1c2817a2a85b63832cf8d29e57",
+      "retiredResourceIds": [
+        "act:card:幅相频率特性曲线_5_018eef00",
+        "act:card:开环幅相特性曲线_5_fd86e289"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "cardId": "ctkg_v3e-object-36f969bb5befa8ef9f8d0a99",
+      "title": "频率响应法",
+      "sha256": "ded47b59aa549f2da1ead90e3106464d2481fabeae2b2de34498dfd45eeac6f2",
+      "retiredResourceIds": [
+        "act:card:频域分析_2_2e257d89",
+        "act:card:频域分析法_5_e5f3e350",
+        "act:card:频率响应法_5_1c7f0705"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+      "cardId": "ctkg_v3e-object-be9c82d423b46b7fc6937236",
+      "title": "对数频率特性曲线",
+      "sha256": "df7fbd50a020bf9d5a3ab0d36bf4cd7c735637360caf67940985df0d0899cf44",
+      "retiredResourceIds": [
+        "act:card:对数频率特性曲线_5_75c6945f"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+      "cardId": "ctkg_m3-v1l_canonical-object_563362810a1baa53567a9d33",
+      "title": "闭环控制系统带宽",
+      "sha256": "20c046c91f1081f42fdcd74e4885c652304968d476110a45c1f328a02ff5fe64",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "cardId": "ctkg_v3e-object-0008b516b8ac52f0e05c7596",
+      "title": "谐振峰值",
+      "sha256": "e01a83299e6193d9fd2cde374a7ac174ea4a48d25084079a244f4482096f8a12",
+      "retiredResourceIds": [
+        "act:card:谐振峰值Mr_5_b3a87785",
+        "act:card:谐振峰值_5_aa4903ab"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "cardId": "ctkg_v3e-object-3bf89181c7be53ac268d5785",
+      "title": "带宽",
+      "sha256": "3e2d2760890c380adc1c2e8594890aadad796736885eabc16b34ec0a558b5fa2",
+      "retiredResourceIds": [
+        "act:card:带宽_5_58d2afcc",
+        "act:card:带宽_5_6730fda4"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+      "cardId": "ctkg_v3e-object-56e0945e8704fa9f3c1dc356",
+      "title": "低频段",
+      "sha256": "e2e06e417f8df76f2140705192c80d6c6e91ac8ff45c1ad77787e8acebbaabfc",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "cardId": "ctkg_v3e-object-5a821f717b644300ab32cf21",
+      "title": "对数幅频渐近特性曲线",
+      "sha256": "6be9212976257ace8d29a49731ab2b2bf23fe64df9baa78a4ef583b99a96c491",
+      "retiredResourceIds": [
+        "act:card:对数幅频渐近特性曲线_5_61c26fcf"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+      "cardId": "ctkg_v3e-object-6592690fdccf416b0340917b",
+      "title": "带宽频率",
+      "sha256": "ee8a5e0aa768e57cc7c7140003768fdf7d7556738a8b4fa381537a3ec100853b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+      "cardId": "ctkg_v3e-object-69488c745082536d87afd1a7",
+      "title": "闭环带宽",
+      "sha256": "035c7ce7ff49f8d03ae3585bac2a6582b0316854c7b28e866c2e7d80c80192dd",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "cardId": "ctkg_v3e-object-69529eb08c9279e8b19dc4f6",
+      "title": "交接频率",
+      "sha256": "8619236c7364eafc0ebce998b6524f403cda0e911f42f387d5199fa83b194d54",
+      "retiredResourceIds": [
+        "act:card:交接频率_转折频率__5_8bca814b"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+      "cardId": "ctkg_v3e-object-e16a21bf52b0d6a12485f477",
+      "title": "转折频率（拐角频率）",
+      "sha256": "33383f8688980219bd65b9355d4250ab187f88e56cecf67549e71392aa5f6d01",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m3-v2h:canonical-object:0c5c3925013d2cbf3cb6419b",
+      "cardId": "ctkg_m3-v2h_canonical-object_0c5c3925013d2cbf3cb6419b",
+      "title": "频率响应匹配法",
+      "sha256": "b8bf0abf9285e47003a947a753df1ba00d5da60c0590329b95dbe8c039df8eed",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "cardId": "ctkg_v3e-object-2f3ebf66b229bd1917da4b41",
+      "title": "增益裕度（GM）",
+      "sha256": "f97634542ff5eb62370da62c5b543ed855dc4f4c3de524e13ae255fa3e9a7b20",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "cardId": "ctkg_v3e-object-5a7582dcb72b1d33d09ca641",
+      "title": "非最小相位环节",
+      "sha256": "22c671ecc5c0607e744115c95d0ac6283b7290c1db6cfd702017f434755c283f",
+      "retiredResourceIds": [
+        "act:card:非最小相位环节_5_f40c2785"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "cardId": "ctkg_v3e-object-5e8744158554d1c79e590de4",
+      "title": "相位裕度 （PM）",
+      "sha256": "4e82e1359a0741cc04376d7e5ba925171341cd96fd7dd40d26517c5f1decdb4d",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+      "cardId": "ctkg_v3e-object-6aab5205709de2fd044b4024",
+      "title": "奈奎斯特稳定判据（奈氏判据）",
+      "sha256": "7faf3c78f1305b1bc0dc34cb173e1f971e9ea10710693380597551cd82929cb8",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "cardId": "ctkg_v3e-object-785280d429b7e1a5f2f5db53",
+      "title": "奈奎斯特稳定判据",
+      "sha256": "aef3802736494c829dc9c929bc052d5035b4cf82f669a83ebe8e6d7d26df23d7",
+      "retiredResourceIds": [
+        "act:card:奈奎斯特稳定判据_5_a1b34560",
+        "act:card:奈奎斯特稳定判据_奈氏判据__5_0355b06b"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "cardId": "ctkg_v3e-object-b542152b1fb2cbb25d81dbb2",
+      "title": "最小相位系统",
+      "sha256": "42a4256661e73302e6d6046aa61cc10aff648fc3e737e0cdbe307e60203a9c9f",
+      "retiredResourceIds": [
+        "act:card:最小相位系统_5_89cbd2f0",
+        "act:card:最小相位系统_6_d74d6ebe"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "cardId": "ctkg_v3e-object-ba51f9dd280fa844cebe297d",
+      "title": "最小相位环节",
+      "sha256": "7bf9274d8d8b55c4cdece4d81676ddce82dc9e7ae51a56dc46f884c1fb45dd09",
+      "retiredResourceIds": [
+        "act:card:最小相位典型环节_5_2a7020fd",
+        "act:card:最小相位环节_5_b749dc72"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "cardId": "ctkg_v3e-object-f04f82217525c5c412d0d180",
+      "title": "非最小相位系统",
+      "sha256": "407e7a4f091723615d4bc4f538d0cf642a4f9c15c0d0df02f88f1cd67ced326f",
+      "retiredResourceIds": [
+        "act:card:非最小相位系统_4_65f682ce",
+        "act:card:非最小相位系统_5_02634a20"
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-c64dfb875b6343ff32d0acb2",
+      "cardId": "ctc_modeling-c64dfb875b6343ff32d0acb2",
+      "title": "库仑干摩擦模型",
+      "sha256": "98e0c7cff869685aaf1818b64f34b989bf5a155460c3407d9a9257e14ea3d85d",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+      "cardId": "ctkg_v3e-object-0bec8a41b344fe9a1e16c5e3",
+      "title": "迟滞非线性",
+      "sha256": "6691bb832910269aad8e793d7fc2453f11320b80ce43abd1080d822feae90643",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+      "cardId": "ctkg_v3e-object-1107a657eb90b8264d4dac38",
+      "title": "非线性系统",
+      "sha256": "89422d200842708cf589f08f388d91671837cc34de95a85d162fcb71a116026f",
+      "retiredResourceIds": [
+        "act:card:非线性控制系统_1_1345e52b",
+        "act:card:非线性系统_8_4ccc0148"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+      "cardId": "ctkg_v3e-object-63919e7aa7d3d49925074a68",
+      "title": "饱和非线性",
+      "sha256": "e917630f9fb1bdbdf4c949898504213dfc5180ec58585efdf84daced30e00af9",
+      "retiredResourceIds": [
+        "act:card:饱和非线性_8_deec42d7"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+      "cardId": "ctkg_v3e-object-69aaaef625010f7755f253e8",
+      "title": "死区",
+      "sha256": "8d7a45437f7d27167886bd4e164343dac21362d62db4ca02796614c3f8443c67",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "cardId": "ctkg_v3e-object-a9730b9a039605d79315e24f",
+      "title": "摩擦特性",
+      "sha256": "f3bf5eb0f8ba0902d257943a24f04b90d4ea820e44c256082bcdf16730e26c28",
+      "retiredResourceIds": [
+        "act:card:摩擦特性_8_76db8f5b"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+      "cardId": "ctkg_v3e-object-aa79b6fedda690cfd68855aa",
+      "title": "继电器",
+      "sha256": "2a7b5526e108e0259936f56e36b82d3031bb29b8945ea7be95904b8e6c05b6d7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "cardId": "ctkg_v3e-object-b0896b071da350e2cc6ca186",
+      "title": "间隙特性",
+      "sha256": "00cfa740a45f2f36cd577d1d026237e3295a2f1675b8458b0a029dc6f77de11d",
+      "retiredResourceIds": [
+        "act:card:间隙特性_8_51523138"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "cardId": "ctkg_v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "title": "饱和特性",
+      "sha256": "078e6ab7c908e000691fdc66513990004f749abedd5c7532144b45afe799b03b",
+      "retiredResourceIds": [
+        "act:card:饱和效应_8_c8c67f8e",
+        "act:card:饱和特性_8_e55b1fb5"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+      "cardId": "ctkg_v3e-object-d537d542fc83f3d91e2f6d72",
+      "title": "库仑加粘性摩擦",
+      "sha256": "93ecb813e7dc49eaa3c3e11ea5a3bcf6288b6add933960b4126082425edba449",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "cardId": "ctkg_v3e-object-d881210ed83df13e00d2e095",
+      "title": "死区特性",
+      "sha256": "dcb12437677fcf8d046e0ae074527b15189bbb2652ca7fc2ad76a25f4c56f143",
+      "retiredResourceIds": [
+        "act:card:死区特性_8_9ed850fc"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "cardId": "ctkg_v3e-object-098bda907dad6f5e7b697506",
+      "title": "极限环",
+      "sha256": "81352f84fddf128a0051707d3c03cb98e90dac6f8157826fd093d4bfdd9c0bef",
+      "retiredResourceIds": [
+        "act:card:周期运动_极限环__8_e89ff8ed",
+        "act:card:极限环_8_146dec32"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+      "cardId": "ctkg_v3e-object-2c2f917a06c974fda55b52fd",
+      "title": "幅度量化误差",
+      "sha256": "79d23409e286bb27fb1ef7a3b156f3f363cc12e73d9d49d6724d76d47b60d20b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "cardId": "ctkg_v3e-object-563729def6c074a2e1ae6d1d",
+      "title": "继电特性",
+      "sha256": "fa9cf47c050b7647516171daf138b78bb25e8c3f8a4f86ad54c4b75a1b504684",
+      "retiredResourceIds": [
+        "act:card:继电特性_8_0676d186"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "cardId": "ctkg_v3e-object-591e649bbeef70e3da154910",
+      "title": "半稳定极限环",
+      "sha256": "a0d87caf4dd080b6163d8e1f2728e72b2b70eecef6b7711dd4615192174235a0",
+      "retiredResourceIds": [
+        "act:card:半稳定极限环_8_8ed583b7"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "cardId": "ctkg_v3e-object-7b59e975b2aaa6100b970b52",
+      "title": "描述函数法",
+      "sha256": "b5f491be849aa8bce09bdf67988c998be469f8bea3aac4872e97ba436bf2bc63",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+      "cardId": "ctkg_v3e-object-ae1017494c7f2d20cd53efad",
+      "title": "自激振荡",
+      "sha256": "8f93f575921782725ddc893a36342a76b373c2e679e09393ba27e876e17bae87",
+      "retiredResourceIds": [
+        "act:card:自激振荡_8_711ef8ef"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "cardId": "ctkg_v3e-object-bda94d95d799211be70fabf9",
+      "title": "自振荡",
+      "sha256": "849a7bf3a1acf3a823e075feaefa21961f39b562e162d381f33a7409ae85f5a9",
+      "retiredResourceIds": [
+        "act:card:自振_8_3ed83301",
+        "act:card:自振荡_8_e3ee2aef"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+      "cardId": "ctkg_v3e-object-c3d7e85e2b60c3320db8a44a",
+      "title": "量化误差",
+      "sha256": "98749c8af65447bde41cdb9cf2c421a68854892d2cf30d3025f445dc7c016bbe",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "cardId": "ctkg_v3e-object-d1a6e648c1524a51f3c42346",
+      "title": "描述函数",
+      "sha256": "d0685c6b0bf403ab0ec353d70cb768580ac98a992f135f4c41455e7826a63042",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+      "cardId": "ctkg_v3e-object-e90594bf67aa0149a800d9db",
+      "title": "负倒描述函数",
+      "sha256": "1c175c337a1d294b340a9b6d8941bc6bdb996b18bf8453463d7a834bc7aa5a71",
+      "retiredResourceIds": [
+        "act:card:负倒描述函数_8_159ff256"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+      "cardId": "ctkg_v3e-object-eacdf5b7407bac89d24540ed",
+      "title": "量化",
+      "sha256": "23a9b93208fbf142803b4ee3019d538468963a9a79d3489759223cbaff810a1a",
+      "retiredResourceIds": [
+        "act:card:量化_7_6cb6511b"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "cardId": "ctkg_v3e-object-1ee77aa2b862870735a63c50",
+      "title": "相平面图",
+      "sha256": "5c306fb5361a9fd452815ec4c587d375b4d592bbdcba9dbc938683f63b4f5e2e",
+      "retiredResourceIds": [
+        "act:card:相平面图_8_bd606f51"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "cardId": "ctkg_v3e-object-21637e32df41e433f01db54b",
+      "title": "等倾线法",
+      "sha256": "722850db9c7821e6ddeef5507db0758796341eb416279d82ca4f360d2d34d544",
+      "retiredResourceIds": [
+        "act:card:等倾线法_8_97c16d2e"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "cardId": "ctkg_v3e-object-80b836e636775916830b5a21",
+      "title": "相轨迹",
+      "sha256": "9fb5d8f2f37cf17339fe0204261ed67e09c0d41341c6d259c34dd6a23e500dfa",
+      "retiredResourceIds": [
+        "act:card:相轨迹_8_5fb81b03"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "cardId": "ctkg_v3e-object-953374e261302cfdff02144d",
+      "title": "相平面",
+      "sha256": "53c124b52a5dd173bb122e8a0cfa68d64a587e7c57fe382865f1a1454e95603f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+      "cardId": "ctkg_v3e-object-9a4c8dc9963685a6c39a5653",
+      "title": "容许控制",
+      "sha256": "5f616d3219cdce06e560eb747d4f2b0ce42ec58e1a7e7abaae5d764186ecd68f",
+      "retiredResourceIds": [
+        "act:card:容许控制_10_cbc0aa55"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "cardId": "ctkg_v3e-object-a0e00fe181b9ba65bda1824c",
+      "title": "相平面法",
+      "sha256": "cd4ce2cc446ce68400b2d90474f656700d3242ffad5efb6634e5423ed014dcdf",
+      "retiredResourceIds": [
+        "act:card:相平面分析_8_13cc8148",
+        "act:card:相平面法_8_b1b8091e"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "cardId": "ctkg_v3e-object-ba8cd00d72479d23476d2061",
+      "title": "奇点",
+      "sha256": "b668450fd81e90289878b2814b3927b547252da9dbdd320ad0dd865927cc0e10",
+      "retiredResourceIds": [
+        "act:card:奇点_8_f6da1cbb",
+        "act:card:奇点_平衡点__8_7e8e9880"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+      "cardId": "ctkg_v3e-object-d5145d73b0cb5535eac9e81b",
+      "title": "实奇点",
+      "sha256": "bb3276bf627ec6ae81f84b6a7357b920567ef417f77c3a6a06741e3acdf3b8bf",
+      "retiredResourceIds": [
+        "act:card:实奇点_8_daa87444"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+      "cardId": "ctkg_v3e-object-e281edb0bf991d873b515ce3",
+      "title": "虚奇点",
+      "sha256": "3327a4ff30a4c24da814e2593ea99a2f31ccc53f599d8476561dded4efd4a496",
+      "retiredResourceIds": [
+        "act:card:虚奇点_8_e5cac44f"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "cardId": "ctkg_v3e-object-fc2e0621725b902101011b9d",
+      "title": "开关线",
+      "sha256": "0081e84e859a884ae58a1c070d3cb55dcef626e2a4162ae0cf0166c97d525b36",
+      "retiredResourceIds": [
+        "act:card:开关线_8_fff1000a"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+      "cardId": "ctkg_v3e-object-074ba027193fc06624e26f0a",
+      "title": "奈奎斯特-香农采样定理",
+      "sha256": "cf5c289f05899be5b041406546360f5000a2053059431f9cdb97a3ee2e4508dd",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "cardId": "ctkg_v3e-object-0e5df270abeaa062e3a81d33",
+      "title": "采样过程",
+      "sha256": "f89c349181de690cb0c7b73d3df758cb045fd755520922f34b51f3cc2cf0b7fb",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-18dc6cccc99e95f3ae794561",
+      "cardId": "ctkg_v3e-object-18dc6cccc99e95f3ae794561",
+      "title": "混叠",
+      "sha256": "ee6aa7e66293911420fc464e030ceceafba2889eb4f373e3276a7f415ef80ab7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-241503a6440d96140036a51f",
+      "cardId": "ctkg_v3e-object-241503a6440d96140036a51f",
+      "title": "抗混叠预滤波器",
+      "sha256": "b3e5c0bbe2c47baa250c94769e23b5ea00b56235d67671aea773b82cbd642cf2",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+      "cardId": "ctkg_v3e-object-27eb45a250307fcc571ac92c",
+      "title": "采样率",
+      "sha256": "804431021e485eff01cc023dba0c834dbb2c8b591d8ba5b7585bcec81f087fce",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+      "cardId": "ctkg_v3e-object-2a6df9c2e027152138c44554",
+      "title": "离散时间系统",
+      "sha256": "f6bfd383d1711d36d557879a9d7e98155bab1e722a2f58619c9d110682641ff1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "cardId": "ctkg_v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "title": "理想采样器",
+      "sha256": "aac3df07dc1f7decdb941bb85ed91d74b5ca48aab860fb047324c49734258045",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "cardId": "ctkg_v3e-object-66dd287a007d9b2b74781de5",
+      "title": "采样控制系统",
+      "sha256": "af55200f230d0eff223fca4d2338486c84c98d515da0f068c62901a4668a2dfe",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8db9674c3550d1d151df7573",
+      "cardId": "ctkg_v3e-object-8db9674c3550d1d151df7573",
+      "title": "周期采样",
+      "sha256": "42fa4f114bf33a6a29482503ddcbd7efaa7fadf8c84ee62535f93b6050790ce3",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+      "cardId": "ctkg_v3e-object-a36f17ddac0ec65e08118916",
+      "title": "离散信号",
+      "sha256": "888aec7c6cf29a9f5db30184d164bf22f85e3c3eb6cf8295fc219f4a41dbc43b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd2b9611c4934fe067e8786a",
+      "cardId": "ctkg_v3e-object-cd2b9611c4934fe067e8786a",
+      "title": "采样率选择",
+      "sha256": "9037b4ae0b08f99d8d72d8ab11989c4f28c49c5152905145c3bcb366f6c1c03a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-256b7b4e6dd8071dc7ce3512",
+      "cardId": "ctkg_v3e-object-256b7b4e6dd8071dc7ce3512",
+      "title": "z变换",
+      "sha256": "0e13cc792d4c14b27519d503db0bf3dd646c778a86ca41ed9885d908e7da9df6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "cardId": "ctkg_v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "title": "差分方程",
+      "sha256": "f1139cde8b62e78aba2359c19b27490fa3a720332ad12482b690a7d0f296589d",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-54095598351974e2167111f2",
+      "cardId": "ctkg_v3e-object-54095598351974e2167111f2",
+      "title": "零阶保持器法",
+      "sha256": "c0d76eaf5b7ece83627cd5f5a8a7e16ad6dfbad51d9ede032f58f839a9e47ae6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "cardId": "ctkg_v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "title": "一阶保持器",
+      "sha256": "c531dd90b3951253419dcdfbf502824011ea26a6b439dd183c5d6979a6c27e9b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-60dc281db22fe43eefe4ae57",
+      "cardId": "ctkg_v3e-object-60dc281db22fe43eefe4ae57",
+      "title": "有限字长",
+      "sha256": "52c3b1bce8bf40643080a6de77f03df0a11c09b30e2e1b4cbaa61b6fbbee4186",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8092204c03a8af260e3e672f",
+      "cardId": "ctkg_v3e-object-8092204c03a8af260e3e672f",
+      "title": "离散系统时域性能指标",
+      "sha256": "7fb435b449b5691481a65ffc29d143c913d59f9e54710f671ee9ad9d4d5b1c13",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "cardId": "ctkg_v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "title": "w变换（双线性变换）",
+      "sha256": "a3e584311328606fd0569435cd8697772853689184c6512afa2f9025f1e87df6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bd932075b5f988acebafc1b5",
+      "cardId": "ctkg_v3e-object-bd932075b5f988acebafc1b5",
+      "title": "塔斯廷法（双线性近似）",
+      "sha256": "ad96a447efd723f28def8cb16ecfcafce21dba8783f071d02cfebdc7398f97c0",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cc879188760f9c79394713cb",
+      "cardId": "ctkg_v3e-object-cc879188760f9c79394713cb",
+      "title": "s平面到z平面的映射",
+      "sha256": "9666805b2e27301b38b66ae7b10e046e451e42dee3079d8d66d9f9c1a767d93e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-542c371afb4374a5f7b7be5f",
+      "cardId": "ctkg_v3e-object-542c371afb4374a5f7b7be5f",
+      "title": "矩阵指数函数",
+      "sha256": "a0b31440b9fc142efddf5c1e9a31085d96500579ac56dcd9d9058c09f219e3ca",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "cardId": "ctkg_v3e-object-f5e744188b4f574f567a1a8e",
+      "title": "状态转移矩阵",
+      "sha256": "43a4d690da0d9a8ae229c2a325e73266be8d22800e0991a47c12108d6e317944",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9e88045efd51f4067f98fe34",
+      "cardId": "ctkg_v3e-object-9e88045efd51f4067f98fe34",
+      "title": "传递函数转状态空间",
+      "sha256": "162102c52a6a4d2604af76b8c84d0d78fe9e9dc6575d4bcc23a7bc7385b5e645",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dc824b634d98afec12f44ff1",
+      "cardId": "ctkg_v3e-object-dc824b634d98afec12f44ff1",
+      "title": "控制规范型",
+      "sha256": "66baa1e9c3bd95bc2a2a388c6536b82f0edfd14f097827e2b152b124e1acaf0a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3784992e294bb2f120cdc0df",
+      "cardId": "ctkg_v3e-object-3784992e294bb2f120cdc0df",
+      "title": "可控性矩阵",
+      "sha256": "757e9e1782671b16d64f771a8fa5f18afa4bac99cad113847edad6e33c1ba0f7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-567eb255d7d82d8b4e029f6d",
+      "cardId": "ctkg_v3e-object-567eb255d7d82d8b4e029f6d",
+      "title": "状态可达",
+      "sha256": "ac1e76e6657fc97353857da64716e94234d9071ff7123f3effa304f3f10ea66f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ade57f97833b42fe6394301d",
+      "cardId": "ctkg_v3e-object-ade57f97833b42fe6394301d",
+      "title": "可控性PBH秩判据法",
+      "sha256": "c8aa6a9c429cd49bc0a4350330e9bfc1b78cc87f11b93e9d5e665e391fe1b774",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b667b9f8df2202d92a43a966",
+      "cardId": "ctkg_v3e-object-b667b9f8df2202d92a43a966",
+      "title": "可观测性阵 (observability matrix)",
+      "sha256": "f8e35500aaa7a4d08b9318105b6a42acbfc98505752f47487f39dafd9cfe3fc5",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-98863d255f5bdc0c59c9b50b",
+      "cardId": "ctkg_v3e-object-98863d255f5bdc0c59c9b50b",
+      "title": "PBH秩检验法（可观测性）",
+      "sha256": "06e04774a9b6e7b3620fd55aa9358a589b4827f0737a389c75edae7f97b14c5f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aee09af112d5234757265089",
+      "cardId": "ctkg_v3e-object-aee09af112d5234757265089",
+      "title": "对偶性",
+      "sha256": "a5ac07fd59cd6ac7a9a07e4528ef8aaa784ed7077edff4bd63b221ef46aa8b9d",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+      "cardId": "ctkg_v3e-object-e28c6b3ef5b1335c8a086f34",
+      "title": "全状态反馈",
+      "sha256": "58e5d0d701b19b480b10e17dacb61e830b8a094f19d8d72d8fccfe3a1075b259",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eb888786c5eb738a65d705f7",
+      "cardId": "ctkg_v3e-object-eb888786c5eb738a65d705f7",
+      "title": "可镇定",
+      "sha256": "d96a0a39a51a85ba30e21f31d57607013e8344023de7812848c52d4ff3e2a8b1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7e19f05879897a5e2d7c3e97",
+      "cardId": "ctkg_v3e-object-7e19f05879897a5e2d7c3e97",
+      "title": "阿克曼状态反馈增益公式",
+      "sha256": "e4b0c89594cc3b219ee7c8bce2701e2cf811325fe811f4690703c17f9c93797c",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+      "cardId": "ctkg_v3e-object-9b91b4b29c27f8d8916d9626",
+      "title": "全状态观测器",
+      "sha256": "359ee623a3d916b46165f32648907cf398a8107d2a81baecf9a83c82a0909cee",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cb18c47f552c6b128f9b52c8",
+      "cardId": "ctkg_v3e-object-cb18c47f552c6b128f9b52c8",
+      "title": "可检测性",
+      "sha256": "6d1d7d7369e5cfa3627c456eedfde2fd6a6cbb62753d9aa18b55affea3bf50f1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba2eb78058c4284d923a28eb",
+      "cardId": "ctkg_v3e-object-ba2eb78058c4284d923a28eb",
+      "title": "阿克曼观测器增益公式",
+      "sha256": "cc7d1f2a075435696276d3c4e87c846dd4c29fccc5d107a3d23c3b17db4b3606",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8ecd4d6352467b3444880809",
+      "cardId": "ctkg_v3e-object-8ecd4d6352467b3444880809",
+      "title": "降阶观测器",
+      "sha256": "1a0d0a33d7e2ee8a3a7eda8d0b3fa2415b6e74a2c586ad4bdd8549703e17063f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4b7254aa73329cdcc5057159",
+      "cardId": "ctkg_v3e-object-4b7254aa73329cdcc5057159",
+      "title": "分离原理",
+      "sha256": "2bb97e7a659190638ebc56931e8ce1a413abd0318f6e801bed54b1f9a4b8ac64",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d9716ac7221be94d7e69f7d3",
+      "cardId": "ctkg_v3e-object-d9716ac7221be94d7e69f7d3",
+      "title": "卡尔曼状态空间分解",
+      "sha256": "5518a644356226728eb94215941f590ea01889b9a7a0ab164422996b1c251d50",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1946643d6912e8d8aeb2decb",
+      "cardId": "ctkg_v3e-object-1946643d6912e8d8aeb2decb",
+      "title": "内模原理",
+      "sha256": "618c84782e8d068240245f88a59e41cb01c43501dc159d2ea9deb62cf4d733ee",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:00c33c72030aa254c651c5ad",
+      "cardId": "ctkg_domainconcept_00c33c72030aa254c651c5ad",
+      "title": "正定性（标量函数）",
+      "sha256": "fc08a7ccec61e6e83d1909d70527fc65f6a47eeaae4be0f0c4606eba2ff80d84",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:1fe958ff9947220990074dbc",
+      "cardId": "ctkg_domainconcept_1fe958ff9947220990074dbc",
+      "title": "正半定性（标量函数）",
+      "sha256": "fa1b45fd73b78b0e40dfb77b4a9a2bfa30bca47ba6d4e3e0016c9c10ab8d738e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:471808457837d110fa167faf",
+      "cardId": "ctkg_domainconcept_471808457837d110fa167faf",
+      "title": "负定性（标量函数）",
+      "sha256": "256422819e4a00b51cc5de91a2089b0a48e6fd5fc25297579ff0fc2248d96d0a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0dfe26d4bf0c2174a0a4b176",
+      "cardId": "ctkg_domainconcept_0dfe26d4bf0c2174a0a4b176",
+      "title": "负半定性（标量函数）",
+      "sha256": "802db6c23176fe2a1eb3dba30b18748d0b958ce3615418c35a69905a8d266807",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+      "cardId": "ctkg_domainconcept_0d613f0b723fa4a95a006064",
+      "title": "李雅普诺夫稳定性",
+      "sha256": "62fff65f837245d38a507c65d543e322cc6693e6f95f96b70edf69e7a2143262",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+      "cardId": "ctkg_domainconcept_ce5faebdf847052fdb481b31",
+      "title": "渐近稳定性",
+      "sha256": "c2f510b56f368f405c976cd9b929e3c57c96076e27ceb710b346edd9b4876417",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:5f49b022cd74414f3b342231",
+      "cardId": "ctkg_domainconcept_5f49b022cd74414f3b342231",
+      "title": "一致稳定性",
+      "sha256": "ac05d3fe9071db36a567931b6613c2e981028e643ed659f6eda4e50a1e271a03",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:d071dec567505ce641aa9b15",
+      "cardId": "ctkg_domainconcept_d071dec567505ce641aa9b15",
+      "title": "一致渐近稳定性",
+      "sha256": "06d39c3830139d96d6fab3cb7f799d4e96cd44ab7c68031a920068bb18a6b1dc",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:f713a296511f858ae3f3bfde",
+      "cardId": "ctkg_domainconcept_f713a296511f858ae3f3bfde",
+      "title": "大范围（全局）渐近稳定性",
+      "sha256": "62d1de3bc65fe1ead038640bdc022d56120c7afe98ead12bb991e0e1fae07c1b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+      "cardId": "ctkg_domainconcept_5e637ae64f351feabf64218f",
+      "title": "李雅普诺夫函数候选",
+      "sha256": "7ef9fc8a07ef8683af60cd283f86d57a8e2ee31ef5052946645653da1036a020",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+      "cardId": "ctkg_domainconcept_4dd405f4b14b1c56c98340c1",
+      "title": "李雅普诺夫函数",
+      "sha256": "5b69408ae795bb248ed6c2e23fbd70c1579d2a5b030a55599708cb5bd8bfda92",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+      "cardId": "ctkg_domainconcept_3ffc77366f538e92e13a0296",
+      "title": "能量函数（李雅普诺夫）",
+      "sha256": "bed10455caf7ab0510125de34af67282aae9ce8c7000c4d4842593444f557eb1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:4b98e3fbe8d7e5267277361f",
+      "cardId": "ctkg_domainconcept_4b98e3fbe8d7e5267277361f",
+      "title": "李雅普诺夫第一法（间接法）",
+      "sha256": "0b72d3ab3639dbfa06f5073265f0b7f41cb1687c9635bf4b8f7b24071101e639",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:8985a8b639467c8e28fad417",
+      "cardId": "ctkg_domainconcept_8985a8b639467c8e28fad417",
+      "title": "李雅普诺夫第二法（直接法）",
+      "sha256": "62f09ee183dc3291bbaee14c9d11db5d9957160e4e34cf3c40a98323b80f1fad",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:951014d55276cafabac48a25",
+      "cardId": "ctkg_domainconcept_951014d55276cafabac48a25",
+      "title": "李雅普诺夫方程",
+      "sha256": "69817e9814210d2f45192576e8b749d31f62bd7a660a938baa938595e86a4880",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:27b2aecb99a117dacd1ef9a3",
+      "cardId": "ctkg_m1q_source_27b2aecb99a117dacd1ef9a3",
+      "title": "最优控制",
+      "sha256": "857613b867cd16c683845b327ae640bb264988f11cd4805ab29cab79b203481c",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:ac2b8a5f58a6a086b769ae81",
+      "cardId": "ctkg_m1q_source_ac2b8a5f58a6a086b769ae81",
+      "title": "泛函",
+      "sha256": "02a9b9cce7e10f5edf11d46453a05a791225ff10dcfd8cb1449ef3fca4d1969e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:fa4ec22e9cd6aa9278b34b17",
+      "cardId": "ctkg_m1q_phase-g_source_fa4ec22e9cd6aa9278b34b17",
+      "title": "过程项",
+      "sha256": "09311bc4cf772381e57200a95d028b31287b1db751dd776e0d8a046b7a3926b4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:c14dc59187664d8a36099266",
+      "cardId": "ctkg_m1q_phase-g_source_c14dc59187664d8a36099266",
+      "title": "末值项",
+      "sha256": "b7d0cffec3093be3eecaed052d40a9f68f35bc35ca2b0f86151f9fd9dc1ee0c1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:8f3eb818adacfb4bbd1403b4",
+      "cardId": "ctkg_m1q_phase-g_source_8f3eb818adacfb4bbd1403b4",
+      "title": "变分法",
+      "sha256": "aecd7df4bfa1577e034dfb1d4f2cc27dbe03a686fa52f8b134219b5ac129f2c7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:8d975cac8d57b653810aae40",
+      "cardId": "ctkg_m1q_phase-g_source_8d975cac8d57b653810aae40",
+      "title": "极小值原理",
+      "sha256": "7858e1799a48f376bed6f430c9125ec5bdc44ebf77269ebd6e06014d507d8a66",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:b7aaaf4975cb12371130f69b",
+      "cardId": "ctkg_m1q_phase-g_source_b7aaaf4975cb12371130f69b",
+      "title": "动态规划",
+      "sha256": "ff6b955647bacfb2d2f313ab0a70649350ce21cc0895d42678d74897ca6fb449",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:4e39f1797ea3333fc99d507f",
+      "cardId": "ctkg_m1q_phase-g_source_4e39f1797ea3333fc99d507f",
+      "title": "最小时间控制",
+      "sha256": "50ee9374d497b71f97b9e10b78da50c13e3f30f305ce4ce1279bfb6e49845770",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:sol-supplement:source:2fbc75456dfe61e6933cd4ee",
+      "cardId": "ctkg_m1q_sol-supplement_source_2fbc75456dfe61e6933cd4ee",
+      "title": "权阵 R(t)",
+      "sha256": "ac3ab93c029e5b4020587da32f0dc645e4ad209231e99016b546d05785858ca3",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:sol-supplement:source:dab96b1e6e02733852005d63",
+      "cardId": "ctkg_m1q_sol-supplement_source_dab96b1e6e02733852005d63",
+      "title": "权阵 Q(t)",
+      "sha256": "bf87da14ab91745713678f7892fbf0d5ee35e1d0f1f175dc5c635f04cfe5318c",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:sol-supplement:source:7f1c2a4b7defdf180cd358a9",
+      "cardId": "ctkg_m1q_sol-supplement_source_7f1c2a4b7defdf180cd358a9",
+      "title": "权阵 F",
+      "sha256": "10419965d1d55dce0f9b3bb2687d09e2fcdd476325c7b446104686a0918fd2b6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:93f9cb978a744de81099410b",
+      "cardId": "ctkg_m1q_source_93f9cb978a744de81099410b",
+      "title": "线性二次型问题",
+      "sha256": "9bff25d2724f00dadbee1fbb87326b4a8f938ec1f537771731b7e0779d32905d",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:97e97630ea05992f4d3e7e54",
+      "cardId": "ctkg_m1q_source_97e97630ea05992f4d3e7e54",
+      "title": "线性二次型调节器 (LQR)",
+      "sha256": "9203d174fa1d6b82ed6596d05e917e54cc4d3e7056abb1489e3eba3dafbdcf72",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:b3348e63f6c3f02324406434",
+      "cardId": "ctkg_m1q_source_b3348e63f6c3f02324406434",
+      "title": "横截条件",
+      "sha256": "f03f0accd6d86898c5388fa6a69369d310f2d7b6028c79af149a6c74959d72ad",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1q:sol-supplement:concept:finite-horizon-optimal-state-feedback-law",
+      "cardId": "m1q_sol-supplement_concept_finite-horizon-optimal-state-feedback-law",
+      "title": "有限时域最优状态反馈律",
+      "sha256": "c574b616b6e1c1de028f4a6d88ee4b29707486ebcbc0ace315730e997f20007d",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9b5b7d8e1adf2c35463467a8",
+      "cardId": "ctkg_domainconcept_9b5b7d8e1adf2c35463467a8",
+      "title": "z平面单位圆",
+      "sha256": "e9c405050448827286a520abdd5e14157f82c2968558132a196f67e17079ad58",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9e0ece5ddc1de81897928b5f",
+      "cardId": "ctkg_domainconcept_9e0ece5ddc1de81897928b5f",
+      "title": "采样周期",
+      "sha256": "06f9384a0e38f894c2ddce5ef971203a94ae9de9b7394f292bfcb42845022aa2",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:a183d0a0001c3553cc638558",
+      "cardId": "ctkg_domainconcept_a183d0a0001c3553cc638558",
+      "title": "离散模型",
+      "sha256": "a2163831a9ea386b0a0dc248384304f6653ea22ecf78fbd1d864c9db9c240eec",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:bf027d00f4e69d3198aefe23",
+      "cardId": "ctkg_domainconcept_bf027d00f4e69d3198aefe23",
+      "title": "精确离散等效",
+      "sha256": "35f0108b1f662085d63ec5f45d8739dd3c9d70567cd42be3cc97f65d0fd7a5f9",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:a007da62df7bd509e16eab25",
+      "cardId": "ctkg_domainconcept_a007da62df7bd509e16eab25",
+      "title": "离散比例控制",
+      "sha256": "1833aba85ecbdb3f1dcafa9eb9f8fed3700bca6bb8c30f86fdab18c11e760fd9",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:b33901638cba88f3f2ea5a20",
+      "cardId": "ctkg_domainconcept_b33901638cba88f3f2ea5a20",
+      "title": "离散积分控制",
+      "sha256": "ce873671d5c64e93707e252844183daf29cbf03af2f70de8d35642a56cffa14d",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:bb073f59e79dbee61e794fa1",
+      "cardId": "ctkg_domainconcept_bb073f59e79dbee61e794fa1",
+      "title": "离散微分控制",
+      "sha256": "f743e681c59d2e0a99bea1e257085e2269eff7b675aeee85f0025d0fc901bea0",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:42b62edf88d848137713e690",
+      "cardId": "ctkg_domainconcept_42b62edf88d848137713e690",
+      "title": "数字滞后补偿",
+      "sha256": "54ab0d9b064d1b35d1da7fb48d355ac66388a8b8786c09eb767c322af7610fd1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:60729cbdf747b39c2ff781bb",
+      "cardId": "ctkg_domainconcept_60729cbdf747b39c2ff781bb",
+      "title": "直接z域补偿器设计方法",
+      "sha256": "d1315ff1ee712c4d99fc3db1ce1f2456cc88a19cf0c80eea448b0eba4ac65c15",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6979e99f60e2642ff3d70d4b",
+      "cardId": "ctkg_domainconcept_6979e99f60e2642ff3d70d4b",
+      "title": "z平面根轨迹",
+      "sha256": "c26cf23b14f7f5b63517a3a3ac8b969a6702cf5ecd5233af576e2249490aafb6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9431ee70cd4c3af657882c63",
+      "cardId": "ctkg_domainconcept_9431ee70cd4c3af657882c63",
+      "title": "直接数字设计法",
+      "sha256": "276eb57b21f8b0b7703a4abea5998a7236f35d11ed4b657705670de5d4b508d4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:cd1a5e4071f81f8cf97f7eb7",
+      "cardId": "ctkg_domainconcept_cd1a5e4071f81f8cf97f7eb7",
+      "title": "离散超前补偿",
+      "sha256": "b0756404b72f32ee56d787af1ffac5cbe652cfd69f76a7f15bcc6cf76a8ac7b0",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:df606d1cc343f73f1c9af59a",
+      "cardId": "ctkg_domainconcept_df606d1cc343f73f1c9af59a",
+      "title": "PID 数字控制器实现方法",
+      "sha256": "594adbed474fd1ba06e3164ba996bb0c9daf872800ff11d0261963188af4d751",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+      "cardId": "ctkg_domainconcept_1b04b9a147b0c7ffb5908e4e",
+      "title": "最小拍系统",
+      "sha256": "610bdff0b81e90e959d18a57462e74db9ee76b657a0fb1c5bf9d54fa230fc282",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:364221ded81ca2a0139d013a",
+      "cardId": "ctkg_domainconcept_364221ded81ca2a0139d013a",
+      "title": "最小拍系统设计方法",
+      "sha256": "f392239a924be990dc32589958b683a0b846db1cbc4fa6a2a1bf1b681f4eebf6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:357a51cbd9882d80503815d3",
+      "cardId": "ctkg_domainconcept_357a51cbd9882d80503815d3",
+      "title": "误差脉冲传递函数",
+      "sha256": "ddd3752d694115ad18d1eb3ed68f185619538f1c57555e8e1d9d9fbee2ad05fd",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:e64c6ad0fa1d0483faf9aa7c",
+      "cardId": "ctkg_domainconcept_e64c6ad0fa1d0483faf9aa7c",
+      "title": "纹波",
+      "sha256": "f0680067580ced68665cb50aa9969191b965ece014dcabfe199aaa0ed0be6f09",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
+      "cardId": "ctkg_domainconcept_6ab0d98e17a500ee2a2f5133",
+      "title": "无纹波最小拍系统",
+      "sha256": "3b40b3e76bc9d0602e0ebfe3d593b246ba89470e989ec969d11a24eef25f08d0",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:1126ce54b22f0fafb3f6e916",
+      "cardId": "ctkg_domainconcept_1126ce54b22f0fafb3f6e916",
+      "title": "无纹波最小拍系统设计方法",
+      "sha256": "fefbf9107ec94032d43705575ffd56ea0441627131d6ffb3ec9e71edfd670424",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:ad75410e5a16550ce25a6d8a",
+      "cardId": "ctkg_domainconcept_ad75410e5a16550ce25a6d8a",
+      "title": "一拍系统",
+      "sha256": "d724c3d6369bf9cb5509cfe4786d378d3bd96fba54e385d80083461aa5a47cf7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:608d47a12a8256a1112eb48a",
+      "cardId": "m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "title": "鲁棒性",
+      "sha256": "85e0f511e63083000ab73eb8a9f8bdd6017fb9b24f1468e49fe95bf2e00d7551",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m3-v2k:canonical-object:333b4eccaaba394db05c3cc8",
+      "cardId": "ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "title": "鲁棒控制系统",
+      "sha256": "87d1d8fe0971558b4e0c57ad1d15bb46e852bd8001cff0082b7f53a456ed362c",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:8f2bac90326190686226cb4f",
+      "cardId": "m1r-v1d_object_8f2bac90326190686226cb4f",
+      "title": "模型不精确性与变化",
+      "sha256": "ffb896714c843ab57e0226961fa7d34b6b33673668c8095b2f523f14599b854e",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:b4cb5e69761b0992e65f3ff0",
+      "cardId": "m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "title": "未建模动态过程",
+      "sha256": "834e024e8b8da66d1d53e97eca392b09ed26d78b3f16c04bd0299535b4edd6a7",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:74fdaac2c48ad74c777df6e0",
+      "cardId": "m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "title": "不确定参数界限表示法",
+      "sha256": "783b93a6e18a97804ebdec7702ac54b0bf707f4dcef8fc6cff8e67ccc64d8146",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:3f3cc3150db61a94045611e8",
+      "cardId": "m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "title": "加性摄动",
+      "sha256": "7a55ca913c60b5e0a6ccf272f94b27efa1958f2a506e620ae2fd29d24539adb3",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:7523b6b72a42df094b083b19",
+      "cardId": "m1r-v1d_object_7523b6b72a42df094b083b19",
+      "title": "乘性摄动",
+      "sha256": "917dc5977c5e6399fcd76dbbf42f760dc638db9dff4d0426a4afe7a8be08e73b",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:b31611f788fa831ff4685e14",
+      "cardId": "m1r-v1d_object_b31611f788fa831ff4685e14",
+      "title": "鲁棒稳定性",
+      "sha256": "208b7f3a3be54716a582cd4f2256dc8f54dc3efd88ad220db1173a3be19939a1",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m3-v2j:source-object:5b9db9f6bfeb1491df0d9414",
+      "cardId": "ctkg_m3-v2j_source-object_5b9db9f6bfeb1491df0d9414",
+      "title": "定量反馈理论",
+      "sha256": "c8a59ba5379ca6a9b0cd523736a60ece068a3a9792a575717a0598dad5b84d93",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m3-v2m:source-object:986a0736dc2b06ddf1e785c9",
+      "cardId": "ctkg_m3-v2m_source-object_986a0736dc2b06ddf1e785c9",
+      "title": "鲁棒设计方法",
+      "sha256": "35fdb3ef0ada7f9ac2dc345011a5e0456402af666beaeb1798eed49aac0b6525",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:concept:0a3e1fd1b6a15049b4f7846f",
+      "cardId": "m1r-v1d_concept_0a3e1fd1b6a15049b4f7846f",
+      "title": "模型不确定性下的鲁棒控制设计",
+      "sha256": "5a6189daaca8aec1297b7286b9a977256d503e70374d6bbf44e4ffb846a1bb88",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:9329097505616acd8adafa68",
+      "cardId": "m1r-v1d_object_9329097505616acd8adafa68",
+      "title": "时间乘绝对误差积分设计",
+      "sha256": "513b3258e51e3d77b299b01a2bcaffebe71c2e84f7238347241eb9725d791ef3",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:aa8ae205a38e3698addb8fde",
+      "cardId": "m1r-v1d_object_aa8ae205a38e3698addb8fde",
+      "title": "鲁棒性仿真方法",
+      "sha256": "dda769ccdfe03d748fd123557712343420b5af8448d28ba6260bb7a20fe6def4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:c737d473ec4983fe9335fdb4",
+      "cardId": "m1r-v1d_object_c737d473ec4983fe9335fdb4",
+      "title": "ITAE方法",
+      "sha256": "a11b305e13d0b753f457037581135f39ca4d7d120ebe6059b383ee3e1fb9767f",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:ff005a8911df14f27aa9f95d",
+      "cardId": "m1r-v1d_object_ff005a8911df14f27aa9f95d",
+      "title": "鲁棒无静差响应的设计方法",
+      "sha256": "5c77e3df81f6a745f1fa2332ea744bf3a4615c8a931b8c248a0b4ad9081b6b04",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-1a565603bcbebd5ede41aa2d",
+      "cardId": "ctkg_m1s-object-1a565603bcbebd5ede41aa2d",
+      "title": "反馈线性化",
+      "sha256": "e09f9647f7b32bfd4e919a9a5e38796ac85e71df0b3cd75746a961879c48ff48",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-5f9ee607698d576a63deb905",
+      "cardId": "ctkg_m1s-object-5f9ee607698d576a63deb905",
+      "title": "逆系统",
+      "sha256": "27bfd3316e74104dc95061bd8d994c18bd07735bbe5a93c82835ba7145ef79b6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+      "cardId": "ctkg_m1s-object-7d106ba17ce598d4b215848e",
+      "title": "状态反馈控制设计方法",
+      "sha256": "f75ea234dd8b93e3e5aea7e3796a66da6962be1a78f2e3b062c44eedd060bdc6",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-83dd51199b51fd3fb2ccfdeb",
+      "cardId": "ctkg_m1s-object-83dd51199b51fd3fb2ccfdeb",
+      "title": "卡尔曼-雅库波维奇-波波夫引理",
+      "sha256": "51628b9aa29430684a392300bfcd9f81f6efac5e0c9320f6aecee9074a7c84af",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-ba55a0b2d3900c3708dbddc4",
+      "cardId": "ctkg_m1s-object-ba55a0b2d3900c3708dbddc4",
+      "title": "逆系统设计方法",
+      "sha256": "fa85e79295e0e740fcd2399a153cde0c786e05826fb0edbb9480f308e33683b4",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-d9e065459b3844ab4a1e4b24",
+      "cardId": "ctkg_m1s-object-d9e065459b3844ab4a1e4b24",
+      "title": "渐近跟踪控制设计方法",
+      "sha256": "c558beb9548e03eb80470d6e0cb1ee9603a03803f0728a2d1da4b7d7ce97373a",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-12e26eefe7617d594c305b67",
+      "cardId": "ctkg_m1s-object-12e26eefe7617d594c305b67",
+      "title": "l 阶积分逆系统",
+      "sha256": "946738e5ef31d1ee06431a9718dade884cf06e080b97486539e3d7cedf0846c9",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+      "cardId": "ctkg_m1s-object-2ce2e2dd44688b16823d91c2",
+      "title": "严格无源阻抗",
+      "sha256": "c70c6336e9f4b0eb4e52f97d3963fc4b878f5bd08b5ea151feb3814dc2971215",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+      "cardId": "ctkg_m1s-object-32dfe929ff32d4e22799e9a1",
+      "title": "扇区化零法",
+      "sha256": "2c76dd26fcd6b3dad119415352c0c13dc939c0df2d11415c1b6b52fa285e3579",
+      "retiredResourceIds": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-5df7a5c839136dcf822a286d",
+      "cardId": "ctkg_m1s-object-5df7a5c839136dcf822a286d",
+      "title": "积分器抗漂移控制方法",
+      "sha256": "7a3f3f0294864c739cefda46e721ed9c202fad620036a29edd293ea2459f9b8a",
+      "retiredResourceIds": []
+    }
+  ]
+}

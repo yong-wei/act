@@ -1,0 +1,39 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:数学模型_2_b21e01f6",
+      "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/数学模型_2_b21e01f6.md",
+          "sha256": "1736bee19ca04915174143b82d3aa2268b59c6209ddc4899d607a909fd485c8a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01b/retired/authoring/数学模型_2_b21e01f6.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/数学模型_2_b21e01f6.md",
+          "sha256": "1736bee19ca04915174143b82d3aa2268b59c6209ddc4899d607a909fd485c8a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01b/retired/runtime/数学模型_2_b21e01f6.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:反馈控制系统_1_98dc667a",
+      "canonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/反馈控制系统_1_98dc667a.md",
+          "sha256": "74affb07242cbc1361aad250a2c0f894fbd5e44a744b803b6041573bcdb426af",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01b/retired/authoring/反馈控制系统_1_98dc667a.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/反馈控制系统_1_98dc667a.md",
+          "sha256": "74affb07242cbc1361aad250a2c0f894fbd5e44a744b803b6041573bcdb426af",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01b/retired/runtime/反馈控制系统_1_98dc667a.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b6",
+  "replacementDigest": "a099b0b8586d4c291bd5a0b0f3608fbee9c11f51485a827b1ab554c7b4784fbd"
+}

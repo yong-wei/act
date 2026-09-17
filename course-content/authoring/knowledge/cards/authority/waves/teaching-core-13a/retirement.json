@@ -1,0 +1,87 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:最小节拍响应_6_24fab382",
+      "canonicalId": "ctkg:domainconcept:6daaf5095018a332d359e2de",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/最小节拍响应_6_24fab382.md",
+          "sha256": "e976658ddb433388971d77dc3d50885cd7ae5345f8970cd33ca0cd05bcfb9577",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/retired/authoring/最小节拍响应_6_24fab382.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/最小节拍响应_6_24fab382.md",
+          "sha256": "e976658ddb433388971d77dc3d50885cd7ae5345f8970cd33ca0cd05bcfb9577",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/retired/runtime/最小节拍响应_6_24fab382.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:最小节拍响应系统_6_3e2a1672",
+      "canonicalId": "ctkg:domainconcept:6daaf5095018a332d359e2de",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/最小节拍响应系统_6_3e2a1672.md",
+          "sha256": "3bd5916756673b7cae6256b3515249fc75885ff2d895df1c31c87b2a32ca33d8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/retired/authoring/最小节拍响应系统_6_3e2a1672.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/最小节拍响应系统_6_3e2a1672.md",
+          "sha256": "3bd5916756673b7cae6256b3515249fc75885ff2d895df1c31c87b2a32ca33d8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/retired/runtime/最小节拍响应系统_6_3e2a1672.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ITAE性能指标_10_16ea2a23",
+      "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/ITAE性能指标_10_16ea2a23.md",
+          "sha256": "2c798300f506f51e024ae6007a756470f403d964b43b95922e298cccaf816237",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/retired/authoring/ITAE性能指标_10_16ea2a23.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/ITAE性能指标_10_16ea2a23.md",
+          "sha256": "2c798300f506f51e024ae6007a756470f403d964b43b95922e298cccaf816237",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/retired/runtime/ITAE性能指标_10_16ea2a23.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ITAE最优性能_10_35da202b",
+      "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/ITAE最优性能_10_35da202b.md",
+          "sha256": "477ea42e3544026cfdd5a51bee396bf78e5a08875161bf9092c08f7b1d867c22",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/retired/authoring/ITAE最优性能_10_35da202b.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/ITAE最优性能_10_35da202b.md",
+          "sha256": "477ea42e3544026cfdd5a51bee396bf78e5a08875161bf9092c08f7b1d867c22",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/retired/runtime/ITAE最优性能_10_35da202b.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:动态性能指标_3_a10733c1",
+      "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/动态性能指标_3_a10733c1.md",
+          "sha256": "86ec08e52edebee3564ca39156b24d7764c8206dd4b6408eb7364b90586c5162",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/retired/authoring/动态性能指标_3_a10733c1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/动态性能指标_3_a10733c1.md",
+          "sha256": "86ec08e52edebee3564ca39156b24d7764c8206dd4b6408eb7364b90586c5162",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/retired/runtime/动态性能指标_3_a10733c1.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b25",
+  "replacementDigest": "f3c3d22e8e101980080a4d5c01c90c876968c80f1812fedf786fc0a35bedbcaf"
+}

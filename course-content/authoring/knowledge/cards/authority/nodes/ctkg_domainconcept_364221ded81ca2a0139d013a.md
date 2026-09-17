@@ -1,50 +1,90 @@
 ---
 node_id: ctkg_domainconcept_364221ded81ca2a0139d013a
 authority_entity_id: "ctkg:domainconcept:364221ded81ca2a0139d013a"
-name: 最少拍系统设计方法
+name: "最小拍系统设计方法"
+name_en: "Deadbeat Design Method"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - 最少拍系统设计方法
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consevent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-49934864d623bed0cab69d5d09bb316fb0557db5bc7d83de13eed6e7d4e02373.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-49934864d623bed0cab69d5d09bb316fb0557db5bc7d83de13eed6e7d4e02373.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/previous/ctkg_domainconcept_364221ded81ca2a0139d013a.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 9f7152ac881e604cd70b0121d217d620ab610ed276afbfd2693834e793fa6eef -->
-
 ## 首页
+# 最小拍系统设计方法 | Deadbeat Design Method
 
-# 最少拍系统设计方法
+一句话定义：最小拍设计根据目标有限序列构造离散闭环，再反求控制器并检验因果、稳定、输入及采样间条件。
 
-**一句话定义**：最少拍系统设计方法是自动控制原理权威图谱中的领域概念。
-
-**关联**：（权威图邻接待补充）
+- 先声明参考类别与需要整定的量。
+- 目标闭环不能脱离对象约束任意指定。
+- 代数约消之后还要核验完整互连。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+对单位负反馈系统，记对象为G(z)、控制器为C(z)、参考到输出传递函数为Phi(z)，则 $\Phi=CG/(1+CG)$。给定目标Phi后，可形式上反求 $C=\Phi/[G(1-\Phi)]$。这个等式提供设计入口，但不自动证明控制器因果、内部稳定或输入可执行。
+
+零初态阶跃任务若采用有限脉冲响应Phi，并使其直流增益为1，就能获得有限拍整定的样值输出。要称为最小拍，还需结合对象延迟及其他约束判断是否可以更少。输入阶次改变时，误差传递函数所需的因子也会改变，不能把阶跃方案直接当作所有参考的方案。
+
+### 教学计算/推理例
+
+采用零阶保持、T=1的二状态连续对象 $\dot x_1=-x_1+x_2$、$\dot x_2=-x_2+u$，输出x1。令 $a=e^{-1}$、b=1-2a，其离散对象为
+
+$$
+G(z)=\frac{bz+a^2}{(z-a)^2}.
+$$
+
+为了让零初态单位阶跃的输出样值一拍到1，选择 $\Phi(z)=z^{-1}$。代入反求式得到
+
+$$
+C(z)=\frac{(z-a)^2}{(z-1)(bz+a^2)}.
+$$
+
+分子与分母同阶，控制器是因果的；对象没有直接传递项，因此当前控制计算不形成对象输出的代数环。将C与G重新组成单位负反馈，可以核对参考传递关系确为z的逆，不能只检查控制器单独表达式。
+
+若记q为z的逆，控制器分母系数为 $b+(a^2-b)q-a^2q^2$，分子为 $1-2aq+a^2q^2$。差分实现必须保留相应两拍误差和输出历史。初态全零时，第一拍输入为1/b，约3.78442，正好使对象下一输出为1。
+
+### 完整闭环的核对
+
+在原分子分母未经约消的互连中，特征多项式含因子 $(z-a)^2z(bz+a^2)$。相应内部极点a、a、0及 $-a^2/b\approx-0.51217$ 全部位于单位圆内。控制器自身的积分极点1被闭环反馈处理，不能单凭控制器有极点1就断言闭环不稳定。
+
+另一方面，简化后的Phi只有一个延迟，并不意味着所有内部模态也都是零。稳定的约消允许所声明的零初态参考响应成立，但任意内部初值、扰动通路或模型误差仍可能显现其他动态，必须按各自问题重新分析。
+
+### 从样值到实际要求
+
+用控制器差分与对象状态递推，可以检查输出样值、误差和输入序列；再用连续原方程和保持输入检查采样间响应。本例虽然从第一拍起输出样值都为1，但第二状态和输入仍在变化，采样间可以出现纹波。若要求无纹波，目标Phi需要进一步设计，而不只是重复确认z的逆。
+
+输入幅值也是实际约束。第一拍要求约3.78442，若执行器上限更小，该一拍方案就不可行，不能通过绘图截幅后继续声称已经实现同一个目标闭环。
+
+### 适用条件与边界
+
+对于不稳定零点或更多纯延迟，形式反求可能产生不稳定约消或非因果项。应在选Phi时保留必要因子并增加可实现的拍数，而不是把实现缺陷藏在代数化简里。有限精度也可能破坏精确约消，因此工程性能须在实际系数与完整闭环下核验。
+
+### 常见误区
+
+1. 写出C的反求式就认定设计已完成。
+2. 只看Phi有限拍而省略内部稳定与输入幅值。
+3. 用阶跃误差归零结论代替所有输入的跟踪结论。
+
+### 自检
+
+1. 本例第一拍输入为何不是1？
+2. 为什么要保留未约消的特征多项式检查？
+
+**核对要点**：对象一拍输入系数为b，达到下一输出1需要输入1/b；简化传递关系可能隐藏内部模态，必须确认它们的稳定性。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、最少拍系统设计方法
+- **最小拍系统**（无向，关系：相关）
+- **直接z域补偿器设计方法**（无向，关系：相关）
+- **无纹波最小拍系统设计方法**（无向，关系：相关）

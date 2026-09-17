@@ -1,33 +1,35 @@
 ---
 node_id: ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1
 authority_entity_id: "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1"
-name: Convolution
+name: "卷积"
+name_en: "Convolution"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - Convolution
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bafeecb531862af65d4512ed12c0834fce95de50c9dd0f3b8b06f2fe97116df7.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bafeecb531862af65d4512ed12c0834fce95de50c9dd0f3b8b06f2fe97116df7.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 8ff8422c490bfd688ff4d6f66213955b5df52fd872f2f8079099ab7cc842a7f2 -->
-
 ## 首页
 
-# Convolution
+# 卷积 | Convolution
 
-**一句话定义**：Convolution：The response of an LTI system can be expressed as the convolution of the input with the unit impulse response of the sy…
+**一句话定义**：因果线性定常系统的零状态输出，可由输入与单位冲激响应的卷积表示。
 
-**核心直觉**：在图谱邻接中可把握：前置 → Computing response via convolution。
+**核心直觉**：每个过去时刻的输入都留下一个按时间平移的响应贡献，将这些贡献相加得到当前输出。
 
-**关联**：前置 → Computing response via convolution
+**关键公式**：$y_{\mathrm{zs}}(t)=\int_0^t h(t-\tau)u(\tau)\,d\tau$。
+
+**学习目标**：正确解释积分中的两个时间变量，并把零状态卷积与初始状态响应分开处理。
 
 ---
 
@@ -35,18 +37,42 @@ asset_refs: []
 
 ### 完整解释
 
-The response of an LTI system can be expressed as the convolution of the input with the unit impulse response of the system.
+线性允许把输入分成许多小贡献后叠加，时不变性允许把单位冲激响应按时间平移。两者结合，得到卷积表示。积分变量 $\tau$ 表示输入发生的时刻，$t-\tau$ 表示该输入贡献到当前时刻已经经过的时间；它们不是两个独立的当前时刻。
+
+对因果系统与从零时刻开始的输入，只有 $0\le\tau\le t$ 的历史贡献进入积分。若存在更早的输入历史或非零初态，积分范围和初态处理需要相应调整。卷积公式中的 $h$ 必须属于当前系统，不能把另一个闭环或另一输入端口的脉冲响应直接代入。
+
+### 教学计算/推理例
+
+取归一化系统 $G=2/(s+1)$，因果脉冲响应为 $h(t)=2e^{-t}$。施加因果单位斜坡 $u(t)=t$，初态为零，则
+$$
+y_{\mathrm{zs}}(t)=\int_0^t2e^{-(t-\tau)}\tau\,d\tau.
+$$
+把与 $\tau$ 无关的 $2e^{-t}$ 提到积分外，利用 $\int \tau e^\tau d\tau=(\tau-1)e^\tau$，得到
+$$
+y_{\mathrm{zs}}(t)=2(t-1+e^{-t}).
+$$
+独立地代入原方程 $\dot y+y=2t$：导数为 $2(1-e^{-t})$，与 $y$ 相加恰好为 $2t$，且 $y(0)=0$。这种核对能发现积分变量或指数符号错误。
+
+若改为初值 $y(0)=3$，同一输入产生的零状态卷积不变，但总响应还要加上 $3e^{-t}$。直接把零初态卷积当作总输出，会错误地预测初始输出为零。初态由系统自身的自由运动补入，不应随意塞进输入函数中而不说明模型变化。
+
+### 适用条件与边界
+
+本公式针对线性定常系统，稳定性不是卷积形式成立的必要前提，但会影响长期响应是否有界。对含直接传递项的系统，$h$ 可能含冲激分量，卷积也需按相应分布规则理解。本例只含普通指数函数，积分可按通常方式计算。数值离散卷积还需注意步长和面积权重，不能把连续积分符号直接当作没有尺度因子的求和。
+
+### 常见误区
+
+1. **误区**：将 $h(t-\tau)$ 错写成 $h(\tau-t)$ 而保持积分范围不变。**纠正**：应使用输入贡献已经演化的非负时长。
+2. **误区**：卷积自动包含任意初态。**纠正**：这里算的是零状态响应，非零初态另加。
+
+### 自检
+
+1. 本例如何用原微分方程检查卷积结果？
+2. 初态改成 3 后，需要增加哪一项？
+
+**核对要点**：验证 $\dot y+y=2t$ 和零初值；总响应增加 $3e^{-t}$。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Computing response via convolution | 包含组件 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、Convolution
+- **单位脉冲时域响应**（无向，关系：相关）
+- **通过卷积计算响应**（入边，关系：包含组件）
+- **时域相乘对应于频域卷积。**（无向，关系：相关）

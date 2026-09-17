@@ -1,52 +1,93 @@
 ---
 node_id: ctkg_domainconcept_bf027d00f4e69d3198aefe23
 authority_entity_id: "ctkg:domainconcept:bf027d00f4e69d3198aefe23"
-name: Exact Discrete Equivalent
+name: "精确离散等效"
+name_en: "Exact Discrete-Time Equivalent"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - Exact
-  - Discrete
-  - Equivalent
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consevent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-89c74e6bc93ebadf9653b9a6c383d8c70b3071d81d0fe78e2a11c2a7f6f901ad.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-89c74e6bc93ebadf9653b9a6c383d8c70b3071d81d0fe78e2a11c2a7f6f901ad.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-08a/previous/ctkg_domainconcept_bf027d00f4e69d3198aefe23.md"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-08a/supporting-source-inventory.json"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 75e65cf532c0f9ce85011aabd2882adb72f4b757fa76e1e06199d6ee2f66ecbb -->
-
 ## 首页
+# 精确离散等效 | Exact Discrete-Time Equivalent
 
-# Exact Discrete Equivalent
+一句话定义：精确离散等效在明确的输入保持和采样条件下，使离散递推与原连续系统在采样时刻严格一致。
 
-**一句话定义**：Exact Discrete Equivalent是自动控制原理权威图谱中的领域概念。
-
-**关联**：（权威图邻接待补充）
+- 精确性相对于给定模型与保持方式成立。
+- 样值一致不等于省略采样间动态。
+- 零阶保持等效不同于欧拉近似。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+对线性连续系统 $\dot x=Ax+Bu$，若输入u[k]在区间 $[kT,(k+1)T)$ 内保持常数，积分状态方程可以得到 $x[k+1]=A_dx[k]+B_du[k]$，其中 $A_d=e^{AT}$、$B_d=\int_0^T e^{A\tau}B\,d\tau$。这就是零阶保持条件下的精确状态递推。
+
+“精确”并不是说模型已经包含所有物理误差，而是说在同一个连续数学模型、同一个初态和规定保持输入下，递推的采样状态与连续方程的采样状态一致。如果实际输入在采样间并非常数，或存在额外延迟，这个保持假设就需要重新检查。
+
+### 教学计算/推理例
+
+取 $\dot x=-2x+3u$，采样周期T=0.2，区间内输入零阶保持。由常值输入下的一阶方程解得
+
+$$
+x[k+1]=e^{-0.4}x[k]+\frac32(1-e^{-0.4})u[k].
+$$
+
+因此 $A_d=e^{-0.4}\approx0.67032$，$B_d=1.5(1-e^{-0.4})\approx0.49452$。若初态为零且全部u[k]=1，递推给出的通式为
+
+$$
+x[k]=1.5(1-A_d^k)=1.5(1-e^{-0.4k}).
+$$
+
+原连续系统在恒定输入1下的解为 $x(t)=1.5(1-e^{-2t})$，代入t=0.2k恰好得到同一表达式。第一步约为0.49452，第二步约为0.82601，最终趋于1.5。等价性既体现在状态转移系数，也体现在由原方程独立求得的整个采样序列。
+
+若用前向欧拉近似，则递推系数为 $1-2T=0.6$ 和3T=0.6，第一步得到0.6，与精确值不同。两种方法可用于不同目的，但不能把欧拉系数当成已经证明的精确零阶保持等效。
+
+### 如何理解采样间动态
+
+给定区间起点x[k]及保持输入u[k]，令 $0\leq\tau\leq T$，连续状态为
+
+$$
+x(kT+\tau)=e^{-2\tau}x[k]+1.5(1-e^{-2\tau})u[k].
+$$
+
+这个式子满足起点条件，且代入连续微分方程得到正确导数。它说明采样间轨迹通常是指数曲线，而不是连接两个样值的直线。离散递推可以准确描述采样状态，但若验收条件涉及区间内的峰值或约束，还需使用相应连续模型重建或分析。
+
+零阶保持要求输入恒定，不要求状态在区间内保持不变。把保持器作用对象误写成状态，会破坏原系统的动态含义，也会错误理解离散模型为何能够在采样点与连续解一致。
+
+### 适用条件与边界
+
+矩阵积分表达适用于A可逆或不可逆的情况。公式 $A^{-1}(e^{AT}-I)B$ 只在A可逆时才能直接使用，不能因它计算简便就忽略奇异矩阵。实际数值求解可利用矩阵指数等方法，并核验残差与模型尺度。
+
+如果换成一阶保持、延迟输入或非均匀采样，输入积分项及其依赖的历史就可能改变。精确离散化也不自动保证闭环稳定：控制器增益、采样周期和实际计算时序仍需进入完整闭环分析。
+
+### 常见误区
+
+1. 把零阶保持理解为状态在两次采样之间不变化。
+2. 将欧拉近似系数称为精确等效。
+3. 样值符合要求就省略采样间的峰值或约束检查。
+
+### 自检
+
+1. 本例第一步精确值与欧拉近似值分别是多少？
+2. 矩阵A不可逆时，应保留哪种表达计算B_d？
+
+**核对要点**：精确值约0.49452，前向欧拉为0.6；使用矩阵积分或等价的矩阵指数计算，不直接套用A的逆矩阵。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Exact、Discrete、Equivalent
+- **离散等效**（出边，关系：属于）
+- **纯离散等效系统**（无向，关系：相关）
+- **连续到离散等效设计方法**（无向，关系：相关）

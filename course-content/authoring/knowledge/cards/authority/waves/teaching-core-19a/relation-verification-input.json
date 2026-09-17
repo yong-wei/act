@@ -1,0 +1,280 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:ef3c45b7e797123d61ab2533",
+          "otherId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+          "label": "最终增益",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **最终增益**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:2e6edbe1309386cbcfcabab9",
+          "otherId": "ctc:v11g-97c34f1eca6199404a4ccf79",
+          "label": "开环阶跃反应曲线",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **开环阶跃反应曲线**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:138917ed91ceb0a2a688fc40",
+          "otherId": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+          "label": "反应曲线纯滞后时间",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **反应曲线纯滞后时间**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:77a88a968a4185f049c28b2a",
+          "otherId": "ctkg:v3e-object-0eadd6f972de0e7b503343cf",
+          "label": "航天器姿态控制的PID控制器设计流程",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **航天器姿态控制的PID控制器设计流程**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:0a7b9730544666c0cdb5f732",
+          "otherId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+          "label": "根轨迹参数整定法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **根轨迹参数整定法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:1f47a137bf67c254c3855c77",
+          "otherId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+          "label": "比例积分控制器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **比例积分控制器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:698ee87668ee8cdafe492d7a",
+          "otherId": "ctkg:v3e-object-a4bbf36e5da58c0e926d8829",
+          "label": "比例-积分控制规律",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **比例-积分控制规律**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:eaecc614969c7098c06ef9b3",
+          "otherId": "ctkg:v3e-object-62fdc01d171ed1ecf803d7d9",
+          "label": "比例-微分控制规律",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **比例-微分控制规律**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:14512d794fe9e9f2a858c7cd",
+          "otherId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+          "label": "比例-积分-微分控制规律",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **比例-积分-微分控制规律**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:9f862efdab76ba8e36cd5b67",
+          "otherId": "ctkg:v3e-canonical-b09a84cc18c0b52151894b0f",
+          "label": "比例-微分控制改善系统性能的方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **比例-微分控制改善系统性能的方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+      "relations": [
+        {
+          "relationId": "m1i:relation-766527666c31e39247cafd83",
+          "otherId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+          "label": "比例控制规律",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **比例控制规律**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "m1i:relation-a3e6cb92e2e3d7d562169ae2",
+          "otherId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+          "label": "比例控制规律",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **比例控制规律**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:15bbd6750988820c6025199e",
+          "otherId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+          "label": "PID控制器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **PID控制器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:f35645a2620b1a36a60a66ca",
+          "otherId": "m1r-v1d:object:45b2dd117606e1ca658ef8f9",
+          "label": "PID 控制器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **PID 控制器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1i:relation-6947b6e0dcc4ec82e3ee32e4",
+          "otherId": "ctkg:v3e-object-62fdc01d171ed1ecf803d7d9",
+          "label": "比例-微分控制规律",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **比例-微分控制规律**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+      "relations": [
+        {
+          "relationId": "m1i:relation-c7c5ccfb81a01d5baa7413ce",
+          "otherId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+          "label": "积分控制规律",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **积分控制规律**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+      "relations": [
+        {
+          "relationId": "m1m:relation-3214087801a6a5ccc0eea946",
+          "otherId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+          "label": "死区特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **死区特性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-375585cec727e8f2c0940bf7",
+          "otherId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+          "label": "饱和特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **饱和特性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-9f443b5737c23cb68f454939",
+          "otherId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+          "label": "间隙特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **间隙特性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+      "relations": [
+        {
+          "relationId": "m1i:relation-faae382dc8e16845af7ddba7",
+          "otherId": "ctkg:v3e-object-fa4f7e4a46c0790f96077531",
+          "label": "衰减曲线法",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **衰减曲线法**（入边，关系：包含组件）"
+        },
+        {
+          "relationId": "m1i:relation-b7ba832e9e869774fd1de789",
+          "otherId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+          "label": "比例控制规律",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **比例控制规律**（入边，关系：包含组件）"
+        },
+        {
+          "relationId": "m1i:relation-f983bb46465591312667058b",
+          "otherId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+          "label": "PID控制器",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **PID控制器**（入边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:ca603013f42df5dab2a5f89f",
+          "otherId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+          "label": "积分控制",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **积分控制**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1i:relation-c7c5ccfb81a01d5baa7413ce",
+          "otherId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+          "label": "I控制器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **I控制器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:ca603013f42df5dab2a5f89f",
+          "otherId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+          "label": "积分控制规律",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **积分控制规律**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:edaf9f79af80774b7206d211",
+          "otherId": "ctkg:domainconcept:b33901638cba88f3f2ea5a20",
+          "label": "离散积分控制",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **离散积分控制**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:c1dd69f21ca59671808573a9",
+          "otherId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+          "label": "比例积分控制器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **比例积分控制器**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

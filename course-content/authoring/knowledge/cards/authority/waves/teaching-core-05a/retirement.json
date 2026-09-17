@@ -1,0 +1,39 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:结构图简化_2_6d86a775",
+      "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/结构图简化_2_6d86a775.md",
+          "sha256": "6007be6ca8759f3c13c0a52f41ac713430f14c78c567ac2118b667d94ae58580",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-05a/retired/authoring/结构图简化_2_6d86a775.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/结构图简化_2_6d86a775.md",
+          "sha256": "6007be6ca8759f3c13c0a52f41ac713430f14c78c567ac2118b667d94ae58580",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-05a/retired/runtime/结构图简化_2_6d86a775.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:反馈连接_2_40a881cb",
+      "canonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/反馈连接_2_40a881cb.md",
+          "sha256": "2ffc028943b8da8fcd7e78bb06925c8753a395cbd63936c8da03468b09593005",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-05a/retired/authoring/反馈连接_2_40a881cb.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/反馈连接_2_40a881cb.md",
+          "sha256": "2ffc028943b8da8fcd7e78bb06925c8753a395cbd63936c8da03468b09593005",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-05a/retired/runtime/反馈连接_2_40a881cb.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b18",
+  "replacementDigest": "d6c3f4c66b4982cc8efdebd2f5760d3e9c511c99271ece0bcc95f6c761852ab2"
+}

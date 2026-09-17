@@ -1,31 +1,36 @@
 ---
 node_id: ctkg_v3e-object-10c37fd947ba55593ff03ede
 authority_entity_id: "ctkg:v3e-object-10c37fd947ba55593ff03ede"
-name: 性能指标
+name: "性能指标"
+name_en: "Performance Specifications"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 性能指标
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7c6e57cd77d92d9d2e8892527b6979462f44d25a7fb50e2d51ceebc8363d489c.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7c6e57cd77d92d9d2e8892527b6979462f44d25a7fb50e2d51ceebc8363d489c.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/previous/ctkg_v3e-object-10c37fd947ba55593ff03ede.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 2fa8d214f1c0cb2d6e8052526781250d87300bd96fcfd02cd8774667927a1952 -->
-
 ## 首页
 
-# 性能指标
+# 性能指标 | Performance Specifications
 
-**一句话定义**：进行控制系统的校正设计，除了应已知系统不可变部分的特性与参数外，还需要已知对系统提出的全部性能指标。
+**一句话定义**：性能指标把控制需求写成在明确工况、输入和测量口径下可检验的量与约束。
 
-**核心直觉**：性能指标通常是由使用单位或被控对象的设计制造单位提出的。
+**核心直觉**：先说明“在什么试验中达到什么标准”，再判断控制器是否设计成功。
 
-**关联**：前置 → 系统带宽 · 后续 → 校正问题
+**关键公式**：
+$$M_p=\frac{y_{\max}-y_\infty}{|y_\infty|}\times100\%.$$
+
+**学习目标**：区分稳定性、动态品质、稳态精度和执行器约束，并正确使用指标的定义与近似。
 
 ---
 
@@ -33,19 +38,32 @@ asset_refs: []
 
 ### 完整解释
 
-进行控制系统的校正设计，除了应已知系统不可变部分的特性与参数外，还需要已知对系统提出的全部性能指标。性能指标通常是由使用单位或被控对象的设计制造单位提出的。
+以下百分超调公式用于零起点、正终值的阶跃响应，其他输入方向需相应定义峰值和归一化基准。“反应快、误差小”不足以直接验收。需要规定参考输入的形状和幅值、初始状态、扰动位置、测量单位及允许范围，再选择上升时间、超调量、调节时间、稳态误差、带宽和控制量峰值等指标。不同单位和工况下的同名指标不一定可直接比较；输出最终值接近零时，上述百分超调定义还需另选归一化基准。
+
+稳定性是基本要求，不代表响应足够快或执行器可承受。调节时间也必须注明误差带，例如输出进入最终值上下2%的区间后，此后始终留在其中的最早时间。第一次穿过最终值并不是调节完成。上升时间可采用首次10%至90%的定义，也有0%至100%等其他约定，比较前必须统一。
+
+### 教学计算/推理例
+
+取归一化闭环 $T(s)=4/(s^2+2s+4)$，零初态、单位阶跃。原微分方程是 $\ddot y+2\dot y+4y=4$，最终值为1；对应 $\omega_n=2$、$\zeta=0.5$。求峰值得
+$$t_p=\frac{\pi}{\sqrt3}\approx1.8138,\qquad M_p=e^{-\pi/\sqrt3}\times100\%\approx16.30\%.$$
+从原方程响应求首次10%和90%交点，上升时间约0.8188；按最后一次越出2%带的边界求调节时间，约4.0382。常用估算 $t_s\approx4/(\zeta\omega_n)=4$ 只是近似，不能把近似值当作严格通过某一临界验收线的证明。
+
+若要求超调不超过10%、调节时间不超过5，则本模型虽满足调节时间和零稳态误差，仍因超调超标而不能通过全部要求。若参考幅值加倍，理想线性模型的绝对峰值加倍，百分超调不变；但真实执行器可能饱和，使原线性预测失效。还需要检查控制量峰值、变化率和运行环境，而不能只看输出曲线。
+
+### 常见误区与边界
+
+1. **误区**：只给一个“综合分”就能代替所有约束。**纠正**：控制量或安全边界应单独核验，不能被其他得分补偿。
+2. **误区**：看到进入误差带一次就记录调节时间。**纠正**：后续不得再次越界，试验窗口还应足够长。
+
+### 自检
+
+1. 上例能否通过“超调不超过10%、调节时间不超过5”的联合要求？
+2. 为什么2%调节时间4.0382与近似值4不矛盾？
+
+**核对要点**：不能，超调约16.30%；一个是按定义求出的边界，一个是常用近似，精度和适用范围不同。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 系统带宽 | 是一种 |
-| 后续 | 校正问题 | 应用于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、性能指标
+- **时域性能指标**（下位类型）：给出响应时间、超调和稳态精度等具体口径。
+- **系统带宽**（下位类型）：从频域描述部分动态要求，不能代替全部时域约束。
+- **校正问题**（适用对象）：先明确需要满足的指标，再选择校正结构及参数。

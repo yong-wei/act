@@ -1,0 +1,469 @@
+{
+  "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+      "canonicalType": "DomainConcept",
+      "label": "平衡点",
+      "aliases": [],
+      "description": "A state where the system can remain at rest; the point around which stability is analyzed.",
+      "teachingFields": {},
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "canonicalType": "DomainConcept",
+        "label": "李雅普诺夫函数",
+        "aliases": [
+          "李雅普诺夫函数"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "lyapunov-stability",
+            "visualRole": "lyapunov",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+        "canonicalType": "DomainConcept",
+        "label": "李雅普诺夫函数候选",
+        "aliases": [
+          "李雅普诺夫函数候选"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "lyapunov-stability",
+            "visualRole": "lyapunov",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:domainconcept:9f33e6bc76dc80328b66a6dc",
+        "canonicalType": "DomainConcept",
+        "label": "李雅普诺夫直接法",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "lyapunov-stability",
+            "visualRole": "lyapunov",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-048b46fc600674ac29b5cc0c",
+        "canonicalType": "KnowledgeStatement",
+        "label": "首先确定平衡值 x_o、u_o 使得 dot{x}_o = 0 = f(x_o, u_o)，令 x = x_o + delta x 且 u = u_o + delta u，然后关于扰动展开非线性方程。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "nonlinear-system-analysis",
+            "visualRole": "nonlinear-analysis",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-12e3a662d3fc1444343fa005",
+        "canonicalType": "KnowledgeStatement",
+        "label": "非线性摆的平衡条件对应于 theta_o = 0（下垂位置）与 theta_o = pi（倒立位置）。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "nonlinear-system-analysis",
+            "visualRole": "nonlinear-analysis",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-5baddb9163a6af3f17f2522d",
+        "canonicalType": "DomainConcept",
+        "label": "小信号分析",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "nonlinear-system-analysis",
+            "visualRole": "nonlinear-analysis",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-76a08234eba9eed51ed0733b",
+        "canonicalType": "DomainConcept",
+        "label": "李雅普诺夫第一方法",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "nonlinear-system-analysis",
+            "visualRole": "nonlinear-analysis",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "canonicalType": "DomainConcept",
+        "label": "平衡点",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "nonlinear-system-analysis",
+            "visualRole": "nonlinear-analysis",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-a64429cb824a7c3aa444a8b4",
+        "canonicalType": "KnowledgeStatement",
+        "label": "对于磁悬浮小球系统，在平衡状态下磁力 f_m 恰好与重力 mg 相抵消。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "nonlinear-system-analysis",
+            "visualRole": "nonlinear-analysis",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:relation:1bf3690fd8a88ecbad9be6de",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+        "targetId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "ctkg:relation:9258340a1578dca859be1dd2",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:domainconcept:9f33e6bc76dc80328b66a6dc",
+        "targetId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "ctkg:relation:cf367c5451cab1381ba34edc",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+        "targetId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1m:relation-2735201d50c7987069a3e838",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-12e3a662d3fc1444343fa005",
+        "targetId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1m:relation-332a29d95eccf399aca1de9c",
+        "predicate": "used_to_analyze",
+        "sourceId": "ctkg:v3e-object-5baddb9163a6af3f17f2522d",
+        "targetId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1m:relation-92234a56053fc5ab54ec25c1",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "targetId": "ctkg:v3e-object-a64429cb824a7c3aa444a8b4",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1m:relation-f0d4c2f77a9697ddd5644f3b",
+        "predicate": "used_to_analyze",
+        "sourceId": "ctkg:v3e-object-76a08234eba9eed51ed0733b",
+        "targetId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1m:relation-f8f42c8e5a8facb7203d58a4",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-048b46fc600674ac29b5cc0c",
+        "targetId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      }
+    ],
+    "boundaries": []
+  }
+}

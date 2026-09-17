@@ -1,33 +1,31 @@
 ---
 node_id: ctkg_v3e-canonical-6db84c73a9b0e833400e64fc
 authority_entity_id: "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc"
-name: 比例-微分控制
+name: "比例-微分控制"
+name_en: "Proportional-derivative Control Action"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 比例-微分控制
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-fc70f39149b31b2d7c187eb2164aefed2abc6a9015807ab1610371d6640a52a5.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-fc70f39149b31b2d7c187eb2164aefed2abc6a9015807ab1610371d6640a52a5.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/previous/ctkg_v3e-canonical-6db84c73a9b0e833400e64fc.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 6bc6525074f84c95e5cd174d50a2e2b79a54c04f47c453df5b7ea4593cbefd90 -->
-
 ## 首页
 
-# 比例-微分控制
+# 比例-微分控制 | Proportional-derivative Control Action
 
-**一句话定义**：一种早期控制，可在出现位置误差前，提前产生修正作用，从而达到改善系统性能的目的。
+**一句话定义**：比例微分控制把误差及其当前变化率共同用于生成控制作用，以改变响应趋势。
 
-**核心直觉**：系统输出量同时受误差信号及其速率的双重作用。
-
-**关联**：（权威图邻接待补充）
+微分项反映当前斜率，不是读取未来误差，也不保证在任何对象上都改善性能。
 
 ---
 
@@ -35,18 +33,48 @@ asset_refs: []
 
 ### 完整解释
 
-一种早期控制，可在出现位置误差前，提前产生修正作用，从而达到改善系统性能的目的。系统输出量同时受误差信号及其速率的双重作用。
+比例作用只看误差当前多大，微分作用还看误差正在怎样变化。在相同误差值下，增长、保持和减小三种趋势可能得到不同的控制量。这样可以更早对正在变化的信号作出作用，但“更早”不能被解释为预知未来。
+
+理想形式为 $u=K_pe+K_d\dot e$。微分量来自当前信号的变化率；若误差与其斜率方向不同，两项可能相互削弱，反之可能相互增强。作用是否有利取决于反馈符号、对象和参数，不能单凭公式含导数就断言系统更稳定。
+
+实际微分通常还需要考虑测量噪声与滤波。误差快速变化可能来自目标变化，也可能来自噪声，不应将所有高频成分都当作需要强烈修正的真实运动。若微分只作用于测量而非误差，设定值通道也会与这里的理想形式不同。
+
+### 教学计算/推理例
+
+给定误差 $e(t)=t$，从零开始作斜坡变化，在 $t>0$有 $\dot e=1$。取 $K_p=2,K_d=0.5$，理想控制量为
+
+$$u(t)=2t+0.5.$$
+
+例如 $t=1$时，比例项为2，微分项为0.5，总量2.5。如果某时刻误差保持不变，理想微分项随斜率变为零，而不继续把误差值本身当作微分量。
+
+用带滤波的导数环节 $0.5s/(1+0.1s)$替代理想导数，并令滤波状态从零开始，同一斜坡下的微分部分为
+
+$$d(t)=0.5(1-e^{-10t}),$$
+
+所以总控制量为 $2t+0.5(1-e^{-10t})$。它在开始时没有立即跳到理想微分项0.5，体现了滤波动态。两种表达式由明确的原信号与滤波方程得到，不应混为完全相同的控制器。
+
+### 适用条件与边界
+
+该计算是控制器对给定误差信号的响应，不是对某个完整闭环稳定性的证明。若要判断是否减小超调或提高阻尼，应把控制器与对象和测量通路连接后重新分析。不同对象可能对同样参数有不同反应。
+
+对阶跃误差，理想导数包含冲激，不能把它报告成有限的普通控制峰值。实际滤波导数的行为取决于滤波时间常数、输入通道和状态，不能在没有这些信息时将理想模型直接用作执行器需求。
+
+“根据趋势修正”也不等于严格预测控制。它利用当前变化率，不能补偿所有时延、未建模动态或扰动。对噪声敏感的信号，微分作用及其滤波需要按实际目标验证，而不是把更大的微分增益视为无代价改善。
+
+### 常见误区
+
+1. 误区：微分控制能在没有信号依据时知道未来误差。纠正：它使用当前变化率，不提供未来信息。
+2. 误区：理想导数对阶跃产生一个有限普通数值。纠正：理想模型包含冲激，实际行为需要说明滤波和输入通道。
+
+### 自检
+
+1. 本例 $t=1$时，比例与微分部分分别是多少？
+2. 为什么滤波后的微分部分不是从开始就等于0.5？
+
+**核对要点**：分别为2和0.5。滤波环节有自身动态和零初值，其输出按指数逐步建立，不能与理想瞬时导数混同。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、比例-微分控制
+- **比例-微分控制规律**（无向，关系：相关）
+- **比例-积分-微分控制规律**（无向，关系：相关）
+- **比例-微分控制改善系统性能的方法**（无向，关系：相关）

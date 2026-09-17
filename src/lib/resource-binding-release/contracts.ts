@@ -166,6 +166,7 @@ export interface ResourceBindingGateResult {
 }
 
 export interface ResourceBindingSourceHashes {
+  cardReplacements?: string;
   anchors: string;
   unitScopes: string;
   crosswalk: string;

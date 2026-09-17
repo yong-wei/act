@@ -268,7 +268,7 @@
     },
     {
       "resourceId": "knowledge-card:临界阻尼_1_3",
-      "sourcePath": "course-content/runtime/knowledge/cards/nodes/临界阻尼_1_3.md",
+      "sourcePath": "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6bb580c242f908566ab53b18.md",
       "sourceHash": "sha256:a0b01a41046cf88135684e14ff361d28dd79ed5d322ff19db2d2f37bf1d25bba",
       "sourceVersionRef": "runtime-knowledge-card.v1",
       "graphNodeRefs": {

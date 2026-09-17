@@ -1,0 +1,68 @@
+{
+  "batchId": "teaching-scale-01g",
+  "status": "accepted",
+  "accepted": true,
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "name": "比例控制规律",
+      "canonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+      "directGoal": false
+    },
+    {
+      "order": 2,
+      "name": "比例积分控制器",
+      "canonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+      "directGoal": false
+    },
+    {
+      "order": 3,
+      "name": "积分补偿器",
+      "canonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+      "directGoal": false
+    },
+    {
+      "order": 4,
+      "name": "补偿器",
+      "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "directGoal": true,
+      "goalIds": [
+        "control-correction"
+      ]
+    },
+    {
+      "order": 5,
+      "name": "补偿",
+      "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+      "directGoal": false
+    },
+    {
+      "order": 6,
+      "name": "串联校正",
+      "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+      "directGoal": true,
+      "goalIds": [
+        "control-correction"
+      ]
+    },
+    {
+      "order": 7,
+      "name": "串联滞后-超前校正",
+      "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+      "directGoal": true,
+      "goalIds": [
+        "control-correction"
+      ]
+    }
+  ],
+  "note": "Seven final card hashes independently reviewed and accepted."
+}

@@ -1,7 +1,7 @@
 {
   "contract": "act-resource-binding-release-current/v1",
-  "bindingReleaseId": "control-theory-engineering-v0.48-b1",
-  "bindingHash": "550df6275050477502da38a71dc3733007cc43e19c5373261bc2600e9aeffa8d",
+  "bindingReleaseId": "control-theory-engineering-v0.48-b55",
+  "bindingHash": "5db90c74201f2bd1cc5d631d30f25557e16cc78abae471a87d410fa3a56202b8",
   "authorityReleaseId": "ctr:release:control-theory-engineering-v0.48",
-  "activatedAt": "2026-09-13T15:05:33.720Z"
+  "activatedAt": "2026-09-16T11:53:11.654Z"
 }

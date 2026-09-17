@@ -1,0 +1,232 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "departure": {
+      "L0": "1/((s+2)(s^2+2s+2))",
+      "pole": [
+        -1,
+        1
+      ],
+      "dsdK": [
+        0.25,
+        0.25
+      ],
+      "departureDegrees": 45
+    },
+    "arrival": {
+      "L0": "(s^2+2s+2)/((s+3)(s+4)(s+5))",
+      "zero": [
+        -1,
+        1
+      ],
+      "largeKOffsetCoefficient": [
+        -12.5,
+        7.5
+      ],
+      "rayFromZeroDegrees": 149.03624346792648,
+      "travelTowardZeroDegrees": 329.0362434679265,
+      "boundary": "state whether angle describes ray from the zero or motion toward it"
+    },
+    "breakaway": {
+      "L0": "1/[s(s+1)(s+2)]",
+      "point": -0.42264973081037416,
+      "gain": 0.3849001794597505,
+      "rejectedPoint": -1.5773502691896257,
+      "rejectedGain": -0.3849001794597505
+    },
+    "finite_zero_centroid": {
+      "L0": "(s+3)/(s(s+1))",
+      "centroid": 2,
+      "angleDegrees": 180,
+      "characteristicAtS2": "6+5K",
+      "positiveKStable": true
+    },
+    "asymptotes": {
+      "sameCubic": true,
+      "n": 3,
+      "m": 0,
+      "centroid": -1,
+      "anglesDegrees": [
+        60,
+        180,
+        300
+      ],
+      "boundary": "large-gain limits, not exact finite-gain curves; n=m has no such infinite branches"
+    },
+    "parameter_family": {
+      "characteristic": "s^2+a*s+K",
+      "grid": [
+        {
+          "a": 1.0,
+          "K": 1.0,
+          "roots": [
+            [
+              -0.49999999999999994,
+              0.8660254037844385
+            ],
+            [
+              -0.49999999999999994,
+              -0.8660254037844385
+            ]
+          ]
+        },
+        {
+          "a": 1.0,
+          "K": 4.0,
+          "roots": [
+            [
+              -0.4999999999999999,
+              1.9364916731037083
+            ],
+            [
+              -0.4999999999999999,
+              -1.9364916731037083
+            ]
+          ]
+        },
+        {
+          "a": 1.0,
+          "K": 9.0,
+          "roots": [
+            [
+              -0.5,
+              2.958039891549808
+            ],
+            [
+              -0.5,
+              -2.958039891549808
+            ]
+          ]
+        },
+        {
+          "a": 2.0,
+          "K": 1.0,
+          "roots": [
+            [
+              -1.0,
+              0.0
+            ],
+            [
+              -1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "a": 2.0,
+          "K": 4.0,
+          "roots": [
+            [
+              -0.9999999999999999,
+              1.732050807568877
+            ],
+            [
+              -0.9999999999999999,
+              -1.732050807568877
+            ]
+          ]
+        },
+        {
+          "a": 2.0,
+          "K": 9.0,
+          "roots": [
+            [
+              -0.9999999999999999,
+              2.8284271247461894
+            ],
+            [
+              -0.9999999999999999,
+              -2.8284271247461894
+            ]
+          ]
+        },
+        {
+          "a": 3.0,
+          "K": 1.0,
+          "roots": [
+            [
+              -2.618033988749895,
+              0.0
+            ],
+            [
+              -0.38196601125010515,
+              0.0
+            ]
+          ]
+        },
+        {
+          "a": 3.0,
+          "K": 4.0,
+          "roots": [
+            [
+              -1.5,
+              1.3228756555322951
+            ],
+            [
+              -1.5,
+              -1.3228756555322951
+            ]
+          ]
+        },
+        {
+          "a": 3.0,
+          "K": 9.0,
+          "roots": [
+            [
+              -1.5,
+              2.598076211353316
+            ],
+            [
+              -1.5,
+              -2.598076211353316
+            ]
+          ]
+        }
+      ],
+      "stableConditions": "a>0 and K>0",
+      "fixedK4Auxiliary": "1+a*s/(s^2+4)=0",
+      "twoStepChoice": {
+        "initialA": 2,
+        "chooseK": 4,
+        "thenA": 2.8,
+        "wn": 2,
+        "zeta": 0.7
+      },
+      "boundary": "a sweep holds K fixed; K sweep holds a fixed; a two-step choice is not a global optimum proof"
+    },
+    "open_loop_poles": {
+      "L0": "1/[s(s+1)(s+2)]",
+      "openPoles": [
+        0,
+        -1,
+        -2
+      ],
+      "closedAtK6": [
+        [
+          -3,
+          0
+        ],
+        [
+          0,
+          1.4142135623730951
+        ],
+        [
+          0,
+          -1.4142135623730951
+        ]
+      ],
+      "boundary": "open-loop poles are zero-gain start points; actual closed roots depend on gain"
+    },
+    "bode_breakpoint": {
+      "firstOrderT": 0.5,
+      "firstOrderBreakRadPerSecond": 2.0,
+      "firstOrderMagnitudeAtBreak": 0.7071067811865476,
+      "secondOrderWn": 3.0,
+      "secondOrderZeta": 0.2,
+      "secondOrderMagnitudeAtBreak": 2.4999999999999996,
+      "secondOrderResonantFrequency": 2.8774989139876315,
+      "boundary": "frequency-domain asymptote breakpoint, not a root-locus breakaway; not always a -3dB or resonance point"
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "batchId": "teaching-core-19a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-19",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+      "name": "齐格勒-尼科尔斯PID整定方法",
+      "moduleId": "module-4",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+      "name": "PID整定",
+      "moduleId": "module-4",
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+      "name": "PID控制器试凑整定法",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+      "name": "比例-积分控制器",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "name": "比例-微分控制",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+      "name": "P控制器",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+      "name": "PD控制器",
+      "moduleId": "module-3",
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+      "name": "I控制器",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+      "name": "等效增益",
+      "moduleId": null,
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+      "name": "比例系数",
+      "moduleId": null,
+      "order": 10
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+      "name": "积分控制规律",
+      "moduleId": null,
+      "order": 11
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+      "name": "积分控制",
+      "moduleId": null,
+      "order": 12
+    }
+  ]
+}

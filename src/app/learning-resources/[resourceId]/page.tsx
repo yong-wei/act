@@ -3,6 +3,7 @@ import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   buildPublishedResourceHref,
+  findPublishedCompanionInfograph,
   parsePublishedResourceHref,
   publishedResourceIdentityFromId,
   PUBLISHED_RESOURCE_LABELS,
@@ -77,6 +78,14 @@ export default async function PublishedResourceRoute({ params, searchParams }: {
       view.title = presented.title;
       view.summary = presented.summary;
       view.card = { summary: presented.summary, insight: card.insight ?? null, explanation: presented.explanation };
+      const sibling = findPublishedCompanionInfograph(index, resource);
+      if (sibling?.backend.kind === 'infographic') {
+        view.imageSrc = '/api/knowledge/published-infograph/' + encodeURIComponent(sibling.backend.token)
+          + '?resourceRef=' + encodeURIComponent(buildPublishedResourceHref({
+            ...sibling.identity,
+            resourceVersion: sibling.version,
+          }));
+      }
     } else {
       view.kind = 'reference-only';
       view.limitation = '知识卡内容未通过当前版本校验。';

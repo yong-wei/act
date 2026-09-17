@@ -1,52 +1,87 @@
 ---
 node_id: ctkg_domainconcept_a007da62df7bd509e16eab25
 authority_entity_id: "ctkg:domainconcept:a007da62df7bd509e16eab25"
-name: Discrete Proportional Control
+name: "离散比例控制"
+name_en: "Discrete Proportional Control"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - Discrete
-  - Proportional
-  - Control
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consevent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-68705896e3ccc48d772e0b37b252107f2bea3cbc319cdcdaaf81530bacc22c4f.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-68705896e3ccc48d772e0b37b252107f2bea3cbc319cdcdaaf81530bacc22c4f.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-08a/previous/ctkg_domainconcept_a007da62df7bd509e16eab25.md"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-08a/supporting-source-inventory.json"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 311a51a53445ec4a2476226d25f1cb046a96df5b50bf5be3331c05d7296b2eb4 -->
-
 ## 首页
+# 离散比例控制 | Discrete Proportional Control
 
-# Discrete Proportional Control
+一句话定义：离散比例控制在每个采样时刻按当前误差的固定倍数计算控制量，其闭环效果由对象、增益和执行时序共同决定。
 
-**一句话定义**：Discrete Proportional Control是自动控制原理权威图谱中的领域概念。
-
-**关联**：（权威图邻接待补充）
+- 控制律为u[k]=K e[k]，不包含误差累积。
+- 增大K不保证闭环始终稳定。
+- 稳态误差公式只有在闭环收敛等条件下才有相应含义。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+数字比例控制器在采样时刻读取参考和输出，计算误差后乘以比例增益。这个代数运算本身没有积分记忆，但对象保留内部状态，因此整个闭环仍是动态系统。采样周期、输入保持、计算延迟与反馈符号都影响实际闭环，不能仅根据“比例”这个名称判断响应。
+
+为避免时序歧义，本卡采用先读取当前状态x[k]、再计算并施加当前输入u[k]、最后由对象递推得到x[k+1]的约定。输出为y[k]=x[k]，误差为e[k]=r[k]-x[k]，没有额外一拍计算延迟。
+
+### 教学计算/推理例
+
+取离散对象
+
+$$
+x[k+1]=0.8x[k]+0.2u[k],\qquad u[k]=K(r[k]-x[k]).
+$$
+
+代入得闭环递推
+
+$$
+x[k+1]=(0.8-0.2K)x[k]+0.2Kr[k].
+$$
+
+闭环极点为0.8-0.2K。渐近稳定要求其绝对值小于1，整理得到 $-1<K<9$；若限定正比例增益，则为 $0<K<9$。因此增益存在上限，不能因为对象开环极点0.8稳定就认为任意正的比例增益都安全。
+
+K=2时，极点为0.4。对单位阶跃参考和初态0，状态逐步收敛到稳态。令递推两侧均为 $x_\infty$，得到 $x_\infty=0.4x_\infty+0.4$，所以稳态输出为2/3，稳态误差为1/3。比例作用增强了跟踪，但没有在这个有限增益例子中消除全部阶跃误差。
+
+K=10时，闭环极点为-1.2，零输入偏差会交替增长。虽然代数上仍能求到常参考对应的平衡点10/11，但一般初态不会收敛到它。这个数是平衡解，不能在不稳定情况下直接叫作实际响应的稳态值。
+
+### 增益与精度的折中
+
+在稳定且恒定参考为1的条件下，平衡输出为 $K/(1+K)$，误差为 $1/(1+K)$。公式表明增大正K可以减小这个模型的平衡误差，但可用增益仍受稳定区间限制。不能只沿误差公式把K推向无穷，忽略闭环早已越过单位圆。
+
+若还要求响应不交替，正闭环极点要求K小于4；K=4时极点为零，K在4与9之间虽然仍稳定，但偏差按符号交替衰减。这些性质来自本例的一个实极点，不是所有高阶对象都能用同一个阈值描述。
+
+### 适用条件与边界
+
+本例的0.8与0.2已包含对象在某一采样条件下的离散行为。改变采样周期、加入一拍延迟或引入执行器饱和后，闭环方程也随之改变，应重新分析。直接把连续控制器的增益搬到数字系统，不能省略采样保持模型的核验。
+
+比例控制通常会直接响应测量误差和噪声，增益越大不一定越符合执行器或噪声要求。是否需要积分、滤波或其他控制结构，要依据明确性能缺口与完整闭环分析，而不是把“存在稳态误差”解释为比例控制在所有任务中都无用。
+
+### 常见误区
+
+1. 只增大K以降低误差，不核验闭环极点。
+2. 把不稳定系统的代数平衡点当作收敛终值。
+3. 忽略输入施加时序或额外计算延迟。
+
+### 自检
+
+1. K=2时的极点、稳态输出和误差分别是什么？
+2. 为什么K=10时不能用10/11承诺最终输出？
+
+**核对要点**：极点0.4、输出2/3、误差1/3；极点-1.2在单位圆外，一般轨迹不会收敛到代数平衡点。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Discrete、Proportional、Control
+本卡的结论可由上述定义与计算例独立复核。

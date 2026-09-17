@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "runtimeWritten": false,
+  "results": [
+    {
+      "batchId": "teaching-core-20a",
+      "cards": 10,
+      "status": "passed"
+    }
+  ]
+}

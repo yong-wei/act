@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "reviewer": "/root/review_core13_content",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "scope": "six authored bodies plus pinned sources and original model verification; materialized metadata pending",
+  "bodyHashes": {
+    "01.md": "65b04f1899e0ca3e172dc6b19c7e23d2af800f0fd14ac242e454e4db201ff98f",
+    "02.md": "231979b9ae0dbe23bfa3bbf14ca9aa57721d309fa4110cb819d1fee21e036d18",
+    "03.md": "beed7f29015f813fa4f8cc54034d395cd0fe52edb35ed8ef87dcc0a49b4eccbe",
+    "04.md": "3263b5a3ebcc84540d180568b053689bdf1b840c257aad160e0aa02048f3f6be",
+    "05.md": "dba9123a314fac407a0f937beba1f6d38051d07b57c50de18667666220d171af",
+    "06.md": "fefab8b44db75c55a6c9fa3cdb5819b5b623b25fcd16ed5951f1a5970596a3b7"
+  },
+  "sourceInventorySha256": "dfbbb1e8240521eeaaef70846adebcd5c906262329c5cf082a55c5ab054b125b"
+}

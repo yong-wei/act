@@ -1,33 +1,35 @@
 ---
 node_id: ctkg_v3e-canonical-ff87028e0a7bcda2c586a550
 authority_entity_id: "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550"
-name: 闭环零点
+name: "闭环零点"
+name_en: "Closed-Loop Zero"
 category: 概念性
-batch: C
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 闭环零点
-card_version: 1
+knowledge_type: C
+bloom_level: 理解
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ff52e926f8ccffd59937576d03120713816b62b484ef9f4232b58dd16e157b4e.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ff52e926f8ccffd59937576d03120713816b62b484ef9f4232b58dd16e157b4e.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/previous/ctkg_v3e-canonical-ff87028e0a7bcda2c586a550.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 3daa0812c47635abf9dacec23b3711187274a9714d052547afc38c04c9a7f538 -->
-
 ## 首页
 
-# 闭环零点
+# 闭环零点 | Closed-Loop Zero
 
-**一句话定义**：闭环零点。
+**一句话定义**：所选闭环输入输出传递函数分子的根。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：零点属于具体参考、扰动或测量通道；改变参考前置滤波可以改变参考通道零点，而不改变反馈特征根。
+
+**关键公式**：$T(s)=\dfrac{s+2}{s^2+2s+2}$ 的零点为 $-2$。
+
+**学习目标**：区分基准闭环零点与参考前置滤波新增的通道零点、极点。
 
 ---
 
@@ -35,18 +37,47 @@ asset_refs: []
 
 ### 完整解释
 
-闭环零点
+闭环零点必须绑定到明确的输入输出通道。对一个给定的闭环参考通道，它是约简后分子的根；换成扰动到输出或噪声到输出，分子可能不同，零点也可能不同。因此“闭环零点”不是脱离通道的单一列表。
+
+比较零点时，要先确认分子是否已经约简，以及滤波器位于参考通道、前向链还是反馈链。相同的反馈特征根可以对应不同的参考通道响应形状；反过来，参考通道多出的极点也不自动表示反馈内部增加了新的特征模态。这个通道边界是解释闭环零点的前提。
+
+### 教学计算/推理例
+
+固定基准闭环传递函数为
+$$
+T(s)=\frac{s+2}{s^2+2s+2}。
+$$
+它的零点是 $s=-2$，闭环极点是 $-1\pm j$。现在在参考输入前增加滤波器
+$$
+F(s)=\frac{s+3}{s+5}。
+$$
+从参考输入到输出的完整通道变为
+$$
+T_r(s)=\frac{(s+3)(s+2)}{(s+5)(s^2+2s+2)}。
+$$
+所以参考通道新增零点 $-3$，同时新增参考通道极点 $-5$；原来的零点 $-2$ 仍在。前置滤波器不在反馈环路内，反馈本身的特征分母仍是 $s^2+2s+2$，因此反馈特征根未改变。
+
+上述结论只描述极点零点位置。它没有额外证明直流增益仍为 $1$，也没有证明无静差；跟踪精度要另行指定输入类型和误差定义。
+
+### 适用条件与边界
+
+本例假定单位负反馈、零初始条件和参考前置滤波器串联在参考通道入口。若滤波器放入反馈支路或改变控制器，特征方程也可能变化。讨论零点前要先约简公共因子，并把参考、扰动或噪声通道写清楚。
+
+### 常见误区
+
+1. **误区**：前置滤波器只改变响应速度，不会改变零点或极点。**纠正**：它给参考通道新增零点 $-3$ 和极点 $-5$，但不改变反馈特征根。
+2. **误区**：闭环传递函数的零点已知，就可以直接断言直流增益为 $1$ 或系统无静差。**纠正**：零点位置不等于跟踪误差结论，本例明确不作这两项保证。
+
+### 自检
+
+1. 加入 $F(s)=(s+3)/(s+5)$ 后，参考通道新增什么零点和极点？
+2. 为什么反馈特征根没有改变？
+
+**核对要点**：新增参考通道零点为 $-3$、极点为 $-5$；前置滤波器不在反馈环内，闭环特征分母仍为 $s^2+2s+2$。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、闭环零点
+- **若闭环零、极点彼此接近，则它们对系统响应速度的影响会相互削弱。**（无向，关系：相关）
+- **闭环零点对系统阻尼的影响**（无向，关系：相关）
+- **闭环零点对系统时间响应形状的影响**（无向，关系：相关）
+- **闭环零点会减小峰值时间，使系统响应速度加快，超调量增大，即减小系统阻尼，且这种作用将随闭环零点接近虚轴而加剧。**（无向，关系：相关）

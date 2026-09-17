@@ -1,0 +1,242 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:7541ac971d66ce0aa05a004f",
+          "otherId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+          "label": "欠阻尼",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **欠阻尼**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:is_a:65c8b3e11e05160fac344893",
+          "otherId": "ctc:modeling-227e674315b4da2f1a20ee31",
+          "label": "动态系统",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **动态系统**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:eeb5686ae5377e0c6281d0a8",
+          "otherId": "ctkg:v3e-canonical-4b313e6e83be36dcd1a914f3",
+          "label": "阻尼比 ζ",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **阻尼比 ζ**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+      "relations": [
+        {
+          "relationId": "m1h:relation-38885b1bfc7639e3e70290be",
+          "otherId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+          "label": "带宽",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **带宽**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:cefff2a0a96f97b24a681676",
+          "otherId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+          "label": "无阻尼自然频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无阻尼自然频率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:6f0fd3433db2a51d5210a810",
+          "otherId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+          "label": "固有频率 ω_n",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **固有频率 ω_n**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:cefff2a0a96f97b24a681676",
+          "otherId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+          "label": "固有频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **固有频率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:f2437494472a8cb821e2e9e0",
+          "otherId": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+          "label": "阻尼自然频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **阻尼自然频率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:1ee4adda3fdd25251989cc71",
+          "otherId": "ctkg:v3e-canonical-c97db3319c6da0c0371648d5",
+          "label": "无阻尼振荡频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无阻尼振荡频率**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:ee4c2d80f2497bad7cf570fc",
+          "otherId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+          "label": "时间常数τ1",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **时间常数τ1**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:is_a:d53a30b7c1c5bdf7e9380056",
+          "otherId": "ctkg:v3e-canonical-ac9111bcfe5798a35bf92638",
+          "label": "机电时间常数",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **机电时间常数**（入边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:e88ee57d8b381608abf6efb1",
+          "otherId": "ctkg:v3e-canonical-6f4cdd499aa7be5c5b2ffa0f",
+          "label": "初始斜率求时间常数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **初始斜率求时间常数**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:b7c11305e3f1ed34c42902c4",
+          "otherId": "ctkg:v3e-canonical-4b313e6e83be36dcd1a914f3",
+          "label": "阻尼比 ζ",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **阻尼比 ζ**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:c23fcd45e6ff88985e0af36b",
+          "otherId": "ctkg:m3-v2b:canonical-object:9275aaa56098fb48e1ed598e",
+          "label": "相对阻尼系数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **相对阻尼系数**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:32bb013b7d778ccaa536ed29",
+          "otherId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+          "label": "临界阻尼响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **临界阻尼响应**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:9bd45c4ec88b857a4350274a",
+          "otherId": "ctkg:v3e-canonical-423faabaff2ff11b70399228",
+          "label": "临界阻尼系数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **临界阻尼系数**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:7dc4390b3369765ce01f6220",
+          "otherId": "ctc:v11g-a066f5e5a1852fcde776a250",
+          "label": "二阶临界阻尼系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **二阶临界阻尼系统**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:6f0fd3433db2a51d5210a810",
+          "otherId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+          "label": "固有频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **固有频率**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:7541ac971d66ce0aa05a004f",
+          "otherId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+          "label": "欠阻尼系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **欠阻尼系统**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:f67943951596e10b96d09047",
+          "otherId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+          "label": "过阻尼响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **过阻尼响应**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+      "relations": [
+        {
+          "relationId": "m1h:relation-51b5c3e1cf2f799e2ff24b3f",
+          "otherId": "ctkg:v3e-object-232e387ed53e92abee078346",
+          "label": "截止频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **截止频率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:f2437494472a8cb821e2e9e0",
+          "otherId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+          "label": "无阻尼自然频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无阻尼自然频率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-925abbf9015c001c45ad59cb",
+          "otherId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+          "label": "穿越频率（相位）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **穿越频率（相位）**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

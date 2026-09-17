@@ -1,50 +1,71 @@
 ---
 node_id: ctkg_v3e-object-d5145d73b0cb5535eac9e81b
 authority_entity_id: "ctkg:v3e-object-d5145d73b0cb5535eac9e81b"
-name: 实奇点
+name: "实奇点"
+name_en: "Real Regional Singular Point"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 实奇点
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-11607d39c7e2f189d60b8d7548b99d81f16660537465abfdd4881e8a93106c7e.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-11607d39c7e2f189d60b8d7548b99d81f16660537465abfdd4881e8a93106c7e.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/previous/ctkg_v3e-object-d5145d73b0cb5535eac9e81b.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: b1b39f5f6a8827984ce0b02e6a97b9fb7663e0192c7961ae653356e16e2f0be6 -->
-
 ## 首页
+# 实奇点 | Real Regional Singular Point
 
-# 实奇点
+一句话定义：在分区线性相平面分析中，某区域方程的平衡点若位于该方程的有效区域内，称为实奇点。
 
-**一句话定义**：当非线性方程在某个区域可以表示为线性微分方程时，若对应的奇点位于本区域内，则称为实奇点。
-
-**核心直觉**：在图谱邻接中可把握：后续 → 奇点。
-
-**关联**：后续 → 奇点
+- “实”指区域归属，不指特征值是否为实数。
+- 先求分区平衡，再检查区域条件。
+- 边界处还需遵守实际分段约定。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-当非线性方程在某个区域可以表示为线性微分方程时，若对应的奇点位于本区域内，则称为实奇点。
+分段非线性可在不同状态区域内用不同线性或仿射方程表示。每个方程若延拓到整个平面，都可能有自己的平衡点；只有落在其有效区域内的平衡，才可按该区域方程解释为实际状态。这种区域内的平衡在传统相平面作图中称为实奇点。
+
+这个词与“实特征值”无关。一个实奇点可以是焦点，其线性特征值是一对复共轭数；反过来，延拓方程具有实数特征值也不能证明它的平衡位于有效区域。区域判断与稳定类型是两个步骤。
+
+### 教学计算/推理例
+
+取 $\dot x=v$，$\dot v=-v-x+0.5\operatorname{clip}(x,-1,1)$。在内区 $|x|\le1$，方程为 $\dot v=-v-0.5x$。平衡条件给出 $(x,v)=(0,0)$，确实属于内区，所以是实奇点。
+
+内区线性矩阵的特征方程为 $\lambda^2+\lambda+0.5=0$，特征值为 $-0.5\pm0.5j$。因此该区域的实际平衡是稳定焦点，虽然它的特征值不是实数。它直接说明本术语“实”不应按复数意义解释。
+
+在正外区 $x>1$，延拓方程为 $\dot v=-v-x+0.5$，算得平衡 $(0.5,0)$，却不满足 $x>1$。若把它放回实际内区方程，加速度为 $-0.25$，不是平衡。因此该外区延拓点不是整套系统的另一个实际平衡，而属于虚奇点情形。
+
+### 适用条件与边界
+
+判断实奇点应把平衡坐标代回该区域不等式，并在需要时代回完整分段方程。若平衡落在开关线上，是否采用某一侧公式、两侧是否连续以及是否有额外接触规则，都应明确；不能只凭线性延拓值决定。
+
+实奇点的局部稳定性不能自动代表所有初态的全局行为。轨迹可能离开当前区域并进入其他动力学分支，需沿完整分段模型连接。本文内区原点附近可以用对应线性方程判断，但没有仅凭这个局部结果声明所有状态都收敛。
+
+有时分区线性方程是近似而非精确表达，还需保留近似范围。若工作点变化使平衡越过区域边界，原有分类与局部分析应重新核验，而不是继续引用先前的实奇点结论。
+
+### 常见误区
+
+1. 将实奇点理解为必须具有实数特征值。
+2. 求出延拓平衡后不检查区域不等式。
+3. 用一个区域的局部稳定结论代替完整系统全局判断。
+
+### 自检
+
+1. 本例原点为何是实奇点，即使其特征值是复数？
+2. 正外区延拓点 $(0.5,0)$ 为什么不能算实际平衡？
+
+**核对要点**：原点满足内区条件；0.5不在 $x>1$，实际方程在该点给出非零加速度。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 奇点 | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、实奇点
+- **奇点**（入边，关系：前置于）
+- **奇点**（出边，关系：属于）

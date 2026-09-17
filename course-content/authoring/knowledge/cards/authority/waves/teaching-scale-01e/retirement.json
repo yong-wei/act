@@ -1,0 +1,71 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:频率特性_5_404adfdd",
+      "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/频率特性_5_404adfdd.md",
+          "sha256": "a4834451e697610d4c69b135859b0d0f0e63ecf5f2dfc9604524875b7c18f575",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/retired/authoring/频率特性_5_404adfdd.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/频率特性_5_404adfdd.md",
+          "sha256": "a4834451e697610d4c69b135859b0d0f0e63ecf5f2dfc9604524875b7c18f575",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/retired/runtime/频率特性_5_404adfdd.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:幅频特性_5_4e8408d2",
+      "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/幅频特性_5_4e8408d2.md",
+          "sha256": "41c4207699adfcf398a86d2857cde0dfa9279f00ca807b16994021f4481e3c4c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/retired/authoring/幅频特性_5_4e8408d2.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/幅频特性_5_4e8408d2.md",
+          "sha256": "41c4207699adfcf398a86d2857cde0dfa9279f00ca807b16994021f4481e3c4c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/retired/runtime/幅频特性_5_4e8408d2.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:正弦稳态响应_5_b6dc1100",
+      "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/正弦稳态响应_5_b6dc1100.md",
+          "sha256": "b08f322ed402a2908fa8ab82c99cda230e55763c493e5c4ca3b2f7fb04dda524",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/retired/authoring/正弦稳态响应_5_b6dc1100.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/正弦稳态响应_5_b6dc1100.md",
+          "sha256": "b08f322ed402a2908fa8ab82c99cda230e55763c493e5c4ca3b2f7fb04dda524",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/retired/runtime/正弦稳态响应_5_b6dc1100.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:频率响应实验_5_90116afd",
+      "canonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/频率响应实验_5_90116afd.md",
+          "sha256": "ecbc7ab78a04c99f885de936cb638b8a18dbd15435842aa03f72ff6bbf96f4bc",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/retired/authoring/频率响应实验_5_90116afd.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/频率响应实验_5_90116afd.md",
+          "sha256": "ecbc7ab78a04c99f885de936cb638b8a18dbd15435842aa03f72ff6bbf96f4bc",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/retired/runtime/频率响应实验_5_90116afd.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b10",
+  "replacementDigest": "3efef216b3b98858857262fb8e2a1085cc9339f9e4b552a76ab1eac86abde150"
+}

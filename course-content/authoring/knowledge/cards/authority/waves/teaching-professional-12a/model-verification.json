@@ -1,0 +1,209 @@
+{
+  "status": "passed",
+  "models": {
+    "qft": {
+      "frequency": 1,
+      "templates": [
+        {
+          "a": 1.0,
+          "k": 1.0,
+          "magnitude": 0.7071067811865476,
+          "magnitudeDB": -3.0102999566398116,
+          "phaseDegrees": -45.0,
+          "sensitivityAtOne": 0.447213595499958
+        },
+        {
+          "a": 1.0,
+          "k": 2.0,
+          "magnitude": 1.4142135623730951,
+          "magnitudeDB": 3.0102999566398125,
+          "phaseDegrees": -45.0,
+          "sensitivityAtOne": 0.2773500981126146
+        },
+        {
+          "a": 2.0,
+          "k": 1.0,
+          "magnitude": 0.447213595499958,
+          "magnitudeDB": -6.9897000433601875,
+          "phaseDegrees": -26.56505117707799,
+          "sensitivityAtOne": 0.5423261445466404
+        },
+        {
+          "a": 2.0,
+          "k": 2.0,
+          "magnitude": 0.894427190999916,
+          "magnitudeDB": -0.9691001300805633,
+          "phaseDegrees": -26.56505117707799,
+          "sensitivityAtOne": 0.36760731104690386
+        }
+      ],
+      "worstSensitivity": 0.5423261445466404,
+      "requirement": 0.6,
+      "fullQFTDesignClaim": false
+    },
+    "robust_design": {
+      "requiredGain": "36/5",
+      "amplitudeLimit6Feasible": false,
+      "gainAtLimit8": "15/2",
+      "worstSteadyError": "8/33"
+    },
+    "uncertainty_design": {
+      "epsilon": "6/5",
+      "gain": "9/2",
+      "nominalError": "2/11",
+      "weightedNorm": "54/55",
+      "gain6AllowedWitnessPole": "1/5"
+    },
+    "time_weighted_error": {
+      "trueClosedLoop": "xdot=u, u=p*(1-x), x0=0",
+      "cases": [
+        {
+          "p": 0.5,
+          "infiniteITAE": 3.9999999999999987,
+          "finiteWindows": [
+            {
+              "H": 1.0,
+              "value": 0.3608160417241995
+            },
+            {
+              "H": 5.0,
+              "value": 2.850810019265417
+            }
+          ]
+        },
+        {
+          "p": 1.0,
+          "infiniteITAE": 0.9999999999999998,
+          "finiteWindows": [
+            {
+              "H": 1.0,
+              "value": 0.26424111765711533
+            },
+            {
+              "H": 5.0,
+              "value": 0.9595723180054871
+            }
+          ]
+        },
+        {
+          "p": 2.0,
+          "infiniteITAE": 0.24999999999999986,
+          "finiteWindows": [
+            {
+              "H": 1.0,
+              "value": 0.1484985375725405
+            },
+            {
+              "H": 5.0,
+              "value": 0.24987515019315315
+            }
+          ]
+        }
+      ]
+    },
+    "robust_simulation": {
+      "family": "xdot=(1/4-theta^2)*x, theta fixed in [-1,1]",
+      "cases": [
+        {
+          "theta": -1.0,
+          "pole": -0.75,
+          "xAt4": 0.04978706837118822
+        },
+        {
+          "theta": 0.0,
+          "pole": 0.25,
+          "xAt4": 2.7182818285129056
+        },
+        {
+          "theta": 1.0,
+          "pole": -0.75,
+          "xAt4": 0.04978706837118822
+        }
+      ]
+    },
+    "itae_method": {
+      "plant": "xdot=k*u",
+      "kRange": [
+        0.8,
+        1.2
+      ],
+      "pRange": [
+        0.5,
+        2
+      ],
+      "amplitudeLimit": 2,
+      "optimalGainWithinDeclaredFamily": 2,
+      "worstITAE": "25/64"
+    },
+    "robust_zero_offset": {
+      "controller": "2+1/s",
+      "characteristic": "s^2+(a+2k)*s+k",
+      "cases": [
+        {
+          "a": 0.8,
+          "k": 0.5,
+          "poles": [
+            [
+              -1.4567764362830022,
+              0.0
+            ],
+            [
+              -0.3432235637169978,
+              0.0
+            ]
+          ],
+          "zeroDisturbanceSteadyInput": 1.6
+        },
+        {
+          "a": 0.8,
+          "k": 1.5,
+          "poles": [
+            [
+              -3.352583904633395,
+              0.0
+            ],
+            [
+              -0.447416095366605,
+              0.0
+            ]
+          ],
+          "zeroDisturbanceSteadyInput": 0.5333333333333333
+        },
+        {
+          "a": 1.2,
+          "k": 0.5,
+          "poles": [
+            [
+              -1.942614977317636,
+              0.0
+            ],
+            [
+              -0.25738502268236413,
+              0.0
+            ]
+          ],
+          "zeroDisturbanceSteadyInput": 2.4
+        },
+        {
+          "a": 1.2,
+          "k": 1.5,
+          "poles": [
+            [
+              -3.805872210923198,
+              0.0
+            ],
+            [
+              -0.39412778907680196,
+              0.0
+            ]
+          ],
+          "zeroDisturbanceSteadyInput": 0.7999999999999999
+        }
+      ],
+      "stepReferenceSteadyError": 0,
+      "constantPlantInputDisturbanceOutputFinalValue": 0,
+      "noSaturation": true
+    }
+  },
+  "scope": "analytic bounds, independent integration and original state-space equilibrium checks"
+}

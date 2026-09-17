@@ -1,0 +1,65 @@
+{
+  "batchId": "teaching-professional-06a",
+  "status": "authoring",
+  "parentGroupId": "professional-optimal-control-foundations",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:m1q:source:27b2aecb99a117dacd1ef9a3",
+      "name": "最优控制",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:ac2b8a5f58a6a086b769ae81",
+      "name": "泛函",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:fa4ec22e9cd6aa9278b34b17",
+      "name": "过程项",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:c14dc59187664d8a36099266",
+      "name": "末值项",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:8f3eb818adacfb4bbd1403b4",
+      "name": "变分法",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:8d975cac8d57b653810aae40",
+      "name": "极小值原理",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:b7aaaf4975cb12371130f69b",
+      "name": "动态规划",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 7
+    }
+  ]
+}

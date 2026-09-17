@@ -1,0 +1,11 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 7,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b19",
+  "retiredResources": [
+    "act:card:正反馈系统_4_3cfad7f8",
+    "act:card:闭环传递函数_2_5399c369",
+    "act:card:闭环传递函数_4_8325ffbe",
+    "act:card:单位反馈控制系统_4_f1a4f937"
+  ]
+}

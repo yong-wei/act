@@ -1,0 +1,15 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 9,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b26",
+  "retiredResources": [
+    "act:card:临界增益与虚轴极点_1_5",
+    "act:card:根轨迹与虚轴交点_4_65c288cc",
+    "act:card:根轨迹与虚轴的交点_4_33b9d0e6",
+    "act:card:临界稳定_3_ca03ed18",
+    "act:card:条件稳定系统_5_dfd0b994",
+    "act:card:李雅普诺夫意义下的稳定性_9_9aaf4cd8",
+    "act:card:李雅普诺夫稳定性_9_de195f1c",
+    "act:card:运动稳定性_3_df61e98d"
+  ]
+}

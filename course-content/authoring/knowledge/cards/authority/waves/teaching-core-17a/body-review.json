@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "reviewer": "/root/review_core17_content",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "scope": "nine authored bodies, frozen source/model evidence; materialization pending",
+  "bodyHashes": {
+    "01.md": "71f1999380207741534bfedff02aaa29d1102a219610b36b8acdf9685c45a7a3",
+    "02.md": "60a81a2aae322a472477be4e530d529cb5af354438a3be9529eeab30127d2422",
+    "03.md": "371f9dc39d875dadbbbd8665bb68b70c4963930f8e5bb8f4313dffeb3131f9f7",
+    "04.md": "61989223cac4ef93aa74794dcb616fa8cd7bff41780cffa8675b37c54b0d6742",
+    "05.md": "f343f846a101e77ee64108279ecd8c35b5929c99317ff1a087c6618b33e6e712",
+    "06.md": "0491c87a68f40599a36c6169bd5c9d4c6f54a989681320cde19e016c8b886270",
+    "07.md": "bcbf64f176c94dc0e74328f546bde89d4d6b8b382d853c702b75611bbed999a2",
+    "08.md": "5888522d3d70d21c2466708cb6fde402151bfb75763f74977f6417e5a1607870",
+    "09.md": "6eacee09cec946a26251553dead21c62b8e48b04f7123c8906ab3bf1a58f34f8"
+  },
+  "sourceInventorySha256": "8a6f113c98ce0dde669653c2a56ede49bec8905f96c8285b57651c3a6206c602"
+}

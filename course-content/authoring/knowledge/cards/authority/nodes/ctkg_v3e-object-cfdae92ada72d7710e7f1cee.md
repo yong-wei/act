@@ -1,30 +1,36 @@
 ---
 node_id: ctkg_v3e-object-cfdae92ada72d7710e7f1cee
 authority_entity_id: "ctkg:v3e-object-cfdae92ada72d7710e7f1cee"
-name: Routh-Hurwitz stability criterion
+name: "劳斯-赫尔维茨稳定性判据"
+name_en: "Routh-Hurwitz Criterion"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - stability
-  - criterion
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-534c1018cbeb1814f101f8adf6aa842eb21c2e3d464055a63edf66ec137a5d68.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-534c1018cbeb1814f101f8adf6aa842eb21c2e3d464055a63edf66ec137a5d68.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/previous/ctkg_v3e-object-cfdae92ada72d7710e7f1cee.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 37e64d47ae84b941f9d74fa7f178c909d26bd5d5b291a9f0a142b424af1a97dc -->
-
 ## 首页
 
-# Routh-Hurwitz stability criterion
+# 劳斯-赫尔维茨稳定性判据 | Routh-Hurwitz Criterion
 
-**一句话定义**：Routh-Hurwitz stability criterion：Routh-Hurwitz stability criterion
+**一句话定义**：实系数多项式全部根严格在左半平面的充要条件，可用赫尔维茨行列式或劳斯表表达。
 
-**关联**：前置 → 朱利稳定判据、Routh array · 后续 → Routh array、特征方程、稳定性
+**核心直觉**：各阶系数必须共同满足约束，单看某一个正系数不足以判断稳定。
+
+**关键公式**：
+$$a_0>0,\qquad \Delta_1>0,\ldots,\Delta_n>0.$$
+
+**学习目标**：解释赫尔维茨主子式条件，并用三阶反例说明“系数全正”不充分。
 
 ---
 
@@ -32,23 +38,34 @@ asset_refs: []
 
 ### 完整解释
 
-Routh-Hurwitz stability criterion
+令 $D(s)=a_0s^n+a_1s^{n-1}+\cdots+a_n$，系数均为实数、$a_0>0$。赫尔维茨矩阵按第一行 $a_1,a_3,a_5,\ldots$、第二行 $a_0,a_2,a_4,\ldots$ 排列，后续两行向右移一列，越界系数补零。$\Delta_k$ 指左上角 $k$ 阶主子式。全部 $\Delta_k$ 严格为正与全部根严格在左半平面等价。
+
+这一结论是连续时间多项式的根位置判据。它不直接适用于离散时间单位圆稳定性，纯延迟产生的超越特征方程也不能原样放进有限阶表格。对于闭环控制，应先取得完整的闭环特征多项式；如果存在非最小实现的隐藏模式，还需要保证这些内部模式没有在输入输出约消中被忽略。
+
+### 教学计算/推理例
+
+对三阶单首项多项式 $D=s^3+as^2+bs+c$，前三阶条件是
+$$\Delta_1=a,\qquad\Delta_2=ab-c,\qquad\Delta_3=c(ab-c).$$
+因此 $a>0,b>0,c>0$ 且 $ab>c$ 时严格稳定。取归一化执行器闭环 $D=s^3+2s^2+3s+4$，得到 $\Delta_1=2$、$\Delta_2=2$、$\Delta_3=8$，全部为正。
+
+作为反例，$D=s^3+s^2+s+2$ 的系数全正，但 $\Delta_2=-1$、$\Delta_3=-2$，不满足条件。其劳斯首列为 $1,1,-1,2$，出现两次符号变化，说明有两个右半平面根。两个例子共同表明，“每项系数看起来为正”和“系数之间的耦合条件满足”是不同层次的检查。
+
+判据给出稳定与否，却不直接给出调节时间或超调。即使全部主子式为正，根也可能很靠近虚轴，响应衰减很慢。若要求所有根实部小于 $-\alpha$，可令 $s=z-\alpha$，再对 $D(z-\alpha)$ 使用同一严格判据，从而检查指定的衰减边界。
+
+### 常见误区与边界
+
+1. **误区**：某个主子式为零仍算严格稳定。**纠正**：严格判据要求全部大于零；边界或特殊情形要另外检查根结构。
+2. **误区**：稳定判据保证输出对任意输入都收敛。**纠正**：输入形状与稳定定义仍重要；稳定系统对正弦输入可具有持续的正弦稳态响应。
+
+### 自检
+
+1. $s^3+2s^2+3s+c$ 在正数 $c$ 的什么范围严格稳定？
+2. 上述全正系数反例为何不能只看系数符号得出结论？
+
+**核对要点**：$0<c<6$；还必须满足 $ab>c$，反例违反这一耦合条件。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 朱利稳定判据 | 是一种 |
-| 前置 | Routh array | 属于 |
-| 后续 | Routh array | 包含组件 |
-| 后续 | 特征方程 | 关联 |
-| 后续 | 特征方程 | 关联 |
-| 后续 | 稳定性 | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、stability、criterion
+- **劳斯表**（组成部分）：是同一根位置判据的另一种方便计算的表示。
+- **特征方程**（关联）：决定应该将哪些系数送入判据。
+- **稳定性**（关联）：区分严格稳定边界与具体的动态性能要求。

@@ -1,0 +1,215 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:状态变量_9_2dedb9d8",
+      "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/状态变量_9_2dedb9d8.md",
+          "sha256": "3326f1b6a2c5bd6daf6ebc09eb9ee088f3cdf2c30a9b808a601fd69aef2d1a6c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/状态变量_9_2dedb9d8.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/状态变量_9_2dedb9d8.md",
+          "sha256": "3326f1b6a2c5bd6daf6ebc09eb9ee088f3cdf2c30a9b808a601fd69aef2d1a6c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/状态变量_9_2dedb9d8.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:状态向量_9_a19c08fc",
+      "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/状态向量_9_a19c08fc.md",
+          "sha256": "6b56e31f0c29ec12c0666f66d8dd95bfcdab8c042acaee5e3ce99da4e4666345",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/状态向量_9_a19c08fc.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/状态向量_9_a19c08fc.md",
+          "sha256": "6b56e31f0c29ec12c0666f66d8dd95bfcdab8c042acaee5e3ce99da4e4666345",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/状态向量_9_a19c08fc.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:建模_1_2",
+      "canonicalId": "ctc:modeling-348746457d644126ff8ecf77",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/建模_1_2.md",
+          "sha256": "6e45257048139677da00730280f16b17807638b61488c1ada671eaf22c8e3ef1",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/建模_1_2.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/建模_1_2.md",
+          "sha256": "6e45257048139677da00730280f16b17807638b61488c1ada671eaf22c8e3ef1",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/建模_1_2.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:完全可达_9_f0aa6191",
+      "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/完全可达_9_f0aa6191.md",
+          "sha256": "02c4317a06964b68946992b98c92644d360b4fa9dd9ae0f06baf4427f1b40031",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/完全可达_9_f0aa6191.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/完全可达_9_f0aa6191.md",
+          "sha256": "02c4317a06964b68946992b98c92644d360b4fa9dd9ae0f06baf4427f1b40031",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/完全可达_9_f0aa6191.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:PBH秩判据_9_bdf533f4",
+      "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/PBH秩判据_9_bdf533f4.md",
+          "sha256": "aea399b76a86e961f44cb7c41eb3f68986a8011a630e2eaa472a0d06d05de878",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/PBH秩判据_9_bdf533f4.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/PBH秩判据_9_bdf533f4.md",
+          "sha256": "aea399b76a86e961f44cb7c41eb3f68986a8011a630e2eaa472a0d06d05de878",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/PBH秩判据_9_bdf533f4.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:可观测性PBH秩判据_9_3ad87876",
+      "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/可观测性PBH秩判据_9_3ad87876.md",
+          "sha256": "4823be438d9971a926212c55d05e354af97f826ed9b24adc0fb5eb84680cca2e",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/可观测性PBH秩判据_9_3ad87876.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/可观测性PBH秩判据_9_3ad87876.md",
+          "sha256": "4823be438d9971a926212c55d05e354af97f826ed9b24adc0fb5eb84680cca2e",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/可观测性PBH秩判据_9_3ad87876.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:可观测性秩判据_9_92339d2c",
+      "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/可观测性秩判据_9_92339d2c.md",
+          "sha256": "c19f1fa698231bed2976f61880089d9c4ef359cbf14d21b41f6d9c248d109468",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/可观测性秩判据_9_92339d2c.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/可观测性秩判据_9_92339d2c.md",
+          "sha256": "c19f1fa698231bed2976f61880089d9c4ef359cbf14d21b41f6d9c248d109468",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/可观测性秩判据_9_92339d2c.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:秩判据_9_daff6c3c",
+      "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/秩判据_9_daff6c3c.md",
+          "sha256": "e4a7df9863fafa36089a3165227ec444d538a60d2275e6a7dbeb404178071109",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/秩判据_9_daff6c3c.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/秩判据_9_daff6c3c.md",
+          "sha256": "e4a7df9863fafa36089a3165227ec444d538a60d2275e6a7dbeb404178071109",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/秩判据_9_daff6c3c.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:极点配置_3_d367ec42",
+      "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/极点配置_3_d367ec42.md",
+          "sha256": "c66fecdbc2181898f1cac98f5128ce70f1c54f6ba6cd7c24e484cd9db15512dd",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/极点配置_3_d367ec42.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/极点配置_3_d367ec42.md",
+          "sha256": "c66fecdbc2181898f1cac98f5128ce70f1c54f6ba6cd7c24e484cd9db15512dd",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/极点配置_3_d367ec42.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:极点配置_9_b5578c51",
+      "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/极点配置_9_b5578c51.md",
+          "sha256": "7759953cd1968fed591b6b09f7ebf981f10e10370a5a0e24dd08adbfb0b7eed8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/极点配置_9_b5578c51.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/极点配置_9_b5578c51.md",
+          "sha256": "7759953cd1968fed591b6b09f7ebf981f10e10370a5a0e24dd08adbfb0b7eed8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/极点配置_9_b5578c51.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:可观测性对角线规范型判据_9_12b8f833",
+      "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/可观测性对角线规范型判据_9_12b8f833.md",
+          "sha256": "13c6058ef7f3cd1e880430a1654b9b8a8efd96151068187cf98ef677fa020d3d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/可观测性对角线规范型判据_9_12b8f833.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/可观测性对角线规范型判据_9_12b8f833.md",
+          "sha256": "13c6058ef7f3cd1e880430a1654b9b8a8efd96151068187cf98ef677fa020d3d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/可观测性对角线规范型判据_9_12b8f833.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:对角线规范型判据_9_db607dca",
+      "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/对角线规范型判据_9_db607dca.md",
+          "sha256": "29ad1eb03fa79caf88f68b951df42b45a93c2acd22cb6acf0372ca47255d85a5",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/对角线规范型判据_9_db607dca.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/对角线规范型判据_9_db607dca.md",
+          "sha256": "29ad1eb03fa79caf88f68b951df42b45a93c2acd22cb6acf0372ca47255d85a5",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/对角线规范型判据_9_db607dca.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:输出可控性_9_7c4fb777",
+      "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/输出可控性_9_7c4fb777.md",
+          "sha256": "70705d63f9cbe91622506e30bb3ae2240caeeefad7a033f8c7572e7d232cabcd",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/authoring/输出可控性_9_7c4fb777.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/输出可控性_9_7c4fb777.md",
+          "sha256": "70705d63f9cbe91622506e30bb3ae2240caeeefad7a033f8c7572e7d232cabcd",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/retired/runtime/输出可控性_9_7c4fb777.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b15",
+  "replacementDigest": "fffac27131ff3dfd876577a25c9dce01698b38868c187827346c022a1901f966"
+}

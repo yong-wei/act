@@ -119,9 +119,11 @@ Active 图谱的本地修复已加入固定 2D/3D 坐标与相机、选中邻域
 - `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md`
 - `course-content/runtime/knowledge/graph/*`
 - `course-content/runtime/knowledge/cards/*`
-- `course-content/runtime/knowledge/resource-bindings/`：锚定资源绑定发布族，版本跟随 Authority（当前本机活指针为 `control-theory-engineering-v0.37-r6-b2`）
+- `course-content/runtime/knowledge/resource-bindings/`：锚定资源绑定发布族，版本跟随 Authority（当前本机活指针为 `control-theory-engineering-v0.48-b55`）
 
 课程投影 B′ 只保留先后修、核心节点和知识卡目录，不再作为活资源绑定真源。图谱抽屉、路径规划和控灵 / 教学资源 RAG 读取绑定发布；激活锁可声明 `bindingReleaseId` / `bindingHash`。`act:lesson:*` 与全书级教材不进资源清单。视频、音频和讲义绑定落到步骤、标题或时间戳；新学习者只用首次出现，复现需 `posteriorMastery ≥ 0.5` 且 `evidenceCount > 0`，`posteriorMastery ≥ 0.85` 且 `confidence ≥ 0.6` 时跳过该知识点。
+
+本地知识卡内容已覆盖选定的458个概念节点，其中基础与核心343张、专业扩展115张。卡片提供定义、可复算例、适用边界、常见误区和自检，并按精确节点身份进入资源绑定；学生可从图谱详情或对应学习目标的推荐路径访问同一版本。最优控制、鲁棒控制和非线性控制分别有明确的基础学习目标。图谱检查器有新卡时优先显示卡片首页并可展开详情，未覆盖节点仍显示默认描述；学习路径打开知识卡时纳入同伴信息图。课内旧图谱卡暂时保留。
 
 正式页面应读取 runtime，不直接回读 authoring。互动课程实现优先使用 `src/features/interactive/shared/manifest-runtime/`，只有确实无法标准化的控制曲线、可行域、黑箱数据预演或专用工作区才保留课程私有实现。
 

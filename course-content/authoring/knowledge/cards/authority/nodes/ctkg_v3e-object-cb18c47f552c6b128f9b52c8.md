@@ -1,47 +1,73 @@
 ---
 node_id: ctkg_v3e-object-cb18c47f552c6b128f9b52c8
 authority_entity_id: "ctkg:v3e-object-cb18c47f552c6b128f9b52c8"
-name: Detectability
+name: "可检测性"
+name_en: "Detectability"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f4eead0646d184ca8dccf4d540e0ad8d6f574410ca46b4642892298f4cfa70ce.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f4eead0646d184ca8dccf4d540e0ad8d6f574410ca46b4642892298f4cfa70ce.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-cb18c47f552c6b128f9b52c8.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: bdef9397196a692b6de39bf0d9c0c37c43b07d0c8dfff65965c1611373ef7e46 -->
-
 ## 首页
+# 可检测性 | Detectability
 
-# Detectability
+一句话定义：连续时间线性定常系统可检测，是指存在观测增益使估计误差渐近稳定，等价于所有不可观测模态本身都严格稳定。
 
-**一句话定义**：Detectability：A system is detectable if the states (or linear combinations thereof) that cannot be observed are inherently stable.
-
-**关联**：（权威图邻接待补充）
+- 可检测性比完全可观测性要求弱。
+- 不可观测的稳定分量无法从输出恢复其初值，但其初值影响会衰减。
+- 不可观测的不稳定或临界模态会妨碍对所有初始状态的渐近估计。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-A system is detectable if the states (or linear combinations thereof) that cannot be observed are inherently stable.
+对 $\dot x=Ax+Bu$、$y=Cx$，可检测性询问是否存在L，使 $A-LC$ 为严格稳定矩阵。完全可观测意味着可以从输入输出信息确定初始状态，且能任意配置全阶观测误差极点；可检测性只要求能够让估计误差随时间趋于零，不要求从有限时间输出中辨识每个稳定隐藏模态的初值。
+
+这一差别来源于稳定动态会消除初值影响。一个从未出现在输出中的状态仍可能真实存在，只是若其自然响应衰减，则用模型运行得到的估计与真实状态之间的初始差异也可能自行减小。不能把“渐近误差为零”解释成“已经识别出原始初值”。
+
+### 教学计算/推理例
+
+取 $A=\operatorname{diag}(1,-2)$、$C=[1,0]$。可观测性矩阵为 $[C;CA]=[[1,0],[1,0]]$，秩为1，因此二阶系统不完全可观测。第二状态不会影响输出，无法从输出辨识其初值，但它按 $\dot x_2=-2x_2$ 衰减。
+
+选择 $L=[3,0]^T$，得到 $A-LC=\operatorname{diag}(-2,-2)$。第一状态的估计误差由输出校正后稳定，第二状态的估计误差自然稳定。因此该系统不可观测，却可检测。这里假设观测器使用正确模型与已知输入，误差动态才能按上述相减得到。
+
+如果第二个对角元改为2，两个仅第二状态初值不同的系统会产生相同输出，但它们的隐藏状态差异按 $e^{2t}$ 放大。任何只使用相同输入输出的估计器都无法对这两种初始状态同时保证误差渐近为零。若该对角元为0，隐藏差异保持不变，也不满足渐近误差消失的要求。
+
+### 判据与推理
+
+连续时间PBH可检测判据要求，对A的每个满足 $\operatorname{Re}\lambda\geq0$ 的特征值，堆叠矩阵 $[\lambda I-A;C]$ 具有列秩n，在复数域上判断。严格稳定的特征值可以对应不可观测方向，因此无需把可观测性PBH的全谱满秩要求原样施加给可检测性。
+
+本例在特征值1处，堆叠矩阵的行分别为 $[0,0]$、$[0,3]$、$[1,0]$，列秩为2。反例在特征值2处出现零的第二列，列秩只有1，说明不稳定隐藏模态无法由输出识别与校正。
+
+### 适用条件与边界
+
+本卡讨论有限维连续时间线性定常模型。离散时间需要将严格稳定替换成特征值模小于1，并检查单位圆上及外部的模态。测量噪声、模型误差和未知输入会持续激励估计误差；可检测性是一项结构条件，不是对具体估计算法误差大小的完整保证。
+
+### 常见误区
+
+1. 把不可观测一律解释成无法构造渐近收敛观测器。
+2. 把渐近估计成功当成已恢复所有隐藏初值。
+3. 只排查正实部模态，忽略不可观测的零极点。
+
+### 自检
+
+1. 为什么第一组系统可以不可观测而可检测？
+2. 隐藏极点为0时，估计误差会自然衰减吗？
+
+**核对要点**：隐藏模态严格稳定，其初始估计误差自行衰减；不会，隐藏初始误差可能保持不变。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver
+- **可镇定**（无向，关系：相关）
+- **可观测性**（无向，关系：相关）

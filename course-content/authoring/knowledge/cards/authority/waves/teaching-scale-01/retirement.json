@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:误差_1_1",
+      "canonicalId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/误差_1_1.md",
+          "sha256": "5c87da0fa924081237919f709100c5b32dd23cdc3bddb7f725ef04206abb4e22",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/retired/authoring/误差_1_1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/误差_1_1.md",
+          "sha256": "5c87da0fa924081237919f709100c5b32dd23cdc3bddb7f725ef04206abb4e22",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/retired/runtime/误差_1_1.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:对数相频曲线_5_ac0666e1",
+      "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/对数相频曲线_5_ac0666e1.md",
+          "sha256": "6ed3c4f8b9627d47294b5ff5fb77f9e9d918e24daabc2080089993d1621f28b2",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/retired/authoring/对数相频曲线_5_ac0666e1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/对数相频曲线_5_ac0666e1.md",
+          "sha256": "6ed3c4f8b9627d47294b5ff5fb77f9e9d918e24daabc2080089993d1621f28b2",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/retired/runtime/对数相频曲线_5_ac0666e1.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:相频特性_5_abda14da",
+      "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/相频特性_5_abda14da.md",
+          "sha256": "bb355ff5bf6df39bc73e7db4ed297d3562201a1349da461c28e97c75d1d90cdc",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/retired/authoring/相频特性_5_abda14da.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/相频特性_5_abda14da.md",
+          "sha256": "bb355ff5bf6df39bc73e7db4ed297d3562201a1349da461c28e97c75d1d90cdc",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/retired/runtime/相频特性_5_abda14da.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b5",
+  "replacementDigest": "fe90444e6970a0af5a0ce33531f704fb7b5c633de58306c5bb373765725feed6"
+}

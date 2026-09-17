@@ -1,0 +1,191 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:62021e63047c7cda6651d897",
+          "otherId": "ctc:modeling-92585a5a20a461e4bd471802",
+          "label": "结构图化简法则",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **结构图化简法则**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+          "otherId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+          "label": "单位负反馈系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **单位负反馈系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:v13g-bd19089c2757dd8e92f3a5e6",
+          "otherId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+          "label": "广义参数根轨迹",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **广义参数根轨迹**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "relations": [
+        {
+          "relationId": "m1p:v7r-rel-67963d81faa2683c3c23673f",
+          "otherId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+          "label": "灵敏度函数",
+          "predicate": "derived_from",
+          "direction": "source_to_target",
+          "renderedLine": "- **灵敏度函数**（入边，关系：推导自）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:6c7bb94961290a0ca3bed2d3",
+          "otherId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+          "label": "开环传递函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **开环传递函数**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:8235dbbd98360958724b75f9",
+          "otherId": "ctkg:domainconcept:4df9dd74e6afd893b38a44eb",
+          "label": "F(s) 函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **F(s) 函数**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:is_a:5a61d7ca19307a6b06e610a0",
+          "otherId": "ctc:modeling-227e674315b4da2f1a20ee31",
+          "label": "动态系统",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **动态系统**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:1dc9422f398980d7249b011b",
+          "otherId": "ctc:v11g-d25e6196c789c546f7a61064",
+          "label": "正反馈内回路",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **正反馈内回路**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:61a3a9f74fc3894ff4ed352e",
+          "otherId": "ctc:modeling-290a601cb41e32841fe66084",
+          "label": "求和点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **求和点**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+          "otherId": "ctkg:m3-v2k:canonical-object:333b4eccaaba394db05c3cc8",
+          "label": "鲁棒控制系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **鲁棒控制系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:944de65c797367d6948b2b31",
+          "otherId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+          "label": "闭环反馈互联",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **闭环反馈互联**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:cc51f7e52c7dbb1cb590a60e",
+          "otherId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+          "label": "跟踪误差",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **跟踪误差**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:is_a:1bced596d913867962df3c1e",
+          "otherId": "ctc:modeling-227e674315b4da2f1a20ee31",
+          "label": "动态系统",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **动态系统**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+          "otherId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+          "label": "等效单位反馈系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **等效单位反馈系统**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:23b9a26abf1941aea1d7dced",
+          "otherId": "ctkg:domainconcept:fef4835248def04a043183ee",
+          "label": "闭环系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **闭环系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:b6746d4b1a736f93516aabfe",
+          "otherId": "ctkg:v3e-object-e43a521f65d1388d6cf5a06e",
+          "label": "开环系统极点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **开环系统极点**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-91f03880e67e6587b27f7039",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:ba209d2b052a0f3d266682b7",
+          "otherId": "ctkg:domainconcept:25943f64c06ac39c58e78489",
+          "label": "闭环增益",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **闭环增益**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:dd2d312b7bc297afa17a29e2",
+          "otherId": "ctkg:v3e-canonical-23e85dbf38c6880d27e4d02b",
+          "label": "阻尼系数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **阻尼系数**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-1061feaf5d4daa53b66024e7",
+          "otherId": "ctkg:v3e-canonical-bb0879398df1a417d45493f2",
+          "label": "测速反馈与比例-微分控制不同的是，测速反馈会降低系统的开环增益，从而加大系统在斜坡输入时的稳态误差；相同的则是，同样不影响系统的自然频率，并可增大系统的阻尼比。",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **测速反馈与比例-微分控制不同的是，测速反馈会降低系统的开环增益，从而加大系统在斜坡输入时的稳态误差；相同的则是，同样不影响系统的自然频率，并可增大系统的阻尼比。**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

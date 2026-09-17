@@ -5,17 +5,17 @@ name: "直流增益"
 name_en: "DC Gain"
 category: 概念性
 knowledge_type: C
-bloom_level: 理解
-lesson_units:
-  - "2-1"
-  - "3-7"
-card_version: 2
+bloom_level: 应用
+card_version: 3
 content_origin: act-course-enrichment
-authority_release_id: ctr:release:control-theory-engineering-v0.37
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
 status: ready
 source_docs:
-  - course-content/authoring/lessons/2-1/design/2-1-handout.md
-  - course-content/authoring/lessons/3-7/design/3-7-handout.md
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-956bb941ab70005a6141bbe00959499baf30a828c89693d5c08ee240903fc876.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-956bb941ab70005a6141bbe00959499baf30a828c89693d5c08ee240903fc876.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/previous/ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef.md"
 asset_refs: []
 ---
 
@@ -23,9 +23,14 @@ asset_refs: []
 
 # 直流增益 | DC Gain
 
-**一句话定义**：直流增益是传递函数在零频率处的值 $G(0)$。
+**一句话定义**：直流增益是传递函数在零频率处的有限增益，并在适用条件下描述常值输入的稳态比例。
 
-**核心直觉**：稳定通道的直流增益决定常值输入与最终输出的比例。
+**核心直觉**：把变化放得足够慢，观察系统最终把输入放大了多少。
+
+**关键公式**：
+$$K_{\mathrm{DC}}=G(0).$$
+
+**学习目标**：明确所求通道，计算零频率增益，并检查它是否能代表实际稳态输出。
 
 ---
 
@@ -33,22 +38,30 @@ asset_refs: []
 
 ### 完整解释
 
-若 $G(s)$ 在 $s=0$ 处有有限值，则定义直流增益为
+“直流”指零频率的恒定分量，不局限于电路。船速对推进指令、温度对加热功率等通道都可以讨论直流增益。若 $G(s)=N(s)/D(s)$ 在原点无极点，则用约简后的表达式求 $G(0)$；单位由输出单位除以输入单位决定。传递函数中写在最前面的系数不一定就是直流增益，因为其余因子在原点也可能贡献比例。
 
-$$
-K_{\mathrm{DC}}=G(0).
-$$
+只有常值输入响应能够收敛时，才可解释为 $y_\infty=G(0)r_0$。零初始状态下，这可由终值定理证明。一个不稳定系统的 $G(0)$ 可能是有限数，但它的阶跃响应仍会发散；例如 $G(s)=1/(s-1)$ 形式上有 $G(0)=-1$，实际单位阶跃响应为 $e^t-1$，并不存在该稳态值。含积分器的 $1/s$ 在原点没有有限直流增益。
 
-对稳定的线性定常输入输出通道，零初始条件下施加幅值为 $U_0$ 的阶跃，且满足终值定理条件时，输出终值为 $y(\infty)=G(0)U_0$。这一结论描述持续输入经过动态过程之后的最终比例。
+### 教学计算/推理例
 
-### 归一化输入示例
+考虑归一化船速对象 $P(s)=6/(3s+2)$，零初始状态，对常值推进增量2有
+$$Y(s)=\frac{12}{s(3s+2)},\qquad y(t)=6(1-e^{-2t/3}).$$
+因此对象直流增益为3，输出终值为6，时间常数为1.5。分子6不是直流增益；时间常数也不是分母中孤立的系数3。
 
-取 $G(s)=2/(s+4)$，则 $G(0)=0.5$。幅值为 $3$ 的常值输入对应输出终值 $1.5$。分母中的动态项决定到达该终值的过程，$G(0)$ 本身不描述响应快慢。
+若给该对象配置比例控制器 $C=2$、单位负反馈，则闭环为 $T(s)=12/(3s+14)$，闭环直流增益为 $6/7$。参考阶跃2的输出终值为 $12/7$，误差为 $2/7$。对象的直流增益3与闭环增益 $6/7$ 属于不同通道，计算时应先画清参考、控制量和输出的关系。对有零点或多时间常数的模型，同样要先求完整传递函数在原点的值。
 
-### 增益的适用范围
+### 常见误区与边界
 
-含有积分环节的通道可能没有有限的直流增益；不稳定通道即使代入 $s=0$ 得到有限代数值，输出也可能不收敛。单位反馈误差计算还应区分开环低频增益、闭环直流增益以及扰动通道增益。
+1. **误区**：有有限 $G(0)$ 就一定有稳定的直流响应。**纠正**：必须检查稳定性与终值条件，不稳定例子已经给出反证。
+2. **误区**：直流增益越大越好。**纠正**：它只描述低频比例；精度、稳定裕度、带宽与执行器能力仍需分别分析。
+
+### 自检
+
+1. 对象 $6/(3s+2)$ 的单位阶跃终值和时间常数分别是多少？
+2. 为什么闭环设计不能直接把对象的3当成参考到输出的增益？
+
+**核对要点**：终值为3，时间常数为1.5；反馈改变了输入输出通道，闭环需要计算 $CP/(1+CP)$。
 
 ### 关联节点
 
-静态增益 · 终值定理 · 稳态误差 · 低频响应
+- **闭环系统单位阶跃稳态误差**（关联）：若参考到输出的闭环增益为 $T(0)$ 且响应收敛，单位阶跃的实际跟踪误差为 $1-T(0)$。

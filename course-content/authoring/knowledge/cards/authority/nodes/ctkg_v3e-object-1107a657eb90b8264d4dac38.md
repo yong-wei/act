@@ -1,55 +1,70 @@
 ---
 node_id: ctkg_v3e-object-1107a657eb90b8264d4dac38
 authority_entity_id: "ctkg:v3e-object-1107a657eb90b8264d4dac38"
-name: 非线性系统
+name: "非线性系统"
+name_en: "Nonlinear System"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 非线性系统
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5072bd00e30a2f5f5a436440c1cda6d28251332a5ecb7d121e9233a4e3511b4d.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5072bd00e30a2f5f5a436440c1cda6d28251332a5ecb7d121e9233a4e3511b4d.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-27a/previous/ctkg_v3e-object-1107a657eb90b8264d4dac38.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: a76abb162e2b442389f990c80c14b383b2c66f06ed9ee00e016ba934dd144754 -->
-
 ## 首页
+# 非线性系统 | Nonlinear System
 
-# 非线性系统
+一句话定义：非线性系统的输入输出或状态演化不满足线性叠加关系，饱和、死区、摩擦和迟滞都是常见来源。
 
-**一句话定义**：当系统中含有一个或多个具有非线性特性的元件时，该系统称为非线性系统。
-
-**关联**：前置 → 小偏差线性化法、相平面法分析非线性系统、描述函数法 · 后续 → 自激振荡
+- 非线性不等于不稳定，也不等于时变。
+- 响应可能随输入幅值和初态而改变。
+- 局部线性近似需明确工作点与有效范围。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-当系统中含有一个或多个具有非线性特性的元件时，该系统称为非线性系统。
+对零初态输入输出关系，线性要求齐次性与可加性：输入放大若干倍时响应也按同样倍数变化；两个输入之和的响应等于分别作用响应之和。只要存在一组允许输入违反这些条件，就不能在该范围内把系统作为线性系统处理。
+
+实际元件可能只在局部近似线性。执行器在小指令下输出成比例，但达到限幅后再增大指令，输出不再同比增加。非线性也可能来自状态相关力或带历史的切换；是否含有记忆、是否稳定、是否随时间变化，是另外的分类问题。
+
+### 教学计算/推理例
+
+定义静态限幅函数 $f(u)=\operatorname{clip}(u,-1,1)$。当 $u_1=u_2=0.75$ 时，分别作用得到 $f(u_1)+f(u_2)=1.5$；合并输入则有 $f(u_1+u_2)=f(1.5)=1$。两者不相等，已构成不满足叠加的明确反例。
+
+若动态系统为 $\dot x=-x+f(u)$、$y=x$、初态为0，对于常值输入0.75，响应为 $0.75(1-e^{-t})$；两个单独响应之和为 $1.5(1-e^{-t})$。直接输入1.5时，实际响应却为 $1-e^{-t}$。同一个静态非线性放入动态环节后，差异会体现在整个响应过程中。
+
+当输入始终位于 $(-1,1)$ 内，此模型的限幅器输出等于输入，方程恰好退化为线性形式。这个局部事实不能证明跨越限幅区时仍可使用线性叠加。边界附近的微小扰动也可能进入不同分段，应检查是否超出所选近似区域。
+
+### 适用条件与边界
+
+零初态条件很重要：含非零初态的线性系统响应带有自由响应，直接拿总输出做简单叠加可能误判。检验系统性质时应先明确初态处理方式。含非线性元件通常需要按完整方程分析；不能仅因图中出现某个符号，就忽略其是否在当前范围被激活。
+
+非线性系统可以稳定，也可以存在多个平衡点、幅值相关响应或周期运动，具体结论来自模型而不是术语。常系数线性传递函数只能描述相应的线性模型；描述函数等近似方法也需要额外条件，不能自动把所有谐波行为压缩成一个精确增益。
+
+### 常见误区
+
+1. 将非线性等同于“不稳定”或“完全不能分析”。
+2. 小信号实验近似成比例，就声称所有输入幅值都线性。
+3. 检验叠加时未统一初态，把自由响应重复计算。
+
+### 自检
+
+1. 限幅器对两个0.75输入的叠加为何失败？
+2. 本例小输入下的线性方程是否适用于输入1.5？
+
+**核对要点**：相加后进入限幅区，输出1不等于分别输出之和1.5；大输入激活饱和，需使用原分段函数。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 小偏差线性化法 | 用于分析 |
-| 前置 | 相平面法分析非线性系统 | 用于分析 |
-| 前置 | 描述函数法 | 用于分析 |
-| 前置 | 相平面法 | 用于分析 |
-| 前置 | 平衡点附近增量线性化方法 | 用于分析 |
-| 前置 | 小偏差线性化法 | 应用于 |
-| 前置 | 相平面法 | 应用于 |
-| 后续 | 自激振荡 | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、非线性系统
+- **圆判据**（入边，关系：用于分析）
+- **相平面法**（入边，关系：适用于）
+- **相平面法**（入边，关系：用于分析）

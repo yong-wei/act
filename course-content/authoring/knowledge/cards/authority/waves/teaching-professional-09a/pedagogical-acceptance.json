@@ -1,0 +1,7 @@
+{
+  "status": "accepted",
+  "cards": 6,
+  "goalId": "discrete-control-foundations",
+  "rationale": "承接离散模型与P/I/D，补齐数字极零点补偿、根轨迹及直接z域设计方法。",
+  "sourceLimitation": "CTMS摘要及官方Web页面缺完整本地快照，理论计算独立核验，来源支持边界如实记录。"
+}

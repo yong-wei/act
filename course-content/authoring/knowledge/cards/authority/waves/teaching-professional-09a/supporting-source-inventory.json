@@ -1,0 +1,47 @@
+{
+  "status": "supporting-references-recorded",
+  "sources": [
+    {
+      "url": "https://ctms.engin.umich.edu/CTMS/?aux=Extras_Dleadlag",
+      "title": "University of Michigan CTMS, Designing Digital Lead and Lag Compensators",
+      "status": "search-summary-checked-full-page-unavailable",
+      "errorType": "HTTPError",
+      "supports": "Digital lead zero exceeds its real pole and normalized gain exceeds one; full-page retrieval rejected with 403.",
+      "retrieval": "Official university page identified in web search, direct web open and local capture rejected. No local original-page hash claimed."
+    },
+    {
+      "url": "https://www.mathworks.com/help/control/ref/dynamicsystem.rlocus.html",
+      "title": "MathWorks, rlocus",
+      "status": "web-reference-checked-no-local-snapshot",
+      "errorType": "HTTPError",
+      "supports": "Root locus tracks closed-loop SISO poles as gain varies; supports discrete-time LTI models.",
+      "retrieval": "Official page read through web reader; direct local capture rejected with 403."
+    },
+    {
+      "url": "https://www.mathworks.com/help/control/ug/discrete-time-proportional-integral-derivative-pid-controller.html",
+      "title": "MathWorks, Discrete-Time Proportional-Integral-Derivative Controllers",
+      "status": "web-reference-checked-no-local-snapshot",
+      "errorType": "HTTPError",
+      "retrieval": "Web reader successfully returned official page; direct local HTTP capture was rejected. No upstream byte hash is claimed.",
+      "sections": [
+        "Discrete-Time PID Controller Representations",
+        "IFormula and DFormula"
+      ],
+      "supports": "Parallel proportional gain; Forward/Backward Euler and trapezoidal integrator representations; first-order filtered derivative with explicit sample time."
+    },
+    {
+      "url": "https://www.mathworks.com/help/control/ref/pid.html",
+      "title": "MathWorks, pid reference",
+      "status": "web-reference-checked-no-local-snapshot",
+      "errorType": "HTTPError",
+      "retrieval": "Web reader successfully returned official page; direct local HTTP capture was rejected. No upstream byte hash is claimed.",
+      "sections": [
+        "Discrete-Time PID Controller Representations",
+        "IFormula and DFormula"
+      ],
+      "supports": "Parallel proportional gain; Forward/Backward Euler and trapezoidal integrator representations; first-order filtered derivative with explicit sample time."
+    }
+  ],
+  "kind": "supporting-research-record",
+  "workedExample": "Original normalized reciprocal digital compensators, second-order z-root locus and exact discrete PID recurrence; see verify-models.py."
+}

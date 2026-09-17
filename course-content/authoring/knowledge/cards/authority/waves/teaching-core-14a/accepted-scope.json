@@ -1,0 +1,65 @@
+{
+  "batchId": "teaching-core-14a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-14",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+      "name": "闭环特征极点",
+      "moduleId": "module-1",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:m3-v2h:source-object:552dae0908d9e549e2e5603d",
+      "name": "高阶传递函数",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+      "name": "非主导极点",
+      "moduleId": "module-3",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+      "name": "系统模态",
+      "moduleId": "module-3",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+      "name": "有零点的二阶系统",
+      "moduleId": "module-3",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+      "name": "闭环主导极点",
+      "moduleId": "module-3",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+      "name": "利用闭环主导极点概念近似分析高阶系统",
+      "moduleId": "module-3",
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+      "name": "主导极点",
+      "moduleId": null,
+      "order": 8
+    }
+  ],
+  "accepted": true
+}

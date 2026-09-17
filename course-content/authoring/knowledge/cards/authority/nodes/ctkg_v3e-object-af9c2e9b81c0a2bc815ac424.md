@@ -1,31 +1,31 @@
 ---
 node_id: ctkg_v3e-object-af9c2e9b81c0a2bc815ac424
 authority_entity_id: "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424"
-name: 速度反馈
+name: "速度反馈"
+name_en: "Velocity Feedback"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - 速度反馈
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-44be7eb263b3af0b4ac1920d3daf357f1c0cec3c9d997ea300bc59e8220d4c5d.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-44be7eb263b3af0b4ac1920d3daf357f1c0cec3c9d997ea300bc59e8220d4c5d.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/previous/ctkg_v3e-object-af9c2e9b81c0a2bc815ac424.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: b2a3a02464debbc37625fc6b9ceeb575ed496e0c1812a68a0b7ffc9953197a78 -->
-
 ## 首页
 
-# 速度反馈
+# 速度反馈 | Velocity Feedback
 
-**一句话定义**：速度反馈。
+**一句话定义**：速度反馈将输出速度信号送回控制关系，其作用由反馈符号、增益和对象运动方程共同决定。
 
-**关联**：（权威图邻接待补充）
+在匹配的机械模型中，负速度项可增加阻尼；符号错误则可能产生相反作用。
 
 ---
 
@@ -33,18 +33,44 @@ asset_refs: []
 
 ### 完整解释
 
-速度反馈
+速度描述输出位置的变化率。将它反馈到控制量，可以让控制作用响应运动趋势，而不只响应位置偏差。若控制量是与速度配对的广义力，负项 $-K_tv$在 $K_t>0$时对应的功率项为 $-K_tv^2$，体现耗散方向。
+
+这种解释依赖信号和物理量的匹配。不能把任意一个名为“速度”的信号接回任意通道，就宣称它必然增加阻尼。应先确认正方向、量纲、传感器比例及求和符号，再由原方程检查效果。
+
+速度反馈也不等于对参考误差作理想微分。它通常只使用测得的输出速度，没有自动包含参考变化率。参考通道、滤波和测量动态都应明确，不能仅因出现一个导数就将不同结构视作完全相同。
+
+### 教学计算/推理例
+
+对归一化机械对象 $\ddot y+\dot y=u$，使用
+
+$$u=K(r-y)-K_t\dot y.$$
+
+闭环方程为 $\ddot y+(1+K_t)\dot y+Ky=Kr$。在 $K=4$时，$K_t=0$对应阻尼系数1；$K_t=1.8$使它变为2.8，阻尼比从0.25增到0.7。
+
+反过来，若符号被等效为 $K_t=-2$，特征多项式变为 $s^2-s+4$，根实部为0.5，出现增长模态。仅知道“系统使用速度反馈”显然不足以证明阻尼改善，实际符号是决定性信息。
+
+对零参考还可取能量形式 $V=(\dot y^2+Ky^2)/2$，沿原方程得到 $\dot V=-(1+K_t)\dot y^2$。它说明速度项怎样改变耗散；但对完整稳定结论，仍应结合 $K$和其他模型条件，而不是只看单独一项。
+
+### 适用条件与边界
+
+测得速度可能含噪声或经过滤波，实际反馈就会多出相应动态和时延。理想方程中的阻尼系数不能直接覆盖这些影响，最终实现需要重新验证。估计速度与直接测量速度也应说明各自条件。
+
+增加阻尼可能减小某些振荡，却不保证所有跟踪误差减小。对本模型，单位斜坡误差为 $(1+K_t)/K$；固定前向增益时，增大正速度系数可能使该误差增大。应结合输入类型和任务要求作取舍。
+
+若系数放在前向放大器之前，实际控制量中的速度系数会包含前向增益，应先折算。比较不同图或不同参数表时，直接对照符号名称容易遗漏这一点，原控制律才是可靠依据。
+
+### 常见误区
+
+1. 误区：只要加入速度反馈，阻尼必然增加。纠正：符号、比例和对象都要匹配，错误符号可能产生增长模态。
+2. 误区：速度反馈改善振荡就等于全部精度改善。纠正：斜坡误差和其他输入通道仍需检查。
+
+### 自检
+
+1. 本例 $K_t=-2$时为什么不能称为附加阻尼？
+2. $-K_tv$的耗散解释需要哪些物理条件？
+
+**核对要点**：有效阻尼系数变为-1，根实部为正。控制量与速度应是对应的广义力和广义速度，并保持正确方向及正系数。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、速度反馈
+本卡的结论可由上述定义与计算例独立复核。

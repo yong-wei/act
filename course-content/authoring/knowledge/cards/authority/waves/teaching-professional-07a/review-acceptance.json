@@ -1,0 +1,19 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_professional07",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "bodyReview": "body-review.json",
+  "materializedBodyEqualityVerified": true,
+  "identityAndRelationsVerified": true,
+  "cardHashes": {
+    "ctkg:m1q:phase-g:source:4e39f1797ea3333fc99d507f": "50ee9374d497b71f97b9e10b78da50c13e3f30f305ce4ce1279bfb6e49845770",
+    "ctkg:m1q:sol-supplement:source:2fbc75456dfe61e6933cd4ee": "ac3ab93c029e5b4020587da32f0dc645e4ad209231e99016b546d05785858ca3",
+    "ctkg:m1q:sol-supplement:source:dab96b1e6e02733852005d63": "bf87da14ab91745713678f7892fbf0d5ee35e1d0f1f175dc5c635f04cfe5318c",
+    "ctkg:m1q:sol-supplement:source:7f1c2a4b7defdf180cd358a9": "10419965d1d55dce0f9b3bb2687d09e2fcdd476325c7b446104686a0918fd2b6",
+    "ctkg:m1q:source:93f9cb978a744de81099410b": "9bff25d2724f00dadbee1fbb87326b4a8f938ec1f537771731b7e0779d32905d",
+    "ctkg:m1q:source:97e97630ea05992f4d3e7e54": "9203d174fa1d6b82ed6596d05e917e54cc4d3e7056abb1489e3eba3dafbdcf72",
+    "ctkg:m1q:source:b3348e63f6c3f02324406434": "f03f0accd6d86898c5388fa6a69369d310f2d7b6028c79af149a6c74959d72ad",
+    "m1q:sol-supplement:concept:finite-horizon-optimal-state-feedback-law": "c574b616b6e1c1de028f4a6d88ee4b29707486ebcbc0ace315730e997f20007d"
+  }
+}

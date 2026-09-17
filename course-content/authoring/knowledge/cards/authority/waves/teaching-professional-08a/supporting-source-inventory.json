@@ -1,0 +1,31 @@
+{
+  "status": "web-reference-sections-checked-local-capture-unavailable",
+  "sources": [
+    {
+      "url": "https://www.mathworks.com/help/control/ug/discrete-time-proportional-integral-derivative-pid-controller.html",
+      "title": "MathWorks, Discrete-Time Proportional-Integral-Derivative Controllers",
+      "status": "web-reference-checked-no-local-snapshot",
+      "errorType": "HTTPError",
+      "retrieval": "Web reader successfully returned official page; direct local HTTP capture was rejected. No upstream byte hash is claimed.",
+      "sections": [
+        "Discrete-Time PID Controller Representations",
+        "IFormula and DFormula"
+      ],
+      "supports": "Parallel proportional gain; Forward/Backward Euler and trapezoidal integrator representations; first-order filtered derivative with explicit sample time."
+    },
+    {
+      "url": "https://www.mathworks.com/help/control/ref/pid.html",
+      "title": "MathWorks, pid reference",
+      "status": "web-reference-checked-no-local-snapshot",
+      "errorType": "HTTPError",
+      "retrieval": "Web reader successfully returned official page; direct local HTTP capture was rejected. No upstream byte hash is claimed.",
+      "sections": [
+        "Discrete-Time PID Controller Representations",
+        "IFormula and DFormula"
+      ],
+      "supports": "Parallel proportional gain; Forward/Backward Euler and trapezoidal integrator representations; first-order filtered derivative with explicit sample time."
+    }
+  ],
+  "kind": "supporting-research-record",
+  "workedExample": "Planned explicit backward-Euler integration and filtered/backward-difference derivative examples, pending numerical and content review."
+}

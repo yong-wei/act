@@ -1,0 +1,8 @@
+{
+  "status": "accepted-for-authoring-and-integration",
+  "reviewer": "/root/review_professional01_content",
+  "candidateOrigin": "teaching-scale-03/candidates.json",
+  "cards": 11,
+  "rationale": "承接量化、离散控制与频域基础，区分采样理论、操作、系统及时序边界；保留精确Authority节点身份。",
+  "excludedCards": []
+}

@@ -1,34 +1,35 @@
 ---
 node_id: ctc_modeling-ebf5a771fd114720de11f6e3
 authority_entity_id: "ctc:modeling-ebf5a771fd114720de11f6e3"
-name: series connection
-name_en: series_connection
+name: "串联连接"
+name_en: "Series Connection"
 category: 概念性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: theoretical_construct
-release_tier: gold
-tags:
-  - theoretical_construct
-  - gold
-  - series
-  - connection
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-fc57b0da57b09512f6ee0c2a764a39593ae734a4fd342f08d2260132001ced54.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-fc57b0da57b09512f6ee0c2a764a39593ae734a4fd342f08d2260132001ced54.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/previous/ctc_modeling-ebf5a771fd114720de11f6e3.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 663031760a8a75bde6cf6863c4eb9d47e1a0527f036c0b99d7ca6f24560ad7aa -->
-
 ## 首页
 
-# series connection | series_connection
+# 串联连接 | Series Connection
 
-**一句话定义**：series connection：v3T accepted candidate for series connection.
+**一句话定义**：串联连接让前一级输出作为后一级输入，在模型端口条件保持成立时，总传函为各级传函的乘积。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：输入先经过一级动态过程，再经过另一级；前后两级都会影响最终响应。
+
+**关键公式**：$Y=G_2G_1U$。
+
+**学习目标**：区分串联与并联，写出内部变量及总传函，并识别实际元件加载带来的限制。
 
 ---
 
@@ -36,18 +37,45 @@ asset_refs: []
 
 ### 完整解释
 
-v3T accepted candidate for series connection.
+设第一级输入为 $u$、输出为 $x$，第二级输入为 $x$、输出为 $y$。零初态下有 $X=G_1U$、$Y=G_2X$，消去内部变量即得串联等效关系。乘积并不是一个记忆口诀，而是两条输入输出方程的代入结果。
+
+只有当后级连接没有破坏前级模型假设时，才可以直接使用原来各自的传函。实际 RC 网络直接连接时，后级可能加载前级；若把孤立元件的空载传函直接相乘，就可能得到错误结果。信号方框串联表示的是已经确定端口关系的模型，不自动保证实物互连满足无加载条件。
+
+### 教学计算/推理例
+
+取无加载的标量信号模块 $G_1=1/(s+1)$、$G_2=2/(s+2)$。总传函为
+$$
+G_{\mathrm{eq}}(s)=\frac2{(s+1)(s+2)}.
+$$
+对单位阶跃和零初态，原状态方程可写为
+$$
+\dot x=1-x,\qquad \dot y=2x-2y.
+$$
+先得 $x(t)=1-e^{-t}$，再代入第二式，得到
+$$
+y(t)=1-2e^{-t}+e^{-2t}=(1-e^{-t})^2.
+$$
+时间按秒计，终值为 1，与两个直流增益之积 $1\times1=1$ 相符。由于第二级起初收到的 $x(0)$ 为零，$\dot y(0^+)=0$；第一级虽已开始变化，最终输出仍需经过后一级的动态过程。
+
+与同一组模块的并联相比，串联输出没有直接把两条阶跃响应相加。并联表示两级同时接收外部输入，而本例第二级接收的是逐渐变化的内部信号。这一结构差异决定了不同的分子和终值。
+
+### 适用条件与边界
+
+标量传函相乘可交换，因此在零初态、理想模块条件下交换次序可保持同一外部传函；但内部变量、各级承受的幅值以及实际端口条件未必相同。含饱和的实物不一定可交换，矩阵传函通常也不满足交换律。即使外部传函出现约消，内部状态是否稳定仍需检查，不能只看化简后的分母。
+
+### 常见误区
+
+1. **误区**：标量乘法可交换，所以实物任意交换连接都等价。**纠正**：端口加载、非线性限制和内部信号都可能变化。
+2. **误区**：串联单位阶跃输出是两级单位阶跃输出之和。**纠正**：第二级的实际输入是第一级输出。
+
+### 自检
+
+1. 为什么本例最终输出的初始斜率为零？
+2. 无加载条件对传函相乘起什么作用？
+
+**核对要点**：第二级初始输入和状态均为零；无加载使各级原先的输入输出方程在互连后仍可使用。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、gold、series、connection
+- **框图化简**（无向，关系：相关）
+- **传递函数**（无向，关系：相关）

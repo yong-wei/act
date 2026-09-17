@@ -1,0 +1,90 @@
+---
+node_id: ctkg_m1q_phase-g_source_8f3eb818adacfb4bbd1403b4
+authority_entity_id: "ctkg:m1q:phase-g:source:8f3eb818adacfb4bbd1403b4"
+name: "变分法"
+name_en: "Calculus of Variations"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consevent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0f9e55fb8a607bb75d1badcda89ca350d926bb073d5bbaedaba8758a98a03f50.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0f9e55fb8a607bb75d1badcda89ca350d926bb073d5bbaedaba8758a98a03f50.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-06a/supporting-source-inventory.json"
+asset_refs: []
+---
+
+## 首页
+# 变分法 | Calculus of Variations
+
+一句话定义：变分法研究函数发生可行扰动时泛函如何变化，以建立最优曲线需要满足的条件。
+
+- 扰动必须满足端点和其他约束。
+- 一阶变分为零通常只是驻值必要条件。
+- 最小性还需要额外论证。
+
+---
+## 详情
+### 完整解释
+
+普通微积分通过改变一个或几个数来寻找函数极值；变分法则改变整条曲线。对候选曲线y，构造 $y+\varepsilon\eta$，其中η是允许的扰动方向，ε是实数小参数。将这个曲线族代入泛函后，得到关于ε的普通函数，便可以研究它在零附近的导数。
+
+若端点固定，扰动η在端点必须为零。若候选是允许双向小扰动的光滑局部极小点，则对所有可行扰动方向，一阶变化应为零。这个条件用于筛选候选，而不是单凭“导数为零”就排除极大点或其他驻值情形。
+
+### 教学计算/推理例
+
+在[0,1]内，取连续可微曲线y，固定 $y(0)=0$、$y(1)=1$，最小化
+
+$$
+J[y]=\int_0^1 y'(t)^2\,dt.
+$$
+
+先选候选 $y^*(t)=t$，并令η为端点为零的连续可微扰动。代入 $y=t+\varepsilon\eta$，展开得
+
+$$
+J[t+\varepsilon\eta]
+=1+2\varepsilon\int_0^1\eta'(t)\,dt
++\varepsilon^2\int_0^1\eta'(t)^2\,dt.
+$$
+
+中间的积分等于η(1)-η(0)=0，所以一阶变化消失。剩余项非负，表明任何这种可行扰动都不能降低成本。更直接地，对任意可行y令η=y-t、ε=1，就得到 $J[y]=1+\int_0^1\eta'^2\,dt\geq1$，从而证明y=t是全局最小解。
+
+例如取 $\eta=t(1-t)$，有 $\eta'=1-2t$，积分η'²为1/3，因此 $J=1+\varepsilon^2/3$。这个具体方向便于计算核对，但前面的全局论证涵盖所有端点为零的连续可微η，二者证据范围不同。
+
+### 欧拉—拉格朗日方程
+
+对一般形式 $J[y]=\int L(t,y,y')\,dt$，在适当光滑条件下，对一阶变分中的η'项分部积分。由于固定端点扰动为零，边界项消失，得到候选极值曲线需要满足的方程：
+
+$$
+\frac{d}{dt}\frac{\partial L}{\partial y'}-\frac{\partial L}{\partial y}=0.
+$$
+
+本例 $L=y'^2$，所以方程为2y''=0。结合两端条件得到y=t。该方程找到候选曲线，展开式中非负余项则提供最小性证明。把这两步区分开，可以避免把一般驻值条件误写成无条件的全局最优判据。
+
+### 适用条件与边界
+
+如果端点自由，分部积分产生的边界项不再自动消失，需要额外自然边界条件。若存在不等式约束，某些方向不能双向扰动，一阶条件的形式也会改变。不能在约束边界上机械套用无约束的“所有方向导数为零”。
+
+经典欧拉—拉格朗日表达还要求函数具有足够光滑性。最优控制中的开关输入或更一般函数空间可能需要其他工具。本卡只用光滑标量例说明可行扰动、驻值条件与最小性证明的区别，不把这个例子推广为所有问题的求解公式。
+
+### 常见误区
+
+1. 扰动改变了固定端点，却仍称它为可行扰动。
+2. 解出欧拉—拉格朗日方程就宣布全局最优。
+3. 只检验一个扰动方向，就认为检验了全部曲线。
+
+### 自检
+
+1. 本例一阶变化项为何消失？
+2. 哪一步使结论从驻值提升为全局最小？
+
+**核对要点**：η两端为零使η'积分为零；对任意可行y都能写成t+η，且成本余项是非负平方积分。
+
+### 关联节点
+
+本卡的结论可由上述定义与计算例独立复核。

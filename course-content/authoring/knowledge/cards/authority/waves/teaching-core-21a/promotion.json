@@ -1,0 +1,17 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 11,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b32",
+  "retiredResources": [
+    "act:card:复合控制_3_a1570156",
+    "act:card:复合控制_6_31b7c736",
+    "act:card:复合控制方式_1_393383be",
+    "act:card:前置滤波器_10_56e8171d",
+    "act:card:前置滤波器_6_15e51383",
+    "act:card:复合校正_6_b2a1b4b1",
+    "act:card:前馈补偿_6_3bd3eb3b",
+    "act:card:前馈校正_6_40284f13",
+    "act:card:复合控制系统_6_cd8f5178",
+    "act:card:内模控制器_9_b2d43456"
+  ]
+}

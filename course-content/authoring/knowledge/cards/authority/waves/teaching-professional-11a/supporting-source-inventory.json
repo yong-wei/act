@@ -1,0 +1,36 @@
+{
+  "status": "sections-checked",
+  "sources": [
+    {
+      "url": "https://ocw.mit.edu/courses/6-241j-dynamic-systems-and-control-spring-2011/996025f6db0d90b00f11c44fc49b85f9_MIT6_241JS11_textbook.pdf",
+      "title": "MIT 6.241J, Lectures on Dynamic Systems and Control",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/references/mit-dynamic-systems-control.pdf",
+      "sha256": "2ec549c816c8ab043b38c41b62021f1a1ed09494ac83833990ef393682307ab5",
+      "status": "sections-checked",
+      "pages": "PDF 214-221; formulas visually checked on 216,217,219",
+      "sections": [
+        "20.2 Additive Representation of Uncertainty",
+        "20.3 Multiplicative Representation of Uncertainty",
+        "20.5 A Linear Fractional Description",
+        "20.6 The Small-Gain Theorem",
+        "20.7 Stability Robustness Analysis"
+      ],
+      "supports": "Stable perturbations with H-infinity norm at most one; nominal internal stability; strict small-gain inequality and possible conservatism for structured uncertainties.",
+      "extractionNote": "PDF text extraction corrupts some symbols; stable perturbation set and strict inequality were checked on rendered page 219."
+    }
+  ],
+  "failedDiscovery": [
+    {
+      "url": "https://www.cds.caltech.edu/~murray/courses/cds110/wi07/L9-2_robstab.pdf",
+      "status": "capture-failed",
+      "errorType": "URLError"
+    },
+    {
+      "url": "https://www.cds.caltech.edu/~murray/courses/cds110/wi07/L9-1_robstab.pdf",
+      "status": "capture-failed",
+      "errorType": "URLError"
+    }
+  ],
+  "kind": "supporting-research-record",
+  "workedExample": "Original scalar uncertain-plant family, omitted lag and weighted additive/multiplicative return channels; final model checks pending."
+}

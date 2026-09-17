@@ -1,50 +1,74 @@
 ---
 node_id: ctkg_v3e-object-785280d429b7e1a5f2f5db53
 authority_entity_id: "ctkg:v3e-object-785280d429b7e1a5f2f5db53"
-name: Nyquist stability criterion
+name: "奈奎斯特稳定判据"
+name_en: "Nyquist Criterion"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - Nyquist
-  - stability
-  - criterion
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e3bb955d2bd801389cdc0f893ce165607ac7afce2299798e5856a5a9ebaf1745.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e3bb955d2bd801389cdc0f893ce165607ac7afce2299798e5856a5a9ebaf1745.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/previous/ctkg_v3e-object-785280d429b7e1a5f2f5db53.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 2fffede35d03aea9ac4a06f80dae5f22e86891e095dd9fe3835f985a72d0929a -->
-
 ## 首页
+# 奈奎斯特稳定判据 | Nyquist Criterion
 
-# Nyquist stability criterion
+一句话定义：Nyquist判据通过开环复频率响应的完整绕行信息，确定闭环右半平面特征根的个数。
 
-**一句话定义**：Nyquist stability criterion：The Nyquist stability criterion relates the open-loop frequency response to the number of closed-loop poles of the syst…
-
-**关联**：（权威图邻接待补充）
+- 它不只给出“稳定或不稳定”，还给出不稳定根数。
+- 开环右半平面极点数是必要输入。
+- 可用简单闭环特征方程检验计数约定是否一致。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-The Nyquist stability criterion relates the open-loop frequency response to the number of closed-loop poles of the system in the RHP.
+对单位负反馈，闭环特征函数为 $F(s)=1+L(s)$。$L$ 围绕 $-1$ 的绕行，等价于 $F$ 围绕原点的绕行。采用顺时针包围右半平面的原围线，并把映射的逆时针净绕行记为正，则 $N_{ccw}=P-Z$。其中 $P$ 是开环右半平面极点数，$Z$ 是闭环特征函数在该半平面的零点数。
+
+实际分析可以分为四步：确认反馈符号和环路函数；统计 $P$；构造含负频率、正频率及必要闭合弧的完整映射；按方向求净圈数并计算 $Z=P-N_{ccw}$。若存在虚轴极点，先规定绕避路径；若经过临界点，则先处理稳定边界，不能给出严格渐近稳定结论。
+
+### 教学计算/推理例
+
+考虑 $L=K/(s-1)$。沿虚轴有
+
+$$
+L(j\omega)=-\frac{K}{1+\omega^2}-j\frac{K\omega}{1+\omega^2}.
+$$
+
+实部 $a$、虚部 $b$ 满足 $(a+K/2)^2+b^2=(K/2)^2$。当频率从负无穷增加到正无穷，曲线从原点附近沿上半圆到 $(-K,0)$，再沿下半圆回到原点附近，构成逆时针的圆周极限；无穷远闭合映射趋向原点。
+
+若 $K=2$，圆心为 $(-1,0)$、半径为1，临界点位于圆内，逆时针净圈数为1。因 $P=1$，得到 $Z=0$。若 $K=0.5$，圆心为 $(-0.25,0)$、半径为0.25，临界点在圆外，计数为0，得到 $Z=1$。闭环极点分别为 $-1$ 与0.5，与计数相符。
+
+同样的图形操作必须保持频率遍历方向；把箭头反向却沿用同一符号公式，会把稳定系统算成错误的根数。独立求根是教学算例中发现这类错误的有效方法。
+
+### 适用条件与边界
+
+本例没有虚轴极点，因此不需要原点绕避。对于积分环节，绕避小弧的映射可能位于无穷远并贡献重要转角，不能因绘图窗口看不到就忽略。离散时间系统采用单位圆稳定域，不能直接沿用本卡的右半平面围线而不作变换。
+
+Nyquist计数针对给定特征函数。要把外部传递函数的结论解释为内部稳定，必须确认模型未通过不稳定零极点相消隐藏内部状态。裕度指标可作为设计辅助，但不能替代必要的完整计数，特别是开环不稳定或多交越系统。
+
+### 常见误区
+
+1. 将实轴左侧圆弧的存在当成不稳定证据，而不看它对临界点的净绕行。
+2. 把零净圈数理解为任何系统都稳定，忽略 $P$。
+3. 只按曲线外形判断圈数，漏看频率方向与重复绕行。
+
+### 自检
+
+1. 本例 $K=2$ 时，完整曲线绕临界点的正向按本卡约定是什么？
+2. 已知 $P=2$、$N_{ccw}=1$，能否判为稳定？
+
+**核对要点**：逆时针一圈；$Z=2-1=1$，仍有一个右半平面特征根，不稳定。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Nyquist、stability、criterion
+本卡的结论可由上述定义与计算例独立复核。

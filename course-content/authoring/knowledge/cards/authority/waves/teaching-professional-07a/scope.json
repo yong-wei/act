@@ -1,0 +1,72 @@
+{
+  "batchId": "teaching-professional-07a",
+  "status": "authoring",
+  "parentGroupId": "professional-linear-quadratic-design",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:4e39f1797ea3333fc99d507f",
+      "name": "最小时间控制",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:m1q:sol-supplement:source:2fbc75456dfe61e6933cd4ee",
+      "name": "权阵 R(t)",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:m1q:sol-supplement:source:dab96b1e6e02733852005d63",
+      "name": "权阵 Q(t)",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:m1q:sol-supplement:source:7f1c2a4b7defdf180cd358a9",
+      "name": "权阵 F",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:93f9cb978a744de81099410b",
+      "name": "线性二次型问题",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:97e97630ea05992f4d3e7e54",
+      "name": "线性二次型调节器 (LQR)",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:b3348e63f6c3f02324406434",
+      "name": "横截条件",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "m1q:sol-supplement:concept:finite-horizon-optimal-state-feedback-law",
+      "name": "有限时域最优状态反馈律",
+      "domain": "optimal-control-foundations-and-linear-quadratic-design",
+      "moduleId": null,
+      "order": 8
+    }
+  ]
+}

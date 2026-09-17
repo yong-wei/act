@@ -22,7 +22,7 @@ import {
   groupSystemResourceBindingsByKind,
   systemResourceBindings,
 } from './active-authority-inspector-resources';
-import { InspectorLearnerMarkdown } from './inspector-learner-markdown';
+import { InspectorKnowledgeCardPanel, InspectorLearnerMarkdown } from './inspector-learner-markdown';
 import 'katex/dist/katex.min.css';
 import { GovernedBlockMath, GovernedRichText, GovernedUnavailableMath } from '@/components/shared/governed-rich-text';
 import {
@@ -971,7 +971,7 @@ function ActiveNodeDetail({
       <div className="mt-5 space-y-5">
         <div>
           <div className="text-sm leading-6 text-platform-fg-secondary">
-            {node?.richDescription && node.richDescription.state !== 'missing'
+            {cardPinned ? null : node?.richDescription && node.richDescription.state !== 'missing'
               ? <GovernedRichText projection={node.richDescription} density="detail" />
               : descriptionText
                 ? <InspectorLearnerMarkdown>{descriptionText}</InspectorLearnerMarkdown>
@@ -1021,15 +1021,11 @@ function ActiveNodeDetail({
             {node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'render' ? (
               <section aria-labelledby="active-detail-card" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
                 <h3 id="active-detail-card" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.card')}</h3>
-                <div className="mt-2 space-y-2 text-sm leading-6 text-platform-fg-secondary">
-                  <InspectorLearnerMarkdown>{node.learningContent.card.summary}</InspectorLearnerMarkdown>
-                  {node.learningContent.card.insight
-                    ? <InspectorLearnerMarkdown>{node.learningContent.card.insight}</InspectorLearnerMarkdown>
-                    : null}
-                  {node.learningContent.card.explanation
-                    ? <InspectorLearnerMarkdown>{node.learningContent.card.explanation}</InspectorLearnerMarkdown>
-                    : null}
-                </div>
+                <InspectorKnowledgeCardPanel
+                  summary={node.learningContent.card.summary}
+                  insight={node.learningContent.card.insight}
+                  explanation={node.learningContent.card.explanation}
+                />
               </section>
             ) : node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'unavailable' ? (
               <p data-optional-content-unavailable="card" className="text-sm text-platform-fg-muted">{cardProjection.message}</p>

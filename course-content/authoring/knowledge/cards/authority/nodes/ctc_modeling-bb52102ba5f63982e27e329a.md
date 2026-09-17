@@ -1,34 +1,35 @@
 ---
 node_id: ctc_modeling-bb52102ba5f63982e27e329a
 authority_entity_id: "ctc:modeling-bb52102ba5f63982e27e329a"
-name: parallel connection
-name_en: parallel_connection
+name: "并联连接"
+name_en: "Parallel Connection"
 category: 概念性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: theoretical_construct
-release_tier: gold
-tags:
-  - theoretical_construct
-  - gold
-  - parallel
-  - connection
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-82a53c8f78dda93710f10e67a90f5e7dec100eafc8db9b18b42ceb3ac89d64b8.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-82a53c8f78dda93710f10e67a90f5e7dec100eafc8db9b18b42ceb3ac89d64b8.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/previous/ctc_modeling-bb52102ba5f63982e27e329a.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 85edcb189464ef217ee4ee16982f4ab2fd810e24d1cf4170c327cc1d467acf48 -->
-
 ## 首页
 
-# parallel connection | parallel_connection
+# 并联连接 | Parallel Connection
 
-**一句话定义**：parallel connection：v3T accepted candidate for parallel connection.
+**一句话定义**：并联连接把同一输入送入多个支路，并按求和点的符号合成各支路输出。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：每条支路各自响应，最终输出的相加或相减取决于结构中明确给出的符号。
+
+**关键公式**：若 $y=y_1+y_2$，则 $G_{\mathrm{eq}}=G_1+G_2$。
+
+**学习目标**：由信号连接写出并联等效传函，并用阶跃终值检查合成结果。
 
 ---
 
@@ -36,18 +37,46 @@ asset_refs: []
 
 ### 完整解释
 
-v3T accepted candidate for parallel connection.
+并联方框共享输入，而不要求两条支路拥有相同的动态特性。在线性定常、零初态条件下，$Y_1=G_1U$、$Y_2=G_2U$。若求和点把它们相加，输出便是 $(G_1+G_2)U$；若其中一路取负号，则应相减。求和点的符号是结构信息，不能根据“看起来是并联”自行省略。
+
+输出相加还隐含变量含义和单位可以比较。例如，两路都表示同一坐标下的位移贡献时可以直接相加；若一路是电压、另一路是角度，就必须先经过标定或变量转换。方框图中的信号并联也不等于把任意两台实际电源直接并接，实际端口相互作用需另行建模。
+
+### 教学计算/推理例
+
+取无加载的两个信号支路
+$$
+G_1(s)=\frac1{s+1},\qquad G_2(s)=\frac2{s+2},\qquad y=y_1+y_2.
+$$
+它们接收同一单位阶跃，初态均为零。通分后
+$$
+G_{\mathrm{eq}}(s)=\frac{(s+2)+2(s+1)}{(s+1)(s+2)}
+=\frac{3s+4}{(s+1)(s+2)}.
+$$
+第一支路响应为 $y_1=1-e^{-t}$，第二支路为 $y_2=1-e^{-2t}$，因此
+$$
+y(t)=2-e^{-t}-e^{-2t},\qquad y_\infty=2.
+$$
+这里时间按秒计。也可从原状态方程 $\dot y_1=1-y_1$、$\dot y_2=2-2y_2$ 分别求解后相加。两路终值都是 1，合成终值为 2，与等效传函直流增益 $G_{\mathrm{eq}}(0)=2$ 一致。
+
+这个检查能发现常见的通分错误：并联应把通分后的分子相加，不是把分母直接相加。两个衰减过程同时存在，不能仅凭终值为 2 就把它当作一个常数增益方框。
+
+### 适用条件与边界
+
+传函等效要求支路关系按连接状态仍然有效。本例输出没有瞬时跳变，因为两支路都是严格真有理系统；其他含直接传递项的支路可以出现阶跃跳变，不能把本例现象当成并联的普遍性质。非零初态还会带来自由响应，需要在总输出中一并相加。
+
+### 常见误区
+
+1. **误区**：并联就是把两个传函相乘。**纠正**：共享输入、合成输出对应代数和。
+2. **误区**：两条支路并联后只保留较快的一条。**纠正**：本例两个指数项都保留，忽略任何一项都需要近似依据。
+
+### 自检
+
+1. 为什么合成分子是 $3s+4$？
+2. 为什么输出终值是 2，而不是 1？
+
+**核对要点**：通分后分子为 $(s+2)+2(s+1)$；求和点相加了两条单位直流增益支路的终值。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、gold、parallel、connection
+- **传递函数**（无向，关系：相关）
+- **框图化简**（无向，关系：相关）

@@ -1,0 +1,99 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "damped_phase": {
+      "equation": "xdot=v; vdot=-x-v",
+      "initial": [
+        1,
+        0
+      ],
+      "exactX": "exp(-t/2)[cos(sqrt(3)t/2)+sin(sqrt(3)t/2)/sqrt(3)]",
+      "exactV": "-2exp(-t/2)sin(sqrt(3)t/2)/sqrt(3)",
+      "eigenvaluesRealPart": -0.5,
+      "eigenvaluesImagMagnitude": 0.8660254037844386,
+      "samples": [
+        {
+          "t": 0,
+          "x": 1.0,
+          "v": -0.0,
+          "energy": 0.5
+        },
+        {
+          "t": 0.5,
+          "x": 0.8955945265449207,
+          "v": -0.37734520347490685,
+          "energy": 0.4722394792813698
+        },
+        {
+          "t": 1,
+          "x": 0.6597001533917017,
+          "v": -0.533507195114693,
+          "energy": 0.35991710981209096
+        },
+        {
+          "t": 2,
+          "x": 0.15057436514588762,
+          "v": -0.41927962966633187,
+          "energy": 0.09923402364611175
+        },
+        {
+          "t": 4,
+          "x": -0.1531227684140493,
+          "v": 0.0495298797419148,
+          "energy": 0.012949895597015556
+        }
+      ],
+      "energyDerivative": "-v^2",
+      "boundary": "state plane x,v; phase curve is not x(t) vs time"
+    },
+    "isoclines": {
+      "slope": "dv/dx=(-x-v)/v for v!=0",
+      "constantSlopeM": "x=-(m+1)v",
+      "verticalDirection": "v=0,x!=0; xdot0 but vdot=-x nonzero",
+      "singularity": [
+        0,
+        0
+      ],
+      "boundary": "0/0 at equilibrium; slopes alone do not give time direction, use vector field"
+    },
+    "regional_equilibria": {
+      "equation": "xdot=v; vdot=-v-x+0.5clip(x,-1,1)",
+      "innerRegion": "abs(x)<=1: vdot=-v-0.5x; equilibrium(0,0) real",
+      "positiveRegion": "x>1: vdot=-v-x+0.5; extension equilibrium(0.5,0) virtual",
+      "negativeRegion": "x<-1: vdot=-v-x-0.5; extension equilibrium(-0.5,0) virtual",
+      "actualEquilibria": [
+        [
+          0,
+          0
+        ]
+      ],
+      "switchingLines": [
+        -1,
+        1
+      ],
+      "boundary": "real/virtual describe region membership, not real/complex eigenvalues; vector field continuous at lines, formula changes but state does not jump"
+    },
+    "harmonic_comparison": {
+      "equation": "xdot=v; vdot=-x",
+      "invariant": "x^2+v^2=constant",
+      "directionAt1_0": [
+        0,
+        -1
+      ],
+      "boundary": "family of closed orbits, not isolated limit cycles; origin is center, stability different from damped focus"
+    },
+    "admissible_control": {
+      "system": "xdot=v; vdot=u",
+      "constraints": "abs(u)<=1, piecewise continuous; horizon2; initial(0,0), terminal(1,0)",
+      "input": "u=1 on [0,1), u=-1 on [1,2]",
+      "terminal": [
+        1,
+        0
+      ],
+      "amplitudeViolationExample": 2,
+      "boundedButTerminalFailExample": "u=0 gives terminal(0,0)",
+      "boundary": "admissibility depends on all declared constraints; no minimum-time claim from feasible example; switch at time1 not a derived optimal phase switching curve"
+    }
+  }
+}

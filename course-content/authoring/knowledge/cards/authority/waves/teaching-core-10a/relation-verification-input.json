@@ -1,0 +1,217 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+      "relations": [
+        {
+          "relationId": "ctr:fdaabf40cd0904169cb9e499",
+          "otherId": "ctc:modeling-865eb1c8824e157c2f05a903",
+          "label": "传递函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **传递函数**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:9d688cf8bcc44cd0031545ec",
+          "otherId": "ctc:modeling-d1d778fef91f78f0d3490f87",
+          "label": "单位脉冲响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **单位脉冲响应**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2w:source-object:2107b134aa2e942c147b9594",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:843897b6fb64ab8e295d1340",
+          "otherId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+          "label": "部分分式展开",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **部分分式展开**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:4877a489a700e4c1c16c187f",
+          "otherId": "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+          "label": "部分分式展开的覆盖法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **部分分式展开的覆盖法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:16e9181130d2665ccda789be",
+          "otherId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+          "label": "不同极点部分分式展开法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **不同极点部分分式展开法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-v3e-relation-6150abda86d66a0528db94f2",
+          "otherId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+          "label": "典型输入信号",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **典型输入信号**（入边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-v3e-relation-85b39e4c0252a2c7958e559a",
+          "otherId": "ctkg:v3e-canonical-ef5630b5a74449df22ea0222",
+          "label": "快极点和慢极点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **快极点和慢极点**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:fc60ee6d30a6b923e0d4766f",
+          "otherId": "ctc:modeling-921bc3037657731382363bae",
+          "label": "系统固有自由响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **系统固有自由响应**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:6d76fade7cc9836624aa3b80",
+          "otherId": "ctc:modeling-e304e644d69b0f1be6d6eca4",
+          "label": "单位脉冲时域响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **单位脉冲时域响应**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-140f79192eaddb1dc3037ed7",
+          "otherId": "ctkg:v3e-canonical-c02b9566a9d9964dbab5cc5d",
+          "label": "通过卷积计算响应",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **通过卷积计算响应**（入边，关系：包含组件）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-08ad3d783f33e6f3dd431e96",
+          "otherId": "ctkg:v3e-canonical-e027166059bcf70dc11dc46e",
+          "label": "时域相乘对应于频域卷积。",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **时域相乘对应于频域卷积。**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-v3e-relation-8f3311343a06f6a1102b0685",
+          "otherId": "ctkg:v3e-canonical-4ba2706fe6f29f5cb5701c1c",
+          "label": "阶跃输入最易于生成和评估",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **阶跃输入最易于生成和评估**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-a22dabcbbb6364ad690bdd5e",
+          "otherId": "ctkg:v3e-canonical-7e86922f1b9753df271ca77c",
+          "label": "采用 Kp 时阶跃输入的稳态跟踪误差",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **采用 Kp 时阶跃输入的稳态跟踪误差**（入边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-v3e-relation-6150abda86d66a0528db94f2",
+          "otherId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+          "label": "正弦函数",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **正弦函数**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-0ceca1df3df7ed5f471eb533",
+          "otherId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+          "label": "单位斜坡函数",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **单位斜坡函数**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-1387262dcf65d5c728f35c1a",
+          "otherId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+          "label": "单位阶跃函数",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **单位阶跃函数**（出边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-v3e-relation-4c52a895caf66a03d22c280c",
+          "otherId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+          "label": "典型输入信号",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **典型输入信号**（入边，关系：包含组件）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:f3d2e91fa50d770f6dff1e17",
+          "otherId": "ctkg:v3e-canonical-22a72191e400b17e9a066416",
+          "label": "矩形脉冲近似单位脉冲",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **矩形脉冲近似单位脉冲**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:2ead6b1abdcbb4c1a4152311",
+          "otherId": "ctkg:domainconcept:550f9472042bebc4561cc83b",
+          "label": "扰动信号",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **扰动信号**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-6e87a78f658f54b726a05458",
+          "otherId": "ctkg:v3e-object-ee34b938a6fb68864ccf4aa7",
+          "label": "指令跟随",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **指令跟随**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-affda11d979625b0f4e827e3",
+          "otherId": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+          "label": "渐近跟踪",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **渐近跟踪**（入边，关系：适用于）"
+        }
+      ]
+    }
+  ]
+}

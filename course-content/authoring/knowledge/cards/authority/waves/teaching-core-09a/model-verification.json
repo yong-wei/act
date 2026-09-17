@@ -1,0 +1,98 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "equivalent_unit_feedback": {
+      "originalEquation": "q_ddot+(3+K)q_dot+(2+4K)q=r",
+      "characteristic": "a(s)+K b(s), a=s^2+3s+2, b=s+4",
+      "auxiliaryLoop": "K(s+4)/(s^2+3s+2)",
+      "K": 1,
+      "originalReferenceTransfer": "1/(s^2+4s+6)",
+      "auxiliaryClosedTransfer": "(s+4)/(s^2+4s+6)",
+      "originalDCGain": "1/6",
+      "auxiliaryDCGain": "2/3",
+      "boundary": "equivalent characteristic equation for parameter root locus, not an assertion of identical reference/output transfer or internal physical signals"
+    },
+    "root_locus_loop": {
+      "L0": "b(s)/a(s)=(s+4)/((s+1)(s+2))",
+      "parameterEquation": "1+K L0(s)=0",
+      "openPoles": [
+        -1,
+        -2
+      ],
+      "openZero": -4,
+      "L0AtJ": [
+        0.7,
+        -1.1
+      ],
+      "boundary": "state explicitly whether adjustable K is included in L or separated; the auxiliary loop need not equal an original physical open-loop path"
+    },
+    "positive_feedback": {
+      "plant": "1/(s+1)",
+      "innerEquation": "y=P(v+h y)",
+      "innerCases": [
+        {
+          "h": 0.5,
+          "pole": -0.5
+        },
+        {
+          "h": 2,
+          "pole": 1
+        }
+      ],
+      "outerNegativeFeedback": "v=2(r-y) with h=0.5",
+      "fullClosedTransfer": "2/(s+2.5)",
+      "fullUnitStep": "0.8(1-exp(-2.5t))",
+      "boundary": "a positive inner loop alone does not determine overall stability; evaluate the complete signed interconnection"
+    },
+    "closed_transfer": {
+      "plant": "2/(s+1)",
+      "H": 0.5,
+      "equations": [
+        "x_dot=-x+2e",
+        "y=x+d",
+        "e=r-0.5y"
+      ],
+      "referenceTransfer": "2/(s+2)",
+      "outputDisturbanceTransfer": "(s+1)/(s+2)",
+      "referenceUnitStep": "1-exp(-2t)",
+      "outputDisturbanceUnitStep": "0.5+0.5exp(-2t)",
+      "boundary": "a closed-loop transfer is tied to selected input/output ports; output disturbance differs from an input disturbance"
+    },
+    "unit_negative_feedback": {
+      "G": "2/(s+1)",
+      "H": 1,
+      "error": "e=r-y",
+      "closedTransfer": "2/(s+3)",
+      "unitStep": "(2/3)(1-exp(-3t))",
+      "steadyError": "1/3",
+      "boundary": "unity measurement feedback does not mean unity closed-loop DC gain; reference and measured output must use consistent units"
+    },
+    "open_loop_system": {
+      "plant": "2/(s+1)",
+      "openCommand": "u=r",
+      "openUnitReferenceStep": "2(1-exp(-t))",
+      "inputDisturbanceComparison": "r=0, d=0.5 added at plant input",
+      "openDisturbanceResponse": "1-exp(-t)",
+      "negativeFeedbackResponse": "(1/3)(1-exp(-3t))",
+      "boundary": "comparison concerns the specified disturbance port, not an unqualified claim that feedback always improves every performance metric"
+    },
+    "open_loop_gain": {
+      "loop": "K/(s(s+1))",
+      "cases": [
+        {
+          "K": 2.0,
+          "magnitudeAtOneRadPerUnitTime": 1.4142135623730951,
+          "phaseDegrees": -135.0
+        },
+        {
+          "K": 5.0,
+          "magnitudeAtOneRadPerUnitTime": 3.5355339059327378,
+          "phaseDegrees": -135.0
+        }
+      ],
+      "DCGain": "unbounded due to integrator, not K",
+      "boundary": "K is a gain multiplier in this normalized model; distinguish it from DC gain and gain margin, and preserve any source-specific parameter definition"
+    }
+  }
+}

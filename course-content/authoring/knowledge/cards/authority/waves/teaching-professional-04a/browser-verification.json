@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> full-state-observer node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "全状态观测器",
+  "representativeCanonicalId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+  "authorityDomainId": "state-space-control-analysis-and-design",
+  "authorityDomainDisplayName": "状态空间控制分析与设计"
+}

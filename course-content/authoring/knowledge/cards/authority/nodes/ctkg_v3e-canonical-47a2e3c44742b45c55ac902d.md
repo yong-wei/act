@@ -1,33 +1,35 @@
 ---
 node_id: ctkg_v3e-canonical-47a2e3c44742b45c55ac902d
 authority_entity_id: "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d"
-name: 闭环极点
+name: "闭环极点"
+name_en: "Closed-Loop Pole"
 category: 概念性
-batch: C
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 闭环极点
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-38583ef086a9f5a0140f9e1f132f4227f7b5b3d4ffc5c34ce09672e836bc4cd1.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-38583ef086a9f5a0140f9e1f132f4227f7b5b3d4ffc5c34ce09672e836bc4cd1.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/previous/ctkg_v3e-canonical-47a2e3c44742b45c55ac902d.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: d0e44eb3ac005b76c76afb14695dcd21ffd2f806d8521ba74b6550c9cdaa7927 -->
-
 ## 首页
 
-# 闭环极点
+# 闭环极点 | Closed-Loop Pole
 
-**一句话定义**：闭环极点。
+**一句话定义**：所选闭环传递函数特征分母的根。
 
-**关联**：前置 → 非主导极点、闭环主导极点
+**核心直觉**：反馈和增益会改变特征方程，因此闭环极点通常不同于原开环极点。
+
+**关键公式**：$L(s)=\dfrac{K(s+2)}{s(s+1)}$ 时，闭环分母为 $s^2+(1+K)s+2K$。
+
+**学习目标**：用反馈特征方程求闭环极点，并正确比较不同 $K$ 的结果。
 
 ---
 
@@ -35,19 +37,51 @@ asset_refs: []
 
 ### 完整解释
 
-闭环极点
+闭环极点由闭环输入输出传递函数的分母决定。对单位负反馈，常用特征关系是 $1+L(s)=0$；反馈结构一旦确定，开环极点只是构成这个方程的输入，不能直接当成闭环极点列表。增益变化会改变特征多项式，进而改变闭环极点的位置。
+
+极点位置还应和响应通道一起解释。实部的负值表示该模态在本模型中衰减，复数虚部表示振荡成分；这些是由分母根给出的模态信息，不等于对所有工程约束的承诺。若分析的是另一个输入输出通道或改变了反馈测量环节，必须重新列出对应的闭环分母。
+
+### 教学计算/推理例
+
+固定开环模型为
+$$
+L(s)=\frac{K(s+2)}{s(s+1)}。
+$$
+单位负反馈的闭环参考通道为
+$$
+T(s)=\frac{K(s+2)}{s^2+(1+K)s+2K}。
+$$
+当 $K=1$ 时，分母为 $s^2+2s+2$，极点是
+$$
+s=-1\pm j。
+$$
+当 $K=3$ 时，分母为 $s^2+4s+6$，极点是
+$$
+s=-2\pm j\sqrt{2}。
+$$
+这里明确使用 $K=1$ 与 $K=3$ 两个工况；$K=3$ 不是 $1/3$。原开环极点为 $0$、$-1$，它们和闭环极点是不同阶段的对象。两个给定增益下，$s=-2$ 的开环零点都没有与闭环分母约消，因此闭环分子仍保留 $s+2$。
+
+### 适用条件与边界
+
+本例假定单位负反馈、标量线性定常模型和零初始条件。闭环极点可以用于讨论该传递函数的动态稳定性，但不能据此保证执行器限制、所有内部模态或其他输入输出通道的性能。若改变反馈通路或符号，必须重新建立特征方程。
+
+### 常见误区
+
+1. **误区**：闭环极点就是开环极点 $0$ 和 $-1$。**纠正**：闭环极点要解 $1+L(s)=0$，本例随 $K$ 变为 $-1\pm j$ 或 $-2\pm j\sqrt2$。
+2. **误区**：第二个工况写成 $K=1/3$，或把 $K=3$ 当作增益倒数。**纠正**：固定模型给定的是 $K=1$ 与 $K=3$，对应的第二组极点为 $-2\pm j\sqrt2$。
+
+### 自检
+
+1. $K=1$ 时闭环分母和极点是什么？
+2. 为什么不能直接从开环极点读出闭环极点？
+
+**核对要点**：$K=1$ 时分母为 $s^2+2s+2$，极点为 $-1\pm j$；反馈特征方程含 $1+L(s)$，增益和反馈会重排分母。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 非主导极点 | 是一种 |
-| 前置 | 闭环主导极点 | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、闭环极点
+- **闭环主导极点**（出边，关系：前置于）
+- **非主导极点**（出边，关系：前置于）
+- **闭环极点负实部绝对值与响应分量衰减速度的关系**（无向，关系：相关）
+- **闭环主导极点**（入边，关系：属于）
+- **非主导极点**（入边，关系：属于）
+- **若闭环零、极点彼此接近，则它们对系统响应速度的影响会相互削弱。**（无向，关系：相关）

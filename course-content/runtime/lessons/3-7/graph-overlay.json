@@ -459,7 +459,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/比例-积分控制器_3_2d540516.md",
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-2624e6b30f6178715ae3b198.md",
         {
           "type": "infograph",
           "path": "course-content/runtime/knowledge/infographs/nodes/比例-积分控制器_3_2d540516.png",
@@ -612,7 +612,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/系统型别_3_5573c2c3.md",
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-a781b2b377529226a4c5d077.md",
         {
           "type": "infograph",
           "path": "course-content/runtime/knowledge/infographs/nodes/系统型别_3_5573c2c3.png",
@@ -899,7 +899,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/静态速度误差系数_3_ba8e28bb.md",
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6461b91e08c647ceff0ceeee.md",
         {
           "type": "infograph",
           "path": "course-content/runtime/knowledge/infographs/nodes/静态速度误差系数_3_ba8e28bb.png",
@@ -964,7 +964,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/带宽_5_6730fda4.md",
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-3bf89181c7be53ac268d5785.md",
         {
           "type": "infograph",
           "path": "course-content/runtime/knowledge/infographs/nodes/带宽_5_6730fda4.png",
@@ -1026,7 +1026,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md",
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1c159c9cc34ce696a62bf837.md",
         {
           "type": "infograph",
           "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
@@ -1092,7 +1092,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/频率特性_5_404adfdd.md",
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-38d4679bf3335318b0f4afb7.md",
         {
           "type": "infograph",
           "path": "course-content/runtime/knowledge/infographs/nodes/频率特性_5_404adfdd.png",

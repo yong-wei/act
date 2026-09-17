@@ -1,0 +1,87 @@
+---
+node_id: ctkg_m1s-object-32dfe929ff32d4e22799e9a1
+authority_entity_id: "ctkg:m1s-object-32dfe929ff32d4e22799e9a1"
+name: "扇区化零法"
+name_en: "Zero-Lower-Bound Sector Transformation"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+confourt_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a9aa951bb76c5a7e9eaee920e62e93339b23253533dd1ef525e39c3a12d4ad7e.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a9aa951bb76c5a7e9eaee920e62e93339b23253533dd1ef525e39c3a12d4ad7e.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/supporting-source-inventory.json"
+asset_refs: []
+---
+
+## 首页
+# 扇区化零法 | Zero-Lower-Bound Sector Transformation
+
+一句话定义：扇区化零通过从非线性环节中移出扇区下界对应的线性部分，把一般扇区改写为下界为零的扇区。
+
+- 化零的是扇区下界，不是整个非线性函数。
+- 移出的线性项必须同步进入线性环节。
+- 变换后的稳定性条件仍需重新核验。
+
+---
+## 详情
+### 完整解释
+
+对无记忆标量非线性φ(y)，若满足 $k_1y^2\leq y\phi(y)\leq k_2y^2$，可称其位于扇区[k1,k2]。定义残差 $\tilde\phi(y)=\phi(y)-k_1y$，便得到 $0\leq y\tilde\phi(y)\leq(k_2-k_1)y^2$，即新的扇区为[0,k2-k1]。
+
+这个操作不是把k1作为一个常数直接从输出中减掉，而是减去斜率为k1的线性函数k1y。使用含y平方的扇区表达，可以同时处理正负输入，也避免在y=0时用φ(y)/y造成未定义。
+
+### 教学计算/推理例
+
+考虑负反馈结构 $y=G[r-\phi(y)]$，先按零初态传递关系理解，其中 $G(s)=1/(s+1)$、$\phi(y)=2y+\tanh y$。因为 $0\leq y\tanh y\leq y^2$，原非线性属于[2,3]扇区。
+
+移出下界k1=2后，残差为 $\tilde\phi(y)=\tanh y$，属于[0,1]扇区。原反馈关系可整理为
+
+$$
+(1+2G)y=G[r-\tilde\phi(y)],\qquad
+H=\frac{G}{1+2G}=\frac{1}{s+3}.
+$$
+
+因此等价结构为 $y=H[r-\tanh y]$。线性部分已改变，不能只把φ换成tanh而保留原G；那样会丢掉原来的2y反馈作用，得到不同系统。
+
+从状态方程也能直接核对：原结构为 $\dot y=-y+r-(2y+\tanh y)$，化零后为 $\dot y=-3y+r-\tanh y$，两者完全相同。在这个一阶实现中使用相同初值，就得到同一轨迹。
+
+### 非线性并没有消失
+
+化零后的tanh仍是非线性函数。H的极点-3也不是完整非线性闭环所有行为的替代；残差反馈仍在作用。这个方法的用途是把问题整理到更便于应用零下界扇区判据的形式，而不是完成反馈线性化。
+
+对于r=0，本例可另外选V=y²/2，得到 $\dot V=-3y^2-y\tanh y\leq-3y^2$。结合径向无界与光滑动态，可以证明原点全局指数收敛。这个稳定结论来自额外的李雅普诺夫分析，不是从“扇区下界为零”几个字自动得出。
+
+### 线性环节与输入位置
+
+一般形式H=G/(1+k1G)依赖所声明的负反馈符号和信号连接。参考或扰动若从其他位置进入，等价变换也应保留对应通路；不能只改一个传递函数而不检查整个互连方程。
+
+还需确认1+k1G的处理不会引入不适用的奇异或不稳定中间表示。某些稳定判据对变换后的线性环节有额外条件，应按该判据逐项检查。形式变换成功不等于这些条件自动成立。
+
+### 适用条件与边界
+
+本卡采用标量、无记忆非线性和全局扇区界。若扇区只在一个有限区域成立，结论就只能在轨迹保持该区域等相应条件下使用；动态非线性或多变量扇区则需要不同形式的约束。
+
+本例变换保留了原方程，因此不能把它看作给对象额外增加了某种控制性能。它改变的是分析表示，控制是否满足稳定与性能要求仍需明确证明。
+
+### 常见误区
+
+1. 以为“化零”表示把整个非线性函数取消。
+2. 从φ中减掉k1，却漏乘输入y。
+3. 改了非线性扇区，却不把线性项并入G。
+
+### 自检
+
+1. 原扇区[2,3]经本例变换后是什么？
+2. 为什么保留G=1/(s+1)而只把φ改为tanh会出错？
+
+**核对要点**：变为[0,1]；被移出的2y反馈必须进入线性环节，否则原状态方程中的线性系数会被改变。
+
+### 关联节点
+
+本卡的结论可由上述定义与计算例独立复核。

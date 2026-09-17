@@ -1,0 +1,167 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:复合控制_3_a1570156",
+      "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/复合控制_3_a1570156.md",
+          "sha256": "0fc0bd2bbcaf8dd6f9feaae3ec6a3777c0350e3159dd334b841a0ad1ed51814c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/authoring/复合控制_3_a1570156.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/复合控制_3_a1570156.md",
+          "sha256": "0fc0bd2bbcaf8dd6f9feaae3ec6a3777c0350e3159dd334b841a0ad1ed51814c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/runtime/复合控制_3_a1570156.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:复合控制_6_31b7c736",
+      "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/复合控制_6_31b7c736.md",
+          "sha256": "2d2276e903d45f90558afa09dfa237922427a1111b950bec683b634143499168",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/authoring/复合控制_6_31b7c736.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/复合控制_6_31b7c736.md",
+          "sha256": "2d2276e903d45f90558afa09dfa237922427a1111b950bec683b634143499168",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/runtime/复合控制_6_31b7c736.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:复合控制方式_1_393383be",
+      "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/复合控制方式_1_393383be.md",
+          "sha256": "8b5d667ed5d8577a4d484c653e0d5144b1143ec832470d25794f5904f719fa0b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/authoring/复合控制方式_1_393383be.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/复合控制方式_1_393383be.md",
+          "sha256": "8b5d667ed5d8577a4d484c653e0d5144b1143ec832470d25794f5904f719fa0b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/runtime/复合控制方式_1_393383be.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:前置滤波器_10_56e8171d",
+      "canonicalId": "ctkg:domainconcept:293e9989d6bd31c84819cbee",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/前置滤波器_10_56e8171d.md",
+          "sha256": "c9f430a41174f2744c23824df17d61c3200c3291b7df510ea13cbde41e6fb890",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/authoring/前置滤波器_10_56e8171d.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/前置滤波器_10_56e8171d.md",
+          "sha256": "c9f430a41174f2744c23824df17d61c3200c3291b7df510ea13cbde41e6fb890",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/runtime/前置滤波器_10_56e8171d.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:前置滤波器_6_15e51383",
+      "canonicalId": "ctkg:domainconcept:293e9989d6bd31c84819cbee",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/前置滤波器_6_15e51383.md",
+          "sha256": "5a0872e16ad89646dfe7427fc60933a4aa6277f39a2a42eb65ff2a0e0b33b591",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/authoring/前置滤波器_6_15e51383.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/前置滤波器_6_15e51383.md",
+          "sha256": "5a0872e16ad89646dfe7427fc60933a4aa6277f39a2a42eb65ff2a0e0b33b591",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/runtime/前置滤波器_6_15e51383.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:复合校正_6_b2a1b4b1",
+      "canonicalId": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/复合校正_6_b2a1b4b1.md",
+          "sha256": "3b3cc72705ce5a209693b7de9aa663f97dd1c01ca75e2f37ee0a0797d31a5305",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/authoring/复合校正_6_b2a1b4b1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/复合校正_6_b2a1b4b1.md",
+          "sha256": "3b3cc72705ce5a209693b7de9aa663f97dd1c01ca75e2f37ee0a0797d31a5305",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/runtime/复合校正_6_b2a1b4b1.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:前馈补偿_6_3bd3eb3b",
+      "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/前馈补偿_6_3bd3eb3b.md",
+          "sha256": "29e2dfcd953921866ed74621531019a474a72b876c6a4b568b42a0409c0b8334",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/authoring/前馈补偿_6_3bd3eb3b.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/前馈补偿_6_3bd3eb3b.md",
+          "sha256": "29e2dfcd953921866ed74621531019a474a72b876c6a4b568b42a0409c0b8334",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/runtime/前馈补偿_6_3bd3eb3b.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:前馈校正_6_40284f13",
+      "canonicalId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/前馈校正_6_40284f13.md",
+          "sha256": "c21cbe80a6014e21889e67db1dbed4460b77be03248591d51756f3908c970b10",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/authoring/前馈校正_6_40284f13.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/前馈校正_6_40284f13.md",
+          "sha256": "c21cbe80a6014e21889e67db1dbed4460b77be03248591d51756f3908c970b10",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/runtime/前馈校正_6_40284f13.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:复合控制系统_6_cd8f5178",
+      "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/复合控制系统_6_cd8f5178.md",
+          "sha256": "2bc083be3a9c7658eece0bc58302c4c47d6d1a87458cc4c45c1580a888802272",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/authoring/复合控制系统_6_cd8f5178.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/复合控制系统_6_cd8f5178.md",
+          "sha256": "2bc083be3a9c7658eece0bc58302c4c47d6d1a87458cc4c45c1580a888802272",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/runtime/复合控制系统_6_cd8f5178.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:内模控制器_9_b2d43456",
+      "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/内模控制器_9_b2d43456.md",
+          "sha256": "64a5039cf2430cb99e2bd290fdee2444d42fdc5ed9b7d3084bf4a7f644e24b2f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/authoring/内模控制器_9_b2d43456.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/内模控制器_9_b2d43456.md",
+          "sha256": "64a5039cf2430cb99e2bd290fdee2444d42fdc5ed9b7d3084bf4a7f644e24b2f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/retired/runtime/内模控制器_9_b2d43456.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b33",
+  "replacementDigest": "ecc60d6849c1c1be1b5186c98eac6240e3c100094cd90cef92c1d7e2086f5987"
+}

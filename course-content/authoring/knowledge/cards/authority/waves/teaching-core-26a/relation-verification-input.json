@@ -1,0 +1,183 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:m3-v2h:canonical-object:0c5c3925013d2cbf3cb6419b",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:42d3748ef5557d6043ec115a",
+          "otherId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+          "label": "未建模动态",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **未建模动态**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:98cec82b7fa0b0e61eb5f0b8",
+          "otherId": "ctkg:m3-v2h:canonical-object:9428433ffb80722373366232",
+          "label": "极点删除法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **极点删除法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:c67d44c48ac09c1badb7dc53",
+          "otherId": "ctkg:m3-v2h:canonical-object:4f950081fe58a82e7fdd42aa",
+          "label": "劳斯近似法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **劳斯近似法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "relations": [
+        {
+          "relationId": "m1h:relation-3bf08494857ba4c23812fcd8",
+          "otherId": "ctkg:v3e-object-62bfe5336223892d2ee2592a",
+          "label": "从伯德图确定增益裕度",
+          "predicate": "derived_from",
+          "direction": "source_to_target",
+          "renderedLine": "- **从伯德图确定增益裕度**（出边，关系：推导自）"
+        },
+        {
+          "relationId": "m1h:relation-568be0f3b363ace45a605029",
+          "otherId": "ctkg:v3e-object-0bfd48327659b66aa7d95f32",
+          "label": "从根轨迹确定增益裕度",
+          "predicate": "derived_from",
+          "direction": "source_to_target",
+          "renderedLine": "- **从根轨迹确定增益裕度**（出边，关系：推导自）"
+        },
+        {
+          "relationId": "m1h:relation-643183371a47881c5af8ae52",
+          "otherId": "ctkg:v3e-object-62bfe5336223892d2ee2592a",
+          "label": "从伯德图确定增益裕度",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **从伯德图确定增益裕度**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:0b9a44406ec29295e08456d8",
+          "otherId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+          "label": "最小相位系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **最小相位系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:c68dae967f27dedaac3367dd",
+          "otherId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+          "label": "最小相位环节",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **最小相位环节**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:9933057e37aaca70a7506d64",
+          "otherId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+          "label": "非最小相位系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **非最小相位系统**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:7937fd922ff46b06d5bea7b8",
+          "otherId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+          "label": "增益裕度",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **增益裕度**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:e7f0b050b002f7f83ce9889c",
+          "otherId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+          "label": "相位裕度",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **相位裕度**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:e45ef88824480817dc34b845",
+          "otherId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+          "label": "穿越频率（增益）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **穿越频率（增益）**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:0b9a44406ec29295e08456d8",
+          "otherId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+          "label": "非最小相位环节",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **非最小相位环节**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:c68dae967f27dedaac3367dd",
+          "otherId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+          "label": "非最小相位环节",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **非最小相位环节**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "relations": [
+        {
+          "relationId": "ctr:m1e-bridge-relation-d8c27da3a17db94de6cd77c3",
+          "otherId": "ctc:modeling-8010502b57930c3dcb915af9",
+          "label": "零点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **零点**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:v13g-7e863c1eaacac0642d478fd6",
+          "otherId": "ctc:v12g-e3580535c0a12b79e0509f97",
+          "label": "零度根轨迹",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **零度根轨迹**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:7879a18cc36cf9dda25b7d77",
+          "otherId": "ctc:modeling-d76278bb06547fd1acb9718d",
+          "label": "系统有限零点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **系统有限零点**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

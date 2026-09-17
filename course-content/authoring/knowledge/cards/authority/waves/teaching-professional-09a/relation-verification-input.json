@@ -1,0 +1,79 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:42b62edf88d848137713e690",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:9f8858e3dbaace9aa5b50258",
+          "otherId": "ctc:v11g-21fba199a9fdef15887d600f",
+          "label": "滞后补偿",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **滞后补偿**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:be80458fd1ecb1e8ef4aa887",
+          "otherId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+          "label": "相位滞后补偿器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **相位滞后补偿器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:60729cbdf747b39c2ff781bb",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:2af528a0d932ada8c66b4a67",
+          "otherId": "ctkg:domainconcept:1a8ef03e3724854770d0995b",
+          "label": "离散化设计方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **离散化设计方法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:fcea90ae372b02ab675e4ead",
+          "otherId": "ctkg:domainconcept:6e5429ed119ba2156807f7a0",
+          "label": "模拟化设计方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **模拟化设计方法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:d20c847c72e5faf15fd88df2",
+          "otherId": "ctkg:domainconcept:364221ded81ca2a0139d013a",
+          "label": "最小拍系统设计方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **最小拍系统设计方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6979e99f60e2642ff3d70d4b",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9431ee70cd4c3af657882c63",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:cd1a5e4071f81f8cf97f7eb7",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:50799ed2183e265cd474b35c",
+          "otherId": "ctkg:domainconcept:d526b90368de52c39e27ffe6",
+          "label": "数字超前补偿",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **数字超前补偿**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:df606d1cc343f73f1c9af59a",
+      "relations": []
+    }
+  ]
+}

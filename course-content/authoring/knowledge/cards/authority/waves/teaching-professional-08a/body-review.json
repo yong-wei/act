@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "reviewer": "/root/review_professional08",
+  "role": "simulation-domain-reviewer",
+  "scope": "seven authored bodies; one P1 wording finding resolved by targeted rereview",
+  "sourceInventorySha256": "f5829e648c060c297c0b30c5d7c0a6b0208bdfe5bee6fce68a723859bc7f26c3",
+  "bodyHashes": {
+    "01.md": "0af001f7e48bcb380db40f75e22f7776b0df48ebe11c0c8798c2737219923c6c",
+    "02.md": "79430830fb91af06660571efda89ecdc1ae899c12e1f4819d3b0da9f90688b9e",
+    "03.md": "42b8f4660f1a76af939637ff83619f829a6d74e08655a330e2d45acd9539096e",
+    "04.md": "0cabadff658df45c98c3e9f99e7d7f74e2e7b9578f855a41cb58c9c509618c19",
+    "05.md": "cdb0979a3402b2e2f62ad90d22b154ae5ce227ac4cea97263a5252cef724ae6a",
+    "06.md": "2986afb1636d4d56f438b0364646787629092851b359caa98400bdd72f472798",
+    "07.md": "444e2b620a1239447016b26b3f715ba735ed118698a1fc6b53e03a7bc30a5d2a"
+  },
+  "findings": [
+    {
+      "id": "P1-feedback-sign-wording",
+      "decision": "ACCEPT",
+      "status": "resolved",
+      "evidence": "review-remediation.json"
+    }
+  ]
+}

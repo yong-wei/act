@@ -1,33 +1,31 @@
 ---
 node_id: ctkg_v3e-canonical-da95a03f3b851fcd7239eac2
 authority_entity_id: "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2"
-name: Design Synthesis
-name_en: Design Synthesis Using Time-Domain Specifications
-category: 程序性
-batch: B
-concept_kind: analysis_method
-release_tier: silver
-tags:
-  - analysis_method
-  - silver
-  - Design
-  - Synthesis
-card_version: 1
+name: "使用时域指标的设计综合"
+name_en: "Design Synthesis from Time-domain Specifications"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b18d4483e0a103629ce58f48b3d6a2706daff3b2e0dcd689dcebb02fc77fb75a.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b18d4483e0a103629ce58f48b3d6a2706daff3b2e0dcd689dcebb02fc77fb75a.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-13a/previous/ctkg_v3e-canonical-da95a03f3b851fcd7239eac2.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 8958e9cacd824825de7a1a4e72817aa0b7ba600fb3933dd0ccff5036ac617736 -->
-
 ## 首页
 
-# Design Synthesis | Design Synthesis Using Time-Domain Specifications
+# 使用时域指标的设计综合 | Design Synthesis from Time-domain Specifications
 
-**一句话定义**：Design Synthesis：A method to specify t_r, M_p, and t_s and determine where poles need to be so that actual responses are less than or eq…
+**一句话定义**：把响应指标转化为候选模型或极点要求，再用完整响应检查并迭代设计。
 
-**关联**：（权威图邻接待补充）
+从要求出发选择参数，公式提供起点，实际模型验证决定候选是否满足要求。
 
 ---
 
@@ -35,18 +33,47 @@ asset_refs: []
 
 ### 完整解释
 
-A method to specify t_r, M_p, and t_s and determine where poles need to be so that actual responses are less than or equal to these specifications, using Eqs. (3.74)-(3.76).
+时域设计先问“需要怎样的响应”，再寻找能产生这种响应的系统。与给定模型后计算指标不同，设计综合需要在多个可能候选中作选择。常见步骤是明确输入、初态、指标定义和约束，利用适用的模型关系估计参数范围，选择候选，再计算完整响应。如果不满足要求，修改控制器或参数后重新验证。
+
+对标准二阶模型，阻尼比与超调的关系、固有频率与时间尺度的关系能够提供直观指导。但用于画初始极点区域的近似式不能代替最终验收。特别是以 $4/(\zeta\omega_n)$ 表示2%调节时间时，这只是常用估计；严格调节时间仍取决于最后越界时刻及之后的持续保持。存在附加极点或零点时，近似还可能明显偏离实际响应。
+
+因此，本卡将“参数筛选”和“完整模型核验”分开。前者减少尝试范围，后者检查真正的候选响应。标准二阶条件下成立的超调公式，也不能在模型变成高阶后仍被称为精确设计约束。极点位于某片经验区域，只说明值得进一步计算，并不直接构成系统交付证明。
+
+### 教学计算/推理例
+
+设要求为：零初态单位阶跃、单位终值、超调不超过10%、0至100%上升时间不超过0.8 s、2%调节时间不超过2 s。暂选无零点的标准二阶模型族
+
+$$T(s)=\frac{\omega_n^2}{s^2+2\zeta\omega_ns+\omega_n^2}.$$
+
+对 $0<\zeta<1$，由精确的超调公式得到
+
+$$\zeta\ge\frac{-\ln(0.1)}{\sqrt{\pi^2+\ln^2(0.1)}}\approx0.591155.$$
+
+调节时间的常用近似给出初筛条件 $\zeta\omega_n\gtrsim2$。取 $\zeta=0.6$、$\omega_n=4\,\mathrm{rad/s}$，得到候选 $T(s)=16/(s^2+4.8s+16)$，极点为 $-2.4\pm3.2j$。这时尚不能只凭初筛条件宣布通过。
+
+从原方程 $\ddot y+4.8\dot y+16y=16u$ 求零状态单位阶跃响应，再按统一口径计算，得到超调约9.478022%、上升时间约0.691968 s、2%调节时间约1.485747 s，三项均满足要求。调节时间以极值分段的边界交点核验，并利用包络 $1.25e^{-2.4t}$ 证明后续不会越界；包络的保证时刻约1.722986 s也小于2 s。
+
+这个结果证明给定闭环模型满足所列输出指标。它尚未给出具体对象和可实现控制器；若要落地，应把选出的闭环要求与对象模型联系起来，再检查实际控制器形成的完整闭环、控制输入和稳定裕度，而不能仅把分母系数抄进设备参数。
+
+### 适用条件与边界
+
+如果对象还有时延、非最小相位零点、饱和或未忽略的高频动态，应保留它们重新计算。更换参数后也要重新检查输入尺度、初态以及指标定义，不能在迭代中偷偷放宽容差带。多个候选都满足输出指标时，还可比较鲁棒性和实现成本；这些需要各自的模型和证据，不能从超调与调节时间直接推断。
+
+对船舶或机电系统，指标应来自允许的任务要求。例如航向指令的角度幅值和执行器能力会影响是否可实现。归一化单位阶跃只是本卡的教学条件，不能替代真实运行范围验证。近似公式最有价值的用途是提出可检查的候选，而不是保证所有具有类似极点的系统都会达到相同响应。
+
+### 常见误区
+
+1. 误区：极点满足近似区域，就可以省略响应验算。纠正：近似筛选只是起点，完整候选仍需按指标逐项核验。
+2. 误区：选定闭环传递函数即完成控制器设计。纠正：还需给出对象、实现方式及其约束，并检查实际形成的闭环。
+
+### 自检
+
+1. 本例的 $\zeta\omega_n\gtrsim2$ 属于初筛还是严格验收？
+2. 加入额外零点后，能否保留原超调数值作为最终证明？
+
+**核对要点**：它来自调节时间近似，只用于初筛。增加零点会改变响应，即使分母不变，也必须用新模型重新检查超调、上升时间和调节时间。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`analysis_method`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-analysis_method、silver、Design、Synthesis
+- **基于零极点位置的定性分析**（无向，关系：相关）
+- **基于调节时间的 ω_n 选择**（无向，关系：相关）

@@ -1,0 +1,80 @@
+{
+  "batchId": "teaching-professional-02a",
+  "status": "accepted",
+  "parentGroupId": "professional-discrete-models",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-256b7b4e6dd8071dc7ce3512",
+      "name": "z变换",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "name": "差分方程",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-54095598351974e2167111f2",
+      "name": "零阶保持器法",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "name": "一阶保持器",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-60dc281db22fe43eefe4ae57",
+      "name": "有限字长",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8092204c03a8af260e3e672f",
+      "name": "离散系统时域性能指标",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "name": "w变换（双线性变换）",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bd932075b5f988acebafc1b5",
+      "name": "塔斯廷法（双线性近似）",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cc879188760f9c79394713cb",
+      "name": "s平面到z平面的映射",
+      "domain": "discrete-time-control-analysis",
+      "moduleId": null,
+      "order": 9
+    }
+  ],
+  "accepted": true
+}

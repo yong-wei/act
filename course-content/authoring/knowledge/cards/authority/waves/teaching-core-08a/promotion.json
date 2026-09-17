@@ -1,0 +1,22 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 9,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b20",
+  "retiredResources": [
+    "act:card:零点_2_c29600a1",
+    "act:card:开环零点_4_95d21eca",
+    "act:card:开环传递函数_2_ee6bdacf",
+    "act:card:开环传递函数_4_5b19827b",
+    "act:card:开环传递函数_5_4c26df45",
+    "act:card:开环传递函数定义_2_12002",
+    "act:card:极点_1_1",
+    "act:card:极点_1_2",
+    "act:card:极点_2_cc79a4c5",
+    "act:card:闭环极点_3_f9432bf3",
+    "act:card:闭环极点_4_f359fb50",
+    "act:card:闭环极点_9_a8bbda51",
+    "act:card:闭环零点_3_d83660dd",
+    "act:card:闭环零点_4_949a3b23",
+    "act:card:闭环零点_9_2ab177de"
+  ]
+}

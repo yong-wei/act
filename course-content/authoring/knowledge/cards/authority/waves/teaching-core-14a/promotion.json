@@ -1,0 +1,12 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 8,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b25",
+  "retiredResources": [
+    "act:card:闭环主导极点_3_de941720",
+    "act:card:闭环主导极点_4_0f26f554",
+    "act:card:主导极点_3_4c4c6bbd",
+    "act:card:主导极点_4_7b49c6c5",
+    "act:card:主导极点_5_5a720cf2"
+  ]
+}

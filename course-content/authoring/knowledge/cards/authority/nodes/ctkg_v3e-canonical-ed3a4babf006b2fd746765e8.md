@@ -1,34 +1,36 @@
 ---
 node_id: ctkg_v3e-canonical-ed3a4babf006b2fd746765e8
 authority_entity_id: "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8"
-name: "System Type for "
-name_en: System Type for Regulation and Disturbance Rejection
+name: "调节与扰动抑制的系统类型"
+name_en: "System Type for Disturbance Rejection"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - System
-  - Type
-  - for
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c707845c80ac2cfe2042896c4f354a45b0a8a98d55a3da4672fc62f9a6925b9a.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c707845c80ac2cfe2042896c4f354a45b0a8a98d55a3da4672fc62f9a6925b9a.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/previous/ctkg_v3e-canonical-ed3a4babf006b2fd746765e8.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 1350e6ab153ca4e360c7b97e8c16c5ab21eade8f20b2bcd67a6cd6551e5b5341 -->
-
 ## 首页
 
-# System Type for  | System Type for Regulation and Disturbance Rejection
+# 调节与扰动抑制的系统类型 | System Type for Disturbance Rejection
 
-**一句话定义**：System Type for ：A classification of a system based on its ability to reject polynomial disturbance inputs, analogous to the classificat…
+**一句话定义**：按系统对多项式扰动的长期抑制能力分类，必须先指定扰动注入位置和所考察的输出或误差。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：同一个闭环，扰动从不同位置进入，受到的抑制可能完全不同。
+
+**关键公式**：
+$$Y_d(s)=\frac{P(s)}{1+C(s)P(s)}D_i(s)+\frac1{1+C(s)P(s)}D_o(s).$$
+
+**学习目标**：分别建立对象入口与输出端扰动通道，避免用参考跟踪型别替代抗扰结论。
 
 ---
 
@@ -36,18 +38,31 @@ asset_refs: []
 
 ### 完整解释
 
-A classification of a system based on its ability to reject polynomial disturbance inputs, analogous to the classification for reference inputs.
+本卡采用零初态、单位负反馈、参考为零，控制律 $u=-Cy$。对象入口加性扰动记为 $d_i$，输出端加性扰动记为 $d_o$，信号方程是 $Y=P(U+D_i)+D_o$。解得首页公式；实际调节误差为 $e=-y$，所以误差符号与输出分量相反。传感器噪声又是不同的通道，不能把它当成输出端物理扰动。
+
+对稳定且所选扰动通道在原点解析的系统，可根据该通道在零频率附近的零点阶数判断多项式扰动的残余。通道有一阶原点零点时，常值扰动可以被消除，而单位斜坡扰动可能留下有限常值；具体数值仍需从完整传递函数取极限并核对终值条件。这个判断针对所选扰动通道，不是脱离入口位置去数任意位置的积分器。
+
+### 教学计算/推理例
+
+取 $P(s)=1/s$、$C=1$。参考跟踪的开环有一个积分器，但对象入口扰动通道为 $1/(s+1)$。单位阶跃入口扰动导致 $y=1-e^{-t}$，最终偏移为1，误差为−1。相同幅值的输出端阶跃扰动则经过 $s/(s+1)$，其输出为 $e^{-t}$，最终为零。可见同一环路对常值扰动的抑制依赖注入位置。
+
+把控制器改为 $C=1+1/s$ 后，闭环特征多项式为 $s^2+s+1$，两个根实部为 $-1/2$，系统稳定。对象入口扰动通道变为
+$$\frac{P}{1+CP}=\frac{s}{s^2+s+1}.$$
+它在原点有一个零点。对单位阶跃扰动，$Y=1/(s^2+s+1)$，输出衰减至零；对单位斜坡扰动，$Y=1/[s(s^2+s+1)]$，输出终值为1，误差为−1。这正是通过所选通道判断调节型别的具体例子。
+
+### 常见误区与边界
+
+1. **误区**：参考阶跃零误差就保证任意常值扰动都被消除。**纠正**：参考与扰动通道分子不同，必须分别计算。
+2. **误区**：增加积分总能解决所有扰动。**纠正**：还要满足闭环稳定、执行器能力及扰动类型要求；积分饱和会使线性结论失效。
+
+### 自检
+
+1. $P=1/s,C=1$ 时对象入口单位阶跃扰动的误差终值是多少？
+2. 改为PI后能否完全消除同一位置的单位斜坡扰动？
+
+**核对要点**：−1；不能，本例输出终值为1，误差仍为−1，只有常值入口扰动被完全抑制。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、System、Type、for
+- **扰动抑制**（无向关联）：提供各个扰动通道和灵敏度的分析背景。
+- **系统类型**（无向关联）：与参考跟踪分类作对照，但不能把两种通道的结论混用。

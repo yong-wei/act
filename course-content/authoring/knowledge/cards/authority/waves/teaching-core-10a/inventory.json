@@ -1,0 +1,286 @@
+{
+  "batchId": "teaching-core-10a",
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "name": "脉冲响应",
+      "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+      "cardId": "ctc_modeling-5da44f2fc98d268259459e04",
+      "resourceId": "act:card:ctc_modeling-5da44f2fc98d268259459e04",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-5da44f2fc98d268259459e04.md",
+      "previousCardSha256": "c106980ed2d243e55aad8594d0664d44cf21bbae9b356360d91e8e45ae672775",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-4b323ae543f9754514da5236f56663be4c775e9700ddf063dfa8990acc4954da.json",
+          "sha256": "6a9a710ac9104ed157716b6383c2b9c51f955b743d42958a00e64465f0574505",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-4b323ae543f9754514da5236f56663be4c775e9700ddf063dfa8990acc4954da.json",
+          "sha256": "57d1d912adeeb90cdbfdbd72ba7d1b1f7c10e59dac642ea41bf549d5e31a735b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctc_modeling-5da44f2fc98d268259459e04.md",
+          "sha256": "c106980ed2d243e55aad8594d0664d44cf21bbae9b356360d91e8e45ae672775",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/01-source.json",
+      "sourceBackupSha256": "87c3203af70462cab7b12249482fab60bb2bd590bda99ccfea4421391776cb7e",
+      "cardSha256": "02be894971985a99a090b5079f7c9250f1a1b30ea88cbd374fcd6800c3951853",
+      "parsedExplanationChars": 998
+    },
+    {
+      "order": 2,
+      "name": "用于拉普拉斯逆变换的 Heaviside 部分分式展开",
+      "canonicalId": "ctkg:m3-v2w:source-object:2107b134aa2e942c147b9594",
+      "cardId": "ctkg_m3-v2w_source-object_2107b134aa2e942c147b9594",
+      "resourceId": "act:card:ctkg_m3-v2w_source-object_2107b134aa2e942c147b9594",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m3-v2w_source-object_2107b134aa2e942c147b9594.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3a27a62d3da06bc4baab9714d43f2d22cd6519c7cf84f6077133063b15ec6abe.json",
+          "sha256": "ca6c15a883c255ec15a049271a48e5ad9998827e06a9805f2b86cc688e9e76d5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3a27a62d3da06bc4baab9714d43f2d22cd6519c7cf84f6077133063b15ec6abe.json",
+          "sha256": "36396a7fce01cd789719f2ec8cbeb72662542a79ab30826796c092aedf1a827e",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/02-source.json",
+      "sourceBackupSha256": "6135d7276d507abc670951369676ee13dafb1071b90f0178cec470c963528f49",
+      "cardSha256": "03e89e40797675db9e3dd73bf5a3930afd7eda94605701c2da141ab6480c477b",
+      "parsedExplanationChars": 1005
+    },
+    {
+      "order": 3,
+      "name": "正弦函数",
+      "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "cardId": "ctkg_v3e-canonical-0e5d22ed0afee37f65584d36",
+      "resourceId": "act:card:ctkg_v3e-canonical-0e5d22ed0afee37f65584d36",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-0e5d22ed0afee37f65584d36.md",
+      "previousCardSha256": "516f837ce5365a005158fff8808a008ad662d3132354c93962c71009386e0c23",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-d8a3f4c75e9a69c41635c917e02fcc42d7e0801c3e13e82b85a1b2e7e4c6c055.json",
+          "sha256": "2b17a0c8f202e1687e3e9480e11e175b18a320bccb08216b0728ceaf12829f44",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-d8a3f4c75e9a69c41635c917e02fcc42d7e0801c3e13e82b85a1b2e7e4c6c055.json",
+          "sha256": "4cf04883c16d020d069d3c559f7e0d2c3dcf7f5461fabad01ce740a60a1c2ecd",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctkg_v3e-canonical-0e5d22ed0afee37f65584d36.md",
+          "sha256": "516f837ce5365a005158fff8808a008ad662d3132354c93962c71009386e0c23",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/03-source.json",
+      "sourceBackupSha256": "3d9316bb94b04b4fce33b45d5cf88e57b8e68f6eb2791f7a2f0abb076eb519e5",
+      "cardSha256": "97e5f66aeefe839a7e02288e88f40d033665f2c2f4720f70b996f16f64120aa0",
+      "parsedExplanationChars": 986
+    },
+    {
+      "order": 4,
+      "name": "自然响应",
+      "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "cardId": "ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "resourceId": "act:card:ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886.md",
+      "previousCardSha256": "5c08f312df4266377a68a6068ce07752faf627cdde8665949f39dafe7e9c6300",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b33d8778a7385f2eb3127b9e8a41240dcc5341c8166c391c8b6532c1ab19e907.json",
+          "sha256": "f948abd1019814c5336da5c1f90d915fb485c699a64d331073fdc4df6bc34e31",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b33d8778a7385f2eb3127b9e8a41240dcc5341c8166c391c8b6532c1ab19e907.json",
+          "sha256": "016998ce863a91dca4683660887eee191c997f01aab8e73490ccfcd2fda66143",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886.md",
+          "sha256": "5c08f312df4266377a68a6068ce07752faf627cdde8665949f39dafe7e9c6300",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/04-source.json",
+      "sourceBackupSha256": "9d41db0bebbec96e54b36d3c4304499c24f52cfe08fb0d1afc1ccfd2f1212726",
+      "cardSha256": "043884b53e15c6de82233182786560e5727568f390bd27a92fd2deeee6faef13",
+      "parsedExplanationChars": 1021
+    },
+    {
+      "order": 5,
+      "name": "卷积",
+      "canonicalId": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "cardId": "ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "resourceId": "act:card:ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1.md",
+      "previousCardSha256": "f5c8964b4ef1c5600c129f347cfa3fce1ac28ba9c3b92bd96018c60b57f56d97",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bafeecb531862af65d4512ed12c0834fce95de50c9dd0f3b8b06f2fe97116df7.json",
+          "sha256": "06c1bf3612f758bbfa0942dd4b2462e5002ff7c786668a36a636a0d196e6f851",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bafeecb531862af65d4512ed12c0834fce95de50c9dd0f3b8b06f2fe97116df7.json",
+          "sha256": "6be26386f6d2c38b5382bc19d7e678a185a2a65bc694381f53d2c67f2919adc7",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1.md",
+          "sha256": "f5c8964b4ef1c5600c129f347cfa3fce1ac28ba9c3b92bd96018c60b57f56d97",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/05-source.json",
+      "sourceBackupSha256": "13f3f231e1eed6706e8d8268ab19ddcf6becd74c16214907dd53764e0217ab2a",
+      "cardSha256": "923c9e57f62d756010d93bf176a0a9759e71ec0561d7b4bfda56b17ca18a8f7e",
+      "parsedExplanationChars": 1072
+    },
+    {
+      "order": 6,
+      "name": "阶跃输入",
+      "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+      "cardId": "ctkg_v3e-canonical-303314b2f1d601cdba5e3f99",
+      "resourceId": "act:card:ctkg_v3e-canonical-303314b2f1d601cdba5e3f99",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-303314b2f1d601cdba5e3f99.md",
+      "previousCardSha256": "64b7137c70a2c9cbfa272f82b992600760da6e719385742b25c36bd6474c1c03",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-d337e02a2c6659a1eb26b1d75db0776382bf30026288fce5394a4dc92bdda274.json",
+          "sha256": "96827c6ed7cac5e01d5db6e31540ca062923ad7f965a78090de4e72431aa4f63",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-d337e02a2c6659a1eb26b1d75db0776382bf30026288fce5394a4dc92bdda274.json",
+          "sha256": "5bf083ac4fa9735c0a9a904391c39ab153719875715fa02c900b214fe7fb88bd",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctkg_v3e-canonical-303314b2f1d601cdba5e3f99.md",
+          "sha256": "64b7137c70a2c9cbfa272f82b992600760da6e719385742b25c36bd6474c1c03",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/06-source.json",
+      "sourceBackupSha256": "26c5cebc6b3ef942b4db2429f1fd8c34af94d1d2b62c0913faa40f19b0f973e9",
+      "cardSha256": "a02f927c7788162cbd8651706ce34b46dc321dcea834583a12762c6e0e636b46",
+      "parsedExplanationChars": 998
+    },
+    {
+      "order": 7,
+      "name": "典型输入信号",
+      "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "cardId": "ctkg_v3e-canonical-b03bdd7d909a44a2830459ca",
+      "resourceId": "act:card:ctkg_v3e-canonical-b03bdd7d909a44a2830459ca",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-b03bdd7d909a44a2830459ca.md",
+      "previousCardSha256": "16af516e89cd0df4fb49af8d4f4a2f76937af0d70aa4849f53efa3cc7701debd",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7e530ac3d53b61df23e76fc5b25c8af8005d83000351acbdc869849dfc27ef43.json",
+          "sha256": "7e28bb2d9ce74afa05740be788d9338d3a345f9b250cb3a2fffac11c1c5800a6",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7e530ac3d53b61df23e76fc5b25c8af8005d83000351acbdc869849dfc27ef43.json",
+          "sha256": "ee0e6982262c9d6ad6071a642e337d7b9932f4753579683d792662b6596b7980",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctkg_v3e-canonical-b03bdd7d909a44a2830459ca.md",
+          "sha256": "16af516e89cd0df4fb49af8d4f4a2f76937af0d70aa4849f53efa3cc7701debd",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/07-source.json",
+      "sourceBackupSha256": "4054ad9fe0af58f1129378067eb08cccfe3ad06746648378cc07623c1a77efc9",
+      "cardSha256": "362d507db72378025e127e91cf227b39d612d18bea26ef797d95e6fa443dab52",
+      "parsedExplanationChars": 1076
+    },
+    {
+      "order": 8,
+      "name": "单位脉冲函数",
+      "canonicalId": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "cardId": "ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "resourceId": "act:card:ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3.md",
+      "previousCardSha256": "34002ccbe6fbd8aa80b4f263ed6d6d6fcf6e1896ec9ae81f477ce5936c330f33",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bfa57e39514f60fad95c8e6c95ee5d551a8fcf7a81aa5f276e65042f417cd3ed.json",
+          "sha256": "aedfd966b391fd01deb2f7366c86cd943905a763efbe99e41c9b6eba82735b1b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bfa57e39514f60fad95c8e6c95ee5d551a8fcf7a81aa5f276e65042f417cd3ed.json",
+          "sha256": "5f7b882b4ca4f4ad0daaabaf94cc4e80248c1c91864aa85e53eeac05f3f6f268",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3.md",
+          "sha256": "34002ccbe6fbd8aa80b4f263ed6d6d6fcf6e1896ec9ae81f477ce5936c330f33",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/08-source.json",
+      "sourceBackupSha256": "17e6f7c548b67b66850370db2e0d97f5fd6ce09d332df6f86cecc5b299bab80a",
+      "cardSha256": "c57131a2f4781a05f0b5d1c849a99f710e6b8ca012a1615d2c2b6f95e3ff84d9",
+      "parsedExplanationChars": 1181
+    },
+    {
+      "order": 9,
+      "name": "参考输入",
+      "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "cardId": "ctkg_v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "resourceId": "act:card:ctkg_v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-12baf451eabe4bb9e3a7eb0f.md",
+      "previousCardSha256": "7bcb6f245fef244e735ecb3893b7b56d62d27f235161683a53faf521830a1c55",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0e4ab3b7f94d4d363a2d29adbaf6a8f5b4681694f56a9d7c1f6f192e5ebd6de2.json",
+          "sha256": "ddb256d3bf5c1b4788bf5669d9d8f753f2e6630d6762db2d5f0f41c9c9990856",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0e4ab3b7f94d4d363a2d29adbaf6a8f5b4681694f56a9d7c1f6f192e5ebd6de2.json",
+          "sha256": "c2eb3e121a654e16cbd6f4554568788e6684141be5620144d992cf2d349a64cf",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctkg_v3e-object-12baf451eabe4bb9e3a7eb0f.md",
+          "sha256": "7bcb6f245fef244e735ecb3893b7b56d62d27f235161683a53faf521830a1c55",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/09-source.json",
+      "sourceBackupSha256": "ce703ac3c5d3b0831e3ca9470a24d1d98171a82b8d108965e3b6939ed7433a0a",
+      "cardSha256": "d00c5be87eaf2b6cdc0a13ebfdc1a7a3ccac08faff7ebd12e3fd28b278e337b7",
+      "parsedExplanationChars": 991
+    }
+  ],
+  "cardCount": 9,
+  "publicationStatus": "authoring",
+  "reviewStatus": "pending-independent-review",
+  "remaining": [],
+  "remainingCount": 0,
+  "method": "authoring cards bound to exact detail/neighborhood/previous source paths; no runtime writes"
+}

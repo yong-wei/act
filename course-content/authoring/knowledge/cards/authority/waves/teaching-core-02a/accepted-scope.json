@@ -1,0 +1,65 @@
+{
+  "batchId": "teaching-core-02a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-02",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:909e732d40f972bf760fa8ff",
+      "name": "航天器姿态扰动力矩",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:modeling-137c3394c7a146209fe2cd37",
+      "name": "牛顿定律力学建模法",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:modeling-1b36aff609b370e792d9dee6",
+      "name": "相似物理系统",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctc:modeling-3abaeb7a2cbf8d77276bf23c",
+      "name": "同构相似系统",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctc:modeling-afa39b57a646673e84b55f09",
+      "name": "元件级联负载效应",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
+      "name": "并联连接",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+      "name": "串联连接",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+      "name": "测量组件（传感器）",
+      "moduleId": null,
+      "order": 8
+    }
+  ],
+  "accepted": true
+}

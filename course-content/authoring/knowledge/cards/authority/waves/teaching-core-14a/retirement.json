@@ -1,0 +1,87 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:闭环主导极点_3_de941720",
+      "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/闭环主导极点_3_de941720.md",
+          "sha256": "ea6f05765c0e9ec528e62bb376c337eed1df1950028d2e3722310ca4926f0409",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/retired/authoring/闭环主导极点_3_de941720.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/闭环主导极点_3_de941720.md",
+          "sha256": "ea6f05765c0e9ec528e62bb376c337eed1df1950028d2e3722310ca4926f0409",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/retired/runtime/闭环主导极点_3_de941720.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:闭环主导极点_4_0f26f554",
+      "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/闭环主导极点_4_0f26f554.md",
+          "sha256": "08d59861aefe2f478db8594eae1917441f212cc0b1008ecb4c65c06a04deb353",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/retired/authoring/闭环主导极点_4_0f26f554.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/闭环主导极点_4_0f26f554.md",
+          "sha256": "08d59861aefe2f478db8594eae1917441f212cc0b1008ecb4c65c06a04deb353",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/retired/runtime/闭环主导极点_4_0f26f554.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:主导极点_3_4c4c6bbd",
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/主导极点_3_4c4c6bbd.md",
+          "sha256": "6ceb3746dc79ced9628a90acf682d95e1fd7f8f7e6d07344aacb294fc3eb0593",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/retired/authoring/主导极点_3_4c4c6bbd.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/主导极点_3_4c4c6bbd.md",
+          "sha256": "6ceb3746dc79ced9628a90acf682d95e1fd7f8f7e6d07344aacb294fc3eb0593",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/retired/runtime/主导极点_3_4c4c6bbd.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:主导极点_4_7b49c6c5",
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/主导极点_4_7b49c6c5.md",
+          "sha256": "b4e8126236cd72e41365d0db3dcfda86e642a421b0f39d4bd1c7f6556ae2544f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/retired/authoring/主导极点_4_7b49c6c5.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/主导极点_4_7b49c6c5.md",
+          "sha256": "b4e8126236cd72e41365d0db3dcfda86e642a421b0f39d4bd1c7f6556ae2544f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/retired/runtime/主导极点_4_7b49c6c5.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:主导极点_5_5a720cf2",
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/主导极点_5_5a720cf2.md",
+          "sha256": "9972beaf9e803f11ebe2d1491678a6f2238a327b2f7e886026c85fb1ed6a2c08",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/retired/authoring/主导极点_5_5a720cf2.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/主导极点_5_5a720cf2.md",
+          "sha256": "9972beaf9e803f11ebe2d1491678a6f2238a327b2f7e886026c85fb1ed6a2c08",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/retired/runtime/主导极点_5_5a720cf2.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b26",
+  "replacementDigest": "b1ccb70201fcf144f24297e40b658e07ccc17cb417f4dc4929da86d2de8915fe"
+}

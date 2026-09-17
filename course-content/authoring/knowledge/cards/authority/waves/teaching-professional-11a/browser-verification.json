@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> robust-stability node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "鲁棒稳定性",
+  "representativeCanonicalId": "m1r-v1d:object:b31611f788fa831ff4685e14",
+  "authorityDomainId": "robust-control-analysis-and-design",
+  "authorityDomainDisplayName": "鲁棒控制分析与设计"
+}

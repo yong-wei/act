@@ -1,0 +1,53 @@
+{
+  "batchId": "teaching-core-24a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-24",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+      "name": "相位（频率响应）",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+      "name": "伯德图（对数图）",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "name": "对数幅相曲线",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "name": "幅相频率特性曲线",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "name": "频率响应法",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+      "name": "对数频率特性曲线",
+      "moduleId": null,
+      "order": 6
+    }
+  ],
+  "accepted": true
+}

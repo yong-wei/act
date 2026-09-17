@@ -1,0 +1,841 @@
+{
+  "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "canonicalType": "DomainConcept",
+      "label": "频率响应",
+      "aliases": [],
+      "description": "A very common way to use the exponential response of LTIs is in finding the frequency response, or response to a sinusoid.",
+      "teachingFields": {
+        "concept_kind": "theoretical_construct"
+      },
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "dorf-modern-control-systems-14th",
+          "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-08/section-8.1",
+          "label": "Modern Control Systems (Dorf/Bishop, 14th) · INTRODUCTION"
+        },
+        {
+          "sourceEditionId": "franklin-feedback-control-7th",
+          "sectionId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-06/unnumbered-003/unnumbered-002",
+          "label": "Feedback Control of Dynamic Systems (Franklin, 7th) · Frequency-response plot"
+        },
+        {
+          "sourceEditionId": "franklin-feedback-control-7th",
+          "sectionId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-03/unnumbered-014",
+          "label": "Feedback Control of Dynamic Systems (Franklin, 7th) · Frequency Response"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctc:modeling-91ba2fdc8dde496250e3fd3a",
+        "canonicalType": "DomainConcept",
+        "label": "幅相频率特性",
+        "aliases": [
+          "幅相频率特性"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+        "canonicalType": "DomainConcept",
+        "label": "灵敏度函数",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "robustness-sensitivity-analysis",
+            "visualRole": "robustness",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+        "canonicalType": "DomainConcept",
+        "label": "相位（频率响应）",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "time-domain-analysis",
+            "visualRole": "time",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "canonicalType": "DomainConcept",
+        "label": "频率响应",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "time-domain-analysis",
+            "visualRole": "time",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctkg:v3e-object-07dc6f5e710453e50530452a",
+        "canonicalType": "KnowledgeStatement",
+        "label": "频率响应法的一个优点是易于获得各种频率和幅值范围的正弦测试信号，因此系统的频率响应容易通过实验测定。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+        "canonicalType": "DomainConcept",
+        "label": "实验频率响应测定",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+        "canonicalType": "DomainConcept",
+        "label": "频率响应法",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "classical-control-design",
+            "visualRole": "design",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-4560252fd8979f3d44aed7bf",
+        "canonicalType": "KnowledgeStatement",
+        "label": "通过改变频率的正弦信号激励系统以实验测定频率响应幅值和相位的步骤。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-4a235944f67a06a4209d2422",
+        "canonicalType": "DomainConcept",
+        "label": "伯德图技术",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-7e0c4f65c01d5a441eaf1182",
+        "canonicalType": "KnowledgeStatement",
+        "label": "频率响应法的第二个优势在于，描述系统正弦稳态特性的传递函数可以通过将系统传递函数 T(s) 中的 s 替换为 jω 来获得。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-85fbfb7442915c8ad30d805c",
+        "canonicalType": "KnowledgeStatement",
+        "label": "频率响应曲线与瞬态响应曲线包含的信息本质上是相同的；阻尼可由超调量或频率响应峰值确定。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-9acaab765d45527c6988c564",
+        "canonicalType": "DomainConcept",
+        "label": "极坐标图",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-c652272af78d0dc055b43229",
+        "canonicalType": "KnowledgeStatement",
+        "label": "频域响应法用于分析和设计的基本缺点是频域与时域之间的联系是间接的。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-d8a329f3a5864086f274785c",
+        "canonicalType": "KnowledgeStatement",
+        "label": "在jω轴上计算G(s)有助于判定闭环稳定性，因为jω轴是稳定与不稳定的分界线。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-de08810d0c7dc754af811c8c",
+        "canonicalType": "KnowledgeStatement",
+        "label": "线性系统对正弦输入的频率响应可根据其零极点位置求得。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-efd82ffd292b910b0a2a651d",
+        "canonicalType": "KnowledgeStatement",
+        "label": "若频率响应由一对共轭复数极点主导，则本节讨论的频率响应与时域响应之间的关系均成立。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "frequency-domain-analysis",
+            "visualRole": "frequency",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:m5-d1:association:7286dc8ec3ae25d970b0a177",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-91ba2fdc8dde496250e3fd3a",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:ca1cbfefc57c3399f851825d",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:d628b5b117c2469cd7d71571",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1h:relation-030fe8434511ec0448e38091",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:v3e-object-7e0c4f65c01d5a441eaf1182",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1h:relation-095db7ad0e4a687f1f0a79a0",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:v3e-object-de08810d0c7dc754af811c8c",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1h:relation-31a339ebb0a6d8f9c64c09ee",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-7e0c4f65c01d5a441eaf1182",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1h:relation-4c57ce09b87a95554f2de394",
+        "predicate": "used_to_analyze",
+        "sourceId": "ctkg:v3e-object-4a235944f67a06a4209d2422",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1h:relation-53c8cd38f531cddfcd35b011",
+        "predicate": "used_to_analyze",
+        "sourceId": "ctkg:v3e-object-4560252fd8979f3d44aed7bf",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1h:relation-57ddd1f4d6249accf2a26d49",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-07dc6f5e710453e50530452a",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1h:relation-a33fedf6dee6f798d0d34bf9",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-efd82ffd292b910b0a2a651d",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1h:relation-b3abcd4fc45036a622d7df83",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-85fbfb7442915c8ad30d805c",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1h:relation-c0b032f2729bb0cb77dc01f2",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-c652272af78d0dc055b43229",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1h:relation-e54f4b52baf607531c5227b5",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:v3e-object-d8a329f3a5864086f274785c",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1h:relation-f70cae13613cac9256568e0d",
+        "predicate": "has_representation",
+        "sourceId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "targetId": "ctkg:v3e-object-9acaab765d45527c6988c564",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "derivation-and-representation"
+      },
+      {
+        "id": "m1h:relation-f989788d7898b6ffd637df8f",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:v3e-object-07dc6f5e710453e50530452a",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1h:relation-fcb8ada2085ba643cda18ef4",
+        "predicate": "used_to_analyze",
+        "sourceId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+        "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1p:v7r-rel-f273aabe532a08776c89c897",
+        "predicate": "used_to_analyze",
+        "sourceId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+        "targetId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      }
+    ],
+    "boundaries": []
+  },
+  "sources": [
+    {
+      "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-af679057b50299f79747230130880d6471b5f4788916ba07302f8d5fec511fdc.json",
+      "sha256": "cb556a6afb2e7847873d866af2ddc8b22f6d398ec6c8234ed211b816d2b09451",
+      "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+    },
+    {
+      "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-af679057b50299f79747230130880d6471b5f4788916ba07302f8d5fec511fdc.json",
+      "sha256": "bfbacd010e35028e344091622b7c074d36765a96af55c729cfb7a35134680c89",
+      "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+    },
+    {
+      "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/previous/ctkg_v3e-canonical-7e46e083227dc119d597d82b.md",
+      "sha256": "3d7bce24ef24b94daab2a2113031d06783c28536f6c103f9abc995239aa02f7b",
+      "kind": "previous-authoring-snapshot"
+    }
+  ]
+}

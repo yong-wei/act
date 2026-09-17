@@ -1,54 +1,72 @@
 ---
 node_id: ctkg_v3e-object-cd2b9611c4934fe067e8786a
 authority_entity_id: "ctkg:v3e-object-cd2b9611c4934fe067e8786a"
-name: Sample-Rate Selection
+name: "采样率选择"
+name_en: "Sample-Rate Selection"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - Sample-Rate
-  - Selection
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ab1ee2aeec895dacdf1b0feb71b99a95201bb76b1447889b19510821ac7dc276.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ab1ee2aeec895dacdf1b0feb71b99a95201bb76b1447889b19510821ac7dc276.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-01a/previous/ctkg_v3e-object-cd2b9611c4934fe067e8786a.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: f7abab1dfac815ef18b4937cf3f0142f84de67151167734549d559aca41b6646 -->
-
 ## 首页
+# 采样率选择 | Sample-Rate Selection
 
-# Sample-Rate Selection
+一句话定义：采样率选择是在信号频谱、闭环动态、计算延迟、硬件能力和误差要求之间确定合适采样周期的设计过程。
 
-**一句话定义**：Sample-Rate Selection：The selection of the best sample rate for a digital control system is the result of a compromise of many factors.
-
-**核心直觉**：在图谱邻接中可把握：前置 → Effect of Anti-Alias Prefilter、Disturbance Rejection、Tracking Effectiveness。
-
-**关联**：前置 → Effect of Anti-Alias Prefilter、Disturbance Rejection、Tracking Effectiveness
+- 采样定理提供理想信息条件，不是完整控制性能保证。
+- 保持和延迟会影响相位及闭环响应。
+- 选择结果需用实际离散与采样间模型验证。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-The selection of the best sample rate for a digital control system is the result of a compromise of many factors.
+选择采样率前，应明确希望控制或观测的频段、允许跟踪误差、稳定裕度及执行器限制。然后考虑采样前滤波能否把带外成分压到容许水平，以及转换、计算和通信能否按时完成。只按信号最高频率的两倍取值，可能在理想重建条件上接近边界，却无法满足控制的相位和响应要求。
+
+常见设计会把采样频率选得高于目标动态频段，但具体倍数依赖对象、控制器和延迟，不能作为脱离任务的固定定理。应比较候选周期并核验结果，而不是仅凭经验倍率宣布设计完成。
+
+### 教学计算/推理例
+
+设关注的连续角频率为5 rad/s，控制通道存在恰好一拍纯延迟。若采样周期0.02 s，该延迟在该频点引入 $-5\times0.02=-0.1$ rad，相当于约负5.73度；若周期0.2 s，则引入 $-1$ rad，约负57.30度。
+
+两者都叫“一拍延迟”，但实际相位影响相差十倍。计算中还没有包含保持器、模拟滤波和对象本身的相位，因此不能把这些角度直接称作完整闭环相位裕度。它们只是比较候选采样周期的一项证据。
+
+对连续一阶对象 $\dot x=-x+u$，零阶保持下的样值系数为 $a=e^{-T_s}$。无延迟比例控制 $u[k]=2(r[k]-x[k])$ 产生极点 $3e^{-T_s}-2$。周期0.2 s时约0.45619，位于单位圆内；周期2 s时约 $-1.59399$，落在单位圆外。即使连续对象稳定，过大的采样周期也能改变该控制结构的样值稳定性。
+
+### 适用条件与边界
+
+上述控制例假设周期准确、计算即时、输入零阶保持、无量化与饱和。实际系统若包含额外延迟或非线性，应使用完整模型重新验证。样值稳定之后还需检查采样间峰值、控制动作和性能约束，不能只看一个离散极点。
+
+提高采样率也有代价：单位时间计算和通信次数增加，算法可能无法赶在截止时刻完成。若执行频率提高却使数据积压，实际延迟未必减少。模拟前端带宽、噪声和量化分辨率同样不会因软件循环加快而自动改善。
+
+合理的验收应记录选择周期、时序假设、滤波条件与测试范围。频谱上没有明显混叠，只证明一部分信息条件，不等于闭环的速度、精度和稳定性均达到要求。
+
+### 常见误区
+
+1. 把两倍带宽当作所有数字控制系统的充分设计规则。
+2. 只数延迟拍数，不换算成秒和目标频点的相位。
+3. 认为采样越快必然越好，忽略任务时限与实际延迟。
+
+### 自检
+
+1. 本例周期从0.02增至0.2 s，一拍相位滞后如何变化？
+2. 连续对象稳定是否保证任意周期下的比例采样闭环稳定？
+
+**核对要点**：在5 rad/s处增大十倍；不保证，本例周期2 s时离散极点约 $-1.59399$，已不稳定。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Effect of Anti-Alias Prefilter | 属于 |
-| 前置 | Disturbance Rejection | 属于 |
-| 前置 | Tracking Effectiveness | 属于 |
-| 前置 | Disturbance Rejection | 应用于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Sample-Rate、Selection
+- **扰动抑制**（入边，关系：适用于）
+- **扰动抑制**（入边，关系：组成部分属于）
+- **DSP芯片**（无向，关系：相关）

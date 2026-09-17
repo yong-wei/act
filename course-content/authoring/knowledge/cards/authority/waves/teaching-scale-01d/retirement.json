@@ -1,0 +1,103 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:静态加速度误差系数_3_74752b9d",
+      "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/静态加速度误差系数_3_74752b9d.md",
+          "sha256": "b87d2bd3ab7d20d00c2a5ff41dca35dc495fb8bef2faebee50ebe532ab8f73e5",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/authoring/静态加速度误差系数_3_74752b9d.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/静态加速度误差系数_3_74752b9d.md",
+          "sha256": "b87d2bd3ab7d20d00c2a5ff41dca35dc495fb8bef2faebee50ebe532ab8f73e5",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/runtime/静态加速度误差系数_3_74752b9d.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:叠加原理_2_dda8499e",
+      "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/叠加原理_2_dda8499e.md",
+          "sha256": "1e1d60439b2ad123822eb8e8241547c8b744fa9e12c2d36d25b2049bea275f36",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/authoring/叠加原理_2_dda8499e.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/叠加原理_2_dda8499e.md",
+          "sha256": "1e1d60439b2ad123822eb8e8241547c8b744fa9e12c2d36d25b2049bea275f36",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/runtime/叠加原理_2_dda8499e.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:部分分式展开_7_d822352e",
+      "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/部分分式展开_7_d822352e.md",
+          "sha256": "02c2084ee1e274c37d3a8dd75ccdae3ac05e2bd0590a646b267c1166be8059cf",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/authoring/部分分式展开_7_d822352e.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/部分分式展开_7_d822352e.md",
+          "sha256": "02c2084ee1e274c37d3a8dd75ccdae3ac05e2bd0590a646b267c1166be8059cf",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/runtime/部分分式展开_7_d822352e.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:拉普拉斯变换_2_c635236f",
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/拉普拉斯变换_2_c635236f.md",
+          "sha256": "b05042bfcad857d4f82a8259582f07f217e9b12ee6a8d01e8ff496fc3fb3a00a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/authoring/拉普拉斯变换_2_c635236f.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/拉普拉斯变换_2_c635236f.md",
+          "sha256": "b05042bfcad857d4f82a8259582f07f217e9b12ee6a8d01e8ff496fc3fb3a00a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/runtime/拉普拉斯变换_2_c635236f.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:拉氏变换_1_2",
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/拉氏变换_1_2.md",
+          "sha256": "65b9e894a0bd7be0dc9454fa69d3feb619085a8961c874e52e2b41a8b3e03455",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/authoring/拉氏变换_1_2.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/拉氏变换_1_2.md",
+          "sha256": "65b9e894a0bd7be0dc9454fa69d3feb619085a8961c874e52e2b41a8b3e03455",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/runtime/拉氏变换_1_2.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:拉氏变换_2_243496d4",
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/拉氏变换_2_243496d4.md",
+          "sha256": "3cb564919b2fe275341801e7cece87eb01cf45f864edce4c49d926cf69f68808",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/authoring/拉氏变换_2_243496d4.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/拉氏变换_2_243496d4.md",
+          "sha256": "3cb564919b2fe275341801e7cece87eb01cf45f864edce4c49d926cf69f68808",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/retired/runtime/拉氏变换_2_243496d4.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b7",
+  "replacementDigest": "85437caf00eb05e370577758450a9b84945cda6d1fab208a37bdd6b514420ba9"
+}

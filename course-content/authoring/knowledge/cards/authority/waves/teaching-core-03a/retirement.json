@@ -1,0 +1,71 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:增量线性化_8_9ba8e3a5",
+      "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/增量线性化_8_9ba8e3a5.md",
+          "sha256": "53977bc4625f95b4cb4b7449ea952e69c7b065eda1a046b0e403886f3540c405",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/retired/authoring/增量线性化_8_9ba8e3a5.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/增量线性化_8_9ba8e3a5.md",
+          "sha256": "53977bc4625f95b4cb4b7449ea952e69c7b065eda1a046b0e403886f3540c405",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/retired/runtime/增量线性化_8_9ba8e3a5.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:小偏差线性化_2_277afa67",
+      "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/小偏差线性化_2_277afa67.md",
+          "sha256": "aea3e1463cb19a30fba5e6f08dc2d27d26a197fef9233183eca92297d46afa79",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/retired/authoring/小偏差线性化_2_277afa67.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/小偏差线性化_2_277afa67.md",
+          "sha256": "aea3e1463cb19a30fba5e6f08dc2d27d26a197fef9233183eca92297d46afa79",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/retired/runtime/小偏差线性化_2_277afa67.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:小偏差线性化_8_a82063b7",
+      "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/小偏差线性化_8_a82063b7.md",
+          "sha256": "35f4a94b409475672e8ceb9c8c2d01a632d62e2e0898ff30362b1701f15647bf",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/retired/authoring/小偏差线性化_8_a82063b7.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/小偏差线性化_8_a82063b7.md",
+          "sha256": "35f4a94b409475672e8ceb9c8c2d01a632d62e2e0898ff30362b1701f15647bf",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/retired/runtime/小偏差线性化_8_a82063b7.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:非线性微分方程的线性化_2_caa86ba6",
+      "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/非线性微分方程的线性化_2_caa86ba6.md",
+          "sha256": "dce620159f225199e7aa0d555caf056ccae8844f0d1b15afd49d5c4f2a739b07",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/retired/authoring/非线性微分方程的线性化_2_caa86ba6.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/非线性微分方程的线性化_2_caa86ba6.md",
+          "sha256": "dce620159f225199e7aa0d555caf056ccae8844f0d1b15afd49d5c4f2a739b07",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/retired/runtime/非线性微分方程的线性化_2_caa86ba6.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b16",
+  "replacementDigest": "90015ebe47329694f0256191f8bd5e5f9d2e74fe8eca5fea7a0c8121318acf35"
+}

@@ -1,30 +1,31 @@
 ---
 node_id: ctkg_v3e-canonical-cc82e137f42aa09df514e615
 authority_entity_id: "ctkg:v3e-canonical-cc82e137f42aa09df514e615"
-name: 用一对共轭复数主导极点对应的二…
-category: 程序性
-batch: B
-concept_kind: analysis_method
-release_tier: silver
-tags:
-  - analysis_method
-  - silver
-card_version: 1
+name: "利用闭环主导极点概念近似分析高阶系统"
+name_en: "Dominant-pole Approximation of Higher-order Systems"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-fec3222e00a8576adca03b6ea8f434eb41392208e137f0960de3fe4903478a7e.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-fec3222e00a8576adca03b6ea8f434eb41392208e137f0960de3fe4903478a7e.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/previous/ctkg_v3e-canonical-cc82e137f42aa09df514e615.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 364b0d8aa4eef993f7f0bb0d11e74e2a3f4fe945144271c48079891621836866 -->
-
 ## 首页
 
-# 用一对共轭复数主导极点对应的二…
+# 利用闭环主导极点概念近似分析高阶系统 | Dominant-pole Approximation of Higher-order Systems
 
-**一句话定义**：工程上常采用闭环主导极点的概念对高阶系统进行近似分析，即用一对共轭复数主导极点对应的二阶系统动态性能指标来估算高阶系统的动态性能。
+**一句话定义**：保留对目标响应影响最大的模态，构造较低阶候选并用完整模型检查近似误差，是主导极点近似分析的基本过程。
 
-**关联**：（权威图邻接待补充）
+先筛选，再匹配增益，最后比较；保留同一对极点不等于保留了完整响应。
 
 ---
 
@@ -32,18 +33,47 @@ asset_refs: []
 
 ### 完整解释
 
-工程上常采用闭环主导极点的概念对高阶系统进行近似分析，即用一对共轭复数主导极点对应的二阶系统动态性能指标来估算高阶系统的动态性能。
+主导极点近似的目的是使较复杂系统能够借助一阶或二阶知识作初步分析。它通常从稳定高阶模型出发，寻找衰减较慢、附近无明显抵消零点且对规定输出有较大贡献的极点，再判断其他模态能否在关注区间内忽略。
+
+构造候选时不能只删除分母因子而不处理增益。若希望阶跃终值一致，应匹配静态增益；若需要保留其他特征，也应明确匹配条件。之后用原模型与候选模型在相同输入和初态下比较，按任务规定的误差、超调或调节时间容限决定是否接受，而不是用“看起来接近”代替量化判断。
+
+近似尤其适合快速估计和设计初筛。涉及最终验收时，应回到完整模型。如果输入包含高频成分，或者任务关注快动态和内部状态，之前对慢阶跃成立的近似可能不再适用。需要的是对明确用途足够准确，而不是宣称低阶模型与原系统在所有条件下等价。
+
+### 教学计算/推理例
+
+取完整模型
+
+$$T_H(s)=\frac{1.25}{(s+5)(s^2+0.8s+0.25)}.$$
+
+极点为-5及 $-0.4\pm0.3j$，分子无零点，静态增益为1。将快速因子 $5/(s+5)$ 在低频附近近似为1，构造
+
+$$T_L(s)=\frac{0.25}{s^2+0.8s+0.25}.$$
+
+候选保持同一对慢极点和单位静态增益，其二阶参数为 $\omega_n=0.5\,\mathrm{rad/s}$、$\zeta=0.8$。这一步提供便于计算的二阶起点，但并未证明原系统所有指标等于二阶公式的结果。
+
+零初态单位阶跃下，完整系统满足 $y^{(3)}+5.8\ddot y+4.25\dot y+1.25y=1.25$。对该原方程积分，并与完整部分分式解互相核验，再与候选响应比较：在0至40 s、步长0.01 s的网格上，观察到最大绝对差约0.042165。若要求所有这些采样点的差都不超过0.02，这个候选就不能通过该要求。
+
+如果任务允许更大误差，仍需按任务范围补充验证；不能仅从当前网格没有更大偏差，就宣称连续时间全域误差都不超过某个阈值。需要连续时间保证时，可以进一步分析误差函数的极值和尾部界，而不是无条件延伸采样结论。
+
+### 适用条件与边界
+
+原模型和候选虽有相同终值，起始运动仍不同。原系统相对阶次为3，候选为2，初期导数特征会发生变化。若目标就是估计起动加速度，这种改变可能不能接受；若目标是粗略预测较慢响应，也许仍有用途。近似的好坏必须放在具体问题里评估。
+
+不能为了得到稳定候选而删掉不稳定模态，也不能仅凭近似闭环稳定就证明原闭环稳定。若原系统有附近零点、多个相近模态或显著时延，应相应调整保留范围。主导极点法是一种有条件的分析方法，不是自动将任意高阶模型变成可靠二阶模型的规则。
+
+### 常见误区
+
+1. 误区：保留主导极点后，二阶公式就是原系统的精确指标。纠正：原系统响应系数和其他模态仍可能改变指标，应验证完整模型。
+2. 误区：网格上的最大误差就是全时间误差上界。纠正：网格结果仅覆盖规定采样点，全时间保证还需进一步分析。
+
+### 自检
+
+1. 本例为什么采用分子0.25，而不是删掉 $s+5$ 后直接保留分子1.25？
+2. 若要求验证网格误差不超过0.02，当前候选是否合格？
+
+**核对要点**：分子调整用于保持单位静态增益，直接保留1.25会改变终值。网格已观察到约0.042165的差，因此不能满足0.02的网格误差要求；无需借助更强的全时间推断就能判定这一点。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`analysis_method`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-analysis_method、silver
+- **高阶系统解析阶跃响应**（无向，关系：相关）
+- **高阶系统时域指标估算经验公式法**（无向，关系：相关）

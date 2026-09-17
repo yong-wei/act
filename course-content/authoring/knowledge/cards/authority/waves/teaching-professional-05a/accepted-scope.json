@@ -1,0 +1,122 @@
+{
+  "batchId": "teaching-professional-05a",
+  "status": "accepted",
+  "parentGroupId": "professional-lyapunov-stability",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:00c33c72030aa254c651c5ad",
+      "name": "正定性（标量函数）",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:1fe958ff9947220990074dbc",
+      "name": "正半定性（标量函数）",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:471808457837d110fa167faf",
+      "name": "负定性（标量函数）",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0dfe26d4bf0c2174a0a4b176",
+      "name": "负半定性（标量函数）",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+      "name": "李雅普诺夫稳定性",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+      "name": "渐近稳定性",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:5f49b022cd74414f3b342231",
+      "name": "一致稳定性",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:d071dec567505ce641aa9b15",
+      "name": "一致渐近稳定性",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:f713a296511f858ae3f3bfde",
+      "name": "大范围（全局）渐近稳定性",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+      "name": "李雅普诺夫函数候选",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 10
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+      "name": "李雅普诺夫函数",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 11
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+      "name": "能量函数（李雅普诺夫）",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 12
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:4b98e3fbe8d7e5267277361f",
+      "name": "李雅普诺夫第一法（间接法）",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 13
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:8985a8b639467c8e28fad417",
+      "name": "李雅普诺夫第二法（直接法）",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 14
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:951014d55276cafabac48a25",
+      "name": "李雅普诺夫方程",
+      "domain": "lyapunov-stability",
+      "moduleId": null,
+      "order": 15
+    }
+  ],
+  "accepted": true
+}

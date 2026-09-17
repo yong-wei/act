@@ -1,50 +1,76 @@
 ---
 node_id: ctkg_v3e-object-eacdf5b7407bac89d24540ed
 authority_entity_id: "ctkg:v3e-object-eacdf5b7407bac89d24540ed"
-name: quantization
+name: "量化"
+name_en: "Quantization"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - quantization
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-280c2c9ecf5952fde4d0beef0e85e96893bcc8a0d655cce63dc1a98edd9d0a53.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-280c2c9ecf5952fde4d0beef0e85e96893bcc8a0d655cce63dc1a98edd9d0a53.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/previous/ctkg_v3e-object-eacdf5b7407bac89d24540ed.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 7c004062b34165b73dbda7619fe53cb59de90c36e59a2707bf4ed79befb90c29 -->
-
 ## 首页
+# 量化 | Quantization
 
-# quantization
+一句话定义：量化把输入幅值或数值映射到一组离散可表示等级，是数字表示中的幅度离散操作。
 
-**一句话定义**：quantization：quantization
-
-**关联**：后续 → memoryless nonlinearity
+- 量化等级、步长、范围与舍入规则共同定义模型。
+- 时间采样决定何时取值，量化决定取值如何表示。
+- 有限范围之外需要明确限幅或溢出策略。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-quantization
+均匀量化的相邻等级间隔相同，记为 $\Delta$。最近等级舍入选择距离输入最近的等级；在两个等级等距时，需要规定平局处理。非均匀量化的等级间隔随位置变化，不能用单个固定步长描述全部区间。
+
+有限数字编码还限制可用等级总数。给定位数并不自动唯一决定量化步长，还需要范围和编码方式。例如包含多少端点等级、是否预留特殊编码，都可能影响实际间隔。因此教学和实现都应直接写明等级集合或计算规则。
+
+### 教学计算/推理例
+
+本例输出等级为 $-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1$，共9个等级，步长为0.25。采用半格向正无穷的最近舍入，并在范围外限幅：
+
+$$
+Q(x)=\operatorname{clip}\left(\Delta\left\lfloor x/\Delta+0.5\right\rfloor,-1,1\right),\qquad \Delta=0.25.
+$$
+
+输入0.4映射为0.5，输入 $-0.4$ 映射为 $-0.5$。输入0.125恰在两个等级中间，按约定映射为0.25。9个等级若用固定长度二进制编号，至少需要4位，因为3位只能给出8种编码；这个实例没有声称所有4位编码都必须使用。
+
+输入1.6最终输出1，说明该模型选择了范围限幅。另一实现若发生整数回绕，会产生完全不同的输出，不能把两种行为都含糊称为“量化”而不说明。误差定义为 $Q(x)-x$ 时，该过载点误差为 $-0.6$。
+
+### 适用条件与边界
+
+若在时刻 $kT$ 取得样值 $x(kT)$，然后计算 $Q(x(kT))$，采样周期 $T$ 与幅度步长 $\Delta$ 分别控制时间和幅值分辨率。减小采样周期不会自动增加等级数；减小量化步长也不会恢复两次采样之间未观测的变化。
+
+在无过载最近舍入区，误差绝对值不超过 $\Delta/2$。这条界不意味着输出曲线平滑，也不意味着误差是独立噪声。恒定输入会产生恒定量化输出，某些周期输入会产生具有结构的误差序列。
+
+实际控制还需处理缩放、单位、溢出、校准与执行器限制。量化只描述其中的离散等级映射，不能代替完整转换设备的全部误差模型。若要比较不同量化方案，应使用相同信号范围和明确性能口径。
+
+### 常见误区
+
+1. 只说“4位量化”而不说明范围、等级或编码使用方式。
+2. 把提高采样率与增加幅值分辨率混为一谈。
+3. 未声明范围外行为，默认限幅和回绕结果相同。
+
+### 自检
+
+1. 本例9个等级能否用3位固定长度编号全部表示？
+2. 减小 $T$ 而保持 $\Delta$ 不变，幅度等级间隔会怎样？
+
+**核对要点**：不能，3位只有8种编码，至少4位；幅度等级间隔保持不变，改变的是取值时刻密度。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | memoryless nonlinearity | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、quantization
+- **量化过程**（无向，关系：相关）
+- **量化单位**（无向，关系：相关）
+- **无记忆非线性**（入边，关系：前置于）

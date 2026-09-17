@@ -6,16 +6,16 @@ name_en: "Transmission Zero"
 category: 概念性
 knowledge_type: C
 bloom_level: 理解
-lesson_units:
-  - "2-1"
-  - "3-3"
-card_version: 2
+card_version: 3
 content_origin: act-course-enrichment
-authority_release_id: ctr:release:control-theory-engineering-v0.37
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
 status: ready
 source_docs:
-  - course-content/authoring/lessons/2-1/design/2-1-handout.md
-  - course-content/authoring/lessons/3-3/design/3-3-handout.md
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-459379793774e2691d5cdafdc697aeeb68b8856e3bfbddf37f13dbb18f76bee3.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-459379793774e2691d5cdafdc697aeeb68b8856e3bfbddf37f13dbb18f76bee3.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-08a/previous/ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d.md"
 asset_refs: []
 ---
 
@@ -23,9 +23,13 @@ asset_refs: []
 
 # 传输零点 | Transmission Zero
 
-**一句话定义**：在单输入单输出模型中，传输零点是约简后传递函数分子的零点。
+**一句话定义**：在有限的非极点处，整体传输矩阵的正常秩发生下降的位置。
 
-**核心直觉**：极点描述动态模态，零点影响输入经通道传到输出的方式。
+**核心直觉**：MIMO 零点看整个输入输出映射的秩，不是看某一个元素是否恰好为零。
+
+**关键公式**：系统矩阵为 $\mathcal{S}(s)=\begin{bmatrix}sI-A&-B\\C&D\end{bmatrix}$ 时，传输零点使其秩低于正常值。
+
+**学习目标**：用正常秩和系统矩阵判定 MIMO 传输零点，并区分标量元素零点。
 
 ---
 
@@ -33,20 +37,52 @@ asset_refs: []
 
 ### 完整解释
 
-对已约去分子分母公共因子的单输入单输出传递函数
+对多输入多输出系统，传输零点是某个有限、非极点的复数 $s$，使传输矩阵相对于其正常秩发生下降。它描述的是整体输入方向与输出方向之间的通道退化；某个矩阵元素的分子为零，并不自动意味着整个矩阵出现传输零点。
 
+在状态空间中，可以用系统矩阵
 $$
-G(s)=\frac{N(s)}{D(s)},
+\mathcal{S}(s)=\begin{bmatrix}sI-A&-B\\C&D\end{bmatrix}
 $$
+的秩变化来检查这一性质。矩阵维度、正常秩和所取的 $s$ 都必须同时说明。
 
-若 $N(z)=0$ 且 $D(z)\ne0$，则 $z$ 是这一输入输出通道的传输零点。讨论零点前先完成公共因子约简，可以避免把已消去的内部因素当成该通道的零点。
+### 教学计算/推理例
 
-零点会改变响应中不同模态的权重，也会影响频率响应。右半平面零点常伴随反向响应和可实现带宽的限制。闭环设计既要观察极点位置，也要考虑零点所在的位置；仅凭极点相近，不能保证两个模型具有相同的响应形态。
+固定传输矩阵为
+$$
+G_m(s)=\operatorname{diag}\left(\frac{s+2}{s+1},\frac{1}{s+3}\right)。
+$$
+它的正常秩为 $2$。在 $s=-2$ 时，第一条对角通道为零而第二条仍有限，所以整体矩阵秩降为 $1$；由于 $-2$ 不是分母极点，这给出传输零点 $-2$。
 
-### 代数判断示例
+同一结论可由最小实现 $A=\operatorname{diag}(-1,-3)$、$B=I$、$C=I$、$D=\operatorname{diag}(1,0)$ 检查：在 $s=-2$ 时，系统矩阵的秩为 $3$，小于其正常值 $4$。
 
-对 $G(s)=(s+1)/(s^2+4s+5)$，在 $s=-1$ 处分子为零、分母为 $2$，所以 $-1$ 是传输零点。这里的零点属于复变量 $s$ 平面，不等同于实频率轴上的某个振荡频率。
+作为对照，取
+$$
+G_2(s)=\begin{bmatrix}1&\frac{s}{s+1}\\0&1\end{bmatrix}。
+$$
+在 $s=0$ 时，只有一个非恒零元素变为 $0$，但整个矩阵变成单位矩阵，秩仍为 $2$，所以 $s=0$ 不是传输零点。这个对照把“元素零”与“整体秩下降”分开了。
+
+### 适用条件与边界
+
+本例针对有限非极点处的有理 MIMO 传输矩阵和给定状态空间实现。若 $s$ 是传输矩阵的极点，不能把无穷或未定义行为当作传输零点。标量系统可退化为分子零点判定，但 MIMO 必须回到正常秩或系统矩阵的秩条件。
+
+### 常见误区
+
+1. **误区**：某一元素的分子在 $s=z$ 为零，就能断言 MIMO 在 $z$ 有传输零点。**纠正**：需要检查整个矩阵的正常秩是否在该有限非极点处下降。
+2. **误区**：正常秩为 $2$ 的系统只要某个元素变成零，秩就一定降为 $1$。**纠正**：对照矩阵在 $s=0$ 仍是单位矩阵，正常秩和此处秩都为 $2$。
+
+### 自检
+
+1. 为什么 $G_m(s)$ 在 $s=-2$ 有传输零点？
+2. $G_2(s)$ 在 $s=0$ 的一个元素为零，为什么仍不是传输零点？
+
+**核对要点**：$G_m$ 的整体秩从正常值 $2$ 降到 $1$；$G_2(0)=I$，整体秩仍为 $2$，只有元素变化不足以构成 MIMO 传输零点。
 
 ### 关联节点
 
-传递函数 · 极点 · 零极点约简 · 非最小相位系统
+- **使用tzero计算传输零点**（入边，关系：用于分析）
+- **G(s)=\frac{\operatorname{det}\left[\begin{array}{cc} s \mathbf{I}-\mathbf{A} & -\mathbf{B} \\ \mathbf{C} & D \end{array}\right]}{\operatorname{det}(s \mathbf{I}-\mathbf{A})}**（出边，关系：具有公式）
+- **零点位于 s = -2。**（无向，关系：相关）
+- **使用 sysG = ss(Ac,Bc,Cc,Dc); [z, gain] = tzero(sysG)。**（入边，关系：用于分析）
+- **使用 Matlab 函数 tzero（传输零点）计算系统的零点。**（入边，关系：用于分析）
+- **传递零点由非零输入和状态产生零输出的条件所定义。**（入边，关系：适用于）
+- $\left[\begin{array}{cc} z_{i} \mathbf{I}-\mathbf{A} & -\mathbf{B} \\ \mathbf{C} & D \end{array}\right]\left[\begin{array}{l} \mathbf{x}_{0} \\ u_{0} \end{array}\right]=\left[\begin{array}{l} \mathbf{0} \\ 0 \end{array}\right] .$（出边，关系：具有公式）

@@ -1,0 +1,14 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_core_modeling_fourteen",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "cardHashes": {
+    "ctc:modeling-1897336a3fe60360d9fea3aa": "4609c3f8a5f9659c672aea106ff6127fc5409fae25cc86a20c49ee96040dc9fc",
+    "ctc:modeling-227e674315b4da2f1a20ee31": "4d2f41abb8fafc05a287ea7095c9e69fb59daa58e3fb375812b9bdda5e7d6a47",
+    "ctc:modeling-30d05b970a0d4a71c9d243c3": "c5de7f6e3caa7bc649741f6f9c5029a736cd047b402f846c62d6c232947e1620",
+    "ctc:modeling-5727d74e4587f60fe7b011ae": "7b700cb5240a420478eec761366fd0d20645683be7f1ff5f387075b30c70ba50",
+    "ctc:modeling-c343400ab0cc996416d5a18a": "bbfffdf490e30299b629d0d1685a10ad78596818710ad3d0b368036187a32636",
+    "ctc:modeling-e4d5dedd058631068d41b452": "7724e09eb34b04377fb541b792cb9711b8602cc0d9ce9bc5007dbac8a0790946"
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "batchId": "teaching-core-23a",
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "name": "测量噪声衰减分析",
+      "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+      "cardId": "ctkg_domainconcept_11a8f8224c4c836f89b164de",
+      "resourceId": "act:card:ctkg_domainconcept_11a8f8224c4c836f89b164de",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_11a8f8224c4c836f89b164de.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-fbeb0a47409ef5cd33beeffdcc385345b687423d1a5df28057893cf0601d96de.json",
+          "sha256": "0151255ad48ee3074e87ac74a50f05934a9db3005ec8cc7604459878fed2b4f5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-fbeb0a47409ef5cd33beeffdcc385345b687423d1a5df28057893cf0601d96de.json",
+          "sha256": "c4709915957a284566e731326eef91bc3fc167fcc9b002c6452d2cf177c3e3d4",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/01-source.json",
+      "sourceBackupSha256": "ff2f33ec25c65d6e7aae1a83cdc4531c8fb4d6b27fd8c5fd7f58c11c8b15c93b",
+      "cardSha256": "1134697952f93483a9252673a970c5ab3ddd403349fc208443571f8cacfed19a",
+      "parsedExplanationChars": 1078
+    },
+    {
+      "order": 2,
+      "name": "测量噪声衰减",
+      "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+      "cardId": "ctkg_domainconcept_476f9c2afd87ac51ab2159d3",
+      "resourceId": "act:card:ctkg_domainconcept_476f9c2afd87ac51ab2159d3",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_476f9c2afd87ac51ab2159d3.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-fff5c42f73e1888a09a7574e027426396b4047317ecd0397b8bb0f761dabd6c5.json",
+          "sha256": "3a8c4653e6ea3ea1c1c1bfaa0274efeba6cd4cd17c79c42f187274e4dd41953d",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-fff5c42f73e1888a09a7574e027426396b4047317ecd0397b8bb0f761dabd6c5.json",
+          "sha256": "76c35844e826f2c5ebd9eb08823bfdee6a6fd52a56e543070a80941ec7f8f6bc",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/02-source.json",
+      "sourceBackupSha256": "c5780d78e0f59f530a060308d36a9b69ff164a713fe1e8af059b541c3a57fd62",
+      "cardSha256": "a1e257652f181d34c87997154d9713869a8149363a10becf4fd82cbdf71d1c30",
+      "parsedExplanationChars": 1085
+    },
+    {
+      "order": 3,
+      "name": "跟踪误差",
+      "canonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+      "cardId": "ctkg_domainconcept_481adaa12fcb7e31a3b67683",
+      "resourceId": "act:card:ctkg_domainconcept_481adaa12fcb7e31a3b67683",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_481adaa12fcb7e31a3b67683.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c99c6f9778c3e424b05534473954e9fc396603122faab96ebbc28ace86415c84.json",
+          "sha256": "ec6c82f38d405a8553cfa0686f7f0cae43bf123514ac9edc1a672bea844437bf",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c99c6f9778c3e424b05534473954e9fc396603122faab96ebbc28ace86415c84.json",
+          "sha256": "c1d2ccb4d70e3438ee9910c6ea3e1ac11f4ef47cbd35a9f57e13b8a78222aaae",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/03-source.json",
+      "sourceBackupSha256": "3dfee8cdbd9b7e483d3d27993bbb5314ecb578e91dcf1057f976882319608457",
+      "cardSha256": "6474065a9811ec59becc3eeea959c8f648e0c9588a2fffe69598dc9ad0497f71",
+      "parsedExplanationChars": 1087
+    },
+    {
+      "order": 4,
+      "name": "误差全补偿条件",
+      "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+      "cardId": "ctkg_domainconcept_6a32bc0cf2176839753ef717",
+      "resourceId": "act:card:ctkg_domainconcept_6a32bc0cf2176839753ef717",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_6a32bc0cf2176839753ef717.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-28207458a3e82d61df1aee11741deb774a2845ab689a5724fab3754a4f26b4e7.json",
+          "sha256": "73330213eef554a10b5e80c7e72c842fdc524c3bf02775cf6101a81022cabda9",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-28207458a3e82d61df1aee11741deb774a2845ab689a5724fab3754a4f26b4e7.json",
+          "sha256": "0670a7dc647dbc62f796facc9a3a40694166d458e46cc878753b1f8ce9daf973",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/04-source.json",
+      "sourceBackupSha256": "fa5c976aead041060d5ac57a3bce115571e26698f9903046e88c7fb16d3c1958",
+      "cardSha256": "2846ff4d72fa756c81410de83090ea95f2920ba1c95ea3bd2efc1eb3436ccc7f",
+      "parsedExplanationChars": 1159
+    },
+    {
+      "order": 5,
+      "name": "扰动抑制分析",
+      "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+      "cardId": "ctkg_domainconcept_b57ab6aa6e17654d63b792e1",
+      "resourceId": "act:card:ctkg_domainconcept_b57ab6aa6e17654d63b792e1",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_b57ab6aa6e17654d63b792e1.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-23c978a51b656eeaadba19686b0855dbf0ba1f25dd2798558d60d9a58222e9cf.json",
+          "sha256": "50a60ccd9f90250d0b29d1b7ff3c3f540053c51c2ce733301dcbebfdb711b491",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-23c978a51b656eeaadba19686b0855dbf0ba1f25dd2798558d60d9a58222e9cf.json",
+          "sha256": "f38c4b8c4e41a44a4a65b65fe6af3688271d5184a9219e8c1a340bc64182067e",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/05-source.json",
+      "sourceBackupSha256": "a035fa014a8b1b89c9b12a9101351f395821b144b953f487a2fe0df126950658",
+      "cardSha256": "fa36c5bd27e5f5080507dc3f53690b3c25bf3053d1716e9e291da2e36e69864f",
+      "parsedExplanationChars": 1045
+    },
+    {
+      "order": 6,
+      "name": "测量噪声信号",
+      "canonicalId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+      "cardId": "ctkg_domainconcept_d582399ff6cef0663ad4e2a7",
+      "resourceId": "act:card:ctkg_domainconcept_d582399ff6cef0663ad4e2a7",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_d582399ff6cef0663ad4e2a7.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-810cd1dd121768c6e9bc40b8e195fc4ce55cb4baff9eb3835932b16cd7fb5048.json",
+          "sha256": "1038dc37d1575a30592588df0797381965fa8784b5fbb442f7c77cf9de68283b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-810cd1dd121768c6e9bc40b8e195fc4ce55cb4baff9eb3835932b16cd7fb5048.json",
+          "sha256": "6af61d85f7731f73d520315501daed791301d931d540f88880fc03587f66af0a",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/06-source.json",
+      "sourceBackupSha256": "4cf2a31787f9ac07babd84ba3a53b1661859d742c447109df9424bebed8700b4",
+      "cardSha256": "aba21eb625f77b2d7318d9a182be4fda7170707f79aace04dcf10a6f5a95f266",
+      "parsedExplanationChars": 958
+    },
+    {
+      "order": 7,
+      "name": "零型系统",
+      "canonicalId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "cardId": "ctkg_v3e-object-84d4e25a62819cdb7ccb6caf",
+      "resourceId": "act:card:ctkg_v3e-object-84d4e25a62819cdb7ccb6caf",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-84d4e25a62819cdb7ccb6caf.md",
+      "previousCardSha256": "b1c6cf5fa2afc8bf3e716de090e97cfb610462be042ee028d157e2e3c7c58f43",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5e1791779e25f1d161d8c279d4892a1e0bebad5d17a494c585cace907bcd8985.json",
+          "sha256": "43b34cb7a220c207d9444857a5497d3afab34716e774288284543055212a240f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5e1791779e25f1d161d8c279d4892a1e0bebad5d17a494c585cace907bcd8985.json",
+          "sha256": "669f3f70909e79f087ac1701d9215acee3e43f0be631f7a9bb6a47c50a126df1",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/previous/ctkg_v3e-object-84d4e25a62819cdb7ccb6caf.md",
+          "sha256": "b1c6cf5fa2afc8bf3e716de090e97cfb610462be042ee028d157e2e3c7c58f43",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/07-source.json",
+      "sourceBackupSha256": "55e441b5c030b95cd86f0d98438db03f686e680d539b6fea15a8dcb8a0bd8c88",
+      "cardSha256": "b6174e4b2308e0794928d2df290edf299dafc594331ef8dd61b4097b7618331f",
+      "parsedExplanationChars": 1021
+    }
+  ],
+  "cardCount": 7,
+  "publicationStatus": "authoring",
+  "reviewStatus": "pending-independent-review",
+  "remaining": [],
+  "remainingCount": 0,
+  "method": "authoring cards bound to exact detail/neighborhood/previous source paths; no runtime writes"
+}

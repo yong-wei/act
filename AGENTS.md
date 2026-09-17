@@ -149,3 +149,13 @@
 - 文档按对象选择：官方库/API 优先当前官方文档或 Context7；数据库核对用现有 Prisma/SQL 工具；项目构建和测试用仓库脚本。浏览器验收使用可用的 Browser、Chrome 或 Playwright。
 - 续接任务或查询相关历史时读取 `.wolf/OPENWOLF.md`，再按需定位 STATUS、cerebrum 或 buglog。已知目标的小任务不先读取整份项目记忆或 anatomy。
 - 技能支持用户任务，不新增授权或覆盖当前明确指令。按描述选最相关技能，仅加载当前工作流的参考；不因关键词相同叠加多个技能。遇到真正的授权缺口时说明具体动作和原因，普通实现选择自主处理。
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

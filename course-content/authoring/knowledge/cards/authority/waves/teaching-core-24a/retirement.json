@@ -1,0 +1,119 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:对数幅相曲线_5_891ca8c5",
+      "canonicalId": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/对数幅相曲线_5_891ca8c5.md",
+          "sha256": "4dc92ebba5e9869d140a8dd1264b45e7386227384838597ae2ade41b503c70af",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/authoring/对数幅相曲线_5_891ca8c5.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/对数幅相曲线_5_891ca8c5.md",
+          "sha256": "4dc92ebba5e9869d140a8dd1264b45e7386227384838597ae2ade41b503c70af",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/runtime/对数幅相曲线_5_891ca8c5.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:幅相频率特性曲线_5_018eef00",
+      "canonicalId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/幅相频率特性曲线_5_018eef00.md",
+          "sha256": "19a535874733341db6198237be8d2c7687cd07d86624cc97caecc6c04aea63ed",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/authoring/幅相频率特性曲线_5_018eef00.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/幅相频率特性曲线_5_018eef00.md",
+          "sha256": "19a535874733341db6198237be8d2c7687cd07d86624cc97caecc6c04aea63ed",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/runtime/幅相频率特性曲线_5_018eef00.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:开环幅相特性曲线_5_fd86e289",
+      "canonicalId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/开环幅相特性曲线_5_fd86e289.md",
+          "sha256": "3d2878f0da5ab3875eee403a33eafd0ab345ed16ce8ded2856a8635abf382660",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/authoring/开环幅相特性曲线_5_fd86e289.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/开环幅相特性曲线_5_fd86e289.md",
+          "sha256": "3d2878f0da5ab3875eee403a33eafd0ab345ed16ce8ded2856a8635abf382660",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/runtime/开环幅相特性曲线_5_fd86e289.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:频域分析_2_2e257d89",
+      "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/频域分析_2_2e257d89.md",
+          "sha256": "49a69b28e7885d03c6c735179624fc373cd152fdafb9cc67b6eb9baad4132da0",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/authoring/频域分析_2_2e257d89.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/频域分析_2_2e257d89.md",
+          "sha256": "49a69b28e7885d03c6c735179624fc373cd152fdafb9cc67b6eb9baad4132da0",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/runtime/频域分析_2_2e257d89.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:频域分析法_5_e5f3e350",
+      "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/频域分析法_5_e5f3e350.md",
+          "sha256": "4f9499b0740ad7623ab86a20982adc8855495f442be0485d2fc2e0032e2c1ade",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/authoring/频域分析法_5_e5f3e350.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/频域分析法_5_e5f3e350.md",
+          "sha256": "4f9499b0740ad7623ab86a20982adc8855495f442be0485d2fc2e0032e2c1ade",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/runtime/频域分析法_5_e5f3e350.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:频率响应法_5_1c7f0705",
+      "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/频率响应法_5_1c7f0705.md",
+          "sha256": "468be78a9b447d5830da4aa45d909f8a3f902ca0d911d56cbf28c9275b6323e4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/authoring/频率响应法_5_1c7f0705.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/频率响应法_5_1c7f0705.md",
+          "sha256": "468be78a9b447d5830da4aa45d909f8a3f902ca0d911d56cbf28c9275b6323e4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/runtime/频率响应法_5_1c7f0705.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:对数频率特性曲线_5_75c6945f",
+      "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/对数频率特性曲线_5_75c6945f.md",
+          "sha256": "ffdb5984eb0bbe15c546e02cd30c880000b8247f7aa1689a20af637ae443e756",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/authoring/对数频率特性曲线_5_75c6945f.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/对数频率特性曲线_5_75c6945f.md",
+          "sha256": "ffdb5984eb0bbe15c546e02cd30c880000b8247f7aa1689a20af637ae443e756",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/retired/runtime/对数频率特性曲线_5_75c6945f.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b36",
+  "replacementDigest": "09195f00af365219292b09da507fcc8198863b414194beff9b975a9eb7a4267d"
+}

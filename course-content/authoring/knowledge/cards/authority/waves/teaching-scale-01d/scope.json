@@ -1,0 +1,55 @@
+{
+  "batchId": "teaching-scale-01d",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "name": "加速度误差常数 (K_a)",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+      "name": "稳态误差e_ss",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+      "name": "单位加速度函数",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "name": "直流增益",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+      "name": "叠加原理",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+      "name": "部分分式展开",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+      "name": "不同极点部分分式展开法",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "name": "拉普拉斯变换",
+      "directGoal": false
+    }
+  ],
+  "status": "authoring"
+}

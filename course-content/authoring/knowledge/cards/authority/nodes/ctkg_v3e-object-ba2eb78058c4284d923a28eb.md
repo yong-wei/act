@@ -1,54 +1,79 @@
 ---
 node_id: ctkg_v3e-object-ba2eb78058c4284d923a28eb
 authority_entity_id: "ctkg:v3e-object-ba2eb78058c4284d923a28eb"
-name: "Ackermann's formula for observer gain"
+name: "阿克曼观测器增益公式"
+name_en: "Ackermann Observer-Gain Formula"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - "Ackermann's"
-  - formula
-  - for
-  - observer
-  - gain
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-cf5a2635a95131941488cc36976d25900fa681b8b9359d267b82f96dbf0ef7be.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-cf5a2635a95131941488cc36976d25900fa681b8b9359d267b82f96dbf0ef7be.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-ba2eb78058c4284d923a28eb.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 4c4844a7001c2a00466b75e9ac27c6f4e50960679d405f468ba7fdd0d1483c86 -->
-
 ## 首页
+# 阿克曼观测器增益公式 | Ackermann Observer-Gain Formula
 
-# Ackermann's formula for observer gain
+一句话定义：阿克曼观测器公式通过可观测性矩阵和期望误差特征多项式，为可观测单输出系统计算观测增益L。
 
-**一句话定义**：Ackermann's formula for observer gain：A formula to compute the observer gain matrix L given a desired characteristic polynomial p(lambda).
-
-**核心直觉**：在图谱邻接中可把握：后续 → Full-state observer。
-
-**关联**：后续 → Full-state observer
+- 采用正残差注入 $L(y-C\hat x)$，误差矩阵为 $A-LC$。
+- 公式可由状态反馈阿克曼公式对偶推导。
+- 矩阵乘积的顺序与反馈公式不同，不能省略转置步骤。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-A formula to compute the observer gain matrix L given a desired characteristic polynomial p(lambda).
+设系统为n阶单输出连续时间线性定常模型，且 $\mathcal O=[C;CA;\ldots;CA^{n-1}]$ 可逆。期望观测误差特征多项式为 $p(s)=s^n+\beta_{n-1}s^{n-1}+\cdots+\beta_0$，在误差矩阵为 $A-LC$ 的约定下，公式为
+
+$$
+L=p(A)\mathcal O^{-1}e_n,\qquad e_n=[0\ \cdots\ 0\ 1]^T.
+$$
+
+这里L是n乘1列向量。先对对偶系统 $(A^T,C^T)$ 使用状态反馈公式，再把得到的反馈行向量转置，便得到这一顺序。因为对偶系统的可控性矩阵为 $\mathcal O^T$，且 $p(A^T)^T=p(A)$，转置会颠倒乘积顺序，不能将L错误写成只对反馈公式的字母替换。
+
+### 教学计算/推理例
+
+取 $A=[[0,1],[0,0]]$、$C=[1,0]$，期望误差极点为-4、-5，故 $p(s)=s^2+9s+20$。由于 $CA=[0,1]$，可观测性矩阵为单位阵；又因为 $A^2=0$，所以
+
+$$
+p(A)=9A+20I=\begin{pmatrix}20&9\\0&20\end{pmatrix},\qquad
+L=p(A)\begin{pmatrix}0\\1\end{pmatrix}=\begin{pmatrix}9\\20\end{pmatrix}.
+$$
+
+回代得到 $A-LC=[[-9,1],[-20,0]]$。其特征多项式为 $s^2+9s+20$，等于目标多项式，证明增益与误差符号约定一致。如果把L两个分量颠倒，则特征多项式成为 $s^2+20s+9$，并非要求的极点配置。
+
+这个例子中单位可观测性矩阵使计算很短，但不代表一般模型可以跳过求解线性方程。不同状态坐标下可观测性矩阵通常不再是单位阵，必须使用该模型的真实A、C计算并回代验证。
+
+### 适用条件与边界
+
+普通逆表达式要求单输出和完全可观测。多输出系统的可观测性矩阵一般是高矩阵，不能把普通逆直接改成任意伪逆，就认定同一公式仍能完成任意误差极点配置。若系统仅可检测而非完全可观测，也可能存在稳定观测器，但不能用不可逆的可观测性矩阵强行套用本式。
+
+当可观测性矩阵数值条件较差时，显式求逆可能放大舍入误差。教学上可使用小阶精确模型展示公式，实际设计应选择数值可靠的方法并核验误差极点。目标极点取得很快还可能提高噪声敏感性，代数配置成功并不能代替有噪声条件下的性能验证。
+
+本公式决定的是估计误差动态，不是对象本身的闭环控制动态。若估计状态还用于反馈控制，需要把K和L的组合系统一起解释，不能拿观测器极点当作整个系统仅有的极点。
+
+### 常见误区
+
+1. 对反馈公式只替换字母，遗漏转置造成的乘积顺序变化。
+2. 只要可检测就直接计算不可逆的可观测性矩阵逆。
+3. 把观测器误差极点当成反馈控制系统的全部极点。
+
+### 自检
+
+1. 本例 $p(A)$ 的第二列为什么就是L？
+2. 增益算完后，需要检查哪个矩阵的特征多项式？
+
+**核对要点**：可观测性矩阵为单位阵，右乘第二个标准基向量抽取第二列；检查 $A-LC$。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | Full-state observer | 用于分析 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、Ackermann's、formula、for、observer、gain
+- **全状态观测器**（出边，关系：用于分析）

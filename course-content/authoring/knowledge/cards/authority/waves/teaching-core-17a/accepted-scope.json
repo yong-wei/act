@@ -1,0 +1,71 @@
+{
+  "batchId": "teaching-core-17a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-17",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+      "name": "反馈路径根轨迹增益",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+      "name": "根轨迹分支",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "name": "绘制根轨迹的七个步骤",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+      "name": "根轨迹参数整定法",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+      "name": "前向通路首1根轨迹增益",
+      "moduleId": "module-3",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "name": "根轨迹增益",
+      "moduleId": "module-3",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+      "name": "实轴根轨迹",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+      "name": "根轨迹会合点",
+      "moduleId": "module-3",
+      "order": 8
+    },
+    {
+      "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "name": "零度根轨迹",
+      "moduleId": "module-3",
+      "order": 9
+    }
+  ],
+  "accepted": true
+}

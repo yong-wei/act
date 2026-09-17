@@ -9,6 +9,7 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { loadCardReplacements, type CardReplacements } from './card-replacements';
 
 import { projectionSha256 } from '@/lib/teaching-projection/hash';
 import type {
@@ -131,6 +132,8 @@ export interface LessonMeta {
 }
 
 export interface ResourceBindingSources {
+  /** Current Authority endpoints; absent only in isolated legacy fixtures. */
+  authorityCanonicalIds?: ReadonlySet<string>;
   repoRoot: string;
   scopeId: string;
   authority: {
@@ -149,6 +152,7 @@ export interface ResourceBindingSources {
   ambiguousLabels: string[];
   activeMedia: ActiveRuntimeMediaIndex;
   carryForward: CourseProjectionCarryForward;
+  cardReplacements?: CardReplacements;
   raw: {
     anchors: string;
     unitScopes: string;
@@ -311,6 +315,10 @@ export function loadResourceBindingSources(repoRoot: string): ResourceBindingSou
     ambiguousLabels,
     activeMedia,
     carryForward,
+    authorityCanonicalIds: new Set(readJson<{ objects: Array<{ canonicalId: string }> }>(path.join(
+      repoRoot, 'course-content/authoring/knowledge/authority/releases', authorityCurrent.snapshotId!, 'engineering.json',
+    )).objects.map((row) => row.canonicalId)),
+    cardReplacements: loadCardReplacements(repoRoot, authorityCurrent, carryForward.bindings),
     raw: {
       anchors: projectionSha256(concatDirectoryText(anchorsDir, '.json')),
       unitScopes: projectionSha256(concatDirectoryText(scopesDir, '.json')),

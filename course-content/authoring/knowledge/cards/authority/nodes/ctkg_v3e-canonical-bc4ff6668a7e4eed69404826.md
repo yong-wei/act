@@ -1,36 +1,36 @@
 ---
 node_id: ctkg_v3e-canonical-bc4ff6668a7e4eed69404826
 authority_entity_id: "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826"
-name: Steady-state error e ss
-name_en: Steady-state error e_ss
+name: "稳态误差e_ss"
+name_en: "Steady-State Error"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - Steady-state
-  - error
-  - ss
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e0e42aae8c105748a999d839b32d67ebeb42c88e5e4d2ba918b0f1e71899f5ce.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e0e42aae8c105748a999d839b32d67ebeb42c88e5e4d2ba918b0f1e71899f5ce.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/previous/ctkg_v3e-canonical-bc4ff6668a7e4eed69404826.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: ce1f56cf951a554ff65511d96e1e1fe901d9b8690acbd2bd2eb55e0b4b85b195 -->
-
 ## 首页
 
-# Steady-state error e ss | Steady-state error e_ss
+# 稳态误差 | Steady-State Error
 
-**一句话定义**：Steady-state error e ss：The difference between the final value of the response and the desired input magnitude.
+**一句话定义**：稳态误差是指定误差信号在时间趋于无穷时的极限，前提是该极限存在。
 
-**核心直觉**：在图谱邻接中可把握：后续 → Closed-loop system transfer function。
+**核心直觉**：先说明“谁与谁比较”，再讨论长期还差多少。
 
-**关联**：后续 → Closed-loop system transfer function
+**关键公式**：
+$$e_{\mathrm{ss}}=\lim_{t\to\infty}[r(t)-y(t)].$$
+
+**学习目标**：区分误差的定义、终值和瞬态，并针对参考与扰动分别建立误差通道。
 
 ---
 
@@ -38,18 +38,32 @@ asset_refs: []
 
 ### 完整解释
 
-The difference between the final value of the response and the desired input magnitude.
+本卡把参考与输出的实际偏差 $r-y$ 作为跟踪误差。若传感器通路 $H$ 不为1，比较点信号 $e_m=r-Hy$ 通常不是这一跟踪误差；工程上还要说明参考量与测量量如何标定。稳态误差可以是正数、负数或零；负号说明输出超过参考，并不意味着计算错误。
+
+对于零初始状态、单位负反馈的线性定常系统，开环为 $L=CP$ 时有 $E=R/(1+L)$。若扰动加入对象输入端，则输出的扰动分量为 $PD/(1+CP)$，对应的跟踪误差分量带负号。两条通道的分子不同，不能把参考输入的误差常数直接套给所有扰动。计算终值时还应检查 $sE(s)$ 约简后全部极点在左半平面。
+
+### 教学计算/推理例
+
+考虑归一化船速环，$P(s)=2/(s+1)$、$C=2$、单位负反馈、初始速度为零，目标速度阶跃为3。由 $y=P[2(r-y)+d]$ 得
+$$Y(s)=\frac{4}{s+5}R(s)+\frac{2}{s+5}D(s).$$
+无扰动时输出为 $y(t)=\tfrac{12}{5}(1-e^{-5t})$，所以实际误差由3逐渐趋于 $3/5=0.6$。加入对象入口常值扰动 $d=1$ 后，输出终值增为 $14/5=2.8$，误差反而降为 $0.2$。这个特定方向的扰动偶然帮助跟踪，不说明抗扰性能改善；改为 $d=-1$，误差终值就变为1。
+
+若传感器改为 $H=2$，无扰动且参考仍取比较点输入3，则信号方程变成 $y=P[2(3-2y)]$。直流平衡给出 $y_\infty=4/3$，比较点误差为 $1/3$，但若仍把物理参考定义为3，实际跟踪误差为 $5/3$。必须先校准参考与测量，不能把两种误差混为一谈。
+
+### 常见误区与边界
+
+1. **误区**：某一时刻误差很小就是稳态误差小。**纠正**：瞬态穿越零点不代表长期精度，需考察收敛后的量。
+2. **误区**：稳态误差为零就说明动态品质好。**纠正**：系统仍可能超调大、调节慢；若响应不收敛，连稳态误差这个终值也未必存在。
+
+### 自检
+
+1. 上例单位反馈、无扰动时，参考由3改成1，误差终值是多少？
+2. 非单位反馈下为什么不能直接写 $e=r-y$ 表示比较点信号？
+
+**核对要点**：误差为 $1/5$；比较点减去的是经过传感器的 $Hy$，应先明确量纲与参考标定。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | Closed-loop system transfer function | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、Steady-state、error、ss
+- **稳态**（关联）：先判断误差是否收敛，才能定义终值。
+- **跟踪误差**（关联）：明确参考与输出的实际差值，是计算前的第一步。
+- **输出误差向量**（关联）：多输出系统把标量误差推广为向量，各分量的单位和目标仍需分别说明。

@@ -1,0 +1,167 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:稳定性_1_1",
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/稳定性_1_1.md",
+          "sha256": "8671ea03814fb111e2a80ee5ba545d4bee7ca62c119af6662b7d5fc3b160f7fb",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/稳定性_1_1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/稳定性_1_1.md",
+          "sha256": "8671ea03814fb111e2a80ee5ba545d4bee7ca62c119af6662b7d5fc3b160f7fb",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/runtime/稳定性_1_1.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:稳定性_1_7288b4ea",
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/稳定性_1_7288b4ea.md",
+          "sha256": "d8c7b6ae69b7a48b49c745750ca1bfa2de779c17fd406a26e51f2574a40de287",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/稳定性_1_7288b4ea.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/稳定性_1_7288b4ea.md",
+          "sha256": "d8c7b6ae69b7a48b49c745750ca1bfa2de779c17fd406a26e51f2574a40de287",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/runtime/稳定性_1_7288b4ea.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:稳定性_3_72d04fbd",
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/稳定性_3_72d04fbd.md",
+          "sha256": "70206c6cba1cde58e05546f2c4d41e1be6dcdb043828b959f2e7f8d550a12381",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/稳定性_3_72d04fbd.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/稳定性_3_72d04fbd.md",
+          "sha256": "70206c6cba1cde58e05546f2c4d41e1be6dcdb043828b959f2e7f8d550a12381",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/runtime/稳定性_3_72d04fbd.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:稳定性_4_b56bde88",
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/稳定性_4_b56bde88.md",
+          "sha256": "b2c3c377ad713b3e49ad92551f52e822a63e7ec883ef2341c01214e41d8f2722",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/稳定性_4_b56bde88.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/稳定性_4_b56bde88.md",
+          "sha256": "b2c3c377ad713b3e49ad92551f52e822a63e7ec883ef2341c01214e41d8f2722",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/runtime/稳定性_4_b56bde88.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:稳定性_7_2e521218",
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/稳定性_7_2e521218.md",
+          "sha256": "bb58e7df38234610d5f55739bae5031b635a2b35adf5ade8ff29dcd5f4d3264d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/稳定性_7_2e521218.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/稳定性_7_2e521218.md",
+          "sha256": "bb58e7df38234610d5f55739bae5031b635a2b35adf5ade8ff29dcd5f4d3264d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/runtime/稳定性_7_2e521218.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:幅值裕度_5_73af26a5",
+      "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/幅值裕度_5_73af26a5.md",
+          "sha256": "4cc2bf4b75d9b747bae90f81c102fdc7310cae2dca81dddf12a94dd311604ec7",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/幅值裕度_5_73af26a5.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/幅值裕度_5_73af26a5.md",
+          "sha256": "4cc2bf4b75d9b747bae90f81c102fdc7310cae2dca81dddf12a94dd311604ec7",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/runtime/幅值裕度_5_73af26a5.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:幅值裕度_6_29a8a2e1",
+      "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/幅值裕度_6_29a8a2e1.md",
+          "sha256": "15b0a9cb7ac3fab509e5535ed3d6861a382cdab09469e1b4016bf2bba5d63cc1",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/幅值裕度_6_29a8a2e1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/幅值裕度_6_29a8a2e1.md",
+          "sha256": "15b0a9cb7ac3fab509e5535ed3d6861a382cdab09469e1b4016bf2bba5d63cc1",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/runtime/幅值裕度_6_29a8a2e1.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:截止频率_5_c7d09ff7",
+      "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/截止频率_5_c7d09ff7.md",
+          "sha256": "e0947439332c705b8ebc5b711ded1eac31be7f1ae76d04a06132a91071e923e8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/截止频率_5_c7d09ff7.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/截止频率_5_c7d09ff7.md",
+          "sha256": "e0947439332c705b8ebc5b711ded1eac31be7f1ae76d04a06132a91071e923e8",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/runtime/截止频率_5_c7d09ff7.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:截止频率_6_d39c12b0",
+      "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/截止频率_6_d39c12b0.md",
+          "sha256": "eaedbdf0846f5f184c66a8011650f05ae7b021ee432af12f40c41fdb8e48564c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/截止频率_6_d39c12b0.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/截止频率_6_d39c12b0.md",
+          "sha256": "eaedbdf0846f5f184c66a8011650f05ae7b021ee432af12f40c41fdb8e48564c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/runtime/截止频率_6_d39c12b0.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:截止频率ωc_5_c67064fa",
+      "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/截止频率ωc_5_c67064fa.md",
+          "sha256": "f93cc27084fb50f4fe6555e148a99707a1db681995688b89fa7031403d99e069",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/截止频率ωc_5_c67064fa.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/截止频率ωc_5_c67064fa.md",
+          "sha256": "f93cc27084fb50f4fe6555e148a99707a1db681995688b89fa7031403d99e069",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/runtime/截止频率ωc_5_c67064fa.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b9",
+  "replacementDigest": "12a2e39f2e343a73ce47a24b5ec4ce67d6daa8b4731c285be51ea73b34e6843c"
+}
