@@ -233,13 +233,9 @@ describe('hull pose samples the visible near field (#2098)', () => {
       'utf-8',
     );
     // 姿态五点采样与 GPU 近场同场（三轮复审）：带限波组 + 近场网格 + 角点包络。
-    expect(destroyer).toContain('waterSampler: (worldX, worldZ, timeSeconds) =>');
-    expect(destroyer).toContain(
-      'sampleVisibleWaterHeight(\n          NEAR_FIELD_VISIBLE_WAVES,'
-        .replace('\\n', '\n'),
-    );
-    expect(destroyer).not.toContain('MARINE_BASE_INTERACTION_WAVES,\n          gerstnerAmplitudeScale'
-      .replace('\\n', '\n'));
+    expect(destroyer).toContain('waterSampler: (() => {');
+    expect(destroyer).toContain('cachedQuery = createNearFieldSurfaceQuery(');
+    expect(destroyer).not.toContain('MARINE_BASE_INTERACTION_WAVES,');
   });
 });
 

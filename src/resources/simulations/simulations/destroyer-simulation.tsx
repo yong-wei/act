@@ -369,20 +369,27 @@ function MarineFrameRuntime({
       renderOriginSampler: () => ({ x: simRef.current.position.x, z: simRef.current.position.z }),
       simulationTimeSampler: () => simTimeRef.current,
       advancingSampler: () => simRef.current.advancing,
-      waterSampler: (worldX, worldZ, timeSeconds) =>
-        // 三轮复审修复：姿态与可见近场同一采样场——带限波组 + 近场网格 + 角点包络
-        // （与 GPU 完全同参数，档位无关）；容差即声明的近场近似容差。
-        sampleVisibleWaterHeight(
-          NEAR_FIELD_VISIBLE_WAVES,
-          gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
-          NEAR_FIELD_MESH_SPEC,
-          simRef.current.position.x,
-          simRef.current.position.z,
-          worldX,
-          worldZ,
-          timeSeconds,
-          (localX, localZ) => nearFieldEnvelope(localX, localZ, NEAR_FIELD_MESH_SPEC.size),
-        ),
+      // 六轮复审修复：五点姿态采样按（时间/原点）复用一次批量查询，共享角点缓存。
+      waterSampler: (() => {
+        let cacheKey = '';
+        let cachedQuery: ReturnType<typeof createNearFieldSurfaceQuery> | null = null;
+        return (worldX: number, worldZ: number, timeSeconds: number) => {
+          const origin = simRef.current.position;
+          const key = `${timeSeconds}|${origin.x}|${origin.z}`;
+          if (!cachedQuery || cacheKey !== key) {
+            cacheKey = key;
+            // 三轮复审修复：姿态与可见近场同一采样场——带限波组 + 近场网格 + 角点包络
+            // （与 GPU 完全同参数，档位无关）；容差即声明的近场近似容差。
+            cachedQuery = createNearFieldSurfaceQuery(
+              gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
+              origin.x,
+              origin.z,
+              timeSeconds,
+            );
+          }
+          return cachedQuery.heightAt(worldX, worldZ);
+        };
+      })(),
       ownership: DESTROYER_055_POSE_OWNERSHIP,
       environmentPresetIdSampler: () => presetId,
       qualityTierSampler: () => qualityRef.current.waterTier,
