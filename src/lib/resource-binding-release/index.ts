@@ -12,6 +12,7 @@ export {
 export {
   launchRowsForResource,
   listLiveAnchoredBindingsForResource,
+  presentPublishedResourceAnchors,
   type ResourceBindingLaunchRow,
 } from './query';
 export {

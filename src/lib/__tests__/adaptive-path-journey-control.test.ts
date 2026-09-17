@@ -482,8 +482,18 @@ describe('adaptive path journey control', () => {
     expect(source).toContain('<InteractiveLearningShell');
     expect(source).not.toContain('<AdaptivePathJourneyControlFromRoute');
     expect(source).toContain('publishAdaptivePathJourneyResponse(result)');
+    expect(source).toContain("resource.kind === 'route'");
     expect(source).toContain('data-published-resource-skip="unavailable"');
     expect(source).toContain('buildAdaptivePathUnavailableSkipRequest');
+  });
+
+  it('lets path-launched textbook chapters record completion on the reader', () => {
+    const route = readSource('src/features/textbook-reader/textbook-reader-route.tsx');
+    const bar = readSource('src/features/textbook-reader/textbook-path-completion-bar.tsx');
+    expect(route).toContain('TextbookPathCompletionBar');
+    expect(bar).toContain('buildAdaptivePathCompletionRequest');
+    expect(bar).toContain('data-textbook-path-completion="available"');
+    expect(bar).toContain('我已完成阅读');
   });
 
   it('suppresses resource-page return actions when the shared path journey owns navigation', () => {

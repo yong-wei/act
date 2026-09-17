@@ -57,6 +57,7 @@ export function PublishedResourcePage({ resource }: { resource: PublishedResourc
   const canCompleteReading = Boolean(context && (
     resource.kind === 'card'
     || resource.kind === 'infographic'
+    || resource.kind === 'route'
     || (resource.kind === 'media' && mediaReady)
   ));
   const canSkipUnavailable = Boolean(context && resource.kind === 'reference-only');

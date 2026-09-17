@@ -9,6 +9,15 @@ import {
   GERSTNER_WAVE_SETS,
   type GerstnerWave,
 } from '../scene/water/gerstner-waves';
+import {
+  DEFAULT_GERSTNER_SEA_STATE,
+  gerstnerAmplitudeScale,
+  GERSTNER_WATER_RESOLUTION_BY_TIER,
+  gerstnerWaterMeshSpecForTier,
+  MARINE_BASE_INTERACTION_MESH_SPEC,
+  MARINE_BASE_INTERACTION_WAVES,
+  sampleVisibleWaterHeight,
+} from '../scene/water/gerstner-water';
 
 const SINGLE_WAVE: GerstnerWave = {
   direction: [1, 0],
@@ -95,5 +104,37 @@ describe('gerstner water material and component', () => {
     );
     expect(destroyer).toContain('<GerstnerWater');
     expect(destroyer).not.toContain('function WaveWater(');
+  });
+});
+
+describe('marine base interaction field (#2097)', () => {
+  it('anchors wave phase to world coordinates: same world point and time, any render origin', () => {
+    const waves = GERSTNER_WAVE_SETS.high;
+    const mesh = gerstnerWaterMeshSpecForTier('high');
+    const scale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
+    const worldPoint = { x: 1234.5, z: -987.6 };
+    const time = 76.25;
+
+    // 解析场（相位真源）在世界坐标上求值：原点无关，精确相等。
+    const analytic = computeGerstnerDisplacement(waves, worldPoint.x, worldPoint.z, time).y;
+    const analyticAgain = computeGerstnerDisplacement(waves, worldPoint.x, worldPoint.z, time).y;
+    expect(analyticAgain).toBe(analytic);
+
+    // 可见曲面 = 解析场的网格插值近似：任一原点下都在声明容差内
+    // （近场近似容差是 spec 概念；非顶点位置可差数米，见 gerstner-water.tsx 注释）。
+    const APPROXIMATION_TOLERANCE_METERS = 4;
+    const atOrigin = (ox: number, oz: number) =>
+      sampleVisibleWaterHeight(waves, scale, mesh, ox, oz, worldPoint.x, worldPoint.z, time);
+    for (const [ox, oz] of [[0, 0], [1200, -950], [-400, 300]] as const) {
+      expect(Math.abs(atOrigin(ox, oz) - (-1 + analytic))).toBeLessThanOrEqual(
+        APPROXIMATION_TOLERANCE_METERS,
+      );
+    }
+  });
+
+  it('keeps the base interaction wave set tier-independent', () => {
+    expect(MARINE_BASE_INTERACTION_WAVES).toBe(GERSTNER_WAVE_SETS.high);
+    expect(MARINE_BASE_INTERACTION_MESH_SPEC.resolution)
+      .toBe(GERSTNER_WATER_RESOLUTION_BY_TIER.high);
   });
 });

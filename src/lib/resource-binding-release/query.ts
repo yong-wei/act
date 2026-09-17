@@ -51,3 +51,23 @@ export function launchRowsForResource(
     href: resolveAnchoredLaunchHref(launchable, binding.anchor, baseHref),
   }));
 }
+
+/** Student-visible launch chips: unique intra-resource locations, never the resource itself. */
+export function presentPublishedResourceAnchors(
+  rows: readonly ResourceBindingLaunchRow[],
+  resourceHref: string | null,
+): Array<{ label: string; appearance: BindingAppearance; href: string | null }> {
+  const seen = new Set<string>();
+  const presented: Array<{ label: string; appearance: BindingAppearance; href: string | null }> = [];
+  for (const row of rows) {
+    const label = row.anchorLabel?.trim() ?? '';
+    if (!label) continue;
+    const href = row.href ?? null;
+    if (href === resourceHref) continue;
+    const key = `${label}\0${row.appearance}\0${href ?? ''}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    presented.push({ label, appearance: row.appearance, href });
+  }
+  return presented;
+}

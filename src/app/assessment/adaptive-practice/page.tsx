@@ -3681,12 +3681,14 @@ export default function AdaptivePracticePage() {
     null
   ), [pathExecutionNodes, selectedPathNodeId]);
   const pathCenterOpenedNodeIds = useMemo(() => {
-    const ownedNodeIds = new Set(pathExecutionNodes.filter(keepsOwningPathCenterOpen).map((node) => node.nodeId));
+    const completableNodeIds = new Set(
+      pathExecutionNodes.filter(allowsPathCenterExplicitCompletion).map((node) => node.nodeId),
+    );
     return new Set((activePathRound?.executions ?? [])
       .map(getRecord)
       .filter((execution) => execution.status === 'started' && typeof execution.nodeId === 'string')
       .map((execution) => execution.nodeId as string)
-      .filter((nodeId) => ownedNodeIds.has(nodeId)));
+      .filter((nodeId) => completableNodeIds.has(nodeId)));
   }, [activePathRound?.executions, pathExecutionNodes]);
   const activeExecutionPathId = activePathRound?.id ?? activePathPlan?.id ?? activePathId;
   const activeExecutionGoalId = activeGoal ?? resolveAdaptivePracticeGoalId(activePathPlan?.goal.id ?? activePathRound?.goalId ?? null);

@@ -7,6 +7,7 @@ import { useTexture } from '@react-three/drei';
 
 import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, type GerstnerWave } from './gerstner-waves';
 import { createGerstnerWaterMaterial } from './gerstner-water-material';
+import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { DEFAULT_ENVIRONMENT_PRESET_ID, getEnvironmentPreset } from '../environment/environment-presets';
 import { simulationScenePalette } from '../../components/simulation-theme';
 
@@ -38,6 +39,14 @@ export function gerstnerWaterMeshSpecForTier(tier: GerstnerWaterTier): GerstnerW
   return { size: GERSTNER_WATER_SIZE, resolution: GERSTNER_WATER_RESOLUTION_BY_TIER[tier] };
 }
 
+/**
+ * 基础交互波场（#2097）：船体姿态与交互采样的档位无关基准——画质只裁剪渲染
+ * 细节（波分量数/网格细分），不得改变交互基准场；可见低档水面是同一场的近似。
+ */
+export const MARINE_BASE_INTERACTION_WAVES: readonly GerstnerWave[] = GERSTNER_WAVE_SETS.high;
+export const MARINE_BASE_INTERACTION_MESH_SPEC: GerstnerWaterMeshSpec =
+  gerstnerWaterMeshSpecForTier('high');
+
 /** 海况等级 → 振幅倍率（与 createGerstnerWaterMaterial 的 uAmplitudeScale 同一公式）。 */
 export function gerstnerAmplitudeScale(seaState: number): number {
   return 0.3 + (seaState - 1) * 0.34;
@@ -49,15 +58,17 @@ interface DisplacedVertex {
   readonly z: number;
 }
 
-/** 与顶点着色器同一公式：解析场位移（含振幅倍率的水平分量）。 */
+/** 与顶点着色器同一公式：解析场位移（含振幅倍率的水平分量）。相位取世界坐标（局部 + 网格原点），保证同一世界点/时间的波相位不随原点移动变化；水平位移平移不变，返回值保持局部坐标供三角包含测试。 */
 function displaceVertex(
   waves: readonly GerstnerWave[],
   amplitudeScale: number,
   x: number,
   z: number,
+  originX: number,
+  originZ: number,
   timeSeconds: number,
 ): DisplacedVertex {
-  const displacement = computeGerstnerDisplacement(waves, x, z, timeSeconds);
+  const displacement = computeGerstnerDisplacement(waves, x + originX, z + originZ, timeSeconds);
   return {
     x: x + amplitudeScale * displacement.offsetX,
     y: amplitudeScale * displacement.y,
@@ -125,7 +136,7 @@ export function sampleVisibleWaterHeight(
     const key = i * (mesh.resolution + 1) + j;
     let vertex = cornerCache.get(key);
     if (!vertex) {
-      vertex = displaceVertex(waves, amplitudeScale, i * cell - half, j * cell - half, timeSeconds);
+      vertex = displaceVertex(waves, amplitudeScale, i * cell - half, j * cell - half, originX, originZ, timeSeconds);
       cornerCache.set(key, vertex);
     }
     return vertex;
@@ -199,6 +210,8 @@ export function GerstnerWater({
 }: GerstnerWaterProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
+  // 共享视觉时间：Provider 场景同帧唯一（暂停/倍速政策一致）；未接入场景回退 R3F 时钟。
+  const marineVisualTime = useMarineVisualTime();
 
   foamTexture.wrapS = THREE.RepeatWrapping;
   foamTexture.wrapT = THREE.RepeatWrapping;
@@ -224,12 +237,13 @@ export function GerstnerWater({
     [tier, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale]
   );
 
-  useFrame((state) => {
-    material.uniforms.uTime.value = state.clock.getElapsedTime();
+  useFrame((state, delta) => {
+    material.uniforms.uTime.value = marineVisualTime(state, delta);
     const sampled = positionSampler?.() ?? shipPosition;
     if (meshRef.current && sampled) {
       meshRef.current.position.x = sampled.x;
       meshRef.current.position.z = sampled.z;
+      material.uniforms.uWorldOrigin.value.set(sampled.x, sampled.z);
     }
   });
 
