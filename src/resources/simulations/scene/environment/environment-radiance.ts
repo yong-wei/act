@@ -29,9 +29,15 @@ export interface MarineSunFrame {
   readonly targetPosition: THREE.Vector3;
 }
 
-/** 由预设派生世界空间太阳方向（单位向量）。 */
+/** 由预设派生世界空间太阳方向（单位向量；同一 preset 返回同一实例，视为不可变）。 */
+const sunDirectionCache = new Map<string, THREE.Vector3>();
+
 export function worldSunDirection(preset: SceneEnvironmentPreset): THREE.Vector3 {
-  return new THREE.Vector3(...preset.sun.position).normalize();
+  const cached = sunDirectionCache.get(preset.id);
+  if (cached) return cached;
+  const direction = new THREE.Vector3(...preset.sun.position).normalize();
+  sunDirectionCache.set(preset.id, direction);
+  return direction;
 }
 
 /**
@@ -51,7 +57,7 @@ export function marineSunFrameForSubject(
 
 /** PMREM 生成器端口（渲染器适配）：生产传 THREE.WebGLRenderer 封装，测试传桩。 */
 export interface MarinePmremSource {
-  /** 以仅含天空的环境场景生成 PMREM 纹理（每个 preset 至多一次）。 */
+  /** 以仅含天空的环境场景生成 PMREM 纹理（每个 renderer×preset 至多一次）。 */
   fromSkyScene(skyScene: THREE.Scene): THREE.Texture;
 }
 
@@ -60,36 +66,77 @@ export interface MarineRadianceCacheEntry {
   readonly texture: THREE.Texture;
 }
 
-const radianceCache = new Map<string, MarineRadianceCacheEntry>();
+/**
+ * 渲染器键（复审修复）：PMREM render-target 纹理属于生成它的 WebGLRenderer，
+ * 跨 Canvas/页面导航共享纹理对象会绑定不到有效 PMREM——缓存按 renderer 隔离。
+ */
+const rendererKeys = new WeakMap<object, string>();
+let rendererKeySeq = 0;
+
+export function marineRendererKey(renderer: object): string {
+  let key = rendererKeys.get(renderer);
+  if (!key) {
+    rendererKeySeq += 1;
+    key = `renderer-${rendererKeySeq}`;
+    rendererKeys.set(renderer, key);
+  }
+  return key;
+}
+
+/** renderer×preset 二级缓存。 */
+const radianceCache = new Map<string, Map<string, MarineRadianceCacheEntry>>();
+
+function cacheBucket(rendererKey: string): Map<string, MarineRadianceCacheEntry> {
+  let bucket = radianceCache.get(rendererKey);
+  if (!bucket) {
+    bucket = new Map();
+    radianceCache.set(rendererKey, bucket);
+  }
+  return bucket;
+}
 
 /**
- * 解析（或命中缓存）当前预设的环境辐射：预设不变时重复渲染复用同一 PMREM，
- * 不逐帧重生成；预设切换命中既有缓存或经 source 生成一次。
+ * 解析（或命中缓存）当前预设的环境辐射：同一 renderer 下预设不变时复用同一
+ * PMREM，不逐帧重生成；不同 renderer 各自生成，不跨 Canvas 共享纹理对象。
  */
 export function resolveMarineEnvironmentRadiance(
   source: MarinePmremSource,
   skySceneFactory: () => THREE.Scene,
   presetId: string,
+  rendererKey: string,
 ): MarineRadianceCacheEntry {
-  const cached = radianceCache.get(presetId);
+  const bucket = cacheBucket(rendererKey);
+  const cached = bucket.get(presetId);
   if (cached) return cached;
   const entry: MarineRadianceCacheEntry = {
     presetId,
     texture: source.fromSkyScene(skySceneFactory()),
   };
-  radianceCache.set(presetId, entry);
+  bucket.set(presetId, entry);
   return entry;
 }
 
-/** 缓存命中计数（测试与 QA 观测用）。 */
+/** 缓存条目计数（测试与 QA 观测用）。 */
 export function marineRadianceCacheSize(): number {
-  return radianceCache.size;
+  let total = 0;
+  for (const bucket of radianceCache.values()) total += bucket.size;
+  return total;
 }
 
-/** 释放全部环境辐射缓存（卸载/测试隔离时调用；纹理 dispose 由调用方或 THREE GC 兜底）。 */
-export function disposeMarineEnvironmentRadiance(): void {
-  for (const entry of radianceCache.values()) {
-    entry.texture.dispose();
+/**
+ * 释放环境辐射缓存：带 rendererKey 只释放该 renderer 的条目（Canvas 卸载时），
+ * 不带参数释放全部（测试隔离）。释放后重新解析会再次生成。
+ */
+export function disposeMarineEnvironmentRadiance(rendererKey?: string): void {
+  if (rendererKey === undefined) {
+    for (const bucket of radianceCache.values()) {
+      for (const entry of bucket.values()) entry.texture.dispose();
+    }
+    radianceCache.clear();
+    return;
   }
-  radianceCache.clear();
+  const bucket = radianceCache.get(rendererKey);
+  if (!bucket) return;
+  for (const entry of bucket.values()) entry.texture.dispose();
+  radianceCache.delete(rendererKey);
 }

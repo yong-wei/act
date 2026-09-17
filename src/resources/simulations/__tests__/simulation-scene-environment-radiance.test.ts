@@ -69,7 +69,7 @@ describe('subject-following sun frame (#2099)', () => {
 });
 
 describe('environment radiance cache (#2099)', () => {
-  it('reuses cached PMREM for an unchanged preset without regeneration', () => {
+  it('reuses cached PMREM per renderer without regeneration or cross-renderer sharing', () => {
     disposeMarineEnvironmentRadiance();
     const generations: string[] = [];
     const source: MarinePmremSource = {
@@ -79,24 +79,45 @@ describe('environment radiance cache (#2099)', () => {
       },
     };
     const factory = () => new THREE.Scene();
-    const first = resolveMarineEnvironmentRadiance(source, factory, 'open-sea');
-    const second = resolveMarineEnvironmentRadiance(source, factory, 'open-sea');
+    const first = resolveMarineEnvironmentRadiance(source, factory, 'open-sea', 'renderer-1');
+    const second = resolveMarineEnvironmentRadiance(source, factory, 'open-sea', 'renderer-1');
     expect(second).toBe(first);
     expect(generations).toHaveLength(1);
     expect(marineRadianceCacheSize()).toBe(1);
 
     // 不同预设各自生成一次并缓存。
-    resolveMarineEnvironmentRadiance(source, factory, 'storm-blue');
-    resolveMarineEnvironmentRadiance(source, factory, 'storm-blue');
+    resolveMarineEnvironmentRadiance(source, factory, 'storm-blue', 'renderer-1');
+    resolveMarineEnvironmentRadiance(source, factory, 'storm-blue', 'renderer-1');
     expect(generations).toHaveLength(2);
     expect(marineRadianceCacheSize()).toBe(2);
+
+    // 复审修复：第二 Canvas（另一 renderer）不共享第一 renderer 的纹理对象。
+    const otherRenderer = resolveMarineEnvironmentRadiance(source, factory, 'open-sea', 'renderer-2');
+    expect(otherRenderer).not.toBe(first);
+    expect(generations).toHaveLength(3);
+    expect(marineRadianceCacheSize()).toBe(3);
+
+    // 单 renderer 释放只清自己的条目。
+    disposeMarineEnvironmentRadiance('renderer-1');
+    expect(marineRadianceCacheSize()).toBe(1);
+    const afterPartial = resolveMarineEnvironmentRadiance(source, factory, 'open-sea', 'renderer-2');
+    expect(afterPartial).toBe(otherRenderer);
+    expect(generations).toHaveLength(3);
 
     disposeMarineEnvironmentRadiance();
     expect(marineRadianceCacheSize()).toBe(0);
     // 释放后重新解析会再次生成（资源释放语义）。
-    resolveMarineEnvironmentRadiance(source, factory, 'open-sea');
-    expect(generations).toHaveLength(3);
+    resolveMarineEnvironmentRadiance(source, factory, 'open-sea', 'renderer-1');
+    expect(generations).toHaveLength(4);
     disposeMarineEnvironmentRadiance();
+  });
+
+  it('returns a stable sun direction identity per preset (material rebuild guard)', () => {
+    const preset = SCENE_ENVIRONMENT_PRESETS[0]!;
+    const first = worldSunDirection(preset);
+    const second = worldSunDirection(preset);
+    // 身份稳定：下游 useMemo 依赖不会因 HUD 状态刷新而重建水材质。
+    expect(second).toBe(first);
   });
 });
 

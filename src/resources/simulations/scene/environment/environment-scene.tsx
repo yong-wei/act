@@ -7,8 +7,10 @@ import { useTexture } from '@react-three/drei';
 
 import { useSceneEnvironment } from './environment-state';
 import {
+  disposeMarineEnvironmentRadiance,
   MARINE_ENVIRONMENT_IBL_INTENSITY,
   MARINE_SHADOW_BOUNDS_METERS,
+  marineRendererKey,
   marineSunFrameForSubject,
   resolveMarineEnvironmentRadiance,
   worldSunDirection,
@@ -73,11 +75,15 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
       skyScene.add(sphere);
       return skyScene;
     };
-    const entry = resolveMarineEnvironmentRadiance(source, skySceneFactory, preset.id);
+    // PMREM render-target 属于生成它的 renderer：缓存按 renderer 隔离，卸载释放本 renderer 条目。
+    const rendererKey = marineRendererKey(gl);
+    const entry = resolveMarineEnvironmentRadiance(source, skySceneFactory, preset.id, rendererKey);
     scene.environment = entry.texture;
     scene.environmentIntensity = MARINE_ENVIRONMENT_IBL_INTENSITY;
     return () => {
       generator?.dispose();
+      disposeMarineEnvironmentRadiance(rendererKey);
+      if (scene.environment === entry.texture) scene.environment = null;
     };
   }, [gl, scene, preset.id, skyTexture]);
 
