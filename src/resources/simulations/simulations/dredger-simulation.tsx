@@ -27,6 +27,7 @@ import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulation
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MARINE_SCENE_LAYOUTS,
   MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
@@ -570,6 +571,7 @@ function DredgerWater({
     <GerstnerWater
       tier={params.waterTier}
       positionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })}
+      shoreSegments={MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}

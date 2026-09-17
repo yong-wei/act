@@ -254,7 +254,8 @@ describe('shader surface derivative contract (#2098)', () => {
     expect(source).toContain('float dEdge = -6.0 * te * (1.0 - te) / uEnvelopeFadeBand;');
     // 近场包络进顶点幅度；远场近场覆盖区片元丢弃（复审修复）。
     expect(source).toContain('float amp = ampRaw * envelope;');
-    expect(source).toContain('float ampRaw = uWaves[base + 2] * uAmplitudeScale;');
+    expect(source).toContain('float ampRaw = uWaves[base + 2] * effectiveAmplitudeScale;');
+    expect(source).toContain('float effectiveAmplitudeScale = uAmplitudeScale * shoreAttenuation;');
     expect(source).toContain('max(abs(vLocalXZ.x), abs(vLocalXZ.y)) < uNearCutoutHalfSize) discard;');
     // 旧近似法线公式已移除。
     expect(source).not.toContain('normalize(vec3(-dYdx, 1.0, -dYdz))');

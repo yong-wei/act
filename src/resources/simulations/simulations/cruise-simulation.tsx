@@ -29,6 +29,7 @@ import { SimulationTopBar, SimulationDock, simulationUi } from '../components/si
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MARINE_SCENE_LAYOUTS,
   MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
@@ -1329,6 +1330,7 @@ function CruiseWater({ state }: { state: CruiseSimulationState }) {
     <GerstnerWater
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}

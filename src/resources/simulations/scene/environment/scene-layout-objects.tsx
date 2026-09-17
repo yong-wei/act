@@ -69,15 +69,53 @@ export interface MarineSceneLayoutProps {
   readonly layoutId?: MarineSceneLayoutId;
 }
 
+/** 挖泥羽流（#2102）：有限范围低成本视觉表示（半透明圆盘），不影响任务指标。 */
+function SedimentPlumeDisc({ x, z, radiusMeters, opacity }: {
+  readonly x: number;
+  readonly z: number;
+  readonly radiusMeters: number;
+  readonly opacity: number;
+}) {
+  const geometry = useMemo(() => new THREE.CircleGeometry(radiusMeters, 24), [radiusMeters]);
+  const material = useMemo(
+    () => new THREE.MeshBasicMaterial({
+      color: 0x7a6a52,
+      transparent: true,
+      opacity,
+      depthWrite: false,
+    }),
+    [opacity],
+  );
+  return <mesh geometry={geometry} material={material} position={[x, -0.92, z]} rotation={[-Math.PI / 2, 0, 0]} />;
+}
+
 /** 布局挂载：按声明渲染世界锚定环境物（同一 water/sky/quality 栈，无专属渲染器）。 */
 export function MarineSceneLayoutObjects({ layoutId }: MarineSceneLayoutProps) {
   const layout = layoutId ? MARINE_SCENE_LAYOUTS[layoutId] : null;
   if (!layout) return null;
+  // 冰况密度门控（#2102）：iceCoverage 视觉密度决定冰块渲染数量（服从声明输入）。
+  const coverage = layout.iceCoverage ?? 1;
+  const objects = layout.objects.filter((object) => {
+    if (object.kind !== 'ice-floe') return true;
+    const index = layout.objects.filter((item) => item.kind === 'ice-floe').indexOf(object);
+    const visibleCount = Math.ceil(
+      layout.objects.filter((item) => item.kind === 'ice-floe').length * Math.min(Math.max(coverage, 0), 1),
+    );
+    return index < visibleCount;
+  });
   return (
     <group>
-      {layout.objects.map((object) => (
+      {objects.map((object) => (
         <EnvironmentObjectMesh key={object.id} object={object} />
       ))}
+      {layout.sedimentPlume ? (
+        <SedimentPlumeDisc
+          x={layout.sedimentPlume.x}
+          z={layout.sedimentPlume.z}
+          radiusMeters={layout.sedimentPlume.radiusMeters}
+          opacity={layout.sedimentPlume.opacity}
+        />
+      ) : null}
     </group>
   );
 }

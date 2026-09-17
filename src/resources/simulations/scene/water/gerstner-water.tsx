@@ -7,6 +7,8 @@ import { useTexture } from '@react-three/drei';
 
 import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, type GerstnerWave } from './gerstner-waves';
 import { packHullExclusion, type HullExclusionBox } from './hull-exclusion';
+import { MAX_SHORE_SEGMENTS } from './gerstner-water-material';
+import type { MarineShoreSegment } from '../environment/scene-layouts';
 import {
   bandCellSize,
   bandLimitWaves,
@@ -297,6 +299,9 @@ export interface GerstnerWaterProps {
   /** 船壳排水排除框（#2101，船体局部坐标）；缺省无排除。 */
   readonly hullExclusionSampler?: () => readonly HullExclusionBox[] | null;
   readonly shipHeadingSampler?: () => number;
+  /** 岸线段（#2102）：显示海面波幅随距岸衰减（渲染输入）。 */
+  readonly shoreSegments?: readonly MarineShoreSegment[];
+  readonly shoreFadeBandMeters?: number;
 }
 
 /** 单个带限水网格（#2098 内部组件）：几何/材质随波组与包络参数构建，逐帧写时间与原点。 */
@@ -310,6 +315,8 @@ function BandWaterMesh({
   sunIllumination,
   hullExclusionSampler,
   shipHeadingSampler,
+  shoreSegments,
+  shoreFadeBandMeters,
   marineVisualTime,
   positionSampler,
   shipPosition,
@@ -329,6 +336,8 @@ function BandWaterMesh({
   readonly sunIllumination: number;
   readonly hullExclusionSampler?: () => readonly HullExclusionBox[] | null;
   readonly shipHeadingSampler?: () => number;
+  readonly shoreSegments?: readonly MarineShoreSegment[];
+  readonly shoreFadeBandMeters: number;
   readonly marineVisualTime: (state: { clock: { elapsedTime: number; getElapsedTime?: () => number } }, delta: number) => number;
   readonly positionSampler?: () => { readonly x: number; readonly z: number } | undefined;
   readonly shipPosition?: { readonly x: number; readonly z: number };
@@ -360,9 +369,25 @@ function BandWaterMesh({
       nearCutoutHalfSizeMeters,
       microNormalTier,
       sunIllumination,
+      shoreSegments,
+      shoreFadeBandMeters,
     }),
-    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, sunIllumination]
+    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, sunIllumination, shoreSegments, shoreFadeBandMeters]
   );
+  // 岸线段打包（#2102）：静态声明 → uniform 数组一次写入。
+  useMemo(() => {
+    const array = material.uniforms.uShoreSegments.value as Float32Array;
+    array.fill(0);
+    (shoreSegments ?? []).slice(0, MAX_SHORE_SEGMENTS).forEach((segment, index) => {
+      const base = index * 4;
+      array[base] = segment.from[0];
+      array[base + 1] = segment.from[1];
+      array[base + 2] = segment.to[0];
+      array[base + 3] = segment.to[1];
+    });
+    material.uniforms.uShoreSegmentCount.value = Math.min((shoreSegments ?? []).length, MAX_SHORE_SEGMENTS);
+    material.uniforms.uShoreFadeBand.value = shoreFadeBandMeters;
+  }, [material, shoreSegments, shoreFadeBandMeters]);
 
   useFrame((state, delta) => {
     material.uniforms.uTime.value = marineVisualTime(state, delta);
@@ -419,6 +444,8 @@ export function GerstnerWater({
   sunIllumination = 1,
   hullExclusionSampler,
   shipHeadingSampler,
+  shoreSegments,
+  shoreFadeBandMeters = 400,
 }: GerstnerWaterProps) {
   const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
   // 共享视觉时间：Provider 场景同帧唯一（暂停/倍速政策一致）；未接入场景回退 R3F 时钟。
@@ -443,6 +470,7 @@ export function GerstnerWater({
         sunIllumination={sunIllumination}
         hullExclusionSampler={hullExclusionSampler}
         shipHeadingSampler={shipHeadingSampler}
+        shoreFadeBandMeters={shoreFadeBandMeters}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}
@@ -463,6 +491,8 @@ export function GerstnerWater({
         sunIllumination={sunIllumination}
         hullExclusionSampler={hullExclusionSampler}
         shipHeadingSampler={shipHeadingSampler}
+        shoreSegments={shoreSegments}
+        shoreFadeBandMeters={shoreFadeBandMeters}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}

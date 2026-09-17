@@ -100,6 +100,50 @@ describe('shoreline amplitude attenuation (#2102, render input)', () => {
   });
 });
 
+describe('visual extension slots have runtime consumers (#2102 contracts)', () => {
+  it('renders the sediment plume and gates ice floes by coverage', () => {
+    const source = readFileSync(
+      path.join(ROOT, 'src/resources/simulations/scene/environment/scene-layout-objects.tsx'),
+      'utf-8',
+    );
+    expect(source).toContain('SedimentPlumeDisc');
+    expect(source).toContain('layout.sedimentPlume.radiusMeters');
+    // 冰况密度门控：iceCoverage 决定冰块渲染数量。
+    expect(source).toContain('* Math.min(Math.max(coverage, 0), 1)');
+  });
+
+  it('feeds shore segments into the near-field water amplitude (GPU mirror of the pure function)', () => {
+    const material = readFileSync(
+      path.join(ROOT, 'src/resources/simulations/scene/water/gerstner-water-material.ts'),
+      'utf-8',
+    );
+    expect(material).toContain('uShoreSegments');
+    expect(material).toContain('shoreAttenuation = 0.15 + 0.85 * t * t * (3.0 - 2.0 * t);');
+    expect(material).toContain('float ampRaw = uWaves[base + 2] * effectiveAmplitudeScale;');
+    // 带岸线布局的船型把声明段传入水面。
+    const cruise = readFileSync(
+      path.join(ROOT, 'src/resources/simulations/simulations/cruise-simulation.tsx'),
+      'utf-8',
+    );
+    expect(cruise).toContain("shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}");
+    const dredger = readFileSync(
+      path.join(ROOT, 'src/resources/simulations/simulations/dredger-simulation.tsx'),
+      'utf-8',
+    );
+    expect(dredger).toContain("shoreSegments={MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments}");
+  });
+
+  it('keeps the GPU attenuation formula equal to the CPU reference', () => {
+    // GPU：0.15 + 0.85·t²(3−2t)；CPU：shorelineAmplitudeAttenuation 同式（带外 1、岸边 0.15）。
+    const shore = [{ id: 's', from: [-1000, 0] as const, to: [1000, 0] as const, shoreDepthMeters: 5 }];
+    for (const distance of [0, 100, 200, 300, 400]) {
+      const t = distance / 400;
+      const gpu = 0.15 + 0.85 * t * t * (3 - 2 * t);
+      expect(shorelineAmplitudeAttenuation(shore, 0, distance, 400)).toBeCloseTo(gpu, 12);
+    }
+  });
+});
+
 describe('layout mounting reuses the shared rendering stack (#2102 contracts)', () => {
   it.each([
     ['destroyer-simulation.tsx', 'open-sea-distant-islands'],

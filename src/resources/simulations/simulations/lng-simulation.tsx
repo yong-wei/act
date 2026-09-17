@@ -28,6 +28,7 @@ import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulation
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MARINE_SCENE_LAYOUTS,
   MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
@@ -287,6 +288,7 @@ function LNGWater({ state }: { state: LNGSimulationState }) {
     <GerstnerWater
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}

@@ -3,6 +3,10 @@ import * as THREE from 'three';
 import { GERSTNER_MAX_WAVES, type GerstnerWave } from './gerstner-waves';
 import { NEAR_FIELD_FADE_BAND_METERS } from './ocean-bands';
 import { MAX_HULL_EXCLUSION_BOXES } from './hull-exclusion';
+import type { MarineShoreSegment } from '../environment/scene-layouts';
+
+/** 岸线段 uniform 上限（#2102）。 */
+export const MAX_SHORE_SEGMENTS = 4;
 import {
   FOAM_ROUGHNESS,
   MICRO_NORMAL_FADE_DISTANCE_METERS,
@@ -42,6 +46,10 @@ export interface GerstnerWaterMaterialOptions {
   readonly sunIllumination?: number;
   /** 船壳排水排除框数（#2101）：0 表示无排除（uniform 数组仍按上限分配）。 */
   readonly hullExclusionCount?: number;
+  /** 岸线段（#2102）：显示海面波幅随距岸衰减（渲染输入，非水动力）。 */
+  readonly shoreSegments?: readonly MarineShoreSegment[];
+  /** 岸线波幅衰减带宽度（米）。 */
+  readonly shoreFadeBandMeters?: number;
 }
 
 const FLOATS_PER_WAVE = 6;
@@ -106,6 +114,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uHullExclusionBoxes: { value: new Float32Array(MAX_HULL_EXCLUSION_BOXES * 4) },
       uHullExclusionCount: { value: options.hullExclusionCount ?? 0 },
       uShipHeading: { value: 0 },
+      uShoreSegments: { value: new Float32Array(MAX_SHORE_SEGMENTS * 4) },
+      uShoreSegmentCount: { value: 0 },
+      uShoreFadeBand: { value: 400 },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
       uDeepColor: { value: new THREE.Color(options.deepColor) },
       uHorizonColor: { value: new THREE.Color(options.horizonColor) },
@@ -140,6 +151,25 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 若逐波用已水平位移的 pos.xz 取相位，波序依赖且与 CPU 参照不再同公式。
         vec3 basePos = position;
         vec2 worldXZ = basePos.xz + uWorldOrigin;
+        // 岸线波幅衰减（#2102）：距岸线越近波幅越小（与 CPU shorelineAmplitudeAttenuation
+        // 同公式：岸边 0.15 残余，带内 smoothstep，带外 1）；纯显示输入，非水动力。
+        float shoreAttenuation = 1.0;
+        if (uShoreSegmentCount > 0.0 && uShoreFadeBand > 0.0) {
+          float minDistance = 1e9;
+          for (int i = 0; i < 4; i++) {
+            if (float(i) >= uShoreSegmentCount) break;
+            vec4 seg = uShoreSegments[i];
+            vec2 ab = seg.zw - seg.xy;
+            float lenSq = dot(ab, ab);
+            float t = lenSq > 0.0 ? clamp(dot(worldXZ - seg.xy, ab) / lenSq, 0.0, 1.0) : 0.0;
+            minDistance = min(minDistance, length(worldXZ - (seg.xy + ab * t)));
+          }
+          if (minDistance < uShoreFadeBand) {
+            float t = minDistance / uShoreFadeBand;
+            shoreAttenuation = 0.15 + 0.85 * t * t * (3.0 - 2.0 * t);
+          }
+        }
+        float effectiveAmplitudeScale = uAmplitudeScale * shoreAttenuation;
         // 近场幅度包络（#2098）：外环 smoothstep 衰减，一阶导两端为零避免折痕。
         float envelope = 1.0;
         if (uEnvelopeHalfSize > 0.0) {
@@ -183,7 +213,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           int base = i * FLOATS_PER_WAVE;
           float dx = uWaves[base];
           float dz = uWaves[base + 1];
-          float ampRaw = uWaves[base + 2] * uAmplitudeScale;
+          float ampRaw = uWaves[base + 2] * effectiveAmplitudeScale;
           float amp = ampRaw * envelope;
           float wavelength = uWaves[base + 3];
           float speed = uWaves[base + 4];
@@ -249,6 +279,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform vec4 uHullExclusionBoxes[6];
       uniform float uHullExclusionCount;
       uniform float uShipHeading;
+      uniform vec4 uShoreSegments[4];
+      uniform float uShoreSegmentCount;
+      uniform float uShoreFadeBand;
 
       varying vec3 vNormal;
       varying vec3 vWorldNormal;
