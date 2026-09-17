@@ -47,8 +47,10 @@ describe('F1: visible water sampling shares the mesh-local coordinate basis', ()
     const cell = mesh.size / mesh.resolution;
     const vx = -mesh.size / 2 + 130 * cell;
     const vz = -mesh.size / 2 + 127 * cell;
-    const vertex = displaced(vx, vz, t);
-    const sampled = sampleVisibleWaterHeight(waves, scale, mesh, originX, originZ, originX + vertex.x, originZ + vertex.z, t);
+    // #2097：相位锚定世界坐标——参照位移在（局部 + 原点）上求值且返回世界位置，
+    // 查询点直接取位移后世界 XZ。
+    const vertex = displaced(vx + originX, vz + originZ, t);
+    const sampled = sampleVisibleWaterHeight(waves, scale, mesh, originX, originZ, vertex.x, vertex.z, t);
     expect(sampled).toBeCloseTo(GERSTNER_WATER_BASE_Y + vertex.y, 6);
   });
 
@@ -236,7 +238,8 @@ describe('F5: water geometry bakes the -90° X rotation into vertices', () => {
     for (const index of [0, 37, 101, 200, positions.count - 1]) {
       const localX = positions.getX(index);
       const localZ = positions.getZ(index);
-      const displacement = computeGerstnerDisplacement(waves, localX, localZ, t);
+      // #2097：shader 相位取 basePos.xz + uWorldOrigin，参照同口径。
+      const displacement = computeGerstnerDisplacement(waves, localX + originX, localZ + originZ, t);
       const gpuWorldY = GERSTNER_WATER_BASE_Y + scale * displacement.y;
       const cpuSample = sampleVisibleWaterHeight(
         waves, scale, mesh, originX, originZ,
@@ -456,13 +459,14 @@ describe('F9: shader phase uses immutable original coordinates (CPU/GPU same fie
     }
   });
 
-  it('shader 源码以不可变原始坐标计算相位', () => {
+  it('shader 源码以不可变原始坐标 + 世界原点补偿计算相位（#2097 世界锚定）', () => {
     const source = readFileSync(
       path.join(process.cwd(), 'src/resources/simulations/scene/water/gerstner-water-material.ts'),
       'utf-8',
     );
     expect(source).toContain('vec3 basePos = position;');
-    expect(source).toContain('phase = k * (dx * basePos.x + dz * basePos.z)');
+    expect(source).toContain('vec2 worldXZ = basePos.xz + uWorldOrigin;');
+    expect(source).toContain('phase = k * (dx * worldXZ.x + dz * worldXZ.y)');
     expect(source).not.toContain('phase = k * (dx * pos.x + dz * pos.z)');
   });
 });

@@ -9,6 +9,7 @@ import { useRef, useState } from 'react';
 import { Line } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 
+import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { useSceneQuality } from '../quality';
 import {
   DEFAULT_GERSTNER_SEA_STATE,
@@ -52,10 +53,12 @@ export function WaterHuggingLine({
   const [lifted, setLifted] = useState<readonly [number, number, number][]>([]);
   const frameCountRef = useRef(0);
 
-  useFrame((frameState) => {
+  const marineVisualTime = useMarineVisualTime();
+
+  useFrame((frameState, delta) => {
     frameCountRef.current += 1;
     if (frameCountRef.current % 3 !== 0) return;
-    const time = frameState.clock.getElapsedTime();
+    const time = marineVisualTime(frameState, delta);
     const waveSet = GERSTNER_WAVE_SETS[params.waterTier];
     const origin = waterOriginSampler?.() ?? { x: 0, z: 0 };
     const amplitudeScale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
