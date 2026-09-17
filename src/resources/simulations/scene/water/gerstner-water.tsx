@@ -384,6 +384,8 @@ function BandWaterMesh({
       array[base + 1] = segment.from[1];
       array[base + 2] = segment.to[0];
       array[base + 3] = segment.to[1];
+      // 作者态岸深随段上传（#2102 四轮复审：浅水呈现的渲染输入）。
+      (material.uniforms.uShoreDepths.value as Float32Array)[index] = segment.shoreDepthMeters;
     });
     material.uniforms.uShoreSegmentCount.value = Math.min((shoreSegments ?? []).length, MAX_SHORE_SEGMENTS);
     material.uniforms.uShoreFadeBand.value = shoreFadeBandMeters;

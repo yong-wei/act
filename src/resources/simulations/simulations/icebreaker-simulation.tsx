@@ -1228,7 +1228,7 @@ export default function IcebreakerSimulation() {
           resetToken={resetCount}
           resetSignal={viewResetCount}
           simRef={bindingRef}
-          iceCoverage={config.iceModeEnabled ? Math.min(1, Math.max(0.1, config.iceThickness / 1.5)) : 0}
+          iceCoverage={config.iceModeEnabled && config.iceThickness > 0 ? Math.min(1, config.iceThickness / 1.5) : 0}
         />
       </Canvas>
 

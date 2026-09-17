@@ -121,7 +121,7 @@ describe('visual extension slots have runtime consumers (#2102 contracts)', () =
       'utf-8',
     );
     // 冰区模式关闭 → 覆盖 0（无冰块）；开启 → 冰厚映射密度。
-    expect(source).toContain('config.iceModeEnabled ? Math.min(1, Math.max(0.1, config.iceThickness / 1.5)) : 0');
+    expect(source).toContain('config.iceModeEnabled && config.iceThickness > 0 ? Math.min(1, config.iceThickness / 1.5) : 0');
     expect(source).toContain('iceCoverageOverride={() => iceCoverage}');
   });
 

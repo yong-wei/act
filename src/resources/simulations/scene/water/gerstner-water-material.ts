@@ -115,6 +115,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uHullExclusionCount: { value: options.hullExclusionCount ?? 0 },
       uShipHeading: { value: 0 },
       uShoreSegments: { value: new Float32Array(MAX_SHORE_SEGMENTS * 4) },
+      uShoreDepths: { value: new Float32Array(MAX_SHORE_SEGMENTS) },
       uShoreSegmentCount: { value: 0 },
       uShoreFadeBand: { value: 400 },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
@@ -137,6 +138,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uEnvelopeFadeBand;
       uniform float uNearCutoutHalfSize;
       uniform vec4 uShoreSegments[4];
+      uniform float uShoreDepths[4];
       uniform float uShoreSegmentCount;
       uniform float uShoreFadeBand;
 
@@ -146,6 +148,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       varying vec3 vWorldPos;
       varying float vCrest;
       varying float vElevation;
+      varying float vShoreShallow01;
       varying vec2 vLocalXZ;
 
       void main() {
@@ -173,6 +176,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           }
         }
         float effectiveAmplitudeScale = uAmplitudeScale * shoreAttenuation;
+        // 浅水因子（#2102 四轮复审）：1 - shoreAttenuation 归一（岸边 1 / 带外 0），
+        // 携最近段岸深供片元浅水色（作者态深度渲染输入）。
+        vShoreShallow01 = clamp((1.0 - shoreAttenuation) / 0.85, 0.0, 1.0);
         // 近场幅度包络（#2098）：外环 smoothstep 衰减，一阶导两端为零避免折痕。
         float envelope = 1.0;
         if (uEnvelopeHalfSize > 0.0) {
@@ -283,6 +289,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uHullExclusionCount;
       uniform float uShipHeading;
       uniform vec4 uShoreSegments[4];
+      uniform float uShoreDepths[4];
       uniform float uShoreSegmentCount;
       uniform float uShoreFadeBand;
 
@@ -292,6 +299,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       varying vec3 vWorldPos;
       varying float vCrest;
       varying float vElevation;
+      varying float vShoreShallow01;
       varying vec2 vLocalXZ;
 
       void main() {
@@ -372,6 +380,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         float viewFresnel = 0.02 + 0.98 * pow(1.0 - nDotV, 5.0);
 
         vec3 color = mix(uDeepColor, uWaterColor, light * 0.65 + 0.35 * uSunIllumination);
+        // 浅水色（#2102）：近岸（vShoreShallow01→1）向浅青绿过渡——作者态岸深的
+        // 视觉呈现（与衰减带同空间），纯显示输入非水动力。
+        color = mix(color, vec3(0.28, 0.52, 0.5), vShoreShallow01 * 0.45);
         color = mix(color, uHorizonColor, viewFresnel * 0.45);
         color += specular * uSunIllumination;
         vec3 foamLit = uFoamColor * (light * 0.65 + 0.35 * uSunIllumination);
