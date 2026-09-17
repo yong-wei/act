@@ -72,10 +72,15 @@ describe('environment radiance cache (#2099)', () => {
   it('reuses cached PMREM per renderer without regeneration or cross-renderer sharing', () => {
     disposeMarineEnvironmentRadiance();
     const generations: string[] = [];
+    const disposed: number[] = [];
+    let seq = 0;
     const source: MarinePmremSource = {
       fromSkyScene: (skyScene) => {
         generations.push(String((skyScene as unknown as { uuid: string }).uuid));
-        return new THREE.Texture();
+        const texture = new THREE.Texture();
+        const id = (seq += 1);
+        // 模拟 WebGLRenderTarget：dispose 释放整体（含纹理），可观测。
+        return { texture, dispose: () => disposed.push(id) };
       },
     };
     const factory = () => new THREE.Scene();
@@ -97,9 +102,15 @@ describe('environment radiance cache (#2099)', () => {
     expect(generations).toHaveLength(3);
     expect(marineRadianceCacheSize()).toBe(3);
 
-    // 单 renderer 释放只清自己的条目。
+    // 预设切换不解绑缓存（A→B→A 命中，不重新生成）。
+    const revisit = resolveMarineEnvironmentRadiance(source, factory, 'open-sea', 'renderer-1');
+    expect(revisit).toBe(first);
+    expect(generations).toHaveLength(3);
+
+    // 单 renderer 释放只清自己的条目，并调用 RenderTarget.dispose（释放 framebuffer）。
     disposeMarineEnvironmentRadiance('renderer-1');
     expect(marineRadianceCacheSize()).toBe(1);
+    expect(disposed.length).toBeGreaterThanOrEqual(2);
     const afterPartial = resolveMarineEnvironmentRadiance(source, factory, 'open-sea', 'renderer-2');
     expect(afterPartial).toBe(otherRenderer);
     expect(generations).toHaveLength(3);
@@ -110,6 +121,7 @@ describe('environment radiance cache (#2099)', () => {
     resolveMarineEnvironmentRadiance(source, factory, 'open-sea', 'renderer-1');
     expect(generations).toHaveLength(4);
     disposeMarineEnvironmentRadiance();
+    expect(disposed.length).toBeGreaterThanOrEqual(4);
   });
 
   it('returns a stable sun direction identity per preset (material rebuild guard)', () => {

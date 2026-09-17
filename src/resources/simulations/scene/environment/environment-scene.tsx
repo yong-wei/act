@@ -63,7 +63,8 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
     const source: MarinePmremSource = {
       fromSkyScene: (skyScene) => {
         generator = new THREE.PMREMGenerator(gl);
-        return generator.fromScene(skyScene, 0, 1, 10000).texture;
+        // 缓存持完整 RenderTarget（dispose 释放 framebuffer/depth/GPU 纹理）。
+        return generator.fromScene(skyScene, 0, 1, 10000);
       },
     };
     const skySceneFactory = () => {
@@ -75,17 +76,24 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
       skyScene.add(sphere);
       return skyScene;
     };
-    // PMREM render-target 属于生成它的 renderer：缓存按 renderer 隔离，卸载释放本 renderer 条目。
+    // PMREM render-target 属于生成它的 renderer：缓存按 renderer 隔离。
+    // 预设切换只解绑当前环境（缓存保留，A→B→A 命中）；Canvas 卸载才整桶释放。
     const rendererKey = marineRendererKey(gl);
     const entry = resolveMarineEnvironmentRadiance(source, skySceneFactory, preset.id, rendererKey);
     scene.environment = entry.texture;
     scene.environmentIntensity = MARINE_ENVIRONMENT_IBL_INTENSITY;
     return () => {
-      generator?.dispose();
-      disposeMarineEnvironmentRadiance(rendererKey);
       if (scene.environment === entry.texture) scene.environment = null;
     };
   }, [gl, scene, preset.id, skyTexture]);
+
+  // Canvas 卸载：释放本 renderer 的全部环境辐射缓存与生成器（真卸载，非预设切换）。
+  useEffect(() => {
+    const rendererKey = marineRendererKey(gl);
+    return () => {
+      disposeMarineEnvironmentRadiance(rendererKey);
+    };
+  }, [gl]);
 
   useFrame((state, delta) => {
     // 云漂移是共享视觉时间的纯函数：同帧唯一、可注入重放（不再自累加独立时钟）。

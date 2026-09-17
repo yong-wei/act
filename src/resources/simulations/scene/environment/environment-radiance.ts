@@ -57,13 +57,15 @@ export function marineSunFrameForSubject(
 
 /** PMREM 生成器端口（渲染器适配）：生产传 THREE.WebGLRenderer 封装，测试传桩。 */
 export interface MarinePmremSource {
-  /** 以仅含天空的环境场景生成 PMREM 纹理（每个 renderer×preset 至多一次）。 */
-  fromSkyScene(skyScene: THREE.Scene): THREE.Texture;
+  /** 以仅含天空的环境场景生成 PMREM（每个 renderer×preset 至多一次；持完整 RenderTarget）。 */
+  fromSkyScene(skyScene: THREE.Scene): { texture: THREE.Texture; dispose(): void };
 }
 
 export interface MarineRadianceCacheEntry {
   readonly presetId: string;
   readonly texture: THREE.Texture;
+  /** 完整 RenderTarget dispose（二轮复审：仅 dispose texture 不释放 framebuffer/depth）。 */
+  readonly dispose: () => void;
 }
 
 /**
@@ -108,9 +110,11 @@ export function resolveMarineEnvironmentRadiance(
   const bucket = cacheBucket(rendererKey);
   const cached = bucket.get(presetId);
   if (cached) return cached;
+  const target = source.fromSkyScene(skySceneFactory());
   const entry: MarineRadianceCacheEntry = {
     presetId,
-    texture: source.fromSkyScene(skySceneFactory()),
+    texture: target.texture,
+    dispose: () => target.dispose(),
   };
   bucket.set(presetId, entry);
   return entry;
@@ -130,13 +134,13 @@ export function marineRadianceCacheSize(): number {
 export function disposeMarineEnvironmentRadiance(rendererKey?: string): void {
   if (rendererKey === undefined) {
     for (const bucket of radianceCache.values()) {
-      for (const entry of bucket.values()) entry.texture.dispose();
+      for (const entry of bucket.values()) entry.dispose();
     }
     radianceCache.clear();
     return;
   }
   const bucket = radianceCache.get(rendererKey);
   if (!bucket) return;
-  for (const entry of bucket.values()) entry.texture.dispose();
+  for (const entry of bucket.values()) entry.dispose();
   radianceCache.delete(rendererKey);
 }
