@@ -284,6 +284,7 @@ function IcebreakerWater({ position }: { position: Vector2 }) {
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
     />
   );
 }
@@ -398,7 +399,7 @@ function Scene({
       />
 
       <Suspense fallback={null}>
-        <EnvironmentScene />
+        <EnvironmentScene subjectPositionSampler={() => ({ x: position.x, z: position.z })} />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />

@@ -573,6 +573,7 @@ function DredgerWater({
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
     />
   );
 }
@@ -969,7 +970,7 @@ export function DredgerSimulation() {
         <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
 
         <Suspense fallback={null}>
-          <EnvironmentScene />
+          <EnvironmentScene subjectPositionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })} />
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />

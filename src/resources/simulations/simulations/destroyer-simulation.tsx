@@ -416,6 +416,7 @@ function PresetWater({ simRef }: { simRef: React.MutableRefObject<SimulationStat
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
     />
   );
 }
@@ -1571,7 +1572,7 @@ export default function DestroyerSimulation() {
         <PerspectiveCamera makeDefault position={[0, 200, 500]} fov={60} near={1} far={50000} />
         <MarineFrameRuntime simRef={simRef} simTimeRef={simTimeRef} resetToken={resetToken}>
         <Suspense fallback={null}>
-          <EnvironmentScene />
+          <EnvironmentScene subjectPositionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })} />
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />

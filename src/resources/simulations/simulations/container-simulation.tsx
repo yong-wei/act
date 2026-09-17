@@ -556,6 +556,7 @@ function ContainerWater({ state }: { state: ContainerSimulationState }) {
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
     />
   );
 }
@@ -646,7 +647,7 @@ function Scene({
       <PerspectiveCamera makeDefault position={[-500, 200, 500]} fov={60} near={1} far={50000} />
 
       <Suspense fallback={null}>
-        <EnvironmentScene />
+        <EnvironmentScene subjectPositionSampler={() => ({ x: state.position.x, z: state.position.z })} />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
