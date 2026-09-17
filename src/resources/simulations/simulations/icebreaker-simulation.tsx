@@ -27,6 +27,7 @@ import { SimulationTopBar, SimulationDock, simulationUi } from '../components/si
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -401,6 +402,7 @@ function Scene({
 
       <Suspense fallback={null}>
         <EnvironmentScene subjectPositionSampler={() => ({ x: position.x, z: position.z })} />
+        <MarineSceneLayoutObjects layoutId="polar-ice-field" />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />

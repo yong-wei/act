@@ -28,6 +28,7 @@ import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulation
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -649,6 +650,7 @@ function Scene({
 
       <Suspense fallback={null}>
         <EnvironmentScene subjectPositionSampler={() => ({ x: state.position.x, z: state.position.z })} />
+        <MarineSceneLayoutObjects layoutId="harbor-entrance-channel" />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />

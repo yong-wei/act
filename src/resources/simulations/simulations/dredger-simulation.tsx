@@ -27,6 +27,7 @@ import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulation
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -972,6 +973,7 @@ export function DredgerSimulation() {
 
         <Suspense fallback={null}>
           <EnvironmentScene subjectPositionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })} />
+        <MarineSceneLayoutObjects layoutId="shallow-construction-site" />
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />

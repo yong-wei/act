@@ -81,6 +81,7 @@ import {
 import { WakeTrail } from '../scene/wake';
 import {
   EnvironmentScene,
+  MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -1583,6 +1584,7 @@ export default function DestroyerSimulation() {
         <MarineFrameRuntime simRef={simRef} simTimeRef={simTimeRef} resetToken={resetToken}>
         <Suspense fallback={null}>
           <EnvironmentScene subjectPositionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })} />
+        <MarineSceneLayoutObjects layoutId="open-sea-distant-islands" />
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />

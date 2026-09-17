@@ -29,6 +29,7 @@ import { SimulationTopBar, SimulationDock, simulationUi } from '../components/si
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -1424,6 +1425,7 @@ function VisualizationLayer({
     <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
       <Suspense fallback={null}>
         <EnvironmentScene subjectPositionSampler={() => ({ x: state.position.x, z: state.position.z })} />
+        <MarineSceneLayoutObjects layoutId="harbor-entrance-channel" />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
