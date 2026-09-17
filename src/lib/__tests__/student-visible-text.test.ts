@@ -20,6 +20,9 @@ describe('student-visible text', () => {
     expect(looksLikeInternalSystemToken('step-09')).toBe(true);
     expect(looksLikeInternalSystemToken('滞后补偿')).toBe(false);
     expect(looksLikeInternalSystemToken('Arena')).toBe(false);
+    expect(looksLikeInternalSystemToken('结果 control_correction_path.selection_recorded')).toBe(true);
+    expect(looksLikeInternalSystemToken('资源 published-resource:act:card:example')).toBe(true);
+    expect(looksLikeInternalSystemToken('滞后补偿 ctc:v11g-21fba199a9fdef15887d600f')).toBe(true);
   });
 
   it('maps evidence types and titles to Chinese without echoing internal tokens', () => {

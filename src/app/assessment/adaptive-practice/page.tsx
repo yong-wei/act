@@ -5117,17 +5117,19 @@ export default function AdaptivePracticePage() {
       sourceKind: node.sourceKind,
       sourceRef: node.sourceRef,
     });
-    if (targetContract.disposition === 'blocked') {
+    const launchTarget = targetContract.canonicalTarget;
+    if (targetContract.disposition === 'blocked' || !launchTarget) {
       setPathExecutionError('路径资源地址未通过平台验证，请返回路径并重新生成。');
       return;
     }
+    const launchNode = { ...node, target: launchTarget };
     const targetDisposition = targetContract.disposition;
-    const ownedTarget = resolveAdaptivePathCenterOwnedTargetHref(node.type, node.target);
-   if (requiresOwningPathCenter(node) && !ownedTarget) {
+    const ownedTarget = resolveAdaptivePathCenterOwnedTargetHref(launchNode.type, launchNode.target);
+   if (requiresOwningPathCenter(launchNode) && !ownedTarget) {
       setPathExecutionError('路径资源地址未通过平台验证，请返回路径并重新生成。');
      return;
    }
-   const keepsPathCenter = keepsOwningPathCenterOpen(node);
+   const keepsPathCenter = keepsOwningPathCenterOpen(launchNode);
    const resourceWindow = keepsPathCenter ? window.open('about:blank', '_blank') : null;
    if (keepsPathCenter && !resourceWindow) {
       setPathExecutionError('浏览器阻止了新资源窗口，请允许本站打开新窗口后重试。');
@@ -5170,7 +5172,7 @@ export default function AdaptivePracticePage() {
       );
       return;
     }
-    window.location.assign(withFeedbackTaskHref(pathNodeContextHref(node, {
+    window.location.assign(withFeedbackTaskHref(pathNodeContextHref(launchNode, {
       goalId,
       pathId,
     })));

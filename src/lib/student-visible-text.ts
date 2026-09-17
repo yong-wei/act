@@ -7,9 +7,10 @@
 const INTERNAL_PREFIX = /^(?:ctc|ctkg|cts|ctf|ctk|act|ctb|ctr)[:\s]/iu;
 const EMBEDDED_CANONICAL = /\b(?:ctc|ctkg|cts|ctf|ctk|act|ctb|ctr):[A-Za-z0-9._:-]+/u;
 const EVENT_TYPE = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/u;
+const EMBEDDED_EVENT_TYPE = /\b[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+\b/u;
 const FIXTURE = /fixture/iu;
 const HASH_SLUG = /[a-f0-9]{16,}/u;
-const PUBLISHED_RESOURCE = /^published-resource:/iu;
+const PUBLISHED_RESOURCE = /(?:^|[\s:/])published-resource:/iu;
 const SNAKE_TOKEN = /^[a-z][a-z0-9_]{11,}$/u;
 const KEBAB_SLUG = /^[a-z][a-z0-9]*(?:-[a-z0-9]+){2,}$/iu;
 const PASCAL_TOKEN = /^[A-Z][A-Za-z0-9]*(?:[A-Z][A-Za-z0-9]+)+$/u;
@@ -43,10 +44,10 @@ export function looksLikeInternalSystemToken(value: string): boolean {
   const trimmed = value.trim();
   if (!trimmed) return true;
   if (INTERNAL_PREFIX.test(trimmed) || EMBEDDED_CANONICAL.test(trimmed)) return true;
-  if (PUBLISHED_RESOURCE.test(trimmed) || EVENT_TYPE.test(trimmed) || FIXTURE.test(trimmed)) return true;
-  if (UNIT_OR_STEP_KEY.test(trimmed)) return true;
+  if (PUBLISHED_RESOURCE.test(trimmed) || EVENT_TYPE.test(trimmed) || EMBEDDED_EVENT_TYPE.test(trimmed)) return true;
+  if (FIXTURE.test(trimmed) || UNIT_OR_STEP_KEY.test(trimmed) || HASH_SLUG.test(trimmed)) return true;
   if (/[\u4e00-\u9fff]/u.test(trimmed)) return false;
-  if (HASH_SLUG.test(trimmed) || SNAKE_TOKEN.test(trimmed) || KEBAB_SLUG.test(trimmed)) return true;
+  if (SNAKE_TOKEN.test(trimmed) || KEBAB_SLUG.test(trimmed)) return true;
   if (PASCAL_TOKEN.test(trimmed) || PUNCTUATED_IDENT.test(trimmed)) return true;
   return false;
 }

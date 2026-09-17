@@ -1383,6 +1383,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain("reasonCodes.length > 0 ? reasonCodes.join('、')");
     expect(source).toContain('): Promise<boolean> =>');
     expect(source).toContain('const pathActivityKind = activityKind');
+    expect(source).toContain('const launchTarget = targetContract.canonicalTarget');
+    expect(source).toContain('pathNodeContextHref(launchNode');
     expect(source).toContain('const activityWritten = await writePathNodeActivity');
     expect(source).toContain('if (!activityWritten) return;');
     expect(source).toContain('window.location.assign(withFeedbackTaskHref(pathNodeContextHref');
