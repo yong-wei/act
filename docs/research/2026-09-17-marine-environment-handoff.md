@@ -1,5 +1,7 @@
 # ACT 海洋环境系列：Issue 映射与 Propose 登记交接
 
+> **状态更新（2026-09-17）**：第 3 节所列登记收尾已由登记代理在完整工作树完成——九项 `openspec validate --type change --strict` 全部通过；9 条父子关系（#2096 → #2097–#2105）与 12 条 blockedBy 依赖经 buddy helper 登记并回读验证；九个执行 Issue 已补 `status:ready`，各 Issue 正文 Registration handoff 已改为实际完成结果。本文其余内容保留为历史交接记录。
+
 日期：2026-09-17。
 研究与九项提案提交：`8a130237e05504866603614ae1b9c8e56fb2f22c`，已在 `integration`。
 总入口：[#2096](https://github.com/yong-wei/act/issues/2096)。
