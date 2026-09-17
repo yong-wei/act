@@ -124,6 +124,13 @@ describe('vessel interaction wiring (#2101 source contracts)', () => {
     // 半潜排除按浮筒/立柱独立声明（非整平台 bbox）。
     expect(source).toContain('DRILLING_HULL_EXCLUSION');
     expect(source).not.toContain('halfX: 100');
+    // 排除框朝向用物理 psi（forward=(cosψ,sinψ)），不是场景视觉镜像约定（复审）。
+    expect(source).toContain('shipHeadingSampler={() => platformStateRef.current.psi}');
+    expect(source).not.toContain('shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))}');
+    // 逐推进器局部洗流：按布局世界位置 + 各推进器方位，全场份额 1/8（复审）。
+    expect(source).toContain('HYSY981_THRUSTER_LAYOUT.find');
+    expect(source).toContain('platformHeadingToSceneRad(thruster.azimuth)');
+    expect(source).toContain('budgetShare={1 / HYSY981_THRUSTER_LAYOUT.length}');
   });
 
   it('blends wash into core/foam only and gates emission budget by share', () => {
@@ -146,6 +153,8 @@ describe('vessel interaction wiring (#2101 source contracts)', () => {
     expect(source).toContain('uHullExclusionBoxes');
     expect(source).toContain('if (abs(localX - box.x) <= box.z && abs(localZ - box.y) <= box.w) discard;');
     expect(source).toContain('uniform float uShipHeading;');
+    // uShipHeading uniform 在材质创建时初始化（复审：逐帧赋值不得打在 undefined 上）。
+    expect(source).toContain('uShipHeading: { value: 0 }');
   });
 });
 

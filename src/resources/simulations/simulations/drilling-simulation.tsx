@@ -728,7 +728,7 @@ function DrillingWater({
       tier={params.waterTier}
       positionSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })}
       hullExclusionSampler={() => DRILLING_HULL_EXCLUSION}
-      shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))}
+      shipHeadingSampler={() => platformStateRef.current.psi}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
@@ -762,6 +762,7 @@ function WakeTrailRig({
 
   if (!wakeVisible) return null;
   return (
+    <>
     <WakeTrail
       key={resetToken}
       profile={drillingHysy981SceneVisual}
@@ -778,6 +779,43 @@ function WakeTrailRig({
         thrusterCount: platformStateRef.current.thrusters.length,
       }).washFoamActivity}
     />
+    {/* 逐推进器局部洗流（#2101 复审）：按 HYSY981_THRUSTER_LAYOUT 世界位置与各推进器
+        azimuth 方位发射，不同推力分配得到不同局部形态；全场预算按 1/8 × 份额共享。 */}
+    {platformStateRef.current.thrusters.map((thruster) => {
+      const layout = HYSY981_THRUSTER_LAYOUT.find((item) => item.id === thruster.id);
+      if (!layout || !thruster.enabled || thruster.failed || Math.abs(thruster.power) < 1) return null;
+      const psi = platformStateRef.current.psi;
+      const cos = Math.cos(psi);
+      const sin = Math.sin(psi);
+      const worldX = platformStateRef.current.x + layout.positionX * cos - layout.positionY * sin;
+      const worldZ = platformStateRef.current.y + layout.positionX * sin + layout.positionY * cos;
+      return (
+        <WakeTrail
+          key={`${resetToken}-wash-${thruster.id}`}
+          profile={{
+            ...drillingHysy981SceneVisual,
+            wakeAnchors: {
+              stern: [worldX, 0, worldZ],
+              portShoulder: [worldX + 4, 0, worldZ + 4],
+              starboardShoulder: [worldX - 4, 0, worldZ - 4],
+            },
+          }}
+          shipTransform={{ position: [worldX, 0, worldZ], heading: platformHeadingToSceneRad(thruster.azimuth) }}
+          qualityTier={tier}
+          playing={playing}
+          includeKelvin={false}
+          budgetShare={1 / HYSY981_THRUSTER_LAYOUT.length}
+          waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+          worldSpeedSampler={() => 0}
+          washActivitySampler={() => computeThrusterWashActivity({
+            totalThrustPower: Math.abs(thruster.power),
+            ratedPowerPerThruster: 4500,
+            thrusterCount: 1,
+          }).washFoamActivity}
+        />
+      );
+    })}
+    </>
   );
 }
 

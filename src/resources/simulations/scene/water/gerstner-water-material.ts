@@ -105,6 +105,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uSunIllumination: { value: options.sunIllumination ?? 1 },
       uHullExclusionBoxes: { value: new Float32Array(MAX_HULL_EXCLUSION_BOXES * 4) },
       uHullExclusionCount: { value: options.hullExclusionCount ?? 0 },
+      uShipHeading: { value: 0 },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
       uDeepColor: { value: new THREE.Color(options.deepColor) },
       uHorizonColor: { value: new THREE.Color(options.horizonColor) },
