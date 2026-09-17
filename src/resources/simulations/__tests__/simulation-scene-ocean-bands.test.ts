@@ -144,9 +144,10 @@ describe('near-field visible surface vs independent reference (#2098)', () => {
       let ux = worldX;
       let uz = worldZ;
       for (let iter = 0; iter < 4; iter += 1) {
+        // referenceDisplacement 的 offsetX/Z 已含 scale，反解不得再乘一次（五轮复审）。
         const d = referenceDisplacement(waves, scale, ux, uz, time);
-        ux = worldX - scale * d.offsetX;
-        uz = worldZ - scale * d.offsetZ;
+        ux = worldX - d.offsetX;
+        uz = worldZ - d.offsetZ;
       }
       return referenceDisplacement(waves, scale, ux, uz, time).y;
     };
