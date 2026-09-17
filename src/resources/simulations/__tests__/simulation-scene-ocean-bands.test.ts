@@ -160,6 +160,24 @@ describe('near-field visible surface vs independent reference (#2098)', () => {
   });
 });
 
+describe('hull pose samples the visible near field (#2098)', () => {
+  it('binds the destroyer frame water sampler to the band-limited near-field surface', () => {
+    const fs = require('node:fs') as typeof import('node:fs');
+    const destroyer = fs.readFileSync(
+      'src/resources/simulations/simulations/destroyer-simulation.tsx',
+      'utf-8',
+    );
+    // 姿态五点采样与 GPU 近场同场（三轮复审）：带限波组 + 近场网格 + 角点包络。
+    expect(destroyer).toContain('waterSampler: (worldX, worldZ, timeSeconds) =>');
+    expect(destroyer).toContain(
+      'sampleVisibleWaterHeight(\n          NEAR_FIELD_VISIBLE_WAVES,'
+        .replace('\\n', '\n'),
+    );
+    expect(destroyer).not.toContain('MARINE_BASE_INTERACTION_WAVES,\n          gerstnerAmplitudeScale'
+      .replace('\\n', '\n'));
+  });
+});
+
 describe('shader surface derivative contract (#2098)', () => {
   it('compares the full parametric normal in the material source', () => {
     const fs = require('node:fs') as typeof import('node:fs');

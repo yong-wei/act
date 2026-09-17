@@ -62,8 +62,9 @@ import {
   DEFAULT_GERSTNER_SEA_STATE,
   gerstnerAmplitudeScale,
   GerstnerWater,
-  MARINE_BASE_INTERACTION_MESH_SPEC,
-  MARINE_BASE_INTERACTION_WAVES,
+  nearFieldEnvelope,
+  NEAR_FIELD_MESH_SPEC,
+  NEAR_FIELD_VISIBLE_WAVES,
   sampleVisibleWaterHeight,
 } from '../scene/water';
 import {
@@ -369,16 +370,18 @@ function MarineFrameRuntime({
       simulationTimeSampler: () => simTimeRef.current,
       advancingSampler: () => simRef.current.advancing,
       waterSampler: (worldX, worldZ, timeSeconds) =>
-        // 基础交互波场（档位无关）：画质只裁剪渲染细节，不改变姿态采样基准（#2097）。
+        // 三轮复审修复：姿态与可见近场同一采样场——带限波组 + 近场网格 + 角点包络
+        // （与 GPU 完全同参数，档位无关）；容差即声明的近场近似容差。
         sampleVisibleWaterHeight(
-          MARINE_BASE_INTERACTION_WAVES,
+          NEAR_FIELD_VISIBLE_WAVES,
           gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
-          MARINE_BASE_INTERACTION_MESH_SPEC,
+          NEAR_FIELD_MESH_SPEC,
           simRef.current.position.x,
           simRef.current.position.z,
           worldX,
           worldZ,
           timeSeconds,
+          (localX, localZ) => nearFieldEnvelope(localX, localZ, NEAR_FIELD_MESH_SPEC.size),
         ),
       ownership: DESTROYER_055_POSE_OWNERSHIP,
       environmentPresetIdSampler: () => presetId,
