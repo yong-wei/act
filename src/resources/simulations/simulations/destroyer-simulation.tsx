@@ -549,11 +549,9 @@ function WakeTrailRig({
     timeRef.current = state.clock.getElapsedTime();
   });
 
-  if (!wakeVisible) return null;
-  // 与可见水面同一坐标基准、同一细分曲面：水面网格跟随舰位，世界坐标须先减原点，
-  // 再按位移后三角网格重心插值采样。
   // 尾迹贴水（#2098）：近场可见曲面（带限波组 + 包络，档位无关），与 GPU 近场网格同参数。
   // 每帧（时间/原点键）只构建一次查询：本帧全部粒子共享同一角点缓存（复审修复）。
+  // 七轮复审修复：缓存 Hook 必须位于 wakeVisible 提前返回之前（条件返回后 Hook 数量不得变化）。
   const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
   const waterYSampler = (x?: number, z?: number) => {
     const origin = simRef.current.position;
@@ -573,6 +571,8 @@ function WakeTrailRig({
     }
     return cached.query.heightAt(x ?? origin.x, z ?? origin.z);
   };
+
+  if (!wakeVisible) return null;
 
   if (propulsorAnchors.length > 0) {
     return (
