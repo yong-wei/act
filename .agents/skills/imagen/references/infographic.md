@@ -1,37 +1,28 @@
-# Infographic Reference
+# 教学信息图构图
 
-Use for educational infographics, explainers, concept visuals, visual summaries, process boards, and knowledge-card replacements.
+先明确对象、读者，以及学生看图后应能解释或判断的问题。源材料决定科学内容，构图服务理解。新图和编辑采用 [GPT Image 2.5 流程](gpt-image-2.5.md)。
 
-## Prompt Structure
+## 可选结构
 
-Write the prompt with these parts:
+| 学习目标 | 构图 | 示例 |
+| --- | --- | --- |
+| 辨认组成与作用 | 整体—局部拆解 | 闭环系统与反馈支路 |
+| 理解数学机理 | 几何或结构直觉 | 极点位置与响应形态 |
+| 判断差异与取舍 | 同尺度对照 | 两种阻尼下的响应 |
+| 理解过程 | 有方向的机制流程 | 信号经过对象、测量和反馈 |
+| 观察关键细节 | 总图—局部放大 | 全频段与交越附近 |
 
-1. Canvas and use: landscape or square, where the image will be used.
-2. Main visual: one concrete scene, object, graph, or mechanism occupies at least half the image.
-3. Supporting panels: 2-4 small insets for readback, formula, contrast, or boundary judgment.
-4. Text contract: exact short labels allowed; no paragraphs.
-5. Technical contract: formulas, axes, arrows, labels, and measurement brackets.
-6. Visual style: clean editorial teaching asset, not a slide screenshot.
-7. Negative constraints.
+局部图保持相同对象与参数，标清单位、坐标和范围。示意图不能伪装成精确仿真。无需为抽象知识强行加入实体场景、装饰小窗或固定数量模块。
 
-## Quality Rules
+## 提示词与检查
 
-- Use visual evidence: charts, instruments, cutaways, physical objects, maps, timelines, or annotated scenes.
-- Prefer a scene plus a diagram over boxes of text.
-- Keep visible labels to about 8-12.
-- If formulas are needed, render at most 1-2 in large white space.
-- Make arrows measure or explain something; avoid decorative arrows.
-- Put misconception or boundary information in a small judgment panel.
+- 说明核心判断、主要图形和阅读顺序，列出准确的可见文字、公式与出现位置。
+- 简单图可只用一幅主图；复杂图再增加有教学作用的局部图。8–12 个短标签和1–2个公式只是密度参考，不是凑数目标。
+- 中文、公式、箭头方向、比例和曲线趋势逐项检查。缩略图用于辨识主题，大图预览负责细节可读性。
+- 局部缺陷优先编辑：写明修改项及保留项，检查修改是否破坏其他已批准内容。
 
-## Prompt Skeleton
+## 上游借鉴与边界
 
-```text
-Create a high-quality [language] infographic for [topic].
-Canvas: [ratio], [target use].
-Main visual: [concrete scene/object/diagram], occupying [portion], with [specific labels].
-Insets: [inset 1 purpose], [inset 2 purpose], [inset 3 purpose].
-Allowed visible text: [exact short labels].
-Technical details: [formula/axis/arrow/bracket requirements].
-Style: [materials, line style, lighting, color palette].
-Negative constraints: no long paragraphs, no generic icon cards, no prompt metadata, no unsupported facts.
-```
+参考 awesome-gpt-image-2 `0dc09c46c8a30b1fdd89c18cc78a894dac2104e3` 的 [信息图模板](https://github.com/freestylefly/awesome-gpt-image-2/blob/0dc09c46c8a30b1fdd89c18cc78a894dac2104e3/docs/templates.md#tpl-infographic) 和 [案例库](https://github.com/freestylefly/awesome-gpt-image-2/blob/0dc09c46c8a30b1fdd89c18cc78a894dac2104e3/data/cases.json)：341 的数学直觉、544 的整体—局部表达可供选择。它们是旧模型提示词的构图参考，不是 2.5 性能或科学正确性证据。
+
+上游科学尺度模板与案例编号存在不一致，使用前阅读案例原文，不自动信任标签。只记录实际采用的案例及借鉴点，不把模板库整体加载到每次任务，不接入其第三方生成服务。

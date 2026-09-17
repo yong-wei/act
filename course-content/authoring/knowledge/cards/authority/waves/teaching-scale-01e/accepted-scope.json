@@ -1,0 +1,280 @@
+{
+  "batchId": "teaching-scale-01e",
+  "status": "accepted",
+  "accepted": true,
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "projection": {
+    "contract": "act-teaching-projection-current/v1",
+    "projectionId": "proj-64a5187e8e4a7b40ddf566ccd9683ec3cd85629ad8af9bab580c70256fb85fd4",
+    "projectionHash": "64a5187e8e4a7b40ddf566ccd9683ec3cd85629ad8af9bab580c70256fb85fd4",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.48",
+    "activatedAt": "2026-09-15T03:24:18.276Z"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "sourceOrder": 31,
+      "name": "频率响应",
+      "scopeName": "频率响应",
+      "authorityLabel": "频率响应",
+      "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "cardId": "ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "resourceId": "act:card:ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7e46e083227dc119d597d82b.md",
+      "previousCardSha256": "3d7bce24ef24b94daab2a2113031d06783c28536f6c103f9abc995239aa02f7b",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "frequency-response-foundations"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-af679057b50299f79747230130880d6471b5f4788916ba07302f8d5fec511fdc.json",
+          "sha256": "cb556a6afb2e7847873d866af2ddc8b22f6d398ec6c8234ed211b816d2b09451",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-af679057b50299f79747230130880d6471b5f4788916ba07302f8d5fec511fdc.json",
+          "sha256": "bfbacd010e35028e344091622b7c074d36765a96af55c729cfb7a35134680c89",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/previous/ctkg_v3e-canonical-7e46e083227dc119d597d82b.md",
+          "sha256": "3d7bce24ef24b94daab2a2113031d06783c28536f6c103f9abc995239aa02f7b",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/01-source.json",
+      "sourceBackupSha256": "19cb06a9595e8081eae40770025bd9480a0ce1a597626b83f10705786789854a",
+      "cardSha256": "2f64b7c47f355060e18daec6afb52e5ca7f2ddb908d923ce9d1280eb37d30202",
+      "parsedExplanationChars": 1154
+    },
+    {
+      "order": 2,
+      "sourceOrder": 47,
+      "name": "频率特性",
+      "scopeName": "频率特性",
+      "authorityLabel": "频率特性",
+      "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "cardId": "ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "resourceId": "act:card:ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-38d4679bf3335318b0f4afb7.md",
+      "previousCardSha256": "8913826ae9c62c1821b72846c3f1fb00a89b7577033e509692a8453cd25407e4",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ebd0d8336c3cd53d34b2abd2840d7cb2b6b7fe2f0a394d0887b77d3c77588db3.json",
+          "sha256": "7836222cbcd5befe11765832e21355ec0c40ec7eb33c7f79506b2953d047b954",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ebd0d8336c3cd53d34b2abd2840d7cb2b6b7fe2f0a394d0887b77d3c77588db3.json",
+          "sha256": "ee4de1470d2eca07850ccfab57948c9b7e84f341f1e87c22f4c65c48e2f438e7",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/previous/ctkg_v3e-object-38d4679bf3335318b0f4afb7.md",
+          "sha256": "8913826ae9c62c1821b72846c3f1fb00a89b7577033e509692a8453cd25407e4",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/02-source.json",
+      "sourceBackupSha256": "d2511839842b3c26aa72bf9cde3aefc16d4ed7c9354008f8aa7e5cb0742dc182",
+      "cardSha256": "5825fd56084c428f0c0f1eea51850fce9a5a831a04f54be3e650de6bf67a9bc3",
+      "parsedExplanationChars": 1143
+    },
+    {
+      "order": 3,
+      "sourceOrder": 48,
+      "name": "幅值谱",
+      "scopeName": "幅值谱",
+      "authorityLabel": "幅值谱",
+      "canonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+      "cardId": "ctkg_v3e-object-3af39a858b2949296df5387f",
+      "resourceId": "act:card:ctkg_v3e-object-3af39a858b2949296df5387f",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3af39a858b2949296df5387f.md",
+      "previousCardSha256": "48ddf2adaf7b101e186ad145a76a84944181220f9c7320d011b8a91a2c695d90",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-25167c5f2ebfd993ed25f345d528af58af9f2c273a2c7d552fd96bb66d3d4a4c.json",
+          "sha256": "5a67d70be99e9565d9b58210e070a42080cf8d10551f1432e8e06c2ef61b4dc1",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-25167c5f2ebfd993ed25f345d528af58af9f2c273a2c7d552fd96bb66d3d4a4c.json",
+          "sha256": "00696f15dd6847726465c9434cb57e02b78b4f9626c25662cea6d1245a0f036b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/previous/ctkg_v3e-object-3af39a858b2949296df5387f.md",
+          "sha256": "48ddf2adaf7b101e186ad145a76a84944181220f9c7320d011b8a91a2c695d90",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/03-source.json",
+      "sourceBackupSha256": "773fd261755fc60fcfe67935042b6f8c961c70c22af82c56a8d09c747ab5ca21",
+      "cardSha256": "1fbcdb61a3eb5d95b0a3885eca1290a70c910ae8a438425e4203dffb87ea09dd",
+      "parsedExplanationChars": 1120
+    },
+    {
+      "order": 4,
+      "sourceOrder": 63,
+      "name": "幅频特性",
+      "scopeName": "幅频特性",
+      "authorityLabel": "幅频特性",
+      "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+      "cardId": "ctkg_v3e-object-de873c97a924107857f79242",
+      "resourceId": "act:card:ctkg_v3e-object-de873c97a924107857f79242",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-de873c97a924107857f79242.md",
+      "previousCardSha256": "918b35f6193150105b057b63d7ef247dad4536e7b18dd5c87f31bb67589703fe",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f0ea7d3d56c211b130200112ed6275b5388762ecc0aec7cde1c60ccaab6feac8.json",
+          "sha256": "9fe17737fef5bbba58bf815bb77ce239389ed9ad7a686a7b52c7de288b42ae48",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f0ea7d3d56c211b130200112ed6275b5388762ecc0aec7cde1c60ccaab6feac8.json",
+          "sha256": "59696a2d22738dedb6755020f14a89f75df325801bb72fb19c75d5a8de948550",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/previous/ctkg_v3e-object-de873c97a924107857f79242.md",
+          "sha256": "918b35f6193150105b057b63d7ef247dad4536e7b18dd5c87f31bb67589703fe",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/04-source.json",
+      "sourceBackupSha256": "b6f5595ca09b1a6e8aac5358cc9ac2c7cc96fc4751bf97dd29e6f5b21e88b59f",
+      "cardSha256": "cc5cbfcdaa0efb51e2972982002e45800c5c74a48ad482914e54c0ae7c06c284",
+      "parsedExplanationChars": 1053
+    },
+    {
+      "order": 5,
+      "sourceOrder": 66,
+      "name": "正弦稳态响应",
+      "scopeName": "正弦稳态响应",
+      "authorityLabel": "正弦稳态响应",
+      "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "cardId": "ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "resourceId": "act:card:ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ee4c217b305b05786c0b89a9.md",
+      "previousCardSha256": "80839e67f2ac84f3f995e23ba713517c436549353f8ba2a0ca7290e634f31706",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2becb76f6fe7e1a1ee39ae94a473272c4a06b5ddeb71ac58e4b855e6cad615a2.json",
+          "sha256": "7e529e7ce3dfb3646aae084e6abd7523e6a430190818b037e8dc8e2fddf6c142",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2becb76f6fe7e1a1ee39ae94a473272c4a06b5ddeb71ac58e4b855e6cad615a2.json",
+          "sha256": "8111bca330ae7a8569c900741bc0f25c4c87f80228ac467873a21b1480d61f3f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/previous/ctkg_v3e-object-ee4c217b305b05786c0b89a9.md",
+          "sha256": "80839e67f2ac84f3f995e23ba713517c436549353f8ba2a0ca7290e634f31706",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/05-source.json",
+      "sourceBackupSha256": "edb4455090289db200585bb32ec12424f183512f1accd33b69f13c46e33cc1ef",
+      "cardSha256": "2551254803450ae9ac0cfd8995149411961a3901c653403e0ed286a531d6d213",
+      "parsedExplanationChars": 1151
+    },
+    {
+      "order": 6,
+      "sourceOrder": 42,
+      "name": "实验频率响应测定",
+      "scopeName": "实验频率响应测定",
+      "authorityLabel": "实验频率响应测定",
+      "canonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "cardId": "ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "resourceId": "act:card:ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-0ca481aed329f4e6c74c8d30.md",
+      "previousCardSha256": "ced5e6b9c2914eabe4d4ba7f385fb0ac29fe7bdcd054d18140ba4e6a01cc34a6",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "simulation-validation-practice"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-30f0a556a0058d1211bff4470a3c2b05896f06332ae053524bec5f086348b9e6.json",
+          "sha256": "8b1e2792cf6845cb56aa00b92d3e61921243cbc19859b7b6c28b42383d5b8f6c",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-30f0a556a0058d1211bff4470a3c2b05896f06332ae053524bec5f086348b9e6.json",
+          "sha256": "ceca718da8afa9162eaf92779737eb291a847181d528e8856d5385c5dc3c8468",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/previous/ctkg_v3e-object-0ca481aed329f4e6c74c8d30.md",
+          "sha256": "ced5e6b9c2914eabe4d4ba7f385fb0ac29fe7bdcd054d18140ba4e6a01cc34a6",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/06-source.json",
+      "sourceBackupSha256": "54667f226a0108f4b60b2e80c94e84942ead4a5a2eaf358b79d442185fad64ba",
+      "cardSha256": "b9a49b93411d66b39f55a92235b3740a0ed9370ed110f2a8be59abaf0c13aefd",
+      "parsedExplanationChars": 1244
+    },
+    {
+      "order": 7,
+      "sourceOrder": 65,
+      "name": "频率特性实验确定方法",
+      "scopeName": "频率特性实验确定方法",
+      "authorityLabel": "频率特性实验确定方法",
+      "canonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+      "cardId": "ctkg_v3e-object-e80f5d56ce06409842363584",
+      "resourceId": "act:card:ctkg_v3e-object-e80f5d56ce06409842363584",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e80f5d56ce06409842363584.md",
+      "previousCardSha256": "099bd71f85209712f82f39d8c445e39c46317a8f4f8f3311489e34107650f9ef",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c5623eefd3b78c960a5f0552a80b5219108d280da48d483756a7699a5c9dd677.json",
+          "sha256": "45b3b956af14cb9aeb419ea3736aacad54153eca50fc9c651906a405c417a1ab",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c5623eefd3b78c960a5f0552a80b5219108d280da48d483756a7699a5c9dd677.json",
+          "sha256": "55b7313020fa617078d6c9c90248de5f159b9bdeeb05b222055efec9df8a0c54",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/previous/ctkg_v3e-object-e80f5d56ce06409842363584.md",
+          "sha256": "099bd71f85209712f82f39d8c445e39c46317a8f4f8f3311489e34107650f9ef",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01e/07-source.json",
+      "sourceBackupSha256": "b009fe3421aac6648da0767fa418120c2dfa8d12559a7323268ad8d84f253e88",
+      "cardSha256": "2b8dfd6c6d7759f4998d5f6dd126e476e013c05fbae51b972ada0b93350f060a",
+      "parsedExplanationChars": 1135
+    }
+  ],
+  "note": "Authoring complete; independent content review is required before acceptance or runtime integration."
+}

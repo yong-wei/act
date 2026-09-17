@@ -1,0 +1,20 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_core15_content",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "bodyReview": "body-review.json",
+  "materializedBodyEqualityVerified": true,
+  "identityAndRelationsVerified": true,
+  "cardHashes": {
+    "ctc:v11g-2628d227495a3860151a16c1": "94cc98d692f8ee42bb37ac5becd3fed5434a89a716c89dea4b599a631e927477",
+    "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3": "5ec821578dd21f5d43328bd1dc24c6b6f7d6c79af2357a59576fb3ab2a1ea9da",
+    "ctkg:v3e-canonical-8d146e4add26f71181e7c891": "408b7b223d7671364e2f0fe28de0b3daa1de9bf199dc9c0b5e9582407a1eb121",
+    "ctkg:v3e-object-51cfdcf1f943a39dfc550be1": "a075663d1627495203d98063d092db7b1bca31bcba0fd3d4b7d13e5ffb2552c4",
+    "ctkg:v3e-object-570b74ec5294ac993add9b5f": "145603b239325aa0882a7afb4cb947af4abe70426cb2f12820f4e81e32ac8536",
+    "ctkg:v3e-object-863069c1389e01dcca80138a": "b296562b8b874d1c95135e8901407eafd639c760f8dd5c3e00deb7c47197be9a",
+    "ctkg:v3e-object-865b301177a623225344064f": "328e3b93bccaaee14283b91c748463eb7dbfa35fc9773b7dc81c3a394322ef58",
+    "ctkg:v3e-object-905e09b9921961a6115e4603": "9a9034ce80e0b62dd3675e17830470a00461f4c8ee90371d630204791df4388d",
+    "ctkg:v3e-object-c36a6e957077c474e91e17ab": "6faf2821d594d8431359c6e433d93e2cd9b58ed450d38927ff90139e33399966"
+  }
+}

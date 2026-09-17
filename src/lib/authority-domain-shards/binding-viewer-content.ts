@@ -68,7 +68,9 @@ export function presentPublishedKnowledgeCard(input: {
   const zhMeaning = input.canonicalIds.map((id) => meanings.get(id)).find((value) => Boolean(value?.trim()));
   const strippedTitle = input.title.replace(/\s*\|\s*[A-Za-z][A-Za-z0-9._-]*\s*$/u, '').trim();
   const title = zhTitle || strippedTitle || input.title;
-  const summary = zhMeaning?.trim() || input.card.summary;
+  const summary = /[\u4e00-\u9fff]/u.test(input.card.summary)
+    ? input.card.summary
+    : zhMeaning?.trim() || input.card.summary;
   const explanationLooksEnglish = /[A-Za-z]{8,}/u.test(input.card.explanation)
     && !/[\u4e00-\u9fff]/u.test(input.card.explanation);
   const explanation = zhMeaning && explanationLooksEnglish ? zhMeaning : input.card.explanation;

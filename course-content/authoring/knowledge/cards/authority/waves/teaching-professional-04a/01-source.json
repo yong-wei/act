@@ -1,0 +1,473 @@
+{
+  "canonicalId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+      "canonicalType": "DomainConcept",
+      "label": "全状态反馈",
+      "aliases": [],
+      "description": "A control design approach where all state variables are assumed available for feedback, and the control input is a linear function of the state vector.",
+      "teachingFields": {},
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "franklin-feedback-control-7th",
+          "sectionId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-07/unnumbered-018/section-7.5.1",
+          "label": "Feedback Control of Dynamic Systems (Franklin, 7th) · Finding the Control Law"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+        "canonicalType": "DomainConcept",
+        "label": "状态反馈控制设计方法",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "nonlinear-control-design",
+            "visualRole": "nonlinear-design",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-223073e084cddc27f17ea57e",
+        "canonicalType": "KnowledgeStatement",
+        "label": "当采用式 (7.98b) 或 (7.99) 中的全状态反馈时，零点不受反馈影响而保持不变。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-2b969a6f4a3a813c2b00d604",
+        "canonicalType": "KnowledgeStatement",
+        "label": "系统必须完全可控且完全可观，才能具备任意配置所有闭环系统极点的灵活性。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-5c9756ab2a6ef9f7fa3d36b9",
+        "canonicalType": "Formula",
+        "label": "\\dot{\\mathbf{x}}(t)=\\mathbf{A x}(t)+\\mathbf{B} u(t)=\\mathbf{A x}(t)-\\mathbf{B K x}(t)=(\\mathbf{A}-\\mathbf{B K}) \\mathbf{x}(t)",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+        "canonicalType": "DomainConcept",
+        "label": "全状态反馈设计步骤",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-c48bcd580d97376ade8dda83",
+        "canonicalType": "DomainConcept",
+        "label": "状态反馈镇定",
+        "aliases": [
+          "状态反馈镇定"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-ce650aa8649f10a50fdc8701",
+        "canonicalType": "Formula",
+        "label": "u(t)=-\\mathbf{K x}(t)",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-ce8f8a0a2d94aa537f86f26f",
+        "canonicalType": "KnowledgeStatement",
+        "label": "若全状态反馈控制律能使系统稳定（在假设可获得全部状态的前提下），且观测器是稳定的（跟踪误差渐近稳定），则闭环系统的稳定性得到保证。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+        "canonicalType": "DomainConcept",
+        "label": "全状态反馈",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:m5-d1:association:04db966e82bf3e2f22a2eb42",
+        "predicate": "association",
+        "sourceId": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+        "targetId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:aec09ec83789bd1f6b290a38",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-c48bcd580d97376ade8dda83",
+        "targetId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1l:relation-7c642f38e04a7f560023d67b",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:v3e-object-223073e084cddc27f17ea57e",
+        "targetId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1l:relation-90cb506e62c400a0d92dd7e9",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+        "targetId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1l:relation-b2767313b2f47bc22998857d",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-ce8f8a0a2d94aa537f86f26f",
+        "targetId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "m1l:relation-d4e74e7645a5335be6f75469",
+        "predicate": "applies_to",
+        "sourceId": "ctkg:v3e-object-2b969a6f4a3a813c2b00d604",
+        "targetId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      },
+      {
+        "id": "m1l:relation-d9949fd064c4a78c7338aeea",
+        "predicate": "has_formula",
+        "sourceId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+        "targetId": "ctkg:v3e-object-ce650aa8649f10a50fdc8701",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "derivation-and-representation"
+      },
+      {
+        "id": "m1l:relation-f69604e57ea8783a06cc9b6b",
+        "predicate": "has_formula",
+        "sourceId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+        "targetId": "ctkg:v3e-object-5c9756ab2a6ef9f7fa3d36b9",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "derivation-and-representation"
+      }
+    ],
+    "boundaries": []
+  }
+}

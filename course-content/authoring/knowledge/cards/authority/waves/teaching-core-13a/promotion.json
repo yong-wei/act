@@ -1,0 +1,12 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 6,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b24",
+  "retiredResources": [
+    "act:card:最小节拍响应_6_24fab382",
+    "act:card:最小节拍响应系统_6_3e2a1672",
+    "act:card:ITAE性能指标_10_16ea2a23",
+    "act:card:ITAE最优性能_10_35da202b",
+    "act:card:动态性能指标_3_a10733c1"
+  ]
+}

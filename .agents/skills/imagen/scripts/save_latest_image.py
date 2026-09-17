@@ -16,6 +16,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--output-dir', default='generated-images', help='Output directory. Defaults to project generated-images/.')
     parser.add_argument('--language', choices=['zh', 'en'], help='Optional language hint for filename normalization.')
     parser.add_argument('--generated-root', default=str(Path.home() / '.codex' / 'generated_images'))
+    parser.add_argument('--image', help='Exact image returned by this generation/edit; preferred over newest-image discovery.')
     return parser.parse_args()
 
 
@@ -56,7 +57,9 @@ def available_path(directory: Path, stem: str, suffix: str) -> Path:
 
 def main() -> None:
     args = parse_args()
-    generated = newest_image(Path(args.generated_root).expanduser())
+    generated = Path(args.image).expanduser().resolve() if args.image else newest_image(Path(args.generated_root).expanduser())
+    if not generated.is_file():
+        raise SystemExit(f'Image not found: {generated}')
     output_dir = Path(args.output_dir).expanduser()
     output_dir.mkdir(parents=True, exist_ok=True)
     prompt_text = (

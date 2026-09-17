@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "scope": "final b55 content and goal-catalog code",
+  "typecheck": {
+    "command": "rtk npm run typecheck",
+    "web": "passed",
+    "worker": "passed",
+    "webReceiptId": "b38b02efe452f27962fae5d5177900cc1291e4c599055b8da975802012b437eb",
+    "workerReceiptId": "7e54072eb42c0b425c90aa6874e9320941a42a0f6d026a4b472d1e39836ac660"
+  },
+  "unitTests": {
+    "command": "rtk proxy npx vitest run src/features/personalization/path-planning/__tests__/goal-canonical-knowledge.test.ts src/lib/__tests__/adaptive-path-goal-options.test.ts src/lib/__tests__/adaptive-path-goal-options-client.test.ts",
+    "filesPassed": 3,
+    "testsPassed": 4,
+    "includesFullGoalCatalogValidation": true
+  },
+  "lint": {
+    "command": "rtk proxy npx eslint src/features/personalization/path-planning/goal-canonical-knowledge.ts src/features/personalization/path-planning/registered-goal-ids.ts src/features/personalization/path-planning/adaptive-path-goal-options-client.ts src/features/personalization/path-planning/internal/assemble-plan.ts src/features/personalization/path-planning/__tests__/goal-canonical-knowledge.test.ts src/lib/__tests__/adaptive-path-goal-options.test.ts",
+    "status": "passed"
+  },
+  "codeSha256": {
+    "src/features/personalization/path-planning/goal-canonical-knowledge.ts": "61a80aafcbdb7775216e1f38ef38833ad13c390e69c4d39947489928cb6e586a",
+    "src/features/personalization/path-planning/registered-goal-ids.ts": "4bbd64e21cb1fd5fc489382568eaff98157481e4d2c58b80534af4fc9858e6c6",
+    "src/features/personalization/path-planning/adaptive-path-goal-options-client.ts": "4747b4d2ebee0d7ebf4a7a83ea33dfeeb12138bb147036c0c00c5d43b34c1ff1",
+    "src/features/personalization/path-planning/internal/assemble-plan.ts": "b3727a88259b125d71df9b105e2287707e4db42244dfb63ef9c3607dcffb7580",
+    "src/features/personalization/path-planning/__tests__/goal-canonical-knowledge.test.ts": "332af982648aac3ff33e350a3ccabb76443121e77d26b70d586c0903a2cd67a2",
+    "src/lib/__tests__/adaptive-path-goal-options.test.ts": "e965fd0f48a650ed270dce5309a24e6c46d79fef71ab47ac9e055ec2ccb0a512"
+  },
+  "contentEvidence": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-14a/consumption-verification.json",
+  "completionAudit": "openspec/changes/activate-teaching-card-batch-01/completion-audit.json",
+  "notRun": "Production build/deployment; no server publication was requested."
+}

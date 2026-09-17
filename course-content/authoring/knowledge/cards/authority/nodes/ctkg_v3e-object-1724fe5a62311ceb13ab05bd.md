@@ -1,31 +1,31 @@
 ---
 node_id: ctkg_v3e-object-1724fe5a62311ceb13ab05bd
 authority_entity_id: "ctkg:v3e-object-1724fe5a62311ceb13ab05bd"
-name: 格拉姆矩阵判据
+name: "格拉姆矩阵判据"
+name_en: "Controllability Gramian Criterion"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 格拉姆矩阵判据
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1c9b38579cf501a29032b02679d72f8ac876d06086134b0cb922bc1db7c17786.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1c9b38579cf501a29032b02679d72f8ac876d06086134b0cb922bc1db7c17786.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-16a/previous/ctkg_v3e-object-1724fe5a62311ceb13ab05bd.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 372736373a3a0c3853f32331e2f10c4a0c1dd33d2f764e8e008b0825df02dadd -->
-
 ## 首页
 
-# 格拉姆矩阵判据
+# 格拉姆矩阵判据 | Controllability Gramian Criterion
 
-**一句话定义**：线性定常连续系统完全可控的充分必要条件是，存在时刻 t1>0，使格拉姆矩阵 W(0, t1) 为非奇异。
+**一句话定义**：有限时间可控格拉姆矩阵非奇异，表示线性定常系统的输入能够在该时间内影响全部状态方向。
 
-**核心直觉**：在图谱邻接中可把握：后续 → 系统完全可控。
-
-**关联**：后续 → 系统完全可控
+本卡讨论可控性，不把格拉姆矩阵非奇异当成系统稳定性的判据。
 
 ---
 
@@ -33,18 +33,48 @@ asset_refs: []
 
 ### 完整解释
 
-线性定常连续系统完全可控的充分必要条件是，存在时刻 t1>0，使格拉姆矩阵 W(0, t1) 为非奇异。
+对连续时间线性定常系统 $\dot x=Ax+Bu$，可控性关注能否通过合适输入完成状态转移。格拉姆矩阵将输入在一段时间内传播到各状态方向的作用累积起来，形成一个对称半正定矩阵。若某个非零状态方向完全得不到输入作用，矩阵在该方向上就会出现零作用，因此不能满秩。
+
+取时间长度 $T>0$，可控格拉姆矩阵可写为
+
+$$W_T=\int_0^T e^{A\tau}BB^{\mathsf T}e^{A^{\mathsf T}\tau}\,d\tau.$$
+
+这与把时间变量写成 $T-\tau$ 的常见形式等价。对有限维线性定常系统，完全可控等价于有限正时间的该矩阵正定，也等价于可控性矩阵满秩。这里的“有限时间”很重要，不要求 $A$本身稳定，不能与只在特定稳定条件下使用的无限时间格拉姆矩阵混淆。
+
+矩阵非奇异说明理论上所有状态方向均可到达，但不保证所需控制输入满足实际幅值或能量约束。若矩阵接近奇异，某些方向可能很难有效影响，数值计算也会变得敏感。实际判断应结合模型尺度和误差，而不是只看计算机输出的行列式是否刚好等于零。
+
+### 教学计算/推理例
+
+取
+
+$$A=\begin{bmatrix}-1&0\\0&-2\end{bmatrix},\qquad B=\begin{bmatrix}1\\1\end{bmatrix},\qquad T=1.$$
+
+因为 $e^{A\tau}B=(e^{-\tau},e^{-2\tau})^{\mathsf T}$，直接积分得
+
+$$W_1=\begin{bmatrix}(1-e^{-2})/2&(1-e^{-3})/3\\(1-e^{-3})/3&(1-e^{-4})/4\end{bmatrix}.$$
+
+行列式约为0.005780744，矩阵正定。也可用 $[B,AB]=\begin{bmatrix}1&-1\\1&-2\end{bmatrix}$ 核对，其行列式为-1，因此系统完全可控。
+
+现在保持 $A$不变，将输入矩阵改为 $B=(1,0)^{\mathsf T}$。第二个状态不再受到输入作用，可控格拉姆矩阵变为对角矩阵，第二个对角元素为0，因而奇异。虽然两个系统的特征值同为-1和-2、零输入运动都衰减，可控性却不同。这正说明当前判据不能被解释为稳定性判据。
+
+### 适用条件与边界
+
+这里的可控性是理想线性模型中的状态转移性质，输入未额外施加实际执行器约束。若允许的输入幅值有限、时间不足或对象具有强非线性，应进一步分析受限可达性，不能仅凭格拉姆矩阵满秩就保证某个具体转移任务可以按期完成。
+
+同样的“格拉姆矩阵”名称还用于其他数学对象。使用本判据时要说明是可控格拉姆矩阵，以及矩阵 $A,B$、积分区间和状态坐标。换用可观测格拉姆矩阵时对应的是测量能否辨认状态的另一问题，不能省略输入与输出的区别。
+
+### 常见误区
+
+1. 误区：格拉姆矩阵非奇异就证明闭环稳定。纠正：本卡判定可控性，稳定性另由状态运动或相应输入输出判据检查。
+2. 误区：满秩表示任意实际执行器都能完成任意转移。纠正：理论可控性不自动保证输入限幅、能量和时间约束。
+
+### 自检
+
+1. 将本例的输入矩阵改为 $(1,0)^{\mathsf T}$，为什么第二状态不可控？
+2. 两个例子的特征值相同，为什么格拉姆矩阵判据给出不同结论？
+
+**核对要点**：输入无法通过对角状态方程影响第二方向，因此出现零行列式。特征值反映自由运动，输入矩阵决定能否激励各状态方向，两者是不同性质。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 系统完全可控 | 应用于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、格拉姆矩阵判据
+- **系统完全可控**（出边，关系：适用于）

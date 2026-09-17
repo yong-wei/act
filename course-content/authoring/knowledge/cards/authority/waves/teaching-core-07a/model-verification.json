@@ -1,0 +1,154 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "graph": {
+    "dimensionless": true,
+    "edges": [
+      {
+        "source": "r",
+        "target": "x",
+        "gain": "2"
+      },
+      {
+        "source": "x",
+        "target": "y",
+        "gain": "3"
+      },
+      {
+        "source": "y",
+        "target": "x",
+        "gain": "-1/10"
+      },
+      {
+        "source": "r",
+        "target": "y",
+        "gain": "1"
+      },
+      {
+        "source": "y",
+        "target": "z",
+        "gain": "1"
+      },
+      {
+        "source": "r",
+        "target": "q",
+        "gain": "4"
+      },
+      {
+        "source": "q",
+        "target": "q",
+        "gain": "1/5"
+      },
+      {
+        "source": "q",
+        "target": "z",
+        "gain": "1/2"
+      }
+    ],
+    "equations": [
+      "x=2r-0.1y",
+      "y=3x+r",
+      "q=4r+0.2q",
+      "z=y+0.5q"
+    ],
+    "solutionForR1": {
+      "x": "19/13",
+      "y": "70/13",
+      "q": "5",
+      "z": "205/26"
+    }
+  },
+  "models": {
+    "forward_path_gain": {
+      "paths": [
+        {
+          "nodes": [
+            "r",
+            "x",
+            "y",
+            "z"
+          ],
+          "gain": "6"
+        },
+        {
+          "nodes": [
+            "r",
+            "y",
+            "z"
+          ],
+          "gain": "1"
+        },
+        {
+          "nodes": [
+            "r",
+            "q",
+            "z"
+          ],
+          "gain": "2"
+        }
+      ],
+      "sumOfPathGains": "9",
+      "boundary": "source term means the product along one path P_k, not the sum over all paths"
+    },
+    "graph_determinant": {
+      "loopGains": [
+        "-3/10",
+        "1/5"
+      ],
+      "nontouchingProduct": "-3/50",
+      "formula": "1-(L1+L2)+L1 L2",
+      "value": "26/25",
+      "decimalValue": 1.04,
+      "boundary": "plus before the pair term does not make a negative product positive"
+    },
+    "path_cofactor": {
+      "pathCofactors": [
+        "4/5",
+        "4/5",
+        "13/10"
+      ],
+      "retainedLoopsByPath": [
+        [
+          "q"
+        ],
+        [
+          "q"
+        ],
+        [
+          "x-y"
+        ]
+      ],
+      "boundary": "exclude every loop touching the chosen forward path and every product containing such a loop"
+    },
+    "mason_formula": {
+      "weightedNumerator": "41/5",
+      "denominator": "26/25",
+      "inputOutputGain": "205/26",
+      "unweightedWrongGain": "225/26",
+      "boundary": "all paths and all elementary loops counted once; denominator nonzero in this algebraic example"
+    },
+    "nontouching_loops": {
+      "loopNodeSets": [
+        [
+          "x",
+          "y"
+        ],
+        [
+          "q"
+        ]
+      ],
+      "sharedNodes": [],
+      "gainProduct": "-3/50",
+      "boundary": "no shared nodes is required; no shared branches alone would not suffice"
+    },
+    "cofactor_product_removal": {
+      "forPathRXYZ": "Delta1=1-L2=4/5",
+      "removedTerms": [
+        "-L1",
+        "+L1 L2"
+      ],
+      "forPathRQZ": "Delta3=1-L1=13/10",
+      "boundary": "removing just a single-loop term from the full determinant is incorrect; mixed products must also be removed"
+    }
+  }
+}

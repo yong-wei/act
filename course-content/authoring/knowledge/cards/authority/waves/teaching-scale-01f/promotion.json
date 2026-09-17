@@ -1,0 +1,17 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 7,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b8",
+  "retiredResources": [
+    "act:card:稳定性_1_1",
+    "act:card:稳定性_1_7288b4ea",
+    "act:card:稳定性_3_72d04fbd",
+    "act:card:稳定性_4_b56bde88",
+    "act:card:稳定性_7_2e521218",
+    "act:card:幅值裕度_5_73af26a5",
+    "act:card:幅值裕度_6_29a8a2e1",
+    "act:card:截止频率_5_c7d09ff7",
+    "act:card:截止频率_6_d39c12b0",
+    "act:card:截止频率ωc_5_c67064fa"
+  ]
+}

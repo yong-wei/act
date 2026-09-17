@@ -1,0 +1,283 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "relations": [
+        {
+          "relationId": "m1m:relation-554982202c6f8aab6e1f1b58",
+          "otherId": "ctkg:v3e-object-a20d4b8eab718e1261ba5442",
+          "label": "奇线",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **奇线**（出边，关系：属于）"
+        },
+        {
+          "relationId": "m1m:relation-e34c4d8c0f53567d9ea4af9d",
+          "otherId": "ctkg:v3e-object-953374e261302cfdff02144d",
+          "label": "相平面",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **相平面**（出边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "m1m:relation-e350d8ab514a8cae3036619f",
+          "otherId": "ctkg:v3e-object-9e5c7acbf973dd58acd749ef",
+          "label": "分隔线",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **分隔线**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:1b6ea3bb8ed116cb01043817",
+          "otherId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+          "label": "量化误差",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **量化误差**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1k:relation-23fa5bbd54731fb14723aabc",
+          "otherId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+          "label": "量化误差",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **量化误差**（出边，关系：属于）"
+        },
+        {
+          "relationId": "m1k:relation-64175476e7a463a4b1b5756b",
+          "otherId": "ctkg:v3e-object-fb46cb0e4c4a87cac57dc14f",
+          "label": "模数转换器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **模数转换器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "relations": [
+        {
+          "relationId": "m1m:relation-d0cbb225a5cb9c78c9e61a40",
+          "otherId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+          "label": "自激振荡",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **自激振荡**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:078c8b27d202d7eb37059e68",
+          "otherId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+          "label": "极限环",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **极限环**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1m:relation-9c5ffccd8b6dcb327570f0fb",
+          "otherId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+          "label": "极限环",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **极限环**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "relations": [
+        {
+          "relationId": "m1m:relation-0e55f2e93ad279bc096c4c83",
+          "otherId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+          "label": "极限环",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **极限环**（出边，关系：用于分析）"
+        },
+        {
+          "relationId": "m1m:relation-7ba5e86d5c74393f0498f07c",
+          "otherId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+          "label": "自激振荡",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **自激振荡**（出边，关系：用于分析）"
+        },
+        {
+          "relationId": "m1m:relation-a44c512823c3ec56985fc019",
+          "otherId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+          "label": "描述函数",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **描述函数**（出边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+      "relations": [
+        {
+          "relationId": "m1m:relation-9593b2652504a2371a442b76",
+          "otherId": "ctkg:v3e-object-99e2b54e9474379206799dfa",
+          "label": "正阻尼",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **正阻尼**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:8014745474e4e06d51d67509",
+          "otherId": "ctkg:v3e-object-5c04a71914f42217047a20bf",
+          "label": "振荡周期",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **振荡周期**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-d0cbb225a5cb9c78c9e61a40",
+          "otherId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+          "label": "继电特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **继电特性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "relations": [
+        {
+          "relationId": "m1m:relation-ee769faa82f13439e4537515",
+          "otherId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+          "label": "极限环",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **极限环**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-5d0f4f14c4cf47659cec52a4",
+          "otherId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+          "label": "间隙特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **间隙特性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-4b7fbcce0f2134e0e4ebcacb",
+          "otherId": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+          "label": "稳定极限环",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **稳定极限环**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:06855ef2ef80b5739f3df6f4",
+          "otherId": "ctkg:v3e-object-d973ab89da26720699edb366",
+          "label": "量化单位",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **量化单位**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:59b26b385252b49da62bebaa",
+          "otherId": "ctkg:v3e-object-780e0248e98d1a241ff3f3d5",
+          "label": "量化过程",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **量化过程**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:1b6ea3bb8ed116cb01043817",
+          "otherId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+          "label": "幅度量化误差",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **幅度量化误差**（出边，关系：前置于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "relations": [
+        {
+          "relationId": "m1m:relation-1e8713f7fda970f57a2731bb",
+          "otherId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+          "label": "极限环",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **极限环**（出边，关系：用于分析）"
+        },
+        {
+          "relationId": "m1m:relation-0e1d5138401216b5266f4949",
+          "otherId": "ctkg:v3e-object-edc0d1a17b9cbb23167788e0",
+          "label": "谐波线性化",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **谐波线性化**（入边，关系：用于分析）"
+        },
+        {
+          "relationId": "m1m:relation-a44c512823c3ec56985fc019",
+          "otherId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+          "label": "描述函数法",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **描述函数法**（入边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+      "relations": [
+        {
+          "relationId": "m1m:relation-753e77677339515f121f4f80",
+          "otherId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+          "label": "描述函数",
+          "predicate": "derived_from",
+          "direction": "source_to_target",
+          "renderedLine": "- **描述函数**（出边，关系：推导自）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:f45287223ace7fac068a4efe",
+          "otherId": "ctkg:v3e-object-780e0248e98d1a241ff3f3d5",
+          "label": "量化过程",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **量化过程**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:ffc577ea8f3ddb6d00129f54",
+          "otherId": "ctkg:v3e-object-d973ab89da26720699edb366",
+          "label": "量化单位",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **量化单位**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:d5da5fa7a9eddfd4adbb84af",
+          "otherId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+          "label": "无记忆非线性",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **无记忆非线性**（入边，关系：前置于）"
+        }
+      ]
+    }
+  ]
+}

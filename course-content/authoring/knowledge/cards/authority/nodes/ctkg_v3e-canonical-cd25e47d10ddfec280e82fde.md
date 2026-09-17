@@ -2,30 +2,35 @@
 node_id: ctkg_v3e-canonical-cd25e47d10ddfec280e82fde
 authority_entity_id: "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde"
 name: "单位加速度函数"
-name_en: "Unit acceleration input"
+name_en: "Unit Parabolic Input"
 category: 概念性
 knowledge_type: C
-bloom_level: 理解
-lesson_units:
-  - "2-2"
-  - "2-4"
-card_version: 2
+bloom_level: 应用
+card_version: 3
 content_origin: act-course-enrichment
-authority_release_id: ctr:release:control-theory-engineering-v0.37
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
 status: ready
 source_docs:
-  - course-content/authoring/knowledge/cards/nodes/典型输入信号_3_897a572d.md
-  - course-content/authoring/knowledge/cards/nodes/单位加速度响应_3_5ae8db8b.md
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e949e356b72ec5e96dd2f78a53438c1e68e2eca53386d9849abe9cbae68cea17.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e949e356b72ec5e96dd2f78a53438c1e68e2eca53386d9849abe9cbae68cea17.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01d/previous/ctkg_v3e-canonical-cd25e47d10ddfec280e82fde.md"
 asset_refs: []
 ---
 
 ## 首页
 
-# 单位加速度函数 | Unit acceleration input
+# 单位加速度函数 | Unit Parabolic Input
 
-**一句话定义**：从零位置、零初始变化率出发，以单位恒定加速度增长的理想输入。
+**一句话定义**：单位加速度函数是在零初始位置和速度下，以恒定单位加速度增长的抛物线信号。
 
-**核心直觉**：输入的变化率也在持续增大，比恒速目标更能体现跟踪动态的不足。
+**核心直觉**：阶跃给定位置，斜坡持续移动目标，抛物线则让目标移动得越来越快。
+
+**关键公式**：
+$$r(t)=\frac{t^2}{2}u(t).$$
+
+**学习目标**：正确区分抛物线系数、加速度与拉普拉斯变换，并解释它为何比斜坡更难跟踪。
 
 ---
 
@@ -33,25 +38,30 @@ asset_refs: []
 
 ### 完整解释
 
-$$
-r(t)=\frac{t^2}{2}\,u(t),\qquad
-\mathcal L\{r(t)\}=\frac1{s^3}.
-$$
+这里的 $u(t)$ 表示单位阶跃函数，$t<0$ 时指令为零，$t\ge0$ 时按抛物线增长。对 $t>0$ 求导，一阶导数为 $t$，二阶导数为1。因此公式中的 $1/2$ 不可省略：$t^2u(t)$ 对应的加速度为2。这个名字说明输入形状，不保证被控对象真的以相同加速度运动。
 
-其中 $u(t)$ 为单位阶跃函数。
+若输出是位置，单位加速度可以具体为 $1\,\mathrm{m/s^2}$；若输出是航向角，则需要使用角加速度单位。归一化变量中的“1”不应直接挪到另一个物理量的单位中。一般形式为 $r=at^2u(t)/2$，对应变换为 $R(s)=a/s^3$，收敛域为 $\operatorname{Re}s>0$。也可以先把单位阶跃积分成斜坡，再积分成抛物线，这两次积分均采用零积分初值。
 
-在 $t>0$ 时，$\dot r(t)=t$、$\ddot r(t)=1$，例如 $r(2)=2$。因子 $1/2$ 保证二阶导数为一；$t^2$ 对应的加速度则为二。
+### 教学计算/推理例
 
-### 一阶跟踪示例
+用船舶位置指令的短时测试说明：从静止出发，设置 $a=0.2\,\mathrm{m/s^2}$。在4秒时目标位置为 $0.2\times4^2/2=1.6\,\mathrm m$，目标速度为 $0.8\,\mathrm{m/s}$。若误写成 $0.2t^2$，位置和加速度都翻倍。
 
-对零初值系统 $G(s)=1/(Ts+1)$，$T>0$，输入输出之差为
+设归一化跟踪模型为稳定的一阶闭环 $T(s)=1/(2s+1)$，零初始状态。对单位加速度指令，误差变换为
+$$E(s)=[1-T(s)]\frac1{s^3}=\frac{2}{s^2(2s+1)}.$$
+反变换给出 $e(t)=2t-4+4e^{-t/2}$。初始误差与初始误差变化率均为零，但长期误差约为 $2t-4$，不断增长。稳定并不保证任意增长输入的跟踪误差有有限终值。这也解释了为什么测试输入的类型必须与所报告的误差指标一起给出。
 
-$$
-e(t)=Tt+T^2(e^{-t/T}-1).
-$$
+### 常见误区与边界
 
-当 $t$ 增大时，误差近似为 $Tt-T^2$，因此持续增长。一阶系统能够跟随阶跃并不意味着它能够无差跟踪加速度输入。
+1. **误区**：单位加速度函数是幅值恒为1的信号。**纠正**：恒为1的是其在 $t>0$ 的二阶导数，信号值本身持续增长。
+2. **误区**：可把无限增长指令当作船舶长时间试验。**纠正**：真实执行器有速度、推力和水域限制，教学抛物线应限时使用；截断后的全时域变换也随之改变。
 
-### 使用条件
+### 自检
 
-这里的“单位加速度”描述输入波形的归一化形式。只有当输入代表位置等相应物理量时，它才具有实际运动加速度的含义。
+1. $r(t)=3t^2u(t)$ 的加速度和变换分别是什么？
+2. 上例一阶闭环稳定，为什么误差仍不断增长？
+
+**核对要点**：加速度为6，变换为 $6/s^3$；闭环稳定约束自由响应及有界输入行为，而抛物线本身是无界输入，跟踪能力还取决于低频结构。
+
+### 关联节点
+
+- **典型输入信号**（组成关系）：抛物线是典型输入族的一员；与阶跃、斜坡对照，可以比较系统对逐渐增长指令的跟踪能力。

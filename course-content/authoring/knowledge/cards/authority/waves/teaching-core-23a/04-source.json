@@ -1,0 +1,228 @@
+{
+  "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+      "canonicalType": "DomainConcept",
+      "label": "误差全补偿条件",
+      "aliases": [
+        "误差全补偿条件"
+      ],
+      "description": "使系统误差完全为零的前馈补偿装置传递函数应满足的条件，如Gn(s) = -1/G1(s)或Gr(s) = 1/G(s)。",
+      "teachingFields": {
+        "concept_kind": "method_kind"
+      },
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.6/item-3",
+          "label": "自动控制原理（胡寿松，第8版） · 按输入补偿的复合校正"
+        },
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.6/example-6.9",
+          "label": "自动控制原理（胡寿松，第8版） · 设按扰动补偿的复合校正随动系统如图 6－34 所示。图中，$K_{1}$ 为综合放大器的增益， $1 /\\left(T_{1} s+1\\right)$ 为滤波器的传递函数，$K_{m} /\\left[s\\left(T_{m} s+1\\right"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctkg:domainconcept:1bd485e2c679f6653728f6a9",
+        "canonicalType": "DomainConcept",
+        "label": "稳态全补偿",
+        "aliases": [
+          "稳态全补偿"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "robustness-sensitivity-analysis",
+            "visualRole": "robustness",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "method_kind"
+      },
+      {
+        "id": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+        "canonicalType": "DomainConcept",
+        "label": "误差全补偿条件",
+        "aliases": [
+          "误差全补偿条件"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "robustness-sensitivity-analysis",
+            "visualRole": "robustness",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "method_kind"
+      },
+      {
+        "id": "ctkg:domainconcept:e068737e2de7d2aa0eda0686",
+        "canonicalType": "DomainConcept",
+        "label": "近似全补偿",
+        "aliases": [
+          "近似全补偿"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "robustness-sensitivity-analysis",
+            "visualRole": "robustness",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "method_kind"
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:m5-d1:association:3450bb0ded068361fcf24f9e",
+        "predicate": "association",
+        "sourceId": "ctkg:domainconcept:1bd485e2c679f6653728f6a9",
+        "targetId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:3e1ec2e7adba53927ad34ece",
+        "predicate": "association",
+        "sourceId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+        "targetId": "ctkg:domainconcept:e068737e2de7d2aa0eda0686",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      }
+    ],
+    "boundaries": []
+  }
+}

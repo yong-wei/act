@@ -1,0 +1,117 @@
+{
+  "baseBindingReleaseId": "control-theory-engineering-v0.48-b2",
+  "baseBindingHash": "00ded6aafb976ae86bb031d6d867df3f56dfb65f218e31ee936f7f8c9a1907ed",
+  "entries": [
+    {
+      "resourceId": "act:card:一阶系统_3_4f3b29ce",
+      "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "replacementResourceId": "act:card:ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/一阶系统_3_4f3b29ce.md",
+          "sha256": "418b642b1713d23ba8385975db8c3fa38607d8783d441bf66ca35015c75adbd9",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/一阶系统_3_4f3b29ce.md",
+          "sha256": "418b642b1713d23ba8385975db8c3fa38607d8783d441bf66ca35015c75adbd9",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:超调量_3_fc3f5b17",
+      "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+      "replacementResourceId": "act:card:ctkg_v3e-canonical-df3167f36376f526f6ec5562",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/超调量_3_fc3f5b17.md",
+          "sha256": "2aca474ad43327a2cddfa0cf8ad43049e7c41d5273599540b5a9b2609ac9e83b",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/超调量_3_fc3f5b17.md",
+          "sha256": "2aca474ad43327a2cddfa0cf8ad43049e7c41d5273599540b5a9b2609ac9e83b",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:超调量_4_bad49999",
+      "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+      "replacementResourceId": "act:card:ctkg_v3e-canonical-df3167f36376f526f6ec5562",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/超调量_4_bad49999.md",
+          "sha256": "63d182ab4d2947f0c60979ef1342a0f461bbfdbcc1a459622c7c459cb757ac52",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/超调量_4_bad49999.md",
+          "sha256": "63d182ab4d2947f0c60979ef1342a0f461bbfdbcc1a459622c7c459cb757ac52",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:超调量_6_f91c1939",
+      "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+      "replacementResourceId": "act:card:ctkg_v3e-canonical-df3167f36376f526f6ec5562",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/超调量_6_f91c1939.md",
+          "sha256": "665b0ad31369e01ecfe9b8baf03f9f467a198bb14c1ca3aa89de3e20dcd7a329",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/超调量_6_f91c1939.md",
+          "sha256": "665b0ad31369e01ecfe9b8baf03f9f467a198bb14c1ca3aa89de3e20dcd7a329",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:可控性_9_b22a45c8",
+      "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "replacementResourceId": "act:card:ctkg_v3e-object-133c90435f61b9a83b7d4aaf",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/可控性_9_b22a45c8.md",
+          "sha256": "ad5431f36f45822babb214c03f2866252d442597df21e218fe57cb52effc0637",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/可控性_9_b22a45c8.md",
+          "sha256": "ad5431f36f45822babb214c03f2866252d442597df21e218fe57cb52effc0637",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:可观测性_9_b26c542c",
+      "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+      "replacementResourceId": "act:card:ctkg_v3e-object-5592624b3ec200b86f7b744d",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/可观测性_9_b26c542c.md",
+          "sha256": "b6021915a79fe13a8d377a4a29d8786e0ddd774439e2cba41283d2c8ee825442",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/可观测性_9_b26c542c.md",
+          "sha256": "b6021915a79fe13a8d377a4a29d8786e0ddd774439e2cba41283d2c8ee825442",
+          "gitRevision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ]
+    }
+  ],
+  "status": "retired-and-deleted-locally",
+  "replacementBindingReleaseId": "control-theory-engineering-v0.48-b4",
+  "replacementBindingHash": "2c3c2ff5ba01adfe80866335619238bf27f75e1352ef49801bbeaf942221d384",
+  "currentGraphFilesUpdated": [
+    "course-content/runtime/knowledge/graph/nodes.json",
+    "course-content/runtime/lessons/4-5/graph-overlay.json",
+    "course-content/runtime/lessons/2-2/graph-overlay.json",
+    "course-content/runtime/lessons/4-1/graph-overlay.json"
+  ]
+}

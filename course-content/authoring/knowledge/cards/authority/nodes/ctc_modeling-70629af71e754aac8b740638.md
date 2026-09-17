@@ -1,55 +1,111 @@
 ---
 node_id: ctc_modeling-70629af71e754aac8b740638
 authority_entity_id: "ctc:modeling-70629af71e754aac8b740638"
-name: procedure to obtain set
-name_en: modeling_70629af71e754aac8b740638
+name: "平衡点泰勒级数线性化"
+name_en: "Taylor-Series Linearization at an Equilibrium"
 category: 程序性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: analysis_method
-release_tier: silver
-tags:
-  - analysis_method
-  - silver
-  - procedure
-  - to
-  - obtain
-  - set
-card_version: 1
+knowledge_type: X
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f6d006ed9504b18858777fcf5a122e19de8754b71b86f56f50534f79f6ec6ff5.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/previous/ctc_modeling-70629af71e754aac8b740638.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 927cf9a600a2ad5bbdd229bcf958475d70b71fb7562cbe6f7b3179181a2c10f7 -->
-
 ## 首页
 
-# procedure to obtain set | modeling_70629af71e754aac8b740638
+# 平衡点泰勒级数线性化 | Taylor-Series Linearization at an Equilibrium
 
-**一句话定义**：procedure to obtain set：A procedure to obtain a set of linearized equations describing a nonlinear system by expanding the nonlinear functions…
+**一句话定义**：先在满足静止条件的状态和输入处展开非线性方程，再保留一阶偏导得到增量模型。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：平衡点让泰勒展开的常项消失，雅可比矩阵只留下附近运动的局部方向和强度。
 
----
+**关键公式**：
+$$
+\delta\dot{x}\approx A\delta x+B\delta u,\qquad A=f_x(x_0,u_0),\ B=f_u(x_0,u_0)
+$$
+
+**学习目标**：能按“验证平衡—定义偏差—求雅可比—写增量传函”的顺序完成一阶线性化。
 
 ## 详情
 
 ### 完整解释
 
-A procedure to obtain a set of linearized equations describing a nonlinear system by expanding the nonlinear functions in a Taylor series about an equilibrium (steady-state) condition and neglecting higher-order terms.
+设非线性动态系统为 $\dot{x}=f(x,u)$。对状态和输入分别写成
+$$
+x=x_0+\delta x,\qquad u=u_0+\delta u.
+$$
+泰勒展开的第一步不是求导，而是确认工作点确实是平衡点：
+$$
+f(x_0,u_0)=0.
+$$
+在这个条件下，关于 $(x_0,u_0)$ 展开并忽略二阶及更高阶项，得到
+$$
+\delta\dot{x}\approx f_x(x_0,u_0)\delta x+f_u(x_0,u_0)\delta u.
+$$
+把两个偏导记为 $A$ 和 $B$，便得到线性增量模型 $\delta\dot{x}\approx A\delta x+B\delta u$。常项之所以为零，是因为平衡条件已经把原方程在工作点处的净变化抵消了；这不是把非零常数“约掉”，而是先验证了它确实等于零。
+
+对固定例子
+$$
+\dot{x}=u-x^2,
+$$
+取 $(x_0,u_0)=(2,4)$。平衡检查为 $4-2^2=0$。两项偏导为
+$$
+A=\left.\frac{\partial f}{\partial x}\right|_{(2,4)}=-2x_0=-4,
+\qquad
+B=\left.\frac{\partial f}{\partial u}\right|_{(2,4)}=1.
+$$
+因此
+$$
+\delta\dot{x}\approx-4\delta x+\delta u.
+$$
+也就是说，在这个平衡点处 $A=-4$、$B=1$；换一个平衡点，雅可比数值也会随之改变。
+这里的 $A$ 是平衡点的局部状态雅可比，决定无输入偏差时的局部极点；$B$ 表示输入偏差如何进入状态变化。若把工作点的绝对量直接写成偏差，却没有先检查 $f(x_0,u_0)=0$，就无法解释常项为何消失。
+
+### 教学计算/推理例
+
+仍从 $x_0=2,u_0=4$ 出发，令增量初态为零，并施加 $\delta u=0.4$ 的阶跃。由上面的雅可比得到
+$$
+\delta\dot{x}+4\delta x=0.4,
+\qquad \delta x(0)=0.
+$$
+取拉普拉斯变换，零增量初态给出
+$$
+(s+4)\Delta X(s)=\Delta U(s),
+\qquad
+\frac{\Delta X(s)}{\Delta U(s)}=\frac1{s+4}.
+$$
+阶跃输入的变换为 $\Delta U(s)=0.4/s$，故
+$$
+\Delta X(s)=\frac{0.4}{s(s+4)}
+\quad\Longrightarrow\quad
+\delta x(t)=0.1\left(1-e^{-4t}\right).
+$$
+答案包含两层含义：线性化增量的终值为 $0.1$，相应状态靠近 $x=2.1$；极点为 $-4$，所以该局部增量自由响应衰减。传函只描述零初态下的输入到增量输出关系，非零初始偏差还会额外产生自由响应。
+
+### 适用条件与边界
+
+该方法要求 $f$ 在工作点附近具有所需的一阶偏导，并且输入、状态和增量的定义一致。雅可比给出的稳定性结论是局部结论；当线性化极点落在虚轴上或出现零实部时，一阶模型可能不足以判断原系统稳定性。若工作点不是平衡点，常项一般不会消失，应使用保留常项的工作点展开。
+
+### 常见误区
+
+1. **误区**：只要点的坐标写成零点，就可以跳过平衡检查。**纠正**：坐标原点和动力学平衡是两件事，仍需验证 $f(x_0,u_0)=0$。
+2. **误区**：$A$ 与 $B$ 可以在整个状态空间固定使用。**纠正**：它们是所选平衡点处的偏导，换工作点要重新计算。
+
+### 自检
+
+1. 本例中为什么 $A=-4$ 而不是 $-2$？
+2. 为什么增量传递函数的分母是 $s+4$？
+
+**核对要点**：$A=-2x_0$，代入 $x_0=2$ 得 $-4$；零输入增量方程为 $\delta\dot{x}=-4\delta x$，其特征根为 $-4$，拉普拉斯域分母因此为 $s+4$。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`analysis_method`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-analysis_method、silver、procedure、to、obtain、set
+- **线性化单摆无阻尼固有频率**（无向，关系：相关）

@@ -1,0 +1,29 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_core_poles_zeros_nine",
+  "role": "simulation-domain-reviewer",
+  "findings": [
+    {
+      "id": "bare-pm-and-imaginary-part",
+      "disposition": "ACCEPT",
+      "status": "resolved"
+    },
+    {
+      "id": "node-id-mismatch",
+      "disposition": "ACCEPT",
+      "status": "resolved"
+    }
+  ],
+  "focusedRereview": "passed",
+  "cardHashes": {
+    "ctc:modeling-71f0e8d834291c2c7d5e25b9": "4a36d215e959a6d7430de866146717b751a238ac58c854fcf11496115b74d9fc",
+    "ctc:modeling-8010502b57930c3dcb915af9": "61032dc9de359d6f8146a8183898f0979d6ba59b62dfb016e7a58fe1e23920ca",
+    "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb": "41b06cd84b478ab3e7a66dac01964bdc9af0599a470cfc2d79931c98c7700aca",
+    "ctc:v11g-95859dcad651c20058bf8726": "8018a67361a15a8d458aa22d3eb3682e44eac64ec040ab932ff3ee29de970f53",
+    "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e": "279c996df42f4a30eef3f37b98ae0da8df3235e6a1595bef156fa554dc0348df",
+    "ctkg:v3e-canonical-47995819305793bf4c946953": "01f0b780939930662ec1cefbcc34630c2a8e6b45535e4d208611ebbdd43e8580",
+    "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d": "47abef9e65c65b3a8ac220556c02430019639092235e0183883c70c42803d946",
+    "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d": "94bab0db30758ce74d69bd4ad51fd99938af8ad9cc294e4de736fd381fc522fb",
+    "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550": "b8ce5943246773aacbbd8987a18599e2eba39086782468b4544303a65f614368"
+  }
+}

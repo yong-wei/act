@@ -1,0 +1,250 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-c64dfb875b6343ff32d0acb2",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:0d02ae9f744d0e1715869dc5",
+          "otherId": "ctkg:v3e-object-15bb04de4783aac94efc5a01",
+          "label": "施密特触发器",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **施密特触发器**（出边，关系：前置于）"
+        },
+        {
+          "relationId": "m1m:relation-03f77b5457893a2c063ee636",
+          "otherId": "ctkg:v3e-object-15bb04de4783aac94efc5a01",
+          "label": "施密特触发器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **施密特触发器**（入边，关系：属于）"
+        },
+        {
+          "relationId": "m1m:relation-e7d92c4c058d966518590d1b",
+          "otherId": "ctkg:v3e-object-15bb04de4783aac94efc5a01",
+          "label": "施密特触发器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **施密特触发器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+      "relations": [
+        {
+          "relationId": "m1m:relation-a308de5252178524fce27aae",
+          "otherId": "ctkg:v3e-object-ca34eff2440293f793a1aafa",
+          "label": "圆判据",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **圆判据**（入边，关系：用于分析）"
+        },
+        {
+          "relationId": "m1m:relation-a7f9436aa41388a7dfb62808",
+          "otherId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+          "label": "相平面法",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **相平面法**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "m1m:relation-de05fe5ad901a7870df7ca4d",
+          "otherId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+          "label": "相平面法",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **相平面法**（入边，关系：用于分析）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:e547add949afcfb173db8ef8",
+          "otherId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+          "label": "无记忆非线性",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **无记忆非线性**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1m:relation-2faabe9dd24cff02c0f757bb",
+          "otherId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+          "label": "无记忆非线性",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **无记忆非线性**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+      "relations": [
+        {
+          "relationId": "m1m:relation-30f0bb264d4f3a2b0ae332f8",
+          "otherId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+          "label": "死区特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **死区特性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-dd0219a7a801a056f6aa83c5",
+          "otherId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+          "label": "间隙特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **间隙特性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "relations": [
+        {
+          "relationId": "m1m:relation-f7da76dccd63a8b9476b40ac",
+          "otherId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+          "label": "等效增益",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **等效增益**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-342f728d73c5f48b1e127f16",
+          "otherId": "ctkg:v3e-object-78aceee1453c8c629dcfdd7e",
+          "label": "低速爬行现象",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **低速爬行现象**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:769e8df15e189d9a942d9c8a",
+          "otherId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+          "label": "无记忆非线性",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **无记忆非线性**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1m:relation-d2b12e804ad735a4104e2c98",
+          "otherId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+          "label": "无记忆非线性",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **无记忆非线性**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "relations": [
+        {
+          "relationId": "m1m:relation-dd0219a7a801a056f6aa83c5",
+          "otherId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+          "label": "死区",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **死区**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-5d0f4f14c4cf47659cec52a4",
+          "otherId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+          "label": "自振荡",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **自振荡**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-9f443b5737c23cb68f454939",
+          "otherId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+          "label": "等效增益",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **等效增益**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "relations": [
+        {
+          "relationId": "m1m:relation-375585cec727e8f2c0940bf7",
+          "otherId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+          "label": "等效增益",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **等效增益**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+      "relations": [
+        {
+          "relationId": "m1m:relation-262038292c368b6a20f6d8bd",
+          "otherId": "ctkg:v3e-object-f3ae1a478d0e8faba241ebbb",
+          "label": "预加载弹簧",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **预加载弹簧**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:0d703a8308a0c3c8f29c5146",
+          "otherId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+          "label": "无记忆非线性",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **无记忆非线性**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1m:relation-4a97019fbeed79fe17c1fe53",
+          "otherId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+          "label": "无记忆非线性",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **无记忆非线性**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "relations": [
+        {
+          "relationId": "m1m:relation-30f0bb264d4f3a2b0ae332f8",
+          "otherId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+          "label": "死区",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **死区**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-76f7efcb55d9a3617667efa5",
+          "otherId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+          "label": "开关线",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **开关线**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1m:relation-3214087801a6a5ccc0eea946",
+          "otherId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+          "label": "等效增益",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **等效增益**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

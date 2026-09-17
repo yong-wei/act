@@ -1,0 +1,237 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-542c371afb4374a5f7b7be5f",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:fc3f5a1c3cf3829d5e4c0d7e",
+          "otherId": "ctkg:v3e-object-a1d3ebe12a90c2bf346948ab",
+          "label": "矩阵指数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **矩阵指数**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:0f0c2197498a4dff2a386abd",
+          "otherId": "ctc:modeling-caf967347827c5f93ed59795",
+          "label": "零输入响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **零输入响应**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:2a98b8053d17ddbd93eee1cc",
+          "otherId": "ctc:modeling-6212bcf51507051ef6765954",
+          "label": "系统状态矩阵",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **系统状态矩阵**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:0ee48eef2a37e065a2b115a9",
+          "otherId": "ctkg:v3e-object-a1d3ebe12a90c2bf346948ab",
+          "label": "矩阵指数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **矩阵指数**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:310149f65bf10c13f6fdbe1e",
+          "otherId": "ctc:modeling-6ed1719a7e3ec5719fba4276",
+          "label": "状态系数方阵",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态系数方阵**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:84952e765be5051bd39fc79a",
+          "otherId": "ctc:modeling-1d8759ac1188e2de38f75ed3",
+          "label": "状态空间轨迹",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态空间轨迹**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9e88045efd51f4067f98fe34",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:bf5853f3304d604173c40646",
+          "otherId": "ctc:modeling-865eb1c8824e157c2f05a903",
+          "label": "传递函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **传递函数**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:0c5fa8b7ae113e055a54f1cd",
+          "otherId": "ctc:modeling-6e03c54be64721caf66c75c5",
+          "label": "状态空间模型",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态空间模型**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dc824b634d98afec12f44ff1",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:dce82fc16758b89090092387",
+          "otherId": "ctkg:v3e-object-02f9f0ab62cde123ae7dcc9a",
+          "label": "左伴随矩阵",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **左伴随矩阵**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:5e29647c70ce0114b47763fc",
+          "otherId": "ctc:modeling-6ed1719a7e3ec5719fba4276",
+          "label": "状态系数方阵",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态系数方阵**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:90232750959fda99a2e84215",
+          "otherId": "ctc:modeling-7fa2352b16acf995839bcabf",
+          "label": "一阶微分方程组状态空间模型",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **一阶微分方程组状态空间模型**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3784992e294bb2f120cdc0df",
+      "relations": [
+        {
+          "relationId": "m1l:relation-81133211bc695198f7b2332d",
+          "otherId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+          "label": "可控性",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **可控性**（出边，关系：用于分析）"
+        },
+        {
+          "relationId": "m1l:relation-c3e9211ab3b9a9ba0d0e4897",
+          "otherId": "ctkg:v3e-object-7e19f05879897a5e2d7c3e97",
+          "label": "阿克曼状态反馈增益公式",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **阿克曼状态反馈增益公式**（入边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-567eb255d7d82d8b4e029f6d",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:7302ea2c319c0ff424e83d9b",
+          "otherId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+          "label": "可控性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **可控性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:14ed2030bafab6b8a9ef5f42",
+          "otherId": "ctkg:v3e-object-7e0291af0b752655e0d98328",
+          "label": "一致可达",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **一致可达**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:4cd39ffdeab73a3175e10dda",
+          "otherId": "ctkg:v3e-object-bf30e8212ba68b5629f44826",
+          "label": "状态可控",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态可控**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ade57f97833b42fe6394301d",
+      "relations": [
+        {
+          "relationId": "m1l:relation-2f91b218b3512b107c7cf70a",
+          "otherId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+          "label": "PBH秩判据",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **PBH秩判据**（入边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b667b9f8df2202d92a43a966",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:62998e3abfae1c52b73e296d",
+          "otherId": "ctkg:v3e-object-302e66995736fab70bde0338",
+          "label": "能观性秩判据法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **能观性秩判据法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:e51fe744bc7484be5f7bdfde",
+          "otherId": "ctkg:v3e-object-0fb119433b4fd68aebe1b4f8",
+          "label": "离散可控性矩阵",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **离散可控性矩阵**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:2c318978d48fa340feaca2a7",
+          "otherId": "ctkg:v3e-object-92036a27c9d71cee9eb07bf5",
+          "label": "可观测性格拉姆判据",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **可观测性格拉姆判据**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-98863d255f5bdc0c59c9b50b",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aee09af112d5234757265089",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:a24e1cd96b36da7672056a78",
+          "otherId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+          "label": "可观测性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **可观测性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:5fec289b10bb3b986d97190e",
+          "otherId": "ctkg:v3e-object-0ffd784a046b2ff6fc583d23",
+          "label": "基于对偶性的估计器设计",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **基于对偶性的估计器设计**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:ef30cae7ed7d22af16e1d7a2",
+          "otherId": "ctkg:v3e-object-7ec200eb09dcb2beb627f1eb",
+          "label": "基于对偶性的估计器设计（使用acker/place）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **基于对偶性的估计器设计（使用acker/place）**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

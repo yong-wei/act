@@ -1,0 +1,16 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 12,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b30",
+  "retiredResources": [
+    "act:card:比例-积分控制器_3_2d540516",
+    "act:card:比例-微分控制_3_8428a70d",
+    "act:card:比例-微分控制器_3_3b512e79",
+    "act:card:P控制器_6_63f2f5eb",
+    "act:card:比例控制_1_1",
+    "act:card:PD控制器_6_3eb1a935",
+    "act:card:I控制器_6_f0772f17",
+    "act:card:等效增益_8_7913d7f5",
+    "act:card:积分控制规律_6_01aa3db3"
+  ]
+}

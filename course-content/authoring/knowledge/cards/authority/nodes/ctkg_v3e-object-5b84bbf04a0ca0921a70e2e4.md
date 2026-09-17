@@ -1,31 +1,31 @@
 ---
 node_id: ctkg_v3e-object-5b84bbf04a0ca0921a70e2e4
 authority_entity_id: "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4"
-name: 串联超前校正
+name: "串联超前校正"
+name_en: "Series Phase-lead Compensation"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 串联超前校正
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-29a656419bad5e60b5d898650367499acc3ea6a1530334c63904fbe10c468b39.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-29a656419bad5e60b5d898650367499acc3ea6a1530334c63904fbe10c468b39.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-20a/previous/ctkg_v3e-object-5b84bbf04a0ca0921a70e2e4.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 6fda62a5e08a742e5c722a1fe46de48af694f98594ebe6cc53125c01d2f5cc8f -->
-
 ## 首页
 
-# 串联超前校正
+# 串联超前校正 | Series Phase-lead Compensation
 
-**一句话定义**：利用超前网络或PD控制器进行串联校正的基本原理，是利用超前网络或PD控制器的相角超前特性。
+**一句话定义**：串联超前校正把超前网络接入误差到对象的前向通路，并通过完整闭环核验其速度、精度与控制作用。
 
-**核心直觉**：在图谱邻接中可把握：后续 → 频率响应法校正设计。
-
-**关联**：后续 → 频率响应法校正设计
+网络具有超前相角，不表示可以省略对象和连接位置的分析。
 
 ---
 
@@ -33,18 +33,49 @@ asset_refs: []
 
 ### 完整解释
 
-利用超前网络或PD控制器进行串联校正的基本原理，是利用超前网络或PD控制器的相角超前特性。
+超前网络的零点通常比极点靠近原点，在一定频段提供正相角，同时提高高频增益。串联加入后，它改变了回路乘积、闭环分子和特征方程。最终响应由这些变化共同决定，不能只将最大超前角作为性能改善量。
+
+本卡选择一个可以精确复算的名义模型，展示串联后某项速度指标改善，同时保留控制起始值和内部模态。它不是说明任意对象使用同一网络都得到相同改善；若模型有误差或其他动态，应重新验证。
+
+极零约消在计算中尤其需要说明。即使约去的是稳定极点，也不能把完整内部状态当作已经不存在。零状态参考通道的低阶等效与任意初态下的内部运动，应分别看待。
+
+### 教学计算/推理例
+
+对象为 $G(s)=1/(s+1)$，基准为单位负反馈，其参考传递函数为 $1/(s+2)$。串联超前网络
+
+$$C(s)=\frac{1+s}{1+0.25s}$$
+
+后，名义零状态参考传递函数化为
+
+$$T(s)=\frac{CG}{1+CG}=\frac4{s+8}.$$
+
+两者的单位阶跃终值均为0.5。达到各自终值90%的时间，基准约1.151293 s，校正后约0.287823 s；但初始控制量由1增至4，不能只报告速度改善。
+
+为保留完整模型，可将控制器实现为 $\dot z=-4z+e,u=4e-12z$，对象为 $\dot y=-y+u$，$e=r-y$。完整闭环状态矩阵的特征值为-8和-1，而约分后的参考函数只显示-8。零初态单位阶跃求解得到 $y(t)=0.5(1-e^{-8t})$，与通道计算一致。
+
+这里-1的稳定内部模态并未从状态模型消失，只是在所选零状态参考通道中被名义约消隐藏。若初态或模型变化，不能直接沿用只有一个极点的解释。
+
+### 适用条件与边界
+
+本例利用了网络零点与对象极点的精确名义对应。实际参数偏差会改变这种关系，必须检查完整模型，而不是以“已经约掉”为由忽略偏差。更不能将类似做法推广到隐藏不稳定模态而不分析内部稳定性。
+
+超前网络的高频增益和控制作用同时变化，可能影响噪声与执行器要求。当前例子只给出初始控制量，不把它当成所有情景的最大需求。若任务规定控制输入限值，应对完整候选进一步检查。
+
+两者终值相同也不代表达到单位参考的零误差：本例终值为0.5。速度指标采用相对于各自终值的90%口径，必须保留这一说明，不能误写成到达参考值0.9的时间。
+
+### 常见误区
+
+1. 误区：参考函数约成一阶，就说明内部系统只剩一个模态。纠正：完整状态模型仍有-1和-8两个模态。
+2. 误区：到达终值90%更快就表示所有性能都改善。纠正：控制起始值增加，且终值仍不是单位参考1。
+
+### 自检
+
+1. 本例的90%时间是相对于哪个值计算？
+2. 为什么还要保留控制器和对象的完整状态方程？
+
+**核对要点**：相对于终值0.5，而不是参考1。状态方程保留被参考通道约消隐藏的内部模态，并用于检查初态及模型变化的影响。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 频率响应法校正设计 | 属于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、串联超前校正
+- **超前校正装置**（无向，关系：相关）
+- **频率响应法校正设计**（出边，关系：组成部分属于）

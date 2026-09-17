@@ -1,0 +1,751 @@
+{
+  "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctc:modeling-57c56ef58df2315f765a32dc",
+      "canonicalType": "DomainConcept",
+      "label": "梅森增益公式",
+      "aliases": [
+        "梅森公式"
+      ],
+      "description": "A formula for evaluating the transfer function of a system from its signal-flow graph by considering forward paths, loops, and the determinant.",
+      "teachingFields": {
+        "concept_kind": "analysis_method"
+      },
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "dorf-modern-control-systems-14th",
+          "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.7",
+          "label": "Modern Control Systems (Dorf/Bishop, 14th) · SIGNAL-FLOW GRAPH MODELS"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctc:modeling-57c56ef58df2315f765a32dc",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctc:modeling-18ec3e9de306f59f8feb27a1",
+        "canonicalType": "DomainConcept",
+        "label": "信号流图分析法",
+        "aliases": [
+          "流图法"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "analysis_method"
+      },
+      {
+        "id": "ctc:modeling-194b73effe783f6d40153135",
+        "canonicalType": "DomainConcept",
+        "label": "通路增益",
+        "aliases": [
+          "通路增益"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-385c515b4d8dbb550b664072",
+        "canonicalType": "DomainConcept",
+        "label": "信号流图输入输出节点",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-405a39dbba1f6754b8e08afc",
+        "canonicalType": "DomainConcept",
+        "label": "单独回路增益",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-44e603669ad0e6bf331b1511",
+        "canonicalType": "DomainConcept",
+        "label": "信号流图反馈回路",
+        "aliases": [
+          "反馈回路"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-50ed406e4478b481d868adfb",
+        "canonicalType": "DomainConcept",
+        "label": "第k条前向通路特征余子式",
+        "aliases": [
+          "前向通路余子式"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "canonicalType": "DomainConcept",
+        "label": "梅森增益公式",
+        "aliases": [
+          "梅森公式"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "analysis_method"
+      },
+      {
+        "id": "ctc:modeling-697391470a76199a5aa695d7",
+        "canonicalType": "DomainConcept",
+        "label": "前向通路特征式余因子",
+        "aliases": [
+          "通路余因子"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-7ef5ce337a4ffe79fc6bc123",
+        "canonicalType": "DomainConcept",
+        "label": "信号流图通路",
+        "aliases": [
+          "通路"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-9121dc2c97afa77f52ce0220",
+        "canonicalType": "DomainConcept",
+        "label": "信号流图",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "representation_kind"
+      },
+      {
+        "id": "ctc:modeling-a0578e35574b6bf2399d6a93",
+        "canonicalType": "DomainConcept",
+        "label": "信号流图接触回路",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:modeling-c52664289f7d9f3378930894",
+        "canonicalType": "DomainConcept",
+        "label": "第k条前向通路余子式",
+        "aliases": [
+          "通路余子式"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "system-modeling",
+            "visualRole": "modeling",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctc:v11g-046d539f3b7005bb49884851",
+        "canonicalType": "DomainConcept",
+        "label": "自回路传递函数",
+        "aliases": [
+          "自回路传输"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "root-locus",
+            "visualRole": "root-locus",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "mathematical_object"
+      },
+      {
+        "id": "ctkg:v3e-object-2496ae999e2b3f64959076f2",
+        "canonicalType": "DomainConcept",
+        "label": "信号流图中的图行列式",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-5d994cbb7a93157b1cb02932",
+        "canonicalType": "DomainConcept",
+        "label": "信号流图中的路径余因子",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "state-space-control-analysis-and-design",
+            "visualRole": "state-space",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctkg:m5-d1:association:23a122a9a5f3599905a1df1d",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-7ef5ce337a4ffe79fc6bc123",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:29bbba4221b78f7b16ef6708",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-2496ae999e2b3f64959076f2",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:36aaf279d245b9809dc34c6e",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-385c515b4d8dbb550b664072",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:78bbd8b853b837bd3fc7d880",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-44e603669ad0e6bf331b1511",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:840b974fd828b98dc65e0754",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-18ec3e9de306f59f8feb27a1",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:86067af3a73c90367bdd2b44",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-5d994cbb7a93157b1cb02932",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:association:93cbc90450ae781f93805d51",
+        "predicate": "association",
+        "sourceId": "ctc:modeling-a0578e35574b6bf2399d6a93",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctkg:m5-d1:part_of:153a0cef1cf48b2ea444b233",
+        "predicate": "part_of",
+        "sourceId": "ctc:modeling-50ed406e4478b481d868adfb",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "ctkg:m5-d1:part_of:3c75ab0a122c1d9aa7a2f183",
+        "predicate": "part_of",
+        "sourceId": "ctc:modeling-c52664289f7d9f3378930894",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "ctkg:m5-d1:part_of:47321ed11ff66ee6cf250178",
+        "predicate": "part_of",
+        "sourceId": "ctc:v11g-046d539f3b7005bb49884851",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "ctkg:m5-d1:part_of:95310a5e31d621f730976e4e",
+        "predicate": "part_of",
+        "sourceId": "ctc:modeling-697391470a76199a5aa695d7",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "ctkg:m5-d1:part_of:a214ae3bc7561b449379ecbb",
+        "predicate": "part_of",
+        "sourceId": "ctc:modeling-194b73effe783f6d40153135",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "ctkg:m5-d1:part_of:c4c465cae7136c0ec9839a34",
+        "predicate": "part_of",
+        "sourceId": "ctc:modeling-405a39dbba1f6754b8e08afc",
+        "targetId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "ctr:867d63f77058b888a7feb534",
+        "predicate": "applies_to",
+        "sourceId": "ctc:modeling-57c56ef58df2315f765a32dc",
+        "targetId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "application-and-analysis"
+      }
+    ],
+    "boundaries": []
+  }
+}

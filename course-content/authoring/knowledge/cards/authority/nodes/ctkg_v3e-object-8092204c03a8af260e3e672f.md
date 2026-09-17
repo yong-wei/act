@@ -1,48 +1,74 @@
 ---
 node_id: ctkg_v3e-object-8092204c03a8af260e3e672f
 authority_entity_id: "ctkg:v3e-object-8092204c03a8af260e3e672f"
-name: 离散系统时域性能指标
+name: "离散系统时域性能指标"
+name_en: "Discrete-Time Performance Measures"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 离散系统时域性能指标
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ad5229068bd603f45ba5317fe2c688ac06188ea6bfbcd431f5b7d23ceb2fb324.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ad5229068bd603f45ba5317fe2c688ac06188ea6bfbcd431f5b7d23ceb2fb324.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-02a/previous/ctkg_v3e-object-8092204c03a8af260e3e672f.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: fb2d920c0f7e198fe267fd8bf2340c7991c98fce307164a4dc7ae1db350db5ec -->
-
 ## 首页
+# 离散系统时域性能指标 | Discrete-Time Performance Measures
 
-# 离散系统时域性能指标
+一句话定义：离散时域性能指标根据样值序列及采样周期评价上升、峰值、调节和超调等表现，并应区别采样间连续性能。
 
-**一句话定义**：离散系统时域性能指标包括上升时间、峰值时间、调节时间和超调量，其定义与连续系统相同，但只能按采样周期整数倍的采样值计算，因此是近似的。
-
-**关联**：（权威图邻接待补充）
+- 索引指标换成秒需乘采样周期。
+- 阈值、稳态参考和持续满足条件应明确。
+- 样值没有超限不保证采样间也没有超限。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-离散系统时域性能指标包括上升时间、峰值时间、调节时间和超调量，其定义与连续系统相同，但只能按采样周期整数倍的采样值计算，因此是近似的。
+离散系统可沿用连续时域指标的基本意图，但测量对象是样值。上升时间需声明采用10%到90%还是其他口径；超调需声明参考终值及归一化方式；调节时间通常是此后所有样值都留在指定误差带内的最早采样时刻。
+
+采样索引 $k$ 不是秒数。若周期为 $T$，第 $k$ 个样值时刻为 $kT$。通过插值估计的连续阈值穿越时间又是另一种结果，需要说明插值假设，不能和直接样值指标混报。
+
+### 教学计算/推理例
+
+取单调阶跃序列 $y[k]=1-e^{-kT}$，$T=0.2$ s，终值1。要求误差不超过终值的2%，即 $e^{-kT}\le0.02$。因此
+
+$$
+k_s=\left\lceil\frac{-\ln0.02}{0.2}\right\rceil=20,\qquad t_s=4\ \mathrm s.
+$$
+
+第19拍时误差约0.02237，仍超出带；第20拍约0.01832，且之后单调减小，所以满足持续留带条件。对应连续响应 $1-e^{-t}$ 的阈值时间约3.91202 s，与直接样值结果4 s不同。差异来自采样读数时刻，而不是二者使用了不同误差带。
+
+另给一个仅用于说明观测限制的连续波形 $y(t)=1+0.1\sin(2\pi t/T)$。所有 $kT$ 时刻的样值都为1，但区间内峰值为1.1。该波形不是前述单调阶跃模型的解；它说明仅从样值完全等于1，不能在没有动态约束时证明连续输出始终没有10%的偏离。
+
+### 适用条件与边界
+
+真实采样控制任务可能同时要求样值性能和采样间安全约束。此时需使用保持输入与连续对象恢复区间响应，或进行足够覆盖的验证。简单提高绘图连线密度不能补回没有模型支持的连续峰值信息。
+
+有限观察窗只能说明在已观察区间内未再次出带，不能无条件证明所有未来样值都满足调节标准。本例有单调解析表达，所以能严格判断后续行为；振荡、高阶或非线性系统需要适当分析。
+
+若终值为0、响应不收敛或参考随时间变化，常规百分比超调与稳态误差带可能不适用，应改用任务明确的绝对误差或其他指标。改变采样周期后，索引和秒数的比较也应同步调整。
+
+### 常见误区
+
+1. 把第20拍直接报告为20秒。
+2. 第一次进入误差带就称已调节，忽略后续再次出带。
+3. 样值没有峰值就断言连续对象采样间也没有峰值。
+
+### 自检
+
+1. 本例为何第19拍还不能算2%调节完成？
+2. 连续反例样值都为1，是否意味着整段波形恒为1？
+
+**核对要点**：误差约0.02237大于0.02；不是，区间内仍可有振荡，需额外动态信息判断。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、离散系统时域性能指标
+本卡的结论可由上述定义与计算例独立复核。

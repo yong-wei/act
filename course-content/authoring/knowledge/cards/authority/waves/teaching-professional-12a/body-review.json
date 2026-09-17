@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "reviewer": "/root/review_professional12",
+  "role": "simulation-domain-reviewer",
+  "scope": "seven authored robust-design bodies and frozen source/model evidence; materialization pending",
+  "sourceInventorySha256": "7a2a622a55b8004049ef67d1bf89e72c5466c72626700c4c84e593765cdb9088",
+  "bodyHashes": {
+    "01.md": "145ed17cd37db0cd82439e7f2bdf6f0c320fc876000463a3daab09a149888b59",
+    "02.md": "466c1308a46cbdfa36e06be847629ac1c4d516df08a7420fdf86e9080001d947",
+    "03.md": "89f4e54f3e16a66f0febb1c532f65ed686a7dc74a44d54c8d137825edad07db3",
+    "04.md": "21e78eda92a14fc75e7653a6736d231f6d4e7b65ed378fddf2e6eeff8e2b573e",
+    "05.md": "0efff633a7997c028711196d5e6b5b3116a18e83d13c2943f9f7fafbba176d76",
+    "06.md": "bf61afc4d26eefd19026ebc4ec0dfa9875a33802e2afe3a648600ae00d334ec4",
+    "07.md": "81a126103839cd55a69e13bc247f5896fdb39e6f920f0744740e41992a6daa81"
+  },
+  "findings": []
+}

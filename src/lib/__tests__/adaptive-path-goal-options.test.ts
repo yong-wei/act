@@ -5,14 +5,18 @@ import {
   getAdaptivePracticeGoalOptions,
   isAdaptivePracticeGoalId,
 } from '@/features/personalization/path-planning/adaptive-path-goal-options';
-import { listLearningGoals } from '@/features/personalization/path-planning/public-api';
+import {
+  listLearningGoals,
+  validateLearningGoalCatalog,
+} from '@/features/personalization/path-planning/public-api';
 
 describe('adaptive path goal options', () => {
   it('projects every path-ready LearningGoal into a selectable adaptive practice option', () => {
     const pathReadyGoals = listLearningGoals().filter((goal) => goal.status === 'path-ready');
     const options = getAdaptivePracticeGoalOptions();
 
-    expect(pathReadyGoals).toHaveLength(9);
+    expect(validateLearningGoalCatalog()).toEqual([]);
+    expect(pathReadyGoals).toHaveLength(31);
     expect(options.map((option) => option.id)).toEqual(pathReadyGoals.map((goal) => goal.id));
     expect(options.map((option) => option.id)).toEqual([
       'control-correction',
@@ -24,6 +28,28 @@ describe('adaptive path goal options', () => {
       'stability-margin-frequency-analysis',
       'simulation-validation-practice',
       'ship-ocean-transfer-application',
+      'discrete-control-foundations',
+      'state-space-analysis-foundations',
+      'steady-state-control-foundations',
+      'system-modeling-process-foundations',
+      'physical-modeling-interconnection-foundations',
+      'state-space-controllability-foundations',
+      'local-linearization-foundations',
+      'signal-flow-foundations',
+      'block-diagram-modeling-foundations',
+      'mason-gain-formula-foundations',
+      'feedback-structure-foundations',
+      'transfer-poles-zeros-foundations',
+      'input-response-foundations',
+      'first-second-order-dynamics-foundations',
+      'response-metrics-foundations',
+      'time-domain-design-foundations',
+      'dominant-pole-analysis-foundations',
+      'stability-concepts-foundations',
+      'routh-relative-stability-foundations',
+      'optimal-control-foundations',
+      'robust-control-foundations',
+      'nonlinear-control-foundations',
     ]);
 
     for (const option of options) {

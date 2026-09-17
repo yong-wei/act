@@ -1,0 +1,471 @@
+[
+  {
+    "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+    "cardId": "ctc_90af7a0497e616bbe6249c30",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_90af7a0497e616bbe6249c30.md",
+    "previousCardSha256": "0b8a6ddecfa368c8a6234d0693113242f15c99294a994c6d6573fe295a90eb6e",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_90af7a0497e616bbe6249c30.md"
+  },
+  {
+    "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+    "cardId": "ctc_modeling-00d2998755974a1329049aac",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-00d2998755974a1329049aac.md",
+    "previousCardSha256": "f622904e8f1c51269b5e58f52cc460c5505823d73546d954af6c49368c985093",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-00d2998755974a1329049aac.md"
+  },
+  {
+    "canonicalId": "ctc:modeling-05fbe60f54c183c4e3ded892",
+    "cardId": "ctc_modeling-05fbe60f54c183c4e3ded892",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-05fbe60f54c183c4e3ded892.md",
+    "previousCardSha256": "61792de8cd16d3e9f988eb61615ba90baba75b258f0b6da9e6f10a70d4302825",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-05fbe60f54c183c4e3ded892.md"
+  },
+  {
+    "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+    "cardId": "ctc_modeling-7734a0845c335f160395bac0",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-7734a0845c335f160395bac0.md",
+    "previousCardSha256": "9774cbc5e866474314552958340ed21c180ca4c7b2e91be68da37ca89c12c012",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-7734a0845c335f160395bac0.md"
+  },
+  {
+    "canonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+    "cardId": "ctc_modeling-8aa475ed6514adc11f9b5c8d",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-8aa475ed6514adc11f9b5c8d.md",
+    "previousCardSha256": "4a22ae7ed3cf7cc03c17146e8538403f8333fd73e43a43e34a73ced8f1962e03",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-8aa475ed6514adc11f9b5c8d.md"
+  },
+  {
+    "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "cardId": "ctc_modeling-aa10e4daa1e969c557f6ef83",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-aa10e4daa1e969c557f6ef83.md",
+    "previousCardSha256": "64c423dd20dda3977420fc3d664d8ec37229b3a60913db4a1701826127ae89f1",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-aa10e4daa1e969c557f6ef83.md"
+  },
+  {
+    "canonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+    "cardId": "ctc_modeling-b2fd214ec64665147e16ff9d",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-b2fd214ec64665147e16ff9d.md",
+    "previousCardSha256": "4b5ea11ad37835e268a26ce80e1d37057841eb74368c57aa9135b74d9147393a",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-b2fd214ec64665147e16ff9d.md"
+  },
+  {
+    "canonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+    "cardId": "ctc_modeling-c26fddc50074ec84707d5950",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-c26fddc50074ec84707d5950.md",
+    "previousCardSha256": "6cc3ab2b5c05f394fa5d3f376bdaac75574c5c09fccdc5045f3026a3b8afe5fe",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-c26fddc50074ec84707d5950.md"
+  },
+  {
+    "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+    "cardId": "ctc_v11g-21fba199a9fdef15887d600f",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-21fba199a9fdef15887d600f.md",
+    "previousCardSha256": "e8e71ab7037e8d5dfe7d884eedb33e72da80493de32ca9aaa58333c787855bb4",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_v11g-21fba199a9fdef15887d600f.md"
+  },
+  {
+    "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+    "cardId": "ctc_v11g-caa20b325717f0a3c570f16b",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-caa20b325717f0a3c570f16b.md",
+    "previousCardSha256": "36ffc85d2afa2c75d8bccf331c9bb5ada895f3b72467f3931f79156867e0f1e8",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_v11g-caa20b325717f0a3c570f16b.md"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+    "cardId": "ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_27b69e7f2e837fd62dc31379.md",
+    "previousCardSha256": null,
+    "previousPath": null
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+    "cardId": "ctkg_domainconcept_42146fa04dc1459716346cc7",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_42146fa04dc1459716346cc7.md",
+    "previousCardSha256": null,
+    "previousPath": null
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+    "cardId": "ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_4eaa0995db3f87d3b7e0f117.md",
+    "previousCardSha256": null,
+    "previousPath": null
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+    "cardId": "ctkg_domainconcept_9b4e79193b3701a9657113eb",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_9b4e79193b3701a9657113eb.md",
+    "previousCardSha256": null,
+    "previousPath": null
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+    "cardId": "ctkg_domainconcept_fef4835248def04a043183ee",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_fef4835248def04a043183ee.md",
+    "previousCardSha256": null,
+    "previousPath": null
+  },
+  {
+    "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+    "cardId": "ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c.md",
+    "previousCardSha256": null,
+    "previousPath": null
+  },
+  {
+    "canonicalId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+    "cardId": "ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017.md",
+    "previousCardSha256": null,
+    "previousPath": null
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2",
+    "cardId": "ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2.md",
+    "previousCardSha256": null,
+    "previousPath": null
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-01549ef9b34888b89b55f224",
+    "cardId": "ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-01549ef9b34888b89b55f224.md",
+    "previousCardSha256": "6f256012ac025bc6fb354b6b3f1efcd16d112a94d8e830f57468d12d923f017e",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-01549ef9b34888b89b55f224.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+    "cardId": "ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-04fd7f69994f8821467462e5.md",
+    "previousCardSha256": "eeaf4c330ae1919258fb73730c510aeb5549b372381c813529905a794dcb0fde",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-04fd7f69994f8821467462e5.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+    "cardId": "ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-060bc33f21e93205ee271eda.md",
+    "previousCardSha256": "749fcbb0b785f4d53b64ffbf430ef014347ec95ac1d71caa5753c760d466c383",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-060bc33f21e93205ee271eda.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+    "cardId": "ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-09e1c3e14609b082a4501ead.md",
+    "previousCardSha256": "aefa8ad8bbaf9faf6776aeb7678539a74c9172bb446ae5b6b7b1ecb7e1330f54",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-09e1c3e14609b082a4501ead.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "cardId": "ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-115de5ef0289a778cf5b69c6.md",
+    "previousCardSha256": "98b69da7e891b5647d40e37f9afba85b32c37bceb16b1db5b52c562d8c78995b",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-115de5ef0289a778cf5b69c6.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+    "cardId": "ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-299c52f97e423f68b4ac6093.md",
+    "previousCardSha256": "00ef15b21d2388b95f03d5740cb2f2081aa40dd98cf926731f9f55a262a873d5",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-299c52f97e423f68b4ac6093.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "cardId": "ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253.md",
+    "previousCardSha256": "d22234482a869c60a8a28b56ad7e24d540869c49a24ae6544bd54cdb75548cd5",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+    "cardId": "ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-416fc2acf005a7da54f9fce3.md",
+    "previousCardSha256": "6b1b73c6f3293a1d5543c089d5a9f2eb9ec02957893c1833b7c9b4f358a73223",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-416fc2acf005a7da54f9fce3.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+    "cardId": "ctkg_v3e-canonical-4f62334f630ea074128ec396",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-4f62334f630ea074128ec396.md",
+    "previousCardSha256": "c027bef9767291cb9c3941e5ba2441810d01ced3b9951b484a63662160812d6b",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-4f62334f630ea074128ec396.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+    "cardId": "ctkg_v3e-canonical-62bea9217008b56901615d9a",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-62bea9217008b56901615d9a.md",
+    "previousCardSha256": "7166efd533dbe16338aebca89489664080843e4fcbfb449641b7becd0c8b4b4d",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-62bea9217008b56901615d9a.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+    "cardId": "ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6461b91e08c647ceff0ceeee.md",
+    "previousCardSha256": "96eaaf513ba6cdc429650e1ac02da99e67b3328a0bf6254e820c4339c2398411",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-6461b91e08c647ceff0ceeee.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "cardId": "ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5.md",
+    "previousCardSha256": "94d3c3bf76c4b1a17d2d2539dae861b19cd3133bc5ff0cd36198216600eca6a3",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+    "cardId": "ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7e46e083227dc119d597d82b.md",
+    "previousCardSha256": "3d7bce24ef24b94daab2a2113031d06783c28536f6c103f9abc995239aa02f7b",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-7e46e083227dc119d597d82b.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+    "cardId": "ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-adb3110b78ea9d623101aaa7.md",
+    "previousCardSha256": "759d6a3421fa510007a1ee9c97f92eb0929a8e02d6da6edc5a97fae066b8d3f9",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-adb3110b78ea9d623101aaa7.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+    "cardId": "ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef.md",
+    "previousCardSha256": "4146282ecf05d185c9ed9a0731314014127e5eb6dade1770bd07261d879d4607",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+    "cardId": "ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-b1b7acfdda35086ace2d7091.md",
+    "previousCardSha256": "78c0fee25fc62267e93577348c1f11f4e08d6760c3682fe430745a05093c883e",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-b1b7acfdda35086ace2d7091.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+    "cardId": "ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-bc4ff6668a7e4eed69404826.md",
+    "previousCardSha256": "6b1f4c9f42501992119249cff09cdeeae262bc8ecc82d9662985d5017f30c79f",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-bc4ff6668a7e4eed69404826.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+    "cardId": "ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-cd25e47d10ddfec280e82fde.md",
+    "previousCardSha256": "c988c1f75cba26cef2e23df448dbcc79ce45bae0d6c15b11758c490280540362",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-cd25e47d10ddfec280e82fde.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+    "cardId": "ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-de9cd255c7e8770506442de0.md",
+    "previousCardSha256": "1162ea8b1af6cf27b62f06e4d9f34751d5f463026fce2462589159c8412c1292",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-de9cd255c7e8770506442de0.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+    "cardId": "ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71.md",
+    "previousCardSha256": "5a1aa7e2b08259f5947414a93c9662c3ae28072b22c5da80c650c233afe9a9cc",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "cardId": "ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md",
+    "previousCardSha256": "86553a9c2c39c04038100d264778ab1cf28be6d43e54989c896715a881537d01",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+    "cardId": "ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ed3a4babf006b2fd746765e8.md",
+    "previousCardSha256": "2307121542837c0ff9de4719da139707a9960c42b779592aae7a6e5c76ca39dd",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-ed3a4babf006b2fd746765e8.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "cardId": "ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-0a05ec9e84791b95d3794bc0.md",
+    "previousCardSha256": "f8044e2fcc2cbbf09b4cfe0077672aa51e9e40f16692e584a94896328f27b113",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-0a05ec9e84791b95d3794bc0.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+    "cardId": "ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-0ca481aed329f4e6c74c8d30.md",
+    "previousCardSha256": "ced5e6b9c2914eabe4d4ba7f385fb0ac29fe7bdcd054d18140ba4e6a01cc34a6",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-0ca481aed329f4e6c74c8d30.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+    "cardId": "ctkg_v3e-object-10c37fd947ba55593ff03ede",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-10c37fd947ba55593ff03ede.md",
+    "previousCardSha256": "0078f1a361ab098a5e3701ac5b780c8598990835b0720b4daf1d5525d590e7fd",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-10c37fd947ba55593ff03ede.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+    "cardId": "ctkg_v3e-object-17cae71babbbfe193c0124a4",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-17cae71babbbfe193c0124a4.md",
+    "previousCardSha256": "4ceaff63d8a655f4c413235b5a57f3677819a04f2420d7eaf7b8c134393c250a",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-17cae71babbbfe193c0124a4.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+    "cardId": "ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c.md",
+    "previousCardSha256": "f918d8232b2968ba1536260e4e44027656f340a3bbb797789bbf72b6233acbc0",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+    "cardId": "ctkg_v3e-object-232e387ed53e92abee078346",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-232e387ed53e92abee078346.md",
+    "previousCardSha256": "86142085f99311aa80961544f191677106215da932d9c5bd3cd08e5a2af88c5c",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-232e387ed53e92abee078346.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "cardId": "ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-38d4679bf3335318b0f4afb7.md",
+    "previousCardSha256": "8913826ae9c62c1821b72846c3f1fb00a89b7577033e509692a8453cd25407e4",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-38d4679bf3335318b0f4afb7.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+    "cardId": "ctkg_v3e-object-3af39a858b2949296df5387f",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3af39a858b2949296df5387f.md",
+    "previousCardSha256": "48ddf2adaf7b101e186ad145a76a84944181220f9c7320d011b8a91a2c695d90",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-3af39a858b2949296df5387f.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+    "cardId": "ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3fe181aa7c0967f58d1dbfee.md",
+    "previousCardSha256": "18dfe39aab1f81dd9a70e77a38e6e79ed033cf8e97937ca57d42502324e4c054",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-3fe181aa7c0967f58d1dbfee.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+    "cardId": "ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-58d24ff14a6b0b0cab5d393f.md",
+    "previousCardSha256": "b6b6bce768dc65d8688d8860951fb36fc2e8eace8f9e56ff4c79649e7156e7ee",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-58d24ff14a6b0b0cab5d393f.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+    "cardId": "ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-64dfc92ef15f84903e6cdd8a.md",
+    "previousCardSha256": "db3ad74c65430734b9acc1b054cdc18191f267d0de599bc62cca2b90bf9c5c35",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-64dfc92ef15f84903e6cdd8a.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+    "cardId": "ctkg_v3e-object-7761615701fb4915a76924ff",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7761615701fb4915a76924ff.md",
+    "previousCardSha256": "bd6ed15f09c9ed3ae03ca2fb1cbcad1a31738bd8c652baedf5723e0e0168b376",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-7761615701fb4915a76924ff.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+    "cardId": "ctkg_v3e-object-7d20806108956a0f52c08f3a",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7d20806108956a0f52c08f3a.md",
+    "previousCardSha256": "224f6782c99282f7bb894ec92756084bd635980bf92378e1c416336bfefba496",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-7d20806108956a0f52c08f3a.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+    "cardId": "ctkg_v3e-object-8c4354096b719a1d5e090da4",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8c4354096b719a1d5e090da4.md",
+    "previousCardSha256": "00522a5996166ea750f890a2d81184e06a5120f6323f16b77c529d3fbcc19310",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-8c4354096b719a1d5e090da4.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "cardId": "ctkg_v3e-object-9967c0867249bf4c1a625dab",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-9967c0867249bf4c1a625dab.md",
+    "previousCardSha256": "8f86cbf92f873f1027deafdc2a485a7fb454695f4d82ec7296e08d0cef2d3a38",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-9967c0867249bf4c1a625dab.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+    "cardId": "ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ab4dc18aac53ac6636d05ca5.md",
+    "previousCardSha256": "6fb1f58de9ab59db7d0767c9d8bbd59bcab5e06543183413e08f10d430f62f81",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-ab4dc18aac53ac6636d05ca5.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+    "cardId": "ctkg_v3e-object-b0cbf122498bca9269e55406",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b0cbf122498bca9269e55406.md",
+    "previousCardSha256": "585a96aff7ec63905110f8250f086ddb77fa9781ca7b61b4f72d4a85b449537c",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-b0cbf122498bca9269e55406.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+    "cardId": "ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c2881833cb4d8b1e415dc742.md",
+    "previousCardSha256": "f24103830a6003b2bbfc9fdc44ef6e55bf60e03808451dd089cfc8d31bbbb08c",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-c2881833cb4d8b1e415dc742.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "cardId": "ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c437a7c8ef65d5677ad5c387.md",
+    "previousCardSha256": "43d6f16edf679b8e4c6b87d1e43ed9d466e60342e3973befc52a4ae0f92cbfc6",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-c437a7c8ef65d5677ad5c387.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+    "cardId": "ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c6fd3f071d7b3ea64acf9760.md",
+    "previousCardSha256": "de176e61c904fc7a8f74e18b8ae20250d8f0bc1a71ebaf3efe8118db3749c9fb",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-c6fd3f071d7b3ea64acf9760.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+    "cardId": "ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-cfdae92ada72d7710e7f1cee.md",
+    "previousCardSha256": "913a960a8c769cb2a656bfc2b18522c014a8b33690afd7b2439d4cd0f0fe3e7b",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-cfdae92ada72d7710e7f1cee.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+    "cardId": "ctkg_v3e-object-d80dfe6ce979515d21845c81",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-d80dfe6ce979515d21845c81.md",
+    "previousCardSha256": "ec47dcfaa4246c0e6255277e7dffaff0e35ef96fbd196286bd3ce6c44afa7b8d",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-d80dfe6ce979515d21845c81.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+    "cardId": "ctkg_v3e-object-de873c97a924107857f79242",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-de873c97a924107857f79242.md",
+    "previousCardSha256": "918b35f6193150105b057b63d7ef247dad4536e7b18dd5c87f31bb67589703fe",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-de873c97a924107857f79242.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+    "cardId": "ctkg_v3e-object-e1caec9f68da5c573be699d5",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e1caec9f68da5c573be699d5.md",
+    "previousCardSha256": "4e479ea741e9631e2122575c65bf14d8ee898becbc021e7db194eda371fcfb59",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-e1caec9f68da5c573be699d5.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+    "cardId": "ctkg_v3e-object-e80f5d56ce06409842363584",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e80f5d56ce06409842363584.md",
+    "previousCardSha256": "099bd71f85209712f82f39d8c445e39c46317a8f4f8f3311489e34107650f9ef",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-e80f5d56ce06409842363584.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "cardId": "ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ee4c217b305b05786c0b89a9.md",
+    "previousCardSha256": "80839e67f2ac84f3f995e23ba713517c436549353f8ba2a0ca7290e634f31706",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-ee4c217b305b05786c0b89a9.md"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "cardId": "ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+    "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-f1df5739a34bf55489aeeeeb.md",
+    "previousCardSha256": "97bc302b3ee5993d88c99855dd57eaddf34b9d57688ec95e8708111c7e1d445d",
+    "previousPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-f1df5739a34bf55489aeeeeb.md"
+  }
+]

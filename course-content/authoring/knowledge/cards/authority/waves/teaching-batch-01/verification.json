@@ -1,0 +1,230 @@
+{
+  "status": "batch-candidate-verified",
+  "candidateScope": "12 cards only; must not activate as the full course",
+  "activated": false,
+  "deployed": false,
+  "fullCourseIntegration": {
+    "status": "blocked-by-existing-projection",
+    "errorCount": 2967,
+    "baselineErrorCount": 2967,
+    "newErrorCount": 0,
+    "unknownCanonicalCount": 136,
+    "errorCodes": [
+      "canonical-id-unknown"
+    ],
+    "examples": [
+      {
+        "code": "canonical-id-unknown",
+        "severity": "error",
+        "message": "binding bind-000c362acf2c90b31ece11b535af3963 targets invalid Canonical ID ctkg:v3e-object-548b056b7b4bc0e10290af72",
+        "bindingId": "bind-000c362acf2c90b31ece11b535af3963",
+        "resourceId": "act:step:3-6:step-08",
+        "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72"
+      },
+      {
+        "code": "canonical-id-unknown",
+        "severity": "error",
+        "message": "binding bind-001f75344b096d8856e74b0cd7181cff targets invalid Canonical ID ctkg:v3e-object-8496155b16d82318d90949d0",
+        "bindingId": "bind-001f75344b096d8856e74b0cd7181cff",
+        "resourceId": "act:step:3-8:step-22",
+        "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0"
+      },
+      {
+        "code": "canonical-id-unknown",
+        "severity": "error",
+        "message": "binding bind-0033b7b96aa52915336a27292d7eae1a targets invalid Canonical ID ctc:v11g-5845390ded447e37f06ea222",
+        "bindingId": "bind-0033b7b96aa52915336a27292d7eae1a",
+        "resourceId": "act:step:3-3:step-07",
+        "canonicalId": "ctc:v11g-5845390ded447e37f06ea222"
+      },
+      {
+        "code": "canonical-id-unknown",
+        "severity": "error",
+        "message": "binding bind-003d655720aa2654cd2af681b8afb9ee targets invalid Canonical ID ctkg:v3e-object-d09d1eba56a786a96d39d085",
+        "bindingId": "bind-003d655720aa2654cd2af681b8afb9ee",
+        "resourceId": "act:step:3-8:step-11",
+        "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085"
+      },
+      {
+        "code": "canonical-id-unknown",
+        "severity": "error",
+        "message": "binding bind-0054e71932485583412005a88d140a02 targets invalid Canonical ID ctc:v11g-5845390ded447e37f06ea222",
+        "bindingId": "bind-0054e71932485583412005a88d140a02",
+        "resourceId": "act:step:4-6:step-01",
+        "canonicalId": "ctc:v11g-5845390ded447e37f06ea222"
+      }
+    ]
+  },
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "verifiedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authoringContentIdentity": "inventory cardSha256 and source sha256; includes uncommitted authored content",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.48",
+  "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+  "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+  "baseProjectionId": "proj-700a378f44ce9d422ec9b27cff3247d1864d0e732c4c91befd66a2e67db4b248",
+  "candidateProjectionId": "proj-a87df84da23b8a564d8b3075182f96e37ad501f97f009b6171195f3e30636ff5",
+  "candidateBindingReleaseId": "control-theory-engineering-v0.48-b2",
+  "candidateBindingHash": "eb181ba24eea2100c0243f6a339bbe8d897cb839bb3eae0c8b42e91ef24f8b6c",
+  "candidateRoot": ".cache/knowledge-card-batches/teaching-batch-01-a87df84da23b8a564d8b3075182f96e37ad501f97f009b6171195f3e30636ff5",
+  "teachingGate": "PUBLISHED",
+  "bindingGate": "passed",
+  "cardCount": 12,
+  "readback": [
+    {
+      "name": "传递函数",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "resourceId": "act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+      "cardSha256": "fe919cdaeb00a4b3dce8ae048e569198c4a389640bded2589b2c3c61133cea97",
+      "explanationChars": 1020,
+      "formulaCount": 22
+    },
+    {
+      "name": "二阶系统",
+      "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+      "resourceId": "act:card:ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "cardSha256": "b8a322683388f60d82a35f83dcb8e13c84ba114810f7b4f0288d336ed05fd2bc",
+      "explanationChars": 1066,
+      "formulaCount": 27
+    },
+    {
+      "name": "系统型别",
+      "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+      "resourceId": "act:card:ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+      "cardSha256": "5e1fcdaf81ce38aacb668ccde2bb62bc3281618fe925012f51f321ede2f97fec",
+      "explanationChars": 887,
+      "formulaCount": 13
+    },
+    {
+      "name": "稳态误差",
+      "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+      "resourceId": "act:card:ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "cardSha256": "43e2c4de7a216e5f82370ec69d39c0627de3f979d92dd9d7302b155c2277e937",
+      "explanationChars": 978,
+      "formulaCount": 24
+    },
+    {
+      "name": "伯德图",
+      "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "resourceId": "act:card:ctkg_v3e-canonical-504581e399675b9792ab8502",
+      "cardSha256": "444175566cac5d4fa2a0b8a7639765f21db6643f24271b94da7c0f2eb337ed4e",
+      "explanationChars": 999,
+      "formulaCount": 33
+    },
+    {
+      "name": "相角裕度",
+      "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "resourceId": "act:card:ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "cardSha256": "3733a2b18304b3f44341c95fd95983e466476fd3c9a47396c1f0848ee6853eab",
+      "explanationChars": 973,
+      "formulaCount": 23
+    },
+    {
+      "name": "系统带宽",
+      "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+      "resourceId": "act:card:ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "cardSha256": "ca1900560d843ea2f33f438d5ee95a18880f076bf7321601f4e11eedbc7bd630",
+      "explanationChars": 948,
+      "formulaCount": 29
+    },
+    {
+      "name": "积分控制器",
+      "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+      "resourceId": "act:card:ctc_v11g-c8c8aef0d010e68842be7236",
+      "cardSha256": "9908cebdd874ab8ebcfd8e3301681fa472dbe3b0e96eca5ef8ba9dc81b18a340",
+      "explanationChars": 855,
+      "formulaCount": 16
+    },
+    {
+      "name": "PI控制器",
+      "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "resourceId": "act:card:ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "cardSha256": "b14e583999c3887d306743e2c09a1ebcf878f48672e74c6aac564187b256b4b0",
+      "explanationChars": 920,
+      "formulaCount": 26
+    },
+    {
+      "name": "超前补偿",
+      "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "resourceId": "act:card:ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "cardSha256": "04734a71cbb5d6f3a64ff4484a3e915ce3919aa53ab1e88c83260736d198e97d",
+      "explanationChars": 927,
+      "formulaCount": 22
+    },
+    {
+      "name": "串联滞后校正",
+      "canonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+      "resourceId": "act:card:ctkg_v3e-object-f9ac171d68c8622f62106397",
+      "cardSha256": "478a916986f3ee4d27a7da744c76c15957d4cfa852829fb821f82b63a1b09044",
+      "explanationChars": 1097,
+      "formulaCount": 29
+    },
+    {
+      "name": "根轨迹法",
+      "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "resourceId": "act:card:ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "cardSha256": "da1df20c2ad377ee8f740d2e4d3be22840ccfa425f89cad1d40e45ebaa4cbb4f",
+      "explanationChars": 941,
+      "formulaCount": 30
+    }
+  ],
+  "planning": [
+    {
+      "goalId": "control-correction",
+      "batchResourceIds": [
+        "act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+        "act:card:ctkg_v3e-object-83b0bd3fc503270cb174a500"
+      ]
+    },
+    {
+      "goalId": "frequency-response-foundations",
+      "batchResourceIds": [
+        "act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+        "act:card:ctkg_v3e-canonical-504581e399675b9792ab8502"
+      ]
+    },
+    {
+      "goalId": "feedback-loop-concept-foundations",
+      "batchResourceIds": []
+    },
+    {
+      "goalId": "transfer-function-modeling-foundations",
+      "batchResourceIds": [
+        "act:card:ctc_modeling-865eb1c8824e157c2f05a903"
+      ]
+    },
+    {
+      "goalId": "time-domain-response-analysis",
+      "batchResourceIds": []
+    },
+    {
+      "goalId": "root-locus-analysis-foundations",
+      "batchResourceIds": []
+    },
+    {
+      "goalId": "stability-margin-frequency-analysis",
+      "batchResourceIds": [
+        "act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+        "act:card:ctkg_v3e-object-1c159c9cc34ce696a62bf837"
+      ]
+    },
+    {
+      "goalId": "simulation-validation-practice",
+      "batchResourceIds": []
+    },
+    {
+      "goalId": "ship-ocean-transfer-application",
+      "batchResourceIds": []
+    }
+  ],
+  "checks": [
+    "exact current Authority endpoints",
+    "source and card hashes",
+    "no teaching edges authored",
+    "immutable batch candidate stores",
+    "12 exact whole-card bindings",
+    "real card parser and viewer resolver",
+    "wrong content hash rejected",
+    "existing goal path adapter with existing prerequisites",
+    "active pointers unchanged"
+  ]
+}

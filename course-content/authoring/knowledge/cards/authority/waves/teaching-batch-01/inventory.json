@@ -1,0 +1,412 @@
+{
+  "batchId": "teaching-batch-01",
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authority": {
+    "contract": "act-authority-domain-shard-current/v1",
+    "shardSetId": "ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1",
+    "shardSetHash": "30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+    "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+    "teachingProjectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+    "teachingProjectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+    "activatedAt": "2026-08-13T00:00:00.000Z"
+  },
+  "publicationStatus": "authoring-candidate",
+  "cards": [
+    {
+      "order": 1,
+      "name": "传递函数",
+      "nameEn": "Transfer Function",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "cardId": "ctc_modeling-865eb1c8824e157c2f05a903",
+      "resourceId": "act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md",
+      "lessonUnits": [
+        "1-2"
+      ],
+      "previousCardSha256": "f3d33a3bc11ee015969dd0001ed245796a8c8248de0ec86aa17c48b7e0feb510",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-4deb0b0cb3031abc6c382b25372aa36ca9720e07c2876404ce9f3c15eecf6983.json",
+          "sha256": "0277eae78e3b51b885ba738d6c369c517d317d77ee21e128cd79a6651cd25bc1"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-4deb0b0cb3031abc6c382b25372aa36ca9720e07c2876404ce9f3c15eecf6983.json",
+          "sha256": "09c1e476f22a855cf001919b9abcbcc23c501d3c4ebdd71f9345d8a3f651c4da"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/传递函数_1_2.md",
+          "sha256": "6bb47ede369b39ec358e257b6d6358eb50f09d7177eb148fe4052480649bcc9c",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
+          "sha256": "cf7996e9829d7783115864dc73bc749d4c68302d7bbf3179a706375bdccf81a7"
+        }
+      ],
+      "cardSha256": "fe919cdaeb00a4b3dce8ae048e569198c4a389640bded2589b2c3c61133cea97"
+    },
+    {
+      "order": 2,
+      "name": "二阶系统",
+      "nameEn": "Second-Order System",
+      "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+      "cardId": "ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "resourceId": "act:card:ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-772065f42947b660c72584f3.md",
+      "lessonUnits": [
+        "2-2"
+      ],
+      "previousCardSha256": "1f841ea8662de0b54d554a7dfb946e966331b8e42d9e298f9a15fd96cd976b40",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f825b899ff907f648031c240302f35d425549738d17a438e4b74433b79390767.json",
+          "sha256": "fdfb3880c370b356a0afcf32088b9e45b1cbec3e7d6ea2a3073cd7f076fddcc6"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f825b899ff907f648031c240302f35d425549738d17a438e4b74433b79390767.json",
+          "sha256": "e397b1370ccbbd72646ad87924e82f1d81285cf24bd88c04efa1b41e0aa67692"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/二阶系统标准型_3_L2a.md",
+          "sha256": "1aba11389236278489d940e269b38eaa8fe703617bf17d9ff2349eed19991e9f"
+        },
+        {
+          "path": "course-content/authoring/lessons/2-2/design/2-2-handout.md",
+          "sha256": "9acdc1b9dc6288c64e5cc1ed43b549fc0b6e069ea633e8d08ad362b1603684cd"
+        }
+      ],
+      "cardSha256": "b8a322683388f60d82a35f83dcb8e13c84ba114810f7b4f0288d336ed05fd2bc"
+    },
+    {
+      "order": 3,
+      "name": "系统型别",
+      "nameEn": "System Type",
+      "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+      "cardId": "ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+      "resourceId": "act:card:ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-a781b2b377529226a4c5d077.md",
+      "lessonUnits": [
+        "3-7"
+      ],
+      "previousCardSha256": "50b7325ce16a738fac503a8a4e28b48e748fa45e3ce83ea1808b8b8706e4aba3",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a79a05c060d0c6d232f8982baf45c616b03d383af0652d6ca3ede77d1fcf9fc2.json",
+          "sha256": "a4f9e7ccf96f3caea47422303aa485688a010c857f792e49cea28845ddfbc51b"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a79a05c060d0c6d232f8982baf45c616b03d383af0652d6ca3ede77d1fcf9fc2.json",
+          "sha256": "4f1b9f29c610d881289f9f033b298dac15476f5d02879fee85a7f57f6f9f55df"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/系统型别_3_5573c2c3.md",
+          "sha256": "0c4043f784a60ad7ebcc600e95e65bade2b5f3a87c46304e439bf0b82df63b8f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/lessons/3-7/design/3-7-handout.md",
+          "sha256": "6182d2fb4b45b67c995c4985032ea1c80e569907f757b2ee1b021978746fe507"
+        }
+      ],
+      "cardSha256": "5e1fcdaf81ce38aacb668ccde2bb62bc3281618fe925012f51f321ede2f97fec"
+    },
+    {
+      "order": 4,
+      "name": "稳态误差",
+      "nameEn": "Steady-State Error",
+      "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+      "cardId": "ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "resourceId": "act:card:ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-8d214840417a4c3b5780c715.md",
+      "lessonUnits": [
+        "3-7"
+      ],
+      "previousCardSha256": "edd76b3f7094348c726b65cf388db1daca7ea26fc335c41314a4b4be9dbb3686",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-11fa229093b41fdb724aedd871a915e9307c792dbf9428c4e080e7137913e047.json",
+          "sha256": "d9997a0356ed9dda3cb6f96b132e941b1c4f6d7c1f993a198ee853e1a435b46e"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-11fa229093b41fdb724aedd871a915e9307c792dbf9428c4e080e7137913e047.json",
+          "sha256": "795ce75ae00906475ec09925e98e4bd0aa0442aaad69fd39d02c7e7061210d8b"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/稳态误差_3_c0207063.md",
+          "sha256": "b2ec30d18ca04bcd47f0a2b4c7c02c1c2ed1b01d4d74f17b3d034eaf94cf3955"
+        },
+        {
+          "path": "course-content/authoring/lessons/3-7/design/3-7-handout.md",
+          "sha256": "6182d2fb4b45b67c995c4985032ea1c80e569907f757b2ee1b021978746fe507"
+        }
+      ],
+      "cardSha256": "43e2c4de7a216e5f82370ec69d39c0627de3f979d92dd9d7302b155c2277e937"
+    },
+    {
+      "order": 5,
+      "name": "伯德图",
+      "nameEn": "Bode Plot",
+      "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "cardId": "ctkg_v3e-canonical-504581e399675b9792ab8502",
+      "resourceId": "act:card:ctkg_v3e-canonical-504581e399675b9792ab8502",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-504581e399675b9792ab8502.md",
+      "lessonUnits": [
+        "2-4"
+      ],
+      "previousCardSha256": "1cffd58a4ed6e550fd8e317378ae0b391ebfd181be7f714abc68e7d32aa6e0cf",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8b702cffcffe73535b6aeb526584c21868aa4c062cebd25802e89dfa753aaa95.json",
+          "sha256": "1bcb6416fc0b9f892c364cf521053edaef6c22d5c452d6f7af547558f229c27b"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8b702cffcffe73535b6aeb526584c21868aa4c062cebd25802e89dfa753aaa95.json",
+          "sha256": "d0324e49213dcf8df90b6176c1496327a3a8aa10fe6a54ec92ec87209b0b2a77"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/伯德图_6_1a069614.md",
+          "sha256": "d3c58a1d2aa53d1b2e2d63cfbbfe31958a5d3e14ac9e4c15c49a47f4439a404a",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/lessons/2-4/design/2-4-handout.md",
+          "sha256": "0e4b34fcd29dd7c0d21e30c26554a4a09f77f841a0fd8a56ee051b7b1202e6b3"
+        }
+      ],
+      "cardSha256": "444175566cac5d4fa2a0b8a7639765f21db6643f24271b94da7c0f2eb337ed4e"
+    },
+    {
+      "order": 6,
+      "name": "相角裕度",
+      "nameEn": "Phase Margin",
+      "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "cardId": "ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "resourceId": "act:card:ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-1c159c9cc34ce696a62bf837.md",
+      "lessonUnits": [
+        "2-4"
+      ],
+      "previousCardSha256": "50ff657f5ecdd23e5a4223b30bfc56af92a77c52cc31494324659d6a0e990d39",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-578c8c360c2ceb6c0c2650496b1a319ea295c153d3cd779c278125ba175c35d9.json",
+          "sha256": "e14980272cdfe552104d233670f5e44601373228705998d05b6ff6976d5088a0"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-578c8c360c2ceb6c0c2650496b1a319ea295c153d3cd779c278125ba175c35d9.json",
+          "sha256": "3a3982547a2a96b94ccfc457a190307573f3e1b0587cc242c1d40fb6ee0b9aeb"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/相角裕度_5_5a74b451.md",
+          "sha256": "a6a5b5b0f8e4d5bffc13b180d82d25a1a7934a1d0af01ecde85f36fe29ab60a2",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/lessons/2-4/design/2-4-handout.md",
+          "sha256": "0e4b34fcd29dd7c0d21e30c26554a4a09f77f841a0fd8a56ee051b7b1202e6b3"
+        }
+      ],
+      "cardSha256": "3733a2b18304b3f44341c95fd95983e466476fd3c9a47396c1f0848ee6853eab"
+    },
+    {
+      "order": 7,
+      "name": "系统带宽",
+      "nameEn": "System Bandwidth",
+      "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+      "cardId": "ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "resourceId": "act:card:ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-42f4fff2329a29d38cbcd4bc.md",
+      "lessonUnits": [
+        "2-4"
+      ],
+      "previousCardSha256": "3e2f2de686ab271210144a9746027095855970f55d6cbd5519ad5ddc33487f50",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1e07b0407e35bb7ba45810de377d053b119a03b699fa8c9f99b49d9ac84ef8bf.json",
+          "sha256": "5b0739be4e3ae79fe4995fa5c0ea414cf2c5961d1750a05e19ec185c0050df7e"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1e07b0407e35bb7ba45810de377d053b119a03b699fa8c9f99b49d9ac84ef8bf.json",
+          "sha256": "39ea7dd6d953f0ee37e84387816956cc981533811adb229dee7661f006f569dc"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/系统带宽_5_eaed82b2.md",
+          "sha256": "20d014e2ad1a8dd2a4e6d11c66a131df42fbfc3f6911e9030f2291e11b44dffa",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/lessons/2-4/design/2-4-handout.md",
+          "sha256": "0e4b34fcd29dd7c0d21e30c26554a4a09f77f841a0fd8a56ee051b7b1202e6b3"
+        }
+      ],
+      "cardSha256": "ca1900560d843ea2f33f438d5ee95a18880f076bf7321601f4e11eedbc7bd630"
+    },
+    {
+      "order": 8,
+      "name": "积分控制器",
+      "nameEn": "Integral Controller",
+      "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+      "cardId": "ctc_v11g-c8c8aef0d010e68842be7236",
+      "resourceId": "act:card:ctc_v11g-c8c8aef0d010e68842be7236",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-c8c8aef0d010e68842be7236.md",
+      "lessonUnits": [
+        "3-9"
+      ],
+      "previousCardSha256": "579feee3cfe3343937296ddeeca5f290b8667b1c0bc19e2995d30440a81d0a2c",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9cfcb969d2c7c20618d42050650ae66db11efdd0700be00f7b2f771f327561d4.json",
+          "sha256": "80583fdb94e3d74018bb42a963c2ff7f2b412122cccd5b083102ca505019827f"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9cfcb969d2c7c20618d42050650ae66db11efdd0700be00f7b2f771f327561d4.json",
+          "sha256": "70f2c6eef7d2dac69c1484f9daad4f8aeae87cba69f7e1e46172f93e217244ee"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/积分与滞后的稳态改善分工_3_39003.md",
+          "sha256": "622e428ecfa52256d9358a9fa93df0d701d12da89498c791e446ffe8bccc8a6a"
+        },
+        {
+          "path": "course-content/authoring/lessons/3-9/design/3-9-handout.md",
+          "sha256": "388fdaeef1c78cd0efcb1b9c21d8b37fd748a5f495beb5257974ab0e8e174aa3"
+        }
+      ],
+      "cardSha256": "9908cebdd874ab8ebcfd8e3301681fa472dbe3b0e96eca5ef8ba9dc81b18a340"
+    },
+    {
+      "order": 9,
+      "name": "PI控制器",
+      "nameEn": "PI Controller",
+      "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "cardId": "ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "resourceId": "act:card:ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-68d64f3444ac7af6336f1f81.md",
+      "lessonUnits": [
+        "3-9"
+      ],
+      "previousCardSha256": "cba24302308b9a4bde10dc17890a1de3eef231373d1fd72c60a069b3c7411251",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b244a523f691c83583a597a6ef6b3ea6feb3f77fcd4181f725ef23773bac074a.json",
+          "sha256": "35ba1c46e41e80c47ef24640d028b6302ae5a2185d03594dc42e0e5426919ab4"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b244a523f691c83583a597a6ef6b3ea6feb3f77fcd4181f725ef23773bac074a.json",
+          "sha256": "f03021aa2ae0c9c68617d411c62b2a9ba07b805ba86c93e6db739c0b1b4086be"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/PI控制器_6_29ebe858.md",
+          "sha256": "64af6a1a52ca2f839405556d11b534c7d34f2913002f0a2f753624b245f52cbe",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/lessons/3-9/design/3-9-handout.md",
+          "sha256": "388fdaeef1c78cd0efcb1b9c21d8b37fd748a5f495beb5257974ab0e8e174aa3"
+        }
+      ],
+      "cardSha256": "b14e583999c3887d306743e2c09a1ebcf878f48672e74c6aac564187b256b4b0"
+    },
+    {
+      "order": 10,
+      "name": "超前补偿",
+      "nameEn": "Lead Compensation",
+      "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "cardId": "ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "resourceId": "act:card:ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-83b0bd3fc503270cb174a500.md",
+      "lessonUnits": [
+        "4-3"
+      ],
+      "previousCardSha256": "7b9c04e12792534e21814906008703d11b7ab205d448ddbce722a7791497e16e",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-316bd9d168856d7820e4b17c52c2c3438db927185e66d6afa21aea6dab88a73d.json",
+          "sha256": "72c3bc109d07e93eab7dafb376442ec30a72347293cbfc84b2f5b56b8a557c34"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-316bd9d168856d7820e4b17c52c2c3438db927185e66d6afa21aea6dab88a73d.json",
+          "sha256": "9ac4b2bc3b6b9fb7a1081effe218b7c970522852f0858b7408220f9f13cb17b2"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/超前补偿_4_3d4fc55d.md",
+          "sha256": "cd11e0e5d30b1bdc9decf0d7f0fb0a805ac6712b171908a863d24d497be799e6",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/lessons/4-3/design/4-3-handout.md",
+          "sha256": "445a8f2488bc11514539236a4c36e687bcc89bfdb291a9e97efadf13f2ef887a"
+        }
+      ],
+      "cardSha256": "04734a71cbb5d6f3a64ff4484a3e915ce3919aa53ab1e88c83260736d198e97d"
+    },
+    {
+      "order": 11,
+      "name": "串联滞后校正",
+      "nameEn": "Series Lag Compensation",
+      "canonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+      "cardId": "ctkg_v3e-object-f9ac171d68c8622f62106397",
+      "resourceId": "act:card:ctkg_v3e-object-f9ac171d68c8622f62106397",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-f9ac171d68c8622f62106397.md",
+      "lessonUnits": [
+        "3-7"
+      ],
+      "previousCardSha256": "fc746e2f995f1a36a9f6d16fce7ea014c30a871ea50782e26719dc7563fdee97",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f3fbd6a915edb11fefeee95ccf55363500f82b563ad8c3e2489d0ca9c5265bdb.json",
+          "sha256": "652a6778c743e6df57e8244d01f0fae51f59455568837473ec0507eb5502f042"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f3fbd6a915edb11fefeee95ccf55363500f82b563ad8c3e2489d0ca9c5265bdb.json",
+          "sha256": "250b8c79080dcecc1e318594ba5134fa95493c97b29e0f4438297f0d765f76fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/串联无源滞后校正_6_2a52e865.md",
+          "sha256": "e6600f159899463638bb05a86f6315b6d9160662d5faea607b9a442fb26fe64f"
+        },
+        {
+          "path": "course-content/authoring/lessons/3-7/design/3-7-handout.md",
+          "sha256": "6182d2fb4b45b67c995c4985032ea1c80e569907f757b2ee1b021978746fe507"
+        }
+      ],
+      "cardSha256": "478a916986f3ee4d27a7da744c76c15957d4cfa852829fb821f82b63a1b09044"
+    },
+    {
+      "order": 12,
+      "name": "根轨迹法",
+      "nameEn": "Root Locus Method",
+      "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "cardId": "ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "resourceId": "act:card:ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-e8d4b4f1c63aa5a052b15538.md",
+      "lessonUnits": [
+        "3-1"
+      ],
+      "previousCardSha256": "481e91f5e6298db775ef41a7d8421037293490f3965f9d72496ec399a1644804",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c4fa454b75f51ddc09e10352fea5a82a227f703909826fb165139c38b9c6b625.json",
+          "sha256": "8b06a87d6bed54cbc483394ce9fa2fdf6622e510923bc536cfc2533b1fe1c908"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c4fa454b75f51ddc09e10352fea5a82a227f703909826fb165139c38b9c6b625.json",
+          "sha256": "47754eb82f7f97d7b3a210c4eb17c408ea6a272f11086f841d67cde288361a6d"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/根轨迹法_4_4e598387.md",
+          "sha256": "fe5dba466107f9c4314f7ac3e807281401aae491ac800dd52e896764654ef5fe",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/lessons/3-1/design/3-1-handout.md",
+          "sha256": "62da78f32b44e534923e0605f8e95f940c12ecf536ff199bd1f0983dda9b5aeb"
+        }
+      ],
+      "cardSha256": "da1df20c2ad377ee8f740d2e4d3be22840ccfa425f89cad1d40e45ebaa4cbb4f"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "status": "accepted",
+  "cards": 8,
+  "goalId": "optimal-control-foundations",
+  "rationale": "承接已接受的最优控制基础，以时间最优、二次权重、LQR和端点条件补齐专业设计基础。",
+  "sourceLimitation": "Authority无逐段教材引证；补充参考冻结与内容接受分别记录，不改写原捕获状态。"
+}

@@ -1,50 +1,75 @@
 ---
 node_id: ctkg_domainconcept_1fe958ff9947220990074dbc
 authority_entity_id: "ctkg:domainconcept:1fe958ff9947220990074dbc"
-name: 正半定性（标量函数）
+name: "正半定性（标量函数）"
+name_en: "Positive Semidefiniteness"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - 正半定性（标量函数）
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+confifteent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5b71d83713723644b1e0d374a8af7fb42e246168a1c9023f0e7ffd80d415010c.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5b71d83713723644b1e0d374a8af7fb42e246168a1c9023f0e7ffd80d415010c.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-05a/previous/ctkg_domainconcept_1fe958ff9947220990074dbc.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: ce88e7c81dabff95df8f9b5462147996ac648ae4fef865660a50592c246b2e0f -->
-
 ## 首页
+# 正半定性（标量函数） | Positive Semidefiniteness
 
-# 正半定性（标量函数）
+一句话定义：以原点为参照，连续标量函数正半定是指在原点取零，并在指定区域内处处非负，允许非零状态处也取零。
 
-**一句话定义**：正半定性（标量函数）是自动控制原理权威图谱中的领域概念。
-
-**关联**：（权威图邻接待补充）
+- 本卡采用非严格不等式定义，正定函数也满足正半定条件。
+- 严格半定的例子具有非零零点。
+- 半定函数可能无法区分某些偏离原点的状态。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+给定包含原点的区域D，若 $V(0)=0$ 且对所有x属于D都有 $V(x)\geq0$，则V正半定。与正定相比，主要差别在于是否允许非零零点。按照这一标准定义，正定是正半定中的特殊情况；若要强调“半定但非正定”，应明确说明存在非零x使V为零。
+
+函数符号由整个区域决定，不能根据一个点的值判断。半定也不是“有时正、有时负”，后者属于非定号。分析李雅普诺夫候选时，需要同时检查函数值与零点集合，因为零点集合会影响它能否控制整个状态向量的大小。
+
+### 教学计算/推理例
+
+取 $V(x_1,x_2)=x_1^2$。显然原点取零，所有状态处非负；但 $V(0,1)=0$，因此它正半定而非正定。其零点集合是整条第二坐标轴 $\{x:x_1=0\}$，不是只有原点。
+
+对任意大的M，状态 $(0,M)^T$ 都满足V为零，所以不可能存在正数c，使所有状态满足 $V(x)\geq c\lVert x\rVert^2$。这一反例说明，V很小不能保证整个状态很小；它只测量第一分量，完全忽略第二分量。
+
+将函数改为 $V_\eta=x_1^2+\eta x_2^2$，当 $\eta>0$ 时为正定，$\eta=0$ 时正半定但非正定，$\eta<0$ 时则非定号。参数跨越零时，第二状态方向的约束性质发生变化。检查矩阵 $P=\operatorname{diag}(1,\eta)$ 的特征值，也能得到同样分类。
+
+### 与稳定性分析的关系
+
+考虑系统 $\dot x_1=-x_1$、$\dot x_2=x_2$。上述V沿轨迹满足 $\dot V=-2x_1^2\leq0$，可是第二状态可指数增长，原点不稳定。函数非负且不增仍未证明稳定，根本原因是它没有约束危险的第二状态方向。
+
+这个反例与“正定V加非正导数可证明稳定”的直接法并不冲突，因为这里V不是正定。不要把关于导数半定的允许条件错误套用到函数自身：在常见基本稳定性定理中，V本身需要提供正定的状态距离约束，导数则可以非正。
+
+### 适用条件与边界
+
+本卡讨论不显含时间的连续标量函数，参照点为原点。二次型情况下，应对对称矩阵或原矩阵的对称部分判断正半定，不能只要求所有矩阵元素非负。例如 $[[1,-1],[-1,1]]$ 含负元素，但对应二次型 $(x_1-x_2)^2$ 正半定。
+
+如果特定任务只关心某个输出或某个集合的稳定性，半定函数仍可能有价值，但需明确相应目标与附加条件，不能冒充关于整个状态原点的基本正定证据。零点集合正是决定这种用途的关键信息。
+
+### 常见误区
+
+1. 将正半定误解为允许函数取负值。
+2. 看到非负函数沿轨迹下降就忽略其非零零点。
+3. 用矩阵元素符号代替二次型对所有方向的符号判断。
+
+### 自检
+
+1. 为什么 $x_1^2$ 不能控制二维状态的整体距离？
+2. $(x_1-x_2)^2$ 是否正半定，是否正定？
+
+**核对要点**：第二坐标轴上任意状态都使它取零；正半定，但在非零直线 $x_1=x_2$ 上取零，所以非正定。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、正半定性（标量函数）
+- **正定性（标量函数）**（无向，关系：相关）
+- **能量函数（李雅普诺夫）**（无向，关系：相关）

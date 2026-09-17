@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> sensitivity function node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "灵敏度函数",
+  "representativeCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+  "authorityDomainId": "robustness-sensitivity-analysis",
+  "authorityDomainDisplayName": "鲁棒性与灵敏度分析"
+}

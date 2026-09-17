@@ -1,31 +1,35 @@
 ---
 node_id: ctkg_v3e-canonical-7ee407860ee485f1e1b1f3d1
 authority_entity_id: "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1"
-name: 自然频率
+name: "自然频率"
+name_en: "Natural Frequency in a Parameterized Model"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 自然频率
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6d5985612223e8cac058157290dee3c7140b2aea940a73d5c3e95d01f92ca929.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6d5985612223e8cac058157290dee3c7140b2aea940a73d5c3e95d01f92ca929.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/previous/ctkg_v3e-canonical-7ee407860ee485f1e1b1f3d1.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 3062a547b653eff24fd8e36fc0de5a7fae8ad91ac80d026c0b5f2b784766a35b -->
-
 ## 首页
 
-# 自然频率
+# 自然频率 | Natural Frequency in a Parameterized Model
 
-**一句话定义**：ω_n = √(K/T_m) 为自然频率（或无阻尼振荡频率）。
+**一句话定义**：自然频率应由具体模型的特征系数确定，在本卡参数模型中为 $\omega_n=\sqrt{K/T_m}$。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：一个参数改变时可能同时改变自然频率和阻尼比，不能只盯住一个公式判断全部响应。
+
+**关键公式**：$T_m\ddot y+\dot y+Ky=Kr$。
+
+**学习目标**：从参数化模型求自然频率，并识别参数之间对响应形态的共同影响。
 
 ---
 
@@ -33,18 +37,49 @@ asset_refs: []
 
 ### 完整解释
 
-ω_n = √(K/T_m) 为自然频率（或无阻尼振荡频率）。
+不同物理对象可以采用不同参数形式。看到 $\omega_n=\sqrt{K/T_m}$ 时，应先确认它对应哪一个微分方程，而不是把它当作所有系统都适用的通用公式。对本卡所定义的模型，除以 $T_m$ 后，常数项正好是 $K/T_m$，因而得到这一表达。
+
+一次项同时给出阻尼比。将归一化分母与 $s^2+2\zeta\omega_ns+\omega_n^2$ 比较，得 $2\zeta\omega_n=1/T_m$，所以 $\zeta=1/(2\sqrt{KT_m})$。自然频率和阻尼比都由相同参数共同确定，不是可以在不改变模型的情况下任意独立指定。
+
+### 教学计算/推理例
+
+取归一化参数 $T_m=2$、$K=8$，原方程为
+$$
+2\ddot y+\dot y+8y=8r.
+$$
+零初态参考传函经归一化得到
+$$
+T(s)=\frac4{s^2+0.5s+4}.
+$$
+因此
+$$
+\omega_n=\sqrt{\frac82}=2,\qquad
+\zeta=\frac1{2\sqrt{8\cdot2}}=\frac18=0.125.
+$$
+闭环极点为
+$$
+s=-\frac14\pm j\frac{\sqrt{63}}4.
+$$
+实部为 $-0.25$，虚部大小约为 $1.98431$。极点模长为2，与自然频率一致；但暂态振荡频率由虚部大小给出，仍不能直接记为2。
+
+固定 $T_m$ 改变 $K$ 时，$\sqrt{K/T_m}$ 增大，而 $1/(2\sqrt{KT_m})$ 减小。因此“增大 $K$ 只是把原曲线等比例压缩到更短时间”在这个参数模型中不成立，响应形态也可能变化。
+
+### 适用条件与边界
+
+本例要求正的参数，并采用归一化时间和变量。公式中的参数含义由该模型定义，不能直接套到另一份采用不同增益或时间常数定义的资料。自然频率本身也不能替代稳定性、控制量或稳态精度检查。若模型加入额外极点或零点，应重新判断二阶描述是否仍适用。
+
+### 常见误区
+
+1. **误区**：只要出现 $K,T_m$ 两个符号，就能使用同一个自然频率公式。**纠正**：必须核对原方程。
+2. **误区**：改变 $K$ 时阻尼比保持不变。**纠正**：本例阻尼比也含 $K$。
+
+### 自检
+
+1. 本例为什么得到 $\omega_n=2$？
+2. 为什么不能只用自然频率预测改变 $K$ 后的全部响应？
+
+**核对要点**：归一化常数项为4；$K$ 同时进入阻尼比表达，需共同评价。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、自然频率
+本卡的结论可由上述定义与计算例独立复核。

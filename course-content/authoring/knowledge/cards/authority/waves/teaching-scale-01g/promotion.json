@@ -1,0 +1,9 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 7,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b11",
+  "retiredResources": [
+    "act:card:串联校正_6_fede5751",
+    "act:card:串联滞后-超前校正_6_23ee8cb9"
+  ]
+}

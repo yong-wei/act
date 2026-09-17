@@ -1,11 +1,11 @@
 # Repository Guidelines
 
 <Skill-use>
-优先读取 .agents/skills/README.md 或 .agents/skills/manifest.json 获取本项目专属完整项目技能清单，技能统一以 `.agents/skills/` 为项目内唯一真源；`.claude/skills` 仅保留软链接入口以适配 Claude 发现机制。使用时需要直接读取技能文件，并按需读取参考文件或调用脚本。
+需要发现项目技能时读取 .agents/skills/README.md 或 .agents/skills/manifest.json，技能统一以 `.agents/skills/` 为项目内唯一真源；`.claude/skills` 仅保留软链接入口以适配 Claude 发现机制。使用时需要直接读取技能文件，并按需读取参考文件或调用脚本。
 </Skill-use>
 
 <Skill-evolve>
-**重要：**在使用项目专属技能执行操作时，如果遇到了问题，在尝试解决后应该将解决思路沉淀在相应技能中，避免二次踩坑。
+技能改进以可复现问题和可复用经验为依据；仅在用户授权维护时修改技能，不把普通命令失败追加为永久规则。
 非项目专属技能，例如常用的buddy技能，不得擅自修改。
 </Skill-evolve>
 
@@ -16,30 +16,18 @@
 - Shell 命令默认加 `rtk` 前缀；运行 Python 脚本使用 `python3`。
 - 大型文档分批修改；一次性写入文档长度不要超过 500 行。
 - 项目运行日志位于 `.logs/`，排查运行态问题时优先纳入证据。
-- 初始化或刚进入仓库时，先快速读取 `docs/memory/02-recent-summary.md` 建立最近记忆上下文，再按需查阅完整记忆。
+- 需要项目历史且当前上下文不足时，定向读取 `docs/memory/02-recent-summary.md` 或相关任务记录；其中时效性信息应以当前事实核验。
 
-## 项目子代理工作流
+## 子代理与审查
 
-- **Cursor 会话**：子代理模型路由以 `.cursor/rules/subagent-routing.mdc` 与 `.agents/skills/cursor-subagent-routing/SKILL.md` 为准；不要套用 `.codex/agents` 的模型名或独立 reasoning 档位。Cursor `Task` 无独立 effort 参数，强度写在 model slug 中。
-- **Codex 会话**：项目命名子代理位于 `.codex/agents/*.toml`；角色、权限和路由真源见 `.codex/agents/README.md`、`.codex/agents/ROUTING.md` 与 `.codex/agents/HARNESS.md`。
-- 用户已授权子代理时，只要存在匹配的项目命名角色，就必须使用该角色；不得以自由派发替代命名角色。自由派发仅用于没有匹配角色且运行时能够显式控制模型与推理强度的情况。
-- Codex 下模型与推理档位遵循全局路由；项目层只通过 TOML 固定角色当前配置，并补充 ACT 的职责、权限、领域和验证约束。Cursor 下的模型矩阵不在本文件展开，见上述 cursor-subagent-routing skill。
-- 派发使用完整、非重叠工作包；默认一次派发、一次最终回报，禁止轮询和常规进度汇报。子代理返回 `COMPLETE` / `BLOCKED`、修改文件或提交、验证结果、残余风险和待裁决事项。
-- 写任务优先交给 `spark-coder`、`patch-worker` 或 `test-engineer`，以隔离实现上下文；写代理必须串行，并报告全部修改文件和验证结果。父线程不得无证据重复可信代理已完成的探索、实现或聚焦验证。
-- `deep-debugger` 使用 Terra Max 汇集复杂排障证据；遇到架构、并发、权限、数据完整性、迁移或范围取舍等高影响决策时，由主线程形成紧凑决策包后调用只读 `decision-advisor`（Sol Medium）。顾问不写代码、不派发代理、不承担最终审查，每个工作包原则上最多调用一次。
-- `long-context-investigator` 只处理常规窄调查不足以承载、且上下文规模与歧义同时显著的仓库级探索、大文件审阅和长上下文证据汇集，不承担日常实现。
-- 领域 reviewer 只检查被分配的领域风险，不执行重叠的完整审查；默认最多追加一个主要领域 reviewer，只有两个独立高风险面同时存在时才使用第二个。
-- 普通代码产出和一般任务终审由 `independent-reviewer` 审查；以安全或发布为主要风险时，可明确指定 `security-reviewer` 或 `release-sentinel` 代替通用终审；`critical-reviewer` 仅用于仍未解决的安全、隐私、数据丢失、发布或架构关键终审，不与普通终审机械叠加。
-- 审核对当前 diff 给出清场结论后，只要没有新增变动，该结论可直接沿用到提交、推送和开 PR；提交 hook、推送 hook 或流程阶段变化不得触发重复审核。
-- 课程作者态/runtime、AI 上下文、数据治理、Arena、Rust/WASM、Prisma、课堂同步与生产部署按 `.codex/agents/ROUTING.md` 追加对应领域 reviewer；领域事实优先于通用审查意见。
-- 派发时必须确认子线程元数据中的 `agent_role` 非空且模型、推理强度和 sandbox 符合对应 TOML；若运行时无法调用命名角色，应停止派发并报告，不得静默退化为继承主线程配置的自由代理。
-- 在 `act-dev1`、`act-dev2`、`act-resource` 永久隔离工作树中派发前，必须先核对当前工作树职责、分支、远端差异和 dirty ownership；永久工作树本身就是隔离边界，不再嵌套创建工作树，也不得跨工作树修改同一任务。
-- 审核 finding 是待裁决主张；修复前由主线程按 ACCEPT / REJECT / DEFER 分类。只有存在违反 spec/不变量、可达失败路径、行为回归或安全、隐私、数据风险的 finding 才能阻断。
-- 相关 finding 先按根因聚类，再一次性修复完整风险面；整改后恢复同一 reviewer，仅核验已接受 finding、整改变更及其直接引入的新 P0/P1；自动 fix-and-re-review 最多一轮，同类问题再次出现时停止局部补丁并复核设计不变量。
-- reviewer 只报告，不编辑代码、不扩大 OpenSpec 范围，也不以获得“clean”回复作为继续审核的理由。
-- 已请求的 GitHub Codex Review 必须在当前 HEAD 上完成后再合并。合并后迟到的审查仅对已接受的 P0/P1 建立 follow-up。
-- 请求 GitHub `@codex review` 必须用当前用户（仓库所有者）的 GitHub 身份发 PR 评论。先用 GitHub MCP `get_me` 确认 `login` 为用户本人，再用 `add_issue_comment` 发送。禁止用 `cursor[bot]` / `ManagePullRequest` 代发；Codex 不接受 bot 身份的审核请求。
-- 若已误用 bot 身份发出请求：等待 15 分钟，当前 HEAD 仍无 Codex 回复后，再用用户身份补发一次。同一 HEAD 上用户身份的 `@codex review` 不重复触发。
+- 只有用户授权当前任务或会话使用子代理时才派发；选择是否委派与选择角色是两个决定。主线程可直接完成有界工作。
+- 派发应带来明确的独立验证、并行或上下文隔离收益；采用完整、非重叠工作包，不轮询常规进度，不重复可信 worker 已完成的验证。
+- Codex 派发时按 `.codex/agents/ROUTING.md` 选择匹配命名角色，权限和模型以 TOML 为准；调用合同见 `.codex/agents/HARNESS.md`，角色索引见 `.codex/agents/README.md`。仅派发或维护配置时读取这些文件。
+- 顾问仅处理主线程不能从已有证据可靠解决的重要决策；不因任务涉及架构、数据库或部署就自动调用。
+- 独立审查按实际风险与明确验收要求选择。文档、机械修改不自动触发 reviewer；授权后需要独立审查时使用匹配角色，不叠加重叠的完整审查。
+- Cursor 会话使用 `.cursor/rules/subagent-routing.mdc` 与对应技能，不套用 Codex 模型参数。
+- 已请求的 GitHub Codex Review 必须覆盖当前 HEAD 后才能合并；finding 按 ACCEPT / REJECT / DEFER 裁决，按根因修复。复核只覆盖整改及其直接影响，同一 diff 不因提交或推送阶段变化重新审核。
+- 请求 GitHub `@codex review` 时先用 GitHub MCP `get_me` 确认用户身份，再用 `add_issue_comment` 发送；禁止 bot 代发，同一 HEAD 不重复触发。误用 bot 时，15 分钟后仍无回复才以用户身份补发一次。
 
 ## OpenSpec 工作流
 
@@ -70,6 +58,10 @@
 - 新 DB/BOPPPS 渲染主线使用 `src/features/lesson-engine/resource-renderer.tsx`；旧式大写 `ResourceRenderer.tsx` 仅按遗留路径维护。
 - 新互动课实现优先落在 `src/features/interactive/`；只有可跨课复用的资源、仿真或 widget 才下沉到 `src/resources/`。
 
+## 图像制作
+
+- 新图和图像编辑以 GPT Image 2.5 为目标；生成时按 `.agents/skills/imagen/references/gpt-image-2.5.md` 选择可用接口并记录真实模型信息。提示词不能切换后端，不静默使用旧模型；已接受历史资产不因默认型号变化重新生成或改写来源。
+
 ## 仿真与数值模型
 
 - 新增或改造仿真必须遵循 `docs/Simulation_Guidelines.md`。
@@ -84,7 +76,7 @@
 在仓库根目录运行：
 
 - `rtk npm run dev` / `rtk npm run startup` / `rtk npm run shutdown`
-- `rtk npm run typecheck`（当前零 TypeScript 错误基线；脚本自带 `--max-old-space-size=8192`。全量类型检查实测峰值约 6GB，低于默认 4GB V8 上限，冷 clone、大 merge 或分支切换使增量缓存失效时会回到全量路径，低内存协作机可用 `NODE_MAX_OLD_SPACE_SIZE` 覆盖）
+- `rtk npm run typecheck`（当前零 TypeScript 错误基线；脚本自带 `--max-old-space-size=8192`。全量类型检查实测峰值约 6GB，高于默认 4GB V8 上限，冷 clone、大 merge 或分支切换使增量缓存失效时会回到全量路径，低内存协作机可用 `NODE_MAX_OLD_SPACE_SIZE` 覆盖）
 - `rtk npm run verify:commit` / `rtk npm run verify:push`（Git hook 使用的 TypeScript 门禁）
 - `rtk npm run lint`
 - `rtk npm run test`（smoke + Arena 路由）
@@ -131,31 +123,13 @@
 - 只输出满足上述门槛的 finding；没有新的 P0/P1 时明确回复：本轮增量审查未发现新的 P0/P1 重大问题。
 - 简要说明此前 finding 的解决状态，以及仍存在但不阻断合并的测试空白或残余风险。
 
-## Verification Policy
+## 验证与完成
 
-* Use progressive verification. Run the smallest sufficient test scope during implementation, expand to the affected domain at stable checkpoints, and run broad verification once before delivery or merge.
+按本次改动与验收条件运行最小充分验证，并完成项目强制门禁。文档做结构、链接和 diff 检查；代码执行直接回归及受影响测试。共享契约、迁移、认证、部署等风险需要对应领域验证，不能用局部测试冒充整体证明。
 
-* After a local edit, run the regression test for the current behavior and the directly related tests. Do not run the full repository suite after every change.
+通过后，只有新增变更、失败、依赖/配置变化或未解决风险才扩大或重复验证。不因“准备 PR”“整改完成”“准备合并”机械重跑同一验证。最终交付应有覆盖当前内容的有效证据；TypeScript 提交/推送门禁仍按下节执行，不绕过 hooks。
 
-* Use dependency-aware or changed-file test selection where reliable. Supplement it with explicit risk-based tests for dynamic imports, persistence, authorization, concurrency, deployment, and other cross-cutting behavior.
-
-* Group related findings by root cause. Complete and locally verify the group before running its domain-level test suite.
-
-* Preserve successful verification as a commit-scoped checkpoint. Re-run a previously passed suite only when later changes intersect its code, dependencies, configuration, or risk surface.
-
-* Run broad verification when:
-
-  * preparing the first stable PR revision;
-  * completing a remediation batch;
-  * changing shared contracts, schemas, migrations, dependencies, build or test configuration, authentication, deployment, or common runtime infrastructure; or
-  * preparing the final merge revision.
-
-* A full test run is required on the final intended revision, but not after every intermediate commit.
-
-* If targeted tests pass but the affected scope is uncertain, expand one level at a time: direct test → related tests → domain suite → broad suite. Do not jump directly to full verification without a concrete risk reason.
-
-* Report the commands run, their scope, results, and any broader suites intentionally deferred. Never claim full verification when only targeted tests were run.
-
+不用镜像实现的测试证明可逆低影响修改。报告实际运行命令、结果和未覆盖事项；验证充分且本次验收满足后完成任务，不为获得额外确认继续搜索或测试。
 
 ## Git、CI 与发布边界
 
@@ -168,47 +142,20 @@
 - 镜像构建默认使用 `rtk bash scripts/build.sh`；除非排查脚本本身，不直接手写 `docker buildx build`。
 - 应用发布与课程 Runtime 发布分离。应用只走 `deploy:app`；Runtime 只走 `runtime:publish` 之后的 `runtime:activate`（回滚用 `runtime:rollback`）。已删除 `deploy:runtime` 与 `deploy:all`，不得再同步本地 `course-content/runtime`。
 
-## MCP 与工具选择
+## 工具与上下文
 
-- 官方库/API/框架文档：优先 Context7。
-- 代码语义检索与符号级编辑：优先 Serena 或 codegraph。
-- 代码 review、执行流、跨文件风险：优先 code-review-graph。
-- 浏览器调试与 E2E：使用 chrome-devtools、Browser 或 Playwright。
-- 数据库核对：使用 postgres、Prisma 脚本或 `js_repl` 的一次性 Node 检查。
-- 需要完整项目脚本、Next.js 构建、`tsx` 或测试链路时，使用仓库命令，不强行改写为 `js_repl`。
+- 已知文件、符号或报错可直接定向读取、搜索或查看 `.logs/`。陌生模块关系用 codegraph，diff/执行流风险用 code-review-graph；只加载当前问题需要的工具。
+- 图谱是定位辅助。使用前确认当前索引的修订与覆盖；不可用或过期时依赖源码、Git、日志与测试，不进行无结果的重复工具发现。图谱零结果不能证明实现不存在。
+- 文档按对象选择：官方库/API 优先当前官方文档或 Context7；数据库核对用现有 Prisma/SQL 工具；项目构建和测试用仓库脚本。浏览器验收使用可用的 Browser、Chrome 或 Playwright。
+- 续接任务或查询相关历史时读取 `.wolf/OPENWOLF.md`，再按需定位 STATUS、cerebrum 或 buglog。已知目标的小任务不先读取整份项目记忆或 anatomy。
+- 技能支持用户任务，不新增授权或覆盖当前明确指令。按描述选最相关技能，仅加载当前工作流的参考；不因关键词相同叠加多个技能。遇到真正的授权缺口时说明具体动作和原因，普通实现选择自主处理。
 
-<!-- openwolf:begin -->
-# OpenWolf
+<!-- BEGIN:nextjs-agent-rules -->
 
-@.wolf/OPENWOLF.md
+# This is NOT the Next.js you know
 
-This project uses OpenWolf for context management. Read and follow .wolf/OPENWOLF.md every session. Check .wolf/cerebrum.md before generating code. Check .wolf/anatomy.md before reading files.
-<!-- openwolf:end -->
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-## Code Graph Tool Split
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
-- `codegraph` 和 `code-review-graph` 是两套本地图谱工具；前者偏代码索引与符号级查询，后者偏 review、执行流、影响面和架构风险分析。
-- `codegraph` CLI 用于 `init/index/sync/status/query/files/context` 等索引维护和脚本化查询；`codegraph` MCP 用于会话内直接查询 `search/context/callers/callees/impact/node/explore/files/status`。
-- 快速定位符号、目录、调用者/被调用者或单点影响时优先用 `codegraph`；审查 diff、追踪流程、找测试缺口或评估跨文件风险时优先用 `code-review-graph`。
-
-<!-- codegraph MCP tools -->
-## MCP Tools: codegraph
-
-若项目存在 `.codegraph/`，代码理解类问题优先使用 `mcp__codegraph__`，避免先用 `rg`/文件读取做大范围探索。
-
-- 架构、功能、bug 上下文：先用 `codegraph_context`。
-- 符号定位：用 `codegraph_search`；目录结构：用 `codegraph_files`。
-- 调用关系：用 `codegraph_callers` / `codegraph_callees`。
-- 改动影响：用 `codegraph_impact`；单符号详情：用 `codegraph_node`。
-- 多符号源码巡检：在已有明确符号名后，用一次 `codegraph_explore`。
-
-<!-- code-review-graph MCP tools -->
-## MCP Tools: code-review-graph
-
-本项目有 code-review-graph 知识图谱。CRG 适合 review、执行流、影响面、测试缺口和跨文件关系问题；单文件字面量确认可直接用 `rg`。
-
-- 若 CRG 工具未显示，先用 `tool_search` 加载 `detect_changes`、`get_review_context`、`query_graph`、`get_affected_flows`、`get_flow`、`get_impact_radius` 等工具。
-- Review：先 `detect_changes`，再 `get_review_context`。
-- 影响面：先 `get_affected_flows`，再把 `get_impact_radius` 作为辅助估计。
-- 关系追踪：用 `query_graph`；具体执行路径用 `list_flows` / `get_flow`。
-- 图谱缩小范围后，再用 `rg`、`sed`、`git diff` 和测试做证据确认。
+<!-- END:nextjs-agent-rules -->

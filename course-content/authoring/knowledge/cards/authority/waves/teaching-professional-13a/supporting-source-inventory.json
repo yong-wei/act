@@ -1,0 +1,57 @@
+{
+  "status": "sections-checked",
+  "sources": [
+    {
+      "url": "https://www.egr.msu.edu/~khalil/NonlinearControl/Slides-Full/Lect_13.pdf",
+      "title": "Hassan K. Khalil, Nonlinear Control, Passivity and KYP",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-13a/references/khalil-lecture-13.pdf",
+      "sha256": "3b1903bc133bc8a2e68bee8e0e3394d7dec5db57afe1e8d768f68e3c6ec6f7ad",
+      "status": "sections-checked",
+      "pages": "PDF 2-12",
+      "supports": "PR/SPR definitions, minimal-realization positive-real and KYP certificates, storage inequality; strict state passivity is not the uniform impedance definition in Franklin."
+    },
+    {
+      "url": "https://www.egr.msu.edu/~khalil/NonlinearControl/Slides-Full/Lect_21.pdf",
+      "title": "Hassan K. Khalil, Nonlinear Control, Special nonlinear forms",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-13a/references/khalil-lecture-21.pdf",
+      "sha256": "94ea2f79b5612216618af713ad3b6b0e7ef453340bd3c08a2d6ad634af65b4b8",
+      "status": "sections-checked",
+      "pages": "PDF 2-4",
+      "supports": "Feedback-linearizable controller form and nonsingular decoupling factor."
+    },
+    {
+      "url": "https://www.egr.msu.edu/~khalil/NonlinearControl/Slides-Full/Lect_23.pdf",
+      "title": "Hassan K. Khalil, Nonlinear Control, State Feedback Stabilization",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-13a/references/khalil-lecture-23.pdf",
+      "sha256": "bc6f7ddd25f3a7a2ca431957ec566f44d6b1833a1c519fd78609a656139ebe70",
+      "status": "sections-checked",
+      "pages": "PDF 2-5",
+      "supports": "State feedback, equilibrium shift, local/regional/global stabilization distinctions."
+    },
+    {
+      "url": "https://www.egr.msu.edu/~khalil/NonlinearControl/Slides-Full/Lect_36.pdf",
+      "title": "Hassan K. Khalil, Nonlinear Control, Tracking and Regulation",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-13a/references/khalil-lecture-36.pdf",
+      "sha256": "541b83469155f37f341336b6fe47c879673186ef9d9db6a6f4c6226e82eb502d",
+      "status": "sections-checked",
+      "pages": "PDF 2-4",
+      "supports": "Tracking error convergence together with bounded internal states; reference derivative and nonvanishing input coefficient assumptions."
+    }
+  ],
+  "kind": "supporting-research-record",
+  "workedExample": "Original cubic scalar plant, two-state inverse tracking construction, scalar KYP certificate and unstable internal-mode counterexample; model validation pending.",
+  "localEvidence": [
+    {
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/nonlinear-source-evidence/hu8-integral-inverse.md",
+      "sha256": "18aabe4a006f288f6fa8afdc1fb9126f3db461c8bbec51c9993d9d571a09873e",
+      "sourceRelativePath": "course-content/authoring/resources/textbooks/hu-shousong-auto-control-8th/chapter-08/textbook.md",
+      "sourceCheckout": "ACT main checkout; original file is not present in this resource worktree",
+      "originalFileSha256": "9099b578a62641e4fea099cbbab1feb89fb4332b880f64abfb9f90176742c1a0",
+      "lineRange": [
+        1904,
+        1934
+      ],
+      "captureKind": "exact Markdown text excerpt; referenced media not copied"
+    }
+  ]
+}

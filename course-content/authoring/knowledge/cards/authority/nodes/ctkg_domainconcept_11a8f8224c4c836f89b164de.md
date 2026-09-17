@@ -1,0 +1,77 @@
+---
+node_id: ctkg_domainconcept_11a8f8224c4c836f89b164de
+authority_entity_id: "ctkg:domainconcept:11a8f8224c4c836f89b164de"
+name: "测量噪声衰减分析"
+name_en: "Measurement Noise Attenuation Analysis"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-fbeb0a47409ef5cd33beeffdcc385345b687423d1a5df28057893cf0601d96de.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-fbeb0a47409ef5cd33beeffdcc385345b687423d1a5df28057893cf0601d96de.json"
+asset_refs: []
+---
+
+## 首页
+# 测量噪声衰减分析 | Measurement Noise Attenuation Analysis
+
+一句话定义：测量噪声衰减分析是在其余外部输入置零后，计算测量噪声到指定输出或误差的传递关系，再按频段评价影响的方法。
+
+- 先区分物理输出、测量读数和比较器误差。
+- 噪声到真实跟踪误差的通道是互补灵敏度函数。
+- 单频幅值分析以闭环稳定和线性模型为前提。
+
+---
+## 详情
+### 完整解释
+
+考虑单位负反馈，物理输出为 $y$，传感器读数为 $y+n$，控制律为 $u=C(r-y-n)$，对象为 $y=Pu$。定义真实跟踪误差 $e_t=r-y$，比较器误差 $e_c=r-y-n$。二者满足 $e_t=e_c+n$，只有 $n=0$ 时才相同。
+
+令 $L=PC$、$S=1/(1+L)$、$T=L/(1+L)$。单独考察噪声时令参考与扰动为零，得到
+
+$$
+Y=-TN,\qquad E_t=TN,\qquad E_c=-SN.
+$$
+
+因此不能从“比较器误差很小”直接推断真实输出准确。分析步骤是：标明噪声注入点，列出闭环方程，选定评价量，检查内部稳定性，再计算相应频率响应。对正弦噪声，稳定后的真实误差幅值为输入幅值乘以 $|T(j\omega)|$；相位则由复数传递函数确定。
+
+### 教学计算/推理例
+
+取 $P=1/(s+1)$、$C=2$，则 $T=2/(s+3)$、$S=(s+1)/(s+3)$。当 $n(t)=\sin(30t)$ 时，稳态真实误差幅值为
+
+$$
+|T(j30)|=\frac{2}{\sqrt{909}}\approx0.06634.
+$$
+
+比较器误差幅值却为 $\sqrt{901/909}\approx0.99559$。高频噪声很少推动物理输出，但它仍直接出现在测量读数与比较器中。这两个结果同时成立，并不矛盾。
+
+若噪声改为单位阶跃偏置，零初态下 $e_t(t)=\frac23(1-e^{-3t})$，其稳态值为 $2/3$。同一系统对高频波动和恒定偏置的表现不同，不能用高频衰减率替代偏置误差分析。
+
+### 适用条件与边界
+
+上述通道属于给定的单位负反馈结构。存在测量滤波器、非单位传感器或其他注入点时应重列方程。频率响应描述稳定线性系统的稳态正弦响应；随机噪声还需要频谱等信息，不能仅凭一个频率点给出总误差。执行器饱和时叠加原理也可能失效。
+
+### 常见误区
+
+1. 把所有误差统一记成 $E$，随后交替使用 $S$ 与 $T$。应先声明比较的是哪个信号。
+2. 将参考置零理解为实际系统不需要跟踪。置零只是分离噪声贡献，其他通道可在线性条件下叠加。
+3. 看见某频率衰减就宣称所有噪声被消除。偏置和不同频段必须分别检验。
+
+### 自检
+
+1. 同一模型中，噪声到物理输出与真实误差为何相差一个负号？
+2. 高频比较器误差接近噪声幅值，是否证明物理输出也强烈振荡？
+
+**核对要点**：单独噪声作用时 $r=0$，故 $e_t=-y$；比较器直接减去噪声，其通道为 $-S$，物理输出通道为 $-T$，不能相互替代。
+
+### 关联节点
+
+- **扰动抑制**（无向，关系：相关）
+- **跟踪误差**（无向，关系：相关）
+- **灵敏度函数**（无向，关系：相关）

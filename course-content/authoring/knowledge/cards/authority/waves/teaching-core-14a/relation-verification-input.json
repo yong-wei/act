@@ -1,0 +1,204 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+      "relations": [
+        {
+          "relationId": "ctr:m1g-eb4d9f5d2608cf0010b767bb",
+          "otherId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+          "label": "稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **稳定性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:v13g-22057ad355499c1bc1a7a515",
+          "otherId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+          "label": "根轨迹法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **根轨迹法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:a2838951b5dd21a03d1e3204",
+          "otherId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+          "label": "闭环特征方程",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **闭环特征方程**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2h:source-object:552dae0908d9e549e2e5603d",
+      "relations": [
+        {
+          "relationId": "ctkg:m3-v2h:relation:27d1e445c0873de998691505",
+          "otherId": "ctkg:m3-v2h:canonical-object:0c5c3925013d2cbf3cb6419b",
+          "label": "频率响应匹配法",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **频率响应匹配法**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:7ed0aa4819f3038af9f3fabb",
+          "otherId": "ctkg:v3e-canonical-7173c7880ad344bc6a0d012d",
+          "label": "频率响应匹配降阶法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **频率响应匹配降阶法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:70a7516808c321dfcb06aa70",
+          "otherId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+          "label": "闭环极点",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **闭环极点**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:dbbe3d94f65611708fdb25de",
+          "otherId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+          "label": "主导极点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **主导极点**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-4480989fd86d3aaf940112d8",
+          "otherId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+          "label": "闭环极点",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **闭环极点**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-bridge-relation-4b1943e88bf4d6e13d93a9bd",
+          "otherId": "ctc:modeling-865eb1c8824e157c2f05a903",
+          "label": "传递函数",
+          "predicate": "derived_from",
+          "direction": "source_to_target",
+          "renderedLine": "- **传递函数**（出边，关系：推导自）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:0125a1674561b7f2d140ff0a",
+          "otherId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+          "label": "二阶系统",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **二阶系统**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-378a705d449b20bb7dd96c92",
+          "otherId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+          "label": "二阶系统",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **二阶系统**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:d6871cd118fa8e00db1b51c2",
+          "otherId": "ctkg:v3e-canonical-6dbb5c144b45c1f35822330c",
+          "label": "无零点的二阶系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **无零点的二阶系统**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:1164084ae03d7795c40a90de",
+          "otherId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+          "label": "闭环极点",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **闭环极点**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:488bb92d8a457857e6a4698d",
+          "otherId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+          "label": "主导极点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **主导极点**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:m1f-v3e-relation-16eefc5cd299dc664b766fe3",
+          "otherId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+          "label": "闭环极点",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **闭环极点**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:df8d2f712420439bbb21bb23",
+          "otherId": "ctkg:v3e-canonical-3484a3239128bda292d300f9",
+          "label": "高阶系统解析阶跃响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **高阶系统解析阶跃响应**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:b74fd1eb083a976554526acf",
+          "otherId": "ctkg:v3e-object-64830154d494eaf7d38d905c",
+          "label": "高阶系统时域指标估算经验公式法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **高阶系统时域指标估算经验公式法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:d81654beb99e95e67bfc6c35",
+          "otherId": "ctkg:domainconcept:4440d7aea649c55d0359385c",
+          "label": "特征值",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **特征值**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:dbbe3d94f65611708fdb25de",
+          "otherId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+          "label": "非主导极点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **非主导极点**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:488bb92d8a457857e6a4698d",
+          "otherId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+          "label": "闭环主导极点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **闭环主导极点**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

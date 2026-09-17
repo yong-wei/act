@@ -1,0 +1,30 @@
+{
+  "status": "local-runtime-active",
+  "serverPublished": false,
+  "replacementDigest": "4a78779d7ca662a280895904c331a2d656c674bf1c119137cb56a4afe6011d08",
+  "inventoryDigest": "fb04a7150e4660202a4abd1769b0b53e9f8afc97c646789a949f48b9b582067f",
+  "batchCanonicalIds": [
+    "ctkg:m1s-object-12e26eefe7617d594c305b67",
+    "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+    "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+    "ctkg:m1s-object-5df7a5c839136dcf822a286d"
+  ],
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b54",
+  "overlayProjectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+  "previousProjectionId": "proj-6030d13d4849aafe31b409509044a7ba44b9ae825d3128ceb6b59db40fea32dd",
+  "projectionId": "proj-0b28b53708c58f0b0e18b0fb2e0442d3d3b01e5e0a64a0d46ce5d3d045a77de7",
+  "projectionHash": "0b28b53708c58f0b0e18b0fb2e0442d3d3b01e5e0a64a0d46ce5d3d045a77de7",
+  "bindingReleaseId": "control-theory-engineering-v0.48-b55",
+  "bindingHash": "5db90c74201f2bd1cc5d631d30f25557e16cc78abae471a87d410fa3a56202b8",
+  "isolatedBindingCount": 0,
+  "isolatedCanonicalCount": 0,
+  "isolatedCardIndexCount": 0,
+  "explicitlyUnprojectedResources": [],
+  "teachingGate": "PUBLISHED",
+  "bindingGate": "passed",
+  "unknownActiveEndpoints": 0,
+  "newCards": 4,
+  "totalAcceptedCards": 458,
+  "teachingPrerequisitesChanged": false,
+  "learnerFactsChanged": false
+}

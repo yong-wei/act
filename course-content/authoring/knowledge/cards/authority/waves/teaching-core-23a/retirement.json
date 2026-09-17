@@ -1,0 +1,23 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:误差全补偿条件_6_e4f909f0",
+      "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/误差全补偿条件_6_e4f909f0.md",
+          "sha256": "508176e667529134455f52f4231a84b80fa27fff96eef29e4680e0504736539d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/retired/authoring/误差全补偿条件_6_e4f909f0.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/误差全补偿条件_6_e4f909f0.md",
+          "sha256": "508176e667529134455f52f4231a84b80fa27fff96eef29e4680e0504736539d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-23a/retired/runtime/误差全补偿条件_6_e4f909f0.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b35",
+  "replacementDigest": "b453d893b725aa7b78b3e595445886bc61c570c917086b08f055e6b584be4057"
+}

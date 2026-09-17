@@ -1,0 +1,58 @@
+{
+  "batchId": "teaching-professional-09a",
+  "status": "authoring",
+  "parentGroupId": "professional-digital-compensator-design",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:42b62edf88d848137713e690",
+      "name": "数字滞后补偿",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:60729cbdf747b39c2ff781bb",
+      "name": "直接z域补偿器设计方法",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6979e99f60e2642ff3d70d4b",
+      "name": "z平面根轨迹",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9431ee70cd4c3af657882c63",
+      "name": "直接数字设计法",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:cd1a5e4071f81f8cf97f7eb7",
+      "name": "离散超前补偿",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:df606d1cc343f73f1c9af59a",
+      "name": "PID 数字控制器实现方法",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 6
+    }
+  ]
+}

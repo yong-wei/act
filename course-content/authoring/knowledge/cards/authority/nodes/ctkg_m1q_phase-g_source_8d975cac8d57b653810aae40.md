@@ -1,0 +1,80 @@
+---
+node_id: ctkg_m1q_phase-g_source_8d975cac8d57b653810aae40
+authority_entity_id: "ctkg:m1q:phase-g:source:8d975cac8d57b653810aae40"
+name: "极小值原理"
+name_en: "Pontryagin Minimum Principle"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consevent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-645e8e744ba7d831503b974f4af02eb49627eeaf59e53e5b1a24cec5eda530a5.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-645e8e744ba7d831503b974f4af02eb49627eeaf59e53e5b1a24cec5eda530a5.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-06a/supporting-source-inventory.json"
+asset_refs: []
+---
+
+## 首页
+# 极小值原理 | Pontryagin Minimum Principle
+
+一句话定义：极小值原理借助协态和哈密顿函数，将最优控制的必要条件写成状态、协态、逐时极小及边界条件。
+
+- 本卡采用最小化成本的符号约定。
+- 逐时极小不等于只最小化瞬时代价。
+- 必要条件通常还需充分性论证。
+
+---
+## 详情
+### 完整解释
+
+对于具有光滑动态与成本的连续时间最优控制问题，在正常型情形下可取 $H(x,u,\lambda,t)=L(x,u,t)+\lambda^Tf(x,u,t)$。最优候选需同时满足原状态方程、协态方程 $\dot\lambda=-\partial H/\partial x$，并在允许输入集合内使H逐时取极小，还必须满足正确的初末端条件。
+
+协态可理解为动态约束引入的乘子，使控制选择考虑它对后续状态和总代价的影响。H的极小条件不是只对L做瞬时最小化。某些问题存在异常型乘子，不能将上述正常型归一化写法当作所有问题的完整定理；本卡聚焦一个可直接验证的正常型例子。
+
+### 教学计算/推理例
+
+取 $\dot x=u$、$x(0)=0$、$x(1)=1$，时间固定为[0,1]，输入为实值平方可积函数，无幅值限制，目标为 $J=\int_0^1u^2\,dt$。采用
+
+$$
+H=u^2+\lambda u.
+$$
+
+H不显含x，因此协态方程给出 $\dot\lambda=0$，λ为常数。由于H关于u严格凸，逐时极小的条件为 $\partial H/\partial u=2u+\lambda=0$，于是 $u=-\lambda/2$ 也是常数。由两端状态要求输入积分为1，得到λ=-2和u=1，状态轨迹为x=t。
+
+这组方程给出了满足必要条件的候选。要确认全局最优，再使用端点约束及柯西不等式：任意可行u均有 $\int_0^1u^2\,dt\geq(\int_0^1u\,dt)^2=1$，而候选恰好取得1。这里充分性由单独的整体下界建立，不是把必要条件直接称作全局证明。
+
+### 边界条件的作用
+
+本例末端状态固定，不能另行套用“末端自由且无末值成本”时的λ(1)=0。若错误添加这个条件，会与λ=-2冲突，甚至得到不能到达终点的零输入。状态端点是否固定，是建立边值问题前必须明确的信息。
+
+如果确实改成末端自由、且仍只有输入平方成本，那么u=0才是合理的最优解；有末值成本时，正常型自由末端条件还要包含其梯度。类似地，固定终止时间与自由终止时间也有不同的条件，不能省略任务设定而套用一组记忆公式。
+
+### 适用条件与边界
+
+等式 $\partial H/\partial u=0$ 适用于光滑且最优输入处于允许集合内部的情形；如果输入受限，应该在允许集合上比较H，极小点可能在边界。例中H关于u的二次项保证唯一逐时极小，但这并不使所有非线性最优控制问题都自动具有唯一全局解。
+
+文献也常用极大值原理及收益最大化约定。改写时要同时处理目标符号、哈密顿函数和协态，不能仅把“极大”一词替换成“极小”。本文坚持成本最小化和 $H=L+\lambda^Tf$ 的同一约定，所有计算都在该约定下完成。
+
+非线性动态、状态约束或奇异控制可能使求解复杂化。所得轨迹应重新核对动态残差、约束、端点和总代价；数值边值方程收敛本身不保证解已满足所需的全局最优性。
+
+### 常见误区
+
+1. 把H的极小化误作只最小化L。
+2. 固定末端问题错误套用自由末端协态条件。
+3. 满足必要条件就宣称所有情况下全局最优。
+
+### 自检
+
+1. 本例λ为何是常数，其值如何确定？
+2. 哪一步证明候选在全部可行输入中最优？
+
+**核对要点**：H不显含x使协态导数为零，状态端点确定λ=-2；柯西不等式给出所有可行输入共同的下界，候选达到它。
+
+### 关联节点
+
+- **最优控制**（出边，关系：适用于）

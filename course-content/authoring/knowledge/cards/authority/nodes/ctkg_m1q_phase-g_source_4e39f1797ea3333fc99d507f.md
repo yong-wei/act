@@ -1,0 +1,85 @@
+---
+node_id: ctkg_m1q_phase-g_source_4e39f1797ea3333fc99d507f
+authority_entity_id: "ctkg:m1q:phase-g:source:4e39f1797ea3333fc99d507f"
+name: "最小时间控制"
+name_en: "Minimum-Time Control"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+coneightt_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-eaff1b5d5f909fca8d59a13c611203d73116603c4b36323345660173f123f74a.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-eaff1b5d5f909fca8d59a13c611203d73116603c4b36323345660173f123f74a.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-07a/supporting-source-inventory.json"
+asset_refs: []
+---
+
+## 首页
+# 最小时间控制 | Minimum-Time Control
+
+一句话定义：最小时间控制在给定动态和约束下，寻找使状态到达指定目标所需时间最短的可行控制。
+
+- 最短时间依赖输入和状态约束。
+- 必须同时验证到达目标与时间下界。
+- 饱和控制不是所有问题的通用答案。
+
+---
+## 详情
+### 完整解释
+
+最小时间问题把终止时刻作为待优化变量，要求状态从给定初态到达目标点或目标集合。动态方程、输入集合、路径约束和终点条件共同规定可行过程。只比较几条轨迹的到达时间，可以选出其中最快的一条，却不足以证明它是全部可行控制中最快的。
+
+为了说明最优性，常先从动态和约束推出任何可行过程都不能突破的时间下界，再构造达到该下界的输入。这种“下界加可实现方案”的证据适用于下面的简单例子。复杂系统则可能需要极值原理、动态规划或其他工具，且需要处理切换、状态限制及到达条件。
+
+### 教学计算/推理例
+
+取标量积分器 $\dot x=u$，初态 $x(0)=2$，要求在自由终止时刻T到达 $x(T)=0$。控制可测，并满足 $|u(t)|\leq1$。积分状态方程得到
+
+$$
+-2=\int_0^T u(t)\,dt.
+$$
+
+由输入幅值限制可得
+
+$$
+2=\left|\int_0^T u(t)\,dt\right|
+\leq\int_0^T|u(t)|\,dt\leq T.
+$$
+
+所以任何可行控制都需要至少2个时间单位。取u=-1并持续到T=2，则状态为x=2-t，确实在2时到达0。因此最短时间是2，这个输入达到全局下界。若要求到达后保持原点，可以从T之后令u=0；到达之后的保持控制不计入原到达时间。
+
+在这个模型中，中途改用幅值小于1的输入会减少朝目标移动的速率，反向输入更会增加必须弥补的位移。下界取等要求几乎处处以最大允许幅值朝目标运动，而不是只要求某几个采样时刻的控制取-1。
+
+### 约束改变会怎样
+
+若输入界改为 $|u|\leq u_{\max}$，其中 $u_{\max}>0$，则本例最短时间为 $2/u_{\max}$。若幅值上限被完全去掉，对任意T>0都可取u=-2/T完成到达，时间下确界为零，却没有在T=0时用普通有限输入将状态瞬时改变的可行过程。
+
+这说明输入上限不仅影响数值，还关系到问题是否存在可实现的最短时间解。把控制脉冲或瞬时跳变引入模型，会改变允许控制和状态方程的意义，不能在未声明时把它们用来“实现”零时间到达。
+
+### 适用条件与边界
+
+上述常值饱和解依赖一阶积分器及单一端点条件。对带速度状态的二阶系统，如果终点还要求速度为零，往往需要加速后制动；一直保持同向最大输入通常不能满足全部终点条件。更复杂系统也可能出现奇异弧或状态约束弧，不能将所有最短时间问题都概括为一个固定饱和值。
+
+最短时间指标只评价到达速度，不自动惩罚输入切换、能耗或模型误差。若实际执行器有速率限制，或必须在到达前遵守安全状态边界，应将这些条件加入原问题，再重新判断候选输入是否可行。
+
+### 常见误区
+
+1. 忽略输入上限，仍给出原来的最短到达时间。
+2. 只看位置到达，遗漏速度等终点要求。
+3. 比较几个控制候选就声称全局最快。
+
+### 自检
+
+1. 本例的时间下界来自哪两项条件？
+2. 为什么没有幅值上限时不能直接说T=0是最优解？
+
+**核对要点**：必须改变状态2，且单位时间的改变幅度至多1；任意正时间均可实现，但零时间的瞬时改变不属于本例允许的普通控制过程。
+
+### 关联节点
+
+本卡的结论可由上述定义与计算例独立复核。

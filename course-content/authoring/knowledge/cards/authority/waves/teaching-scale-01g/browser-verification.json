@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, graph domain -> precise lead-lag compensation node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "串联滞后-超前校正"
+}

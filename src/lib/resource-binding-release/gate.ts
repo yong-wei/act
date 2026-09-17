@@ -8,6 +8,7 @@ import {
 } from './contracts';
 
 export interface GateContext {
+  excludedCanonicalBindings?: Array<{ canonicalId: string; resourceId: string }>;
   excludedResourceIds: string[];
   noAnchorResourceIds: string[];
   driftedMediaIds: string[];
@@ -28,6 +29,11 @@ export function evaluateResourceBindingGate(input: {
 }): ResourceBindingGateResult {
   const findings: ResourceBindingGateFinding[] = [];
   const { context } = input;
+  for (const excluded of context.excludedCanonicalBindings ?? []) {
+    findings.push({ code: 'canonical-endpoint-excluded', severity: 'warning',
+      message: 'Source binding endpoint is absent from the current Authority; excluded without guessing a successor.',
+      canonicalId: excluded.canonicalId, resourceId: excluded.resourceId });
+  }
 
   if (context.authorityMismatch) {
     findings.push({ code: 'authority-mismatch', severity: 'error', message: context.authorityMismatch });

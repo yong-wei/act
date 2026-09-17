@@ -1,31 +1,33 @@
 ---
 node_id: ctkg_v3e-object-35942e1152c99bd94bdecd00
 authority_entity_id: "ctkg:v3e-object-35942e1152c99bd94bdecd00"
-name: I控制器
+name: "I控制器"
+name_en: "Integral Controller"
 category: 概念性
-batch: C
-release_tier: silver
-tags:
-  - silver
-  - I控制器
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-d1fa2968f3162109f828b5767afc67d1e9575d3190cd1f5a08c0803a0aa44726.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-d1fa2968f3162109f828b5767afc67d1e9575d3190cd1f5a08c0803a0aa44726.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/previous/ctkg_v3e-object-35942e1152c99bd94bdecd00.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 2a4cd865f878d05e3c389c0a157fc704e9fd1ae82e4e9caf4a0c22389638f61e -->
-
 ## 首页
 
-# I控制器
+# I控制器 | Integral Controller
 
-**一句话定义**：I控制器。
+**一句话定义**：I控制器以误差积分作为控制作用，其输出取决于误差历史和初始积分状态。
 
-**关联**：后续 → 积分控制规律
+$$\dot u(t)=K_ie(t).$$
+
+误差变为零后，理想积分器保持已有输出，而不是自动回到零。
 
 ---
 
@@ -33,18 +35,46 @@ asset_refs: []
 
 ### 完整解释
 
-I控制器
+积分控制器会持续累积误差。若误差长期保持一个非零常数，控制量会按时间增加或减小；若误差为零，控制量的变化率为零，原有输出得以保持。因此，当前误差不足以确定输出，必须同时知道积分初值。
+
+零状态传递形式为 $C(s)=K_i/s$。其中原点极点反映了没有遗忘的积分状态；它不意味着连接任意对象后闭环必然不稳定，也不意味着闭环必然稳定。要作判断，应将积分器与对象和反馈关系一起分析。
+
+积分作用常用来调整持续偏差，但误差能否消失仍依赖具体闭环及稳定条件。不同输入和扰动通道可能产生不同结果，不能只因控制器名称含积分就直接给出全部稳态结论。
+
+### 教学计算/推理例
+
+先单独观察控制器。取 $K_i=2$、初始输出0.5，误差在0至4 s内保持0.25，则
+
+$$u(t)=0.5+2\times0.25t,$$
+
+所以4 s时输出为2.5。若之后误差输入保持零，理想输出继续保持2.5；这是对给定误差信号的控制器计算，并不是在未给对象时假定某个闭环会自动产生该误差。
+
+再连接对象 $G(s)=1/(s+1)$，采用负单位反馈、$K_i=1$及零初态单位阶跃。完整状态方程为
+
+$$\dot y=-y+u,\qquad\dot u=1-y.$$
+
+闭环传递函数为 $1/(s^2+s+1)$，两个极点在左半平面。输出包含衰减振荡并最终趋于1，控制量最终也趋于1。这个具体例子说明，控制器单独的积分状态与完整闭环的稳定性不能混同。
+
+### 适用条件与边界
+
+积分器对持续非零误差的输出可能不断增长，因此实际执行器限制会改变理想模型的实现。若有饱和、复位或其他积分状态处理，应明确它们的规则并重新验证，不能把处理后的响应仍当作未受限理想积分器的精确结果。
+
+初始输出在比较候选时同样重要。即使参数与误差输入相同，不同积分初值也会给出不同控制量和过渡过程。应将积分初值与对象初态一起记录，而不是只保存增益。
+
+本卡讨论连续时间线性积分结构。数字实现还涉及采样时间和积分更新方式；参数的单位应与实现一致。不能把连续积分增益不加说明地当作每一步直接累加的系数，否则采样周期变化会改变实际作用。
+
+### 常见误区
+
+1. 误区：误差为零后积分输出也必须为零。纠正：此时输出变化率为零，已有积分值会保持。
+2. 误区：控制器有原点极点就决定完整闭环一定不稳定。纠正：闭环根由控制器、对象和反馈共同决定，所列例子是稳定的。
+
+### 自检
+
+1. 单独控制器例在4 s后误差为零时，输出为何保持2.5？
+2. 完整闭环例为什么不能仅用控制器的原点极点判断稳定性？
+
+**核对要点**：积分状态没有自动复位机制，零误差只令导数为零。闭环特征多项式为 $s^2+s+1$，其根不同于独立控制器的极点。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 积分控制规律 | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、I控制器
+- **积分控制规律**（无向，关系：相关）

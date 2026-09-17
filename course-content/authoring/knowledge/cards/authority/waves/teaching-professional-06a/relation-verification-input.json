@@ -1,0 +1,84 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:m1q:source:27b2aecb99a117dacd1ef9a3",
+      "relations": [
+        {
+          "relationId": "relation-candidate:c1a78c83f4a9fec70cef4e80",
+          "otherId": "ctkg:m1q:phase-g:source:b7aaaf4975cb12371130f69b",
+          "label": "动态规划",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **动态规划**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "relation-candidate:81330c12fb11a797959894ca",
+          "otherId": "ctkg:m1q:phase-g:source:8d975cac8d57b653810aae40",
+          "label": "极小值原理",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **极小值原理**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:e83be44e862981b6d94cb216",
+          "otherId": "ctkg:m3-v2l:canonical-object:8754168bda2726334aedb505",
+          "label": "ITAE设计步骤",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **ITAE设计步骤**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:ac2b8a5f58a6a086b769ae81",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:fa4ec22e9cd6aa9278b34b17",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:e49ef3c8300f56c75656f8eb",
+          "otherId": "ctkg:m3-v2l:canonical-object:8754168bda2726334aedb505",
+          "label": "ITAE设计步骤",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **ITAE设计步骤**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:c14dc59187664d8a36099266",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:8f3eb818adacfb4bbd1403b4",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:8d975cac8d57b653810aae40",
+      "relations": [
+        {
+          "relationId": "relation-candidate:81330c12fb11a797959894ca",
+          "otherId": "ctkg:m1q:source:27b2aecb99a117dacd1ef9a3",
+          "label": "最优控制",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **最优控制**（出边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m1q:phase-g:source:b7aaaf4975cb12371130f69b",
+      "relations": [
+        {
+          "relationId": "relation-candidate:c1a78c83f4a9fec70cef4e80",
+          "otherId": "ctkg:m1q:source:27b2aecb99a117dacd1ef9a3",
+          "label": "最优控制",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **最优控制**（出边，关系：适用于）"
+        }
+      ]
+    }
+  ]
+}

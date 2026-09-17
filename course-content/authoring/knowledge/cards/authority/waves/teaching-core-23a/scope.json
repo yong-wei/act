@@ -1,0 +1,58 @@
+{
+  "batchId": "teaching-core-23a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-23",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+      "name": "测量噪声衰减分析",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+      "name": "测量噪声衰减",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+      "name": "跟踪误差",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+      "name": "误差全补偿条件",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+      "name": "扰动抑制分析",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+      "name": "测量噪声信号",
+      "moduleId": "module-4",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "name": "零型系统",
+      "moduleId": null,
+      "order": 7
+    }
+  ]
+}

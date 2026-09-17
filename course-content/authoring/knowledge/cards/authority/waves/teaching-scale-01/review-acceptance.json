@@ -1,0 +1,26 @@
+{
+  "status": "accepted",
+  "reviewer": "course-pedagogy-reviewer",
+  "reviewTask": "/root/review_contract",
+  "scope": "16 authoring cards, initial review plus focused remediation review",
+  "findingsAccepted": 4,
+  "findingsResolved": 4,
+  "cardHashes": {
+    "ctc:90af7a0497e616bbe6249c30": "768fb007d8fdfc3cbcdc801aa30ec9058efaf303460e8598728245564efef2fb",
+    "ctc:modeling-00d2998755974a1329049aac": "936aaf4b33f60bee3adaf1acdb462821d02a20d04284c6249c0567af69f70b2f",
+    "ctc:modeling-05fbe60f54c183c4e3ded892": "e0c1a05b3a2c45b79630e86aa7a52a34f20c405619cb6ad9e3c83318aa962eef",
+    "ctc:modeling-8aa475ed6514adc11f9b5c8d": "7a4d657192fa839e0e8e50723a2930f7770abf3b1cbda6eb72030890dc1f6a66",
+    "ctc:modeling-aa10e4daa1e969c557f6ef83": "fd813ff326fa4abc0d716cba9ab635da7baf5e82c8b7e29c3a75920daf139479",
+    "ctc:modeling-b2fd214ec64665147e16ff9d": "5d7efba9da04a4937d7bc9f1c3175d8c2892c6c5123a07ccd8a31b7f2edecf68",
+    "ctc:v11g-21fba199a9fdef15887d600f": "8a73ebe262df30480b0f279c76e5a0f84b38f5ce4e889242706e9a248fec2eec",
+    "ctc:v11g-caa20b325717f0a3c570f16b": "39eb8a0c9435c87e2e51e4ad3a967e815beec4b8cd87d83624fe79af9a220057",
+    "ctkg:domainconcept:9b4e79193b3701a9657113eb": "f949f631aee46a051df80f3184f1d4755980efc48073f8ef79e033817426d07e",
+    "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c": "372cd4e3a63107cbac0920ae6d771770bb3a26000e498e42afe4fc23fec0d81b",
+    "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017": "91322e067e4c1b852b95ad6067a5071ffddfc82a885029e9bad6747e58f41a08",
+    "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2": "b04edf7cff94a291de31db982af37f7928548ca2d2dd15ac1322bc7d660e938e",
+    "ctkg:v3e-canonical-060bc33f21e93205ee271eda": "197dff3ede7d434b0616425db42d7c8578517a8516fd6d4f239973a9130d4881",
+    "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71": "820cccc45b6a93bbe442b254a2a5b8c0a97e964254ba075301aefcabb25dbbf5",
+    "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f": "86b7bc4e98d4a8d18ed3fa6ec58dba7ad3f01da830fb33c6cf3403d1c8f966dc",
+    "ctkg:v3e-object-9967c0867249bf4c1a625dab": "e65531815e43cab0510f92d2710a74037e9b90c19361754b220d69ae4e9dc63b"
+  }
+}

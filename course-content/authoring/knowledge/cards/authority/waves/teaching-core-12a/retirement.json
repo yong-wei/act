@@ -1,0 +1,183 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:阻尼振荡频率_3_13002",
+      "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/阻尼振荡频率_3_13002.md",
+          "sha256": "6313beda5968032c92219777ea8f73a63deb95b78839175e5b3fb3579a0c4342",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/阻尼振荡频率_3_13002.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/阻尼振荡频率_3_13002.md",
+          "sha256": "6313beda5968032c92219777ea8f73a63deb95b78839175e5b3fb3579a0c4342",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/阻尼振荡频率_3_13002.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:峰值时间_3_adc7ea95",
+      "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/峰值时间_3_adc7ea95.md",
+          "sha256": "db51530ebf1e1a34755f1463a3434620389ecedb79075075727edcdb34595c57",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/峰值时间_3_adc7ea95.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/峰值时间_3_adc7ea95.md",
+          "sha256": "db51530ebf1e1a34755f1463a3434620389ecedb79075075727edcdb34595c57",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/峰值时间_3_adc7ea95.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:调节时间_10_fcbccf4e",
+      "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/调节时间_10_fcbccf4e.md",
+          "sha256": "d1eefb0e073b21aa7db06142008640a3cf4fd029ff9692780060dfce0bc74eba",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/调节时间_10_fcbccf4e.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/调节时间_10_fcbccf4e.md",
+          "sha256": "d1eefb0e073b21aa7db06142008640a3cf4fd029ff9692780060dfce0bc74eba",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/调节时间_10_fcbccf4e.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:调节时间_3_bc329c21",
+      "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/调节时间_3_bc329c21.md",
+          "sha256": "81ff294e96f9b6dfe65cfadddef8c1e04c695882ac2cefd3f7007234a2f93da1",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/调节时间_3_bc329c21.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/调节时间_3_bc329c21.md",
+          "sha256": "81ff294e96f9b6dfe65cfadddef8c1e04c695882ac2cefd3f7007234a2f93da1",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/调节时间_3_bc329c21.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:调节时间_6_c53f6314",
+      "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/调节时间_6_c53f6314.md",
+          "sha256": "e3eaf41f1456f0bfb0a005442df49c5d1a1644ed495bc7f5746fb13a8c112467",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/调节时间_6_c53f6314.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/调节时间_6_c53f6314.md",
+          "sha256": "e3eaf41f1456f0bfb0a005442df49c5d1a1644ed495bc7f5746fb13a8c112467",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/调节时间_6_c53f6314.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:上升时间_3_6fa0ec00",
+      "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/上升时间_3_6fa0ec00.md",
+          "sha256": "494d50e859b7dc859b9c3ffb93cb4f3bd6f939bf1870dadebb3a1471b645d215",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/上升时间_3_6fa0ec00.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/上升时间_3_6fa0ec00.md",
+          "sha256": "494d50e859b7dc859b9c3ffb93cb4f3bd6f939bf1870dadebb3a1471b645d215",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/上升时间_3_6fa0ec00.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:临界阻尼响应_3_5839e0e4",
+      "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/临界阻尼响应_3_5839e0e4.md",
+          "sha256": "e41cd4af353b0958c3812e37837dfb044dcb22b6ba642c4e0631556b355dba41",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/临界阻尼响应_3_5839e0e4.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/临界阻尼响应_3_5839e0e4.md",
+          "sha256": "e41cd4af353b0958c3812e37837dfb044dcb22b6ba642c4e0631556b355dba41",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/临界阻尼响应_3_5839e0e4.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:稳态过程_3_6d95ec21",
+      "canonicalId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/稳态过程_3_6d95ec21.md",
+          "sha256": "d2855ff280bd06fa001085f47fbb79062e09f548b6b8e2166118d0b9d86ede5f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/稳态过程_3_6d95ec21.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/稳态过程_3_6d95ec21.md",
+          "sha256": "d2855ff280bd06fa001085f47fbb79062e09f548b6b8e2166118d0b9d86ede5f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/稳态过程_3_6d95ec21.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:过阻尼二阶系统_3_e7258e8f",
+      "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/过阻尼二阶系统_3_e7258e8f.md",
+          "sha256": "601684a45678c1d7f80ff277fe8d52485abfca1dada2cc7236e0611b2eefef22",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/过阻尼二阶系统_3_e7258e8f.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/过阻尼二阶系统_3_e7258e8f.md",
+          "sha256": "601684a45678c1d7f80ff277fe8d52485abfca1dada2cc7236e0611b2eefef22",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/过阻尼二阶系统_3_e7258e8f.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:过阻尼响应_3_adf3867e",
+      "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/过阻尼响应_3_adf3867e.md",
+          "sha256": "e9ed22d1c025959ea4a2bbdfe0467739b6070ca9142e6921f1154311b63b650a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/过阻尼响应_3_adf3867e.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/过阻尼响应_3_adf3867e.md",
+          "sha256": "e9ed22d1c025959ea4a2bbdfe0467739b6070ca9142e6921f1154311b63b650a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/过阻尼响应_3_adf3867e.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:动态过程_3_8a8051ec",
+      "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/动态过程_3_8a8051ec.md",
+          "sha256": "fb2558f373cef7e3acb2d38b7638397057d94a9bc54ea66cc18d032716665237",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/authoring/动态过程_3_8a8051ec.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/动态过程_3_8a8051ec.md",
+          "sha256": "fb2558f373cef7e3acb2d38b7638397057d94a9bc54ea66cc18d032716665237",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/retired/runtime/动态过程_3_8a8051ec.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b24",
+  "replacementDigest": "34fae1e68b581ac5be4aeb3abedd57f0c2e54a4617db16f08099035ab40ee420"
+}

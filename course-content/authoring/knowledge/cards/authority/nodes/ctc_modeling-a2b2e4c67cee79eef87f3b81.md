@@ -1,36 +1,35 @@
 ---
 node_id: ctc_modeling-a2b2e4c67cee79eef87f3b81
 authority_entity_id: "ctc:modeling-a2b2e4c67cee79eef87f3b81"
-name: forward path
-name_en: forward_path
+name: "前向路径"
+name_en: "Forward Path"
 category: 概念性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: theoretical_construct
-release_tier: gold
-tags:
-  - theoretical_construct
-  - gold
-  - forward
-  - path
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b80312be03d974d3c883d5ad5e8246f814c78bbfb74019ef10eb1f241906f85a.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b80312be03d974d3c883d5ad5e8246f814c78bbfb74019ef10eb1f241906f85a.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-06a/previous/ctc_modeling-a2b2e4c67cee79eef87f3b81.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: a9e6fe4742493be456682b2a154120212143c46bb2305ad97c8b8335b0de103c -->
-
 ## 首页
 
-# forward path | forward_path
+# 前向路径 | Forward Path
 
-**一句话定义**：forward path：v3T accepted candidate for forward path.
+**一句话定义**：前向路径沿支路方向从输入节点到达输出节点，过程中不重复经过任何节点。
 
-**核心直觉**：在图谱邻接中可把握：后续 → signal flow graph。
+**核心直觉**：前向路径描述一次不绕回已有节点的输入到输出通行方式，反馈绕行不能无限加入路径清单。
 
-**关联**：后续 → signal flow graph
+**关键公式**：路径增益等于该路径上各支路增益的乘积。
+
+**学习目标**：完整枚举前向路径，计算路径增益，并区分前向增益之和与含反馈图的总增益。
 
 ---
 
@@ -38,18 +37,44 @@ asset_refs: []
 
 ### 完整解释
 
-v3T accepted candidate for forward path.
+判断一条节点序列是不是前向路径，需同时检查起终点、箭头方向和节点不重复三个条件。视觉上从左到右并不是定义；图的排版可以改变，而箭头与变量关系不应改变。路径中每条支路必须真实存在，不能为了连接两个节点自行补出反向支路。
+
+路径增益把该条路径经历的变换按顺序相乘。不同路径可以共享某些节点或支路，仍然是不同前向路径；“互不接触”不是前向路径之间必须满足的条件，而是计算某些回路组合时使用的另一概念。枚举时应按完整节点序列区分路径，避免漏掉短路直达支路。
+
+### 教学计算/推理例
+
+共同图包含 $r\to x:2$、$x\to y:3$、$y\to x:-0.1$、$r\to y:1$、$y\to z:1$。从 $r$ 到 $z$ 的前向路径只有两条：
+
+1. $r\to x\to y\to z$，路径增益为 $2\times3\times1=6$。
+2. $r\to y\to z$，路径增益为 $1\times1=1$。
+
+它们都不重复节点，而且每一步遵循箭头。序列 $r\to y\to x\to y\to z$ 虽然每段支路都存在，却重复经过 $y$，因此不是另一条前向路径。沿回路绕两次、三次产生的更长序列也不会增加前向路径数量。
+
+两条路径增益之和为 7。与此同时，节点方程给出
+$$
+x=2r-0.1y,\qquad y=3x+r,
+\qquad 1.3y=7r.
+$$
+因此 $z=(70/13)r$。前向路径清单描述输入传向输出的基本结构，不能忽略反馈就把 7 当作最终整图增益。这里两条路径共享 $y\to z$，并不妨碍它们分别计入。
+
+### 适用条件与边界
+
+本例采用常数增益和无量纲信号，不据此讨论真实传播时间。动态信号图的路径增益可以是传递函数乘积，完整输入输出关系仍要考虑回路及相应模型条件。路径是否存在由拓扑与方向决定，不应根据某次输入取值为零就删除路径；实际数值贡献为零与结构上没有连接是不同情况。
+
+### 常见误区
+
+1. **误区**：每多绕一圈反馈就多一条前向路径。**纠正**：重复节点的序列不符合前向路径定义。
+2. **误区**：两条路径共享节点就只能留一条。**纠正**：不同节点序列可以共享部分结构。
+
+### 自检
+
+1. 本例短路径为什么不能漏掉？
+2. 序列 $r\to y\to x\to y\to z$ 违反哪一条条件？
+
+**核对要点**：真实存在直接支路 $r\to y$；较长序列重复了节点 $y$。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | signal flow graph | 属于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、gold、forward、path
+- **信号流图**（出边，关系：组成部分属于）
+- **第k条前向通路余子式**（无向，关系：相关）
+- **前向通路特征式余因子**（无向，关系：相关）

@@ -1,0 +1,300 @@
+{
+  "scopeId": "act-control-theory",
+  "authoringRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.48",
+  "authoritySnapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+  "authoritySnapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+  "resources": [
+    {
+      "resourceId": "act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "传递函数",
+      "sourcePath": "content:fe919cdaeb00a4b3dce8ae048e569198c4a389640bded2589b2c3c61133cea97",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "二阶系统",
+      "sourcePath": "content:b8a322683388f60d82a35f83dcb8e13c84ba114810f7b4f0288d336ed05fd2bc",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "系统型别",
+      "sourcePath": "content:5e1fcdaf81ce38aacb668ccde2bb62bc3281618fe925012f51f321ede2f97fec",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "稳态误差",
+      "sourcePath": "content:43e2c4de7a216e5f82370ec69d39c0627de3f979d92dd9d7302b155c2277e937",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-canonical-504581e399675b9792ab8502",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "伯德图",
+      "sourcePath": "content:444175566cac5d4fa2a0b8a7639765f21db6643f24271b94da7c0f2eb337ed4e",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "相角裕度",
+      "sourcePath": "content:3733a2b18304b3f44341c95fd95983e466476fd3c9a47396c1f0848ee6853eab",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "系统带宽",
+      "sourcePath": "content:ca1900560d843ea2f33f438d5ee95a18880f076bf7321601f4e11eedbc7bd630",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctc_v11g-c8c8aef0d010e68842be7236",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "积分控制器",
+      "sourcePath": "content:9908cebdd874ab8ebcfd8e3301681fa472dbe3b0e96eca5ef8ba9dc81b18a340",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "PI控制器",
+      "sourcePath": "content:b14e583999c3887d306743e2c09a1ebcf878f48672e74c6aac564187b256b4b0",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "超前补偿",
+      "sourcePath": "content:04734a71cbb5d6f3a64ff4484a3e915ce3919aa53ab1e88c83260736d198e97d",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-object-f9ac171d68c8622f62106397",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "串联滞后校正",
+      "sourcePath": "content:478a916986f3ee4d27a7da744c76c15957d4cfa852829fb821f82b63a1b09044",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "resourceType": "card",
+      "projectionMode": "REQUIRED",
+      "scopeId": "act-control-theory",
+      "title": "根轨迹法",
+      "sourcePath": "content:da1df20c2ad377ee8f740d2e4d3be22840ccfa425f89cad1d40e45ebaa4cbb4f",
+      "knowledgeRefs": [
+        {
+          "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+          "role": "EXPLAINS",
+          "primary": true,
+          "rationale": "首批教学卡明确主讲此当前领域概念；关联阅读不扩展主绑定。"
+        }
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "cardId": "ctc_modeling-865eb1c8824e157c2f05a903",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:fe919cdaeb00a4b3dce8ae048e569198c4a389640bded2589b2c3c61133cea97",
+      "title": "传递函数"
+    },
+    {
+      "cardId": "ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:b8a322683388f60d82a35f83dcb8e13c84ba114810f7b4f0288d336ed05fd2bc",
+      "title": "二阶系统"
+    },
+    {
+      "cardId": "ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+      "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:5e1fcdaf81ce38aacb668ccde2bb62bc3281618fe925012f51f321ede2f97fec",
+      "title": "系统型别"
+    },
+    {
+      "cardId": "ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:43e2c4de7a216e5f82370ec69d39c0627de3f979d92dd9d7302b155c2277e937",
+      "title": "稳态误差"
+    },
+    {
+      "cardId": "ctkg_v3e-canonical-504581e399675b9792ab8502",
+      "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:444175566cac5d4fa2a0b8a7639765f21db6643f24271b94da7c0f2eb337ed4e",
+      "title": "伯德图"
+    },
+    {
+      "cardId": "ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:3733a2b18304b3f44341c95fd95983e466476fd3c9a47396c1f0848ee6853eab",
+      "title": "相角裕度"
+    },
+    {
+      "cardId": "ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:ca1900560d843ea2f33f438d5ee95a18880f076bf7321601f4e11eedbc7bd630",
+      "title": "系统带宽"
+    },
+    {
+      "cardId": "ctc_v11g-c8c8aef0d010e68842be7236",
+      "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:9908cebdd874ab8ebcfd8e3301681fa472dbe3b0e96eca5ef8ba9dc81b18a340",
+      "title": "积分控制器"
+    },
+    {
+      "cardId": "ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:b14e583999c3887d306743e2c09a1ebcf878f48672e74c6aac564187b256b4b0",
+      "title": "PI控制器"
+    },
+    {
+      "cardId": "ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:04734a71cbb5d6f3a64ff4484a3e915ce3919aa53ab1e88c83260736d198e97d",
+      "title": "超前补偿"
+    },
+    {
+      "cardId": "ctkg_v3e-object-f9ac171d68c8622f62106397",
+      "canonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:478a916986f3ee4d27a7da744c76c15957d4cfa852829fb821f82b63a1b09044",
+      "title": "串联滞后校正"
+    },
+    {
+      "cardId": "ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "active": true,
+      "required": false,
+      "sourcePath": "content:da1df20c2ad377ee8f740d2e4d3be22840ccfa425f89cad1d40e45ebaa4cbb4f",
+      "title": "根轨迹法"
+    }
+  ],
+  "authorityReleaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48"
+}

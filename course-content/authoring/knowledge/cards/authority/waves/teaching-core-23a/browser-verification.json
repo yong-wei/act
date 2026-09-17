@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> tracking error node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "跟踪误差",
+  "representativeCanonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+  "authorityDomainId": "robustness-sensitivity-analysis",
+  "authorityDomainDisplayName": "鲁棒性与灵敏度分析"
+}

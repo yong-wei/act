@@ -1,0 +1,90 @@
+{
+  "status": "completed",
+  "completedAcceptedCards": 458,
+  "plannedTotal": 458,
+  "remainingTotal": 0,
+  "remainingFirstStage": [],
+  "otherCoreRemaining": 0,
+  "professionalCandidatesRemaining": 0,
+  "activeBindingReleaseId": "control-theory-engineering-v0.48-b55",
+  "activeBindingHash": "5db90c74201f2bd1cc5d631d30f25557e16cc78abae471a87d410fa3a56202b8",
+  "latestEvidence": "openspec/changes/activate-teaching-card-batch-01/completion-report.md",
+  "serverPublished": false,
+  "nextAction": "无剩余制作任务。服务器发布不在本次范围。",
+  "inFlightBatch": null,
+  "pendingFirstStageBatches": [],
+  "localValidationService": {
+    "port": 3004,
+    "mode": "Turbopack",
+    "verified": "458 authenticated routes, actual generated paths, 8559 formulas and final two graph/browser flows passed",
+    "currentBatchConsumptionVerified": true,
+    "execSessionId": 48202,
+    "logPath": ".logs/knowledge-card-dev-3004.log",
+    "restartNote": "第十二批验证时3004监听进程已消失；日志未说明退出原因。使用npx next dev --port 3004恢复，HTTP健康检查200，重跑页面与浏览器验证。"
+  },
+  "goalRegistrationReview": {
+    "status": "passed",
+    "reviewer": "/root/review_modeling_goal_registration",
+    "goalIds": [
+      "system-modeling-process-foundations",
+      "physical-modeling-interconnection-foundations"
+    ],
+    "findings": []
+  },
+  "authoringPolicy": "主线程定稿计算型正文；保留独立领域审核。后续复用08a的node_id导出前校验与pm/qquad作者态渲染检查。",
+  "upstreamSemanticFollowups": [
+    {
+      "relationId": "ctr:m1f-bridge-relation-ad5c8e4d866cbe9847b254cd",
+      "status": "context-review-deferred",
+      "cardProjection": "excluded",
+      "evidence": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/relation-adjudication.json"
+    }
+  ],
+  "sessionRecovery": {
+    "sourceThreadId": "01a0a2c2-c0c1-73a2-b913-d86b0b712202",
+    "status": "completed-large-scale-production",
+    "verifiedHead": "f655dee490f714247dea867602a4d42bf699f2fd",
+    "verifiedAcceptedRuntimeCards": 176,
+    "acceptedRuntimeHashMismatches": 0,
+    "pendingAuthoringHashesVerified": 12,
+    "sourceReviewResultAvailable": false,
+    "replacementReviewer": "/root/recover_review_metrics",
+    "targetedRegression": {
+      "command": "rtk proxy npx vitest run src/lib/resource-binding-release/__tests__/card-replacements.test.ts src/lib/authority-domain-shards/__tests__/learner-card-math-rendering.test.ts src/lib/authority-domain-shards/__tests__/present-published-knowledge-card.test.ts",
+      "filesPassed": 3,
+      "testsPassed": 11
+    },
+    "nextBatchPreparation": "teaching-core-13a/source-design-notes.md and model-preparation.json; original source context for minimum-beat response still to verify",
+    "acceptedRuntimeCardsAfterContinuation": 188,
+    "goalStatus": "complete",
+    "resumedFromThreadId": "01a0a5b2-db6a-7c33-a461-bed91e337de1",
+    "currentRecoveredAcceptedCards": 383,
+    "currentRecoveredRuntimeHashMismatches": 0,
+    "currentVerifiedHead": "f655dee490f714247dea867602a4d42bf699f2fd",
+    "currentVerifiedBindingRelease": "control-theory-engineering-v0.48-b45",
+    "acceptedRuntimeCardsAfterLatestContinuation": 458
+  },
+  "nextProfessionalBatch": null,
+  "coreCoverageAudit": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/core-coverage-audit.json",
+  "professionalAcceptedCards": 115,
+  "nonlinearTerminologyInvestigation": {
+    "status": "resolved-with-explicit-provenance-limits",
+    "evidence": "course-content/authoring/knowledge/cards/authority/waves/nonlinear-terminology-source-resolution.json",
+    "capturedExcerpts": "course-content/authoring/knowledge/cards/authority/waves/nonlinear-source-evidence/manifest.json",
+    "terms": [
+      "l 阶积分逆系统",
+      "严格无源阻抗",
+      "扇区化零法",
+      "积分器抗漂移控制方法"
+    ],
+    "sourceSpanLimit": "Original private source-span package and scan not available; frozen textbook text, section hashes and public evidence-ref reconstruction match."
+  },
+  "completionAudit": "openspec/changes/activate-teaching-card-batch-01/completion-audit.json",
+  "retainedBaselineCards": 24,
+  "independentlyReviewedNewCards": 434,
+  "finalGoalCatalogValidation": {
+    "status": "passed",
+    "registeredGoals": 31,
+    "evidence": "openspec/changes/activate-teaching-card-batch-01/verification-summary.json"
+  }
+}

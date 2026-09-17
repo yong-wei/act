@@ -1,52 +1,76 @@
 ---
 node_id: ctkg_domainconcept_0d613f0b723fa4a95a006064
 authority_entity_id: "ctkg:domainconcept:0d613f0b723fa4a95a006064"
-name: Lyapunov Stability
+name: "李雅普诺夫稳定性"
+name_en: "Stability in the Sense of Lyapunov"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - Lyapunov
-  - Stability
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+confifteent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-dbaaa1d2a8f67d28fbac34a4e0a04321e8a8474bd056bf746164c0fd7f7b4bd1.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-dbaaa1d2a8f67d28fbac34a4e0a04321e8a8474bd056bf746164c0fd7f7b4bd1.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-05a/previous/ctkg_domainconcept_0d613f0b723fa4a95a006064.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: a6235a04fbe3f7f377d6b051c1f783e894298f8bdb42b6aa13f9dce9502709b2 -->
-
 ## 首页
+# 李雅普诺夫稳定性 | Stability in the Sense of Lyapunov
 
-# Lyapunov Stability
+一句话定义：平衡点的李雅普诺夫稳定性表示，初始状态足够接近平衡点时，此后的整个运动都能保持在事先指定的小邻域内。
 
-**一句话定义**：Lyapunov Stability是自动控制原理权威图谱中的领域概念。
-
-**关联**：前置 → Lyapunov Direct Method、Lyapunov Function
+- 稳定描述持续接近，不必要求最终收敛。
+- 定义中的邻域大小由给定容许偏差决定。
+- 一条看似平稳的轨迹不能证明所有足够小扰动下稳定。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+以原点为平衡点，连续时间系统的稳定性要求：对每个容许偏差 $\epsilon>0$，存在初始半径 $\delta>0$，使 $\lVert x(t_0)\rVert<\delta$ 蕴含所有未来时刻 $t\geq t_0$ 都有 $\lVert x(t)\rVert<\epsilon$。它表达的是小初始扰动不会在未来演化成超过给定界限的大偏差。
+
+对时变系统，普通稳定性中的delta可以依赖初始时刻 $t_0$；如果可以选择与初始时刻无关的delta，就涉及一致稳定性。对自治系统，同一个初态的轨迹仅因起始时刻改变而发生时间平移，因此这种初始时刻依赖不会以同样方式出现。
+
+### 教学计算/推理例
+
+取无阻尼振荡系统 $\dot x_1=x_2$、$\dot x_2=-x_1$，并定义 $V=(x_1^2+x_2^2)/2$。计算得 $\dot V=x_1x_2-x_2x_1=0$，所以 $\lVert x(t)\rVert=\lVert x(t_0)\rVert$。对任意epsilon，只需取delta等于epsilon，就满足稳定性定义。
+
+例如从 $(0.1,0)^T$ 出发，状态沿半径0.1的圆周运动，永远不会越出该圆周；但除非初态就是原点，它也永远不会趋于原点。因此这个系统原点稳定，却不渐近稳定。没有阻尼引起的持续小振荡与稳定性定义相容。
+
+对照一维系统 $\dot x=x$，解为 $x(t)=x_0e^{t-t_0}$。无论初始半径delta多小，只要选取其中一个非零初值，经过足够长时间都会超过给定epsilon，所以原点不稳定。有限时长内曲线变化很小不能推翻这一结论，因为定义涉及所有未来时刻。
+
+### 如何构造稳定性证明
+
+正定李雅普诺夫函数可以提供连接状态距离与轨迹行为的工具。如果V在原点附近正定，且沿轨迹不增加，可以选取足够小的初始集合，使其V值低于某个包在epsilon邻域中的子水平集边界。轨迹无法跨到更高V值的边界，于是被限制在该邻域内。
+
+这说明V值不增加是帮助证明状态保持接近的途径，不要求状态的欧氏范数在每个时刻都单调下降。非圆形子水平集中，轨迹可能暂时离原点更远，但只要对任意容许偏差都能选出足够小初态，仍符合稳定性。
+
+### 适用条件与边界
+
+定义应相对于确实存在的平衡点，并在解存在且具有适当唯一性的系统背景下使用。局部稳定不对任意大初值作保证。输入输出有界稳定则针对输入与输出映射，是另一种性质；含隐藏模态的非最小状态模型不能仅凭传递函数稳定就替代内部李雅普诺夫稳定性检查。
+
+稳定和吸引是不同要求。只有再证明某邻域内轨迹趋向平衡点，才有渐近稳定；只证明轨迹最终接近而没有证明所有时刻保持小偏差，也没有完整满足渐近稳定定义中的稳定部分。
+
+### 常见误区
+
+1. 把稳定等同于状态必须最终回到原点。
+2. 用有限时间仿真未发散代替全部未来时刻的论证。
+3. 认为状态距离只要有一次增加就一定不稳定。
+
+### 自检
+
+1. 无阻尼旋转系统为什么稳定但不渐近稳定？
+2. $\dot x=x$ 的非零初值即使很小，能永久保持在给定小邻域吗？
+
+**核对要点**：范数守恒，轨迹保持接近但不趋零；不能，指数增长最终超过该邻域。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Lyapunov Direct Method | 用于分析 |
-| 前置 | Lyapunov Function | 用于分析 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Lyapunov、Stability
+- **不稳定性**（无向，关系：相关）
+- **渐近稳定性**（无向，关系：相关）
+- **一致稳定性**（无向，关系：相关）

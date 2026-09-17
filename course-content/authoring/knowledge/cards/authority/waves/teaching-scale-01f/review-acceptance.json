@@ -1,0 +1,16 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_stability_seven",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "deferred": "Authority statement sigma convention needs textbook context; reviewer sign-error claim is not demonstrated. Card does not cite it. Crossover/cutoff detail sources have limited granularity.",
+  "cardHashes": {
+    "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b": "ef57417b72a326f66f63574651e0de38df2751cd221008c19fa3b09b46570214",
+    "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760": "7e0d38d75eead4fd56fa252ca2e4d549b4b5ebed7f724f331d134a5c3cceb2c7",
+    "ctkg:v3e-object-cfdae92ada72d7710e7f1cee": "d2f818c8ba0e8f1b3de94b5cd1baa619b0bd6c13faee6ecaf90a3e3874e14af8",
+    "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c": "02836f6326c5411f4900250ec11157a06c2da469f85bcd82ed10bd1a40eae482",
+    "ctkg:v3e-object-7761615701fb4915a76924ff": "6fcd63e3028fde779e4f92d3dfd8aa930eee6d63d9ff01623618d6bbe6a037d7",
+    "ctkg:v3e-object-c2881833cb4d8b1e415dc742": "3d28338acf0f4d7bc08a255057a9ab7b2f022cf1a26c0c43a4b4b41efaec8ef4",
+    "ctkg:v3e-object-232e387ed53e92abee078346": "8220eec62abf4263ec42e128390469190a2c687e450d8eebd8bf92582a09f875"
+  }
+}

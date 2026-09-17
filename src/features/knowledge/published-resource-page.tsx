@@ -168,13 +168,26 @@ export function PublishedResourcePage({ resource }: { resource: PublishedResourc
           </div>
         )}
         {resource.kind === 'card' && resource.card ? (
-          <KnowledgeCard
-            name={resource.title}
-            description={resource.card.summary === resource.card.explanation ? '' : resource.card.summary}
-            nodeType="KnowledgeStatement"
-            metadata={{ type: 'rich-text', content: resource.card.explanation }}
-            variant="full"
-          />
+          <>
+            <KnowledgeCard
+              name={resource.title}
+              description={resource.card.summary === resource.card.explanation ? '' : resource.card.summary}
+              nodeType="KnowledgeStatement"
+              metadata={{
+                type: 'rich-text',
+                content: [resource.card.insight, resource.card.explanation]
+                  .filter((part): part is string => Boolean(part?.trim()))
+                  .join('\n\n'),
+              }}
+              variant="full"
+            />
+            {resource.imageSrc ? (
+              <figure data-published-resource-infograph="companion" className="overflow-hidden rounded-xl border border-platform-border bg-white">
+                <Image src={resource.imageSrc} alt={`${resource.title} 信息图`} width={1600} height={1000} unoptimized
+                  className="h-auto w-full object-contain" onError={() => setError('信息图读取失败，当前版本可能已不可用。')} />
+              </figure>
+            ) : null}
+          </>
         ) : resource.kind === 'infographic' && resource.imageSrc ? (
           <figure className="overflow-hidden rounded-xl border border-platform-border bg-white">
             <Image src={resource.imageSrc} alt={resource.title} width={1600} height={1000} unoptimized

@@ -1,31 +1,39 @@
 ---
 node_id: ctkg_v3e-object-0a05ec9e84791b95d3794bc0
 authority_entity_id: "ctkg:v3e-object-0a05ec9e84791b95d3794bc0"
-name: Compensator
+name: "补偿器"
+name_en: "Compensator"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - Compensator
-card_version: 1
+knowledge_type: C
+bloom_level: 分析
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-361cf33656c82f196d171eaa0520cf63a48abb487cfeae39f066daf503afcd23.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-361cf33656c82f196d171eaa0520cf63a48abb487cfeae39f066daf503afcd23.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01g/previous/ctkg_v3e-object-0a05ec9e84791b95d3794bc0.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 1fd08a61f9380189a87ed8c0c0211e1ee45dff1bd2e5161d269d23757d91c8bb -->
-
 ## 首页
 
-# Compensator
+# 补偿器 | Compensator
 
-**一句话定义**：Compensator：An additional component that is inserted into a control system to compensate for a deficient performance.
+**一句话定义**：补偿器是插入控制系统、用来弥补某项性能不足的附加动态环节。
 
-**核心直觉**：在图谱邻接中可把握：前置 → Integration compensator、Cascade Compensator、Phase-lead compensator · 后续 → 根轨迹、Compensation。
+**核心直觉**：先指出插入位置和作用通道，再用完整闭环重新检查速度、误差、稳定性、控制量与噪声。
 
-**关联**：前置 → Integration compensator、Cascade Compensator、Phase-lead compensator · 后续 → 根轨迹、Compensation
+**关键公式**：
+$$
+C(s)=\frac{E_o(s)}{E_{\mathrm{in}}(s)},\qquad
+\Phi(s)=\frac{C(s)G(s)}{1+C(s)G(s)H(s)}.
+$$
+
+**学习目标**：把补偿器作为可验证的动态环节，而不是把“性能变好”当成自动结论。
 
 ---
 
@@ -33,25 +41,42 @@ asset_refs: []
 
 ### 完整解释
 
-An additional component that is inserted into a control system to compensate for a deficient performance.
+补偿器是为弥补控制系统某项不足而加入的附加部件。它可以改变环路增益、极点零点分布或某个信号通道，但只有在明确插入位置、反馈符号和评价指标后，才知道它解决了哪一类问题。补偿器本身不是“万能改善器”，同一个网络放在前向、反馈、输入或输出通道，闭环方程可能完全不同。
+
+教学例采用理想线性对象 $G(s)=1/(s+1)$、单位负反馈和零初态。已验算的相位超前补偿器为
+$$
+C(s)=\frac{s+1}{0.1s+1}.
+$$
+对象极点 $s=-1$ 与补偿器零点在精确模型中发生稳定约消，闭环传递函数为
+$$
+\Phi(s)=\frac{1}{0.1s+2}.
+$$
+校正后时间常数为 $0.05$，基线对象时间常数为 $0.5$。这些结果说明该参数下闭环响应更快，但约消依赖精确模型；不能由一个例子宣称所有补偿器都同时改善全部指标。
+
+### 教学计算/推理例
+
+在该模型中，校正器的稳定约消极点为 $-1$，控制器高频增益为 $10$。因此若测量噪声从反馈通道进入控制器，高频分量可能被明显放大；响应变快不等于噪声、执行器负担和鲁棒性都变好。设计时应先列出指标，再把校正器放入完整环路计算。
+
+### 适用条件与边界
+
+推导限定于理想线性定常对象、零初态、单位负反馈及明确的前向校正通道。频率响应中 $\omega$ 的单位为 $\mathrm{rad/s}$。约消稳定极点只能作为精确模型中的代数结果，参数漂移、未建模动态和离散实现会破坏它；饱和、测量噪声和输入输出通道也须单独验证。
+
+### 常见误区
+
+1. **误区**：只看到补偿器有一个零点，就断言系统一定更快且更稳定。**纠正**：必须重算闭环极点、时域指标和稳定裕度。
+2. **误区**：补偿器和补偿是同一个对象。**纠正**：补偿器是附加环节，补偿是选择结构、参数、指标和约束的调整过程。
+
+### 自检
+
+1. 本例为什么能得到 $1/(0.1s+2)$，又为什么不能据此保证任意对象都得到同样形式？
+2. 看到高频控制器增益为 $10$ 时，反馈测量噪声需要检查什么？
+
+**核对要点**：闭环形式来自给定对象、补偿器和单位负反馈；噪声检查应覆盖高频通道增益、执行器上限和实际传感器带宽。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Integration compensator | 是一种 |
-| 前置 | Cascade Compensator | 是一种 |
-| 前置 | Phase-lead compensator | 是一种 |
-| 前置 | 根轨迹法 | 应用于 |
-| 前置 | Frequency response method | 应用于 |
-| 前置 | 根轨迹法 | 关联 |
-| 后续 | 根轨迹 | 关联 |
-| 后续 | Compensation | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Compensator
+- **积分补偿器**（入边，关系：属于）
+- **串联补偿器**（入边，关系：属于）
+- **相位超前补偿器**（入边，关系：属于）
+- **频率响应法**（入边，关系：适用于）
+- **补偿**（无向，关系：相关）

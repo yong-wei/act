@@ -1,31 +1,35 @@
 ---
 node_id: ctkg_v3e-canonical-6bb580c242f908566ab53b18
 authority_entity_id: "ctkg:v3e-canonical-6bb580c242f908566ab53b18"
-name: 临界阻尼
+name: "临界阻尼"
+name_en: "Critical Damping"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 临界阻尼
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2a32a9f227300f5618f2a22b673e90c9e673bba90045159581d31ee5a3ceed63.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2a32a9f227300f5618f2a22b673e90c9e673bba90045159581d31ee5a3ceed63.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/previous/ctkg_v3e-canonical-6bb580c242f908566ab53b18.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: ab8b1f16be7d92548125fe9dc232fd447f82aac97451e52f3fe59627406f10f2 -->
-
 ## 首页
 
-# 临界阻尼
+# 临界阻尼 | Critical Damping
 
-**一句话定义**：ζ = 1，特征方程具有两个相等的负实根，阶跃响应非周期地趋于稳态输出。
+**一句话定义**：标准二阶模型在阻尼比为1时处于临界阻尼，具有两个相等的负实特征根。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：两个实根重合并不意味着只剩一个普通指数项，响应中还可能带有时间因子。
+
+**关键公式**：本例 $T(s)=4/(s+2)^2$，$y(t)=1-(1+2t)e^{-2t}$。
+
+**学习目标**：解释临界阻尼的重复极点、单调阶跃和速度比较所需的条件。
 
 ---
 
@@ -33,18 +37,48 @@ asset_refs: []
 
 ### 完整解释
 
-ζ = 1，特征方程具有两个相等的负实根，阶跃响应非周期地趋于稳态输出。
+对标准分母 $s^2+2\zeta\omega_ns+\omega_n^2$，取 $\zeta=1$ 后得到 $(s+\omega_n)^2$。两个特征根在负实轴重合，响应不再表现为欠阻尼的正弦振荡。重复极点仍对应二阶动态，不能把平方因子随意去掉，当作一个一阶系统。
+
+“临界阻尼是最快的非振荡情况”需要限定比较对象。例如在固有频率固定、无额外零点、单位直流增益的标准二阶阶跃中，可以与更大的阻尼比比较。若另一系统的固有频率、零点或输入通道不同，就不能只凭临界阻尼标签断言它一定更快。
+
+### 教学计算/推理例
+
+取归一化参数 $\omega_n=2$、$\zeta=1$，则
+$$
+T(s)=\frac4{s^2+4s+4}=\frac4{(s+2)^2}.
+$$
+零初态单位阶跃响应为
+$$
+y(t)=1-(1+2t)e^{-2t}.
+$$
+初值为0，终值为1。对 $t\ge0$，导数为
+$$
+\dot y(t)=4t e^{-2t}\ge0,
+$$
+所以本例输出单调接近终值，没有超调。达到终值90%的时刻由 $(1+2t)e^{-2t}=0.1$ 求得，约为 $1.94486$。
+
+在相同 $\omega_n=2$ 下，过阻尼 $\zeta=2$ 的标准系统达到90%约需 $4.43571$，更慢。这个数值比较使用相同终值、相同输入和明确指标，不能扩展为任何工程系统之间的普遍速度排名。
+
+### 适用条件与边界
+
+本例的单调性由具体阶跃公式及导数验证。带有零点、非零初态或不同输出选择的系统，即使分母出现重复负实根，也不应直接沿用同一单调性结论。重复根还使自然响应可能出现 $t e^{-2t}$ 项，该项仍会衰减，不能仅因有 $t$ 就判断不稳定。
+
+达到90%的时间也不同于2%调节时间或峰值时间。比较响应速度时应先约定指标，并将适用条件一起写出。
+
+### 常见误区
+
+1. **误区**：$(s+2)^2$ 可以当成一个一阶极点处理。**纠正**：极点重数为2，响应保留二阶结构。
+2. **误区**：临界阻尼一定比任意其他系统更快。**纠正**：需要固定固有频率、通道和比较指标等条件。
+
+### 自检
+
+1. 本例如何直接证明单位阶跃没有超调？
+2. 为什么与 $\zeta=2$ 比较时要固定 $\omega_n$？
+
+**核对要点**：导数非负且终值为1；改变固有频率也会改变时间尺度，不能把其影响混入阻尼比较。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、临界阻尼
+- **临界阻尼响应**（无向，关系：相关）
+- **临界阻尼系数**（无向，关系：相关）
+- **二阶临界阻尼系统**（无向，关系：相关）

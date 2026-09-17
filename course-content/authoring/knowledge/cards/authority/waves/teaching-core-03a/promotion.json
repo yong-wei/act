@@ -1,0 +1,11 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 6,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b15",
+  "retiredResources": [
+    "act:card:增量线性化_8_9ba8e3a5",
+    "act:card:小偏差线性化_2_277afa67",
+    "act:card:小偏差线性化_8_a82063b7",
+    "act:card:非线性微分方程的线性化_2_caa86ba6"
+  ]
+}

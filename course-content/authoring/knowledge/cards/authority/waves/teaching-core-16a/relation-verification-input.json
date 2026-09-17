@@ -1,0 +1,167 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:m3-v2h:canonical-object:4f950081fe58a82e7fdd42aa",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:47e2a5004ffbb14f28d9ef73",
+          "otherId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+          "label": "劳斯表",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **劳斯表**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:c46209d9e84730448b68bcaa",
+          "otherId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+          "label": "帕德近似",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **帕德近似**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:c67d44c48ac09c1badb7dc53",
+          "otherId": "ctkg:m3-v2h:canonical-object:0c5c3925013d2cbf3cb6419b",
+          "label": "频率响应匹配法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **频率响应匹配法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+      "relations": [
+        {
+          "relationId": "m1l:relation-b1ad73fcf0aff908e05d1a6f",
+          "otherId": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+          "label": "系统完全可控",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **系统完全可控**（出边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+      "relations": [
+        {
+          "relationId": "ctr:m1g-262682f9478ff830586a3bd3",
+          "otherId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+          "label": "劳斯表",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **劳斯表**（出边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "ctr:m1g-7869dcef52eb6af68073a6ce",
+          "otherId": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+          "label": "对称根对",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **对称根对**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "ctr:m1g-a44a50b8a4a7cbd1c35d3c40",
+          "otherId": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+          "label": "对称根对",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **对称根对**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+      "relations": [
+        {
+          "relationId": "ctr:m1g-5ee0b245c784f9b84218513c",
+          "otherId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+          "label": "稳定系统",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **稳定系统**（出边，关系：用于分析）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:ffa0400d3a40a4b5ea718e94",
+          "otherId": "ctkg:domainconcept:9dcf197f97b02d753e086ce6",
+          "label": "反馈导致的不稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **反馈导致的不稳定性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+      "relations": [
+        {
+          "relationId": "ctr:m1g-e51720b91b4eabe6314e8e10",
+          "otherId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+          "label": "劳斯表",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **劳斯表**（出边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:ee1d2d9d5a53208cf91395dc",
+          "otherId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+          "label": "稳定性",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **稳定性**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "ctr:m1g-844b1df35a3aca4a6fa727b4",
+          "otherId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+          "label": "稳定性",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **稳定性**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:8b6b603201706cf3e52c7d5b",
+          "otherId": "ctkg:domainconcept:a3186afbaab04b331226cdc9",
+          "label": "不稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **不稳定性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:56073df405aa2b232750c324",
+          "otherId": "ctkg:m3-v2b:source-object:b25d682cf6846bc880f4b09e",
+          "label": "移位变量",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **移位变量**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:a263cf31b19c32c6c81e103d",
+          "otherId": "ctkg:m3-v2b:canonical-object:3ed16711b862a82d767ce305",
+          "label": "轴平移法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **轴平移法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:m1g-2baf64eb99ebd20a7257605d",
+          "otherId": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+          "label": "相对稳定性",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **相对稳定性**（出边，关系：用于分析）"
+        }
+      ]
+    }
+  ]
+}

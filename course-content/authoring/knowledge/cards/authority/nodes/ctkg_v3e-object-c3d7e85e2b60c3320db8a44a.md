@@ -2,54 +2,71 @@
 node_id: ctkg_v3e-object-c3d7e85e2b60c3320db8a44a
 authority_entity_id: "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a"
 name: "量化误差"
-name_en: "Quantization error"
+name_en: "Quantization Error"
 category: 概念性
 knowledge_type: C
-bloom_level: 理解
-lesson_units:
-  - "5-1"
-card_version: 2
+bloom_level: 应用
+card_version: 3
 content_origin: act-course-enrichment
-authority_release_id: ctr:release:control-theory-engineering-v0.37
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
 status: ready
 source_docs:
-  - course-content/authoring/knowledge/cards/nodes/量化_7_6cb6511b.md
-  - course-content/authoring/lessons/5-1/design/5-1-handout.md
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-970bcf698d4fc16a67a1deddba87481d9487f9b8b35addb851788ed43d53e6b5.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-970bcf698d4fc16a67a1deddba87481d9487f9b8b35addb851788ed43d53e6b5.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/previous/ctkg_v3e-object-c3d7e85e2b60c3320db8a44a.md"
 asset_refs: []
 ---
 
 ## 首页
+# 量化误差 | Quantization Error
 
-# 量化误差 | Quantization error
+一句话定义：量化误差是数值映射到离散可表示等级时产生的差值，其大小由等级间隔、舍入方式和是否过载共同决定。
 
-**一句话定义**：连续幅值或高精度数值被映射到有限分辨率的离散等级时，量化值与原值之间的差。
-
-**核心直觉**：幅值只能落在有限档位上，细小变化可能暂时看不出来。
+- 误差界对应具体量化器，不能脱离规则引用。
+- 单次误差、最大误差与统计方差是不同量。
+- 量化误差可能与信号及反馈状态相关。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-设量化步长为 $q>0$。在不发生溢出或饱和的范围内，最近邻均匀量化可写为
+令 $e=Q(x)-x$。最近等级均匀舍入在无过载时把输入放到距离不超过半个步长的等级上，因此 $|e|\le\Delta/2$。这是一条确定性幅值界，不需要假设误差随机，也不说明误差均值必然为0。
 
-$$
-Q(x)=q\,\operatorname{round}(x/q),\qquad e_q=Q(x)-x.
-$$
+若额外近似误差在 $[-\Delta/2,\Delta/2]$ 上均匀分布，则积分可得均值0、方差 $\Delta^2/12$。这一统计模型还不能单独推出不同时间的误差彼此独立；时间相关性需要额外条件。幅值界、边缘分布和时间独立性不能混为一谈。
 
-每个输入被映射到最近的量化等级，因此
+### 教学计算/推理例
 
-$$
-|e_q|\le\frac q2.
-$$
+采用步长0.25、范围 $[-1,1]$ 的最近等级量化，半格向正无穷选取。输入恒定为0.4时，每次输出都为0.5，所以误差恒定为0.1。这个误差满足半步长界0.125，却既不是每次随机抽样，也没有零均值。
 
-这一界限依赖最近邻舍入和未饱和条件。截断量化、非均匀量化或量程之外的输入需要按各自规则分析。
+在独立的均匀误差近似下，方差才为 $0.25^2/12\approx0.0052083$。不能把这个数赋给上述恒定输入的实际误差序列：恒定序列关于自身均值的方差为0，而它对原值存在0.1的偏差。偏差与方差描述的是不同问题。
 
-### 数值示例
+若输入变成1.6，输出范围限制使结果为1，误差 $-0.6$，超过半步长界。此时应报告过载，不能通过把超大误差塞入均匀噪声模型来掩盖可表示范围不足。
 
-取 $q=0.1$、$x=0.26$，量化值为 $0.3$，误差为 $0.04$，小于半个量化步长 $0.05$。增大量化分辨率、减小步长，可以降低这一幅值误差界限。
+### 适用条件与边界
 
-### 控制中的影响
+数字控制中，传感器读数、控制输出、系数和内部计算都可能量化，它们进入闭环的位置不同。对测量量化可先考察测量通道的影响，但因误差依赖真实信号，其精确行为不一定等价于独立外加噪声。小幅周期运动或死区样行为需要按具体闭环模型判断。
 
-传感器、A/D 转换及数字控制运算都可能引入量化误差。它会使连续的小幅调节变成台阶变化；在某些闭环条件下还可能与其他非线性共同形成极限环。将误差近似为随机噪声需要额外统计假设。
+量化误差不同于浮点运算的所有误差，也不同于时间采样误差。即使某些操作都由有限表示导致，也应先确定误差发生在哪一步。提高位数可能降低量化步长，但必须同时核验范围、缩放、溢出和舍入规则。
+
+对量化器做验证时，应覆盖等级中心、半格边界、负数和范围端点。仅测试几个正向中间值，不能证明负向取整或过载处理正确。半格的不同合法约定可能改变边界误差符号，应保持实现和说明一致。
+
+### 常见误区
+
+1. 将半步长最大误差写成误差标准差。
+2. 看到均匀分布近似便断言误差独立于信号和时间。
+3. 只看方差小就忽略恒定偏差或范围过载。
+
+### 自检
+
+1. 本例恒定输入0.4时，误差满足幅值界是否意味着均值为0？
+2. 方差 $\Delta^2/12$ 是否是所有输入必然产生的实测方差？
+
+**核对要点**：不是，误差恒为0.1；该方差属于附加的均匀分布近似，不能替代具体输入下的计算。
+
+### 关联节点
+
+- **量化单位**（无向，关系：相关）
+- **量化过程**（无向，关系：相关）
+- **幅度量化误差**（出边，关系：前置于）

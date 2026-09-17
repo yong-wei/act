@@ -13,7 +13,8 @@ import { resolveLegacyTextbookResource } from './engineering-textbook-mapping/le
 import { fromResourceIdToken } from './teaching-projection/textbook-locators/identity';
 import { humanTitleFromResourceId } from './teaching-projection/resource-title';
 import { readAgreedLiveCourseProjection, readAgreedLiveResourceBindingRelease, resolveConfiguredTeachingProjectionRoot } from './teaching-projection/live-course-pointer';
-import { loadResourceBindingRelease } from './resource-binding-release/store';
+import { loadResourceBindingRelease, type LoadedResourceBindingRelease } from './resource-binding-release/store';
+import { overlayPublishedCardResources } from './resource-binding-release/project-teaching-bindings';
 import { loadStagedTeachingProjection, resolveTeachingProjectionStorePaths } from './teaching-projection/store';
 import { resolveActiveEngineeringGraphAuthority, resolveConfiguredAuthorityRoot } from './authoritative-knowledge/engineering-authority-consumers';
 import { resolveAuthorityStorePaths } from './authoritative-knowledge/authority-store';
@@ -27,7 +28,7 @@ import type { AuthorityEngineeringBody } from './authoritative-knowledge/authori
 import type { PublishedResourceBackend, PublishedResourceFeature, PublishedResourceFeatureIndex, PublishedResourceIdentity } from './published-resource-reference';
 
 const INDEX_VERSION = 'published-resource-features/v1';
-const INDEX_IMPLEMENTATION_REVISION = 14;
+const INDEX_IMPLEMENTATION_REVISION = 15;
 const indexPromises = new Map<string, Promise<PublishedResourceFeatureIndex>>();
 const ESTIMATED_MINUTES: Record<TeachingResourceType, number> = {
   card: 5, infographic: 3, handout: 12, video: 8, audio: 15, podcast: 15,
@@ -825,7 +826,9 @@ export async function loadPublishedResourceFeatureIndexCapture(): Promise<Publis
   const envelopeFingerprint = digest(capturedEnvelope);
   const assertCaptureCurrent = () => {
     const after = readAgreedLiveCourseProjection();
+    const bindingAfter = readAgreedLiveResourceBindingRelease();
     if (after?.projectionId !== live.projectionId || after.projectionHash !== live.projectionHash || runtimeStamp() !== runtime
+      || bindingAfter?.bindingReleaseId !== liveBinding?.bindingReleaseId || bindingAfter?.bindingHash !== liveBinding?.bindingHash
       || sourceStamp(['projection-manifest.json', 'resources.jsonl', 'bindings.jsonl', 'gate.json']
         .map((name) => join(release, name))) !== stamp
       || digest(resolveActiveShardIdentity().envelope) !== envelopeFingerprint) {
@@ -853,20 +856,22 @@ export async function loadPublishedResourceFeatureIndexCapture(): Promise<Publis
     }
     const runtimeReleaseModule = await import('./runtime-active-release');
     const runtimeManifest = await runtimeReleaseModule.readActiveRuntimeReleaseManifest();
+    const bindingRelease = liveBinding ? loadResourceBindingRelease(process.cwd(), liveBinding.bindingReleaseId) : null;
+    const artifacts = bindingRelease ? overlayPublishedCardResources(projection.artifacts, bindingRelease) : projection.artifacts;
     const localContentMedia = runtimeManifest ? undefined : await buildLocalPublishedMediaIndex(projection.artifacts.resources);
     const liveTokens = new Map(projection.artifacts.resources
       .filter((resource) => resource.resourceType === 'infographic')
       .map((resource) => [resource.resourceId.slice('act:infographic:'.length),
         resource.sourcePath?.match(/^content:([a-f0-9]{64})$/)?.[1] ?? null]));
     const index = attachLiveBindingAppearance(buildPublishedResourceFeatureIndex({
-      artifacts: projection.artifacts, engineering: authority.engineering,
+      artifacts, engineering: authority.engineering,
       runtimeReleaseId: runtimeManifest?.releaseId ?? null, indexSourceStamp: runtime,
       runtimeManifest, localContentMedia, runtimeMediaPathValidator: runtimeReleaseModule.isRuntimeMediaPath,
       cardReader: readPublishedLearnerCardByToken,
       infographTokens: createPublishedInfographReferenceIndex({
         liveInfographicTokens: liveTokens, envelope: capturedEnvelope,
       }),
-    }));
+    }), bindingRelease);
     // A concurrent selection change must not label an old capture as current.
     assertCaptureCurrent();
     persistIndex(file, index);
@@ -926,10 +931,8 @@ export async function resolvePublishedResourceFeature(ref: PublishedResourceIden
   };
 }
 
-function attachLiveBindingAppearance(index: PublishedResourceFeatureIndex): PublishedResourceFeatureIndex {
-  const live = readAgreedLiveResourceBindingRelease();
-  if (!live) return index;
-  const loaded = loadResourceBindingRelease(process.cwd(), live.bindingReleaseId);
+function attachLiveBindingAppearance(index: PublishedResourceFeatureIndex, loaded: LoadedResourceBindingRelease | null): PublishedResourceFeatureIndex {
+  if (!loaded) return index;
   const preferred = new Map<string, { appearance: 'first' | 'revisit' | 'reference'; label: string | null }>();
   for (const binding of loaded.bindings) {
     const current = preferred.get(binding.resourceId);
@@ -940,10 +943,11 @@ function attachLiveBindingAppearance(index: PublishedResourceFeatureIndex): Publ
       preferred.set(binding.resourceId, { appearance: binding.appearance, label });
     }
   }
-  return {
-    ...index,
-    bindingReleaseId: live.bindingReleaseId,
-    bindingHash: live.bindingHash,
+  const { indexId: _indexId, generatedAt, ...priorBody } = index;
+  const body = {
+    ...priorBody,
+    bindingReleaseId: loaded.manifest.bindingReleaseId,
+    bindingHash: loaded.manifest.bindingHash,
     resources: index.resources.map((resource) => {
       const overlay = preferred.get(resource.identity.resourceId);
       if (!overlay) return resource;
@@ -954,6 +958,7 @@ function attachLiveBindingAppearance(index: PublishedResourceFeatureIndex): Publ
       };
     }),
   };
+  return { ...body, indexId: digest(body), generatedAt };
 }
 
 export function clearPublishedResourceFeatureMemoryCache(): void {

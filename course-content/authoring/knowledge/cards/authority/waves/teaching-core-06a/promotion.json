@@ -1,0 +1,10 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 6,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b16",
+  "retiredResources": [
+    "act:card:信号流图_1_2",
+    "act:card:信号流图_2_372d4084",
+    "act:card:回路_2_e1adbdfa"
+  ]
+}

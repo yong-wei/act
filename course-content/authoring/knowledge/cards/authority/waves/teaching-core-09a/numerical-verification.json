@@ -1,0 +1,2258 @@
+{
+  "report": {
+    "status": "passed",
+    "batchId": "teaching-core-09a",
+    "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+    "cardCount": 7,
+    "cardIds": [
+      "ctc_v11g-2d0a8b878047bb6a5effc783",
+      "ctc_v11g-4aec82cd79a002c70fb185b3",
+      "ctc_v11g-5a7e22337cb506e673b9affe",
+      "ctc_v11g-69118dc66489d66b1732901b",
+      "ctc_v11g-c7228e5d5d171b0633b246e3",
+      "ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "ctkg_v3e-canonical-91f03880e67e6587b27f7039"
+    ],
+    "cardHashes": {
+      "ctc_v11g-2d0a8b878047bb6a5effc783": "4b486d891b05a10ae5f4a8704a21573ca81961cd6cb57968aacca2e5751a99b3",
+      "ctc_v11g-4aec82cd79a002c70fb185b3": "53cd3116992b1008efede3297294375315e2f0c216b5c9efe6f372eeec2dcdca",
+      "ctc_v11g-5a7e22337cb506e673b9affe": "f5940f4450fffca77e05e4bcb0842cb4720775c9998d0e4f53f52860da99cbd7",
+      "ctc_v11g-69118dc66489d66b1732901b": "634932d27811babcb6d47336f71ea8e0023002c288c74e69f5f1a9aff41ff441",
+      "ctc_v11g-c7228e5d5d171b0633b246e3": "e332303db50e640dbfa94ab75815a931c1df9256c7109d9e2bc9585e2bce0341",
+      "ctkg_domainconcept_cb7da716d9229f0af132e0c1": "50b8555f647262e101aca15590c42b80a9560fe06cb8ec7cf4941ab14e8a0d8a",
+      "ctkg_v3e-canonical-91f03880e67e6587b27f7039": "17b9f2f218a6f3f5a7b2907aee919b7155526c5ffa92d6a05480c2c68206c179"
+    },
+    "modelVerification": "verify-models.py passed",
+    "modelClaimsChecked": true,
+    "parserCardCount": 7,
+    "katexFormulaCount": 159,
+    "parserReadback": [
+      {
+        "cardId": "ctc_v11g-2d0a8b878047bb6a5effc783",
+        "explanationChars": 999
+      },
+      {
+        "cardId": "ctc_v11g-4aec82cd79a002c70fb185b3",
+        "explanationChars": 1057
+      },
+      {
+        "cardId": "ctc_v11g-5a7e22337cb506e673b9affe",
+        "explanationChars": 982
+      },
+      {
+        "cardId": "ctc_v11g-69118dc66489d66b1732901b",
+        "explanationChars": 1009
+      },
+      {
+        "cardId": "ctc_v11g-c7228e5d5d171b0633b246e3",
+        "explanationChars": 966
+      },
+      {
+        "cardId": "ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+        "explanationChars": 1006
+      },
+      {
+        "cardId": "ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+        "explanationChars": 995
+      }
+    ],
+    "checkCount": 548,
+    "method": "source and SHA-256 identity, immutable-neighborhood relation verification, original model verification, actual learner-card parser and KaTeX",
+    "runtimeWritten": false,
+    "reviewStatus": "pending-independent-review"
+  },
+  "checks": [
+    {
+      "check": "exact seven scope cards",
+      "actual": true
+    },
+    {
+      "check": "scope IDs exact",
+      "actual": true
+    },
+    {
+      "check": "source inventory IDs exact",
+      "actual": true
+    },
+    {
+      "check": "scope lifecycle is authoring",
+      "actual": true
+    },
+    {
+      "check": "accepted scope remains pending",
+      "actual": true
+    },
+    {
+      "check": "captured revision exact",
+      "actual": true
+    },
+    {
+      "check": "authority snapshot exact",
+      "actual": true
+    },
+    {
+      "check": "authority release exact",
+      "actual": true
+    },
+    {
+      "check": "source backup count",
+      "actual": true
+    },
+    {
+      "check": "previous copy count",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "card status: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-54100e311b8af40128507c5a37ab4aec37d2b365e7dd981d9fd73b7717886051.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-54100e311b8af40128507c5a37ab4aec37d2b365e7dd981d9fd73b7717886051.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-54100e311b8af40128507c5a37ab4aec37d2b365e7dd981d9fd73b7717886051.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-54100e311b8af40128507c5a37ab4aec37d2b365e7dd981d9fd73b7717886051.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-54100e311b8af40128507c5a37ab4aec37d2b365e7dd981d9fd73b7717886051.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-54100e311b8af40128507c5a37ab4aec37d2b365e7dd981d9fd73b7717886051.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-54100e311b8af40128507c5a37ab4aec37d2b365e7dd981d9fd73b7717886051.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-54100e311b8af40128507c5a37ab4aec37d2b365e7dd981d9fd73b7717886051.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-54100e311b8af40128507c5a37ab4aec37d2b365e7dd981d9fd73b7717886051.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-54100e311b8af40128507c5a37ab4aec37d2b365e7dd981d9fd73b7717886051.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:62021e63047c7cda6651d897",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:62021e63047c7cda6651d897",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:62021e63047c7cda6651d897",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:62021e63047c7cda6651d897",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:62021e63047c7cda6651d897",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctr:v13g-bd19089c2757dd8e92f3a5e6",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctr:v13g-bd19089c2757dd8e92f3a5e6",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctr:v13g-bd19089c2757dd8e92f3a5e6",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctr:v13g-bd19089c2757dd8e92f3a5e6",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctr:v13g-bd19089c2757dd8e92f3a5e6",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "card status: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bd0aa1e27809d7e5eca0b4500b3d689207d23126af999f13d661a154d156f793.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bd0aa1e27809d7e5eca0b4500b3d689207d23126af999f13d661a154d156f793.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bd0aa1e27809d7e5eca0b4500b3d689207d23126af999f13d661a154d156f793.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bd0aa1e27809d7e5eca0b4500b3d689207d23126af999f13d661a154d156f793.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bd0aa1e27809d7e5eca0b4500b3d689207d23126af999f13d661a154d156f793.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bd0aa1e27809d7e5eca0b4500b3d689207d23126af999f13d661a154d156f793.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bd0aa1e27809d7e5eca0b4500b3d689207d23126af999f13d661a154d156f793.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bd0aa1e27809d7e5eca0b4500b3d689207d23126af999f13d661a154d156f793.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bd0aa1e27809d7e5eca0b4500b3d689207d23126af999f13d661a154d156f793.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bd0aa1e27809d7e5eca0b4500b3d689207d23126af999f13d661a154d156f793.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: m1p:v7r-rel-67963d81faa2683c3c23673f",
+      "actual": true
+    },
+    {
+      "check": "relation label: m1p:v7r-rel-67963d81faa2683c3c23673f",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: m1p:v7r-rel-67963d81faa2683c3c23673f",
+      "actual": true
+    },
+    {
+      "check": "relation direction: m1p:v7r-rel-67963d81faa2683c3c23673f",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: m1p:v7r-rel-67963d81faa2683c3c23673f",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:6c7bb94961290a0ca3bed2d3",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:6c7bb94961290a0ca3bed2d3",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:6c7bb94961290a0ca3bed2d3",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:6c7bb94961290a0ca3bed2d3",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:6c7bb94961290a0ca3bed2d3",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:8235dbbd98360958724b75f9",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:8235dbbd98360958724b75f9",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:8235dbbd98360958724b75f9",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:8235dbbd98360958724b75f9",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:8235dbbd98360958724b75f9",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "card status: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f77d0b40aebd34635e37add46ca9750bcd135b3ae38fc6dd8cc914c792e3cf11.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f77d0b40aebd34635e37add46ca9750bcd135b3ae38fc6dd8cc914c792e3cf11.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f77d0b40aebd34635e37add46ca9750bcd135b3ae38fc6dd8cc914c792e3cf11.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f77d0b40aebd34635e37add46ca9750bcd135b3ae38fc6dd8cc914c792e3cf11.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f77d0b40aebd34635e37add46ca9750bcd135b3ae38fc6dd8cc914c792e3cf11.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f77d0b40aebd34635e37add46ca9750bcd135b3ae38fc6dd8cc914c792e3cf11.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f77d0b40aebd34635e37add46ca9750bcd135b3ae38fc6dd8cc914c792e3cf11.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f77d0b40aebd34635e37add46ca9750bcd135b3ae38fc6dd8cc914c792e3cf11.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f77d0b40aebd34635e37add46ca9750bcd135b3ae38fc6dd8cc914c792e3cf11.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f77d0b40aebd34635e37add46ca9750bcd135b3ae38fc6dd8cc914c792e3cf11.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:is_a:5a61d7ca19307a6b06e610a0",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:is_a:5a61d7ca19307a6b06e610a0",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:is_a:5a61d7ca19307a6b06e610a0",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:is_a:5a61d7ca19307a6b06e610a0",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:is_a:5a61d7ca19307a6b06e610a0",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:1dc9422f398980d7249b011b",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:1dc9422f398980d7249b011b",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:1dc9422f398980d7249b011b",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:1dc9422f398980d7249b011b",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:1dc9422f398980d7249b011b",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "card status: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-25b3377f2a7f897e7f0bfcbe53116431ad15469bea977c36e3931e195e9266ae.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-25b3377f2a7f897e7f0bfcbe53116431ad15469bea977c36e3931e195e9266ae.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-25b3377f2a7f897e7f0bfcbe53116431ad15469bea977c36e3931e195e9266ae.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-25b3377f2a7f897e7f0bfcbe53116431ad15469bea977c36e3931e195e9266ae.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-25b3377f2a7f897e7f0bfcbe53116431ad15469bea977c36e3931e195e9266ae.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-25b3377f2a7f897e7f0bfcbe53116431ad15469bea977c36e3931e195e9266ae.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-25b3377f2a7f897e7f0bfcbe53116431ad15469bea977c36e3931e195e9266ae.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-25b3377f2a7f897e7f0bfcbe53116431ad15469bea977c36e3931e195e9266ae.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-25b3377f2a7f897e7f0bfcbe53116431ad15469bea977c36e3931e195e9266ae.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-25b3377f2a7f897e7f0bfcbe53116431ad15469bea977c36e3931e195e9266ae.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:61a3a9f74fc3894ff4ed352e",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:61a3a9f74fc3894ff4ed352e",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:61a3a9f74fc3894ff4ed352e",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:61a3a9f74fc3894ff4ed352e",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:61a3a9f74fc3894ff4ed352e",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:944de65c797367d6948b2b31",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:944de65c797367d6948b2b31",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:944de65c797367d6948b2b31",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:944de65c797367d6948b2b31",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:944de65c797367d6948b2b31",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "card status: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c557c04d05fdc2c69c4bb34bc41f6f1cb27d3dfec9f6d72a80b23c2913a760a3.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c557c04d05fdc2c69c4bb34bc41f6f1cb27d3dfec9f6d72a80b23c2913a760a3.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c557c04d05fdc2c69c4bb34bc41f6f1cb27d3dfec9f6d72a80b23c2913a760a3.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c557c04d05fdc2c69c4bb34bc41f6f1cb27d3dfec9f6d72a80b23c2913a760a3.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c557c04d05fdc2c69c4bb34bc41f6f1cb27d3dfec9f6d72a80b23c2913a760a3.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c557c04d05fdc2c69c4bb34bc41f6f1cb27d3dfec9f6d72a80b23c2913a760a3.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c557c04d05fdc2c69c4bb34bc41f6f1cb27d3dfec9f6d72a80b23c2913a760a3.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c557c04d05fdc2c69c4bb34bc41f6f1cb27d3dfec9f6d72a80b23c2913a760a3.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c557c04d05fdc2c69c4bb34bc41f6f1cb27d3dfec9f6d72a80b23c2913a760a3.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c557c04d05fdc2c69c4bb34bc41f6f1cb27d3dfec9f6d72a80b23c2913a760a3.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:cc51f7e52c7dbb1cb590a60e",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:cc51f7e52c7dbb1cb590a60e",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:cc51f7e52c7dbb1cb590a60e",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:cc51f7e52c7dbb1cb590a60e",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:cc51f7e52c7dbb1cb590a60e",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:is_a:1bced596d913867962df3c1e",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:is_a:1bced596d913867962df3c1e",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:is_a:1bced596d913867962df3c1e",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:is_a:1bced596d913867962df3c1e",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:is_a:1bced596d913867962df3c1e",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:ce1a3e083693891ba22774d0",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "card status: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-91e0cc90a0118a711d0d04bc72c80bbeb97580cc189009aa31682c963d93bf0a.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-91e0cc90a0118a711d0d04bc72c80bbeb97580cc189009aa31682c963d93bf0a.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-91e0cc90a0118a711d0d04bc72c80bbeb97580cc189009aa31682c963d93bf0a.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-91e0cc90a0118a711d0d04bc72c80bbeb97580cc189009aa31682c963d93bf0a.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-91e0cc90a0118a711d0d04bc72c80bbeb97580cc189009aa31682c963d93bf0a.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-91e0cc90a0118a711d0d04bc72c80bbeb97580cc189009aa31682c963d93bf0a.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-91e0cc90a0118a711d0d04bc72c80bbeb97580cc189009aa31682c963d93bf0a.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-91e0cc90a0118a711d0d04bc72c80bbeb97580cc189009aa31682c963d93bf0a.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-91e0cc90a0118a711d0d04bc72c80bbeb97580cc189009aa31682c963d93bf0a.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-91e0cc90a0118a711d0d04bc72c80bbeb97580cc189009aa31682c963d93bf0a.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no fabricated previous source: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:23b9a26abf1941aea1d7dced",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:23b9a26abf1941aea1d7dced",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:23b9a26abf1941aea1d7dced",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:23b9a26abf1941aea1d7dced",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:23b9a26abf1941aea1d7dced",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:b6746d4b1a736f93516aabfe",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:b6746d4b1a736f93516aabfe",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:b6746d4b1a736f93516aabfe",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:b6746d4b1a736f93516aabfe",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:b6746d4b1a736f93516aabfe",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "card status: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-32380719710e6786291a2c8fe3d9259a7e1b8737c63352ebc0686fbddaaa97fb.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-32380719710e6786291a2c8fe3d9259a7e1b8737c63352ebc0686fbddaaa97fb.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-32380719710e6786291a2c8fe3d9259a7e1b8737c63352ebc0686fbddaaa97fb.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-32380719710e6786291a2c8fe3d9259a7e1b8737c63352ebc0686fbddaaa97fb.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-32380719710e6786291a2c8fe3d9259a7e1b8737c63352ebc0686fbddaaa97fb.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-32380719710e6786291a2c8fe3d9259a7e1b8737c63352ebc0686fbddaaa97fb.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-32380719710e6786291a2c8fe3d9259a7e1b8737c63352ebc0686fbddaaa97fb.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-32380719710e6786291a2c8fe3d9259a7e1b8737c63352ebc0686fbddaaa97fb.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-32380719710e6786291a2c8fe3d9259a7e1b8737c63352ebc0686fbddaaa97fb.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-32380719710e6786291a2c8fe3d9259a7e1b8737c63352ebc0686fbddaaa97fb.json",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:ba209d2b052a0f3d266682b7",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:ba209d2b052a0f3d266682b7",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:ba209d2b052a0f3d266682b7",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:ba209d2b052a0f3d266682b7",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:ba209d2b052a0f3d266682b7",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:dd2d312b7bc297afa17a29e2",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:dd2d312b7bc297afa17a29e2",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:dd2d312b7bc297afa17a29e2",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:dd2d312b7bc297afa17a29e2",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:dd2d312b7bc297afa17a29e2",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctr:m1f-v3e-relation-1061feaf5d4daa53b66024e7",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctr:m1f-v3e-relation-1061feaf5d4daa53b66024e7",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctr:m1f-v3e-relation-1061feaf5d4daa53b66024e7",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctr:m1f-v3e-relation-1061feaf5d4daa53b66024e7",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctr:m1f-v3e-relation-1061feaf5d4daa53b66024e7",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "original model verification passed",
+      "actual": true
+    },
+    {
+      "check": "seven model-backed topics",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-2d0a8b878047bb6a5effc783: s^2+4s+6",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-2d0a8b878047bb6a5effc783: 1/6",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-2d0a8b878047bb6a5effc783: 2/3",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-2d0a8b878047bb6a5effc783: 分子不同",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-2d0a8b878047bb6a5effc783",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-4aec82cd79a002c70fb185b3: 0.7-1.1j",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-4aec82cd79a002c70fb185b3: (s+1)(s+2)",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-4aec82cd79a002c70fb185b3: 不含 $K$",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-4aec82cd79a002c70fb185b3",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-5a7e22337cb506e673b9affe: s+1-h",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-5a7e22337cb506e673b9affe: -0.5",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-5a7e22337cb506e673b9affe: +1",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-5a7e22337cb506e673b9affe: 2.5",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-5a7e22337cb506e673b9affe: 0.8",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-5a7e22337cb506e673b9affe",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-69118dc66489d66b1732901b: y=x+d",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-69118dc66489d66b1732901b: s+1}{s+2",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-69118dc66489d66b1732901b: 0.5+0.5e^{-2t}",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-69118dc66489d66b1732901b: 初始立即跳到 1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-69118dc66489d66b1732901b",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-c7228e5d5d171b0633b246e3: frac2{s+3}",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-c7228e5d5d171b0633b246e3: frac13",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctc_v11g-c7228e5d5d171b0633b246e3: e=r-y",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctc_v11g-c7228e5d5d171b0633b246e3",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_domainconcept_cb7da716d9229f0af132e0c1: u=r",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_domainconcept_cb7da716d9229f0af132e0c1: d=0.5",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_domainconcept_cb7da716d9229f0af132e0c1: frac13(1-e^{-3t})",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-canonical-91f03880e67e6587b27f7039: K=2",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-canonical-91f03880e67e6587b27f7039: K=5",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-canonical-91f03880e67e6587b27f7039: 1.41421",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-canonical-91f03880e67e6587b27f7039: 3.53553",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-canonical-91f03880e67e6587b27f7039: -135",
+      "actual": true
+    },
+    {
+      "check": "model-backed claim ctkg_v3e-canonical-91f03880e67e6587b27f7039: 无界",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "no bare spacing command: ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "actual": true
+    },
+    {
+      "check": "parser card count",
+      "actual": true
+    },
+    {
+      "check": "KaTeX formula count",
+      "actual": true
+    }
+  ]
+}

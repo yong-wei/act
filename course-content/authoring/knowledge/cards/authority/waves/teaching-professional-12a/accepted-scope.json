@@ -1,0 +1,66 @@
+{
+  "batchId": "teaching-professional-12a",
+  "status": "accepted",
+  "parentGroupId": "professional-robust-design-and-verification",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:m3-v2j:source-object:5b9db9f6bfeb1491df0d9414",
+      "name": "定量反馈理论",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:m3-v2m:source-object:986a0736dc2b06ddf1e785c9",
+      "name": "鲁棒设计方法",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "m1r-v1d:concept:0a3e1fd1b6a15049b4f7846f",
+      "name": "模型不确定性下的鲁棒控制设计",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "m1r-v1d:object:9329097505616acd8adafa68",
+      "name": "时间乘绝对误差积分设计",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "m1r-v1d:object:aa8ae205a38e3698addb8fde",
+      "name": "鲁棒性仿真方法",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "m1r-v1d:object:c737d473ec4983fe9335fdb4",
+      "name": "ITAE方法",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "m1r-v1d:object:ff005a8911df14f27aa9f95d",
+      "name": "鲁棒无静差响应的设计方法",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 7
+    }
+  ],
+  "accepted": true
+}

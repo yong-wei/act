@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> aliasing node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "混叠",
+  "representativeCanonicalId": "ctkg:v3e-object-18dc6cccc99e95f3ae794561",
+  "authorityDomainId": "discrete-time-control-analysis",
+  "authorityDomainDisplayName": "离散时间控制分析"
+}

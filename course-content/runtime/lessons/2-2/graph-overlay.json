@@ -162,7 +162,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/单位阶跃响应_2_6a2a83b9.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253.md"
       ],
       "tags": [
         "阶跃输入",
@@ -261,7 +261,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/时间常数_2_68356eae.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-3311578f3f7796d3b9ff0830.md"
       ],
       "tags": [
         "响应速度",
@@ -316,7 +316,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/一阶系统_3_4f3b29ce.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c.md"
       ],
       "tags": [
         "一阶微分方程",
@@ -363,7 +363,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/上升时间_3_6fa0ec00.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-a9f8ff29f0e4550a22bfcc67.md"
       ],
       "tags": [
         "响应速度",
@@ -411,7 +411,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/临界阻尼响应_3_5839e0e4.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-bf7bc53bf8286e07fa6035cc.md"
       ],
       "tags": [
         "临界阻尼",
@@ -524,7 +524,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/动态性能指标_3_a10733c1.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-137c2c4e6fd2c142416cd412.md"
       ],
       "tags": [
         "上升时间",
@@ -644,7 +644,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/峰值时间_3_adc7ea95.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-9988510f6127d3086f4aa265.md"
       ],
       "tags": [
         "峰值时间",
@@ -706,7 +706,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/无阻尼自然频率_3_13001.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-15b23d588244f407f6ed4b35.md"
       ],
       "tags": [
         "ω_n",
@@ -875,7 +875,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/欠阻尼响应_3_c2d57b37.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ad988c74286cfcad2c3fdf98.md"
       ],
       "tags": [
         "欠阻尼",
@@ -940,7 +940,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/超调量_3_fc3f5b17.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-df3167f36376f526f6ec5562.md"
       ],
       "tags": [
         "最大超调量",
@@ -996,7 +996,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/过阻尼响应_3_adf3867e.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-d1d8f9f3725b9a8440cdd486.md"
       ],
       "tags": [
         "过阻尼",
@@ -1044,7 +1044,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/闭环极点_3_f9432bf3.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-47a2e3c44742b45c55ac902d.md"
       ],
       "tags": [
         "响应类型",
@@ -1101,7 +1101,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/阻尼振荡频率_3_13002.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-9dfc90c240d6bf3ebc285faf.md"
       ],
       "tags": [
         "ω_d",
@@ -1280,7 +1280,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/自然频率_10_51a8b7d0.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7ee407860ee485f1e1b1f3d1.md"
       ],
       "tags": [
         "二阶系统",
@@ -1326,7 +1326,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/调节时间_10_fcbccf4e.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-9cd2a9dfb0f7f3d457247609.md"
       ],
       "tags": [
         "阶跃响应",

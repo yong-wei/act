@@ -1,0 +1,1956 @@
+{
+  "status": "passed",
+  "localRuntime": true,
+  "serverPublished": false,
+  "projectionId": "proj-f8270c0e36e0c443276b9dae1ac9183044e86390097246c4e565527f8e1ff4ce",
+  "bindingReleaseId": "control-theory-engineering-v0.48-b50",
+  "bindingHash": "1430ae3274eb263e3e74ea44ee7d7e841d006c8c3221fdcf8f66fdbf9af0f7c9",
+  "cards": 426,
+  "executableCards": 426,
+  "inspectorCards": 426,
+  "selectedInActualGeneratedPaths": 426,
+  "formulaCount": 8291,
+  "renderedMarkdownCards": 426,
+  "recoveredSources": [
+    {
+      "path": "course-content/authoring/knowledge/cards/nodes/奈奎斯特稳定判据_5_a1b34560.md",
+      "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-26a/retired/authoring/奈奎斯特稳定判据_5_a1b34560.md",
+      "sha256": "8643041ce6b0c8fb1fb25d8a6ac8487b38663efaae552ba45123450b6c81ae3f"
+    },
+    {
+      "path": "course-content/authoring/knowledge/cards/nodes/幅值裕度_5_73af26a5.md",
+      "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/retired/authoring/幅值裕度_5_73af26a5.md",
+      "sha256": "4cc2bf4b75d9b747bae90f81c102fdc7310cae2dca81dddf12a94dd311604ec7"
+    }
+  ],
+  "retiredCards": 242,
+  "unknownActiveBindingEndpoints": 0,
+  "invalidGoalTargets": 0,
+  "learnerScenario": "unmastered fixture, 240 minutes, explicit card preference and preference-matched route; no learner state written",
+  "remediationScenarios": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+      "resourceId": "act:card:ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+      "resourceId": "act:card:ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "goalId": "time-domain-response-analysis",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "resourceId": "act:card:ctkg_v3e-canonical-504581e399675b9792ab8502",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+      "resourceId": "act:card:ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "resourceId": "act:card:ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "resourceId": "act:card:ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+      "resourceId": "act:card:ctkg_v3e-object-f9ac171d68c8622f62106397",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "resourceId": "act:card:ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+      "resourceId": "act:card:ctkg_v3e-canonical-df3167f36376f526f6ec5562",
+      "goalId": "time-domain-response-analysis",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "resourceId": "act:card:ctkg_v3e-object-763fd65e573e7a65dfc4b79c",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d3704ae133f6be94bf5991b",
+      "resourceId": "act:card:ctkg_v3e-object-7d3704ae133f6be94bf5991b",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+      "resourceId": "act:card:ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "resourceId": "act:card:ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "goalId": "steady-state-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+      "resourceId": "act:card:ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "goalId": "time-domain-response-analysis",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+      "resourceId": "act:card:ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "goalId": "steady-state-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "resourceId": "act:card:ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "goalId": "time-domain-response-analysis",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+      "resourceId": "act:card:ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "goalId": "steady-state-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "resourceId": "act:card:ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "goalId": "steady-state-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "resourceId": "act:card:ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+      "resourceId": "act:card:ctkg_v3e-object-3af39a858b2949296df5387f",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "resourceId": "act:card:ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+      "resourceId": "act:card:ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+      "resourceId": "act:card:ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+      "resourceId": "act:card:ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "resourceId": "act:card:ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+      "resourceId": "act:card:ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+      "resourceId": "act:card:ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+      "resourceId": "act:card:ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "resourceId": "act:card:ctkg_v3e-object-f1ec085ab5a77428affa50eb",
+      "goalId": "state-space-controllability-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+      "resourceId": "act:card:ctkg_v3e-object-fac170446815fe168f9a5469",
+      "goalId": "state-space-controllability-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+      "resourceId": "act:card:ctkg_v3e-object-ff560d5d53d578d0bc57baeb",
+      "goalId": "state-space-controllability-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+      "resourceId": "act:card:ctc_v11g-69118dc66489d66b1732901b",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-91f03880e67e6587b27f7039",
+      "resourceId": "act:card:ctkg_v3e-canonical-91f03880e67e6587b27f7039",
+      "goalId": "feedback-structure-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+      "resourceId": "act:card:ctc_v11g-95859dcad651c20058bf8726",
+      "goalId": "transfer-poles-zeros-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "resourceId": "act:card:ctkg_v3e-canonical-47a2e3c44742b45c55ac902d",
+      "goalId": "transfer-poles-zeros-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+      "resourceId": "act:card:ctkg_v3e-canonical-3311578f3f7796d3b9ff0830",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+      "resourceId": "act:card:ctkg_v3e-canonical-c6fafdb175fcf88882f8b91f",
+      "goalId": "first-second-order-dynamics-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "resourceId": "act:card:ctkg_v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "goalId": "response-metrics-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+      "resourceId": "act:card:ctkg_v3e-canonical-b1fa48122cb30019661f9eaa",
+      "goalId": "response-metrics-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+      "resourceId": "act:card:ctc_v11g-13a9994c50acce777819aa2a",
+      "goalId": "dominant-pole-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+      "resourceId": "act:card:ctkg_v3e-canonical-0f7959abbcc9c7170d23770b",
+      "goalId": "dominant-pole-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+      "resourceId": "act:card:ctkg_v3e-canonical-23c4127cb1ffab795d290351",
+      "goalId": "dominant-pole-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+      "resourceId": "act:card:ctkg_v3e-canonical-4ce9b77cff23117a65f42588",
+      "goalId": "dominant-pole-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+      "resourceId": "act:card:ctkg_v3e-canonical-7147bc2427dae1863e06ef77",
+      "goalId": "dominant-pole-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+      "resourceId": "act:card:ctkg_v3e-canonical-cc82e137f42aa09df514e615",
+      "goalId": "dominant-pole-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "resourceId": "act:card:ctkg_v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+      "resourceId": "act:card:ctkg_v3e-canonical-8d146e4add26f71181e7c891",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+      "resourceId": "act:card:ctkg_v3e-object-51cfdcf1f943a39dfc550be1",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+      "resourceId": "act:card:ctkg_v3e-object-570b74ec5294ac993add9b5f",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+      "resourceId": "act:card:ctkg_v3e-object-863069c1389e01dcca80138a",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+      "resourceId": "act:card:ctkg_v3e-object-865b301177a623225344064f",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-905e09b9921961a6115e4603",
+      "resourceId": "act:card:ctkg_v3e-object-905e09b9921961a6115e4603",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+      "resourceId": "act:card:ctkg_v3e-object-c36a6e957077c474e91e17ab",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+      "resourceId": "act:card:ctc_v11g-e73425ff41e0f022a641c4cd",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "resourceId": "act:card:ctc_v12g-15b7fb1d68889848e3c50c46",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+      "resourceId": "act:card:ctc_v12g-b6ec19cda5342874277159e7",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+      "resourceId": "act:card:ctc_v12g-d1e6f12e1e95f6477c66bdc1",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "resourceId": "act:card:ctc_v12g-e3580535c0a12b79e0509f97",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+      "resourceId": "act:card:ctc_v11g-a3d09e397d88f3ae13bc9d89",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+      "resourceId": "act:card:ctc_v11g-bde559972a3c77718ce84d2e",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+      "resourceId": "act:card:ctc_v11g-e00aa88647adaaf1c5d57462",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+      "resourceId": "act:card:ctc_v11g-f0a551cbfb667c38018a1aa9",
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "resourceId": "act:card:ctkg_v3e-canonical-6db84c73a9b0e833400e64fc",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+      "resourceId": "act:card:ctkg_v3e-object-01762eade052b1f22b1318c1",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+      "resourceId": "act:card:ctkg_v3e-object-2805a69722f0a741c2479d22",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+      "resourceId": "act:card:ctkg_v3e-object-35942e1152c99bd94bdecd00",
+      "goalId": "steady-state-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+      "resourceId": "act:card:ctkg_v3e-object-508501381207b32fdb98c6c2",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+      "resourceId": "act:card:ctkg_v3e-object-9b3052d4d15a96d495d8e6f5",
+      "goalId": "steady-state-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "resourceId": "act:card:ctc_v11g-e85c0145d63244c46853c9cf",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+      "resourceId": "act:card:ctkg_v3e-canonical-1647a1b078950a5b81783825",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "resourceId": "act:card:ctkg_v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "goalId": "feedback-structure-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+      "resourceId": "act:card:ctkg_v3e-object-1b720d82e3de003a38fa57f6",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "resourceId": "act:card:ctkg_v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "resourceId": "act:card:ctkg_v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "goalId": "feedback-structure-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "resourceId": "act:card:ctkg_v3e-object-af9c2e9b81c0a2bc815ac424",
+      "goalId": "feedback-structure-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+      "resourceId": "act:card:ctkg_v3e-object-b51bc504a48917b2c5ec25c3",
+      "goalId": "feedback-structure-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+      "resourceId": "act:card:ctkg_v3e-object-b73224087c9c0475612e8635",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f20650600a6b6301d29c6025",
+      "resourceId": "act:card:ctkg_v3e-object-f20650600a6b6301d29c6025",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+      "resourceId": "act:card:ctkg_domainconcept_0363df7227c5cb1dff5b1bf0",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+      "resourceId": "act:card:ctkg_domainconcept_39c18e7134f77be5c51cf41b",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:4ecbee25dbf52616b5613e8b",
+      "resourceId": "act:card:ctkg_domainconcept_4ecbee25dbf52616b5613e8b",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+      "resourceId": "act:card:ctkg_domainconcept_9e92915575b3e20ce84b58ab",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+      "resourceId": "act:card:ctkg_domainconcept_f43cea262e16b94cb63c8b5a",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-128a0f144821b8292a40f391",
+      "resourceId": "act:card:ctkg_v3e-canonical-128a0f144821b8292a40f391",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+      "resourceId": "act:card:ctkg_v3e-canonical-5182a714c3b04737e54be937",
+      "goalId": "feedback-structure-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+      "resourceId": "act:card:ctkg_v3e-object-5e3ecb030d6a454633f0a09a",
+      "goalId": "steady-state-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+      "resourceId": "act:card:ctc_v11g-29bcae62e44c52ed219e6687",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:72d64287614ba07da65b3adf",
+      "resourceId": "act:card:ctkg_domainconcept_72d64287614ba07da65b3adf",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+      "resourceId": "act:card:ctkg_domainconcept_8f8da4642639723728daa0b5",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+      "resourceId": "act:card:ctkg_domainconcept_b4b55ece4a9aa3709e50f25c",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "m1r-v1d:object:2ed1de38a2cdae7a9f98e0b4",
+      "resourceId": "act:card:m1r-v1d_object_2ed1de38a2cdae7a9f98e0b4",
+      "goalId": "feedback-structure-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+      "resourceId": "act:card:ctkg_domainconcept_476f9c2afd87ac51ab2159d3",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+      "resourceId": "act:card:ctkg_domainconcept_6a32bc0cf2176839753ef717",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+      "resourceId": "act:card:ctkg_domainconcept_b57ab6aa6e17654d63b792e1",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "resourceId": "act:card:ctkg_v3e-object-84d4e25a62819cdb7ccb6caf",
+      "goalId": "steady-state-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "resourceId": "act:card:ctkg_v3e-object-27e0a7e37803fbebc1b6f65a",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "resourceId": "act:card:ctkg_v3e-object-2e2707d377000d69ac75b508",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "resourceId": "act:card:ctkg_v3e-object-36f969bb5befa8ef9f8d0a99",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+      "resourceId": "act:card:ctkg_v3e-object-be9c82d423b46b7fc6937236",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+      "resourceId": "act:card:ctkg_m3-v1l_canonical-object_563362810a1baa53567a9d33",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "resourceId": "act:card:ctkg_v3e-object-3bf89181c7be53ac268d5785",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+      "resourceId": "act:card:ctkg_v3e-object-56e0945e8704fa9f3c1dc356",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "resourceId": "act:card:ctkg_v3e-object-5a821f717b644300ab32cf21",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+      "resourceId": "act:card:ctkg_v3e-object-6592690fdccf416b0340917b",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+      "resourceId": "act:card:ctkg_v3e-object-69488c745082536d87afd1a7",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "resourceId": "act:card:ctkg_v3e-object-69529eb08c9279e8b19dc4f6",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+      "resourceId": "act:card:ctkg_v3e-object-e16a21bf52b0d6a12485f477",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "resourceId": "act:card:ctkg_v3e-object-2f3ebf66b229bd1917da4b41",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "resourceId": "act:card:ctkg_v3e-object-5a7582dcb72b1d33d09ca641",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "resourceId": "act:card:ctkg_v3e-object-5e8744158554d1c79e590de4",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+      "resourceId": "act:card:ctkg_v3e-object-6aab5205709de2fd044b4024",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "resourceId": "act:card:ctkg_v3e-object-785280d429b7e1a5f2f5db53",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "resourceId": "act:card:ctkg_v3e-object-b542152b1fb2cbb25d81dbb2",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "resourceId": "act:card:ctkg_v3e-object-ba51f9dd280fa844cebe297d",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "resourceId": "act:card:ctkg_v3e-object-f04f82217525c5c412d0d180",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "resourceId": "act:card:ctkg_v3e-object-a9730b9a039605d79315e24f",
+      "goalId": "physical-modeling-interconnection-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+      "resourceId": "act:card:ctkg_v3e-object-aa79b6fedda690cfd68855aa",
+      "goalId": "physical-modeling-interconnection-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "resourceId": "act:card:ctkg_v3e-object-b0896b071da350e2cc6ca186",
+      "goalId": "physical-modeling-interconnection-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "resourceId": "act:card:ctkg_v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "goalId": "physical-modeling-interconnection-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+      "resourceId": "act:card:ctkg_v3e-object-d537d542fc83f3d91e2f6d72",
+      "goalId": "physical-modeling-interconnection-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "resourceId": "act:card:ctkg_v3e-object-d881210ed83df13e00d2e095",
+      "goalId": "physical-modeling-interconnection-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "resourceId": "act:card:ctkg_v3e-object-098bda907dad6f5e7b697506",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+      "resourceId": "act:card:ctkg_v3e-object-2c2f917a06c974fda55b52fd",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "resourceId": "act:card:ctkg_v3e-object-563729def6c074a2e1ae6d1d",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "resourceId": "act:card:ctkg_v3e-object-591e649bbeef70e3da154910",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "resourceId": "act:card:ctkg_v3e-object-7b59e975b2aaa6100b970b52",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+      "resourceId": "act:card:ctkg_v3e-object-ae1017494c7f2d20cd53efad",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "resourceId": "act:card:ctkg_v3e-object-bda94d95d799211be70fabf9",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+      "resourceId": "act:card:ctkg_v3e-object-c3d7e85e2b60c3320db8a44a",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "resourceId": "act:card:ctkg_v3e-object-d1a6e648c1524a51f3c42346",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+      "resourceId": "act:card:ctkg_v3e-object-e90594bf67aa0149a800d9db",
+      "goalId": "frequency-response-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+      "resourceId": "act:card:ctkg_v3e-object-eacdf5b7407bac89d24540ed",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "resourceId": "act:card:ctkg_v3e-object-1ee77aa2b862870735a63c50",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "resourceId": "act:card:ctkg_v3e-object-21637e32df41e433f01db54b",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "resourceId": "act:card:ctkg_v3e-object-80b836e636775916830b5a21",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "resourceId": "act:card:ctkg_v3e-object-953374e261302cfdff02144d",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+      "resourceId": "act:card:ctkg_v3e-object-9a4c8dc9963685a6c39a5653",
+      "goalId": "control-correction",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "resourceId": "act:card:ctkg_v3e-object-a0e00fe181b9ba65bda1824c",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "resourceId": "act:card:ctkg_v3e-object-ba8cd00d72479d23476d2061",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+      "resourceId": "act:card:ctkg_v3e-object-d5145d73b0cb5535eac9e81b",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+      "resourceId": "act:card:ctkg_v3e-object-e281edb0bf991d873b515ce3",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "resourceId": "act:card:ctkg_v3e-object-fc2e0621725b902101011b9d",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+      "resourceId": "act:card:ctkg_v3e-object-074ba027193fc06624e26f0a",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "resourceId": "act:card:ctkg_v3e-object-0e5df270abeaa062e3a81d33",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-18dc6cccc99e95f3ae794561",
+      "resourceId": "act:card:ctkg_v3e-object-18dc6cccc99e95f3ae794561",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-241503a6440d96140036a51f",
+      "resourceId": "act:card:ctkg_v3e-object-241503a6440d96140036a51f",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+      "resourceId": "act:card:ctkg_v3e-object-27eb45a250307fcc571ac92c",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+      "resourceId": "act:card:ctkg_v3e-object-2a6df9c2e027152138c44554",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "resourceId": "act:card:ctkg_v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "resourceId": "act:card:ctkg_v3e-object-66dd287a007d9b2b74781de5",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8db9674c3550d1d151df7573",
+      "resourceId": "act:card:ctkg_v3e-object-8db9674c3550d1d151df7573",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+      "resourceId": "act:card:ctkg_v3e-object-a36f17ddac0ec65e08118916",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd2b9611c4934fe067e8786a",
+      "resourceId": "act:card:ctkg_v3e-object-cd2b9611c4934fe067e8786a",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-256b7b4e6dd8071dc7ce3512",
+      "resourceId": "act:card:ctkg_v3e-object-256b7b4e6dd8071dc7ce3512",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "resourceId": "act:card:ctkg_v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-54095598351974e2167111f2",
+      "resourceId": "act:card:ctkg_v3e-object-54095598351974e2167111f2",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "resourceId": "act:card:ctkg_v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-60dc281db22fe43eefe4ae57",
+      "resourceId": "act:card:ctkg_v3e-object-60dc281db22fe43eefe4ae57",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8092204c03a8af260e3e672f",
+      "resourceId": "act:card:ctkg_v3e-object-8092204c03a8af260e3e672f",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "resourceId": "act:card:ctkg_v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bd932075b5f988acebafc1b5",
+      "resourceId": "act:card:ctkg_v3e-object-bd932075b5f988acebafc1b5",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cc879188760f9c79394713cb",
+      "resourceId": "act:card:ctkg_v3e-object-cc879188760f9c79394713cb",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "resourceId": "act:card:ctkg_v3e-object-f5e744188b4f574f567a1a8e",
+      "goalId": "state-space-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dc824b634d98afec12f44ff1",
+      "resourceId": "act:card:ctkg_v3e-object-dc824b634d98afec12f44ff1",
+      "goalId": "state-space-controllability-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b667b9f8df2202d92a43a966",
+      "resourceId": "act:card:ctkg_v3e-object-b667b9f8df2202d92a43a966",
+      "goalId": "state-space-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+      "resourceId": "act:card:ctkg_v3e-object-e28c6b3ef5b1335c8a086f34",
+      "goalId": "state-space-controllability-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eb888786c5eb738a65d705f7",
+      "resourceId": "act:card:ctkg_v3e-object-eb888786c5eb738a65d705f7",
+      "goalId": "state-space-controllability-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cb18c47f552c6b128f9b52c8",
+      "resourceId": "act:card:ctkg_v3e-object-cb18c47f552c6b128f9b52c8",
+      "goalId": "state-space-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba2eb78058c4284d923a28eb",
+      "resourceId": "act:card:ctkg_v3e-object-ba2eb78058c4284d923a28eb",
+      "goalId": "state-space-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d9716ac7221be94d7e69f7d3",
+      "resourceId": "act:card:ctkg_v3e-object-d9716ac7221be94d7e69f7d3",
+      "goalId": "state-space-analysis-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1946643d6912e8d8aeb2decb",
+      "resourceId": "act:card:ctkg_v3e-object-1946643d6912e8d8aeb2decb",
+      "goalId": "steady-state-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+      "resourceId": "act:card:ctkg_domainconcept_ce5faebdf847052fdb481b31",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:5f49b022cd74414f3b342231",
+      "resourceId": "act:card:ctkg_domainconcept_5f49b022cd74414f3b342231",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:d071dec567505ce641aa9b15",
+      "resourceId": "act:card:ctkg_domainconcept_d071dec567505ce641aa9b15",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:f713a296511f858ae3f3bfde",
+      "resourceId": "act:card:ctkg_domainconcept_f713a296511f858ae3f3bfde",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:8985a8b639467c8e28fad417",
+      "resourceId": "act:card:ctkg_domainconcept_8985a8b639467c8e28fad417",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:951014d55276cafabac48a25",
+      "resourceId": "act:card:ctkg_domainconcept_951014d55276cafabac48a25",
+      "goalId": "stability-concepts-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:ac2b8a5f58a6a086b769ae81",
+      "resourceId": "act:card:ctkg_m1q_source_ac2b8a5f58a6a086b769ae81",
+      "goalId": "optimal-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:m1q:source:b3348e63f6c3f02324406434",
+      "resourceId": "act:card:ctkg_m1q_source_b3348e63f6c3f02324406434",
+      "goalId": "optimal-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "m1q:sol-supplement:concept:finite-horizon-optimal-state-feedback-law",
+      "resourceId": "act:card:m1q_sol-supplement_concept_finite-horizon-optimal-state-feedback-law",
+      "goalId": "optimal-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:bf027d00f4e69d3198aefe23",
+      "resourceId": "act:card:ctkg_domainconcept_bf027d00f4e69d3198aefe23",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:cd1a5e4071f81f8cf97f7eb7",
+      "resourceId": "act:card:ctkg_domainconcept_cd1a5e4071f81f8cf97f7eb7",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:df606d1cc343f73f1c9af59a",
+      "resourceId": "act:card:ctkg_domainconcept_df606d1cc343f73f1c9af59a",
+      "goalId": "discrete-control-foundations",
+      "status": "ready"
+    }
+  ],
+  "goals": [
+    {
+      "goalId": "control-correction",
+      "status": "ready",
+      "batchCards": [
+        "积分控制器",
+        "负反馈回路",
+        "增益",
+        "运算放大器积分器",
+        "滞后补偿",
+        "常系数线性定常系统",
+        "齐格勒-尼科尔斯PID整定方法",
+        "PID整定",
+        "PID控制器试凑整定法",
+        "灵敏度分析",
+        "系统灵敏度",
+        "测量噪声衰减分析"
+      ],
+      "nodeIds": [
+        "published-resource:d151e3b6fc8e34a66c82069a79613a4d20a9245e65071e3360cfc58145862576:act:card:ctc_modeling-00d2998755974a1329049aac",
+        "published-resource:c1fea8b23e5d77f102e9809feaa0ee6def2b62fc81b7e245038b4c4b5c8dabc4:act:card:ctc_modeling-47e8eb68c1aa5cd068c72e54",
+        "published-resource:845bbb66049730a4d8e6344b7c36a1ebdb520feecbe37a9780128aeff43f3ae6:act:card:ctc_modeling-b2fd214ec64665147e16ff9d",
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:99475733a421c39bcbe14fbe909c68f599ad18cfc729e46a5badb9987ec2a160:act:card:ctc_v11g-21fba199a9fdef15887d600f",
+        "published-resource:014edc48f7ab3e8322072b600c61e594ccaa7a78e70ad7e51efe214cd485ff64:act:card:ctc_v11g-6bfefff084f66202b9af9dd4",
+        "published-resource:5d07360b09a3c48601e449adfc78ce9d8df4754f877bed55b0b0f2b516ac874d:act:card:ctc_v11g-93b322aec104af4eb69aa152",
+        "published-resource:eb6e92a5f35c3cac0fac71759f7490c13883687883a2878c0a92052d11171bd7:act:card:ctc_v11g-c8c8aef0d010e68842be7236",
+        "published-resource:2ced0e4852434b431e27f6521afa8dfd47701345837f3027ca952c3feaa744a6:act:card:ctc_v11g-f3a9655898917afa28e9c600",
+        "published-resource:7e8b4bb9adc77951226faf77fb59a867db9e1ff18f4b6296b9319566a4835bf7:act:card:ctkg_domainconcept_0604292c26e5cf53196f390d",
+        "published-resource:226e7acd010d8b045acee079ef0f43716ecf9d25b08f0797fcb496090f7bc39d:act:card:ctkg_domainconcept_0ad2a338a492e954d3fc5429",
+        "published-resource:42ccd08ae42b6a9d12271d538335123ef78092bb978b954b2e02fecfe45b6ce1:act:card:ctkg_domainconcept_11a8f8224c4c836f89b164de"
+      ]
+    },
+    {
+      "goalId": "frequency-response-foundations",
+      "status": "ready",
+      "batchCards": [
+        "负反馈回路",
+        "微分方程模型",
+        "常系数线性定常系统",
+        "单边拉普拉斯变换",
+        "频率响应",
+        "性能指标",
+        "转折点",
+        "相位（频率响应）",
+        "伯德图（对数图）",
+        "谐振峰值",
+        "频率响应匹配法",
+        "非线性系统"
+      ],
+      "nodeIds": [
+        "published-resource:39689f2b74df33ddc8a3e3dbf40b52c838a641aaecb703aeea47c0d7ce6e96ec:act:card:ctc_90af7a0497e616bbe6249c30",
+        "published-resource:c1fea8b23e5d77f102e9809feaa0ee6def2b62fc81b7e245038b4c4b5c8dabc4:act:card:ctc_modeling-47e8eb68c1aa5cd068c72e54",
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:c46ac48e036ae10fe1dad08ec22863b113b083fe1ff188b8b94e797fd0a3a603:act:card:ctkg_m3-v2h_canonical-object_0c5c3925013d2cbf3cb6419b",
+        "published-resource:4fb592e1575d20204b2fe16995c121ec777e800a49e800f0eb069220d1c61b24:act:card:ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+        "published-resource:61ff3ed658e1d7e0773618a275c2b0dda3d47f54da2b70f719fc3b6111b94ab2:act:card:ctkg_v3e-canonical-589fba9b74d146b6eea6b269",
+        "published-resource:06161e14991dfddcdb781845d31f941cf5aeb01e0159e0af4726a3207a3e6764:act:card:ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+        "published-resource:b27973cf95271c1d554a08e6303bbebb5cba9afe9c40d927fde257656f0689e8:act:card:ctkg_v3e-object-0008b516b8ac52f0e05c7596",
+        "published-resource:fda100eedc02d11ba01269653110a7ad3144ed0bf886119a766fd75d179c8fe4:act:card:ctkg_v3e-object-0946a016c136cdf4a417ed62",
+        "published-resource:7d0ebc2df7a2d126f923091148f4812cf29b953b516746da34554ec5ec0f2e28:act:card:ctkg_v3e-object-10c37fd947ba55593ff03ede",
+        "published-resource:40e684ee2c74566ab9f52bc1ea7476e3f871832b8db84a92064c8dc8d33c3500:act:card:ctkg_v3e-object-1107a657eb90b8264d4dac38",
+        "published-resource:a5d13a7e9cf8af500db2449d388eaafb97cb8c47958ca37476e0b9ff7e597e64:act:card:ctkg_v3e-object-191274d4aa5307678e583641"
+      ]
+    },
+    {
+      "goalId": "feedback-loop-concept-foundations",
+      "status": "ready",
+      "batchCards": [
+        "负反馈回路",
+        "动态控制系统",
+        "反馈控制系统",
+        "闭环系统",
+        "等效增益"
+      ],
+      "nodeIds": [
+        "published-resource:c1fea8b23e5d77f102e9809feaa0ee6def2b62fc81b7e245038b4c4b5c8dabc4:act:card:ctc_modeling-47e8eb68c1aa5cd068c72e54",
+        "published-resource:1a9e78bfb912db0d0cf72aec409e7347454a87d1983c48c37948203543a2d1b0:act:card:ctc_modeling-8aa475ed6514adc11f9b5c8d",
+        "published-resource:b8715fc9335127ba3e99bb23e08aded93928a143c7e488ce42f17a342e39d670:act:card:ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+        "published-resource:9a4a211e1b276e1ea5b84e16bedd7ecadf74e0c1dc756a7c792eeac627c90d83:act:card:ctkg_v3e-object-3d704911971a572aac4e975e",
+        "published-resource:28376a1242d73e2f9c019ccf966d4edc576a8436c4816c07d8cb932506a28610:act:card:ctkg_domainconcept_fef4835248def04a043183ee"
+      ]
+    },
+    {
+      "goalId": "transfer-function-modeling-foundations",
+      "status": "ready",
+      "batchCards": [
+        "传递函数",
+        "复频域传递函数",
+        "数学模型",
+        "常系数线性定常系统",
+        "单边拉普拉斯变换",
+        "叠加原理",
+        "拉普拉斯变换"
+      ],
+      "nodeIds": [
+        "published-resource:7b621a89f0eb75a6035783ad394e1773dd3e35eb91b66cc21acf502ae1e14d5a:act:card:ctc_modeling-7734a0845c335f160395bac0",
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:4fb592e1575d20204b2fe16995c121ec777e800a49e800f0eb069220d1c61b24:act:card:ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+        "published-resource:d6c55f88571ce9579468b2ef0c6148ae028f9ca49facf47e4027fcf0873209f0:act:card:ctkg_v3e-object-8c4354096b719a1d5e090da4",
+        "published-resource:d8de0df121dc5f89ff4b3a9340c7f06a94ba8c4e34de49dbd128c9ee9f3129ad:act:card:ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+        "published-resource:39bbfa9c14f68acf862a1f807c86a2300f5f7aa2c6df0d86ebf106b8ef4ea74d:act:card:ctc_modeling-aa10e4daa1e969c557f6ef83",
+        "published-resource:dc753754d10b01623512a36ac3afe7635d2e2753f299f6627e0f6a1ec015bbd6:act:card:ctc_modeling-865eb1c8824e157c2f05a903"
+      ]
+    },
+    {
+      "goalId": "time-domain-response-analysis",
+      "status": "ready",
+      "batchCards": [
+        "二阶系统",
+        "负反馈回路",
+        "一阶系统",
+        "阻尼比",
+        "微分方程模型",
+        "拉普拉斯反变换",
+        "部分分式展开的覆盖法",
+        "误差信号",
+        "单边拉普拉斯变换",
+        "部分分式展开",
+        "单位阶跃函数",
+        "单位斜坡函数"
+      ],
+      "nodeIds": [
+        "published-resource:39689f2b74df33ddc8a3e3dbf40b52c838a641aaecb703aeea47c0d7ce6e96ec:act:card:ctc_90af7a0497e616bbe6249c30",
+        "published-resource:c1fea8b23e5d77f102e9809feaa0ee6def2b62fc81b7e245038b4c4b5c8dabc4:act:card:ctc_modeling-47e8eb68c1aa5cd068c72e54",
+        "published-resource:4fb592e1575d20204b2fe16995c121ec777e800a49e800f0eb069220d1c61b24:act:card:ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+        "published-resource:854b1e8e0d71d277c7abde6b0d80c546fd6f8a38d3ad77b2800f4de1d7ef33f0:act:card:ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+        "published-resource:9000250550f04d337670d57bfe53fc3fd80adb3ba94adcb97e97cb6751a56c9a:act:card:ctkg_v3e-canonical-4f62334f630ea074128ec396",
+        "published-resource:b40d7a0bd9fac1aef6c63d589d14a3cb64c9fc83b09c2c3ef50c9af08fe1ad94:act:card:ctkg_v3e-canonical-62bea9217008b56901615d9a",
+        "published-resource:f44243f76c5935c05199ed8a9629d43b1beeecb1210364565eb967746bb6c1cf:act:card:ctkg_v3e-canonical-ab642a336bbbbafc6327f6f2",
+        "published-resource:ae1b95486ca97e3a13c64a8045a05d3055f867b2a63c4f1b9af0053eccaa83d7:act:card:ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+        "published-resource:ab54c09b9e68e648c290e83eb166789976d4e9135cd1cda3e5a3918361cb8787:act:card:ctkg_v3e-canonical-772065f42947b660c72584f3",
+        "published-resource:50c2515660569b8b7fb146fcd9d83249c0727baf6bd07639cd95dd25e449b0cc:act:card:ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+        "published-resource:2ec61ca1b513d94eb20df470ecd8d4f87dd5b39f517c97c8a5a6faecb931ba03:act:card:ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+        "published-resource:31049e02a3de18300d5ee78c45366ac45972f097955088d9afeaf6843efe5fe2:act:card:ctc_modeling-05fbe60f54c183c4e3ded892"
+      ]
+    },
+    {
+      "goalId": "root-locus-analysis-foundations",
+      "status": "ready",
+      "batchCards": [
+        "增益",
+        "常系数线性定常系统",
+        "反馈路径根轨迹增益",
+        "根轨迹分支",
+        "绘制根轨迹的七个步骤",
+        "根轨迹参数整定法",
+        "出射角",
+        "分离点",
+        "渐近线",
+        "两步参数设计法",
+        "到达角",
+        "根轨迹（双参数族）"
+      ],
+      "nodeIds": [
+        "published-resource:d151e3b6fc8e34a66c82069a79613a4d20a9245e65071e3360cfc58145862576:act:card:ctc_modeling-00d2998755974a1329049aac",
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:3156eb7fe371d3c4151b2a51bafd574668115d1dc8688247575ed19f78c0d97e:act:card:ctc_v11g-076d3bf7d03f4a7a06d5371a",
+        "published-resource:c2411f2ff2919f26679e3aa6a22f46138bc129c647bbabe3ae12c3eb2fd59d15:act:card:ctc_v11g-1ebbddfa13931f700f437271",
+        "published-resource:35df3b1f45a345d6322b16fd4076e0b3a3711d7d302a2adf19db174814dfd197:act:card:ctc_v11g-40aced4eb1298f7db801690b",
+        "published-resource:f4a4b250a631ad8c373e398df281d16a9de08a2d26cddaab35e17b471c9e8b1c:act:card:ctc_v11g-462227b4794133f894bdd0a8",
+        "published-resource:81442562166d5605059908b91073c145fa33d7018caf17049b01bb65406b406d:act:card:ctc_v11g-4bb347d0f2aa8859a18073de",
+        "published-resource:903003aa1af9dd91c07e9000cf2bb4dea30c9d693a41e656e75f93017dd6df62:act:card:ctc_v11g-4c152561a989c34245c538b6",
+        "published-resource:e2e070699c1f5e326d871e8e160a0b4ae00186e194655e9532379debec37166a:act:card:ctc_v11g-546566f01ae374379ec78c1e",
+        "published-resource:900b71c02991448b1c36269e737ea8a6a9a7805496c43c23fa80fb5938d2af4a:act:card:ctc_v11g-843da2b954f4e9b0d550f09a",
+        "published-resource:356b256801a3c3e2eaf23095eb3e8dc47eb7f966785ec89b96d6bf17ca92ad67:act:card:ctc_v11g-991f1cc82c973b44856c40f1",
+        "published-resource:9f0420238f96fd40a9125336a8a5767e8ae3db022fa5b4bbde7b8a8eb68d4462:act:card:ctc_v11g-bc5c0019cf8dd79ee47861ea"
+      ]
+    },
+    {
+      "goalId": "stability-margin-frequency-analysis",
+      "status": "ready",
+      "batchCards": [
+        "相角裕度",
+        "增益裕度",
+        "相位裕度",
+        "相频特性",
+        "常系数线性定常系统",
+        "穿越频率（相位）",
+        "穿越频率（增益）",
+        "幅值裕度",
+        "截止频率",
+        "频率特性",
+        "幅频特性",
+        "正弦稳态响应"
+      ],
+      "nodeIds": [
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:b53c793c644efbe84ffaf96380a5b57ca34b1a7c653b93583860be036e136ae6:act:card:ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+        "published-resource:99de1900a70fb3f89300d591927f6595f68132af7109169552dfbdf20a33040d:act:card:ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+        "published-resource:825417a37f216d68847a273a246bacd67ba293dd0012c8a66827ca5560a6f53d:act:card:ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+        "published-resource:9c6bf7d526a21932efecfe24ebd6a89627e59130e5b3ea12ea076fcd3778ad6c:act:card:ctkg_v3e-object-9967c0867249bf4c1a625dab",
+        "published-resource:66bd573f265869b0a0e60e585273dfc922378c97b30091b53d597b793f5b2eb8:act:card:ctkg_v3e-object-de873c97a924107857f79242",
+        "published-resource:30f59bb64e977f5adcc1d7461c257e91c1936cc1f0e026aa9b3770adf20dfb65:act:card:ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+        "published-resource:fe1b97a4d6b31003f329806de8a5cd80b4137538a9feb52afe0b2de9eb2ba58a:act:card:ctkg_v3e-object-232e387ed53e92abee078346",
+        "published-resource:3df2a8f056818731d589d7f81b7998957f44ea4c96b5a39733a232df7ae812d1:act:card:ctkg_v3e-object-7761615701fb4915a76924ff",
+        "published-resource:97571ab947e28f5654eab82a2d5d179a894dedb60fb98ef15e4f6db0f740eb28:act:card:ctkg_m3-v1i_canonical-object_0aa3a61ec0920c38f4e34c4e",
+        "published-resource:3a32c74c9593417b8948458dfbe0724b7c6859666ad90b83d2fa4d6025d058bb:act:card:ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+        "published-resource:6c365d743806d70717277a4f5db0d016097dcb973966335e778d87dc5503fda1:act:card:ctkg_v3e-object-1c159c9cc34ce696a62bf837"
+      ]
+    },
+    {
+      "goalId": "simulation-validation-practice",
+      "status": "ready",
+      "batchCards": [
+        "未建模动态",
+        "参数不确定性",
+        "实验频率响应测定",
+        "频率特性实验确定方法"
+      ],
+      "nodeIds": [
+        "published-resource:73a20b1b4476248d8813e530d370dc38c670b2c9c33f4baefa4b963bcb6a1258:act:card:ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+        "published-resource:87963c586477bec20dcb9d6112e09a41c098c89046694f51d1973953412c5ec8:act:card:ctkg_domainconcept_9b4e79193b3701a9657113eb",
+        "published-resource:534f3e62b49b32365be9c93aa5d7c7ac554efc0a6f7cc3befebc944e774986d2:act:card:ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+        "published-resource:d2655e29aabef1e58a25ff87b593e72cdbd3cde0a77d5d2c95df84b66701f40c:act:card:ctkg_v3e-object-e80f5d56ce06409842363584"
+      ]
+    },
+    {
+      "goalId": "ship-ocean-transfer-application",
+      "status": "ready",
+      "batchCards": [
+        "负反馈回路",
+        "时间延迟",
+        "帕德近似",
+        "时延",
+        "误差信号",
+        "扰动抑制",
+        "调节与扰动抑制的系统类型",
+        "延迟环节"
+      ],
+      "nodeIds": [
+        "published-resource:c1fea8b23e5d77f102e9809feaa0ee6def2b62fc81b7e245038b4c4b5c8dabc4:act:card:ctc_modeling-47e8eb68c1aa5cd068c72e54",
+        "published-resource:a5b21e02a417315a36e18a423cc9ef15cfa883cdb9eb91d8d4d1c1d503545e46:act:card:ctc_v11g-caa20b325717f0a3c570f16b",
+        "published-resource:7b4265b741675fb83d0e26d8b72e996b1febc6ab8591725b52219dd9baea4ea1:act:card:ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+        "published-resource:a55d34ea5da972f56f1e6a913187ff44a7a72c6a84757a43a1264b84027c72dc:act:card:ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+        "published-resource:2444d30fd4648d3675754a3fea49facccdeb09903f68c98cd67805eb32357d44:act:card:ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+        "published-resource:002b2bac6b8c1bc57d4229c038eb421e083d6674dc5449bef7e98cae57f1286e:act:card:ctkg_v3e-object-b0cbf122498bca9269e55406",
+        "published-resource:2ec61ca1b513d94eb20df470ecd8d4f87dd5b39f517c97c8a5a6faecb931ba03:act:card:ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+        "published-resource:54e0d680e4a7c4b28161c6c094e7ce549a86ba7300231b931071d6e884699195:act:card:ctkg_domainconcept_42146fa04dc1459716346cc7"
+      ]
+    },
+    {
+      "goalId": "discrete-control-foundations",
+      "status": "ready",
+      "batchCards": [
+        "零阶保持器",
+        "朱利稳定判据",
+        "z平面单位圆",
+        "采样周期",
+        "离散模型",
+        "离散比例控制",
+        "离散积分控制",
+        "离散微分控制",
+        "数字滞后补偿",
+        "直接z域补偿器设计方法",
+        "z平面根轨迹",
+        "直接数字设计法"
+      ],
+      "nodeIds": [
+        "published-resource:2f77b2fa443066e7679adeaebe52ef9b991cd04967b7ba09ff21ed64637a13ad:act:card:ctkg_domainconcept_289e3beca59c9ef373836b12",
+        "published-resource:be8c64e99fa2bbf866c2fe307bf34618f77635d8d7126d5509b5cba6693f20b8:act:card:ctkg_domainconcept_28bfca2df331c329cea26464",
+        "published-resource:8796c3a502fb531cd46fdf216dd7fe8245921339489ad2f7ef56f209b62d1e97:act:card:ctkg_domainconcept_42b62edf88d848137713e690",
+        "published-resource:1042930819c8ef9f6aee7cd865f33d65df9805e50b9560bd0eb9d7db99cdb032:act:card:ctkg_domainconcept_60729cbdf747b39c2ff781bb",
+        "published-resource:75e9bb90d61be8a8e3b443c2c1c2a1d6d325608d3ffb69c23380c3c47ce9b4f9:act:card:ctkg_domainconcept_6979e99f60e2642ff3d70d4b",
+        "published-resource:35703f8e49cae36e6ae3f9d59b4b341d7c6b2bcc66eb691319d62062265b577b:act:card:ctkg_domainconcept_9431ee70cd4c3af657882c63",
+        "published-resource:063f1231db9e09fef4fb3a6dd2e3670e75bb4429d740aa439b7e5a06cb21ae4a:act:card:ctkg_domainconcept_9b5b7d8e1adf2c35463467a8",
+        "published-resource:6d6cbf92792a686c0627002627365378b915c45eb75a5c6b09b91bd6b7bacd5f:act:card:ctkg_domainconcept_9e0ece5ddc1de81897928b5f",
+        "published-resource:be44e435f8c6c216ecea5afc3c41662d12faa0eb030c912aed85e7787aed861d:act:card:ctkg_domainconcept_a007da62df7bd509e16eab25",
+        "published-resource:5bbcaf6b7cca10414d8d16e6315dac24bd29b453f703b51664e91b34e8efb482:act:card:ctkg_domainconcept_a183d0a0001c3553cc638558",
+        "published-resource:e30514b5393edd48fdcc37c4721f89b53f5a8339c64fa7f37e631d2d643ec675:act:card:ctkg_domainconcept_b33901638cba88f3f2ea5a20",
+        "published-resource:e283cb42aeb081c76a2944105ef46b2ab27d8ed874d5c7d7010c556927ebb8d5:act:card:ctkg_domainconcept_bb073f59e79dbee61e794fa1"
+      ]
+    },
+    {
+      "goalId": "state-space-analysis-foundations",
+      "status": "ready",
+      "batchCards": [
+        "可控性",
+        "可观测性",
+        "全状态反馈设计步骤",
+        "极点配置补偿器设计",
+        "格拉姆矩阵判据",
+        "矩阵指数函数",
+        "传递函数转状态空间",
+        "PBH秩检验法（可观测性）",
+        "对偶性",
+        "全状态观测器",
+        "降阶观测器",
+        "分离原理"
+      ],
+      "nodeIds": [
+        "published-resource:945628b7a16f4c791127d17e0dabb14b83a520ced5e7667d44796c04af41aee6:act:card:ctkg_v3e-object-133c90435f61b9a83b7d4aaf",
+        "published-resource:9dee181924f6b47472bca6711f420762dff10a4f0e266e6f5d407847c6b83ac7:act:card:ctkg_v3e-object-1724fe5a62311ceb13ab05bd",
+        "published-resource:5870e6b6bca42e28e3def94724a4f815d944c8c839cf0391ba7e459829361dcb:act:card:ctkg_v3e-object-4b7254aa73329cdcc5057159",
+        "published-resource:b9de2a8b71ac798f7e3249339be14a65783cc0e6cc17bcbf8b462032eda348b9:act:card:ctkg_v3e-object-542c371afb4374a5f7b7be5f",
+        "published-resource:57c9be623da92b12aeb2f0f33eb337eb27b38a93aad692ab23c4f41c356f15a3:act:card:ctkg_v3e-object-5592624b3ec200b86f7b744d",
+        "published-resource:14fdaf233fabfb66564dc2dfe69b7ab5dbabadd0735d5a5b43f089e7be944926:act:card:ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+        "published-resource:31f6ec7d8b9a5932fcf54ec888ab7e68d530250702d1afaf8a9742581cb908d0:act:card:ctkg_v3e-object-8ecd4d6352467b3444880809",
+        "published-resource:fa416ef47e2e78bbc9d4c7e102c451e122e8855e0584de6021aad25fec6bf577:act:card:ctkg_v3e-object-98863d255f5bdc0c59c9b50b",
+        "published-resource:db50d3deb6773904f1fe1428a64e6cbff71fa5bb7f5998d8014f13f963a89b24:act:card:ctkg_v3e-object-9b91b4b29c27f8d8916d9626",
+        "published-resource:afefd15470c83486bb64f4add53f19d2a1305cc4962f5fc16109b4e366e7fb2d:act:card:ctkg_v3e-object-9e88045efd51f4067f98fe34",
+        "published-resource:62a7fa93cf6bdbbe2775ed09d46fc4f17b7b9e31cec7e91936c092a9035564ab:act:card:ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+        "published-resource:8bcdb55373a6dc05ca5b506caa6d7858efc03d54df7eb7502806461ac3f38a36:act:card:ctkg_v3e-object-aee09af112d5234757265089"
+      ]
+    },
+    {
+      "goalId": "steady-state-control-foundations",
+      "status": "ready",
+      "batchCards": [
+        "积分控制器",
+        "负反馈回路",
+        "增益",
+        "运算放大器积分器",
+        "终值定理法求稳态误差",
+        "稳态误差e_ss",
+        "单位加速度函数",
+        "直流增益",
+        "稳态性能",
+        "比例-积分控制器",
+        "内模设计",
+        "跟踪误差"
+      ],
+      "nodeIds": [
+        "published-resource:d151e3b6fc8e34a66c82069a79613a4d20a9245e65071e3360cfc58145862576:act:card:ctc_modeling-00d2998755974a1329049aac",
+        "published-resource:c1fea8b23e5d77f102e9809feaa0ee6def2b62fc81b7e245038b4c4b5c8dabc4:act:card:ctc_modeling-47e8eb68c1aa5cd068c72e54",
+        "published-resource:845bbb66049730a4d8e6344b7c36a1ebdb520feecbe37a9780128aeff43f3ae6:act:card:ctc_modeling-b2fd214ec64665147e16ff9d",
+        "published-resource:eb6e92a5f35c3cac0fac71759f7490c13883687883a2878c0a92052d11171bd7:act:card:ctc_v11g-c8c8aef0d010e68842be7236",
+        "published-resource:a55de37d70e15c8de7cc9a607016285db72f66e09f4c63d0983097cefa68df53:act:card:ctkg_domainconcept_481adaa12fcb7e31a3b67683",
+        "published-resource:b48472e497c7763f6ca221687da57a835d0766967299b9c75ee09d661179090b:act:card:ctkg_m3-v2f_canonical-object_d9aed6663ee8a2f6ebc83e10",
+        "published-resource:6a64e30bb807a4da167799334c28001f95ca1ff498a0bb1b8151b50d702d68d9:act:card:ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+        "published-resource:651693895ea7bbbfc0339e8600a772cac5d71558a9069adf32ca0614c3348556:act:card:ctkg_v3e-canonical-2624e6b30f6178715ae3b198",
+        "published-resource:de4d622ea8c2c2a767e0b208fa59b7bcf932c3ce312e0f8253f405d36da55a57:act:card:ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+        "published-resource:34258bc78eaba1e32d783a5aade3c6147606ce768161a44f3ec30596f8ed40af:act:card:ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+        "published-resource:290153bc1bf9d054719161c80d3776d4e27adbd211ba5438e782e770df160584:act:card:ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+        "published-resource:8dded673ec7fec191abe42553147d3425eb378fd0aa2c5dcd691e34fa88e5542:act:card:ctkg_v3e-canonical-cd25e47d10ddfec280e82fde"
+      ]
+    },
+    {
+      "goalId": "system-modeling-process-foundations",
+      "status": "ready",
+      "batchCards": [
+        "动态系统建模规范步骤",
+        "动态系统",
+        "仿真保真度级别",
+        "物理系统模型相似性",
+        "系统建模简化假设",
+        "机理建模与分析流程"
+      ],
+      "nodeIds": [
+        "published-resource:b50f0e709a3165f3cbbff933f9e45e60437257aeb44c18e8a2fbc72f9dbf07da:act:card:ctc_modeling-1897336a3fe60360d9fea3aa",
+        "published-resource:787e19cfe27450aa34df6563388406127b665df2b1d42a5796c7b4631c2d0fff:act:card:ctc_modeling-227e674315b4da2f1a20ee31",
+        "published-resource:36d4f47afe79e96359fad3543bd96a9298cf3644802abc9d159f37f85d038d5b:act:card:ctc_modeling-30d05b970a0d4a71c9d243c3",
+        "published-resource:f607bf1252fdb654d4b7b2b6abb5864fc72cf47708f45c5340b86be771beea79:act:card:ctc_modeling-5727d74e4587f60fe7b011ae",
+        "published-resource:27b9cd3bf5defd7fc267ae1324b6866b8ee503b7f0cbf27e842c8a75ebf41d69:act:card:ctc_modeling-c343400ab0cc996416d5a18a",
+        "published-resource:94a25f76912c2eacaceb1a051ed6cd46088b1497e16600ffe45b463c44312e97:act:card:ctc_modeling-e4d5dedd058631068d41b452"
+      ]
+    },
+    {
+      "goalId": "physical-modeling-interconnection-foundations",
+      "status": "ready",
+      "batchCards": [
+        "航天器姿态扰动力矩",
+        "牛顿定律力学建模法",
+        "相似物理系统",
+        "同构相似系统",
+        "元件级联负载效应",
+        "并联连接",
+        "串联连接",
+        "测量组件（传感器）",
+        "库仑干摩擦模型",
+        "迟滞非线性",
+        "饱和非线性",
+        "死区"
+      ],
+      "nodeIds": [
+        "published-resource:ad5f7f551c1cf492f5212271f5075de1c83ff0905d35abdfaf0c6ca45e8c45b8:act:card:ctc_909e732d40f972bf760fa8ff",
+        "published-resource:1030a3629ccb3a7a081c9e8fa64dfccf990f5e324f4b8d9a3edef5d84d163145:act:card:ctc_modeling-137c3394c7a146209fe2cd37",
+        "published-resource:98716d01646c0d567147f86dd0c9e160dd3d3d51f3843797dee31907e1a370f7:act:card:ctc_modeling-1b36aff609b370e792d9dee6",
+        "published-resource:cfe0f5e51e024ad2009c05a70eda5f50e1eb74c22bb7aeb15c04994e270483ab:act:card:ctc_modeling-3abaeb7a2cbf8d77276bf23c",
+        "published-resource:179fa7bd4714eeb204024eafa9e41bdeb6c94c73a2081ecd89a1a5a8a9a43025:act:card:ctc_modeling-afa39b57a646673e84b55f09",
+        "published-resource:f2421f22ab17cb6a35571afb0a4c04e9ae21993f28d73e79ef472240f1e27672:act:card:ctc_modeling-bb52102ba5f63982e27e329a",
+        "published-resource:74981a916afe5d2320a514264ff08466d2c88031ccc23437a9256dd6db08d158:act:card:ctc_modeling-c64dfb875b6343ff32d0acb2",
+        "published-resource:e449a591218afb5692491087fd81ddef5c12fefba7847c12cf928efffdf0e1aa:act:card:ctc_modeling-ebf5a771fd114720de11f6e3",
+        "published-resource:2dfd3e987e953a7cfa6a678bde5a5ee714273c28fabb12bf1672c910d4192ec9:act:card:ctkg_domainconcept_0a8044ae6cb529e98bc20bca",
+        "published-resource:d6094a349aaece84fa4f130750f6574f11839890d6eab39002213510224ce7bc:act:card:ctkg_v3e-object-0bec8a41b344fe9a1e16c5e3",
+        "published-resource:ada2c04822940d5573540965b244d603a58924da0c42467500059f5f84cf35ea:act:card:ctkg_v3e-object-63919e7aa7d3d49925074a68",
+        "published-resource:2cf81effd2f2b6f2c45a99fc3564e07d8a5d82ad630463fe55b88d7b951fc0a9:act:card:ctkg_v3e-object-69aaaef625010f7755f253e8"
+      ]
+    },
+    {
+      "goalId": "state-space-controllability-foundations",
+      "status": "ready",
+      "batchCards": [
+        "状态变量",
+        "建模（约当标准型）",
+        "传感器执行器同位配置",
+        "估计误差",
+        "完全可达",
+        "PBH秩判据",
+        "秩判据",
+        "积分控制",
+        "可控性矩阵",
+        "状态可达",
+        "可控性PBH秩判据法",
+        "阿克曼状态反馈增益公式"
+      ],
+      "nodeIds": [
+        "published-resource:3729d5e6104f24429f5524d374f6beb698a39b56a527ad8756d2d111285346ff:act:card:ctc_modeling-023f560241f0e47081f0f59e",
+        "published-resource:3f5e8ec23aafed28075bedc79b579268367469fd5604dd4cda73e86755b75c47:act:card:ctc_modeling-348746457d644126ff8ecf77",
+        "published-resource:91053427169adffff6e9d58c1ef58c523c35c5062160cf774f2fbf1d76c8c418:act:card:ctc_modeling-352b9bfe27ba1ab6b9c9672e",
+        "published-resource:3e5e224f10c7158750ce12031cf3e6d8c48a7ef2d7efeafc8c6311e46151e4d4:act:card:ctkg_v3e-object-1f331a007aa3ca6c2c95d297",
+        "published-resource:6020447bd87a72d840bff1fc3638ce863d9e8d9d63399f1df06894834c1ea791:act:card:ctkg_v3e-object-239fecfdb347e1a48fb9d7cc",
+        "published-resource:5d2f830ee6920eb3defa121637693fbc987b6f66db81b58b2ae504d56ce02f83:act:card:ctkg_v3e-object-23a1c9229387ded552fbdbb3",
+        "published-resource:1dad5b1be4da21ce199b0a563c5f670737014f39b242e708d9a04a137f3de21f:act:card:ctkg_v3e-object-3784992e294bb2f120cdc0df",
+        "published-resource:3ae51306a6fb10037fe72f59f1c44c37f4ab3db96f7f9bdee9ff48e5fc3918f1:act:card:ctkg_v3e-object-567eb255d7d82d8b4e029f6d",
+        "published-resource:8254725e02a781f1d8259429be18a59d047cae1258901edc6e4c54d4a9915153:act:card:ctkg_v3e-object-7e19f05879897a5e2d7c3e97",
+        "published-resource:385ec7dfbdc7d46194abf727cf66246731286ef8c1423ae55f7d3295a8d919db:act:card:ctkg_v3e-object-9b795692bacd0f13270cc086",
+        "published-resource:9e70a04d6fa0d6eeb778699a40d77848b8c90a171b65ceef078b83652ddf4425:act:card:ctkg_v3e-object-ade57f97833b42fe6394301d",
+        "published-resource:37af89ea679ff06d98c0367eb7e869f8ee06675ed77927795892e2e8251fcfba:act:card:ctkg_v3e-object-b84a9a5a29d23a93ad44adc8"
+      ]
+    },
+    {
+      "goalId": "local-linearization-foundations",
+      "status": "ready",
+      "batchCards": [
+        "线性化",
+        "切线局部线性化法",
+        "平衡点泰勒级数线性化",
+        "工作点泰勒级数近似",
+        "微变小信号线性化法",
+        "平衡点",
+        "非线性系统"
+      ],
+      "nodeIds": [
+        "published-resource:0270f7e537407dde16e7ebc634cdc8434a4177b742831cf6268472082f07d3d8:act:card:ctc_modeling-4fe8840f2c796861bf5d2dae",
+        "published-resource:6b9ef52d3c9c92da02b249b6583858330847c9d99df41c46137b5b68b6096b2d:act:card:ctc_modeling-70b08efcf6bb085e05de94cd",
+        "published-resource:70d9a7c7a2539d78fc3cdeaad155331be3abd38fbfcedacf0829cfc64640545f:act:card:ctc_modeling-f6875bd8fd4ad1250d8980d8",
+        "published-resource:40e684ee2c74566ab9f52bc1ea7476e3f871832b8db84a92064c8dc8d33c3500:act:card:ctkg_v3e-object-1107a657eb90b8264d4dac38",
+        "published-resource:b8cecddf60a1c358f8e289d2189db9e7ce680b36789e4f247ccdeffa3aeedf6f:act:card:ctkg_v3e-object-a24b53236c203ab7f9d5f504",
+        "published-resource:97a22ca5e635f36b32981ba3d40a1e5e0484cbed1261af2df629ed4db0c30fbe:act:card:ctc_modeling-34de45f2470f6c09c7d96698",
+        "published-resource:67b2377f3f64e0ed07ce0ba829c826c63d9eaed1f36e6414ec4a0de40790c203:act:card:ctc_modeling-70629af71e754aac8b740638"
+      ]
+    },
+    {
+      "goalId": "signal-flow-foundations",
+      "status": "ready",
+      "batchCards": [
+        "信号流图输入输出节点",
+        "回路增益",
+        "信号流图支路",
+        "信号流图",
+        "前向路径",
+        "回路"
+      ],
+      "nodeIds": [
+        "published-resource:26ae3fd3a992e69c36060b0df1ff23f37bc0c7af03c5187944fbc404483b105c:act:card:ctc_modeling-385c515b4d8dbb550b664072",
+        "published-resource:4460f80dc3427215fc7ab083c4ef4d29d8013b77ee4a785d7e13164625fa537e:act:card:ctc_modeling-5e62391de61ac1af304601cb",
+        "published-resource:47ffa25e14f3a6cf9c9136084188166abd6f93a4e1eb0dc006dbc88b9e63d6a5:act:card:ctc_modeling-9121dc2c97afa77f52ce0220",
+        "published-resource:176c3547f6d705dec29e6c26bc94cad5e56b0802b6f386db7fd7ee52bd59bdf7:act:card:ctc_modeling-4c7a0114a15c9e4039f6d193",
+        "published-resource:cff213e129df5038290852886641e06951620ee28f0490397241f9a8ed4ee381:act:card:ctc_modeling-a2b2e4c67cee79eef87f3b81",
+        "published-resource:1b763504041512ec89febcf62f048ea23d7ad0ba2115f574ba483954e67c1143:act:card:ctc_modeling-v2r-5585bf06f0e579bc1c362ac2"
+      ]
+    },
+    {
+      "goalId": "block-diagram-modeling-foundations",
+      "status": "ready",
+      "batchCards": [
+        "传递函数",
+        "常系数线性定常系统",
+        "单边拉普拉斯变换",
+        "拉普拉斯变换",
+        "系统结构图模型",
+        "框图化简",
+        "结构图等效化简法",
+        "结构图等效代数运算",
+        "结构图环节方框",
+        "结构图绘制规范步骤",
+        "闭环反馈互联"
+      ],
+      "nodeIds": [
+        "published-resource:7e36acb644de07ae7642ef6296215561b5f86037ccc7d4f078dd54385b5b2ba1:act:card:ctc_modeling-1a01abb71d037ed52c2bc394",
+        "published-resource:d7b47a58d739a733f45c8a51cda744d8ba48cac398e728523b49b6d9f7111b0f:act:card:ctc_modeling-bddaef2510e39cbb62d60df2",
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:e6059383437f32f7a56d00b429e1a81eec74973c734d97f4ef62bb6ceef19ac5:act:card:ctc_modeling-c499b71d908bd8fe4124c533",
+        "published-resource:4fb592e1575d20204b2fe16995c121ec777e800a49e800f0eb069220d1c61b24:act:card:ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+        "published-resource:d6c55f88571ce9579468b2ef0c6148ae028f9ca49facf47e4027fcf0873209f0:act:card:ctkg_v3e-object-8c4354096b719a1d5e090da4",
+        "published-resource:81e7fda4b50d2eda927d73c67b26c2042953b8058b52ae304bc28e3ae950bf13:act:card:ctc_modeling-239e401e0fcc8485f3a0533d",
+        "published-resource:9deed2f28cdbc78c588d4799212d54f496562e4b6e1b29236e4d7b306b511d03:act:card:ctc_modeling-7aef273143199795496abedb",
+        "published-resource:dc753754d10b01623512a36ac3afe7635d2e2753f299f6627e0f6a1ec015bbd6:act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+        "published-resource:d3c50d0e6130006261878609536d8b8631caa21f5b036372368ff16e5ad277df:act:card:ctc_modeling-2088bbde171b2e9ef66070d5",
+        "published-resource:c0917f5edc7701f49776b79bccd37a625554910afa57e4c83b0bc01eb5a2f7e0:act:card:ctc_modeling-e442dacbfef4a0d7ea3c4c15"
+      ]
+    },
+    {
+      "goalId": "mason-gain-formula-foundations",
+      "status": "ready",
+      "batchCards": [
+        "信号流图输入输出节点",
+        "回路增益",
+        "信号流图支路",
+        "信号流图",
+        "前向路径",
+        "回路",
+        "前向通路总增益",
+        "信号流图特征式",
+        "第k条前向通路特征余子式",
+        "梅森增益公式",
+        "不接触回路",
+        "梅森公式通路余子式"
+      ],
+      "nodeIds": [
+        "published-resource:26ae3fd3a992e69c36060b0df1ff23f37bc0c7af03c5187944fbc404483b105c:act:card:ctc_modeling-385c515b4d8dbb550b664072",
+        "published-resource:4460f80dc3427215fc7ab083c4ef4d29d8013b77ee4a785d7e13164625fa537e:act:card:ctc_modeling-5e62391de61ac1af304601cb",
+        "published-resource:b312fdf82672f6babbf483936996e566d79f50b0d4d456bd492e5b27a3176e47:act:card:ctc_modeling-9b8a43928af77103270d5f9c",
+        "published-resource:47ffa25e14f3a6cf9c9136084188166abd6f93a4e1eb0dc006dbc88b9e63d6a5:act:card:ctc_modeling-9121dc2c97afa77f52ce0220",
+        "published-resource:608df50ac58d3e521f24e5f875c52fae3daa186d7495eaa912ad5fdbb4b7de07:act:card:ctc_0f418dc24d2aacaaafdcdcc0",
+        "published-resource:176c3547f6d705dec29e6c26bc94cad5e56b0802b6f386db7fd7ee52bd59bdf7:act:card:ctc_modeling-4c7a0114a15c9e4039f6d193",
+        "published-resource:cff213e129df5038290852886641e06951620ee28f0490397241f9a8ed4ee381:act:card:ctc_modeling-a2b2e4c67cee79eef87f3b81",
+        "published-resource:1b763504041512ec89febcf62f048ea23d7ad0ba2115f574ba483954e67c1143:act:card:ctc_modeling-v2r-5585bf06f0e579bc1c362ac2",
+        "published-resource:c625c099aa2e61259e384169fe12be72109d6c2977d2725785d1590246b0e922:act:card:ctc_modeling-07799c3f876317e36fe669f8",
+        "published-resource:32677fbce8efc53bc32fd9376bd7d3b4d81481611c507a134a20ab773d1c7b8b:act:card:ctc_modeling-50ed406e4478b481d868adfb",
+        "published-resource:fab21164fbea0a71013f1cd2821310f5e2e0570c0fd79a91e0b03b14209a0341:act:card:ctc_modeling-e8a0502ecb67f574a5cb6c1b",
+        "published-resource:2fadfe41269d8e0663311cf8f037b8d56b30550c4da9ee8f1d89516abdef885f:act:card:ctc_modeling-57c56ef58df2315f765a32dc"
+      ]
+    },
+    {
+      "goalId": "feedback-structure-foundations",
+      "status": "ready",
+      "batchCards": [
+        "负反馈回路",
+        "常系数线性定常系统",
+        "等效单位反馈系统",
+        "回路传递函数",
+        "正反馈系统",
+        "单位负反馈系统",
+        "开环系统",
+        "复合控制",
+        "前置滤波器",
+        "环路增益",
+        "灵敏度函数",
+        "测量噪声信号"
+      ],
+      "nodeIds": [
+        "published-resource:c1fea8b23e5d77f102e9809feaa0ee6def2b62fc81b7e245038b4c4b5c8dabc4:act:card:ctc_modeling-47e8eb68c1aa5cd068c72e54",
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:5823b36cfb9538a051cbd5d27dbe5ad324c03df76efcc9ca2bf288b276502588:act:card:ctc_v11g-2d0a8b878047bb6a5effc783",
+        "published-resource:9dc958998045dd91db00f61b18698764fdbec48cfdc355d17bf529667c3375fd:act:card:ctc_v11g-4aec82cd79a002c70fb185b3",
+        "published-resource:e4993778b252fb8e5d7951e98b7d97e4cc2e9b47ad20481521fd264dc1816825:act:card:ctc_v11g-5a7e22337cb506e673b9affe",
+        "published-resource:2b0032081d80cca112ea10434fe7b2cc36b94634f39fc19587084a0a75c6d604:act:card:ctc_v11g-c7228e5d5d171b0633b246e3",
+        "published-resource:2719dfda4e4aae8471533782e86998a24e0e294de051e4037216ff9a44dacb3c:act:card:ctkg_domainconcept_02e5b960f076b42478c001d9",
+        "published-resource:8a1f0a00e04bf1493ddf2e9c783a03a616cd14e6fae8e9855da8dee314f6a47f:act:card:ctkg_domainconcept_150c8a62277a497691a2f785",
+        "published-resource:413f498bcee22d96b1cbc0fb18c345a3fc78325aa4cccc61dd51140f35b5adcd:act:card:ctkg_domainconcept_293e9989d6bd31c84819cbee",
+        "published-resource:9352a2b8d7f612092bf0c14586602287e57b1c1f3089ff700f97052dc513d301:act:card:ctkg_domainconcept_8d64003bec180e77672bfd72",
+        "published-resource:16a0ff631090e191b4bea0ef2a076cdb84381a80c20f86eab57083c31b1953ca:act:card:ctkg_domainconcept_cb7da716d9229f0af132e0c1",
+        "published-resource:2ed64b1549f062177b16f60da5d883cfc5aea48242d28ae555cab275c2625d75:act:card:ctkg_domainconcept_d582399ff6cef0663ad4e2a7"
+      ]
+    },
+    {
+      "goalId": "transfer-poles-zeros-foundations",
+      "status": "ready",
+      "batchCards": [
+        "传递函数",
+        "复频域传递函数",
+        "常系数线性定常系统",
+        "单边拉普拉斯变换",
+        "拉普拉斯变换",
+        "严格真传递函数系统",
+        "零点",
+        "复频域传递函数极点",
+        "开环传递函数",
+        "极点",
+        "传输零点",
+        "闭环零点"
+      ],
+      "nodeIds": [
+        "published-resource:8a9b23afaa5060e73f852a531323df764b387a3b9374255b2ee82de6a3a48d17:act:card:ctc_modeling-71f0e8d834291c2c7d5e25b9",
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:e2a1f2f65ace653fe8dad79e78a12916eb32147e833112e1ae4984cc4155ed57:act:card:ctkg_m3-v1l_canonical-object_c5f7d0ab3bb3d165d6bbe99e",
+        "published-resource:4fb592e1575d20204b2fe16995c121ec777e800a49e800f0eb069220d1c61b24:act:card:ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+        "published-resource:1d397d8ae7705f37f659ab9f7ee99168de77bb655e8c0d708d5d4442a44a0a0c:act:card:ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d",
+        "published-resource:5f6c32be422316c0a0b4d5508b2844b19ba38bcac1235ffb4e9f30a9fa4f72e9:act:card:ctkg_v3e-canonical-ff87028e0a7bcda2c586a550",
+        "published-resource:d6c55f88571ce9579468b2ef0c6148ae028f9ca49facf47e4027fcf0873209f0:act:card:ctkg_v3e-object-8c4354096b719a1d5e090da4",
+        "published-resource:39bbfa9c14f68acf862a1f807c86a2300f5f7aa2c6df0d86ebf106b8ef4ea74d:act:card:ctc_modeling-aa10e4daa1e969c557f6ef83",
+        "published-resource:dc753754d10b01623512a36ac3afe7635d2e2753f299f6627e0f6a1ec015bbd6:act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+        "published-resource:0d1446f642768e8c818c0b2ea3a772f4a0e666177a9cc26b8211e3c7cebb07e4:act:card:ctc_modeling-8010502b57930c3dcb915af9",
+        "published-resource:05542f86afb14a6113a667bd6de0cc5b29a0acaf3e8889e7a7ba6ceb8b9f9208:act:card:ctc_modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+        "published-resource:022cd7da538593fec0792b476ae72e3e24f1d97cb5ab29c9bcd787ff8e74094d:act:card:ctkg_v3e-canonical-47995819305793bf4c946953"
+      ]
+    },
+    {
+      "goalId": "input-response-foundations",
+      "status": "ready",
+      "batchCards": [
+        "常系数线性定常系统",
+        "叠加原理",
+        "脉冲响应",
+        "用于拉普拉斯逆变换的 Heaviside 部分分式展开",
+        "正弦函数",
+        "自然响应",
+        "卷积",
+        "阶跃输入",
+        "典型输入信号",
+        "单位脉冲函数",
+        "参考输入"
+      ],
+      "nodeIds": [
+        "published-resource:74c6ce48f9e5f101e8a033b98f4fa40bae941f6ed3c03e5309528607ebcfd12f:act:card:ctc_modeling-5da44f2fc98d268259459e04",
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:1de24768b59b114b02fce0da696e58286180cfb4ba91815ca16dc75ad02a0035:act:card:ctkg_m3-v2w_source-object_2107b134aa2e942c147b9594",
+        "published-resource:054638db8210e3e1b41697a5a2d339fd9b80d12fd4d35915017da8bd0f2a77a9:act:card:ctkg_v3e-canonical-0e5d22ed0afee37f65584d36",
+        "published-resource:88f8d2d86ceaba43bb03b0b46d32068f39651469fc59bec82e8df9ad75508027:act:card:ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886",
+        "published-resource:151b9ed44cb33196168c2d400e36693fc56bc50e916d0ee054ffbf0bb193f55b:act:card:ctkg_v3e-canonical-303314b2f1d601cdba5e3f99",
+        "published-resource:5ec24d954ab90e7bceafc2f7f7d95aa8337312921b488b3d6aed41ea1681f477:act:card:ctkg_v3e-canonical-b03bdd7d909a44a2830459ca",
+        "published-resource:d775dafa4c7f36bbebce771c1f00b7070b4841ec5d4a7a160dd2fcb89f83a7ce:act:card:ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+        "published-resource:58662ffb2497deb8666f622eb5294ff413bdbc522fa6295b90f4ca6687f217e8:act:card:ctkg_v3e-object-12baf451eabe4bb9e3a7eb0f",
+        "published-resource:d8de0df121dc5f89ff4b3a9340c7f06a94ba8c4e34de49dbd128c9ee9f3129ad:act:card:ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+        "published-resource:358dbe56e6cb6cc95e70ca59e2aec21fa7a148bdf236b073abec2f3cae7ac207:act:card:ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1"
+      ]
+    },
+    {
+      "goalId": "first-second-order-dynamics-foundations",
+      "status": "ready",
+      "batchCards": [
+        "二阶系统",
+        "一阶系统",
+        "微分方程模型",
+        "欠阻尼系统",
+        "固有频率",
+        "无阻尼自然频率",
+        "阻尼比ζ",
+        "临界阻尼",
+        "自然频率",
+        "固有频率 ω_n",
+        "欠阻尼",
+        "过阻尼"
+      ],
+      "nodeIds": [
+        "published-resource:39689f2b74df33ddc8a3e3dbf40b52c838a641aaecb703aeea47c0d7ce6e96ec:act:card:ctc_90af7a0497e616bbe6249c30",
+        "published-resource:f514e5779ba355c24cfaafcc601b823fa2e4817480a8fb4603efdc8f5860719e:act:card:ctc_v11g-11d00d2120a83f5e05efdb6e",
+        "published-resource:a208f9a35ac9e354b244f88cb9cd41bbd43683804360afffa7772fe86d586a63:act:card:ctc_v12g-b536959708e2d0fe3c8c791a",
+        "published-resource:800e6c28eca03152e9e7a21fa8b6a1165b4c153d8ab48c26b21bc04380401fde:act:card:ctkg_v3e-canonical-40d0c236680874a1246a0536",
+        "published-resource:aab2d772e12a8c562644b3ee0e3aeaf6bc7cc40f517e64ed86cdfae57c6dd324:act:card:ctkg_v3e-canonical-6bb580c242f908566ab53b18",
+        "published-resource:c5c732c4bb219a459c670b273dbd39dd26a4ac53b8ac2069c7bb48eabcbeac3d:act:card:ctkg_v3e-canonical-7ee407860ee485f1e1b1f3d1",
+        "published-resource:86f5836b603bb93e2f7ff7b05837c031cba6c0c98ae119d0225cf7a5014894d1:act:card:ctkg_v3e-canonical-9c5f83612d3255aa5805a9cb",
+        "published-resource:07220eda60873b4954550267c09288db7e2b22dcca0d24ecfd82d10830938818:act:card:ctkg_v3e-canonical-ad988c74286cfcad2c3fdf98",
+        "published-resource:c90b2dd3e2e3a3b5343ae01c17a00ab91fd7cb78fc39118cdcaab2118861e11c:act:card:ctkg_v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+        "published-resource:ab54c09b9e68e648c290e83eb166789976d4e9135cd1cda3e5a3918361cb8787:act:card:ctkg_v3e-canonical-772065f42947b660c72584f3",
+        "published-resource:50c2515660569b8b7fb146fcd9d83249c0727baf6bd07639cd95dd25e449b0cc:act:card:ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+        "published-resource:260ceaa5be84c173517155522dc70b64d7888fdcba7cc1997b2ebddb6c8600de:act:card:ctkg_v3e-canonical-15b23d588244f407f6ed4b35"
+      ]
+    },
+    {
+      "goalId": "response-metrics-foundations",
+      "status": "ready",
+      "batchCards": [
+        "单位阶跃响应",
+        "单位阶跃函数",
+        "稳定时间",
+        "振荡频率",
+        "稳态响应",
+        "峰值时间",
+        "调节时间",
+        "瞬态响应",
+        "临界阻尼响应",
+        "稳态过程",
+        "过阻尼响应",
+        "动态过程"
+      ],
+      "nodeIds": [
+        "published-resource:fed8bfa28bb154a1f130913177d69f7ca14648a4a10ea2d9af56f2cf659c612f:act:card:ctc_v11g-9dfc90c240d6bf3ebc285faf",
+        "published-resource:297697cec4f0c25e6f2e1566ae9da2a8d12d37161a57f2a6913dd3b4a5899c3a:act:card:ctkg_v3e-canonical-0fa44601675cb175f5df9562",
+        "published-resource:9000250550f04d337670d57bfe53fc3fd80adb3ba94adcb97e97cb6751a56c9a:act:card:ctkg_v3e-canonical-4f62334f630ea074128ec396",
+        "published-resource:12ff5c31ad0c90d5b9f08317e07376a0ad5665cdeb558245af220231d0d64cd9:act:card:ctkg_v3e-canonical-bd871a5da052c90d142e285a",
+        "published-resource:3525358469ecdba3719c24f86f6cde9b2379b49d38f3569ccfaf1ffaf410623e:act:card:ctkg_v3e-canonical-bf7bc53bf8286e07fa6035cc",
+        "published-resource:8eefe22abcb74448c994952c2b82dfe52b60a5ffd1a1078a08b31fe9725fd04c:act:card:ctkg_v3e-canonical-c8eb5072bc1783d917169c9a",
+        "published-resource:1165cd50e4bf3b8c42fb89fe2a36679dec6bb8a1a0d714c6ebeb1b94fc48a3b9:act:card:ctkg_v3e-canonical-d1d8f9f3725b9a8440cdd486",
+        "published-resource:b5062c7a3aa26d41d9e655620c156afc6d36e57ca48e1c234a685c6091258de5:act:card:ctkg_v3e-canonical-f9718484925341d6ce1dec78",
+        "published-resource:7f68d8ab9d9ba6f8321e197b86352f05eb0d56cb8b81d41c864b7bd2f156a130:act:card:ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+        "published-resource:722dc68785280ede9cc5c1074068163f0eb53193f6869fe820187aa917ad19f9:act:card:ctc_v11g-1c9f955b68fd25e1f4ad86f6",
+        "published-resource:c67660b6b2a11aeaa0939188553752dabb82ffa8ffabfe23c47fdf68908d4dad:act:card:ctkg_v3e-canonical-9988510f6127d3086f4aa265",
+        "published-resource:b93f84021ee901d5099c4cb79b59f95e20f9032bb01d2efd470a6a85ed859df1:act:card:ctkg_v3e-canonical-9cd2a9dfb0f7f3d457247609"
+      ]
+    },
+    {
+      "goalId": "time-domain-design-foundations",
+      "status": "ready",
+      "batchCards": [
+        "最小节拍响应",
+        "时间常数τ1",
+        "ITAE性能指标",
+        "动态性能指标",
+        "动态性能",
+        "使用时域指标的设计综合"
+      ],
+      "nodeIds": [
+        "published-resource:028c10c3b3c0aaae2bc582ed16797397c8b21882fb9c002b201083ad3b210506:act:card:ctkg_domainconcept_6daaf5095018a332d359e2de",
+        "published-resource:8aab154e0d8eb582937662d59e62ee5337fac0a52a56f58bc91c87521c1f39f8:act:card:ctkg_m3-v1j_source-object_d32e165eaa3e5a71374cfbdd",
+        "published-resource:3ae1da80823b5b942edd68affb2ae232aa9ada9422b73fb1c9a9d0a719a74571:act:card:ctkg_m3-v2l_canonical-object_94708a97f7508321feb998ea",
+        "published-resource:79c4e4a24e02837ba66a9848d30f5121ef7060c698409c5a4ce695f83e2fd9dd:act:card:ctkg_v3e-canonical-137c2c4e6fd2c142416cd412",
+        "published-resource:21860646940d3851871eaedeba2773948e879508f28a7b976765d5372d378366:act:card:ctkg_v3e-canonical-813c3692771aa00de2a18d93",
+        "published-resource:2ff1ca60f665b3e7c6817da1a0f1bf8f3eee8994564cf5ee633fcbfb389d7b63:act:card:ctkg_v3e-canonical-da95a03f3b851fcd7239eac2"
+      ]
+    },
+    {
+      "goalId": "dominant-pole-analysis-foundations",
+      "status": "ready",
+      "batchCards": [
+        "传递函数",
+        "二阶系统",
+        "微分方程模型",
+        "复频域传递函数",
+        "常系数线性定常系统",
+        "单边拉普拉斯变换",
+        "拉普拉斯变换",
+        "零点",
+        "复频域传递函数极点",
+        "极点",
+        "高阶传递函数",
+        "主导极点"
+      ],
+      "nodeIds": [
+        "published-resource:39689f2b74df33ddc8a3e3dbf40b52c838a641aaecb703aeea47c0d7ce6e96ec:act:card:ctc_90af7a0497e616bbe6249c30",
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:201ca247f7bebba894cf35d915d0613a0bcd7f6829aca24c6d2dbe9fb2467c89:act:card:ctkg_m3-v2h_source-object_552dae0908d9e549e2e5603d",
+        "published-resource:4fb592e1575d20204b2fe16995c121ec777e800a49e800f0eb069220d1c61b24:act:card:ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+        "published-resource:3973c771eaac16537108c1d0369ee302205ed664c37b3ac60c7efa260a7f4f3e:act:card:ctkg_v3e-object-23ce934816d236fcc2836d27",
+        "published-resource:d6c55f88571ce9579468b2ef0c6148ae028f9ca49facf47e4027fcf0873209f0:act:card:ctkg_v3e-object-8c4354096b719a1d5e090da4",
+        "published-resource:ab54c09b9e68e648c290e83eb166789976d4e9135cd1cda3e5a3918361cb8787:act:card:ctkg_v3e-canonical-772065f42947b660c72584f3",
+        "published-resource:39bbfa9c14f68acf862a1f807c86a2300f5f7aa2c6df0d86ebf106b8ef4ea74d:act:card:ctc_modeling-aa10e4daa1e969c557f6ef83",
+        "published-resource:dc753754d10b01623512a36ac3afe7635d2e2753f299f6627e0f6a1ec015bbd6:act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+        "published-resource:0d1446f642768e8c818c0b2ea3a772f4a0e666177a9cc26b8211e3c7cebb07e4:act:card:ctc_modeling-8010502b57930c3dcb915af9",
+        "published-resource:05542f86afb14a6113a667bd6de0cc5b29a0acaf3e8889e7a7ba6ceb8b9f9208:act:card:ctc_modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+        "published-resource:022cd7da538593fec0792b476ae72e3e24f1d97cb5ab29c9bcd787ff8e74094d:act:card:ctkg_v3e-canonical-47995819305793bf4c946953"
+      ]
+    },
+    {
+      "goalId": "stability-concepts-foundations",
+      "status": "ready",
+      "batchCards": [
+        "微分方程模型",
+        "常系数线性定常系统",
+        "虚轴穿越",
+        "正定性（标量函数）",
+        "正半定性（标量函数）",
+        "负定性（标量函数）",
+        "负半定性（标量函数）",
+        "李雅普诺夫稳定性",
+        "李雅普诺夫函数候选",
+        "李雅普诺夫函数",
+        "能量函数（李雅普诺夫）",
+        "李雅普诺夫第一法（间接法）"
+      ],
+      "nodeIds": [
+        "published-resource:39689f2b74df33ddc8a3e3dbf40b52c838a641aaecb703aeea47c0d7ce6e96ec:act:card:ctc_90af7a0497e616bbe6249c30",
+        "published-resource:526f13452cf09ee4a6ed1c40dd6a3355b18a0e62a069fc27496cb03c435d884a:act:card:ctc_modeling-c26fddc50074ec84707d5950",
+        "published-resource:cf818aa5b0faa4e058c799679f3cc9c30608dfab87434aff62ee4731d76e6b8e:act:card:ctc_v11g-2628d227495a3860151a16c1",
+        "published-resource:990833e17e1a511ef20084b9cee4a284b986725547695f39ea19bb191d5e1147:act:card:ctkg_domainconcept_00c33c72030aa254c651c5ad",
+        "published-resource:816959d3b8bdfad33a7a74547fbff31a856ce292fd9dc9edfa0ec5dc95b7fe76:act:card:ctkg_domainconcept_0d613f0b723fa4a95a006064",
+        "published-resource:8e2c01a2b13c7e9835e8719f49b3ed095165f86069410bd485c79478921bb1b2:act:card:ctkg_domainconcept_0dfe26d4bf0c2174a0a4b176",
+        "published-resource:19db495d778f974fce4948da4710290df611983956262482cb391ef8a98b6dba:act:card:ctkg_domainconcept_1fe958ff9947220990074dbc",
+        "published-resource:af637fad2d409a82b3aadc8ba1fe038e27d9bac26eb83b4d1e0c129abf974546:act:card:ctkg_domainconcept_3ffc77366f538e92e13a0296",
+        "published-resource:12a86294a24476a7acff2eaa05f9f2ff0d046582b15ee096c6643c6f6f9b3d67:act:card:ctkg_domainconcept_471808457837d110fa167faf",
+        "published-resource:1331f075658a9e71f9212bdd47ff6c2df7a1f73324eee538e5210a055e136cc6:act:card:ctkg_domainconcept_4b98e3fbe8d7e5267277361f",
+        "published-resource:d5cc489f9be04de3583ec4c5d55b469c9dc63f7e8a11414b03bb9a3c20d86e8e:act:card:ctkg_domainconcept_4dd405f4b14b1c56c98340c1",
+        "published-resource:b4fa2257e9819975d1c43f99358e2f85a09bbb2e30943848c8ee5fd1bd4bec5c:act:card:ctkg_domainconcept_5e637ae64f351feabf64218f"
+      ]
+    },
+    {
+      "goalId": "routh-relative-stability-foundations",
+      "status": "ready",
+      "batchCards": [
+        "劳斯表",
+        "劳斯-赫尔维茨稳定性判据法",
+        "劳斯-赫尔维茨稳定性判据",
+        "劳斯近似法",
+        "辅助多项式",
+        "劳斯法参数范围确定",
+        "劳斯阵列第一列",
+        "绝对稳定性",
+        "相对稳定性的轴偏移法"
+      ],
+      "nodeIds": [
+        "published-resource:adea960f8a18aadf2601737bca2c743aaef339dc79f4ef2a8f54f2c1a14cc869:act:card:ctkg_m3-v2h_canonical-object_4f950081fe58a82e7fdd42aa",
+        "published-resource:ffab6264f50c257974a0c0f0ccced4525df2683855fad7f6f2985b2c210913db:act:card:ctkg_v3e-object-b3c5cdff9a0cefd89c42db14",
+        "published-resource:3594c61f06ee1df958c7769e562bc02633cb4d2f597adebb89c999ff594461ae:act:card:ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+        "published-resource:b6635fb80cd2c7269ea2c087c6dde0c11f9175a1a569705533917b032ed7135f:act:card:ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+        "published-resource:8f37794414b7fb3d9e7d3655128fb2fc388b6808ed7a64f88f3031398945dde6:act:card:ctkg_v3e-object-7aa500461c5109b7cffd9b19",
+        "published-resource:ec3e286a55405f4914648240ba4dcfc619b2a378174b891dad0c01c7a4b0565e:act:card:ctkg_v3e-object-a5bc9701adc27b91f6da074b",
+        "published-resource:ec36445f87600b0715e73430064f677e31c35beea8c338fbb9bdc7a7816890b9:act:card:ctkg_v3e-object-bc4ed78c68c59c9b4ab42d4d",
+        "published-resource:d1a96886ae827030fa63b6707d65182d7fd1a0e3b4bda16137d5279fd0dc7898:act:card:ctkg_v3e-object-23665070dce851fbb0ebda8b",
+        "published-resource:f9304fcb1f6abf42519e2077b1d75594d1b57d249e5821fd18f4dc5f053d31db:act:card:ctkg_v3e-object-327cafd07ac8956536bab418"
+      ]
+    },
+    {
+      "goalId": "optimal-control-foundations",
+      "status": "ready",
+      "batchCards": [
+        "最优控制",
+        "过程项",
+        "末值项",
+        "变分法",
+        "极小值原理",
+        "动态规划",
+        "最小时间控制",
+        "权阵 R(t)",
+        "权阵 Q(t)",
+        "权阵 F",
+        "线性二次型问题",
+        "线性二次型调节器 (LQR)"
+      ],
+      "nodeIds": [
+        "published-resource:40603572b7067d8709aacecf1deabb229c679767df4f6a8b067217013b79bbde:act:card:ctkg_m1q_phase-g_source_4e39f1797ea3333fc99d507f",
+        "published-resource:b7cb81b52b151aab0a217619badaeeeab17e333196db52d89cd19bd183d0c483:act:card:ctkg_m1q_phase-g_source_8d975cac8d57b653810aae40",
+        "published-resource:8d8b099bc492323ddab718a81bea90c4a789b0e2f0077925dddb6630deececf7:act:card:ctkg_m1q_phase-g_source_8f3eb818adacfb4bbd1403b4",
+        "published-resource:487434a9fc239d128ad5b90d933ce98b68ca96d0ddfae008ca24c195f483bb07:act:card:ctkg_m1q_phase-g_source_b7aaaf4975cb12371130f69b",
+        "published-resource:cbc11c4fccf9b370829d9a84eb769ab2acc67f46d4fa55c8993062a69e5379ff:act:card:ctkg_m1q_phase-g_source_c14dc59187664d8a36099266",
+        "published-resource:940389580c85ba32e7e757435a7267d1fa9a237519c23c49ecc8314b3619f7af:act:card:ctkg_m1q_phase-g_source_fa4ec22e9cd6aa9278b34b17",
+        "published-resource:622792d803738c6300f94050377e73c5497969464ef88589b8b6d6e130219615:act:card:ctkg_m1q_sol-supplement_source_2fbc75456dfe61e6933cd4ee",
+        "published-resource:d43fb5f403ecea49a7645b2ec152df976171dfb7a68607f870e4b32367c61887:act:card:ctkg_m1q_sol-supplement_source_7f1c2a4b7defdf180cd358a9",
+        "published-resource:09f1d93b4a5fd716402510882800f0e1f1d4d8c300f596663f9e077c9c50bb07:act:card:ctkg_m1q_sol-supplement_source_dab96b1e6e02733852005d63",
+        "published-resource:d68c4b4555bb09f69515b80a32e5516e28298934e158195a7b2250902b12e279:act:card:ctkg_m1q_source_27b2aecb99a117dacd1ef9a3",
+        "published-resource:c10b641720701a61c00f6455b7d15cc8bcf11f3bb675a1ec5ac57944cd0d6229:act:card:ctkg_m1q_source_93f9cb978a744de81099410b",
+        "published-resource:a190fc83c909ee4779c5402dac8cc8e1b479fac00ba10f809512a7cc07694704:act:card:ctkg_m1q_source_97e97630ea05992f4d3e7e54"
+      ]
+    }
+  ]
+}

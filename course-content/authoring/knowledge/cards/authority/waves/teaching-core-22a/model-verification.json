@@ -1,0 +1,109 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "loop_functions": {
+      "P": "p/(s+a)",
+      "C": 2.0,
+      "nominalP": 1.0,
+      "nominalA": 1.0,
+      "L": "2/(s+1)",
+      "S": "(s+1)/(s+3)",
+      "T": "2/(s+3)",
+      "outputDisturbance": "S",
+      "plantInputDisturbance": "1/(s+3)",
+      "measurementNoise": "-T",
+      "atOmega2": {
+        "S": [
+          0.5384615384615384,
+          0.30769230769230776
+        ],
+        "T": [
+          0.46153846153846156,
+          -0.3076923076923077
+        ],
+        "sumMagnitudes": 1.1748738691712715
+      },
+      "boundary": "S+T=1 is a complex identity, not |S|+|T|=1"
+    },
+    "parameter_derivatives": {
+      "gainP": "S_p^T=(s+a)/(s+a+kp)",
+      "poleA": "S_a^T=-a/(s+a+kp)",
+      "nominalDCGainSensitivity": 0.3333333333333333,
+      "nominalDCPoleSensitivity": -0.3333333333333333,
+      "boundary": "normalized derivative requires nonzero parameter and nonzero transfer value"
+    },
+    "finite_perturbations": {
+      "parameter": "plant numerator p, controller and a fixed",
+      "cases": [
+        {
+          "fractionalParameterChange": 0.01,
+          "exactFractionalTransferChange": 0.0033112582781457123,
+          "linearPrediction": 0.0033333333333333335
+        },
+        {
+          "fractionalParameterChange": 0.5,
+          "exactFractionalTransferChange": 0.12500000000000006,
+          "linearPrediction": 0.16666666666666666
+        }
+      ],
+      "boundary": "first-order differential estimate is local; finite changes require exact recomputation"
+    },
+    "channels": {
+      "referenceStep": "(2/3)(1-exp(-3t))",
+      "outputDisturbanceStep": "1/3+(2/3)exp(-3t)",
+      "inputDisturbanceStep": "(1/3)(1-exp(-3t))",
+      "measurementNoiseStep": "-(2/3)(1-exp(-3t))",
+      "boundary": "negative unity feedback, output noise added only to measurement, not to physical output"
+    },
+    "near_critical": {
+      "L": "5.4/[s(s+1)(s+2)]",
+      "omega": 1.4142135623730951,
+      "Lvalue": -0.9,
+      "Svalue": 10,
+      "Tvalue": -9,
+      "closedStable": true,
+      "boundary": "distance of complex L to -1 matters; magnitude alone is insufficient"
+    },
+    "time_response": {
+      "step": "kp/(a+kp)*(1-exp(-(a+kp)t))",
+      "gainSensitivity": "a/(a+kp)+kp*t/(exp((a+kp)t)-1)",
+      "samples": [
+        {
+          "time": 0.1,
+          "normalizedGainSensitivity": 0.9049925160353498
+        },
+        {
+          "time": 1.0,
+          "normalizedGainSensitivity": 0.4381247263158452
+        },
+        {
+          "time": 5.0,
+          "normalizedGainSensitivity": 0.3333363923574741
+        }
+      ],
+      "limitAtZeroPlus": 1,
+      "limitAtInfinity": 0.3333333333333333,
+      "boundary": "normalized response undefined at t=0 where y=0; limit is distinct from value; not automatically settling-time sensitivity"
+    },
+    "parameterization": {
+      "plant": "g/(tau*s+1)",
+      "mapping": [
+        "p=g/tau",
+        "a=1/tau"
+      ],
+      "fixedGChangeTauDC": 0.6666666666666666
+    },
+    "dc_insensitive_example": {
+      "plant": "p/s",
+      "C": 1,
+      "closed": "p/(s+p)",
+      "DC": 1,
+      "atTime1": {
+        "p1": 0.6321205588285577,
+        "p2": 0.8646647167633873
+      },
+      "boundary": "zero DC gain sensitivity does not mean transient response is independent of p"
+    }
+  }
+}

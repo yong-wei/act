@@ -1,0 +1,16 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_core_modeling_fourteen",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "cardHashes": {
+    "ctc:909e732d40f972bf760fa8ff": "b1b0054b7baf4c02fc2ebdc1c020871871c69153a95c4903848f68da40301b75",
+    "ctc:modeling-137c3394c7a146209fe2cd37": "0da2ec34bc9d5fa7a6bc949857313c860e7f65a55268ad22778bfcda715ac6f2",
+    "ctc:modeling-1b36aff609b370e792d9dee6": "66aa4497e4a6b0516618666effdf18cfc5fe43d917aa4846317e5c677373f271",
+    "ctc:modeling-3abaeb7a2cbf8d77276bf23c": "220b9c40e93a1f7caf6b9b1dfc21e578a8037fedbfaa8a1c81b8c30dfba58e0a",
+    "ctc:modeling-afa39b57a646673e84b55f09": "31140d2f87e31dc8e68deefb06658a21262aebf2294b4d11ca941ec0e4604dde",
+    "ctc:modeling-bb52102ba5f63982e27e329a": "1ca52f933abe9c4f82140fd28bed3fe1e944a1906e39e9c255fac0e2daaa0669",
+    "ctc:modeling-ebf5a771fd114720de11f6e3": "6b0a539dc964ff3bd0d0e12177bd83fec63acc614d8d474e4843a9690a491f78",
+    "ctkg:domainconcept:0a8044ae6cb529e98bc20bca": "ed7462b57efc4e6690df75264ddbed8e62f05c19dac157065719dba4ebfa740a"
+  }
+}

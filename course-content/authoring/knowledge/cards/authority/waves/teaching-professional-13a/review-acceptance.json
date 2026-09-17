@@ -1,0 +1,23 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_professional13",
+  "role": "simulation-domain-reviewer",
+  "findings": [
+    {
+      "id": "P1-reference-derivative-bounds",
+      "decision": "ACCEPT",
+      "status": "resolved"
+    }
+  ],
+  "bodyReview": "body-review.json",
+  "materializedBodyEqualityVerified": true,
+  "identityAndRelationsVerified": true,
+  "cardHashes": {
+    "ctkg:m1s-object-1a565603bcbebd5ede41aa2d": "e09f9647f7b32bfd4e919a9a5e38796ac85e71df0b3cd75746a961879c48ff48",
+    "ctkg:m1s-object-5f9ee607698d576a63deb905": "27bfd3316e74104dc95061bd8d994c18bd07735bbe5a93c82835ba7145ef79b6",
+    "ctkg:m1s-object-7d106ba17ce598d4b215848e": "f75ea234dd8b93e3e5aea7e3796a66da6962be1a78f2e3b062c44eedd060bdc6",
+    "ctkg:m1s-object-83dd51199b51fd3fb2ccfdeb": "51628b9aa29430684a392300bfcd9f81f6efac5e0c9320f6aecee9074a7c84af",
+    "ctkg:m1s-object-ba55a0b2d3900c3708dbddc4": "fa85e79295e0e740fcd2399a153cde0c786e05826fb0edbb9480f308e33683b4",
+    "ctkg:m1s-object-d9e065459b3844ab4a1e4b24": "c558beb9548e03eb80470d6e0cb1ee9603a03803f0728a2d1da4b7d7ce97373a"
+  }
+}

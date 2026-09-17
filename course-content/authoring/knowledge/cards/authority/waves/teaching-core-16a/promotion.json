@@ -1,0 +1,9 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 7,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b27",
+  "retiredResources": [
+    "act:card:可观测性格拉姆矩阵判据_9_13a109b3",
+    "act:card:格拉姆矩阵判据_9_a745338c"
+  ]
+}

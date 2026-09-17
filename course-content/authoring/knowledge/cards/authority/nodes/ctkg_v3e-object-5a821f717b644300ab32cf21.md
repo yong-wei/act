@@ -1,52 +1,76 @@
 ---
 node_id: ctkg_v3e-object-5a821f717b644300ab32cf21
 authority_entity_id: "ctkg:v3e-object-5a821f717b644300ab32cf21"
-name: 对数幅频渐近特性曲线
+name: "对数幅频渐近特性曲线"
+name_en: "Asymptotic Log-Magnitude Curve"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 对数幅频渐近特性曲线
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6c2da477a66c2f0745eb05cd933c4e2147a1706d47c8ec1bf07e387cf10cb85f.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6c2da477a66c2f0745eb05cd933c4e2147a1706d47c8ec1bf07e387cf10cb85f.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-25a/previous/ctkg_v3e-object-5a821f717b644300ab32cf21.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: d6a502af698e10c5dbb7df1f115811c8ef09106359e5580e3185f42b4248a4fb -->
-
 ## 首页
+# 对数幅频渐近特性曲线 | Asymptotic Log-Magnitude Curve
 
-# 对数幅频渐近特性曲线
+一句话定义：对数幅频渐近特性曲线用各典型环节的低频和高频直线近似精确分贝幅频曲线，以简化伯德图构造。
 
-**一句话定义**：在控制工程中，为简化惯性环节、一阶微分环节、振荡环节和二阶微分环节的对数幅频曲线的作图，常用低频和高频渐近线近似表示对数幅频曲线，称之为对数幅频渐近特性曲线。
-
-**核心直觉**：在图谱邻接中可把握：前置 → 交接频率、低频段 · 后续 → 截止频率。
-
-**关联**：前置 → 交接频率、低频段 · 后续 → 截止频率
+- 渐近线是近似，精确曲线通常不会出现折角。
+- 因子的分贝值相加，转折处按零极点改变斜率。
+- 谐振附近应额外检查阻尼和峰值，不能只依赖直线。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-在控制工程中，为简化惯性环节、一阶微分环节、振荡环节和二阶微分环节的对数幅频曲线的作图，常用低频和高频渐近线近似表示对数幅频曲线，称之为对数幅频渐近特性曲线。
+对传递函数的乘积形式，各因子的幅值分贝可以相加。因此可先画增益、积分、惯性和零点等典型因子的渐近线，再求总和。一个稳定一阶惯性因子在低频近似0 dB，在高频呈 $-20$ dB/dec斜率；一阶零点在交接后增加 $20$ dB/dec。原点极点或零点从开始就贡献相应斜率，不需要等待有限交接频率。
+
+这些规则来自 $|1+j\omega T|$ 在 $\omega T\ll1$ 和 $\omega T\gg1$ 时的两种近似。直线交接是人为拼接的表示，不意味着实际系统在该频率突然改变物理定律。
+
+### 教学计算/推理例
+
+对 $G=1/(s+1)$，精确幅值为
+
+$$
+L(\omega)=-10\log_{10}(1+\omega^2).
+$$
+
+低频渐近线为0 dB，高频渐近线为 $-20\log_{10}\omega$，两者在1 rad/s处相交。该处精确幅值为 $-3.0103$ dB，渐近值为0 dB，误差不可忽略。
+
+再看 $L_0=10(1+s/10)/[s(1+s)]$。积分环节使初始斜率为 $-20$ dB/dec；经过1 rad/s的一阶极点后，斜率变为 $-40$；经过10 rad/s的一阶零点后，又变为 $-20$。在1 rad/s处总渐近值为20 dB，在10 rad/s处为 $-20$ dB，在100 rad/s处为 $-40$ dB。这些是渐近线的读数，验算精确响应时应保留全部复数因子。
+
+这一构造比逐点计算更容易识别频段结构，但它不能从幅值单独恢复相位。右半平面零点与相应左半平面零点可能具有相同的幅值曲线，却产生不同的相位行为。
+
+### 适用条件与边界
+
+若多个转折频率接近，单个环节的误差会叠加，不能只用某一个因子的3 dB修正规则。二阶振荡环节在低阻尼时可能出现显著谐振峰；相同自然频率的渐近线并不足以确定峰值高度。校正设计、交越频率或稳定裕度的最终计算应使用精确响应或经过误差控制的近似。
+
+曲线斜率的单位是dB/dec，即频率增加十倍时的分贝变化。不能把它理解为每增加1 rad/s的变化率；横轴是对数分度。
+
+### 常见误区
+
+1. 把渐近线交点当作精确曲线上的点。
+2. 按传递函数相加直接相加分贝，而忘记分贝可加对应的是乘积。
+3. 从幅值渐近线推断所有相位与稳定性信息。
+
+### 自检
+
+1. 一阶惯性因子在交接处，精确值比渐近值低多少？
+2. 本例零点10 rad/s之后，总斜率为何从 $-40$ 变为 $-20$ dB/dec？
+
+**核对要点**：约3.0103 dB；一阶零点贡献增加20 dB/dec，而已有积分和极点的贡献仍保留。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 交接频率 | 属于 |
-| 后续 | 截止频率 | 用于分析 |
-| 前置 | 低频段 | 应用于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、对数幅频渐近特性曲线
+- **低频段**（入边，关系：适用于）
+- **截止频率**（出边，关系：用于分析）
+- **交接频率**（入边，关系：组成部分属于）

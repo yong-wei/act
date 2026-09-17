@@ -1,11 +1,40 @@
-import type { TeachingBindingRuntime } from '@/lib/teaching-projection/contracts';
+import type { TeachingBindingRuntime, TeachingProjectionArtifacts, TeachingResourceRuntime } from '@/lib/teaching-projection/contracts';
+import { projectionDigest } from '@/lib/teaching-projection/hash';
 import {
   readAgreedLiveCourseProjection,
   readAgreedLiveResourceBindingRelease,
 } from '@/lib/teaching-projection/live-course-pointer';
 
 import type { AnchoredBindingRuntime } from './contracts';
-import { loadResourceBindingRelease } from './store';
+import { loadResourceBindingRelease, type LoadedResourceBindingRelease } from './store';
+
+/** Derive the card catalog from the current binding release, without rewriting B′. */
+export function overlayPublishedCardResources(
+  artifacts: TeachingProjectionArtifacts,
+  release: LoadedResourceBindingRelease,
+): TeachingProjectionArtifacts {
+  const manifest = release.manifest;
+  if (!release.gate.passed || !manifest.gatePassed
+    || manifest.authorityReleaseId !== artifacts.manifest.authorityReleaseId
+    || manifest.authoritySnapshotId !== artifacts.manifest.authoritySnapshotId
+    || manifest.authoritySnapshotHash !== artifacts.manifest.authoritySnapshotHash) {
+    throw new Error('Published card binding identity mismatch');
+  }
+  const bindings = release.bindings.filter((b) => b.resourceType === 'card').map(asTeachingBinding);
+  const cards: TeachingResourceRuntime[] = release.resources.filter((r) => r.resourceType === 'card').map((resource) => {
+    const matched = bindings.filter((b) => b.resourceId === resource.resourceId);
+    return { resourceId: resource.resourceId, resourceType: 'card', projectionMode: 'REQUIRED', scopeId: manifest.scopeId,
+      title: resource.title, sourcePath: resource.sourcePath, legacyCrosswalkRef: null,
+      bindingCount: matched.length, bindingStatus: matched.length ? 'BOUND' : 'UNBOUND',
+      projectionStatus: matched.length ? 'BOUND' : 'UNBOUND',
+      bindingDigest: projectionDigest(matched.map((b) => ({ canonicalId: b.canonicalId, role: b.role }))),
+    };
+  });
+  return { ...artifacts,
+    resources: [...artifacts.resources.filter((r) => r.resourceType !== 'card'), ...cards],
+    bindings: [...artifacts.bindings.filter((b) => !b.resourceId.startsWith('act:card:')), ...bindings],
+  };
+}
 
 export function asTeachingBinding(binding: AnchoredBindingRuntime): TeachingBindingRuntime {
   return {

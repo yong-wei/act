@@ -1,0 +1,151 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:比例-积分控制器_3_2d540516",
+      "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/比例-积分控制器_3_2d540516.md",
+          "sha256": "a0915c690322e95ef45dca88d38fff192cb185b6c8bc90ca72bbb38c9f3f936a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/authoring/比例-积分控制器_3_2d540516.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/比例-积分控制器_3_2d540516.md",
+          "sha256": "a0915c690322e95ef45dca88d38fff192cb185b6c8bc90ca72bbb38c9f3f936a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/runtime/比例-积分控制器_3_2d540516.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:比例-微分控制_3_8428a70d",
+      "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/比例-微分控制_3_8428a70d.md",
+          "sha256": "949ccebe5167b0cd10b0cfa2310ce13f464565f9180f5cd9bf5b9f780c7e1e90",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/authoring/比例-微分控制_3_8428a70d.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/比例-微分控制_3_8428a70d.md",
+          "sha256": "949ccebe5167b0cd10b0cfa2310ce13f464565f9180f5cd9bf5b9f780c7e1e90",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/runtime/比例-微分控制_3_8428a70d.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:比例-微分控制器_3_3b512e79",
+      "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/比例-微分控制器_3_3b512e79.md",
+          "sha256": "1134fba0100d4699f1b694e7a53a6c1362101bc4b935668435c9f924e82db3ad",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/authoring/比例-微分控制器_3_3b512e79.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/比例-微分控制器_3_3b512e79.md",
+          "sha256": "1134fba0100d4699f1b694e7a53a6c1362101bc4b935668435c9f924e82db3ad",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/runtime/比例-微分控制器_3_3b512e79.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:P控制器_6_63f2f5eb",
+      "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/P控制器_6_63f2f5eb.md",
+          "sha256": "0b5d3b449fa211da5a8e2ec1d54c944b3cf65948eefbb4610721dc510b833585",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/authoring/P控制器_6_63f2f5eb.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/P控制器_6_63f2f5eb.md",
+          "sha256": "0b5d3b449fa211da5a8e2ec1d54c944b3cf65948eefbb4610721dc510b833585",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/runtime/P控制器_6_63f2f5eb.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:比例控制_1_1",
+      "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/比例控制_1_1.md",
+          "sha256": "adbeed8f05e4d7b2e7df4c6f25238e08bc527411c021a4ecff2e5c83bc602906",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/authoring/比例控制_1_1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/比例控制_1_1.md",
+          "sha256": "adbeed8f05e4d7b2e7df4c6f25238e08bc527411c021a4ecff2e5c83bc602906",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/runtime/比例控制_1_1.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:PD控制器_6_3eb1a935",
+      "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/PD控制器_6_3eb1a935.md",
+          "sha256": "134c00d49c27722cc33905fa3170fdcb9052317ae0f831a7b79d58818ec27dee",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/authoring/PD控制器_6_3eb1a935.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/PD控制器_6_3eb1a935.md",
+          "sha256": "134c00d49c27722cc33905fa3170fdcb9052317ae0f831a7b79d58818ec27dee",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/runtime/PD控制器_6_3eb1a935.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:I控制器_6_f0772f17",
+      "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/I控制器_6_f0772f17.md",
+          "sha256": "5c589234c23c076773f2e401d7b5fe7e34f93d3779d012235325e2aeddc2e885",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/authoring/I控制器_6_f0772f17.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/I控制器_6_f0772f17.md",
+          "sha256": "5c589234c23c076773f2e401d7b5fe7e34f93d3779d012235325e2aeddc2e885",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/runtime/I控制器_6_f0772f17.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:等效增益_8_7913d7f5",
+      "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/等效增益_8_7913d7f5.md",
+          "sha256": "817f9ce95c6ff5361012a882d19a737eabe92cfbf12e2396252e11c5cc7274e3",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/authoring/等效增益_8_7913d7f5.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/等效增益_8_7913d7f5.md",
+          "sha256": "817f9ce95c6ff5361012a882d19a737eabe92cfbf12e2396252e11c5cc7274e3",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/runtime/等效增益_8_7913d7f5.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:积分控制规律_6_01aa3db3",
+      "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/积分控制规律_6_01aa3db3.md",
+          "sha256": "1c59dcb536a321b9d8c039ba7a54213db74f989a7464142ec5c752ca1ab20c40",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/authoring/积分控制规律_6_01aa3db3.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/积分控制规律_6_01aa3db3.md",
+          "sha256": "1c59dcb536a321b9d8c039ba7a54213db74f989a7464142ec5c752ca1ab20c40",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-19a/retired/runtime/积分控制规律_6_01aa3db3.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b31",
+  "replacementDigest": "525c4516b5135cc0af25e559d57d9df10f3c92792647d693629ea223119556ea"
+}

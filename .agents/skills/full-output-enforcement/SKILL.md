@@ -1,49 +1,12 @@
 ---
 name: full-output-enforcement
-description: Overrides default LLM truncation behavior. Enforces complete code generation, bans placeholder patterns, and handles token-limit splits cleanly. Apply to any task requiring exhaustive, unabridged output.
+description: 用户明确要求完整文件、完整实现或不省略的交付时检查完整性。
 ---
 
-# Full-Output Enforcement
+# 完整交付
 
-## Baseline
+完成用户指定的全部交付物，不用占位符或“其余相同”替代所需实现。完整文件写入指定路径；答复可简要报告结果，不要求重复粘贴全部源码。
 
-Treat every task as production-critical. A partial output is a broken output. Do not optimize for brevity — optimize for completeness. If the user asks for a full file, deliver the full file. If the user asks for 5 components, deliver 5 components. No exceptions.
+大文件按工具限制分批写入，保持结构完整；分批不是等待用户再次授权的理由。只有真实阻塞才暂停，说明已完成内容与缺失条件。
 
-## Banned Output Patterns
-
-The following patterns are hard failures. Never produce them:
-
-**In code blocks:** `// ...`, `// rest of code`, `// implement here`, `// TODO`, `/* ... */`, `// similar to above`, `// continue pattern`, `// add more as needed`, bare `...` standing in for omitted code
-
-**In prose:** "Let me know if you want me to continue", "I can provide more details if needed", "for brevity", "the rest follows the same pattern", "similarly for the remaining", "and so on" (when replacing actual content), "I'll leave that as an exercise"
-
-**Structural shortcuts:** Outputting a skeleton when the request was for a full implementation. Showing the first and last section while skipping the middle. Replacing repeated logic with one example and a description. Describing what code should do instead of writing it.
-
-## Execution Process
-
-1. **Scope** — Read the full request. Count how many distinct deliverables are expected (files, functions, sections, answers). Lock that number.
-2. **Build** — Generate every deliverable completely. No partial drafts, no "you can extend this later."
-3. **Cross-check** — Before output, re-read the original request. Compare your deliverable count against the scope count. If anything is missing, add it before responding.
-
-## Handling Long Outputs
-
-When a response approaches the token limit:
-
-- Do not compress remaining sections to squeeze them in.
-- Do not skip ahead to a conclusion.
-- Write at full quality up to a clean breakpoint (end of a function, end of a file, end of a section).
-- End with:
-
-```
-[PAUSED — X of Y complete. Send "continue" to resume from: next section name]
-```
-
-On "continue", pick up exactly where you stopped. No recap, no repetition.
-
-## Quick Check
-
-Before finalizing any response, verify:
-- No banned patterns from the list above appear anywhere in the output
-- Every item the user requested is present and finished
-- Code blocks contain actual runnable code, not descriptions of what code would do
-- Nothing was shortened to save space
+验证按任务风险与项目门禁选择；完整交付不意味着所有任务均按生产关键级别测试。用户要求摘要、局部补丁或示例时遵循该范围。

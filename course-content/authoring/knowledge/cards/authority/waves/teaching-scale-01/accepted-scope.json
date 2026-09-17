@@ -1,0 +1,100 @@
+{
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "projection": {
+    "contract": "act-teaching-projection-current/v1",
+    "projectionId": "proj-64a5187e8e4a7b40ddf566ccd9683ec3cd85629ad8af9bab580c70256fb85fd4",
+    "projectionHash": "64a5187e8e4a7b40ddf566ccd9683ec3cd85629ad8af9bab580c70256fb85fd4",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.48",
+    "activatedAt": "2026-09-15T03:24:18.276Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+      "name": "控制系统的微分方程是在时间域描述系统动态性能的数学模型",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+      "name": "增益",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctc:modeling-05fbe60f54c183c4e3ded892",
+      "name": "拉普拉斯反变换",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+      "name": "动态控制系统",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+      "name": "复频域传递函数",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+      "name": "运算放大器积分器",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+      "name": "滞后补偿",
+      "directGoal": true
+    },
+    {
+      "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+      "name": "时间延迟",
+      "directGoal": true
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+      "name": "未建模动态",
+      "directGoal": true
+    },
+    {
+      "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+      "name": "相位裕度",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+      "name": "帕德近似",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2",
+      "name": "时延",
+      "directGoal": true
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+      "name": "部分分式展开的覆盖法",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "name": "误差信号",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+      "name": "傅里叶系数",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "name": "相频特性",
+      "directGoal": false
+    }
+  ]
+}

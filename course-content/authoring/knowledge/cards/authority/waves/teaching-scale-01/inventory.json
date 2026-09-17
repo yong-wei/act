@@ -1,0 +1,2440 @@
+{
+  "batchId": "teaching-scale-01",
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z",
+    "shardSetId": "ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1",
+    "shardSetHash": "30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1",
+    "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+    "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679"
+  },
+  "projection": {
+    "contract": "act-teaching-projection-current/v1",
+    "projectionId": "proj-64a5187e8e4a7b40ddf566ccd9683ec3cd85629ad8af9bab580c70256fb85fd4",
+    "projectionHash": "64a5187e8e4a7b40ddf566ccd9683ec3cd85629ad8af9bab580c70256fb85fd4",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.48",
+    "activatedAt": "2026-09-15T03:24:18.276Z"
+  },
+  "publicationStatus": "authoring-candidate",
+  "cardCount": 16,
+  "previousCopies": {
+    "directory": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous",
+    "count": 59
+  },
+  "cards": [
+    {
+      "order": 1,
+      "name": "微分方程模型",
+      "scopeName": "控制系统的微分方程是在时间域描述系统动态性能的数学模型",
+      "authorityLabel": "微分方程模型",
+      "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+      "cardId": "ctc_90af7a0497e616bbe6249c30",
+      "resourceId": "act:card:ctc_90af7a0497e616bbe6249c30",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_90af7a0497e616bbe6249c30.md",
+      "previousCardSha256": "0b8a6ddecfa368c8a6234d0693113242f15c99294a994c6d6573fe295a90eb6e",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "control-correction",
+        "frequency-response-foundations",
+        "transfer-function-modeling-foundations",
+        "time-domain-response-analysis",
+        "root-locus-analysis-foundations",
+        "stability-margin-frequency-analysis",
+        "steady-state-control-foundations"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-578c4d38d03db1efdab554cadcf0a62091c68fd592a95753d506a73edfdb7c79.json",
+          "sha256": "0382a100e9583628e0d9545aec00901da8c95e0f1303f71d3d60a8246c15097c",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-578c4d38d03db1efdab554cadcf0a62091c68fd592a95753d506a73edfdb7c79.json",
+          "sha256": "1e3d792085e3f3c22620c468c85f03c35e6c797787e7aa5b4b9e9b84dc92d30e",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_90af7a0497e616bbe6249c30.md",
+          "sha256": "0b8a6ddecfa368c8a6234d0693113242f15c99294a994c6d6573fe295a90eb6e",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "768fb007d8fdfc3cbcdc801aa30ec9058efaf303460e8598728245564efef2fb",
+      "parsedExplanationChars": 632
+    },
+    {
+      "order": 2,
+      "name": "增益",
+      "scopeName": "增益",
+      "authorityLabel": "增益",
+      "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+      "cardId": "ctc_modeling-00d2998755974a1329049aac",
+      "resourceId": "act:card:ctc_modeling-00d2998755974a1329049aac",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-00d2998755974a1329049aac.md",
+      "previousCardSha256": "f622904e8f1c51269b5e58f52cc460c5505823d73546d954af6c49368c985093",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "control-correction",
+        "steady-state-control-foundations"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-13655c6f7bf60843c9711e5e64ff7217c67af82c29ddff5985968f4a48260308.json",
+          "sha256": "710b7facdeacbebc4c6224cc5e6e42bb75d21ef1e57f167bcfba9a3e2511eea5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-13655c6f7bf60843c9711e5e64ff7217c67af82c29ddff5985968f4a48260308.json",
+          "sha256": "7f7620d58f2a60775d2f4b59f3a84ed64fa967df16da27e80c16a2e621907412",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-00d2998755974a1329049aac.md",
+          "sha256": "f622904e8f1c51269b5e58f52cc460c5505823d73546d954af6c49368c985093",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "936aaf4b33f60bee3adaf1acdb462821d02a20d04284c6249c0567af69f70b2f",
+      "parsedExplanationChars": 608
+    },
+    {
+      "order": 3,
+      "name": "拉普拉斯反变换",
+      "scopeName": "拉普拉斯反变换",
+      "authorityLabel": "拉普拉斯反变换",
+      "canonicalId": "ctc:modeling-05fbe60f54c183c4e3ded892",
+      "cardId": "ctc_modeling-05fbe60f54c183c4e3ded892",
+      "resourceId": "act:card:ctc_modeling-05fbe60f54c183c4e3ded892",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-05fbe60f54c183c4e3ded892.md",
+      "previousCardSha256": "61792de8cd16d3e9f988eb61615ba90baba75b258f0b6da9e6f10a70d4302825",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "time-domain-response-analysis"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-556030d1b80c659d45a4ca07a8232281ab6525bb47ca29e3f7f00365617f1a97.json",
+          "sha256": "1697d39f7ead62ceb2e584f82c0d2358e1ca3cb2a39c81c835e64c4081e28e64",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-556030d1b80c659d45a4ca07a8232281ab6525bb47ca29e3f7f00365617f1a97.json",
+          "sha256": "563ee366b93d445bb3964ea1f8e9cfde18d4fa1398a23053dab0fdb6d085038b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-05fbe60f54c183c4e3ded892.md",
+          "sha256": "61792de8cd16d3e9f988eb61615ba90baba75b258f0b6da9e6f10a70d4302825",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "e0c1a05b3a2c45b79630e86aa7a52a34f20c405619cb6ad9e3c83318aa962eef",
+      "parsedExplanationChars": 522
+    },
+    {
+      "order": 5,
+      "name": "动态控制系统",
+      "scopeName": "动态控制系统",
+      "authorityLabel": "动态控制系统",
+      "canonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+      "cardId": "ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "resourceId": "act:card:ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-8aa475ed6514adc11f9b5c8d.md",
+      "previousCardSha256": "4a22ae7ed3cf7cc03c17146e8538403f8333fd73e43a43e34a73ced8f1962e03",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "control-correction",
+        "frequency-response-foundations",
+        "feedback-loop-concept-foundations",
+        "transfer-function-modeling-foundations",
+        "time-domain-response-analysis",
+        "root-locus-analysis-foundations",
+        "stability-margin-frequency-analysis",
+        "simulation-validation-practice",
+        "ship-ocean-transfer-application",
+        "steady-state-control-foundations"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6fea919b5360ed78fb8d27a4db75a629c68cd47fbedb14e532f10bc2f7bbc4e3.json",
+          "sha256": "c4e9d5f2e056f71e340ca24077dee23706974b647ed2bca42049871b7a36e561",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6fea919b5360ed78fb8d27a4db75a629c68cd47fbedb14e532f10bc2f7bbc4e3.json",
+          "sha256": "6e4ef34b67804b134c166d5e1ae565e22b6d5130297b83180519cf31f28fe63a",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-8aa475ed6514adc11f9b5c8d.md",
+          "sha256": "4a22ae7ed3cf7cc03c17146e8538403f8333fd73e43a43e34a73ced8f1962e03",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "7a4d657192fa839e0e8e50723a2930f7770abf3b1cbda6eb72030890dc1f6a66",
+      "parsedExplanationChars": 520
+    },
+    {
+      "order": 6,
+      "name": "复频域传递函数",
+      "scopeName": "复频域传递函数",
+      "authorityLabel": "复频域传递函数",
+      "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+      "cardId": "ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "resourceId": "act:card:ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-aa10e4daa1e969c557f6ef83.md",
+      "previousCardSha256": "64c423dd20dda3977420fc3d664d8ec37229b3a60913db4a1701826127ae89f1",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "control-correction",
+        "frequency-response-foundations",
+        "time-domain-response-analysis",
+        "stability-margin-frequency-analysis",
+        "steady-state-control-foundations"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-11d7e80e55811769be8a223e7f7f0d9686be8db0e47c1503c2cd499ad577d7a1.json",
+          "sha256": "760e0a1942a138ac9b34858bc854d29801d1c3bd6679e0a2d9c4e19f84066205",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-11d7e80e55811769be8a223e7f7f0d9686be8db0e47c1503c2cd499ad577d7a1.json",
+          "sha256": "c14fcdfbff27e0b4fce9755771e3b8e1e14c2d17cd0e151fc69141afc0d13c58",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-aa10e4daa1e969c557f6ef83.md",
+          "sha256": "64c423dd20dda3977420fc3d664d8ec37229b3a60913db4a1701826127ae89f1",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "fd813ff326fa4abc0d716cba9ab635da7baf5e82c8b7e29c3a75920daf139479",
+      "parsedExplanationChars": 543
+    },
+    {
+      "order": 7,
+      "name": "运算放大器积分器",
+      "scopeName": "运算放大器积分器",
+      "authorityLabel": "运算放大器积分器",
+      "canonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+      "cardId": "ctc_modeling-b2fd214ec64665147e16ff9d",
+      "resourceId": "act:card:ctc_modeling-b2fd214ec64665147e16ff9d",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-b2fd214ec64665147e16ff9d.md",
+      "previousCardSha256": "4b5ea11ad37835e268a26ce80e1d37057841eb74368c57aa9135b74d9147393a",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "control-correction",
+        "time-domain-response-analysis",
+        "steady-state-control-foundations"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-042b449fb0a2d6dd5165847598c8c1cbebf4af681017b66a0a57847394794ece.json",
+          "sha256": "587f3b9f94209e5bfd23cf9d331afd6eb0248bbbaf870654b3d7044a3cd9de88",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-042b449fb0a2d6dd5165847598c8c1cbebf4af681017b66a0a57847394794ece.json",
+          "sha256": "87fd22e4418321427c4d2cfee2a03504e1eadd83cb00a9fcba5cdb06bfb8ff0a",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-b2fd214ec64665147e16ff9d.md",
+          "sha256": "4b5ea11ad37835e268a26ce80e1d37057841eb74368c57aa9135b74d9147393a",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "5d7efba9da04a4937d7bc9f1c3175d8c2892c6c5123a07ccd8a31b7f2edecf68",
+      "parsedExplanationChars": 574
+    },
+    {
+      "order": 9,
+      "name": "滞后补偿",
+      "scopeName": "滞后补偿",
+      "authorityLabel": "滞后补偿",
+      "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+      "cardId": "ctc_v11g-21fba199a9fdef15887d600f",
+      "resourceId": "act:card:ctc_v11g-21fba199a9fdef15887d600f",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-21fba199a9fdef15887d600f.md",
+      "previousCardSha256": "e8e71ab7037e8d5dfe7d884eedb33e72da80493de32ca9aaa58333c787855bb4",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "control-correction"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c574f01908c3e97b587beac35ac0c8908c225bc332889ef5f6b9d2b1fb54bbbc.json",
+          "sha256": "70678347cb5e2e029fdfcc57be4da8c74a9756a8c8f9589a052002ca16978386",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c574f01908c3e97b587beac35ac0c8908c225bc332889ef5f6b9d2b1fb54bbbc.json",
+          "sha256": "c616146da155274b8720f183bdb70e7b807055f85f6862d90f93041edeebd481",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_v11g-21fba199a9fdef15887d600f.md",
+          "sha256": "e8e71ab7037e8d5dfe7d884eedb33e72da80493de32ca9aaa58333c787855bb4",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "8a73ebe262df30480b0f279c76e5a0f84b38f5ce4e889242706e9a248fec2eec",
+      "parsedExplanationChars": 563
+    },
+    {
+      "order": 10,
+      "name": "时间延迟",
+      "scopeName": "时间延迟",
+      "authorityLabel": "时间延迟",
+      "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+      "cardId": "ctc_v11g-caa20b325717f0a3c570f16b",
+      "resourceId": "act:card:ctc_v11g-caa20b325717f0a3c570f16b",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-caa20b325717f0a3c570f16b.md",
+      "previousCardSha256": "36ffc85d2afa2c75d8bccf331c9bb5ada895f3b72467f3931f79156867e0f1e8",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "ship-ocean-transfer-application"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-867e82e1eb1438d037aa88103423b42890494e7c673695c9fd6f0a4491eca469.json",
+          "sha256": "32a3a34ef7fa12d7e3a9a43ea0a2216c765b79fee601b03011e274e5acebffa6",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-867e82e1eb1438d037aa88103423b42890494e7c673695c9fd6f0a4491eca469.json",
+          "sha256": "6cee5e1d604ad178042f70d4bebdda8df1d0d7a02d378a6953bb9dd8334b2864",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_v11g-caa20b325717f0a3c570f16b.md",
+          "sha256": "36ffc85d2afa2c75d8bccf331c9bb5ada895f3b72467f3931f79156867e0f1e8",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "39eb8a0c9435c87e2e51e4ad3a967e815beec4b8cd87d83624fe79af9a220057",
+      "parsedExplanationChars": 533
+    },
+    {
+      "order": 14,
+      "name": "未建模动态",
+      "scopeName": "未建模动态",
+      "authorityLabel": "未建模动态",
+      "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+      "cardId": "ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "resourceId": "act:card:ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_9b4e79193b3701a9657113eb.md",
+      "previousCardSha256": null,
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "simulation-validation-practice"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9ca1d627c0cd9602e70517bf53a5734c7817466ab398ab510e67a278434fc07b.json",
+          "sha256": "0e8beba1ae2e91c2710728d89c7e7281298d25fda4696652609c79336cdf894b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9ca1d627c0cd9602e70517bf53a5734c7817466ab398ab510e67a278434fc07b.json",
+          "sha256": "9eee1aeca92cfd342e264788247dca67ea847d1ce6be94a1f12731dfc4eec30f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/传统控制结构局限_4_47008.md",
+          "sha256": "5438fe7a6b0ca72458b4ecd8d1612e83a2b3f60fed3f0047df84b9dcfda7e9c1",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "cardSha256": "f949f631aee46a051df80f3184f1d4755980efc48073f8ef79e033817426d07e",
+      "parsedExplanationChars": 526
+    },
+    {
+      "order": 16,
+      "name": "相位裕度",
+      "scopeName": "相位裕度",
+      "authorityLabel": "相位裕度",
+      "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+      "cardId": "ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "resourceId": "act:card:ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c.md",
+      "previousCardSha256": null,
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "control-correction"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b3f6f4d7c04d65d1ebbb2fb83f009e6fd15afb28393e2a33122211186b88c532.json",
+          "sha256": "8cfae4f664976dc503baf58e243e17e78be09cbf54438d45dd90978200ae79b5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b3f6f4d7c04d65d1ebbb2fb83f009e6fd15afb28393e2a33122211186b88c532.json",
+          "sha256": "0bbb81b3f8810ddf0c7cfd47f8a7f03c61a1709adf260028f2652fa576b4e348",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/相位裕度直觉_5_L2c003.md",
+          "sha256": "45415a2a38cda2a048b8866bbe5e2d9d4593432f75f8335cd9b1e8d264813b78",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "cardSha256": "372cd4e3a63107cbac0920ae6d771770bb3a26000e498e42afe4fc23fec0d81b",
+      "parsedExplanationChars": 597
+    },
+    {
+      "order": 17,
+      "name": "帕德近似",
+      "scopeName": "帕德近似",
+      "authorityLabel": "帕德近似",
+      "canonicalId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+      "cardId": "ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "resourceId": "act:card:ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017.md",
+      "previousCardSha256": null,
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "control-correction",
+        "frequency-response-foundations",
+        "stability-margin-frequency-analysis"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5076ada4109d10322b0af30b4b13d160199c6bd0067979e8287ea0c13af594a5.json",
+          "sha256": "cd8a3232d9c10783ffe6ece2d76e42dcbc97cba4403649e80ef605b4bcd8d654",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5076ada4109d10322b0af30b4b13d160199c6bd0067979e8287ea0c13af594a5.json",
+          "sha256": "6ed469f062122e30e162fc8e23f17c182c3e33e406d8fe167d0d76f1d10a16a0",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/纯延迟_2_8f4165fd.md",
+          "sha256": "4144515eb7d474cbfed86fb0812bfc8aec2548c87b02bb990e61eab3d5bb72e0",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "cardSha256": "91322e067e4c1b852b95ad6067a5071ffddfc82a885029e9bad6747e58f41a08",
+      "parsedExplanationChars": 512
+    },
+    {
+      "order": 18,
+      "name": "时延",
+      "scopeName": "时延",
+      "authorityLabel": "时延",
+      "canonicalId": "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2",
+      "cardId": "ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "resourceId": "act:card:ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2.md",
+      "previousCardSha256": null,
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "control-correction",
+        "frequency-response-foundations",
+        "stability-margin-frequency-analysis",
+        "ship-ocean-transfer-application"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-be8e5348dc90dfd723696f5f37d80198c49146976cab10f0fc8862c3293a24b3.json",
+          "sha256": "514e6de86eb2c456fb02d27f20f819253f311ca9d4be4c4963ef1f7d140401db",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-be8e5348dc90dfd723696f5f37d80198c49146976cab10f0fc8862c3293a24b3.json",
+          "sha256": "1cb42cac049bbab1d00c468a4b3ba54c6bdbab053d25b30b1bc112c4e39cb254",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/延迟环节_5_a2771a34.md",
+          "sha256": "13ba9045b5d01ff0b04a99606c43aea8c937eca709625d14b2649e39dde23993",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "cardSha256": "b04edf7cff94a291de31db982af37f7928548ca2d2dd15ac1322bc7d660e938e",
+      "parsedExplanationChars": 599
+    },
+    {
+      "order": 21,
+      "name": "部分分式展开的覆盖法",
+      "scopeName": "部分分式展开的覆盖法",
+      "authorityLabel": "部分分式展开的覆盖法",
+      "canonicalId": "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+      "cardId": "ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "resourceId": "act:card:ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-060bc33f21e93205ee271eda.md",
+      "previousCardSha256": "749fcbb0b785f4d53b64ffbf430ef014347ec95ac1d71caa5753c760d466c383",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "time-domain-response-analysis"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b85fe73949ab09930c2fbac0c408c5c06c2d28d8ef603782e2264dae1a24deee.json",
+          "sha256": "ffb2950e473395138ed9510623f67f588a1deb4e49ace2f996b0e69f4322b5b2",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b85fe73949ab09930c2fbac0c408c5c06c2d28d8ef603782e2264dae1a24deee.json",
+          "sha256": "e8b28dde8c9c3764de6bd65eb61739a948af4f05e2d95acd3866d0ea9afbb28f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-060bc33f21e93205ee271eda.md",
+          "sha256": "749fcbb0b785f4d53b64ffbf430ef014347ec95ac1d71caa5753c760d466c383",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "197dff3ede7d434b0616425db42d7c8578517a8516fd6d4f239973a9130d4881",
+      "parsedExplanationChars": 504
+    },
+    {
+      "order": 38,
+      "name": "误差信号",
+      "scopeName": "误差信号",
+      "authorityLabel": "误差信号",
+      "canonicalId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "cardId": "ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "resourceId": "act:card:ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71.md",
+      "previousCardSha256": "5a1aa7e2b08259f5947414a93c9662c3ae28072b22c5da80c650c233afe9a9cc",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "control-correction",
+        "time-domain-response-analysis",
+        "ship-ocean-transfer-application",
+        "steady-state-control-foundations"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1a4c760e857a9c87f608fd25c540142b48b7e5cd1c4ddedee1d1feaf41f093cb.json",
+          "sha256": "aee3bcfd465f23d272a1f695dfe33778cda40681aea8642a755d74b62190e364",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1a4c760e857a9c87f608fd25c540142b48b7e5cd1c4ddedee1d1feaf41f093cb.json",
+          "sha256": "ce0fdf6926df379b785308fb4ac08c08ca35bf8025098c2ed9bc3825b69f1997",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71.md",
+          "sha256": "5a1aa7e2b08259f5947414a93c9662c3ae28072b22c5da80c650c233afe9a9cc",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "820cccc45b6a93bbe442b254a2a5b8c0a97e964254ba075301aefcabb25dbbf5",
+      "parsedExplanationChars": 522
+    },
+    {
+      "order": 50,
+      "name": "傅里叶系数",
+      "scopeName": "傅里叶系数",
+      "authorityLabel": "傅里叶系数",
+      "canonicalId": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+      "cardId": "ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "resourceId": "act:card:ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-58d24ff14a6b0b0cab5d393f.md",
+      "previousCardSha256": "b6b6bce768dc65d8688d8860951fb36fc2e8eace8f9e56ff4c79649e7156e7ee",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "control-correction",
+        "frequency-response-foundations",
+        "stability-margin-frequency-analysis"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5f47b7d053b556435a3b0dde91a9b20c368999d87979b4e7b463f0675d52a545.json",
+          "sha256": "07c7d87ec832a20a403c2867b85b8b78df94e0b82899378a90eca669d558771b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5f47b7d053b556435a3b0dde91a9b20c368999d87979b4e7b463f0675d52a545.json",
+          "sha256": "6bb4576890e9629130c787cb5d44a221c998b1eb28f4aefb303ac3accd8f1920",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-58d24ff14a6b0b0cab5d393f.md",
+          "sha256": "b6b6bce768dc65d8688d8860951fb36fc2e8eace8f9e56ff4c79649e7156e7ee",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "86b7bc4e98d4a8d18ed3fa6ec58dba7ad3f01da830fb33c6cf3403d1c8f966dc",
+      "parsedExplanationChars": 509
+    },
+    {
+      "order": 55,
+      "name": "相频特性",
+      "scopeName": "相频特性",
+      "authorityLabel": "相频特性",
+      "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "cardId": "ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "resourceId": "act:card:ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-9967c0867249bf4c1a625dab.md",
+      "previousCardSha256": "8f86cbf92f873f1027deafdc2a485a7fb454695f4d82ec7296e08d0cef2d3a38",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [
+        "control-correction",
+        "frequency-response-foundations",
+        "stability-margin-frequency-analysis"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b8aaadb219a869aacadbf362dff3534b20bf00e38ff66634e43733c5cae0fd3c.json",
+          "sha256": "9f75658456f8ccbc789f7c8a74d0d7c4935259cad6e2d650225b363d8cc75842",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b8aaadb219a869aacadbf362dff3534b20bf00e38ff66634e43733c5cae0fd3c.json",
+          "sha256": "28965e52564ed3dc3fdcb6669dd54ebb2fd9b02e409fd91c459c45ddafac7871",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-9967c0867249bf4c1a625dab.md",
+          "sha256": "8f86cbf92f873f1027deafdc2a485a7fb454695f4d82ec7296e08d0cef2d3a38",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "e65531815e43cab0510f92d2710a74037e9b90c19361754b220d69ae4e9dc63b",
+      "parsedExplanationChars": 556
+    }
+  ],
+  "scopeCardCount": 67,
+  "remainingCount": 51,
+  "remaining": [
+    {
+      "order": 4,
+      "name": "数学模型",
+      "scopeName": "数学模型",
+      "authorityLabel": "数学模型",
+      "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+      "cardId": "ctc_modeling-7734a0845c335f160395bac0",
+      "resourceId": "act:card:ctc_modeling-7734a0845c335f160395bac0",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-7734a0845c335f160395bac0.md",
+      "previousCardSha256": "9774cbc5e866474314552958340ed21c180ca4c7b2e91be68da37ca89c12c012",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e626f0c8caa2f53c8fdaee7131b1bdaa2b2e881097ccd7a8a9ad1e4b61d10242.json",
+          "sha256": "4beb0dbe19498cc9b5e3dfce8bf87e286390a2a4121aa42aaeba11b401b74980",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e626f0c8caa2f53c8fdaee7131b1bdaa2b2e881097ccd7a8a9ad1e4b61d10242.json",
+          "sha256": "b0e914c4ea5045860f8f5655008b8c4ad8416be7cc80005fdf6bdfca07b12fce",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-7734a0845c335f160395bac0.md",
+          "sha256": "9774cbc5e866474314552958340ed21c180ca4c7b2e91be68da37ca89c12c012",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "983a3098d3c84dc6c7648269718a35d4cfb75b3e5534c6af03a18359f95d5d0b",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctc_modeling-7734a0845c335f160395bac0.md"
+    },
+    {
+      "order": 8,
+      "name": "常系数线性定常系统",
+      "scopeName": "常系数线性定常系统",
+      "authorityLabel": "常系数线性定常系统",
+      "canonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+      "cardId": "ctc_modeling-c26fddc50074ec84707d5950",
+      "resourceId": "act:card:ctc_modeling-c26fddc50074ec84707d5950",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-c26fddc50074ec84707d5950.md",
+      "previousCardSha256": "6cc3ab2b5c05f394fa5d3f376bdaac75574c5c09fccdc5045f3026a3b8afe5fe",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f7a5d649bcd0bb155d799b3e6be3327134c34a322574e202a328068e7de9cd2a.json",
+          "sha256": "9e8c5687f51ee1c3d51b0579f85744183fa7b1eb7327f86c9e4db44625117323",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f7a5d649bcd0bb155d799b3e6be3327134c34a322574e202a328068e7de9cd2a.json",
+          "sha256": "c42d1f09367b4976b9f8f4c4ee77e2072cea699e9ffa54b29b24ba58bd46d561",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctc_modeling-c26fddc50074ec84707d5950.md",
+          "sha256": "6cc3ab2b5c05f394fa5d3f376bdaac75574c5c09fccdc5045f3026a3b8afe5fe",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "edfe1874a8d019f1531e57b2c14f697814dfb81eba42400f9ccb58cc19e5add0",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctc_modeling-c26fddc50074ec84707d5950.md"
+    },
+    {
+      "order": 11,
+      "name": "反馈控制系统",
+      "scopeName": "反馈控制系统",
+      "authorityLabel": "反馈控制系统",
+      "canonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+      "cardId": "ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+      "resourceId": "act:card:ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_27b69e7f2e837fd62dc31379.md",
+      "previousCardSha256": null,
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "feedback-loop-concept-foundations"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1680cea2ea4bcab0d3da83cdbda1b84906ee1da30d2f1e6954d37c1084311fed.json",
+          "sha256": "b56a650fb2c12a2500618cfca85ebafe9278d008962289431b7dafd58db74cf3",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1680cea2ea4bcab0d3da83cdbda1b84906ee1da30d2f1e6954d37c1084311fed.json",
+          "sha256": "62b14c776ed73d27aada1e0d21105773f6dbc73b77b87d685868df8e84d4dfde",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/反馈控制系统_1_98dc667a.md",
+          "sha256": "74affb07242cbc1361aad250a2c0f894fbd5e44a744b803b6041573bcdb426af",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "cardSha256": "aed8c5b22bca0985cff83ac0dd8a7447b80532494cac60d07ee0e1870e62544e",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_domainconcept_27b69e7f2e837fd62dc31379.md"
+    },
+    {
+      "order": 12,
+      "name": "扰动抑制",
+      "scopeName": "扰动抑制",
+      "authorityLabel": "扰动抑制",
+      "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+      "cardId": "ctkg_domainconcept_42146fa04dc1459716346cc7",
+      "resourceId": "act:card:ctkg_domainconcept_42146fa04dc1459716346cc7",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_42146fa04dc1459716346cc7.md",
+      "previousCardSha256": null,
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "ship-ocean-transfer-application"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e5e5cf87ec5f6a944405e3d68421a5b960f689442a051c0332488514d30bd851.json",
+          "sha256": "275461d86cf68999b699cf8af6c48941d89939e8160ce1a74d390e63acb17d65",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e5e5cf87ec5f6a944405e3d68421a5b960f689442a051c0332488514d30bd851.json",
+          "sha256": "fce2e5f650ef4d8d1cdecb3cce0d7963eb8595346f0d77a04a39fc7ef5d4ffbd",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/扰动抑制中的通道重写边界_4_43006.md",
+          "sha256": "060a23d24f293dde14d0595c00f7cd9912718defbcb5cc28880fcc34174b4eac",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "cardSha256": "2e415b31f64615cdcc17192fa78043a688b6038e6f35de2d9c82ba7b079e0c7e",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_domainconcept_42146fa04dc1459716346cc7.md"
+    },
+    {
+      "order": 13,
+      "name": "参数不确定性",
+      "scopeName": "参数不确定性",
+      "authorityLabel": "参数不确定性",
+      "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+      "cardId": "ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+      "resourceId": "act:card:ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_4eaa0995db3f87d3b7e0f117.md",
+      "previousCardSha256": null,
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "simulation-validation-practice"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b81a249d49a5fa4b5bc21523a1ba7f9de6a11507245495f08d2a0e3b5385763b.json",
+          "sha256": "b8c9a9d7ce6a2cbb0a1c14797cad27b9bd2931e2ed6c72cf627d7f288a123b83",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b81a249d49a5fa4b5bc21523a1ba7f9de6a11507245495f08d2a0e3b5385763b.json",
+          "sha256": "538d42d80ed982a3ce3cf957d9aac540df26e294e96c890270997087cfa72e6f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/IMC_SIMC与模型匹配整定_4_42013.md",
+          "sha256": "e4dcd836b2c743a1924e502af840fc3356178c92bb628d3f72134525a8ac096d",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "cardSha256": "3b5be296c59c3795af022798ff2a972271aaaefdcdd935ef625f20ac3064bfe1",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_domainconcept_4eaa0995db3f87d3b7e0f117.md"
+    },
+    {
+      "order": 15,
+      "name": "闭环系统",
+      "scopeName": "闭环系统",
+      "authorityLabel": "闭环系统",
+      "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+      "cardId": "ctkg_domainconcept_fef4835248def04a043183ee",
+      "resourceId": "act:card:ctkg_domainconcept_fef4835248def04a043183ee",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_fef4835248def04a043183ee.md",
+      "previousCardSha256": null,
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "feedback-loop-concept-foundations"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5cc72d5a7e0f977d0b9c1086ebaea8b325571d87dbf90e1be5b79824de1bc1f6.json",
+          "sha256": "34bc43f302dca11eddf479bc8886bb1d984e34a86e0b49112a9da89918f73383",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5cc72d5a7e0f977d0b9c1086ebaea8b325571d87dbf90e1be5b79824de1bc1f6.json",
+          "sha256": "ed47c831a638853322f9c5cb4dfd5de1c3528d64033d99e3f7d83f7e84f64d1a",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/最优闭环系统渐近稳定性_10_897d7b2f.md",
+          "sha256": "577110b1984501c699d6dfd5c7cd62b9869373a69815497c7ef7d54fdb8088a4",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        }
+      ],
+      "cardSha256": "664f30a221308a5cfdcafedb21eea3a68086f181ad43cdd7f28398898d2cbbab",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_domainconcept_fef4835248def04a043183ee.md"
+    },
+    {
+      "order": 19,
+      "name": "终值定理法求稳态误差",
+      "scopeName": "终值定理法求稳态误差",
+      "authorityLabel": "终值定理法求稳态误差",
+      "canonicalId": "ctkg:v3e-canonical-01549ef9b34888b89b55f224",
+      "cardId": "ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "resourceId": "act:card:ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-01549ef9b34888b89b55f224.md",
+      "previousCardSha256": "6f256012ac025bc6fb354b6b3f1efcd16d112a94d8e830f57468d12d923f017e",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f3a93a1438a5173a96c87d6011eceb8b339fd1db2f9cb1e01b829d6cb9009d01.json",
+          "sha256": "e85088961613383a19bce8acb6b1265ffd20893752fea9d93ac6e16b9d4897ee",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f3a93a1438a5173a96c87d6011eceb8b339fd1db2f9cb1e01b829d6cb9009d01.json",
+          "sha256": "6512aa99a5f6c1087095c00361cc65b5f0e6535336f477eda0febc374507465c",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-01549ef9b34888b89b55f224.md",
+          "sha256": "6f256012ac025bc6fb354b6b3f1efcd16d112a94d8e830f57468d12d923f017e",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "549d42714cc55b3353aa5c1ff06a94dd3ec9ae2eebb90f45b43a816fa9f5002c",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-01549ef9b34888b89b55f224.md"
+    },
+    {
+      "order": 20,
+      "name": "单边拉普拉斯变换",
+      "scopeName": "单边拉普拉斯变换",
+      "authorityLabel": "单边拉普拉斯变换",
+      "canonicalId": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+      "cardId": "ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "resourceId": "act:card:ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-04fd7f69994f8821467462e5.md",
+      "previousCardSha256": "eeaf4c330ae1919258fb73730c510aeb5549b372381c813529905a794dcb0fde",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-eb59baf54f1f5baed24a8ac80b14f6d436244c25bd1766ae210bd584c6ca6989.json",
+          "sha256": "552bc2cfb8647f8a59b1bfe107efa955d56551fe6084a1e46893c8e351d024d0",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-eb59baf54f1f5baed24a8ac80b14f6d436244c25bd1766ae210bd584c6ca6989.json",
+          "sha256": "3c65e2ef03f1f622e311e44005d5217bcf38e28e7cc8a7bafa016d73ea76ab6a",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-04fd7f69994f8821467462e5.md",
+          "sha256": "eeaf4c330ae1919258fb73730c510aeb5549b372381c813529905a794dcb0fde",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "5c655a9bde05eebba825938e7ba0fe6d26a1d98332ad2d5738d001635f6e262b",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-04fd7f69994f8821467462e5.md"
+    },
+    {
+      "order": 22,
+      "name": "静态误差系数法求稳态误差",
+      "scopeName": "静态误差系数法求稳态误差",
+      "authorityLabel": "静态误差系数法求稳态误差",
+      "canonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+      "cardId": "ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "resourceId": "act:card:ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-09e1c3e14609b082a4501ead.md",
+      "previousCardSha256": "aefa8ad8bbaf9faf6776aeb7678539a74c9172bb446ae5b6b7b1ecb7e1330f54",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a2feb663fd251f889389f4ce65929302641a91d8fd9dd3dd1741454f8b658d4f.json",
+          "sha256": "590bbd771aee87cdd82e83536f162b1c01fe0703e47a0b62751e80d5b8ab0387",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a2feb663fd251f889389f4ce65929302641a91d8fd9dd3dd1741454f8b658d4f.json",
+          "sha256": "15a97a85bf18024706061dc7b20d4fe827d781e72cdb6d4290c917052aecd929",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-09e1c3e14609b082a4501ead.md",
+          "sha256": "aefa8ad8bbaf9faf6776aeb7678539a74c9172bb446ae5b6b7b1ecb7e1330f54",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "699fc1c9c66d95e395dd193a33f05fac78fc63002ec9422582fe01d729d173c6",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-09e1c3e14609b082a4501ead.md"
+    },
+    {
+      "order": 23,
+      "name": "终值定理",
+      "scopeName": "终值定理",
+      "authorityLabel": "终值定理",
+      "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "cardId": "ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "resourceId": "act:card:ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-115de5ef0289a778cf5b69c6.md",
+      "previousCardSha256": "98b69da7e891b5647d40e37f9afba85b32c37bceb16b1db5b52c562d8c78995b",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c3343e1111f2ace6dadfacfb099db7b5d93d9668e583a9002f49e7467aa23ad3.json",
+          "sha256": "2095a8037912ae5b0faa3b0c5145e0b394055c80226419df526558a75ec952c1",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c3343e1111f2ace6dadfacfb099db7b5d93d9668e583a9002f49e7467aa23ad3.json",
+          "sha256": "42b0527a6bf69fd5465e101a9d001599e91f5f951e6206436bc0fcd56a7aae5e",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-115de5ef0289a778cf5b69c6.md",
+          "sha256": "98b69da7e891b5647d40e37f9afba85b32c37bceb16b1db5b52c562d8c78995b",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "d3835a7026efb323a0a95e518665f68e88013ea6efa9b021aaa1edf6de1a09f2",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-115de5ef0289a778cf5b69c6.md"
+    },
+    {
+      "order": 24,
+      "name": "稳态性能",
+      "scopeName": "稳态性能",
+      "authorityLabel": "稳态性能",
+      "canonicalId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+      "cardId": "ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "resourceId": "act:card:ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-299c52f97e423f68b4ac6093.md",
+      "previousCardSha256": "00ef15b21d2388b95f03d5740cb2f2081aa40dd98cf926731f9f55a262a873d5",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b40da3df73a484db5c2c82affebb727a3b885e4f401ad9694c9c05ec8401fbd6.json",
+          "sha256": "90cc2832a92ec11c7ec66c2d31fd7bcbe4d187dc8ab0c18ad474594ec8366c24",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b40da3df73a484db5c2c82affebb727a3b885e4f401ad9694c9c05ec8401fbd6.json",
+          "sha256": "963a6b2a2c8bdb6643b9203bc8989523565f6599d9d17ad4859e50d6b4e71093",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-299c52f97e423f68b4ac6093.md",
+          "sha256": "00ef15b21d2388b95f03d5740cb2f2081aa40dd98cf926731f9f55a262a873d5",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "8ca635ddd8641b5ab7b3fa577752924b0f682d9bd3b040429fb313a1b734d195",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-299c52f97e423f68b4ac6093.md"
+    },
+    {
+      "order": 25,
+      "name": "单位阶跃响应",
+      "scopeName": "单位阶跃响应",
+      "authorityLabel": "单位阶跃响应",
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "cardId": "ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "resourceId": "act:card:ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253.md",
+      "previousCardSha256": "d22234482a869c60a8a28b56ad7e24d540869c49a24ae6544bd54cdb75548cd5",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-54574d1fca4e8c34cdc1cde7b9b37f02d72c3c1986ee01d522bc12562524536c.json",
+          "sha256": "49b3908f3c4d66399792f6897efec369b1b7ff30e48575f5924922fb9dba254b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-54574d1fca4e8c34cdc1cde7b9b37f02d72c3c1986ee01d522bc12562524536c.json",
+          "sha256": "c7f5e71e814ba279809ea30a4b9b4cbead4840fdc70b238150c153a33e76f9e6",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253.md",
+          "sha256": "d22234482a869c60a8a28b56ad7e24d540869c49a24ae6544bd54cdb75548cd5",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "edd9ce8159d64a58e1e5d7eb14d041157fe21282902135e32332d597247edaa3",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253.md"
+    },
+    {
+      "order": 26,
+      "name": "位置误差常数 (K_p)",
+      "scopeName": "位置误差常数 (K_p)",
+      "authorityLabel": "位置误差常数 (K_p)",
+      "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+      "cardId": "ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "resourceId": "act:card:ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-416fc2acf005a7da54f9fce3.md",
+      "previousCardSha256": "6b1b73c6f3293a1d5543c089d5a9f2eb9ec02957893c1833b7c9b4f358a73223",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96e87fa5acebbc3d3475a668c25db542a475ab27630dff585876632beefcd8da.json",
+          "sha256": "5a52b654736383723f6d204c606ce50611df00df6930c2cf0bc8555531720e6b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96e87fa5acebbc3d3475a668c25db542a475ab27630dff585876632beefcd8da.json",
+          "sha256": "ec9f4234792a86a67d06d3bffd54de597601b5838a0df3e6c3de428a8d9ba0f9",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-416fc2acf005a7da54f9fce3.md",
+          "sha256": "6b1b73c6f3293a1d5543c089d5a9f2eb9ec02957893c1833b7c9b4f358a73223",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "8f1e9f79b41fcb0f50f8bfeb27a09cc11bad1551b337a77810fa1dbe67c850bf",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-416fc2acf005a7da54f9fce3.md"
+    },
+    {
+      "order": 27,
+      "name": "单位阶跃函数",
+      "scopeName": "单位阶跃函数",
+      "authorityLabel": "单位阶跃函数",
+      "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "cardId": "ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "resourceId": "act:card:ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-4f62334f630ea074128ec396.md",
+      "previousCardSha256": "c027bef9767291cb9c3941e5ba2441810d01ced3b9951b484a63662160812d6b",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c442c60900347aa944be2e2723cd4f1a0d48415342e2595919b9099cc387ff6c.json",
+          "sha256": "87655ec5e2b08df11cb36f3d47626cbbfc5188885d8c70b1796e28653ecad874",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c442c60900347aa944be2e2723cd4f1a0d48415342e2595919b9099cc387ff6c.json",
+          "sha256": "ef854f4b9b1899f61e4f5e08567abb2e8791295b08e864a7cda8cca4e6b963e9",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-4f62334f630ea074128ec396.md",
+          "sha256": "c027bef9767291cb9c3941e5ba2441810d01ced3b9951b484a63662160812d6b",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "178210af7b7c9b5eb6ba65247891d39d1a65b4304e7f19add3761a26bf4d67ba",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-4f62334f630ea074128ec396.md"
+    },
+    {
+      "order": 28,
+      "name": "单位斜坡函数",
+      "scopeName": "单位斜坡函数",
+      "authorityLabel": "单位斜坡函数",
+      "canonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+      "cardId": "ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "resourceId": "act:card:ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-62bea9217008b56901615d9a.md",
+      "previousCardSha256": "7166efd533dbe16338aebca89489664080843e4fcbfb449641b7becd0c8b4b4d",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c33b309413d9dd157ef28302bf62c814faf2172121e7b6f7cee834dfc08b9c37.json",
+          "sha256": "56c2e791a819cd1a00359788dec6ebd7af492a3413af0db4644f064aa28ae676",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c33b309413d9dd157ef28302bf62c814faf2172121e7b6f7cee834dfc08b9c37.json",
+          "sha256": "b3bb239369b125144ce417b32f50a4c3972bd3340cc0bb4af83e61b96836dc15",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-62bea9217008b56901615d9a.md",
+          "sha256": "7166efd533dbe16338aebca89489664080843e4fcbfb449641b7becd0c8b4b4d",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "c2726ee9a8a97a77aecf8a3b1d9ef0b9e66fc275a84cee19624447c28eb61a3b",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-62bea9217008b56901615d9a.md"
+    },
+    {
+      "order": 29,
+      "name": "速度误差系数 (K_v)",
+      "scopeName": "速度误差系数 (K_v)",
+      "authorityLabel": "速度误差系数 (K_v)",
+      "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "cardId": "ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "resourceId": "act:card:ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6461b91e08c647ceff0ceeee.md",
+      "previousCardSha256": "96eaaf513ba6cdc429650e1ac02da99e67b3328a0bf6254e820c4339c2398411",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3a322e7c50af009e1d0605f73f3261be527781f491f2317b0ea17b76567232ac.json",
+          "sha256": "ab5b616b35be2e3cb8def51fc99b8120a477bb5564de9f8c446048d52734b140",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3a322e7c50af009e1d0605f73f3261be527781f491f2317b0ea17b76567232ac.json",
+          "sha256": "00568d6ec02ce15c69ffc43f9311daec0998e87c8ade6784138612dc568f09d8",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-6461b91e08c647ceff0ceeee.md",
+          "sha256": "96eaaf513ba6cdc429650e1ac02da99e67b3328a0bf6254e820c4339c2398411",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "7e3f9e1b11fe06c0b1f337cf9ef83fbdb7c0c77fd50ef8fe2edadbb0a043506d",
+      "parsedExplanationChars": 500,
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释不超过 500 字符；运行时门槛要求 explanation > 500，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-6461b91e08c647ceff0ceeee.md"
+    },
+    {
+      "order": 30,
+      "name": "加速度误差常数 (K_a)",
+      "scopeName": "加速度误差常数 (K_a)",
+      "authorityLabel": "加速度误差常数 (K_a)",
+      "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "cardId": "ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "resourceId": "act:card:ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5.md",
+      "previousCardSha256": "94d3c3bf76c4b1a17d2d2539dae861b19cd3133bc5ff0cd36198216600eca6a3",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9404b9667875d0dfb6fe72ff121ac90ce18fd7707d9c57ef6e8f09e0f6af8911.json",
+          "sha256": "fb441961b22df4679995bd8c913ea58189dfc5f364d2df97494ca471232a4e8d",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9404b9667875d0dfb6fe72ff121ac90ce18fd7707d9c57ef6e8f09e0f6af8911.json",
+          "sha256": "f378229070200bec7998fb0b3b2dbb1ac81f69277a5eb19159db13fea9b22955",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5.md",
+          "sha256": "94d3c3bf76c4b1a17d2d2539dae861b19cd3133bc5ff0cd36198216600eca6a3",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "f4a154bc46461f5318c2480ee3717ccc9661d5d65618e6c2f9d5c240adc49bbd",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5.md"
+    },
+    {
+      "order": 31,
+      "name": "频率响应",
+      "scopeName": "频率响应",
+      "authorityLabel": "频率响应",
+      "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "cardId": "ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "resourceId": "act:card:ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7e46e083227dc119d597d82b.md",
+      "previousCardSha256": "3d7bce24ef24b94daab2a2113031d06783c28536f6c103f9abc995239aa02f7b",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "frequency-response-foundations"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-af679057b50299f79747230130880d6471b5f4788916ba07302f8d5fec511fdc.json",
+          "sha256": "cb556a6afb2e7847873d866af2ddc8b22f6d398ec6c8234ed211b816d2b09451",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-af679057b50299f79747230130880d6471b5f4788916ba07302f8d5fec511fdc.json",
+          "sha256": "bfbacd010e35028e344091622b7c074d36765a96af55c729cfb7a35134680c89",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-7e46e083227dc119d597d82b.md",
+          "sha256": "3d7bce24ef24b94daab2a2113031d06783c28536f6c103f9abc995239aa02f7b",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "a98ea3f5edd09271be01bf02f8cd6b35f0b3a3ffb433dca7bc4e88ff6a1bd21c",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-7e46e083227dc119d597d82b.md"
+    },
+    {
+      "order": 32,
+      "name": "部分分式展开",
+      "scopeName": "部分分式展开",
+      "authorityLabel": "部分分式展开",
+      "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+      "cardId": "ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "resourceId": "act:card:ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-adb3110b78ea9d623101aaa7.md",
+      "previousCardSha256": "759d6a3421fa510007a1ee9c97f92eb0929a8e02d6da6edc5a97fae066b8d3f9",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-d397d7d7225cf3fa1a9433d138e9e67a8713225d1bc7a0b010c1271727e0c04c.json",
+          "sha256": "5dfebe02f91c9ac139723be25f973cdc2ceb2a2e78badd436568293f9ce25a27",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-d397d7d7225cf3fa1a9433d138e9e67a8713225d1bc7a0b010c1271727e0c04c.json",
+          "sha256": "7c926c6afd5e6bbb2790d469e7fba69be80e81ac97ee22aee08cb0bebfbc7231",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-adb3110b78ea9d623101aaa7.md",
+          "sha256": "759d6a3421fa510007a1ee9c97f92eb0929a8e02d6da6edc5a97fae066b8d3f9",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "9102bdb9d7178b128d7f141a8acb441ed7d4e61b88da7edb81abdf57d73c5c09",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-adb3110b78ea9d623101aaa7.md"
+    },
+    {
+      "order": 33,
+      "name": "直流增益",
+      "scopeName": "直流增益",
+      "authorityLabel": "直流增益",
+      "canonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "cardId": "ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "resourceId": "act:card:ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef.md",
+      "previousCardSha256": "4146282ecf05d185c9ed9a0731314014127e5eb6dade1770bd07261d879d4607",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-956bb941ab70005a6141bbe00959499baf30a828c89693d5c08ee240903fc876.json",
+          "sha256": "11f8fb8b05cf299ba5298fb663149bcfbc6ab921b0500d6ef49e9a1382218ed0",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-956bb941ab70005a6141bbe00959499baf30a828c89693d5c08ee240903fc876.json",
+          "sha256": "44d33414826b3243e157ae3de6f7b845b54653593d0f634393127b9656e03f13",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef.md",
+          "sha256": "4146282ecf05d185c9ed9a0731314014127e5eb6dade1770bd07261d879d4607",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "a2e23976e52ee1a530c56b188f089df9f3cc294bc6113848e752cc9d76719ccb",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef.md"
+    },
+    {
+      "order": 34,
+      "name": "不同极点部分分式展开法",
+      "scopeName": "不同极点部分分式展开法",
+      "authorityLabel": "不同极点部分分式展开法",
+      "canonicalId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+      "cardId": "ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "resourceId": "act:card:ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-b1b7acfdda35086ace2d7091.md",
+      "previousCardSha256": "78c0fee25fc62267e93577348c1f11f4e08d6760c3682fe430745a05093c883e",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9984fc132ccbb70533bce65ffa2d0fe18757a76f2a625a2ee342e92df85b0c37.json",
+          "sha256": "b838a0dc2ca68d8bd7a1d1ad25e30ff6ce842a7b6a91f67f86a0e3099d520103",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9984fc132ccbb70533bce65ffa2d0fe18757a76f2a625a2ee342e92df85b0c37.json",
+          "sha256": "eab722e26564cf5e6b1e2f2502ffd79067fcdf870105881466a8f4fe43371e14",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-b1b7acfdda35086ace2d7091.md",
+          "sha256": "78c0fee25fc62267e93577348c1f11f4e08d6760c3682fe430745a05093c883e",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "bfb6d7314f19562fabc60646f8ac9741744d4a471447d029319e741533637212",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-b1b7acfdda35086ace2d7091.md"
+    },
+    {
+      "order": 35,
+      "name": "稳态误差e_ss",
+      "scopeName": "稳态误差e_ss",
+      "authorityLabel": "稳态误差e_ss",
+      "canonicalId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+      "cardId": "ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "resourceId": "act:card:ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-bc4ff6668a7e4eed69404826.md",
+      "previousCardSha256": "6b1f4c9f42501992119249cff09cdeeae262bc8ecc82d9662985d5017f30c79f",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e0e42aae8c105748a999d839b32d67ebeb42c88e5e4d2ba918b0f1e71899f5ce.json",
+          "sha256": "25e880c63702c7d244ac41ecbdd43d3efa7d0ff42cf500be5aa5a9011d6863e7",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e0e42aae8c105748a999d839b32d67ebeb42c88e5e4d2ba918b0f1e71899f5ce.json",
+          "sha256": "b89269358bfc106dbe7702dacace7b9a7fd6ef29a9b1b0e965347bc64216c3b2",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-bc4ff6668a7e4eed69404826.md",
+          "sha256": "6b1f4c9f42501992119249cff09cdeeae262bc8ecc82d9662985d5017f30c79f",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "ddc32f8f1173ce0c2d32b264e476358729b0ed5dc73f39116fea17311db25278",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-bc4ff6668a7e4eed69404826.md"
+    },
+    {
+      "order": 36,
+      "name": "单位加速度函数",
+      "scopeName": "单位加速度函数",
+      "authorityLabel": "单位加速度函数",
+      "canonicalId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+      "cardId": "ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "resourceId": "act:card:ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-cd25e47d10ddfec280e82fde.md",
+      "previousCardSha256": "c988c1f75cba26cef2e23df448dbcc79ce45bae0d6c15b11758c490280540362",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e949e356b72ec5e96dd2f78a53438c1e68e2eca53386d9849abe9cbae68cea17.json",
+          "sha256": "031b1d9a80ff62ad5ec9d47e68152162be1724a5c4e9e9e420f981b7b918ab19",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e949e356b72ec5e96dd2f78a53438c1e68e2eca53386d9849abe9cbae68cea17.json",
+          "sha256": "eec6e56ec81aae15230f7c754248411cde4f1a2b9d72764827c54641b24826d7",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-cd25e47d10ddfec280e82fde.md",
+          "sha256": "c988c1f75cba26cef2e23df448dbcc79ce45bae0d6c15b11758c490280540362",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "092b7007d650dda3194324c2b1d025a5cc9add2db878b15e899f28d6535ac0f6",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-cd25e47d10ddfec280e82fde.md"
+    },
+    {
+      "order": 37,
+      "name": "叠加原理",
+      "scopeName": "叠加原理",
+      "authorityLabel": "叠加原理",
+      "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+      "cardId": "ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "resourceId": "act:card:ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-de9cd255c7e8770506442de0.md",
+      "previousCardSha256": "1162ea8b1af6cf27b62f06e4d9f34751d5f463026fce2462589159c8412c1292",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2463eb6c0effd7bc4ccf73d1d8ddbbb43239466b831d75d016df537fd163f8e6.json",
+          "sha256": "e28aeb72088be4e29604524a6bc0990352b381c5f7728a370210592b6e8fdb7a",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2463eb6c0effd7bc4ccf73d1d8ddbbb43239466b831d75d016df537fd163f8e6.json",
+          "sha256": "acb541e0c92e329ef37433f5580a821c7a5acc06b4c21b91ba3e585ac2ab36bc",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-de9cd255c7e8770506442de0.md",
+          "sha256": "1162ea8b1af6cf27b62f06e4d9f34751d5f463026fce2462589159c8412c1292",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "53d2a122666301f48bc518827131e2eac7d3440fe7fd88f38aeeeb11481eb53f",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-de9cd255c7e8770506442de0.md"
+    },
+    {
+      "order": 39,
+      "name": "稳定性",
+      "scopeName": "稳定性",
+      "authorityLabel": "稳定性",
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "cardId": "ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "resourceId": "act:card:ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md",
+      "previousCardSha256": "86553a9c2c39c04038100d264778ab1cf28be6d43e54989c896715a881537d01",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b9e6ef9dc0108ba4e981d23b358388df9f567591bf9ac25b434fa7e4a462a1ab.json",
+          "sha256": "f47f2a6053ecaa66f034ea94782bc28501df00e3efbb6427b5f86bdc1ca679c5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b9e6ef9dc0108ba4e981d23b358388df9f567591bf9ac25b434fa7e4a462a1ab.json",
+          "sha256": "f65cbb8badb0544c6f4e8a99c50076f0bdd662178060f7a7ff6251247765f9c0",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md",
+          "sha256": "86553a9c2c39c04038100d264778ab1cf28be6d43e54989c896715a881537d01",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "b47571caec04f65ad10b9a5fca4f8b9103cfc8766880a14f53e61665df171526",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md"
+    },
+    {
+      "order": 40,
+      "name": "调节与扰动抑制的系统类型",
+      "scopeName": "调节与扰动抑制的系统类型",
+      "authorityLabel": "调节与扰动抑制的系统类型",
+      "canonicalId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+      "cardId": "ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "resourceId": "act:card:ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ed3a4babf006b2fd746765e8.md",
+      "previousCardSha256": "2307121542837c0ff9de4719da139707a9960c42b779592aae7a6e5c76ca39dd",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c707845c80ac2cfe2042896c4f354a45b0a8a98d55a3da4672fc62f9a6925b9a.json",
+          "sha256": "c763cd47d7b1f3516d209b8a9fd1d3f5ae07143b48fe007c5cfe989d158ed65f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c707845c80ac2cfe2042896c4f354a45b0a8a98d55a3da4672fc62f9a6925b9a.json",
+          "sha256": "b85cd9e3a9cc7f5eb8324f7b4422fccfbeb57ccc0300c08c0c704837ad25be36",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-canonical-ed3a4babf006b2fd746765e8.md",
+          "sha256": "2307121542837c0ff9de4719da139707a9960c42b779592aae7a6e5c76ca39dd",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "69527b91ff55b24ade5423a7f0a98ba2feb4ae2fa8e0ff977640ed72f65d66da",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-canonical-ed3a4babf006b2fd746765e8.md"
+    },
+    {
+      "order": 41,
+      "name": "补偿器",
+      "scopeName": "补偿器",
+      "authorityLabel": "补偿器",
+      "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "cardId": "ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "resourceId": "act:card:ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-0a05ec9e84791b95d3794bc0.md",
+      "previousCardSha256": "f8044e2fcc2cbbf09b4cfe0077672aa51e9e40f16692e584a94896328f27b113",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "control-correction"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-361cf33656c82f196d171eaa0520cf63a48abb487cfeae39f066daf503afcd23.json",
+          "sha256": "4b1e9bbb1aeb936a5d139c428e3b12fdd58b9bd76f971e46f85dc968665c78b4",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-361cf33656c82f196d171eaa0520cf63a48abb487cfeae39f066daf503afcd23.json",
+          "sha256": "98b037aa16b78a0168309a970dcdefab812b7219b2df3b814dcf71c1d4ef0a34",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-0a05ec9e84791b95d3794bc0.md",
+          "sha256": "f8044e2fcc2cbbf09b4cfe0077672aa51e9e40f16692e584a94896328f27b113",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "cd236c3a03e6cfe6aa85aa8ae91a1f7c19fa4e02a9754b237dbb5a85fbcad377",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-0a05ec9e84791b95d3794bc0.md"
+    },
+    {
+      "order": 42,
+      "name": "实验频率响应测定",
+      "scopeName": "实验频率响应测定",
+      "authorityLabel": "实验频率响应测定",
+      "canonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "cardId": "ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "resourceId": "act:card:ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-0ca481aed329f4e6c74c8d30.md",
+      "previousCardSha256": "ced5e6b9c2914eabe4d4ba7f385fb0ac29fe7bdcd054d18140ba4e6a01cc34a6",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "simulation-validation-practice"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-30f0a556a0058d1211bff4470a3c2b05896f06332ae053524bec5f086348b9e6.json",
+          "sha256": "8b1e2792cf6845cb56aa00b92d3e61921243cbc19859b7b6c28b42383d5b8f6c",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-30f0a556a0058d1211bff4470a3c2b05896f06332ae053524bec5f086348b9e6.json",
+          "sha256": "ceca718da8afa9162eaf92779737eb291a847181d528e8856d5385c5dc3c8468",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-0ca481aed329f4e6c74c8d30.md",
+          "sha256": "ced5e6b9c2914eabe4d4ba7f385fb0ac29fe7bdcd054d18140ba4e6a01cc34a6",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "fe860ff3b6d815a694521683ff8577eb291f9b4e6d819227cd6243a6ad2f36ea",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-0ca481aed329f4e6c74c8d30.md"
+    },
+    {
+      "order": 43,
+      "name": "性能指标",
+      "scopeName": "性能指标",
+      "authorityLabel": "性能指标",
+      "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+      "cardId": "ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "resourceId": "act:card:ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-10c37fd947ba55593ff03ede.md",
+      "previousCardSha256": "0078f1a361ab098a5e3701ac5b780c8598990835b0720b4daf1d5525d590e7fd",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7c6e57cd77d92d9d2e8892527b6979462f44d25a7fb50e2d51ceebc8363d489c.json",
+          "sha256": "bb8b20312a478bf730c4463237170d5265a43d99dc7b1535f7221ea1eae3fb0c",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7c6e57cd77d92d9d2e8892527b6979462f44d25a7fb50e2d51ceebc8363d489c.json",
+          "sha256": "2725a119f051017512d9fe165662dfc95ca8ce546316694c68520bea1cc01ce5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-10c37fd947ba55593ff03ede.md",
+          "sha256": "0078f1a361ab098a5e3701ac5b780c8598990835b0720b4daf1d5525d590e7fd",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "91e915e1b488333ce584510ca3134baf16b12703ddfaf6b95869c005dff5dbaa",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-10c37fd947ba55593ff03ede.md"
+    },
+    {
+      "order": 44,
+      "name": "积分补偿器",
+      "scopeName": "积分补偿器",
+      "authorityLabel": "积分补偿器",
+      "canonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+      "cardId": "ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "resourceId": "act:card:ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-17cae71babbbfe193c0124a4.md",
+      "previousCardSha256": "4ceaff63d8a655f4c413235b5a57f3677819a04f2420d7eaf7b8c134393c250a",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-026066555686222528d2d9d0ecd4372475d8fdb19a9cc2b2acf22d188fb35744.json",
+          "sha256": "21333041c61fa543ce3f3ec841a2da247c2735b4235468465cbdc9bada88654f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-026066555686222528d2d9d0ecd4372475d8fdb19a9cc2b2acf22d188fb35744.json",
+          "sha256": "168905f477570a14316ab08ca48acba5ce48b8d9b60ade749a8b03e37e8a6391",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-17cae71babbbfe193c0124a4.md",
+          "sha256": "4ceaff63d8a655f4c413235b5a57f3677819a04f2420d7eaf7b8c134393c250a",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "d9eac8c8b171e5bc90a9cca4cdac572db711bd61cfdbbe937c3039acf85133d3",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-17cae71babbbfe193c0124a4.md"
+    },
+    {
+      "order": 45,
+      "name": "穿越频率（相位）",
+      "scopeName": "穿越频率（相位）",
+      "authorityLabel": "穿越频率（相位）",
+      "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "cardId": "ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "resourceId": "act:card:ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c.md",
+      "previousCardSha256": "f918d8232b2968ba1536260e4e44027656f340a3bbb797789bbf72b6233acbc0",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bb78be89bcde5a37896c9db87df58f7c963d6ebd493a9f03301db7e3b2b173ab.json",
+          "sha256": "c8fc061c516e5d15827cf0b204c249c494062c2b32ef97010f3546380801bdb2",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bb78be89bcde5a37896c9db87df58f7c963d6ebd493a9f03301db7e3b2b173ab.json",
+          "sha256": "435ed72c9f96f7bc05385a2dc4cfeb2baa63ee71c310795071251efc9b972c09",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c.md",
+          "sha256": "f918d8232b2968ba1536260e4e44027656f340a3bbb797789bbf72b6233acbc0",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "a3c6547855a5c6abc49622c485e4bec1952f1045ed9bf32f20670de2d34265b2",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c.md"
+    },
+    {
+      "order": 46,
+      "name": "截止频率",
+      "scopeName": "截止频率",
+      "authorityLabel": "截止频率",
+      "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "cardId": "ctkg_v3e-object-232e387ed53e92abee078346",
+      "resourceId": "act:card:ctkg_v3e-object-232e387ed53e92abee078346",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-232e387ed53e92abee078346.md",
+      "previousCardSha256": "86142085f99311aa80961544f191677106215da932d9c5bd3cd08e5a2af88c5c",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-868f4f01c9e9c2ec249c16f9c585ea93a4f7461f9be33f73f411e64ec70b1a0d.json",
+          "sha256": "9a15568ca1652899f142ecbff44d4975471c4b909f8c5c07c368aeb7f84e157c",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-868f4f01c9e9c2ec249c16f9c585ea93a4f7461f9be33f73f411e64ec70b1a0d.json",
+          "sha256": "196b3929a73f9126d4d06930a44a37adbf8f66141f4520a6d33b961e8c42ac4e",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-232e387ed53e92abee078346.md",
+          "sha256": "86142085f99311aa80961544f191677106215da932d9c5bd3cd08e5a2af88c5c",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "f8081bf42c1a2e1a607e48877c69953c80577948f4a1949a369851d9b1d83ef2",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-232e387ed53e92abee078346.md"
+    },
+    {
+      "order": 47,
+      "name": "频率特性",
+      "scopeName": "频率特性",
+      "authorityLabel": "频率特性",
+      "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "cardId": "ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "resourceId": "act:card:ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-38d4679bf3335318b0f4afb7.md",
+      "previousCardSha256": "8913826ae9c62c1821b72846c3f1fb00a89b7577033e509692a8453cd25407e4",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ebd0d8336c3cd53d34b2abd2840d7cb2b6b7fe2f0a394d0887b77d3c77588db3.json",
+          "sha256": "7836222cbcd5befe11765832e21355ec0c40ec7eb33c7f79506b2953d047b954",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ebd0d8336c3cd53d34b2abd2840d7cb2b6b7fe2f0a394d0887b77d3c77588db3.json",
+          "sha256": "ee4de1470d2eca07850ccfab57948c9b7e84f341f1e87c22f4c65c48e2f438e7",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-38d4679bf3335318b0f4afb7.md",
+          "sha256": "8913826ae9c62c1821b72846c3f1fb00a89b7577033e509692a8453cd25407e4",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "a85fa8cb1320b6a19631610454822acb10df1bbd10f9db227dd6a286de5ac7dc",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-38d4679bf3335318b0f4afb7.md"
+    },
+    {
+      "order": 48,
+      "name": "幅值谱",
+      "scopeName": "幅值谱",
+      "authorityLabel": "幅值谱",
+      "canonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+      "cardId": "ctkg_v3e-object-3af39a858b2949296df5387f",
+      "resourceId": "act:card:ctkg_v3e-object-3af39a858b2949296df5387f",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3af39a858b2949296df5387f.md",
+      "previousCardSha256": "48ddf2adaf7b101e186ad145a76a84944181220f9c7320d011b8a91a2c695d90",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-25167c5f2ebfd993ed25f345d528af58af9f2c273a2c7d552fd96bb66d3d4a4c.json",
+          "sha256": "5a67d70be99e9565d9b58210e070a42080cf8d10551f1432e8e06c2ef61b4dc1",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-25167c5f2ebfd993ed25f345d528af58af9f2c273a2c7d552fd96bb66d3d4a4c.json",
+          "sha256": "00696f15dd6847726465c9434cb57e02b78b4f9626c25662cea6d1245a0f036b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-3af39a858b2949296df5387f.md",
+          "sha256": "48ddf2adaf7b101e186ad145a76a84944181220f9c7320d011b8a91a2c695d90",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "9ff9a11071cb966c741009378ef7cd86a0a6979442c94dba928a0aa72f7fa25a",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-3af39a858b2949296df5387f.md"
+    },
+    {
+      "order": 49,
+      "name": "比例控制规律",
+      "scopeName": "比例控制规律",
+      "authorityLabel": "比例控制规律",
+      "canonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+      "cardId": "ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "resourceId": "act:card:ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-3fe181aa7c0967f58d1dbfee.md",
+      "previousCardSha256": "18dfe39aab1f81dd9a70e77a38e6e79ed033cf8e97937ca57d42502324e4c054",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1ea4f1d17c82bfe86cd4c827494196b6b786081fb6b0a15e1ed001ba5dee696d.json",
+          "sha256": "5d6740da15e9e889cc0255089b006531bbab223a027a0795b9e1a9c36521fb03",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1ea4f1d17c82bfe86cd4c827494196b6b786081fb6b0a15e1ed001ba5dee696d.json",
+          "sha256": "d4b2479ace6ff611f9b2c599af004bad02d47664703a27e89501fb5f0b86c7c9",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-3fe181aa7c0967f58d1dbfee.md",
+          "sha256": "18dfe39aab1f81dd9a70e77a38e6e79ed033cf8e97937ca57d42502324e4c054",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "aedc45c121fa33c38401d7c6df0312c54c3c02cbf95840705843b317f8955d2f",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-3fe181aa7c0967f58d1dbfee.md"
+    },
+    {
+      "order": 51,
+      "name": "极点配置补偿器设计",
+      "scopeName": "极点配置补偿器设计",
+      "authorityLabel": "极点配置补偿器设计",
+      "canonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+      "cardId": "ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "resourceId": "act:card:ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-64dfc92ef15f84903e6cdd8a.md",
+      "previousCardSha256": "db3ad74c65430734b9acc1b054cdc18191f267d0de599bc62cca2b90bf9c5c35",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-45a0aa44db67766733b9273d5601d84941a5127846360290815a53223d81e042.json",
+          "sha256": "cdb4ce8a4ff63a5371d6be9c1f14f5fb103cd8e416ca8f9563ec04957caf9e23",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-45a0aa44db67766733b9273d5601d84941a5127846360290815a53223d81e042.json",
+          "sha256": "fa77d45520245964d1a31c821d74cb96c8e5a23c5978322bac130b47b4fad0b1",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-64dfc92ef15f84903e6cdd8a.md",
+          "sha256": "db3ad74c65430734b9acc1b054cdc18191f267d0de599bc62cca2b90bf9c5c35",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "968b78204d419bb5ec5e4379d8137d6d0e85f68dbbed7a85df3e6ef96c537ed7",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-64dfc92ef15f84903e6cdd8a.md"
+    },
+    {
+      "order": 52,
+      "name": "穿越频率（增益）",
+      "scopeName": "穿越频率（增益）",
+      "authorityLabel": "穿越频率（增益）",
+      "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+      "cardId": "ctkg_v3e-object-7761615701fb4915a76924ff",
+      "resourceId": "act:card:ctkg_v3e-object-7761615701fb4915a76924ff",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7761615701fb4915a76924ff.md",
+      "previousCardSha256": "bd6ed15f09c9ed3ae03ca2fb1cbcad1a31738bd8c652baedf5723e0e0168b376",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-38cd6eb74ce9804d3f70444a8ab5f01ced1619eba69b227fb665098702b9106e.json",
+          "sha256": "51237c2b793df5e5a00b46f6efad42ea2122c339302540d8879eb934a7ecfa16",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-38cd6eb74ce9804d3f70444a8ab5f01ced1619eba69b227fb665098702b9106e.json",
+          "sha256": "799c118bfe31d173a8a553f8dde7e8f88bef460ccc5cb5333d431338b0018b5d",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-7761615701fb4915a76924ff.md",
+          "sha256": "bd6ed15f09c9ed3ae03ca2fb1cbcad1a31738bd8c652baedf5723e0e0168b376",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "f7585a09b100fd18fcec29be97d30b79c053ba5f4643c2f5410ca200c166771a",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-7761615701fb4915a76924ff.md"
+    },
+    {
+      "order": 53,
+      "name": "比例积分控制器",
+      "scopeName": "比例积分控制器",
+      "authorityLabel": "比例积分控制器",
+      "canonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+      "cardId": "ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "resourceId": "act:card:ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7d20806108956a0f52c08f3a.md",
+      "previousCardSha256": "224f6782c99282f7bb894ec92756084bd635980bf92378e1c416336bfefba496",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-535e2bb10e6314484776c785119a965f328ca47e6a4887bfd7f8832c51d199b6.json",
+          "sha256": "8f636ca656ef915c5e010a8b5980de59594157006a1396ff0eedc1c41df3ed72",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-535e2bb10e6314484776c785119a965f328ca47e6a4887bfd7f8832c51d199b6.json",
+          "sha256": "db089ca941d68d0f4cb214810198ed142de652a1c19efdaadb8fc3676dfd8add",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-7d20806108956a0f52c08f3a.md",
+          "sha256": "224f6782c99282f7bb894ec92756084bd635980bf92378e1c416336bfefba496",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "31eb84e8e03d2724ba77de28545e7c23fa7a824b80be8ec3fbc26ab5267b7fc8",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-7d20806108956a0f52c08f3a.md"
+    },
+    {
+      "order": 54,
+      "name": "拉普拉斯变换",
+      "scopeName": "拉普拉斯变换",
+      "authorityLabel": "拉普拉斯变换",
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "cardId": "ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "resourceId": "act:card:ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8c4354096b719a1d5e090da4.md",
+      "previousCardSha256": "00522a5996166ea750f890a2d81184e06a5120f6323f16b77c529d3fbcc19310",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8656595b157ea817cf4897082d16600b7ae116697305c8e85d6ac1041cb2ff19.json",
+          "sha256": "a21b3af45542469ceedf763079d2796e263ba34063a35f6c6ec6d2f2b8e75be4",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8656595b157ea817cf4897082d16600b7ae116697305c8e85d6ac1041cb2ff19.json",
+          "sha256": "31af8ca78f7cdf83827d86eb3a5f1e0bb1005c2815443d78fdb0567a555d9fd1",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-8c4354096b719a1d5e090da4.md",
+          "sha256": "00522a5996166ea750f890a2d81184e06a5120f6323f16b77c529d3fbcc19310",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "f8749d92bce071a00dae1a646970d3efce559c20cebb427db5e637a9c1c1220c",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-8c4354096b719a1d5e090da4.md"
+    },
+    {
+      "order": 56,
+      "name": "全状态反馈设计步骤",
+      "scopeName": "全状态反馈设计步骤",
+      "authorityLabel": "全状态反馈设计步骤",
+      "canonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+      "cardId": "ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "resourceId": "act:card:ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ab4dc18aac53ac6636d05ca5.md",
+      "previousCardSha256": "6fb1f58de9ab59db7d0767c9d8bbd59bcab5e06543183413e08f10d430f62f81",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c624143d47f24c9d8374a994b953107a789fb79e89452ca0d0b1f10a8301dee9.json",
+          "sha256": "308ff3c8b1387a54eab3afbe22f5f19dbcd76bef7f5ef7ac5960cdee86f81b1b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c624143d47f24c9d8374a994b953107a789fb79e89452ca0d0b1f10a8301dee9.json",
+          "sha256": "a56e027774228b5b25e5fb131ecbcef248b6976ed820b0a8f704664148c991c4",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-ab4dc18aac53ac6636d05ca5.md",
+          "sha256": "6fb1f58de9ab59db7d0767c9d8bbd59bcab5e06543183413e08f10d430f62f81",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "79d59a6cf8f6808a8d6d23c640dc99a7a64797c3e5469161b08c02e1bd39ef4c",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-ab4dc18aac53ac6636d05ca5.md"
+    },
+    {
+      "order": 57,
+      "name": "延迟环节",
+      "scopeName": "延迟环节",
+      "authorityLabel": "延迟环节",
+      "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "cardId": "ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "resourceId": "act:card:ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b0cbf122498bca9269e55406.md",
+      "previousCardSha256": "585a96aff7ec63905110f8250f086ddb77fa9781ca7b61b4f72d4a85b449537c",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e4963f54a478cbc04c87a194dbb646d4fabd812074ec21fd9f0e9c710b43f4db.json",
+          "sha256": "d7c75ddade6a92be91814078c70f84ee54c4da558469c0d634b3aac26e167ed4",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e4963f54a478cbc04c87a194dbb646d4fabd812074ec21fd9f0e9c710b43f4db.json",
+          "sha256": "dcc536f3bfebe28f94f83e7d7e3b3cb9cdb3d3067e1ed3e5226f46d597a9ad48",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-b0cbf122498bca9269e55406.md",
+          "sha256": "585a96aff7ec63905110f8250f086ddb77fa9781ca7b61b4f72d4a85b449537c",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "3c03a6d94ee2016e8d1f99e72a65ad6b197519804b67818a7aa75fc101e9deb4",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-b0cbf122498bca9269e55406.md"
+    },
+    {
+      "order": 58,
+      "name": "幅值裕度",
+      "scopeName": "幅值裕度",
+      "authorityLabel": "幅值裕度",
+      "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+      "cardId": "ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "resourceId": "act:card:ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c2881833cb4d8b1e415dc742.md",
+      "previousCardSha256": "f24103830a6003b2bbfc9fdc44ef6e55bf60e03808451dd089cfc8d31bbbb08c",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "stability-margin-frequency-analysis"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ea8b55856ec1377fdbb1bdb20df31061bf9003b45224b3d562348048e07fe7d5.json",
+          "sha256": "9cdc19b42fb2fa3fb72af4ddae02a12e931ae3449dfe53f85a8a5a65eb05ffed",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ea8b55856ec1377fdbb1bdb20df31061bf9003b45224b3d562348048e07fe7d5.json",
+          "sha256": "775e7f4531a82e84ed22334c9286306558e9e41e40ecdfd5e6c96d5539092bdb",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-c2881833cb4d8b1e415dc742.md",
+          "sha256": "f24103830a6003b2bbfc9fdc44ef6e55bf60e03808451dd089cfc8d31bbbb08c",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "f19a176fbf41fe000db68af19f32aeff0125880bb4ca5953f1193ef334eb6cfa",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-c2881833cb4d8b1e415dc742.md"
+    },
+    {
+      "order": 59,
+      "name": "补偿",
+      "scopeName": "补偿",
+      "authorityLabel": "补偿",
+      "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+      "cardId": "ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "resourceId": "act:card:ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c437a7c8ef65d5677ad5c387.md",
+      "previousCardSha256": "43d6f16edf679b8e4c6b87d1e43ed9d466e60342e3973befc52a4ae0f92cbfc6",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6e4b0b9bd47b3dc19b522bb267273b23e6efc9629430b078b4bd49b98127ad24.json",
+          "sha256": "ebe8c963681921bd1d6c02d11d4b3b3fe9a32a6cbb4ce65bd3a737369de58927",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6e4b0b9bd47b3dc19b522bb267273b23e6efc9629430b078b4bd49b98127ad24.json",
+          "sha256": "0282942eed3e9c393ef7032c2d45e26ff063a6efbe3b3346683c4e81bcc0e2fd",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-c437a7c8ef65d5677ad5c387.md",
+          "sha256": "43d6f16edf679b8e4c6b87d1e43ed9d466e60342e3973befc52a4ae0f92cbfc6",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "aa1593c93f06c05c78b90e081a70deb3a1d3f910bdb5fc6ee14066add9081306",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-c437a7c8ef65d5677ad5c387.md"
+    },
+    {
+      "order": 60,
+      "name": "劳斯-赫尔维茨稳定性判据法",
+      "scopeName": "劳斯-赫尔维茨稳定性判据法",
+      "authorityLabel": "劳斯-赫尔维茨稳定性判据法",
+      "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+      "cardId": "ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "resourceId": "act:card:ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c6fd3f071d7b3ea64acf9760.md",
+      "previousCardSha256": "de176e61c904fc7a8f74e18b8ae20250d8f0bc1a71ebaf3efe8118db3749c9fb",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0a14658efad1ea54d0ed42acaa4bd45692ddb5b6dff7504209e99192a59922da.json",
+          "sha256": "1d694cef3cfda3c0b39f1230cf4a28476d9c3ebbf963afaead072cc7b7dcae0e",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0a14658efad1ea54d0ed42acaa4bd45692ddb5b6dff7504209e99192a59922da.json",
+          "sha256": "d393e3c6f591d6f51af9e7c7c66cafbeebddfa134d3941fb16ace3424ad38fb3",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-c6fd3f071d7b3ea64acf9760.md",
+          "sha256": "de176e61c904fc7a8f74e18b8ae20250d8f0bc1a71ebaf3efe8118db3749c9fb",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "5e2d82c851529f0b5101d42e8ec524ea61737ebb953dfa3acdbd45da2815e0bf",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-c6fd3f071d7b3ea64acf9760.md"
+    },
+    {
+      "order": 61,
+      "name": "劳斯-赫尔维茨稳定性判据",
+      "scopeName": "劳斯-赫尔维茨稳定性判据",
+      "authorityLabel": "劳斯-赫尔维茨稳定性判据",
+      "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "cardId": "ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "resourceId": "act:card:ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-cfdae92ada72d7710e7f1cee.md",
+      "previousCardSha256": "913a960a8c769cb2a656bfc2b18522c014a8b33690afd7b2439d4cd0f0fe3e7b",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-534c1018cbeb1814f101f8adf6aa842eb21c2e3d464055a63edf66ec137a5d68.json",
+          "sha256": "a5e84b8cd2a7224d63b20445a1dff85274ff0fc757171f421ca13d532612e6b5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-534c1018cbeb1814f101f8adf6aa842eb21c2e3d464055a63edf66ec137a5d68.json",
+          "sha256": "1fa4c33e64ffd0fd30d688ea8ff55e890f7fa4bf1da3070573fd6bf3b95b8414",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-cfdae92ada72d7710e7f1cee.md",
+          "sha256": "913a960a8c769cb2a656bfc2b18522c014a8b33690afd7b2439d4cd0f0fe3e7b",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "35ba6643ba9417e1c88d813fa7d82786538b19f76a24a0564450865700df6e71",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-cfdae92ada72d7710e7f1cee.md"
+    },
+    {
+      "order": 62,
+      "name": "串联滞后-超前校正",
+      "scopeName": "串联滞后-超前校正",
+      "authorityLabel": "串联滞后-超前校正",
+      "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+      "cardId": "ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "resourceId": "act:card:ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-d80dfe6ce979515d21845c81.md",
+      "previousCardSha256": "ec47dcfaa4246c0e6255277e7dffaff0e35ef96fbd196286bd3ce6c44afa7b8d",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "control-correction"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8677504b988904be14627ec17514ab41b0b2d67bc951c28521a300cf4d58e1ce.json",
+          "sha256": "60f478603a835182ec95c39dcd478ea7f4e35cdffa566e77dd084561ac76c8f5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8677504b988904be14627ec17514ab41b0b2d67bc951c28521a300cf4d58e1ce.json",
+          "sha256": "4b4230893177ac372519d944d1412a4c88b31289dce56be4ad5731ee762602ae",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-d80dfe6ce979515d21845c81.md",
+          "sha256": "ec47dcfaa4246c0e6255277e7dffaff0e35ef96fbd196286bd3ce6c44afa7b8d",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "d4ecbed389b975d887297801ae0512f5adffae072270b4d4ef72259f30f02393",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-d80dfe6ce979515d21845c81.md"
+    },
+    {
+      "order": 63,
+      "name": "幅频特性",
+      "scopeName": "幅频特性",
+      "authorityLabel": "幅频特性",
+      "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+      "cardId": "ctkg_v3e-object-de873c97a924107857f79242",
+      "resourceId": "act:card:ctkg_v3e-object-de873c97a924107857f79242",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-de873c97a924107857f79242.md",
+      "previousCardSha256": "918b35f6193150105b057b63d7ef247dad4536e7b18dd5c87f31bb67589703fe",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f0ea7d3d56c211b130200112ed6275b5388762ecc0aec7cde1c60ccaab6feac8.json",
+          "sha256": "9fe17737fef5bbba58bf815bb77ce239389ed9ad7a686a7b52c7de288b42ae48",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f0ea7d3d56c211b130200112ed6275b5388762ecc0aec7cde1c60ccaab6feac8.json",
+          "sha256": "59696a2d22738dedb6755020f14a89f75df325801bb72fb19c75d5a8de948550",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-de873c97a924107857f79242.md",
+          "sha256": "918b35f6193150105b057b63d7ef247dad4536e7b18dd5c87f31bb67589703fe",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "e552c03ebd50677cb23e8cf8cc42c2c019a0ac7b0f39a3ed5a02643580415741",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-de873c97a924107857f79242.md"
+    },
+    {
+      "order": 64,
+      "name": "串联校正",
+      "scopeName": "串联校正",
+      "authorityLabel": "串联校正",
+      "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+      "cardId": "ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "resourceId": "act:card:ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e1caec9f68da5c573be699d5.md",
+      "previousCardSha256": "4e479ea741e9631e2122575c65bf14d8ee898becbc021e7db194eda371fcfb59",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "control-correction"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96151abaaa346ff4f9a8c92d0c8193ec3288cd1bb0acd88ec80f344e0ada2626.json",
+          "sha256": "bc1999121349f39df1f997d3f654fdd2455ec4a53b7e292291d1ea8cdfc89864",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96151abaaa346ff4f9a8c92d0c8193ec3288cd1bb0acd88ec80f344e0ada2626.json",
+          "sha256": "20356c388ff83a7a41d34ce893fa0dec585a1f6a7aa57a62d352917fa9d29db7",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-e1caec9f68da5c573be699d5.md",
+          "sha256": "4e479ea741e9631e2122575c65bf14d8ee898becbc021e7db194eda371fcfb59",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "a6154bf6c3843209f61a8268b9b2d2f70cf4308398d6560ffb8282ed9853e241",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-e1caec9f68da5c573be699d5.md"
+    },
+    {
+      "order": 65,
+      "name": "频率特性实验确定方法",
+      "scopeName": "频率特性实验确定方法",
+      "authorityLabel": "频率特性实验确定方法",
+      "canonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+      "cardId": "ctkg_v3e-object-e80f5d56ce06409842363584",
+      "resourceId": "act:card:ctkg_v3e-object-e80f5d56ce06409842363584",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e80f5d56ce06409842363584.md",
+      "previousCardSha256": "099bd71f85209712f82f39d8c445e39c46317a8f4f8f3311489e34107650f9ef",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c5623eefd3b78c960a5f0552a80b5219108d280da48d483756a7699a5c9dd677.json",
+          "sha256": "45b3b956af14cb9aeb419ea3736aacad54153eca50fc9c651906a405c417a1ab",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c5623eefd3b78c960a5f0552a80b5219108d280da48d483756a7699a5c9dd677.json",
+          "sha256": "55b7313020fa617078d6c9c90248de5f159b9bdeeb05b222055efec9df8a0c54",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-e80f5d56ce06409842363584.md",
+          "sha256": "099bd71f85209712f82f39d8c445e39c46317a8f4f8f3311489e34107650f9ef",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "5378336e19c89a3f671de01a68e730004755e3aaf78c21ec0f32d8460f800671",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-e80f5d56ce06409842363584.md"
+    },
+    {
+      "order": 66,
+      "name": "正弦稳态响应",
+      "scopeName": "正弦稳态响应",
+      "authorityLabel": "正弦稳态响应",
+      "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "cardId": "ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "resourceId": "act:card:ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ee4c217b305b05786c0b89a9.md",
+      "previousCardSha256": "80839e67f2ac84f3f995e23ba713517c436549353f8ba2a0ca7290e634f31706",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2becb76f6fe7e1a1ee39ae94a473272c4a06b5ddeb71ac58e4b855e6cad615a2.json",
+          "sha256": "7e529e7ce3dfb3646aae084e6abd7523e6a430190818b037e8dc8e2fddf6c142",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2becb76f6fe7e1a1ee39ae94a473272c4a06b5ddeb71ac58e4b855e6cad615a2.json",
+          "sha256": "8111bca330ae7a8569c900741bc0f25c4c87f80228ac467873a21b1480d61f3f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-ee4c217b305b05786c0b89a9.md",
+          "sha256": "80839e67f2ac84f3f995e23ba713517c436549353f8ba2a0ca7290e634f31706",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "763f960222c28e4dbca212737aba86a02c12831ff814b1eb7e0c5884c39424ec",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-ee4c217b305b05786c0b89a9.md"
+    },
+    {
+      "order": 67,
+      "name": "校正装置",
+      "scopeName": "校正装置",
+      "authorityLabel": "校正装置",
+      "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "cardId": "ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "resourceId": "act:card:ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-f1df5739a34bf55489aeeeeb.md",
+      "previousCardSha256": "97bc302b3ee5993d88c99855dd57eaddf34b9d57688ec95e8708111c7e1d445d",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "control-correction"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1662848c1ed2a7feaa036ea3729f76e5b5d7d303a4f3a39eda7d17cb30422bec.json",
+          "sha256": "7d3f0a9a3b0520dccd82f75f42681a4104ae3ecf2f65d219f922e6398454fb44",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1662848c1ed2a7feaa036ea3729f76e5b5d7d303a4f3a39eda7d17cb30422bec.json",
+          "sha256": "583083c989e0a9900ba324669f363757fae1bc9e41de8e566c575d07a1a825f7",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/previous/ctkg_v3e-object-f1df5739a34bf55489aeeeeb.md",
+          "sha256": "97bc302b3ee5993d88c99855dd57eaddf34b9d57688ec95e8708111c7e1d445d",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "cardSha256": "15e1e70c879cec1e800faf1963e1d3fe5d2fa867eeda4f09ab5a0ff36ea20ed6",
+      "status": "pending-content-depth",
+      "reason": "作者正文可解析，但清洗后的完整解释少于 500 字符，暂不纳入本批完整卡 inventory。",
+      "draftPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01/drafts/ctkg_v3e-object-f1df5739a34bf55489aeeeeb.md"
+    }
+  ],
+  "contentCompleteness": "partial",
+  "contentCompletenessRule": "完整卡须通过 readPublishedLearnerCardByToken、content hash、含自检/核对要点且 explanation >= 500 字符；其余保留在 remaining。"
+}

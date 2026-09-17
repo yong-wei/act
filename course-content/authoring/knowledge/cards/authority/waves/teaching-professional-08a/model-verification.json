@@ -1,0 +1,123 @@
+{
+  "status": "passed",
+  "models": {
+    "unit_circle": {
+      "scalarSequences": {
+        "0.8": [
+          1.0,
+          0.8,
+          0.6400000000000001,
+          0.5120000000000001,
+          0.4096000000000001,
+          0.3276800000000001
+        ],
+        "1.0": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "-1.0": [
+          1.0,
+          -1.0,
+          1.0,
+          -1.0,
+          1.0,
+          -1.0
+        ],
+        "1.1": [
+          1.0,
+          1.1,
+          1.2100000000000002,
+          1.3310000000000004,
+          1.4641000000000004,
+          1.6105100000000006
+        ]
+      },
+      "jordanSequence": "[k,1] for x0=[0,1]"
+    },
+    "sampling_period": {
+      "cases": [
+        {
+          "T": 0.5,
+          "a": 0.6065306597126334,
+          "b": 0.3934693402873665,
+          "closedLoopPole": -0.18040802086209962,
+          "stable": true
+        },
+        {
+          "T": 1.5,
+          "a": 0.22313016014842982,
+          "b": 0.7768698398515701,
+          "closedLoopPole": -1.3306095195547103,
+          "stable": false
+        }
+      ],
+      "stableInterval": "0<T<ln(3)"
+    },
+    "discrete_model": {
+      "zeroInputSequence": [
+        "1",
+        "4/5",
+        "16/25",
+        "64/125",
+        "256/625",
+        "1024/3125"
+      ],
+      "transfer": "0.2/(z-0.8), zero initial state"
+    },
+    "exact_zoh": {
+      "T": 0.2,
+      "Ad": 0.6703200460356393,
+      "Bd": 0.4945199309465411,
+      "stepSamples": [
+        0.0,
+        0.4945199309465411,
+        0.8260065538241678,
+        1.0482086821316972,
+        1.1971552230080171,
+        1.2969970751450812
+      ]
+    },
+    "proportional": {
+      "cases": [
+        {
+          "K": "2",
+          "pole": "2/5",
+          "formalEquilibrium": "2/3",
+          "stable": true
+        },
+        {
+          "K": "10",
+          "pole": "-6/5",
+          "formalEquilibrium": "10/11",
+          "stable": false
+        }
+      ],
+      "positiveGainStableInterval": "0<K<9"
+    },
+    "integral": {
+      "initialState": "I[-1]=0",
+      "updateBeforeOutput": true,
+      "outputs": [
+        "1/5",
+        "2/5",
+        "3/5"
+      ]
+    },
+    "derivative": {
+      "rampOutput": "1",
+      "alternatingNoiseAmplitude": "1/10",
+      "filterAlpha": "2/3",
+      "filterBeta": "5/3",
+      "filteredStep": [
+        "5/3",
+        "10/9",
+        "20/27"
+      ]
+    }
+  },
+  "scope": "original example equations; content and source support still require independent review"
+}

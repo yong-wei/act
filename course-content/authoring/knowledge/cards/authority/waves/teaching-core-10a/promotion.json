@@ -1,0 +1,11 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 9,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b21",
+  "retiredResources": [
+    "act:card:单位脉冲响应_2_e56a0360",
+    "act:card:单位脉冲响应_3_a67aa116",
+    "act:card:正弦函数_1_98499ac0",
+    "act:card:典型输入信号_3_897a572d"
+  ]
+}

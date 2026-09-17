@@ -1,0 +1,146 @@
+{
+  "status": "passed",
+  "models": {
+    "state_feedback": {
+      "K": [
+        [
+          6.0,
+          5.0
+        ]
+      ],
+      "poles": [
+        -2,
+        -3
+      ]
+    },
+    "ackermann_control": {
+      "controllabilityMatrix": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "K": [
+        [
+          6.0,
+          5.0
+        ]
+      ]
+    },
+    "full_observer": {
+      "L": [
+        [
+          9.0
+        ],
+        [
+          20.0
+        ]
+      ],
+      "errorPoles": [
+        -4,
+        -5
+      ]
+    },
+    "ackermann_observer": {
+      "observabilityMatrix": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0
+        ]
+      ],
+      "L": [
+        [
+          9.0
+        ],
+        [
+          20.0
+        ]
+      ]
+    },
+    "stabilizability_detectability": {
+      "uncontrolledUnobservedStableMode": -2,
+      "counterexampleUnstableMode": 2
+    },
+    "reduced_observer": {
+      "gain": 4,
+      "errorPole": -4,
+      "outputCoefficient": -16
+    },
+    "separation": {
+      "closedLoop": [
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -6.0,
+          -5.0,
+          6.0,
+          5.0
+        ],
+        [
+          0.0,
+          0.0,
+          -9.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -20.0,
+          0.0
+        ]
+      ],
+      "poles": [
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "kalman_decomposition": {
+      "controllabilityRank": 2,
+      "observabilityRank": 2,
+      "transferFunction": "1/(s+1)"
+    },
+    "internal_model": {
+      "closedLoop": [
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          -11.0,
+          -6.0,
+          6.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "poles": [
+        -1,
+        -2,
+        -3
+      ],
+      "stepEquilibrium": [
+        1.0,
+        -0.0,
+        1.8333333333333335
+      ]
+    }
+  }
+}

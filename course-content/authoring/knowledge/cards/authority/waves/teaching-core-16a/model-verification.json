@@ -1,0 +1,252 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "controllability_gramian": {
+      "A": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          -2
+        ]
+      ],
+      "B": [
+        1,
+        1
+      ],
+      "T": 1.0,
+      "W": [
+        [
+          0.43233235838169365,
+          0.3167376438773787
+        ],
+        [
+          0.3167376438773787,
+          0.24542109027781644
+        ]
+      ],
+      "determinant": 0.005780743707421755,
+      "uncontrollableB": [
+        1,
+        0
+      ],
+      "uncontrollableW": [
+        [
+          0.43233235838169365,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "boundary": "finite-time controllability criterion, not a stability criterion"
+    },
+    "auxiliary": {
+      "standardPolynomial": [
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        1.0
+      ],
+      "factorization": "(s^2+1)(s+1)^2",
+      "routh": {
+        "firstColumn": [
+          1.0,
+          2.0,
+          1.0,
+          2.0,
+          1.0
+        ],
+        "auxiliaryPolynomials": [
+          {
+            "zeroRowDegree": 1,
+            "auxiliaryDegree": 2,
+            "coefficients": [
+              1.0,
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "epsilonRows": []
+      },
+      "originExample": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0
+      ],
+      "originFactorization": "s(s+1)(s^2+1)",
+      "originRouth": {
+        "firstColumn": [
+          1.0,
+          1.0,
+          3.0,
+          0.6666666666666666,
+          1.0
+        ],
+        "auxiliaryPolynomials": [
+          {
+            "zeroRowDegree": 2,
+            "auxiliaryDegree": 3,
+            "coefficients": [
+              1.0,
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "epsilonRows": []
+      },
+      "boundary": "all-zero row; an origin root can give an odd auxiliary polynomial"
+    },
+    "first_column_zero": {
+      "polynomial": [
+        1.0,
+        2.0,
+        3.0,
+        6.0,
+        5.0
+      ],
+      "routh": {
+        "firstColumn": [
+          1.0,
+          2.0,
+          1e-08,
+          -999999994.0,
+          5.0
+        ],
+        "auxiliaryPolynomials": [],
+        "epsilonRows": [
+          2
+        ]
+      },
+      "rhpRoots": 2,
+      "boundary": "a single leading zero is different from an all-zero row; epsilon represents its positive limit"
+    },
+    "parameter_range": {
+      "polynomial": "s^3+3s^2+2s+K",
+      "firstColumn": [
+        "1",
+        "3",
+        "(6-K)/3",
+        "K"
+      ],
+      "strictStableInterval": "0<K<6"
+    },
+    "axis_shift": {
+      "p": [
+        1,
+        6,
+        11,
+        6
+      ],
+      "requirement": "Re(s)<-a",
+      "substitution": "s=z-a",
+      "cases": {
+        "0.5": {
+          "coefficients": [
+            1.0,
+            4.5,
+            5.75,
+            1.875
+          ],
+          "roots": [
+            -2.500000000000004,
+            -1.4999999999999978,
+            -0.49999999999999994
+          ],
+          "allInLHP": true
+        },
+        "1.2": {
+          "coefficients": [
+            1.0,
+            2.3999999999999995,
+            0.9200000000000008,
+            -0.28800000000000026
+          ],
+          "roots": [
+            -1.7999999999999958,
+            -0.8000000000000018,
+            0.20000000000000004
+          ],
+          "allInLHP": false
+        }
+      }
+    },
+    "absolute_stability_context": {
+      "meaning": "binary linear closed-loop stability in this source; not nonlinear sector absolute stability",
+      "exampleStablePolynomial": [
+        1,
+        6,
+        11,
+        6
+      ]
+    },
+    "routh_approximation": {
+      "originalNumerator": [
+        2.0,
+        1.0,
+        1.0
+      ],
+      "originalDenominator": [
+        1.0,
+        2.0,
+        1.0,
+        1.0
+      ],
+      "reciprocalNumerator": [
+        1.0,
+        1.0,
+        2.0
+      ],
+      "reciprocalDenominator": [
+        1.0,
+        1.0,
+        2.0,
+        1.0
+      ],
+      "routhFirstColumn": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "alpha": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "beta": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "R2numerator": [
+        1.0,
+        1.0
+      ],
+      "R2denominator": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fullOrderRecovered": true,
+      "bothModelsStable": true,
+      "differenceNumerator": [
+        1.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "boundary": "specific three-to-two Routh recurrence; low-order coefficient agreement is not zero error"
+    }
+  }
+}

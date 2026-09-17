@@ -1,0 +1,71 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:性能指标_1_1",
+      "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/性能指标_1_1.md",
+          "sha256": "627769a6796a8e685be937d445159a978ab285c620628093473fd0eaa519f608",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/retired/authoring/性能指标_1_1.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/性能指标_1_1.md",
+          "sha256": "627769a6796a8e685be937d445159a978ab285c620628093473fd0eaa519f608",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/retired/runtime/性能指标_1_1.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:性能指标_6_6af5c715",
+      "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/性能指标_6_6af5c715.md",
+          "sha256": "537efc70823ee09a63953f984312d70ee7bea5cf3300d77ec5723c8c473c6e53",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/retired/authoring/性能指标_6_6af5c715.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/性能指标_6_6af5c715.md",
+          "sha256": "537efc70823ee09a63953f984312d70ee7bea5cf3300d77ec5723c8c473c6e53",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/retired/runtime/性能指标_6_6af5c715.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:延迟环节_5_a2771a34",
+      "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/延迟环节_5_a2771a34.md",
+          "sha256": "13ba9045b5d01ff0b04a99606c43aea8c937eca709625d14b2649e39dde23993",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/retired/authoring/延迟环节_5_a2771a34.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/延迟环节_5_a2771a34.md",
+          "sha256": "13ba9045b5d01ff0b04a99606c43aea8c937eca709625d14b2649e39dde23993",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/retired/runtime/延迟环节_5_a2771a34.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:纯延迟_2_8f4165fd",
+      "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/纯延迟_2_8f4165fd.md",
+          "sha256": "4144515eb7d474cbfed86fb0812bfc8aec2548c87b02bb990e61eab3d5bb72e0",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/retired/authoring/纯延迟_2_8f4165fd.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/纯延迟_2_8f4165fd.md",
+          "sha256": "4144515eb7d474cbfed86fb0812bfc8aec2548c87b02bb990e61eab3d5bb72e0",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/retired/runtime/纯延迟_2_8f4165fd.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b11",
+  "replacementDigest": "8109d29e894fb4e3c14fb9b393de8dabda9b02935ae089044d508809ca6f0370"
+}

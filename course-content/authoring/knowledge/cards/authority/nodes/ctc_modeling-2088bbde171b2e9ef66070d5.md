@@ -1,37 +1,35 @@
 ---
 node_id: ctc_modeling-2088bbde171b2e9ef66070d5
 authority_entity_id: "ctc:modeling-2088bbde171b2e9ef66070d5"
-name: block diagram reduction
-name_en: block_diagram_reduction
+name: "框图化简"
+name_en: "Block Diagram Reduction"
 category: 程序性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: analysis_method
-release_tier: gold
-tags:
-  - analysis_method
-  - gold
-  - block
-  - diagram
-  - reduction
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ca11ccddfb0674aa499ee5b651aae758ca2d25b1030b186e2dbe28d89c7a9962.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ca11ccddfb0674aa499ee5b651aae758ca2d25b1030b186e2dbe28d89c7a9962.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-05a/previous/ctc_modeling-2088bbde171b2e9ef66070d5.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 68481f4e405e677a0aa0b4359d2f86388d63480ee1a6f386214569daf96d8be8 -->
-
 ## 首页
 
-# block diagram reduction | block_diagram_reduction
+# 框图化简 | Block Diagram Reduction
 
-**一句话定义**：block diagram reduction：v3T accepted candidate for block-diagram reduction.
+**一句话定义**：框图化简通过消去中间变量，得到保持指定输入输出关系的更简洁模型。
 
-**核心直觉**：在图谱邻接中可把握：后续 → block diagram。
+**核心直觉**：先写每个方框和连接点的变量方程，再消元；输入从哪里进入，决定它在等效关系中的位置。
 
-**关联**：后续 → block diagram
+**关键公式**：$\left(s^2+3s+4\right)Y=2R+2(s+1)D$。
+
+**学习目标**：从嵌套方框图列出信号方程，分别求参考输入和扰动输入到输出的传递关系。
 
 ---
 
@@ -39,18 +37,66 @@ asset_refs: []
 
 ### 完整解释
 
-v3T accepted candidate for block-diagram reduction.
+框图化简不是把方框外形逐个擦掉，而是用代数关系消去不再需要的中间变量。每一步都要保留当前问题关心的输入和输出；若系统有多个输入，就不能只保留最前端的一个输入。下面用一个带扰动的嵌套结构说明这一点。比较点给出误差信号 $e=r-y$，第一个方框的输出为 $v$，扰动 $d$ 在两个动态方框之间加入，第二个方框的输出为 $y$：
+$$
+e=r-y,\qquad v=G_1e,\qquad w=v+d,\qquad y=G_2w,
+$$
+其中
+$$
+G_1=\frac{1}{s+1},\qquad G_2=\frac{2}{s+2}.
+$$
+
+先把方框关系写成拉氏域方程。零初态下，第一方框满足 $(s+1)V=R-Y$，第二方框满足 $(s+2)Y=2(V+D)$。从第一式得到 $V=(R-Y)/(s+1)$，代入第二式并清除分母：
+$$
+(s+1)(s+2)Y=2R-2Y+2(s+1)D.
+$$
+整理后，所有保留下来的边界变量由同一条式子联系：
+$$
+\left(s^2+3s+4\right)Y=2R+2(s+1)D.
+$$
+这个结果同时给出两个不同通道。求 $Y/R$ 时令 $D=0$，得到
+$$
+\frac{Y}{R}=\frac{2}{s^2+3s+4};
+$$
+求 $Y/D$ 时令 $R=0$，得到
+$$
+\frac{Y}{D}=\frac{2(s+1)}{s^2+3s+4}.
+$$
+分子不同不是化简错误，而是扰动插入在中间方框之后，绕过了前一个动态环节。
+
+状态方程能进一步检查这个输入位置。取 $v$ 与 $y$ 为内部状态，固定初态为零，有
+$$
+\dot v=r-y-v,\qquad \dot y=2(v+d)-2y.
+$$
+参考输入和扰动输入的作用项出现于不同方程中，所以它们虽然可以有相同的直流终值，却不会有相同的瞬态。单位阶跃参考输入单独作用时，初始输出斜率为 $0$；单位阶跃扰动单独作用时，初始输出斜率为 $2$。从两个传递函数在 $s=0$ 的值看，二者终值都为 $0.5$，这正好构成一个检查：直流增益相同，不足以证明两个通道等效。
+
+### 教学计算/推理例
+
+把 $r$ 与 $d$ 分开做单位阶跃测试。对参考通道，$d=0$，起始时 $v=0$、$y=0$，所以 $\dot y=2(v+d)-2y=0$；对扰动通道，$r=0$、$d=1$，同一时刻 $\dot y=2$。两种输入最后都给出 $0.5$，但一个从水平切线起步，另一个立即获得正斜率。这个对照比单看稳态值更能检验消元是否保留了输入位置。
+
+### 适用条件与边界
+
+本例是线性定常模型，所有传递函数计算均以零初态为条件。化简的等效范围由保留的输入、输出和中间变量决定；若还要研究内部测量、扰动传播、饱和约束或状态初值，就必须保留相应关系，不能用单一 $Y/R$ 代替整个结构。相同的外部传递函数也不自动意味着内部状态、约束或实现方式相同。
+
+### 常见误区
+
+1. **误区**：扰动 $d$ 可以和参考输入 $r$ 一样直接接到最前端，所以只需计算一个 $Y/R$。**纠正**：扰动在中间节点加入，消元后带有不同的分子；应分别保留 $R$ 和 $D$ 两个通道。
+2. **误区**：两个通道的直流增益都为 $0.5$，所以它们的动态效果完全相同。**纠正**：初始输出斜率分别为 $0$ 和 $2$，且 $Y/R$ 与 $Y/D$ 的分子不同，瞬态并不相同。
+
+### 自检
+
+1. 为什么 $Y/D$ 的分子含有 $s+1$，而 $Y/R$ 的分子是常数？
+2. 只知道两个通道的终值都为 $0.5$，还缺少哪类证据才能判断化简是否保留输入位置？
+
+**核对要点**：扰动绕过了 $G_1$，所以消元时出现 $2(s+1)D$；还要检查瞬态或内部变量关系，不能只比较直流增益。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | block diagram | 应用于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`analysis_method`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-analysis_method、gold、block、diagram、reduction
+- **串联连接**（无向，关系：相关）
+- **结构图等效化简法**（无向，关系：相关）
+- **内回路逐步化简法**（无向，关系：相关）
+- **引出点**（无向，关系：相关）
+- **反馈回路等效消除化简法**（无向，关系：相关）
+- **并联连接**（无向，关系：相关）
+- **求和点**（无向，关系：相关）
+- **系统结构图**（出边，关系：适用于）

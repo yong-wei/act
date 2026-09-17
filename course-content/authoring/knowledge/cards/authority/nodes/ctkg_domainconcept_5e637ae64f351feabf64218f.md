@@ -1,52 +1,82 @@
 ---
 node_id: ctkg_domainconcept_5e637ae64f351feabf64218f
 authority_entity_id: "ctkg:domainconcept:5e637ae64f351feabf64218f"
-name: 李雅普诺夫函数候选
+name: "李雅普诺夫函数候选"
+name_en: "Lyapunov Function Candidate"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - 李雅普诺夫函数候选
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+confifteent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a542acbd8e97c9a988f2f27316eedd156be2781a16aa4c52a25bfe2afd29c17b.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a542acbd8e97c9a988f2f27316eedd156be2781a16aa4c52a25bfe2afd29c17b.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-05a/previous/ctkg_domainconcept_5e637ae64f351feabf64218f.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 3b2090c0ec313190aa2416100bd1e37bb4501b2ca74d4a85bdaec1acdd9394d4 -->
-
 ## 首页
+# 李雅普诺夫函数候选 | Lyapunov Function Candidate
 
-# 李雅普诺夫函数候选
+一句话定义：李雅普诺夫函数候选是待检验的标量函数，只有核实其定号性、轨迹导数和适用区域等条件后，才能用它支持相应稳定性结论。
 
-**一句话定义**：李雅普诺夫函数候选是自动控制原理权威图谱中的领域概念。
-
-**关联**：后续 → 能量函数（李雅普诺夫）、state space model、Equilibrium Point
+- 候选是一种尝试，不是已经成立的证明。
+- 某个候选失败不能直接推出系统不稳定。
+- 函数应与具体动力学配合检验。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+寻找候选时可以从能量、状态平方和、二次型或其他结构入手。通常先令平衡点的函数值为零，再检查附近非零状态的函数值是否严格为正；之后根据系统方程计算沿轨迹导数，判断它是否满足所选稳定性定理。若要得到全局结论，还要核实远处状态约束和轨迹存在条件。
+
+函数“看起来像能量”不足以完成判断。不同系统可能需要不同形状的子水平集；即便矩阵的特征值都稳定，简单的欧氏距离平方也可能暂时增大。候选检验失败只表明这条证明路径没有成立，不等于已经证明原系统不稳定。
+
+### 教学计算/推理例
+
+取线性系统 $\dot x=Ax$，其中 $A=[[-1,4],[0,-2]]$。A为上三角矩阵，特征值是-1、-2，所以原点渐近稳定。先试 $V_0=x_1^2+x_2^2$，得到
+
+$$
+\dot V_0=x^T(A^T+A)x=-2x_1^2+8x_1x_2-4x_2^2.
+$$
+
+在 $(1,1)^T$ 处，导数等于2，大于零。由于齐次性，在任意小的非零点 $(a,a)^T$ 处导数仍为 $2a^2>0$，所以不能通过缩小原点邻域解决这个候选的导数符号问题。它不能用于这里的非增型直接法证明。
+
+再选择 $V=x^TPx$，其中 $P=[[1/2,2/3],[2/3,19/12]]$。P的第一顺序主子式为1/2，行列式为25/72，均为正，因此P正定。代入可得 $A^TP+PA=-I$，于是 $\dot V=-x_1^2-x_2^2$，这一次满足严格下降条件。
+
+两个候选面对的是同一个系统。前者圆形等值线不能保证沿每条轨迹非增，后者适应了动力耦合的椭圆形等值线，可以提供稳定性证明。候选变更改变的是证明工具，未修改原系统。
+
+### 候选检验顺序
+
+先确认平衡点、区域和函数光滑性，再检验函数符号，最后计算真实的轨迹导数。自治函数使用 $\nabla V\cdot f$；若V显含时间，必须加上时间偏导。符号条件满足后，再准确选择稳定、渐近或全局结论，不应从想要的结论倒推省略条件。
+
+有限网格上的函数值和导数检查适合发现反例，却通常不能证明连续区域内处处满足不等式。上述正导数点足以否定V0的非增性；对新候选的接受则依靠矩阵恒等式和正定性证明，数值抽样只是辅助。
+
+### 适用条件与边界
+
+某些有效证明可使用半定导数并结合不变集分析，不能因为导数不是负定就自动放弃全部可能性。但应完整核对对应定理的条件，而不是把候选标签直接改成“李雅普诺夫函数”来代替证明。
+
+实际机械能可以是很好的候选，却可能不满足全局正定、径向无界或所需平衡点唯一性。对非零平衡点，往往还需调整参考能量或坐标，不能直接沿用任意零点选择。
+
+### 常见误区
+
+1. 一个候选导数出现正值就宣布系统不稳定。
+2. 有限个采样点全部通过就当作全区域证明。
+3. 未检查条件就把候选函数名称当成稳定性证据。
+
+### 自检
+
+1. 为什么本例V0失败仍与系统稳定相容？
+2. 新候选通过了哪两个关键代数检查？
+
+**核对要点**：失败的是特定函数的非增性，A仍有严格稳定特征值；P正定且 $A^TP+PA=-I$。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 能量函数（李雅普诺夫） | 是一种 |
-| 后续 | state space model | 用于分析 |
-| 后续 | Equilibrium Point | 应用于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、李雅普诺夫函数候选
+- **平衡点**（出边，关系：适用于）
+- **状态空间模型**（出边，关系：用于分析）
+- **能量函数（李雅普诺夫）**（入边，关系：前置于）

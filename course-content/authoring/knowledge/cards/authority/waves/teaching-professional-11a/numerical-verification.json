@@ -1,0 +1,1776 @@
+{
+  "report": {
+    "status": "passed",
+    "batchId": "teaching-professional-11a",
+    "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+    "cardCount": 8,
+    "cardIds": [
+      "m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "m1r-v1d_object_8f2bac90326190686226cb4f",
+      "m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "m1r-v1d_object_7523b6b72a42df094b083b19",
+      "m1r-v1d_object_b31611f788fa831ff4685e14"
+    ],
+    "cardHashes": {
+      "m1r-v1d_object_608d47a12a8256a1112eb48a": "85e0f511e63083000ab73eb8a9f8bdd6017fb9b24f1468e49fe95bf2e00d7551",
+      "ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8": "87d1d8fe0971558b4e0c57ad1d15bb46e852bd8001cff0082b7f53a456ed362c",
+      "m1r-v1d_object_8f2bac90326190686226cb4f": "ffb896714c843ab57e0226961fa7d34b6b33673668c8095b2f523f14599b854e",
+      "m1r-v1d_object_b4cb5e69761b0992e65f3ff0": "834e024e8b8da66d1d53e97eca392b09ed26d78b3f16c04bd0299535b4edd6a7",
+      "m1r-v1d_object_74fdaac2c48ad74c777df6e0": "783b93a6e18a97804ebdec7702ac54b0bf707f4dcef8fc6cff8e67ccc64d8146",
+      "m1r-v1d_object_3f3cc3150db61a94045611e8": "7a55ca913c60b5e0a6ccf272f94b27efa1958f2a506e620ae2fd29d24539adb3",
+      "m1r-v1d_object_7523b6b72a42df094b083b19": "917dc5977c5e6399fcd76dbbf42f760dc638db9dff4d0426a4afe7a8be08e73b",
+      "m1r-v1d_object_b31611f788fa831ff4685e14": "208b7f3a3be54716a582cd4f2256dc8f54dc3efd88ad220db1173a3be19939a1"
+    },
+    "modelVerification": "verify-models.py passed",
+    "modelClaimsChecked": true,
+    "parserCardCount": 8,
+    "katexFormulaCount": 58,
+    "parserReadback": [
+      {
+        "cardId": "m1r-v1d_object_608d47a12a8256a1112eb48a",
+        "explanationChars": 1378
+      },
+      {
+        "cardId": "ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+        "explanationChars": 1398
+      },
+      {
+        "cardId": "m1r-v1d_object_8f2bac90326190686226cb4f",
+        "explanationChars": 1437
+      },
+      {
+        "cardId": "m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+        "explanationChars": 1365
+      },
+      {
+        "cardId": "m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+        "explanationChars": 1345
+      },
+      {
+        "cardId": "m1r-v1d_object_3f3cc3150db61a94045611e8",
+        "explanationChars": 1468
+      },
+      {
+        "cardId": "m1r-v1d_object_7523b6b72a42df094b083b19",
+        "explanationChars": 1374
+      },
+      {
+        "cardId": "m1r-v1d_object_b31611f788fa831ff4685e14",
+        "explanationChars": 1399
+      }
+    ],
+    "checkCount": 426,
+    "method": "source and SHA-256 identity, immutable-neighborhood relation verification, original model verification, actual learner-card parser and KaTeX",
+    "runtimeWritten": false,
+    "reviewStatus": "pending-independent-review"
+  },
+  "checks": [
+    {
+      "check": "scope batch identity",
+      "actual": true
+    },
+    {
+      "check": "scope/source cards exact",
+      "actual": true
+    },
+    {
+      "check": "source card order contiguous",
+      "actual": true
+    },
+    {
+      "check": "scope lifecycle is authoring",
+      "actual": true
+    },
+    {
+      "check": "accepted scope remains pending",
+      "actual": true
+    },
+    {
+      "check": "captured revision present",
+      "actual": true
+    },
+    {
+      "check": "authority snapshot identity",
+      "actual": true
+    },
+    {
+      "check": "authority release present",
+      "actual": true
+    },
+    {
+      "check": "source backup count",
+      "actual": true
+    },
+    {
+      "check": "previous copy count",
+      "actual": true
+    },
+    {
+      "check": "card exists: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "card identity: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "frontmatter node_id exact: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "card status: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "detail identity: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5a9ee598dbbec769d9dbb35e563c71a7c8848d53e78b7cf02242c271e129b15a.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/supporting-source-inventory.json",
+      "actual": true
+    },
+    {
+      "check": "research record kind",
+      "actual": true
+    },
+    {
+      "check": "research record primary URLs",
+      "actual": true
+    },
+    {
+      "check": "research record example",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "no fabricated previous source: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "## 首页: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "## 详情: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "### 自检: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "核对要点: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "explanation length: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:3c9b67e6f73e5184c7446e6c",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:3c9b67e6f73e5184c7446e6c",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:3c9b67e6f73e5184c7446e6c",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:3c9b67e6f73e5184c7446e6c",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:3c9b67e6f73e5184c7446e6c",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+      "actual": true
+    },
+    {
+      "check": "body materialized: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "card identity: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "frontmatter node_id exact: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "card status: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "detail identity: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bea6acf92958879a57983cc027fe5f19a73c14337f31c890af0ad1ce76564370.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/supporting-source-inventory.json",
+      "actual": true
+    },
+    {
+      "check": "research record kind",
+      "actual": true
+    },
+    {
+      "check": "research record primary URLs",
+      "actual": true
+    },
+    {
+      "check": "research record example",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "no fabricated previous source: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "explanation length: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:d6788adbc3a367ea766d886c",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:d6788adbc3a367ea766d886c",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:d6788adbc3a367ea766d886c",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:d6788adbc3a367ea766d886c",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:d6788adbc3a367ea766d886c",
+      "actual": true
+    },
+    {
+      "check": "body materialized: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "card exists: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "card identity: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "frontmatter node_id exact: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "card status: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "detail identity: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c66d731c607ac06a1619a9fe6015e41c501d01facf1260d07b7eb43c26ddd65d.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/supporting-source-inventory.json",
+      "actual": true
+    },
+    {
+      "check": "research record kind",
+      "actual": true
+    },
+    {
+      "check": "research record primary URLs",
+      "actual": true
+    },
+    {
+      "check": "research record example",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "no fabricated previous source: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "## 首页: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "## 详情: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "### 自检: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "核对要点: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "explanation length: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: m1r-v1d:relation:917cab47b16cc6ebb6dc3ac8",
+      "actual": true
+    },
+    {
+      "check": "relation label: m1r-v1d:relation:917cab47b16cc6ebb6dc3ac8",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: m1r-v1d:relation:917cab47b16cc6ebb6dc3ac8",
+      "actual": true
+    },
+    {
+      "check": "relation direction: m1r-v1d:relation:917cab47b16cc6ebb6dc3ac8",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: m1r-v1d:relation:917cab47b16cc6ebb6dc3ac8",
+      "actual": true
+    },
+    {
+      "check": "body materialized: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "card exists: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "card identity: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "frontmatter node_id exact: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "card status: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "detail identity: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96fe43d237eb1ad2ff0624680806ceb5b9e7bcbd10f24aacb7afae7899186e9c.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/supporting-source-inventory.json",
+      "actual": true
+    },
+    {
+      "check": "research record kind",
+      "actual": true
+    },
+    {
+      "check": "research record primary URLs",
+      "actual": true
+    },
+    {
+      "check": "research record example",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "no fabricated previous source: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "## 首页: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "## 详情: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "### 自检: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "核对要点: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "explanation length: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:e2a4ad34f68ec46283bdc9eb",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:e2a4ad34f68ec46283bdc9eb",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:e2a4ad34f68ec46283bdc9eb",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:e2a4ad34f68ec46283bdc9eb",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:e2a4ad34f68ec46283bdc9eb",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:ef5cd0dea813c53d316e6d85",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:ef5cd0dea813c53d316e6d85",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:ef5cd0dea813c53d316e6d85",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:ef5cd0dea813c53d316e6d85",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:ef5cd0dea813c53d316e6d85",
+      "actual": true
+    },
+    {
+      "check": "body materialized: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "card exists: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "card identity: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "frontmatter node_id exact: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "card status: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "detail identity: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-36dc43958eb4538e151b5493b9841594ee927157b021d59fa9dc679f32a770f0.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/supporting-source-inventory.json",
+      "actual": true
+    },
+    {
+      "check": "research record kind",
+      "actual": true
+    },
+    {
+      "check": "research record primary URLs",
+      "actual": true
+    },
+    {
+      "check": "research record example",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "no fabricated previous source: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "## 首页: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "## 详情: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "### 自检: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "核对要点: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "explanation length: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "body materialized: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "card exists: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "card identity: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "frontmatter node_id exact: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "card status: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "detail identity: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3e057b9e48768ebad4da72921cc9b504c38358e242f8dd54366506cd7095fa43.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/supporting-source-inventory.json",
+      "actual": true
+    },
+    {
+      "check": "research record kind",
+      "actual": true
+    },
+    {
+      "check": "research record primary URLs",
+      "actual": true
+    },
+    {
+      "check": "research record example",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "no fabricated previous source: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "## 首页: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "## 详情: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "### 自检: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "核对要点: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "explanation length: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "body materialized: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "card exists: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "card identity: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "frontmatter node_id exact: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "card status: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "detail identity: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b68803cd612de4ea304f9bfa51d3bd8848a38a0dfae5fc95160ff2871519815f.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/supporting-source-inventory.json",
+      "actual": true
+    },
+    {
+      "check": "research record kind",
+      "actual": true
+    },
+    {
+      "check": "research record primary URLs",
+      "actual": true
+    },
+    {
+      "check": "research record example",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "no fabricated previous source: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "## 首页: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "## 详情: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "### 自检: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "核对要点: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "explanation length: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "body materialized: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "card exists: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "card identity: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "frontmatter node_id exact: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "card canonical frontmatter: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "card name frontmatter: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "card snapshot: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "card status: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "source_docs exact: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "source_docs exist: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "detail identity: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source revision: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source git hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source snapshot hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source release: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ee4a0861306222a31e5c963f35e2caa632f9a12db8ddcb2920bafff849485548.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/authoring/knowledge/cards/authority/waves/teaching-professional-11a/supporting-source-inventory.json",
+      "actual": true
+    },
+    {
+      "check": "research record kind",
+      "actual": true
+    },
+    {
+      "check": "research record primary URLs",
+      "actual": true
+    },
+    {
+      "check": "research record example",
+      "actual": true
+    },
+    {
+      "check": "source backup hash: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "no fabricated previous source: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "## 首页: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "## 详情: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "### 完整解释: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "### 教学计算/推理例: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "### 适用条件与边界: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "### 常见误区: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "### 自检: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "核对要点: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "explanation length: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "two misconceptions: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "two self-checks: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "no authority paths in body: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "neighborhood identity: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "relation rendering exact: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:is_a:cef9e96b3b35756f5cf0828b",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:is_a:cef9e96b3b35756f5cf0828b",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:is_a:cef9e96b3b35756f5cf0828b",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:is_a:cef9e96b3b35756f5cf0828b",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:is_a:cef9e96b3b35756f5cf0828b",
+      "actual": true
+    },
+    {
+      "check": "relation endpoints: ctkg:m5-d1:association:935e65310766901c0783a883",
+      "actual": true
+    },
+    {
+      "check": "relation label: ctkg:m5-d1:association:935e65310766901c0783a883",
+      "actual": true
+    },
+    {
+      "check": "relation predicate: ctkg:m5-d1:association:935e65310766901c0783a883",
+      "actual": true
+    },
+    {
+      "check": "relation direction: ctkg:m5-d1:association:935e65310766901c0783a883",
+      "actual": true
+    },
+    {
+      "check": "relation semantics: ctkg:m5-d1:association:935e65310766901c0783a883",
+      "actual": true
+    },
+    {
+      "check": "body materialized: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "original model verification passed",
+      "actual": true
+    },
+    {
+      "check": "model report has expected sections",
+      "actual": true
+    },
+    {
+      "check": "independent body review passed",
+      "actual": true
+    },
+    {
+      "check": "review source inventory unchanged",
+      "actual": true
+    },
+    {
+      "check": "reviewed body equality: m1r-v1d_object_608d47a12a8256a1112eb48a",
+      "actual": true
+    },
+    {
+      "check": "reviewed body equality: ctkg_m3-v2k_canonical-object_333b4eccaaba394db05c3cc8",
+      "actual": true
+    },
+    {
+      "check": "reviewed body equality: m1r-v1d_object_8f2bac90326190686226cb4f",
+      "actual": true
+    },
+    {
+      "check": "reviewed body equality: m1r-v1d_object_b4cb5e69761b0992e65f3ff0",
+      "actual": true
+    },
+    {
+      "check": "reviewed body equality: m1r-v1d_object_74fdaac2c48ad74c777df6e0",
+      "actual": true
+    },
+    {
+      "check": "reviewed body equality: m1r-v1d_object_3f3cc3150db61a94045611e8",
+      "actual": true
+    },
+    {
+      "check": "reviewed body equality: m1r-v1d_object_7523b6b72a42df094b083b19",
+      "actual": true
+    },
+    {
+      "check": "reviewed body equality: m1r-v1d_object_b31611f788fa831ff4685e14",
+      "actual": true
+    },
+    {
+      "check": "parser card count",
+      "actual": true
+    },
+    {
+      "check": "KaTeX formula count",
+      "actual": true
+    }
+  ]
+}

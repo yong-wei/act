@@ -1,0 +1,86 @@
+{
+  "batchId": "teaching-professional-04a",
+  "status": "authoring",
+  "parentGroupId": "professional-state-feedback-and-observers",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+      "name": "全状态反馈",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eb888786c5eb738a65d705f7",
+      "name": "可镇定",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7e19f05879897a5e2d7c3e97",
+      "name": "阿克曼状态反馈增益公式",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+      "name": "全状态观测器",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cb18c47f552c6b128f9b52c8",
+      "name": "可检测性",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba2eb78058c4284d923a28eb",
+      "name": "阿克曼观测器增益公式",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8ecd4d6352467b3444880809",
+      "name": "降阶观测器",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4b7254aa73329cdcc5057159",
+      "name": "分离原理",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d9716ac7221be94d7e69f7d3",
+      "name": "卡尔曼状态空间分解",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1946643d6912e8d8aeb2decb",
+      "name": "内模原理",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 10
+    }
+  ]
+}

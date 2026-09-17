@@ -1,0 +1,18 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 10,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b40",
+  "retiredResources": [
+    "act:card:相平面图_8_bd606f51",
+    "act:card:等倾线法_8_97c16d2e",
+    "act:card:相轨迹_8_5fb81b03",
+    "act:card:容许控制_10_cbc0aa55",
+    "act:card:相平面分析_8_13cc8148",
+    "act:card:相平面法_8_b1b8091e",
+    "act:card:奇点_8_f6da1cbb",
+    "act:card:奇点_平衡点__8_7e8e9880",
+    "act:card:实奇点_8_daa87444",
+    "act:card:虚奇点_8_e5cac44f",
+    "act:card:开关线_8_fff1000a"
+  ]
+}

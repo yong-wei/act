@@ -1,0 +1,66 @@
+{
+  "batchId": "teaching-scale-01c",
+  "status": "accepted",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z",
+    "shardSetId": "ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1",
+    "shardSetHash": "30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1",
+    "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+    "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679"
+  },
+  "projection": {
+    "contract": "act-teaching-projection-current/v1",
+    "projectionId": "proj-64a5187e8e4a7b40ddf566ccd9683ec3cd85629ad8af9bab580c70256fb85fd4",
+    "projectionHash": "64a5187e8e4a7b40ddf566ccd9683ec3cd85629ad8af9bab580c70256fb85fd4",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.48",
+    "activatedAt": "2026-09-15T03:24:18.276Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+      "name": "静态误差系数法求稳态误差",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "name": "终值定理",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+      "name": "稳态性能",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "name": "单位阶跃响应",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+      "name": "位置误差常数 (K_p)",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "name": "单位阶跃函数",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+      "name": "单位斜坡函数",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "name": "速度误差系数 (K_v)",
+      "directGoal": false
+    }
+  ]
+}

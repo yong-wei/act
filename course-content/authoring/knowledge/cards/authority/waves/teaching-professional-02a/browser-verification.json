@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> first-order-hold node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "一阶保持器",
+  "representativeCanonicalId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+  "authorityDomainId": "discrete-time-control-analysis",
+  "authorityDomainDisplayName": "离散时间控制分析"
+}

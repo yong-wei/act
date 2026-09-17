@@ -1,38 +1,35 @@
 ---
 node_id: ctc_modeling-1b36aff609b370e792d9dee6
 authority_entity_id: "ctc:modeling-1b36aff609b370e792d9dee6"
-name: The concept that analogous
-name_en: modeling_1b36aff609b370e792d9dee6
+name: "相似物理系统"
+name_en: "Analogous Physical Systems"
 category: 概念性
-coverage_role: necessary_prerequisite
-batch: A
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - The
-  - concept
-  - that
-  - analogous
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-95f666d6c3b15a0611faf0660f562c6d300aa152aa280b8dc6a87586258400a3.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-95f666d6c3b15a0611faf0660f562c6d300aa152aa280b8dc6a87586258400a3.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/previous/ctc_modeling-1b36aff609b370e792d9dee6.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 44748e8c256696b10717f5841460ec41bfbb115a81091a1a0059035186146622 -->
-
 ## 首页
 
-# The concept that analogous | modeling_1b36aff609b370e792d9dee6
+# 相似物理系统 | Analogous Physical Systems
 
-**一句话定义**：The concept that analogous：The concept that analogous systems (e.g., electrical, mechanical, thermal, fluid) with the same describing differential…
+**一句话定义**：不同物理领域的系统在适当变量与尺度下具有相同的描述方程时，可以共享分析方法和响应规律。
 
-**核心直觉**：在图谱邻接中可把握：后续 → 领域概念。
+**核心直觉**：可迁移的是变量间的数学关系；温度不会因为方程相同而变成电压。
 
-**关联**：后续 → 领域概念
+**关键公式**：$C_{\mathrm{th}}\dot{\Delta T}+\Delta T/R_{\mathrm{th}}=P$，$C\dot V+V/R=I$。
+
+**学习目标**：建立热系统与电系统的参数对应，并说明响应迁移所需的输入、初态与单位条件。
 
 ---
 
@@ -40,18 +37,38 @@ asset_refs: []
 
 ### 完整解释
 
-The concept that analogous systems (e.g., electrical, mechanical, thermal, fluid) with the same describing differential equations allow solutions to be extended across domains.
+一个集中热容通过热阻向恒温环境散热，其温升由储热速率与散热功率共同决定；一个电容通过电阻放电，其端电压由储电速率与电阻电流共同决定。两种守恒关系的数学形式相同，可以对应热容与电容、热阻与电阻、加热功率与注入电流、温升与端电压。
+
+这种对应有助于把已知的一阶系统规律迁移到陌生对象：时间常数决定响应变化快慢，静态增益决定恒定输入下的终值。但是各参数的物理单位不同，只有明确缩放关系后，才能比较曲线数值。“两个对象都像一阶”也不意味着任意输入或初态下曲线自动重合。
+
+### 教学计算/推理例
+
+热系统取 $C_{\mathrm{th}}=2\,\mathrm{J/K}$，$R_{\mathrm{th}}=0.5\,\mathrm{K/W}$，施加 $P=2\,\mathrm W$ 阶跃。电系统取 $C=2\,\mathrm F$，$R=0.5\,\Omega$，施加 $I=2\,\mathrm A$ 阶跃。两者均从零温升或零电压开始。
+
+定义无量纲量 $z_T=\Delta T/(1\,\mathrm K)$、$z_V=V/(1\,\mathrm V)$、$\tau=t/(1\,\mathrm s)$，两个方程都化为
+$$
+\frac{dz}{d\tau}+z=1,\qquad z(0)=0.
+$$
+于是 $z=1-e^{-\tau}$，两者时间常数均为 $1\,\mathrm s$。一秒时温升约为 $0.632121\,\mathrm K$，电压约为 $0.632121\,\mathrm V$；终值分别为 $1\,\mathrm K$ 和 $1\,\mathrm V$。相同的是缩放后的数值规律，不能把这两个带不同单位的物理量直接写成相等。
+
+### 适用条件与边界
+
+热模型要求温度分布可以用一个集中状态近似，环境温度保持给定，热阻在关注范围内近似不变。电模型要求元件近似线性且无其他显著支路。若温度变化导致参数改变、出现多个显著热容，或电路产生加载效应，原来的一阶对应可能失效。应先检查模型边界，再借用曲线。
+
+### 常见误区
+
+1. **误区**：相似系统具有相同的物理参数和单位。**纠正**：对应量可以有不同单位，比较依赖明确尺度。
+2. **误区**：只要时间常数相同，输出就相同。**纠正**：静态增益、输入幅值、初态和输出定义也必须匹配。
+
+### 自检
+
+1. 本例为什么需要把温升、电压和时间分别无量纲化？
+2. 如果热系统初始有温升，而电容从零电压开始，能否直接使用同一条响应曲线？
+
+**核对要点**：缩放消除单位差异；初态不同会产生不同自由响应，必须把初态也映射一致。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 领域概念 | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、The、concept、that、analogous
+- **模拟计算机**（无向，关系：相关）
+- **键合图建模法**（无向，关系：相关）
+- **物理系统模型相似性**（无向，关系：相关）

@@ -1,0 +1,87 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:模型结构相似性_1_2",
+      "canonicalId": "ctc:modeling-1b36aff609b370e792d9dee6",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/模型结构相似性_1_2.md",
+          "sha256": "a91bdf7fd9f3f99dd9ec5c68efc8e3b66e455ac796195c959487f2848400875b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/retired/authoring/模型结构相似性_1_2.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/模型结构相似性_1_2.md",
+          "sha256": "a91bdf7fd9f3f99dd9ec5c68efc8e3b66e455ac796195c959487f2848400875b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/retired/runtime/模型结构相似性_1_2.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:相似系统_2_5477df89",
+      "canonicalId": "ctc:modeling-1b36aff609b370e792d9dee6",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/相似系统_2_5477df89.md",
+          "sha256": "6fa26e55245647495c458d77671f603275edc4a8989df5f1257ea93d9e767789",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/retired/authoring/相似系统_2_5477df89.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/相似系统_2_5477df89.md",
+          "sha256": "6fa26e55245647495c458d77671f603275edc4a8989df5f1257ea93d9e767789",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/retired/runtime/相似系统_2_5477df89.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:并联连接_2_0e5f1ec2",
+      "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/并联连接_2_0e5f1ec2.md",
+          "sha256": "d26794f5ae7b2a0937b859a0269e076bf2c5056afa8b302cae30934998c3c92a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/retired/authoring/并联连接_2_0e5f1ec2.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/并联连接_2_0e5f1ec2.md",
+          "sha256": "d26794f5ae7b2a0937b859a0269e076bf2c5056afa8b302cae30934998c3c92a",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/retired/runtime/并联连接_2_0e5f1ec2.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:串联连接_2_98ee18bc",
+      "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/串联连接_2_98ee18bc.md",
+          "sha256": "62e43a546c6eb5151bff04a8cdc9d44e2649ef642305d85b2906d980785a5be7",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/retired/authoring/串联连接_2_98ee18bc.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/串联连接_2_98ee18bc.md",
+          "sha256": "62e43a546c6eb5151bff04a8cdc9d44e2649ef642305d85b2906d980785a5be7",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/retired/runtime/串联连接_2_98ee18bc.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:测量元件_1_ad76ac2b",
+      "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/测量元件_1_ad76ac2b.md",
+          "sha256": "95243533ac4fca6f5555d1105716984c2b2c5dd56cd92d7b10f599a7db73e521",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/retired/authoring/测量元件_1_ad76ac2b.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/测量元件_1_ad76ac2b.md",
+          "sha256": "95243533ac4fca6f5555d1105716984c2b2c5dd56cd92d7b10f599a7db73e521",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-02a/retired/runtime/测量元件_1_ad76ac2b.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b14",
+  "replacementDigest": "0bd9701ca2b0517083d3702595ba3b8fe5551a987e0f3ae0a228795483e101fc"
+}

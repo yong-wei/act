@@ -1,33 +1,31 @@
 ---
 node_id: ctkg_v3e-canonical-5182a714c3b04737e54be937
 authority_entity_id: "ctkg:v3e-canonical-5182a714c3b04737e54be937"
-name: 复合控制系统
+name: "复合控制系统"
+name_en: "Combined Control System"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 复合控制系统
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7c81504a9f2245ceae8a6311a3b252cc043295ba989bbf21c654a3ea94cd33fb.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7c81504a9f2245ceae8a6311a3b252cc043295ba989bbf21c654a3ea94cd33fb.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-21a/previous/ctkg_v3e-canonical-5182a714c3b04737e54be937.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 30b9f78fbb5950f2cb57cc7e29ef05e7cd42d7ba5c1462bff42c348f291d8032 -->
-
 ## 首页
 
-# 复合控制系统
+# 复合控制系统 | Combined Control System
 
-**一句话定义**：复合控制系统是在系统的反馈控制回路中加入前馈通路，组成一个前馈控制与反馈控制相结合的系统。
+**一句话定义**：复合控制系统在反馈闭环中配合独立前馈通道，使已知参考或扰动信息与实际误差修正共同作用。
 
-**核心直觉**：在图谱邻接中可把握：后续 → 前馈通路。
-
-**关联**：后续 → 前馈通路
+完整系统应按各信号的真实位置建模，不能只把几条补偿公式并列。
 
 ---
 
@@ -35,18 +33,50 @@ asset_refs: []
 
 ### 完整解释
 
-复合控制系统是在系统的反馈控制回路中加入前馈通路，组成一个前馈控制与反馈控制相结合的系统。
+描述一个复合系统，需要明确对象状态、测得输出、参考、扰动和控制量之间的关系。前馈通道与反馈通道可能使用同一信号的不同组合，只有连接方程写清，才能判断是否存在重复补偿、符号错误或模型遗漏。
+
+在固定线性模型与零初态下，可以分别求参考和扰动的输出，再按线性叠加合成。若初态、非线性或限幅条件不同，不能随意把独立计算结果拼接成同一个系统响应。分解计算应服务于同一个完整模型。
+
+复合系统是否稳定与它是否准确补偿也是不同问题。反馈根仍稳定时，模型失配也可能造成跟踪或扰动残差；相反，某个名义响应看起来准确，也不能代替全部内部模态的稳定检查。
+
+### 教学计算/推理例
+
+取对象状态 $\dot x=-x+2u$、测得输出 $y=x+d$，控制律为
+
+$$u=(r-y)+0.5r-0.5d.$$
+
+消去控制量和测量关系后，得到完整状态方程
+
+$$\dot x=-3x+3r-3d,\qquad y=x+d.$$
+
+它直接保留了输出加性扰动的即时作用。零状态参考与扰动通道分别为 $3/(s+3)$和 $s/(s+3)$，因此单位参考阶跃渐近跟踪到1，单位扰动阶跃的输出影响按 $e^{-3t}$衰减。
+
+扰动通道的分子包含 $s$，并不表示控制器实际计算了扰动导数。当前控制律只用 $d$本身，分子来自输出注入位置与动态反馈共同形成的输入输出关系。不能仅看到传递函数分子就猜测内部算法。
+
+若实际对象改为 $\dot x=-x+3u$而控制律不变，状态反馈极点仍在左半平面，但参考终值1.125、扰动终值-0.125。这是补偿失配，不应被误叫作系统已经失稳。
+
+### 适用条件与边界
+
+真实系统中的扰动也可能进入对象输入、状态方程的其他位置或测量通道。不同入口对应不同补偿关系，应从实际模型出发。反馈测量里出现的噪声与作用在真实对象上的外扰也不一定具有相同物理意义。
+
+前馈通道若具有自身状态，完整模型应加入它们；不能因它不在反馈主环中就忽略其稳定性和初值。动态逆模型、滤波和时延还会改变实现条件，必须单独核验。
+
+当前模型只给出输出关系与名义误差结果。控制量幅值、噪声敏感性和实际对象范围仍需按任务验证。复合系统的价值是利用互补信息，而不是自动消除全部工程约束。
+
+### 常见误区
+
+1. 误区：扰动传递函数分子有 $s$就表示控制器在求扰动导数。纠正：应看原状态和控制方程，本例没有这种内部运算。
+2. 误区：模型失配造成稳态残差就等于失稳。纠正：稳定性与补偿精度不同，本例闭环仍稳定。
+
+### 自检
+
+1. 本例完整状态方程为何要同时保留 $x$和输出关系 $y=x+d$？
+2. 如何区分补偿残差与不稳定增长？
+
+**核对要点**：扰动直接进入测得输出，不能只把它当作对象状态输入。应分别检查特征模态与长期输出，稳定的偏差不等于发散。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 前馈通路 | 包含组件 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、复合控制系统
+- **复合控制**（无向，关系：相关）
+- **前馈通路**（出边，关系：包含组件）
+- **反馈控制系统**（无向，关系：相关）

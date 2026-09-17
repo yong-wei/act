@@ -1,0 +1,14 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_core_signal_six",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "cardHashes": {
+    "ctc:modeling-385c515b4d8dbb550b664072": "98a56c6d89ce1bcbedda9075fc33b9e77defaf90bf9a560366d7689b2e1cb001",
+    "ctc:modeling-4c7a0114a15c9e4039f6d193": "ab1c296db6f26a1f2d73a58584a44fc6a6a3ba8e9564668829c42e169ba6ef4e",
+    "ctc:modeling-5e62391de61ac1af304601cb": "f80ea6ab0fb00ddf318cfb3c17374d31f0cfa3742134a2137e22d176e618bbb6",
+    "ctc:modeling-9121dc2c97afa77f52ce0220": "af9cc399063a52fd0507d46765eec053e1c3d4decc8e3715f5b318fbaf94fe00",
+    "ctc:modeling-a2b2e4c67cee79eef87f3b81": "32482ee938af57fd44bc0eddb067bf3bd4897fcf32de1596783e13140c808ed0",
+    "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2": "1648687a8e7510d85def2d0452ac7db462d3f7869ae03d70851658df2c8f7ebb"
+  }
+}

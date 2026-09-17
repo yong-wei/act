@@ -1,0 +1,11 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 6,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b10",
+  "retiredResources": [
+    "act:card:性能指标_1_1",
+    "act:card:性能指标_6_6af5c715",
+    "act:card:延迟环节_5_a2771a34",
+    "act:card:纯延迟_2_8f4165fd"
+  ]
+}

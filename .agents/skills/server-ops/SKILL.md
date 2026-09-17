@@ -1,6 +1,6 @@
 ---
 name: server-ops
-description: Use only when the user explicitly requests deploying or publishing this project to a server, or when the task necessarily requires inspecting or changing a remote server, its production runtime, or its remote database.
+description: 部署本项目，或执行必须访问远端服务器的诊断与运维。
 ---
 
 # Server Ops
@@ -35,12 +35,12 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 当前构建必须自然结束后才能重启或退出 Docker Desktop；远端部署及最终验收完成、确认没有其他获授权的本地构建后，必须退出 Docker Desktop 释放 VM 内存，不能只停止 builder 容器。
 - 远端 `/home/projects/act` 只允许保留运维脚本、环境变量文件，以及已物化的 OSS runtime view（`data/runtime/blob-views` 与只读 ossfs helper）。不得把本地 `course-content/runtime` 作为部署内容 rsync 到服务器，也不得上传业务源码、测试、文档、记忆文件或其他代码目录。
 - 禁止在远端执行 `podman build`、`docker build`、`npm run build`、`next build` 或任何等价的源码构建命令。
-- 若发现远端已有源码残留，应优先清理为最小运维壳层，再继续后续排障或部署。
+- 若发现远端源码残留，记录其路径和用途；仅在明确授权清理且已确认可恢复性后删除，不把只读调查自动扩展为清理。
 - 若需要更新部署逻辑，只能修改本地仓库中的运维脚本与文档，并通过既定的本机构建流程产出镜像，再按既定方式部署。
 
 ## 发布分支流程
 
-- 部署时首先将集成分支 `integration` 合并到 `main`，之后从 `main` 发布新版本完成部署。
+- 按本次已授权发布范围选择 `origin/main` 提交；只有本次发布明确包含集成变更时，才在冻结前将该范围合入 `main`，不自动追入其他提交。
 - 部署过程中如果在 `main` 中进行了修改（如版本号提升、发布 hotfix），需要将修改同步到集成分支 `integration`。
 - 部署完成后回到集成分支 `integration`。
 
@@ -72,7 +72,7 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 若问题表现为课堂中 `同步错误`、`fail to fetch`、学生端不跟随教师进度、教师端无法推进步骤或 reveal/release 状态不同步，先读 `references/classroom-sync-errors.md`
 - 涉及部署时，先确认本次操作是否符合“本机构建、远端仅装载镜像”的固定模式；若不符合，立即停止
 - 远端目录若需要整理，只保留 `scripts/`、`deploy/podman/`、`.env*`、`data/runtime/act-obe.env` 与已物化的 OSS blob-view；不要恢复或同步一份本地 `course-content/runtime` 作为部署内容
-- 应用部署使用 `npm run deploy:app`（`remote-deploy.sh --app-only`），只更新镜像并绑定当前 blob-view；runtime 变更使用 `npm run runtime:publish` 再 `npm run runtime:activate`。已删除 `deploy:runtime` 与 `deploy:all`。`legacy-rsync` 已退役，不得再同步本地 `course-content/runtime`
+- 应用部署使用 `npm run deploy:app`（`remote-deploy.sh --app-only`），只更新镜像并绑定当前 blob-view；Runtime 发布使用 `npm run runtime:publish`，只有激活也明确获授权时才运行 `npm run runtime:activate`。已删除 `deploy:runtime` 与 `deploy:all`。`legacy-rsync` 已退役，不得再同步本地 `course-content/runtime`
 - 涉及数据库覆盖导入时，先做本地备份
 - 涉及远端服务重启时，保留前后状态与关键日志
 - 验收至少覆盖容器状态、核心接口、关键环境变量和日志摘要

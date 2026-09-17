@@ -1,0 +1,71 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:根轨迹分离点_4_0e97795c",
+      "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/根轨迹分离点_4_0e97795c.md",
+          "sha256": "7773cb967181a88ad41cf6f2514dd01e9334057652d379a43f08a8e479546fa4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/retired/authoring/根轨迹分离点_4_0e97795c.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/根轨迹分离点_4_0e97795c.md",
+          "sha256": "7773cb967181a88ad41cf6f2514dd01e9334057652d379a43f08a8e479546fa4",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/retired/runtime/根轨迹分离点_4_0e97795c.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:根轨迹渐近线_4_6d89a195",
+      "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/根轨迹渐近线_4_6d89a195.md",
+          "sha256": "0e41d584a01a585679b9dc5b22a6fbdf089d09615f6efdf541e79da9f6266693",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/retired/authoring/根轨迹渐近线_4_6d89a195.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/根轨迹渐近线_4_6d89a195.md",
+          "sha256": "0e41d584a01a585679b9dc5b22a6fbdf089d09615f6efdf541e79da9f6266693",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/retired/runtime/根轨迹渐近线_4_6d89a195.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:参数根轨迹_4_faab3aea",
+      "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/参数根轨迹_4_faab3aea.md",
+          "sha256": "b1296b191da469d7805ecc4b76000820246c4c8aac4e5141f1f55083cbb3b559",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/retired/authoring/参数根轨迹_4_faab3aea.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/参数根轨迹_4_faab3aea.md",
+          "sha256": "b1296b191da469d7805ecc4b76000820246c4c8aac4e5141f1f55083cbb3b559",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/retired/runtime/参数根轨迹_4_faab3aea.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:广义根轨迹_4_30f5ea13",
+      "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/广义根轨迹_4_30f5ea13.md",
+          "sha256": "a8a1131ca810d86a59895e55ce55324964f7d3836a3e921ee0c218bc1aea9f24",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/retired/authoring/广义根轨迹_4_30f5ea13.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/广义根轨迹_4_30f5ea13.md",
+          "sha256": "a8a1131ca810d86a59895e55ce55324964f7d3836a3e921ee0c218bc1aea9f24",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/retired/runtime/广义根轨迹_4_30f5ea13.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b30",
+  "replacementDigest": "0d08ad600f4b8e9a7cfca067edadc601dcc753f1c3b9f212a5b606f7a3d783c4"
+}

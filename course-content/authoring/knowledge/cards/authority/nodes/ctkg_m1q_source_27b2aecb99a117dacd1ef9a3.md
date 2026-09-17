@@ -1,0 +1,87 @@
+---
+node_id: ctkg_m1q_source_27b2aecb99a117dacd1ef9a3
+authority_entity_id: "ctkg:m1q:source:27b2aecb99a117dacd1ef9a3"
+name: "最优控制"
+name_en: "Optimal Control"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consevent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-71d41944528fb4a814149da08824130c52d23b5a2f767a9aa5ab484a689c2298.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-71d41944528fb4a814149da08824130c52d23b5a2f767a9aa5ab484a689c2298.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-06a/supporting-source-inventory.json"
+asset_refs: []
+---
+
+## 首页
+# 最优控制 | Optimal Control
+
+一句话定义：最优控制是在给定动态模型、可行约束和性能指标下，寻找使整体代价最小的控制规律。
+
+- 最优性总是相对于明确的模型和指标。
+- 先判断可行，再比较代价。
+- 满足必要条件不等于已经证明最优。
+
+---
+## 详情
+### 完整解释
+
+最优控制把整个时间区间内的控制过程作为选择对象。系统方程把输入与状态联系起来，初值、末端条件和输入限制规定哪些过程允许参与比较，性能指标则把每个可行过程转化为可比较的标量。缺少其中任何一项，“哪个控制最好”就可能没有确定含义。
+
+同一个系统可以追求最短时间、最小控制能量，或状态偏差与控制代价的折中；这些问题一般给出不同答案。求解前还应区分三个问题：可行控制是否存在，最小代价是否能被某个可行控制达到，以及如何构造达到它的控制。不断降低代价的序列并不必然提供一个真正达到最小值的方案。
+
+### 教学计算/推理例
+
+考虑归一化积分器 $\dot x=u$，时间区间为[0,1]，要求 $x(0)=0$、$x(1)=1$。允许控制u为实值平方可积函数，没有额外幅值约束。性能指标为
+
+$$
+J[u]=\int_0^1 u(t)^2\,dt.
+$$
+
+末端条件与系统方程给出 $\int_0^1u(t)\,dt=1$。由柯西不等式，
+
+$$
+1=\left(\int_0^1u(t)\,dt\right)^2
+\leq\left(\int_0^1 1^2\,dt\right)\left(\int_0^1u(t)^2\,dt\right)=J[u].
+$$
+
+任意可行控制的代价都不小于1。取 $u(t)=1$，则 $x(t)=t$，满足全部约束，且J=1，所以它是全局最优控制。等号要求u几乎处处为常数，结合末端条件得到该常数只能为1。“几乎处处”允许零测度时间点的差异，它们不改变积分或状态轨迹。
+
+另取 $u(t)=2t$，得到 $x(t)=t^2$，同样到达末端，但代价为4/3。这个对比解释了均匀使用控制为何在本例更节省平方代价；真正的最优证明来自对全部可行输入的下界，而不只是比较这两个候选。
+
+### 指标与约束不能省略
+
+如果增加 $|u|\leq1/2$，则一秒内最多改变状态1/2，原末端任务不可行，前面的最优解不再属于允许集合。如果将时间区间改为[0,T]且T固定为正，同样推理得到常值输入1/T及最小代价1/T，说明时间约束会直接改变最优结果。
+
+若T也可任意增大而又不惩罚时间，代价可随T趋于无穷而趋于零，却没有有限T下的零代价可行方案。这里存在下确界而未必有达到它的控制过程，不能把求解器返回的“小数很小”当成已经取得理论最小值。
+
+### 适用条件与边界
+
+本例使用精确已知的标量模型、无扰动和完整执行能力。工程中的模型误差、执行器饱和及观测误差可能使计划轨迹偏离，需要按实际任务检查反馈与约束。最优控制这个名称本身不保证鲁棒性、安全性或任意初值下的稳定性。
+
+对非线性或有复杂约束的问题，局部最优点、驻值点和全局最优点可能不同。应说明求解结论的范围，并用可行性、必要或充分条件和独立代价计算支撑结论。
+
+### 常见误区
+
+1. 只给出系统方程就讨论唯一的“最佳”输入。
+2. 两个候选中代价较低，就声称它在全部可行输入中最优。
+3. 忽略新增幅值限制，继续使用无约束解。
+
+### 自检
+
+1. 本例哪个等式把末端任务转化成对u的约束？
+2. 为什么J=1能够被称为全局最小值？
+
+**核对要点**：状态积分要求输入积分为1；全部可行输入的代价至少为1，且常值输入确实达到该下界。
+
+### 关联节点
+
+- **动态规划**（入边，关系：适用于）
+- **极小值原理**（入边，关系：适用于）
+- **ITAE设计步骤**（无向，关系：相关）

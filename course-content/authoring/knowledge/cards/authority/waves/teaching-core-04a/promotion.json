@@ -1,0 +1,20 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 10,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b14",
+  "retiredResources": [
+    "act:card:状态变量_9_2dedb9d8",
+    "act:card:状态向量_9_a19c08fc",
+    "act:card:建模_1_2",
+    "act:card:完全可达_9_f0aa6191",
+    "act:card:PBH秩判据_9_bdf533f4",
+    "act:card:可观测性PBH秩判据_9_3ad87876",
+    "act:card:可观测性秩判据_9_92339d2c",
+    "act:card:秩判据_9_daff6c3c",
+    "act:card:极点配置_3_d367ec42",
+    "act:card:极点配置_9_b5578c51",
+    "act:card:可观测性对角线规范型判据_9_12b8f833",
+    "act:card:对角线规范型判据_9_db607dca",
+    "act:card:输出可控性_9_7c4fb777"
+  ]
+}

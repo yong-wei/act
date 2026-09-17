@@ -1,31 +1,35 @@
 ---
 node_id: ctkg_v3e-canonical-f9718484925341d6ce1dec78
 authority_entity_id: "ctkg:v3e-canonical-f9718484925341d6ce1dec78"
-name: 动态过程
+name: "动态过程"
+name_en: "Dynamic Response Process"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 动态过程
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-083bf65c4f0106887da3e7168a5889b05727b1d671a4e755e2365f2062061b1c.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-083bf65c4f0106887da3e7168a5889b05727b1d671a4e755e2365f2062061b1c.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-12a/previous/ctkg_v3e-canonical-f9718484925341d6ce1dec78.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: f4253a1faf9dd47e7285c00254bae4f5a07ea74e232d0ae0fc868092018423b4 -->
-
 ## 首页
 
-# 动态过程
+# 动态过程 | Dynamic Response Process
 
-**一句话定义**：系统在典型输入信号作用下，系统输出量从初始状态到最终状态的响应过程。
+**一句话定义**：动态过程描述系统在输入改变后如何从初始状态演化，通常需要多个事件和指标共同刻画。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：第一次到达目标、第一次峰值和进入容差后的保持，分别标记不同阶段，不能用一个时刻替代全过程。
+
+**关键公式**：本例初始斜率为0，但初始右加速度为4，因此不存在一段完全不变的纯等待区间。
+
+**学习目标**：按状态演化解释响应过程，区分初始平缓、过冲和容差意义上的结束。
 
 ---
 
@@ -33,18 +37,50 @@ asset_refs: []
 
 ### 完整解释
 
-系统在典型输入信号作用下，系统输出量从初始状态到最终状态的响应过程。
+观察动态过程时，应同时说明输入形式、初态、输出位置和时间尺度。某些响应单调，有些振荡，有些因零点或延迟出现额外阶段。仅凭“最终会到哪里”不能描述过程，某个瞬间经过目标也不保证此后保持在目标附近。
+
+数学模型中的衰减项通常不会在有限时间突然消失。工程上可以用容差定义过程已经足够接近目标，但这是一种精度约定，不是说所有动态项在调节时间处被切断。对没有常数终值的输入，也需要采用相应的长期形式，而不是强行套用阶跃全过程描述。
+
+### 教学计算/推理例
+
+取归一化标准模型
+$$
+\ddot y+2\dot y+4y=4r,
+$$
+从零初态施加单位阶跃。初始输出与斜率均为零，而原方程给出
+$$
+\ddot y(0^+)=4.
+$$
+所以曲线起初平缓不等于存在纯时延；虽然初始切线水平，响应已经开始弯曲上升。
+
+这个过程的几个事件为：
+
+| 事件 | 归一化时刻 |
+|---|---:|
+| 第一次经过终值1 | 约1.20920 |
+| 第一次超调峰 | 约1.81380 |
+| 进入并持续保持在2%带内 | 约4.03817 |
+
+第一峰约为1.16303，之后仍会下降和振荡。由此可见，第一次经过终值不是过程结束，第一次峰值也不是稳定时间。在4.03817之后，响应仍可继续变化，只是变化已满足所约定的2%误差带要求。
+
+### 适用条件与边界
+
+本例条件为稳定、无零点的标准二阶参考通道、单位阶跃和零初态。更换输入、增加延迟或改变输出通道后，事件顺序和数值都应重新分析。初始斜率为零与真正的纯延迟不同：纯延迟可以在一段时间内完全没有响应，本例则有非零初始右加速度。
+
+实验报告还应明确测量精度、采样和容差定义，避免把有限分辨率下的“看不出变化”解释成数学上完全不变。
+
+### 常见误区
+
+1. **误区**：响应首次达到目标，就说明动态过程结束。**纠正**：本例随后继续超调和振荡。
+2. **误区**：曲线初始切线水平就表示有纯延迟。**纠正**：本例初始右加速度为4，已经开始变化。
+
+### 自检
+
+1. 三个表中事件为什么不能相互替代？
+2. 如何由原方程区分本例初始平缓与纯等待？
+
+**核对要点**：它们分别描述阈值穿越、极大值和后续保持；代入初态可得到非零初始右加速度。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、动态过程
+- **稳态过程**（无向，关系：相关）

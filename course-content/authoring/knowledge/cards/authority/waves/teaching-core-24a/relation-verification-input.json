@@ -1,0 +1,114 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:64f4cd6072fde6394806e9c4",
+          "otherId": "ctkg:v3e-canonical-d798b1df9c92d6d95229853b",
+          "label": "幅值比",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **幅值比**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:ca1cbfefc57c3399f851825d",
+          "otherId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+          "label": "频率响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **频率响应**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+      "relations": [
+        {
+          "relationId": "m1h:relation-8a916c4201cddb5355be7827",
+          "otherId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+          "label": "伯德图",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **伯德图**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:b0cbb80322bc583712fec947",
+          "otherId": "ctkg:v3e-object-a95a8e278a89a433477bc1e0",
+          "label": "对数幅相图绘制",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **对数幅相图绘制**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "relations": [
+        {
+          "relationId": "m1h:relation-37a2cf95fbdcec53adaaa067",
+          "otherId": "ctkg:v3e-object-983964fdaa7a8bf62f5dc787",
+          "label": "幅相频率特性曲线绘制方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **幅相频率特性曲线绘制方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "relations": [
+        {
+          "relationId": "m1i:relation-2e2de17dd670e85440830984",
+          "otherId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+          "label": "补偿器",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **补偿器**（出边，关系：适用于）"
+        },
+        {
+          "relationId": "m1i:relation-8fa2c80fc4a699e8d4d15438",
+          "otherId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+          "label": "伯德图",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **伯德图**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:d628b5b117c2469cd7d71571",
+          "otherId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+          "label": "频率响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **频率响应**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:1d5e0c97065a1557cd7533e6",
+          "otherId": "ctkg:v3e-object-42df8c524c1d9b3e8ae03275",
+          "label": "期望的开环频率特性形状",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **期望的开环频率特性形状**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-4d65e8381a378d56f5c80cbc",
+          "otherId": "ctkg:v3e-object-d8ef97d0d84c5b3d7b209fd7",
+          "label": "对数频率特性曲线绘制方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **对数频率特性曲线绘制方法**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

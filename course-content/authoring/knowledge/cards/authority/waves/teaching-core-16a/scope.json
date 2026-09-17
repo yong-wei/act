@@ -1,0 +1,58 @@
+{
+  "batchId": "teaching-core-16a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-16",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:m3-v2h:canonical-object:4f950081fe58a82e7fdd42aa",
+      "name": "劳斯近似法",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+      "name": "格拉姆矩阵判据",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+      "name": "辅助多项式",
+      "moduleId": "module-3",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+      "name": "劳斯法参数范围确定",
+      "moduleId": "module-1",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+      "name": "劳斯阵列第一列",
+      "moduleId": "module-3",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+      "name": "绝对稳定性",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+      "name": "相对稳定性的轴偏移法",
+      "moduleId": "module-3",
+      "order": 7
+    }
+  ]
+}

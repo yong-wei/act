@@ -1,4 +1,5 @@
 import type { AdaptivePathStrategyMetadata } from '@/features/personalization/path-planning/adaptive-path-differentiation';
+import { goalCanonicalIds } from '@/features/personalization/path-planning/goal-canonical-knowledge';
 import { ADAPTIVE_PATH_STRATEGY_BY_FAMILY } from '@/features/personalization/path-planning/adaptive-path-differentiation';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
@@ -1843,6 +1844,55 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
   },
 };
 
+for (const topic of [
+  { id: 'discrete-control-foundations', title: '离散控制基础', description: '理解采样保持、脉冲传递函数与单位圆稳定性，能完成基本模型和判据计算。', knowledge: 'transfer-function-model' },
+  { id: 'state-space-analysis-foundations', title: '状态空间分析基础', description: '理解可控性与可观测性，能用矩阵秩区分输入作用范围和输出信息范围。', knowledge: 'modern-transfer' },
+  { id: 'steady-state-control-foundations', title: '稳态精度与PI基础', description: '区分系统型别、稳态误差与积分作用，理解PI的精度收益和动态代价。', knowledge: 'controller-correction' },
+  { id: 'system-modeling-process-foundations', title: '系统建模流程与适用边界', description: '明确建模目的、状态和简化假设，比较模型保真度与跨物理系统的相似条件。', knowledge: 'transfer-function-model' },
+  { id: 'physical-modeling-interconnection-foundations', title: '物理系统与互连建模', description: '从受力和守恒关系建立模型，辨别串并联、负载效应及测量环节的适用条件。', knowledge: 'transfer-function-model' },
+  { id: 'state-space-controllability-foundations', title: '状态空间实现与可控性', description: '建立状态表达，运用秩与模态判据分析可达性、估计误差和极点配置的条件。', knowledge: 'modern-transfer' },
+  { id: 'local-linearization-foundations', title: '平衡点与局部线性化', description: '区分平衡点和一般工作点，建立小信号模型并判断局部近似的适用边界。', knowledge: 'transfer-function-model' },
+  { id: 'signal-flow-foundations', title: '信号流图基础', description: '由节点方程识别输入输出、支路、前向路径和基本回路，区分路径增益与整图关系。', knowledge: 'transfer-function-model' },
+  { id: 'block-diagram-modeling-foundations', title: '结构图建模与等效化简', description: '从变量方程建立结构图，保留输入位置和负载条件，验证代数化简与反馈互联。', knowledge: 'transfer-function-model' },
+  { id: 'mason-gain-formula-foundations', title: '梅森公式与通路余子式', description: '逐项确定通路、回路、不接触组合与余子式，并用节点方程复核增益。', knowledge: 'transfer-function-model' },
+  { id: 'feedback-structure-foundations', title: '开闭环与反馈结构', description: '区分辅助回路、参考与扰动通道，依据完整结构判断增益、误差和反馈作用。', knowledge: 'transfer-function-model' },
+  { id: 'transfer-poles-zeros-foundations', title: '传递函数与零极点', description: '区分直接传递、零极点与隐藏模态，判断闭环和多变量传输关系。', knowledge: 'transfer-function-model' },
+  { id: 'input-response-foundations', title: '典型输入与系统响应', description: '根据输入与初态区分脉冲、自然和卷积响应，复核时域与复频域表达。', knowledge: 'transfer-function-model' },
+  { id: 'first-second-order-dynamics-foundations', title: '一二阶动态与阻尼参数', description: '识别时间常数、固有频率与阻尼比，在匹配条件下解释极点和响应变化。', knowledge: 'time-domain-performance' },
+  { id: 'response-metrics-foundations', title: '响应指标与长期过程', description: '按统一口径计算峰值、上升和调节时间，区分瞬态、稳态与完整动态过程。', knowledge: 'time-domain-performance' },
+  { id: 'time-domain-design-foundations', title: '时域性能与设计', description: '结合响应速度、超调与误差积分比较方案，按模型条件核验时域设计。', knowledge: 'time-domain-performance' },
+  { id: 'dominant-pole-analysis-foundations', title: '高阶系统与主导极点', description: '辨析模态、极点与零点，验证高阶模型的主导极点近似。', knowledge: 'time-domain-performance' },
+  { id: 'stability-concepts-foundations', title: '稳定性概念与边界', description: '区分内部、渐近与输入输出稳定，核验边界模态和增益区间。', knowledge: 'time-domain-performance' },
+  { id: 'routh-relative-stability-foundations', title: '劳斯判别与近似', description: '核验劳斯特殊情形、参数区间和衰减裕量，并区分判别与降阶。', knowledge: 'time-domain-performance' },
+  { id: 'optimal-control-foundations', title: '最优控制基础', description: '明确性能指标与约束，区分必要条件和最优性证明，理解动态规划与二次型控制的基本方法。', knowledge: 'modern-transfer' },
+  { id: 'robust-control-foundations', title: '鲁棒控制基础', description: '明确不确定集合，核验全族稳定与性能边界，区分标称设计、鲁棒保证与采样仿真。', knowledge: 'frequency-response' },
+  { id: 'nonlinear-control-foundations', title: '非线性控制基础', description: '理解逆系统、状态反馈与耗散方法，核验可逆性、内部动态和输入约束。', knowledge: 'modern-transfer' },
+]) {
+  const learningGoal = defineLearningGoal({
+    id: topic.id, title: topic.title, description: topic.description,
+    completionMeaning: '能够解释关键条件并完成卡片自检；阅读完成不直接认定知识掌握。',
+    intentType: ['system-modeling-process-foundations', 'physical-modeling-interconnection-foundations', 'local-linearization-foundations', 'signal-flow-foundations', 'block-diagram-modeling-foundations'].includes(topic.id) ? 'modeling' : 'analysis', recommendedPhase: 'foundation',
+    knowledgeObjectiveIds: [`knowledge:autocontrol:${topic.knowledge}`],
+    capabilityObjectiveIds: ['capability:autocontrol:model-feedback-system'],
+    qualityObjectiveIds: ['quality:autocontrol:model-boundary-awareness'],
+    targetGraphNodeIds: [`kn:autocontrol:${topic.knowledge}`, 'cap:autocontrol:model-feedback-system', 'qual:autocontrol:model-boundary-awareness'],
+    goalSliceId: 'control-correction',
+    resourceMix: packageResourceMix(['knowledge_card'], ['knowledge_card', 'textbook_section', 'quiz']),
+    evidencePolicy: packageEvidencePolicy(['question', 'reflection']),
+    terminalValidationPolicy: terminalValidationPolicy(false, ['question'], ['quiz', 'adaptive_quiz', 'checkpoint'], '以计算与条件说明核验理解；阅读不替代测评。'),
+    pathPolicyFamily: 'foundation-remediation', limitations: [QUALITY_EVIDENCE_LIMITATION],
+  });
+  ADAPTIVE_LEARNING_GOAL_DEFINITIONS[topic.id] = {
+    goal: { id: topic.id, title: topic.title, knowledgeTargets: goalCanonicalIds(topic.id), competencyTargets: ['controlModeling'] },
+    displayName: topic.title, learningGoal, allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
+    starterPathPolicy: { policyFamilies: ['foundation-remediation', 'preference-matched'], targetOptionCount: 2,
+      difficultyRhythm: 'gentle', allowExternalResources: false, preferredResourceTypes: ['knowledge_card', 'textbook_section', 'quiz'] },
+    checkpointPolicy: { minCheckpoints: 0, checkpointResourceTypes: ['quiz', 'adaptive_quiz', 'checkpoint'], requiresTerminalValidation: false },
+    explanationTemplates: { ready: `已生成${topic.title}学习路径。`, coldStart: '先阅读概念与计算例，再完成自检。',
+      lowConfidence: '当前证据不足，先学习基础内容。', fallback: '可用资源不足，当前路径仅覆盖已发布内容。' },
+  };
+}
+
 export function getRegisteredAdaptiveLearningPathGoal(
   goalId: string,
   registry: {
@@ -1853,8 +1903,12 @@ export function getRegisteredAdaptiveLearningPathGoal(
     } | null | undefined;
   } = personalizationPluginRegistry,
 ): AdaptiveLearningPathRegisteredGoalDefinition | null {
-  const definition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId] ?? null;
-  if (!definition) return null;
+  const original = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId] ?? null;
+  if (!original) return null;
+  const canonicalTargets = goalCanonicalIds(goalId);
+  const definition = canonicalTargets.length
+    ? { ...original, goal: { ...original.goal, knowledgeTargets: canonicalTargets } }
+    : original;
   const plugin = registry.get(goalId);
   if (definition.requiresRegisteredPlugin) {
     if (!plugin || plugin.status !== 'active' || !plugin.pathPlanningPolicy) return null;

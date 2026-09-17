@@ -1,0 +1,16 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 11,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b39",
+  "retiredResources": [
+    "act:card:周期运动_极限环__8_e89ff8ed",
+    "act:card:极限环_8_146dec32",
+    "act:card:继电特性_8_0676d186",
+    "act:card:半稳定极限环_8_8ed583b7",
+    "act:card:自激振荡_8_711ef8ef",
+    "act:card:自振_8_3ed83301",
+    "act:card:自振荡_8_e3ee2aef",
+    "act:card:负倒描述函数_8_159ff256",
+    "act:card:量化_7_6cb6511b"
+  ]
+}

@@ -1,52 +1,75 @@
 ---
 node_id: ctkg_v3e-object-074ba027193fc06624e26f0a
 authority_entity_id: "ctkg:v3e-object-074ba027193fc06624e26f0a"
-name: Nyquist-Shannon sampling theorem
+name: "奈奎斯特-香农采样定理"
+name_en: "Nyquist–Shannon Sampling Theorem"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - sampling
-  - theorem
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3ccc6250a79b9a4297e37cb879c8fbdd2c4266f36e8c8f1ad12d998e065bf6c6.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3ccc6250a79b9a4297e37cb879c8fbdd2c4266f36e8c8f1ad12d998e065bf6c6.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-01a/previous/ctkg_v3e-object-074ba027193fc06624e26f0a.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 9166b43709a1880ab4729a6c47142f2256bb71165f5ebfceaf3cd7a85b458d57 -->
-
 ## 首页
+# 奈奎斯特-香农采样定理 | Nyquist–Shannon Sampling Theorem
 
-# Nyquist-Shannon sampling theorem
+一句话定义：在严格带限、理想均匀采样与重建条件下，采样率高于信号最高频率的两倍，可由样值唯一恢复原信号。
 
-**一句话定义**：Nyquist-Shannon sampling theorem：A theorem stating that for a signal to be accurately reconstructed from samples, it must have no frequency component gr…
-
-**核心直觉**：在图谱邻接中可把握：前置 → aliasing · 后续 → Nyquist rate。
-
-**关联**：前置 → aliasing · 后续 → Nyquist rate
+- 信号带宽、奈奎斯特频率与奈奎斯特采样率必须区分。
+- 临界等号不能无条件保证任意端点信号恢复。
+- 实际采样还需处理噪声、滤波、有限数据和量化。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-A theorem stating that for a signal to be accurately reconstructed from samples, it must have no frequency component greater than half the sample rate (ω_s/2); the highest frequency that can be unambiguously represented by discrete samples is the Nyquist rate of ω_s/2.
+设连续信号频谱在 $|f|>B$ 处为零，以周期 $T_s$ 均匀采样，采样率为 $f_s=1/T_s$。在理想条件下，采用 $f_s>2B$ 可使频谱副本不重叠，并通过理想低通插值重建。以 $\operatorname{sinc}(z)=\sin(\pi z)/(\pi z)$ 表示常用插值核，可写出无限样值的理想插值形式。
+
+对于固定采样率，$f_s/2$ 称奈奎斯特频率；对于最高频率为 $B$ 的带限信号，$2B$ 常称奈奎斯特采样率。两个量来源不同，不能把 $f_s/2$ 也当成该信号所需的两倍采样率。若使用角频率，需统一换算 $\omega_s=2\pi f_s$。
+
+### 教学计算/推理例
+
+设信号最高频率为2 Hz，选择 $f_s=10$ Hz，周期为0.1 s。信号的奈奎斯特采样率为4 Hz，采样器的奈奎斯特频率为5 Hz；2 Hz低于5 Hz，满足所述严格带限模型的分离条件。
+
+临界等号却需要额外限制。仍以10 Hz采样，若信号为 $x(t)=\sin(2\pi\cdot5t)$，则
+
+$$
+x[k]=\sin(\pi k)=0.
+$$
+
+所有样值与零信号相同，不能由它们分辨原来的5 Hz正弦。因此不能无条件宣称“采样率等于两倍最高频率即可恢复任意相位信号”。端点频谱的条件或严格不等式必须说明。
+
+再取8 Hz余弦与2 Hz余弦，在10 Hz采样下产生同一组样值，因为 $\cos[2\pi(10-2)k/10]=\cos(2\pi\cdot2k/10)$。没有带限先验时，样值无法唯一判定来自哪一个连续频率。
+
+### 适用条件与边界
+
+定理是理想重建结果，不是数字控制采样周期的完整设计规则。实际信号通常不严格带限，抗混叠滤波器有过渡带，数据有限且含噪声，采样时钟和量化也会带来误差。因此实际设计需要留出滤波过渡与动态性能余量，而不是贴着理论边界选取。
+
+带通采样等特殊方案具有额外频带先验，不能未经说明套入本卡基带带限表述。采样后数字滤波无法普遍找回已重叠的频谱信息；应在采样之前控制带外成分。提高采样率也不自动解决幅度量化精度问题。
+
+### 常见误区
+
+1. 混用 $f_s/2$ 与 $2B$ 的名称和物理含义。
+2. 忽略端点条件，把临界等号当成任意信号的保证。
+3. 将理想定理当成真实设备无误差重建的承诺。
+
+### 自检
+
+1. 本例10 Hz采样器的奈奎斯特频率是多少？
+2. 5 Hz正弦为何在该采样相位下全部变为零样值？
+
+**核对要点**：为5 Hz；采样时刻使相位为 $\pi k$，所有正弦值为0，临界端点存在不可区分情形。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | Nyquist rate | 包含组件 |
-| 前置 | aliasing | 应用于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、sampling、theorem
+- **混叠**（入边，关系：适用于）
+- **奈奎斯特速率**（出边，关系：包含组件）

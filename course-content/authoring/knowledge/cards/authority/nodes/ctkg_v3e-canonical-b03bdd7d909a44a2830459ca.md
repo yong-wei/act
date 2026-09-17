@@ -1,31 +1,35 @@
 ---
 node_id: ctkg_v3e-canonical-b03bdd7d909a44a2830459ca
 authority_entity_id: "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca"
-name: 典型输入信号
+name: "典型输入信号"
+name_en: "Standard Test Inputs"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 典型输入信号
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7e530ac3d53b61df23e76fc5b25c8af8005d83000351acbdc869849dfc27ef43.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7e530ac3d53b61df23e76fc5b25c8af8005d83000351acbdc869849dfc27ef43.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctkg_v3e-canonical-b03bdd7d909a44a2830459ca.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 601f2baad71306eced28b18947343c299002326c299807fb70bf2013851111ae -->
-
 ## 首页
 
-# 典型输入信号
+# 典型输入信号 | Standard Test Inputs
 
-**一句话定义**：根据系统常遇到的输入信号形式，在数学描述上加以理想化的一些基本输入函数。
+**一句话定义**：典型输入信号是为描述常见命令或扰动而选取的理想化基本函数，用于分析和比较系统响应。
 
-**关联**：后续 → 正弦函数、单位阶跃函数、单位斜坡函数
+**核心直觉**：不同测试信号突出不同性质；“单位”在各类信号中规范的参数并不完全相同。
+
+**关键公式**：因果阶跃、斜坡和单位加速度信号的变换分别为 $1/s$、$1/s^2$、$1/s^3$。
+
+**学习目标**：选用正确的标准输入表达，说明其归一化含义，并避免把一个测试结果外推到全部场景。
 
 ---
 
@@ -33,22 +37,44 @@ asset_refs: []
 
 ### 完整解释
 
-根据系统常遇到的输入信号形式，在数学描述上加以理想化的一些基本输入函数。
+阶跃可近似突然改变后保持的命令，斜坡可表示持续匀速变化的目标，抛物线输入可表示恒定加速度的目标，冲激用于刻画短时集中作用，正弦则便于考察周期变化。这些信号是分析工具，不是对所有实际输入的完整描述。
+
+同样写“单位”，阶跃通常指幅度 1，斜坡指斜率 1，单位加速度信号指二阶导数为 1，单位冲激指面积 1。因此不能把所有单位输入都理解为“最高值等于 1”，也不能在没有说明尺度的情况下直接比较它们的能量或控制负担。
+
+### 教学计算/推理例
+
+使用归一化时间，并约定信号在 $t<0$ 为零，常见表达与拉普拉斯变换为：
+
+| 信号 | 时域表达 | 拉普拉斯变换 |
+|---|---|---|
+| 单位阶跃 | $H(t)$ | $1/s$ |
+| 单位斜坡 | $tH(t)$ | $1/s^2$ |
+| 单位加速度 | $\tfrac12t^2H(t)$ | $1/s^3$ |
+| 单位冲激 | $\delta(t)$ | $1$ |
+| 正弦输入 | $\sin(3t)H(t)$ | $3/(s^2+9)$ |
+
+普通函数的这些因果变换可在 $\operatorname{Re}s>0$ 区域使用；冲激按包含原点作用的因果约定处理。单位加速度输入中的 $1/2$ 不可省略：对 $t>0$ 连续求两次导数，$t^2/2$ 的二阶导数为 1，而 $t^2$ 的二阶导数为 2。
+
+阶跃、斜坡与加速度输入的积分链，也解释了其变换中逐次增加的 $1/s$ 因子。正弦信号则由频率参数确定分母，不能用同样的幂次链代替。若输入延迟或相位改变，还需要相应的时移或相位处理，而不是继续使用表中的原式。
+
+### 适用条件与边界
+
+实际输入可能有有限上升时间、幅值限制、噪声或多个成分。选用理想输入时，应说明希望观察的性能和被忽略的细节。通过一个阶跃测试并不能证明所有频率下都有足够裕度，也不能证明任意幅值下不发生饱和。输入本身的规范化与系统初始状态的设定是两件事，使用传函计算零状态响应时仍需明确初态。
+
+### 常见误区
+
+1. **误区**：单位加速度输入就是 $t^2H(t)$。**纠正**：本卡采用 $t^2H(t)/2$，二阶导数才为 1。
+2. **误区**：一种标准输入通过测试，就代表所有工况都合格。**纠正**：每种测试只覆盖相应输入形式与条件。
+
+### 自检
+
+1. 单位斜坡和单位冲激各把哪个量规范为 1？
+2. 为什么单位加速度变换是 $1/s^3$ 而不是 $2/s^3$？
+
+**核对要点**：斜坡规范斜率，冲激规范面积；加速度输入含 $1/2$ 系数。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 正弦函数 | 包含组件 |
-| 后续 | 单位阶跃函数 | 包含组件 |
-| 后续 | 单位斜坡函数 | 包含组件 |
-| 后续 | 单位加速度函数 | 包含组件 |
-| 后续 | 单位脉冲函数 | 包含组件 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、典型输入信号
+- **正弦函数**（出边，关系：包含组件）
+- **单位斜坡函数**（出边，关系：包含组件）
+- **单位阶跃函数**（出边，关系：包含组件）

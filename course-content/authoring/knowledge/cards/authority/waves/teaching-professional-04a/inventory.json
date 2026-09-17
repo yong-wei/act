@@ -1,0 +1,321 @@
+{
+  "batchId": "teaching-professional-04a",
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "name": "全状态反馈",
+      "canonicalId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+      "cardId": "ctkg_v3e-object-e28c6b3ef5b1335c8a086f34",
+      "resourceId": "act:card:ctkg_v3e-object-e28c6b3ef5b1335c8a086f34",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e28c6b3ef5b1335c8a086f34.md",
+      "previousCardSha256": "dd14141ec9e860ecd78aa81116f5c2c1cf5e89a985df7d74aa7ab48db587fbd6",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8be6a7919600571893da3efa1ef2c148cf9419bbb3e700a33a7c421eb60b2aa9.json",
+          "sha256": "ae6d489e8934610ccd6c2d2e5fd507a7509f7743fa03f381a09f53bea87eb462",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8be6a7919600571893da3efa1ef2c148cf9419bbb3e700a33a7c421eb60b2aa9.json",
+          "sha256": "74aa0661d37f62b4b2610b7a6147eaee5820abf6b35c7028cbfef78af489a506",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-e28c6b3ef5b1335c8a086f34.md",
+          "sha256": "dd14141ec9e860ecd78aa81116f5c2c1cf5e89a985df7d74aa7ab48db587fbd6",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/01-source.json",
+      "sourceBackupSha256": "2faa2ec85b7ae5ad932f860251a7b8e2eebf58787de11288e9410807384f645f",
+      "cardSha256": "58e5d0d701b19b480b10e17dacb61e830b8a094f19d8d72d8fccfe3a1075b259",
+      "parsedExplanationChars": 1152
+    },
+    {
+      "order": 2,
+      "name": "可镇定",
+      "canonicalId": "ctkg:v3e-object-eb888786c5eb738a65d705f7",
+      "cardId": "ctkg_v3e-object-eb888786c5eb738a65d705f7",
+      "resourceId": "act:card:ctkg_v3e-object-eb888786c5eb738a65d705f7",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-eb888786c5eb738a65d705f7.md",
+      "previousCardSha256": "a88a67436f9cbdd7b371f50f208e2d4a5beab0fec869841034453bc8275f48b8",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-80cdf82cc03bf9cc19d5d54c3b8b50f877f04ee0ec5b01c0150f0b8adb97c2e9.json",
+          "sha256": "12e45e7455dd1ee03ee97f2934a31fc55fbdf4486ad730c5265ed2237f898245",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-80cdf82cc03bf9cc19d5d54c3b8b50f877f04ee0ec5b01c0150f0b8adb97c2e9.json",
+          "sha256": "2300a60acae2654e5a58a05df7b4092ba87e8e8d318d65085698d6f95d32444c",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-eb888786c5eb738a65d705f7.md",
+          "sha256": "a88a67436f9cbdd7b371f50f208e2d4a5beab0fec869841034453bc8275f48b8",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/02-source.json",
+      "sourceBackupSha256": "cbf1e56e5ca1dd7023fb829351adf17f844bd586357309ace5c49d6432ebde57",
+      "cardSha256": "d96a0a39a51a85ba30e21f31d57607013e8344023de7812848c52d4ff3e2a8b1",
+      "parsedExplanationChars": 1204
+    },
+    {
+      "order": 3,
+      "name": "阿克曼状态反馈增益公式",
+      "canonicalId": "ctkg:v3e-object-7e19f05879897a5e2d7c3e97",
+      "cardId": "ctkg_v3e-object-7e19f05879897a5e2d7c3e97",
+      "resourceId": "act:card:ctkg_v3e-object-7e19f05879897a5e2d7c3e97",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7e19f05879897a5e2d7c3e97.md",
+      "previousCardSha256": "90499a0190e55c46b3b4f216f8cfdad3e7404ab2ba0fee6eb0b15ddef4d4211e",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-d01838301af48a13538add4150bd6251431aff248cf40ea9137af055280fc120.json",
+          "sha256": "01b4a45e2bf9e0068d96b266bfc3223f741cd9124e3ef8625d8d84db0c2fb721",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-d01838301af48a13538add4150bd6251431aff248cf40ea9137af055280fc120.json",
+          "sha256": "2156f9279e67ecfa33d65353cf51e391ef57ec198deedbd53dfea18c6c5f9a5d",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-7e19f05879897a5e2d7c3e97.md",
+          "sha256": "90499a0190e55c46b3b4f216f8cfdad3e7404ab2ba0fee6eb0b15ddef4d4211e",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/03-source.json",
+      "sourceBackupSha256": "cf42a9005905615c26cde1c52a6be1c362c95e30be44fa2302fd0ab4ac442e0d",
+      "cardSha256": "e4b0c89594cc3b219ee7c8bce2701e2cf811325fe811f4690703c17f9c93797c",
+      "parsedExplanationChars": 1308
+    },
+    {
+      "order": 4,
+      "name": "全状态观测器",
+      "canonicalId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+      "cardId": "ctkg_v3e-object-9b91b4b29c27f8d8916d9626",
+      "resourceId": "act:card:ctkg_v3e-object-9b91b4b29c27f8d8916d9626",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-9b91b4b29c27f8d8916d9626.md",
+      "previousCardSha256": "a0fa1757fd51ae4c9315ee196be2eb5d67b7a0dfb5224baa2e174176ff068827",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-72bd114a71325dfabe91cfa5f9925a70b7b0743abd7fcb33a9eaad970da2e0b2.json",
+          "sha256": "32d1e2ee4604982bb778aa52925cbed00dc35a9df7682f946467dbad56e860be",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-72bd114a71325dfabe91cfa5f9925a70b7b0743abd7fcb33a9eaad970da2e0b2.json",
+          "sha256": "fb6973ae60d1b65ec206339ff7b1d21b8b38ad41096132ebc485d75a708f5ef6",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-9b91b4b29c27f8d8916d9626.md",
+          "sha256": "a0fa1757fd51ae4c9315ee196be2eb5d67b7a0dfb5224baa2e174176ff068827",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/04-source.json",
+      "sourceBackupSha256": "54078c7a4036b9bcbb17bb2908bd861f8544d12f5643f5ab022193834d05ffb8",
+      "cardSha256": "359ee623a3d916b46165f32648907cf398a8107d2a81baecf9a83c82a0909cee",
+      "parsedExplanationChars": 1217
+    },
+    {
+      "order": 5,
+      "name": "可检测性",
+      "canonicalId": "ctkg:v3e-object-cb18c47f552c6b128f9b52c8",
+      "cardId": "ctkg_v3e-object-cb18c47f552c6b128f9b52c8",
+      "resourceId": "act:card:ctkg_v3e-object-cb18c47f552c6b128f9b52c8",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-cb18c47f552c6b128f9b52c8.md",
+      "previousCardSha256": "981dbdce09b09f5c65806e9ac5421f35d8c417522d7b049b5b6ffa418fc225f9",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f4eead0646d184ca8dccf4d540e0ad8d6f574410ca46b4642892298f4cfa70ce.json",
+          "sha256": "5207ce3839861037d7ad076047f9843121943abea1bfb010932e9b72dcccc197",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f4eead0646d184ca8dccf4d540e0ad8d6f574410ca46b4642892298f4cfa70ce.json",
+          "sha256": "3557a724d5e961c28f0d9a0878f3f90d81f90e71da657b35e8b9bcab42e76892",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-cb18c47f552c6b128f9b52c8.md",
+          "sha256": "981dbdce09b09f5c65806e9ac5421f35d8c417522d7b049b5b6ffa418fc225f9",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/05-source.json",
+      "sourceBackupSha256": "244f6373f766f96047dfdf1e623b6a118c49bd81c3119bd054f4be5a6d8d67ea",
+      "cardSha256": "6d1d7d7369e5cfa3627c456eedfde2fd6a6cbb62753d9aa18b55affea3bf50f1",
+      "parsedExplanationChars": 1203
+    },
+    {
+      "order": 6,
+      "name": "阿克曼观测器增益公式",
+      "canonicalId": "ctkg:v3e-object-ba2eb78058c4284d923a28eb",
+      "cardId": "ctkg_v3e-object-ba2eb78058c4284d923a28eb",
+      "resourceId": "act:card:ctkg_v3e-object-ba2eb78058c4284d923a28eb",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ba2eb78058c4284d923a28eb.md",
+      "previousCardSha256": "6908b20055db9d73a38732aedc43e087f7651d0d44124d6a377cf5507526b049",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-cf5a2635a95131941488cc36976d25900fa681b8b9359d267b82f96dbf0ef7be.json",
+          "sha256": "de022c9c597b7d5430d2b263cb447c5ada3d3dcaf359ad4a7466fdad06357ea3",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-cf5a2635a95131941488cc36976d25900fa681b8b9359d267b82f96dbf0ef7be.json",
+          "sha256": "fd3639b8e0bb779f5f5a3ce49a4d3b5bb32cf8cdd1acdc12686ae4fdd47c3640",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-ba2eb78058c4284d923a28eb.md",
+          "sha256": "6908b20055db9d73a38732aedc43e087f7651d0d44124d6a377cf5507526b049",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/06-source.json",
+      "sourceBackupSha256": "f978aae9c7a0a90530783fe5f1da8c3531affb572f01cbb485a66e4fd4fc6c93",
+      "cardSha256": "cc7d1f2a075435696276d3c4e87c846dd4c29fccc5d107a3d23c3b17db4b3606",
+      "parsedExplanationChars": 1305
+    },
+    {
+      "order": 7,
+      "name": "降阶观测器",
+      "canonicalId": "ctkg:v3e-object-8ecd4d6352467b3444880809",
+      "cardId": "ctkg_v3e-object-8ecd4d6352467b3444880809",
+      "resourceId": "act:card:ctkg_v3e-object-8ecd4d6352467b3444880809",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8ecd4d6352467b3444880809.md",
+      "previousCardSha256": "2622c48127ac8745364bd974176dd297b49c42a7fbbca586823262ef4e87eb0f",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-4f479aea7b8e9342f246d192eedc08edd3d32276daa21464075e57f6b80ba1f0.json",
+          "sha256": "49ae76949a23231bcfbf8d38b831b6213c4dd35a3562a6d8c6330d895ad8f851",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-4f479aea7b8e9342f246d192eedc08edd3d32276daa21464075e57f6b80ba1f0.json",
+          "sha256": "44f5011b234d984f9d16ed7f8803c616e6f14fbdcdd0e365c31081a1271a7c8b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-8ecd4d6352467b3444880809.md",
+          "sha256": "2622c48127ac8745364bd974176dd297b49c42a7fbbca586823262ef4e87eb0f",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/07-source.json",
+      "sourceBackupSha256": "be9be615b6ce29caa46f3b3f2dabdcfd1629602189fdd29c67fa23bd94241c19",
+      "cardSha256": "1a0d0a33d7e2ee8a3a7eda8d0b3fa2415b6e74a2c586ad4bdd8549703e17063f",
+      "parsedExplanationChars": 1210
+    },
+    {
+      "order": 8,
+      "name": "分离原理",
+      "canonicalId": "ctkg:v3e-object-4b7254aa73329cdcc5057159",
+      "cardId": "ctkg_v3e-object-4b7254aa73329cdcc5057159",
+      "resourceId": "act:card:ctkg_v3e-object-4b7254aa73329cdcc5057159",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-4b7254aa73329cdcc5057159.md",
+      "previousCardSha256": "e4796586e4b44162dfebcc7e0811835fdd4b28b18e97551603a7caf493208420",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3a6f92ff5cee795fa5549f9150ae9d2826f612e34dae410c7a792ff3fc34803d.json",
+          "sha256": "0c1d64c11fb98106dc411408a0af7473b8c458c9879dbcf2186c002e15158852",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3a6f92ff5cee795fa5549f9150ae9d2826f612e34dae410c7a792ff3fc34803d.json",
+          "sha256": "8a5fd4b98b4e70295440ae9534638a117b80a82a4bbb984727a096c61904f490",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-4b7254aa73329cdcc5057159.md",
+          "sha256": "e4796586e4b44162dfebcc7e0811835fdd4b28b18e97551603a7caf493208420",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/08-source.json",
+      "sourceBackupSha256": "5e9dc28efd10ae29a9153cda6eb99e9787f328f98df96b89eb975c3316251506",
+      "cardSha256": "2bb97e7a659190638ebc56931e8ce1a413abd0318f6e801bed54b1f9a4b8ac64",
+      "parsedExplanationChars": 1375
+    },
+    {
+      "order": 9,
+      "name": "卡尔曼状态空间分解",
+      "canonicalId": "ctkg:v3e-object-d9716ac7221be94d7e69f7d3",
+      "cardId": "ctkg_v3e-object-d9716ac7221be94d7e69f7d3",
+      "resourceId": "act:card:ctkg_v3e-object-d9716ac7221be94d7e69f7d3",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-d9716ac7221be94d7e69f7d3.md",
+      "previousCardSha256": "4b7dd33d33623f522611e2f5c9c4dd3ce930518320be3183f97ddcf77c50a29a",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8e6b0fe81b93355816198daa380d89eb2102d4a25ec908d0c08099de49f93433.json",
+          "sha256": "5f95d1fb6928f853875cb1cfa34cc3a14bbb3170f6475da0124af72a3830e597",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8e6b0fe81b93355816198daa380d89eb2102d4a25ec908d0c08099de49f93433.json",
+          "sha256": "cea819a0d523d83312500d5f8ad2e37c95f1de7710302c94369e130a77f33599",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-d9716ac7221be94d7e69f7d3.md",
+          "sha256": "4b7dd33d33623f522611e2f5c9c4dd3ce930518320be3183f97ddcf77c50a29a",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/09-source.json",
+      "sourceBackupSha256": "65ff39acd665e523fb0d18b870a6347a586d12394caa557e334efbc776ab1804",
+      "cardSha256": "5518a644356226728eb94215941f590ea01889b9a7a0ab164422996b1c251d50",
+      "parsedExplanationChars": 1224
+    },
+    {
+      "order": 10,
+      "name": "内模原理",
+      "canonicalId": "ctkg:v3e-object-1946643d6912e8d8aeb2decb",
+      "cardId": "ctkg_v3e-object-1946643d6912e8d8aeb2decb",
+      "resourceId": "act:card:ctkg_v3e-object-1946643d6912e8d8aeb2decb",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-1946643d6912e8d8aeb2decb.md",
+      "previousCardSha256": "c786da4fc245248bbabe68a1f949323a1caac09c89adf2bb40f0f1305e1b63b0",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b5cd5819aca4fad65b47fbe91b637bb55a8d20c0cfbfb1356839af150160cc8f.json",
+          "sha256": "5a32d2bc077f2ddd2bd01055a21514462c9013442967d64183e996af6e4caee5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b5cd5819aca4fad65b47fbe91b637bb55a8d20c0cfbfb1356839af150160cc8f.json",
+          "sha256": "3c1acb41e9e00643d5ee0f4734323e9ad4f3989f66d1cf4962c67caea09eaa7b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-1946643d6912e8d8aeb2decb.md",
+          "sha256": "c786da4fc245248bbabe68a1f949323a1caac09c89adf2bb40f0f1305e1b63b0",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/10-source.json",
+      "sourceBackupSha256": "14cc58ee530af2c5f9fa08c9c7dd97e08fe602da0549ec5abef62502b9407757",
+      "cardSha256": "618c84782e8d068240245f88a59e41cb01c43501dc159d2ea9deb62cf4d733ee",
+      "parsedExplanationChars": 1336
+    }
+  ],
+  "cardCount": 10,
+  "publicationStatus": "authoring",
+  "reviewStatus": "pending-independent-review",
+  "remaining": [],
+  "remainingCount": 0,
+  "method": "authoring cards bound to exact detail/neighborhood/previous source paths; no runtime writes"
+}

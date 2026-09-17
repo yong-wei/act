@@ -1,0 +1,138 @@
+{
+  "status": "passed",
+  "models": {
+    "definiteness": {
+      "positiveDefiniteP": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "positiveSemidefiniteP": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "nonzeroZeroPoint": [
+        0,
+        1
+      ],
+      "negativeForms": "negatives of the positive forms"
+    },
+    "stable_rotation": {
+      "A": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          -1.0,
+          0.0
+        ]
+      ],
+      "normConstant": true
+    },
+    "cubic_asymptotic": {
+      "solution": "x0/sqrt(1+2*x0^2*(t-t0))",
+      "derivative": "-x^3",
+      "notExponential": "decay is algebraic for nonzero initial states"
+    },
+    "uniform_stability": {
+      "solutionRatio": "(1+t0)/(1+t)",
+      "fixedWait": 10,
+      "ratios": {
+        "0.0": 0.09090909090909091,
+        "10.0": 0.5238095238095238,
+        "1000.0": 0.990108803165183,
+        "1000000.0": 0.9999900001099988
+      }
+    },
+    "uniform_asymptotic": {
+      "system": "xdot=-2x",
+      "radius": 2.0,
+      "epsilon": 0.01,
+      "waitingTime": 2.649158683274018
+    },
+    "global_asymptotic": {
+      "system": "xdot=-x-x^3",
+      "V": "x^2/2",
+      "Vdot": "-x^2-x^4",
+      "localCounterexample": "xdot=-x+x^3, basin (-1,1)"
+    },
+    "candidate_failure": {
+      "A": [
+        [
+          -1.0,
+          4.0
+        ],
+        [
+          0.0,
+          -2.0
+        ]
+      ],
+      "V": "x^T*x",
+      "point": [
+        1,
+        1
+      ],
+      "Vdot": 2
+    },
+    "lyapunov_equation": {
+      "P": [
+        [
+          0.5,
+          0.6666666666666666
+        ],
+        [
+          0.6666666666666666,
+          1.5833333333333333
+        ]
+      ],
+      "eigenvalues": [
+        0.18268632799632073,
+        1.9006470053370124
+      ],
+      "residualMax": 1.1102230246251565e-16,
+      "unstableScalarP": -0.5
+    },
+    "energy_lasalle": {
+      "A": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          -1.0,
+          -1.0
+        ]
+      ],
+      "Vdot": "-x2^2",
+      "largestInvariantSubsetOfZeroDerivative": "origin"
+    },
+    "indirect_method": {
+      "localStableJacobian": -1,
+      "inconclusivePair": [
+        "xdot=-x^3",
+        "xdot=x^3"
+      ],
+      "pairJacobian": 0
+    },
+    "direct_method": {
+      "system": [
+        "-x1",
+        "-x2^3"
+      ],
+      "V": "(x1^2+x2^2)/2",
+      "Vdot": "-x1^2-x2^4"
+    }
+  }
+}

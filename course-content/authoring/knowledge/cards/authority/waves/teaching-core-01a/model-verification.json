@@ -1,0 +1,83 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "yaw_rate": {
+      "originalEquation": "5 r_dot + r = 0.2 delta; psi_dot = r",
+      "units": {
+        "time": "s",
+        "delta": "deg",
+        "r": "deg/s",
+        "psi": "deg",
+        "K": "1/s"
+      },
+      "parametersAreIllustrative": true,
+      "input": "delta(t)=10 deg for t>=0; zero initial r and psi",
+      "rAt5Seconds": 1.2642411176571153,
+      "rFinal": 2.0,
+      "headingAt5Seconds": 3.6787944117144233,
+      "rAt5SecondsWithInitialRateOne": 1.6321205588267786,
+      "ratePole": -0.2,
+      "headingHasIntegrator": true,
+      "validity": "linear approximation near a fixed speed and operating condition; no heading convergence under constant rudder"
+    },
+    "fidelity": {
+      "detailedEquation": "0.05 y_ddot + 1.05 y_dot + y = u",
+      "reducedEquation": "y_dot + y = u",
+      "inputAndInitialState": "unit step; all states initially zero",
+      "detailedStep": "1-(20 exp(-t)-exp(-20t))/19",
+      "reducedStep": "1-exp(-t)",
+      "initialSlopeDetailed": 0,
+      "initialSlopeReduced": 1,
+      "frequencyComparison": [
+        {
+          "omegaRadPerSecond": 0.2,
+          "magnitudeRatioDetailedToReduced": 0.9999500037496878,
+          "extraPhaseDegrees": -0.5729386976834838
+        },
+        {
+          "omegaRadPerSecond": 20.0,
+          "magnitudeRatioDetailedToReduced": 0.7071067811865476,
+          "extraPhaseDegrees": -44.99999999999999
+        }
+      ],
+      "maxAbsoluteStepDifferenceOn0To10Grid": 0.04270429394672859,
+      "validity": "model-to-model comparison, not experimental proof that the more detailed model is true"
+    },
+    "physical_similarity": {
+      "mechanical": {
+        "equation": "m x_ddot+c x_dot+k x=F",
+        "mKg": 2,
+        "cNsPerM": 4,
+        "kNPerM": 8,
+        "stepForceN": 2
+      },
+      "electrical": {
+        "equation": "L q_ddot+R q_dot+q/C=V",
+        "LHenries": 0.5,
+        "ROhms": 1,
+        "CFarads": 0.5,
+        "stepVoltageV": 0.5
+      },
+      "scaledCoordinates": "X=x/(1 m), Q=q/(1 C), tau=t/(1 s)",
+      "commonDimensionlessEquation": "z_second + 2 z_first + 4 z = 1",
+      "zeroInitialState": true,
+      "dimensionlessFinalValue": 0.25,
+      "physicalFinalValues": {
+        "xMeters": 0.25,
+        "qCoulombs": 0.25
+      },
+      "dimensionlessPoles": [
+        [
+          -1,
+          1.7320508075688772
+        ],
+        [
+          -1,
+          -1.7320508075688772
+        ]
+      ],
+      "validity": "same scaled differential equation and matched initial conditions; numerical agreement does not equate physical units"
+    }
+  }
+}

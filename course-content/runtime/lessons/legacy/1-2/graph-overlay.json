@@ -137,7 +137,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/串联连接_2_98ee18bc.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-ebf5a771fd114720de11f6e3.md"
       ],
       "tags": [
         "方框连接",
@@ -264,7 +264,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/信号流图_2_372d4084.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-9121dc2c97afa77f52ce0220.md"
       ],
       "tags": [
         "线性系统",
@@ -324,7 +324,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/反馈连接_2_40a881cb.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-e442dacbfef4a0d7ea3c4c15.md"
       ],
       "tags": [
         "闭环",
@@ -375,7 +375,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/并联连接_2_0e5f1ec2.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-bb52102ba5f63982e27e329a.md"
       ],
       "tags": [
         "方框连接",
@@ -478,7 +478,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/开环传递函数定义_2_12002.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_m3-v1l_canonical-object_c5f7d0ab3bb3d165d6bbe99e.md"
       ],
       "tags": [
         "开环",
@@ -868,7 +868,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/结构图简化_2_6d86a775.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-2088bbde171b2e9ef66070d5.md"
       ],
       "tags": [
         "等效变换",
@@ -928,7 +928,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/闭环传递函数_2_5399c369.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-69118dc66489d66b1732901b.md"
       ],
       "tags": [
         "反馈连接",

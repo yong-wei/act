@@ -1,0 +1,72 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "feedforward": {
+      "plant": "x_dot=-x+b*u; y=x+d",
+      "control": "u=K(r-y)+Fr*r+Fd*d",
+      "nominalB": 2,
+      "K": 1.0,
+      "Fr": 0.5,
+      "Fd": -0.5,
+      "nominalReferenceTransfer": "3/(s+3)",
+      "withoutFrReferenceTransfer": "2/(s+3)",
+      "nominalOutputDisturbanceTransfer": "s/(s+3)",
+      "disturbanceStepOutput": "exp(-3t)",
+      "withoutFdDisturbanceSteadyOutput": 0.3333333333333333,
+      "b3Mismatch": {
+        "referenceFinal": 1.125,
+        "disturbanceFinal": -0.125
+      },
+      "boundary": "disturbance is added at measured output; inverse DC gain cancels constant steady effect, not the full transient",
+      "nominalRampReferenceError": "(1-exp(-3t))/3",
+      "disturbanceMagnitudeSamples": {
+        "0.3": 0.09950371902099893,
+        "30.0": 0.9950371902099892
+      }
+    },
+    "disturbance_location": {
+      "outputAdditive": "Tdy=(1+P*Fd)/(1+P*K)",
+      "plantInputAdditive": "Tdy=P*(1+Fd)/(1+P*K)",
+      "inputCancellationFd": -1,
+      "boundary": "do not use -1/P(0) for an input-additive disturbance without re-deriving the channel"
+    },
+    "prefilter": {
+      "baseClosed": "(s+2)/(s^2+3s+4)",
+      "F": "2/(s+2)",
+      "referenceResult": "2/(s^2+3s+4)",
+      "fullInternalCharacteristic": "(s+2)(s^2+3s+4)",
+      "DCbefore": 0.5,
+      "DCafter": 0.5,
+      "boundary": "stable nominal zero cancellation; filter state remains; not arbitrary RHP-zero inversion"
+    },
+    "reference_internal_model": {
+      "plant": "1/(s+1)",
+      "controller": "2+3/s+1/s^2",
+      "states": "x_dot=-x+u; z1_dot=r-x; z2_dot=z1; u=2(r-x)+3z1+z2",
+      "fullClosedCharacteristic": "(s+1)^3",
+      "rampError": "t exp(-t)",
+      "stepError": "(1-t)exp(-t)",
+      "singleIntegratorComparison": {
+        "C": "1+1/s",
+        "closedT": "1/(s+1)",
+        "rampError": "1-exp(-t)",
+        "steadyRampError": 1
+      },
+      "boundary": "specified constant/ramp reference class and stable augmented loop, not arbitrary-signal tracking or industrial IMC topology"
+    },
+    "feedforward_stability_boundary": {
+      "feedbackCharacteristicUnchangedFor": "independent well-posed feedforward with fixed feedback loop",
+      "unstableCounterexampleF": "1/(s-1)",
+      "boundary": "new feedforward internal poles must still be stable; unchanged feedback characteristic does not guarantee full internal stability",
+      "referenceTransfer": "2s/((s-1)(s+3))",
+      "unitStepOutput": "(exp(t)-exp(-3t))/2"
+    },
+    "reference_prefilter_equivalence": {
+      "K": 1,
+      "parallelFr": 0.5,
+      "referencePrefilter": 1.5,
+      "boundary": "constant nonzero K; not arbitrary dynamic controller inversion"
+    }
+  }
+}

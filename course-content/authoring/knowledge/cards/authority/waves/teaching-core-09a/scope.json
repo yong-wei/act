@@ -1,0 +1,58 @@
+{
+  "batchId": "teaching-core-09a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-09",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+      "name": "等效单位反馈系统",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "name": "回路传递函数",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+      "name": "正反馈系统",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+      "name": "闭环传递函数",
+      "moduleId": "module-2",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+      "name": "单位负反馈系统",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+      "name": "开环系统",
+      "moduleId": "module-1",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-91f03880e67e6587b27f7039",
+      "name": "开环增益",
+      "moduleId": null,
+      "order": 7
+    }
+  ]
+}

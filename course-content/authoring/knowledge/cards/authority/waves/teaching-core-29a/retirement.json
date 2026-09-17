@@ -1,0 +1,183 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:相平面图_8_bd606f51",
+      "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/相平面图_8_bd606f51.md",
+          "sha256": "d39545a981d643e24320e2f8c6442d1265e6a4cc6c1b631b2b7719a6406c73f6",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/相平面图_8_bd606f51.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/相平面图_8_bd606f51.md",
+          "sha256": "d39545a981d643e24320e2f8c6442d1265e6a4cc6c1b631b2b7719a6406c73f6",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/相平面图_8_bd606f51.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:等倾线法_8_97c16d2e",
+      "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/等倾线法_8_97c16d2e.md",
+          "sha256": "f655c1a89a5bd6ab6c71318392ba443fe2a21cfdc06693ceb136bfd4e5ed6fd5",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/等倾线法_8_97c16d2e.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/等倾线法_8_97c16d2e.md",
+          "sha256": "f655c1a89a5bd6ab6c71318392ba443fe2a21cfdc06693ceb136bfd4e5ed6fd5",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/等倾线法_8_97c16d2e.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:相轨迹_8_5fb81b03",
+      "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/相轨迹_8_5fb81b03.md",
+          "sha256": "9d3fa68ce3fca5c211cf25f71e84e9608a7865ae5cdbb362d27a34b6d4b60d1d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/相轨迹_8_5fb81b03.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/相轨迹_8_5fb81b03.md",
+          "sha256": "9d3fa68ce3fca5c211cf25f71e84e9608a7865ae5cdbb362d27a34b6d4b60d1d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/相轨迹_8_5fb81b03.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:容许控制_10_cbc0aa55",
+      "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/容许控制_10_cbc0aa55.md",
+          "sha256": "71f53dbb3500115966d32f5b60f08d65c3f7f14b5dea626148b00ba2c1d1f3df",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/容许控制_10_cbc0aa55.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/容许控制_10_cbc0aa55.md",
+          "sha256": "71f53dbb3500115966d32f5b60f08d65c3f7f14b5dea626148b00ba2c1d1f3df",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/容许控制_10_cbc0aa55.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:相平面分析_8_13cc8148",
+      "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/相平面分析_8_13cc8148.md",
+          "sha256": "448752a55f259cff294fbc9bc8d74b69ca1e4ca75e49f2cc86d216c4186893b9",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/相平面分析_8_13cc8148.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/相平面分析_8_13cc8148.md",
+          "sha256": "448752a55f259cff294fbc9bc8d74b69ca1e4ca75e49f2cc86d216c4186893b9",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/相平面分析_8_13cc8148.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:相平面法_8_b1b8091e",
+      "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/相平面法_8_b1b8091e.md",
+          "sha256": "b57ec282d9a30f830677db8058b7c7b6f5d3fcfc2b586410bfda81c007b009c0",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/相平面法_8_b1b8091e.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/相平面法_8_b1b8091e.md",
+          "sha256": "b57ec282d9a30f830677db8058b7c7b6f5d3fcfc2b586410bfda81c007b009c0",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/相平面法_8_b1b8091e.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:奇点_8_f6da1cbb",
+      "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/奇点_8_f6da1cbb.md",
+          "sha256": "c3070e25b0180e43e5f0996ca3bb930aa3bcafe2e1a3584ed3a08069b8b82bcc",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/奇点_8_f6da1cbb.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/奇点_8_f6da1cbb.md",
+          "sha256": "c3070e25b0180e43e5f0996ca3bb930aa3bcafe2e1a3584ed3a08069b8b82bcc",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/奇点_8_f6da1cbb.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:奇点_平衡点__8_7e8e9880",
+      "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/奇点_平衡点__8_7e8e9880.md",
+          "sha256": "f52005b45c6c371dbd7a931901c32ce6c782c04e956b0d3f80612892690788ce",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/奇点_平衡点__8_7e8e9880.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/奇点_平衡点__8_7e8e9880.md",
+          "sha256": "f52005b45c6c371dbd7a931901c32ce6c782c04e956b0d3f80612892690788ce",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/奇点_平衡点__8_7e8e9880.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:实奇点_8_daa87444",
+      "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/实奇点_8_daa87444.md",
+          "sha256": "d9295b7f74386f274390ad516d02356da67bad0b4374ba3009780f46f6e64c95",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/实奇点_8_daa87444.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/实奇点_8_daa87444.md",
+          "sha256": "d9295b7f74386f274390ad516d02356da67bad0b4374ba3009780f46f6e64c95",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/实奇点_8_daa87444.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:虚奇点_8_e5cac44f",
+      "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/虚奇点_8_e5cac44f.md",
+          "sha256": "f7372b67553b5a22fc96f67b9958f24c07af2552106989a5b2ab40d78333d3a2",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/虚奇点_8_e5cac44f.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/虚奇点_8_e5cac44f.md",
+          "sha256": "f7372b67553b5a22fc96f67b9958f24c07af2552106989a5b2ab40d78333d3a2",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/虚奇点_8_e5cac44f.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:开关线_8_fff1000a",
+      "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/开关线_8_fff1000a.md",
+          "sha256": "f2846fcf1589c0eabb888ec1c766cf4ce0c923d272efb2c8aad8b3322dc573bf",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/authoring/开关线_8_fff1000a.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/开关线_8_fff1000a.md",
+          "sha256": "f2846fcf1589c0eabb888ec1c766cf4ce0c923d272efb2c8aad8b3322dc573bf",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/retired/runtime/开关线_8_fff1000a.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b41",
+  "replacementDigest": "3c029096285919cba0fbd41411671ad2d36ba998491be0544e5744518deabce0"
+}

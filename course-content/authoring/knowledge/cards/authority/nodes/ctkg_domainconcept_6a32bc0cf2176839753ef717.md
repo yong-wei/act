@@ -1,0 +1,87 @@
+---
+node_id: ctkg_domainconcept_6a32bc0cf2176839753ef717
+authority_entity_id: "ctkg:domainconcept:6a32bc0cf2176839753ef717"
+name: "误差全补偿条件"
+name_en: "Conditions for Complete Error Compensation"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-28207458a3e82d61df1aee11741deb774a2845ab689a5724fab3754a4f26b4e7.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-28207458a3e82d61df1aee11741deb774a2845ab689a5724fab3754a4f26b4e7.json"
+asset_refs: []
+---
+
+## 首页
+# 误差全补偿条件 | Conditions for Complete Error Compensation
+
+一句话定义：误差全补偿条件是在指定模型和接线下，使参考或扰动到误差的传递函数恒为零的前馈条件。
+
+- 必须先写明前馈加入位置和扰动通道。
+- 传递函数代数抵消还需满足稳定、因果和可实现条件。
+- 全补偿通常针对名义模型的零状态响应。
+
+---
+## 详情
+### 完整解释
+
+设物理输出和控制律为
+
+$$
+y=Pu+Qd,\qquad u=C(r-y)+F_r r+F_d d.
+$$
+
+这里没有测量噪声，$d$ 为可测扰动，$Q$ 是其到输出的通道，前馈与反馈共同进入对象输入。定义 $e=r-y$、$S=1/(1+PC)$，消去 $u$ 得
+
+$$
+E=S(1-PF_r)R-S(Q+PF_d)D.
+$$
+
+参考和扰动可独立变化时，两项分别为零的名义条件是 $PF_r=1$ 和 $Q+PF_d=0$。因此形式上 $F_r=P^{-1}$、$F_d=-Q/P$。如果对象分成 $P=G_1G_2$，扰动在两段之间加入，则 $Q=G_2$，相应条件才化为 $F_d=-1/G_1$。脱离注入位置直接套用该式会补偿错误的通道。
+
+### 教学计算/推理例
+
+选择带直接通道的对象 $P=(s+2)/(s+1)$，令 $Q=C=1$。取
+
+$$
+F_r=\frac{s+1}{s+2},\qquad F_d=-\frac{s+1}{s+2}.
+$$
+
+两前馈均稳定且适当，两个补偿条件成立。对象和控制器的直接通道满足 $1+P(\infty)C(\infty)=2\ne0$，代数闭合可解。为检查内部行为，令 $h=r-d$，采用以下状态实现：
+
+$$
+\dot x=h-1.5x-0.5w,\qquad \dot w=h-2w,
+$$
+$$
+u=h-\frac{x+w}{2},\qquad y=u+x+d.
+$$
+
+内部极点为 $-1.5$ 和 $-2$。零初态时 $x=w$，于是 $y=r$，参考与扰动可被名义精确补偿。若初态不等，则 $x-w$ 按 $e^{-1.5t}$ 衰减，误差为 $-(x-w)/2$，并非从一开始就为零。该对象有直接通道，所以这个例子不能证明惯性对象可以瞬间跟随任意跳变。
+
+### 适用条件与边界
+
+对严格真有理对象 $P=2/(s+1)$，完整逆为 $(s+1)/2$，包含理想微分，是不适当传递函数，不能据此宣称任意信号的全频段补偿可实现。右半平面零点和延迟也可能使逆不稳定或非因果。真实应用还依赖扰动可测、模型准确、执行器容量及内部稳定性；只对特定输入消除稳态误差弱于全动态补偿。
+
+### 常见误区
+
+1. 只检查输出传递函数为零，忽略前馈内部状态。隐藏的不稳定状态仍会破坏系统。
+2. 将按扰动补偿用于未知且未测出的扰动。前馈需要可用的扰动信息。
+3. 把零状态全补偿解释为任意初态、任意模型误差下均无误差。
+
+### 自检
+
+1. 扰动从对象输入端加入时 $Q=P$，上述 $F_d$ 为何值？
+2. 为什么不能仅由 $F_r=1/P$ 断言设计已经完成？
+
+**核对要点**：在该结构及符号下 $F_d=-1$；还须检查逆的稳定性、因果性、适当性、内部闭环行为及模型适用范围。
+
+### 关联节点
+
+- **稳态全补偿**（无向，关系：相关）
+- **近似全补偿**（无向，关系：相关）

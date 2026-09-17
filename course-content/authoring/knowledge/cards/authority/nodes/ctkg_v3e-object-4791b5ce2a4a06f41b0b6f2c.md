@@ -1,56 +1,76 @@
 ---
 node_id: ctkg_v3e-object-4791b5ce2a4a06f41b0b6f2c
 authority_entity_id: "ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c"
-name: Difference equations
+name: "差分方程"
+name_en: "Difference Equation"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - Difference
-  - equations
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ed45c04996d1cbb0dacd1eb5c9ec2234af13dd122a4e4118ffbca89d5cf46feb.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ed45c04996d1cbb0dacd1eb5c9ec2234af13dd122a4e4118ffbca89d5cf46feb.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-02a/previous/ctkg_v3e-object-4791b5ce2a4a06f41b0b6f2c.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 7ac2b33d451d6c3f87517da660473ba0e5b6812297ef52d1cf41c41aa6e2ed59 -->
-
 ## 首页
+# 差分方程 | Difference Equation
 
-# Difference equations
+一句话定义：差分方程用不同离散时刻的变量建立递推关系，描述离散系统如何从初态和输入产生后续状态或输出。
 
-**一句话定义**：Difference equations：Difference equations
-
-**关联**：前置 → Discrete equivalent、Discrete design、Sample rate · 后续 → Discrete design、Discrete equivalent、Discrete signal
+- 索引和更新时序必须一致。
+- 求解需要足够的初始条件。
+- 零状态传递函数不包含全部非零初态响应。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-Difference equations
+一个一阶例子是 $y[k+1]=ay[k]+bu[k]$。它表示下一时刻输出由当前输出和当前输入决定。若把方程改写为 $y[k]=ay[k-1]+bu[k-1]$，只是索引平移；如果误把输入写成 $u[k]$ 而不改变时序，就可能引入或删除一拍延迟。
+
+差分方程可以线性或非线性、时不变或时变。使用常系数线性z域方法前，应核对实际形式，不能把任意递推都当作同一类传递函数模型。对于高阶递推，还需给出相应数量的初态或历史值。
+
+### 教学计算/推理例
+
+取 $y[k+1]=0.5y[k]+u[k]$，$y[0]=0$，输入从 $k=0$ 起恒为1。递推得到0、1、1.5、1.75等，通式为 $y[k]=2(1-0.5^k)$，最终趋于2。
+
+若初态改为 $y[0]=2$ 而输入仍恒为1，则每步都是2。相同输入、不同初态给出不同暂态，说明初态不能从完整响应中删除。一般解可写成
+
+$$
+y[k]=0.5^k y[0]+\sum_{i=0}^{k-1}0.5^{k-1-i}u[i].
+$$
+
+单边z变换给出 $z(Y-y[0])=0.5Y+U$，所以 $Y=z y[0]/(z-0.5)+U/(z-0.5)$。零初态时传递函数才是 $Y/U=1/(z-0.5)$。分子没有额外 $z$，与输入作用后下一时刻才更新输出的时序相符。
+
+### 适用条件与边界
+
+系数 $|a|<1$ 保证这个标量零输入递推衰减，但高阶系统应检查全部特征根；非线性或时变方程需要适用的其他分析。对由连续对象离散化得到的模型，系数还可能依赖采样周期和保持方式，不能在时序改变后保持不变。
+
+实际实现使用有限字长时，系数舍入、状态量化和溢出可能改变递推行为。数学模型中0.99的衰减系数若被舍入为1，就可能失去渐近衰减。验证时应明确是在理想实数运算还是实际数字表示下分析。
+
+差分关系本身只规定离散时刻。若任务关心连续对象在采样间的响应，需结合连续方程或明确的重建模型。不能用样值满足递推直接证明采样间约束始终满足。
+
+### 常见误区
+
+1. 将输入索引平移一拍却仍宣称模型未变。
+2. 非零初态问题只计算传递函数乘输入，漏掉自由响应。
+3. 从单个标量例子的稳定条件直接推广到任意高阶递推。
+
+### 自检
+
+1. 本例零初态、单位常值输入时 $y[1]$ 为多少？
+2. 若初态2，为什么输出不再经历从0上升的过程？
+
+**核对要点**：$y[1]=1$；初态已位于该输入的平衡值2，递推每步保持2。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | Discrete design | 属于 |
-| 前置 | Discrete equivalent | 包含组件 |
-| 前置 | Discrete design | 包含组件 |
-| 前置 | Sample rate | 应用于 |
-| 后续 | Discrete equivalent | 派生自 |
-| 前置 | Sample rate | 关联 |
-| 后续 | Discrete signal | 关联 |
-| 后续 | Discrete signal | 有表示 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、Difference、equations
+- **采样率**（无向，关系：相关）
+- **采样率**（入边，关系：适用于）
+- **离散设计**（出边，关系：组成部分属于）

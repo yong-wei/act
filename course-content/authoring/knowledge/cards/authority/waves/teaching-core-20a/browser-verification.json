@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> velocity feedback node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "测速反馈控制",
+  "representativeCanonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+  "authorityDomainId": "time-domain-analysis",
+  "authorityDomainDisplayName": "时域分析"
+}

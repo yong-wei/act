@@ -1,0 +1,186 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "matrix_exponential": {
+      "A": [
+        [
+          -1,
+          1
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "exact": "exp(-t)[[1,t],[0,1]]",
+      "initialIdentity": true,
+      "semigroupChecked": true,
+      "boundary": "matrix function, not entrywise exponentiation; repeated eigenvalues need not imply diagonal form"
+    },
+    "state_transition": {
+      "constantA": "Phi(t,t0)=exp(A(t-t0))",
+      "forcedState": "Phi*x0+integral Phi(t,tau)B u(tau)dtau",
+      "timeVaryingScalar": "xdot=-2t x -> Phi(t,t0)=exp(-(t^2-t0^2))",
+      "boundary": "LTI exponential formula not generally exp(A(t)*(t-t0)) for time-varying matrices"
+    },
+    "canonical_realization": {
+      "A": [
+        [
+          -3.0,
+          -2.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "B": [
+        [
+          1.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "C": [
+        [
+          1.0,
+          3.0
+        ]
+      ],
+      "D": 0,
+      "G": "(s+3)/(s^2+3s+2)",
+      "properWithD2": "(2s^2+7s+7)/(s^2+3s+2)",
+      "convention": "upper companion first row [-3,-2], B first entry1",
+      "boundary": "realization not unique; proper non-strict transfer includes feedthrough; transfer only zero-state behavior"
+    },
+    "rank_matrices": {
+      "controllability": [
+        [
+          1.0,
+          -3.0
+        ],
+        [
+          0.0,
+          1.0
+        ]
+      ],
+      "controllabilityDet": 1.0,
+      "observability": [
+        [
+          1.0,
+          3.0
+        ],
+        [
+          0.0,
+          -2.0
+        ]
+      ],
+      "observabilityDet": -2.0,
+      "ranks": [
+        2,
+        2
+      ],
+      "boundary": "multi-input controllability matrix may be rectangular; full row rank not ordinary matrix invertibility"
+    },
+    "pbh": {
+      "canonicalEigenvalueTests": [
+        {
+          "lambda": -1.0,
+          "controllableRank": 2,
+          "observableRank": 2
+        },
+        {
+          "lambda": -2.0,
+          "controllableRank": 2,
+          "observableRank": 2
+        }
+      ],
+      "boundary": "continuous finite-dimensional LTI criterion at all eigenvalues over complex field; one tested mode does not prove all modes"
+    },
+    "hidden_mode": {
+      "A": [
+        [
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          2.0
+        ]
+      ],
+      "B": [
+        [
+          1.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "C": [
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "uncontrolledUnobservedEigenvalue": 2,
+      "ranksAtLambda2": [
+        1,
+        1
+      ],
+      "zeroStateTransfer": "1/(s+1)",
+      "boundary": "stable external transfer does not reveal all internal modes; initial x2 grows exp(2t)"
+    },
+    "reachability": {
+      "A": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "B": [
+        [
+          0.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "horizon": 1,
+      "gramian": [
+        [
+          0.3333333333333333,
+          0.5
+        ],
+        [
+          0.5,
+          1.0
+        ]
+      ],
+      "initial": [
+        0,
+        0
+      ],
+      "target": [
+        1.0,
+        0.0
+      ],
+      "input": "6-12t",
+      "verifiedEndpoint": [
+        1.0000000000000004,
+        1.3616880273370756e-16
+      ],
+      "boundary": "unconstrained input example; bounded controls/time-varying reachability need their own conditions; target reachability is weaker than all-state reachability"
+    },
+    "duality": {
+      "identity": "O(A,C)^T=Ctrb(A^T,C^T)",
+      "reverseIdentity": "Ctrb(A,B)^T=O(A^T,B^T)",
+      "boundary": "linear algebra duality under transposition, not physical identity of sensors and actuators or all estimation/control tasks"
+    }
+  }
+}

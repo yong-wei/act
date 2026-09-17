@@ -1,0 +1,7 @@
+{
+  "status": "accepted",
+  "cards": 4,
+  "goalId": "nonlinear-control-foundations",
+  "rationale": "四个术语按恢复的原教材语义制作，明确积分阶次、阻抗严格性、扇区移位和饱和反算。",
+  "sourceLimitation": "原私有source-span及扫描页缺失，冻结文本和公开evidence hash链支持当前语义与原文匹配，未宣称完整上游审核重建。"
+}

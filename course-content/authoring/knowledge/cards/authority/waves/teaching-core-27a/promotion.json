@@ -1,0 +1,15 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 11,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b38",
+  "retiredResources": [
+    "act:card:非线性控制系统_1_1345e52b",
+    "act:card:非线性系统_8_4ccc0148",
+    "act:card:饱和非线性_8_deec42d7",
+    "act:card:摩擦特性_8_76db8f5b",
+    "act:card:间隙特性_8_51523138",
+    "act:card:饱和效应_8_c8c67f8e",
+    "act:card:饱和特性_8_e55b1fb5",
+    "act:card:死区特性_8_9ed850fc"
+  ]
+}

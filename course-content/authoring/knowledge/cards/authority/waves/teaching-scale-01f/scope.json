@@ -1,0 +1,50 @@
+{
+  "batchId": "teaching-scale-01f",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "status": "authoring",
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "name": "稳定性",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+      "name": "劳斯-赫尔维茨稳定性判据法",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "name": "劳斯-赫尔维茨稳定性判据",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "name": "穿越频率（相位）",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+      "name": "穿越频率（增益）",
+      "directGoal": false
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+      "name": "幅值裕度",
+      "directGoal": true
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "name": "截止频率",
+      "directGoal": false
+    }
+  ]
+}

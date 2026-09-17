@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> QFT node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "定量反馈理论",
+  "representativeCanonicalId": "ctkg:m3-v2j:source-object:5b9db9f6bfeb1491df0d9414",
+  "authorityDomainId": "robust-control-analysis-and-design",
+  "authorityDomainDisplayName": "鲁棒控制分析与设计"
+}

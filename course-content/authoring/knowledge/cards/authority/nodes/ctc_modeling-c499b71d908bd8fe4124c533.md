@@ -1,34 +1,35 @@
 ---
 node_id: ctc_modeling-c499b71d908bd8fe4124c533
 authority_entity_id: "ctc:modeling-c499b71d908bd8fe4124c533"
-name: 首先考虑负载效应分别列写系统各…
-name_en: modeling_c499b71d908bd8fe4124c533
+name: "结构图绘制规范步骤"
+name_en: "Structural Diagram Construction Steps"
 category: 程序性
-coverage_role: formal_objective
-batch: A
-concept_kind: analysis_method
-release_tier: silver
-tags:
-  - analysis_method
-  - silver
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a3c4df14c11cc414097984a7f87bb1ab99a714ede8f1c6db9fb89216a7caec65.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a3c4df14c11cc414097984a7f87bb1ab99a714ede8f1c6db9fb89216a7caec65.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-05a/previous/ctc_modeling-c499b71d908bd8fe4124c533.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 04fcd6c8d1afc3c9eb65894833766f946d321fe6e2fbe9a7f5797eb5f8269a16 -->
-
 ## 首页
 
-# 首先考虑负载效应分别列写系统各… | modeling_c499b71d908bd8fe4124c533
+# 结构图绘制规范步骤 | Structural Diagram Construction Steps
 
-**一句话定义**：首先考虑负载效应分别列写系统各元部件的微分方程或传递函数，并将它们用方框表示；然后根据各元部件的信号流向，用信号线依次将各方框连接便得到系统的结构图。
+**一句话定义**：先考虑元件之间的负载效应并列出方程，再按变量流向把方框、积分器和信号线连接成结构图。
 
-**核心直觉**：然后根据各元部件的信号流向，用信号线依次将各方框连接便得到系统的结构图。
+**核心直觉**：先让方程决定图的结构，图只是方程关系的可读呈现；忽略加载会把实际互联误写成孤立方框的乘积。
 
-**关联**：（权威图邻接待补充）
+**关键公式**：$\dot v_1=u-2v_1+v_2$，$\dot v_2=v_1-v_2$。
+
+**学习目标**：从有负载的物理互联建立变量关系，选择积分器输入，并检查图中每条线是否有明确含义。
 
 ---
 
@@ -36,18 +37,56 @@ asset_refs: []
 
 ### 完整解释
 
-首先考虑负载效应分别列写系统各元部件的微分方程或传递函数，并将它们用方框表示；然后根据各元部件的信号流向，用信号线依次将各方框连接便得到系统的结构图。
+结构图绘制应从系统方程开始，而不是先凭想象画出一串方框。对有耦合的物理网络，某个元件的输入可能同时受到其他元件状态影响，这就是负载效应。若把每个元件孤立处理，再简单相乘，得到的图可能外形整齐，却已经改变了原系统的变量关系。
+
+考虑无源双 RC 网络，取 $R_1=R_2=1\ \mathrm{ohm}$、$C_1=C_2=1\ \mathrm{F}$，输入为 $u$，两个节点电压为 $v_1$、$v_2$。从节点电流关系得到
+$$
+\dot v_1=u-2v_1+v_2,\qquad \dot v_2=v_1-v_2.
+$$
+第一式中的 $v_2$ 项说明后级节点会反过来影响前级节点；第二式中的 $v_1$ 项说明两个节点不是两个彼此独立的一阶环节。若输出取 $v_2$，在零初态下转到拉氏域有
+$$
+(s+2)V_1-V_2=U,\qquad -V_1+(s+1)V_2=0.
+$$
+由第二式得 $V_1=(s+1)V_2$，代回第一式后
+$$
+\frac{V_2}{U}=\frac{1}{(s+2)(s+1)-1}=\frac{1}{s^2+3s+1}.
+$$
+这个分母来自耦合方程的行列式，而不是把两个孤立环节的分母直接相乘。
+
+把微分方程改写成结构图时，每个状态方程右端都先成为一个积分器的输入。第一个积分器接收 $u-2v_1+v_2$，输出 $v_1$；第二个积分器接收 $v_1-v_2$，输出 $v_2$。再把 $v_1$、$v_2$ 的反馈线引回各自的求和点，最后从指定节点引出输出。这样画出的方框和积分器逐一对应方程中的变量依赖，图上每条线都能回到一条可检查的关系式。
+
+可复用的绘制顺序是：先定义输入、输出和状态变量，明确端口方向与单位；再考虑加载并列写每个节点或元件的方程；然后把右端拆成增益、求和点和积分器可以表达的关系；接着按信号流向连接；最后逐条检查符号、反馈方向、初态和输出选取。顺序的意义在于防止“先画出期待的结构，再悄悄删掉不方便的加载项”。
+
+### 教学计算/推理例
+
+比较有负载网络与理想缓冲网络。若每级都被理想缓冲隔离，孤立乘积会写成 $1/(s+1)^2$；当前无缓冲模型由两条耦合方程给出 $1/(s^2+3s+1)$。二者分母不同，原因就在 $v_2$ 对 $v_1$ 的反馈以及 $v_1$ 对 $v_2$ 的驱动。用这个差异检查结构图，能确认绘图时没有把负载效应从方程中删掉。
+
+### 适用条件与边界
+
+本例采用线性定常、无源双 RC 模型，电阻和电容取固定值，传递函数计算使用零初态。积分器图示只是方程的表达方式，不意味着前端可以恢复一套新的物理仿真器。若实际网络存在缓冲器、额外负载或不同端口定义，应重新列方程并据此重连方框。
+
+### 常见误区
+
+1. **误区**：把每个 RC 级都写成 $1/(s+1)$ 后直接相乘，就得到当前网络的传递函数。**纠正**：无缓冲时存在加载耦合，当前模型的结果是 $1/(s^2+3s+1)$；孤立乘积只适用于理想缓冲边界。
+2. **误区**：先画出熟悉的方框图，再根据需要忽略不顺眼的反馈线。**纠正**：应先定义变量、端口和方程，再让积分器输入、求和点与反馈线由方程决定。
+
+### 自检
+
+1. $\dot v_1$ 中的 $v_2$ 项揭示了什么加载关系？
+2. 为什么两个孤立的一阶分母不能直接替代 $s^2+3s+1$？
+
+**核对要点**：$v_2$ 会影响 $v_1$ 的变化率，说明后级负载回作用于前级；无缓冲耦合使系统分母由联立方程的行列式决定，不能直接使用孤立级联乘积。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`analysis_method`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-analysis_method、silver
+- **结构图至信号流图转换法**（无向，关系：相关）
+- **结构图转信号流图节点设置规则**（无向，关系：相关）
+- **结构图等效代数运算**（无向，关系：相关）
+- **微分方程信号流图绘制法**（无向，关系：相关）
+- **系统原理图消元建模法**（无向，关系：相关）
+- **元件级联负载效应**（无向，关系：相关）
+- **结构图环节方框**（无向，关系：相关）
+- **微分方程机理建模三步法**（无向，关系：相关）
+- **系统结构图模型**（无向，关系：相关）
+- **无源网络传递函数求法**（无向，关系：相关）
+- **结构图中的方框与实际系统的元部件并非是一一对应的；一个实际元部件可以用一个方框或几个方框表示，而一个方框也可以代表几个元部件或是一个子系统，或是一个大的复杂系统。**（无向，关系：相关）

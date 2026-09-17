@@ -1,0 +1,10 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 16,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b4",
+  "retiredResources": [
+    "act:card:误差_1_1",
+    "act:card:对数相频曲线_5_ac0666e1",
+    "act:card:相频特性_5_abda14da"
+  ]
+}

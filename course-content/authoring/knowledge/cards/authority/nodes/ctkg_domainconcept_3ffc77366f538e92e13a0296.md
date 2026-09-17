@@ -1,51 +1,83 @@
 ---
 node_id: ctkg_domainconcept_3ffc77366f538e92e13a0296
 authority_entity_id: "ctkg:domainconcept:3ffc77366f538e92e13a0296"
-name: 能量函数（李雅普诺夫）
+name: "能量函数（李雅普诺夫）"
+name_en: "Energy Function in Lyapunov Analysis"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - 能量函数（李雅普诺夫）
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+confifteent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2980196b9ab4646e4c43e2dd7e84318da3104975580c6ee01992a909ae2405e7.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2980196b9ab4646e4c43e2dd7e84318da3104975580c6ee01992a909ae2405e7.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-05a/previous/ctkg_domainconcept_3ffc77366f538e92e13a0296.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 61b58448af019c71ae7d090b3812b5acc4051882212be234d38845384fac49ea -->
-
 ## 首页
+# 能量函数（李雅普诺夫） | Energy Function in Lyapunov Analysis
 
-# 能量函数（李雅普诺夫）
+一句话定义：能量函数通过度量系统相对于平衡状态的储能，为李雅普诺夫分析提供候选，但仍需验证定号、耗散和不变集等条件。
 
-**一句话定义**：能量函数（李雅普诺夫）是自动控制原理权威图谱中的领域概念。
-
-**关联**：前置 → 李雅普诺夫函数候选、李雅普诺夫函数
+- 能量需要选定适当的参考零点。
+- 耗散非正不一定在每个非零状态都严格为负。
+- 有无阻尼会改变收敛结论。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+机械系统的动能与势能之和常能反映状态偏离平衡点的程度。若平衡点对应严格能量最小值，适当平移参考能量后可能得到正定函数。通过动力学计算能量变化，就可以分析轨迹是否被限制在能量子水平集中，而不必先求出每条轨迹的完整表达式。
+
+能量的物理意义有助于选函数，但并不免除数学条件。存在多个势能极小点、角度的周期性或未被能量约束的状态方向时，都需说明局部区域或平衡集合。不能仅凭“能量守恒”或“能量减少”直接给出所有状态趋于某一点的结论。
+
+### 教学计算/推理例
+
+取单位质量、单位刚度、单位阻尼的弹簧质量系统，状态为位移 $x_1$ 与速度 $x_2$，满足 $\dot x_1=x_2$、$\dot x_2=-x_1-x_2$。总能量取
+
+$$
+E=\frac12x_1^2+\frac12x_2^2,\qquad
+\dot E=x_1x_2+x_2(-x_1-x_2)=-x_2^2.
+$$
+
+能量全局正定且径向无界。导数非正，说明能量只能保持或减少；但在位移不为零而速度为零时，瞬时导数仍为零，所以不能把它写成严格负定导数。
+
+零导数集合是 $x_2=0$。如果位移不为零，弹簧力使 $\dot x_2=-x_1\ne0$，状态无法一直停留在该集合中。只有原点同时满足速度和加速度为零。因此，在紧正不变能量子水平集中，零导数集合的最大不变子集只有原点，不变集原理给出全局渐近收敛。
+
+去掉阻尼后，第二方程变成 $\dot x_2=-x_1$，此时能量导数恒为零。非零初始能量对应持续振荡，原点仍稳定，却不吸引这些轨迹。能量守恒可以防止轨迹远离，却不能代替耗散或其他吸引机制。
+
+### 物理解释与证明的衔接
+
+速度为零的转向瞬间没有阻尼耗散，但弹簧势能随后转化为动能，运动再次受到阻尼作用。这是零导数不必妨碍收敛的直观原因；严格证明则是识别最大不变子集，而不是断言所有非零点都一直在耗能。
+
+初始能量为c时，轨迹位于 $x_1^2+x_2^2\leq2c$ 的圆盘内。该集合紧且正不变，光滑线性动力学确保解持续存在。明确这些条件，才能把能量变化与全局结论连接起来。
+
+### 适用条件与边界
+
+加入外部力u后，能量导数变为 $\dot E=-x_2^2+x_2u$，输入可能持续注入能量。无输入模型的收敛证明不能直接照搬到任意受迫系统。控制器若引入额外动态，也要检查完整状态及储能结构，不能遗漏控制器内部状态。
+
+势能零点可以加减常数调整，但正定性要求相对于所研究平衡点建立。某个能量函数只在一个势阱附近满足条件时，结论也只适用于相应区域，不能忽略其他平衡点而宣称全局收敛。
+
+### 常见误区
+
+1. 能量导数非正就认为它在全部非零状态严格为负。
+2. 看到能量守恒就误称平衡点渐近稳定。
+3. 加入外部输入后仍使用无输入耗散等式。
+
+### 自检
+
+1. 阻尼系统在位移非零、速度为零处能否永远停留？
+2. 去掉阻尼后，非零初始能量能否趋于零？
+
+**核对要点**：不能，弹簧力会产生加速度；不能，能量守恒导致持续振荡。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 李雅普诺夫函数候选 | 是一种 |
-| 前置 | 李雅普诺夫函数 | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、能量函数（李雅普诺夫）
+- **李雅普诺夫函数**（入边，关系：属于）
+- **李雅普诺夫函数候选**（出边，关系：前置于）
+- **正定性（标量函数）**（无向，关系：相关）

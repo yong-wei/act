@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "reviewer": "/root/review_core23_content",
+  "role": "simulation-domain-reviewer",
+  "scope": "seven authored bodies and frozen source/model evidence; materialization pending",
+  "sourceInventorySha256": "cd854222dffbaad4a1f9dc7fee3fd34088775dfa11a5579fae6308934e89d7b3",
+  "bodyHashes": {
+    "01.md": "5055c327ebd0b50a389fbb5da41f4ebeb14c81603434c1c6a2f476885d82303c",
+    "02.md": "d7b26388e24ea776880b85517d543f9e0cb9ea7afba8b405ae51a0178cb1f66b",
+    "03.md": "a39c67c052cb6c46424f0c037e8f30035386f860a66bc292dce35c8bcde0e346",
+    "04.md": "2c1103a166be16d53ed5b0c69fa980369d188675711dc18ac5a2cfdc07b895e5",
+    "05.md": "d7e5541d7c475fb2ad75a1c33f59ab45b90a59cf3a1119444761eb5cf07e5856",
+    "06.md": "eee2c9cb6b0b3807e2d330d0891eec5a3c474e6d2131c0008750d8c2313bee17",
+    "07.md": "56d6eb63c2b5611911c663eb69b6135604a4292436358ded8a63c64f94f2be22"
+  },
+  "findings": [],
+  "reviewedOriginalBodyHashes": {
+    "01.md": "a3a2287d0ca83726e58fca4323a9fd3e6f0469ed4fe6093204ab886b447fb657",
+    "02.md": "0469aaeef8fd42ae2873df23c1de58cbcd97ec437d38a0b3919e5d3ec351dba2",
+    "03.md": "b0755b0da42355b9591aa61d5b458d3f1360e4eac6f85d331847b46f4e78765b",
+    "04.md": "668ba2a74bc92736eccefa382537bc943f497bdba728e5199820c1b8253db709",
+    "05.md": "459c24e6f8330fa47397bd5881f7ae38ef0a587029b9c31feb0ddf6a3a2dbb63",
+    "06.md": "0e490ccf051b615e0b7b9e03192a6e3c997a75c926b188997790e6ad092dde46",
+    "07.md": "9bb2a80c0875c1dc27615f5e437c9419b0342f61b486f91c2bc4dc669cdadd5c"
+  },
+  "formatOnlyAdjustment": "主线程为七张首页原定义段增加解析器必需的一句话定义：标记；逐卡核验调整前正文等于已审哈希，科学内容无变化。原哈希保存在reviewedOriginalBodyHashes。"
+}

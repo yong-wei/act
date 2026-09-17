@@ -1,0 +1,217 @@
+{
+  "contract": "immutable-neighborhood-relation-check/v1",
+  "source": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods",
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+      "relations": [
+        {
+          "relationId": "m1i:relation-a3e6cb92e2e3d7d562169ae2",
+          "otherId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+          "label": "P控制器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **P控制器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1i:relation-b7ba832e9e869774fd1de789",
+          "otherId": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+          "label": "比例系数",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **比例系数**（出边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:c1dd69f21ca59671808573a9",
+          "otherId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+          "label": "积分控制",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **积分控制**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:1f47a137bf67c254c3855c77",
+          "otherId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+          "label": "比例-积分控制器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **比例-积分控制器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1i:relation-badce000eea73e2f4f2f7561",
+          "otherId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+          "label": "积分补偿器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **积分补偿器**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+      "relations": [
+        {
+          "relationId": "m1i:relation-badce000eea73e2f4f2f7561",
+          "otherId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+          "label": "比例积分控制器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **比例积分控制器**（入边，关系：属于）"
+        },
+        {
+          "relationId": "m1i:relation-f7fd62264f1c31eea78f182b",
+          "otherId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+          "label": "补偿器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **补偿器**（出边，关系：属于）"
+        },
+        {
+          "relationId": "m1i:relation-b7d8d8584cf27f94b846495b",
+          "otherId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+          "label": "根轨迹（单参数）",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **根轨迹（单参数）**（入边，关系：用于分析）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "relations": [
+        {
+          "relationId": "m1i:relation-f7fd62264f1c31eea78f182b",
+          "otherId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+          "label": "积分补偿器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **积分补偿器**（入边，关系：属于）"
+        },
+        {
+          "relationId": "m1i:relation-c228f38a573ce1d0af072ad1",
+          "otherId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+          "label": "串联补偿器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **串联补偿器**（入边，关系：属于）"
+        },
+        {
+          "relationId": "m1i:relation-d80bc7223ba5ab75b0d51909",
+          "otherId": "ctkg:domainconcept:48a62baa3d95389c7fdea7f6",
+          "label": "相位超前补偿器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **相位超前补偿器**（入边，关系：属于）"
+        },
+        {
+          "relationId": "m1i:relation-2e2de17dd670e85440830984",
+          "otherId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+          "label": "频率响应法",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **频率响应法**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "m1i:relation-7866f8c3b7e71e5c827c537b",
+          "otherId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+          "label": "补偿",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **补偿**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+      "relations": [
+        {
+          "relationId": "m1i:relation-c23859425cf5748ba5d5554b",
+          "otherId": "ctkg:v3e-object-36e31a50f047919209d08c48",
+          "label": "输出补偿",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **输出补偿**（入边，关系：属于）"
+        },
+        {
+          "relationId": "m1i:relation-1bd7b04d174f700fc841a3d8",
+          "otherId": "ctkg:v3e-object-55036b61ed3fe680ef13f904",
+          "label": "输入补偿",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **输入补偿**（入边，关系：属于）"
+        },
+        {
+          "relationId": "m1i:relation-95d496a98cc0cecd0ce29f60",
+          "otherId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+          "label": "反馈补偿",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **反馈补偿**（入边，关系：属于）"
+        },
+        {
+          "relationId": "m1i:relation-7866f8c3b7e71e5c827c537b",
+          "otherId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+          "label": "补偿器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **补偿器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+      "relations": [
+        {
+          "relationId": "m1i:relation-f99a82775cf1fcf983cab363",
+          "otherId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+          "label": "校正装置",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **校正装置**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+      "relations": [
+        {
+          "relationId": "m1i:relation-e75314c66343b5c2c969b8d3",
+          "otherId": "ctkg:domainconcept:48a62baa3d95389c7fdea7f6",
+          "label": "相位超前补偿器",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **相位超前补偿器**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "m1i:relation-767e76a31f3655c42e2f586c",
+          "otherId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+          "label": "相位滞后补偿器",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **相位滞后补偿器**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "m1i:relation-1754d9fd60fb6c88afe708c6",
+          "otherId": "ctkg:v3e-object-b7f9cf0765fd703b46de87a1",
+          "label": "利用滞后-超前网络的超前部分来增大系统的相角裕度，同时利用滞后部分来改善系统的稳态性能。",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **利用滞后-超前网络的超前部分来增大系统的相角裕度，同时利用滞后部分来改善系统的稳态性能。**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "m1i:relation-bd158a5142366e6531f3d784",
+          "otherId": "ctkg:v3e-object-5747d96070ffd48a169acfee",
+          "label": "兼有滞后校正和超前校正的优点，即已校正系统响应速度较快，超调量较小，抑制高频噪声的性能也较好。",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **兼有滞后校正和超前校正的优点，即已校正系统响应速度较快，超调量较小，抑制高频噪声的性能也较好。**（入边，关系：适用于）"
+        }
+      ]
+    }
+  ]
+}

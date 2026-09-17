@@ -1,0 +1,71 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "noise_channels": {
+      "P": "1/(s+1)",
+      "C": 2,
+      "measurement": "y+n",
+      "trueTrackingError": "r-y",
+      "comparatorError": "r-y-n",
+      "noiseToOutput": "-T",
+      "noiseToTrueError": "T",
+      "noiseToComparatorError": "-S",
+      "T": "2/(s+3)",
+      "S": "(s+1)/(s+3)",
+      "noiseStepTrueError": "(2/3)(1-exp(-3t))",
+      "noiseStepComparatorError": "-1/3-(2/3)exp(-3t)",
+      "atOmega30": {
+        "trueErrorMagnitude": 0.06633581268066593,
+        "comparatorMagnitude": 0.995589835179122
+      }
+    },
+    "constant_bias": {
+      "P": "1/(s+1)",
+      "C": "1+1/s",
+      "noise": 1,
+      "reference": 0,
+      "physicalOutput": "-1+exp(-t)",
+      "trueError": "1-exp(-t)",
+      "comparatorError": "-exp(-t)",
+      "boundary": "integral action can remove comparator error while physical output remains biased"
+    },
+    "disturbance_error": {
+      "P": "1/(s+1)",
+      "C": 2,
+      "trueTrackingError": "r-y",
+      "outputDisturbanceToError": "-S",
+      "inputDisturbanceToError": "-P*S",
+      "outputDisturbanceStepError": "-1/3-(2/3)exp(-3t)",
+      "inputDisturbanceStepError": "-(1/3)(1-exp(-3t))"
+    },
+    "type_zero": {
+      "loop": "2/(s+1)",
+      "originPoles": 0,
+      "positionErrorConstant": 2,
+      "unitStepSteadyError": 0.3333333333333333,
+      "unitRampError": "t/3+(2/9)(1-exp(-3t))",
+      "unitRampSteadyError": "unbounded",
+      "boundary": "system type is origin-pole count of specified loop, not total system order"
+    },
+    "full_compensation": {
+      "P": "(s+2)/(s+1)",
+      "outputDisturbanceQ": 1,
+      "C": 1,
+      "Fr": "(s+1)/(s+2)",
+      "Fd": "-(s+1)/(s+2)",
+      "control": "u=C(r-y)+Fr*r+Fd*d",
+      "errorReference": "S*(1-P*Fr)",
+      "errorDisturbance": "-S*(Q+P*Fd)",
+      "internalPoles": [
+        -1.5,
+        -2
+      ],
+      "zeroInitialState": true,
+      "nominalModelExact": true,
+      "stateRealization": "h=r-d; x_dot=h-1.5x-0.5w; w_dot=h-2w; u=h-(x+w)/2; y=u+x+d",
+      "strictlyProperCounterexample": "P=2/(s+1) requires Fr=(s+1)/2, an improper ideal derivative",
+      "boundary": "not arbitrary plant inversion, unknown disturbance cancellation or nonzero-initial-state zero error"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 9,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b28",
+  "retiredResources": [
+    "act:card:根轨迹分支数_4_6a4bb718",
+    "act:card:根轨迹完整法则_3_0f2e7b11",
+    "act:card:根轨迹绘制法则_4_f0ea9a49",
+    "act:card:根轨迹绘制规则_3_2f9e8cb3",
+    "act:card:实轴上的根轨迹_4_af9cbf0a",
+    "act:card:根轨迹绘制法则_零度__4_205342a7",
+    "act:card:零度根轨迹_4_2cfd7e23"
+  ]
+}

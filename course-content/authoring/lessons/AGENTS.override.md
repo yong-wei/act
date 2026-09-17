@@ -6,7 +6,7 @@
 
 - `design/{unit}-handout.md`
 - `design/{unit}-teacher-handout.md`
-- `design/AGENTS.override.md-boppps.md`
+- `design/{unit}-boppps.md`
 - `design/{unit}-interactive-page.md`
 
 这些文件都继承上层 [course-content/AGENTS.override.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/AGENTS.override.md) 的总闸门；本文件只补本文类特化要求，不重复改写总则。
@@ -15,7 +15,7 @@
 
 ## 通用原则
 
-- 先抽隐藏版 brief，再写 prose，再做去污染重写。
+- 根据读者与内容直接写作，校对实际问题；不机械执行多轮去污染重写。
 - 资源采用单、PDF 导出、脚本验证、runtime 同步、实现契约、时长门槛等内容继续作为隐含约束存在，不直接进入解释性段落。
 - 只有文档本身需要说明使用方式时，才允许显式写流程；否则默认压低工程和管理口吻。
 

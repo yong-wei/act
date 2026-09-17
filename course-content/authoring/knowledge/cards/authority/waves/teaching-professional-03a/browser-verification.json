@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> controllability-matrix node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "可控性矩阵",
+  "representativeCanonicalId": "ctkg:v3e-object-3784992e294bb2f120cdc0df",
+  "authorityDomainId": "state-space-control-analysis-and-design",
+  "authorityDomainDisplayName": "状态空间控制分析与设计"
+}

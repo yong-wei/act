@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> PID tuning node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "PID整定",
+  "representativeCanonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+  "authorityDomainId": "root-locus",
+  "authorityDomainDisplayName": "根轨迹"
+}

@@ -1,0 +1,15 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 11,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b22",
+  "retiredResources": [
+    "act:card:欠阻尼二阶系统_3_242477a2",
+    "act:card:无阻尼自然频率_3_13001",
+    "act:card:时间常数_2_68356eae",
+    "act:card:时间常数_3_17162973",
+    "act:card:临界阻尼_1_3",
+    "act:card:自然频率_10_51a8b7d0",
+    "act:card:自然频率_3_ab7d6dc0",
+    "act:card:欠阻尼响应_3_c2d57b37"
+  ]
+}

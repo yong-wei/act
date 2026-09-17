@@ -1,31 +1,35 @@
 ---
 node_id: ctkg_v3e-object-239fecfdb347e1a48fb9d7cc
 authority_entity_id: "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc"
-name: 完全可达
+name: "完全可达"
+name_en: "Complete Reachability"
 category: 概念性
-batch: C
-release_tier: silver
-tags:
-  - silver
-  - 完全可达
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0f72d7df1c65d7bac4101f1e38cb7d61804ad04423fc7849d4a9d78c5ca41d05.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0f72d7df1c65d7bac4101f1e38cb7d61804ad04423fc7849d4a9d78c5ca41d05.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-04a/previous/ctkg_v3e-object-239fecfdb347e1a48fb9d7cc.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: e74f93ac771362360ee9f0baa9dcccf2e1297330fb8a0b7bbf77cb406f313349 -->
-
 ## 首页
 
-# 完全可达
+# 完全可达 | Complete Reachability
 
-**一句话定义**：完全可达。
+**一句话定义**：完全可达表示在给定系统条件下，存在有限时间输入，可从零状态到达状态空间中的任意目标状态。
 
-**关联**：前置 → 状态完全可达
+**核心直觉**：输入不仅要能改变某个输出，还要能够覆盖所有需要独立指定的状态方向。
+
+**关键公式**：连续线性定常系统的可达矩阵为 $\mathcal C=[B\;AB\;\cdots\;A^{n-1}B]$。
+
+**学习目标**：用一个明确输入完成状态转移，并区分数学可达与执行器约束下的实际可行性。
 
 ---
 
@@ -33,18 +37,50 @@ asset_refs: []
 
 ### 完整解释
 
-完全可达
+从零状态出发的可达性关注输入能够产生哪些状态。对有限维连续线性定常系统，输入先沿 $B$ 的列方向作用，再通过 $A$ 的动态传播影响其他方向。即使只有一个输入，只要传播后的方向足够独立，仍可能控制多个状态。相反，输入数量不少也不保证所有状态方向都可达。
+
+在这里的无输入约束 LTI 条件下，可达矩阵满行秩与完全可达等价；对任意正的有限时长，可达 Gramian 正定也表达同一性质。对于更一般的离散、时变或受约束问题，应使用对应定义与判据，不把这一组等价关系直接外推。
+
+### 教学计算/推理例
+
+取无量纲双积分器
+$$
+A=\begin{bmatrix}0&1\\0&0\end{bmatrix},\qquad B=\begin{bmatrix}0\\1\end{bmatrix}.
+$$
+可达矩阵为
+$$
+\mathcal C=[B\;AB]=\begin{bmatrix}0&1\\1&0\end{bmatrix},\qquad \operatorname{rank}\mathcal C=2.
+$$
+从零初态出发，要求在 $t=1$ 到达 $[1,0]^{\mathsf T}$，选取 $u(t)=6-12t$。原方程 $\dot x_1=x_2$、$\dot x_2=u$ 积分后给出
+$$
+x_2(t)=6t-6t^2,\qquad x_1(t)=3t^2-2t^3.
+$$
+代入终点，确有 $x_1(1)=1$、$x_2(1)=0$。输入前半段加速、后半段减速，既改变位置，也满足最终速度为零的要求。单次构造证明这个目标可达；全部目标可达的结论还依赖满秩判据。
+
+本例一单位时长的 Gramian 为
+$$
+W(1)=\int_0^1e^{A\tau}BB^{\mathsf T}e^{A^{\mathsf T}\tau}d\tau
+=\begin{bmatrix}1/3&1/2\\1/2&1\end{bmatrix}.
+$$
+它的首个顺序主子式为 $1/3$、行列式为 $1/12$，故正定，与满秩结果一致。
+
+### 适用条件与边界
+
+这个输入是无约束的数学构造，没有考虑执行器幅值、变化率或能量上限。若实际装置不能产生所需输入，不能据此宣称该一单位时长的动作可执行。可达性也不直接说明输出测量能否识别状态，那属于可观测性问题。
+
+### 常见误区
+
+1. **误区**：只有一个输入就只能控制一个状态。**纠正**：输入经动态传播可覆盖多个独立方向。
+2. **误区**：找到一个成功转移就证明所有状态都可达。**纠正**：单个例子只证明一个目标，全面结论需要判据。
+
+### 自检
+
+1. 本例为什么需要在后半段改变输入符号？
+2. 满秩结论能否保证有限执行器完成这个指定时长的动作？
+
+**核对要点**：后半段减速使最终速度为零；幅值或变化率受限时必须另行检查可行性。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 状态完全可达 | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、完全可达
+- **一致可达**（无向，关系：相关）
+- **状态完全可达**（入边，关系：属于）

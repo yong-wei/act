@@ -1,0 +1,5 @@
+{
+  "scope": "teaching-core-12a only",
+  "policy": "Select actual DomainConcept neighbors, preserving predicate and direction; source statements and formulas remain available for provenance but are not copied as unqualified teaching claims.",
+  "authorityMutated": false
+}

@@ -24,6 +24,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--node', required=True, help='Knowledge node id')
     parser.add_argument('--image', help='Path to generated image')
     parser.add_argument('--latest-codex-image', action='store_true', help='Use newest image under ~/.codex/generated_images')
+    parser.add_argument('--reported-model', help='Actual model from tool/API response; omit when not disclosed')
+    parser.add_argument('--generation-path', choices=['codex-native-image-generation', 'openai-image-api'], default='codex-native-image-generation')
     parser.add_argument('--accept', action='store_true', help='Mark review.json as accepted after visual review')
     parser.add_argument('--note', default='', help='Review note')
     return parser.parse_args()
@@ -76,16 +78,19 @@ def main() -> None:
         'lesson_id': args.lesson,
         'node_id': node_id,
         'requested_node_id': requested_node_id,
-        'generation_path': 'codex-native-image-generation',
-        'model': 'gpt-image-2',
-        'tool_contract': 'Codex built-in image_gen prompt-only tool',
+        'generation_path': args.generation_path,
+        'requested_model': 'gpt-image-2.5',
+        'model': args.reported_model or None,
+        'model_evidence': 'operator-reported-response' if args.reported_model else 'not-disclosed',
+        'tool_contract': 'Codex image_gen with optional reference images' if args.generation_path == 'codex-native-image-generation' else 'OpenAI Images API',
         'formal_parameters_available': {
             'prompt': True,
-            'model': False,
-            'quality': False,
-            'size': False,
+            'reference_images': True,
+            'model': args.generation_path == 'openai-image-api',
+            'quality': args.generation_path == 'openai-image-api',
+            'size': args.generation_path == 'openai-image-api',
             'reasoning_effort': False,
-            'output_format': False,
+            'output_format': args.generation_path == 'openai-image-api',
         },
         'source_image': image_path.as_posix(),
         'output_image': repo_path(target),

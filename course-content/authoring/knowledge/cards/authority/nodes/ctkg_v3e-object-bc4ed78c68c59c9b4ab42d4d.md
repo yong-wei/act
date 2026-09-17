@@ -1,36 +1,31 @@
 ---
 node_id: ctkg_v3e-object-bc4ed78c68c59c9b4ab42d4d
 authority_entity_id: "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d"
-name: Axis Shift Method for Relative Stability
+name: "相对稳定性的轴偏移法"
+name_en: "Shifted-axis Test for Relative Stability"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - Axis
-  - Shift
-  - Method
-  - for
-  - Relative
-  - Stability
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bdd516957e870ae158f5492765be44ee881adfc105a8f8ad07bda7e86583e016.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bdd516957e870ae158f5492765be44ee881adfc105a8f8ad07bda7e86583e016.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-16a/previous/ctkg_v3e-object-bc4ed78c68c59c9b4ab42d4d.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 640b47e487a1590e70bb1e1202c548f15532f3525c026354bd86b159c23803c0 -->
-
 ## 首页
 
-# Axis Shift Method for Relative Stability
+# 相对稳定性的轴偏移法 | Shifted-axis Test for Relative Stability
 
-**一句话定义**：Axis Shift Method for Relative Stability：A method that extends the Routh-Hurwitz criterion to ascertain relative stability by shifting the s-plane axis using a…
+**一句话定义**：通过平移复平面坐标，将极点是否位于指定垂线左侧的问题转化为普通左半平面判别。
 
-**核心直觉**：在图谱邻接中可把握：后续 → Relative Stability。
-
-**关联**：后续 → Relative Stability
+要求 $\operatorname{Re}(s)<-a$时，使用 $s=z-a$；代换方向不能颠倒。
 
 ---
 
@@ -38,18 +33,54 @@ asset_refs: []
 
 ### 完整解释
 
-A method that extends the Routh-Hurwitz criterion to ascertain relative stability by shifting the s-plane axis using a change of variable, so that roots appear on the shifted axis.
+普通稳定判别只检查根是否在虚轴左侧。若希望根不仅实部为负，还至少位于垂线 $\operatorname{Re}(s)=-a$左侧，就可以平移坐标，把这条垂线变成新坐标的虚轴，然后对新多项式应用劳斯判据。
+
+令 $z=s+a$，等价地 $s=z-a$。原根 $s_i$对应新根 $z_i=s_i+a$，因此原条件 $\operatorname{Re}(s_i)<-a$恰好等价于 $\operatorname{Re}(z_i)<0$。理解这一根的移动关系，比只记代换符号更可靠：原平面向左的要求，在新根坐标中表现为把根数值加上正数再检查是否仍为负。
+
+本方法衡量的是实部衰减裕量，不直接给出全部时域性能或增益、相位裕度。多个模态的系数、重数和零点仍会影响输出曲线。它能回答更严格的极点区域问题，但不能凭一个移轴结论保证某条响应在任何时刻都落在指定单指数曲线下。
+
+### 教学计算/推理例
+
+给定
+
+$$p(s)=s^3+6s^2+11s+6=(s+1)(s+2)(s+3).$$
+
+先要求所有根满足 $\operatorname{Re}(s)<-0.5$，令 $s=z-0.5$，得到
+
+$$p(z-0.5)=z^3+4.5z^2+5.75z+1.875.$$
+
+它的根为-0.5、-1.5、-2.5，均在新平面左侧。劳斯第一列也全为正，因此原多项式满足所要求的0.5实部裕量。
+
+若改为要求 $\operatorname{Re}(s)<-1.2$，令 $s=z-1.2$，得到
+
+$$p(z-1.2)=z^3+2.4z^2+0.92z-0.288.$$
+
+新根为0.2、-0.8、-1.8，存在右半平面根。因此原系统虽然渐近稳定，却不满足这条更靠左的垂线要求。原根-1距离虚轴只有1，正是不能满足1.2裕量的原因。
+
+当要求严格位于-1左侧时，原根-1会落到新虚轴上，也不能算作严格通过。若任务采用非严格不等式，必须单独处理边界，不能直接沿用严格Hurwitz稳定的结论。
+
+### 适用条件与边界
+
+移轴后应完整展开多项式，再按新系数构造阵列。只在原第一列里直接减去某个常数通常没有依据；坐标变换作用于复变量，而不是对一列数作同样平移。对于符号参数，还要保留移轴后产生的全部不等式和特殊行条件。
+
+极点实部更负通常意味着相应指数包络衰减更快，但严格衰减裕量不等于精确调节时间。实际输出的幅值系数和多项式因子可能使某些阶段仍有明显暂态。若需要调节时间或超调限制，应结合完整响应按定义核验。
+
+本卡适用于连续时间实系数特征多项式。对时延或离散模型，应使用适合其稳定区域的方法，不能仅把相同代换形式复制过去。分析实际闭环时，还应明确特征多项式是否覆盖全部相关内部模态。
+
+### 常见误区
+
+1. 误区：要求根在 $-a$左侧，应代入 $s=z+a$。纠正：正确关系是 $z=s+a$，因此代入原多项式应使用 $s=z-a$。
+2. 误区：普通稳定就保证任意给定的衰减裕量。纠正：本例稳定，但不能通过1.2的移轴检验。
+
+### 自检
+
+1. 原根-1在 $a=1.2$的移轴后变成多少？
+2. 为什么不能在原劳斯第一列各项上直接减去1.2代替多项式代换？
+
+**核对要点**：新根为0.2，落在新右半平面。移轴作用于变量并改变各阶系数，必须重新构造对应阵列。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | Relative Stability | 用于分析 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、Axis、Shift、Method、for、Relative、Stability
+- **移位变量**（无向，关系：相关）
+- **轴平移法**（无向，关系：相关）
+- **相对稳定性**（出边，关系：用于分析）

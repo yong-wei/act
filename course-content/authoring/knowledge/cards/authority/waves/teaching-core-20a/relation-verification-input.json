@@ -1,0 +1,212 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:3f981522f3cc91a2f74e43c8",
+          "otherId": "ctc:v11g-21fba199a9fdef15887d600f",
+          "label": "滞后补偿",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **滞后补偿**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:7762498d0d212dab28094a41",
+          "otherId": "ctkg:v3e-object-8ba6baca586dfe58f396b9a0",
+          "label": "超前校正器设计",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **超前校正器设计**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:dca6a864d5af37d56deaa29d",
+          "otherId": "ctkg:domainconcept:48a62baa3d95389c7fdea7f6",
+          "label": "相位超前补偿器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **相位超前补偿器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:b2c8fb6ccc4521af9c7863cc",
+          "otherId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+          "label": "测速反馈控制",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **测速反馈控制**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:af0567a9efdf877cc77f71c0",
+          "otherId": "ctkg:v3e-canonical-b09a84cc18c0b52151894b0f",
+          "label": "比例-微分控制改善系统性能的方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **比例-微分控制改善系统性能的方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "relations": [
+        {
+          "relationId": "ctr:m1f-v3e-relation-adbcd4f62828012c951b3837",
+          "otherId": "ctkg:v3e-canonical-ab642a336bbbbafc6327f6f2",
+          "label": "阻尼比",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **阻尼比**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:b2c8fb6ccc4521af9c7863cc",
+          "otherId": "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+          "label": "测速反馈控制改善系统性能的方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **测速反馈控制改善系统性能的方法**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:65b9a502d01728d2cfa9a3a9",
+          "otherId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+          "label": "补偿器",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **补偿器**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1i:relation-c228f38a573ce1d0af072ad1",
+          "otherId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+          "label": "补偿器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **补偿器**（出边，关系：属于）"
+        },
+        {
+          "relationId": "m1i:relation-9a2ac3b7bf60dd8083373025",
+          "otherId": "ctkg:v3e-object-83d0805f5bcd8a6654402540",
+          "label": "串联补偿",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **串联补偿**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:cf1acda5edf61e9bc2ba4fa4",
+          "otherId": "m1r-v1d:object:142ec6737ccd7385205d8628",
+          "label": "超前校正装置",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **超前校正装置**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1i:relation-8723796efdb5511997248115",
+          "otherId": "ctkg:v3e-object-3f8e288fedb8ba46bfd02185",
+          "label": "频率响应法校正设计",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **频率响应法校正设计**（出边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:0adafa75a139a49da712f807",
+          "otherId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+          "label": "校正装置",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **校正装置**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1i:relation-86bfef7e2a2255c29166c9cb",
+          "otherId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+          "label": "校正装置",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **校正装置**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:e0016294dfacc10ed59e6dbf",
+          "otherId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+          "label": "补偿",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **补偿**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1i:relation-95d496a98cc0cecd0ce29f60",
+          "otherId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+          "label": "补偿",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **补偿**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:3826ae966ee2b4660fdbab08",
+          "otherId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+          "label": "前馈补偿",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **前馈补偿**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:d064decbaa3696873b3a39ab",
+          "otherId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+          "label": "串联补偿器",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **串联补偿器**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1i:relation-9142cf1c4c53dfa0cf08683a",
+          "otherId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+          "label": "串联补偿器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **串联补偿器**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:be80458fd1ecb1e8ef4aa887",
+          "otherId": "ctkg:domainconcept:42b62edf88d848137713e690",
+          "label": "数字滞后补偿",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **数字滞后补偿**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f20650600a6b6301d29c6025",
+      "relations": []
+    }
+  ]
+}

@@ -1,33 +1,31 @@
 ---
 node_id: ctkg_v3e-canonical-7147bc2427dae1863e06ef77
 authority_entity_id: "ctkg:v3e-canonical-7147bc2427dae1863e06ef77"
-name: 闭环主导极点
+name: "闭环主导极点"
+name_en: "Dominant Closed-loop Poles"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - 闭环主导极点
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-4fd0867e7bc08b61ea3cc9d7b2e7c31c81447c5f335706a5b0b649017db8787b.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-4fd0867e7bc08b61ea3cc9d7b2e7c31c81447c5f335706a5b0b649017db8787b.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/previous/ctkg_v3e-canonical-7147bc2427dae1863e06ef77.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 978907f122a48602772fdc4979f2bd67a58ccab4d7e0b6b69a065e48e47099f7 -->
-
 ## 首页
 
-# 闭环主导极点
+# 闭环主导极点 | Dominant Closed-loop Poles
 
-**一句话定义**：在稳定的高阶系统中，距虚轴最近的极点周围没有闭环零点，而其他闭环极点又远离虚轴，该极点对应的响应分量衰减缓慢，在系统的时间响应过程中起主导作用，称为闭环主导极点。
+**一句话定义**：在指定闭环响应中，产生主要可见变化的极点称为主导极点，通常需要同时考虑慢衰减、响应系数及附近零点。
 
-**核心直觉**：在图谱邻接中可把握：后续 → 闭环极点。
-
-**关联**：后续 → 闭环极点
+靠近虚轴是重要线索，但“最慢衰减”不自动等于“有限时间内幅值最大”。
 
 ---
 
@@ -35,18 +33,48 @@ asset_refs: []
 
 ### 完整解释
 
-在稳定的高阶系统中，距虚轴最近的极点周围没有闭环零点，而其他闭环极点又远离虚轴，该极点对应的响应分量衰减缓慢，在系统的时间响应过程中起主导作用，称为闭环主导极点。
+稳定高阶闭环常包含不同时间尺度。靠近虚轴的极点对应较慢衰减，因此在后期可能留下主要的变化成分。如果这些极点附近没有零点，且其余模态衰减明显更快、系数也不大，就可能用它们构造较简单的响应近似。
+
+然而，分母中的根只决定每个模态的时间形式。分子零点、输入和输出决定其系数；附近零点可能使某个慢极点的输出贡献很小。讨论主导时应说明关注哪条通道、哪种输入和哪个时间区间。很长时间后的最慢尾部，可能已经小到不影响任务规定的精度。
+
+因此，识别主导极点不是单纯把极点按实部排列。可以先用距离筛选，再通过部分分式系数、完整响应和误差要求判断候选是否真的支配所需输出。若后续要据此降低模型阶次，必须再次验证降阶模型的增益与响应，而不能把“主导”标签本身当作精度证明。
+
+### 教学计算/推理例
+
+构造单位静态增益闭环通道
+
+$$T(s)=\frac{(10/1.01)(s+1.01)}{(s+1)(s+10)}.$$
+
+两个极点为-1和-10，零点-1.01靠近慢极点-1，但不与其精确相消。对零初态单位阶跃，从原有理函数展开得到
+
+$$y(t)=1-0.0110011e^{-t}-0.9889989e^{-10t}.$$
+
+慢指数虽然衰减较慢，其初始系数只有约0.011；快速分量系数接近0.989，决定了大部分起始变化。从无限远的尾部看，慢指数最终占剩余误差的主要比例；从单位幅值的整个响应过程看，它并没有承担大部分输出变化。这两个判断可以同时成立。
+
+若忽略零点，仅因为-1更靠近虚轴就取 $1/(s+1)$ 作为候选，候选阶跃误差是 $e^{-t}$，与实际慢分量系数约0.011并不一致。保留正确时间尺度并不意味着保留了正确幅度，必须比较完整曲线和所需容差。
+
+本例不依赖精确约消，两个传递函数极点都存在。若把零点恰好移到-1，约消后的通道阶次还会改变；但对具体内部实现的稳定性判断，仍需保留完整状态信息，不能只凭代数约分给出结论。
+
+### 适用条件与边界
+
+主导性也可能随输入改变。某种输入频谱更强地激励某个模态时，它在输出中的重要程度会变化；测量不同状态或改变初态也可能改变可见分量。这里仅比较规定零状态阶跃，不能直接宣布该慢极点对所有运行条件都不重要。
+
+工程应用中的零点和极点还有参数误差。若依赖近似相消减少慢分量，应检查参数变化会不会恢复较大的残余响应，不能将标称模型的抵消视为永久可靠。对于非最小相位或不稳定模态，更不能为了简化图形而随意略去。判断主导极点的目的，是找到有证据支持的近似，而不是掩盖不利动态。
+
+### 常见误区
+
+1. 误区：距虚轴最近的极点一定支配全部阶跃变化。纠正：附近零点可能使其输出系数很小，本例正是如此。
+2. 误区：近似相消后就可以不检查参数变化。纠正：相对位置变化可能使原本很小的残余分量增大。
+
+### 自检
+
+1. 本例哪个指数决定极晚期剩余误差的衰减率？哪个指数承担大部分初期变化？
+2. 为什么一阶候选 $1/(s+1)$ 不能只凭极点位置就被接受？
+
+**核对要点**：极晚期慢指数占优，初期主要系数却属于快速指数。候选还要匹配响应系数和误差要求，只有极点时间尺度相同并不充分。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 闭环极点 | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、闭环主导极点
+- **闭环极点**（入边，关系：前置于）
+- **主导极点**（无向，关系：相关）
+- **闭环极点**（出边，关系：属于）

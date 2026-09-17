@@ -1,0 +1,39 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:串联校正_6_fede5751",
+      "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/串联校正_6_fede5751.md",
+          "sha256": "6f115315f4338572a3abc20e39f118287fdf866758a925061c5247b67d908205",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01g/retired/authoring/串联校正_6_fede5751.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/串联校正_6_fede5751.md",
+          "sha256": "6f115315f4338572a3abc20e39f118287fdf866758a925061c5247b67d908205",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01g/retired/runtime/串联校正_6_fede5751.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:串联滞后-超前校正_6_23ee8cb9",
+      "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/串联滞后-超前校正_6_23ee8cb9.md",
+          "sha256": "31d31268c35975125a7378bea9f406090a992e2fecbad6b134f033af951c480b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01g/retired/authoring/串联滞后-超前校正_6_23ee8cb9.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/串联滞后-超前校正_6_23ee8cb9.md",
+          "sha256": "31d31268c35975125a7378bea9f406090a992e2fecbad6b134f033af951c480b",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01g/retired/runtime/串联滞后-超前校正_6_23ee8cb9.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b12",
+  "replacementDigest": "2bb0dcc66558957cea3a71b7bf18c042b8280ab15acf831dad773b0157413b0a"
+}

@@ -1,52 +1,87 @@
 ---
 node_id: ctkg_domainconcept_bb073f59e79dbee61e794fa1
 authority_entity_id: "ctkg:domainconcept:bb073f59e79dbee61e794fa1"
-name: Discrete Derivative Control
+name: "离散微分控制"
+name_en: "Discrete Derivative Control"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - Discrete
-  - Derivative
-  - Control
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consevent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c77adea9054af8ed4953ebcaddd0d5577fd2d0348692b18af5dc7b58bdd45b48.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c77adea9054af8ed4953ebcaddd0d5577fd2d0348692b18af5dc7b58bdd45b48.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-08a/previous/ctkg_domainconcept_bb073f59e79dbee61e794fa1.md"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-08a/supporting-source-inventory.json"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 8f6eab5da24926c263fd537ec507a3c85b98c5b595937562ddf4092ba200e0fd -->
-
 ## 首页
+# 离散微分控制 | Discrete Derivative Control
 
-# Discrete Derivative Control
+一句话定义：离散微分控制利用相邻误差或测量样值的变化估计变化率，通常需要滤波以限制高频噪声影响。
 
-**一句话定义**：Discrete Derivative Control是自动控制原理权威图谱中的领域概念。
-
-**关联**：（权威图邻接待补充）
+- 差分必须除以采样周期。
+- 历史样值和滤波初态影响初始输出。
+- 理想差分与滤波微分不是同一动态。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+离散系统不能直接获得连续误差的瞬时导数，常用差分近似。后向差分表达为 $D[k]=K_d(e[k]-e[k-1])/T$，只使用当前与上一拍误差，因此可因果实现。它在误差不变时输出零，在误差迅速变化时产生较大贡献。
+
+差分估计依赖采样周期及信号变化规律。减小T会改变同一差值对应的变化率，也会放大样值噪声的差异；不能把更快采样简单理解为微分输出总是更准确或更平滑。实际控制常对微分项滤波，并明确是对误差还是对测量进行微分。
+
+### 教学计算/推理例
+
+取Kd=0.5、T=0.1。对斜坡序列 $e[k]=0.2k$，每步差值0.2，在已知上一样值的各步有D=1。这里误差每0.1个时间单位增长0.2，变化率为2，乘以Kd后正好为1。
+
+若误差只含交替样值噪声±0.01，则相邻差值幅度为0.02，微分输出幅度为0.1。样值噪声虽小，经过除以T和相邻相减，控制贡献仍可能明显。这个计算讨论的是给定采样噪声序列，不等于所有连续噪声模型都会产生同样数值。
+
+再令e[-1]=0，e[k]从k=0起恒为1，理想后向差分第一步输出5，此后为零。这是阶跃变化造成的离散微分冲击。如果参考突然改变而测量尚未变化，对误差微分就会看到这种跳变；对测量微分的结构则需要另行写明反馈符号和通路。
+
+### 加入一阶滤波
+
+采用连续微分环节 $K_ds/(T_fs+1)$，令Tf=0.2，用后向Euler代换得到
+
+$$
+D[k]=\alpha D[k-1]+\beta(e[k]-e[k-1]),\qquad
+\alpha=\frac{T_f}{T_f+T}=\frac23,\quad
+\beta=\frac{K_d}{T_f+T}=\frac53.
+$$
+
+若滤波初态D[-1]=0，且输入是前述单位跳变，则D[0]=5/3、D[1]=10/9，随后按2/3的比例衰减。滤波把理想差分的首拍5改成更小且延续多拍的响应；它抑制高频作用的同时也改变相位和瞬态，不能只把滤波视为不影响控制行为的显示平滑。
+
+### 初态与实现时序
+
+计算差分前必须保留上一拍误差。如果先用当前误差覆盖历史再相减，就会错误得到零差分。滤波器还需要保留上一拍输出D[k-1]，初始化方式会影响启动瞬态。本文数字例均使用明确的历史误差及零滤波初态。
+
+微分环节在常误差下趋于零，因此不能单独依靠它提供维持某个恒定控制输入所需的稳态作用。通常要结合比例、积分或前馈通路分析完整控制目的，不能仅凭短时响应改善就声称全部跟踪与抗扰要求都已满足。
+
+### 适用条件与边界
+
+本卡采用固定T与后向Euler滤波形式。使用其他差分或离散化方法会得到不同系数，必须重新核对时序和频率特性。测量量化、计算延迟和执行器带宽也会影响实际效果，不应把理想差分当作无噪声的真实导数。
+
+Tf应与对象动态和噪声频带共同选择。滤波越强通常会减缓微分作用，但并不存在适用于所有闭环的同一个最佳参数，仍需在完整闭环中核验稳定和性能。
+
+### 常见误区
+
+1. 只计算相邻差值，却省略除以采样周期。
+2. 忽略历史误差和滤波状态的初始化。
+3. 认为滤波只降噪而不改变控制动态。
+
+### 自检
+
+1. 本例单位跳变的未滤波首拍输出是多少？
+2. 滤波后前两拍输出为何不同于5和0？
+
+**核对要点**：未滤波首拍为5；滤波器保留内部状态，按递推式得到5/3和10/9，响应延续多拍。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Discrete、Derivative、Control
+本卡的结论可由上述定义与计算例独立复核。

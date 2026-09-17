@@ -1,32 +1,31 @@
 ---
 node_id: ctkg_v3e-object-51cfdcf1f943a39dfc550be1
 authority_entity_id: "ctkg:v3e-object-51cfdcf1f943a39dfc550be1"
-name: Stable System
+name: "稳定系统"
+name_en: "Stable System"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - Stable
-  - System
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b8eff899c33417adbaef5a3f56ae63166b32432b3b5e69babfbe9665a12b5c7f.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b8eff899c33417adbaef5a3f56ae63166b32432b3b5e69babfbe9665a12b5c7f.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/previous/ctkg_v3e-object-51cfdcf1f943a39dfc550be1.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 7492ef97e1b8e35f5fb7865e27b10da2f0062aa8a9f6cc7dcfd7f19d5289a6df -->
-
 ## 首页
 
-# Stable System
+# 稳定系统 | Stable System
 
-**一句话定义**：Stable System：A dynamic system with a bounded response to a bounded input.
+**一句话定义**：在本卡的输入输出语境中，稳定系统是每个有界输入都产生有界零状态输出的系统。
 
-**核心直觉**：在图谱邻接中可把握：前置 → Marginally Stable System、Bounded Input Bo、Neutral Stability。
-
-**关联**：前置 → Marginally Stable System、Bounded Input Bo、Neutral Stability
+一次阶跃没有发散只是一次观察，不能代替“所有有界输入”的要求。
 
 ---
 
@@ -34,23 +33,54 @@ asset_refs: []
 
 ### 完整解释
 
-A dynamic system with a bounded response to a bounded input.
+“稳定”必须联系采用的定义。本卡按有界输入有界输出的含义讨论系统，把初始状态固定为零，考察输入能否使输出无界。输入有界表示其幅值在全部考察时间内都受某个有限常数限制，不要求输入最终停止变化；正弦信号、有限幅值方波都是常见例子。
+
+输出有界也不表示输出必须趋于常数。稳定系统受持续正弦输入时可以趋于周期响应；只要幅度保持有限，就不违背本定义。反过来，一条特定输入的输出看起来正常，并不证明系统对其他输入也正常。尤其是边界振子，在阶跃下可能保持有界，却被同频正弦激励出无界增长。
+
+对有限维因果有理连续时间通道，约消后极点严格位于左半平面是常用的BIBO稳定判据，前提是传递描述具有合适的因果实现条件。这个结论针对所选输入输出关系，不自动处理未在该通道显示的内部状态。若问题关心初始扰动能否衰减，需要另讨论内部或运动稳定性。
+
+### 教学计算/推理例
+
+取 $G(s)=2/(s+2)$，对应原方程
+
+$$\dot y+2y=2u,\qquad y(0)=0.$$
+
+施加单位阶跃时，输出 $y(t)=1-e^{-2t}$，有界并趋于1。这是一条具体响应，但还不是“所有有界输入”的完整证明。
+
+若输入改为 $u(t)=\sin t$，从同一原方程求得
+
+$$y(t)=0.8\sin t-0.4\cos t+0.4e^{-2t}.$$
+
+输出的长期部分仍随时间周期变化，没有常数终值，却始终保持有界。因此“稳定”不能被简单理解为“最后画成水平线”。
+
+进一步，因果脉冲响应为 $h(t)=2e^{-2t}$，且
+
+$$\int_0^\infty |h(t)|\,dt=1.$$
+
+对任何满足 $|u(t)|\le M$ 的输入，卷积表达式给出 $|y(t)|\le M$。这才对整个有界输入类别提供了支持，而不局限于刚才的阶跃或正弦样例。
+
+### 适用条件与边界
+
+有界输出未必满足任务精度和安全限值。某个输出上界虽然有限，仍可能大于允许温度、角度或位移；所以BIBO稳定不等于性能合格。还要分别检查跟踪误差、响应时间、执行器限幅和其他要求，不能用一个稳定标签覆盖所有验收指标。
+
+本例是连续时间线性模型。真实系统若有饱和或强非线性，不能不加验证地把小信号传递函数的结论推广到所有输入幅度。即使输入在数学上有界，也可能超出建模适用范围。应说明模型及信号范围，并根据实际问题选择相应稳定性工具。
+
+若初始状态不为零，输出还可能含自由响应；内部状态的稳定性需要另行检查。把零状态输入输出判断与任意初态下内部运动混在一起，会使结论范围不清。当前定义的价值在于给出一个清楚、可检验的输入输出条件。
+
+### 常见误区
+
+1. 误区：稳定系统输出一定最终成为常数。纠正：持续周期输入可产生有界周期输出，仍符合BIBO稳定。
+2. 误区：一次阶跃曲线不发散，就证明系统稳定。纠正：定义要求所有有界输入，单个试验只能支持该输入情景。
+
+### 自检
+
+1. 本例正弦输入下没有常数终值，为什么仍可称为输入输出稳定？
+2. 脉冲响应绝对积分等于1，比两条样例响应额外说明了什么？
+
+**核对要点**：输出幅度保持有限即可，不要求成为常数。绝对积分界可推导任意有界输入的输出界，将结论从样例推广到所定义的输入类别。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Marginally Stable System | 是一种 |
-| 前置 | Bounded Input Bo | 是一种 |
-| 前置 | Neutral Stability | 是一种 |
-| 前置 | Absolute Stability | 是一种 |
-| 前置 | 小范围稳定系统 | 是一种 |
-| 前置 | Routh's method f | 用于分析 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、Stable、System
+- **中性稳定**（入边，关系：属于）
+- **不稳定系统**（无向，关系：相关）
+- **绝对稳定性**（入边，关系：属于）

@@ -1,0 +1,11 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 11,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b29",
+  "retiredResources": [
+    "act:card:根轨迹分离点_4_0e97795c",
+    "act:card:根轨迹渐近线_4_6d89a195",
+    "act:card:参数根轨迹_4_faab3aea",
+    "act:card:广义根轨迹_4_30f5ea13"
+  ]
+}

@@ -1,33 +1,33 @@
 ---
 node_id: ctkg_v3e-canonical-8d146e4add26f71181e7c891
 authority_entity_id: "ctkg:v3e-canonical-8d146e4add26f71181e7c891"
-name: Right half-plane (RHP)
+name: "右半平面（RHP）"
+name_en: "Right Half-plane"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - Right
-  - half-plane
-  - (RHP)
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e15cbd3637b1bef35d601b19c49870fdeaa1be8d484c07ce8b507f83aa629f20.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e15cbd3637b1bef35d601b19c49870fdeaa1be8d484c07ce8b507f83aa629f20.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-15a/previous/ctkg_v3e-canonical-8d146e4add26f71181e7c891.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: b287fda93f630d2181d488e187d70d5d369febce382adc2a3d055d0e0d23cd43 -->
-
 ## 首页
 
-# Right half-plane (RHP)
+# 右半平面（RHP） | Right Half-plane
 
-**一句话定义**：Right half-plane (RHP)：Right half-plane (RHP)
+**一句话定义**：复平面中实部严格大于零的区域称为右半平面，连续时间系统的右半平面特征值对应增长模态。
 
-**关联**：前置 → Left half-plane (LHP)
+$$s=\sigma+j\omega,\qquad \sigma>0.$$
+
+右半平面极点与右半平面零点含义不同，不能互相替代。
 
 ---
 
@@ -35,18 +35,42 @@ asset_refs: []
 
 ### 完整解释
 
-Right half-plane (RHP)
+右半平面位于虚轴右侧，虚轴本身不在其中。对于连续时间线性定常系统，特征值的正实部产生增长指数；如果完整状态矩阵有这样的特征值，就存在可以增长的初始扰动，因此不能判为渐近稳定或Lyapunov稳定。
+
+复特征值的虚部可以使增长伴随振荡，但真正决定增长包络的是实部。例如 $0.2\pm j$ 对应包络 $e^{0.2t}$ 乘正弦成分，有限时间内振荡幅度可能暂时不大，却不能据此否定后续增长。稳定性判断不能只依赖较短记录中是否已经明显发散。
+
+还要识别图上标记的对象。未约消的右半平面传递函数极点意味着该因果有理通道不具备BIBO稳定性；右半平面零点则会限制响应形状和控制能力，但它本身不是增长指数。若把两者混淆，就可能把稳定但具有反向运动特征的系统误判为由不稳定极点驱动。
+
+### 教学计算/推理例
+
+考虑零输入方程 $\dot x=x$，其解为
+
+$$x(t)=x_0e^t.$$
+
+特征值+1位于右半平面。即使 $x_0$ 很小，只要不为零，状态幅值都会随时间增长。选择恰好为零的初态观察到零响应，不足以证明稳定，因为稳定要求对足够小但非零的扰动也成立。
+
+再回到负单位反馈回路 $L(s)=K/[s(s+1)(s+2)]$。闭环特征多项式为 $s^3+3s^2+2s+K$。当 $K=7$ 时，劳斯第一列为 $1,3,-1/3,7$，发生两次符号变化，因此有两个右半平面根。原多项式求根与这一结论一致。不能因为开环各因子的根没有正实部，就不检查反馈后形成的闭环特征根。
+
+作为零点的区别例，$G(s)=(s-1)/(s+2)^2$ 在+1有零点，但两个极点都在-2。这个因果严格真有理通道的脉冲响应由衰减指数及时间乘衰减指数构成，绝对可积，因而是BIBO稳定的。右半平面零点没有把分母极点搬到右半平面；要评价其响应限制，应另按零点分析。
+
+### 适用条件与边界
+
+若只看约消后的传递函数，还应留意隐藏内部模态。某个右半平面状态模态可能对选定通道不可见，但不会因此从内部系统消失。对实际实现作稳定结论时，要说明分析范围是零状态输入输出还是全部内部状态。
+
+右半平面判据限定连续时间复平面。离散时间特征值位于右侧并不必然增长，例如0.5位于右侧但其幂趋于零；离散稳定要看单位圆。虚轴上的根也不能直接按“右半平面”处理，它们需要边界条件及稳定定义的进一步区分。
+
+### 常见误区
+
+1. 误区：零初态下没看到发散，就说明没有不稳定模态。纠正：不稳定模态可能尚未激励，或在该输出中不可见。
+2. 误区：右半平面零点等价于右半平面极点。纠正：两者分别属于分子和分母，响应形状限制与增长模态不能混同。
+
+### 自检
+
+1. 对 $\dot x=x$，为什么不能用 $x_0=0$ 的单次结果证明稳定？
+2. $G(s)=(s-1)/(s+2)^2$ 的右半平面零点是否使它失去BIBO稳定性？
+
+**核对要点**：应检查任意足够小扰动，而非只检查恰好为零的状态。该通道极点都在左半平面，脉冲响应绝对可积；零点会影响响应，但不会自动造成极点不稳定。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Left half-plane (LHP) | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、Right、half-plane、(RHP)
+- **左半平面 （LHP）**（无向，关系：相关）

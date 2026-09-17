@@ -1,0 +1,26 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_core_linearization_six",
+  "role": "simulation-domain-reviewer",
+  "findings": [
+    {
+      "id": "tangent-affine-offset",
+      "disposition": "ACCEPT",
+      "status": "resolved"
+    },
+    {
+      "id": "bare-qquad",
+      "disposition": "ACCEPT",
+      "status": "resolved"
+    }
+  ],
+  "focusedRereview": "passed",
+  "cardHashes": {
+    "ctc:modeling-34de45f2470f6c09c7d96698": "038d548cc080037c9c94afd184ff7260a45da636530e4f25da114e3a29552f89",
+    "ctc:modeling-4fe8840f2c796861bf5d2dae": "8a8e4c9bacfb2d63b318e30c408ca8d605ec278c939d2d3c9a578e81e216384e",
+    "ctc:modeling-70629af71e754aac8b740638": "e93c1ffde839f0022c43e6ddbaf6f11c0f2bdc988233ebb4c95637df4c8f876f",
+    "ctc:modeling-70b08efcf6bb085e05de94cd": "a74e4d251c0162b658388922d818122b8f29c414288dde4d5cc622910468fda1",
+    "ctc:modeling-f6875bd8fd4ad1250d8980d8": "7a7ea29cb9977f800776a3c443587e0e52f592f1ef6501cabe8b0edd8e73d74e",
+    "ctkg:v3e-object-a24b53236c203ab7f9d5f504": "959e776d190d3c9673c8aab385b87fd19d3d46f4c2d4821fcae8e6ec9cf18372"
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-385c515b4d8dbb550b664072",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:part_of:880e47aaaba649132e8d82f1",
+          "otherId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+          "label": "信号流图",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **信号流图**（出边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:36aaf279d245b9809dc34c6e",
+          "otherId": "ctc:modeling-57c56ef58df2315f765a32dc",
+          "label": "梅森增益公式",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **梅森增益公式**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctc:modeling-5e62391de61ac1af304601cb",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:part_of:9cb716a7cb879930c1b8143c",
+          "otherId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+          "label": "信号流图",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **信号流图**（出边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+      "relations": [
+        {
+          "relationId": "ctr:b20d4cf8aa0a877144203301",
+          "otherId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+          "label": "回路",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **回路**（入边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:5d91f48efe18efcdc085a261",
+          "otherId": "ctc:modeling-2897ba298baf9901ef5633e3",
+          "label": "引出点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **引出点**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:0bb71a9739345b5c915015c7",
+          "otherId": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+          "label": "前向路径",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **前向路径**（入边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+      "relations": [
+        {
+          "relationId": "ctr:0bb71a9739345b5c915015c7",
+          "otherId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+          "label": "信号流图",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **信号流图**（出边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:d607a01ffa7412e8a6714b31",
+          "otherId": "ctc:modeling-c52664289f7d9f3378930894",
+          "label": "第k条前向通路余子式",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **第k条前向通路余子式**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:e62ee7ab487cfd64008bf127",
+          "otherId": "ctc:modeling-697391470a76199a5aa695d7",
+          "label": "前向通路特征式余因子",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **前向通路特征式余因子**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+      "relations": [
+        {
+          "relationId": "ctr:b20d4cf8aa0a877144203301",
+          "otherId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+          "label": "信号流图",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **信号流图**（出边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:4bccd77a9c986813883a9493",
+          "otherId": "ctc:modeling-9b8a43928af77103270d5f9c",
+          "label": "不接触回路",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **不接触回路**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

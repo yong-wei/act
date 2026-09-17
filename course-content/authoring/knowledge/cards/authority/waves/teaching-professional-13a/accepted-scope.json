@@ -1,0 +1,59 @@
+{
+  "batchId": "teaching-professional-13a",
+  "status": "accepted",
+  "parentGroupId": "professional-nonlinear-inversion-and-state-feedback",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:m1s-object-1a565603bcbebd5ede41aa2d",
+      "name": "反馈线性化",
+      "domain": "nonlinear-control-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-5f9ee607698d576a63deb905",
+      "name": "逆系统",
+      "domain": "nonlinear-control-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+      "name": "状态反馈控制设计方法",
+      "domain": "nonlinear-control-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-83dd51199b51fd3fb2ccfdeb",
+      "name": "卡尔曼-雅库波维奇-波波夫引理",
+      "domain": "nonlinear-control-design",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-ba55a0b2d3900c3708dbddc4",
+      "name": "逆系统设计方法",
+      "domain": "nonlinear-control-design",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-d9e065459b3844ab4a1e4b24",
+      "name": "渐近跟踪控制设计方法",
+      "domain": "nonlinear-control-design",
+      "moduleId": null,
+      "order": 6
+    }
+  ],
+  "accepted": true
+}

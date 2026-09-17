@@ -1,0 +1,71 @@
+{
+  "batchId": "teaching-core-10a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-10",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+      "name": "脉冲响应",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:m3-v2w:source-object:2107b134aa2e942c147b9594",
+      "name": "用于拉普拉斯逆变换的 Heaviside 部分分式展开",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "name": "正弦函数",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "name": "自然响应",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "name": "卷积",
+      "moduleId": "module-2",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+      "name": "阶跃输入",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "name": "典型输入信号",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "name": "单位脉冲函数",
+      "moduleId": "module-2",
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "name": "参考输入",
+      "moduleId": null,
+      "order": 9
+    }
+  ],
+  "accepted": true
+}

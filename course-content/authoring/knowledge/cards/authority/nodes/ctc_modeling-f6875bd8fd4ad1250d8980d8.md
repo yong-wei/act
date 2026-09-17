@@ -1,55 +1,97 @@
 ---
 node_id: ctc_modeling-f6875bd8fd4ad1250d8980d8
 authority_entity_id: "ctc:modeling-f6875bd8fd4ad1250d8980d8"
-name: One can often linearize
-name_en: modeling_f6875bd8fd4ad1250d8980d8
+name: "微变小信号线性化法"
+name_en: "Small-Signal Linearization"
 category: 程序性
-coverage_role: excluded_with_rationale
-batch: B
-concept_kind: analysis_method
-release_tier: silver
-tags:
-  - analysis_method
-  - silver
-  - One
-  - can
-  - often
-  - linearize
-card_version: 1
+knowledge_type: X
+bloom_level: 分析
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-252c63710f408eb7893d1e397a7a4ca343c70b6d3d1de16c43105f15b6b3fa47.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/previous/ctc_modeling-f6875bd8fd4ad1250d8980d8.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 41c0cb6f65ea19844ac31b834866239167a8c8ca71804bb67e36d2bd091e8252 -->
-
 ## 首页
 
-# One can often linearize | modeling_f6875bd8fd4ad1250d8980d8
+# 微变小信号线性化法 | Small-Signal Linearization
 
-**一句话定义**：One can often linearize：One can often linearize nonlinear elements assuming small-signal conditions, which is the normal approach used to obtai…
+**一句话定义**：在平衡点附近用小增量模型替代非线性模型，并以状态偏离和观察时段衡量近似误差。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：小输入只是起点；真正需要小的是由输入造成的状态偏差及其高阶项。
 
----
+**关键公式**：
+$$
+\delta\dot{x}=-4\delta x+\delta u
+$$
+
+**学习目标**：能比较线性与非线性响应，计算被忽略项相对保留项的尺度，并说清有限时段证据的适用边界。
 
 ## 详情
 
 ### 完整解释
 
-One can often linearize nonlinear elements assuming small-signal conditions, which is the normal approach used to obtain a linear equivalent circuit for electronic circuits and transistors.
+小信号线性化把“在工作点附近研究变化”落实为一个误差尺度问题。仍取
+$$
+\dot{x}=u-x^2,\qquad (x_0,u_0)=(2,4).
+$$
+对偏差变量，精确增量方程是
+$$
+\delta\dot{x}=\delta u-4\delta x-\delta x^2,
+$$
+线性模型删去 $-\delta x^2$ 后变为
+$$
+\delta\dot{x}=-4\delta x+\delta u.
+$$
+因此“小信号”并不是一个只由输入幅值决定的标签。需要观察状态偏差是否保持小，以及被忽略的二次项是否相对于保留的一次状态项足够小。观察时段也要一起说明，因为一个短时段内很小的差异可能在更长时间或更大偏差下改变结论。
+
+### 教学计算/推理例
+
+施加 $\delta u=0.4$ 的阶跃，取 $\delta x(0)=0$。线性模型的方程为
+$$
+\delta\dot{x}+4\delta x=0.4,
+$$
+所以
+$$
+\delta x_{\mathrm{lin}}(t)=0.1\left(1-e^{-4t}\right),
+\qquad
+\delta x_{\mathrm{lin}}(\infty)=0.1.
+$$
+在正平衡分支上，原非线性系统的恒定输入终值由 $0=4-(2+\delta x)^2$ 决定，因而
+$$
+\delta x_{\mathrm{nl}}(\infty)=\sqrt{4.4}-2\approx0.0976177.
+$$
+线性终值与非线性终值很接近，但这两个终值是同一输入下两个模型的结果，不能把它们写成完全相等。
+
+还可以直接检查被忽略项的大小。当 $\delta x=0.1$ 时，二次项幅值为 $|\delta x^2|=0.01$，保留的一次状态项幅值为 $|4\delta x|=0.4$，所以项幅值比为
+$$
+\frac{|\delta x^2|}{|4\delta x|}=\frac{0.01}{0.4}=0.025.
+$$
+这个 $0.025$ 是局部方程中两项的比值，不是整个响应的相对误差。对原方程和线性方程在 $0\le t\le2$ 的固定网格比较，最大绝对响应差约为 $0.00237145$。它只说明这个有限时段和这组初态、输入下的差异尺度，不能被当作所有输入、所有时间的全局误差界。
+
+### 适用条件与边界
+
+小信号近似适合平衡点附近、状态偏差受控且高阶项明显较小的局部过程。输入幅值、状态范围、初始偏差和观察时段应同时报告。若状态进入更大的邻域，应重新线性化或直接分析原非线性方程；当线性模型极点位于稳定性边界时，也不能仅凭一次响应差异作一般稳定性结论。这里的数值均来自无量纲教学模型。
+
+### 常见误区
+
+1. **误区**：$\delta u=0.4$ 很小，所以线性化必然有效。**纠正**：还要看它引起的 $\delta x$ 和高阶项，并限定观察时段。
+2. **误区**：二次项与一次项的比值 $0.025$ 就是全响应误差。**纠正**：项比值衡量方程局部项的尺度，响应误差还取决于动态传播、初态和时间区间。
+
+### 自检
+
+1. 为什么线性模型的终值增量是 $0.1$？
+2. 为什么报告最大响应差时必须写出 $0\le t\le2$ 的网格条件？
+
+**核对要点**：线性方程的静态平衡满足 $4\delta x=0.4$，故增量为 $0.1$；最大差异只在指定有限网格上计算，改变时段、网格、初态或输入后数值可能改变。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`analysis_method`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-analysis_method、silver、One、can、often、linearize
+- **线性化**（出边，关系：属于）

@@ -1,0 +1,7 @@
+{
+  "status": "accepted",
+  "cards": 7,
+  "goalId": "optimal-control-foundations",
+  "rationale": "以模型、约束、成本及最优性证明构成专业基础目标；覆盖变分、极小值原理和动态规划，后续纳入二次型控制。",
+  "sourceLimitation": "空Authority描述仅用于身份与关系；定理支持来自冻结补充教材，正文是已审核原创算例。"
+}

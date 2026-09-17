@@ -1,0 +1,215 @@
+{
+  "batchId": "teaching-scale-01h",
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "name": "性能指标",
+      "scopeName": "性能指标",
+      "authorityLabel": "性能指标",
+      "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+      "cardId": "ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "resourceId": "act:card:ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-10c37fd947ba55593ff03ede.md",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7c6e57cd77d92d9d2e8892527b6979462f44d25a7fb50e2d51ceebc8363d489c.json",
+          "sha256": "bb8b20312a478bf730c4463237170d5265a43d99dc7b1535f7221ea1eae3fb0c",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7c6e57cd77d92d9d2e8892527b6979462f44d25a7fb50e2d51ceebc8363d489c.json",
+          "sha256": "2725a119f051017512d9fe165662dfc95ca8ce546316694c68520bea1cc01ce5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/previous/ctkg_v3e-object-10c37fd947ba55593ff03ede.md",
+          "sha256": "0078f1a361ab098a5e3701ac5b780c8598990835b0720b4daf1d5525d590e7fd",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "previousCardSha256": "0078f1a361ab098a5e3701ac5b780c8598990835b0720b4daf1d5525d590e7fd",
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/01-source.json",
+      "sourceBackupSha256": "0139e827158bced0d1d39b67fcff2f8dbe5cb129a48e1308668aba95a10fc14b"
+    },
+    {
+      "order": 2,
+      "name": "调节与扰动抑制的系统类型",
+      "scopeName": "调节与扰动抑制的系统类型",
+      "authorityLabel": "调节与扰动抑制的系统类型",
+      "canonicalId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+      "cardId": "ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "resourceId": "act:card:ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ed3a4babf006b2fd746765e8.md",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c707845c80ac2cfe2042896c4f354a45b0a8a98d55a3da4672fc62f9a6925b9a.json",
+          "sha256": "c763cd47d7b1f3516d209b8a9fd1d3f5ae07143b48fe007c5cfe989d158ed65f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c707845c80ac2cfe2042896c4f354a45b0a8a98d55a3da4672fc62f9a6925b9a.json",
+          "sha256": "b85cd9e3a9cc7f5eb8324f7b4422fccfbeb57ccc0300c08c0c704837ad25be36",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/previous/ctkg_v3e-canonical-ed3a4babf006b2fd746765e8.md",
+          "sha256": "2307121542837c0ff9de4719da139707a9960c42b779592aae7a6e5c76ca39dd",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "previousCardSha256": "2307121542837c0ff9de4719da139707a9960c42b779592aae7a6e5c76ca39dd",
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/02-source.json",
+      "sourceBackupSha256": "602ad2116a2379f11741821f76e9046d9ed1b81136919bc0a294a5b0891b2ae3"
+    },
+    {
+      "order": 3,
+      "name": "全状态反馈设计步骤",
+      "scopeName": "全状态反馈设计步骤",
+      "authorityLabel": "全状态反馈设计步骤",
+      "canonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+      "cardId": "ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "resourceId": "act:card:ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-ab4dc18aac53ac6636d05ca5.md",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c624143d47f24c9d8374a994b953107a789fb79e89452ca0d0b1f10a8301dee9.json",
+          "sha256": "308ff3c8b1387a54eab3afbe22f5f19dbcd76bef7f5ef7ac5960cdee86f81b1b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c624143d47f24c9d8374a994b953107a789fb79e89452ca0d0b1f10a8301dee9.json",
+          "sha256": "a56e027774228b5b25e5fb131ecbcef248b6976ed820b0a8f704664148c991c4",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/previous/ctkg_v3e-object-ab4dc18aac53ac6636d05ca5.md",
+          "sha256": "6fb1f58de9ab59db7d0767c9d8bbd59bcab5e06543183413e08f10d430f62f81",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "previousCardSha256": "6fb1f58de9ab59db7d0767c9d8bbd59bcab5e06543183413e08f10d430f62f81",
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/03-source.json",
+      "sourceBackupSha256": "601d6c47d16449f43801eede4f3a30f802a5011abde0bb5cea9e600c362b881f"
+    },
+    {
+      "order": 4,
+      "name": "极点配置补偿器设计",
+      "scopeName": "极点配置补偿器设计",
+      "authorityLabel": "极点配置补偿器设计",
+      "canonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+      "cardId": "ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "resourceId": "act:card:ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-64dfc92ef15f84903e6cdd8a.md",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-45a0aa44db67766733b9273d5601d84941a5127846360290815a53223d81e042.json",
+          "sha256": "cdb4ce8a4ff63a5371d6be9c1f14f5fb103cd8e416ca8f9563ec04957caf9e23",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-45a0aa44db67766733b9273d5601d84941a5127846360290815a53223d81e042.json",
+          "sha256": "fa77d45520245964d1a31c821d74cb96c8e5a23c5978322bac130b47b4fad0b1",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/previous/ctkg_v3e-object-64dfc92ef15f84903e6cdd8a.md",
+          "sha256": "db3ad74c65430734b9acc1b054cdc18191f267d0de599bc62cca2b90bf9c5c35",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "previousCardSha256": "db3ad74c65430734b9acc1b054cdc18191f267d0de599bc62cca2b90bf9c5c35",
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/04-source.json",
+      "sourceBackupSha256": "9316654464c95f9e7de4043f1de93236e3284f716d21f68ed7cbd1cf3c546a8d"
+    },
+    {
+      "order": 5,
+      "name": "延迟环节",
+      "scopeName": "延迟环节",
+      "authorityLabel": "延迟环节",
+      "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "cardId": "ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "resourceId": "act:card:ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b0cbf122498bca9269e55406.md",
+      "targetRole": "prerequisite",
+      "directGoal": false,
+      "goalIds": [],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e4963f54a478cbc04c87a194dbb646d4fabd812074ec21fd9f0e9c710b43f4db.json",
+          "sha256": "d7c75ddade6a92be91814078c70f84ee54c4da558469c0d634b3aac26e167ed4",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e4963f54a478cbc04c87a194dbb646d4fabd812074ec21fd9f0e9c710b43f4db.json",
+          "sha256": "dcc536f3bfebe28f94f83e7d7e3b3cb9cdb3d3067e1ed3e5226f46d597a9ad48",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/previous/ctkg_v3e-object-b0cbf122498bca9269e55406.md",
+          "sha256": "585a96aff7ec63905110f8250f086ddb77fa9781ca7b61b4f72d4a85b449537c",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "previousCardSha256": "585a96aff7ec63905110f8250f086ddb77fa9781ca7b61b4f72d4a85b449537c",
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/05-source.json",
+      "sourceBackupSha256": "545315da3fda30d165ef61858167236ecb62a563f807a76ab2f6dc0ce833a7de"
+    },
+    {
+      "order": 6,
+      "name": "校正装置",
+      "scopeName": "校正装置",
+      "authorityLabel": "校正装置",
+      "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "cardId": "ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "resourceId": "act:card:ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-f1df5739a34bf55489aeeeeb.md",
+      "targetRole": "goal",
+      "directGoal": true,
+      "goalIds": [
+        "control-correction"
+      ],
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1662848c1ed2a7feaa036ea3729f76e5b5d7d303a4f3a39eda7d17cb30422bec.json",
+          "sha256": "7d3f0a9a3b0520dccd82f75f42681a4104ae3ecf2f65d219f922e6398454fb44",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1662848c1ed2a7feaa036ea3729f76e5b5d7d303a4f3a39eda7d17cb30422bec.json",
+          "sha256": "583083c989e0a9900ba324669f363757fae1bc9e41de8e566c575d07a1a825f7",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/previous/ctkg_v3e-object-f1df5739a34bf55489aeeeeb.md",
+          "sha256": "97bc302b3ee5993d88c99855dd57eaddf34b9d57688ec95e8708111c7e1d445d",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "previousCardSha256": "97bc302b3ee5993d88c99855dd57eaddf34b9d57688ec95e8708111c7e1d445d",
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01h/06-source.json",
+      "sourceBackupSha256": "9c4e8491a51bef844ae532ce1b9dcea62b2d537d15ca595a9c3f35fe72bd913a"
+    }
+  ]
+}

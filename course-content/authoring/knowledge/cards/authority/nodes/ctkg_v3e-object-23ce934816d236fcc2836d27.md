@@ -1,30 +1,31 @@
 ---
 node_id: ctkg_v3e-object-23ce934816d236fcc2836d27
 authority_entity_id: "ctkg:v3e-object-23ce934816d236fcc2836d27"
-name: Dominant poles
+name: "主导极点"
+name_en: "Dominant Poles"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - Dominant
-  - poles
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e68977b427e7fcae41f20befd7d5e57a2f1e09d35efdf7aedb86c182de0067e7.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e68977b427e7fcae41f20befd7d5e57a2f1e09d35efdf7aedb86c182de0067e7.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-14a/previous/ctkg_v3e-object-23ce934816d236fcc2836d27.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 9a46da3d6d2e544d5159b56b6ee11ba5c1fc59ef05f34915fed65b645c412fea -->
-
 ## 首页
 
-# Dominant poles
+# 主导极点 | Dominant Poles
 
-**一句话定义**：Dominant poles：The poles at λ = -0.4 ± 0.3j are the dominant poles.
+**一句话定义**：主导极点是对所关注响应起主要作用的极点；识别时需同时查看衰减率、振荡频率和响应分量的权重。
 
-**关联**：（权威图邻接待补充）
+以 $-0.4\pm0.3j$ 为例，0.4表示衰减率，0.3表示振荡角频率，二者不能互换。
 
 ---
 
@@ -32,18 +33,52 @@ asset_refs: []
 
 ### 完整解释
 
-The poles at λ = -0.4 ± 0.3j are the dominant poles.
+一对稳定共轭极点可以写成 $-\sigma\pm j\omega_d$。在实响应中，它们组合成指数包络乘正弦和余弦，包络由 $e^{-\sigma t}$ 决定，振荡由角频率 $\omega_d$ 决定。包络衰减时间尺度和振荡周期是不同的量；虚部较小不直接表示衰减更慢。
+
+“主导”还包含这对极点在当前输出中的实际贡献。若它们靠近虚轴、其余极点衰减更快，且附近没有使其系数很小的零点，就可能支配后期响应。只给一对极点坐标而不给完整传递函数、初态和输入，还不足以算出精确的输出幅度与超调。
+
+本卡保留来源中的具体极点 $-0.4\pm0.3j$，用一个明确的完整模型解释其几何含义。这样可以将“极点位置给出的时间尺度”与“完整输出的性能指标”分开，避免从几何图直接读出未被模型支持的全部响应结论。
+
+### 教学计算/推理例
+
+选择完整三阶模型
+
+$$T(s)=\frac{1.25}{(s+5)(s^2+0.8s+0.25)}.$$
+
+其中 $s^2+0.8s+0.25=(s+0.4)^2+0.3^2$，所以共轭对正是 $-0.4\pm0.3j$。它们对应的包络时间常数为 $1/0.4=2.5\,\mathrm{s}$，振荡周期为 $2\pi/0.3\approx20.943951\,\mathrm{s}$。附加实极点-5的衰减时间常数为0.2 s，明显更短。
+
+若用同一共轭对构造单位静态增益二阶候选，其固有频率为
+
+$$\omega_n=\sqrt{0.4^2+0.3^2}=0.5\,\mathrm{rad/s},\qquad \zeta=0.4/0.5=0.8.$$
+
+在零初态单位阶跃条件下，候选响应是
+
+$$y_L(t)=1-e^{-0.4t}\left[\cos(0.3t)+\frac{4}{3}\sin(0.3t)\right].$$
+
+这个表达式属于二阶候选，不是完整三阶模型的精确响应。原模型还包含快速极点及不同的分量系数；在规定0至40 s、步长0.01 s网格上，两者阶跃响应仍观察到约0.042165的最大绝对差。该结果提醒我们：主要时间尺度相近，不代表全部瞬态完全一致。
+
+### 适用条件与边界
+
+若这对极点的响应系数为零，例如初态未激励它们或输出无法观察它们，就不会在那条曲线上出现预期振荡。若附近有零点，系数可能较小。判断某对极点是否真正主导，需要把位置与输入输出结构结合起来，不能只看“最靠近虚轴”这个几何条件。
+
+时间常数2.5 s描述包络缩小到原来的约36.8%，不等于2%调节时间；振荡周期约20.94 s也不意味着必须观察到完整一圈明显振荡，因为指数包络可能已大幅衰减。实际测量中看到的峰数受阻尼、幅度和噪声影响，不能用是否看见多次峰值来替代模态计算。
+
+对于其他单位时间标度，极点数值的单位也应相应解释。离散极点则使用不同的几何判据和采样时间关系。本卡限定连续时间线性模型及所列数值，不把它们当成所有主导极点的固定参数。
+
+### 常见误区
+
+1. 误区：虚部0.3就是包络衰减速率。纠正：衰减率由实部的相反数0.4决定，虚部决定振荡角频率。
+2. 误区：包络时间常数2.5 s就是系统调节时间。纠正：调节时间还取决于容差、分量系数和完整响应。
+
+### 自检
+
+1. 如何从 $-0.4\pm0.3j$ 求二阶候选的固有频率和阻尼比？
+2. 为什么有这对极点的系统不一定在所有输出中都显示明显振荡？
+
+**核对要点**：固有频率为极点到原点的距离0.5，阻尼比为0.4除以0.5，即0.8。模态是否被激励、是否可见及其幅度大小，都还取决于初态、输入和输出结构。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、Dominant、poles
+- **特征值**（无向，关系：相关）
+- **非主导极点**（无向，关系：相关）
+- **闭环主导极点**（无向，关系：相关）

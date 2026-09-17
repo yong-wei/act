@@ -1,52 +1,71 @@
 ---
 node_id: ctkg_v3e-canonical-589fba9b74d146b6eea6b269
 authority_entity_id: "ctkg:v3e-canonical-589fba9b74d146b6eea6b269"
-name: Phase (frequency response)
+name: "相位（频率响应）"
+name_en: "Phase of Frequency Response"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - Phase
-  - (frequency
-  - response)
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e9d2a372719592d85c39aff4ad58e9fd2572c76bb6219e5d1c47f3f46d97c7f7.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e9d2a372719592d85c39aff4ad58e9fd2572c76bb6219e5d1c47f3f46d97c7f7.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-24a/previous/ctkg_v3e-canonical-589fba9b74d146b6eea6b269.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 594216398be8095c163ad54405813943a56b43d74d2f566c4012a507bde2974f -->
-
 ## 首页
+# 相位（频率响应） | Phase of Frequency Response
 
-# Phase (frequency response)
+一句话定义：频率响应的相位是复数 $G(j\omega)$ 的辐角，表示该频率正弦稳态输出相对于输入的相位差。
 
-**一句话定义**：Phase (frequency response)：φ is referred to as the phase and is a function of the input frequency ω.
-
-**关联**：（权威图邻接待补充）
+- 相位随频率变化，必须注明度或弧度。
+- 负相位表示相对于同频输入的相位滞后。
+- 主值相位与连续展开相位可相差整数个整周。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-φ is referred to as the phase and is a function of the input frequency ω.
+将频率响应写成 $G(j\omega)=M(\omega)e^{j\varphi(\omega)}$，其中 $M=|G(j\omega)|$。对稳定线性系统，若输入为 $u(t)=A\sin(\omega t+\theta)$，暂态衰减后的输出为
+
+$$
+y_{ss}(t)=AM(\omega)\sin[\omega t+\theta+\varphi(\omega)].
+$$
+
+这里的相位差是输出减输入，而不是输出自身的初相位。相位描述周期中的位置，不能独立说明幅值放大或缩小。若 $G(j\omega)=0$，输出的该频率分量为零，其相位不能由零复数唯一确定。
+
+计算相位时应使用实部与虚部共同决定象限，例如用 $\operatorname{atan2}(\operatorname{Im}G,\operatorname{Re}G)$。只计算虚实比的反正切会丢失象限；在实部为零时，比例形式还会失效。对乘积形式，可以按连续分支累加各因子的相位。
+
+### 教学计算/推理例
+
+取 $G(s)=2/(s+1)$，在 $\omega=1$ 时 $G(j)=1-j$，故幅值为 $\sqrt2$、相位为 $-45^\circ$。输入 $\sin t$ 的稳态输出为 $\sqrt2\sin(t-\pi/4)$。原方程 $\dot y+y=2\sin t$ 在零初态下的完整解为 $y=\sin t-\cos t+e^{-t}$；最后一项是暂态，不能把稳态公式当成初始时刻的完整响应。
+
+再取 $G(s)=1/(s+1)^3$。在 $\omega=10$ 时，从零频连续展开的相位为 $-3\arctan10\approx-252.87^\circ$，而同一个复数的主值相位为 $107.13^\circ$。两者相差 $360^\circ$，代表同一复数方向；看到正的主值不能据此判定三个惯性环节产生了相位超前。
+
+### 适用条件与边界
+
+对单一频率，可将相位差折算成等效时移，但只有纯延迟的相位具有 $-\omega\tau$ 这种线性关系。一般动态系统不同频率的等效时移不同，不能用一个频点推断固定延迟。稳定性、暂态衰减和线性范围是把复频率值解释为实测正弦稳态关系的前提；不稳定系统即便能代入 $j\omega$，也未必趋于这样的稳态。
+
+### 常见误区
+
+1. 把 $-45^\circ$ 与 $-45$ 弧度混用，或在三角函数中漏做单位转换。
+2. 只用普通反正切求相位，不核对象限与分支。
+3. 将相位曲线的整周跳变当成物理系统突然跳变，而未检查主值表示。
+
+### 自检
+
+1. 输入初相位为 $30^\circ$，本例在频率1处的稳态输出初相位是多少？
+2. $107.13^\circ$ 和 $-252.87^\circ$ 是否对应不同的复数方向？
+
+**核对要点**：输出初相位为 $-15^\circ$；两个角度相差整周，方向相同，但分析连续相位变化时要保持一致分支。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、Phase、(frequency、response)
+- **幅值比**（无向，关系：相关）
+- **频率响应**（无向，关系：相关）

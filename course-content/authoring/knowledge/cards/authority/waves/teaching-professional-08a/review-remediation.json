@@ -1,0 +1,9 @@
+{
+  "status": "resolved",
+  "finding": "P1: negative feedback with positive proportional gain mislabeled as positive feedback",
+  "decision": "ACCEPT",
+  "scope": "bodies/05.md:32 single wording replacement; equations and numerical claims unchanged",
+  "beforeSha256": "b97107694b2101843bbbdf2d2fbc1a259b82df3f6cbfea18d3a919a06b0ecc4a",
+  "afterSha256": "cdb0979a3402b2e2f62ad90d22b154ae5ce227ac4cea97263a5252cef724ae6a",
+  "targetedRereview": "Original reviewer confirmed negative-feedback/positive-gain wording; no new P0/P1 introduced."
+}

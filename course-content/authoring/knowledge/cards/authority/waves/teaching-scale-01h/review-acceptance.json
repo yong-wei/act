@@ -1,0 +1,14 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_final_foundation_six",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "cardHashes": {
+    "ctkg:v3e-object-10c37fd947ba55593ff03ede": "cded8f272fd95043f97161d593e8af6fa6f42beba9d87636935783dfaf94c447",
+    "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8": "c263662ea8fee1d7a2ab1ea2083da31588502599e9c91dcc53b21d82fe547f4e",
+    "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5": "ad202183f0a4e7bec7c0c2b0bf16acea77640cfe548c50a2d1d950823b1e58f0",
+    "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a": "31bb564917b5563cd54d02129f1cf4d3f3173dccd55890078bcda3d8b264eff4",
+    "ctkg:v3e-object-b0cbf122498bca9269e55406": "7c1f8106007568d29e7d33a3e313c77442dd185492b3cbb4f1f6e84c7cf5a89b",
+    "ctkg:v3e-object-f1df5739a34bf55489aeeeeb": "3df3f0e0e8f965a5e520efc0ce4302b5a5139a4f6731025b81e60ec63f7f5b75"
+  }
+}

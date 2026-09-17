@@ -1,0 +1,73 @@
+{
+  "batchId": "teaching-professional-11a",
+  "status": "accepted",
+  "parentGroupId": "professional-robustness-and-uncertainty-models",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "m1r-v1d:object:608d47a12a8256a1112eb48a",
+      "name": "鲁棒性",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:m3-v2k:canonical-object:333b4eccaaba394db05c3cc8",
+      "name": "鲁棒控制系统",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "m1r-v1d:object:8f2bac90326190686226cb4f",
+      "name": "模型不精确性与变化",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "m1r-v1d:object:b4cb5e69761b0992e65f3ff0",
+      "name": "未建模动态过程",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "m1r-v1d:object:74fdaac2c48ad74c777df6e0",
+      "name": "不确定参数界限表示法",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "m1r-v1d:object:3f3cc3150db61a94045611e8",
+      "name": "加性摄动",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "m1r-v1d:object:7523b6b72a42df094b083b19",
+      "name": "乘性摄动",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "m1r-v1d:object:b31611f788fa831ff4685e14",
+      "name": "鲁棒稳定性",
+      "domain": "robust-control-analysis-and-design",
+      "moduleId": null,
+      "order": 8
+    }
+  ],
+  "accepted": true
+}

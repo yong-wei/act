@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "reviewer": "/root/review_professional02_content",
+  "role": "simulation-domain-reviewer",
+  "scope": "nine authored bodies and frozen source/model evidence; materialization pending",
+  "sourceInventorySha256": "f63d1370d5cc8dce24025eb89b8a0cf29efc9695c52dceef8e2eaa261a5e1e0b",
+  "bodyHashes": {
+    "01.md": "dc41a0b880fa658d256da4c182d0f85d5eca7af756e6c3efd8c4b2d0e35d52a0",
+    "02.md": "a53bd441f9706341ea3836f99212bc9e29463aba1c632dcf76ad3f1ffd53f5c6",
+    "03.md": "087bba540e394a59e6cbde6da84d3030bcb48d5f57c24bdf303851127a8a60c2",
+    "04.md": "1df4e39b79cb86e18154d67376053d1c536925e404b852f4412fd834b13fe2e7",
+    "05.md": "22236f2429824a59bd88117eb89a2f970bf383dc775504b96953b6253aeb372a",
+    "06.md": "826ad295ff4f05639efabe3fadd59f5f6c72b3166d865bb63451005d3f539b27",
+    "07.md": "4a8b3a506e88a0da2f57bac25a672a5285112f4476c3d0d762b3be0b59fdd27c",
+    "08.md": "09ac9636ed7d964a17c87ffa0fc0b86c9a0ee4aad1529be38fabdc6379c96563",
+    "09.md": "65b53ad4f70afea33e4feda8850b2fcb52bf87a834099cdc75aa20ef062254f5"
+  },
+  "findings": []
+}

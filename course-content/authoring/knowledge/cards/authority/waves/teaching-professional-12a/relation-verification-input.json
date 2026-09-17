@@ -1,0 +1,75 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:m3-v2j:source-object:5b9db9f6bfeb1491df0d9414",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:2b90973bfd6546b108acf191",
+          "otherId": "ctkg:m3-v1l:source-object:595fda73e4dbf107f4ef8fba",
+          "label": "等M圆",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **等M圆**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:6a76ea912f226c53cdd8ecd5",
+          "otherId": "ctkg:m3-v1l:source-object:3afdffa9e0c2f17bcdc59490",
+          "label": "利用Nichols图确定闭环频率响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **利用Nichols图确定闭环频率响应**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2m:source-object:986a0736dc2b06ddf1e785c9",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:3c9b67e6f73e5184c7446e6c",
+          "otherId": "m1r-v1d:object:608d47a12a8256a1112eb48a",
+          "label": "鲁棒性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **鲁棒性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:01939b6dc637e997dd0e87bf",
+          "otherId": "ctkg:m3-v2f:canonical-object:d9aed6663ee8a2f6ebc83e10",
+          "label": "内模设计",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **内模设计**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "m1r-v1d:concept:0a3e1fd1b6a15049b4f7846f",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:1b33f38d08090b5a2c97744d",
+          "otherId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+          "label": "PID控制器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **PID控制器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "m1r-v1d:object:9329097505616acd8adafa68",
+      "relations": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:aa8ae205a38e3698addb8fde",
+      "relations": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:c737d473ec4983fe9335fdb4",
+      "relations": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:ff005a8911df14f27aa9f95d",
+      "relations": []
+    }
+  ]
+}

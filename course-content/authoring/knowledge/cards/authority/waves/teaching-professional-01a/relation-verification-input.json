@@ -1,0 +1,283 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+      "relations": [
+        {
+          "relationId": "m1k:relation-301281ef68f3189a2bfafcf9",
+          "otherId": "ctkg:v3e-object-18dc6cccc99e95f3ae794561",
+          "label": "混叠",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **混叠**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "m1k:relation-41d6399ba595ff7790590704",
+          "otherId": "ctkg:v3e-object-61714a8a2f0cfb4c33ab4552",
+          "label": "奈奎斯特速率",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **奈奎斯特速率**（出边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "relations": [
+        {
+          "relationId": "m1k:relation-93dfee93fc07d3c569481fa9",
+          "otherId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+          "label": "保持器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **保持器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1k:relation-a068a63ebc8875c493c38b9c",
+          "otherId": "ctkg:v3e-object-762239378940cb45b78991b3",
+          "label": "采样器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **采样器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1k:relation-3cffec1aea53c2fe790005b4",
+          "otherId": "ctkg:v3e-object-1b7b0dc48c95ff419467dd86",
+          "label": "模拟信号",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **模拟信号**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-18dc6cccc99e95f3ae794561",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:87cda6135adcb6ac2ea11c2c",
+          "otherId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+          "label": "测量噪声信号",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **测量噪声信号**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1k:relation-3d2eb7dcb60fdb1a81be5671",
+          "otherId": "ctkg:v3e-object-241503a6440d96140036a51f",
+          "label": "抗混叠预滤波器",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **抗混叠预滤波器**（入边，关系：用于分析）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:31e65569d3b3f4c26b21ccc3",
+          "otherId": "m1r-v1d:object:c8caf49bf904a7a23f328a23",
+          "label": "传感器噪声 N(s)",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **传感器噪声 N(s)**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-241503a6440d96140036a51f",
+      "relations": [
+        {
+          "relationId": "m1k:relation-3d2eb7dcb60fdb1a81be5671",
+          "otherId": "ctkg:v3e-object-18dc6cccc99e95f3ae794561",
+          "label": "混叠",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **混叠**（出边，关系：用于分析）"
+        },
+        {
+          "relationId": "m1k:relation-5b0907b6b1557af8c7570c5e",
+          "otherId": "ctkg:v3e-object-fb46cb0e4c4a87cac57dc14f",
+          "label": "模数转换器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **模数转换器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+      "relations": [
+        {
+          "relationId": "m1k:relation-0937c295d94c27fb0cc44b7d",
+          "otherId": "ctkg:domainconcept:9e0ece5ddc1de81897928b5f",
+          "label": "采样周期",
+          "predicate": "derived_from",
+          "direction": "source_to_target",
+          "renderedLine": "- **采样周期**（出边，关系：推导自）"
+        },
+        {
+          "relationId": "m1k:relation-37da79b2a0df75f99a71cd91",
+          "otherId": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+          "label": "离散信号",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **离散信号**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1k:relation-69d7b43f6bd234e401bbc819",
+          "otherId": "ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c",
+          "label": "差分方程",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **差分方程**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+      "relations": [
+        {
+          "relationId": "m1k:relation-1142309d609dba1c4c4b3742",
+          "otherId": "ctkg:v3e-object-150dc51f4f7d4306dab82a18",
+          "label": "脉冲序列",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **脉冲序列**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:a3e77efbdb1f451708f83440",
+          "otherId": "ctkg:v3e-object-6ecfad78b7fb0ba7b233047c",
+          "label": "数字控制系统",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **数字控制系统**（出边，关系：前置于）"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:fde533df3e4730fa42f74a33",
+          "otherId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+          "label": "采样控制系统",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **采样控制系统**（出边，关系：前置于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:4287b6fd984ae4c9b79c5c42",
+          "otherId": "ctkg:v3e-object-762239378940cb45b78991b3",
+          "label": "采样器",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **采样器**（入边，关系：前置于）"
+        },
+        {
+          "relationId": "m1k:relation-6bd6a3f0a3b5a4d200917894",
+          "otherId": "ctkg:v3e-object-762239378940cb45b78991b3",
+          "label": "采样器",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **采样器**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "relations": [
+        {
+          "relationId": "m1k:relation-0489dfc78d6d6ac56efc367e",
+          "otherId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+          "label": "保持器",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **保持器**（入边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "m1k:relation-13fb2421fa60bc2e2f4065b7",
+          "otherId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+          "label": "保持器",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **保持器**（出边，关系：包含组件）"
+        },
+        {
+          "relationId": "m1k:relation-e53a19e3f897248d3a34f0cc",
+          "otherId": "ctkg:v3e-object-762239378940cb45b78991b3",
+          "label": "采样器",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **采样器**（出边，关系：包含组件）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8db9674c3550d1d151df7573",
+      "relations": [
+        {
+          "relationId": "m1k:relation-949ee6fa06b3aa3a172b660b",
+          "otherId": "ctkg:v3e-object-b6a2408064ca869300339823",
+          "label": "非周期采样",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **非周期采样**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+      "relations": [
+        {
+          "relationId": "m1k:relation-37da79b2a0df75f99a71cd91",
+          "otherId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+          "label": "采样率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **采样率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1k:relation-c55beb6a340075e25ba7d755",
+          "otherId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+          "label": "采样率",
+          "predicate": "derived_from",
+          "direction": "source_to_target",
+          "renderedLine": "- **采样率**（出边，关系：推导自）"
+        },
+        {
+          "relationId": "m1k:relation-071b63c40d2e543c68b9e2b9",
+          "otherId": "ctkg:v3e-object-27f13707df83e3cfd476ba33",
+          "label": "采样数据",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **采样数据**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd2b9611c4934fe067e8786a",
+      "relations": [
+        {
+          "relationId": "m1k:relation-4cb30316099821b172caa480",
+          "otherId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+          "label": "扰动抑制",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **扰动抑制**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "m1k:relation-698940fc9184e09148699805",
+          "otherId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+          "label": "扰动抑制",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **扰动抑制**（入边，关系：组成部分属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:d290c9bd4acd249411490386",
+          "otherId": "ctkg:v3e-object-e5bf87e0d969b6eec24c6d11",
+          "label": "DSP芯片",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **DSP芯片**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

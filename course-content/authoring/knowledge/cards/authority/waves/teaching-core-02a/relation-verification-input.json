@@ -1,0 +1,156 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctc:909e732d40f972bf760fa8ff",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-v047:part_of:3085e9741c6b0e6df8e0af8e",
+          "otherId": "ctkg:m5-v047:domainconcept:da317c3c8467b1c430115136",
+          "label": "航天器姿态控制（设计案例）",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **航天器姿态控制（设计案例）**（出边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-137c3394c7a146209fe2cd37",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:is_a:4d3914cebba2d5cc960c70ef",
+          "otherId": "ctc:modeling-1897336a3fe60360d9fea3aa",
+          "label": "动态系统建模规范步骤",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **动态系统建模规范步骤**（出边，关系：属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-1b36aff609b370e792d9dee6",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:1991cfaa3be02ad326243c3d",
+          "otherId": "ctc:modeling-655f0fd8bf0c0c43b2d79f1e",
+          "label": "模拟计算机",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **模拟计算机**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:1f53a3dbea8b62d1e02e935b",
+          "otherId": "ctc:modeling-5a8212ba438fbb1d8c953300",
+          "label": "键合图建模法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **键合图建模法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:6024377ee1995736db7a367a",
+          "otherId": "ctc:modeling-5727d74e4587f60fe7b011ae",
+          "label": "物理系统模型相似性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **物理系统模型相似性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-3abaeb7a2cbf8d77276bf23c",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:b0e6f7b84ca76460f888a472",
+          "otherId": "ctc:modeling-34d3b4c651b0047e6e180fe2",
+          "label": "建模（流体储罐）",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **建模（流体储罐）**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctr:b11dc1fc65cb9fbad8968b2b",
+          "otherId": "ctc:modeling-1b36aff609b370e792d9dee6",
+          "label": "相似物理系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **相似物理系统**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-afa39b57a646673e84b55f09",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:a14d438133fdcb14308c4aa0",
+          "otherId": "ctc:modeling-c499b71d908bd8fe4124c533",
+          "label": "结构图绘制规范步骤",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **结构图绘制规范步骤**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:5d465c3276b13e07be524b95",
+          "otherId": "ctc:modeling-865eb1c8824e157c2f05a903",
+          "label": "传递函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **传递函数**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:e75d3a7bf64ff175f2f2f23c",
+          "otherId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+          "label": "框图化简",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **框图化简**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:346d8c86f54433ef1d0f9437",
+          "otherId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+          "label": "框图化简",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **框图化简**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:cc15f4c9fe51dc724eaa2cd8",
+          "otherId": "ctc:modeling-865eb1c8824e157c2f05a903",
+          "label": "传递函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **传递函数**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:eb002aad0e0e2b52072b94fb",
+          "otherId": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+          "label": "废气传感器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **废气传感器**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:fd22a6ab6d34a0872105c570",
+          "otherId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+          "label": "传感器噪声",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **传感器噪声**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

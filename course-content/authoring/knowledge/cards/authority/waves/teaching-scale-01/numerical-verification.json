@@ -1,0 +1,4284 @@
+{
+  "status": "passed-partial",
+  "batchId": "teaching-scale-01",
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "cardCount": 16,
+  "scopeCardCount": 67,
+  "remainingCount": 51,
+  "remainingCardIds": [
+    "ctc_modeling-7734a0845c335f160395bac0",
+    "ctc_modeling-c26fddc50074ec84707d5950",
+    "ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+    "ctkg_domainconcept_42146fa04dc1459716346cc7",
+    "ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+    "ctkg_domainconcept_fef4835248def04a043183ee",
+    "ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+    "ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+    "ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+    "ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+    "ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+    "ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+    "ctkg_v3e-canonical-4f62334f630ea074128ec396",
+    "ctkg_v3e-canonical-62bea9217008b56901615d9a",
+    "ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+    "ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+    "ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+    "ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+    "ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+    "ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+    "ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+    "ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+    "ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+    "ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+    "ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+    "ctkg_v3e-object-10c37fd947ba55593ff03ede",
+    "ctkg_v3e-object-17cae71babbbfe193c0124a4",
+    "ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+    "ctkg_v3e-object-232e387ed53e92abee078346",
+    "ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+    "ctkg_v3e-object-3af39a858b2949296df5387f",
+    "ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+    "ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+    "ctkg_v3e-object-7761615701fb4915a76924ff",
+    "ctkg_v3e-object-7d20806108956a0f52c08f3a",
+    "ctkg_v3e-object-8c4354096b719a1d5e090da4",
+    "ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+    "ctkg_v3e-object-b0cbf122498bca9269e55406",
+    "ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+    "ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+    "ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+    "ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+    "ctkg_v3e-object-d80dfe6ce979515d21845c81",
+    "ctkg_v3e-object-de873c97a924107857f79242",
+    "ctkg_v3e-object-e1caec9f68da5c573be699d5",
+    "ctkg_v3e-object-e80f5d56ce06409842363584",
+    "ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+    "ctkg_v3e-object-f1df5739a34bf55489aeeeeb"
+  ],
+  "cardInventoryStatus": "complete-subset-only",
+  "cardHashes": {
+    "ctc_90af7a0497e616bbe6249c30": "768fb007d8fdfc3cbcdc801aa30ec9058efaf303460e8598728245564efef2fb",
+    "ctc_modeling-00d2998755974a1329049aac": "936aaf4b33f60bee3adaf1acdb462821d02a20d04284c6249c0567af69f70b2f",
+    "ctc_modeling-05fbe60f54c183c4e3ded892": "e0c1a05b3a2c45b79630e86aa7a52a34f20c405619cb6ad9e3c83318aa962eef",
+    "ctc_modeling-8aa475ed6514adc11f9b5c8d": "7a4d657192fa839e0e8e50723a2930f7770abf3b1cbda6eb72030890dc1f6a66",
+    "ctc_modeling-aa10e4daa1e969c557f6ef83": "fd813ff326fa4abc0d716cba9ab635da7baf5e82c8b7e29c3a75920daf139479",
+    "ctc_modeling-b2fd214ec64665147e16ff9d": "5d7efba9da04a4937d7bc9f1c3175d8c2892c6c5123a07ccd8a31b7f2edecf68",
+    "ctc_v11g-21fba199a9fdef15887d600f": "8a73ebe262df30480b0f279c76e5a0f84b38f5ce4e889242706e9a248fec2eec",
+    "ctc_v11g-caa20b325717f0a3c570f16b": "39eb8a0c9435c87e2e51e4ad3a967e815beec4b8cd87d83624fe79af9a220057",
+    "ctkg_domainconcept_9b4e79193b3701a9657113eb": "f949f631aee46a051df80f3184f1d4755980efc48073f8ef79e033817426d07e",
+    "ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c": "372cd4e3a63107cbac0920ae6d771770bb3a26000e498e42afe4fc23fec0d81b",
+    "ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017": "91322e067e4c1b852b95ad6067a5071ffddfc82a885029e9bad6747e58f41a08",
+    "ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2": "b04edf7cff94a291de31db982af37f7928548ca2d2dd15ac1322bc7d660e938e",
+    "ctkg_v3e-canonical-060bc33f21e93205ee271eda": "197dff3ede7d434b0616425db42d7c8578517a8516fd6d4f239973a9130d4881",
+    "ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71": "820cccc45b6a93bbe442b254a2a5b8c0a97e964254ba075301aefcabb25dbbf5",
+    "ctkg_v3e-object-58d24ff14a6b0b0cab5d393f": "86b7bc4e98d4a8d18ed3fa6ec58dba7ad3f01da830fb33c6cf3403d1c8f966dc",
+    "ctkg_v3e-object-9967c0867249bf4c1a625dab": "e65531815e43cab0510f92d2710a74037e9b90c19361754b220d69ae4e9dc63b"
+  },
+  "numericalAndSymbolicCheckCount": 1003,
+  "checks": [
+    {
+      "check": "scope contains exactly 67 cards",
+      "actual": true
+    },
+    {
+      "check": "inventory partitions the 67-card scope",
+      "actual": true
+    },
+    {
+      "check": "inventory order is unique",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-578c4d38d03db1efdab554cadcf0a62091c68fd592a95753d506a73edfdb7c79.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-578c4d38d03db1efdab554cadcf0a62091c68fd592a95753d506a73edfdb7c79.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-578c4d38d03db1efdab554cadcf0a62091c68fd592a95753d506a73edfdb7c79.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-578c4d38d03db1efdab554cadcf0a62091c68fd592a95753d506a73edfdb7c79.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-13655c6f7bf60843c9711e5e64ff7217c67af82c29ddff5985968f4a48260308.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-13655c6f7bf60843c9711e5e64ff7217c67af82c29ddff5985968f4a48260308.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-13655c6f7bf60843c9711e5e64ff7217c67af82c29ddff5985968f4a48260308.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-13655c6f7bf60843c9711e5e64ff7217c67af82c29ddff5985968f4a48260308.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-556030d1b80c659d45a4ca07a8232281ab6525bb47ca29e3f7f00365617f1a97.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-556030d1b80c659d45a4ca07a8232281ab6525bb47ca29e3f7f00365617f1a97.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-556030d1b80c659d45a4ca07a8232281ab6525bb47ca29e3f7f00365617f1a97.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-556030d1b80c659d45a4ca07a8232281ab6525bb47ca29e3f7f00365617f1a97.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6fea919b5360ed78fb8d27a4db75a629c68cd47fbedb14e532f10bc2f7bbc4e3.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6fea919b5360ed78fb8d27a4db75a629c68cd47fbedb14e532f10bc2f7bbc4e3.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6fea919b5360ed78fb8d27a4db75a629c68cd47fbedb14e532f10bc2f7bbc4e3.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6fea919b5360ed78fb8d27a4db75a629c68cd47fbedb14e532f10bc2f7bbc4e3.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-11d7e80e55811769be8a223e7f7f0d9686be8db0e47c1503c2cd499ad577d7a1.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-11d7e80e55811769be8a223e7f7f0d9686be8db0e47c1503c2cd499ad577d7a1.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-11d7e80e55811769be8a223e7f7f0d9686be8db0e47c1503c2cd499ad577d7a1.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-11d7e80e55811769be8a223e7f7f0d9686be8db0e47c1503c2cd499ad577d7a1.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-042b449fb0a2d6dd5165847598c8c1cbebf4af681017b66a0a57847394794ece.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-042b449fb0a2d6dd5165847598c8c1cbebf4af681017b66a0a57847394794ece.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-042b449fb0a2d6dd5165847598c8c1cbebf4af681017b66a0a57847394794ece.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-042b449fb0a2d6dd5165847598c8c1cbebf4af681017b66a0a57847394794ece.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c574f01908c3e97b587beac35ac0c8908c225bc332889ef5f6b9d2b1fb54bbbc.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c574f01908c3e97b587beac35ac0c8908c225bc332889ef5f6b9d2b1fb54bbbc.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c574f01908c3e97b587beac35ac0c8908c225bc332889ef5f6b9d2b1fb54bbbc.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c574f01908c3e97b587beac35ac0c8908c225bc332889ef5f6b9d2b1fb54bbbc.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-867e82e1eb1438d037aa88103423b42890494e7c673695c9fd6f0a4491eca469.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-867e82e1eb1438d037aa88103423b42890494e7c673695c9fd6f0a4491eca469.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-867e82e1eb1438d037aa88103423b42890494e7c673695c9fd6f0a4491eca469.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-867e82e1eb1438d037aa88103423b42890494e7c673695c9fd6f0a4491eca469.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9ca1d627c0cd9602e70517bf53a5734c7817466ab398ab510e67a278434fc07b.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9ca1d627c0cd9602e70517bf53a5734c7817466ab398ab510e67a278434fc07b.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9ca1d627c0cd9602e70517bf53a5734c7817466ab398ab510e67a278434fc07b.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9ca1d627c0cd9602e70517bf53a5734c7817466ab398ab510e67a278434fc07b.json",
+      "actual": true
+    },
+    {
+      "check": "fixed support source: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b3f6f4d7c04d65d1ebbb2fb83f009e6fd15afb28393e2a33122211186b88c532.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b3f6f4d7c04d65d1ebbb2fb83f009e6fd15afb28393e2a33122211186b88c532.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b3f6f4d7c04d65d1ebbb2fb83f009e6fd15afb28393e2a33122211186b88c532.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b3f6f4d7c04d65d1ebbb2fb83f009e6fd15afb28393e2a33122211186b88c532.json",
+      "actual": true
+    },
+    {
+      "check": "fixed support source: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5076ada4109d10322b0af30b4b13d160199c6bd0067979e8287ea0c13af594a5.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5076ada4109d10322b0af30b4b13d160199c6bd0067979e8287ea0c13af594a5.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5076ada4109d10322b0af30b4b13d160199c6bd0067979e8287ea0c13af594a5.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5076ada4109d10322b0af30b4b13d160199c6bd0067979e8287ea0c13af594a5.json",
+      "actual": true
+    },
+    {
+      "check": "fixed support source: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-be8e5348dc90dfd723696f5f37d80198c49146976cab10f0fc8862c3293a24b3.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-be8e5348dc90dfd723696f5f37d80198c49146976cab10f0fc8862c3293a24b3.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-be8e5348dc90dfd723696f5f37d80198c49146976cab10f0fc8862c3293a24b3.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-be8e5348dc90dfd723696f5f37d80198c49146976cab10f0fc8862c3293a24b3.json",
+      "actual": true
+    },
+    {
+      "check": "fixed support source: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b85fe73949ab09930c2fbac0c408c5c06c2d28d8ef603782e2264dae1a24deee.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b85fe73949ab09930c2fbac0c408c5c06c2d28d8ef603782e2264dae1a24deee.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b85fe73949ab09930c2fbac0c408c5c06c2d28d8ef603782e2264dae1a24deee.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b85fe73949ab09930c2fbac0c408c5c06c2d28d8ef603782e2264dae1a24deee.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1a4c760e857a9c87f608fd25c540142b48b7e5cd1c4ddedee1d1feaf41f093cb.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1a4c760e857a9c87f608fd25c540142b48b7e5cd1c4ddedee1d1feaf41f093cb.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1a4c760e857a9c87f608fd25c540142b48b7e5cd1c4ddedee1d1feaf41f093cb.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1a4c760e857a9c87f608fd25c540142b48b7e5cd1c4ddedee1d1feaf41f093cb.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5f47b7d053b556435a3b0dde91a9b20c368999d87979b4e7b463f0675d52a545.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5f47b7d053b556435a3b0dde91a9b20c368999d87979b4e7b463f0675d52a545.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5f47b7d053b556435a3b0dde91a9b20c368999d87979b4e7b463f0675d52a545.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5f47b7d053b556435a3b0dde91a9b20c368999d87979b4e7b463f0675d52a545.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "card exists: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "card hash: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "detail path derived from canonicalId: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "neighborhood path derived from canonicalId: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b8aaadb219a869aacadbf362dff3534b20bf00e38ff66634e43733c5cae0fd3c.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b8aaadb219a869aacadbf362dff3534b20bf00e38ff66634e43733c5cae0fd3c.json",
+      "actual": true
+    },
+    {
+      "check": "source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b8aaadb219a869aacadbf362dff3534b20bf00e38ff66634e43733c5cae0fd3c.json",
+      "actual": true
+    },
+    {
+      "check": "source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b8aaadb219a869aacadbf362dff3534b20bf00e38ff66634e43733c5cae0fd3c.json",
+      "actual": true
+    },
+    {
+      "check": "previous copy exists: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "previous hash: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "card changed from previous: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctc_modeling-7734a0845c335f160395bac0",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctc_modeling-7734a0845c335f160395bac0",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctc_modeling-7734a0845c335f160395bac0",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctc_modeling-7734a0845c335f160395bac0",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctc_modeling-7734a0845c335f160395bac0",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e626f0c8caa2f53c8fdaee7131b1bdaa2b2e881097ccd7a8a9ad1e4b61d10242.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e626f0c8caa2f53c8fdaee7131b1bdaa2b2e881097ccd7a8a9ad1e4b61d10242.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e626f0c8caa2f53c8fdaee7131b1bdaa2b2e881097ccd7a8a9ad1e4b61d10242.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e626f0c8caa2f53c8fdaee7131b1bdaa2b2e881097ccd7a8a9ad1e4b61d10242.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctc_modeling-7734a0845c335f160395bac0",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctc_modeling-c26fddc50074ec84707d5950",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctc_modeling-c26fddc50074ec84707d5950",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctc_modeling-c26fddc50074ec84707d5950",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctc_modeling-c26fddc50074ec84707d5950",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctc_modeling-c26fddc50074ec84707d5950",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f7a5d649bcd0bb155d799b3e6be3327134c34a322574e202a328068e7de9cd2a.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f7a5d649bcd0bb155d799b3e6be3327134c34a322574e202a328068e7de9cd2a.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f7a5d649bcd0bb155d799b3e6be3327134c34a322574e202a328068e7de9cd2a.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f7a5d649bcd0bb155d799b3e6be3327134c34a322574e202a328068e7de9cd2a.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctc_modeling-c26fddc50074ec84707d5950",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1680cea2ea4bcab0d3da83cdbda1b84906ee1da30d2f1e6954d37c1084311fed.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1680cea2ea4bcab0d3da83cdbda1b84906ee1da30d2f1e6954d37c1084311fed.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1680cea2ea4bcab0d3da83cdbda1b84906ee1da30d2f1e6954d37c1084311fed.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1680cea2ea4bcab0d3da83cdbda1b84906ee1da30d2f1e6954d37c1084311fed.json",
+      "actual": true
+    },
+    {
+      "check": "remaining fixed support source: ctkg_domainconcept_27b69e7f2e837fd62dc31379",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_domainconcept_42146fa04dc1459716346cc7",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_domainconcept_42146fa04dc1459716346cc7",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_domainconcept_42146fa04dc1459716346cc7",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_domainconcept_42146fa04dc1459716346cc7",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_domainconcept_42146fa04dc1459716346cc7",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e5e5cf87ec5f6a944405e3d68421a5b960f689442a051c0332488514d30bd851.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e5e5cf87ec5f6a944405e3d68421a5b960f689442a051c0332488514d30bd851.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e5e5cf87ec5f6a944405e3d68421a5b960f689442a051c0332488514d30bd851.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e5e5cf87ec5f6a944405e3d68421a5b960f689442a051c0332488514d30bd851.json",
+      "actual": true
+    },
+    {
+      "check": "remaining fixed support source: ctkg_domainconcept_42146fa04dc1459716346cc7",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b81a249d49a5fa4b5bc21523a1ba7f9de6a11507245495f08d2a0e3b5385763b.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b81a249d49a5fa4b5bc21523a1ba7f9de6a11507245495f08d2a0e3b5385763b.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b81a249d49a5fa4b5bc21523a1ba7f9de6a11507245495f08d2a0e3b5385763b.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b81a249d49a5fa4b5bc21523a1ba7f9de6a11507245495f08d2a0e3b5385763b.json",
+      "actual": true
+    },
+    {
+      "check": "remaining fixed support source: ctkg_domainconcept_4eaa0995db3f87d3b7e0f117",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_domainconcept_fef4835248def04a043183ee",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_domainconcept_fef4835248def04a043183ee",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_domainconcept_fef4835248def04a043183ee",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_domainconcept_fef4835248def04a043183ee",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_domainconcept_fef4835248def04a043183ee",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5cc72d5a7e0f977d0b9c1086ebaea8b325571d87dbf90e1be5b79824de1bc1f6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-5cc72d5a7e0f977d0b9c1086ebaea8b325571d87dbf90e1be5b79824de1bc1f6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5cc72d5a7e0f977d0b9c1086ebaea8b325571d87dbf90e1be5b79824de1bc1f6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-5cc72d5a7e0f977d0b9c1086ebaea8b325571d87dbf90e1be5b79824de1bc1f6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining fixed support source: ctkg_domainconcept_fef4835248def04a043183ee",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f3a93a1438a5173a96c87d6011eceb8b339fd1db2f9cb1e01b829d6cb9009d01.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f3a93a1438a5173a96c87d6011eceb8b339fd1db2f9cb1e01b829d6cb9009d01.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f3a93a1438a5173a96c87d6011eceb8b339fd1db2f9cb1e01b829d6cb9009d01.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f3a93a1438a5173a96c87d6011eceb8b339fd1db2f9cb1e01b829d6cb9009d01.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-01549ef9b34888b89b55f224",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-eb59baf54f1f5baed24a8ac80b14f6d436244c25bd1766ae210bd584c6ca6989.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-eb59baf54f1f5baed24a8ac80b14f6d436244c25bd1766ae210bd584c6ca6989.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-eb59baf54f1f5baed24a8ac80b14f6d436244c25bd1766ae210bd584c6ca6989.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-eb59baf54f1f5baed24a8ac80b14f6d436244c25bd1766ae210bd584c6ca6989.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-04fd7f69994f8821467462e5",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a2feb663fd251f889389f4ce65929302641a91d8fd9dd3dd1741454f8b658d4f.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a2feb663fd251f889389f4ce65929302641a91d8fd9dd3dd1741454f8b658d4f.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a2feb663fd251f889389f4ce65929302641a91d8fd9dd3dd1741454f8b658d4f.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a2feb663fd251f889389f4ce65929302641a91d8fd9dd3dd1741454f8b658d4f.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-09e1c3e14609b082a4501ead",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c3343e1111f2ace6dadfacfb099db7b5d93d9668e583a9002f49e7467aa23ad3.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c3343e1111f2ace6dadfacfb099db7b5d93d9668e583a9002f49e7467aa23ad3.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c3343e1111f2ace6dadfacfb099db7b5d93d9668e583a9002f49e7467aa23ad3.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c3343e1111f2ace6dadfacfb099db7b5d93d9668e583a9002f49e7467aa23ad3.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b40da3df73a484db5c2c82affebb727a3b885e4f401ad9694c9c05ec8401fbd6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b40da3df73a484db5c2c82affebb727a3b885e4f401ad9694c9c05ec8401fbd6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b40da3df73a484db5c2c82affebb727a3b885e4f401ad9694c9c05ec8401fbd6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b40da3df73a484db5c2c82affebb727a3b885e4f401ad9694c9c05ec8401fbd6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-54574d1fca4e8c34cdc1cde7b9b37f02d72c3c1986ee01d522bc12562524536c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-54574d1fca4e8c34cdc1cde7b9b37f02d72c3c1986ee01d522bc12562524536c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-54574d1fca4e8c34cdc1cde7b9b37f02d72c3c1986ee01d522bc12562524536c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-54574d1fca4e8c34cdc1cde7b9b37f02d72c3c1986ee01d522bc12562524536c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96e87fa5acebbc3d3475a668c25db542a475ab27630dff585876632beefcd8da.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96e87fa5acebbc3d3475a668c25db542a475ab27630dff585876632beefcd8da.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96e87fa5acebbc3d3475a668c25db542a475ab27630dff585876632beefcd8da.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96e87fa5acebbc3d3475a668c25db542a475ab27630dff585876632beefcd8da.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-416fc2acf005a7da54f9fce3",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c442c60900347aa944be2e2723cd4f1a0d48415342e2595919b9099cc387ff6c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c442c60900347aa944be2e2723cd4f1a0d48415342e2595919b9099cc387ff6c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c442c60900347aa944be2e2723cd4f1a0d48415342e2595919b9099cc387ff6c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c442c60900347aa944be2e2723cd4f1a0d48415342e2595919b9099cc387ff6c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c33b309413d9dd157ef28302bf62c814faf2172121e7b6f7cee834dfc08b9c37.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c33b309413d9dd157ef28302bf62c814faf2172121e7b6f7cee834dfc08b9c37.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c33b309413d9dd157ef28302bf62c814faf2172121e7b6f7cee834dfc08b9c37.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c33b309413d9dd157ef28302bf62c814faf2172121e7b6f7cee834dfc08b9c37.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3a322e7c50af009e1d0605f73f3261be527781f491f2317b0ea17b76567232ac.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3a322e7c50af009e1d0605f73f3261be527781f491f2317b0ea17b76567232ac.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3a322e7c50af009e1d0605f73f3261be527781f491f2317b0ea17b76567232ac.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3a322e7c50af009e1d0605f73f3261be527781f491f2317b0ea17b76567232ac.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-6461b91e08c647ceff0ceeee",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9404b9667875d0dfb6fe72ff121ac90ce18fd7707d9c57ef6e8f09e0f6af8911.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9404b9667875d0dfb6fe72ff121ac90ce18fd7707d9c57ef6e8f09e0f6af8911.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9404b9667875d0dfb6fe72ff121ac90ce18fd7707d9c57ef6e8f09e0f6af8911.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9404b9667875d0dfb6fe72ff121ac90ce18fd7707d9c57ef6e8f09e0f6af8911.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-af679057b50299f79747230130880d6471b5f4788916ba07302f8d5fec511fdc.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-af679057b50299f79747230130880d6471b5f4788916ba07302f8d5fec511fdc.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-af679057b50299f79747230130880d6471b5f4788916ba07302f8d5fec511fdc.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-af679057b50299f79747230130880d6471b5f4788916ba07302f8d5fec511fdc.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-d397d7d7225cf3fa1a9433d138e9e67a8713225d1bc7a0b010c1271727e0c04c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-d397d7d7225cf3fa1a9433d138e9e67a8713225d1bc7a0b010c1271727e0c04c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-d397d7d7225cf3fa1a9433d138e9e67a8713225d1bc7a0b010c1271727e0c04c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-d397d7d7225cf3fa1a9433d138e9e67a8713225d1bc7a0b010c1271727e0c04c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-adb3110b78ea9d623101aaa7",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-956bb941ab70005a6141bbe00959499baf30a828c89693d5c08ee240903fc876.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-956bb941ab70005a6141bbe00959499baf30a828c89693d5c08ee240903fc876.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-956bb941ab70005a6141bbe00959499baf30a828c89693d5c08ee240903fc876.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-956bb941ab70005a6141bbe00959499baf30a828c89693d5c08ee240903fc876.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9984fc132ccbb70533bce65ffa2d0fe18757a76f2a625a2ee342e92df85b0c37.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9984fc132ccbb70533bce65ffa2d0fe18757a76f2a625a2ee342e92df85b0c37.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9984fc132ccbb70533bce65ffa2d0fe18757a76f2a625a2ee342e92df85b0c37.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9984fc132ccbb70533bce65ffa2d0fe18757a76f2a625a2ee342e92df85b0c37.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e0e42aae8c105748a999d839b32d67ebeb42c88e5e4d2ba918b0f1e71899f5ce.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e0e42aae8c105748a999d839b32d67ebeb42c88e5e4d2ba918b0f1e71899f5ce.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e0e42aae8c105748a999d839b32d67ebeb42c88e5e4d2ba918b0f1e71899f5ce.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e0e42aae8c105748a999d839b32d67ebeb42c88e5e4d2ba918b0f1e71899f5ce.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e949e356b72ec5e96dd2f78a53438c1e68e2eca53386d9849abe9cbae68cea17.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e949e356b72ec5e96dd2f78a53438c1e68e2eca53386d9849abe9cbae68cea17.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e949e356b72ec5e96dd2f78a53438c1e68e2eca53386d9849abe9cbae68cea17.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e949e356b72ec5e96dd2f78a53438c1e68e2eca53386d9849abe9cbae68cea17.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2463eb6c0effd7bc4ccf73d1d8ddbbb43239466b831d75d016df537fd163f8e6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2463eb6c0effd7bc4ccf73d1d8ddbbb43239466b831d75d016df537fd163f8e6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2463eb6c0effd7bc4ccf73d1d8ddbbb43239466b831d75d016df537fd163f8e6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2463eb6c0effd7bc4ccf73d1d8ddbbb43239466b831d75d016df537fd163f8e6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-de9cd255c7e8770506442de0",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b9e6ef9dc0108ba4e981d23b358388df9f567591bf9ac25b434fa7e4a462a1ab.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b9e6ef9dc0108ba4e981d23b358388df9f567591bf9ac25b434fa7e4a462a1ab.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b9e6ef9dc0108ba4e981d23b358388df9f567591bf9ac25b434fa7e4a462a1ab.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b9e6ef9dc0108ba4e981d23b358388df9f567591bf9ac25b434fa7e4a462a1ab.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c707845c80ac2cfe2042896c4f354a45b0a8a98d55a3da4672fc62f9a6925b9a.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c707845c80ac2cfe2042896c4f354a45b0a8a98d55a3da4672fc62f9a6925b9a.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c707845c80ac2cfe2042896c4f354a45b0a8a98d55a3da4672fc62f9a6925b9a.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c707845c80ac2cfe2042896c4f354a45b0a8a98d55a3da4672fc62f9a6925b9a.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-canonical-ed3a4babf006b2fd746765e8",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-361cf33656c82f196d171eaa0520cf63a48abb487cfeae39f066daf503afcd23.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-361cf33656c82f196d171eaa0520cf63a48abb487cfeae39f066daf503afcd23.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-361cf33656c82f196d171eaa0520cf63a48abb487cfeae39f066daf503afcd23.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-361cf33656c82f196d171eaa0520cf63a48abb487cfeae39f066daf503afcd23.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-0a05ec9e84791b95d3794bc0",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-30f0a556a0058d1211bff4470a3c2b05896f06332ae053524bec5f086348b9e6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-30f0a556a0058d1211bff4470a3c2b05896f06332ae053524bec5f086348b9e6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-30f0a556a0058d1211bff4470a3c2b05896f06332ae053524bec5f086348b9e6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-30f0a556a0058d1211bff4470a3c2b05896f06332ae053524bec5f086348b9e6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-0ca481aed329f4e6c74c8d30",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7c6e57cd77d92d9d2e8892527b6979462f44d25a7fb50e2d51ceebc8363d489c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7c6e57cd77d92d9d2e8892527b6979462f44d25a7fb50e2d51ceebc8363d489c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7c6e57cd77d92d9d2e8892527b6979462f44d25a7fb50e2d51ceebc8363d489c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7c6e57cd77d92d9d2e8892527b6979462f44d25a7fb50e2d51ceebc8363d489c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-026066555686222528d2d9d0ecd4372475d8fdb19a9cc2b2acf22d188fb35744.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-026066555686222528d2d9d0ecd4372475d8fdb19a9cc2b2acf22d188fb35744.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-026066555686222528d2d9d0ecd4372475d8fdb19a9cc2b2acf22d188fb35744.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-026066555686222528d2d9d0ecd4372475d8fdb19a9cc2b2acf22d188fb35744.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-17cae71babbbfe193c0124a4",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bb78be89bcde5a37896c9db87df58f7c963d6ebd493a9f03301db7e3b2b173ab.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-bb78be89bcde5a37896c9db87df58f7c963d6ebd493a9f03301db7e3b2b173ab.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bb78be89bcde5a37896c9db87df58f7c963d6ebd493a9f03301db7e3b2b173ab.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-bb78be89bcde5a37896c9db87df58f7c963d6ebd493a9f03301db7e3b2b173ab.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-232e387ed53e92abee078346",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-232e387ed53e92abee078346",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-232e387ed53e92abee078346",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-232e387ed53e92abee078346",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-232e387ed53e92abee078346",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-868f4f01c9e9c2ec249c16f9c585ea93a4f7461f9be33f73f411e64ec70b1a0d.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-868f4f01c9e9c2ec249c16f9c585ea93a4f7461f9be33f73f411e64ec70b1a0d.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-868f4f01c9e9c2ec249c16f9c585ea93a4f7461f9be33f73f411e64ec70b1a0d.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-868f4f01c9e9c2ec249c16f9c585ea93a4f7461f9be33f73f411e64ec70b1a0d.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-232e387ed53e92abee078346",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ebd0d8336c3cd53d34b2abd2840d7cb2b6b7fe2f0a394d0887b77d3c77588db3.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ebd0d8336c3cd53d34b2abd2840d7cb2b6b7fe2f0a394d0887b77d3c77588db3.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ebd0d8336c3cd53d34b2abd2840d7cb2b6b7fe2f0a394d0887b77d3c77588db3.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ebd0d8336c3cd53d34b2abd2840d7cb2b6b7fe2f0a394d0887b77d3c77588db3.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-38d4679bf3335318b0f4afb7",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-3af39a858b2949296df5387f",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-3af39a858b2949296df5387f",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-3af39a858b2949296df5387f",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-3af39a858b2949296df5387f",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-3af39a858b2949296df5387f",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-25167c5f2ebfd993ed25f345d528af58af9f2c273a2c7d552fd96bb66d3d4a4c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-25167c5f2ebfd993ed25f345d528af58af9f2c273a2c7d552fd96bb66d3d4a4c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-25167c5f2ebfd993ed25f345d528af58af9f2c273a2c7d552fd96bb66d3d4a4c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-25167c5f2ebfd993ed25f345d528af58af9f2c273a2c7d552fd96bb66d3d4a4c.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-3af39a858b2949296df5387f",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1ea4f1d17c82bfe86cd4c827494196b6b786081fb6b0a15e1ed001ba5dee696d.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1ea4f1d17c82bfe86cd4c827494196b6b786081fb6b0a15e1ed001ba5dee696d.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1ea4f1d17c82bfe86cd4c827494196b6b786081fb6b0a15e1ed001ba5dee696d.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1ea4f1d17c82bfe86cd4c827494196b6b786081fb6b0a15e1ed001ba5dee696d.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-45a0aa44db67766733b9273d5601d84941a5127846360290815a53223d81e042.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-45a0aa44db67766733b9273d5601d84941a5127846360290815a53223d81e042.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-45a0aa44db67766733b9273d5601d84941a5127846360290815a53223d81e042.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-45a0aa44db67766733b9273d5601d84941a5127846360290815a53223d81e042.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-64dfc92ef15f84903e6cdd8a",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-7761615701fb4915a76924ff",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-7761615701fb4915a76924ff",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-7761615701fb4915a76924ff",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-7761615701fb4915a76924ff",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-7761615701fb4915a76924ff",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-38cd6eb74ce9804d3f70444a8ab5f01ced1619eba69b227fb665098702b9106e.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-38cd6eb74ce9804d3f70444a8ab5f01ced1619eba69b227fb665098702b9106e.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-38cd6eb74ce9804d3f70444a8ab5f01ced1619eba69b227fb665098702b9106e.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-38cd6eb74ce9804d3f70444a8ab5f01ced1619eba69b227fb665098702b9106e.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-7761615701fb4915a76924ff",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-535e2bb10e6314484776c785119a965f328ca47e6a4887bfd7f8832c51d199b6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-535e2bb10e6314484776c785119a965f328ca47e6a4887bfd7f8832c51d199b6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-535e2bb10e6314484776c785119a965f328ca47e6a4887bfd7f8832c51d199b6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-535e2bb10e6314484776c785119a965f328ca47e6a4887bfd7f8832c51d199b6.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-7d20806108956a0f52c08f3a",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8656595b157ea817cf4897082d16600b7ae116697305c8e85d6ac1041cb2ff19.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8656595b157ea817cf4897082d16600b7ae116697305c8e85d6ac1041cb2ff19.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8656595b157ea817cf4897082d16600b7ae116697305c8e85d6ac1041cb2ff19.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8656595b157ea817cf4897082d16600b7ae116697305c8e85d6ac1041cb2ff19.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c624143d47f24c9d8374a994b953107a789fb79e89452ca0d0b1f10a8301dee9.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c624143d47f24c9d8374a994b953107a789fb79e89452ca0d0b1f10a8301dee9.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c624143d47f24c9d8374a994b953107a789fb79e89452ca0d0b1f10a8301dee9.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c624143d47f24c9d8374a994b953107a789fb79e89452ca0d0b1f10a8301dee9.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-ab4dc18aac53ac6636d05ca5",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e4963f54a478cbc04c87a194dbb646d4fabd812074ec21fd9f0e9c710b43f4db.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e4963f54a478cbc04c87a194dbb646d4fabd812074ec21fd9f0e9c710b43f4db.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e4963f54a478cbc04c87a194dbb646d4fabd812074ec21fd9f0e9c710b43f4db.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e4963f54a478cbc04c87a194dbb646d4fabd812074ec21fd9f0e9c710b43f4db.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-b0cbf122498bca9269e55406",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ea8b55856ec1377fdbb1bdb20df31061bf9003b45224b3d562348048e07fe7d5.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ea8b55856ec1377fdbb1bdb20df31061bf9003b45224b3d562348048e07fe7d5.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ea8b55856ec1377fdbb1bdb20df31061bf9003b45224b3d562348048e07fe7d5.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ea8b55856ec1377fdbb1bdb20df31061bf9003b45224b3d562348048e07fe7d5.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-c2881833cb4d8b1e415dc742",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6e4b0b9bd47b3dc19b522bb267273b23e6efc9629430b078b4bd49b98127ad24.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-6e4b0b9bd47b3dc19b522bb267273b23e6efc9629430b078b4bd49b98127ad24.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6e4b0b9bd47b3dc19b522bb267273b23e6efc9629430b078b4bd49b98127ad24.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-6e4b0b9bd47b3dc19b522bb267273b23e6efc9629430b078b4bd49b98127ad24.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0a14658efad1ea54d0ed42acaa4bd45692ddb5b6dff7504209e99192a59922da.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0a14658efad1ea54d0ed42acaa4bd45692ddb5b6dff7504209e99192a59922da.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0a14658efad1ea54d0ed42acaa4bd45692ddb5b6dff7504209e99192a59922da.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0a14658efad1ea54d0ed42acaa4bd45692ddb5b6dff7504209e99192a59922da.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-534c1018cbeb1814f101f8adf6aa842eb21c2e3d464055a63edf66ec137a5d68.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-534c1018cbeb1814f101f8adf6aa842eb21c2e3d464055a63edf66ec137a5d68.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-534c1018cbeb1814f101f8adf6aa842eb21c2e3d464055a63edf66ec137a5d68.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-534c1018cbeb1814f101f8adf6aa842eb21c2e3d464055a63edf66ec137a5d68.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8677504b988904be14627ec17514ab41b0b2d67bc951c28521a300cf4d58e1ce.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8677504b988904be14627ec17514ab41b0b2d67bc951c28521a300cf4d58e1ce.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8677504b988904be14627ec17514ab41b0b2d67bc951c28521a300cf4d58e1ce.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8677504b988904be14627ec17514ab41b0b2d67bc951c28521a300cf4d58e1ce.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-d80dfe6ce979515d21845c81",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-de873c97a924107857f79242",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-de873c97a924107857f79242",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-de873c97a924107857f79242",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-de873c97a924107857f79242",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-de873c97a924107857f79242",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f0ea7d3d56c211b130200112ed6275b5388762ecc0aec7cde1c60ccaab6feac8.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f0ea7d3d56c211b130200112ed6275b5388762ecc0aec7cde1c60ccaab6feac8.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f0ea7d3d56c211b130200112ed6275b5388762ecc0aec7cde1c60ccaab6feac8.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f0ea7d3d56c211b130200112ed6275b5388762ecc0aec7cde1c60ccaab6feac8.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-de873c97a924107857f79242",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96151abaaa346ff4f9a8c92d0c8193ec3288cd1bb0acd88ec80f344e0ada2626.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-96151abaaa346ff4f9a8c92d0c8193ec3288cd1bb0acd88ec80f344e0ada2626.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96151abaaa346ff4f9a8c92d0c8193ec3288cd1bb0acd88ec80f344e0ada2626.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-96151abaaa346ff4f9a8c92d0c8193ec3288cd1bb0acd88ec80f344e0ada2626.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-e1caec9f68da5c573be699d5",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-e80f5d56ce06409842363584",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-e80f5d56ce06409842363584",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-e80f5d56ce06409842363584",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-e80f5d56ce06409842363584",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-e80f5d56ce06409842363584",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c5623eefd3b78c960a5f0552a80b5219108d280da48d483756a7699a5c9dd677.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-c5623eefd3b78c960a5f0552a80b5219108d280da48d483756a7699a5c9dd677.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c5623eefd3b78c960a5f0552a80b5219108d280da48d483756a7699a5c9dd677.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-c5623eefd3b78c960a5f0552a80b5219108d280da48d483756a7699a5c9dd677.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-e80f5d56ce06409842363584",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2becb76f6fe7e1a1ee39ae94a473272c4a06b5ddeb71ac58e4b855e6cad615a2.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-2becb76f6fe7e1a1ee39ae94a473272c4a06b5ddeb71ac58e4b855e6cad615a2.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2becb76f6fe7e1a1ee39ae94a473272c4a06b5ddeb71ac58e4b855e6cad615a2.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-2becb76f6fe7e1a1ee39ae94a473272c4a06b5ddeb71ac58e4b855e6cad615a2.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-ee4c217b305b05786c0b89a9",
+      "actual": true
+    },
+    {
+      "check": "remaining row is explicitly pending: ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "actual": true
+    },
+    {
+      "check": "remaining card exists: ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "actual": true
+    },
+    {
+      "check": "remaining card hash: ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "actual": true
+    },
+    {
+      "check": "remaining detail path derived: ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "actual": true
+    },
+    {
+      "check": "remaining neighborhood path derived: ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1662848c1ed2a7feaa036ea3729f76e5b5d7d303a4f3a39eda7d17cb30422bec.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1662848c1ed2a7feaa036ea3729f76e5b5d7d303a4f3a39eda7d17cb30422bec.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source exists: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1662848c1ed2a7feaa036ea3729f76e5b5d7d303a4f3a39eda7d17cb30422bec.json",
+      "actual": true
+    },
+    {
+      "check": "remaining source hash: course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1662848c1ed2a7feaa036ea3729f76e5b5d7d303a4f3a39eda7d17cb30422bec.json",
+      "actual": true
+    },
+    {
+      "check": "remaining previous copy: ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "node label: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctc_90af7a0497e616bbe6249c30",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "node label: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctc_modeling-00d2998755974a1329049aac",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "node label: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctc_modeling-05fbe60f54c183c4e3ded892",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "node label: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctc_modeling-8aa475ed6514adc11f9b5c8d",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "node label: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctc_modeling-aa10e4daa1e969c557f6ef83",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "node label: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctc_modeling-b2fd214ec64665147e16ff9d",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "node label: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctc_v11g-21fba199a9fdef15887d600f",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "node label: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctc_v11g-caa20b325717f0a3c570f16b",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "node label: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctkg_domainconcept_9b4e79193b3701a9657113eb",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "node label: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctkg_m3-v1i_canonical-object_44ba9f502d62725bda3f150c",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "node label: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctkg_m3-v1k_canonical-object_39ac7c77fc6c62d14466a017",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "node label: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctkg_m3-v1l_canonical-object_9536bb480a03e3193e6e88d2",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "node label: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "node label: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "node label: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
+      "actual": true
+    },
+    {
+      "check": "frontmatter present: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "node identity: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "node label: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "card_version: 3: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "status: ready: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "source_docs:: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "## 首页: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "## 详情: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "### 自检: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "核对要点: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "### 关联节点: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "two self-check questions: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "substantive detail: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "body has no authority paths: ctkg_v3e-object-9967c0867249bf4c1a625dab",
+      "actual": true
+    },
+    {
+      "check": "01 response at t=0.5",
+      "actual": 0.22119921692859512,
+      "expected": 0.2211992169,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "01 zero initial value",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 0
+    },
+    {
+      "check": "01 original ODE residual at 0.0",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "01 original ODE residual at 0.5",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "01 original ODE residual at 2.0",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "01 original ODE residual at 10.0",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "01 amplitude-three steady state",
+      "actual": 3.0,
+      "expected": 3,
+      "tolerance": 0
+    },
+    {
+      "check": "55 real second harmonic amplitude",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 0
+    },
+    {
+      "check": "02 gain at omega=1",
+      "actual": 1.3416407864998738,
+      "expected": 1.3416407865,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "03 inverse Laplace at t=1",
+      "actual": 0.8646647167633873,
+      "expected": 0.8646647168,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "04 mathematical model at one time constant",
+      "actual": 0.6321205588285577,
+      "expected": 0.6321205588,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "05 dynamic tank slope",
+      "actual": 0.05,
+      "expected": 0.05,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "06 transfer response at one time constant",
+      "actual": 1.5803013970713942,
+      "expected": 1.5803013971,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "07 op-amp integrator output",
+      "actual": -0.6000000000000001,
+      "expected": -0.6,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "08 constant-coefficient LTI response",
+      "actual": 1.2642411176571153,
+      "expected": 1.2642411177,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "09 lag zero frequency",
+      "actual": 0.1,
+      "expected": 0.1,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "09 lag pole frequency",
+      "actual": 0.02,
+      "expected": 0.02,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "09 lag low-frequency gain",
+      "actual": 5.0,
+      "expected": 5,
+      "tolerance": 0.0
+    },
+    {
+      "check": "10 delay phase",
+      "actual": -1.6,
+      "expected": -1.6,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "11 reference channel final value",
+      "actual": 0.6666666666666666,
+      "expected": 0.6666666667,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "11 plant-input disturbance final value",
+      "actual": 0.3333333333333333,
+      "expected": 0.3333333333,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "12 disturbance sensitivity",
+      "actual": 0.1,
+      "expected": 0.1,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "13 small parameter sensitivity",
+      "actual": 0.010000000000000002,
+      "expected": 0.01,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "14 omitted pole magnitude",
+      "actual": 0.7071067811865475,
+      "expected": 0.7071067812,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "15 closed-loop final value",
+      "actual": 0.6666666666666666,
+      "expected": 0.6666666667,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "16 gain crossover frequency",
+      "actual": 1.2496210676876531,
+      "expected": 1.2496210677,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "16 phase margin",
+      "actual": 38.66828249253447,
+      "expected": 38.6682824925,
+      "tolerance": 1e-08
+    },
+    {
+      "check": "17 Pade zero",
+      "actual": 5.0,
+      "expected": 5,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "17 Pade pole magnitude",
+      "actual": 5.0,
+      "expected": 5,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "18 delay phase at omega=4",
+      "actual": -1.2,
+      "expected": -1.2,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "19 final-value steady error",
+      "actual": 0.16666666666666666,
+      "expected": 0.1666666667,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "20 unilateral transform of exp",
+      "actual": 0.5,
+      "expected": 0.5,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "21 cover-up coefficient at -1",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 0.0
+    },
+    {
+      "check": "21 cover-up coefficient at -2",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 0.0
+    },
+    {
+      "check": "22 velocity error",
+      "actual": 0.1,
+      "expected": 0.1,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "23 final-value theorem example",
+      "actual": 0.5,
+      "expected": 0.5,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "24 steady-state performance error",
+      "actual": 0.3333333333333333,
+      "expected": 0.3333333333,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "25 unit-step response at t=0.5",
+      "actual": 0.6321205588285577,
+      "expected": 0.6321205588,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "26 position error constant",
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 0.0
+    },
+    {
+      "check": "26 position error",
+      "actual": 0.3333333333333333,
+      "expected": 0.3333333333,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "27 unit-step amplitude",
+      "actual": 3.0,
+      "expected": 3,
+      "tolerance": 0.0
+    },
+    {
+      "check": "28 unit-ramp target at t=3",
+      "actual": 3.0,
+      "expected": 3,
+      "tolerance": 0.0
+    },
+    {
+      "check": "29 velocity error constant",
+      "actual": 5.0,
+      "expected": 5,
+      "tolerance": 0.0
+    },
+    {
+      "check": "29 ramp steady error",
+      "actual": 0.2,
+      "expected": 0.2,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "30 acceleration error constant",
+      "actual": 4.0,
+      "expected": 4,
+      "tolerance": 0.0
+    },
+    {
+      "check": "30 acceleration steady error",
+      "actual": 0.25,
+      "expected": 0.25,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "31 frequency-response magnitude",
+      "actual": 0.7071067811865475,
+      "expected": 0.7071067812,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "31 frequency-response phase",
+      "actual": -45.0,
+      "expected": -45,
+      "tolerance": 0.0
+    },
+    {
+      "check": "32 partial-fraction coefficient",
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 0.0
+    },
+    {
+      "check": "32 partial-fraction response",
+      "actual": 1.8646647167633872,
+      "expected": 1.8646647168,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "33 DC gain",
+      "actual": 5.0,
+      "expected": 5,
+      "tolerance": 0.0
+    },
+    {
+      "check": "34 distinct-pole coefficient one",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 0.0
+    },
+    {
+      "check": "34 distinct-pole coefficient two",
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 0.0
+    },
+    {
+      "check": "35 steady error",
+      "actual": 0.16666666666666666,
+      "expected": 0.1666666667,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "36 unit-acceleration target",
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 0.0
+    },
+    {
+      "check": "36 scaled acceleration error",
+      "actual": 0.75,
+      "expected": 0.75,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "37 superposition response",
+      "actual": 1.896361676485673,
+      "expected": 1.8963616765,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "38 error with non-unit feedback",
+      "actual": -0.6000000000000001,
+      "expected": -0.6,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "39 stable pole real part",
+      "actual": -1.0,
+      "expected": -1,
+      "tolerance": 0.0
+    },
+    {
+      "check": "39 unstable pole real part",
+      "actual": 0.1,
+      "expected": 0.1,
+      "tolerance": 0.0
+    },
+    {
+      "check": "40 constant-disturbance residual",
+      "actual": 0.0,
+      "expected": 0,
+      "tolerance": 0.0
+    },
+    {
+      "check": "40 ramp-disturbance residual",
+      "actual": 0.1,
+      "expected": 0.1,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "41 uncorrected static error",
+      "actual": 0.5,
+      "expected": 0.5,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "41 compensated static error",
+      "actual": 0.2,
+      "expected": 0.2,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "42 measured magnitude",
+      "actual": 0.8,
+      "expected": 0.8,
+      "tolerance": 0.0
+    },
+    {
+      "check": "42 measured magnitude in dB",
+      "actual": -1.938200260161128,
+      "expected": -1.9382002602,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "43 overshoot percent",
+      "actual": 19.999999999999996,
+      "expected": 20,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "44 integral-compensator poles have negative real part",
+      "actual": true
+    },
+    {
+      "check": "45 phase-crossover root",
+      "actual": 3.6731944063042516,
+      "expected": 3.6731944063,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "46 cutoff frequency",
+      "actual": 9.9498743710662,
+      "expected": 9.9498743711,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "47 frequency-characteristic real part",
+      "actual": 0.25000000000000006,
+      "expected": 0.25,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "47 frequency-characteristic imaginary magnitude",
+      "actual": 0.4330127018922193,
+      "expected": 0.4330127019,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "48 amplitude spectrum fundamental",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 0.0
+    },
+    {
+      "check": "48 amplitude spectrum second harmonic",
+      "actual": 0.5,
+      "expected": 0.5,
+      "tolerance": 0.0
+    },
+    {
+      "check": "49 proportional output",
+      "actual": 0.6000000000000001,
+      "expected": 0.6,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "50 Fourier coefficient magnitude",
+      "actual": 0.5,
+      "expected": 0.5,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "51 pole-placement gain match",
+      "actual": true
+    },
+    {
+      "check": "52 gain crossover frequency",
+      "actual": 2.8284271247461903,
+      "expected": 2.8284271247,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "52 phase margin",
+      "actual": 109.47122063449069,
+      "expected": 109.4712206345,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "53 PI zero magnitude",
+      "actual": 0.5,
+      "expected": 0.5,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "54 basic Laplace transform at s=0",
+      "actual": 0.5,
+      "expected": 0.5,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "55 phase characteristic",
+      "actual": -45.0,
+      "expected": -45,
+      "tolerance": 0.0
+    },
+    {
+      "check": "56 controllability determinant",
+      "actual": true
+    },
+    {
+      "check": "57 delay-element phase",
+      "actual": -1.0,
+      "expected": -1,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "58 gain margin linear",
+      "actual": 4.0,
+      "expected": 4,
+      "tolerance": 0.0
+    },
+    {
+      "check": "58 gain margin dB",
+      "actual": 12.041199826559248,
+      "expected": 12.0411998266,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "59 compensation static error",
+      "actual": 0.2,
+      "expected": 0.2,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "60 Routh third-row first entry",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 0.0
+    },
+    {
+      "check": "61 cubic Routh-Hurwitz inequality",
+      "actual": true
+    },
+    {
+      "check": "62 lag-lead DC gain",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 0.0
+    },
+    {
+      "check": "62 lag-lead high-frequency gain",
+      "actual": 1.0,
+      "expected": 1.0,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "63 magnitude characteristic",
+      "actual": 0.4472135954999579,
+      "expected": 0.4472135955,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "64 cascade-compensation static error",
+      "actual": 0.3333333333333333,
+      "expected": 0.3333333333,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "65 experimental frequency point real",
+      "actual": 0.8863269777109872,
+      "expected": 0.8863269777,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "65 experimental frequency point imaginary",
+      "actual": -0.1562833599002373,
+      "expected": -0.1562833599,
+      "tolerance": 1e-09
+    },
+    {
+      "check": "66 sinusoidal output amplitude",
+      "actual": 1.414213562373095,
+      "expected": 1.4142135623730951,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "67 compensating-device DC gain",
+      "actual": 5.0,
+      "expected": 5,
+      "tolerance": 0.0
+    },
+    {
+      "check": "67 compensating-device high-frequency gain",
+      "actual": 1.0,
+      "expected": 1,
+      "tolerance": 1e-12
+    }
+  ],
+  "method": "Python math, NumPy roots, SHA-256 source/card identity and fixed Git support-source verification"
+}

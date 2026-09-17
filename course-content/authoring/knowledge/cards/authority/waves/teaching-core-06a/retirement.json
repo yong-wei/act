@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:信号流图_1_2",
+      "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/信号流图_1_2.md",
+          "sha256": "ca75f20eb7dcf242eb8273c1d5499c474426e5d8ad992c2f8b5fdb9b9967b94d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-06a/retired/authoring/信号流图_1_2.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/信号流图_1_2.md",
+          "sha256": "ca75f20eb7dcf242eb8273c1d5499c474426e5d8ad992c2f8b5fdb9b9967b94d",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-06a/retired/runtime/信号流图_1_2.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:信号流图_2_372d4084",
+      "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/信号流图_2_372d4084.md",
+          "sha256": "a1ac0f64de8be8a85cbc3762566e1079003ec5b1d5cae205c20fc703a876e707",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-06a/retired/authoring/信号流图_2_372d4084.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/信号流图_2_372d4084.md",
+          "sha256": "a1ac0f64de8be8a85cbc3762566e1079003ec5b1d5cae205c20fc703a876e707",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-06a/retired/runtime/信号流图_2_372d4084.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:回路_2_e1adbdfa",
+      "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/回路_2_e1adbdfa.md",
+          "sha256": "755d981fa8387aaa99d1f7613da4681ebec53a01b7aa72981227cfa7d73dfa54",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-06a/retired/authoring/回路_2_e1adbdfa.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/回路_2_e1adbdfa.md",
+          "sha256": "755d981fa8387aaa99d1f7613da4681ebec53a01b7aa72981227cfa7d73dfa54",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-06a/retired/runtime/回路_2_e1adbdfa.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b17",
+  "replacementDigest": "9df2e0f59ad47b0630ae3cb210854094f78ab38ca1792a9fcb166ed74087bd75"
+}

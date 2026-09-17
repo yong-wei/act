@@ -1,0 +1,35 @@
+{
+  "status": "sections-checked",
+  "sources": [
+    {
+      "url": "https://underactuated.csail.mit.edu/dp.html",
+      "title": "Russ Tedrake, Dynamic Programming",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-06a/references/mit-dynamic-programming.html",
+      "sha256": "314f6e3bc611c3e777f4286ab02ceda77964bddc71fe2f520cd3ee9d6ecda012",
+      "status": "sections-checked",
+      "sections": [
+        "Formulating control design as an optimization",
+        "Additive cost",
+        "Optimal control as graph search"
+      ]
+    },
+    {
+      "url": "https://web.math.berkeley.edu/~evans/control.course.pdf",
+      "title": "Lawrence C. Evans, An Introduction to Mathematical Optimal Control Theory",
+      "localPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-06a/references/evans-optimal-control.pdf",
+      "sha256": "658ac09f16dee3c67d1373dacc43ff2cd619a2bd195180de87afaf8c98a684d6",
+      "status": "sections-checked",
+      "pages": "5; 41-43; 47-49; 72-76 (PDF pages)",
+      "sections": [
+        "1.1 payoff functional",
+        "4.1.1 Euler-Lagrange necessary conditions",
+        "4.3 Pontryagin maximum principle",
+        "5.1 dynamic programming"
+      ],
+      "signConvention": "Evans maximizes payoff. These cards minimize cost; Hamiltonian signs and costate transform consistently, and endpoint conditions are stated separately."
+    }
+  ],
+  "limitation": "All seven authority nodes lack textbook paragraph references. Supplementary sources require section-level review before authoring acceptance.",
+  "kind": "supporting-research-record",
+  "workedExample": "Original scalar-integrator and two-step quadratic-cost examples; exact checks in verify-models.py."
+}

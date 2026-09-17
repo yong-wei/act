@@ -1,0 +1,70 @@
+{
+  "batchId": "teaching-core-26a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-26",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:m3-v2h:canonical-object:0c5c3925013d2cbf3cb6419b",
+      "name": "频率响应匹配法",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "name": "增益裕度（GM）",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "name": "非最小相位环节",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "name": "相位裕度 （PM）",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+      "name": "奈奎斯特稳定判据（奈氏判据）",
+      "moduleId": "module-3",
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "name": "奈奎斯特稳定判据",
+      "moduleId": "module-3",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "name": "最小相位系统",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "name": "最小相位环节",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "name": "非最小相位系统",
+      "moduleId": null,
+      "order": 9
+    }
+  ]
+}

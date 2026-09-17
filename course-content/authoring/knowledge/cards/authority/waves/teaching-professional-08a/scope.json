@@ -1,0 +1,65 @@
+{
+  "batchId": "teaching-professional-08a",
+  "status": "authoring",
+  "parentGroupId": "professional-discrete-model-and-actions",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:9b5b7d8e1adf2c35463467a8",
+      "name": "z平面单位圆",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:9e0ece5ddc1de81897928b5f",
+      "name": "采样周期",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:a183d0a0001c3553cc638558",
+      "name": "离散模型",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:bf027d00f4e69d3198aefe23",
+      "name": "精确离散等效",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:a007da62df7bd509e16eab25",
+      "name": "离散比例控制",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:b33901638cba88f3f2ea5a20",
+      "name": "离散积分控制",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:bb073f59e79dbee61e794fa1",
+      "name": "离散微分控制",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 7
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "relationId": "ctr:m1f-bridge-relation-ad5c8e4d866cbe9847b254cd",
+  "status": "excluded-from-card-projection",
+  "affectedCanonicalIds": [
+    "ctc:modeling-5da44f2fc98d268259459e04",
+    "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886"
+  ],
+  "disposition": {
+    "learnerClassification": "ACCEPT: unqualified is_a conflicts with the card zero-state/zero-input distinction",
+    "upstreamSemantics": "DEFER: check original source convention and post-impulse time interval",
+    "mutateImmutableSnapshot": "REJECT: current immutable Authority is not edited for card authoring"
+  },
+  "sourceUnchanged": true
+}

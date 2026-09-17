@@ -1,0 +1,77 @@
+{
+  "batchId": "teaching-core-04a",
+  "status": "accepted",
+  "parentGroupId": "core-topic-04",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
+      "name": "状态变量",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:modeling-348746457d644126ff8ecf77",
+      "name": "建模（约当标准型）",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:modeling-352b9bfe27ba1ab6b9c9672e",
+      "name": "传感器执行器同位配置",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
+      "name": "估计误差",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+      "name": "完全可达",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+      "name": "PBH秩判据",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+      "name": "秩判据",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "name": "极点配置",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+      "name": "对角线规范型判据",
+      "moduleId": null,
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+      "name": "输出可控性",
+      "moduleId": null,
+      "order": 10
+    }
+  ],
+  "accepted": true
+}

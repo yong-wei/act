@@ -1,0 +1,175 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:74d441ec8df68a3819d8d278",
+          "otherId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+          "label": "扰动抑制",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **扰动抑制**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:b2f0c0d1e4b269aac8cf5621",
+          "otherId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+          "label": "跟踪误差",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **跟踪误差**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:7192a3f1695372edc3620fdc",
+          "otherId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+          "label": "灵敏度函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **灵敏度函数**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:57c43180c533c15ab6999ced",
+          "otherId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+          "label": "扰动抑制",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **扰动抑制**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:8851113290ad13d3947beda7",
+          "otherId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+          "label": "跟踪误差",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **跟踪误差**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:f1bec1f6c00b75d3a1f33a42",
+          "otherId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+          "label": "灵敏度函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **灵敏度函数**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:c341998188af09ff0c46b44b",
+          "otherId": "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+          "label": "前馈跟踪",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **前馈跟踪**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:f29b68b6b3b9c1251a0b6a5b",
+          "otherId": "ctkg:domainconcept:550f9472042bebc4561cc83b",
+          "label": "扰动信号",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **扰动信号**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1l:relation-81c186ccc5644b6889fbdf9a",
+          "otherId": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+          "label": "渐近跟踪",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **渐近跟踪**（入边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:3450bb0ded068361fcf24f9e",
+          "otherId": "ctkg:domainconcept:1bd485e2c679f6653728f6a9",
+          "label": "稳态全补偿",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **稳态全补偿**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:3e1ec2e7adba53927ad34ece",
+          "otherId": "ctkg:domainconcept:e068737e2de7d2aa0eda0686",
+          "label": "近似全补偿",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **近似全补偿**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:72dfafc6c0fa7c8b4e076ff0",
+          "otherId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+          "label": "跟踪误差",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **跟踪误差**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:f7993f3dbe7dd937d5f45dd8",
+          "otherId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+          "label": "扰动抑制",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **扰动抑制**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:6401431ad5788d3c899748c1",
+          "otherId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+          "label": "灵敏度函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **灵敏度函数**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:87cda6135adcb6ac2ea11c2c",
+          "otherId": "ctkg:v3e-object-18dc6cccc99e95f3ae794561",
+          "label": "混叠",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **混叠**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:4d6df6e6f061fa727bee128a",
+          "otherId": "ctkg:v3e-object-055bf5ba7d4fe5f6a75cdd79",
+          "label": "二型系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **二型系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:a9d22dd161ed041e7db23cfd",
+          "otherId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+          "label": "位置误差常数 (K_p)",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **位置误差常数 (K_p)**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

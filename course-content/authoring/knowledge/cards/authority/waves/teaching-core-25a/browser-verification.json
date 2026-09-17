@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> closed-loop-bandwidth node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "闭环带宽",
+  "representativeCanonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+  "authorityDomainId": "frequency-domain-analysis",
+  "authorityDomainDisplayName": "频域分析"
+}

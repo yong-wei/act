@@ -1,0 +1,76 @@
+{
+  "batchId": "teaching-core-29a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-29",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "name": "相平面图",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "name": "等倾线法",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "name": "相轨迹",
+      "moduleId": "module-5",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "name": "相平面",
+      "moduleId": "module-5",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+      "name": "容许控制",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "name": "相平面法",
+      "moduleId": "module-5",
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "name": "奇点",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+      "name": "实奇点",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+      "name": "虚奇点",
+      "moduleId": null,
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "name": "开关线",
+      "moduleId": null,
+      "order": 10
+    }
+  ]
+}

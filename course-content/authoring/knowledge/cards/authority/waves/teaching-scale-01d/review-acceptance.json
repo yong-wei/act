@@ -1,0 +1,17 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_transform_eight",
+  "role": "simulation-domain-reviewer",
+  "scope": "exact eight authoring cards, declared sources, neighborhood and content verification",
+  "findings": [],
+  "cardHashes": {
+    "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5": "ecae3cbacb0ad30f7cf6fbfc3a51764deb5e189e24d81b04570919f7b5a0fe63",
+    "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826": "edc09635263173cad9eb4f24dfa620b5c1c646ac8a64b18382808a1171b894c6",
+    "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde": "112dee2a5f6f666324748cf0c4bff755676f8f9ac14f2a2b132cf20ed516d033",
+    "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef": "74b57d3e8640da38280306ce2adc15dca46688d82e94f508d230883db5c41e81",
+    "ctkg:v3e-canonical-de9cd255c7e8770506442de0": "f35ff633e5e96cf6962ce7f21657497647377366449a8d9b9b1d676327a66c40",
+    "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7": "5e6863fa2754a07a88c57930b9337c0b536076053d6ede7e2718a477f31215e5",
+    "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091": "e65498a00454f76e773341c6818992a2e014dfd9c354b3716cb68ae50374c463",
+    "ctkg:v3e-object-8c4354096b719a1d5e090da4": "80ba37f1766776c13ee319c16749e4f70dcca01f052ed91e6cada7ebadb6eb2b"
+  }
+}

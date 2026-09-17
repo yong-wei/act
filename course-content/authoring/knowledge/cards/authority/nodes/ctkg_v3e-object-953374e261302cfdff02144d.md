@@ -1,55 +1,72 @@
 ---
 node_id: ctkg_v3e-object-953374e261302cfdff02144d
 authority_entity_id: "ctkg:v3e-object-953374e261302cfdff02144d"
-name: 相平面
+name: "相平面"
+name_en: "Phase Plane"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 相平面
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-280d49dc34240b65366d7194420323e38251fb432e6111f9425de5e8d33f2cf4.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-280d49dc34240b65366d7194420323e38251fb432e6111f9425de5e8d33f2cf4.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-29a/previous/ctkg_v3e-object-953374e261302cfdff02144d.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: bf9aba1c4a259819dbbccc4a3246ec34a40354f453c36e1088e8be73798108fb -->
-
 ## 首页
+# 相平面 | Phase Plane
 
-# 相平面
+一句话定义：相平面是以两个状态变量为坐标的平面；在本课程二阶运动模型中，常以 $x$ 为横轴、$\dot x$ 为纵轴。
 
-**一句话定义**：以 x(t) 为横坐标，ẋ(t) 为纵坐标构成的直角坐标平面称为相平面。
-
-**关联**：前置 → 等倾线、极限环、相轨迹
+- 状态坐标需完整决定自治模型的后续演化。
+- 速度为零不一定意味着整个状态处于平衡。
+- 高维状态的二维投影不能自动视为完整相平面模型。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-以 x(t) 为横坐标，ẋ(t) 为纵坐标构成的直角坐标平面称为相平面。
+对 $\ddot x=f(x,\dot x)$，引入 $v=\dot x$ 后得到两条一阶方程 $\dot x=v$、$\dot v=f(x,v)$。在给定参数和自治条件下，$(x,v)$ 构成状态，能够区分“同一位置但运动速度不同”的情况。
+
+如果只用位置 $x$，就无法判断物体正在向哪个方向运动。例如同一位置0.5，速度1与速度 $-1$ 的后续位置变化相反。在相平面中，这两种情况是两个不同点，不会被混合。
+
+### 教学计算/推理例
+
+取 $\dot x=v$、$\dot v=-x-v$。点 $(1,0)$ 表示位置1、瞬时速度0，但加速度 $-1$，随后开始向负方向运动；点 $(0,1)$ 表示位置0、速度1，位置继续增加而速度减小。只有点 $(0,0)$ 同时使两个状态导数为0，是平衡点。
+
+相平面可按向量场读取局部方向：在上半平面 $v>0$，有 $\dot x>0$，轨迹向右；在下半平面 $v<0$，轨迹向左。水平切向量要求 $\dot v=-x-v=0$，即 $x=-v$；竖直方向出现在 $v=0,x\ne0$。原点处向量为零，不能给它指定普通非零切向箭头。
+
+这个例子说明，坐标轴和方向条件提供的是不同信息。横轴上的点并不都是平衡，等加速度零的直线也不意味着位置不动。平衡要求所有状态导数同时为零。
+
+### 适用条件与边界
+
+本课程的 $(x,\dot x)$ 是常见选择，并非所有二维模型都必须使用位置与速度。电路可用两个独立电状态，生态或化学系统也可有其他状态。选择坐标时应说明单位和缩放，图形角度在不同轴尺度下会改变，不宜凭视觉角度代替计算。
+
+二维自治系统可由一个固定向量场表达；若有显含时间的外力，相同状态在不同时刻可能具有不同导数，需要把时间或激励相位的信息纳入分析。高阶系统只选两个状态投影时，剩余状态仍会影响后续演化，投影点不一定唯一决定方向。
+
+一阶系统通常用相线表达，二阶自治系统适合完整相平面法。对高维系统也可以画二维截面或投影辅助观察，但必须明确它们的局限，不能把教材中二维分析的结论无条件外推。
+
+### 常见误区
+
+1. 把位置相同当成状态相同，忽略速度。
+2. 把 $\dot x=0$ 当成全部导数为0。
+3. 将高维投影曲线当成由两个坐标完整决定的自治运动。
+
+### 自检
+
+1. 点 $(1,0)$ 与 $(0,0)$ 的速度都为0，为什么只有后者是平衡？
+2. 本例上半平面的轨迹横向朝哪里运动？
+
+**核对要点**：前者加速度为 $-1$，后者两个导数均为0；上半平面 $v>0$，位置增大，向右运动。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | 等倾线 | 属于 |
-| 前置 | 极限环 | 属于 |
-| 前置 | 相轨迹 | 属于 |
-| 前置 | 奇线 | 属于 |
-| 前置 | 奇点 | 属于 |
-| 前置 | 相变量 | 属于 |
-| 前置 | 开关线 | 属于 |
-| 前置 | 相平面法 | 包含组件 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、相平面
+- **奇点**（入边，关系：组成部分属于）
+- **奇线**（入边，关系：组成部分属于）
+- **开关线**（入边，关系：组成部分属于）

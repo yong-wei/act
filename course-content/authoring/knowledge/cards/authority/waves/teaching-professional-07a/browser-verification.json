@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> LQR node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "线性二次型调节器 (LQR)",
+  "representativeCanonicalId": "ctkg:m1q:source:97e97630ea05992f4d3e7e54",
+  "authorityDomainId": "optimal-control-foundations-and-linear-quadratic-design",
+  "authorityDomainDisplayName": "最优控制与线性二次型设计"
+}

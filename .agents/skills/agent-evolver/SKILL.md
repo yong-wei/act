@@ -1,6 +1,6 @@
 ---
 name: agent-evolver
-description: Use when project-local Codex custom agents under `.codex/agents/*.toml` need to be audited, tuned, extended, or quality-tracked, especially when model choice, reasoning effort, role boundaries, or project-specific subagent constraints must be updated without guessing.
+description: 审查或维护项目命名代理的职责、模型配置及验证记录。
 ---
 
 # agent-evolver

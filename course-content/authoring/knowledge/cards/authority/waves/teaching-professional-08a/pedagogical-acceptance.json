@@ -1,0 +1,7 @@
+{
+  "status": "accepted",
+  "cards": 7,
+  "goalId": "discrete-control-foundations",
+  "rationale": "涵盖单位圆、采样时序、离散模型与P/I/D基本作用，保留设计与分析领域的独立Canonical身份。",
+  "sourceLimitation": "P/I/D无逐段教材定位；补充官方参考经Web读取但无本地原页快照。"
+}

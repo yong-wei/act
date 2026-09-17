@@ -1,0 +1,71 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:单位脉冲响应_2_e56a0360",
+      "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/单位脉冲响应_2_e56a0360.md",
+          "sha256": "7c1cda742fec77cea5af8abcd11d775ae6aac3cc793eddab817a1ede2a98cd2c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/retired/authoring/单位脉冲响应_2_e56a0360.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/单位脉冲响应_2_e56a0360.md",
+          "sha256": "7c1cda742fec77cea5af8abcd11d775ae6aac3cc793eddab817a1ede2a98cd2c",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/retired/runtime/单位脉冲响应_2_e56a0360.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:单位脉冲响应_3_a67aa116",
+      "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/单位脉冲响应_3_a67aa116.md",
+          "sha256": "038f34e9754b345d830140f87c8c8e11097a06d67dd2786cb81fb66fc3462214",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/retired/authoring/单位脉冲响应_3_a67aa116.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/单位脉冲响应_3_a67aa116.md",
+          "sha256": "038f34e9754b345d830140f87c8c8e11097a06d67dd2786cb81fb66fc3462214",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/retired/runtime/单位脉冲响应_3_a67aa116.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:正弦函数_1_98499ac0",
+      "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/正弦函数_1_98499ac0.md",
+          "sha256": "27cc0f1ea25d0194e591a6e3d62cdfde14994b84ec62cc47c0def54812a9c696",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/retired/authoring/正弦函数_1_98499ac0.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/正弦函数_1_98499ac0.md",
+          "sha256": "27cc0f1ea25d0194e591a6e3d62cdfde14994b84ec62cc47c0def54812a9c696",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/retired/runtime/正弦函数_1_98499ac0.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:典型输入信号_3_897a572d",
+      "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/典型输入信号_3_897a572d.md",
+          "sha256": "d3f75e7ef63d925485a0cdca24cdfd169a865cb861a1edd6e48310a947819831",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/retired/authoring/典型输入信号_3_897a572d.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/典型输入信号_3_897a572d.md",
+          "sha256": "d3f75e7ef63d925485a0cdca24cdfd169a865cb861a1edd6e48310a947819831",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/retired/runtime/典型输入信号_3_897a572d.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b22",
+  "replacementDigest": "f45a9b1a5f74acc76c546e667b9262c0f6e8e8b68b8750d0c1ec0ddd8d49f56d"
+}

@@ -1,0 +1,138 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:is_a:3041919a3f87f130bf45f867",
+          "otherId": "ctkg:v3e-object-0cf99c642f502f5984fc4317",
+          "sourceLabel": "时域性能指标",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **时域性能指标**（下位类型）：给出响应时间、超调和稳态精度等具体口径。"
+        },
+        {
+          "relationId": "m1i:relation-e561be2df57c16c16626651d",
+          "otherId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+          "sourceLabel": "系统带宽",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **系统带宽**（下位类型）：从频域描述部分动态要求，不能代替全部时域约束。"
+        },
+        {
+          "relationId": "m1i:relation-d50c669b9022cf2afe1b7c8b",
+          "otherId": "ctkg:v3e-object-1423d2e4d994f098d268dc5e",
+          "sourceLabel": "校正问题",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **校正问题**（适用对象）：先明确需要满足的指标，再选择校正结构及参数。"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:496ce8b4ca367fbe77885f24",
+          "otherId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+          "sourceLabel": "扰动抑制",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **扰动抑制**（无向关联）：提供各个扰动通道和灵敏度的分析背景。"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:f644501cb4ba6f54af6a9add",
+          "otherId": "ctkg:v3e-canonical-e3d758f51052980656178128",
+          "sourceLabel": "系统类型",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **系统类型**（无向关联）：与参考跟踪分类作对照，但不能把两种通道的结论混用。"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+      "relations": [
+        {
+          "relationId": "m1l:relation-90cb506e62c400a0d92dd7e9",
+          "otherId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+          "sourceLabel": "全状态反馈",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **全状态反馈**（适用对象）：本卡给出从模型到增益与约束核验的步骤。"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:3b2aea7a7def09afa6e43c39",
+          "otherId": "ctc:modeling-1856c331960e3c439dcc999f",
+          "sourceLabel": "状态空间分步设计法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **状态空间分步设计法**（无向关联）：将反馈增益设计与状态估计、跟踪和实现分开处理。"
+        },
+        {
+          "relationId": "m1l:relation-d7e2285160861805a2f83dfd",
+          "otherId": "ctkg:v3e-object-4b7254aa73329cdcc5057159",
+          "sourceLabel": "分离原理",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **分离原理**（无向关联）：为随后组合状态反馈与观测器提供条件性的稳定性依据。"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+      "relations": [
+        {
+          "relationId": "m1l:relation-534751c72efd523c0a766d0b",
+          "otherId": "ctkg:v3e-object-1ab7d3e90229cbda897e48f5",
+          "sourceLabel": "\\dot{\\mathbf{x}}=\\mathbf{A} \\mathbf{x}-\\mathbf{B K} \\hat{\\mathbf{x}}",
+          "predicate": "has_component",
+          "direction": "source_to_target",
+          "renderedLine": "- **估计状态反馈下的对象方程**（组成关系）：图谱对应 $\\dot x=Ax-BK\\hat x$，本卡在此基础上说明观测器、参考输入及闭环误差动态。"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:b45fb24f5a56d7f82f064f68",
+          "otherId": "ctc:modeling-799ffe58feb1471183f23786",
+          "sourceLabel": "单位采样延迟环节",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **单位采样延迟环节**（无向关联）：连续时间平移与离散序列移位相对应，但必须核对采样周期和延迟长度。"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "relations": [
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:37d31f4034ce16c11b2e90c7",
+          "otherId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+          "sourceLabel": "串联校正",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **串联校正**（后续）：一种具体的装置插入方式，应按前向通道重新建立环路。"
+        },
+        {
+          "relationId": "ctkg:m4-u2u5:prerequisite:0adafa75a139a49da712f807",
+          "otherId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+          "sourceLabel": "反馈校正",
+          "predicate": "prerequisite",
+          "direction": "earlier_to_later",
+          "renderedLine": "- **反馈校正**（后续）：装置作用于反馈通道，不能照搬串联结构的传递函数。"
+        },
+        {
+          "relationId": "ctkg:m5-d1:is_a:1546c2cbcf0e7f05c4c252e4",
+          "otherId": "ctkg:domainconcept:4b8188f6e3ad1985a3208055",
+          "sourceLabel": "数字校正装置",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **数字校正装置**（下位类型）：在采样与数值实现约束下实现校正特性。"
+        }
+      ]
+    }
+  ]
+}

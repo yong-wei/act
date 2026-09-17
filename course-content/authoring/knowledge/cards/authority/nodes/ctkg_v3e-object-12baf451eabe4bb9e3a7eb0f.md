@@ -1,32 +1,35 @@
 ---
 node_id: ctkg_v3e-object-12baf451eabe4bb9e3a7eb0f
 authority_entity_id: "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f"
-name: Reference input
+name: "参考输入"
+name_en: "Reference Input"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - Reference
-  - input
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-0e4ab3b7f94d4d363a2d29adbaf6a8f5b4681694f56a9d7c1f6f192e5ebd6de2.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-0e4ab3b7f94d4d363a2d29adbaf6a8f5b4681694f56a9d7c1f6f192e5ebd6de2.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-10a/previous/ctkg_v3e-object-12baf451eabe4bb9e3a7eb0f.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: b199e755eb6293e587ecc781070835490b52ced39f18b3ba1f82a5cb519b3764 -->
-
 ## 首页
 
-# Reference input
+# 参考输入 | Reference Input
 
-**一句话定义**：Reference input：A signal r(t) that represents the desired output or command to be followed by the system.
+**一句话定义**：参考输入表示系统希望跟踪的输出目标或命令，并不必然等于执行器输入或实际输出。
 
-**核心直觉**：在图谱邻接中可把握：前置 → Tracking error、Asymptotic tracking · 后续 → Command following。
+**核心直觉**：想达到什么、给执行器什么、最终实际达到什么，是三个需要分别命名的量。
 
-**关联**：前置 → Tracking error、Asymptotic tracking · 后续 → Command following
+**关键公式**：本例 $e=r-y$，$u=2e$，对象满足 $\dot y+y=u$。
+
+**学习目标**：区分参考、误差、控制量和输出，并用有限增益例子解释跟踪偏差。
 
 ---
 
@@ -34,20 +37,47 @@ asset_refs: []
 
 ### 完整解释
 
-A signal r(t) that represents the desired output or command to be followed by the system.
+参考输入 $r$ 用来表达期望行为，控制器结合测量输出等信息产生控制量 $u$，对象再对控制量作出响应，形成实际输出 $y$。即使这些变量在数学模型中都用一个标量表示，也不应因此视为同一物理量。实际使用时还要通过标定和单位转换，使比较点两端具有一致的含义。
+
+给出了参考轨迹，只是定义了目标，并不证明目标一定能够实现。对象动态、控制器能力、约束和扰动都会影响跟踪结果。参考也可以随时间变化，而不只是一个固定设定值；选择阶跃、斜坡或正弦参考，分别会提出不同的动态要求。
+
+### 教学计算/推理例
+
+使用归一化模型，对象 $P=1/(s+1)$，控制器为 $u=2(r-y)$。在零初态下施加单位参考阶跃 $r=1$，原方程为
+$$
+\dot y=-y+2(1-y)=2-3y.
+$$
+因此
+$$
+y(t)=\frac23(1-e^{-3t}),\qquad
+e(t)=\frac13+\frac23e^{-3t},
+$$
+相应控制量为
+$$
+u(t)=2e(t)=\frac23+\frac43e^{-3t}.
+$$
+刚接通时参考为 1、实际输出为 0、控制量为 2，三个数值不同。长时间后输出和控制量都趋于 $2/3$，但参考仍是 1，跟踪误差为 $1/3$。输出与控制量在本例稳态数值相同来自对象的单位静态增益，不代表它们在所有时刻或其他模型中相同。
+
+这个例子表明，“已经发送参考值 1”不能等同于“实际输出已达到 1”。检查控制效果应读取实际输出或实验测量记录，而不是只记录命令值。
+
+### 适用条件与边界
+
+本例采用理想单位测量反馈、线性对象和有限比例控制，没有加入噪声或执行器约束。若参考变化过快，所需控制量可能超出实际能力；这需要在具体模型中检查，不能仅依据参考函数的存在就判定可行。比较参考与输出时，应明确测量位置、坐标和尺度，避免把不同含义的量直接相减。
+
+### 常见误区
+
+1. **误区**：参考输入就是对象实际收到的控制量。**纠正**：本例控制器由参考与输出之差生成 $u$。
+2. **误区**：参考设为 1，稳态输出必为 1。**纠正**：本例有限比例增益下输出只有 $2/3$。
+
+### 自检
+
+1. 本例初始参考与控制量各是多少？
+2. 为什么最终仍有 $1/3$ 误差？
+
+**核对要点**：参考为 1、控制量为 2；有限比例作用需要非零误差维持非零控制量，未保证零静差。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Tracking error | 应用于 |
-| 前置 | Asymptotic tracking | 应用于 |
-| 后续 | Command following | 关联 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、Reference、input
+- **扰动信号**（无向，关系：相关）
+- **指令跟随**（无向，关系：相关）
+- **渐近跟踪**（入边，关系：适用于）

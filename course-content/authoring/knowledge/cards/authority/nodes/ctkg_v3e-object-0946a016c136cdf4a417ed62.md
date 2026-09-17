@@ -1,30 +1,31 @@
 ---
 node_id: ctkg_v3e-object-0946a016c136cdf4a417ed62
 authority_entity_id: "ctkg:v3e-object-0946a016c136cdf4a417ed62"
-name: Break point
+name: "转折点"
+name_en: "Bode Break Frequency"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - Break
-  - point
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-1a73965f8ba1be7403bf32e4eee23ff7046db71077a8bd02a9a47046e3d2ccaa.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-1a73965f8ba1be7403bf32e4eee23ff7046db71077a8bd02a9a47046e3d2ccaa.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-18a/previous/ctkg_v3e-object-0946a016c136cdf4a417ed62.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 03eb884753489efac4a387ae39fae65adbf28c3500511b851f2b469001486a13 -->
-
 ## 首页
 
-# Break point
+# 转折点 | Bode Break Frequency
 
-**一句话定义**：Break point：The frequency at which the asymptotes of a first-order or second-order term cross
+**一句话定义**：本卡的转折点指频率响应渐近线改变斜率的特征频率，一阶因子常为 $1/T$，标准二阶因子常为 $\omega_n$。
 
-**关联**：（权威图邻接待补充）
+它是频域概念，不能与根轨迹上的分离点混同，也不总是谐振频率或-3 dB频率。
 
 ---
 
@@ -32,18 +33,50 @@ asset_refs: []
 
 ### 完整解释
 
-The frequency at which the asymptotes of a first-order or second-order term cross; for a first-order term (jωτ+1), the break point is ω=1/τ; for a second-order term, the break point is ω=ω_n.
+绘制Bode幅频渐近线时，常把每个一阶或二阶因子的低频、高频近似在一个特征频率处连接。这个交接位置便于判断斜率如何变化，并不表示真实频率响应在该处突然折断；精确曲线通常是光滑的。
+
+转折频率由所讨论因子的形式决定。对一阶极点因子 $1/(1+sT)$，低频幅值近似为1，高频幅值近似为 $1/(\omega T)$，两条渐近线在 $\omega T=1$处相交。若是分子的一阶零点因子，斜率方向相反，但同样需要根据因子系数确定交接频率。
+
+不能把一个特征频率同时当作所有指标的频率。转折、增益穿越、带宽和谐振频率分别有不同定义；只有在特定模型条件下才可能数值相同。整体传递函数包含多个因子时，还要叠加它们的幅相影响，不能直接把某个单因子的转折点当作全系统带宽。
+
+### 教学计算/推理例
+
+取一阶模型 $G(s)=1/(1+0.5s)$，转折频率为 $\omega_b=2\,\mathrm{rad/s}$。精确频率响应在该处为
+
+$$G(j2)=\frac1{1+j},\qquad |G(j2)|=\frac1{\sqrt2}.$$
+
+其相角为-45°，幅值约为-3.01 dB，而两条幅值渐近线在此相交于0 dB。可见“渐近线交点”与“精确曲线数值”需要分别说明。这个单独一阶低通模型恰好具有熟悉的-3 dB关系，但不能无条件推广。
+
+再取标准二阶模型
+
+$$G_2(s)=\frac9{s^2+1.2s+9},\qquad\omega_n=3,\quad\zeta=0.2.$$
+
+二阶渐近线转折频率为3 rad/s，精确幅值却为
+
+$$|G_2(j\omega_n)|=\frac1{2\zeta}=2.5,$$
+
+显然不是-3 dB。由于本例 $\zeta<1/\sqrt2$，谐振频率为 $\omega_r=\omega_n\sqrt{1-2\zeta^2}\approx2.877499\,\mathrm{rad/s}$，也不等于转折频率3。三个概念不能因为都出现在频率轴上而混用。
+
+### 适用条件与边界
+
+本卡讨论标准因子的Bode渐近线。零极点接近、相消或多个转折频率靠近时，总曲线可能并不呈现清楚的折线形状，应回到精确频响检查。渐近线是一种近似绘图工具，不是对象在某频率处发生物理突变的说明。
+
+这里的“转折点”也不是根轨迹上由 $dK/ds=0$寻找的分离或会合点。前者的自变量是频率，后者讨论闭环根随参数移动的复平面位置；单位、方程和教学用途都不同。
+
+实际设计中，需要按任务决定检查转折频率、裕度、带宽还是共振。若题目给的是整体系统截止频率，就必须使用对应的幅值定义，而不能从某个因子的系数直接替代。明确这一点有助于避免把粗略Bode图当成全部性能答案。
+
+### 常见误区
+
+1. 误区：所有转折频率处的精确幅值都为-3 dB。纠正：二阶例在转折频率处幅值为2.5，说明该规则不普遍成立。
+2. 误区：转折点与根轨迹分离点是同一对象。纠正：一个属于频率渐近线，另一个属于特征根的参数轨迹。
+
+### 自检
+
+1. 一阶例的渐近线交点幅值与精确幅值为何不同？
+2. 二阶例的转折频率和谐振频率分别是多少？
+
+**核对要点**：渐近线使用低、高频近似，精确式在交接处保留全部项。二阶转折频率为3 rad/s，谐振频率约2.877499 rad/s，不能互相替代。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Break、point
+- **转折频率（拐角频率）**（无向，关系：相关）

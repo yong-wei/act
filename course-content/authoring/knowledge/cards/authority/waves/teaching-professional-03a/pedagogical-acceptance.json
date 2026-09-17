@@ -1,0 +1,8 @@
+{
+  "status": "accepted-for-authoring-and-integration",
+  "reviewer": "/root/review_professional03_content",
+  "candidateOrigin": "teaching-scale-03/candidates.json",
+  "cards": 10,
+  "rationale": "状态空间基础内容具有明确教学价值；例题、维度、PBH、可达约束和隐藏模态边界经独立领域审核通过。",
+  "excludedCards": []
+}

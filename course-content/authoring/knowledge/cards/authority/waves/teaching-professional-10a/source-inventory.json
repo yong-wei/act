@@ -1,0 +1,211 @@
+{
+  "batchId": "teaching-professional-10a",
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "name": "最小拍系统",
+      "canonicalId": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+      "cardId": "ctkg_domainconcept_1b04b9a147b0c7ffb5908e4e",
+      "resourceId": "act:card:ctkg_domainconcept_1b04b9a147b0c7ffb5908e4e",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_1b04b9a147b0c7ffb5908e4e.md",
+      "previousCardSha256": "c27e5167579a677eb212dc1096f58ff40284a488710752b82b1e1d2552dc7ec0",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-b3e5fdcb5f57068bf1d4dcdcf03951ec0a2e62fdd5df27bfc98fb6392154ef22.json",
+          "sha256": "5d0aaed84d5ed74efe8e52a79929500738b9ae2ad6a1de9f566c57fe8c372c9a",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-b3e5fdcb5f57068bf1d4dcdcf03951ec0a2e62fdd5df27bfc98fb6392154ef22.json",
+          "sha256": "1fc0f5331d4e5bdd739f1bf881b3e394ddaa5de7c5a489136b370873235773c6",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/previous/ctkg_domainconcept_1b04b9a147b0c7ffb5908e4e.md",
+          "sha256": "c27e5167579a677eb212dc1096f58ff40284a488710752b82b1e1d2552dc7ec0",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/01-source.json",
+      "sourceBackupSha256": "b19e2beba6257e08d7ad630630cfd7fde17cf611282f627df662357bfd74311f"
+    },
+    {
+      "order": 2,
+      "name": "最小拍系统设计方法",
+      "canonicalId": "ctkg:domainconcept:364221ded81ca2a0139d013a",
+      "cardId": "ctkg_domainconcept_364221ded81ca2a0139d013a",
+      "resourceId": "act:card:ctkg_domainconcept_364221ded81ca2a0139d013a",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_364221ded81ca2a0139d013a.md",
+      "previousCardSha256": "d2ffdf12463fee842e197efb447dafb144d561ba93b997c30f87fbd648c58b84",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-49934864d623bed0cab69d5d09bb316fb0557db5bc7d83de13eed6e7d4e02373.json",
+          "sha256": "4e6193e3af61e0e1151ff3b862715f3b12a38743b38056ddfa7122d597a121b3",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-49934864d623bed0cab69d5d09bb316fb0557db5bc7d83de13eed6e7d4e02373.json",
+          "sha256": "3e8d5372831ccf571a4864dce07b6ded602ed6b907e099e3445cf124e400acf2",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/previous/ctkg_domainconcept_364221ded81ca2a0139d013a.md",
+          "sha256": "d2ffdf12463fee842e197efb447dafb144d561ba93b997c30f87fbd648c58b84",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/02-source.json",
+      "sourceBackupSha256": "a82ecccb56d208bd17a106386c716314fbcd32fbb5564a467dfcacafbc1ba2c2"
+    },
+    {
+      "order": 3,
+      "name": "误差脉冲传递函数",
+      "canonicalId": "ctkg:domainconcept:357a51cbd9882d80503815d3",
+      "cardId": "ctkg_domainconcept_357a51cbd9882d80503815d3",
+      "resourceId": "act:card:ctkg_domainconcept_357a51cbd9882d80503815d3",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_357a51cbd9882d80503815d3.md",
+      "previousCardSha256": "e570029c47a5c651048c94a08755c1189dc230529a88ff74dd722bfefcf375df",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3bf768668ad6089a24f28d47384af4c7df9fdab244d26580323cb5642ededf29.json",
+          "sha256": "41796b17be5f4786766383a8f5930725f12cebc53aad24dfaac068571f66a644",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3bf768668ad6089a24f28d47384af4c7df9fdab244d26580323cb5642ededf29.json",
+          "sha256": "958143da275b909c65ee523b3bd8087c8e6399610cdaaf454ef1d2d146fb6354",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/previous/ctkg_domainconcept_357a51cbd9882d80503815d3.md",
+          "sha256": "e570029c47a5c651048c94a08755c1189dc230529a88ff74dd722bfefcf375df",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/03-source.json",
+      "sourceBackupSha256": "cbdbc22924ec460a2822f8e0847b7582e279f37612262b23808b272fa316b6b3"
+    },
+    {
+      "order": 4,
+      "name": "纹波",
+      "canonicalId": "ctkg:domainconcept:e64c6ad0fa1d0483faf9aa7c",
+      "cardId": "ctkg_domainconcept_e64c6ad0fa1d0483faf9aa7c",
+      "resourceId": "act:card:ctkg_domainconcept_e64c6ad0fa1d0483faf9aa7c",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_e64c6ad0fa1d0483faf9aa7c.md",
+      "previousCardSha256": "f3fbd922004816997c9a5ef940f2508ccd21aec6e0335354b68fb9cf6af3c8c7",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9200d74f6fdc4a2808caf3bc0d81fd41e727c13a1dfedfb3ae69a0dd07e5f7ea.json",
+          "sha256": "119cd728e067944e396c78a2d6f5f6d04b03b27b61c7d96e27f94dae2bb9a94c",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9200d74f6fdc4a2808caf3bc0d81fd41e727c13a1dfedfb3ae69a0dd07e5f7ea.json",
+          "sha256": "1918b426706a1ab3f88d75fa52582830eac13c7cc8a5340fafb4904a39449093",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/previous/ctkg_domainconcept_e64c6ad0fa1d0483faf9aa7c.md",
+          "sha256": "f3fbd922004816997c9a5ef940f2508ccd21aec6e0335354b68fb9cf6af3c8c7",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/04-source.json",
+      "sourceBackupSha256": "caca7a3fac4007d2fe071ee58b379f0b32c3f90a8b5af21a7e953f206697f51c"
+    },
+    {
+      "order": 5,
+      "name": "无纹波最小拍系统",
+      "canonicalId": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
+      "cardId": "ctkg_domainconcept_6ab0d98e17a500ee2a2f5133",
+      "resourceId": "act:card:ctkg_domainconcept_6ab0d98e17a500ee2a2f5133",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_6ab0d98e17a500ee2a2f5133.md",
+      "previousCardSha256": "e1a47bc529763252f2bc0b9e32856c07f27616a0555a1e09954cedac21198633",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-f858e987440108bfacc73d118aae49e066ec9c46a82e0d933f93fce6d0c996ac.json",
+          "sha256": "043423f6de7fed52320ea993c0d865b8bca156066eaefcf52735b2a521374ca8",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-f858e987440108bfacc73d118aae49e066ec9c46a82e0d933f93fce6d0c996ac.json",
+          "sha256": "aeccd99eedad602980231e21e4f1c1256547d26dd1f80898bd3eb7ad375f2ec0",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/previous/ctkg_domainconcept_6ab0d98e17a500ee2a2f5133.md",
+          "sha256": "e1a47bc529763252f2bc0b9e32856c07f27616a0555a1e09954cedac21198633",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/05-source.json",
+      "sourceBackupSha256": "52cfcc02951cdc8e655d9f61ae6e9339d5d8dff00dd150b56a57fd3e78e571bf"
+    },
+    {
+      "order": 6,
+      "name": "无纹波最小拍系统设计方法",
+      "canonicalId": "ctkg:domainconcept:1126ce54b22f0fafb3f6e916",
+      "cardId": "ctkg_domainconcept_1126ce54b22f0fafb3f6e916",
+      "resourceId": "act:card:ctkg_domainconcept_1126ce54b22f0fafb3f6e916",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_1126ce54b22f0fafb3f6e916.md",
+      "previousCardSha256": "1b2f4a13514abb60d07c4c7d7d2457bea25f33855d72d71298e66d5373339cae",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-3bde33176dc7d8575877f265e665f4bff01b70d29f9b8fdf920225ba57efb377.json",
+          "sha256": "ac05a2e7c2b7da6bef8f6de049832a459044f47a4e2435fc0bddbe41d35ef0f5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-3bde33176dc7d8575877f265e665f4bff01b70d29f9b8fdf920225ba57efb377.json",
+          "sha256": "fabff8db84de9b9376c7cf3d0e740d7a5175f38a6a703620475b2918bc2258f2",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/previous/ctkg_domainconcept_1126ce54b22f0fafb3f6e916.md",
+          "sha256": "1b2f4a13514abb60d07c4c7d7d2457bea25f33855d72d71298e66d5373339cae",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/06-source.json",
+      "sourceBackupSha256": "9289573b0a145990f0647dc062a9d6c25229021cb962f516e5b92a796bb05289"
+    },
+    {
+      "order": 7,
+      "name": "一拍系统",
+      "canonicalId": "ctkg:domainconcept:ad75410e5a16550ce25a6d8a",
+      "cardId": "ctkg_domainconcept_ad75410e5a16550ce25a6d8a",
+      "resourceId": "act:card:ctkg_domainconcept_ad75410e5a16550ce25a6d8a",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_ad75410e5a16550ce25a6d8a.md",
+      "previousCardSha256": "a1440deeb9172bbd3a0b2911aa52c9c7dc3e1a0bc8c66c620a024c720897a51a",
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a25f8c49c4e17e767e3c2ec73696cd747f33e4970b9cb7cac647377067b4b993.json",
+          "sha256": "c9ba4a95e9624009dc3f33857a2bb8aa34a3766e0604bae6b33eb7605da6852b",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a25f8c49c4e17e767e3c2ec73696cd747f33e4970b9cb7cac647377067b4b993.json",
+          "sha256": "7307e5161063aaac3b26cd2d5c644244aa78df32fa5b164252d3969771b3029d",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/previous/ctkg_domainconcept_ad75410e5a16550ce25a6d8a.md",
+          "sha256": "a1440deeb9172bbd3a0b2911aa52c9c7dc3e1a0bc8c66c620a024c720897a51a",
+          "kind": "previous-authoring-snapshot"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-10a/07-source.json",
+      "sourceBackupSha256": "1bf5a68b4c5f1e4d6a476839f951b783fa8a684195fa65e244918fd841e6468c"
+    }
+  ]
+}

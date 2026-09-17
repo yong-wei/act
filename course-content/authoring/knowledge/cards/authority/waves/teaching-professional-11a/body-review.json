@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "reviewer": "/root/review_professional11",
+  "role": "simulation-domain-reviewer",
+  "scope": "eight authored robustness bodies and frozen source/model evidence; materialization pending",
+  "sourceInventorySha256": "af3064182625f3ccf6abfe5d6573a5c1f4bfae94dd38327dbf3dbf173abbdcc1",
+  "bodyHashes": {
+    "01.md": "f713994c1b940735e7a43caf3db6c42c35852ae81e09f2ba01691414a4d26ecc",
+    "02.md": "3786fa1e7a911de18c8b1fc1013da46f74c53009973954a41be7f9ba603ca4fe",
+    "03.md": "e6460ff25061a237df6c3ea157c0d608774af734fcf5a2a93edd3bbfefe478f2",
+    "04.md": "073b5b8bcb62c1fe95fbe6b7956b91151af8db4ffa14a0025337aa25235bd1ad",
+    "05.md": "90a960d43e5df04da3d23ef6b3dc334af5b5fc2a35e3cfbd0285b3d6fbc1e12b",
+    "06.md": "06ce5684878c10f40d0f85c0a15fe6be8e09f09689416fcf37f3ee02a5798efa",
+    "07.md": "52d1ca0e81a81ce1aac6de00787739dadb7834cf50eff27e4c6ed981b59d0d4c",
+    "08.md": "0f8a743737402efc4d7dd6b7f5af9f31f5023a7cbb06e6de5e34fdada2a470ca"
+  },
+  "findings": []
+}

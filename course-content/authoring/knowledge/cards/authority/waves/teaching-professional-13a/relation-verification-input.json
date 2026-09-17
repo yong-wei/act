@@ -1,0 +1,88 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:m1s-object-1a565603bcbebd5ede41aa2d",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:1af91b1d7c751b7cb1fbd639",
+          "otherId": "ctc:modeling-34de45f2470f6c09c7d96698",
+          "label": "线性化",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **线性化**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:52b8941e473a1896a2a15111",
+          "otherId": "ctc:modeling-ec82c77661197d36bca28424",
+          "label": "全状态反馈控制律设计",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **全状态反馈控制律设计**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-5f9ee607698d576a63deb905",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:04db966e82bf3e2f22a2eb42",
+          "otherId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+          "label": "全状态反馈",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **全状态反馈**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:f649f45b13b8f850e4465db4",
+          "otherId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+          "label": "全状态反馈设计步骤",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **全状态反馈设计步骤**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-83dd51199b51fd3fb2ccfdeb",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:a8d140d3172917f93dda1a92",
+          "otherId": "ctkg:v3e-object-c7afebd82a4a7968e83b34d7",
+          "label": "卢里叶问题",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **卢里叶问题**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-ba55a0b2d3900c3708dbddc4",
+      "relations": []
+    },
+    {
+      "canonicalId": "ctkg:m1s-object-d9e065459b3844ab4a1e4b24",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:71f5dbfc71887619a45bfca0",
+          "otherId": "ctkg:m3-v2f:canonical-object:d9aed6663ee8a2f6ebc83e10",
+          "label": "内模设计",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **内模设计**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:b97dfe7c156d028d92d2019c",
+          "otherId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+          "label": "跟踪误差",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **跟踪误差**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

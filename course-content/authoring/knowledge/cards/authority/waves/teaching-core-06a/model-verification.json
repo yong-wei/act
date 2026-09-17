@@ -1,0 +1,121 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "input_output_nodes": {
+      "input": "r",
+      "output": "z",
+      "internalFeedbackNode": "y",
+      "boundary": "y feeds x and therefore is not a pure sink; z is introduced by a unity branch to serve as an output sink"
+    },
+    "loop_gain": {
+      "cycle": [
+        "x",
+        "y",
+        "x"
+      ],
+      "branchGains": [
+        3,
+        -0.1
+      ],
+      "product": -0.3,
+      "boundary": "multiply signed branch gains; a negative static loop gain alone is not a general dynamic stability proof"
+    },
+    "branch": {
+      "example": "y -> x, gain=-0.1",
+      "contribution": "-0.1 y to x",
+      "fullDestinationEquation": "x=2r-0.1y",
+      "boundary": "branch gain determines one contribution, not necessarily the whole destination value; no automatic reverse edge"
+    },
+    "signal_flow_graph": {
+      "nodes": [
+        "r",
+        "x",
+        "y",
+        "z"
+      ],
+      "edges": [
+        {
+          "source": "r",
+          "target": "x",
+          "gain": 2.0
+        },
+        {
+          "source": "x",
+          "target": "y",
+          "gain": 3.0
+        },
+        {
+          "source": "y",
+          "target": "x",
+          "gain": -0.1
+        },
+        {
+          "source": "r",
+          "target": "y",
+          "gain": 1.0
+        },
+        {
+          "source": "y",
+          "target": "z",
+          "gain": 1.0
+        }
+      ],
+      "equations": [
+        "x=2r-0.1y",
+        "y=3x+r",
+        "z=y"
+      ],
+      "solutionForR1": {
+        "x": "19/13",
+        "y": "70/13",
+        "z": "70/13"
+      },
+      "matrixDeterminant": 1.3,
+      "boundary": "dimensionless algebraic teaching model; no claim about physical time response or stability"
+    },
+    "forward_paths": {
+      "paths": [
+        {
+          "nodes": [
+            "r",
+            "x",
+            "y",
+            "z"
+          ],
+          "gain": 6.0
+        },
+        {
+          "nodes": [
+            "r",
+            "y",
+            "z"
+          ],
+          "gain": 1.0
+        }
+      ],
+      "sumOfForwardGains": 7,
+      "closedInputOutputGain": "70/13",
+      "boundary": "a forward path follows arrow direction from input to output and repeats no node; sum of gains is not the closed graph gain when feedback is present"
+    },
+    "loop_definition": {
+      "distinctLoops": [
+        {
+          "nodes": [
+            "x",
+            "y",
+            "x"
+          ],
+          "gain": -0.3
+        }
+      ],
+      "sameLoopAlternativeStart": [
+        "y",
+        "x",
+        "y"
+      ],
+      "twoTraversalsGain": 0.09,
+      "boundary": "changing the starting node does not create a different loop; repeating the cycle twice is a closed walk, not a second elementary loop"
+    }
+  }
+}

@@ -272,7 +272,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/临界增益与虚轴极点_1_5.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-2628d227495a3860151a16c1.md"
     ],
     "tags": [
       "临界增益",
@@ -327,7 +327,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/临界阻尼_1_3.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6bb580c242f908566ab53b18.md"
     ],
     "tags": [
       "临界阻尼",
@@ -425,7 +425,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/传递函数_1_5b0faf8b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md"
     ],
     "tags": [
       "拉普拉斯变换",
@@ -478,7 +478,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/传递函数_1_1.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/传递函数_1_1.png",
@@ -544,7 +544,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/传递函数_1_2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md"
     ],
     "tags": [
       "传递函数",
@@ -599,7 +599,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/信号流图_1_2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-9121dc2c97afa77f52ce0220.md"
     ],
     "tags": [
       "信号流图",
@@ -1015,7 +1015,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/反馈控制系统_1_98dc667a.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_27b69e7f2e837fd62dc31379.md"
     ],
     "tags": [
       "反馈",
@@ -1275,7 +1275,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/复合控制方式_1_393383be.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_150c8a62277a497691a2f785.md"
     ],
     "tags": [
       "结合",
@@ -1448,7 +1448,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/建模_1_2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-348746457d644126ff8ecf77.md"
     ],
     "tags": [
       "建模",
@@ -1768,7 +1768,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/性能指标_1_1.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-10c37fd947ba55593ff03ede.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/性能指标_1_1.png",
@@ -1980,7 +1980,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/拉氏变换_1_2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-8c4354096b719a1d5e090da4.md"
     ],
     "tags": [
       "拉氏变换",
@@ -2674,7 +2674,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/极点_1_1.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-47995819305793bf4c946953.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/极点_1_1.png",
@@ -2742,7 +2742,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/极点_1_2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-47995819305793bf4c946953.md"
     ],
     "tags": [
       "极点",
@@ -3083,7 +3083,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/模型结构相似性_1_2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-1b36aff609b370e792d9dee6.md"
     ],
     "tags": [
       "模型迁移",
@@ -3134,7 +3134,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/正弦函数_1_98499ac0.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-0e5d22ed0afee37f65584d36.md"
     ],
     "tags": [
       "典型外作用",
@@ -3187,7 +3187,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/比例控制_1_1.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-01762eade052b1f22b1318c1.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/比例控制_1_1.png",
@@ -3391,7 +3391,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/测量元件_1_ad76ac2b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_0a8044ae6cb529e98bc20bca.md"
     ],
     "tags": [
       "检测",
@@ -3900,7 +3900,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/稳定性_1_7288b4ea.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md"
     ],
     "tags": [
       "稳定",
@@ -3954,7 +3954,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/稳定性_1_1.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/稳定性_1_1.png",
@@ -5066,7 +5066,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/误差_1_1.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-e22de9c6670a15c39d8e6b71.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/误差_1_1.png",
@@ -5674,7 +5674,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/阶跃函数_1_8d0028b4.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-4f62334f630ea074128ec396.md"
     ],
     "tags": [
       "典型外作用",
@@ -5835,7 +5835,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/非线性控制系统_1_1345e52b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1107a657eb90b8264d4dac38.md"
     ],
     "tags": [
       "非线性",
@@ -6102,7 +6102,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/串联连接_2_98ee18bc.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-ebf5a771fd114720de11f6e3.md"
     ],
     "tags": [
       "方框连接",
@@ -6171,7 +6171,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/传递函数_2_2c5e2589.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md"
     ],
     "tags": [
       "复数域",
@@ -6454,7 +6454,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/信号流图_2_372d4084.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-9121dc2c97afa77f52ce0220.md"
     ],
     "tags": [
       "线性系统",
@@ -6771,7 +6771,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/单位脉冲响应_2_e56a0360.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-5da44f2fc98d268259459e04.md"
     ],
     "tags": [
       "脉冲输入",
@@ -6817,7 +6817,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/单位阶跃响应_2_6a2a83b9.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253.md"
     ],
     "tags": [
       "阶跃输入",
@@ -6978,7 +6978,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/反馈连接_2_40a881cb.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-e442dacbfef4a0d7ea3c4c15.md"
     ],
     "tags": [
       "闭环",
@@ -7029,7 +7029,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/叠加原理_2_dda8499e.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-de9cd255c7e8770506442de0.md"
     ],
     "tags": [
       "可叠加性",
@@ -7081,7 +7081,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/回路_2_e1adbdfa.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-v2r-5585bf06f0e579bc1c362ac2.md"
     ],
     "tags": [
       "闭合通路",
@@ -7180,7 +7180,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/小偏差线性化_2_277afa67.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-34de45f2470f6c09c7d96698.md"
     ],
     "tags": [
       "线性化",
@@ -7280,7 +7280,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/并联连接_2_0e5f1ec2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-bb52102ba5f63982e27e329a.md"
     ],
     "tags": [
       "方框连接",
@@ -7330,7 +7330,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/开环传递函数_2_ee6bdacf.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_m3-v1l_canonical-object_c5f7d0ab3bb3d165d6bbe99e.md"
     ],
     "tags": [
       "主反馈断开",
@@ -7389,7 +7389,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/开环传递函数定义_2_12002.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_m3-v1l_canonical-object_c5f7d0ab3bb3d165d6bbe99e.md"
     ],
     "tags": [
       "开环",
@@ -7679,7 +7679,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/拉普拉斯变换_2_c635236f.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-8c4354096b719a1d5e090da4.md"
     ],
     "tags": [
       "复频域",
@@ -7777,7 +7777,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/拉氏变换_2_243496d4.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-8c4354096b719a1d5e090da4.md"
     ],
     "tags": [
       "积分变换",
@@ -7933,7 +7933,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/数学模型_2_b21e01f6.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-7734a0845c335f160395bac0.md"
     ],
     "tags": [
       "控制系统",
@@ -8088,7 +8088,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/时间常数_2_68356eae.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-3311578f3f7796d3b9ff0830.md"
     ],
     "tags": [
       "响应速度",
@@ -8139,7 +8139,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/极点_2_cc79a4c5.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-47995819305793bf4c946953.md"
     ],
     "tags": [
       "分母多项式",
@@ -8719,7 +8719,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相似系统_2_5477df89.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-1b36aff609b370e792d9dee6.md"
     ],
     "tags": [
       "相同模型",
@@ -8941,7 +8941,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/纯延迟_2_8f4165fd.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-b0cbf122498bca9269e55406.md"
     ],
     "tags": [
       "延迟时间",
@@ -9154,7 +9154,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/结构图简化_2_6d86a775.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-2088bbde171b2e9ef66070d5.md"
     ],
     "tags": [
       "等效变换",
@@ -9545,7 +9545,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/闭环传递函数_2_5399c369.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-69118dc66489d66b1732901b.md"
     ],
     "tags": [
       "反馈连接",
@@ -9805,7 +9805,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/零点_2_c29600a1.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-8010502b57930c3dcb915af9.md"
     ],
     "tags": [
       "分子多项式",
@@ -9955,7 +9955,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/非线性微分方程的线性化_2_caa86ba6.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-34de45f2470f6c09c7d96698.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
@@ -10016,7 +10016,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/频域分析_2_2e257d89.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-36f969bb5befa8ef9f8d0a99.md"
     ],
     "tags": [
       "伯德图",
@@ -10342,7 +10342,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/一阶系统_3_4f3b29ce.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c.md"
     ],
     "tags": [
       "一阶微分方程",
@@ -10474,7 +10474,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/上升时间_3_6fa0ec00.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-a9f8ff29f0e4550a22bfcc67.md"
     ],
     "tags": [
       "响应速度",
@@ -10575,7 +10575,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/临界稳定_3_ca03ed18.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-863069c1389e01dcca80138a.md"
     ],
     "tags": [
       "零实部根",
@@ -10625,7 +10625,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/临界阻尼响应_3_5839e0e4.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-bf7bc53bf8286e07fa6035cc.md"
     ],
     "tags": [
       "临界阻尼",
@@ -10679,7 +10679,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/主导极点_3_4c4c6bbd.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-23ce934816d236fcc2836d27.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/主导极点_3_4c4c6bbd.png",
@@ -10928,7 +10928,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/传递函数_3_92e14aa2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md"
     ],
     "tags": [
       "传递函数",
@@ -11124,7 +11124,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/典型输入信号_3_897a572d.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-b03bdd7d909a44a2830459ca.md"
     ],
     "tags": [
       "输入信号",
@@ -11276,7 +11276,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/动态性能指标_3_a10733c1.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-137c2c4e6fd2c142416cd412.md"
     ],
     "tags": [
       "上升时间",
@@ -11386,7 +11386,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/动态过程_3_8a8051ec.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-f9718484925341d6ce1dec78.md"
     ],
     "tags": [
       "过渡过程",
@@ -11819,7 +11819,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/单位脉冲响应_3_a67aa116.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-5da44f2fc98d268259459e04.md"
     ],
     "tags": [
       "脉冲响应",
@@ -11869,7 +11869,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/单位阶跃函数_3_c077ea6e.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-4f62334f630ea074128ec396.md"
     ],
     "tags": [
       "阶跃",
@@ -11930,7 +11930,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/单位阶跃响应_3_04fc55dc.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253.md"
     ],
     "tags": [
       "指数规律",
@@ -12241,7 +12241,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/复合控制_3_a1570156.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_150c8a62277a497691a2f785.md"
     ],
     "tags": [
       "前馈控制",
@@ -12540,7 +12540,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/峰值时间_3_adc7ea95.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-9988510f6127d3086f4aa265.md"
     ],
     "tags": [
       "峰值时间",
@@ -12864,7 +12864,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/无阻尼自然频率_3_13001.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-15b23d588244f407f6ed4b35.md"
     ],
     "tags": [
       "ω_n",
@@ -13165,7 +13165,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/时间常数_3_17162973.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-3311578f3f7796d3b9ff0830.md"
     ],
     "tags": [
       "惯性",
@@ -13278,7 +13278,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/极点配置_3_d367ec42.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-f1ec085ab5a77428affa50eb.md"
     ],
     "tags": [
       "状态反馈",
@@ -13398,7 +13398,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹完整法则_3_0f2e7b11.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-4bb347d0f2aa8859a18073de.md"
     ],
     "tags": [
       "实轴区段",
@@ -13445,7 +13445,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹法_2_e3f6c0c1.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-e8d4b4f1c63aa5a052b15538.md"
     ],
     "tags": [
       "3-5",
@@ -13491,7 +13491,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹绘制规则_3_2f9e8cb3.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-4bb347d0f2aa8859a18073de.md"
     ],
     "tags": [
       "3-5",
@@ -13674,7 +13674,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/欠阻尼二阶系统_3_242477a2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-11d00d2120a83f5e05efdb6e.md"
     ],
     "tags": [
       "欠阻尼",
@@ -13727,7 +13727,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/欠阻尼响应_3_c2d57b37.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ad988c74286cfcad2c3fdf98.md"
     ],
     "tags": [
       "欠阻尼",
@@ -13785,7 +13785,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/比例-微分控制_3_8428a70d.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6db84c73a9b0e833400e64fc.md"
     ],
     "tags": [
       "比例-微分控制",
@@ -13839,7 +13839,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/比例-微分控制器_3_3b512e79.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6db84c73a9b0e833400e64fc.md"
     ],
     "tags": [
       "PD控制器",
@@ -13897,7 +13897,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/比例-积分控制器_3_2d540516.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-2624e6b30f6178715ae3b198.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/比例-积分控制器_3_2d540516.png",
@@ -13960,7 +13960,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/测速反馈控制_3_4c2ec80f.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-3cdfb3f6b1edd3c75bb9b69b.md"
     ],
     "tags": [
       "测速发电机",
@@ -14496,7 +14496,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/稳定性_3_72d04fbd.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md"
     ],
     "tags": [
       "平衡状态",
@@ -14763,7 +14763,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/稳态过程_3_6d95ec21.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-c8eb5072bc1783d917169c9a.md"
     ],
     "tags": [
       "稳态响应",
@@ -14829,7 +14829,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/系统型别_3_5573c2c3.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-a781b2b377529226a4c5d077.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/系统型别_3_5573c2c3.png",
@@ -15464,7 +15464,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/自然频率_3_ab7d6dc0.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7ee407860ee485f1e1b1f3d1.md"
     ],
     "tags": [
       "自然频率",
@@ -15523,7 +15523,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/调节时间_3_bc329c21.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-9cd2a9dfb0f7f3d457247609.md"
     ],
     "tags": [
       "调节时间",
@@ -15686,7 +15686,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/过阻尼二阶系统_3_e7258e8f.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-d1d8f9f3725b9a8440cdd486.md"
     ],
     "tags": [
       "过阻尼",
@@ -15736,7 +15736,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/过阻尼响应_3_adf3867e.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-d1d8f9f3725b9a8440cdd486.md"
     ],
     "tags": [
       "过阻尼",
@@ -15784,7 +15784,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/运动稳定性_3_df61e98d.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-c36a6e957077c474e91e17ab.md"
     ],
     "tags": [
       "系统方程",
@@ -15834,7 +15834,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/速度反馈_3_2374effc.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-af9c2e9b81c0a2bc815ac424.md"
     ],
     "tags": [
       "测速反馈",
@@ -15882,7 +15882,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/闭环主导极点_3_de941720.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7147bc2427dae1863e06ef77.md"
     ],
     "tags": [
       "主导作用",
@@ -15932,7 +15932,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/闭环极点_3_f9432bf3.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-47a2e3c44742b45c55ac902d.md"
     ],
     "tags": [
       "响应类型",
@@ -16038,7 +16038,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/闭环零点_3_d83660dd.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ff87028e0a7bcda2c586a550.md"
     ],
     "tags": [
       "零点",
@@ -16100,7 +16100,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/阻尼振荡频率_3_13002.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-9dfc90c240d6bf3ebc285faf.md"
     ],
     "tags": [
       "ω_d",
@@ -16421,7 +16421,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/静态位置误差系数_3_58c09499.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-416fc2acf005a7da54f9fce3.md"
     ],
     "tags": [
       "阶跃输入",
@@ -16473,7 +16473,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/静态加速度误差系数_3_74752b9d.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6f26ed3a4175ff1a87158ec5.md"
     ],
     "tags": [
       "加速度",
@@ -16603,7 +16603,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/静态速度误差系数_3_ba8e28bb.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-6461b91e08c647ceff0ceeee.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/静态速度误差系数_3_ba8e28bb.png",
@@ -17050,7 +17050,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/PI控制_4_d0d2c836.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-68d64f3444ac7af6336f1f81.md"
     ],
     "tags": [
       "稳态误差",
@@ -17303,7 +17303,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/主导极点_4_7b49c6c5.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-23ce934816d236fcc2836d27.md"
     ],
     "tags": [
       "极点",
@@ -18052,7 +18052,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/单位反馈控制系统_4_f1a4f937.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-c7228e5d5d171b0633b246e3.md"
     ],
     "tags": [
       "反馈",
@@ -18408,7 +18408,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/参数根轨迹_4_faab3aea.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-a3d09e397d88f3ae13bc9d89.md"
     ],
     "tags": [
       "可变参数",
@@ -19209,7 +19209,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/实轴上的根轨迹_4_af9cbf0a.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v12g-b6ec19cda5342874277159e7.md"
     ],
     "tags": [
       "实轴",
@@ -19484,7 +19484,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/广义根轨迹_4_30f5ea13.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-bde559972a3c77718ce84d2e.md"
     ],
     "tags": [
       "参数根轨迹",
@@ -19534,7 +19534,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/开环传递函数_4_5b19827b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_m3-v1l_canonical-object_c5f7d0ab3bb3d165d6bbe99e.md"
     ],
     "tags": [
       "传递函数",
@@ -19634,7 +19634,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/开环零点_4_95d21eca.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-95859dcad651c20058bf8726.md"
     ],
     "tags": [
       "零点",
@@ -20550,7 +20550,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹与虚轴交点_4_65c288cc.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-2628d227495a3860151a16c1.md"
     ],
     "tags": [
       "虚轴交点",
@@ -20604,7 +20604,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹与虚轴的交点_4_33b9d0e6.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-2628d227495a3860151a16c1.md"
     ],
     "tags": [
       "根轨迹",
@@ -20655,7 +20655,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹分支数_4_6a4bb718.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-40aced4eb1298f7db801690b.md"
     ],
     "tags": [
       "分支数",
@@ -20705,7 +20705,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹分离点_4_0e97795c.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-462227b4794133f894bdd0a8.md"
     ],
     "tags": [
       "分离点",
@@ -20916,7 +20916,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹法_4_4e598387.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-e8d4b4f1c63aa5a052b15538.md"
     ],
     "tags": [
       "根轨迹",
@@ -20973,7 +20973,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹渐近线_4_6d89a195.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-4c152561a989c34245c538b6.md"
     ],
     "tags": [
       "渐近线",
@@ -21029,7 +21029,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹绘制法则_4_f0ea9a49.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-4bb347d0f2aa8859a18073de.md"
     ],
     "tags": [
       "起点终点",
@@ -21087,7 +21087,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹绘制法则_零度__4_205342a7.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v12g-e3580535c0a12b79e0509f97.md"
     ],
     "tags": [
       "绘制法则",
@@ -21285,7 +21285,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/正反馈系统_4_3cfad7f8.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-5a7e22337cb506e673b9affe.md"
     ],
     "tags": [
       "正反馈",
@@ -21580,7 +21580,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/稳定性_4_b56bde88.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md"
     ],
     "tags": [
       "s左半平面",
@@ -22655,7 +22655,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/调节时间_10_fcbccf4e.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-9cd2a9dfb0f7f3d457247609.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_10_fcbccf4e.png",
@@ -22771,7 +22771,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/超前补偿_4_3d4fc55d.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-83b0bd3fc503270cb174a500.md"
     ],
     "tags": [
       "校正",
@@ -22824,7 +22824,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/超调量_4_bad49999.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-df3167f36376f526f6ec5562.md"
     ],
     "tags": [
       "衰减率",
@@ -23175,7 +23175,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/闭环主导极点_4_0f26f554.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7147bc2427dae1863e06ef77.md"
     ],
     "tags": [
       "动态响应",
@@ -23225,7 +23225,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/闭环传递函数_4_8325ffbe.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v11g-69118dc66489d66b1732901b.md"
     ],
     "tags": [
       "反馈",
@@ -23325,7 +23325,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/闭环极点_4_f359fb50.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-47a2e3c44742b45c55ac902d.md"
     ],
     "tags": [
       "特征方程",
@@ -23426,7 +23426,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/闭环零点_4_949a3b23.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ff87028e0a7bcda2c586a550.md"
     ],
     "tags": [
       "零点",
@@ -23663,7 +23663,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/零度根轨迹_4_2cfd7e23.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_v12g-e3580535c0a12b79e0509f97.md"
     ],
     "tags": [
       "根轨迹",
@@ -23712,7 +23712,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/非最小相位系统_4_65f682ce.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-f04f82217525c5c412d0d180.md"
     ],
     "tags": [
       "非最小相位",
@@ -24996,7 +24996,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/主导极点_5_5a720cf2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-23ce934816d236fcc2836d27.md"
     ],
     "tags": [
       "闭环极点",
@@ -25169,7 +25169,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/交接频率_转折频率__5_8bca814b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-69529eb08c9279e8b19dc4f6.md"
     ],
     "tags": [
       "转折频率",
@@ -25733,7 +25733,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/奈奎斯特稳定判据_5_a1b34560.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-785280d429b7e1a5f2f5db53.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/奈奎斯特稳定判据_5_a1b34560.png",
@@ -25795,7 +25795,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/奈奎斯特稳定判据_奈氏判据__5_0355b06b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-785280d429b7e1a5f2f5db53.md"
     ],
     "tags": [
       "奈奎斯特",
@@ -25842,7 +25842,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/对数幅相曲线_5_891ca8c5.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-27e0a7e37803fbebc1b6f65a.md"
     ],
     "tags": [
       "尼科尔斯图",
@@ -25945,7 +25945,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/对数幅频渐近特性曲线_5_61c26fcf.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-5a821f717b644300ab32cf21.md"
     ],
     "tags": [
       "渐近线",
@@ -25997,7 +25997,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/对数相频曲线_5_ac0666e1.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-9967c0867249bf4c1a625dab.md"
     ],
     "tags": [
       "对数相频",
@@ -26159,7 +26159,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/对数频率特性曲线_5_75c6945f.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-be9c82d423b46b7fc6937236.md"
     ],
     "tags": [
       "伯德图",
@@ -26413,7 +26413,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/带宽_5_58d2afcc.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-3bf89181c7be53ac268d5785.md"
     ],
     "tags": [
       "3dB衰减",
@@ -26467,7 +26467,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/带宽_5_6730fda4.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-3bf89181c7be53ac268d5785.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/带宽_5_6730fda4.png",
@@ -26608,7 +26608,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/幅值裕度_5_73af26a5.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-c2881833cb4d8b1e415dc742.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
@@ -26724,7 +26724,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/幅相频率特性曲线_5_018eef00.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-2e2707d377000d69ac75b508.md"
     ],
     "tags": [
       "极坐标图",
@@ -26840,7 +26840,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/幅频特性_5_4e8408d2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-de873c97a924107857f79242.md"
     ],
     "tags": [
       "幅值比",
@@ -26889,7 +26889,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/延迟环节_5_a2771a34.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-b0cbf122498bca9269e55406.md"
     ],
     "tags": [
       "延迟",
@@ -26939,7 +26939,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/开环传递函数_5_4c26df45.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_m3-v1l_canonical-object_c5f7d0ab3bb3d165d6bbe99e.md"
     ],
     "tags": [
       "开环",
@@ -26989,7 +26989,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/开环幅相特性曲线_5_fd86e289.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-2e2707d377000d69ac75b508.md"
     ],
     "tags": [
       "幅相曲线",
@@ -27156,7 +27156,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/截止频率_5_c7d09ff7.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-232e387ed53e92abee078346.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/截止频率_5_c7d09ff7.png",
@@ -27215,7 +27215,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/截止频率ωc_5_c67064fa.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-232e387ed53e92abee078346.md"
     ],
     "tags": [
       "响应速度",
@@ -28026,7 +28026,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/最小相位典型环节_5_2a7020fd.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-ba51f9dd280fa844cebe297d.md"
     ],
     "tags": [
       "最小相位",
@@ -28077,7 +28077,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/最小相位环节_5_b749dc72.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-ba51f9dd280fa844cebe297d.md"
     ],
     "tags": [
       "左半平面",
@@ -28129,7 +28129,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/最小相位系统_5_89cbd2f0.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-b542152b1fb2cbb25d81dbb2.md"
     ],
     "tags": [
       "最小相位",
@@ -28182,7 +28182,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/条件稳定系统_5_dfd0b994.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-905e09b9921961a6115e4603.md"
     ],
     "tags": [
       "条件稳定",
@@ -28440,7 +28440,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/正弦稳态响应_5_b6dc1100.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-ee4c217b305b05786c0b89a9.md"
     ],
     "tags": [
       "同频输出",
@@ -28633,7 +28633,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1c159c9cc34ce696a62bf837.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
@@ -28694,7 +28694,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相角裕度γ_5_68528f7d.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1c159c9cc34ce696a62bf837.md"
     ],
     "tags": [
       "稳定性",
@@ -28744,7 +28744,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相频特性_5_abda14da.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-9967c0867249bf4c1a625dab.md"
     ],
     "tags": [
       "相位差",
@@ -29154,7 +29154,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/系统型别_5_13c42c40.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-a781b2b377529226a4c5d077.md"
     ],
     "tags": [
       "型别",
@@ -29203,7 +29203,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/系统带宽_5_eaed82b2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-42f4fff2329a29d38cbcd4bc.md"
     ],
     "tags": [
       "带宽频率",
@@ -29998,7 +29998,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/谐振峰值_5_aa4903ab.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-0008b516b8ac52f0e05c7596.md"
     ],
     "tags": [
       "闭环频率特性",
@@ -30058,7 +30058,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/谐振峰值Mr_5_b3a87785.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-0008b516b8ac52f0e05c7596.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/谐振峰值Mr_5_b3a87785.png",
@@ -30127,7 +30127,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/超调量_3_fc3f5b17.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-df3167f36376f526f6ec5562.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/超调量_3_fc3f5b17.png",
@@ -30488,7 +30488,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/非最小相位环节_5_f40c2785.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-5a7582dcb72b1d33d09ca641.md"
     ],
     "tags": [
       "右半平面",
@@ -30538,7 +30538,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/非最小相位系统_5_02634a20.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-f04f82217525c5c412d0d180.md"
     ],
     "tags": [
       "非最小相位",
@@ -30665,7 +30665,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/频域分析法_5_e5f3e350.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-36f969bb5befa8ef9f8d0a99.md"
     ],
     "tags": [
       "频率特性",
@@ -30933,7 +30933,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/频率响应实验_5_90116afd.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-0ca481aed329f4e6c74c8d30.md"
     ],
     "tags": [
       "频率响应",
@@ -30988,7 +30988,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/频率响应法_5_1c7f0705.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-36f969bb5befa8ef9f8d0a99.md"
     ],
     "tags": [
       "频率特性",
@@ -31106,7 +31106,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/频率特性_5_404adfdd.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-38d4679bf3335318b0f4afb7.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/频率特性_5_404adfdd.png",
@@ -31165,7 +31165,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/I控制器_6_f0772f17.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-35942e1152c99bd94bdecd00.md"
     ],
     "tags": [
       "积分控制",
@@ -31221,7 +31221,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/PD控制器_6_3eb1a935.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-2805a69722f0a741c2479d22.md"
     ],
     "tags": [
       "比例-微分",
@@ -31352,7 +31352,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/PI控制器_6_29ebe858.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-68d64f3444ac7af6336f1f81.md"
     ],
     "tags": [
       "比例积分",
@@ -31405,7 +31405,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/P控制器_6_63f2f5eb.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-01762eade052b1f22b1318c1.md"
     ],
     "tags": [
       "比例控制",
@@ -31525,7 +31525,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/串联校正_6_fede5751.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-e1caec9f68da5c573be699d5.md"
     ],
     "tags": [
       "前向通道",
@@ -31575,7 +31575,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/串联滞后-超前校正_6_23ee8cb9.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-d80dfe6ce979515d21845c81.md"
     ],
     "tags": [
       "滞后网络",
@@ -31627,7 +31627,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/伯德图_6_1a069614.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-504581e399675b9792ab8502.md"
     ],
     "tags": [
       "对数幅频特性",
@@ -31684,7 +31684,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/前置滤波器_6_15e51383.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_293e9989d6bd31c84819cbee.md"
     ],
     "tags": [
       "闭环零点",
@@ -31736,7 +31736,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/前馈校正_6_40284f13.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_f43cea262e16b94cb63c8b5a.md"
     ],
     "tags": [
       "主反馈回路",
@@ -31788,7 +31788,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/前馈补偿_6_3bd3eb3b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_9e92915575b3e20ce84b58ab.md"
     ],
     "tags": [
       "误差全补偿",
@@ -31834,7 +31834,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/反馈校正_6_c96d771b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-a31f4a2e9bdbef014d44cfb8.md"
     ],
     "tags": [
       "局部反馈",
@@ -31887,7 +31887,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/复合控制_6_31b7c736.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_150c8a62277a497691a2f785.md"
     ],
     "tags": [
       "前馈控制",
@@ -31940,7 +31940,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/复合控制系统_6_cd8f5178.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-5182a714c3b04737e54be937.md"
     ],
     "tags": [
       "前馈补偿",
@@ -31989,7 +31989,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/复合校正_6_b2a1b4b1.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_39c18e7134f77be5c51cf41b.md"
     ],
     "tags": [
       "反馈控制",
@@ -32087,7 +32087,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/幅值裕度_6_29a8a2e1.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-c2881833cb4d8b1e415dc742.md"
     ],
     "tags": [
       "稳定性",
@@ -32238,7 +32238,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/性能指标_6_6af5c715.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-10c37fd947ba55593ff03ede.md"
     ],
     "tags": [
       "控制精度",
@@ -32288,7 +32288,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/截止频率_6_d39c12b0.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-232e387ed53e92abee078346.md"
     ],
     "tags": [
       "伯德图",
@@ -32540,7 +32540,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/最小相位系统_6_d74d6ebe.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-b542152b1fb2cbb25d81dbb2.md"
     ],
     "tags": [
       "零点",
@@ -32588,7 +32588,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/最小节拍响应_6_24fab382.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_6daaf5095018a332d359e2de.md"
     ],
     "tags": [
       "快速响应",
@@ -32639,7 +32639,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/最小节拍响应系统_6_3e2a1672.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_6daaf5095018a332d359e2de.md"
     ],
     "tags": [
       "标准化传递函数",
@@ -32942,7 +32942,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相角裕度_6_b44a6a10.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1c159c9cc34ce696a62bf837.md"
     ],
     "tags": [
       "截止频率",
@@ -32995,7 +32995,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/积分控制规律_6_01aa3db3.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-9b3052d4d15a96d495d8e6f5.md"
     ],
     "tags": [
       "积分作用",
@@ -33094,7 +33094,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/系统型别_6_be6e63a4.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-a781b2b377529226a4c5d077.md"
     ],
     "tags": [
       "I型系统",
@@ -33145,7 +33145,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/误差全补偿条件_6_e4f909f0.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_6a32bc0cf2176839753ef717.md"
     ],
     "tags": [
       "全补偿",
@@ -33195,7 +33195,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/调节时间_6_c53f6314.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-9cd2a9dfb0f7f3d457247609.md"
     ],
     "tags": [
       "动态性能指标",
@@ -33297,7 +33297,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/超调量_6_f91c1939.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-df3167f36376f526f6ec5562.md"
     ],
     "tags": [
       "动态性能指标",
@@ -35617,7 +35617,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/稳定性_7_2e521218.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ec8dceb901656a3a0a32d12b.md"
     ],
     "tags": [
       "朱利判据",
@@ -36235,7 +36235,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/部分分式展开_7_d822352e.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-adb3110b78ea9d623101aaa7.md"
     ],
     "tags": [
       "分式展开",
@@ -36825,7 +36825,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/量化_7_6cb6511b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-eacdf5b7407bac89d24540ed.md"
     ],
     "tags": [
       "编码",
@@ -37271,7 +37271,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/PI控制器_8_50f96fae.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-68d64f3444ac7af6336f1f81.md"
     ],
     "tags": [
       "比例积分",
@@ -37367,7 +37367,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/串联超前校正_8_5d889b7d.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-5b84bbf04a0ca0921a70e2e4.md"
     ],
     "tags": [
       "相位超前",
@@ -37510,7 +37510,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/半稳定极限环_8_8ed583b7.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-591e649bbeef70e3da154910.md"
     ],
     "tags": [
       "混合稳定",
@@ -37670,7 +37670,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/周期运动_极限环__8_e89ff8ed.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-098bda907dad6f5e7b697506.md"
     ],
     "tags": [
       "等幅振荡",
@@ -37721,7 +37721,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/增量线性化_8_9ba8e3a5.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-34de45f2470f6c09c7d96698.md"
     ],
     "tags": [
       "泰勒展开",
@@ -37777,7 +37777,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/奇点_8_f6da1cbb.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-ba8cd00d72479d23476d2061.md"
     ],
     "tags": [
       "平衡点",
@@ -37830,7 +37830,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/奇点_平衡点__8_7e8e9880.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-ba8cd00d72479d23476d2061.md"
     ],
     "tags": [
       "平衡状态",
@@ -37927,7 +37927,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/实奇点_8_daa87444.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-d5145d73b0cb5535eac9e81b.md"
     ],
     "tags": [
       "本区域",
@@ -37976,7 +37976,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/小偏差线性化_8_a82063b7.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-34de45f2470f6c09c7d96698.md"
     ],
     "tags": [
       "泰勒展开",
@@ -38075,7 +38075,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/开关线_8_fff1000a.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-fc2e0621725b902101011b9d.md"
     ],
     "tags": [
       "分界线",
@@ -38230,7 +38230,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/摩擦特性_8_76db8f5b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-a9730b9a039605d79315e24f.md"
     ],
     "tags": [
       "静摩擦",
@@ -38289,7 +38289,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/极限环_8_146dec32.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-098bda907dad6f5e7b697506.md"
     ],
     "tags": [
       "自振荡",
@@ -38400,7 +38400,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/死区特性_8_9ed850fc.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-d881210ed83df13e00d2e095.md"
     ],
     "tags": [
       "不灵敏区",
@@ -38656,7 +38656,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相平面分析_8_13cc8148.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-a0e00fe181b9ba65bda1824c.md"
     ],
     "tags": [
       "相轨迹",
@@ -38714,7 +38714,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相平面图_8_bd606f51.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1ee77aa2b862870735a63c50.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
@@ -38781,7 +38781,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相平面法_8_b1b8091e.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-a0e00fe181b9ba65bda1824c.md"
     ],
     "tags": [
       "相轨迹",
@@ -38834,7 +38834,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相轨迹_8_5fb81b03.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-80b836e636775916830b5a21.md"
     ],
     "tags": [
       "相平面",
@@ -39034,7 +39034,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/等倾线法_8_97c16d2e.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-21637e32df41e433f01db54b.md"
     ],
     "tags": [
       "等倾线",
@@ -39091,7 +39091,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/等效增益_8_7913d7f5.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-3d704911971a572aac4e975e.md"
     ],
     "tags": [
       "变增益",
@@ -39293,7 +39293,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/继电特性_8_0676d186.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-563729def6c074a2e1ae6d1d.md"
     ],
     "tags": [
       "开关速度",
@@ -39349,7 +39349,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/自振_8_3ed83301.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-bda94d95d799211be70fabf9.md"
     ],
     "tags": [
       "非线性系统",
@@ -39400,7 +39400,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/自振荡_8_e3ee2aef.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-bda94d95d799211be70fabf9.md"
     ],
     "tags": [
       "周期运动",
@@ -39450,7 +39450,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/自激振荡_8_711ef8ef.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-ae1017494c7f2d20cd53efad.md"
     ],
     "tags": [
       "稳定周期运动",
@@ -39545,7 +39545,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/虚奇点_8_e5cac44f.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-e281edb0bf991d873b515ce3.md"
     ],
     "tags": [
       "其他区域",
@@ -39606,7 +39606,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/负倒描述函数_8_159ff256.md",
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-e90594bf67aa0149a800d9db.md",
       {
         "type": "infograph",
         "path": "course-content/runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
@@ -39765,7 +39765,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/速度反馈_8_c94fe545.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-af9c2e9b81c0a2bc815ac424.md"
     ],
     "tags": [
       "反馈控制",
@@ -39867,7 +39867,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/间隙特性_8_51523138.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-b0896b071da350e2cc6ca186.md"
     ],
     "tags": [
       "齿轮传动",
@@ -40072,7 +40072,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/非线性系统_8_4ccc0148.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1107a657eb90b8264d4dac38.md"
     ],
     "tags": [
       "非线性特性",
@@ -40216,7 +40216,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/饱和效应_8_c8c67f8e.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-cc99ebc4a8c2b5b89c7f02d0.md"
     ],
     "tags": [
       "饱和",
@@ -40269,7 +40269,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/饱和特性_8_e55b1fb5.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-cc99ebc4a8c2b5b89c7f02d0.md"
     ],
     "tags": [
       "放大器",
@@ -40322,7 +40322,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/饱和非线性_8_deec42d7.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-63919e7aa7d3d49925074a68.md"
     ],
     "tags": [
       "饱和特性",
@@ -40373,7 +40373,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/PBH秩判据_9_bdf533f4.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-23a1c9229387ded552fbdbb3.md"
     ],
     "tags": [
       "特征值",
@@ -40471,7 +40471,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/串联补偿器_9_e0444c1f.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1b720d82e3de003a38fa57f6.md"
     ],
     "tags": [
       "解耦",
@@ -40521,7 +40521,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/传递函数_9_a86a3adf.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md"
     ],
     "tags": [
       "拉普拉斯变换",
@@ -40677,7 +40677,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/内模控制器_9_b2d43456.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-5e3ecb030d6a454633f0a09a.md"
     ],
     "tags": [
       "零稳态误差",
@@ -41018,7 +41018,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/单位阶跃响应_9_dd4abbe1.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253.md"
     ],
     "tags": [
       "动态性能",
@@ -41132,7 +41132,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/可控性_9_b22a45c8.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-133c90435f61b9a83b7d4aaf.md"
     ],
     "tags": [
       "状态完全可控",
@@ -41363,7 +41363,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/可观测性_9_b26c542c.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-5592624b3ec200b86f7b744d.md"
     ],
     "tags": [
       "状态完全可观测",
@@ -41421,7 +41421,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/可观测性PBH秩判据_9_3ad87876.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-23a1c9229387ded552fbdbb3.md"
     ],
     "tags": [
       "特征值",
@@ -41472,7 +41472,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/可观测性对角线规范型判据_9_12b8f833.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-fac170446815fe168f9a5469.md"
     ],
     "tags": [
       "对角线规范型",
@@ -41520,7 +41520,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/可观测性格拉姆矩阵判据_9_13a109b3.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1724fe5a62311ceb13ab05bd.md"
     ],
     "tags": [
       "格拉姆矩阵",
@@ -41570,7 +41570,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/可观测性秩判据_9_92339d2c.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-9b795692bacd0f13270cc086.md"
     ],
     "tags": [
       "可观测性矩阵",
@@ -41771,7 +41771,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/完全可达_9_f0aa6191.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-239fecfdb347e1a48fb9d7cc.md"
     ],
     "tags": [
       "可达性",
@@ -41923,7 +41923,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/对角线规范型判据_9_db607dca.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-fac170446815fe168f9a5469.md"
     ],
     "tags": [
       "对角线规范型",
@@ -42120,7 +42120,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/李雅普诺夫意义下的稳定性_9_9aaf4cd8.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-c36a6e957077c474e91e17ab.md"
     ],
     "tags": [
       "李雅普诺夫",
@@ -42224,7 +42224,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/李雅普诺夫稳定性_9_de195f1c.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-c36a6e957077c474e91e17ab.md"
     ],
     "tags": [
       "平衡状态",
@@ -42386,7 +42386,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/极点配置_9_b5578c51.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-f1ec085ab5a77428affa50eb.md"
     ],
     "tags": [
       "极点",
@@ -42442,7 +42442,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/格拉姆矩阵判据_9_a745338c.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-1724fe5a62311ceb13ab05bd.md"
     ],
     "tags": [
       "可控性判据",
@@ -42855,7 +42855,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/状态变量_9_2dedb9d8.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-023f560241f0e47081f0f59e.md"
     ],
     "tags": [
       "独立变量",
@@ -42905,7 +42905,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/状态向量_9_a19c08fc.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-023f560241f0e47081f0f59e.md"
     ],
     "tags": [
       "n维向量",
@@ -43366,7 +43366,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/秩判据_9_daff6c3c.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-9b795692bacd0f13270cc086.md"
     ],
     "tags": [
       "可控性矩阵",
@@ -44133,7 +44133,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/输出可控性_9_7c4fb777.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-ff560d5d53d578d0bc57baeb.md"
     ],
     "tags": [
       "输出可控性矩阵",
@@ -44232,7 +44232,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/闭环极点_9_a8bbda51.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-47a2e3c44742b45c55ac902d.md"
     ],
     "tags": [
       "系统稳定性",
@@ -44280,7 +44280,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/闭环零点_9_2ab177de.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-ff87028e0a7bcda2c586a550.md"
     ],
     "tags": [
       "动态性能",
@@ -44429,7 +44429,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/ITAE性能指标_10_16ea2a23.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_m3-v2l_canonical-object_94708a97f7508321feb998ea.md"
     ],
     "tags": [
       "优化设计",
@@ -44479,7 +44479,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/ITAE最优性能_10_35da202b.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_m3-v2l_canonical-object_94708a97f7508321feb998ea.md"
     ],
     "tags": [
       "性能指标",
@@ -44590,7 +44590,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/传递函数_10_6c2d17e5.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md"
     ],
     "tags": [
       "拉普拉斯变换",
@@ -44645,7 +44645,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/前置滤波器_10_56e8171d.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_domainconcept_293e9989d6bd31c84819cbee.md"
     ],
     "tags": [
       "滤波器",
@@ -45004,7 +45004,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/容许控制_10_cbc0aa55.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-9a4c8dc9963685a6c39a5653.md"
     ],
     "tags": [
       "控制域",
@@ -46679,7 +46679,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/自然频率_10_51a8b7d0.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7ee407860ee485f1e1b1f3d1.md"
     ],
     "tags": [
       "二阶系统",
@@ -46986,7 +46986,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/阶跃响应_10_47ad4df2.md"
+      "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253.md"
     ],
     "tags": [
       "动态性能",

@@ -1,0 +1,93 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "structural_model": {
+      "plant": "G=2/(s+1)",
+      "sensor": "H=0.5",
+      "equations": [
+        "e=r-0.5y",
+        "y_dot=2e-y"
+      ],
+      "closedTransfer": "2/(s+2)",
+      "unitStep": "1-exp(-2t)",
+      "zeroInitialState": true,
+      "boundary": "dimensionless signals with consistent scaling; arrows express equations, not necessarily physical transport"
+    },
+    "reduction_with_disturbance": {
+      "blocks": [
+        "G1=1/(s+1)",
+        "G2=2/(s+2)"
+      ],
+      "signalEquations": [
+        "e=r-y",
+        "v=G1 e",
+        "w=v+d",
+        "y=G2 w"
+      ],
+      "stateEquations": [
+        "v_dot=r-y-v",
+        "y_dot=2(v+d)-2y"
+      ],
+      "Y_over_R": "2/(s^2+3s+4)",
+      "Y_over_D": "2(s+1)/(s^2+3s+4)",
+      "zeroInitialState": true,
+      "initialOutputSlopeForUnitR": 0,
+      "initialOutputSlopeForUnitD": 2,
+      "bothUnitStepFinalOutputs": 0.5,
+      "boundary": "preserve each retained input/output relation; equal DC gain does not prove equivalent disturbance dynamics"
+    },
+    "algebraic_movement": {
+      "G": 2,
+      "a": 1,
+      "b": 3,
+      "sumBefore": "y=2(a+b)=8",
+      "equivalentAfter": "y=2a+2b=8",
+      "sumAfter": "y=2a+b=5",
+      "equivalentBefore": "y=2(a+b/2)=5",
+      "takeoffBeforeMovedAfter": "if z=2a and branch must remain a, branch=z/2",
+      "boundary": "for dynamic G, formal 1/G may be improper or unstable; algebraic equivalence does not guarantee an implementable compensator"
+    },
+    "block": {
+      "transfer": "2/(s+1)",
+      "equation": "y_dot+y=2u",
+      "unitStepZeroState": "2(1-exp(-t))",
+      "unitStepFromY0_1": "2-exp(-t)",
+      "boundary": "Y=GU alone describes the zero-state contribution; nonzero initial conditions add a free response"
+    },
+    "drawing_loaded_rc": {
+      "components": "R1=R2=1 ohm, C1=C2=1 F",
+      "stateEquations": [
+        "v1_dot=u-2v1+v2",
+        "v2_dot=v1-v2"
+      ],
+      "integratorInputs": [
+        "u-2v1+v2",
+        "v1-v2"
+      ],
+      "transfer": "1/(s^2+3s+1)",
+      "isolatedProduct": "1/(s+1)^2",
+      "boundary": "derive interconnection equations before assigning isolated component blocks; do not erase loading"
+    },
+    "feedback": {
+      "G": "2/(s+1)",
+      "H": 0.5,
+      "negativeFeedback": "2/(s+2)",
+      "positiveFeedback": "2/s",
+      "positiveFeedbackUnitStep": "2t; no finite steady state",
+      "boundary": "negative sign is not a universal stability proof; compute closed poles and internal dynamics"
+    },
+    "algebraic_loop": {
+      "staticG": 2,
+      "positiveFeedbackH": 0.5,
+      "equations": [
+        "e=r+0.5y",
+        "y=2e"
+      ],
+      "eliminatedEquation": "0=2r",
+      "nonzeroR": "no solution",
+      "zeroR": "nonunique solutions",
+      "boundary": "a static loop with 1-GH=0 is not a well-defined input-output model; do not divide by zero or call it an ordinary infinite gain"
+    }
+  }
+}

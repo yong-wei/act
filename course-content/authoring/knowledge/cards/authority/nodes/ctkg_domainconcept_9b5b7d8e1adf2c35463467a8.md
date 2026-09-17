@@ -1,53 +1,87 @@
 ---
 node_id: ctkg_domainconcept_9b5b7d8e1adf2c35463467a8
 authority_entity_id: "ctkg:domainconcept:9b5b7d8e1adf2c35463467a8"
-name: Unit circle in z-plane
+name: "z平面单位圆"
+name_en: "Unit Circle in the z-Plane"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - Unit
-  - circle
-  - in
-  - z-plane
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+consevent_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-a1a8fa8cd7376294cefda1bc077fbad86fd5ffc89da51d6b30aa56eab8a902f7.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-a1a8fa8cd7376294cefda1bc077fbad86fd5ffc89da51d6b30aa56eab8a902f7.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-08a/previous/ctkg_domainconcept_9b5b7d8e1adf2c35463467a8.md"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-08a/supporting-source-inventory.json"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: a0b59b21d26eeb7800a0af124befdeff14f08cb5a086c15b108ab07f5e95514b -->
-
 ## 首页
+# z平面单位圆 | Unit Circle in the z-Plane
 
-# Unit circle in z-plane
+一句话定义：z平面单位圆由模长等于1的复数组成，是离散线性系统渐近稳定判别的重要边界。
 
-**一句话定义**：Unit circle in z-plane是自动控制原理权威图谱中的领域概念。
-
-**关联**：后续 → 朱利稳定判据
+- 渐近稳定要求全部状态特征值严格在单位圆内。
+- 边界特征值不保证衰减。
+- 单位圆上的Jordan结构也会影响有界性。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。
+对离散线性定常系统 $x[k+1]=Ax[k]$，零输入状态为 $x[k]=A^kx[0]$。某个模态每前进一步按其特征值放大、衰减或旋转，因此特征值的模长控制重复作用的幅度趋势。全部特征值模长严格小于1时，所有初态都趋于零，原点渐近稳定。
+
+单位圆是复平面上满足 $|z|=1$ 的点集。它是严格渐近稳定区域的边界，而不是区域内部。看到特征值位于边界时，需要继续区分是否存在持续振荡、恒定模态或多项式增长，不能把“没有在圆外”简单当作渐近稳定。
+
+### 教学计算/推理例
+
+先看标量系统 $x[k+1]=\lambda x[k]$、x[0]=1。λ=0.8时，序列为1、0.8、0.64等，最终趋于零。λ=1时，状态恒为1；λ=-1时，在1和-1之间交替。这两种边界情形的零输入状态有界，但不吸引非零初态。λ=1.1时，幅度持续增长。
+
+再看二状态系统
+
+$$
+A=\begin{pmatrix}1&1\\0&1\end{pmatrix},\qquad
+x[0]=\begin{pmatrix}0\\1\end{pmatrix}.
+$$
+
+两个特征值都为1，但矩阵含非平凡Jordan块，且
+
+$$
+A^k=\begin{pmatrix}1&k\\0&1\end{pmatrix},\qquad
+x[k]=\begin{pmatrix}k\\1\end{pmatrix}.
+$$
+
+状态随k线性增长，所以不稳定。这个例子说明边界特征值的模长为1也不能自动保证所有零输入状态有界；对于单位圆上的特征值，还需检查是否具有非平凡Jordan块。
+
+### 内部稳定与输入输出稳定
+
+内部渐近稳定关注全部状态及全部初态。对因果有理离散传递函数，BIBO稳定要求其实际输入输出极点严格在单位圆内；若传递函数约消隐藏了状态模态，就不能仅凭约消后的极点判断全部内部状态。
+
+标量积分器 $x[k+1]=x[k]+u[k]$ 在零输入时保持初态，但输入恒为1、初态0时有x[k]=k，输出若取x就无界。因此边界模态的零输入有界，不代表面对所有有界输入都保持有界。讨论“稳定”时应写明采用哪一种含义。
+
+### 适用条件与边界
+
+对于连续状态模型的精确采样转移矩阵，特征值按 $z=e^{sT}$ 映射，T为正采样周期。连续左半平面的模态对应单位圆内，虚轴对应单位圆。但这个指数关系不能不加区分地套到任意近似离散化方法，也不能把加入数字控制后的闭环简单当作原连续闭环的指数映射。
+
+模长还影响每步衰减率，但不同采样周期下的每步变化不能直接比较物理时间中的速度。必须同时说明T，才能把序列特征转换为实际响应时间。单位圆判断解决稳定区域问题，不单独说明超调、稳态误差或所有工程性能。
+
+### 常见误区
+
+1. 把单位圆边界也算入渐近稳定区域。
+2. 只看边界特征值的模，不检查Jordan结构。
+3. 用零输入有界代替BIBO稳定。
+
+### 自检
+
+1. λ=-1的标量系统为什么不渐近稳定？
+2. 二状态例为何在全部特征值为1时仍会增长？
+
+**核对要点**：非零状态持续交替而不趋零；非平凡Jordan块使矩阵幂包含k项，产生线性增长。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 朱利稳定判据 | 用于分析 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Unit、circle、in、z-plane
+- **朱利稳定判据**（出边，关系：用于分析）

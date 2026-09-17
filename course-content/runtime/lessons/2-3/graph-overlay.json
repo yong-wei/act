@@ -181,7 +181,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/传递函数_1_5b0faf8b.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md"
       ],
       "tags": [
         "拉普拉斯变换",
@@ -230,7 +230,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/正弦函数_1_98499ac0.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-0e5d22ed0afee37f65584d36.md"
       ],
       "tags": [
         "典型外作用",
@@ -617,7 +617,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/频域分析_2_2e257d89.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-36f969bb5befa8ef9f8d0a99.md"
       ],
       "tags": [
         "伯德图",
@@ -720,7 +720,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/交接频率_转折频率__5_8bca814b.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-69529eb08c9279e8b19dc4f6.md"
       ],
       "tags": [
         "转折频率",
@@ -926,7 +926,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/对数频率特性曲线_5_75c6945f.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-be9c82d423b46b7fc6937236.md"
       ],
       "tags": [
         "伯德图",
@@ -975,7 +975,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/幅频特性_5_4e8408d2.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-de873c97a924107857f79242.md"
       ],
       "tags": [
         "幅值比",
@@ -1077,7 +1077,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/正弦稳态响应_5_b6dc1100.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-ee4c217b305b05786c0b89a9.md"
       ],
       "tags": [
         "同频输出",
@@ -1124,7 +1124,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/相频特性_5_abda14da.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-9967c0867249bf4c1a625dab.md"
       ],
       "tags": [
         "相位差",
@@ -1333,7 +1333,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/频率特性_5_404adfdd.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-object-38d4679bf3335318b0f4afb7.md"
       ],
       "tags": [
         "幅频特性",
@@ -1383,7 +1383,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/伯德图_6_1a069614.md"
+        "course-content/runtime/knowledge/cards/authority/nodes/ctkg_v3e-canonical-504581e399675b9792ab8502.md"
       ],
       "tags": [
         "对数幅频特性",

@@ -1,0 +1,213 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "saturation": {
+      "law": "y=clip(u,-1,1)",
+      "samples": [
+        [
+          -2,
+          -1.0
+        ],
+        [
+          -1,
+          -1.0
+        ],
+        [
+          -0.5,
+          -0.5
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          1,
+          1.0
+        ],
+        [
+          2,
+          1.0
+        ]
+      ],
+      "nonadditivity": {
+        "f075Plusf075": 1.5,
+        "f15": 1
+      },
+      "boundary": "memoryless static model; input-output saturation alone is not hysteresis"
+    },
+    "dead_zone": {
+      "law": "y=0 for abs(u)<=0.5; y=2(u-0.5sign(u)) otherwise",
+      "halfWidth": 0.5,
+      "outsideSlope": 2,
+      "samples": [
+        [
+          -1,
+          -1.0
+        ],
+        [
+          -0.5,
+          0
+        ],
+        [
+          -0.4,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0.4,
+          0
+        ],
+        [
+          0.5,
+          0
+        ],
+        [
+          0.6,
+          0.19999999999999996
+        ],
+        [
+          1,
+          1.0
+        ]
+      ],
+      "boundary": "continuous offset outside dead zone; no state/history in this ideal law"
+    },
+    "relay_hysteresis": {
+      "thresholds": [
+        -0.5,
+        0.5
+      ],
+      "levels": [
+        -2,
+        2
+      ],
+      "initialState": -2,
+      "inputs": [
+        0,
+        0.6,
+        0,
+        -0.6,
+        0,
+        0.6
+      ],
+      "outputs": [
+        -2,
+        2,
+        2,
+        -2,
+        -2,
+        2
+      ],
+      "sameInputZeroDifferentOutputs": true,
+      "boundary": "explicit initial state and equality convention; not a single-valued memoryless curve"
+    },
+    "ideal_relay": {
+      "law": "y=2sign(u) for u!=0; choose y(0)=0 for this example",
+      "inputs": [
+        -0.01,
+        0,
+        0.01
+      ],
+      "outputs": [
+        -2,
+        0,
+        2
+      ],
+      "boundary": "zero switching threshold and no hysteresis here; chattering possible with noisy crossings"
+    },
+    "backlash_play": {
+      "halfGap": 1,
+      "initialInput": 0,
+      "initialOutput": 0,
+      "inputs": [
+        0,
+        2,
+        1,
+        0,
+        -2,
+        0,
+        2
+      ],
+      "outputs": [
+        0.0,
+        1,
+        1,
+        1,
+        -1,
+        -1,
+        1
+      ],
+      "update": "y=clip(previousY,u-1,u+1), each input segment monotone",
+      "boundary": "ideal quasi-static play; output sticks inside gap, depends on history; not impact/compliance dynamics"
+    },
+    "coulomb_slide": {
+      "mass": 2.0,
+      "Fc": 3.0,
+      "initialVelocity": 2.0,
+      "velocityBeforeStop": "2-1.5t",
+      "stopTime": 1.3333333333333333,
+      "stoppingDistance": 1.3333333333333333,
+      "afterStop": "v=0 when external force zero; do not extend formula to reverse motion",
+      "force": "-Fc sign(v) for v!=0",
+      "boundary": "value at v=0 requires sticking/contact rule; setting sign(0)=0 alone cannot model static friction"
+    },
+    "stiction": {
+      "mass": 2,
+      "staticLimit": 4.0,
+      "kineticLevel": 3.0,
+      "appliedAtRest": 2.0,
+      "staticFriction": -2.0,
+      "acceleration": 0,
+      "aboveLimitForce": 5,
+      "initialPositiveSlipAcceleration": 1.0,
+      "boundary": "sticking possible within static force interval, kinetic law after breakaway; onset exactly at limit needs declared convention"
+    },
+    "coulomb_viscous": {
+      "mass": 2.0,
+      "Fc": 3.0,
+      "b": 1.0,
+      "v0": 2.0,
+      "positiveVelocity": "5exp(-t/2)-3 until stopping",
+      "stopTime": 1.0216512475319812,
+      "stoppingDistance": 0.9350462574040552,
+      "forceAtVelocity2": -5,
+      "forceAtVelocityMinus2": 5,
+      "powerAtVelocity2": -10,
+      "boundary": "velocity law ends at first zero; hold at rest with consistent static law"
+    },
+    "integrator_saturation": {
+      "assumedError": 1,
+      "integralGain": 1,
+      "initialIntegralState": 0,
+      "time": 3,
+      "integralState": 3,
+      "actuatorClippedOutput": 1,
+      "boundary": "prescribed persistent error thought experiment, not a solved closed loop; windup depends on controller state, not memory inside static saturator"
+    },
+    "dynamic_nonadditivity": {
+      "ode": "x_dot=-x+sat(u); x(0)=0",
+      "u075Response": "0.75(1-exp(-t))",
+      "u15Response": "1-exp(-t)",
+      "boundary": "two separate responses do not sum to response to combined input"
+    },
+    "dead_zone_inverse": {
+      "halfWidth": 0.5,
+      "slope": 2,
+      "targetOutput": 0.2,
+      "requiredPositiveInput": 0.6,
+      "zeroOutputInverseInterval": [
+        -0.5,
+        0.5
+      ],
+      "combinedSaturationAtInput2": 1
+    }
+  }
+}

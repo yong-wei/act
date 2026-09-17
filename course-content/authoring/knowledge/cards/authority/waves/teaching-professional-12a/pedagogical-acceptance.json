@@ -1,0 +1,7 @@
+{
+  "status": "accepted",
+  "cards": 7,
+  "goalId": "robust-control-foundations",
+  "rationale": "在明确集合与约束下覆盖频域模板、鲁棒设计可行性、ITAE整定、反例仿真和PI无静差，区分各种保证范围。",
+  "sourceLimitation": "一张原教材定位，其余以冻结QFT/ITAE/MIT补充理论来源支撑。"
+}

@@ -1,0 +1,231 @@
+{
+  "batchId": "teaching-professional-12a",
+  "capturedRevision": "f655dee490f714247dea867602a4d42bf699f2fd",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "order": 1,
+      "name": "定量反馈理论",
+      "canonicalId": "ctkg:m3-v2j:source-object:5b9db9f6bfeb1491df0d9414",
+      "cardId": "ctkg_m3-v2j_source-object_5b9db9f6bfeb1491df0d9414",
+      "resourceId": "act:card:ctkg_m3-v2j_source-object_5b9db9f6bfeb1491df0d9414",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m3-v2j_source-object_5b9db9f6bfeb1491df0d9414.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-30d0689770d6fd958157314be935cc04847533236cd8510f752d37f4d973805e.json",
+          "sha256": "cbcb6ccf2048b5a33665bc8e55541a9069279b29ae5038b4aa9c1d84523475c2",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-30d0689770d6fd958157314be935cc04847533236cd8510f752d37f4d973805e.json",
+          "sha256": "4c473deba3e666d8b4afe158055a6da4a9dc2532c2eb77ee28df3f1aab32ea9f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/supporting-source-inventory.json",
+          "sha256": "a7cf9bdc861c4e17b91924dd384db48750ab79654c9343e4c34244cd9d7506fa",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/01-source.json",
+      "sourceBackupSha256": "64e5eae0f2ec5674c43fc5048672e03602b8037c1af7c164a0fb4413318de6dd",
+      "cardSha256": "c8a59ba5379ca6a9b0cd523736a60ece068a3a9792a575717a0598dad5b84d93",
+      "parsedExplanationChars": 1291
+    },
+    {
+      "order": 2,
+      "name": "鲁棒设计方法",
+      "canonicalId": "ctkg:m3-v2m:source-object:986a0736dc2b06ddf1e785c9",
+      "cardId": "ctkg_m3-v2m_source-object_986a0736dc2b06ddf1e785c9",
+      "resourceId": "act:card:ctkg_m3-v2m_source-object_986a0736dc2b06ddf1e785c9",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_m3-v2m_source-object_986a0736dc2b06ddf1e785c9.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-39c997def67cfbb15dfb3aa394c66b6a127a9a52c3e5b99d5f49f2de6694c446.json",
+          "sha256": "54ecc0a21558e455076cff78212ca70d38c6b679d86e17b58ee39e89e1aa9edf",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-39c997def67cfbb15dfb3aa394c66b6a127a9a52c3e5b99d5f49f2de6694c446.json",
+          "sha256": "4d30d5fea15fc8f3566e6b6007a912aa1abb3d7ed5b24e598090b5d510418ed9",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/supporting-source-inventory.json",
+          "sha256": "a7cf9bdc861c4e17b91924dd384db48750ab79654c9343e4c34244cd9d7506fa",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/02-source.json",
+      "sourceBackupSha256": "d6579607686bdc0867d6fe89c745ebd785414bb282fc4f186c0357ff6c41d83d",
+      "cardSha256": "35fdb3ef0ada7f9ac2dc345011a5e0456402af666beaeb1798eed49aac0b6525",
+      "parsedExplanationChars": 1442
+    },
+    {
+      "order": 3,
+      "name": "模型不确定性下的鲁棒控制设计",
+      "canonicalId": "m1r-v1d:concept:0a3e1fd1b6a15049b4f7846f",
+      "cardId": "m1r-v1d_concept_0a3e1fd1b6a15049b4f7846f",
+      "resourceId": "act:card:m1r-v1d_concept_0a3e1fd1b6a15049b4f7846f",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/m1r-v1d_concept_0a3e1fd1b6a15049b4f7846f.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-7356737f0bdceae600c35a04a6ca660dd772cf9ed077535c5e4ea243a30ff08e.json",
+          "sha256": "faeeb2a10507dfc7d4aa5293c196ce9eae6afd4fb31615663010ad6371f819f5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-7356737f0bdceae600c35a04a6ca660dd772cf9ed077535c5e4ea243a30ff08e.json",
+          "sha256": "d3c0f51e0e6f7261d048a1c243a6d65d9cd302f2d76f1fafe9f689d9f5e345f9",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/supporting-source-inventory.json",
+          "sha256": "a7cf9bdc861c4e17b91924dd384db48750ab79654c9343e4c34244cd9d7506fa",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/03-source.json",
+      "sourceBackupSha256": "6c896fd22fa648d439e41666280cb0a5fe8f091b41d455aa34a62d4251488a1e",
+      "cardSha256": "5a6189daaca8aec1297b7286b9a977256d503e70374d6bbf44e4ffb846a1bb88",
+      "parsedExplanationChars": 1417
+    },
+    {
+      "order": 4,
+      "name": "时间乘绝对误差积分设计",
+      "canonicalId": "m1r-v1d:object:9329097505616acd8adafa68",
+      "cardId": "m1r-v1d_object_9329097505616acd8adafa68",
+      "resourceId": "act:card:m1r-v1d_object_9329097505616acd8adafa68",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/m1r-v1d_object_9329097505616acd8adafa68.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-63191cb98b81a181d8445638fa271ae1a51b7ade9c04700f5ebcb5ff17b6ad84.json",
+          "sha256": "0daa2893f50981881d68c75e058afa0829ba647a48fef1b367720d8b306a5a63",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-63191cb98b81a181d8445638fa271ae1a51b7ade9c04700f5ebcb5ff17b6ad84.json",
+          "sha256": "28875801172c130e7f83aca74bab3259810e7d9f940a65998f774fb92374dc12",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/supporting-source-inventory.json",
+          "sha256": "a7cf9bdc861c4e17b91924dd384db48750ab79654c9343e4c34244cd9d7506fa",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/04-source.json",
+      "sourceBackupSha256": "251a17eac82aa03e1c6d3f21a834e09f31d68c89e98c63598e2c030985495b62",
+      "cardSha256": "513b3258e51e3d77b299b01a2bcaffebe71c2e84f7238347241eb9725d791ef3",
+      "parsedExplanationChars": 1347
+    },
+    {
+      "order": 5,
+      "name": "鲁棒性仿真方法",
+      "canonicalId": "m1r-v1d:object:aa8ae205a38e3698addb8fde",
+      "cardId": "m1r-v1d_object_aa8ae205a38e3698addb8fde",
+      "resourceId": "act:card:m1r-v1d_object_aa8ae205a38e3698addb8fde",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/m1r-v1d_object_aa8ae205a38e3698addb8fde.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-8332621f348dd4a3e9294a8443f91191aabab3299b9b106845cf7c72a4541274.json",
+          "sha256": "741dfd0e6bf179764dd3dc70d0683ddf29c33a612ef96de16acfadf64d7c83d5",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-8332621f348dd4a3e9294a8443f91191aabab3299b9b106845cf7c72a4541274.json",
+          "sha256": "3fde0f557e145ec919f5f43cb71a9ae945b2847e4dc3c8a91f349e43e81a1996",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/supporting-source-inventory.json",
+          "sha256": "a7cf9bdc861c4e17b91924dd384db48750ab79654c9343e4c34244cd9d7506fa",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/05-source.json",
+      "sourceBackupSha256": "ddc3ac5e786d84097bb3854fc1a9c1bc289f63ae09a722450a4aad4a9f2add66",
+      "cardSha256": "dda769ccdfe03d748fd123557712343420b5af8448d28ba6260bb7a20fe6def4",
+      "parsedExplanationChars": 1299
+    },
+    {
+      "order": 6,
+      "name": "ITAE方法",
+      "canonicalId": "m1r-v1d:object:c737d473ec4983fe9335fdb4",
+      "cardId": "m1r-v1d_object_c737d473ec4983fe9335fdb4",
+      "resourceId": "act:card:m1r-v1d_object_c737d473ec4983fe9335fdb4",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/m1r-v1d_object_c737d473ec4983fe9335fdb4.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-188197a61e2021b5694917d9fb2ce94f636abd939c3422ea523473b2b401b934.json",
+          "sha256": "55fb1e99e604d53e41a3ccfe2b7fb43cc39c5bf46cc1aa7f191a3f9cfeac8238",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-188197a61e2021b5694917d9fb2ce94f636abd939c3422ea523473b2b401b934.json",
+          "sha256": "98c2cd81a3cb3c92afe3c1d2c128e491c0e7f155009b391640c66c5127466219",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/supporting-source-inventory.json",
+          "sha256": "a7cf9bdc861c4e17b91924dd384db48750ab79654c9343e4c34244cd9d7506fa",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/06-source.json",
+      "sourceBackupSha256": "eec619b7d0460c4fa5f16224a2f30a4d2398dc2dbc0f6cc044a3f8ae131ade35",
+      "cardSha256": "a11b305e13d0b753f457037581135f39ca4d7d120ebe6059b383ee3e1fb9767f",
+      "parsedExplanationChars": 1380
+    },
+    {
+      "order": 7,
+      "name": "鲁棒无静差响应的设计方法",
+      "canonicalId": "m1r-v1d:object:ff005a8911df14f27aa9f95d",
+      "cardId": "m1r-v1d_object_ff005a8911df14f27aa9f95d",
+      "resourceId": "act:card:m1r-v1d_object_ff005a8911df14f27aa9f95d",
+      "authoringPath": "course-content/authoring/knowledge/cards/authority/nodes/m1r-v1d_object_ff005a8911df14f27aa9f95d.md",
+      "previousCardSha256": null,
+      "sources": [
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-83056b2bf8c211105621f7ab93a94fd02cc7e3607120dc72752e775a7aa776c6.json",
+          "sha256": "d225a35cb73f754f8ad04225847e4b58140aa72bf6c39a7daf8c27795190c725",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-83056b2bf8c211105621f7ab93a94fd02cc7e3607120dc72752e775a7aa776c6.json",
+          "sha256": "328d696140c7d7c31f17bbf59cb58594513c33a29882561f0487286f0e67ce3f",
+          "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/supporting-source-inventory.json",
+          "sha256": "a7cf9bdc861c4e17b91924dd384db48750ab79654c9343e4c34244cd9d7506fa",
+          "kind": "supporting-research-record"
+        }
+      ],
+      "sourceBackupPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-12a/07-source.json",
+      "sourceBackupSha256": "779745e05cc60ace048fee28c3917bebbda4359efac626c31c8fda190bc40d6c",
+      "cardSha256": "5c77e3df81f6a745f1fa2332ea744bf3a4615c8a931b8c248a0b4ad9081b6b04",
+      "parsedExplanationChars": 1326
+    }
+  ],
+  "cardCount": 7,
+  "publicationStatus": "authoring",
+  "reviewStatus": "pending-independent-review",
+  "remaining": [],
+  "remainingCount": 0,
+  "method": "authoring cards bound to exact detail/neighborhood/previous source paths; no runtime writes"
+}

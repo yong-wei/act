@@ -1,0 +1,9 @@
+{
+  "status": "resolved",
+  "decision": "ACCEPT",
+  "finding": "P1: bounded smooth reference does not guarantee bounded derivatives/state",
+  "scope": "05.md final conditions and counterexample; verify-models.py adds same counterexample. All other bodies and sources unchanged.",
+  "beforeSha256": "35dd98f3a6c59b9ad2589387429b6329216a46cb61900d786d914286fba894f0",
+  "afterSha256": "6ad8b7d4c904afa8036f72ef712196318298d8e573072413bb48efb09dd82029",
+  "targetedRereview": "Original reviewer confirmed separate reference derivative conditions and sin(t^2) counterexample; no new P0/P1."
+}

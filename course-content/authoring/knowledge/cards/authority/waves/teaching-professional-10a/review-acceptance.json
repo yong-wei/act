@@ -1,0 +1,19 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_professional10",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "bodyReview": "body-review.json",
+  "mechanicalRereview": "review-remediation.json",
+  "materializedBodyEqualityVerified": true,
+  "identityAndRelationsVerified": true,
+  "cardHashes": {
+    "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e": "610bdff0b81e90e959d18a57462e74db9ee76b657a0fb1c5bf9d54fa230fc282",
+    "ctkg:domainconcept:364221ded81ca2a0139d013a": "f392239a924be990dc32589958b683a0b846db1cbc4fa6a2a1bf1b681f4eebf6",
+    "ctkg:domainconcept:357a51cbd9882d80503815d3": "ddd3752d694115ad18d1eb3ed68f185619538f1c57555e8e1d9d9fbee2ad05fd",
+    "ctkg:domainconcept:e64c6ad0fa1d0483faf9aa7c": "f0680067580ced68665cb50aa9969191b965ece014dcabfe199aaa0ed0be6f09",
+    "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133": "3b40b3e76bc9d0602e0ebfe3d593b246ba89470e989ec969d11a24eef25f08d0",
+    "ctkg:domainconcept:1126ce54b22f0fafb3f6e916": "fefbf9107ec94032d43705575ffd56ea0441627131d6ffb3ec9e71edfd670424",
+    "ctkg:domainconcept:ad75410e5a16550ce25a6d8a": "d724c3d6369bf9cb5509cfe4786d378d3bd96fba54e385d80083461aa5a47cf7"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "batchId": "teaching-professional-10a",
+  "status": "accepted",
+  "parentGroupId": "professional-deadbeat-and-intersample-behavior",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+      "name": "最小拍系统",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:364221ded81ca2a0139d013a",
+      "name": "最小拍系统设计方法",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:357a51cbd9882d80503815d3",
+      "name": "误差脉冲传递函数",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:e64c6ad0fa1d0483faf9aa7c",
+      "name": "纹波",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
+      "name": "无纹波最小拍系统",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:1126ce54b22f0fafb3f6e916",
+      "name": "无纹波最小拍系统设计方法",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:ad75410e5a16550ce25a6d8a",
+      "name": "一拍系统",
+      "domain": "discrete-time-control-design",
+      "moduleId": null,
+      "order": 7
+    }
+  ],
+  "accepted": true
+}

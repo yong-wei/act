@@ -1,0 +1,478 @@
+{
+  "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+  "detail": {
+    "shardClass": "node-detail",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "node": {
+      "id": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "canonicalType": "DomainConcept",
+      "label": "劳斯-赫尔维茨稳定性判据",
+      "aliases": [],
+      "description": "Routh-Hurwitz stability criterion",
+      "teachingFields": {},
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "sources": [
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-3",
+          "label": "自动控制原理（胡寿松，第8版） · 劳斯－赫尔维茨稳定判据"
+        },
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-3/item-1",
+          "label": "自动控制原理（胡寿松，第8版） · 赫尔维茨稳定判据"
+        },
+        {
+          "sourceEditionId": "hu-shousong-auto-control-8th",
+          "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/example-3.9",
+          "label": "自动控制原理（胡寿松，第8版） · 设系统特征方程为"
+        }
+      ],
+      "media": {
+        "cardAvailable": false,
+        "infographAvailable": false
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      }
+    }
+  },
+  "neighborhood": {
+    "shardClass": "node-neighborhood",
+    "envelope": {
+      "contract": "act-authority-shard-envelope/v1",
+      "authority": {
+        "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+        "releaseId": "ctr:release:control-theory-engineering-v0.48",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+        "activationId": "activation-496129c057621ffa53d9debe",
+        "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+        "projectionId": null,
+        "projectionHash": null
+      },
+      "catalog": {
+        "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+        "catalogVersion": "v0.48-candidate"
+      },
+      "teaching": {
+        "status": "available",
+        "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+        "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+      },
+      "match": {
+        "authority": true,
+        "catalog": true,
+        "teaching": true
+      }
+    },
+    "nodeId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+    "limit": 32,
+    "truncated": false,
+    "objects": [
+      {
+        "id": "ctkg:domainconcept:28bfca2df331c329cea26464",
+        "canonicalType": "DomainConcept",
+        "label": "朱利稳定判据",
+        "aliases": [
+          "朱利稳定判据"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "discrete-time-control-design",
+            "visualRole": "discrete-design",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+        "canonicalType": "DomainConcept",
+        "label": "特征方程",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "lyapunov-stability",
+            "visualRole": "lyapunov",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "mathematical_object"
+      },
+      {
+        "id": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+        "canonicalType": "DomainConcept",
+        "label": "稳定性",
+        "aliases": [
+          "稳定性"
+        ],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "time-domain-analysis",
+            "visualRole": "time",
+            "preferred": true
+          }
+        ],
+        "conceptKind": "theoretical_construct"
+      },
+      {
+        "id": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+        "canonicalType": "DomainConcept",
+        "label": "劳斯表",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "stability-analysis",
+            "visualRole": "stability",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+        "canonicalType": "Formula",
+        "label": "\\Delta_{1}=a_{1}>0, \\quad \\Delta_{2}=\\left|\\begin{array}{ll}\na_{1} & a_{3} \\\\\na_{0} & a_{2}\n\\end{array}\\right|>0, \\quad \\Delta_{3}=\\left|\\begin{array}{ccc}\na_{1} & a_{3} & a_{5} \\\\\na_{0} & a_{2} & a_{4} \\\\\n0 & a_{1} & a_{3}\n\\end{array}\\right|>0, \\quad \\cdots, \\quad \\Delta_{n}>0",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "stability-analysis",
+            "visualRole": "stability",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+        "canonicalType": "DomainConcept",
+        "label": "劳斯-赫尔维茨稳定性判据",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "stability-analysis",
+            "visualRole": "stability",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-d936710484645940b76063d6",
+        "canonicalType": "Formula",
+        "label": "\\Delta_{n}=\\left|\\begin{array}{cccccc}\na_{1} & a_{3} & a_{5} & \\cdots & 0 & 0 \\\\\na_{0} & a_{2} & a_{4} & \\cdots & 0 & 0 \\\\\n0 & a_{1} & a_{3} & \\cdots & 0 & 0 \\\\\n0 & a_{0} & a_{2} & \\cdots & 0 & 0 \\\\\n0 & 0 & a_{1} & \\cdots & 0 & 0 \\\\\n0 & 0 & a_{0} & \\cdots & 0 & 0 \\\\\n\\vdots & \\vdots & \\vdots & & \\vdots & \\vdots \\\\\n0 & 0 & 0 & \\cdots & a_{n} & 0 \\\\\n0 & 0 & 0 & \\cdots & a_{n-1} & 0 \\\\\n0 & 0 & 0 & \\cdots & a_{n-2} & a_{n}\n\\end{array}\\right|",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "stability-analysis",
+            "visualRole": "stability",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      },
+      {
+        "id": "ctkg:v3e-object-f2d6fc57bf35f48b9769ef8c",
+        "canonicalType": "KnowledgeStatement",
+        "label": "劳斯-赫尔维茨判据是线性系统稳定的充分必要判据。",
+        "aliases": [],
+        "description": null,
+        "governance": {
+          "reviewStatus": "approved",
+          "publicationStatus": "published",
+          "lifecycleStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "memberships": [
+          {
+            "domainId": "stability-analysis",
+            "visualRole": "stability",
+            "preferred": true
+          }
+        ],
+        "conceptKind": null
+      }
+    ],
+    "relations": [
+      {
+        "id": "ctr:m1g-3a88faed8d30b697399acb35",
+        "predicate": "part_of",
+        "sourceId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+        "targetId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "ctr:m1g-44f18a79039bba89ed1f51df",
+        "predicate": "has_component",
+        "sourceId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+        "targetId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "structure"
+      },
+      {
+        "id": "ctr:m1g-45e303dc75ea12540edf4df7",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+        "targetId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctr:m1g-6203ca7070e09375e3daa39e",
+        "predicate": "has_formula",
+        "sourceId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+        "targetId": "ctkg:v3e-object-d936710484645940b76063d6",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "derivation-and-representation"
+      },
+      {
+        "id": "ctr:m1g-6c72327702f15afcba314e97",
+        "predicate": "has_representation",
+        "sourceId": "ctkg:v3e-object-f2d6fc57bf35f48b9769ef8c",
+        "targetId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "derivation-and-representation"
+      },
+      {
+        "id": "ctr:m1g-8b8a745987939a635832c662",
+        "predicate": "association",
+        "sourceId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+        "targetId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+        "direction": "unordered",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "association"
+      },
+      {
+        "id": "ctr:m1g-f17be0eccd0f4d21ab6e6331",
+        "predicate": "has_formula",
+        "sourceId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+        "targetId": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+        "direction": "source_to_target",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": "derivation-and-representation"
+      },
+      {
+        "id": "m1o:rel-c39804d552844c3c62f3c0f4",
+        "predicate": "is_a",
+        "sourceId": "ctkg:domainconcept:28bfca2df331c329cea26464",
+        "targetId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+        "direction": "forward",
+        "direct": true,
+        "qualityTier": "GOLD",
+        "governance": {
+          "reviewStatus": null,
+          "publicationStatus": null
+        },
+        "semanticSupport": {
+          "supported": true,
+          "readOnly": true
+        },
+        "layer": "ENGINEERING",
+        "relationFamily": null
+      }
+    ],
+    "boundaries": []
+  },
+  "sources": [
+    {
+      "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-534c1018cbeb1814f101f8adf6aa842eb21c2e3d464055a63edf66ec137a5d68.json",
+      "sha256": "a5e84b8cd2a7224d63b20445a1dff85274ff0fc757171f421ca13d532612e6b5",
+      "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+    },
+    {
+      "path": "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-534c1018cbeb1814f101f8adf6aa842eb21c2e3d464055a63edf66ec137a5d68.json",
+      "sha256": "1fa4c33e64ffd0fd30d688ea8ff55e890f7fa4bf1da3070573fd6bf3b95b8414",
+      "revision": "f655dee490f714247dea867602a4d42bf699f2fd"
+    },
+    {
+      "path": "course-content/authoring/knowledge/cards/authority/waves/teaching-scale-01f/previous/ctkg_v3e-object-cfdae92ada72d7710e7f1cee.md",
+      "sha256": "913a960a8c769cb2a656bfc2b18522c014a8b33690afd7b2439d4cd0f0fe3e7b",
+      "kind": "previous-authoring-snapshot"
+    }
+  ]
+}

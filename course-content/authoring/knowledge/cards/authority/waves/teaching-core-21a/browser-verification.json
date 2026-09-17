@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "authenticated Playwright Chromium, captured authority domain -> combined control node -> resource viewer",
+  "keyboardGraphNavigation": true,
+  "displayedSelfCheck": true,
+  "readingCompletions": 0,
+  "representativeCard": "复合控制系统",
+  "representativeCanonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+  "authorityDomainId": "time-domain-analysis",
+  "authorityDomainDisplayName": "时域分析"
+}

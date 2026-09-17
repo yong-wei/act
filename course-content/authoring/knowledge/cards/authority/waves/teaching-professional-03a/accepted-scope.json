@@ -1,0 +1,87 @@
+{
+  "batchId": "teaching-professional-03a",
+  "status": "accepted",
+  "parentGroupId": "professional-state-space-foundations",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-object-542c371afb4374a5f7b7be5f",
+      "name": "矩阵指数函数",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 1
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "name": "状态转移矩阵",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 2
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9e88045efd51f4067f98fe34",
+      "name": "传递函数转状态空间",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 3
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dc824b634d98afec12f44ff1",
+      "name": "控制规范型",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3784992e294bb2f120cdc0df",
+      "name": "可控性矩阵",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-567eb255d7d82d8b4e029f6d",
+      "name": "状态可达",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ade57f97833b42fe6394301d",
+      "name": "可控性PBH秩判据法",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b667b9f8df2202d92a43a966",
+      "name": "可观测性阵 (observability matrix)",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-98863d255f5bdc0c59c9b50b",
+      "name": "PBH秩检验法（可观测性）",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aee09af112d5234757265089",
+      "name": "对偶性",
+      "domain": "state-space-control-analysis-and-design",
+      "moduleId": null,
+      "order": 10
+    }
+  ],
+  "accepted": true
+}

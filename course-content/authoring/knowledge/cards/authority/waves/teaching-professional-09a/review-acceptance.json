@@ -1,0 +1,17 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/review_professional09",
+  "role": "simulation-domain-reviewer",
+  "findings": [],
+  "bodyReview": "body-review.json",
+  "materializedBodyEqualityVerified": true,
+  "identityAndRelationsVerified": true,
+  "cardHashes": {
+    "ctkg:domainconcept:42b62edf88d848137713e690": "54ab0d9b064d1b35d1da7fb48d355ac66388a8b8786c09eb767c322af7610fd1",
+    "ctkg:domainconcept:60729cbdf747b39c2ff781bb": "d1315ff1ee712c4d99fc3db1ce1f2456cc88a19cf0c80eea448b0eba4ac65c15",
+    "ctkg:domainconcept:6979e99f60e2642ff3d70d4b": "c26cf23b14f7f5b63517a3a3ac8b969a6702cf5ecd5233af576e2249490aafb6",
+    "ctkg:domainconcept:9431ee70cd4c3af657882c63": "276eb57b21f8b0b7703a4abea5998a7236f35d11ed4b657705670de5d4b508d4",
+    "ctkg:domainconcept:cd1a5e4071f81f8cf97f7eb7": "b0756404b72f32ee56d787af1ffac5cbe652cfd69f76a7f15bcc6cf76a8ac7b0",
+    "ctkg:domainconcept:df606d1cc343f73f1c9af59a": "594adbed474fd1ba06e3164ba996bb0c9daf872800ff11d0261963188af4d751"
+  }
+}

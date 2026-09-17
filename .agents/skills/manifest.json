@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "active",
-  "lastUpdated": "2026-08-28",
+  "lastUpdated": "2026-09-15",
   "root": ".agents/skills",
   "purpose": "Machine-readable index for project-local skills that may not be automatically exposed by devspace or global skill discovery.",
   "usage": {
@@ -14,139 +14,139 @@
       "name": "agent-evolver",
       "path": "agent-evolver/SKILL.md",
       "category": "agents",
-      "description": "Audit, tune, extend, or quality-track project-local Codex custom agents under .codex/agents/*.toml."
+      "description": "审查或维护项目命名代理的职责、模型配置及验证记录。"
     },
     {
       "name": "cursor-subagent-routing",
       "path": "cursor-subagent-routing/SKILL.md",
       "category": "agents",
-      "description": "Route Cursor Task subagents to explicit model slugs by task type; separate from Codex TOML routing."
+      "description": "在 Cursor 中选择已授权子代理的模型与任务角色。"
     },
     {
       "name": "brandkit",
       "path": "brandkit/SKILL.md",
       "category": "visual-design",
-      "description": "Create high-end brand-guidelines boards, logo systems, identity decks, and visual-world presentations."
+      "description": "生成品牌识别方案、品牌指南图或品牌应用参考。"
     },
     {
       "name": "debug-issue",
       "path": "debug-issue/SKILL.md",
       "category": "code",
-      "description": "Diagnose bugs, regressions, failing tests, startup failures, runtime exceptions, or suspicious behavior."
+      "description": "诊断本项目的错误、回归、运行异常或失败测试。"
     },
     {
       "name": "design-taste-frontend",
       "path": "design-taste-frontend/SKILL.md",
       "category": "frontend-design",
-      "description": "Create anti-generic frontend interfaces for landing pages, portfolios, and redesigns."
+      "description": "设计新网页或整体改版，建立符合品牌与内容的视觉方向。"
     },
     {
       "name": "explore-codebase",
       "path": "explore-codebase/SKILL.md",
       "category": "code",
-      "description": "Orient inside the repository with code-review-graph before targeted file inspection."
+      "description": "在陌生模块中定位入口、模块边界或调用关系时使用图谱辅助探索。"
     },
     {
       "name": "full-output-enforcement",
       "path": "full-output-enforcement/SKILL.md",
       "category": "output-control",
-      "description": "Enforce complete, unabridged output and avoid placeholder patterns."
+      "description": "用户明确要求完整文件、完整实现或不省略的交付时检查完整性。"
     },
     {
       "name": "gpt-taste",
       "path": "gpt-taste/SKILL.md",
       "category": "frontend-design",
-      "description": "High-end UX/UI and GSAP motion engineering for advanced page design."
+      "description": "为需要叙事动效的网页设计布局与交互；适用于用户选择该视觉方向时。"
     },
     {
       "name": "high-end-visual-design",
       "path": "high-end-visual-design/SKILL.md",
       "category": "frontend-design",
-      "description": "Apply agency-grade visual standards for premium website design."
+      "description": "为网页或产品界面建立精细的字体、留白、色彩与组件视觉关系。"
     },
     {
       "name": "homework",
       "path": "homework/SKILL.md",
       "category": "course-content",
-      "description": "Generate, inspect, update, or compile homework and exam questions by T-series problem identifiers."
+      "description": "生成、检查、修订或汇编指定题号的课程作业与考试题。"
     },
     {
       "name": "image-to-code",
       "path": "image-to-code/SKILL.md",
       "category": "frontend-design",
-      "description": "Generate visual design references first, then implement a website to match them closely."
+      "description": "将用户选定的图像、截图或设计参考实现为响应式网页。"
     },
     {
       "name": "imagegen-frontend-mobile",
       "path": "imagegen-frontend-mobile/SKILL.md",
       "category": "image-generation",
-      "description": "Generate premium mobile app screen concepts and flows."
+      "description": "生成移动应用屏幕概念图或指定流程的视觉参考，不编写应用代码。"
     },
     {
       "name": "imagegen-frontend-web",
       "path": "imagegen-frontend-web/SKILL.md",
       "category": "image-generation",
-      "description": "Generate premium, conversion-aware website section reference images."
+      "description": "生成网页视觉概念或分区参考图，不承担网页代码实现。"
     },
     {
       "name": "imagen",
       "path": "imagen/SKILL.md",
       "category": "image-generation",
-      "description": "Create high-quality images, graphics, illustrations, posters, diagrams, prompts, or GPT Image generations."
+      "description": "使用 GPT Image 2.5 生成或编辑图像，保存图片与精确提示词。"
     },
     {
       "name": "industrial-brutalist-ui",
       "path": "industrial-brutalist-ui/SKILL.md",
       "category": "frontend-design",
-      "description": "Design raw mechanical, Swiss-print, military-terminal, blueprint-like interfaces."
+      "description": "为用户选择的工业、蓝图或终端式界面设计视觉系统。"
     },
     {
       "name": "infograph",
       "path": "infograph/SKILL.md",
       "category": "course-content",
-      "description": "Generate, review, register, export, and mount per-knowledge-node infographics."
+      "description": "使用 GPT Image 2.5 制作或修订知识节点信息图，并审核、注册与导出。"
     },
     {
       "name": "interactive-design",
       "path": "interactive-design/SKILL.md",
       "category": "course-content",
-      "description": "Author or revise interactive-page.md and interactive-contract.yaml for lessons."
+      "description": "设计或修订课程互动页面蓝图及其机读契约。"
     },
     {
       "name": "interactive-lesson",
       "path": "interactive-lesson/SKILL.md",
       "category": "course-implementation",
-      "description": "Implement or optimize interactive lesson pages from authoring lesson design documents."
+      "description": "依据已批准的课程设计实现互动页面或修复指定课次。"
     },
     {
       "name": "lesson",
       "path": "lesson/SKILL.md",
       "category": "course-content",
-      "description": "Create automatic-control course handouts, knowledge graph nodes, BOPPPS lessons, and multimodal resources."
+      "description": "创作或修订自动控制原理讲义、教案、知识节点及课程媒体。"
     },
     {
       "name": "lesson-content-review",
       "path": "lesson-content-review/SKILL.md",
       "category": "course-content",
-      "description": "Review and repair lesson authoring content, contracts, formulas, media, knowledge cards, and runtime exports."
+      "description": "审查指定课次或指定内容的教学、科学与作者态/runtime 一致性。"
     },
     {
       "name": "minimalist-ui",
       "path": "minimalist-ui/SKILL.md",
       "category": "frontend-design",
-      "description": "Design clean editorial-style interfaces with warm monochrome palettes and muted visual language."
+      "description": "为明确采用极简编辑式风格的界面设计视觉层次。"
     },
     {
       "name": "openspec-apply-change",
       "path": "openspec-apply-change/SKILL.md",
       "category": "openspec",
-      "description": "Implement tasks from an existing OpenSpec change."
+      "description": "根据已有 OpenSpec 变更实施任务并完成相关验证。"
     },
     {
       "name": "openspec-archive-change",
       "path": "openspec-archive-change/SKILL.md",
       "category": "openspec",
-      "description": "Archive a completed OpenSpec change after implementation is complete."
+      "description": "在归档已获授权且实现完成时归档指定 OpenSpec 变更。"
     },
     {
       "name": "openspec-buddy",
@@ -164,79 +164,80 @@
       "name": "openspec-explore",
       "path": "openspec-explore/SKILL.md",
       "category": "openspec",
-      "description": "Enter explore mode to clarify ideas, investigate problems, and refine requirements."
+      "description": "在实现前澄清想法、问题和需求；不自动修改产品代码。"
     },
     {
       "name": "openspec-propose",
       "path": "openspec-propose/SKILL.md",
       "category": "openspec",
-      "description": "Generate a complete OpenSpec change proposal with design, specs, and tasks."
+      "description": "为明确的新变更生成 proposal、design、spec delta 和 tasks。"
     },
     {
       "name": "openspec-sync-specs",
       "path": "openspec-sync-specs/SKILL.md",
       "category": "openspec",
-      "description": "Sync implementation back to main OpenSpec specs."
+      "description": "将指定变更的 delta 合并到主规范，保持其他需求和场景。"
     },
     {
       "name": "openspec-update-change",
       "path": "openspec-update-change/SKILL.md",
       "category": "openspec",
-      "description": "Update an existing OpenSpec change before implementation."
+      "description": "修订已有 OpenSpec 规划工件，使本次决策在相关工件中一致。"
     },
     {
       "name": "openwolf",
       "path": "openwolf/SKILL.md",
       "category": "context",
-      "description": "Follow OpenWolf session protocol using STATUS, anatomy, cerebrum, and buglog."
+      "description": "恢复任务上下文、查询项目历史或维护 OpenWolf 交接记录时使用。"
     },
     {
       "name": "redesign-existing-projects",
       "path": "redesign-existing-projects/SKILL.md",
       "category": "frontend-design",
-      "description": "Upgrade existing websites and apps to premium visual quality without breaking functionality."
+      "description": "审查并改进现有界面的视觉与可用性，保持已授权范围内的功能。"
     },
     {
       "name": "refactor-safely",
       "path": "refactor-safely/SKILL.md",
       "category": "code",
-      "description": "Plan and execute graph-assisted safe refactors with impact estimation and validation."
+      "description": "进行已授权的重命名、移动或职责调整，并核验受影响行为。"
     },
     {
       "name": "refine",
       "path": "refine/SKILL.md",
       "category": "course-content",
-      "description": "Polish automatic-control lesson handouts for student-facing Chinese professional expression."
+      "description": "润色学生讲义的中文表达，保留事实、公式和教学结构。"
     },
     {
       "name": "review-changes",
       "path": "review-changes/SKILL.md",
       "category": "code-review",
-      "description": "Perform graph-assisted, risk-first code review based on actual changed files and snippets."
+      "description": "按指定 diff 或 PR 增量审查当前变更引入的实际缺陷。"
     },
     {
       "name": "server-ops",
       "path": "server-ops/SKILL.md",
       "category": "operations",
-      "description": "Use only for explicit deployment or publication of this project to a server, or tasks that necessarily inspect or change remote server state."
+      "description": "部署本项目，或执行必须访问远端服务器的诊断与运维。"
     },
     {
       "name": "skillopt-sleep",
       "path": "skillopt-sleep/SKILL.md",
       "category": "agents",
-      "description": "Harvest Codex sessions and stage validation-gated improvements to the project-linked openspec-buddy-auto skill."
+      "description": "按用户要求从会话提取 Buddy 技能改进候选并验证，不自动采用。"
     },
     {
       "name": "stitch-design-taste",
       "path": "stitch-design-taste/SKILL.md",
       "category": "frontend-design",
-      "description": "Generate agent-friendly DESIGN.md files for Google Stitch with premium UI standards."
+      "description": "为 Google Stitch 设计任务编写或更新可实施的 DESIGN.md。"
     },
     {
       "name": "syllabus-refactor",
       "path": "syllabus-refactor/SKILL.md",
       "category": "course-design",
-      "description": "Restructure engineering courses, units, lessons, homework architecture, and assessment boundaries."
+      "description": "调整课程、模块、课次或作业架构，并维护已接受的课程蓝图。"
     }
-  ]
+  ],
+  "upstreamLock": "upstream-lock.json"
 }

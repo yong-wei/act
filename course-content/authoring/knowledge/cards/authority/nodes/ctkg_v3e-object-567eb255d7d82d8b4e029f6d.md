@@ -1,50 +1,76 @@
 ---
 node_id: ctkg_v3e-object-567eb255d7d82d8b4e029f6d
 authority_entity_id: "ctkg:v3e-object-567eb255d7d82d8b4e029f6d"
-name: 状态可达
+name: "状态可达"
+name_en: "State Reachability"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-  - 状态可达
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ea8db5929ea2c0e7b6d96f6e8b315f2beb0fe33ffef1f85208072dd7bfbf8026.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ea8db5929ea2c0e7b6d96f6e8b315f2beb0fe33ffef1f85208072dd7bfbf8026.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-03a/previous/ctkg_v3e-object-567eb255d7d82d8b4e029f6d.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: bdc5448b78fe7936ace431201f3c99a0b5428564fe6f8f5fcc638605b97d50b8 -->
-
 ## 首页
+# 状态可达 | State Reachability
 
-# 状态可达
+一句话定义：状态可达表示存在满足所声明条件的输入，能在指定时间区间把零初态转移到某个目标状态。
 
-**一句话定义**：对于式（9－76）所示线性时变系统，若存在能将状态 x(t0)=0 转移到 x(tf)=xf 的控制作用，则称状态 xf 是 t0 时刻可达的。
-
-**核心直觉**：若 xf 对所有时刻都是可达的，则称 xf 为完全可达或一致可达。
-
-**关联**：（权威图邻接待补充）
+- 一个目标可达与全部状态可达不同。
+- 起始时刻、终止时刻和输入约束需明确。
+- 时变系统的可达性不能直接用任意单时刻的定常秩判据代替。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-对于式（9－76）所示线性时变系统，若存在能将状态 x(t0)=0 转移到 x(tf)=xf 的控制作用，则称状态 xf 是 t0 时刻可达的。若 xf 对所有时刻都是可达的，则称 xf 为完全可达或一致可达。若系统对于状态空间中的每一个状态都是时刻 t0 可达的，则称该系统是 t0 时刻状态完全可达的，或简称该系统是 t0 时刻可达的。
+对线性系统，零初态时的终态由输入作用积分决定。一般形式为 $x(t_f)=\int_{t_0}^{t_f}\Phi(t_f,\tau)B(\tau)u(\tau)d\tau$。某个目标向量能由某个容许输入产生，便是在所给区间与条件下可达；所有目标都能产生才是更强的全状态可达性质。
+
+对于连续时间线性定常系统，在通常无幅值约束的输入条件下，可达性与可控性秩判据有紧密关系。一般时变情形还涉及起始时刻与时间区间，不能省略这些参数后把所有“完全”或“一致”术语混作同一意思。
+
+### 教学计算/推理例
+
+取双积分器 $\dot x_1=x_2$、$\dot x_2=u$，初态0，终止时间1，目标为 $(1,0)^T$。选择 $u(t)=6-12t$，可得
+
+$$
+x_2(t)=6t-6t^2,\qquad x_1(t)=3t^2-2t^3.
+$$
+
+在 $t=1$，状态确为 $(1,0)^T$。这个输入在区间内从6变到 $-6$，所以它证明的是本例无幅值限制下的目标可达性；若任务规定 $|u|\le1$，不能继续用这个控制作为满足约束的证据。
+
+相应一秒可达Gramian为 $W=[[1/3,1/2],[1/2,1]]$，行列式为 $1/12>0$，正定，说明该无约束线性模型在该区间可覆盖全部状态方向。目标算例与全状态性质的证据不同：一个具体输入验证前者，满秩或正定条件支持后者。
+
+### 适用条件与边界
+
+可达性结论必须与允许输入集合一致。增加幅值、平滑度或能量限制会改变可达集合；缩短时间也可能使原输入不再满足限制。可达不等于实际所需控制能量小，更不等于已经找到最优输入。
+
+若系统有不可达模态，零初态无法沿这些方向建立状态。非零初态可能在该模态上自由演化，但不能把这种已有状态变化当作输入可达能力。目标状态定义和初态条件需要保持一致。
+
+对时变系统，可达Gramian涉及完整区间内的状态转移与输入矩阵。只看某个时刻B有多少列或某次矩阵秩，通常不足以判断。数值Gramian近奇异时，还应注意尺度与条件数，理论可达与数值可实现精度不可简单等同。
+
+### 常见误区
+
+1. 找到一个目标的控制输入，就宣称所有目标都可达。
+2. 忽略输入幅值限制，将无约束算例当作执行器可实现结果。
+3. 用非零初态自由响应替代从零态的输入可达证明。
+
+### 自检
+
+1. 本例 $u=6-12t$ 在一秒末达到什么状态？
+2. 若增加 $|u|\le1$，原算例是否仍满足输入约束？
+
+**核对要点**：达到 $(1,0)^T$；不满足，其幅值可达6，必须重新求约束下的可达性。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver、状态可达
+- **可控性**（无向，关系：相关）
+- **一致可达**（无向，关系：相关）
+- **状态可控**（无向，关系：相关）

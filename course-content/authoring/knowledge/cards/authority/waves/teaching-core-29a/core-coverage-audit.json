@@ -1,0 +1,223 @@
+{
+  "status": "passed",
+  "plannedCoreExtension": 252,
+  "actualCoreExtension": 252,
+  "initialAcceptedCards": 91,
+  "totalCoreCards": 343,
+  "missingCoreIds": [],
+  "duplicateCoreIds": [],
+  "professionalCandidatesRemaining": 115,
+  "professionalOverlapWithCore": 0,
+  "authoringRuntimeHashMismatches": 0,
+  "scopeSha256": "32ca152e06dc9f7480cc78aad8e8c41330796c2850f111e0ed081e28d48bb204",
+  "professionalCandidatesSha256": "34f8da767a7e1de652da0e369b7b5db8e7b9987348a31d81733c4c900ef73db1",
+  "reviewReceipts": [
+    {
+      "batchId": "teaching-batch-01",
+      "baselineDeliveryEvidence": "README.md",
+      "baselineDeliverySha256": "31ae43f68fd5cfec83f7048fd174bd4472b3172d5942c6ad532ae02a57d54895",
+      "independentReviewReceiptAvailable": false,
+      "cardCount": 12
+    },
+    {
+      "batchId": "teaching-batch-02",
+      "baselineDeliveryEvidence": "README.md",
+      "baselineDeliverySha256": "27668f3a7512886639a3fab5bbc2d571e47d43fe353ccc393722a903fb61be95",
+      "independentReviewReceiptAvailable": false,
+      "cardCount": 12
+    },
+    {
+      "batchId": "teaching-scale-01",
+      "reviewReceiptSha256": "2b384b4a7b7bc01725b4b170c1bd5842e191869308536cf247edd8f256f316f0",
+      "cardCount": 16
+    },
+    {
+      "batchId": "teaching-scale-01b",
+      "reviewReceiptSha256": "46c6d7e57390c8a292c60bd06c5b374a34d4d8e2609612a3afae69295047d01e",
+      "cardCount": 8
+    },
+    {
+      "batchId": "teaching-scale-01d",
+      "reviewReceiptSha256": "6ecd112d2ff317359f206951f4a70b2dc908b44c24265159c934942e2117e3f7",
+      "cardCount": 8
+    },
+    {
+      "batchId": "teaching-scale-01c",
+      "reviewReceiptSha256": "574841649edf718ed12152e83c83a79d959a2a7f140da7868f959e45002d3556",
+      "cardCount": 8
+    },
+    {
+      "batchId": "teaching-scale-01f",
+      "reviewReceiptSha256": "f9df7558955cd5831b37c20c771f39d1b0973088cc4ee28fe9a022665eb70e02",
+      "cardCount": 7
+    },
+    {
+      "batchId": "teaching-scale-01e",
+      "reviewReceiptSha256": "d277fc9cedac18f5601d0c6f4ae2a2f688e2b3e23c4a037a9c3bf116efe93439",
+      "cardCount": 7
+    },
+    {
+      "batchId": "teaching-scale-01h",
+      "reviewReceiptSha256": "338a52b9fbdf9b084922790428021b5a3f0ed57424f5ed3605d147a5d88b80a1",
+      "cardCount": 6
+    },
+    {
+      "batchId": "teaching-scale-01g",
+      "reviewReceiptSha256": "bf1ea9538792fa18f7c0e1410f42d4e047ee61c2b921edafe0d87f08d663deca",
+      "cardCount": 7
+    },
+    {
+      "batchId": "teaching-core-01a",
+      "reviewReceiptSha256": "cee17b3dda677f41e042dae92aa58ff5ecb277e7bc3f73cb71d9aff7b76c56a3",
+      "cardCount": 6
+    },
+    {
+      "batchId": "teaching-core-02a",
+      "reviewReceiptSha256": "a320cdf7ce9d854803185ec09304742d035ea558f89f80923dee9cf80d154844",
+      "cardCount": 8
+    },
+    {
+      "batchId": "teaching-core-04a",
+      "reviewReceiptSha256": "eb16aa5a89894957c6c80fba201df27e7a9109d31f4dd29557b0a8991538ab96",
+      "cardCount": 10
+    },
+    {
+      "batchId": "teaching-core-03a",
+      "reviewReceiptSha256": "c566e5a76eb2d56020c6f150ab43129a7d25b85cbbbc25ce53fd40560e2f1d5d",
+      "cardCount": 6
+    },
+    {
+      "batchId": "teaching-core-06a",
+      "reviewReceiptSha256": "1ad0e303f482963255b491eea6640876deedf174f7c6a55866e8eae9935b81b1",
+      "cardCount": 6
+    },
+    {
+      "batchId": "teaching-core-05a",
+      "reviewReceiptSha256": "e6922e3c18bb52358f76e6765cefd1c6e5fc49944819b331fb896a97f840ade9",
+      "cardCount": 7
+    },
+    {
+      "batchId": "teaching-core-07a",
+      "reviewReceiptSha256": "3280eb95ce30e8cd21868b246c4358cd16344ab92e0f5e09edf5750d882a90df",
+      "cardCount": 6
+    },
+    {
+      "batchId": "teaching-core-09a",
+      "reviewReceiptSha256": "12582de7f09a86c135ab76a20bd50547f408d5217f89cfaa2e92f5b57a244d07",
+      "cardCount": 7
+    },
+    {
+      "batchId": "teaching-core-08a",
+      "reviewReceiptSha256": "4c62282cef3b345da0b56e889046bd17a4c078d7cff659d18817eb1dfe38c919",
+      "cardCount": 9
+    },
+    {
+      "batchId": "teaching-core-10a",
+      "reviewReceiptSha256": "ef0914281d64c883b614a93f3a779a1a19360469607a1c90caf12656b4f98fa7",
+      "cardCount": 9
+    },
+    {
+      "batchId": "teaching-core-11a",
+      "reviewReceiptSha256": "7640b9cc24e0c89c73c030ad8f398fb6131083969a7e8c41fef3d9edd85c29fb",
+      "cardCount": 11
+    },
+    {
+      "batchId": "teaching-core-12a",
+      "reviewReceiptSha256": "e21d00855a50468886c43893c050547dc8939937115b8a4fec185b9bba14d230",
+      "cardCount": 12
+    },
+    {
+      "batchId": "teaching-core-13a",
+      "reviewReceiptSha256": "315809dec02fb0a103c02d4e32f6fc0924814a40fc121ba6f6b24e91a79a0c0c",
+      "cardCount": 6
+    },
+    {
+      "batchId": "teaching-core-14a",
+      "reviewReceiptSha256": "fcdfe78deda4228646bc0c5fc5f26a0b7abba63ea05fd57408462a85840ff5a3",
+      "cardCount": 8
+    },
+    {
+      "batchId": "teaching-core-15a",
+      "reviewReceiptSha256": "c8a2caf947774d7542d134616c59a95d71432ad957ce4941a3c848a99daefe7b",
+      "cardCount": 9
+    },
+    {
+      "batchId": "teaching-core-16a",
+      "reviewReceiptSha256": "f0111d3d98b6cb4623ceb542e222f86e86b904b44f8b9b9530127ea81e5cf8ee",
+      "cardCount": 7
+    },
+    {
+      "batchId": "teaching-core-17a",
+      "reviewReceiptSha256": "9636771c086758b1384e1bfc612d4455887aae2389602edcd29de9f0a712141a",
+      "cardCount": 9
+    },
+    {
+      "batchId": "teaching-core-18a",
+      "reviewReceiptSha256": "f134a3bb5d0b03064548cec1a9bb914b4793b92c29fcb833e14923de59b34b69",
+      "cardCount": 11
+    },
+    {
+      "batchId": "teaching-core-19a",
+      "reviewReceiptSha256": "80387c803596b53e635079e5d6a804d8718f3293b7e8d27ecce2d0bf32396685",
+      "cardCount": 12
+    },
+    {
+      "batchId": "teaching-core-20a",
+      "reviewReceiptSha256": "45ad5fbbaa8d2510b7550a5681782ddf1992e82d754eb336ee1a5a0a1181cebd",
+      "cardCount": 10
+    },
+    {
+      "batchId": "teaching-core-21a",
+      "reviewReceiptSha256": "c301d5db9ff2ac790a31a425690e5631d7d0b02b8b37eae3da8a0fbd63358aab",
+      "cardCount": 11
+    },
+    {
+      "batchId": "teaching-core-22a",
+      "reviewReceiptSha256": "6e1fe57aade782eb52f0ff9fbd3e731c161789420eea399439ccefceb0b69676",
+      "cardCount": 9
+    },
+    {
+      "batchId": "teaching-core-23a",
+      "reviewReceiptSha256": "216dcf90e3aaab5f877541732f8cf916724338c6f6c59cd3be9b8688469c66bc",
+      "cardCount": 7
+    },
+    {
+      "batchId": "teaching-core-24a",
+      "reviewReceiptSha256": "d7411248893612cb51aca930e38a918bf392e6b6d3edb3afb42e17317be184c5",
+      "cardCount": 6
+    },
+    {
+      "batchId": "teaching-core-25a",
+      "reviewReceiptSha256": "99b854bfc226c0e1c070b7ea6aca29b3b9b49f22fd99ce32638031cfa319f801",
+      "cardCount": 9
+    },
+    {
+      "batchId": "teaching-core-26a",
+      "reviewReceiptSha256": "8a0d394ee140dfe04a8fbc5a205bb2b9c5f8fc8c2e1abb694898b83c2d4e20c4",
+      "cardCount": 9
+    },
+    {
+      "batchId": "teaching-core-27a",
+      "reviewReceiptSha256": "9268cefe8b4aa0ddb66543d97fb58bec5a939746604a5ebe6f34fe7392c599cf",
+      "cardCount": 11
+    },
+    {
+      "batchId": "teaching-core-28a",
+      "reviewReceiptSha256": "4bc02ab935378e589dc9b0c81a69dbd9895a2db42d043377b2bc41449e2906a2",
+      "cardCount": 11
+    },
+    {
+      "batchId": "teaching-core-29a",
+      "reviewReceiptSha256": "a848812dcb932380c2f34020923a47b69e332e707daea79175dd0bc676503c04",
+      "cardCount": 10
+    }
+  ],
+  "reviewBoundary": "First24 are the previously delivered baseline without standalone review-acceptance receipts; subsequent319 carry accepted independent review receipts. This audit does not fabricate missing historic review.",
+  "consumptionEvidence": "consumption-verification.json",
+  "consumptionSha256": "cc8c5a2fcece5a8149fc1f73acf76d506b7f81f7f2972050bce896a87cb30a05",
+  "bindingReleaseId": "control-theory-engineering-v0.48-b41",
+  "bindingHash": "336f0c3e2ccdf289daf99976d2b2fa9e04e595bb49e24b7e2ceb578eaac58261",
+  "actualPathCards": 343,
+  "httpCards": 343,
+  "browserRepresentative": "相平面法"
+}

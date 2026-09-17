@@ -1,50 +1,75 @@
 ---
 node_id: ctkg_v3e-object-591e649bbeef70e3da154910
 authority_entity_id: "ctkg:v3e-object-591e649bbeef70e3da154910"
-name: 半稳定极限环
+name: "半稳定极限环"
+name_en: "Semistable Limit Cycle"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - 半稳定极限环
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-9296db426710bc49baeacb9cdcf864d38e10aad94b6710080866b752640b5de3.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-9296db426710bc49baeacb9cdcf864d38e10aad94b6710080866b752640b5de3.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-28a/previous/ctkg_v3e-object-591e649bbeef70e3da154910.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 8ba7413d33650ad5bd284b16ccbc5a1f8e3872ad1794d638a1582cd65248e9fe -->
-
 ## 首页
+# 半稳定极限环 | Semistable Limit Cycle
 
-# 半稳定极限环
+一句话定义：半稳定极限环从一侧吸引邻近轨迹、从另一侧排斥邻近轨迹，不能称为双侧渐近稳定的周期轨道。
 
-**一句话定义**：当 t → ∞ 时，起始于极限环内（外）部的相轨迹卷向极限环，而起始于极限环外（内）部的相轨迹卷离极限环，则这种极限环称为半稳定的极限环。
-
-**核心直觉**：在图谱邻接中可把握：后续 → 极限环。
-
-**关联**：后续 → 极限环
+- “半稳定”描述两侧行为，不表示振幅减半。
+- 需要同时检查环内与环外扰动。
+- 环上运动本身保持周期，并不说明附近两侧都稳定。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-当 t → ∞ 时，起始于极限环内（外）部的相轨迹卷向极限环，而起始于极限环外（内）部的相轨迹卷离极限环，则这种极限环称为半稳定的极限环。
+对于平面孤立周期轨道，可以比较其内侧和外侧的邻近轨迹。如果一侧趋向轨道，而另一侧远离，就称为半稳定极限环。也可能存在相反方向的半稳定情形：外侧吸引、内侧排斥。因此应直接说明哪一侧吸引，而不只给出一个标签。
+
+在光滑自治模型中，判断这种行为可以考察径向方程或适当的返回映射。只计算一次环上的周期，或者只从一侧选择初态进行数值试验，都不足以判断双侧稳定性。
+
+### 教学计算/推理例
+
+取平面系统
+
+$$
+\dot x=(r^2-1)^2x-y,\qquad \dot y=x+(r^2-1)^2y,\qquad r^2=x^2+y^2.
+$$
+
+对 $r>0$，可得 $\dot r=r(r^2-1)^2$、$\dot\theta=1$。在 $r=1$ 上形成周期 $2\pi$ 的圆轨道。对 $0<r<1$，径向速度为正，半径向1增加；接近1时速度趋于0，轨迹渐近趋向圆周。对 $r>1$，径向速度也为正，半径继续增大，离圆周越来越远。
+
+因此该极限环从内侧吸引、从外侧排斥。它不是一个由两侧都恢复到1的稳定极限环。可与 $\dot r=r(1-r^2)$ 比较：后者在外侧为负，而本例在外侧仍为正，这个符号差异决定了不同的稳定类型。
+
+在本例 $r=0.5$ 时径向速度为0.28125；$r=1.1$ 时约为0.04851。虽然两个速度都为正，对内侧意味着接近环，对外侧却意味着远离环。不能仅把“正速度”当作稳定或不稳定的统一判据，还要结合相对位置。
+
+### 适用条件与边界
+
+原点仍是平衡点，径向表达的角度在原点没有通常意义。上述内侧吸引指非零、靠近环的轨迹，不意味着原点也必须运动到环上。外侧排斥说明局部远离，不能未经分析就宣称外侧轨迹趋向另一个特定周期轨道。
+
+本例在环处径向线性化导数为0，单看一阶线性化不能得到吸引或排斥方向；需要保留非线性项的符号。有限时间仿真若初始半径非常接近1，径向变化可能很慢，看似“保持”，仍不等于双侧稳定。
+
+### 常见误区
+
+1. 只从环内模拟得到收敛，就称整个极限环渐近稳定。
+2. 将半稳定误解为振幅一半稳定、另一半振幅不稳定。
+3. 一阶线性化导数为0便断言没有任何稳定性信息。
+
+### 自检
+
+1. 本例从半径0.9与1.1出发，分别接近还是远离极限环？
+2. 两处径向速度都为正，为何稳定性含义不同？
+
+**核对要点**：0.9从内侧趋近1，1.1从外侧远离1；需比较半径变化方向与环所在位置，而非只看正负。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 极限环 | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、半稳定极限环
+- **极限环**（入边，关系：前置于）
+- **极限环**（出边，关系：属于）

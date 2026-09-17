@@ -1,0 +1,218 @@
+{
+  "status": "passed",
+  "method": "SciPy step, lsim, freqresp and NumPy roots",
+  "cardHashes": {
+    "ctc_modeling-865eb1c8824e157c2f05a903": "fe919cdaeb00a4b3dce8ae048e569198c4a389640bded2589b2c3c61133cea97",
+    "ctkg_v3e-canonical-772065f42947b660c72584f3": "b8a322683388f60d82a35f83dcb8e13c84ba114810f7b4f0288d336ed05fd2bc",
+    "ctkg_v3e-canonical-a781b2b377529226a4c5d077": "5e1fcdaf81ce38aacb668ccde2bb62bc3281618fe925012f51f321ede2f97fec",
+    "ctkg_v3e-canonical-8d214840417a4c3b5780c715": "43e2c4de7a216e5f82370ec69d39c0627de3f979d92dd9d7302b155c2277e937",
+    "ctkg_v3e-canonical-504581e399675b9792ab8502": "444175566cac5d4fa2a0b8a7639765f21db6643f24271b94da7c0f2eb337ed4e",
+    "ctkg_v3e-object-1c159c9cc34ce696a62bf837": "3733a2b18304b3f44341c95fd95983e466476fd3c9a47396c1f0848ee6853eab",
+    "ctkg_v3e-object-42f4fff2329a29d38cbcd4bc": "ca1900560d843ea2f33f438d5ee95a18880f076bf7321601f4e11eedbc7bd630",
+    "ctc_v11g-c8c8aef0d010e68842be7236": "9908cebdd874ab8ebcfd8e3301681fa472dbe3b0e96eca5ef8ba9dc81b18a340",
+    "ctkg_v3e-object-68d64f3444ac7af6336f1f81": "b14e583999c3887d306743e2c09a1ebcf878f48672e74c6aac564187b256b4b0",
+    "ctkg_v3e-object-83b0bd3fc503270cb174a500": "04734a71cbb5d6f3a64ff4484a3e915ce3919aa53ab1e88c83260736d198e97d",
+    "ctkg_v3e-object-f9ac171d68c8622f62106397": "478a916986f3ee4d27a7da744c76c15957d4cfa852829fb821f82b63a1b09044",
+    "ctc_v11g-e8d4b4f1c63aa5a052b15538": "da1df20c2ad377ee8f740d2e4d3be22840ccfa425f89cad1d40e45ebaa4cbb4f"
+  },
+  "checks": [
+    {
+      "check": "transfer function: doubled input response at 2 s",
+      "value": 0.6321205588285495,
+      "expected": 0.6321205588285577,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "second order: peak overshoot percent",
+      "value": 16.303352169754426,
+      "expected": 16.30335,
+      "tolerance": 0.001
+    },
+    {
+      "check": "second order: peak time seconds",
+      "value": 1.814,
+      "expected": 1.813799,
+      "tolerance": 0.001
+    },
+    {
+      "check": "system type: ramp error K=10",
+      "value": 0.1999999999998181,
+      "expected": 0.2,
+      "tolerance": 1e-05
+    },
+    {
+      "check": "system type: ramp error K=20",
+      "value": 0.10000000000021458,
+      "expected": 0.1,
+      "tolerance": 1e-05
+    },
+    {
+      "check": "steady error: reference step",
+      "value": 0.20000000000000218,
+      "expected": 0.2,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "steady error: plant-input disturbance step",
+      "value": -0.19999999999999946,
+      "expected": -0.2,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Bode amplitude at 0.1",
+      "value": -0.04321373782642559,
+      "expected": -0.043214,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Bode phase at 0.1",
+      "value": -5.710593137499643,
+      "expected": -5.710593,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Bode amplitude at 1",
+      "value": -3.0102999566398116,
+      "expected": -3.0103,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Bode phase at 1",
+      "value": -45.0,
+      "expected": -45,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Bode amplitude at 10",
+      "value": -20.043213737826427,
+      "expected": -20.043214,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "Bode phase at 10",
+      "value": -84.28940686250036,
+      "expected": -84.289407,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "phase margin: gain crossover amplitude",
+      "value": 1.0,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "phase margin: margin degrees",
+      "value": 45.0,
+      "expected": 45,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "pure delay boundary seconds",
+      "value": 0.7853981633974483,
+      "expected": 0.785398,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "bandwidth: amplitude at 2 rad/s",
+      "value": 0.7071067811865476,
+      "expected": 0.7071067811865475,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "bandwidth: hertz conversion",
+      "value": 0.3183098861837907,
+      "expected": 0.31831,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "integral controller: final output",
+      "value": 1.0000000021531592,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "integral controller: overshoot percent",
+      "value": 16.303352169763087,
+      "expected": 16.30335,
+      "tolerance": 0.001
+    },
+    {
+      "check": "PI: final output",
+      "value": 0.9999999999999569,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "PI: slow pole",
+      "value": -0.38196601125010515,
+      "expected": -0.381966,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "PI: fast pole",
+      "value": -2.618033988749895,
+      "expected": -2.618034,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "PI: unit ramp error",
+      "value": 1.0000000000036664,
+      "expected": 1,
+      "tolerance": 1e-05
+    },
+    {
+      "check": "lead: amplitude at peak phase",
+      "value": 2.0,
+      "expected": 2,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "lead: peak phase",
+      "value": 36.86989764584403,
+      "expected": 36.869898,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "lag: amplitude at 1 rad/s",
+      "value": 1.0047866248788277,
+      "expected": 1.004787,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "lag: phase at 1 rad/s",
+      "value": -4.56483029932454,
+      "expected": -4.56483,
+      "tolerance": 1e-05
+    },
+    {
+      "check": "lag: decibels at 1 rad/s",
+      "value": 0.0414769072417777,
+      "expected": 0.041478,
+      "tolerance": 1e-05
+    },
+    {
+      "check": "root locus K=2: real part",
+      "value": -0.9999999999999998,
+      "expected": -1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "root locus K=2: imaginary magnitude",
+      "value": 0.9999999999999998,
+      "expected": 1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "root locus K=4: real part",
+      "value": -0.9999999999999999,
+      "expected": -1,
+      "tolerance": 1e-06
+    },
+    {
+      "check": "root locus K=4: imaginary magnitude",
+      "value": 1.732050807568877,
+      "expected": 1.7320508075688772,
+      "tolerance": 1e-06
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "status": "superseded-by-verify-models.py",
+  "motor": {
+    "assumptions": [
+      "忽略电枢电感",
+      "零初始转速",
+      "无外加负载转矩",
+      "参数常值"
+    ],
+    "Ra": 2.0,
+    "J": 0.5,
+    "b": 0.1,
+    "Kb": 0.5,
+    "Km": 0.5,
+    "voltage": 4.0,
+    "tau": 2.2222222222222223,
+    "steadySpeed": 4.444444444444445,
+    "speedAtTau": 2.809424705904701,
+    "odeResidualChecked": true
+  },
+  "itae": {
+    "model": "T dy/dt + y = u, zero initial state, unit step",
+    "T": 2,
+    "error": "exp(-t/2)",
+    "infiniteHorizonITAE": 4,
+    "derivation": "integral_0^infinity t exp(-t/T) dt = T^2"
+  },
+  "secondOrder": {
+    "model": "y_ddot + 2*zeta*wn*y_dot + wn^2*y = wn^2*u",
+    "assumptions": [
+      "零初始状态",
+      "单位阶跃",
+      "无零点",
+      "单位静态增益"
+    ],
+    "zeta": 0.6,
+    "wn": 4.0,
+    "overshootPercent": 9.478022484215485,
+    "peakTime": 0.9817477042468103,
+    "twoPercentEnvelopeUpperBound": 1.7229860653093152
+  },
+  "notIndependentReview": true
+}

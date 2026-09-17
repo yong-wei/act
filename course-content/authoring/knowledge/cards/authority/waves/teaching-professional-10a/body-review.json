@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "reviewer": "/root/review_professional10",
+  "role": "simulation-domain-reviewer",
+  "scope": "seven authored bodies and frozen source/model evidence; materialization pending",
+  "sourceInventorySha256": "3a7b7ffdc75a44f89c8cabb7b38d2b8ae88b2f427d93622c4cc8235fe6213df5",
+  "bodyHashes": {
+    "01.md": "42b26a48095a87af141e457ea2084d6f7f89a9a949177c7feb8a0fa75bd4527c",
+    "02.md": "15067084b25cac38c7e1390dc6e613d59957702ffa35a999d625a89a466575c8",
+    "03.md": "e27e8321a2ade8044e16a9949bfaf6151425c9426324fb45268a6a88f23e30f3",
+    "04.md": "8d65cb87e93a5bcd5edf97212ab0c8a96312a385baa1d020d989430f46feb652",
+    "05.md": "cc0a6cdf1fba9140d8acc3de2ff53b774e32a2037324520fdfe76facdb4f7fd5",
+    "06.md": "eb12b0fa93dd3aabca4c2c339ba3335cd0a72d5553b966c2c3d3d3fd33bdcad2",
+    "07.md": "2f305103ef581b99c6e515ccd1c8ee8c2918e70abc44d2f98b8d4db3631cecc7"
+  },
+  "findings": [],
+  "mechanicalRereview": "Required section heading renamed; original reviewer verified inverse replacement reconstructs reviewed bytes."
+}

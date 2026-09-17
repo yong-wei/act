@@ -1,0 +1,159 @@
+{
+  "status": "passed",
+  "stage": "models-before-authoring",
+  "models": {
+    "proportional": {
+      "plant": "1/(s+1)",
+      "controller": "Kp",
+      "negativeUnityFeedback": true,
+      "cases": [
+        {
+          "Kp": 1.0,
+          "finalOutput": 0.5,
+          "steadyError": 0.5,
+          "timeConstant": 0.5,
+          "initialControl": 1.0
+        },
+        {
+          "Kp": 3.0,
+          "finalOutput": 0.75,
+          "steadyError": 0.25,
+          "timeConstant": 0.25,
+          "initialControl": 3.0
+        }
+      ]
+    },
+    "pi_trials": {
+      "plant": "1/(s+1)",
+      "states": "y_dot=-y+Kp*(1-y)+Ki*z; z_dot=1-y",
+      "zeroInitialState": true,
+      "cases": [
+        {
+          "Kp": 1.0,
+          "Ki": 1.0,
+          "Ti": 1.0,
+          "t50": 0.6931471805599452,
+          "twoPercentSettling": 3.912023005428145,
+          "initialControl": 1.0,
+          "finalOutput": 1,
+          "finalControl": 1
+        },
+        {
+          "Kp": 2.0,
+          "Ki": 1.0,
+          "Ti": 2.0,
+          "t50": 0.38845022352805736,
+          "twoPercentSettling": 6.875200143735638,
+          "initialControl": 2.0,
+          "finalOutput": 1,
+          "finalControl": 1
+        }
+      ],
+      "boundary": "finite candidate comparison; earlier t50 need not imply shorter settling time"
+    },
+    "integral": {
+      "controller": "1/s",
+      "plant": "1/(s+1)",
+      "closedTransfer": "1/(s^2+s+1)",
+      "stateRuleExample": {
+        "Ki": 2,
+        "initialControl": 0.5,
+        "constantError": 0.25,
+        "duration": 4,
+        "finalControl": 2.5
+      },
+      "boundary": "integrator output persists when error becomes zero; closed-loop behavior depends on plant"
+    },
+    "pd": {
+      "error": "e(t)=t for t>=0",
+      "Kp": 2,
+      "Kd": 0.5,
+      "idealControl": "2t+0.5 for t>0",
+      "filteredDerivative": "0.5s/(1+0.1s)",
+      "filteredControl": "2t+0.5(1-exp(-10t))",
+      "boundary": "ramp error avoids a derivative impulse; a step error would produce an impulse for ideal D"
+    },
+    "equivalent_gain": {
+      "nonlinearity": "clip(2x,-1,1)",
+      "cases": [
+        {
+          "x": 0.25,
+          "ratio": 2,
+          "incrementalSlope": 2
+        },
+        {
+          "x": 1,
+          "ratio": 1,
+          "incrementalSlope": 0
+        }
+      ],
+      "atZero": "ratio undefined; this particular continuous extension is 2",
+      "boundary": "static secant gain, not incremental gain or a describing function"
+    },
+    "integral_augmentation": {
+      "plant": "x_dot=-x+u; y=x",
+      "integralState": "z_dot=r-x",
+      "control": "u=-x+z",
+      "reference": "unit step",
+      "zeroInitialState": true,
+      "Aclosed": [
+        [
+          -2,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "output": "1-(1+t)exp(-t)",
+      "z": "2-(t+2)exp(-t)",
+      "controlResponse": "1-exp(-t)",
+      "boundary": "reference enters the integral state only; not identical to proportional action on reference error"
+    },
+    "zn_tuning": {
+      "plant": "1/((s+1)(s+2)(s+3))",
+      "method": "ultimate gain, P only for boundary calculation",
+      "Ku": 60.0,
+      "Pu": 1.8944516501989659,
+      "idealForm": "Kp(1+1/(Ti*s)+Td*s)",
+      "Kp": 36.0,
+      "Ti": 0.9472258250994829,
+      "Td": 0.23680645627487074,
+      "Ki": 38.005720543165175,
+      "Kd": 8.525032425895347,
+      "closedCharacteristic": [
+        1,
+        6,
+        19.525032425895347,
+        42.0,
+        38.005720543165175
+      ],
+      "closedPoles": [
+        [
+          -0.7723278572223109,
+          2.669010354654512
+        ],
+        [
+          -0.7723278572223109,
+          -2.669010354654512
+        ],
+        [
+          -2.4265951243768917,
+          0.0
+        ],
+        [
+          -2.028749161178482,
+          0.0
+        ]
+      ],
+      "boundary": "strictly stable plant; ideal derivative and nominal model only, not actual actuator/performance assurance"
+    },
+    "proportional_units": {
+      "perDegree": 2,
+      "perRadian": 114.59155902616465,
+      "errorDegrees": 30,
+      "control": 60
+    }
+  }
+}

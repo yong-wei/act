@@ -1,0 +1,71 @@
+{
+  "status": "passed",
+  "models": {
+    "integral_inverse": {
+      "order": 2,
+      "phi": 2,
+      "initialPlantAndInverseStates": [
+        0,
+        0
+      ],
+      "output": "t^2",
+      "outputDerivative": "2*t",
+      "input": "2+t^2+8*t^3",
+      "checkedInterval": [
+        0,
+        1
+      ]
+    },
+    "strict_impedance": {
+      "Z": "1+1/(s+1)",
+      "uniformDelta": 0.5,
+      "realPart": "1+1/(1+omega^2)",
+      "storage": "x^2/2",
+      "powerMinusStorageDerivative": "x^2+i^2",
+      "contrast": "1/(s+1) has real part tending to zero despite being SPR"
+    },
+    "sector_shift": {
+      "originalSector": [
+        2,
+        3
+      ],
+      "residualSector": [
+        0,
+        1
+      ],
+      "phi": "2*y+tanh(y)",
+      "residual": "tanh(y)",
+      "originalG": "1/(s+1)",
+      "shiftedH": "1/(s+3)",
+      "equivalentDynamics": "ydot=r-3*y-tanh(y)"
+    },
+    "anti_windup": {
+      "plant": "ydot=-y+u",
+      "saturation": [
+        -1,
+        1
+      ],
+      "Kp": 2,
+      "Ki": 1,
+      "backCalculationGain": 2,
+      "referenceBeforeSwitch": 2,
+      "switchTime": 5,
+      "newReference": 0,
+      "withoutStateAtSwitch": [
+        0.9932620529982928,
+        5.993262052998292
+      ],
+      "withStateAtSwitch": [
+        0.9932620529998724,
+        -0.52005494124451
+      ],
+      "withoutRequestedControlAfterSwitch": 4.006737947001706,
+      "withRequestedControlAfterSwitch": -2.5065790472442546,
+      "withoutAppliedControlAfterSwitch": 1,
+      "withAppliedControlAfterSwitch": -1,
+      "saturatedBranchMinimumVWithAW": "10/7",
+      "scope": "actual closed-loop pre-switch trajectory and instantaneous switch response; no universal stability/overshoot claim"
+    }
+  },
+  "proofLimits": "Original private M1S source-span package and original scan are unavailable; current source section hashes and reconstructed public evidence refs match. Strict impedance follows Franklin uniform real-part bound, not every SPR transfer."
+}

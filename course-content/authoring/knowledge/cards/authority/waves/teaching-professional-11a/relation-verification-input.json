@@ -1,0 +1,121 @@
+{
+  "cards": [
+    {
+      "canonicalId": "m1r-v1d:object:608d47a12a8256a1112eb48a",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:3c9b67e6f73e5184c7446e6c",
+          "otherId": "ctkg:m3-v2m:source-object:986a0736dc2b06ddf1e785c9",
+          "label": "鲁棒设计方法",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **鲁棒设计方法**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+          "otherId": "ctkg:m3-v2k:canonical-object:333b4eccaaba394db05c3cc8",
+          "label": "鲁棒控制系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **鲁棒控制系统**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2k:canonical-object:333b4eccaaba394db05c3cc8",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:d6a31cb3c2b64eadb8ef630b",
+          "otherId": "m1r-v1d:object:608d47a12a8256a1112eb48a",
+          "label": "鲁棒性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **鲁棒性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:11ea291c5f6042e5356920c9",
+          "otherId": "ctc:v11g-69118dc66489d66b1732901b",
+          "label": "闭环传递函数",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **闭环传递函数**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:d6788adbc3a367ea766d886c",
+          "otherId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+          "label": "PID控制器",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **PID控制器**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "m1r-v1d:object:8f2bac90326190686226cb4f",
+      "relations": [
+        {
+          "relationId": "m1r-v1d:relation:917cab47b16cc6ebb6dc3ac8",
+          "otherId": "m1r-v1d:object:5e7c46bea018afa07796ef9b",
+          "label": "鲁棒控制系统设计",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **鲁棒控制系统设计**（入边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "m1r-v1d:object:b4cb5e69761b0992e65f3ff0",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:e2a4ad34f68ec46283bdc9eb",
+          "otherId": "ctc:modeling-227e674315b4da2f1a20ee31",
+          "label": "动态系统",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **动态系统**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:ef5cd0dea813c53d316e6d85",
+          "otherId": "ctc:modeling-c343400ab0cc996416d5a18a",
+          "label": "系统建模简化假设",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **系统建模简化假设**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "m1r-v1d:object:74fdaac2c48ad74c777df6e0",
+      "relations": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:3f3cc3150db61a94045611e8",
+      "relations": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:7523b6b72a42df094b083b19",
+      "relations": []
+    },
+    {
+      "canonicalId": "m1r-v1d:object:b31611f788fa831ff4685e14",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:is_a:cef9e96b3b35756f5cf0828b",
+          "otherId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+          "label": "稳定性",
+          "predicate": "is_a",
+          "direction": "source_to_target",
+          "renderedLine": "- **稳定性**（出边，关系：属于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:935e65310766901c0783a883",
+          "otherId": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+          "label": "相对稳定性",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **相对稳定性**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

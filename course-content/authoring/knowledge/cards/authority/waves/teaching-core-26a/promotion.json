@@ -1,0 +1,16 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 9,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b37",
+  "retiredResources": [
+    "act:card:非最小相位环节_5_f40c2785",
+    "act:card:奈奎斯特稳定判据_5_a1b34560",
+    "act:card:奈奎斯特稳定判据_奈氏判据__5_0355b06b",
+    "act:card:最小相位系统_5_89cbd2f0",
+    "act:card:最小相位系统_6_d74d6ebe",
+    "act:card:最小相位典型环节_5_2a7020fd",
+    "act:card:最小相位环节_5_b749dc72",
+    "act:card:非最小相位系统_4_65f682ce",
+    "act:card:非最小相位系统_5_02634a20"
+  ]
+}

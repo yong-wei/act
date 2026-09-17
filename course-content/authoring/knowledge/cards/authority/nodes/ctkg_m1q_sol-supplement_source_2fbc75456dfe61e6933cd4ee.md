@@ -1,0 +1,80 @@
+---
+node_id: ctkg_m1q_sol-supplement_source_2fbc75456dfe61e6933cd4ee
+authority_entity_id: "ctkg:m1q:sol-supplement:source:2fbc75456dfe61e6933cd4ee"
+name: "权阵 R(t)"
+name_en: "Control Weight Matrix"
+category: 概念性
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+coneightt_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
+source_docs:
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-ad05363c96d166dd66832c17fb3630439f81651b3042dfd02201dc3635778d4e.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-ad05363c96d166dd66832c17fb3630439f81651b3042dfd02201dc3635778d4e.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-07a/supporting-source-inventory.json"
+asset_refs: []
+---
+
+## 首页
+# 权阵 R(t) | Control Weight Matrix
+
+一句话定义：权阵R(t)规定二次型性能指标中各输入方向及其组合的代价，表达对控制使用量的评价偏好。
+
+- 标准无约束LQR通常要求R对称正定。
+- 增大输入代价不等于施加硬幅值限制。
+- 改变R后比较的是不同性能指标。
+
+---
+## 详情
+### 完整解释
+
+在二次型指标中，控制部分常写为 $\frac12\int u^TR(t)u\,dt$。R的维数与输入向量一致。对称正定使所有非零输入方向都具有严格正代价，也使标准反馈公式中对R求逆有意义。非对角元素描述输入之间的交叉项，其符号不能单独判断整个矩阵是否正定。
+
+R可以随时间变化，用于表达不同阶段的控制使用偏好；常值矩阵是它的特殊情形。矩阵的数值还与输入量纲和归一化有关。不同执行器通道的尺度差异应在评价设计时处理，不能仅按数字大小判断哪个物理输入被“更重地处罚”。
+
+### 教学计算/推理例
+
+取标量积分器 $\dot x=u$，初态为1，在无限时域上最小化
+
+$$
+J=\frac12\int_0^\infty(4x^2+ru^2)\,dt,\qquad r>0.
+$$
+
+这里R=r、Q=4。稳定的Riccati解满足 $-P^2/r+4=0$，故 $P=2\sqrt r$；反馈为 $u=-Kx$，其中 $K=P/r=2/\sqrt r$。闭环状态为 $x=e^{-Kt}$，代价为P/2。
+
+r=1时，P=2、K=2，状态按 $e^{-2t}$ 衰减，初始输入为-2，最小成本为1。r=4时，P=4、K=1，状态按 $e^{-t}$ 衰减，初始输入为-1，最小成本为2。增大输入权重后，本例反馈更缓，初始控制幅度降低，但最小成本的数值反而变大，因为评判指标本身也改变了。
+
+还可分别计算两部分成本。r=1时，状态部分与控制部分各为1/2；r=4时，它们各为1。不能据此说第二个最优方案“性能一定更差”，因为两个数值来自不同权重体系。比较工程方案时，需要明确评价的是响应速度、实际输入量还是某个统一成本。
+
+### 权重与约束的区别
+
+若执行器要求 $|u|\leq1$，r=1、初态1时的无约束反馈起点就超限。即使本例r=4恰好在这个初态下满足幅值限制，也不能保证更大初态仍满足：初态2时起始输入为-2。二次输入成本只是软评价，不是自动执行的饱和约束。
+
+需要硬上限时，应在允许输入集合中明确写出，并核验受约束问题。直接对无约束LQR结果截幅会改变闭环与最优性结论，不能把截幅后的控制仍称为原问题的精确最优解。
+
+### 适用条件与边界
+
+上述“r增大使K变小”是这个标量积分器的明确计算结果，不能直接推广为多变量系统中每个增益元素都逐项减小。多变量输入耦合、状态权重与系统结构会共同影响矩阵解。
+
+若R只有半正定，某些输入方向没有严格代价，标准求逆公式不再直接适用，需要研究相应的奇异问题或其他条件。时变R也应满足所用定理的正定、正则性及有界性要求，而不是只在有限采样点上观察到正数就认为理论条件成立。
+
+### 常见误区
+
+1. 把输入平方惩罚当作硬幅值上限。
+2. 改变R后直接比较两个最小成本，忽略指标已改变。
+3. 将标量增益的单调变化推广到所有矩阵元素。
+
+### 自检
+
+1. r从1变4后，本例K如何变化？
+2. r=4为何仍不能保证任意初态下输入不超过1？
+
+**核对要点**：K从2变为1；反馈幅值还取决于状态，初态2时输入幅值就是2。
+
+### 关联节点
+
+本卡的结论可由上述定义与计算例独立复核。

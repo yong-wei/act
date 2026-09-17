@@ -1,0 +1,8 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 7,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b34",
+  "retiredResources": [
+    "act:card:误差全补偿条件_6_e4f909f0"
+  ]
+}

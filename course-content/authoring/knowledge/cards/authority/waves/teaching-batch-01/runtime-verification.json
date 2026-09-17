@@ -1,0 +1,174 @@
+{
+  "status": "passed",
+  "localRuntimeActive": true,
+  "serverPublished": false,
+  "bindingReleaseId": "control-theory-engineering-v0.48-b2",
+  "bindingHash": "00ded6aafb976ae86bb031d6d867df3f56dfb65f218e31ee936f7f8c9a1907ed",
+  "newCards": [
+    {
+      "name": "传递函数",
+      "resourceId": "act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "二阶系统",
+      "resourceId": "act:card:ctkg_v3e-canonical-772065f42947b660c72584f3",
+      "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "系统型别",
+      "resourceId": "act:card:ctkg_v3e-canonical-a781b2b377529226a4c5d077",
+      "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "稳态误差",
+      "resourceId": "act:card:ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "伯德图",
+      "resourceId": "act:card:ctkg_v3e-canonical-504581e399675b9792ab8502",
+      "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "相角裕度",
+      "resourceId": "act:card:ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+      "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "系统带宽",
+      "resourceId": "act:card:ctkg_v3e-object-42f4fff2329a29d38cbcd4bc",
+      "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "积分控制器",
+      "resourceId": "act:card:ctc_v11g-c8c8aef0d010e68842be7236",
+      "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "PI控制器",
+      "resourceId": "act:card:ctkg_v3e-object-68d64f3444ac7af6336f1f81",
+      "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "超前补偿",
+      "resourceId": "act:card:ctkg_v3e-object-83b0bd3fc503270cb174a500",
+      "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "串联滞后校正",
+      "resourceId": "act:card:ctkg_v3e-object-f9ac171d68c8622f62106397",
+      "canonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+      "executable": true,
+      "recommendable": true
+    },
+    {
+      "name": "根轨迹法",
+      "resourceId": "act:card:ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "executable": true,
+      "recommendable": true
+    }
+  ],
+  "retiredResources": 21,
+  "deletedFiles": 42,
+  "unchangedOtherBindings": 9408,
+  "rebuildHashMatches": true,
+  "presetGoals": [
+    {
+      "goalId": "control-correction",
+      "missingTargetIds": [],
+      "batchCards": [
+        "传递函数",
+        "超前补偿"
+      ]
+    },
+    {
+      "goalId": "frequency-response-foundations",
+      "missingTargetIds": [
+        {
+          "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+          "label": "频率响应"
+        }
+      ],
+      "batchCards": [
+        "传递函数",
+        "伯德图"
+      ]
+    },
+    {
+      "goalId": "feedback-loop-concept-foundations",
+      "missingTargetIds": [],
+      "batchCards": []
+    },
+    {
+      "goalId": "transfer-function-modeling-foundations",
+      "missingTargetIds": [],
+      "batchCards": [
+        "传递函数"
+      ]
+    },
+    {
+      "goalId": "time-domain-response-analysis",
+      "missingTargetIds": [
+        {
+          "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+          "label": "超调量"
+        },
+        {
+          "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+          "label": "稳态误差"
+        }
+      ],
+      "batchCards": []
+    },
+    {
+      "goalId": "root-locus-analysis-foundations",
+      "missingTargetIds": [
+        {
+          "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+          "label": "根轨迹"
+        }
+      ],
+      "batchCards": []
+    },
+    {
+      "goalId": "stability-margin-frequency-analysis",
+      "missingTargetIds": [],
+      "batchCards": [
+        "传递函数",
+        "相角裕度"
+      ]
+    },
+    {
+      "goalId": "simulation-validation-practice",
+      "missingTargetIds": [],
+      "batchCards": []
+    },
+    {
+      "goalId": "ship-ocean-transfer-application",
+      "missingTargetIds": [],
+      "batchCards": []
+    }
+  ]
+}

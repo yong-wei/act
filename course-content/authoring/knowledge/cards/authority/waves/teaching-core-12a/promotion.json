@@ -1,0 +1,18 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 12,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b23",
+  "retiredResources": [
+    "act:card:阻尼振荡频率_3_13002",
+    "act:card:峰值时间_3_adc7ea95",
+    "act:card:调节时间_10_fcbccf4e",
+    "act:card:调节时间_3_bc329c21",
+    "act:card:调节时间_6_c53f6314",
+    "act:card:上升时间_3_6fa0ec00",
+    "act:card:临界阻尼响应_3_5839e0e4",
+    "act:card:稳态过程_3_6d95ec21",
+    "act:card:过阻尼二阶系统_3_e7258e8f",
+    "act:card:过阻尼响应_3_adf3867e",
+    "act:card:动态过程_3_8a8051ec"
+  ]
+}

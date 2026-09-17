@@ -1,0 +1,210 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "relations": [
+        {
+          "relationId": "m1h:relation-fcb8ada2085ba643cda18ef4",
+          "otherId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+          "label": "实验频率响应测定",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "relativeDirection": "入边",
+          "renderedLine": "- **实验频率响应测定**（入边，关系：用于分析）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:7286dc8ec3ae25d970b0a177",
+          "otherId": "ctc:modeling-91ba2fdc8dde496250e3fd3a",
+          "label": "幅相频率特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "relativeDirection": "无向",
+          "renderedLine": "- **幅相频率特性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-4c57ce09b87a95554f2de394",
+          "otherId": "ctkg:v3e-object-4a235944f67a06a4209d2422",
+          "label": "伯德图技术",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "relativeDirection": "入边",
+          "renderedLine": "- **伯德图技术**（入边，关系：用于分析）"
+        },
+        {
+          "relationId": "m1h:relation-f70cae13613cac9256568e0d",
+          "otherId": "ctkg:v3e-object-9acaab765d45527c6988c564",
+          "label": "极坐标图",
+          "predicate": "has_representation",
+          "direction": "source_to_target",
+          "relativeDirection": "出边",
+          "renderedLine": "- **极坐标图**（出边，关系：有表示）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "relations": [
+        {
+          "relationId": "m1h:relation-3762ad927cf0684b4808aecf",
+          "otherId": "ctkg:v3e-object-de873c97a924107857f79242",
+          "label": "幅频特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "relativeDirection": "无向",
+          "renderedLine": "- **幅频特性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-eee0dc5939a000dc427b60d1",
+          "otherId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+          "label": "相频特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "relativeDirection": "无向",
+          "renderedLine": "- **相频特性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-4979a3fe30109a3144adf4af",
+          "otherId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+          "label": "频率特性实验确定方法",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "relativeDirection": "入边",
+          "renderedLine": "- **频率特性实验确定方法**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:20ddb6c7f9d49ea6e25ad1ea",
+          "otherId": "ctkg:v3e-object-42df8c524c1d9b3e8ae03275",
+          "label": "期望的开环频率特性形状",
+          "predicate": "association",
+          "direction": "unordered",
+          "relativeDirection": "无向",
+          "renderedLine": "- **期望的开环频率特性形状**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-fa94fa23235c22c840d76c7f",
+          "otherId": "ctkg:v3e-object-c39d1d0090637db4b51bde73",
+          "label": "绘制概略开环幅相特性曲线方法",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "relativeDirection": "入边",
+          "renderedLine": "- **绘制概略开环幅相特性曲线方法**（入边，关系：用于分析）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+      "relations": [
+        {
+          "relationId": "m1h:relation-480164c22e8e7d5c725f68a9",
+          "otherId": "ctkg:v3e-object-78558546607d8234fb2ce368",
+          "label": "周期信号的频谱",
+          "predicate": "association",
+          "direction": "unordered",
+          "relativeDirection": "无向",
+          "renderedLine": "- **周期信号的频谱**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-e693407c3c24975c7442b5b7",
+          "otherId": "ctkg:v3e-object-c5da49c227baa4c84f442efa",
+          "label": "周期信号的幅值谱为一簇谱线，随频率增大包络线衰减",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "relativeDirection": "入边",
+          "renderedLine": "- **周期信号的幅值谱为一簇谱线，随频率增大包络线衰减**（入边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+      "relations": [
+        {
+          "relationId": "m1h:relation-3762ad927cf0684b4808aecf",
+          "otherId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+          "label": "频率特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "relativeDirection": "无向",
+          "renderedLine": "- **频率特性**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-ff7e50937f63eded0669b785",
+          "otherId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+          "label": "相频特性",
+          "predicate": "association",
+          "direction": "unordered",
+          "relativeDirection": "无向",
+          "renderedLine": "- **相频特性**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:29a58971ef7214a158948e44",
+          "otherId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+          "label": "稳态响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "relativeDirection": "无向",
+          "renderedLine": "- **稳态响应**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-8ac61e417aa94d4f77f32aad",
+          "otherId": "ctkg:v3e-object-3ede6055b0d6c0cf75f44e89",
+          "label": "自然无激励响应",
+          "predicate": "association",
+          "direction": "unordered",
+          "relativeDirection": "无向",
+          "renderedLine": "- **自然无激励响应**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-1c31d2ea1929eff03759a6eb",
+          "otherId": "ctkg:v3e-object-d8a329f3a5864086f274785c",
+          "label": "在jω轴上计算G(s)有助于判定闭环稳定性，因为jω轴是稳定与不稳定的分界线。",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "relativeDirection": "入边",
+          "renderedLine": "- **在jω轴上计算G(s)有助于判定闭环稳定性，因为jω轴是稳定与不稳定的分界线。**（入边，关系：用于分析）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "relations": [
+        {
+          "relationId": "m1h:relation-fcb8ada2085ba643cda18ef4",
+          "otherId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+          "label": "频率响应",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "relativeDirection": "出边",
+          "renderedLine": "- **频率响应**（出边，关系：用于分析）"
+        },
+        {
+          "relationId": "m1h:relation-703877fc4d070ba69075c3fc",
+          "otherId": "ctkg:v3e-object-4560252fd8979f3d44aed7bf",
+          "label": "通过改变频率的正弦信号激励系统以实验测定频率响应幅值和相位的步骤。",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "relativeDirection": "入边",
+          "renderedLine": "- **通过改变频率的正弦信号激励系统以实验测定频率响应幅值和相位的步骤。**（入边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+      "relations": [
+        {
+          "relationId": "m1h:relation-4979a3fe30109a3144adf4af",
+          "otherId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+          "label": "频率特性",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "relativeDirection": "出边",
+          "renderedLine": "- **频率特性**（出边，关系：适用于）"
+        }
+      ]
+    }
+  ]
+}

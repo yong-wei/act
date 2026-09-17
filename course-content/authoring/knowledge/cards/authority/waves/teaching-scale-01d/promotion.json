@@ -1,0 +1,13 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 8,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b6",
+  "retiredResources": [
+    "act:card:静态加速度误差系数_3_74752b9d",
+    "act:card:叠加原理_2_dda8499e",
+    "act:card:部分分式展开_7_d822352e",
+    "act:card:拉普拉斯变换_2_c635236f",
+    "act:card:拉氏变换_1_2",
+    "act:card:拉氏变换_2_243496d4"
+  ]
+}

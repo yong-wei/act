@@ -1,47 +1,72 @@
 ---
 node_id: ctkg_v3e-object-eb888786c5eb738a65d705f7
 authority_entity_id: "ctkg:v3e-object-eb888786c5eb738a65d705f7"
-name: Stabilizability
+name: "可镇定"
+name_en: "Stabilizability"
 category: 概念性
-batch: B
-release_tier: silver
-tags:
-  - silver
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-80cdf82cc03bf9cc19d5d54c3b8b50f877f04ee0ec5b01c0150f0b8adb97c2e9.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-80cdf82cc03bf9cc19d5d54c3b8b50f877f04ee0ec5b01c0150f0b8adb97c2e9.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-professional-04a/previous/ctkg_v3e-object-eb888786c5eb738a65d705f7.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 436d8b46088933305a8effe063c90d09efa3969804dbeda132f7861e74b08def -->
-
 ## 首页
+# 可镇定 | Stabilizability
 
-# Stabilizability
+一句话定义：连续时间线性定常系统可镇定，是指存在状态反馈使闭环渐近稳定，等价于所有不可控模态本身都严格稳定。
 
-**一句话定义**：Stabilizability：A system is stabilizable if the states (or linear combinations thereof) that cannot be controlled are inherently stable.
-
-**关联**：（权威图邻接待补充）
+- 可镇定比完全可控要求弱。
+- 连续时间需检查实部非负的全部特征值。
+- 不可控的临界稳定模态也可能阻止渐近镇定。
 
 ---
-
 ## 详情
-
 ### 完整解释
 
-A system is stabilizable if the states (or linear combinations thereof) that cannot be controlled are inherently stable.
+对于 $\dot x=Ax+Bu$，可镇定性询问是否存在K，使 $A-BK$ 的全部特征值实部严格小于零。完全可控的系统能够任意配置极点，当然可镇定；但即使存在不可控状态方向，只要这些方向对应的动态已经渐近稳定，也仍可能通过控制其余部分稳定整个系统。
+
+这里“稳定”采用连续时间渐近稳定的严格含义。不可控模态位于虚轴时，即使某些初值不会发散，也不能据此断言存在反馈使所有状态趋于零。反馈无法改变的零极点或纯虚极点，需要单独识别，不能只排查实部为正的模态。
+
+### 教学计算/推理例
+
+令 $A=\operatorname{diag}(1,-2)$、$B=[1,0]^T$。可控性矩阵为 $[B\ AB]=[[1,1],[0,0]]$，秩为1，所以该二阶系统不完全可控。但第二状态满足 $\dot x_2=-2x_2$，任意初值均按 $e^{-2t}$ 衰减。
+
+取 $u=-3x_1$，即 $K=[3,0]$，得到 $A-BK=\operatorname{diag}(-2,-2)$。第一状态原来的不稳定极点1被移到-2，第二状态无需控制即可稳定。因此该系统不可控，却可镇定。这个例子表明，稳定任务不要求把所有模态都移动到任意指定位置。
+
+若把第二个对角元改为2，第二状态变成 $\dot x_2=2x_2$。无论K如何选择，该状态方程都不接受输入，非零初值会指数增长；此时系统不可镇定。若第二个对角元改为0，第二状态保持其初值，同样无法通过输入使所有初始状态趋于零。
+
+### 判据与推理
+
+连续时间PBH可镇定判据为：对A的每个满足 $\operatorname{Re}\lambda\geq0$ 的特征值，矩阵 $[\lambda I-A\ B]$ 都应具有行秩n，秩在复数域上判断。与完全可控判据相比，这里只要求所有非严格稳定模态可控，不要求已经严格稳定的模态也可控。
+
+第一组例子在不稳定特征值1处得到 $[[0,0,1],[0,3,0]]$，行秩为2。特征值-2处秩不满不影响可镇定结论。反例在特征值2处得到 $[[1,0,1],[0,0,0]]$，行秩只有1，直接暴露无法控制的不稳定方向。
+
+### 适用条件与边界
+
+上述判据针对有限维连续时间线性定常系统及无输入约束的线性状态反馈。离散时间稳定区域是单位圆内部，应检查模大于或等于1的特征值，不能照搬实部条件。实际限幅、状态约束和可用测量还需要额外分析；理论可镇定不等于任意初值下受约束控制都能成功。
+
+### 常见误区
+
+1. 发现可控性矩阵不满秩就断言无法稳定。
+2. 把不可控零极点当作满足渐近稳定要求。
+3. 将连续时间的实部条件照搬到离散系统。
+
+### 自检
+
+1. 第一组系统为什么不可控但可镇定？
+2. 第二状态极点从-2改为0后，为什么不能渐近镇定？
+
+**核对要点**：不可控模态已经严格稳定，控制第一模态即可；零极点使第二状态保持任意初值，反馈无法改变它。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-silver
+- **可检测性**（无向，关系：相关）

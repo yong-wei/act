@@ -1,33 +1,35 @@
 ---
 node_id: ctkg_v3e-canonical-15b23d588244f407f6ed4b35
 authority_entity_id: "ctkg:v3e-canonical-15b23d588244f407f6ed4b35"
-name: Undamped Natural Frequency
+name: "无阻尼自然频率"
+name_en: "Undamped Natural Frequency"
 category: 概念性
-batch: B
-concept_kind: theoretical_construct
-release_tier: silver
-tags:
-  - theoretical_construct
-  - silver
-  - Undamped
-  - Natural
-  - Frequency
-card_version: 1
+knowledge_type: C
+bloom_level: 应用
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e6b4c506a4e3e5e19698bd6bbbc201cecc084de38d93a8b36a31deaae45e77a7.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e6b4c506a4e3e5e19698bd6bbbc201cecc084de38d93a8b36a31deaae45e77a7.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-11a/previous/ctkg_v3e-canonical-15b23d588244f407f6ed4b35.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 80779098ca7bf9eb4cf4ceef857a4b795360544b4771fee9103537230bc64a32 -->
-
 ## 首页
 
-# Undamped Natural Frequency
+# 无阻尼自然频率 | Undamped Natural Frequency
 
-**一句话定义**：Undamped Natural Frequency：The frequency at which a system would oscillate if damping were zero, denoted by ω_n.
+**一句话定义**：无阻尼自然频率是相应理想系统去掉阻尼后自由振荡的角频率。
 
-**关联**：（权威图邻接待补充）
+**核心直觉**：没有耗散时，储能在系统内部交换而不逐渐消失，振荡可以持续。
+
+**关键公式**：本例 $\ddot q+4q=0$，$\omega_n=2$。
+
+**学习目标**：从无阻尼自由运动解释自然频率，并区分持续振荡与趋于平衡。
 
 ---
 
@@ -35,18 +37,49 @@ asset_refs: []
 
 ### 完整解释
 
-The frequency at which a system would oscillate if damping were zero, denoted by ω_n.
+标准二阶模型的固有频率与储能参数有关。将阻尼置零后，齐次方程只保留惯性和恢复作用，能量可以在不同储能形式之间交换。此时自由响应为正弦或余弦组合，振幅由初始状态确定，频率则由方程系数确定。
+
+“没有阻尼”并不意味着物体不运动，也不意味着响应立即到达目标。相反，若初始状态带有能量，理想模型中振荡不会自行衰减。这里的持续振荡与受外部周期输入维持的振荡也不同：自由运动可以在输入为零时存在。
+
+### 教学计算/推理例
+
+取归一化模型
+$$
+\ddot q+4q=0,\qquad q(0)=1,\quad \dot q(0)=0.
+$$
+自由响应为
+$$
+q(t)=\cos(2t),\qquad \dot q(t)=-2\sin(2t).
+$$
+因此角频率为 $\omega_n=2$，周期为 $\pi$。初态决定本例位移振幅为 1，并不把角频率改为 1。
+
+用归一化能量核对：
+$$
+E=\frac12\dot q^2+2q^2
+=2\sin^2(2t)+2\cos^2(2t)=2.
+$$
+能量恒定，与振幅不衰减一致。若考虑同一无阻尼特征式、单位直流增益的参考通道 $4/(s^2+4)$，零初态单位阶跃响应为 $1-\cos(2t)$。它围绕 1 持续振荡，不会收敛到 1；不能仅凭某些时刻经过终值就宣称已经稳定下来。
+
+### 适用条件与边界
+
+这是理想无阻尼模型，真实装置通常存在摩擦或其他耗散。无阻尼自然频率仍可以作为模型参数，用于比较有阻尼系统；在有阻尼欠阻尼模型中，暂态角频率为 $\omega_d=\omega_n\sqrt{1-\zeta^2}$，通常低于 $\omega_n$。本例纯虚极点不产生指数衰减，因此不能赋予渐近收敛结论。
+
+能量表达和频率解释还依赖所选模型及坐标。归一化示例便于计算，不代表某个实际对象的质量、刚度或损耗已经测定。实际辨识应回到相应物理参数与单位。
+
+### 常见误区
+
+1. **误区**：输入为零，输出就一定为零。**纠正**：非零初态可以产生自由振荡。
+2. **误区**：阶跃响应不断经过 1，就等于已经收敛到 1。**纠正**：持续等幅振荡没有趋近一个固定值。
+
+### 自检
+
+1. 本例周期为什么为 $\pi$？
+2. 什么计算表明振荡能量没有损失？
+
+**核对要点**：$T=2\pi/\omega_n=\pi$；代入位移和速度后能量恒为 2。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| — | — | 权威图中暂无 DomainConcept 邻接 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`theoretical_construct`，release_tier=`silver`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-theoretical_construct、silver、Undamped、Natural、Frequency
+- **固有频率**（无向，关系：相关）
+- **阻尼自然频率**（无向，关系：相关）
+- **无阻尼振荡频率**（无向，关系：相关）

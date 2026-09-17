@@ -1,0 +1,209 @@
+{
+  "cards": [
+    {
+      "canonicalId": "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:419e72a105d3391116964c82",
+          "otherId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+          "label": "闭环带宽",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **闭环带宽**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:813071bf497d208c98200423",
+          "otherId": "ctkg:m3-v1l:canonical-object:40708b499a9b9f5df963a33e",
+          "label": "谐振频率ωr",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **谐振频率ωr**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:fabb2a946af6fe388f23a84d",
+          "otherId": "ctkg:v3e-object-5c2ad2da07903ca99b2b1f08",
+          "label": "频域性能指标",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **频域性能指标**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "relations": [
+        {
+          "relationId": "m1h:relation-c5fd5f85ccb053b427fb31fd",
+          "otherId": "ctkg:v3e-canonical-ab642a336bbbbafc6327f6f2",
+          "label": "阻尼比",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **阻尼比**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-6128a9b591a6b72a4d79727c",
+          "otherId": "ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f",
+          "label": "谐振频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **谐振频率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-9b56364088da899351ddc93f",
+          "otherId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+          "label": "带宽频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **带宽频率**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "relations": [
+        {
+          "relationId": "m1h:relation-23d2e8fc6673475d71c7d98b",
+          "otherId": "ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f",
+          "label": "谐振频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **谐振频率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-38885b1bfc7639e3e70290be",
+          "otherId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+          "label": "固有频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **固有频率**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+      "relations": [
+        {
+          "relationId": "m1h:relation-bcde7cdfeb0995ca54a496f0",
+          "otherId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+          "label": "对数幅频渐近特性曲线",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **对数幅频渐近特性曲线**（出边，关系：适用于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "relations": [
+        {
+          "relationId": "m1h:relation-bcde7cdfeb0995ca54a496f0",
+          "otherId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+          "label": "低频段",
+          "predicate": "applies_to",
+          "direction": "source_to_target",
+          "renderedLine": "- **低频段**（入边，关系：适用于）"
+        },
+        {
+          "relationId": "m1h:relation-709667751dd826ca02bc1e2c",
+          "otherId": "ctkg:v3e-object-232e387ed53e92abee078346",
+          "label": "截止频率",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **截止频率**（出边，关系：用于分析）"
+        },
+        {
+          "relationId": "m1h:relation-8fd4d25d4873d944e403745e",
+          "otherId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+          "label": "交接频率",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **交接频率**（入边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+      "relations": [
+        {
+          "relationId": "m1h:relation-212078f973aaf3a9e7bef589",
+          "otherId": "ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f",
+          "label": "谐振频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **谐振频率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-34884c44eb164732de21ec1b",
+          "otherId": "ctkg:v3e-object-232e387ed53e92abee078346",
+          "label": "截止频率",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **截止频率**（无向，关系：相关）"
+        },
+        {
+          "relationId": "m1h:relation-9b56364088da899351ddc93f",
+          "otherId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+          "label": "谐振峰值",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **谐振峰值**（无向，关系：相关）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:419e72a105d3391116964c82",
+          "otherId": "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+          "label": "闭环控制系统带宽",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **闭环控制系统带宽**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m5-d1:association:8d9d91dc80456a9b9418609c",
+          "otherId": "m1r-v1d:object:9a4c3f45f65c958ddd9485dd",
+          "label": "闭环带宽 omega_B",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **闭环带宽 omega_B**（无向，关系：相关）"
+        },
+        {
+          "relationId": "ctkg:m3-v1l:relation:0257bd44e71baf47c4013413",
+          "otherId": "ctkg:m3-v1l:source-object:3afdffa9e0c2f17bcdc59490",
+          "label": "利用Nichols图确定闭环频率响应",
+          "predicate": "used_to_analyze",
+          "direction": "source_to_target",
+          "renderedLine": "- **利用Nichols图确定闭环频率响应**（入边，关系：用于分析）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "relations": [
+        {
+          "relationId": "m1h:relation-8fd4d25d4873d944e403745e",
+          "otherId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+          "label": "对数幅频渐近特性曲线",
+          "predicate": "part_of",
+          "direction": "source_to_target",
+          "renderedLine": "- **对数幅频渐近特性曲线**（出边，关系：组成部分属于）"
+        }
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+      "relations": [
+        {
+          "relationId": "ctkg:m5-d1:association:d9bc574da957a7f9e5008b29",
+          "otherId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+          "label": "转折点",
+          "predicate": "association",
+          "direction": "unordered",
+          "renderedLine": "- **转折点**（无向，关系：相关）"
+        }
+      ]
+    }
+  ]
+}

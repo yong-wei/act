@@ -1,0 +1,52 @@
+{
+  "batchId": "teaching-core-07a",
+  "status": "authoring",
+  "parentGroupId": "core-topic-07",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "activationReceiptId": "coordinated-v048-consumers",
+    "activatedAt": "2026-09-13T16:30:00.000Z"
+  },
+  "cards": [
+    {
+      "canonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
+      "name": "前向通路总增益",
+      "moduleId": "module-2",
+      "order": 1
+    },
+    {
+      "canonicalId": "ctc:modeling-07799c3f876317e36fe669f8",
+      "name": "信号流图特征式",
+      "moduleId": "module-2",
+      "order": 2
+    },
+    {
+      "canonicalId": "ctc:modeling-50ed406e4478b481d868adfb",
+      "name": "第k条前向通路特征余子式",
+      "moduleId": "module-2",
+      "order": 3
+    },
+    {
+      "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+      "name": "梅森增益公式",
+      "moduleId": "module-2",
+      "order": 4
+    },
+    {
+      "canonicalId": "ctc:modeling-9b8a43928af77103270d5f9c",
+      "name": "不接触回路",
+      "moduleId": null,
+      "order": 5
+    },
+    {
+      "canonicalId": "ctc:modeling-e8a0502ecb67f574a5cb6c1b",
+      "name": "梅森公式通路余子式",
+      "moduleId": "module-2",
+      "order": 6
+    }
+  ]
+}

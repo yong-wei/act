@@ -1,0 +1,12 @@
+{
+  "status": "exported-awaiting-binding-activation",
+  "cards": 8,
+  "previousBindingReleaseId": "control-theory-engineering-v0.48-b13",
+  "retiredResources": [
+    "act:card:模型结构相似性_1_2",
+    "act:card:相似系统_2_5477df89",
+    "act:card:并联连接_2_0e5f1ec2",
+    "act:card:串联连接_2_98ee18bc",
+    "act:card:测量元件_1_ad76ac2b"
+  ]
+}

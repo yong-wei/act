@@ -1,0 +1,18 @@
+{
+  "status": "accepted",
+  "reviewer": "course-pedagogy-reviewer",
+  "reviewTask": "/root/review_next_eight",
+  "scope": "8 authoring cards; initial review and focused remediation review",
+  "findingsAccepted": 3,
+  "findingsResolved": 3,
+  "cardHashes": {
+    "ctc:modeling-7734a0845c335f160395bac0": "16033f94ceb2b1a381d498beeed07d5edea26d53e88219f90ce612167ce87f17",
+    "ctc:modeling-c26fddc50074ec84707d5950": "e845d40bff0f3c0906851aba81cf9919052eda5a6ed5580c4e326a7da27b5ecd",
+    "ctkg:domainconcept:27b69e7f2e837fd62dc31379": "fc6ffd75bd2ef5e1d022131720a43bcdd3beed514cbb70f6c605f4daf529e7c5",
+    "ctkg:domainconcept:42146fa04dc1459716346cc7": "cf7290038d15b375b6721ee10a3d72cb46c3c52821180a70aa894ae12338f679",
+    "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117": "0252f3cd0a39ca1f234544794d0ba4d30b0658bdf62a225a3d1c7b6a9aa94617",
+    "ctkg:domainconcept:fef4835248def04a043183ee": "c30290fa27a9fdb5b111a1ee324f59cf148eb9bdcc5049ba7eaa22cd1e281ec0",
+    "ctkg:v3e-canonical-01549ef9b34888b89b55f224": "ff29b58d82b22c968f357cf043dc5cb43b49f6f774b60d55cdee7733a471b737",
+    "ctkg:v3e-canonical-04fd7f69994f8821467462e5": "eb1887e2ee192f03519b04c80dff1dce5cf9d2ff96acb3b6c136c95aabd0f8df"
+  }
+}

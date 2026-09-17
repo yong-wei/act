@@ -1,0 +1,119 @@
+{
+  "status": "completed",
+  "entries": [
+    {
+      "resourceId": "act:card:根轨迹分支数_4_6a4bb718",
+      "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/根轨迹分支数_4_6a4bb718.md",
+          "sha256": "b543b5e00bf398bc70a228e4ef25ef5ac3396e4b15a8488aa0d585683d108c86",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/authoring/根轨迹分支数_4_6a4bb718.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/根轨迹分支数_4_6a4bb718.md",
+          "sha256": "b543b5e00bf398bc70a228e4ef25ef5ac3396e4b15a8488aa0d585683d108c86",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/runtime/根轨迹分支数_4_6a4bb718.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:根轨迹完整法则_3_0f2e7b11",
+      "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/根轨迹完整法则_3_0f2e7b11.md",
+          "sha256": "6d562b57c914a316199aab95f73e2809dc014fe2548a43a88665b2f1088d6020",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/authoring/根轨迹完整法则_3_0f2e7b11.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/根轨迹完整法则_3_0f2e7b11.md",
+          "sha256": "6d562b57c914a316199aab95f73e2809dc014fe2548a43a88665b2f1088d6020",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/runtime/根轨迹完整法则_3_0f2e7b11.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:根轨迹绘制法则_4_f0ea9a49",
+      "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/根轨迹绘制法则_4_f0ea9a49.md",
+          "sha256": "79e4c4f3cbf6fa7ece803eb38005414af9f64a2e9e513a9ef0d5aba35bf12171",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/authoring/根轨迹绘制法则_4_f0ea9a49.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/根轨迹绘制法则_4_f0ea9a49.md",
+          "sha256": "79e4c4f3cbf6fa7ece803eb38005414af9f64a2e9e513a9ef0d5aba35bf12171",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/runtime/根轨迹绘制法则_4_f0ea9a49.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:根轨迹绘制规则_3_2f9e8cb3",
+      "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/根轨迹绘制规则_3_2f9e8cb3.md",
+          "sha256": "07ba12ff5929c0d918a0e04b156b61e8a88f3bf8f117a2e5eca7ca3fc7ed4281",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/authoring/根轨迹绘制规则_3_2f9e8cb3.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/根轨迹绘制规则_3_2f9e8cb3.md",
+          "sha256": "07ba12ff5929c0d918a0e04b156b61e8a88f3bf8f117a2e5eca7ca3fc7ed4281",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/runtime/根轨迹绘制规则_3_2f9e8cb3.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:实轴上的根轨迹_4_af9cbf0a",
+      "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/实轴上的根轨迹_4_af9cbf0a.md",
+          "sha256": "cf6508a3679682de6fbb40cd9b5762259340d9e4e4c4a896f6fedf9f6638bd9f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/authoring/实轴上的根轨迹_4_af9cbf0a.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/实轴上的根轨迹_4_af9cbf0a.md",
+          "sha256": "cf6508a3679682de6fbb40cd9b5762259340d9e4e4c4a896f6fedf9f6638bd9f",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/runtime/实轴上的根轨迹_4_af9cbf0a.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:根轨迹绘制法则_零度__4_205342a7",
+      "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/根轨迹绘制法则_零度__4_205342a7.md",
+          "sha256": "aeb8dd052b4548008a4f183749fa5756c27994b637db2c08d8737e730809269e",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/authoring/根轨迹绘制法则_零度__4_205342a7.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/根轨迹绘制法则_零度__4_205342a7.md",
+          "sha256": "aeb8dd052b4548008a4f183749fa5756c27994b637db2c08d8737e730809269e",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/runtime/根轨迹绘制法则_零度__4_205342a7.md"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:零度根轨迹_4_2cfd7e23",
+      "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "files": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/零度根轨迹_4_2cfd7e23.md",
+          "sha256": "caf49c0ff710e5b07e4eeba14034996079f80357da02b1e22212cfc17513e839",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/authoring/零度根轨迹_4_2cfd7e23.md"
+        },
+        {
+          "path": "course-content/runtime/knowledge/cards/nodes/零度根轨迹_4_2cfd7e23.md",
+          "sha256": "caf49c0ff710e5b07e4eeba14034996079f80357da02b1e22212cfc17513e839",
+          "recoveryPath": "course-content/authoring/knowledge/cards/authority/waves/teaching-core-17a/retired/runtime/零度根轨迹_4_2cfd7e23.md"
+        }
+      ]
+    }
+  ],
+  "bindingReleaseId": "control-theory-engineering-v0.48-b29",
+  "replacementDigest": "8d36674e43637035748b170462468997e2aefc81de993c8e1b44cb997b4c7f83"
+}

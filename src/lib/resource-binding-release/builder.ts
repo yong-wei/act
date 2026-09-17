@@ -138,6 +138,7 @@ export function buildResourceBindingRelease(
   const drafts: DraftBinding[] = [];
   const seenBindingKeys = new Set<string>();
   const gateContext: GateContext = {
+    excludedCanonicalBindings: [],
     excludedResourceIds: [],
     noAnchorResourceIds: [],
     driftedMediaIds: [],
@@ -159,6 +160,10 @@ export function buildResourceBindingRelease(
   };
 
   const pushBinding = (draft: DraftBinding) => {
+    if (sources.authorityCanonicalIds && !sources.authorityCanonicalIds.has(draft.canonicalId)) {
+      gateContext.excludedCanonicalBindings!.push({ canonicalId: draft.canonicalId, resourceId: draft.resourceId });
+      return;
+    }
     const dedupeKey = `${draft.resourceId}|${draft.anchorKey}|${draft.canonicalId}|${draft.role}`;
     if (seenBindingKeys.has(dedupeKey)) return;
     seenBindingKeys.add(dedupeKey);
@@ -319,7 +324,11 @@ export function buildResourceBindingRelease(
 
   // ------------------------------------------------------------------ carry-forward exact channels
   const carryResources = new Map(sources.carryForward.resources.map((r) => [r.resourceId, r]));
+  const replacedCards = new Set((sources.cardReplacements?.rows ?? []).flatMap((row) => [
+    `act:card:${row.cardId}`, ...row.retiredResourceIds,
+  ]));
   for (const binding of sources.carryForward.bindings) {
+    if (replacedCards.has(binding.resourceId)) continue;
     const resource = carryResources.get(binding.resourceId);
     if (!resource) continue;
     if (resource.resourceType === 'lesson' || resource.resourceType === 'textbook') {
@@ -365,6 +374,17 @@ export function buildResourceBindingRelease(
   }
 
   // ------------------------------------------------------------------ appearance
+  for (const row of sources.cardReplacements?.rows ?? []) {
+    const resourceId = `act:card:${row.cardId}`;
+    ensureResource({ resourceId, resourceType: 'card', title: row.title,
+      sourcePath: `content:${row.sha256}`, unitId: null, media: null });
+    pushBinding({ resourceId, resourceType: 'card', canonicalId: row.canonicalId,
+      role: 'EXPLAINS', scopeId, anchor: { kind: 'whole' }, anchorKey: 'whole',
+      teachingOrder: null, focus: false, primary: true, unitIndex: null,
+      provenance: { method: 'reviewed', matchedLabel: row.title,
+        source: `card-replacements:${sources.cardReplacements!.digest}#${row.cardId}` },
+    });
+  }
   const firstUnitIndex = new Map<string, number>();
   for (const draft of drafts) {
     if (draft.unitIndex === null) continue;
@@ -448,6 +468,7 @@ export function buildResourceBindingRelease(
     carryForwardProjectionHash: sources.carryForward.manifest.projectionHash,
     activeRuntimeReleaseId: sources.activeMedia.runtimeReleaseId,
     sourceHashes: {
+      ...(sources.cardReplacements ? { cardReplacements: sources.cardReplacements.digest } : {}),
       anchors: sources.raw.anchors,
       unitScopes: sources.raw.unitScopes,
       crosswalk: sources.raw.crosswalk,

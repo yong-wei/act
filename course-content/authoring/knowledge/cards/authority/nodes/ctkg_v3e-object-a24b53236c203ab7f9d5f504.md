@@ -1,57 +1,104 @@
 ---
 node_id: ctkg_v3e-object-a24b53236c203ab7f9d5f504
 authority_entity_id: "ctkg:v3e-object-a24b53236c203ab7f9d5f504"
-name: Equilibrium Point
+name: "平衡点"
+name_en: "Equilibrium Point"
 category: 概念性
-batch: B
-release_tier: gold
-tags:
-  - gold
-  - Equilibrium
-  - Point
-card_version: 1
+knowledge_type: C
+bloom_level: 分析
+card_version: 3
+content_origin: act-course-enrichment
+authority_release_id: "ctr:release:control-theory-engineering-v0.48"
+authority_snapshot_id: "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+authority_snapshot_hash: "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/details/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json"
+  - "course-content/runtime/knowledge/authority-domain-shards/sets/ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1/neighborhoods/node-e09531f47c20d31369626892bf06e863518ceb588ecc1e91b49abaeacae019f7.json"
+  - "course-content/authoring/knowledge/cards/authority/waves/teaching-core-03a/previous/ctkg_v3e-object-a24b53236c203ab7f9d5f504.md"
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: ec36e8fa878f619d685023d9d6c0e804f114e444d0d8beab978868f3e1e4cee7 -->
-
 ## 首页
 
-# Equilibrium Point
+# 平衡点 | Equilibrium Point
 
-**一句话定义**：Equilibrium Point：A state where the system can remain at rest
+**一句话定义**：在给定常值输入下，系统状态满足 $f(x_0,u_0)=0$，因此可以保持静止的状态—输入组合。
 
-**核心直觉**：在图谱邻接中可把握：前置 → Small-signal analysis、Lyapunov's First Method、Lyapunov function。
+**核心直觉**：平衡点回答“能否停住”，稳定性回答“受到小扰动后会怎样”，两者是相邻但不同的问题。
 
-**关联**：前置 → Small-signal analysis、Lyapunov's First Method、Lyapunov function
+**关键公式**：
+$$
+f(x_0,u_0)=0
+$$
 
----
+**学习目标**：能同时求出状态与输入条件，比较不同平衡点的局部极点，并识别雅可比为零时的一阶判据盲区。
 
 ## 详情
 
 ### 完整解释
 
-A state where the system can remain at rest; the point around which stability is analyzed.
+对动态系统 $\dot{x}=f(x,u)$，平衡点不是一个孤立的状态坐标，而是和指定常值输入一起定义的。给定 $u_0$ 后，只有满足 $f(x_0,u_0)=0$ 的状态才具有静止条件。找到平衡点只是第一步；在它附近受到扰动后的运动，才涉及稳定、渐近稳定或不稳定等性质。
+
+固定输入 $u_0=4$，对系统
+$$
+\dot{x}=u-x^2
+$$
+求平衡状态。静止条件给出
+$$
+0=4-x_0^2,
+\qquad x_0=2\ \text{或}\ x_0=-2.
+$$
+两个状态都是平衡点，但局部行为不同。对 $f(x,u)=u-x^2$，状态方向导数为 $f_x=-2x$。在 $x_0=2$ 处，局部线性模型的极点为 $-4$，小偏差会衰减，得到局部渐近稳定；在 $x_0=-2$ 处，极点为 $+4$，小偏差会放大，得到局部不稳定。由此可见，“满足静止条件”和“受到扰动后回到附近”分别是两个判断层次。
+
+一阶判据还存在清楚的边界。考虑两个原点平衡系统
+$$
+\dot{x}=-x^3,
+\qquad
+\dot{x}=x^3.
+$$
+它们在 $x_0=0$ 处的导数都为零，所以一阶线性化都给出 $\delta\dot{x}=0$。这个结果没有区分真实稳定性。要继续判断，需要回到非线性项或使用其他方法，而不能把零极点误读成“稳定”。
+
+### 教学计算/推理例
+
+先完成固定输入的平衡求解：$u_0=4$ 时，$x_0=2$ 和 $x_0=-2$ 都满足静止条件。线性化系数为 $A=-2x_0$，因此
+$$
+A(2)=-4,
+\qquad A(-2)=4.
+$$
+对应极点分别为 $-4$ 和 $+4$，所以正平衡点局部渐近稳定，负平衡点局部不稳定。
+
+再看零雅可比反例。取初态 $x(0)=0.1$，两个系统的解析解分别为
+$$
+x_{-}(t)=\frac{0.1}{\sqrt{1+0.02t}},
+\qquad
+x_{+}(t)=\frac{0.1}{\sqrt{1-0.02t}}.
+$$
+在 $t=10$ 时，前者约为 $0.0912871$，后者约为 $0.111803$；正号系统的解在其存在区间内持续增大，并在有限时间后发散。于是，完整判断链是：先找平衡点，再看雅可比；若极点实部为零，还要用非线性方程的高阶项或解析解继续判断。
+
+### 适用条件与边界
+
+平衡点计算要求输入条件明确；改变常值输入，平衡状态通常也会改变。由局部极点得到的是局部结论，不能直接覆盖远离平衡点的大范围初态。若线性化矩阵存在零实部特征值，一阶方法通常只能给出“不足以判断”，需要结合高阶项、相线或李雅普诺夫方法。稳定性分析必须基于完整的状态方程和扰动定义。
+
+### 常见误区
+
+1. **误区**：只解出 $x_0$ 而不写 $u_0$，就已经确定了平衡点。**纠正**：平衡条件依赖指定输入，状态与输入要成对给出。
+2. **误区**：线性化得到零极点就能判定原系统稳定。**纠正**：零实部使一阶判据失去区分能力，本例两个三次系统展示了相反的非线性行为。
+
+### 自检
+
+1. 为什么同一个输入 $u_0=4$ 会产生两个平衡点？
+2. 看到线性化极点为零时，下一步应做什么？
+
+**核对要点**：方程 $4-x_0^2=0$ 有两个状态解 $\pm2$；零实部时不能仅凭一阶模型下结论，应检查高阶非线性项、解析解或其他稳定性判据。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 前置 | Small-signal analysis | 用于分析 |
-| 前置 | Lyapunov's First Method | 用于分析 |
-| 前置 | Lyapunov function | 应用于 |
-| 前置 | 李雅普诺夫函数候选 | 应用于 |
-| 前置 | 李雅普诺夫函数 | 应用于 |
-| 前置 | Lyapunov Direct Method | 应用于 |
-| 前置 | Lyapunov function candidate | 应用于 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、Equilibrium、Point
+- **李雅普诺夫函数**（入边，关系：适用于）
+- **李雅普诺夫直接法**（入边，关系：适用于）
+- **李雅普诺夫函数候选**（入边，关系：适用于）
+- **非线性摆的平衡条件对应于 theta_o = 0（下垂位置）与 theta_o = pi（倒立位置）。**（无向，关系：相关）
+- **小信号分析**（入边，关系：用于分析）
+- **对于磁悬浮小球系统，在平衡状态下磁力 f_m 恰好与重力 mg 相抵消。**（无向，关系：相关）
+- **李雅普诺夫第一方法**（入边，关系：用于分析）
+- **首先确定平衡值 x_o、u_o 使得 dot{x}_o = 0 = f(x_o, u_o)，令 x = x_o + delta x 且 u = u_o + delta u，然后关于扰动展开非线性方程。**（无向，关系：相关）
