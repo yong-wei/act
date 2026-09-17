@@ -261,13 +261,15 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 近场挖空（#2098 二轮复审）：远场片元按网格局部坐标精确判定
         // max(|x|,|z|) < 1024（顶点二值标记会被插值，边界落到顶点中点）。
         if (uNearCutoutHalfSize > 0.0 && max(abs(vLocalXZ.x), abs(vLocalXZ.y)) < uNearCutoutHalfSize) discard;
-        // 船壳排水排除（#2101）：世界点旋转到船体局部（网格原点=船位），
-        // 落在任一声明框内丢弃——实船壳内不显示穿水面板，框间开口保留海水。
+        // 船壳排水排除（#2101 四轮复审）：用位移后的世界坐标（vWorldPos - 网格原点）
+        // 旋转到船体局部再判定——顶点着色器的水平位移会使未位移的 vLocalXZ 与
+        // 实际渲染片元错开（壳缘穿水条带/误裁壳外海面）。
         if (uHullExclusionCount > 0.0) {
+          vec2 displacedLocal = vWorldPos.xz - uWorldOrigin;
           float cosH = cos(uShipHeading);
           float sinH = sin(uShipHeading);
-          float localX = vLocalXZ.x * cosH + vLocalXZ.y * sinH;
-          float localZ = -vLocalXZ.x * sinH + vLocalXZ.y * cosH;
+          float localX = displacedLocal.x * cosH + displacedLocal.y * sinH;
+          float localZ = -displacedLocal.x * sinH + displacedLocal.y * cosH;
           for (int i = 0; i < 6; i++) {
             if (float(i) >= uHullExclusionCount) break;
             vec4 box = uHullExclusionBoxes[i];
