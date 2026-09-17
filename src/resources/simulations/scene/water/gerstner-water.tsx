@@ -300,6 +300,7 @@ function BandWaterMesh({
   amplitudeScale,
   envelopeSizeMeters,
   nearCutoutHalfSizeMeters,
+  microNormalTier,
   marineVisualTime,
   positionSampler,
   shipPosition,
@@ -315,6 +316,7 @@ function BandWaterMesh({
   readonly amplitudeScale: number;
   readonly envelopeSizeMeters: number;
   readonly nearCutoutHalfSizeMeters: number;
+  readonly microNormalTier: 'high' | 'medium' | 'low';
   readonly marineVisualTime: (state: { clock: { elapsedTime: number; getElapsedTime?: () => number } }, delta: number) => number;
   readonly positionSampler?: () => { readonly x: number; readonly z: number } | undefined;
   readonly shipPosition?: { readonly x: number; readonly z: number };
@@ -344,8 +346,9 @@ function BandWaterMesh({
       amplitudeScale,
       envelopeSizeMeters,
       nearCutoutHalfSizeMeters,
+      microNormalTier,
     }),
-    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters]
+    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier]
   );
 
   useFrame((state, delta) => {
@@ -404,6 +407,7 @@ export function GerstnerWater({
         amplitudeScale={amplitudeScale}
         envelopeSizeMeters={0}
         nearCutoutHalfSizeMeters={NEAR_FIELD_MESH_SPEC.size / 2}
+        microNormalTier="low"
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}
@@ -420,6 +424,7 @@ export function GerstnerWater({
         amplitudeScale={amplitudeScale}
         envelopeSizeMeters={NEAR_FIELD_MESH_SPEC.size}
         nearCutoutHalfSizeMeters={0}
+        microNormalTier={tier}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}

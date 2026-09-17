@@ -2,6 +2,11 @@ import * as THREE from 'three';
 
 import { GERSTNER_MAX_WAVES, type GerstnerWave } from './gerstner-waves';
 import { NEAR_FIELD_FADE_BAND_METERS } from './ocean-bands';
+import {
+  MICRO_NORMAL_FADE_DISTANCE_METERS,
+  MICRO_NORMAL_OCTAVES_BY_TIER,
+  type MicroNormalOctave,
+} from './micro-optics';
 
 export interface GerstnerWaterMaterialOptions {
   readonly waves: readonly GerstnerWave[];
@@ -28,9 +33,27 @@ export interface GerstnerWaterMaterialOptions {
    * 避免透明平面与近场波谷重叠遮挡/交叉闪烁。0 表示不启用。
    */
   readonly nearCutoutHalfSizeMeters?: number;
+  /** 光学质量档（#2100）：微法线八分量数随档变化（high 3/medium 2/low 0），只影响着色法线。 */
+  readonly microNormalTier?: 'high' | 'medium' | 'low';
 }
 
 const FLOATS_PER_WAVE = 6;
+const MAX_MICRO_OCTAVES = 3;
+const MICRO_FLOATS_PER_OCTAVE = 5;
+
+function packMicroOctaves(tier: 'high' | 'medium' | 'low'): { data: Float32Array; count: number } {
+  const octaves: readonly MicroNormalOctave[] = MICRO_NORMAL_OCTAVES_BY_TIER[tier];
+  const data = new Float32Array(MAX_MICRO_OCTAVES * MICRO_FLOATS_PER_OCTAVE);
+  octaves.slice(0, MAX_MICRO_OCTAVES).forEach((octave, index) => {
+    const base = index * MICRO_FLOATS_PER_OCTAVE;
+    data[base] = octave.direction[0];
+    data[base + 1] = octave.direction[1];
+    data[base + 2] = octave.waveNumber;
+    data[base + 3] = octave.slopeAmplitude;
+    data[base + 4] = octave.speedScale;
+  });
+  return { data, count: Math.min(octaves.length, MAX_MICRO_OCTAVES) };
+}
 
 /**
  * GPU Gerstner 海面材质：vertex 阶段做几何位移（含水平分量锐化波峰），
@@ -40,6 +63,7 @@ const FLOATS_PER_WAVE = 6;
 export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOptions): THREE.ShaderMaterial {
   const envelopeSize = options.envelopeSizeMeters ?? 0;
   const envelopeFade = options.envelopeFadeBandMeters ?? NEAR_FIELD_FADE_BAND_METERS;
+  const micro = packMicroOctaves(options.microNormalTier ?? 'high');
   const waveData = new Float32Array(GERSTNER_MAX_WAVES * FLOATS_PER_WAVE);
   options.waves.slice(0, GERSTNER_MAX_WAVES).forEach((wave, index) => {
     const [rawDx, rawDz] = wave.direction;
@@ -66,6 +90,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uEnvelopeHalfSize: { value: envelopeSize > 0 ? envelopeSize / 2 : 0 },
       uEnvelopeFadeBand: { value: envelopeFade },
       uNearCutoutHalfSize: { value: options.nearCutoutHalfSizeMeters ?? 0 },
+      uMicroOctaves: { value: micro.data },
+      uMicroOctaveCount: { value: micro.count },
+      uMicroFadeStart: { value: MICRO_NORMAL_FADE_DISTANCE_METERS * 0.35 },
+      uMicroFadeEnd: { value: MICRO_NORMAL_FADE_DISTANCE_METERS },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
       uDeepColor: { value: new THREE.Color(options.deepColor) },
       uHorizonColor: { value: new THREE.Color(options.horizonColor) },
@@ -189,6 +217,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       }
     `,
     fragmentShader: /* glsl */ `
+      uniform float uTime;
       uniform vec3 uWaterColor;
       uniform vec3 uDeepColor;
       uniform vec3 uHorizonColor;
@@ -196,6 +225,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform vec3 uSunDirection;
       uniform sampler2D uFoamTex;
       uniform float uNearCutoutHalfSize;
+      uniform float uMicroOctaves[3 * 5];
+      uniform int uMicroOctaveCount;
+      uniform float uMicroFadeStart;
+      uniform float uMicroFadeEnd;
 
       varying vec3 vNormal;
       varying vec3 vViewPosition;
@@ -211,6 +244,33 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         vec3 viewDirection = normalize(-vViewPosition);
         vec3 normal = normalize(vNormal);
 
+        // 微法线（#2100）：只对着色法线加高频细节（光学），不动几何/姿态；
+        // 像素脚印按相机距离 smoothstep 衰减，远海退化为基础法线不闪烁。
+        float cameraDistance = length(vViewPosition);
+        float footprint = clamp(
+          (uMicroFadeEnd - cameraDistance) / max(uMicroFadeEnd - uMicroFadeStart, 1.0),
+          0.0, 1.0);
+        footprint = footprint * footprint * (3.0 - 2.0 * footprint);
+        if (uMicroOctaveCount > 0 && footprint > 0.001) {
+          float slopeX = 0.0;
+          float slopeZ = 0.0;
+          for (int i = 0; i < 3; i++) {
+            if (i >= uMicroOctaveCount) break;
+            int base = i * 5;
+            float dx = uMicroOctaves[base];
+            float dz = uMicroOctaves[base + 1];
+            float k = uMicroOctaves[base + 2];
+            float amp = uMicroOctaves[base + 3];
+            float speedScale = uMicroOctaves[base + 4];
+            float phase = k * (dx * vWorldPos.x + dz * vWorldPos.y)
+              - k * speedScale * 1.2 * uTime;
+            float slope = amp * cos(phase) * k;
+            slopeX += slope * dx;
+            slopeZ += slope * dz;
+          }
+          normal = normalize(normal + vec3(slopeX, 0.0, slopeZ) * footprint);
+        }
+
         float light = max(dot(normal, uSunDirection), 0.0);
         float specular = pow(max(dot(reflect(-uSunDirection, normal), viewDirection), 0.0), 64.0);
         float fresnel = pow(1.0 - max(dot(viewDirection, normal), 0.0), 3.0);
@@ -221,7 +281,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         vec3 color = mix(uDeepColor, uWaterColor, light * 0.65 + 0.35);
         color = mix(color, uHorizonColor, fresnel * 0.45);
         color += specular * 0.3;
-        color = mix(color, uFoamColor, foam * 0.85);
+        // 受光泡沫（#2100）：泡沫颜色乘与基面一致的照明因子，暗预设下随之变暗，
+        // 不是恒亮 additive 自发光。
+        vec3 foamLit = uFoamColor * (light * 0.65 + 0.35);
+        color = mix(color, foamLit, foam * 0.85);
 
         gl_FragColor = vec4(color, 0.94);
         #include <tonemapping_fragment>
