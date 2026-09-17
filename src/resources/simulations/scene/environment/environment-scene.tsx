@@ -27,6 +27,18 @@ export interface EnvironmentSceneProps {
   readonly subjectPositionSampler?: () => { readonly x: number; readonly z: number };
 }
 
+/** PMREMGenerator 按 renderer 复用（三轮复审）：内部 ping-pong RT/模糊材质只建一套，Canvas 卸载统一释放。 */
+const rendererPmremGenerators = new WeakMap<THREE.WebGLRenderer, THREE.PMREMGenerator>();
+
+function pmremGeneratorFor(gl: THREE.WebGLRenderer): THREE.PMREMGenerator {
+  let generator = rendererPmremGenerators.get(gl);
+  if (!generator) {
+    generator = new THREE.PMREMGenerator(gl);
+    rendererPmremGenerators.set(gl, generator);
+  }
+  return generator;
+}
+
 /** 平台尺度的环境组成（天空球体/地平线剪影带/云层/光照/雾），全部由当前环境预设驱动。 */
 export function EnvironmentScene({ subjectPositionSampler }: EnvironmentSceneProps = {}) {
   const { preset } = useSceneEnvironment();
@@ -59,12 +71,10 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
   // 预设不变时复用不重生成；scene.environment 供船体 PBR 拾取，IBL 降权避免与
   // 方向光太阳能量重复计入。
   useEffect(() => {
-    let generator: THREE.PMREMGenerator | null = null;
     const source: MarinePmremSource = {
       fromSkyScene: (skyScene) => {
-        generator = new THREE.PMREMGenerator(gl);
-        // 缓存持完整 RenderTarget（dispose 释放 framebuffer/depth/GPU 纹理）。
-        return generator.fromScene(skyScene, 0, 1, 10000);
+        // generator 按 renderer 复用；缓存条目持完整 RenderTarget（dispose 释放 framebuffer/depth/GPU 纹理）。
+        return pmremGeneratorFor(gl).fromScene(skyScene, 0, 1, 10000);
       },
     };
     const skySceneFactory = () => {
@@ -87,11 +97,15 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
     };
   }, [gl, scene, preset.id, skyTexture]);
 
-  // Canvas 卸载：释放本 renderer 的全部环境辐射缓存与生成器（真卸载，非预设切换）。
+  // Canvas 卸载：释放本 renderer 的全部环境辐射缓存与 PMREMGenerator 内部资源
+  // （ping-pong RT/模糊材质/LOD 几何；真卸载，非预设切换）。
   useEffect(() => {
     const rendererKey = marineRendererKey(gl);
     return () => {
       disposeMarineEnvironmentRadiance(rendererKey);
+      const generator = rendererPmremGenerators.get(gl);
+      generator?.dispose();
+      rendererPmremGenerators.delete(gl);
     };
   }, [gl]);
 
