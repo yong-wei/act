@@ -290,9 +290,9 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
 }
 
 /** 航迹线 */
-function TrajectoryLine({ points }: { points: Vector2[] }) {
+function TrajectoryLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   if (points.length < 2) return null;
-  return <WaterHuggingLine points={points} color={simulationScenePalette.danger} lineWidth={2} />;
+  return <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={simulationScenePalette.danger} lineWidth={2} />;
 }
 
 
@@ -1164,7 +1164,7 @@ export function DrillingSimulation() {
         </Suspense>
 
         {/* 航迹 */}
-        {trajectory.length > 1 && <TrajectoryLine points={trajectory} />}
+        {trajectory.length > 1 && <TrajectoryLine points={trajectory} waterOriginSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })} />}
 
         <WakeTrailRig platformStateRef={platformStateRef} playing={isRunning} resetToken={resetCount} />
 

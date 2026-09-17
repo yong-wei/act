@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { GERSTNER_MAX_WAVES, type GerstnerWave } from './gerstner-waves';
+import { NEAR_FIELD_FADE_BAND_METERS } from './ocean-bands';
 
 export interface GerstnerWaterMaterialOptions {
   readonly waves: readonly GerstnerWave[];
@@ -16,6 +17,17 @@ export interface GerstnerWaterMaterialOptions {
   readonly foamTexture?: THREE.Texture | null;
   /** 海况振幅倍率（1 为标准海况）。 */
   readonly amplitudeScale?: number;
+  /**
+   * 近场幅度包络（#2098）：网格局部坐标超出 fadeStart 后幅度平滑衰减到边缘 0，
+   * 使近场边缘与无几何波的远场平面在接缝处同为基准高度。0 表示不启用包络。
+   */
+  readonly envelopeSizeMeters?: number;
+  readonly envelopeFadeBandMeters?: number;
+  /**
+   * 远场近场挖空半宽（#2098 复审）：远场片元落在近场网格方形覆盖区内时丢弃，
+   * 避免透明平面与近场波谷重叠遮挡/交叉闪烁。0 表示不启用。
+   */
+  readonly nearCutoutHalfSizeMeters?: number;
 }
 
 const FLOATS_PER_WAVE = 6;
@@ -26,6 +38,8 @@ const FLOATS_PER_WAVE = 6;
  * 与 scene/water/gerstner-waves.ts 的 CPU 参照共用同一公式。
  */
 export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOptions): THREE.ShaderMaterial {
+  const envelopeSize = options.envelopeSizeMeters ?? 0;
+  const envelopeFade = options.envelopeFadeBandMeters ?? NEAR_FIELD_FADE_BAND_METERS;
   const waveData = new Float32Array(GERSTNER_MAX_WAVES * FLOATS_PER_WAVE);
   options.waves.slice(0, GERSTNER_MAX_WAVES).forEach((wave, index) => {
     const [rawDx, rawDz] = wave.direction;
@@ -49,6 +63,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uWaves: { value: waveData },
       uWaveCount: { value: Math.min(options.waves.length, GERSTNER_MAX_WAVES) },
       uAmplitudeScale: { value: options.amplitudeScale ?? 1 },
+      uEnvelopeHalfSize: { value: envelopeSize > 0 ? envelopeSize / 2 : 0 },
+      uEnvelopeFadeBand: { value: envelopeFade },
+      uNearCutoutHalfSize: { value: options.nearCutoutHalfSizeMeters ?? 0 },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
       uDeepColor: { value: new THREE.Color(options.deepColor) },
       uHorizonColor: { value: new THREE.Color(options.horizonColor) },
@@ -65,12 +82,16 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uWaves[MAX_WAVES * FLOATS_PER_WAVE];
       uniform int uWaveCount;
       uniform float uAmplitudeScale;
+      uniform float uEnvelopeHalfSize;
+      uniform float uEnvelopeFadeBand;
+      uniform float uNearCutoutHalfSize;
 
       varying vec3 vNormal;
       varying vec3 vViewPosition;
       varying vec3 vWorldPos;
       varying float vCrest;
       varying float vElevation;
+      varying vec2 vLocalXZ;
 
       void main() {
         vec3 pos = position;
@@ -78,17 +99,51 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 若逐波用已水平位移的 pos.xz 取相位，波序依赖且与 CPU 参照不再同公式。
         vec3 basePos = position;
         vec2 worldXZ = basePos.xz + uWorldOrigin;
+        // 近场幅度包络（#2098）：外环 smoothstep 衰减，一阶导两端为零避免折痕。
+        float envelope = 1.0;
+        if (uEnvelopeHalfSize > 0.0) {
+          float edgeDistance = max(abs(basePos.x), abs(basePos.z));
+          float fadeStart = uEnvelopeHalfSize - uEnvelopeFadeBand;
+          float t = clamp((edgeDistance - fadeStart) / uEnvelopeFadeBand, 0.0, 1.0);
+          envelope = 1.0 - t * t * (3.0 - 2.0 * t);
+        }
+        // 近场挖空（#2098 二轮复审）：传网格局部坐标，片元级精确判定
+        // （顶点二值标记会被光栅器插值，边界落到顶点中点而非 1024 m）。
+        vLocalXZ = basePos.xz;
+        // 包络梯度（#2098 复审）：衰减环内 dE/dd = -6t(1-t)/fade（两端为 0，C1）。
+        float envelopeDx = 0.0;
+        float envelopeDz = 0.0;
+        if (uEnvelopeHalfSize > 0.0) {
+          float ax = abs(basePos.x);
+          float az = abs(basePos.z);
+          float edgeDistance = max(ax, az);
+          float fadeStartE = uEnvelopeHalfSize - uEnvelopeFadeBand;
+          float te = clamp((edgeDistance - fadeStartE) / uEnvelopeFadeBand, 0.0, 1.0);
+          float dEdge = -6.0 * te * (1.0 - te) / uEnvelopeFadeBand;
+          envelopeDx = ax >= az ? dEdge * sign(basePos.x) : 0.0;
+          envelopeDz = az > ax ? dEdge * sign(basePos.z) : 0.0;
+        }
+        // 完整参数曲面偏导（#2098）：P(x,z) = (x+Sx, Y, z+Sz)，法线取 +Y 主导方向。
         float dYdx = 0.0;
         float dYdz = 0.0;
+        float dSxdx = 0.0;
+        float dSxdz = 0.0;
+        float dSzdx = 0.0;
+        float dSzdz = 0.0;
         float crestRaw = 0.0;
         float amplitudeSum = 0.0;
+        // 未包络原始位移累计（二轮复审）：乘积法则需要 E'·S，S 不得再含一次 E。
+        float rawY = 0.0;
+        float rawSx = 0.0;
+        float rawSz = 0.0;
 
         for (int i = 0; i < MAX_WAVES; i++) {
           if (i >= uWaveCount) break;
           int base = i * FLOATS_PER_WAVE;
           float dx = uWaves[base];
           float dz = uWaves[base + 1];
-          float amp = uWaves[base + 2] * uAmplitudeScale;
+          float ampRaw = uWaves[base + 2] * uAmplitudeScale;
+          float amp = ampRaw * envelope;
           float wavelength = uWaves[base + 3];
           float speed = uWaves[base + 4];
           float steepness = uWaves[base + 5];
@@ -105,13 +160,26 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
 
           dYdx += amp * co * k * dx;
           dYdz += amp * co * k * dz;
+          dSxdx -= steepness * amp * s * k * dx * dx;
+          dSxdz -= steepness * amp * s * k * dx * dz;
+          dSzdx -= steepness * amp * s * k * dz * dx;
+          dSzdz -= steepness * amp * s * k * dz * dz;
           crestRaw += amp * s;
           amplitudeSum += amp;
+          rawY += ampRaw * s;
+          rawSx += steepness * ampRaw * dx * co;
+          rawSz += steepness * ampRaw * dz * co;
         }
 
         vElevation = pos.y;
         vCrest = amplitudeSum > 0.0 ? 0.5 * (1.0 + crestRaw / amplitudeSum) : 0.0;
-        vNormal = normalize(normalMatrix * normalize(vec3(-dYdx, 1.0, -dYdz)));
+        // 乘积法则（#2098 复审）：衰减环内 P = (x+E·Sx, E·Y, z+E·Sz)，
+        // 偏导补 E'×原始位移项（rawSx/rawY/rawSz 未含包络，避免 E'·E·S）。
+        vec3 dPdx = vec3(1.0 + dSxdx + envelopeDx * rawSx, dYdx + envelopeDx * rawY, dSzdx + envelopeDx * rawSz);
+        vec3 dPdz = vec3(dSxdz + envelopeDz * rawSx, dYdz + envelopeDz * rawY, 1.0 + dSzdz + envelopeDz * rawSz);
+        vec3 surfaceNormal = normalize(cross(dPdx, dPdz));
+        if (surfaceNormal.y < 0.0) surfaceNormal = -surfaceNormal;
+        vNormal = normalize(normalMatrix * surfaceNormal);
 
         vec4 worldPosition = modelMatrix * vec4(pos, 1.0);
         vWorldPos = worldPosition.xyz;
@@ -127,14 +195,19 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform vec3 uFoamColor;
       uniform vec3 uSunDirection;
       uniform sampler2D uFoamTex;
+      uniform float uNearCutoutHalfSize;
 
       varying vec3 vNormal;
       varying vec3 vViewPosition;
       varying vec3 vWorldPos;
       varying float vCrest;
       varying float vElevation;
+      varying vec2 vLocalXZ;
 
       void main() {
+        // 近场挖空（#2098 二轮复审）：远场片元按网格局部坐标精确判定
+        // max(|x|,|z|) < 1024（顶点二值标记会被插值，边界落到顶点中点）。
+        if (uNearCutoutHalfSize > 0.0 && max(abs(vLocalXZ.x), abs(vLocalXZ.y)) < uNearCutoutHalfSize) discard;
         vec3 viewDirection = normalize(-vViewPosition);
         vec3 normal = normalize(vNormal);
 
