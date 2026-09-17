@@ -574,6 +574,7 @@ function DredgerWater({
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
       sunDirection={water.sunDirection}
+      sunIllumination={water.sunIllumination}
     />
   );
 }
