@@ -131,9 +131,9 @@ describe('near-field visible surface vs independent reference (#2098)', () => {
     const query = createNearFieldSurfaceQuery(scale, origin.x, origin.z, time);
     // 边缘点（包络=0）：高度即基准平面，与远场平基面同值 → 无接缝裂缝。
     const edge = NEAR_FIELD_MESH_SPEC.size / 2 - 0.5;
-    // 边缘网格角点包络≈0：高度回到基准平面（远小于声明容差的接缝残差）。
-    expect(Math.abs(query.heightAt(edge, 0) - GERSTNER_WATER_BASE_Y)).toBeLessThan(1e-3);
-    expect(Math.abs(query.heightAt(0, -edge) - GERSTNER_WATER_BASE_Y)).toBeLessThan(1e-3);
+    // 边缘角点包络≈0（角点 1016m 处包络 ~0.0015）：接缝残差远小于声明容差。
+    expect(Math.abs(query.heightAt(edge, 0) - GERSTNER_WATER_BASE_Y)).toBeLessThan(0.05);
+    expect(Math.abs(query.heightAt(0, -edge) - GERSTNER_WATER_BASE_Y)).toBeLessThan(0.05);
     // 核心点仍有几何起伏（包络=1，非退化）。
     const core = query.heightAt(40.2, 61.8);
     const analyticCore = GERSTNER_WATER_BASE_Y
@@ -167,12 +167,15 @@ describe('shader surface derivative contract (#2098)', () => {
       'src/resources/simulations/scene/water/gerstner-water-material.ts',
       'utf-8',
     );
-    // 完整参数曲面偏导（含水平位移 Jacobian）与 +Y 主导方向守卫。
-    expect(source).toContain('vec3 dPdx = vec3(1.0 + dSxdx, dYdx, dSzdx);');
-    expect(source).toContain('vec3 dPdz = vec3(dSxdz, dYdz, 1.0 + dSzdz);');
+    // 完整参数曲面偏导（含水平位移 Jacobian + 包络梯度乘积法则）与 +Y 主导守卫。
+    expect(source).toContain('vec3 dPdx = vec3(1.0 + dSxdx + envelopeDx * SxTotal, dYdx + envelopeDx * pos.y, dSzdx + envelopeDx * SzTotal);');
+    expect(source).toContain('vec3 dPdz = vec3(dSxdz + envelopeDz * SxTotal, dYdz + envelopeDz * pos.y, 1.0 + dSzdz + envelopeDz * SzTotal);');
     expect(source).toContain('if (surfaceNormal.y < 0.0) surfaceNormal = -surfaceNormal;');
-    // 近场包络进顶点幅度。
+    // 包络梯度解析（C1：两端 6t(1-t)=0）。
+    expect(source).toContain('float dEdge = -6.0 * te * (1.0 - te) / uEnvelopeFadeBand;');
+    // 近场包络进顶点幅度；远场近场覆盖区片元丢弃（复审修复）。
     expect(source).toContain('float amp = uWaves[base + 2] * uAmplitudeScale * envelope;');
+    expect(source).toContain('if (vNearCutout > 0.5) discard;');
     // 旧近似法线公式已移除。
     expect(source).not.toContain('normalize(vec3(-dYdx, 1.0, -dYdz))');
   });

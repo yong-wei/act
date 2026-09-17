@@ -23,6 +23,11 @@ export interface GerstnerWaterMaterialOptions {
    */
   readonly envelopeSizeMeters?: number;
   readonly envelopeFadeBandMeters?: number;
+  /**
+   * 远场近场挖空半宽（#2098 复审）：远场片元落在近场网格方形覆盖区内时丢弃，
+   * 避免透明平面与近场波谷重叠遮挡/交叉闪烁。0 表示不启用。
+   */
+  readonly nearCutoutHalfSizeMeters?: number;
 }
 
 const FLOATS_PER_WAVE = 6;
@@ -60,6 +65,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uAmplitudeScale: { value: options.amplitudeScale ?? 1 },
       uEnvelopeHalfSize: { value: envelopeSize > 0 ? envelopeSize / 2 : 0 },
       uEnvelopeFadeBand: { value: envelopeFade },
+      uNearCutoutHalfSize: { value: options.nearCutoutHalfSizeMeters ?? 0 },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
       uDeepColor: { value: new THREE.Color(options.deepColor) },
       uHorizonColor: { value: new THREE.Color(options.horizonColor) },
@@ -78,12 +84,14 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uAmplitudeScale;
       uniform float uEnvelopeHalfSize;
       uniform float uEnvelopeFadeBand;
+      uniform float uNearCutoutHalfSize;
 
       varying vec3 vNormal;
       varying vec3 vViewPosition;
       varying vec3 vWorldPos;
       varying float vCrest;
       varying float vElevation;
+      varying float vNearCutout;
 
       void main() {
         vec3 pos = position;
@@ -98,6 +106,22 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           float fadeStart = uEnvelopeHalfSize - uEnvelopeFadeBand;
           float t = clamp((edgeDistance - fadeStart) / uEnvelopeFadeBand, 0.0, 1.0);
           envelope = 1.0 - t * t * (3.0 - 2.0 * t);
+        }
+        // 近场挖空标记（#2098 复审）：远场网格落在近场方形覆盖区内则丢弃该片元。
+        vNearCutout = (uNearCutoutHalfSize > 0.0
+          && max(abs(basePos.x), abs(basePos.z)) < uNearCutoutHalfSize) ? 1.0 : 0.0;
+        // 包络梯度（#2098 复审）：衰减环内 dE/dd = -6t(1-t)/fade（两端为 0，C1）。
+        float envelopeDx = 0.0;
+        float envelopeDz = 0.0;
+        if (uEnvelopeHalfSize > 0.0) {
+          float ax = abs(basePos.x);
+          float az = abs(basePos.z);
+          float edgeDistance = max(ax, az);
+          float fadeStartE = uEnvelopeHalfSize - uEnvelopeFadeBand;
+          float te = clamp((edgeDistance - fadeStartE) / uEnvelopeFadeBand, 0.0, 1.0);
+          float dEdge = -6.0 * te * (1.0 - te) / uEnvelopeFadeBand;
+          envelopeDx = ax >= az ? dEdge * sign(basePos.x) : 0.0;
+          envelopeDz = az > ax ? dEdge * sign(basePos.z) : 0.0;
         }
         // 完整参数曲面偏导（#2098）：P(x,z) = (x+Sx, Y, z+Sz)，法线取 +Y 主导方向。
         float dYdx = 0.0;
@@ -141,8 +165,12 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
 
         vElevation = pos.y;
         vCrest = amplitudeSum > 0.0 ? 0.5 * (1.0 + crestRaw / amplitudeSum) : 0.0;
-        vec3 dPdx = vec3(1.0 + dSxdx, dYdx, dSzdx);
-        vec3 dPdz = vec3(dSxdz, dYdz, 1.0 + dSzdz);
+        // 乘积法则（#2098 复审）：衰减环内 P = (x+E·Sx, E·Y, z+E·Sz)，
+        // 偏导补 E'×位移项（Sx/Sz/Y 取环内累计位移）。
+        float SxTotal = pos.x - basePos.x;
+        float SzTotal = pos.z - basePos.z;
+        vec3 dPdx = vec3(1.0 + dSxdx + envelopeDx * SxTotal, dYdx + envelopeDx * pos.y, dSzdx + envelopeDx * SzTotal);
+        vec3 dPdz = vec3(dSxdz + envelopeDz * SxTotal, dYdz + envelopeDz * pos.y, 1.0 + dSzdz + envelopeDz * SzTotal);
         vec3 surfaceNormal = normalize(cross(dPdx, dPdz));
         if (surfaceNormal.y < 0.0) surfaceNormal = -surfaceNormal;
         vNormal = normalize(normalMatrix * surfaceNormal);
@@ -167,8 +195,12 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       varying vec3 vWorldPos;
       varying float vCrest;
       varying float vElevation;
+      varying float vNearCutout;
 
       void main() {
+        // 近场挖空（#2098 复审）：远场片元落在近场方形覆盖区内时丢弃，
+        // 避免透明平面与近场波谷重叠遮挡/交叉闪烁。
+        if (vNearCutout > 0.5) discard;
         vec3 viewDirection = normalize(-vViewPosition);
         vec3 normal = normalize(vNormal);
 

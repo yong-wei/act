@@ -165,7 +165,6 @@ export function sampleVisibleWaterHeight(
 ): number {
   const targetX = worldX - originX;
   const targetZ = worldZ - originZ;
-  const envelopeScale = envelope?.(targetX, targetZ) ?? 1;
   const cell = mesh.size / mesh.resolution;
   const half = mesh.size / 2;
   const lastCell = mesh.resolution - 1;
@@ -177,7 +176,7 @@ export function sampleVisibleWaterHeight(
     const key = i * (mesh.resolution + 1) + j;
     let vertex = cornerCache.get(key);
     if (!vertex) {
-      vertex = displaceVertex(waves, amplitudeScale * envelopeScale, i * cell - half, j * cell - half, originX, originZ, timeSeconds);
+      vertex = displaceVertex(waves, amplitudeScale * (envelope?.(i * cell - half, j * cell - half) ?? 1), i * cell - half, j * cell - half, originX, originZ, timeSeconds);
       cornerCache.set(key, vertex);
     }
     return vertex;
@@ -224,14 +223,17 @@ export function createNearFieldSurfaceQuery(
   const lastCell = mesh.resolution - 1;
   const cornerCache = new Map<number, DisplacedVertex>();
   const heightAtLocal = (targetX: number, targetZ: number): number => {
-    const envelopeScale = nearFieldEnvelope(targetX, targetZ, mesh.size);
     const baseI = Math.min(Math.max(Math.floor((targetX + half) / cell), 0), lastCell);
     const baseJ = Math.min(Math.max(Math.floor((targetZ + half) / cell), 0), lastCell);
     const corner = (i: number, j: number): DisplacedVertex => {
       const key = i * (mesh.resolution + 1) + j;
       let vertex = cornerCache.get(key);
       if (!vertex) {
-        vertex = displaceVertex(NEAR_FIELD_VISIBLE_WAVES, amplitudeScale * envelopeScale, i * cell - half, j * cell - half, originX, originZ, timeSeconds);
+        // 包络按角点自身局部坐标求值（与 GPU 逐顶点同口径）；角点缓存后结果确定、与调用顺序无关。
+        const cornerLocalX = i * cell - half;
+        const cornerLocalZ = j * cell - half;
+        const cornerEnvelope = nearFieldEnvelope(cornerLocalX, cornerLocalZ, mesh.size);
+        vertex = displaceVertex(NEAR_FIELD_VISIBLE_WAVES, amplitudeScale * cornerEnvelope, cornerLocalX, cornerLocalZ, originX, originZ, timeSeconds);
         cornerCache.set(key, vertex);
       }
       return vertex;
@@ -297,6 +299,7 @@ function BandWaterMesh({
   meshSpec,
   amplitudeScale,
   envelopeSizeMeters,
+  nearCutoutHalfSizeMeters,
   marineVisualTime,
   positionSampler,
   shipPosition,
@@ -311,6 +314,7 @@ function BandWaterMesh({
   readonly meshSpec: GerstnerWaterMeshSpec;
   readonly amplitudeScale: number;
   readonly envelopeSizeMeters: number;
+  readonly nearCutoutHalfSizeMeters: number;
   readonly marineVisualTime: (state: { clock: { elapsedTime: number; getElapsedTime?: () => number } }, delta: number) => number;
   readonly positionSampler?: () => { readonly x: number; readonly z: number } | undefined;
   readonly shipPosition?: { readonly x: number; readonly z: number };
@@ -339,8 +343,9 @@ function BandWaterMesh({
       foamTexture,
       amplitudeScale,
       envelopeSizeMeters,
+      nearCutoutHalfSizeMeters,
     }),
-    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters]
+    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters]
   );
 
   useFrame((state, delta) => {
@@ -398,6 +403,7 @@ export function GerstnerWater({
         meshSpec={farSpec}
         amplitudeScale={amplitudeScale}
         envelopeSizeMeters={0}
+        nearCutoutHalfSizeMeters={NEAR_FIELD_MESH_SPEC.size / 2}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}
@@ -413,6 +419,7 @@ export function GerstnerWater({
         meshSpec={NEAR_FIELD_MESH_SPEC}
         amplitudeScale={amplitudeScale}
         envelopeSizeMeters={NEAR_FIELD_MESH_SPEC.size}
+        nearCutoutHalfSizeMeters={0}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}

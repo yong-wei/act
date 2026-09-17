@@ -543,14 +543,25 @@ function WakeTrailRig({
   // 与可见水面同一坐标基准、同一细分曲面：水面网格跟随舰位，世界坐标须先减原点，
   // 再按位移后三角网格重心插值采样。
   // 尾迹贴水（#2098）：近场可见曲面（带限波组 + 包络，档位无关），与 GPU 近场网格同参数。
+  // 每帧（时间/原点键）只构建一次查询：本帧全部粒子共享同一角点缓存（复审修复）。
+  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
   const waterYSampler = (x?: number, z?: number) => {
-    const query = createNearFieldSurfaceQuery(
-      gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
-      simRef.current.position.x,
-      simRef.current.position.z,
-      timeRef.current,
-    );
-    return query.heightAt(x ?? simRef.current.position.x, z ?? simRef.current.position.z);
+    const origin = simRef.current.position;
+    const key = `${timeRef.current}|${origin.x}|${origin.z}`;
+    let cached = wakeQueryCacheRef.current;
+    if (!cached || cached.key !== key) {
+      cached = {
+        key,
+        query: createNearFieldSurfaceQuery(
+          gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
+          origin.x,
+          origin.z,
+          timeRef.current,
+        ),
+      };
+      wakeQueryCacheRef.current = cached;
+    }
+    return cached.query.heightAt(x ?? origin.x, z ?? origin.z);
   };
 
   if (propulsorAnchors.length > 0) {
