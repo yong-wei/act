@@ -1364,6 +1364,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("return '待复核'");
     expect(source).toContain("return '仅作参考'");
     expect(source).not.toContain("node.resourceLabel === '知识卡' ? '互动课程'");
+    expect(source).toContain('allowsPathCenterExplicitCompletion');
+    expect(source).toContain('completableNodeIds.has(nodeId)');
+    expect(source).not.toContain('ownedNodeIds.has(nodeId)');
     expect(source).toContain("'continued-interaction'");
     expect(source).toContain("launchExecutionNode(node, 'review')");
     expect(source).toContain("launchExecutionNode(node, 'continued-interaction')");
@@ -2138,6 +2141,7 @@ describe('adaptive learning center UI contracts', () => {
     });
 
     expect(isSimpleAdaptivePathCompletionResource('quiz')).toBe(true);
+    expect(isSimpleAdaptivePathCompletionResource('textbook_section')).toBe(true);
     expect(request).toEqual({
       href: '/api/learning-paths/path-1/execute',
       method: 'POST',

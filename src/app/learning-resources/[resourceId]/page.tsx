@@ -13,7 +13,7 @@ import {
   presentPublishedKnowledgeCard,
   resolveBindingViewerContentForType,
 } from '@/lib/authority-domain-shards/binding-viewer-content';
-import { launchRowsForResource } from '@/lib/resource-binding-release/query';
+import { launchRowsForResource, presentPublishedResourceAnchors } from '@/lib/resource-binding-release/query';
 import { PublishedResourcePage, type PublishedResourcePageData } from '@/features/knowledge/published-resource-page';
 
 export const dynamic = 'force-dynamic';
@@ -53,14 +53,13 @@ export default async function PublishedResourceRoute({ params, searchParams }: {
     kind: current ? resource.backend.kind : 'reference-only',
     referenceHref: current ? buildPublishedResourceHref(versionedIdentity) : undefined,
     appearance: resource.appearance ?? null,
-    anchors: launchRowsForResource(
-      resource.identity.resourceId,
+    anchors: presentPublishedResourceAnchors(
+      launchRowsForResource(
+        resource.identity.resourceId,
+        current && resource.backend.kind === 'route' ? resource.backend.href : null,
+      ),
       current && resource.backend.kind === 'route' ? resource.backend.href : null,
-    ).flatMap((row) => row.anchorLabel ? [{
-      label: row.anchorLabel,
-      appearance: row.appearance,
-      href: row.href,
-    }] : []),
+    ),
   };
   if (current && resource.backend.kind === 'card') {
     const card = resolveBindingViewerContentForType(resource.identity.resourceId, resource.type, resource.sourcePath);

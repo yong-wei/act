@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { notFound, redirect } from 'next/navigation';
 
 import 'katex/dist/katex.min.css';
@@ -12,6 +13,7 @@ import {
   verifyTextbookVersionBoundHandle,
 } from '@/lib/textbook-resource-coach';
 
+import { TextbookPathCompletionBar } from './textbook-path-completion-bar';
 import { TextbookReader } from './textbook-reader';
 import { TextbookReaderCoachingSurface } from './textbook-reader-coaching-surface';
 import { TextbookReaderModal } from './textbook-reader-modal';
@@ -93,6 +95,11 @@ export async function TextbookReaderRoute({
     }
     const reader = (
       <TextbookReaderCoachingSurface projection={projection} citationNotice={citationNotice}>
+        {presentation === 'standalone' ? (
+          <Suspense fallback={null}>
+            <TextbookPathCompletionBar />
+          </Suspense>
+        ) : null}
         <TextbookReader projection={projection} presentation={presentation} />
       </TextbookReaderCoachingSurface>
     );
