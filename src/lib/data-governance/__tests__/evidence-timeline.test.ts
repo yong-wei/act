@@ -994,6 +994,47 @@ describe('evidence timeline browser', () => {
     });
   });
 
+  it('projects internal fact types and fixture names to Chinese evidence titles', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'path-selection',
+            factType: 'control_correction_path.selection_recorded',
+            lessonId: null,
+            moduleId: null,
+            contextJson: {},
+          }),
+          fact({
+            id: 'diagnostic-fixture',
+            factType: 'yangfan-diagnostic-fixture',
+            lessonId: null,
+            moduleId: null,
+            contextJson: { evidenceTitle: 'yangfan-diagnostic-fixture' },
+            startedAt: new Date('2026-05-21T07:50:00.000Z'),
+            createdAt: new Date('2026-05-21T07:50:01.000Z'),
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+    });
+
+    expect(page.items.map((item) => item.evidenceTitle)).toEqual([
+      '路径方案选择记录',
+      '诊断练习记录',
+    ]);
+    expect(JSON.stringify(page.items.map((item) => item.evidenceTitle)))
+      .not.toMatch(/fixture|ctc:|selection_recorded|yangfan/u);
+  });
+
   it('keeps legacy high-value simulation events visually identifiable instead of grouping them as low signal', async () => {
     const db = {
       learningFact: {

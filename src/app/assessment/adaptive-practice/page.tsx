@@ -135,6 +135,11 @@ import {
 } from '@/lib/path-generation-request-lifecycle';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
+import {
+  presentCollectedLearningEvidence,
+  presentStudentVisibleEvidenceSource,
+  presentStudentVisibleText,
+} from '@/lib/student-visible-text';
 
 type PostLearningPathNodeAction = {
   href: string;
@@ -2872,7 +2877,11 @@ function getPathExecutionNodes(
       target: typeof node.target === 'string' ? node.target : '/assessment/adaptive-practice',
       estimatedMinutes: getEstimatedMinutes(node),
       reason: formatPathNodeReason(reasonCodes),
-      evidence: knowledgeCoverage.length > 0 ? knowledgeCoverage.join('、') : `${formatResourceType(type)}完成记录`,
+      evidence: presentCollectedLearningEvidence({
+        title: typeof node.title === 'string' ? node.title : null,
+        resourceLabel: formatResourceType(type),
+        knowledgeCoverage,
+      }),
       checkpoint: type === 'checkpoint' || type === 'arena_task' || type === 'simulation'
         ? '完成后用于判断是否进入下一段路径。'
         : '完成学习动作并留下可复核记录。',
@@ -5102,7 +5111,7 @@ export default function AdaptivePracticePage() {
     }
   }, [activePathPlan, activePathRound, reloadActiveLearningPath]);
 
-  const launchExecutionNode = useCallback(async (node: PathExecutionNodeView) => {
+  const launchExecutionNode = useCallback(async (node: PathExecutionNodeView, activityKind?: string) => {
     const targetContract = resolveAdaptivePathDestinationContract(node.type, node.target, {
       nodeId: node.nodeId,
       sourceKind: node.sourceKind,
@@ -5142,9 +5151,11 @@ export default function AdaptivePracticePage() {
           resourceType: node.type,
         }
       : null;
+    const pathActivityKind = activityKind
+      ?? (node.status === 'skipped' ? 'return-to-skipped' : 'initial-completion');
     const activityWritten = await writePathNodeActivity(
       node,
-      node.status === 'skipped' ? 'return-to-skipped' : 'initial-completion',
+      pathActivityKind,
       'started',
     );
     if (!activityWritten) {
@@ -6859,7 +6870,9 @@ export default function AdaptivePracticePage() {
                               <div>
                                 <p className="text-xs text-subtle">节点结果</p>
                                 <h4 className="mt-1 text-sm font-semibold text-foreground">
-                                  {node.result.state === 'available' ? node.result.label : '结果待同步'}
+                                  {node.result.state === 'available'
+                                    ? presentStudentVisibleText(node.result.label, `${node.resourceLabel}结果`)
+                                    : '结果待同步'}
                                 </h4>
                               </div>
                               <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
@@ -6869,11 +6882,15 @@ export default function AdaptivePracticePage() {
                             <dl className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2">
                               <div className="min-w-0">
                                 <dt className="text-xs text-subtle">证据来源</dt>
-                                <dd className="mt-1 break-words text-foreground">{node.result.evidenceSource}</dd>
+                                <dd className="mt-1 break-words text-foreground">
+                                  {presentStudentVisibleEvidenceSource(node.result.evidenceSource)}
+                                </dd>
                               </div>
                               <div className="min-w-0">
                                 <dt className="text-xs text-subtle">关键指标</dt>
-                                <dd className="mt-1 break-words text-foreground">{node.result.primaryMetric ?? '等待结果写入'}</dd>
+                                <dd className="mt-1 break-words text-foreground">
+                                  {presentStudentVisibleText(node.result.primaryMetric, '等待结果写入')}
+                                </dd>
                               </div>
                             </dl>
                             {node.result.state === 'pending' ? (
@@ -6901,7 +6918,7 @@ export default function AdaptivePracticePage() {
                             <>
                               <button
                                 type="button"
-                                onClick={() => void writePathNodeActivity(node, 'review', 'started')}
+                                onClick={() => void launchExecutionNode(node, 'review')}
                                 disabled={pathActivityPending === `review:${node.nodeId}`}
                                 className="rounded-lg border border-border px-3 py-2 text-xs text-foreground disabled:opacity-60"
                               >
@@ -6909,7 +6926,7 @@ export default function AdaptivePracticePage() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => void writePathNodeActivity(node, 'continued-interaction', 'started')}
+                                onClick={() => void launchExecutionNode(node, 'continued-interaction')}
                                 disabled={pathActivityPending === `continued-interaction:${node.nodeId}`}
                                 className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
                               >

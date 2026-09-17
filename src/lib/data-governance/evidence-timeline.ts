@@ -16,6 +16,7 @@ import {
   summarizeSubmissionEvidencePayload,
   type SubmissionEvidenceQuality,
 } from './submission-evidence-quality';
+import { presentStudentVisibleEvidenceTitle, presentStudentVisibleText } from '@/lib/student-visible-text';
 export interface EvidenceTimelineFilters {
   cursor?: string;
   limit?: number;
@@ -466,6 +467,10 @@ function formatEvidenceTimelineItem(
     historicalRevisionBound: true,
   };
 
+  const stepId = response?.stepId
+    ?? readString(contextJson.stepId)
+    ?? (fact.moduleId?.startsWith('step-') ? fact.moduleId : undefined);
+
   return compactObject({
     id: fact.id,
     factType: fact.factType,
@@ -481,13 +486,15 @@ function formatEvidenceTimelineItem(
     createdAt: fact.createdAt.toISOString(),
     timeSpent: fact.timeSpent,
     competencyContribution: readNumericRecord(fact.competencyContribution),
-    evidenceTitle: readString(responseData.evidenceTitle)
-      ?? readString(responseData.title)
-      ?? readString(responseData.activityTitle)
-      ?? readString(contextJson.evidenceTitle),
-    stepId: response?.stepId
-      ?? readString(contextJson.stepId)
-      ?? (fact.moduleId?.startsWith('step-') ? fact.moduleId : undefined),
+    evidenceTitle: presentStudentVisibleEvidenceTitle({
+      evidenceTitle: readString(responseData.evidenceTitle)
+        ?? readString(responseData.title)
+        ?? readString(responseData.activityTitle)
+        ?? readString(contextJson.evidenceTitle),
+      factType: fact.factType,
+      stepId,
+    }),
+    stepId,
     questionSummaries: questionSummaries.length > 0 ? questionSummaries : undefined,
     quality: quality?.quality,
     qualityReason: quality?.reason,
@@ -899,7 +906,10 @@ function readQuestionSummaries(value: unknown, redactAnswers = false): EvidenceT
       const studentAnswer = readAnswer(entry.studentAnswer ?? entry.selectedValue ?? entry.answer ?? entry.value);
       return compactObject({
         questionId: readString(entry.questionId) ?? readString(entry.id),
-        prompt: readString(entry.prompt) ?? readString(entry.title),
+        prompt: presentStudentVisibleText(
+          readString(entry.prompt) ?? readString(entry.title),
+          '',
+        ) || undefined,
         studentAnswer: redactAnswers ? undefined : studentAnswer,
         studentAnswerRedacted: redactAnswers && studentAnswer !== undefined && studentAnswer !== null,
         referenceAnswer: readString(entry.referenceAnswer)
