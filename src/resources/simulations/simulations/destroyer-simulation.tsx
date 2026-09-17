@@ -58,11 +58,10 @@ import { Input } from '@/components/ui/input';
 import { destroyer055Profile } from '../profiles/destroyer-055';
 import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
 import {
+  createNearFieldSurfaceQuery,
   DEFAULT_GERSTNER_SEA_STATE,
   gerstnerAmplitudeScale,
-  GERSTNER_WAVE_SETS,
   GerstnerWater,
-  gerstnerWaterMeshSpecForTier,
   MARINE_BASE_INTERACTION_MESH_SPEC,
   MARINE_BASE_INTERACTION_WAVES,
   sampleVisibleWaterHeight,
@@ -543,18 +542,16 @@ function WakeTrailRig({
   if (!wakeVisible) return null;
   // 与可见水面同一坐标基准、同一细分曲面：水面网格跟随舰位，世界坐标须先减原点，
   // 再按位移后三角网格重心插值采样。
-  const waterMeshSpec = gerstnerWaterMeshSpecForTier(params.waterTier);
-  const waterYSampler = (x?: number, z?: number) =>
-    sampleVisibleWaterHeight(
-      GERSTNER_WAVE_SETS[params.waterTier],
+  // 尾迹贴水（#2098）：近场可见曲面（带限波组 + 包络，档位无关），与 GPU 近场网格同参数。
+  const waterYSampler = (x?: number, z?: number) => {
+    const query = createNearFieldSurfaceQuery(
       gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
-      waterMeshSpec,
       simRef.current.position.x,
       simRef.current.position.z,
-      x ?? simRef.current.position.x,
-      z ?? simRef.current.position.z,
       timeRef.current,
     );
+    return query.heightAt(x ?? simRef.current.position.x, z ?? simRef.current.position.z);
+  };
 
   if (propulsorAnchors.length > 0) {
     return (

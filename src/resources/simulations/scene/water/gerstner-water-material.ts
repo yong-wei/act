@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { GERSTNER_MAX_WAVES, type GerstnerWave } from './gerstner-waves';
+import { NEAR_FIELD_FADE_BAND_METERS } from './ocean-bands';
 
 export interface GerstnerWaterMaterialOptions {
   readonly waves: readonly GerstnerWave[];
@@ -16,6 +17,12 @@ export interface GerstnerWaterMaterialOptions {
   readonly foamTexture?: THREE.Texture | null;
   /** 海况振幅倍率（1 为标准海况）。 */
   readonly amplitudeScale?: number;
+  /**
+   * 近场幅度包络（#2098）：网格局部坐标超出 fadeStart 后幅度平滑衰减到边缘 0，
+   * 使近场边缘与无几何波的远场平面在接缝处同为基准高度。0 表示不启用包络。
+   */
+  readonly envelopeSizeMeters?: number;
+  readonly envelopeFadeBandMeters?: number;
 }
 
 const FLOATS_PER_WAVE = 6;
@@ -26,6 +33,8 @@ const FLOATS_PER_WAVE = 6;
  * 与 scene/water/gerstner-waves.ts 的 CPU 参照共用同一公式。
  */
 export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOptions): THREE.ShaderMaterial {
+  const envelopeSize = options.envelopeSizeMeters ?? 0;
+  const envelopeFade = options.envelopeFadeBandMeters ?? NEAR_FIELD_FADE_BAND_METERS;
   const waveData = new Float32Array(GERSTNER_MAX_WAVES * FLOATS_PER_WAVE);
   options.waves.slice(0, GERSTNER_MAX_WAVES).forEach((wave, index) => {
     const [rawDx, rawDz] = wave.direction;
@@ -49,6 +58,8 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uWaves: { value: waveData },
       uWaveCount: { value: Math.min(options.waves.length, GERSTNER_MAX_WAVES) },
       uAmplitudeScale: { value: options.amplitudeScale ?? 1 },
+      uEnvelopeHalfSize: { value: envelopeSize > 0 ? envelopeSize / 2 : 0 },
+      uEnvelopeFadeBand: { value: envelopeFade },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
       uDeepColor: { value: new THREE.Color(options.deepColor) },
       uHorizonColor: { value: new THREE.Color(options.horizonColor) },
@@ -65,6 +76,8 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uWaves[MAX_WAVES * FLOATS_PER_WAVE];
       uniform int uWaveCount;
       uniform float uAmplitudeScale;
+      uniform float uEnvelopeHalfSize;
+      uniform float uEnvelopeFadeBand;
 
       varying vec3 vNormal;
       varying vec3 vViewPosition;
@@ -78,8 +91,21 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 若逐波用已水平位移的 pos.xz 取相位，波序依赖且与 CPU 参照不再同公式。
         vec3 basePos = position;
         vec2 worldXZ = basePos.xz + uWorldOrigin;
+        // 近场幅度包络（#2098）：外环 smoothstep 衰减，一阶导两端为零避免折痕。
+        float envelope = 1.0;
+        if (uEnvelopeHalfSize > 0.0) {
+          float edgeDistance = max(abs(basePos.x), abs(basePos.z));
+          float fadeStart = uEnvelopeHalfSize - uEnvelopeFadeBand;
+          float t = clamp((edgeDistance - fadeStart) / uEnvelopeFadeBand, 0.0, 1.0);
+          envelope = 1.0 - t * t * (3.0 - 2.0 * t);
+        }
+        // 完整参数曲面偏导（#2098）：P(x,z) = (x+Sx, Y, z+Sz)，法线取 +Y 主导方向。
         float dYdx = 0.0;
         float dYdz = 0.0;
+        float dSxdx = 0.0;
+        float dSxdz = 0.0;
+        float dSzdx = 0.0;
+        float dSzdz = 0.0;
         float crestRaw = 0.0;
         float amplitudeSum = 0.0;
 
@@ -88,7 +114,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           int base = i * FLOATS_PER_WAVE;
           float dx = uWaves[base];
           float dz = uWaves[base + 1];
-          float amp = uWaves[base + 2] * uAmplitudeScale;
+          float amp = uWaves[base + 2] * uAmplitudeScale * envelope;
           float wavelength = uWaves[base + 3];
           float speed = uWaves[base + 4];
           float steepness = uWaves[base + 5];
@@ -105,13 +131,21 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
 
           dYdx += amp * co * k * dx;
           dYdz += amp * co * k * dz;
+          dSxdx -= steepness * amp * s * k * dx * dx;
+          dSxdz -= steepness * amp * s * k * dx * dz;
+          dSzdx -= steepness * amp * s * k * dz * dx;
+          dSzdz -= steepness * amp * s * k * dz * dz;
           crestRaw += amp * s;
           amplitudeSum += amp;
         }
 
         vElevation = pos.y;
         vCrest = amplitudeSum > 0.0 ? 0.5 * (1.0 + crestRaw / amplitudeSum) : 0.0;
-        vNormal = normalize(normalMatrix * normalize(vec3(-dYdx, 1.0, -dYdz)));
+        vec3 dPdx = vec3(1.0 + dSxdx, dYdx, dSzdx);
+        vec3 dPdz = vec3(dSxdz, dYdz, 1.0 + dSzdz);
+        vec3 surfaceNormal = normalize(cross(dPdx, dPdz));
+        if (surfaceNormal.y < 0.0) surfaceNormal = -surfaceNormal;
+        vNormal = normalize(normalMatrix * surfaceNormal);
 
         vec4 worldPosition = modelMatrix * vec4(pos, 1.0);
         vWorldPos = worldPosition.xyz;
