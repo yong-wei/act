@@ -136,6 +136,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uEnvelopeHalfSize;
       uniform float uEnvelopeFadeBand;
       uniform float uNearCutoutHalfSize;
+      uniform vec4 uShoreSegments[4];
+      uniform float uShoreSegmentCount;
+      uniform float uShoreFadeBand;
 
       varying vec3 vNormal;
       varying vec3 vWorldNormal;
