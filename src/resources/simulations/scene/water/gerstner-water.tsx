@@ -291,6 +291,8 @@ export interface GerstnerWaterProps {
   readonly horizonColor?: string;
   readonly foamColor?: string;
   readonly sunDirection?: THREE.Vector3;
+  /** 同源太阳辐照（#2100）：preset.sun.intensity / 预设最大值；缺省 1。 */
+  readonly sunIllumination?: number;
 }
 
 /** 单个带限水网格（#2098 内部组件）：几何/材质随波组与包络参数构建，逐帧写时间与原点。 */
@@ -301,6 +303,7 @@ function BandWaterMesh({
   envelopeSizeMeters,
   nearCutoutHalfSizeMeters,
   microNormalTier,
+  sunIllumination,
   marineVisualTime,
   positionSampler,
   shipPosition,
@@ -317,6 +320,7 @@ function BandWaterMesh({
   readonly envelopeSizeMeters: number;
   readonly nearCutoutHalfSizeMeters: number;
   readonly microNormalTier: 'high' | 'medium' | 'low';
+  readonly sunIllumination: number;
   readonly marineVisualTime: (state: { clock: { elapsedTime: number; getElapsedTime?: () => number } }, delta: number) => number;
   readonly positionSampler?: () => { readonly x: number; readonly z: number } | undefined;
   readonly shipPosition?: { readonly x: number; readonly z: number };
@@ -347,8 +351,9 @@ function BandWaterMesh({
       envelopeSizeMeters,
       nearCutoutHalfSizeMeters,
       microNormalTier,
+      sunIllumination,
     }),
-    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier]
+    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, sunIllumination]
   );
 
   useFrame((state, delta) => {
@@ -387,6 +392,7 @@ export function GerstnerWater({
   horizonColor = DEFAULT_WATER_COLORS.horizonColor,
   foamColor = simulationScenePalette.waterFoam,
   sunDirection = new THREE.Vector3(0.45, 0.75, 0.35),
+  sunIllumination = 1,
 }: GerstnerWaterProps) {
   const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
   // 共享视觉时间：Provider 场景同帧唯一（暂停/倍速政策一致）；未接入场景回退 R3F 时钟。
@@ -408,6 +414,7 @@ export function GerstnerWater({
         envelopeSizeMeters={0}
         nearCutoutHalfSizeMeters={NEAR_FIELD_MESH_SPEC.size / 2}
         microNormalTier="low"
+        sunIllumination={sunIllumination}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}
@@ -425,6 +432,7 @@ export function GerstnerWater({
         envelopeSizeMeters={NEAR_FIELD_MESH_SPEC.size}
         nearCutoutHalfSizeMeters={0}
         microNormalTier={tier}
+        sunIllumination={sunIllumination}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}

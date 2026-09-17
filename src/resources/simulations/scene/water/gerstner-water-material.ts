@@ -35,6 +35,8 @@ export interface GerstnerWaterMaterialOptions {
   readonly nearCutoutHalfSizeMeters?: number;
   /** 光学质量档（#2100）：微法线八分量数随档变化（high 3/medium 2/low 0），只影响着色法线。 */
   readonly microNormalTier?: 'high' | 'medium' | 'low';
+  /** 同源太阳辐照（#2100 复审）：preset.sun.intensity / 预设最大值，暗预设泡沫/水色随之变暗。 */
+  readonly sunIllumination?: number;
 }
 
 const FLOATS_PER_WAVE = 6;
@@ -77,9 +79,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
     waveData[base + 5] = wave.steepness;
   });
 
+  // 深水默认不透明单面（#2100 复审落实）：不做透明混合/背面渲染，消除排序与背景透出。
   return new THREE.ShaderMaterial({
-    transparent: true,
-    side: THREE.DoubleSide,
+    transparent: false,
+    side: THREE.FrontSide,
     uniforms: {
       uTime: { value: 0 },
       // 网格世界原点（跟船平移）：相位取世界坐标，波场不随原点移动漂移（#2097）。
@@ -94,6 +97,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uMicroOctaveCount: { value: micro.count },
       uMicroFadeStart: { value: MICRO_NORMAL_FADE_DISTANCE_METERS * 0.35 },
       uMicroFadeEnd: { value: MICRO_NORMAL_FADE_DISTANCE_METERS },
+      uSunIllumination: { value: options.sunIllumination ?? 1 },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
       uDeepColor: { value: new THREE.Color(options.deepColor) },
       uHorizonColor: { value: new THREE.Color(options.horizonColor) },
@@ -229,6 +233,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform int uMicroOctaveCount;
       uniform float uMicroFadeStart;
       uniform float uMicroFadeEnd;
+      uniform float uSunIllumination;
 
       varying vec3 vNormal;
       varying vec3 vViewPosition;
@@ -262,7 +267,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
             float k = uMicroOctaves[base + 2];
             float amp = uMicroOctaves[base + 3];
             float speedScale = uMicroOctaves[base + 4];
-            float phase = k * (dx * vWorldPos.x + dz * vWorldPos.y)
+            float phase = k * (dx * vWorldPos.x + dz * vWorldPos.z)
               - k * speedScale * 1.2 * uTime;
             float slope = amp * cos(phase) * k;
             slopeX += slope * dx;
@@ -271,22 +276,22 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           normal = normalize(normal + vec3(slopeX, 0.0, slopeZ) * footprint);
         }
 
-        float light = max(dot(normal, uSunDirection), 0.0);
-        float specular = pow(max(dot(reflect(-uSunDirection, normal), viewDirection), 0.0), 64.0);
+        // 同源辐照（#2100 复审）：入射角 × 预设太阳强度归一——暗预设下水色与泡沫
+        // 整体变暗（受光表面，非恒亮 additive）。
+        float light = max(dot(normal, uSunDirection), 0.0) * uSunIllumination;
+        float specular = pow(max(dot(reflect(-uSunDirection, normal), viewDirection), 0.0), 64.0) * uSunIllumination;
         float fresnel = pow(1.0 - max(dot(viewDirection, normal), 0.0), 3.0);
 
         float foamNoise = texture2D(uFoamTex, vWorldPos.xz / 80.0).a;
         float foam = smoothstep(0.72, 0.95, vCrest) * smoothstep(0.35, 0.7, foamNoise);
 
-        vec3 color = mix(uDeepColor, uWaterColor, light * 0.65 + 0.35);
+        vec3 color = mix(uDeepColor, uWaterColor, light * 0.65 + 0.35 * uSunIllumination);
         color = mix(color, uHorizonColor, fresnel * 0.45);
         color += specular * 0.3;
-        // 受光泡沫（#2100）：泡沫颜色乘与基面一致的照明因子，暗预设下随之变暗，
-        // 不是恒亮 additive 自发光。
-        vec3 foamLit = uFoamColor * (light * 0.65 + 0.35);
+        vec3 foamLit = uFoamColor * (light * 0.65 + 0.35 * uSunIllumination);
         color = mix(color, foamLit, foam * 0.85);
 
-        gl_FragColor = vec4(color, 0.94);
+        gl_FragColor = vec4(color, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }

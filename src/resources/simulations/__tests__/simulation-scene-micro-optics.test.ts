@@ -4,6 +4,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  foamIlluminationFactor,
   litFoamColor,
   microNormalFootprintAttenuation,
   microNormalSlope,
@@ -72,14 +73,18 @@ describe('pixel footprint attenuation (#2100)', () => {
 });
 
 describe('lit foam (#2100)', () => {
-  it('darkens coherently under lower illumination instead of additive emission', () => {
+  it('darkens coherently under lower sun illumination instead of additive emission', () => {
     const foam = { r: 0.95, g: 0.97, b: 0.98 };
-    const sunny = litFoamColor(foam, 1.0);
-    const dark = litFoamColor(foam, 0.15);
-    expect(sunny.r).toBeCloseTo(0.95 * 1.0, 9);
-    expect(dark.r).toBeCloseTo(0.95 * 0.15, 9);
+    // 开阔海（强度 2.0 → 辐照 1.0）vs 阴云（0.9 → 0.45）：同入射角下泡沫整体变暗。
+    const sunny = litFoamColor(foam, foamIlluminationFactor(0.8, 1.0));
+    const overcast = litFoamColor(foam, foamIlluminationFactor(0.8, 0.45));
+    expect(sunny.r).toBeCloseTo(0.95 * (0.8 * 0.65 + 0.35), 9);
+    expect(overcast.r).toBeCloseTo(0.95 * (0.8 * 0.45 * 0.65 + 0.35 * 0.45), 9);
+    expect(overcast.r).toBeLessThan(sunny.r);
     // 各通道同因子缩放：暗预设下泡沫整体变暗，不改变色相。
-    expect(dark.g / dark.r).toBeCloseTo(foam.g / foam.r, 9);
+    expect(overcast.g / overcast.r).toBeCloseTo(foam.g / foam.r, 9);
+    // 辐照为 0（夜间级）时泡沫仍有环境底光，不为纯 additive 恒亮。
+    expect(foamIlluminationFactor(0.5, 0)).toBeCloseTo(0, 9);
   });
 });
 
@@ -99,7 +104,7 @@ describe('optics do not touch motion or optional passes (#2100 contracts)', () =
     expect(fragment).toContain('normal = normalize(normal + vec3(slopeX, 0.0, slopeZ) * footprint);');
     expect(source.slice(vertexStart, fragmentStart)).not.toContain('uMicroOctaves');
     // 受光泡沫：照明因子乘泡沫色（非恒亮 additive）。
-    expect(fragment).toContain('vec3 foamLit = uFoamColor * (light * 0.65 + 0.35);');
+    expect(fragment).toContain('vec3 foamLit = uFoamColor * (light * 0.65 + 0.35 * uSunIllumination);');
   });
 
   it('allocates no reflection/refraction render passes by default (deep water opaque)', () => {

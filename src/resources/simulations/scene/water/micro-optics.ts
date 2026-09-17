@@ -75,10 +75,19 @@ export function microNormalSlope(
 }
 
 /**
- * 受光泡沫系数（spec：illumination changes to a dark preset）：
- * 泡沫颜色乘与基面一致的照明因子——暗预设下泡沫随之变暗（受光表面），
- * 不再是恒亮 additive。与片元中 water 光照项同一公式。
+ * 泡沫照明因子（spec：illumination changes to a dark preset；#2100 复审含同源辐照）：
+ * (N·L × 太阳辐照归一) × 0.65 + 0.35 × 辐照——与片元 water 光照项同一公式，
+ * 暗预设下泡沫与水色整体变暗（受光表面，非恒亮 additive）。
  */
+export function foamIlluminationFactor(
+  sunDotNormal: number,
+  sunIllumination: number,
+): number {
+  const light = Math.max(sunDotNormal, 0) * sunIllumination;
+  return light * 0.65 + 0.35 * sunIllumination;
+}
+
+/** 受光泡沫颜色：各通道同因子缩放（不改变色相）。 */
 export function litFoamColor(
   foamColor: { r: number; g: number; b: number },
   illuminationFactor: number,

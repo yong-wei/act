@@ -285,6 +285,7 @@ function IcebreakerWater({ position }: { position: Vector2 }) {
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
       sunDirection={water.sunDirection}
+      sunIllumination={water.sunIllumination}
     />
   );
 }

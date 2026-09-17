@@ -215,10 +215,15 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
 
 /** 当前环境预设的海面颜色组（供 GerstnerWater 按预设驱动）。 */
 /** 当前环境预设的海面颜色组与同源太阳方向（#2099：水面着色器共用预设太阳）。 */
+/** 预设最大太阳强度（归一基准）：开阔海 2.0。 */
+const MAX_PRESET_SUN_INTENSITY = 2;
+
 export function useEnvironmentWaterColors() {
   const { preset } = useSceneEnvironment();
   return {
     ...preset.water,
     sunDirection: worldSunDirection(preset),
+    // 同源太阳辐照（#2100 复审）：预设强度归一，水面/泡沫照明随预设整体变暗。
+    sunIllumination: preset.sun.intensity / MAX_PRESET_SUN_INTENSITY,
   };
 }

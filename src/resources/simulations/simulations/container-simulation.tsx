@@ -557,6 +557,7 @@ function ContainerWater({ state }: { state: ContainerSimulationState }) {
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
       sunDirection={water.sunDirection}
+      sunIllumination={water.sunIllumination}
     />
   );
 }
