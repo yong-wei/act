@@ -5,11 +5,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
   foamIlluminationFactor,
+  ggxWaterSpecular,
   litFoamColor,
   microNormalFootprintAttenuation,
   microNormalSlope,
   MICRO_NORMAL_FADE_DISTANCE_METERS,
   MICRO_NORMAL_OCTAVES_BY_TIER,
+  waterFresnelSchlick,
 } from '@/resources/simulations/scene/water/micro-optics';
 
 const ROOT = process.cwd();
@@ -85,6 +87,45 @@ describe('lit foam (#2100)', () => {
     expect(overcast.g / overcast.r).toBeCloseTo(foam.g / foam.r, 9);
     // 辐照为 0（夜间级）时泡沫仍有环境底光，不为纯 additive 恒亮。
     expect(foamIlluminationFactor(0.5, 0)).toBeCloseTo(0, 9);
+  });
+});
+
+describe('water medium optics (#2100: Fresnel-Schlick + GGX)', () => {
+  it('Fresnel-Schlick approaches F0 head-on and 1 at grazing angles', () => {
+    expect(waterFresnelSchlick(1.0)).toBeCloseTo(0.02, 9);
+    expect(waterFresnelSchlick(0.0)).toBeCloseTo(1.0, 9);
+    // 单调：掠射角反射增强。
+    const mid = waterFresnelSchlick(0.5);
+    expect(mid).toBeGreaterThan(0.02);
+    expect(mid).toBeLessThan(1);
+  });
+
+  it('GGX specular peaks near the mirror direction and smooths with roughness', () => {
+    const sharp = ggxWaterSpecular(1.0, 0.9, 0.9, 0.06);
+    const offPeak = ggxWaterSpecular(0.8, 0.9, 0.9, 0.06);
+    expect(sharp).toBeGreaterThan(offPeak);
+    // 泡沫粗糙度提升：镜向峰值降低、能量更分散。
+    const roughPeak = ggxWaterSpecular(1.0, 0.9, 0.9, 0.6);
+    expect(roughPeak).toBeLessThan(sharp);
+    // 永不为负。
+    expect(ggxWaterSpecular(0.2, 0.5, 0.4, 0.3)).toBeGreaterThanOrEqual(0);
+  });
+
+  it('uses the same formulas in the fragment source (world-space lighting)', () => {
+    const fs = require('node:fs') as typeof import('node:fs');
+    const source = fs.readFileSync(
+      'src/resources/simulations/scene/water/gerstner-water-material.ts',
+      'utf-8',
+    );
+    // 世界空间统一：视线从相机世界坐标求，法线用世界几何法线。
+    expect(source).toContain('vec3 viewDirection = normalize(cameraPosition - vWorldPos);');
+    expect(source).toContain('vec3 normal = normalize(vWorldNormal);');
+    // Fresnel-Schlick 与 GGX（含泡沫粗糙度混合）。
+    expect(source).toContain('0.02 + 0.98 * pow(1.0 - nDotV, 5.0)');
+    expect(source).toContain('float roughness = mix(0.06, 0.6, foam);');
+    expect(source).toContain('float distribution = a2 / (3.14159265 * dTerm * dTerm);');
+    // 旧固定指数高光已移除。
+    expect(source).not.toContain('pow(max(dot(reflect(-uSunDirection');
   });
 });
 

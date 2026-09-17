@@ -98,3 +98,40 @@ export function litFoamColor(
     b: foamColor.b * illuminationFactor,
   };
 }
+
+/** 水介质基础反射率（F0，非金属）。 */
+export const WATER_F0 = 0.02;
+
+/** 基础水面粗糙度；泡沫将其提升到 ~0.6（受光且改变粗糙度）。 */
+export const WATER_BASE_ROUGHNESS = 0.06;
+export const FOAM_ROUGHNESS = 0.6;
+
+/** Fresnel-Schlick：掠射角 → 1，法线入射 → F0。 */
+export function waterFresnelSchlick(cosTheta: number, f0: number = WATER_F0): number {
+  const c = Math.min(Math.max(cosTheta, 0), 1);
+  return f0 + (1 - f0) * Math.pow(1 - c, 5);
+}
+
+/**
+ * GGX 高光（D·F·G / (4 (n·v)(n·l))，Smith-Schlick G 近似）——纯函数参照，
+ * 与片元实现同一公式；粗糙度随泡沫提升。
+ */
+export function ggxWaterSpecular(
+  nDotH: number,
+  nDotV: number,
+  nDotL: number,
+  roughness: number,
+  f0: number = WATER_F0,
+): number {
+  const a = Math.max(roughness * roughness, 1e-4);
+  const a2 = a * a;
+  const nh = Math.min(Math.max(nDotH, 0), 1);
+  const d = (nh * nh) * (a2 - 1) + 1;
+  const distribution = a2 / (Math.PI * d * d);
+  const fresnel = waterFresnelSchlick(nDotL, f0);
+  const k = a / 2;
+  const gV = nDotV / (nDotV * (1 - k) + k);
+  const gL = nDotL / (nDotL * (1 - k) + k);
+  const denominator = Math.max(4 * nDotV * nDotL, 1e-4);
+  return distribution * fresnel * gV * gL / denominator;
+}

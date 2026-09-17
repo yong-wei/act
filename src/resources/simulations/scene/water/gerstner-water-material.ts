@@ -3,8 +3,10 @@ import * as THREE from 'three';
 import { GERSTNER_MAX_WAVES, type GerstnerWave } from './gerstner-waves';
 import { NEAR_FIELD_FADE_BAND_METERS } from './ocean-bands';
 import {
+  FOAM_ROUGHNESS,
   MICRO_NORMAL_FADE_DISTANCE_METERS,
   MICRO_NORMAL_OCTAVES_BY_TIER,
+  WATER_BASE_ROUGHNESS,
   type MicroNormalOctave,
 } from './micro-optics';
 
@@ -211,6 +213,8 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         vec3 dPdz = vec3(dSxdz + envelopeDz * rawSx, dYdz + envelopeDz * rawY, 1.0 + dSzdz + envelopeDz * rawSz);
         vec3 surfaceNormal = normalize(cross(dPdx, dPdz));
         if (surfaceNormal.y < 0.0) surfaceNormal = -surfaceNormal;
+        // 世界空间几何法线（#2100 二轮复审）：光照/微法线/视线全程统一世界空间。
+        vWorldNormal = surfaceNormal;
         vNormal = normalize(normalMatrix * surfaceNormal);
 
         vec4 worldPosition = modelMatrix * vec4(pos, 1.0);
@@ -236,6 +240,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uSunIllumination;
 
       varying vec3 vNormal;
+      varying vec3 vWorldNormal;
       varying vec3 vViewPosition;
       varying vec3 vWorldPos;
       varying float vCrest;
@@ -246,8 +251,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 近场挖空（#2098 二轮复审）：远场片元按网格局部坐标精确判定
         // max(|x|,|z|) < 1024（顶点二值标记会被插值，边界落到顶点中点）。
         if (uNearCutoutHalfSize > 0.0 && max(abs(vLocalXZ.x), abs(vLocalXZ.y)) < uNearCutoutHalfSize) discard;
-        vec3 viewDirection = normalize(-vViewPosition);
-        vec3 normal = normalize(vNormal);
+        // 世界空间统一（#2100 二轮复审）：法线/视线/光照全程世界空间，
+        // 相机旋转只改变视线本身，波纹与高光不随视图变换旋转。
+        vec3 viewDirection = normalize(cameraPosition - vWorldPos);
+        vec3 normal = normalize(vWorldNormal);
 
         // 微法线（#2100）：只对着色法线加高频细节（光学），不动几何/姿态；
         // 像素脚印按相机距离 smoothstep 衰减，远海退化为基础法线不闪烁。
@@ -279,15 +286,31 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 同源辐照（#2100 复审）：入射角 × 预设太阳强度归一——暗预设下水色与泡沫
         // 整体变暗（受光表面，非恒亮 additive）。
         float light = max(dot(normal, uSunDirection), 0.0) * uSunIllumination;
-        float specular = pow(max(dot(reflect(-uSunDirection, normal), viewDirection), 0.0), 64.0) * uSunIllumination;
-        float fresnel = pow(1.0 - max(dot(viewDirection, normal), 0.0), 3.0);
 
         float foamNoise = texture2D(uFoamTex, vWorldPos.xz / 80.0).a;
         float foam = smoothstep(0.72, 0.95, vCrest) * smoothstep(0.35, 0.7, foamNoise);
 
+        // 介质光学（#2100 二轮复审落实）：Fresnel-Schlick（F0=0.02）与 GGX 高光
+        // （D·F·G/(4 nv nl)，Smith-Schlick G），粗糙度随泡沫提升（受光且改变粗糙度）。
+        float nDotV = max(dot(normal, viewDirection), 1e-4);
+        float nDotL = max(dot(normal, uSunDirection), 0.0);
+        vec3 halfVector = normalize(uSunDirection + viewDirection);
+        float nDotH = max(dot(normal, halfVector), 0.0);
+        float roughness = mix(0.06, 0.6, foam);
+        float a = max(roughness * roughness, 1e-4);
+        float a2 = a * a;
+        float dTerm = (nDotH * nDotH) * (a2 - 1.0) + 1.0;
+        float distribution = a2 / (3.14159265 * dTerm * dTerm);
+        float fresnel = 0.02 + 0.98 * pow(1.0 - nDotL, 5.0);
+        float k = a / 2.0;
+        float gV = nDotV / (nDotV * (1.0 - k) + k);
+        float gL = max(nDotL, 1e-4) / (max(nDotL, 1e-4) * (1.0 - k) + k);
+        float specular = distribution * fresnel * gV * gL / max(4.0 * nDotV * max(nDotL, 1e-4), 1e-4);
+        float viewFresnel = 0.02 + 0.98 * pow(1.0 - nDotV, 5.0);
+
         vec3 color = mix(uDeepColor, uWaterColor, light * 0.65 + 0.35 * uSunIllumination);
-        color = mix(color, uHorizonColor, fresnel * 0.45);
-        color += specular * 0.3;
+        color = mix(color, uHorizonColor, viewFresnel * 0.45);
+        color += specular * uSunIllumination;
         vec3 foamLit = uFoamColor * (light * 0.65 + 0.35 * uSunIllumination);
         color = mix(color, foamLit, foam * 0.85);
 
