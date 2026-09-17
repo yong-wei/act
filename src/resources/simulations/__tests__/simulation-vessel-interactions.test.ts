@@ -120,7 +120,11 @@ describe('vessel interaction wiring (#2101 source contracts)', () => {
       'utf-8',
     );
     expect(source).toContain('washActivitySampler={() => computeThrusterWashActivity({');
-    expect(source).toContain('platformStateRef.current.thrusters.reduce');
+    // 主 Trail 只负责真实平移尾迹；洗流全部由逐推进器 Trail 承担（二轮复审）。
+    expect(source).not.toContain('platformStateRef.current.thrusters.reduce');
+    expect(source).toContain('HYSY981_THRUSTER_LAYOUT.find');
+    expect(source).toContain('emitterWorldSampler={() => [worldX, 0, worldZ]}');
+    expect(source).toContain('localWashOnly');
     // 半潜排除按浮筒/立柱独立声明（非整平台 bbox）。
     expect(source).toContain('DRILLING_HULL_EXCLUSION');
     expect(source).not.toContain('halfX: 100');
@@ -129,7 +133,7 @@ describe('vessel interaction wiring (#2101 source contracts)', () => {
     expect(source).not.toContain('shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))}');
     // 逐推进器局部洗流：按布局世界位置 + 各推进器方位，全场份额 1/8（复审）。
     expect(source).toContain('HYSY981_THRUSTER_LAYOUT.find');
-    expect(source).toContain('platformHeadingToSceneRad(thruster.azimuth)');
+    expect(source).toContain('platformHeadingToSceneRad(toDegrees(psi) + thruster.azimuth)');
     expect(source).toContain('budgetShare={1 / HYSY981_THRUSTER_LAYOUT.length}');
   });
 

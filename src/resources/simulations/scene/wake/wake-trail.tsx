@@ -58,6 +58,8 @@ export interface WakeTrailProps {
   readonly budgetShare?: number;
   /** 推进器洗流活跃度采样（#2101）：平台零平移时局部泡沫源；缺省无（不伪造推进活动）。 */
   readonly washActivitySampler?: () => number;
+  /** 局部洗流专用 Trail（#2101 二轮复审）：kelvin 与 farFoam 全抑制（不产生远场泡沫/航行尾波）。 */
+  readonly localWashOnly?: boolean;
   /** 显式航速采样（米/秒，模型语义）：提供时替代位姿差分，保证播放倍率不改变 Froude 活跃度。 */
   readonly worldSpeedSampler?: () => number;
   /** 逐帧发射器世界位置（语义推进器节点）：提供且非 null 时优先于 profile 手填锚点。 */
@@ -190,6 +192,7 @@ export function WakeTrail({
   waterYSampler,
   budgetShare = 1,
   washActivitySampler,
+  localWashOnly = false,
   worldSpeedSampler,
   emitterWorldSampler,
   includeKelvin = true,
@@ -278,13 +281,20 @@ export function WakeTrail({
       // 推进器洗流（#2101）：只抬升 core/foam（局部泡沫），不产生 Kelvin/远场——
       // 平台零平移时不编造航行尾波；航行船保持其更大的转移活跃度。
       const wash = washActivitySampler?.() ?? 0;
-      const activity = wash > 0
+      const activity = localWashOnly
         ? {
             ...transitActivity,
-            wakeActivity: Math.max(transitActivity.wakeActivity, wash * 0.6),
-            foamActivity: Math.max(transitActivity.foamActivity, wash),
+            wakeActivity: wash * 0.6,
+            foamActivity: wash,
+            kelvinActivity: 0,
           }
-        : transitActivity;
+        : wash > 0
+          ? {
+              ...transitActivity,
+              wakeActivity: Math.max(transitActivity.wakeActivity, wash * 0.6),
+              foamActivity: Math.max(transitActivity.foamActivity, wash),
+            }
+          : transitActivity;
 
       state.emitAccumulator += dt;
       if (state.emitAccumulator >= buffer.style.emitIntervalSeconds) {
@@ -300,8 +310,16 @@ export function WakeTrail({
           worldShipLength: worldShipLength ?? profile.shipLengthMeters,
           pathLength: state.pathLength,
         };
-        // 场景预算份额（#2101）：双桨/多推进器共享全场预算，不按实例倍增。
-        buffer.emit({ now: state.simTime, activity, anchors: snapshot, includeKelvin, emissionRate: budgetShare });
+        // 场景预算份额（#2101）：双桨/多推进器共享全场预算，不按实例倍增；
+        // 局部洗流 Trail 抑制远场泡沫份额（farFoam，二轮复审）。
+        buffer.emit({
+          now: state.simTime,
+          activity,
+          anchors: snapshot,
+          includeKelvin,
+          emissionRate: budgetShare,
+          farFoamScale: localWashOnly ? 0 : 1,
+        });
       }
     }
 

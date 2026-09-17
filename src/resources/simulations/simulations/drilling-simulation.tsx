@@ -771,13 +771,6 @@ function WakeTrailRig({
       playing={playing}
       waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
       worldSpeedSampler={() => Math.hypot(platformStateRef.current.u, platformStateRef.current.v)}
-      // 平台零平移 + 推力非零 → 局部推进器洗流（#2101）：只抬升 core/foam，
-      // 不产生 Kelvin/远场航行尾波；无推力状态返回 0（不伪造推进活动）。
-      washActivitySampler={() => computeThrusterWashActivity({
-        totalThrustPower: platformStateRef.current.thrusters.reduce((sum, t) => sum + Math.abs(t.power), 0),
-        ratedPowerPerThruster: 4500,
-        thrusterCount: platformStateRef.current.thrusters.length,
-      }).washFoamActivity}
     />
     {/* 逐推进器局部洗流（#2101 复审）：按 HYSY981_THRUSTER_LAYOUT 世界位置与各推进器
         azimuth 方位发射，不同推力分配得到不同局部形态；全场预算按 1/8 × 份额共享。 */}
@@ -789,22 +782,20 @@ function WakeTrailRig({
       const sin = Math.sin(psi);
       const worldX = platformStateRef.current.x + layout.positionX * cos - layout.positionY * sin;
       const worldZ = platformStateRef.current.y + layout.positionX * sin + layout.positionY * cos;
+      // 推进器方位为平台局部（0=前）：世界方位 = psi + azimuth，再转场景视觉约定。
+      const washHeadingRad = platformHeadingToSceneRad(toDegrees(psi) + thruster.azimuth);
       return (
         <WakeTrail
           key={`${resetToken}-wash-${thruster.id}`}
-          profile={{
-            ...drillingHysy981SceneVisual,
-            wakeAnchors: {
-              stern: [worldX, 0, worldZ],
-              portShoulder: [worldX + 4, 0, worldZ + 4],
-              starboardShoulder: [worldX - 4, 0, worldZ - 4],
-            },
-          }}
-          shipTransform={{ position: [worldX, 0, worldZ], heading: platformHeadingToSceneRad(thruster.azimuth) }}
+          profile={drillingHysy981SceneVisual}
+          shipTransform={{ position: transformRef.current.position, heading: washHeadingRad }}
           qualityTier={tier}
           playing={playing}
           includeKelvin={false}
+          localWashOnly
           budgetShare={1 / HYSY981_THRUSTER_LAYOUT.length}
+          // 世界空间发射器（二轮复审）：避免 resolveEmitterAnchors 对世界坐标二次旋转平移。
+          emitterWorldSampler={() => [worldX, 0, worldZ]}
           waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
           worldSpeedSampler={() => 0}
           washActivitySampler={() => computeThrusterWashActivity({
