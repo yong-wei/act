@@ -108,8 +108,21 @@ describe('visual extension slots have runtime consumers (#2102 contracts)', () =
     );
     expect(source).toContain('SedimentPlumeDisc');
     expect(source).toContain('layout.sedimentPlume.radiusMeters');
-    // 冰况密度门控：iceCoverage 决定冰块渲染数量。
-    expect(source).toContain('* Math.min(Math.max(coverage, 0), 1)');
+    // 冰况密度门控：运行态覆盖优先（iceCoverageOverride），缺省退回声明密度。
+    expect(source).toContain('iceCoverageOverride?.() ?? layout.iceCoverage ?? 1');
+    // 羽流贴水合成：深度测试关闭 + 高 renderOrder（波峰波谷下持续可见）。
+    expect(source).toContain('depthTest: false');
+    expect(source).toContain('renderOrder={10}');
+  });
+
+  it('drives polar ice visibility from live ice condition state', () => {
+    const source = readFileSync(
+      path.join(ROOT, 'src/resources/simulations/simulations/icebreaker-simulation.tsx'),
+      'utf-8',
+    );
+    // 冰区模式关闭 → 覆盖 0（无冰块）；开启 → 冰厚映射密度。
+    expect(source).toContain('config.iceModeEnabled ? Math.min(1, Math.max(0.1, config.iceThickness / 1.5)) : 0');
+    expect(source).toContain('iceCoverageOverride={() => iceCoverage}');
   });
 
   it('feeds shore segments into the near-field water amplitude (GPU mirror of the pure function)', () => {

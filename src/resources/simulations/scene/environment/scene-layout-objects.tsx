@@ -67,6 +67,11 @@ function EnvironmentObjectMesh({ object }: { readonly object: MarineEnvironmentO
 export interface MarineSceneLayoutProps {
   /** 布局声明 id；未声明（缺省）不渲染环境物（保留纯海面语义）。 */
   readonly layoutId?: MarineSceneLayoutId;
+  /**
+   * 运行态冰况覆盖（#2102 二轮复审）：冰的可见分布服从已有冰况输入
+   * （如破冰船冰区模式/冰厚状态）；缺省退回布局声明密度。
+   */
+  readonly iceCoverageOverride?: () => number;
 }
 
 /** 挖泥羽流（#2102）：有限范围低成本视觉表示（半透明圆盘），不影响任务指标。 */
@@ -90,11 +95,12 @@ function SedimentPlumeDisc({ x, z, radiusMeters, opacity }: {
 }
 
 /** 布局挂载：按声明渲染世界锚定环境物（同一 water/sky/quality 栈，无专属渲染器）。 */
-export function MarineSceneLayoutObjects({ layoutId }: MarineSceneLayoutProps) {
+export function MarineSceneLayoutObjects({ layoutId, iceCoverageOverride }: MarineSceneLayoutProps) {
   const layout = layoutId ? MARINE_SCENE_LAYOUTS[layoutId] : null;
   if (!layout) return null;
-  // 冰况密度门控（#2102）：iceCoverage 视觉密度决定冰块渲染数量（服从声明输入）。
-  const coverage = layout.iceCoverage ?? 1;
+  // 冰况密度门控（#2102）：运行态冰况（如破冰船冰区模式/冰厚）优先，
+  // 缺省退回布局声明密度——冰的可见分布服从已有冰况，不自行模拟。
+  const coverage = iceCoverageOverride?.() ?? layout.iceCoverage ?? 1;
   const objects = layout.objects.filter((object) => {
     if (object.kind !== 'ice-floe') return true;
     const index = layout.objects.filter((item) => item.kind === 'ice-floe').indexOf(object);
