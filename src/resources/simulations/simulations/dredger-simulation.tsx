@@ -264,9 +264,9 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
 }
 
 /** 航迹线 */
-function TrajectoryLine({ points }: { points: Vector2[] }) {
+function TrajectoryLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   if (points.length < 2) return null;
-  return <WaterHuggingLine points={points} color={simulationScenePalette.dredgerPrimary} lineWidth={2} />;
+  return <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={simulationScenePalette.dredgerPrimary} lineWidth={2} />;
 }
 
 /** 相机控制器 */
@@ -1014,7 +1014,7 @@ export function DredgerSimulation() {
         </Suspense>
 
         {/* 航迹 */}
-        {trajectory.length > 1 && <TrajectoryLine points={trajectory} />}
+        {trajectory.length > 1 && <TrajectoryLine points={trajectory} waterOriginSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })} />}
 
         <WakeTrailRig mmgStateRef={mmgStateRef} playing={isRunning} resetToken={resetCount} />
 

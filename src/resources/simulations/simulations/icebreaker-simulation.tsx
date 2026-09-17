@@ -242,9 +242,9 @@ function HeadingIndicator({
 }
 
 /** 航迹线 */
-function TrailLine({ points }: { points: Vector2[] }) {
+function TrailLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   if (points.length < 2) return null;
-  return <WaterHuggingLine points={points} color={simulationScenePalette.icebreakerPrimary} lineWidth={1} opacity={0.5} transparent />;
+  return <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={simulationScenePalette.icebreakerPrimary} lineWidth={1} opacity={0.5} transparent />;
 }
 
 /** 3D 场景 */
@@ -425,7 +425,7 @@ function Scene({
       </Suspense>
 
       <TeachingAnnotationsGate position={position} targetHeading={targetHeading} />
-      <TrailLine points={trail} />
+      <TrailLine points={trail} waterOriginSampler={() => ({ x: position.x, z: position.z })} />
       <WakeTrailRig position={position} heading={heading} speed={speed} playing={playing} resetToken={resetToken} />
 
       {showGrid ? (

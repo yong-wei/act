@@ -91,7 +91,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       varying vec3 vWorldPos;
       varying float vCrest;
       varying float vElevation;
-      varying float vNearCutout;
+      varying vec2 vLocalXZ;
 
       void main() {
         vec3 pos = position;
@@ -107,9 +107,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           float t = clamp((edgeDistance - fadeStart) / uEnvelopeFadeBand, 0.0, 1.0);
           envelope = 1.0 - t * t * (3.0 - 2.0 * t);
         }
-        // 近场挖空标记（#2098 复审）：远场网格落在近场方形覆盖区内则丢弃该片元。
-        vNearCutout = (uNearCutoutHalfSize > 0.0
-          && max(abs(basePos.x), abs(basePos.z)) < uNearCutoutHalfSize) ? 1.0 : 0.0;
+        // 近场挖空（#2098 二轮复审）：传网格局部坐标，片元级精确判定
+        // （顶点二值标记会被光栅器插值，边界落到顶点中点而非 1024 m）。
+        vLocalXZ = basePos.xz;
         // 包络梯度（#2098 复审）：衰减环内 dE/dd = -6t(1-t)/fade（两端为 0，C1）。
         float envelopeDx = 0.0;
         float envelopeDz = 0.0;
@@ -132,13 +132,18 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         float dSzdz = 0.0;
         float crestRaw = 0.0;
         float amplitudeSum = 0.0;
+        // 未包络原始位移累计（二轮复审）：乘积法则需要 E'·S，S 不得再含一次 E。
+        float rawY = 0.0;
+        float rawSx = 0.0;
+        float rawSz = 0.0;
 
         for (int i = 0; i < MAX_WAVES; i++) {
           if (i >= uWaveCount) break;
           int base = i * FLOATS_PER_WAVE;
           float dx = uWaves[base];
           float dz = uWaves[base + 1];
-          float amp = uWaves[base + 2] * uAmplitudeScale * envelope;
+          float ampRaw = uWaves[base + 2] * uAmplitudeScale;
+          float amp = ampRaw * envelope;
           float wavelength = uWaves[base + 3];
           float speed = uWaves[base + 4];
           float steepness = uWaves[base + 5];
@@ -161,16 +166,17 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           dSzdz -= steepness * amp * s * k * dz * dz;
           crestRaw += amp * s;
           amplitudeSum += amp;
+          rawY += ampRaw * s;
+          rawSx += steepness * ampRaw * dx * co;
+          rawSz += steepness * ampRaw * dz * co;
         }
 
         vElevation = pos.y;
         vCrest = amplitudeSum > 0.0 ? 0.5 * (1.0 + crestRaw / amplitudeSum) : 0.0;
         // 乘积法则（#2098 复审）：衰减环内 P = (x+E·Sx, E·Y, z+E·Sz)，
-        // 偏导补 E'×位移项（Sx/Sz/Y 取环内累计位移）。
-        float SxTotal = pos.x - basePos.x;
-        float SzTotal = pos.z - basePos.z;
-        vec3 dPdx = vec3(1.0 + dSxdx + envelopeDx * SxTotal, dYdx + envelopeDx * pos.y, dSzdx + envelopeDx * SzTotal);
-        vec3 dPdz = vec3(dSxdz + envelopeDz * SxTotal, dYdz + envelopeDz * pos.y, 1.0 + dSzdz + envelopeDz * SzTotal);
+        // 偏导补 E'×原始位移项（rawSx/rawY/rawSz 未含包络，避免 E'·E·S）。
+        vec3 dPdx = vec3(1.0 + dSxdx + envelopeDx * rawSx, dYdx + envelopeDx * rawY, dSzdx + envelopeDx * rawSz);
+        vec3 dPdz = vec3(dSxdz + envelopeDz * rawSx, dYdz + envelopeDz * rawY, 1.0 + dSzdz + envelopeDz * rawSz);
         vec3 surfaceNormal = normalize(cross(dPdx, dPdz));
         if (surfaceNormal.y < 0.0) surfaceNormal = -surfaceNormal;
         vNormal = normalize(normalMatrix * surfaceNormal);
@@ -189,18 +195,19 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform vec3 uFoamColor;
       uniform vec3 uSunDirection;
       uniform sampler2D uFoamTex;
+      uniform float uNearCutoutHalfSize;
 
       varying vec3 vNormal;
       varying vec3 vViewPosition;
       varying vec3 vWorldPos;
       varying float vCrest;
       varying float vElevation;
-      varying float vNearCutout;
+      varying vec2 vLocalXZ;
 
       void main() {
-        // 近场挖空（#2098 复审）：远场片元落在近场方形覆盖区内时丢弃，
-        // 避免透明平面与近场波谷重叠遮挡/交叉闪烁。
-        if (vNearCutout > 0.5) discard;
+        // 近场挖空（#2098 二轮复审）：远场片元按网格局部坐标精确判定
+        // max(|x|,|z|) < 1024（顶点二值标记会被插值，边界落到顶点中点）。
+        if (uNearCutoutHalfSize > 0.0 && max(abs(vLocalXZ.x), abs(vLocalXZ.y)) < uNearCutoutHalfSize) discard;
         vec3 viewDirection = normalize(-vViewPosition);
         vec3 normal = normalize(vNormal);
 

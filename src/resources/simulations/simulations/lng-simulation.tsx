@@ -181,9 +181,9 @@ function LNGShipModel(props: {
 
 // ============ 航迹线组件 ============
 
-function TrajectoryLine({ points }: { points: Vector2[] }) {
+function TrajectoryLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   if (points.length < 2) return null;
-  return <WaterHuggingLine points={points} color={simulationScenePalette.headingPrimary} lineWidth={2} />;
+  return <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={simulationScenePalette.headingPrimary} lineWidth={2} />;
 }
 
 // ============ 目标航向指示器 ============
@@ -562,7 +562,7 @@ function Scene({
         />
       </Suspense>
 
-      <TrajectoryLine points={trajectory} />
+      <TrajectoryLine points={trajectory} waterOriginSampler={() => ({ x: state.position.x, z: state.position.z })} />
       <WakeTrailRig state={state} playing={state.isRunning && !state.isPaused} resetToken={resetToken} />
 
       <TeachingAnnotationsGate

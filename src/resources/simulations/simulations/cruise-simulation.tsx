@@ -337,12 +337,12 @@ function CruiseShipModel(props: {
 
 // ============ 航迹线组件 ============
 
-function TrajectoryLine({ points }: { points: Vector2[] }) {
+function TrajectoryLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   if (points.length < 2) return null;
-  return <WaterHuggingLine points={points} color={CRUISE_HEADING_PRIMARY} lineWidth={2.4} />;
+  return <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={CRUISE_HEADING_PRIMARY} lineWidth={2.4} />;
 }
 
-function DesiredRouteLine({ points }: { points: Vector2[] }) {
+function DesiredRouteLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   const arrowStart = points.length > 1 ? points[points.length - 2] : null;
   const arrowEnd = points.length > 1 ? points[points.length - 1] : null;
   if (points.length < 2) {
@@ -351,7 +351,7 @@ function DesiredRouteLine({ points }: { points: Vector2[] }) {
 
   return (
     <>
-      <WaterHuggingLine points={points} color={CRUISE_HEADING_SECONDARY} lineWidth={2.2} dashed dashSize={36} gapSize={16} />
+      <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={CRUISE_HEADING_SECONDARY} lineWidth={2.2} dashed dashSize={36} gapSize={16} />
       {arrowStart && arrowEnd ? (
         <DirectionArrow
           start={[arrowStart.x, 1.2, arrowStart.z]}
@@ -1458,8 +1458,8 @@ function VisualizationLayer({
           resetToken={resetToken}
         />
       </Suspense>
-      <DesiredRouteLine points={desiredRoutePoints} />
-      <TrajectoryLine points={trajectoryPoints} />
+      <DesiredRouteLine points={desiredRoutePoints} waterOriginSampler={() => ({ x: state.position.x, z: state.position.z })} />
+      <TrajectoryLine points={trajectoryPoints} waterOriginSampler={() => ({ x: state.position.x, z: state.position.z })} />
       <TeachingAnnotationsGate
         position={state.position}
         targetHeading={state.targetHeading}

@@ -9,7 +9,7 @@ import { useRef, useState } from 'react';
 import { Line } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 
-import { useMarineVisualTime } from '../frame/marine-frame-provider';
+import { useMarineFrameRunner, useMarineVisualTime } from '../frame/marine-frame-provider';
 import { useSceneQuality } from '../quality';
 import {
   createNearFieldSurfaceQuery,
@@ -52,12 +52,14 @@ export function WaterHuggingLine({
   const frameCountRef = useRef(0);
 
   const marineVisualTime = useMarineVisualTime();
+  // 水面原点（二轮复审）：显式采样器 > 海洋帧 renderOrigin（跟船水面网格）> 世界原点。
+  const marineFrame = useMarineFrameRunner();
 
   useFrame((frameState, delta) => {
     frameCountRef.current += 1;
     if (frameCountRef.current % 3 !== 0) return;
     const time = marineVisualTime(frameState, delta);
-    const origin = waterOriginSampler?.() ?? { x: 0, z: 0 };
+    const origin = waterOriginSampler?.() ?? marineFrame?.latest()?.renderOrigin ?? { x: 0, z: 0 };
     const amplitudeScale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
     const stride = params.waterTier === 'low' ? 2 : 1;
     // 贴水线取近场可见曲面（#2098）：带限波组 + 包络，档位无关。

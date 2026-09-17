@@ -168,14 +168,15 @@ describe('shader surface derivative contract (#2098)', () => {
       'utf-8',
     );
     // 完整参数曲面偏导（含水平位移 Jacobian + 包络梯度乘积法则）与 +Y 主导守卫。
-    expect(source).toContain('vec3 dPdx = vec3(1.0 + dSxdx + envelopeDx * SxTotal, dYdx + envelopeDx * pos.y, dSzdx + envelopeDx * SzTotal);');
-    expect(source).toContain('vec3 dPdz = vec3(dSxdz + envelopeDz * SxTotal, dYdz + envelopeDz * pos.y, 1.0 + dSzdz + envelopeDz * SzTotal);');
+    expect(source).toContain('vec3 dPdx = vec3(1.0 + dSxdx + envelopeDx * rawSx, dYdx + envelopeDx * rawY, dSzdx + envelopeDx * rawSz);');
+    expect(source).toContain('vec3 dPdz = vec3(dSxdz + envelopeDz * rawSx, dYdz + envelopeDz * rawY, 1.0 + dSzdz + envelopeDz * rawSz);');
     expect(source).toContain('if (surfaceNormal.y < 0.0) surfaceNormal = -surfaceNormal;');
     // 包络梯度解析（C1：两端 6t(1-t)=0）。
     expect(source).toContain('float dEdge = -6.0 * te * (1.0 - te) / uEnvelopeFadeBand;');
     // 近场包络进顶点幅度；远场近场覆盖区片元丢弃（复审修复）。
-    expect(source).toContain('float amp = uWaves[base + 2] * uAmplitudeScale * envelope;');
-    expect(source).toContain('if (vNearCutout > 0.5) discard;');
+    expect(source).toContain('float amp = ampRaw * envelope;');
+    expect(source).toContain('float ampRaw = uWaves[base + 2] * uAmplitudeScale;');
+    expect(source).toContain('max(abs(vLocalXZ.x), abs(vLocalXZ.y)) < uNearCutoutHalfSize) discard;');
     // 旧近似法线公式已移除。
     expect(source).not.toContain('normalize(vec3(-dYdx, 1.0, -dYdz))');
   });
