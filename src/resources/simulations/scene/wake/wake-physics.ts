@@ -223,3 +223,33 @@ export const computeWakeFamilyBudget = ({
       rate * activity.kelvinActivity * style.kelvinParticlesPerSample * (0.38 + kelvinWeight * 0.82),
   };
 };
+
+/** 推进器洗流活跃度（#2101）：平台零平移但推进器输出非零时的局部泡沫源。 */
+export interface ThrusterWashActivity {
+  /** 归一洗流强度 [0,1]：总推力功率 / 额定功率，按平方根压缩。 */
+  readonly washActivity: number;
+  /** 洗流驱动的泡沫活跃度（只抬升 core/foam，不产生 Kelvin/远场——不编造航行尾波）。 */
+  readonly washFoamActivity: number;
+}
+
+/**
+ * 由既有推力遥测计算局部洗流：translation≈0 且推力非零 → 局部洗流可见；
+ * 不修改推力语义、不虚构海流。无推力状态（undefined）返回零（不伪造推进活动）。
+ */
+export const computeThrusterWashActivity = ({
+  totalThrustPower,
+  ratedPowerPerThruster,
+  thrusterCount,
+}: {
+  totalThrustPower: number;
+  ratedPowerPerThruster: number;
+  thrusterCount: number;
+}): ThrusterWashActivity => {
+  const rated = Math.max(1, ratedPowerPerThruster * Math.max(0, thrusterCount));
+  const powerRatio = clamp01(Math.max(0, totalThrustPower) / rated);
+  const washActivity = Math.sqrt(powerRatio);
+  return {
+    washActivity,
+    washFoamActivity: Math.pow(washActivity, 1.4),
+  };
+};

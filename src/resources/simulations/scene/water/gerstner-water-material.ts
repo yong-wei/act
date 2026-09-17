@@ -2,6 +2,7 @@ import * as THREE from 'three';
 
 import { GERSTNER_MAX_WAVES, type GerstnerWave } from './gerstner-waves';
 import { NEAR_FIELD_FADE_BAND_METERS } from './ocean-bands';
+import { MAX_HULL_EXCLUSION_BOXES } from './hull-exclusion';
 import {
   FOAM_ROUGHNESS,
   MICRO_NORMAL_FADE_DISTANCE_METERS,
@@ -39,6 +40,8 @@ export interface GerstnerWaterMaterialOptions {
   readonly microNormalTier?: 'high' | 'medium' | 'low';
   /** 同源太阳辐照（#2100 复审）：preset.sun.intensity / 预设最大值，暗预设泡沫/水色随之变暗。 */
   readonly sunIllumination?: number;
+  /** 船壳排水排除框数（#2101）：0 表示无排除（uniform 数组仍按上限分配）。 */
+  readonly hullExclusionCount?: number;
 }
 
 const FLOATS_PER_WAVE = 6;
@@ -100,6 +103,8 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uMicroFadeStart: { value: MICRO_NORMAL_FADE_DISTANCE_METERS * 0.35 },
       uMicroFadeEnd: { value: MICRO_NORMAL_FADE_DISTANCE_METERS },
       uSunIllumination: { value: options.sunIllumination ?? 1 },
+      uHullExclusionBoxes: { value: new Float32Array(MAX_HULL_EXCLUSION_BOXES * 4) },
+      uHullExclusionCount: { value: options.hullExclusionCount ?? 0 },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
       uDeepColor: { value: new THREE.Color(options.deepColor) },
       uHorizonColor: { value: new THREE.Color(options.horizonColor) },
@@ -239,6 +244,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uMicroFadeStart;
       uniform float uMicroFadeEnd;
       uniform float uSunIllumination;
+      uniform vec4 uHullExclusionBoxes[6];
+      uniform float uHullExclusionCount;
+      uniform float uShipHeading;
 
       varying vec3 vNormal;
       varying vec3 vWorldNormal;
@@ -252,6 +260,19 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 近场挖空（#2098 二轮复审）：远场片元按网格局部坐标精确判定
         // max(|x|,|z|) < 1024（顶点二值标记会被插值，边界落到顶点中点）。
         if (uNearCutoutHalfSize > 0.0 && max(abs(vLocalXZ.x), abs(vLocalXZ.y)) < uNearCutoutHalfSize) discard;
+        // 船壳排水排除（#2101）：世界点旋转到船体局部（网格原点=船位），
+        // 落在任一声明框内丢弃——实船壳内不显示穿水面板，框间开口保留海水。
+        if (uHullExclusionCount > 0.0) {
+          float cosH = cos(uShipHeading);
+          float sinH = sin(uShipHeading);
+          float localX = vLocalXZ.x * cosH + vLocalXZ.y * sinH;
+          float localZ = -vLocalXZ.x * sinH + vLocalXZ.y * cosH;
+          for (int i = 0; i < 6; i++) {
+            if (float(i) >= uHullExclusionCount) break;
+            vec4 box = uHullExclusionBoxes[i];
+            if (abs(localX - box.x) <= box.z && abs(localZ - box.y) <= box.w) discard;
+          }
+        }
         // 世界空间统一（#2100 二轮复审）：法线/视线/光照全程世界空间，
         // 相机旋转只改变视线本身，波纹与高光不随视图变换旋转。
         vec3 viewDirection = normalize(cameraPosition - vWorldPos);

@@ -6,6 +6,7 @@ import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 
 import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, type GerstnerWave } from './gerstner-waves';
+import { packHullExclusion, type HullExclusionBox } from './hull-exclusion';
 import {
   bandCellSize,
   bandLimitWaves,
@@ -293,6 +294,9 @@ export interface GerstnerWaterProps {
   readonly sunDirection?: THREE.Vector3;
   /** 同源太阳辐照（#2100）：preset.sun.intensity / 预设最大值；缺省 1。 */
   readonly sunIllumination?: number;
+  /** 船壳排水排除框（#2101，船体局部坐标）；缺省无排除。 */
+  readonly hullExclusionSampler?: () => readonly HullExclusionBox[] | null;
+  readonly shipHeadingSampler?: () => number;
 }
 
 /** 单个带限水网格（#2098 内部组件）：几何/材质随波组与包络参数构建，逐帧写时间与原点。 */
@@ -304,6 +308,8 @@ function BandWaterMesh({
   nearCutoutHalfSizeMeters,
   microNormalTier,
   sunIllumination,
+  hullExclusionSampler,
+  shipHeadingSampler,
   marineVisualTime,
   positionSampler,
   shipPosition,
@@ -321,6 +327,8 @@ function BandWaterMesh({
   readonly nearCutoutHalfSizeMeters: number;
   readonly microNormalTier: 'high' | 'medium' | 'low';
   readonly sunIllumination: number;
+  readonly hullExclusionSampler?: () => readonly HullExclusionBox[] | null;
+  readonly shipHeadingSampler?: () => number;
   readonly marineVisualTime: (state: { clock: { elapsedTime: number; getElapsedTime?: () => number } }, delta: number) => number;
   readonly positionSampler?: () => { readonly x: number; readonly z: number } | undefined;
   readonly shipPosition?: { readonly x: number; readonly z: number };
@@ -364,6 +372,22 @@ function BandWaterMesh({
       meshRef.current.position.z = sampled.z;
       material.uniforms.uWorldOrigin.value.set(sampled.x, sampled.z);
     }
+    // 船壳排水排除（#2101）：逐帧写入船体局部框与船朝向（跟船网格原点=船位）。
+    if (hullExclusionSampler) {
+      const boxes = hullExclusionSampler();
+      const packed = packHullExclusion(boxes ?? []);
+      const array = material.uniforms.uHullExclusionBoxes.value as Float32Array;
+      array.fill(0);
+      packed.boxes.forEach(([cx, cz, hx, hz], index) => {
+        const base = index * 4;
+        array[base] = cx;
+        array[base + 1] = cz;
+        array[base + 2] = hx;
+        array[base + 3] = hz;
+      });
+      material.uniforms.uHullExclusionCount.value = packed.count;
+      material.uniforms.uShipHeading.value = shipHeadingSampler?.() ?? 0;
+    }
   });
 
   return (
@@ -393,6 +417,8 @@ export function GerstnerWater({
   foamColor = simulationScenePalette.waterFoam,
   sunDirection = new THREE.Vector3(0.45, 0.75, 0.35),
   sunIllumination = 1,
+  hullExclusionSampler,
+  shipHeadingSampler,
 }: GerstnerWaterProps) {
   const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
   // 共享视觉时间：Provider 场景同帧唯一（暂停/倍速政策一致）；未接入场景回退 R3F 时钟。
@@ -415,6 +441,8 @@ export function GerstnerWater({
         nearCutoutHalfSizeMeters={NEAR_FIELD_MESH_SPEC.size / 2}
         microNormalTier="low"
         sunIllumination={sunIllumination}
+        hullExclusionSampler={hullExclusionSampler}
+        shipHeadingSampler={shipHeadingSampler}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}
@@ -433,6 +461,8 @@ export function GerstnerWater({
         nearCutoutHalfSizeMeters={0}
         microNormalTier={tier}
         sunIllumination={sunIllumination}
+        hullExclusionSampler={hullExclusionSampler}
+        shipHeadingSampler={shipHeadingSampler}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}
