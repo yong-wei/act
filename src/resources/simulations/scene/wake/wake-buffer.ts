@@ -107,6 +107,8 @@ export interface WakeParticleSlot {
   wakeActivity: number;
   foamActivity: number;
   kelvinActivity: number;
+  /** 远场泡沫份额缩放（#2101 二轮复审）：随粒子持久化，几何重算同口径。 */
+  farFoamScale: number;
   emissionRate: number;
   emissionOpacity: number;
   includeKelvin: boolean;
@@ -131,6 +133,7 @@ const createEmptySlot = (): WakeParticleSlot => ({
   wakeActivity: 0,
   foamActivity: 0,
   kelvinActivity: 0,
+  farFoamScale: 1,
   emissionRate: 1,
   emissionOpacity: 1,
   includeKelvin: true,
@@ -251,6 +254,7 @@ export const createWakeTrailBuffer = ({
         slot.emissionRate = emissionRate;
         slot.emissionOpacity = emissionOpacity;
         slot.includeKelvin = includeKelvin;
+        slot.farFoamScale = farFoamScale;
         head = (head + 1) % resolvedCapacity;
       }
       emitOrdinal += 1;
