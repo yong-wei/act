@@ -160,6 +160,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 岸线波幅衰减（#2102）：距岸线越近波幅越小（与 CPU shorelineAmplitudeAttenuation
         // 同公式：岸边 0.15 残余，带内 smoothstep，带外 1）；纯显示输入，非水动力。
         float shoreAttenuation = 1.0;
+        float nearestShoreDepth = 0.0;
         if (uShoreSegmentCount > 0.0 && uShoreFadeBand > 0.0) {
           float minDistance = 1e9;
           for (int i = 0; i < 4; i++) {
@@ -168,7 +169,11 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
             vec2 ab = seg.zw - seg.xy;
             float lenSq = dot(ab, ab);
             float t = lenSq > 0.0 ? clamp(dot(worldXZ - seg.xy, ab) / lenSq, 0.0, 1.0) : 0.0;
-            minDistance = min(minDistance, length(worldXZ - (seg.xy + ab * t)));
+            float distance = length(worldXZ - (seg.xy + ab * t));
+            if (distance < minDistance) {
+              minDistance = distance;
+              nearestShoreDepth = uShoreDepths[i];
+            }
           }
           if (minDistance < uShoreFadeBand) {
             float t = minDistance / uShoreFadeBand;
@@ -176,9 +181,11 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           }
         }
         float effectiveAmplitudeScale = uAmplitudeScale * shoreAttenuation;
-        // 浅水因子（#2102 四轮复审）：1 - shoreAttenuation 归一（岸边 1 / 带外 0），
-        // 携最近段岸深供片元浅水色（作者态深度渲染输入）。
-        vShoreShallow01 = clamp((1.0 - shoreAttenuation) / 0.85, 0.0, 1.0);
+        // 浅水因子（#2102 五轮复审）：近岸程度 × 最近段作者态岸深归一（4m→1、20m→0.2），
+        // 港口 6m 与施工区 4m 在同距岸位置产生可区分的浅水强度。
+        float nearness = clamp((1.0 - shoreAttenuation) / 0.85, 0.0, 1.0);
+        float depthFactor = clamp(nearestShoreDepth / 20.0, 0.05, 1.0);
+        vShoreShallow01 = nearness * depthFactor;
         // 近场幅度包络（#2098）：外环 smoothstep 衰减，一阶导两端为零避免折痕。
         float envelope = 1.0;
         if (uEnvelopeHalfSize > 0.0) {

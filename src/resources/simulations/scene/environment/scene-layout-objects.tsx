@@ -82,16 +82,19 @@ function SedimentPlumeDisc({ x, z, radiusMeters, opacity }: {
   readonly opacity: number;
 }) {
   const geometry = useMemo(() => new THREE.CircleGeometry(radiusMeters, 24), [radiusMeters]);
-  // 贴水合成（二轮复审）：深度测试关闭 + 高 renderOrder 在水面之后绘制——
-  // 波峰波谷下持续可见（不写深度），消除固定深度圆盘的破碎闪烁。
+  // 贴水合成（五轮复审）：保留深度测试（船体/岩石/浮标等前景几何正确遮挡羽流），
+  // 以 polygonOffset 负偏移把羽流深度拉近相机——位于波面之上，波峰波谷下持续可见；
+  // 高 renderOrder 保证在不透明水面之后绘制（透明队列内排序）。
   const material = useMemo(
     () => new THREE.MeshBasicMaterial({
       color: 0x7a6a52,
       transparent: true,
       opacity,
       depthWrite: false,
-      depthTest: false,
       side: THREE.DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      polygonOffsetUnits: -8,
     }),
     [opacity],
   );

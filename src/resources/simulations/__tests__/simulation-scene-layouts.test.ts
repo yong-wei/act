@@ -110,9 +110,11 @@ describe('visual extension slots have runtime consumers (#2102 contracts)', () =
     expect(source).toContain('layout.sedimentPlume.radiusMeters');
     // 冰况密度门控：运行态覆盖优先（iceCoverageOverride），缺省退回声明密度。
     expect(source).toContain('iceCoverageOverride?.() ?? layout.iceCoverage ?? 1');
-    // 羽流贴水合成：深度测试关闭 + 高 renderOrder（波峰波谷下持续可见）。
-    expect(source).toContain('depthTest: false');
+    // 羽流贴水合成（五轮复审）：保留深度测试（前景几何正确遮挡），polygonOffset 负偏移贴波面之上。
+    expect(source).toContain('polygonOffset: true');
+    expect(source).toContain('polygonOffsetFactor: -4');
     expect(source).toContain('renderOrder={10}');
+    expect(source).not.toContain('depthTest: false');
   });
 
   it('drives polar ice visibility from live ice condition state', () => {
