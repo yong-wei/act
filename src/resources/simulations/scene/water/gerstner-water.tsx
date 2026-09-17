@@ -71,8 +71,8 @@ export const NEAR_FIELD_VISIBLE_WAVES: readonly GerstnerWave[] = bandLimitWaves(
   bandCellSize(NEAR_FIELD_MESH_SPEC as OceanMeshBandSpec),
   NEAR_FIELD_INTERVALS_PER_WAVELENGTH,
 );
-/** 近场可见曲面对基础交互场的声明近似容差（米）：被裁频带振幅和 × 海况 6 倍率上界。 */
-export const NEAR_FIELD_APPROXIMATION_TOLERANCE_METERS = 1.0;
+/** 近场可见曲面对基础交互场的声明近似容差（米）：被裁频带振幅和 × 海况 6 倍率（0.98）+ 8 m 三角网格对保留频带的插值误差上界（四轮复审实测 ~0.14、原则界 ~0.25），取 1.25。 */
+export const NEAR_FIELD_APPROXIMATION_TOLERANCE_METERS = 1.25;
 /** 远场网格（按画质档分辨率）：该尺度无可解析几何波，承载基面与视觉过渡。 */
 export function farFieldMeshSpecForTier(tier: GerstnerWaterTier): GerstnerWaterMeshSpec {
   const spec = FAR_FIELD_BAND_SPECS[tier];

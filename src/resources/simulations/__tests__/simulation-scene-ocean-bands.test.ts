@@ -89,6 +89,29 @@ describe('near-field amplitude envelope (#2098)', () => {
 
 describe('near-field visible surface vs independent reference (#2098)', () => {
   // 独立参照：测试内直接求和 Gerstner 分量，不复用生产 computeGerstnerDisplacement。
+  const referenceDisplacement = (
+    waves: { direction: readonly [number, number]; amplitude: number; wavelength: number; speed: number; steepness: number }[],
+    scale: number,
+    worldX: number,
+    worldZ: number,
+    time: number,
+  ): { y: number; offsetX: number; offsetZ: number } => {
+    let y = 0;
+    let offsetX = 0;
+    let offsetZ = 0;
+    for (const w of waves) {
+      const len = Math.hypot(w.direction[0], w.direction[1]) || 1;
+      const dx = w.direction[0] / len;
+      const dz = w.direction[1] / len;
+      const k = (2 * Math.PI) / w.wavelength;
+      const c = w.speed * Math.sqrt(9.8 / k);
+      const phase = k * (dx * worldX + dz * worldZ) - c * k * time;
+      y += (w.amplitude * scale) * Math.sin(phase);
+      offsetX += w.steepness * (w.amplitude * scale) * dx * Math.cos(phase);
+      offsetZ += w.steepness * (w.amplitude * scale) * dz * Math.cos(phase);
+    }
+    return { y, offsetX, offsetZ };
+  };
   const referenceHeight = (
     waves: { direction: readonly [number, number]; amplitude: number; wavelength: number; speed: number; steepness: number }[],
     scale: number,
@@ -107,6 +130,47 @@ describe('near-field visible surface vs independent reference (#2098)', () => {
     }
     return y;
   };
+
+  it('meets the declared tolerance against the inverted base surface at the worst sea state (scan)', () => {
+    // 四轮复审：容差须覆盖频带裁剪 + 网格插值。独立参照反解水平 Gerstner 位移
+    // （求参数点使其位移后落在查询点），得到真实基础曲面高度。
+    const invertReference = (
+      waves: typeof GERSTNER_WAVE_SETS.high,
+      scale: number,
+      worldX: number,
+      worldZ: number,
+      time: number,
+    ): number => {
+      let ux = worldX;
+      let uz = worldZ;
+      for (let iter = 0; iter < 4; iter += 1) {
+        const d = referenceDisplacement(waves, scale, ux, uz, time);
+        ux = worldX - scale * d.offsetX;
+        uz = worldZ - scale * d.offsetZ;
+      }
+      return referenceDisplacement(waves, scale, ux, uz, time).y;
+    };
+    const seaState = 6;
+    const scale = gerstnerAmplitudeScale(seaState);
+    const origin = { x: 123.4, z: -555.6 };
+    const time = 14.91;
+    const query = createNearFieldSurfaceQuery(scale, origin.x, origin.z, time);
+    let maxError = 0;
+    // 确定性扫描：包络=1 核心区的非顶点点位（含评审实测的 -587.538,-595.602）。
+    const probes: Array<[number, number]> = [[-587.538, -595.602]];
+    for (let i = 0; i < 24; i += 1) {
+      probes.push([(i * 137.11) % 620 - 310, ((i * 91.7) % 640) - 320]);
+    }
+    for (const [localX, localZ] of probes) {
+      const sampled = query.heightAt(origin.x + localX, origin.z + localZ);
+      const reference = GERSTNER_WATER_BASE_Y
+        + invertReference(GERSTNER_WAVE_SETS.high, scale, origin.x + localX, origin.z + localZ, time);
+      maxError = Math.max(maxError, Math.abs(sampled - reference));
+    }
+    expect(maxError).toBeLessThanOrEqual(NEAR_FIELD_APPROXIMATION_TOLERANCE_METERS);
+    // 扫描确实覆盖到接近容差的误差区间（防退化成空测）。
+    expect(maxError).toBeGreaterThan(0.3);
+  });
 
   it('agrees with the analytic band field at non-vertex points across sea states', () => {
     const origin = { x: 512.5, z: -300.25 };
