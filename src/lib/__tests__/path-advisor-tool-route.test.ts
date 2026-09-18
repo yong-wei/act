@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   resolveKonlingTeachingAssistantServerModeContext: vi.fn(),
   resolveKonlingTeachingAssistantSignedGraphNodeId: vi.fn(),
   verifyKonlingRuntimeScope: vi.fn(),
+  resolveEngineeringGraphProductionSelection: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -44,6 +45,10 @@ vi.mock('@/lib/konling-teaching-assistant-server-context', () => ({
 
 vi.mock('@/lib/nextjs-dynamic-error', () => ({
   rethrowIfNextDynamicError: vi.fn(),
+}));
+
+vi.mock('@/lib/versioned-knowledge-activation/resolve', () => ({
+  resolveEngineeringGraphProductionSelection: mocks.resolveEngineeringGraphProductionSelection,
 }));
 
 vi.mock('@/lib/konling-agent-runtime', () => ({
@@ -114,6 +119,10 @@ describe('path advisor tool route readiness', () => {
       explainLearningPathTradeoff: vi.fn(),
       generateLearningPath: vi.fn().mockResolvedValue({ pathId: 'path-1' }),
       reviseLearningPathOptions: vi.fn(),
+    });
+    mocks.resolveEngineeringGraphProductionSelection.mockReturnValue({
+      mode: 'use-combination',
+      resolved: { consumerStatus: 'READY' },
     });
   });
 
@@ -188,11 +197,37 @@ describe('path advisor tool route readiness', () => {
     await expect(response.json()).resolves.toMatchObject({
       readiness: {
         status: 'retryable',
-        reason: 'service-unavailable',
+        reason: 'conflict',
         studentAction: 'retry',
         staffAction: 'check-service',
       },
     });
+  });
+
+  it('returns runtime-graph-unavailable when engineering-graph is not ready', async () => {
+    mocks.resolveEngineeringGraphProductionSelection.mockReturnValueOnce({
+      mode: 'absent',
+      resolved: { consumerStatus: null },
+    });
+
+    const response = await post({});
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body).toMatchObject({
+      readiness: {
+        status: 'retryable',
+        reason: 'runtime-graph-unavailable',
+        studentAction: 'retry',
+      },
+      generationRequest: {
+        id: 'generation-request-1',
+        status: 'failed',
+      },
+    });
+    expect(body.readiness.studentMessage).toContain('工程图谱还没有就绪');
+    expect(body.readiness.studentMessage).not.toContain('学习证据还不充分');
+    expect(mocks.buildKonlingToolRuntime).not.toHaveBeenCalled();
   });
 
   it('returns retryable readiness for unexpected generation failures', async () => {
@@ -232,7 +267,7 @@ describe('path advisor tool route readiness', () => {
 
     expect(response.status).toBe(409);
     await expect(response.json()).resolves.toMatchObject({
-      readiness: { status: 'retryable', reason: 'retryable', studentAction: 'retry' },
+      readiness: { status: 'retryable', reason: 'conflict', studentAction: 'retry' },
       generationRequest: {
         id: 'generation-request-1',
         status: 'failed',

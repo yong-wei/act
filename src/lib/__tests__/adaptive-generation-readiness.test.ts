@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  adaptiveGenerationReadinessFromEngineeringGraphSelection,
   adaptiveGenerationReadinessFromHttp,
   buildAdaptiveGenerationReadiness,
   selectAdaptiveGenerationReadiness,
@@ -101,6 +102,53 @@ describe('adaptive generation readiness', () => {
     })).toMatchObject({
       reason: 'service-unavailable',
       status: 'retryable',
+    });
+    expect(adaptiveGenerationReadinessFromHttp({
+      status: 409,
+      source: 'path-advisor-tool',
+    })).toMatchObject({
+      reason: 'conflict',
+      status: 'retryable',
+      studentAction: 'retry',
+    });
+    expect(adaptiveGenerationReadinessFromHttp({
+      status: 503,
+      source: 'path-advisor-tool',
+      error: '学习路径依赖的课程运行时或工程图谱还没有就绪。',
+    })).toMatchObject({
+      reason: 'runtime-graph-unavailable',
+      status: 'retryable',
+      studentAction: 'retry',
+    });
+    expect(adaptiveGenerationReadinessFromHttp({
+      status: 503,
+      source: 'path-advisor-tool',
+      error: '学习路径依赖的课程运行时或工程图谱还没有就绪。',
+    }).studentMessage).not.toContain('学习证据还不充分');
+  });
+
+  it('treats an unreadiness engineering-graph as runtime-graph-unavailable, not missing evidence', () => {
+    expect(adaptiveGenerationReadinessFromEngineeringGraphSelection({
+      mode: 'use-combination',
+      resolved: { consumerStatus: 'READY' },
+    })).toBeNull();
+    expect(adaptiveGenerationReadinessFromEngineeringGraphSelection({
+      mode: 'pin-combination',
+      resolved: { consumerStatus: 'NOT_READY' },
+    })).toMatchObject({
+      reason: 'runtime-graph-unavailable',
+      status: 'retryable',
+      studentAction: 'retry',
+    });
+    const graphBlocked = adaptiveGenerationReadinessFromEngineeringGraphSelection({
+      mode: 'absent',
+    });
+    const missingEvidence = buildAdaptiveGenerationReadiness({
+      reason: 'insufficient-evidence',
+      source: 'ui',
+    });
+    expect(selectAdaptiveGenerationReadiness([missingEvidence, graphBlocked])).toMatchObject({
+      reason: 'runtime-graph-unavailable',
     });
   });
 

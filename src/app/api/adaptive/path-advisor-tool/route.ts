@@ -19,6 +19,7 @@ import {
 } from '@/lib/konling-teaching-assistant-server-context';
 import { prisma } from '@/lib/prisma';
 import {
+  adaptiveGenerationReadinessFromEngineeringGraphSelection,
   adaptiveGenerationReadinessFromHttp,
   authorizeAdaptivePathComparisonIdentity,
   buildAdaptiveGenerationReadiness,
@@ -28,6 +29,7 @@ import {
   type AdaptiveGenerationReadiness,
 } from '@/features/personalization/path-planning/public-api';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { resolveEngineeringGraphProductionSelection } from '@/lib/versioned-knowledge-activation/resolve';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -76,6 +78,22 @@ export async function POST(request: Request) {
       ) {
         return NextResponse.json({ error: '学习路径生成请求 ID 无效' }, { status: 400 });
       }
+    }
+    const graphReadiness = adaptiveGenerationReadinessFromEngineeringGraphSelection(
+      resolveEngineeringGraphProductionSelection(),
+    );
+    if (graphReadiness && operation === 'generate') {
+      const readiness = buildAdaptiveGenerationReadiness({
+        reason: 'runtime-graph-unavailable',
+        source: 'path-advisor-tool',
+      });
+      return NextResponse.json({
+        error: readiness.studentMessage,
+        readiness,
+        ...(generationRequestId ? {
+          generationRequest: { id: generationRequestId, status: 'failed' as const },
+        } : {}),
+      }, { status: 503 });
     }
     const scopeResult = await verifyKonlingRuntimeScope(prisma, {
       authenticatedUserId: session.user.id,
@@ -229,7 +247,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         error: 'KONLING_MODE_UNAVAILABLE',
         readiness: buildAdaptiveGenerationReadiness({
-          reason: 'service-unavailable',
+          reason: 'conflict',
           source: 'path-advisor-tool',
         }),
         unavailableReasons: modeContract.unavailableReasons,
@@ -283,8 +301,8 @@ export async function POST(request: Request) {
           readiness: adaptiveGenerationReadinessFromHttp({
             status: error.status,
             source: 'path-advisor-tool',
+            error: error.message,
             ...([401, 403].includes(error.status) ? { fallbackReason: 'advisor-forbidden' as const } : {}),
-            ...(error.status === 409 ? { fallbackReason: 'retryable' as const } : {}),
           }),
         }),
         ...(generationRequestId && error.status === 409 ? {

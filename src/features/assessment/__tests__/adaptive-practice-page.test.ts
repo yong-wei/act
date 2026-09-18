@@ -201,12 +201,17 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('disabled={pathGenerationPending !== null || hasInvalidRequestedGoal || !canSubmitPathGeneration}');
     expect(source).toContain('setPathChoiceMessage(pathGenerationDisplayReadiness.studentMessage)');
     expect(source).toContain('readAdaptiveGenerationReadiness(payload)');
-    expect(source).toContain("fallbackReason: response.status === 401 ? 'auth-required' : 'service-unavailable'");
+    expect(source).toContain("fallbackReason: response.status === 401 ? 'auth-required' : undefined");
+    expect(source).toContain('error: typeof payload.error === \'string\' ? payload.error : null');
     expect(contextRouteSource).not.toContain('missing-class-binding');
     expect(contextRouteSource).not.toContain('missing-teacher-binding');
     expect(contextRouteSource).toContain('service-unavailable');
+    expect(contextRouteSource).toContain('adaptiveGenerationReadinessFromEngineeringGraphSelection');
     expect(toolRouteSource).toContain('readiness: buildAdaptiveGenerationReadiness');
     expect(toolRouteSource).toContain('adaptiveGenerationReadinessFromHttp');
+    expect(toolRouteSource).toContain("reason: 'runtime-graph-unavailable'");
+    expect(toolRouteSource).toContain("reason: 'conflict'");
+    expect(toolRouteSource).toContain('error: error.message');
   });
 
   it('renders explicit path recovery instead of fake progress for missing path contexts', () => {

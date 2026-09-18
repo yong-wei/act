@@ -8,6 +8,8 @@ export type AdaptiveGenerationReadinessReason =
   | 'learner-state-unavailable'
   | 'advisor-forbidden'
   | 'service-unavailable'
+  | 'runtime-graph-unavailable'
+  | 'conflict'
   | 'insufficient-evidence'
   | 'retryable';
 
@@ -97,6 +99,20 @@ const readinessByReason: Record<Exclude<AdaptiveGenerationReadinessReason, 'read
     studentMessage: '路径生成服务暂时不可用。已有证据不会丢失，请稍后重试。',
     staffMessage: '检查路径顾问上下文签发、控灵运行时和服务配置。',
   },
+  'runtime-graph-unavailable': {
+    status: 'retryable',
+    studentAction: 'retry',
+    staffAction: 'check-service',
+    studentMessage: '学习路径依赖的课程运行时或工程图谱还没有就绪。请稍后重试，或联系教师、管理员。不必为此去补充学习记录。',
+    staffMessage: '检查 engineering-graph consumer 是否 READY，以及 Runtime 激活指针与收据是否一致。',
+  },
+  conflict: {
+    status: 'retryable',
+    studentAction: 'retry',
+    staffAction: 'check-service',
+    studentMessage: '当前学习路径状态已更新或生成服务发生冲突。请刷新页面后重试。',
+    staffMessage: '检查 409 冲突：路径版本、幂等请求或控灵模式不可用。',
+  },
   'insufficient-evidence': {
     status: 'degraded',
     studentAction: 'continue-practice',
@@ -144,15 +160,22 @@ export function adaptiveGenerationReadinessFromHttp(input: {
   status: number;
   source: AdaptiveGenerationReadiness['evidence']['source'];
   fallbackReason?: AdaptiveGenerationReadinessReason;
+  error?: string | null;
 }): AdaptiveGenerationReadiness {
   if (input.fallbackReason) {
     return buildAdaptiveGenerationReadiness({ reason: input.fallbackReason, source: input.source });
+  }
+  if (looksLikeRuntimeGraphFailure(input.status, input.error)) {
+    return buildAdaptiveGenerationReadiness({ reason: 'runtime-graph-unavailable', source: input.source });
   }
   if (input.status === 401) {
     return buildAdaptiveGenerationReadiness({ reason: 'auth-required', source: input.source });
   }
   if (input.status === 403) {
     return buildAdaptiveGenerationReadiness({ reason: 'advisor-forbidden', source: input.source });
+  }
+  if (input.status === 409) {
+    return buildAdaptiveGenerationReadiness({ reason: 'conflict', source: input.source });
   }
   if (input.status === 503) {
     return buildAdaptiveGenerationReadiness({ reason: 'service-unavailable', source: input.source });
@@ -164,6 +187,26 @@ export function adaptiveGenerationReadinessFromHttp(input: {
     reason: 'service-unavailable',
     source: input.source,
   });
+}
+
+export function adaptiveGenerationReadinessFromEngineeringGraphSelection(selection: {
+  mode?: string | null;
+  resolved?: { consumerStatus?: string | null } | null;
+}): AdaptiveGenerationReadiness | null {
+  if (selection.mode === 'use-combination' && selection.resolved?.consumerStatus === 'READY') {
+    return null;
+  }
+  return buildAdaptiveGenerationReadiness({
+    reason: 'runtime-graph-unavailable',
+    source: 'path-advisor',
+  });
+}
+
+function looksLikeRuntimeGraphFailure(status: number, error?: string | null): boolean {
+  if (status !== 503 && status !== 409) return false;
+  const text = error?.trim() ?? '';
+  if (!text) return false;
+  return /工程图谱|课程运行时|教学投影索引|资源版本清单|图谱还没有就绪|engineering-graph|consumer is not READY/i.test(text);
 }
 
 export function selectAdaptiveGenerationReadiness(
