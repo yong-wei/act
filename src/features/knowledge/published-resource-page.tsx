@@ -14,7 +14,9 @@ import {
   resolveAdaptivePathLaunchReturnContext,
 } from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import { publishAdaptivePathJourneyResponse } from '@/features/personalization/experience/adaptive-path-journey-control';
+import { InspectorLearnerMarkdown } from './inspector-learner-markdown';
 import { KnowledgeCard } from './knowledge-card';
+import { toLearnerMathMarkdown } from '@/lib/learner-math-markdown';
 
 export interface PublishedResourcePageData {
   title: string;
@@ -32,6 +34,10 @@ export interface PublishedResourcePageData {
   children?: Array<{ title: string; href: string }>;
   appearance?: 'first' | 'revisit' | 'reference' | null;
   anchors?: Array<{ label: string; appearance: string; href: string | null }>;
+  heading?: string;
+  excerptMarkdown?: string;
+  knowledgeLabels?: string[];
+  roleLabel?: string;
 }
 
 export function PublishedResourcePage({ resource }: { resource: PublishedResourcePageData }) {
@@ -212,8 +218,43 @@ export function PublishedResourcePage({ resource }: { resource: PublishedResourc
             <p className="text-sm text-platform-fg-muted">{mediaReady ? '媒体已加载，可以记录完成。' : '正在加载媒体…'}</p>
           </section>
         ) : resource.kind === 'route' && href ? (
-          <section className="space-y-5 rounded-xl border border-platform-border bg-platform-surface p-6">
-            <p className="leading-7 text-platform-fg-secondary">{resource.summary}</p>
+          <section
+            className="space-y-5 rounded-xl border border-platform-border bg-platform-surface p-6"
+            data-published-resource-preview="route"
+          >
+            {resource.heading ? (
+              <div
+                role="heading"
+                aria-level={2}
+                className="text-xl font-semibold tracking-tight text-platform-fg-primary"
+                data-published-resource-heading="true"
+              >
+                <InspectorLearnerMarkdown>{toLearnerMathMarkdown(resource.heading)}</InspectorLearnerMarkdown>
+              </div>
+            ) : null}
+            {resource.excerptMarkdown ? (
+              <div
+                className="text-[15px] leading-7 text-platform-fg-secondary [&_h1]:text-lg [&_h2]:text-base [&_p]:mb-3"
+                data-published-resource-excerpt="true"
+              >
+                <InspectorLearnerMarkdown>{resource.excerptMarkdown}</InspectorLearnerMarkdown>
+              </div>
+            ) : null}
+            {resource.knowledgeLabels && resource.knowledgeLabels.length > 0 ? (
+              <div data-published-resource-knowledge="true">
+                <p className="text-sm font-medium text-platform-fg-secondary">本节关联知识点</p>
+                <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-6 text-platform-fg-secondary">
+                  {resource.knowledgeLabels.map((label) => (
+                    <li key={label}>
+                      <InspectorLearnerMarkdown>{toLearnerMathMarkdown(label)}</InspectorLearnerMarkdown>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {resource.roleLabel ? (
+              <p className="text-sm text-platform-fg-muted">用于{resource.roleLabel}</p>
+            ) : null}
             <Link href={href} className="inline-flex items-center gap-2 rounded-md bg-platform-action-primary px-4 py-2 text-white">
               打开{resource.kindLabel}<ArrowUpRight className="h-4 w-4" />
             </Link>

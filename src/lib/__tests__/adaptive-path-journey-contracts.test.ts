@@ -49,6 +49,40 @@ describe('adaptive path journey contracts', () => {
     expect(journey.nextAction.href).toContain('nodeId=node-2');
   });
 
+  it('sends learn-next for a published textbook to the resource preview, not the reader', () => {
+    const resourceId = 'act:textbook-section:dorf-modern-control-systems.chapter-chapter-10.section-10.2';
+    const nodeId = `published-resource:${'a'.repeat(64)}:${resourceId}`;
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      currentNodeId: nodeId,
+      nodeIds: ['node-1', nodeId],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', nodeId],
+        planNodes: [
+          { nodeId: 'node-1', title: '超前比', type: 'textbook_section', target: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-10/section-10.1', status: 'completed' },
+          {
+            nodeId,
+            title: '串联滞后-超前校正',
+            type: 'textbook_section',
+            sourceKind: 'teaching_projection',
+            sourceRef: resourceId,
+            target: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-10/section-10.2',
+            status: 'next',
+            readiness: { state: 'ready' },
+          },
+        ],
+      },
+    }), { requestedNodeId: 'node-1' });
+
+    expect(journey.nextAction).toMatchObject({
+      state: 'ready',
+      nodeId,
+      title: '学习下一个',
+    });
+    expect(journey.nextAction.href).toContain('/learning-resources/' + encodeURIComponent(resourceId));
+    expect(journey.nextAction.href).toContain(`nodeId=${encodeURIComponent(nodeId)}`);
+    expect(journey.nextAction.href).not.toContain('/textbooks/');
+  });
+
   it('returns from node execution to the current path overview', () => {
     const journey = buildAuthorizedAdaptivePathJourney(buildPath(), { requestedNodeId: 'node-1' });
 

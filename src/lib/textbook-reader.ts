@@ -81,6 +81,24 @@ function isSafeRouteText(value: string): boolean {
     && value !== '..';
 }
 
+export function parseTextbookReaderHref(
+  href: string,
+): { bookId: string; edition: string; unitPath: string[] } | null {
+  try {
+    const parsed = new URL(href, 'https://act.local');
+    if (parsed.origin !== 'https://act.local') return null;
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    if (parts[0] !== 'textbooks' || parts.length < 4) return null;
+    return parseTextbookRoute({
+      bookId: decodeURIComponent(parts[1] ?? ''),
+      edition: decodeURIComponent(parts[2] ?? ''),
+      unitPath: parts.slice(3).map((segment) => decodeURIComponent(segment)),
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function parseTextbookRoute(input: {
   bookId: string;
   edition: string;

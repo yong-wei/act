@@ -15,6 +15,7 @@ import {
   insertTextbookFragmentMarkers,
   loadTextbookCatalog,
   loadTextbookReaderProjection,
+  parseTextbookReaderHref,
   parseTextbookRoute,
   resolveTextbookUnitAssetHref,
   TEXTBOOK_TITLES,
@@ -220,6 +221,17 @@ describe('textbook reader route contract', () => {
       unitPath: ['chapter-chapter-01', 'section-1.1'],
       fragment: 'formula-001',
     })).toBe('/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-01/section-1.1#formula-001');
+  });
+
+  it('parses a published textbook reader href', () => {
+    expect(parseTextbookReaderHref(
+      '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-10/section-10.1',
+    )).toEqual({
+      bookId: 'dorf-modern-control-systems',
+      edition: '14th Global Edition',
+      unitPath: ['chapter-chapter-10', 'section-10.1'],
+    });
+    expect(parseTextbookReaderHref('/learning-resources/act:textbook-section:demo')).toBeNull();
   });
 });
 

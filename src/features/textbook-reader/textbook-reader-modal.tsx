@@ -44,7 +44,7 @@ export function TextbookReaderModal({ children }: { children: React.ReactNode })
           data-platform-layer="textbookWorkspace"
         />
         <DialogPrimitive.Content
-          className="fixed left-1/2 top-1/2 h-[min(92vh,980px)] w-full max-w-[min(96vw,1600px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-border bg-background shadow-2xl focus:outline-none"
+          className="fixed left-1/2 top-1/2 h-[min(92vh,980px)] w-full max-w-[min(96vw,1600px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-border bg-background shadow-2xl focus:outline-none [&:has([data-textbook-reader-maximized=true])]:h-screen [&:has([data-textbook-reader-maximized=true])]:max-h-none [&:has([data-textbook-reader-maximized=true])]:w-screen [&:has([data-textbook-reader-maximized=true])]:max-w-none [&:has([data-textbook-reader-maximized=true])]:rounded-none"
           style={platformLayerStyle('textbookWorkspace')}
           data-platform-layer="textbookWorkspace"
           data-textbook-reader-modal="true"
