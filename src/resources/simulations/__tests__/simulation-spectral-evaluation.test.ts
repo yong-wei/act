@@ -54,20 +54,53 @@ describe('spectral experiment controls (#2105)', () => {
   });
 
   it('does not activate production changes regardless of findings', () => {
-    const strongEvidence: SpectralBackendMeasurement[] = [
-      { ...BASE, backend: 'gerstner-analytic', frameP95Ms: 14.2, visualQualityNotes: '基线', cpuQueryStrategy: 'analytic-closed-form' },
-      { ...BASE, backend: 'webgpu-fft', frameP95Ms: 12.8, visualQualityNotes: '高频细节显著', cpuQueryStrategy: 'gpu-readback-partial' },
-    ];
+    // 完备证据（五项实测 + 视觉 + 硬件上下文）才进入 defer 分支。
+    const full: SpectralBackendMeasurement = {
+      ...BASE,
+      significantWaveHeightMeters: 2.1,
+      repeatabilityDeltaMeters: 0.03,
+      frameP95Ms: 14.2,
+      firstLoadMs: 180,
+      visualQualityNotes: '记录',
+    };
     const report = evaluateSpectralBackends({
       controls: CONTROLS,
-      measurements: strongEvidence,
+      measurements: [
+        { ...full, backend: 'gerstner-analytic', cpuQueryStrategy: 'analytic-closed-form' },
+        { ...full, backend: 'webgpu-fft', frameP95Ms: 12.8, cpuQueryStrategy: 'gpu-readback-partial' },
+      ],
       unresolvedDifferences: [],
       hardwareContext: 'Apple M2 (mock)',
     });
-    // 证据齐备也只输出建议：adopt-candidate-change 表示"提出下一项单独 change"，
-    // 决不直接改生产默认——判定词与 rationale 均如此声明。
-    expect(['adopt-candidate-change', 'defer-more-evidence']).toContain(report.verdict);
+    expect(report.verdict).toBe('defer-more-evidence');
     expect(report.rationale).toContain('不改生产默认');
+  });
+
+  it('rejects partial evidence as sufficient (missing fields keep the current path)', () => {
+    // 只有 p95 + 单候选视觉（其余 null）——三轮复审：不得宣称证据齐备。
+    const partial = evaluateSpectralBackends({
+      controls: CONTROLS,
+      measurements: [
+        { ...BASE, backend: 'gerstner-analytic', frameP95Ms: 14.2, visualQualityNotes: '基线', cpuQueryStrategy: 'analytic-closed-form' },
+        { ...BASE, backend: 'webgpu-fft', frameP95Ms: 12.8 },
+      ],
+      unresolvedDifferences: [],
+      hardwareContext: 'mock',
+    });
+    expect(partial.verdict).toBe('keep-current-path');
+    expect(partial.rationale).toContain('必需字段未齐备');
+    // 缺硬件上下文同样不齐备。
+    const full: SpectralBackendMeasurement = {
+      ...BASE, significantWaveHeightMeters: 2, repeatabilityDeltaMeters: 0.03,
+      frameP95Ms: 14, firstLoadMs: 180, visualQualityNotes: 'x', cpuQueryStrategy: 'analytic-closed-form',
+    };
+    const noHardware = evaluateSpectralBackends({
+      controls: CONTROLS,
+      measurements: [{ ...full, backend: 'gerstner-analytic' }, { ...full, backend: 'webgl-fft' }],
+      unresolvedDifferences: [],
+      hardwareContext: null,
+    });
+    expect(noHardware.verdict).toBe('keep-current-path');
   });
 });
 
@@ -88,11 +121,15 @@ describe('spectral verdict rules (#2105)', () => {
   });
 
   it('disqualifies candidates that require full-texture readback every frame', () => {
+    const full: SpectralBackendMeasurement = {
+      ...BASE, significantWaveHeightMeters: 2, repeatabilityDeltaMeters: 0.03,
+      frameP95Ms: 14.2, firstLoadMs: 180, visualQualityNotes: '记录',
+    };
     const report = evaluateSpectralBackends({
       controls: CONTROLS,
       measurements: [
-        { ...BASE, backend: 'gerstner-analytic', frameP95Ms: 14.2, visualQualityNotes: '基线', cpuQueryStrategy: 'analytic-closed-form' },
-        { ...BASE, backend: 'webgl-fft', frameP95Ms: 15.1, visualQualityNotes: '细节多', cpuQueryStrategy: 'gpu-readback-full-per-frame' },
+        { ...full, backend: 'gerstner-analytic', cpuQueryStrategy: 'analytic-closed-form' },
+        { ...full, backend: 'webgl-fft', cpuQueryStrategy: 'gpu-readback-full-per-frame' },
       ],
       unresolvedDifferences: [],
       hardwareContext: 'mock',

@@ -46,5 +46,5 @@
   ],
   "hardwareContext": null,
   "verdict": "keep-current-path",
-  "rationale": "实测证据不足（<2 候选有预热 p95 或无视觉质量记录）：保留当前 Gerstner 解析路线；结论可以就是终点，采用需补充证据后另立 change。"
+  "rationale": "实测证据不足（3 个候选必需字段未齐备，且硬件上下文缺失——p95/Hs/重复性/首载/CPU 查询/视觉记录为提案要求的完整检查集）：保留当前 Gerstner 解析路线；结论可以就是终点，采用需补充证据后另立 change。"
 }

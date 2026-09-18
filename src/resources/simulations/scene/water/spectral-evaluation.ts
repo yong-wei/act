@@ -146,25 +146,36 @@ export function spectrumStatistics(
  * - 视觉收益未记录（visualQualityNotes null）或硬件实测不足（<2 候各有 p95）→ defer；
  * - 全部候选无实测 → keep-current-path（保留 Gerstner 路线的默认结论可以是终态）。
  */
+/** 单候选证据完备性（三轮复审）：五项必需实测字段 + 视觉记录全部在场才算齐备。 */
+function backendEvidenceComplete(measurement: SpectralBackendMeasurement): boolean {
+  return measurement.frameP95Ms !== null
+    && measurement.significantWaveHeightMeters !== null
+    && measurement.repeatabilityDeltaMeters !== null
+    && measurement.firstLoadMs !== null
+    && measurement.cpuQueryStrategy !== null
+    && measurement.visualQualityNotes !== null;
+}
+
 export function evaluateSpectralBackends(
   report: Omit<SpectralEvaluationReport, 'verdict' | 'rationale'>,
 ): SpectralEvaluationReport {
   const disqualified = report.measurements.filter(
     (m) => m.cpuQueryStrategy === 'gpu-readback-full-per-frame',
   );
-  const measured = report.measurements.filter((m) => m.frameP95Ms !== null);
-  const visualEvidence = report.measurements.filter((m) => m.visualQualityNotes !== null);
+  const complete = report.measurements.filter(backendEvidenceComplete);
+  const hardwareKnown = report.hardwareContext !== null;
   let verdict: SpectralEvaluationReport['verdict'];
   let rationale: string;
-  if (measured.length < 2 || visualEvidence.length === 0) {
+  if (complete.length < 2 || !hardwareKnown) {
     verdict = 'keep-current-path';
-    rationale = '实测证据不足（<2 候选有预热 p95 或无视觉质量记录）：保留当前 Gerstner 解析路线；结论可以就是终点，采用需补充证据后另立 change。';
+    const missing = report.measurements.length - complete.length;
+    rationale = `实测证据不足（${missing} 个候选必需字段未齐备${hardwareKnown ? '' : '，且硬件上下文缺失'}——p95/Hs/重复性/首载/CPU 查询/视觉记录为提案要求的完整检查集）：保留当前 Gerstner 解析路线；结论可以就是终点，采用需补充证据后另立 change。`;
   } else if (disqualified.length > 0) {
-    verdict = measured.length - disqualified.length >= 2 ? 'defer-more-evidence' : 'keep-current-path';
+    verdict = complete.length - disqualified.length >= 2 ? 'defer-more-evidence' : 'keep-current-path';
     rationale = `候选 ${disqualified.map((m) => m.backend).join('、')} 的船体 CPU 查询需逐帧同步读回整张纹理（不合格）；其余候选证据继续收集或维持现路线。`;
   } else {
     verdict = 'defer-more-evidence';
-    rationale = '实测与视觉证据齐备但采用需要单独批准的迁移 change（目标硬件预算/接口一致性/维护成本评估）；本评估只输出建议，不改生产默认。';
+    rationale = '实测与视觉证据齐备（全部候选五项实测 + 视觉记录 + 硬件上下文）但采用需要单独批准的迁移 change（目标硬件预算/接口一致性/维护成本评估）；本评估只输出建议，不改生产默认。';
   }
   return { ...report, verdict, rationale };
 }
