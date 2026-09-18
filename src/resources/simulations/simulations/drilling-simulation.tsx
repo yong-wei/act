@@ -27,6 +27,7 @@ import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulation
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -1173,6 +1174,7 @@ export function DrillingSimulation() {
 
         <Suspense fallback={null}>
           <EnvironmentScene subjectPositionSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })} />
+        <MarineSceneLayoutObjects layoutId="offshore-operations-area" />
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />

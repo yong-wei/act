@@ -27,6 +27,7 @@ import { SimulationTopBar, SimulationDock, simulationUi } from '../components/si
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -359,6 +360,7 @@ function Scene({
   resetToken,
   resetSignal,
   simRef,
+  iceCoverage,
 }: {
   position: Vector2;
   heading: number;
@@ -376,6 +378,7 @@ function Scene({
   resetToken: number;
   resetSignal: number;
   simRef: MutableRefObject<BindingTelemetrySource>;
+  iceCoverage: number;
 }) {
   return (
     <>
@@ -401,6 +404,10 @@ function Scene({
 
       <Suspense fallback={null}>
         <EnvironmentScene subjectPositionSampler={() => ({ x: position.x, z: position.z })} />
+        <MarineSceneLayoutObjects
+          layoutId="polar-ice-field"
+          iceCoverageOverride={() => iceCoverage}
+        />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
@@ -1221,6 +1228,7 @@ export default function IcebreakerSimulation() {
           resetToken={resetCount}
           resetSignal={viewResetCount}
           simRef={bindingRef}
+          iceCoverage={config.iceModeEnabled && config.iceThickness > 0 ? Math.min(1, config.iceThickness / 1.5) : 0}
         />
       </Canvas>
 

@@ -28,6 +28,9 @@ import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulation
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MARINE_SCENE_LAYOUTS,
+  MarineSceneLayoutObjects,
+  shorelineAmplitudeAttenuation,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -552,6 +555,7 @@ function ContainerWater({ state }: { state: ContainerSimulationState }) {
     <GerstnerWater
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
@@ -591,7 +595,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400)}
       worldSpeedSampler={() => state.speed}
     />
   );
@@ -649,6 +653,7 @@ function Scene({
 
       <Suspense fallback={null}>
         <EnvironmentScene subjectPositionSampler={() => ({ x: state.position.x, z: state.position.z })} />
+        <MarineSceneLayoutObjects layoutId="harbor-entrance-channel" />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
