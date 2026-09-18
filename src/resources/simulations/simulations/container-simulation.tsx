@@ -49,6 +49,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { containerMscSceneVisual } from '../profiles/container-msc-scene';
@@ -657,6 +658,7 @@ function Scene({
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe />
       <Suspense fallback={null}>
         <ContainerWater state={state} />
       </Suspense>

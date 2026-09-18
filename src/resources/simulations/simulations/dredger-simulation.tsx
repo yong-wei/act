@@ -49,6 +49,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { dredgerTianjingSceneVisual } from '../profiles/dredger-tianjing-scene';
@@ -982,6 +983,7 @@ export function DredgerSimulation() {
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe />
         <Suspense fallback={null}>
           <DredgerWater mmgStateRef={mmgStateRef} />
         </Suspense>

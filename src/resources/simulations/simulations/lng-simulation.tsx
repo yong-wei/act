@@ -49,6 +49,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { lngChanghengSceneVisual } from '../profiles/lng-changheng-scene';
@@ -533,6 +534,7 @@ function Scene({
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe />
       <Suspense fallback={null}>
         <LNGWater state={state} />
       </Suspense>

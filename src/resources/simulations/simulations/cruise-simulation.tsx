@@ -50,6 +50,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { cruiseAdoraSceneVisual } from '../profiles/cruise-adora-scene';
@@ -1432,6 +1433,7 @@ function VisualizationLayer({
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe />
       <Suspense fallback={null}>
         <CruiseWater state={state} />
       </Suspense>

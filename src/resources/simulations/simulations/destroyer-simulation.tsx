@@ -100,6 +100,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import type { ControlMode, PIDGains } from '../core/types';
@@ -1588,6 +1589,7 @@ export default function DestroyerSimulation() {
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe />
         <Suspense fallback={null}>
           <PresetWater simRef={simRef} />
         </Suspense>

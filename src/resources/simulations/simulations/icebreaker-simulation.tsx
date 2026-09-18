@@ -46,6 +46,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { icebreakerXuelongSceneVisual } from '../profiles/icebreaker-xuelong-scene';
@@ -411,6 +412,7 @@ function Scene({
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe />
       <Suspense fallback={null}>
         <IcebreakerWater position={position} />
       </Suspense>

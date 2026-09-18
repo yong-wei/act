@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+
+import { buildMarinePerformanceReport } from './performance-evidence';
 import { Gauge } from 'lucide-react';
 
 import { ChromePopoverButton } from '../chrome';
@@ -147,4 +149,71 @@ export function SceneQualitySelect({ className }: { readonly className?: string 
       />
     </div>
   );
+}
+
+/**
+ * 性能证据 QA 采集（#2103）：?qa=marine-performance 时挂载。滚动帧样本环形缓冲，
+ * 经 window.__marinePerformanceEvidence.read() 构建完整报告（测量上下文 +
+ * 帧间隔统计 + GPU timer 可用性探测）；无扩展时 method='frame-intervals'。
+ */
+export function MarinePerformanceEvidenceProbe() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!new URLSearchParams(window.location.search).has('qa', 'marine-performance')) return;
+    const samples: number[] = [];
+    let lastMs = performance.now();
+    const capacity = 3600; // ~60s @60fps
+    const tick = () => {
+      const nowMs = performance.now();
+      const delta = nowMs - lastMs;
+      lastMs = nowMs;
+      if (delta > 0 && delta < 1000) {
+        samples.push(delta);
+        if (samples.length > capacity) samples.shift();
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    let raf = requestAnimationFrame(tick);
+    const canvas = document.querySelector('canvas') ?? null;
+    const gl = canvas instanceof HTMLCanvasElement
+      ? canvas.getContext('webgl2') ?? canvas.getContext('webgl')
+      : null;
+    window.__marinePerformanceEvidence = {
+      read: () => buildMarinePerformanceReport({
+        context: {
+          drawingBufferWidth: gl?.drawingBufferWidth ?? 0,
+          drawingBufferHeight: gl?.drawingBufferHeight ?? 0,
+          cssWidth: canvas?.clientWidth ?? 0,
+          cssHeight: canvas?.clientHeight ?? 0,
+          devicePixelRatio: window.devicePixelRatio,
+          gpuRenderer: null,
+          browser: navigator.userAgent,
+          hardwareConcurrency: navigator.hardwareConcurrency ?? 0,
+          vesselId: document.querySelector('[data-sim-ui]')?.getAttribute('data-vessel') ?? 'unknown',
+          cameraView: 'current',
+          seaState: 3,
+          qualityTier: document.querySelector('[data-scene-quality-tier]')?.getAttribute('data-scene-quality-tier') ?? 'unknown',
+        },
+        gpuTimerAvailable: Boolean(gl?.getExtension('EXT_disjoint_timer_query_webgl2')),
+        frameMsSamples: [...samples],
+        measuredAt: new Date().toISOString(),
+      }),
+      sampleCount: () => samples.length,
+    };
+    return () => {
+      cancelAnimationFrame(raf);
+      delete window.__marinePerformanceEvidence;
+    };
+  }, []);
+  return null;
+}
+
+
+declare global {
+  interface Window {
+    __marinePerformanceEvidence?: {
+      read(): ReturnType<typeof buildMarinePerformanceReport>;
+      sampleCount(): number;
+    };
+  }
 }
