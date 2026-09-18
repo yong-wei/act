@@ -1,0 +1,50 @@
+{
+  "controls": {
+    "vesselId": "type055",
+    "cameraView": "chase",
+    "drawingBufferWidth": 1920,
+    "drawingBufferHeight": 1080,
+    "environmentPresetId": "open-sea",
+    "seaState": 4,
+    "foamEnabled": true,
+    "materialStack": "shared-gerstner-material",
+    "fftResolution": 128,
+    "fftCascades": 1
+  },
+  "measurements": [
+    {
+      "backend": "gerstner-analytic",
+      "significantWaveHeightMeters": null,
+      "repeatabilityDeltaMeters": null,
+      "frameP95Ms": null,
+      "firstLoadMs": null,
+      "cpuQueryStrategy": "analytic-closed-form",
+      "visualQualityNotes": null
+    },
+    {
+      "backend": "webgl-fft",
+      "significantWaveHeightMeters": null,
+      "repeatabilityDeltaMeters": null,
+      "frameP95Ms": null,
+      "firstLoadMs": null,
+      "cpuQueryStrategy": null,
+      "visualQualityNotes": null
+    },
+    {
+      "backend": "webgpu-fft",
+      "significantWaveHeightMeters": null,
+      "repeatabilityDeltaMeters": null,
+      "frameP95Ms": null,
+      "firstLoadMs": null,
+      "cpuQueryStrategy": null,
+      "visualQualityNotes": null
+    }
+  ],
+  "unresolvedDifferences": [
+    "FFT 候选的级联频带覆盖与解析波组的手调频带边界不同（差异不归因给后端）",
+    "WebGPU 候选的着色器语言差异（WGSL/TSL）与现有 post 栈兼容性未验证"
+  ],
+  "hardwareContext": null,
+  "verdict": "keep-current-path",
+  "rationale": "实测证据不足（3 个候选必需字段未齐备，且硬件上下文缺失——p95/Hs/重复性/首载/CPU 查询/视觉记录为提案要求的完整检查集）：保留当前 Gerstner 解析路线；结论可以就是终点，采用需补充证据后另立 change。"
+}
