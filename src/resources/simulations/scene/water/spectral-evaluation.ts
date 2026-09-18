@@ -105,11 +105,16 @@ export function spectrumStatistics(
   if (spectrum.length === 0) {
     return { significantWaveHeightMeters: 0, peakPeriodSeconds: 0 };
   }
+  // 谱是密度：按 Δf 积分求零阶矩（方向维已在能量内摊平），网格加密不放大 Hs。
+  const sorted = [...spectrum].sort((left, right) => left.frequencyHz - right.frequencyHz);
   let m0 = 0;
   let peakEnergy = -1;
-  let peakFrequency = spectrum[0]!.frequencyHz;
-  for (const point of spectrum) {
-    m0 += point.energy;
+  let peakFrequency = sorted[0]!.frequencyHz;
+  for (let i = 0; i < sorted.length; i += 1) {
+    const point = sorted[i]!;
+    const previous = i > 0 ? sorted[i - 1]!.frequencyHz : point.frequencyHz;
+    const deltaF = Math.max(point.frequencyHz - previous, 1e-6);
+    m0 += point.energy * deltaF;
     if (point.energy > peakEnergy) {
       peakEnergy = point.energy;
       peakFrequency = point.frequencyHz;

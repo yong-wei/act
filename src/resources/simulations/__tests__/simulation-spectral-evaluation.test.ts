@@ -122,6 +122,17 @@ describe('experimental spectrum statistics (#2105)', () => {
     expect(spectrumStatistics([])).toEqual({ significantWaveHeightMeters: 0, peakPeriodSeconds: 0 });
   });
 
+  it('integrates spectral density so Hs is resolution-invariant (fair cross-candidate stats)', () => {
+    const build = (bins: number) => spectrumStatistics(experimentalDirectionalSpectrum({
+      windSpeedMps: 12, fetchMeters: 50000, directionBins: 4, frequencyBins: bins, seed: 3,
+    }));
+    // 网格加密（8→32 频率格）不人为放大有效波高（密度×Δf 积分）。
+    const coarse = build(8);
+    const fine = build(32);
+    expect(Math.abs(fine.significantWaveHeightMeters - coarse.significantWaveHeightMeters))
+      .toBeLessThan(coarse.significantWaveHeightMeters * 0.25);
+  });
+
   it('derives stronger seas from stronger wind (monotone Hs)', () => {
     const light = spectrumStatistics(experimentalDirectionalSpectrum({
       windSpeedMps: 5, fetchMeters: 50000, directionBins: 4, frequencyBins: 8, seed: 3,
