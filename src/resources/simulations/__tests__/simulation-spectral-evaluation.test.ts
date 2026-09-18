@@ -67,6 +67,7 @@ describe('spectral experiment controls (#2105)', () => {
       controls: CONTROLS,
       measurements: [
         { ...full, backend: 'gerstner-analytic', cpuQueryStrategy: 'analytic-closed-form' },
+        { ...full, backend: 'webgl-fft', cpuQueryStrategy: 'gpu-readback-partial' },
         { ...full, backend: 'webgpu-fft', frameP95Ms: 12.8, cpuQueryStrategy: 'gpu-readback-partial' },
       ],
       unresolvedDifferences: [],
@@ -101,6 +102,15 @@ describe('spectral experiment controls (#2105)', () => {
       hardwareContext: null,
     });
     expect(noHardware.verdict).toBe('keep-current-path');
+    // 两候选齐备但缺第三候选（WebGPU）——四轮复审：三候选同场才可评估。
+    const missingThird = evaluateSpectralBackends({
+      controls: CONTROLS,
+      measurements: [{ ...full, backend: 'gerstner-analytic' }, { ...full, backend: 'webgl-fft' }],
+      unresolvedDifferences: [],
+      hardwareContext: 'mock',
+    });
+    expect(missingThird.verdict).toBe('keep-current-path');
+    expect(missingThird.rationale).toContain('候选集不完整');
   });
 });
 
@@ -130,6 +140,7 @@ describe('spectral verdict rules (#2105)', () => {
       measurements: [
         { ...full, backend: 'gerstner-analytic', cpuQueryStrategy: 'analytic-closed-form' },
         { ...full, backend: 'webgl-fft', cpuQueryStrategy: 'gpu-readback-full-per-frame' },
+        { ...full, backend: 'webgpu-fft', cpuQueryStrategy: 'gpu-readback-partial' },
       ],
       unresolvedDifferences: [],
       hardwareContext: 'mock',

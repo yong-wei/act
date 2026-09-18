@@ -166,16 +166,19 @@ export function evaluateSpectralBackends(
   const hardwareKnown = report.hardwareContext !== null;
   let verdict: SpectralEvaluationReport['verdict'];
   let rationale: string;
-  if (complete.length < 2 || !hardwareKnown) {
+  const REQUIRED_BACKENDS: readonly SpectralBackendId[] = ['gerstner-analytic', 'webgl-fft', 'webgpu-fft'];
+  const allPresent = REQUIRED_BACKENDS.every((required) =>
+    report.measurements.some((m) => m.backend === required));
+  if (!allPresent || complete.length < report.measurements.length || complete.length < 2 || !hardwareKnown) {
     verdict = 'keep-current-path';
     const missing = report.measurements.length - complete.length;
-    rationale = `实测证据不足（${missing} 个候选必需字段未齐备${hardwareKnown ? '' : '，且硬件上下文缺失'}——p95/Hs/重复性/首载/CPU 查询/视觉记录为提案要求的完整检查集）：保留当前 Gerstner 解析路线；结论可以就是终点，采用需补充证据后另立 change。`;
+    rationale = `实测证据不足（${missing} 个候选必需字段未齐备${allPresent ? '' : '，候选集不完整（需 Gerstner/WebGL FFT/WebGPU FFT 三者同场）'}${hardwareKnown ? '' : '，且硬件上下文缺失'}——p95/Hs/重复性/首载/CPU 查询/视觉记录为提案要求的完整检查集）：保留当前 Gerstner 解析路线；结论可以就是终点，采用需补充证据后另立 change。`;
   } else if (disqualified.length > 0) {
     verdict = complete.length - disqualified.length >= 2 ? 'defer-more-evidence' : 'keep-current-path';
     rationale = `候选 ${disqualified.map((m) => m.backend).join('、')} 的船体 CPU 查询需逐帧同步读回整张纹理（不合格）；其余候选证据继续收集或维持现路线。`;
   } else {
     verdict = 'defer-more-evidence';
-    rationale = '实测与视觉证据齐备（全部候选五项实测 + 视觉记录 + 硬件上下文）但采用需要单独批准的迁移 change（目标硬件预算/接口一致性/维护成本评估）；本评估只输出建议，不改生产默认。';
+    rationale = '实测与视觉证据齐备（三候选同场、五项实测 + 视觉记录 + 硬件上下文）但采用需要单独批准的迁移 change（目标硬件预算/接口一致性/维护成本评估）；本评估只输出建议，不改生产默认。';
   }
   return { ...report, verdict, rationale };
 }
