@@ -1433,7 +1433,7 @@ function VisualizationLayer({
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
-        <MarinePerformanceEvidenceProbe />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'cruise', cameraView: String('current'), seaState: 3 })} />
       <Suspense fallback={null}>
         <CruiseWater state={state} />
       </Suspense>

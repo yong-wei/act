@@ -1589,7 +1589,7 @@ export default function DestroyerSimulation() {
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />
-        <MarinePerformanceEvidenceProbe />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'destroyer', cameraView: String(cameraMode), seaState: 3 })} />
         <Suspense fallback={null}>
           <PresetWater simRef={simRef} />
         </Suspense>

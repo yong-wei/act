@@ -41,6 +41,8 @@ export interface MarinePerformanceReport {
   /** 测量方法：timer-query（GPU 段）或 frame-intervals（CPU/合成帧间隔）。 */
   readonly method: 'timer-query' | 'frame-intervals';
   readonly gpuTimerAvailable: boolean;
+  /** EXT_disjoint_timer_query_webgl2 扩展存在性（复审）：与实际采样口径分离记录。 */
+  readonly timerQueryExtensionPresent?: boolean;
   readonly frameStats: MarineFrameStatistics;
   /** 实测值（measured）：来自真实硬件采样；目标（targets）单独携带，不得混写。 */
   readonly measuredAt: string | null;
@@ -90,11 +92,14 @@ export function buildMarinePerformanceReport(input: {
   readonly gpuTimerAvailable: boolean;
   readonly frameMsSamples: readonly number[];
   readonly measuredAt?: string | null;
+  /** 扩展存在性（复审）：与实际采样口径分离记录。 */
+  readonly timerQueryExtensionPresent?: boolean;
 }): MarinePerformanceReport {
   return {
     context: input.context,
     method: input.gpuTimerAvailable ? 'timer-query' : 'frame-intervals',
     gpuTimerAvailable: input.gpuTimerAvailable,
+    timerQueryExtensionPresent: input.timerQueryExtensionPresent ?? input.gpuTimerAvailable,
     frameStats: buildMarineFrameStatistics(input.frameMsSamples),
     measuredAt: input.measuredAt ?? null,
     targets: MARINE_PERFORMANCE_TARGETS,

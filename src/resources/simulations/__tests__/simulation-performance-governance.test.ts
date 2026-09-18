@@ -86,6 +86,36 @@ describe('performance evidence measurement context (#2103)', () => {
   });
 });
 
+describe('performance probe honesty and entry (#2103 contracts)', () => {
+  it('keeps rAF samples as frame-intervals even when the timer-query extension exists', () => {
+    const source = readFileSync(
+      path.join(ROOT, 'src/resources/simulations/scene/quality/quality-state.tsx'),
+      'utf-8',
+    );
+    // 口径诚实：未经实际 query 采集，gpuTimerAvailable 恒 false；扩展存在性单独记录。
+    expect(source).toContain('gpuTimerAvailable: false,');
+    expect(source).toContain('timerQueryExtensionPresent: Boolean(');
+  });
+
+  it('accepts both the marine-frame contract entry and the performance entry', () => {
+    const source = readFileSync(
+      path.join(ROOT, 'src/resources/simulations/scene/quality/quality-state.tsx'),
+      'utf-8',
+    );
+    expect(source).toContain("qaParams.includes('marine-performance')");
+    expect(source).toContain("qaParams.includes('marine-frame')");
+  });
+
+  it('attributes vessel/camera from live scene state (no placeholders)', () => {
+    const source = readFileSync(
+      path.join(ROOT, 'src/resources/simulations/simulations/destroyer-simulation.tsx'),
+      'utf-8',
+    );
+    expect(source).toContain("vesselId: 'destroyer'");
+    expect(source).toContain('cameraView: String(cameraMode)');
+  });
+});
+
 describe('degradation preserves semantics (#2103)', () => {
   it('orders cost cuts from optional effects to rendering detail, never the base field', () => {
     expect(DEGRADATION_LADDER.high).toEqual([]);

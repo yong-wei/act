@@ -156,10 +156,23 @@ export function SceneQualitySelect({ className }: { readonly className?: string 
  * 经 window.__marinePerformanceEvidence.read() 构建完整报告（测量上下文 +
  * 帧间隔统计 + GPU timer 可用性探测）；无扩展时 method='frame-intervals'。
  */
-export function MarinePerformanceEvidenceProbe() {
+export interface MarinePerformanceEvidenceContextInput {
+  readonly vesselId: string;
+  readonly cameraView: string;
+  readonly seaState: number;
+}
+
+export function MarinePerformanceEvidenceProbe({
+  contextInput,
+}: {
+  /** 场景真实状态归因（复审）：船包/镜头/海况由各场景传入，不再占位。 */
+  readonly contextInput?: () => MarinePerformanceEvidenceContextInput;
+} = {}) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (!new URLSearchParams(window.location.search).has('qa', 'marine-performance')) return;
+    // QA 入口（复审对齐）：既有帧契约入口 marine-frame 与本采集入口 marine-performance 均接受。
+    const qaParams = new URLSearchParams(window.location.search).getAll('qa');
+    if (!qaParams.includes('marine-performance') && !qaParams.includes('marine-frame')) return;
     const samples: number[] = [];
     let lastMs = performance.now();
     const capacity = 3600; // ~60s @60fps
@@ -189,12 +202,15 @@ export function MarinePerformanceEvidenceProbe() {
           gpuRenderer: null,
           browser: navigator.userAgent,
           hardwareConcurrency: navigator.hardwareConcurrency ?? 0,
-          vesselId: document.querySelector('[data-sim-ui]')?.getAttribute('data-vessel') ?? 'unknown',
-          cameraView: 'current',
-          seaState: 3,
+          vesselId: contextInput?.().vesselId ?? document.querySelector('[data-sim-ui]')?.getAttribute('data-vessel') ?? 'unknown',
+          cameraView: contextInput?.().cameraView ?? 'unknown',
+          seaState: contextInput?.().seaState ?? 0,
           qualityTier: document.querySelector('[data-scene-quality-tier]')?.getAttribute('data-scene-quality-tier') ?? 'unknown',
         },
-        gpuTimerAvailable: Boolean(gl?.getExtension('EXT_disjoint_timer_query_webgl2')),
+        // 口径诚实（复审）：样本来自 rAF 墙钟帧间隔——即便扩展存在，未经实际
+        // query 采集/disjoint 丢弃不得标 timer-query。扩展存在性单独记录。
+        gpuTimerAvailable: false,
+        timerQueryExtensionPresent: Boolean(gl?.getExtension('EXT_disjoint_timer_query_webgl2')),
         frameMsSamples: [...samples],
         measuredAt: new Date().toISOString(),
       }),
