@@ -142,10 +142,11 @@ export function marineRadianceCacheSize(): number {
  */
 export function disposeMarineEnvironmentRadiance(rendererKey?: string): void {
   if (rendererKey === undefined) {
-    for (const bucket of radianceCache.values()) {
+    // 全量释放：按缓存内真实条目（rendererKey 在 bucket 键中）逐条释放台账。
+    for (const [bucketKey, bucket] of radianceCache.entries()) {
       for (const entry of bucket.values()) {
         entry.dispose();
-        marineSceneResourceLedger.release(`pmrem-rt:*:${entry.presetId}`);
+        marineSceneResourceLedger.release(`pmrem-rt:${bucketKey}:${entry.presetId}`);
       }
     }
     radianceCache.clear();
