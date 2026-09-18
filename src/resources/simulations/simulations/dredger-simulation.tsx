@@ -24,7 +24,7 @@ import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
-import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
+import { useSimulationSceneTheme, simulationScenePalette } from '../components/simulation-theme';
 import {
   EnvironmentScene,
   MARINE_SCENE_LAYOUTS,
@@ -35,7 +35,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -145,75 +145,9 @@ const DP_CHANNEL_MAX_POWER_KW = { surge: 8000, sway: 6000, yaw: 6000 } as const;
 
 // ============ 着色器材质 ============
 
-const waterVertexShader = `
-  uniform float time;
-  varying vec2 vUv;
-  varying float vHeight;
 
-  void main() {
-    vUv = uv;
-    vec3 pos = position;
-
-    float wave1 = sin(pos.x * 0.02 + time * 0.5) * 0.5;
-    float wave2 = sin(pos.y * 0.015 + time * 0.3) * 0.3;
-    float wave3 = sin((pos.x + pos.y) * 0.01 + time * 0.4) * 0.2;
-
-    pos.z = wave1 + wave2 + wave3;
-    vHeight = pos.z;
-
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-  }
-`;
-
-const waterFragmentShader = `
-  uniform float time;
-  varying vec2 vUv;
-  varying float vHeight;
-
-  void main() {
-    vec3 deepColor = vec3(0.0, 0.2, 0.4);
-    vec3 shallowColor = vec3(0.0, 0.5, 0.7);
-    vec3 foamColor = vec3(0.9, 0.95, 1.0);
-
-    float depth = smoothstep(-1.0, 1.0, vHeight);
-    vec3 waterColor = mix(deepColor, shallowColor, depth);
-
-    float foam = smoothstep(0.3, 0.5, vHeight);
-    waterColor = mix(waterColor, foamColor, foam * 0.3);
-
-    gl_FragColor = vec4(waterColor, 0.9);
-  }
-`;
 
 // ============ 3D 组件 ============
-
-/** 海面组件 */
-function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-
-  useFrame(({ clock }) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.time.value = clock.getElapsedTime();
-    }
-  });
-
-  return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]}>
-      <planeGeometry args={[5000, 5000, 128, 128]} />
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={waterVertexShader}
-        fragmentShader={waterFragmentShader}
-        uniforms={{
-          time: { value: 0 },
-        }}
-        transparent
-        side={THREE.DoubleSide}
-      />
-    </mesh>
-  );
-}
 
 /** 挖泥船模型 */
 function DredgerModel(props: {
@@ -580,6 +514,7 @@ function DredgerWater({
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      seaState={3}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
@@ -599,6 +534,8 @@ function WakeTrailRig({
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const timeRef = useRef(0);
+  // 近场查询帧记忆化（#2104）：本帧全部粒子共享同一角点缓存。
+  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
   const { tier, params } = useSceneQuality();
 
   useFrame((frameState) => {
@@ -606,6 +543,18 @@ function WakeTrailRig({
     transformRef.current.heading = platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi));
     timeRef.current = frameState.clock.getElapsedTime();
   });
+
+  // 统一近场可见曲面（#2104）：帧记忆化查询——与 GPU 近场网格同参数（带限波组+包络）。
+  const waterYSampler = (x?: number, z?: number) => {
+    const key = `${timeRef.current}|${mmgStateRef.current.x}|${mmgStateRef.current.y}`;
+    if (!wakeQueryCacheRef.current || wakeQueryCacheRef.current.key !== key) {
+      wakeQueryCacheRef.current = {
+        key,
+        query: createNearFieldSurfaceQuery(gerstnerAmplitudeScale(3), mmgStateRef.current.x, mmgStateRef.current.y, timeRef.current),
+      };
+    }
+    return GERSTNER_WATER_BASE_Y + (wakeQueryCacheRef.current.query.heightAt(x ?? 0, z ?? 0) - GERSTNER_WATER_BASE_Y) * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments, x ?? 0, z ?? 0, 400);;
+  };
 
   if (!wakeVisible) return null;
   return (
@@ -615,7 +564,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments, x ?? 0, z ?? 0, 400)}
+      waterYSampler={waterYSampler}
       worldSpeedSampler={() => Math.hypot(mmgStateRef.current.u, mmgStateRef.current.v)}
     />
   );

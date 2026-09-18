@@ -47,7 +47,9 @@ describe('icebreaker pipeline integration', () => {
   it('feeds the wake with model-speed semantics and remounts it on reset', () => {
     const source = read(ICEBREAKER);
     const rigStart = source.indexOf('WakeTrailRig');
-    const rig = source.slice(rigStart, rigStart + 1600);
+    // #2104：rig 迁移统一近场查询后函数变长——窗口改为整个函数体（意图是速度语义+重挂载，非字符数）。
+    const rigEnd = source.indexOf('\n}\n', rigStart);
+    const rig = source.slice(rigStart, rigEnd > rigStart ? rigEnd : rigStart + 1600);
     expect(rig).toContain('worldSpeedSampler');
     expect(rig).toContain('() => speed');
     expect(rig).toContain('key={resetToken}');

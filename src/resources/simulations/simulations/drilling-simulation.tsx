@@ -24,7 +24,7 @@ import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
-import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
+import { useSimulationSceneTheme, simulationScenePalette } from '../components/simulation-theme';
 import {
   EnvironmentScene,
   MarineSceneLayoutObjects,
@@ -32,7 +32,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import { computeThrusterWashActivity } from '../scene/wake/wake-physics';
 import type { HullExclusionBox } from '../scene/water/hull-exclusion';
@@ -190,35 +190,6 @@ const waterFragmentShader = `
 
 // ============ 3D 组件 ============
 
-/** 海面组件 */
-function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-
-  useFrame(({ clock }) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.time.value = clock.getElapsedTime();
-    }
-  });
-
-  return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -5, 0]}>
-      <planeGeometry args={[6000, 6000, 128, 128]} />
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={waterVertexShader}
-        fragmentShader={waterFragmentShader}
-        uniforms={{
-          time: { value: 0 },
-        }}
-        transparent
-        side={THREE.DoubleSide}
-      />
-    </mesh>
-  );
-}
-
-/** 钻井平台模型 */
 function DrillingPlatformModel(props: {
   position: Vector2;
   heading: number;
@@ -735,6 +706,7 @@ function DrillingWater({
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      seaState={3}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
@@ -754,13 +726,28 @@ function WakeTrailRig({
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const timeRef = useRef(0);
-  const { tier, params } = useSceneQuality();
+  // 近场查询帧记忆化（#2104）：本帧全部粒子共享同一角点缓存。
+  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
+  const { tier } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [platformStateRef.current.x, 0, platformStateRef.current.y];
     transformRef.current.heading = platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi));
     timeRef.current = frameState.clock.getElapsedTime();
   });
+
+  // 统一近场可见曲面（#2104）：帧记忆化查询——与 GPU 近场网格同参数（带限波组+包络）；
+  // 主转移尾迹与逐推进器洗流共用同一查询。
+  const waterYSampler = (x?: number, z?: number) => {
+    const key = `${timeRef.current}|${platformStateRef.current.x}|${platformStateRef.current.y}`;
+    if (!wakeQueryCacheRef.current || wakeQueryCacheRef.current.key !== key) {
+      wakeQueryCacheRef.current = {
+        key,
+        query: createNearFieldSurfaceQuery(gerstnerAmplitudeScale(3), platformStateRef.current.x, platformStateRef.current.y, timeRef.current),
+      };
+    }
+    return wakeQueryCacheRef.current.query.heightAt(x ?? 0, z ?? 0);
+  };
 
   if (!wakeVisible) return null;
   return (
@@ -771,7 +758,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      waterYSampler={waterYSampler}
       worldSpeedSampler={() => Math.hypot(platformStateRef.current.u, platformStateRef.current.v)}
     />
     {/* 逐推进器局部洗流（#2101 复审）：按 HYSY981_THRUSTER_LAYOUT 世界位置与各推进器
@@ -798,7 +785,7 @@ function WakeTrailRig({
           budgetShare={1 / HYSY981_THRUSTER_LAYOUT.length}
           // 世界空间发射器（二轮复审）：避免 resolveEmitterAnchors 对世界坐标二次旋转平移。
           emitterWorldSampler={() => [worldX, 0, worldZ]}
-          waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+          waterYSampler={waterYSampler}
           worldSpeedSampler={() => 0}
           washActivitySampler={() => computeThrusterWashActivity({
             totalThrustPower: Math.abs(thruster.power),
