@@ -147,11 +147,16 @@ export function spectrumStatistics(
  * - 全部候选无实测 → keep-current-path（保留 Gerstner 路线的默认结论可以是终态）。
  */
 /** 单候选证据完备性（三轮复审）：五项必需实测字段 + 视觉记录全部在场才算齐备。 */
+/** 数值证据必须为有限的非负值（六轮复审）：NaN/Infinity/负数经 JSON 落盘变 null，不算实测。 */
+function finiteNonNegative(value: number | null): boolean {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
 function backendEvidenceComplete(measurement: SpectralBackendMeasurement): boolean {
-  return measurement.frameP95Ms !== null
-    && measurement.significantWaveHeightMeters !== null
-    && measurement.repeatabilityDeltaMeters !== null
-    && measurement.firstLoadMs !== null
+  return finiteNonNegative(measurement.frameP95Ms)
+    && finiteNonNegative(measurement.significantWaveHeightMeters)
+    && finiteNonNegative(measurement.repeatabilityDeltaMeters)
+    && finiteNonNegative(measurement.firstLoadMs)
     && measurement.cpuQueryStrategy !== null
     // 五轮复审：视觉记录与硬件上下文一样要求去空白后非空（空串不算证据）。
     && typeof measurement.visualQualityNotes === 'string'
