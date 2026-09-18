@@ -6,6 +6,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 
 import { useSceneEnvironment } from './environment-state';
+import { marineSceneResourceLedger } from '../quality/resource-ledger';
 import {
   disposeMarineEnvironmentRadiance,
   MARINE_ENVIRONMENT_IBL_INTENSITY,
@@ -35,6 +36,8 @@ function pmremGeneratorFor(gl: THREE.WebGLRenderer): THREE.PMREMGenerator {
   if (!generator) {
     generator = new THREE.PMREMGenerator(gl);
     rendererPmremGenerators.set(gl, generator);
+    // 台账登记（#2103 二轮复审）：真实资源生命周期可审计（卸载在 effect 清理释放）。
+    marineSceneResourceLedger.register({ id: `pmrem-generator:${marineRendererKey(gl)}`, kind: 'pmrem-generator' });
   }
   return generator;
 }
@@ -113,6 +116,7 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
       disposeMarineEnvironmentRadiance(rendererKey);
       const generator = rendererPmremGenerators.get(gl);
       generator?.dispose();
+      marineSceneResourceLedger.release(`pmrem-generator:${marineRendererKey(gl)}`);
       rendererPmremGenerators.delete(gl);
     };
   }, [gl]);

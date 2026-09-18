@@ -68,6 +68,8 @@ export interface MarineRadianceCacheEntry {
   readonly dispose: () => void;
 }
 
+import { marineSceneResourceLedger } from '../quality/resource-ledger';
+
 /**
  * 渲染器键（复审修复）：PMREM render-target 纹理属于生成它的 WebGLRenderer，
  * 跨 Canvas/页面导航共享纹理对象会绑定不到有效 PMREM——缓存按 renderer 隔离。
@@ -117,6 +119,13 @@ export function resolveMarineEnvironmentRadiance(
     dispose: () => target.dispose(),
   };
   bucket.set(presetId, entry);
+  // 台账登记（#2103 二轮复审）：shared PMREM RT 由缓存所有者管理（预设切换保留）。
+  marineSceneResourceLedger.register({
+    id: `pmrem-rt:${rendererKey}:${presetId}`,
+    kind: 'pmrem-render-target',
+    shared: true,
+    estimatedBytes: 4 * 128 * 128 * 6,
+  });
   return entry;
 }
 
@@ -134,13 +143,19 @@ export function marineRadianceCacheSize(): number {
 export function disposeMarineEnvironmentRadiance(rendererKey?: string): void {
   if (rendererKey === undefined) {
     for (const bucket of radianceCache.values()) {
-      for (const entry of bucket.values()) entry.dispose();
+      for (const entry of bucket.values()) {
+        entry.dispose();
+        marineSceneResourceLedger.release(`pmrem-rt:*:${entry.presetId}`);
+      }
     }
     radianceCache.clear();
     return;
   }
   const bucket = radianceCache.get(rendererKey);
   if (!bucket) return;
-  for (const entry of bucket.values()) entry.dispose();
+  for (const entry of bucket.values()) {
+    entry.dispose();
+    marineSceneResourceLedger.release(`pmrem-rt:${rendererKey}:${entry.presetId}`);
+  }
   radianceCache.delete(rendererKey);
 }

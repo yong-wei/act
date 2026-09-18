@@ -106,13 +106,43 @@ describe('performance probe honesty and entry (#2103 contracts)', () => {
     expect(source).toContain("qaParams.includes('marine-frame')");
   });
 
-  it('attributes vessel/camera from live scene state (no placeholders)', () => {
+  it('exposes warm-up start/stop with a time-bounded 60s window and live context reads', () => {
     const source = readFileSync(
-      path.join(ROOT, 'src/resources/simulations/simulations/destroyer-simulation.tsx'),
+      path.join(ROOT, 'src/resources/simulations/scene/quality/quality-state.tsx'),
       'utf-8',
     );
-    expect(source).toContain("vesselId: 'destroyer'");
-    expect(source).toContain('cameraView: String(cameraMode)');
+    expect(source).toContain('start: () => {');
+    expect(source).toContain('stop: () => {');
+    expect(source).toContain('WINDOW_MS = 60_000');
+    // ref 化：read() 时调用最新 contextInput（镜头切换后归因随场景）。
+    expect(source).toContain('contextInputRef.current?.()');
+    // GPU 渲染器身份：WEBGL_debug_renderer_info 可用时读取实际字符串。
+    expect(source).toContain("gl.getExtension('WEBGL_debug_renderer_info')");
+    expect(source).toContain('UNMASKED_RENDERER_WEBGL');
+  });
+
+  it('registers real resource lifetimes into the global ledger (PMREM boundary)', () => {
+    const radiance = readFileSync(
+      path.join(ROOT, 'src/resources/simulations/scene/environment/environment-radiance.ts'),
+      'utf-8',
+    );
+    expect(radiance).toContain('marineSceneResourceLedger.register({');
+    expect(radiance).toContain("id: `pmrem-rt:${rendererKey}:${presetId}`");
+    expect(radiance).toContain('marineSceneResourceLedger.release(');
+    const scene = readFileSync(
+      path.join(ROOT, 'src/resources/simulations/scene/environment/environment-scene.tsx'),
+      'utf-8',
+    );
+    expect(scene).toContain("id: `pmrem-generator:${marineRendererKey(gl)}`");
+    expect(scene).toContain("marineSceneResourceLedger.release(`pmrem-generator:");
+  });
+
+  it('attributes vessel/camera from live scene state (no placeholders)', () => {
+    for (const file of ['destroyer-simulation.tsx', 'cruise-simulation.tsx', 'container-simulation.tsx', 'lng-simulation.tsx', 'dredger-simulation.tsx', 'drilling-simulation.tsx', 'icebreaker-simulation.tsx']) {
+      const source = readFileSync(path.join(ROOT, 'src/resources/simulations/simulations', file), 'utf-8');
+      expect(source, file).toContain('cameraView: String(cameraMode)');
+      expect(source, file).not.toContain("cameraView: String('current')");
+    }
   });
 });
 

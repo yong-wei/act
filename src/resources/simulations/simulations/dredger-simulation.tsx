@@ -983,7 +983,7 @@ export function DredgerSimulation() {
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />
-        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'dredger', cameraView: String('current'), seaState: 3 })} />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'dredger', cameraView: String(cameraMode), seaState: 3 })} />
         <Suspense fallback={null}>
           <DredgerWater mmgStateRef={mmgStateRef} />
         </Suspense>

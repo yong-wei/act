@@ -534,7 +534,7 @@ function Scene({
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
-        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'lng', cameraView: String('current'), seaState: 3 })} />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'lng', cameraView: String(cameraMode), seaState: 3 })} />
       <Suspense fallback={null}>
         <LNGWater state={state} />
       </Suspense>
