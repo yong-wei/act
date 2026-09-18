@@ -1179,7 +1179,7 @@ export function DrillingSimulation() {
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />
-        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'drilling', cameraView: String(cameraMode), seaState: 3 })} />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'drilling', cameraView: String(cameraMode), seaState: config.seaStateLevel })} />
         <Suspense fallback={null}>
           <DrillingWater platformStateRef={platformStateRef} />
         </Suspense>
