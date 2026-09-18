@@ -50,6 +50,8 @@ export interface GerstnerWaterMaterialOptions {
   readonly shoreSegments?: readonly MarineShoreSegment[];
   /** 岸线波幅衰减带宽度（米）。 */
   readonly shoreFadeBandMeters?: number;
+  /** 挖泥羽流（#2102 六轮复审）：合入水面片元着色（贴合动态波面，前景几何天然正确遮挡）。 */
+  readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
 }
 
 const FLOATS_PER_WAVE = 6;
@@ -115,7 +117,11 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uHullExclusionCount: { value: options.hullExclusionCount ?? 0 },
       uShipHeading: { value: 0 },
       uShoreSegments: { value: new Float32Array(MAX_SHORE_SEGMENTS * 4) },
+      // 羽流经组件层逐帧写 uniform（见 gerstner-water.tsx），材质默认零半径。
       uShoreDepths: { value: new Float32Array(MAX_SHORE_SEGMENTS) },
+      uPlumeCenter: { value: new THREE.Vector2(0, 0) },
+      uPlumeRadius: { value: 0 },
+      uPlumeOpacity: { value: 0 },
       uShoreSegmentCount: { value: 0 },
       uShoreFadeBand: { value: 400 },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
@@ -181,10 +187,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           }
         }
         float effectiveAmplitudeScale = uAmplitudeScale * shoreAttenuation;
-        // 浅水因子（#2102 五轮复审）：近岸程度 × 最近段作者态岸深归一（4m→1、20m→0.2），
-        // 港口 6m 与施工区 4m 在同距岸位置产生可区分的浅水强度。
+        // 浅水因子（#2102 六轮复审）：近岸程度 × 岸深反比归一——水越浅效果越强
+        // （4m→~1、20m→0.05）：施工区浅水比深水港口呈现更强浅青绿。
         float nearness = clamp((1.0 - shoreAttenuation) / 0.85, 0.0, 1.0);
-        float depthFactor = clamp(nearestShoreDepth / 20.0, 0.05, 1.0);
+        float depthFactor = clamp((20.0 - nearestShoreDepth) / 16.0, 0.05, 1.0);
         vShoreShallow01 = nearness * depthFactor;
         // 近场幅度包络（#2098）：外环 smoothstep 衰减，一阶导两端为零避免折痕。
         float envelope = 1.0;
@@ -295,6 +301,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform vec4 uHullExclusionBoxes[6];
       uniform float uHullExclusionCount;
       uniform float uShipHeading;
+      uniform vec2 uPlumeCenter;
+      uniform float uPlumeRadius;
+      uniform float uPlumeOpacity;
       uniform vec4 uShoreSegments[4];
       uniform float uShoreDepths[4];
       uniform float uShoreSegmentCount;
@@ -390,6 +399,13 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 浅水色（#2102）：近岸（vShoreShallow01→1）向浅青绿过渡——作者态岸深的
         // 视觉呈现（与衰减带同空间），纯显示输入非水动力。
         color = mix(color, vec3(0.28, 0.52, 0.5), vShoreShallow01 * 0.45);
+        // 挖泥羽流（#2102 六轮复审）：水面片元内合成——贴合动态波面（波峰波谷下
+        // 持续可见）、不穿透前景几何（正常深度队列），软边径向过渡。
+        if (uPlumeRadius > 0.0 && uPlumeOpacity > 0.0) {
+          float plumeDistance = length(vWorldPos.xz - uPlumeCenter);
+          float plumeMix = (1.0 - smoothstep(uPlumeRadius * 0.55, uPlumeRadius, plumeDistance)) * uPlumeOpacity;
+          color = mix(color, vec3(0.478, 0.416, 0.322), plumeMix);
+        }
         color = mix(color, uHorizonColor, viewFresnel * 0.45);
         color += specular * uSunIllumination;
         vec3 foamLit = uFoamColor * (light * 0.65 + 0.35 * uSunIllumination);

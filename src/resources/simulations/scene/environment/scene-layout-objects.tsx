@@ -74,34 +74,12 @@ export interface MarineSceneLayoutProps {
   readonly iceCoverageOverride?: () => number;
 }
 
-/** 挖泥羽流（#2102）：有限范围低成本视觉表示（半透明圆盘），不影响任务指标。 */
-function SedimentPlumeDisc({ x, z, radiusMeters, opacity }: {
-  readonly x: number;
-  readonly z: number;
-  readonly radiusMeters: number;
-  readonly opacity: number;
-}) {
-  const geometry = useMemo(() => new THREE.CircleGeometry(radiusMeters, 24), [radiusMeters]);
-  // 贴水合成（五轮复审）：保留深度测试（船体/岩石/浮标等前景几何正确遮挡羽流），
-  // 以 polygonOffset 负偏移把羽流深度拉近相机——位于波面之上，波峰波谷下持续可见；
-  // 高 renderOrder 保证在不透明水面之后绘制（透明队列内排序）。
-  const material = useMemo(
-    () => new THREE.MeshBasicMaterial({
-      color: 0x7a6a52,
-      transparent: true,
-      opacity,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      polygonOffset: true,
-      polygonOffsetFactor: -4,
-      polygonOffsetUnits: -8,
-    }),
-    [opacity],
-  );
-  return <mesh geometry={geometry} material={material} position={[x, -0.92, z]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={10} />;
+/** 布局挂载：按声明渲染世界锚定环境物（同一 water/sky/quality 栈，无专属渲染器）。 */
+/** 当前布局的挖泥羽流声明（水面片元合成的数据源，#2102 六轮复审）。 */
+export function marineLayoutSedimentPlume(layoutId?: MarineSceneLayoutId) {
+  return layoutId ? MARINE_SCENE_LAYOUTS[layoutId].sedimentPlume ?? null : null;
 }
 
-/** 布局挂载：按声明渲染世界锚定环境物（同一 water/sky/quality 栈，无专属渲染器）。 */
 export function MarineSceneLayoutObjects({ layoutId, iceCoverageOverride }: MarineSceneLayoutProps) {
   const layout = layoutId ? MARINE_SCENE_LAYOUTS[layoutId] : null;
   if (!layout) return null;
@@ -121,14 +99,6 @@ export function MarineSceneLayoutObjects({ layoutId, iceCoverageOverride }: Mari
       {objects.map((object) => (
         <EnvironmentObjectMesh key={object.id} object={object} />
       ))}
-      {layout.sedimentPlume ? (
-        <SedimentPlumeDisc
-          x={layout.sedimentPlume.x}
-          z={layout.sedimentPlume.z}
-          radiusMeters={layout.sedimentPlume.radiusMeters}
-          opacity={layout.sedimentPlume.opacity}
-        />
-      ) : null}
     </group>
   );
 }

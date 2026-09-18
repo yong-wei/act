@@ -106,15 +106,12 @@ describe('visual extension slots have runtime consumers (#2102 contracts)', () =
       path.join(ROOT, 'src/resources/simulations/scene/environment/scene-layout-objects.tsx'),
       'utf-8',
     );
-    expect(source).toContain('SedimentPlumeDisc');
-    expect(source).toContain('layout.sedimentPlume.radiusMeters');
+    expect(source).toContain('marineLayoutSedimentPlume');
     // 冰况密度门控：运行态覆盖优先（iceCoverageOverride），缺省退回声明密度。
     expect(source).toContain('iceCoverageOverride?.() ?? layout.iceCoverage ?? 1');
-    // 羽流贴水合成（五轮复审）：保留深度测试（前景几何正确遮挡），polygonOffset 负偏移贴波面之上。
-    expect(source).toContain('polygonOffset: true');
-    expect(source).toContain('polygonOffsetFactor: -4');
-    expect(source).toContain('renderOrder={10}');
-    expect(source).not.toContain('depthTest: false');
+    // 羽流合入水面片元（六轮复审）：贴合动态波面、前景几何正常遮挡（独立圆盘组件已删除）。
+    expect(source).toContain('marineLayoutSedimentPlume');
+    expect(source).not.toContain('SedimentPlumeDisc');
   });
 
   it('drives polar ice visibility from live ice condition state', () => {
@@ -133,6 +130,11 @@ describe('visual extension slots have runtime consumers (#2102 contracts)', () =
       'utf-8',
     );
     expect(material).toContain('uShoreSegments');
+    // 岸深方向（六轮复审）：水越浅效果越强（(20-depth)/16 反比归一），4m 施工区强于 6m 港口。
+    expect(material).toContain('float depthFactor = clamp((20.0 - nearestShoreDepth) / 16.0, 0.05, 1.0);');
+    // 羽流水面合成（六轮复审）：片元径向软边混合。
+    expect(material).toContain('uPlumeRadius');
+    expect(material).toContain('plumeMix');
     expect(material).toContain('shoreAttenuation = 0.15 + 0.85 * t * t * (3.0 - 2.0 * t);');
     expect(material).toContain('float ampRaw = uWaves[base + 2] * effectiveAmplitudeScale;');
     // 带岸线布局的船型把声明段传入水面。

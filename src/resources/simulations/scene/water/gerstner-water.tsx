@@ -302,6 +302,8 @@ export interface GerstnerWaterProps {
   /** 岸线段（#2102）：显示海面波幅随距岸衰减（渲染输入）。 */
   readonly shoreSegments?: readonly MarineShoreSegment[];
   readonly shoreFadeBandMeters?: number;
+  /** 挖泥羽流（#2102 六轮复审）：合入水面片元着色（贴合动态波面）。 */
+  readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
 }
 
 /** 单个带限水网格（#2098 内部组件）：几何/材质随波组与包络参数构建，逐帧写时间与原点。 */
@@ -317,6 +319,7 @@ function BandWaterMesh({
   shipHeadingSampler,
   shoreSegments,
   shoreFadeBandMeters,
+  sedimentPlume,
   marineVisualTime,
   positionSampler,
   shipPosition,
@@ -338,6 +341,7 @@ function BandWaterMesh({
   readonly shipHeadingSampler?: () => number;
   readonly shoreSegments?: readonly MarineShoreSegment[];
   readonly shoreFadeBandMeters: number;
+  readonly sedimentPlume: { x: number; z: number; radiusMeters: number; opacity: number } | null;
   readonly marineVisualTime: (state: { clock: { elapsedTime: number; getElapsedTime?: () => number } }, delta: number) => number;
   readonly positionSampler?: () => { readonly x: number; readonly z: number } | undefined;
   readonly shipPosition?: { readonly x: number; readonly z: number };
@@ -389,7 +393,11 @@ function BandWaterMesh({
     });
     material.uniforms.uShoreSegmentCount.value = Math.min((shoreSegments ?? []).length, MAX_SHORE_SEGMENTS);
     material.uniforms.uShoreFadeBand.value = shoreFadeBandMeters;
-  }, [material, shoreSegments, shoreFadeBandMeters]);
+    // 羽流 uniform（#2102 六轮复审）：片元合成数据源（缺省零半径 = 关闭）。
+    material.uniforms.uPlumeCenter.value.set(sedimentPlume?.x ?? 0, sedimentPlume?.z ?? 0);
+    material.uniforms.uPlumeRadius.value = sedimentPlume?.radiusMeters ?? 0;
+    material.uniforms.uPlumeOpacity.value = sedimentPlume?.opacity ?? 0;
+  }, [material, shoreSegments, shoreFadeBandMeters, sedimentPlume]);
 
   useFrame((state, delta) => {
     material.uniforms.uTime.value = marineVisualTime(state, delta);
@@ -448,6 +456,7 @@ export function GerstnerWater({
   shipHeadingSampler,
   shoreSegments,
   shoreFadeBandMeters = 400,
+  sedimentPlume = null,
 }: GerstnerWaterProps) {
   const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
   // 共享视觉时间：Provider 场景同帧唯一（暂停/倍速政策一致）；未接入场景回退 R3F 时钟。
@@ -473,6 +482,7 @@ export function GerstnerWater({
         hullExclusionSampler={hullExclusionSampler}
         shipHeadingSampler={shipHeadingSampler}
         shoreFadeBandMeters={shoreFadeBandMeters}
+        sedimentPlume={null}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}
@@ -495,6 +505,7 @@ export function GerstnerWater({
         shipHeadingSampler={shipHeadingSampler}
         shoreSegments={shoreSegments}
         shoreFadeBandMeters={shoreFadeBandMeters}
+        sedimentPlume={sedimentPlume}
         marineVisualTime={marineVisualTime}
         positionSampler={positionSampler}
         shipPosition={shipPosition}

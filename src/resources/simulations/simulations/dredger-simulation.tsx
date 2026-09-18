@@ -28,6 +28,7 @@ import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTh
 import {
   EnvironmentScene,
   MARINE_SCENE_LAYOUTS,
+  marineLayoutSedimentPlume,
   MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
@@ -572,6 +573,7 @@ function DredgerWater({
       tier={params.waterTier}
       positionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })}
       shoreSegments={MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments}
+      sedimentPlume={marineLayoutSedimentPlume('shallow-construction-site')}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
