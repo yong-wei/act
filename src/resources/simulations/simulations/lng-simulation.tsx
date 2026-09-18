@@ -5,7 +5,7 @@
  * 长恒系列 LNG 运输船 - 带时滞和液货晃荡的高保真仿真
  */
 
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -35,7 +35,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { createNearFieldSurfaceQuery, GerstnerWater } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -99,64 +99,6 @@ interface LNGSimulationState {
   targetHeading: number;
   controlMode: ControlMode;
   smithEnabled: boolean;
-}
-
-// ============ 海面组件 ============
-
-function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  useFrame(({ clock }) => {
-    if (meshRef.current && meshRef.current.material instanceof THREE.ShaderMaterial) {
-      meshRef.current.material.uniforms.time.value = clock.getElapsedTime();
-    }
-  });
-
-  const shaderMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      uniforms: {
-        time: { value: 0 },
-        waterColor: { value: new THREE.Color(sceneTheme.waterColor) },
-        foamColor: { value: new THREE.Color(simulationScenePalette.white) },
-      },
-      vertexShader: `
-        uniform float time;
-        varying vec2 vUv;
-        varying float vElevation;
-
-        void main() {
-          vUv = uv;
-          vec3 pos = position;
-          float wave1 = sin(pos.x * 0.02 + time * 0.5) * 2.0;
-          float wave2 = sin(pos.z * 0.03 + time * 0.3) * 1.5;
-          float wave3 = sin((pos.x + pos.z) * 0.015 + time * 0.4) * 1.0;
-          pos.y += wave1 + wave2 + wave3;
-          vElevation = pos.y;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 waterColor;
-        uniform vec3 foamColor;
-        varying vec2 vUv;
-        varying float vElevation;
-
-        void main() {
-          float foam = smoothstep(2.0, 4.0, vElevation);
-          vec3 color = mix(waterColor, foamColor, foam * 0.3);
-          gl_FragColor = vec4(color, 0.9);
-        }
-      `,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
-  }, [sceneTheme.waterColor]);
-
-  return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} material={shaderMaterial}>
-      <planeGeometry args={[20000, 20000, 128, 128]} />
-    </mesh>
-  );
 }
 
 // ============ LNG 船模型组件 ============
@@ -314,13 +256,27 @@ function WakeTrailRig({
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const timeRef = useRef(0);
-  const { tier, params } = useSceneQuality();
+  // 近场查询帧记忆化（#2104）：本帧全部粒子共享同一角点缓存。
+  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
+  const { tier } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [state.position.x, 0, state.position.z];
     transformRef.current.heading = platformHeadingToSceneRad(state.heading);
     timeRef.current = frameState.clock.getElapsedTime();
   });
+
+  // 统一近场可见曲面（#2104）：帧记忆化查询——与 GPU 近场网格同参数（带限波组+包络）。
+  const waterYSampler = (x?: number, z?: number) => {
+    const key = `${timeRef.current}|${state.position.x}|${state.position.z}`;
+    if (!wakeQueryCacheRef.current || wakeQueryCacheRef.current.key !== key) {
+      wakeQueryCacheRef.current = {
+        key,
+        query: createNearFieldSurfaceQuery(1.02, state.position.x, state.position.z, timeRef.current),
+      };
+    }
+    return wakeQueryCacheRef.current.query.heightAt(x ?? 0, z ?? 0) * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400);;
+  };
 
   if (!wakeVisible) return null;
   return (
@@ -330,7 +286,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400)}
+      waterYSampler={waterYSampler}
       worldSpeedSampler={() => state.speed}
     />
   );

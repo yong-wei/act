@@ -32,7 +32,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { createNearFieldSurfaceQuery, GerstnerWater } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -309,13 +309,27 @@ function WakeTrailRig({
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const timeRef = useRef(0);
-  const { tier, params } = useSceneQuality();
+  const { tier } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [position.x, 0, position.z];
     transformRef.current.heading = platformHeadingToSceneRad(toDegrees(heading));
     timeRef.current = frameState.clock.getElapsedTime();
   });
+
+  // 近场查询帧记忆化（#2104）：本帧全部粒子共享同一角点缓存。
+  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
+  // 统一近场可见曲面（#2104）：帧记忆化查询——与 GPU 近场网格同参数（带限波组+包络）。
+  const waterYSampler = (x?: number, z?: number) => {
+    const key = `${timeRef.current}|${position.x}|${position.z}`;
+    if (!wakeQueryCacheRef.current || wakeQueryCacheRef.current.key !== key) {
+      wakeQueryCacheRef.current = {
+        key,
+        query: createNearFieldSurfaceQuery(1.02, position.x, position.z, timeRef.current),
+      };
+    }
+    return wakeQueryCacheRef.current.query.heightAt(x ?? 0, z ?? 0);
+  };
 
   if (!wakeVisible) return null;
   return (
@@ -325,7 +339,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      waterYSampler={waterYSampler}
       worldSpeedSampler={() => speed}
     />
   );
