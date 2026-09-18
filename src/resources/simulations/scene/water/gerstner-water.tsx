@@ -481,6 +481,7 @@ export function GerstnerWater({
         sunIllumination={sunIllumination}
         hullExclusionSampler={hullExclusionSampler}
         shipHeadingSampler={shipHeadingSampler}
+        shoreSegments={shoreSegments}
         shoreFadeBandMeters={shoreFadeBandMeters}
         sedimentPlume={null}
         marineVisualTime={marineVisualTime}
