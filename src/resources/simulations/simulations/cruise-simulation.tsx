@@ -31,6 +31,7 @@ import {
   EnvironmentScene,
   MARINE_SCENE_LAYOUTS,
   MarineSceneLayoutObjects,
+  shorelineAmplitudeAttenuation,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -1370,7 +1371,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400)}
       worldSpeedSampler={() => state.speed}
     />
   );

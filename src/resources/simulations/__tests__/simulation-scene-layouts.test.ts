@@ -114,6 +114,13 @@ describe('visual extension slots have runtime consumers (#2102 contracts)', () =
     expect(source).not.toContain('SedimentPlumeDisc');
   });
 
+  it('reuses the shore attenuation in wake water sampling (visual consistency)', () => {
+    for (const file of ['cruise-simulation.tsx', 'container-simulation.tsx', 'lng-simulation.tsx', 'dredger-simulation.tsx']) {
+      const source = readFileSync(path.join(ROOT, 'src/resources/simulations/simulations', file), 'utf-8');
+      expect(source, file).toContain('shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS[');
+    }
+  });
+
   it('drives polar ice visibility from live ice condition state', () => {
     const source = readFileSync(
       path.join(ROOT, 'src/resources/simulations/simulations/icebreaker-simulation.tsx'),
