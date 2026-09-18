@@ -100,19 +100,33 @@ export function experimentalDirectionalSpectrum(input: {
  * 峰值周期（能量最大频率分量倒数）——跨候选的统计对照口径。
  */
 export function spectrumStatistics(
-  spectrum: ReadonlyArray<{ readonly frequencyHz: number; readonly energy: number }>,
+  spectrum: ReadonlyArray<{
+    readonly frequencyHz: number;
+    readonly directionRad: number;
+    readonly energy: number;
+  }>,
 ): { significantWaveHeightMeters: number; peakPeriodSeconds: number } {
   if (spectrum.length === 0) {
     return { significantWaveHeightMeters: 0, peakPeriodSeconds: 0 };
   }
-  // 谱是密度：按 Δf 积分求零阶矩（方向维已在能量内摊平），网格加密不放大 Hs。
-  const sorted = [...spectrum].sort((left, right) => left.frequencyHz - right.frequencyHz);
+  // 二维密度积分（二轮复审）：先按频率聚合全部方向（每方向计入 Δθ = 2π/每频率点数），
+  // 再沿频率取相邻差 Δf 积分——方向/频率分辨率变化不改变 Hs；峰值取聚合谱。
+  const frequencies = [...new Set(spectrum.map((point) => point.frequencyHz))].sort((l, r) => l - r);
+  const pointsPerFrequency = spectrum.length / frequencies.length;
+  const deltaTheta = (Math.PI * 2) / Math.max(pointsPerFrequency, 1);
+  const aggregated = frequencies.map((frequencyHz) => {
+    let directionalEnergy = 0;
+    for (const point of spectrum) {
+      if (point.frequencyHz === frequencyHz) directionalEnergy += point.energy * deltaTheta;
+    }
+    return { frequencyHz, energy: directionalEnergy };
+  });
   let m0 = 0;
   let peakEnergy = -1;
-  let peakFrequency = sorted[0]!.frequencyHz;
-  for (let i = 0; i < sorted.length; i += 1) {
-    const point = sorted[i]!;
-    const previous = i > 0 ? sorted[i - 1]!.frequencyHz : point.frequencyHz;
+  let peakFrequency = aggregated[0]!.frequencyHz;
+  for (let i = 0; i < aggregated.length; i += 1) {
+    const point = aggregated[i]!;
+    const previous = i > 0 ? aggregated[i - 1]!.frequencyHz : point.frequencyHz;
     const deltaF = Math.max(point.frequencyHz - previous, 1e-6);
     m0 += point.energy * deltaF;
     if (point.energy > peakEnergy) {

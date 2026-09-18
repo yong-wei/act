@@ -133,6 +133,17 @@ describe('experimental spectrum statistics (#2105)', () => {
       .toBeLessThan(coarse.significantWaveHeightMeters * 0.25);
   });
 
+  it('aggregates directions before integrating so Hs is direction-resolution invariant', () => {
+    const build = (bins: number) => spectrumStatistics(experimentalDirectionalSpectrum({
+      windSpeedMps: 12, fetchMeters: 50000, directionBins: bins, frequencyBins: 16, seed: 3,
+    }));
+    // 方向格 4→16：每方向 Δθ=2π/N 摊平，聚合后 Hs 不随方向分辨率漂移。
+    const coarse = build(4);
+    const fine = build(16);
+    expect(Math.abs(fine.significantWaveHeightMeters - coarse.significantWaveHeightMeters))
+      .toBeLessThan(coarse.significantWaveHeightMeters * 0.15);
+  });
+
   it('derives stronger seas from stronger wind (monotone Hs)', () => {
     const light = spectrumStatistics(experimentalDirectionalSpectrum({
       windSpeedMps: 5, fetchMeters: 50000, directionBins: 4, frequencyBins: 8, seed: 3,
