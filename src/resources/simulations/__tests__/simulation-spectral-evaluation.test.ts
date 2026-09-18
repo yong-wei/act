@@ -102,6 +102,18 @@ describe('spectral experiment controls (#2105)', () => {
       hardwareContext: null,
     });
     expect(noHardware.verdict).toBe('keep-current-path');
+    // 空白字符串不算证据（五轮复审）：硬件上下文/视觉记录去空白后须非空。
+    const blankHardware = evaluateSpectralBackends({
+      controls: CONTROLS,
+      measurements: [
+        { ...full, backend: 'gerstner-analytic', cpuQueryStrategy: 'analytic-closed-form' },
+        { ...full, backend: 'webgl-fft', cpuQueryStrategy: 'gpu-readback-partial' },
+        { ...full, backend: 'webgpu-fft', cpuQueryStrategy: 'gpu-readback-partial' },
+      ],
+      unresolvedDifferences: [],
+      hardwareContext: '   ',
+    });
+    expect(blankHardware.verdict).toBe('keep-current-path');
     // 两候选齐备但缺第三候选（WebGPU）——四轮复审：三候选同场才可评估。
     const missingThird = evaluateSpectralBackends({
       controls: CONTROLS,

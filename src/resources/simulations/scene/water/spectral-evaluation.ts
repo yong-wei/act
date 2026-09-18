@@ -153,7 +153,9 @@ function backendEvidenceComplete(measurement: SpectralBackendMeasurement): boole
     && measurement.repeatabilityDeltaMeters !== null
     && measurement.firstLoadMs !== null
     && measurement.cpuQueryStrategy !== null
-    && measurement.visualQualityNotes !== null;
+    // 五轮复审：视觉记录与硬件上下文一样要求去空白后非空（空串不算证据）。
+    && typeof measurement.visualQualityNotes === 'string'
+    && measurement.visualQualityNotes.trim().length > 0;
 }
 
 export function evaluateSpectralBackends(
@@ -163,7 +165,7 @@ export function evaluateSpectralBackends(
     (m) => m.cpuQueryStrategy === 'gpu-readback-full-per-frame',
   );
   const complete = report.measurements.filter(backendEvidenceComplete);
-  const hardwareKnown = report.hardwareContext !== null;
+  const hardwareKnown = typeof report.hardwareContext === 'string' && report.hardwareContext.trim().length > 0;
   let verdict: SpectralEvaluationReport['verdict'];
   let rationale: string;
   const REQUIRED_BACKENDS: readonly SpectralBackendId[] = ['gerstner-analytic', 'webgl-fft', 'webgpu-fft'];
