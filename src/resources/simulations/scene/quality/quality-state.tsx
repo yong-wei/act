@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+
+import { buildMarinePerformanceReport } from './performance-evidence';
 import { Gauge } from 'lucide-react';
 
 import { ChromePopoverButton } from '../chrome';
@@ -147,4 +149,136 @@ export function SceneQualitySelect({ className }: { readonly className?: string 
       />
     </div>
   );
+}
+
+/**
+ * 性能证据 QA 采集（#2103）：?qa=marine-performance 时挂载。滚动帧样本环形缓冲，
+ * 经 window.__marinePerformanceEvidence.read() 构建完整报告（测量上下文 +
+ * 帧间隔统计 + GPU timer 可用性探测）；无扩展时 method='frame-intervals'。
+ */
+export interface MarinePerformanceEvidenceContextInput {
+  readonly vesselId: string;
+  readonly cameraView: string;
+  readonly seaState: number;
+}
+
+export function MarinePerformanceEvidenceProbe({
+  contextInput,
+}: {
+  /** 场景真实状态归因（复审）：船包/镜头/海况由各场景传入，不再占位。 */
+  readonly contextInput?: () => MarinePerformanceEvidenceContextInput;
+} = {}) {
+  // ref 化（二轮复审）：read() 时调用最新回调——镜头等运行态切换后归因随场景。
+  const contextInputRef = useRef(contextInput);
+  contextInputRef.current = contextInput;
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // QA 入口（复审对齐）：既有帧契约入口 marine-frame 与本采集入口 marine-performance 均接受。
+    const qaParams = new URLSearchParams(window.location.search).getAll('qa');
+    if (!qaParams.includes('marine-performance') && !qaParams.includes('marine-frame')) return;
+    // 预热后 60s 时间窗（二轮复审）：按经过时间维护窗口，start() 显式开始并重置
+    // （丢弃启动/加载/编译帧），stop() 结束采集。
+    const WINDOW_MS = 60_000;
+    const samples: Array<{ ms: number; at: number }> = [];
+    let collecting = false;
+    let lastMs = performance.now();
+    // 后台标签页忽略（四轮复审）：隐藏期间暂停采样并重置时间基准——
+    // 恢复后的首个间隔是挂起时长，不计为长帧（不污染 p95/worst/长帧数）。
+    let suspended = document.visibilityState === 'hidden';
+    let wasSuspended = false;
+    const onVisibilityChange = () => {
+      const hidden = document.visibilityState === 'hidden';
+      // 进入与恢复都重置时间基准；恢复后首个间隔是挂起时长，跳过（五轮复审）。
+      if (hidden !== suspended) {
+        suspended = hidden;
+        lastMs = performance.now();
+        if (!suspended) wasSuspended = true;
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    const tick = () => {
+      const nowMs = performance.now();
+      const delta = nowMs - lastMs;
+      lastMs = nowMs;
+      const skipThisFrame = wasSuspended;
+      wasSuspended = false;
+      if (!suspended && !skipThisFrame && collecting && delta > 0 && delta < 1000) {
+        samples.push({ ms: delta, at: nowMs });
+        while (samples.length > 0 && nowMs - samples[0]!.at > WINDOW_MS) samples.shift();
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    let raf = requestAnimationFrame(tick);
+    const canvas = document.querySelector('canvas') ?? null;
+    const gl = canvas instanceof HTMLCanvasElement
+      ? (canvas.getContext('webgl2') ?? canvas.getContext('webgl')) as WebGLRenderingContext | null
+      : null;
+    // GPU 渲染器身份（二轮复审）：WEBGL_debug_renderer_info 可用时读实际字符串，
+    // 不可得才回退 null——硬件分级报告可按 GPU 归因。
+    let gpuRenderer: string | null = null;
+    if (gl) {
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+      if (debugInfo) {
+        const raw = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        if (typeof raw === 'string' && raw.length > 0) gpuRenderer = raw;
+      }
+    }
+    window.__marinePerformanceEvidence = {
+      start: () => {
+        samples.length = 0;
+        collecting = true;
+      },
+      stop: () => {
+        collecting = false;
+      },
+      read: () => {
+        const input = contextInputRef.current?.();
+        return buildMarinePerformanceReport({
+          context: {
+            drawingBufferWidth: gl?.drawingBufferWidth ?? 0,
+            drawingBufferHeight: gl?.drawingBufferHeight ?? 0,
+            cssWidth: canvas?.clientWidth ?? 0,
+            cssHeight: canvas?.clientHeight ?? 0,
+            // 渲染器实际 DPR（五轮复审）：drawingBuffer/CSS 推导——质量档 cap 后的
+            // 真实像素负载（设备 DPR 3 + low 档 cap 1 → 报 1，不误标 3）。
+            devicePixelRatio: canvas && canvas.clientWidth > 0 && gl
+              ? Number(((gl.drawingBufferWidth ?? 0) / canvas.clientWidth).toFixed(3))
+              : window.devicePixelRatio,
+            gpuRenderer,
+            browser: navigator.userAgent,
+            hardwareConcurrency: navigator.hardwareConcurrency ?? 0,
+            vesselId: input?.vesselId ?? document.querySelector('[data-sim-ui]')?.getAttribute('data-vessel') ?? 'unknown',
+            cameraView: input?.cameraView ?? 'unknown',
+            seaState: input?.seaState ?? 0,
+            qualityTier: document.querySelector('[data-scene-quality-tier]')?.getAttribute('data-scene-quality-tier') ?? 'unknown',
+          },
+          // 口径诚实（复审）：样本来自 rAF 墙钟帧间隔——即便扩展存在，未经实际
+          // query 采集/disjoint 丢弃不得标 timer-query。扩展存在性单独记录。
+          gpuTimerAvailable: false,
+          timerQueryExtensionPresent: Boolean(gl?.getExtension('EXT_disjoint_timer_query_webgl2')),
+          frameMsSamples: samples.map((sample) => sample.ms),
+          measuredAt: new Date().toISOString(),
+        });
+      },
+      sampleCount: () => samples.length,
+    };
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      delete window.__marinePerformanceEvidence;
+    };
+  }, []);
+  return null;
+}
+
+
+declare global {
+  interface Window {
+    __marinePerformanceEvidence?: {
+      start(): void;
+      stop(): void;
+      read(): ReturnType<typeof buildMarinePerformanceReport>;
+      sampleCount(): number;
+    };
+  }
 }

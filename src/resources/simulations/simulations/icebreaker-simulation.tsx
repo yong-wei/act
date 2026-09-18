@@ -27,6 +27,7 @@ import { SimulationTopBar, SimulationDock, simulationUi } from '../components/si
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -45,6 +46,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { icebreakerXuelongSceneVisual } from '../profiles/icebreaker-xuelong-scene';
@@ -242,9 +244,9 @@ function HeadingIndicator({
 }
 
 /** 航迹线 */
-function TrailLine({ points }: { points: Vector2[] }) {
+function TrailLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   if (points.length < 2) return null;
-  return <WaterHuggingLine points={points} color={simulationScenePalette.icebreakerPrimary} lineWidth={1} opacity={0.5} transparent />;
+  return <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={simulationScenePalette.icebreakerPrimary} lineWidth={1} opacity={0.5} transparent />;
 }
 
 /** 3D 场景 */
@@ -284,6 +286,8 @@ function IcebreakerWater({ position }: { position: Vector2 }) {
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
+      sunIllumination={water.sunIllumination}
     />
   );
 }
@@ -357,6 +361,7 @@ function Scene({
   resetToken,
   resetSignal,
   simRef,
+  iceCoverage,
 }: {
   position: Vector2;
   heading: number;
@@ -374,6 +379,7 @@ function Scene({
   resetToken: number;
   resetSignal: number;
   simRef: MutableRefObject<BindingTelemetrySource>;
+  iceCoverage: number;
 }) {
   return (
     <>
@@ -398,10 +404,15 @@ function Scene({
       />
 
       <Suspense fallback={null}>
-        <EnvironmentScene />
+        <EnvironmentScene subjectPositionSampler={() => ({ x: position.x, z: position.z })} />
+        <MarineSceneLayoutObjects
+          layoutId="polar-ice-field"
+          iceCoverageOverride={() => iceCoverage}
+        />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'icebreaker', cameraView: String(cameraMode), seaState: 3 })} />
       <Suspense fallback={null}>
         <IcebreakerWater position={position} />
       </Suspense>
@@ -425,7 +436,7 @@ function Scene({
       </Suspense>
 
       <TeachingAnnotationsGate position={position} targetHeading={targetHeading} />
-      <TrailLine points={trail} />
+      <TrailLine points={trail} waterOriginSampler={() => ({ x: position.x, z: position.z })} />
       <WakeTrailRig position={position} heading={heading} speed={speed} playing={playing} resetToken={resetToken} />
 
       {showGrid ? (
@@ -1219,6 +1230,7 @@ export default function IcebreakerSimulation() {
           resetToken={resetCount}
           resetSignal={viewResetCount}
           simRef={bindingRef}
+          iceCoverage={config.iceModeEnabled && config.iceThickness > 0 ? Math.min(1, config.iceThickness / 1.5) : 0}
         />
       </Canvas>
 

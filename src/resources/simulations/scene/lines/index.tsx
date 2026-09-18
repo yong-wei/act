@@ -9,15 +9,13 @@ import { useRef, useState } from 'react';
 import { Line } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 
-import { useMarineVisualTime } from '../frame/marine-frame-provider';
+import { useMarineFrameRunner, useMarineVisualTime } from '../frame/marine-frame-provider';
 import { useSceneQuality } from '../quality';
 import {
+  createNearFieldSurfaceQuery,
   DEFAULT_GERSTNER_SEA_STATE,
   gerstnerAmplitudeScale,
-  GERSTNER_WAVE_SETS,
   GERSTNER_WATER_BASE_Y,
-  sampleVisibleWaterHeight,
-  gerstnerWaterMeshSpecForTier,
 } from '../water';
 
 export interface WaterHuggingLineProps {
@@ -54,20 +52,22 @@ export function WaterHuggingLine({
   const frameCountRef = useRef(0);
 
   const marineVisualTime = useMarineVisualTime();
+  // 水面原点（二轮复审）：显式采样器 > 海洋帧 renderOrigin（跟船水面网格）> 世界原点。
+  const marineFrame = useMarineFrameRunner();
 
   useFrame((frameState, delta) => {
     frameCountRef.current += 1;
     if (frameCountRef.current % 3 !== 0) return;
     const time = marineVisualTime(frameState, delta);
-    const waveSet = GERSTNER_WAVE_SETS[params.waterTier];
-    const origin = waterOriginSampler?.() ?? { x: 0, z: 0 };
+    const origin = waterOriginSampler?.() ?? marineFrame?.latest()?.renderOrigin ?? { x: 0, z: 0 };
     const amplitudeScale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
-    const meshSpec = gerstnerWaterMeshSpecForTier(params.waterTier);
     const stride = params.waterTier === 'low' ? 2 : 1;
+    // 贴水线取近场可见曲面（#2098）：带限波组 + 包络，档位无关。
+    const query = createNearFieldSurfaceQuery(amplitudeScale, origin.x, origin.z, time);
     let lastY = GERSTNER_WATER_BASE_Y + epsilon;
     const next: [number, number, number][] = points.map((point, index) => {
       if (index % stride === 0) {
-        lastY = sampleVisibleWaterHeight(waveSet, amplitudeScale, meshSpec, origin.x, origin.z, point.x, point.z, time) + epsilon;
+        lastY = query.heightAt(point.x, point.z) + epsilon;
       }
       return [point.x, lastY, point.z];
     });

@@ -29,6 +29,9 @@ import { SimulationTopBar, SimulationDock, simulationUi } from '../components/si
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MARINE_SCENE_LAYOUTS,
+  MarineSceneLayoutObjects,
+  shorelineAmplitudeAttenuation,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -47,6 +50,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { cruiseAdoraSceneVisual } from '../profiles/cruise-adora-scene';
@@ -337,12 +341,12 @@ function CruiseShipModel(props: {
 
 // ============ 航迹线组件 ============
 
-function TrajectoryLine({ points }: { points: Vector2[] }) {
+function TrajectoryLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   if (points.length < 2) return null;
-  return <WaterHuggingLine points={points} color={CRUISE_HEADING_PRIMARY} lineWidth={2.4} />;
+  return <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={CRUISE_HEADING_PRIMARY} lineWidth={2.4} />;
 }
 
-function DesiredRouteLine({ points }: { points: Vector2[] }) {
+function DesiredRouteLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   const arrowStart = points.length > 1 ? points[points.length - 2] : null;
   const arrowEnd = points.length > 1 ? points[points.length - 1] : null;
   if (points.length < 2) {
@@ -351,7 +355,7 @@ function DesiredRouteLine({ points }: { points: Vector2[] }) {
 
   return (
     <>
-      <WaterHuggingLine points={points} color={CRUISE_HEADING_SECONDARY} lineWidth={2.2} dashed dashSize={36} gapSize={16} />
+      <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={CRUISE_HEADING_SECONDARY} lineWidth={2.2} dashed dashSize={36} gapSize={16} />
       {arrowStart && arrowEnd ? (
         <DirectionArrow
           start={[arrowStart.x, 1.2, arrowStart.z]}
@@ -1328,10 +1332,13 @@ function CruiseWater({ state }: { state: CruiseSimulationState }) {
     <GerstnerWater
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
+      sunIllumination={water.sunIllumination}
     />
   );
 }
@@ -1365,7 +1372,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400)}
       worldSpeedSampler={() => state.speed}
     />
   );
@@ -1421,10 +1428,12 @@ function VisualizationLayer({
   return (
     <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
       <Suspense fallback={null}>
-        <EnvironmentScene />
+        <EnvironmentScene subjectPositionSampler={() => ({ x: state.position.x, z: state.position.z })} />
+        <MarineSceneLayoutObjects layoutId="harbor-entrance-channel" />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'cruise', cameraView: String(cameraMode), seaState: state.seaState })} />
       <Suspense fallback={null}>
         <CruiseWater state={state} />
       </Suspense>
@@ -1458,8 +1467,8 @@ function VisualizationLayer({
           resetToken={resetToken}
         />
       </Suspense>
-      <DesiredRouteLine points={desiredRoutePoints} />
-      <TrajectoryLine points={trajectoryPoints} />
+      <DesiredRouteLine points={desiredRoutePoints} waterOriginSampler={() => ({ x: state.position.x, z: state.position.z })} />
+      <TrajectoryLine points={trajectoryPoints} waterOriginSampler={() => ({ x: state.position.x, z: state.position.z })} />
       <TeachingAnnotationsGate
         position={state.position}
         targetHeading={state.targetHeading}

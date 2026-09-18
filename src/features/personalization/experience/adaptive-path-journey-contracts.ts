@@ -318,16 +318,16 @@ export function buildAuthorizedAdaptivePathJourney(
       nextAction: blockedAction(actionNode, '当前节点缺少可验证的启动目标。', returnHref),
     };
   }
-  const targetDisposition = resolveAdaptivePathJourneyTargetDisposition(actionNode.type, target, actionNode);
-  if (targetDisposition === 'blocked') {
+  const destination = resolveAdaptivePathDestinationContract(actionNode.type, target, actionNode);
+  if (destination.disposition === 'blocked') {
     return {
       ...base,
       nextAction: blockedAction(actionNode, '当前节点的启动目标不受平台支持，请重新生成路径。', returnHref),
     };
   }
-  const href = targetDisposition !== 'destination-control'
+  const href = destination.disposition !== 'destination-control' || !destination.canonicalTarget
     ? returnHref
-    : buildAdaptivePathLaunchHref(target, {
+    : buildAdaptivePathLaunchHref(destination.canonicalTarget, {
         goalId,
         pathId,
         nodeId: actionNode.nodeId,

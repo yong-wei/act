@@ -57,14 +57,15 @@ import { Input } from '@/components/ui/input';
 
 import { destroyer055Profile } from '../profiles/destroyer-055';
 import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
+import type { HullExclusionBox } from '../scene/water/hull-exclusion';
 import {
+  createNearFieldSurfaceQuery,
   DEFAULT_GERSTNER_SEA_STATE,
   gerstnerAmplitudeScale,
-  GERSTNER_WAVE_SETS,
   GerstnerWater,
-  gerstnerWaterMeshSpecForTier,
-  MARINE_BASE_INTERACTION_MESH_SPEC,
-  MARINE_BASE_INTERACTION_WAVES,
+  nearFieldEnvelope,
+  NEAR_FIELD_MESH_SPEC,
+  NEAR_FIELD_VISIBLE_WAVES,
   sampleVisibleWaterHeight,
 } from '../scene/water';
 import {
@@ -80,6 +81,7 @@ import {
 import { WakeTrail } from '../scene/wake';
 import {
   EnvironmentScene,
+  MarineSceneLayoutObjects,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -98,6 +100,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import type { ControlMode, PIDGains } from '../core/types';
@@ -369,18 +372,27 @@ function MarineFrameRuntime({
       renderOriginSampler: () => ({ x: simRef.current.position.x, z: simRef.current.position.z }),
       simulationTimeSampler: () => simTimeRef.current,
       advancingSampler: () => simRef.current.advancing,
-      waterSampler: (worldX, worldZ, timeSeconds) =>
-        // 基础交互波场（档位无关）：画质只裁剪渲染细节，不改变姿态采样基准（#2097）。
-        sampleVisibleWaterHeight(
-          MARINE_BASE_INTERACTION_WAVES,
-          gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
-          MARINE_BASE_INTERACTION_MESH_SPEC,
-          simRef.current.position.x,
-          simRef.current.position.z,
-          worldX,
-          worldZ,
-          timeSeconds,
-        ),
+      // 六轮复审修复：五点姿态采样按（时间/原点）复用一次批量查询，共享角点缓存。
+      waterSampler: (() => {
+        let cacheKey = '';
+        let cachedQuery: ReturnType<typeof createNearFieldSurfaceQuery> | null = null;
+        return (worldX: number, worldZ: number, timeSeconds: number) => {
+          const origin = simRef.current.position;
+          const key = `${timeSeconds}|${origin.x}|${origin.z}`;
+          if (!cachedQuery || cacheKey !== key) {
+            cacheKey = key;
+            // 三轮复审修复：姿态与可见近场同一采样场——带限波组 + 近场网格 + 角点包络
+            // （与 GPU 完全同参数，档位无关）；容差即声明的近场近似容差。
+            cachedQuery = createNearFieldSurfaceQuery(
+              gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
+              origin.x,
+              origin.z,
+              timeSeconds,
+            );
+          }
+          return cachedQuery.heightAt(worldX, worldZ);
+        };
+      })(),
       ownership: DESTROYER_055_POSE_OWNERSHIP,
       environmentPresetIdSampler: () => presetId,
       qualityTierSampler: () => qualityRef.current.waterTier,
@@ -396,6 +408,11 @@ function MarineFrameRuntime({
 }
 
 /** 海面颜色随环境预设驱动、水面细分随质量档位驱动的桥接组件（Canvas 内消费 provider 状态）。 */
+/** 055 船壳排水排除框（#2101，船体局部坐标近似：船壳主体，不含开口结构的精确轮廓）。 */
+const DESTROYER_055_HULL_EXCLUSION: readonly HullExclusionBox[] = [
+  { centerX: 0, centerZ: 0, halfX: 82, halfZ: 9 },
+];
+
 function PresetWater({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
@@ -403,10 +420,14 @@ function PresetWater({ simRef }: { simRef: React.MutableRefObject<SimulationStat
     <GerstnerWater
       tier={params.waterTier}
       positionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })}
+      hullExclusionSampler={() => DESTROYER_055_HULL_EXCLUSION}
+      shipHeadingSampler={() => simRef.current.headingRad}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
+      sunIllumination={water.sunIllumination}
     />
   );
 }
@@ -540,21 +561,30 @@ function WakeTrailRig({
     timeRef.current = state.clock.getElapsedTime();
   });
 
+  // 尾迹贴水（#2098）：近场可见曲面（带限波组 + 包络，档位无关），与 GPU 近场网格同参数。
+  // 每帧（时间/原点键）只构建一次查询：本帧全部粒子共享同一角点缓存（复审修复）。
+  // 七轮复审修复：缓存 Hook 必须位于 wakeVisible 提前返回之前（条件返回后 Hook 数量不得变化）。
+  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
+  const waterYSampler = (x?: number, z?: number) => {
+    const origin = simRef.current.position;
+    const key = `${timeRef.current}|${origin.x}|${origin.z}`;
+    let cached = wakeQueryCacheRef.current;
+    if (!cached || cached.key !== key) {
+      cached = {
+        key,
+        query: createNearFieldSurfaceQuery(
+          gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
+          origin.x,
+          origin.z,
+          timeRef.current,
+        ),
+      };
+      wakeQueryCacheRef.current = cached;
+    }
+    return cached.query.heightAt(x ?? origin.x, z ?? origin.z);
+  };
+
   if (!wakeVisible) return null;
-  // 与可见水面同一坐标基准、同一细分曲面：水面网格跟随舰位，世界坐标须先减原点，
-  // 再按位移后三角网格重心插值采样。
-  const waterMeshSpec = gerstnerWaterMeshSpecForTier(params.waterTier);
-  const waterYSampler = (x?: number, z?: number) =>
-    sampleVisibleWaterHeight(
-      GERSTNER_WAVE_SETS[params.waterTier],
-      gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
-      waterMeshSpec,
-      simRef.current.position.x,
-      simRef.current.position.z,
-      x ?? simRef.current.position.x,
-      z ?? simRef.current.position.z,
-      timeRef.current,
-    );
 
   if (propulsorAnchors.length > 0) {
     return (
@@ -579,6 +609,7 @@ function WakeTrailRig({
               const world = id === 'prop-port' ? propWakeRef.current.port : propWakeRef.current.starboard;
               return world ? [world.x, world.y, world.z] : null;
             }}
+            budgetShare={0.5}
           />
         ))}
       </>
@@ -1553,10 +1584,12 @@ export default function DestroyerSimulation() {
         <PerspectiveCamera makeDefault position={[0, 200, 500]} fov={60} near={1} far={50000} />
         <MarineFrameRuntime simRef={simRef} simTimeRef={simTimeRef} resetToken={resetToken}>
         <Suspense fallback={null}>
-          <EnvironmentScene />
+          <EnvironmentScene subjectPositionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })} />
+        <MarineSceneLayoutObjects layoutId="open-sea-distant-islands" />
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'destroyer', cameraView: String(cameraMode), seaState: 3 })} />
         <Suspense fallback={null}>
           <PresetWater simRef={simRef} />
         </Suspense>

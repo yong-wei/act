@@ -14,7 +14,21 @@ import {
   resolveBindingViewerContentForType,
 } from '@/lib/authority-domain-shards/binding-viewer-content';
 import { launchRowsForResource, presentPublishedResourceAnchors } from '@/lib/resource-binding-release/query';
+import { loadPlanningKnowledgeLabels } from '@/features/personalization/path-planning/planning-resource-titles';
+import {
+  loadTextbookReaderProjection,
+  parseTextbookReaderHref,
+  TextbookReaderError,
+} from '@/lib/textbook-reader';
+import { excerptTextbookMarkdown } from '@/lib/textbook-preview';
 import { PublishedResourcePage, type PublishedResourcePageData } from '@/features/knowledge/published-resource-page';
+
+const BINDING_ROLE_LABELS: Record<string, string> = {
+  COVERS: '知识梳理',
+  EXPLAINS: '讲解',
+  PRACTICES: '练习',
+  ASSESSES: '评估',
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -100,6 +114,32 @@ export default async function PublishedResourceRoute({ params, searchParams }: {
     };
   } else if (current && resource.backend.kind === 'route') {
     view.href = resource.backend.href;
+    view.heading = resource.title;
+    const roleLabels = [...new Set(resource.bindingRoles
+      .map((role) => BINDING_ROLE_LABELS[role])
+      .filter((label): label is string => Boolean(label)))];
+    view.roleLabel = roleLabels.join('、') || undefined;
+    const textbookRoute = parseTextbookReaderHref(resource.backend.href);
+    if (textbookRoute && session.user.id) {
+      try {
+        const projection = await loadTextbookReaderProjection({
+          userId: session.user.id,
+          ...textbookRoute,
+        });
+        view.heading = projection.unit.title || resource.title;
+        view.excerptMarkdown = excerptTextbookMarkdown(projection.unit.markdown, {
+          title: view.heading,
+        }) || undefined;
+      } catch (error) {
+        if (!(error instanceof TextbookReaderError)) rethrowIfNextDynamicError(error);
+      }
+    }
+    const heading = view.heading?.trim() ?? '';
+    const labels = loadPlanningKnowledgeLabels();
+    view.knowledgeLabels = [...new Set(resource.canonicalIds
+      .map((id) => labels.get(id)?.trim())
+      .filter((label): label is string => Boolean(label) && label !== heading))]
+      .slice(0, 10);
   } else if (current && resource.backend.kind === 'container') {
     const ids = new Set(resource.backend.childResourceIds);
     view.children = index.resources.filter((entry) => ids.has(entry.identity.resourceId))

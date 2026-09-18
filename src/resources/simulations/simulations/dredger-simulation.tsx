@@ -27,6 +27,10 @@ import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulation
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MARINE_SCENE_LAYOUTS,
+  marineLayoutSedimentPlume,
+  MarineSceneLayoutObjects,
+  shorelineAmplitudeAttenuation,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -45,6 +49,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { dredgerTianjingSceneVisual } from '../profiles/dredger-tianjing-scene';
@@ -264,9 +269,9 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
 }
 
 /** 航迹线 */
-function TrajectoryLine({ points }: { points: Vector2[] }) {
+function TrajectoryLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   if (points.length < 2) return null;
-  return <WaterHuggingLine points={points} color={simulationScenePalette.dredgerPrimary} lineWidth={2} />;
+  return <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={simulationScenePalette.dredgerPrimary} lineWidth={2} />;
 }
 
 /** 相机控制器 */
@@ -569,10 +574,14 @@ function DredgerWater({
     <GerstnerWater
       tier={params.waterTier}
       positionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })}
+      shoreSegments={MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments}
+      sedimentPlume={marineLayoutSedimentPlume('shallow-construction-site')}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
+      sunIllumination={water.sunIllumination}
     />
   );
 }
@@ -606,7 +615,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments, x ?? 0, z ?? 0, 400)}
       worldSpeedSampler={() => Math.hypot(mmgStateRef.current.u, mmgStateRef.current.v)}
     />
   );
@@ -969,10 +978,12 @@ export function DredgerSimulation() {
         <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
 
         <Suspense fallback={null}>
-          <EnvironmentScene />
+          <EnvironmentScene subjectPositionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })} />
+        <MarineSceneLayoutObjects layoutId="shallow-construction-site" />
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'dredger', cameraView: String(cameraMode), seaState: 3 })} />
         <Suspense fallback={null}>
           <DredgerWater mmgStateRef={mmgStateRef} />
         </Suspense>
@@ -1014,7 +1025,7 @@ export function DredgerSimulation() {
         </Suspense>
 
         {/* 航迹 */}
-        {trajectory.length > 1 && <TrajectoryLine points={trajectory} />}
+        {trajectory.length > 1 && <TrajectoryLine points={trajectory} waterOriginSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })} />}
 
         <WakeTrailRig mmgStateRef={mmgStateRef} playing={isRunning} resetToken={resetCount} />
 

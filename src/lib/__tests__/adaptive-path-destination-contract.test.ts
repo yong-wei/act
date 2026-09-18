@@ -170,6 +170,7 @@ describe('adaptive path destination contract', () => {
       },
     )).toMatchObject({
       disposition: 'destination-control',
+      canonicalTarget: '/learning-resources/' + encodeURIComponent(resourceId),
       reason: null,
     });
   });

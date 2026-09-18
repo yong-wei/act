@@ -28,6 +28,9 @@ import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulation
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
+  MARINE_SCENE_LAYOUTS,
+  MarineSceneLayoutObjects,
+  shorelineAmplitudeAttenuation,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
   useSceneEnvironment,
@@ -46,6 +49,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { containerMscSceneVisual } from '../profiles/container-msc-scene';
@@ -194,9 +198,9 @@ function ContainerShipModel(props: {
 
 // ============ 航迹线组件 ============
 
-function TrajectoryLine({ points }: { points: Vector2[] }) {
+function TrajectoryLine({ points, waterOriginSampler, }: { points: Vector2[]; waterOriginSampler?: () => { x: number; z: number } }) {
   if (points.length < 2) return null;
-  return <WaterHuggingLine points={points} color={simulationScenePalette.containerPrimary} lineWidth={2} />;
+  return <WaterHuggingLine points={points} waterOriginSampler={waterOriginSampler} color={simulationScenePalette.containerPrimary} lineWidth={2} />;
 }
 
 // ============ 风向指示器 ============
@@ -552,10 +556,13 @@ function ContainerWater({ state }: { state: ContainerSimulationState }) {
     <GerstnerWater
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
+      sunIllumination={water.sunIllumination}
     />
   );
 }
@@ -589,7 +596,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400)}
       worldSpeedSampler={() => state.speed}
     />
   );
@@ -646,10 +653,12 @@ function Scene({
       <PerspectiveCamera makeDefault position={[-500, 200, 500]} fov={60} near={1} far={50000} />
 
       <Suspense fallback={null}>
-        <EnvironmentScene />
+        <EnvironmentScene subjectPositionSampler={() => ({ x: state.position.x, z: state.position.z })} />
+        <MarineSceneLayoutObjects layoutId="harbor-entrance-channel" />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'container', cameraView: String(cameraMode), seaState: 3 })} />
       <Suspense fallback={null}>
         <ContainerWater state={state} />
       </Suspense>
@@ -671,7 +680,7 @@ function Scene({
       ) : null}
 
       {/* 航迹线 */}
-      <TrajectoryLine points={trajectory} />
+      <TrajectoryLine points={trajectory} waterOriginSampler={() => ({ x: state.position.x, z: state.position.z })} />
 
       {/* 风向指示器（风场控制联动的实验仪器，常驻） */}
       <WindIndicator

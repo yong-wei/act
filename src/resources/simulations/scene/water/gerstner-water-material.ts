@@ -1,6 +1,19 @@
 import * as THREE from 'three';
 
 import { GERSTNER_MAX_WAVES, type GerstnerWave } from './gerstner-waves';
+import { NEAR_FIELD_FADE_BAND_METERS } from './ocean-bands';
+import { MAX_HULL_EXCLUSION_BOXES } from './hull-exclusion';
+import type { MarineShoreSegment } from '../environment/scene-layouts';
+
+/** 岸线段 uniform 上限（#2102）。 */
+export const MAX_SHORE_SEGMENTS = 4;
+import {
+  FOAM_ROUGHNESS,
+  MICRO_NORMAL_FADE_DISTANCE_METERS,
+  MICRO_NORMAL_OCTAVES_BY_TIER,
+  WATER_BASE_ROUGHNESS,
+  type MicroNormalOctave,
+} from './micro-optics';
 
 export interface GerstnerWaterMaterialOptions {
   readonly waves: readonly GerstnerWave[];
@@ -16,9 +29,48 @@ export interface GerstnerWaterMaterialOptions {
   readonly foamTexture?: THREE.Texture | null;
   /** 海况振幅倍率（1 为标准海况）。 */
   readonly amplitudeScale?: number;
+  /**
+   * 近场幅度包络（#2098）：网格局部坐标超出 fadeStart 后幅度平滑衰减到边缘 0，
+   * 使近场边缘与无几何波的远场平面在接缝处同为基准高度。0 表示不启用包络。
+   */
+  readonly envelopeSizeMeters?: number;
+  readonly envelopeFadeBandMeters?: number;
+  /**
+   * 远场近场挖空半宽（#2098 复审）：远场片元落在近场网格方形覆盖区内时丢弃，
+   * 避免透明平面与近场波谷重叠遮挡/交叉闪烁。0 表示不启用。
+   */
+  readonly nearCutoutHalfSizeMeters?: number;
+  /** 光学质量档（#2100）：微法线八分量数随档变化（high 3/medium 2/low 0），只影响着色法线。 */
+  readonly microNormalTier?: 'high' | 'medium' | 'low';
+  /** 同源太阳辐照（#2100 复审）：preset.sun.intensity / 预设最大值，暗预设泡沫/水色随之变暗。 */
+  readonly sunIllumination?: number;
+  /** 船壳排水排除框数（#2101）：0 表示无排除（uniform 数组仍按上限分配）。 */
+  readonly hullExclusionCount?: number;
+  /** 岸线段（#2102）：显示海面波幅随距岸衰减（渲染输入，非水动力）。 */
+  readonly shoreSegments?: readonly MarineShoreSegment[];
+  /** 岸线波幅衰减带宽度（米）。 */
+  readonly shoreFadeBandMeters?: number;
+  /** 挖泥羽流（#2102 六轮复审）：合入水面片元着色（贴合动态波面，前景几何天然正确遮挡）。 */
+  readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
 }
 
 const FLOATS_PER_WAVE = 6;
+const MAX_MICRO_OCTAVES = 3;
+const MICRO_FLOATS_PER_OCTAVE = 5;
+
+function packMicroOctaves(tier: 'high' | 'medium' | 'low'): { data: Float32Array; count: number } {
+  const octaves: readonly MicroNormalOctave[] = MICRO_NORMAL_OCTAVES_BY_TIER[tier];
+  const data = new Float32Array(MAX_MICRO_OCTAVES * MICRO_FLOATS_PER_OCTAVE);
+  octaves.slice(0, MAX_MICRO_OCTAVES).forEach((octave, index) => {
+    const base = index * MICRO_FLOATS_PER_OCTAVE;
+    data[base] = octave.direction[0];
+    data[base + 1] = octave.direction[1];
+    data[base + 2] = octave.waveNumber;
+    data[base + 3] = octave.slopeAmplitude;
+    data[base + 4] = octave.speedScale;
+  });
+  return { data, count: Math.min(octaves.length, MAX_MICRO_OCTAVES) };
+}
 
 /**
  * GPU Gerstner 海面材质：vertex 阶段做几何位移（含水平分量锐化波峰），
@@ -26,6 +78,9 @@ const FLOATS_PER_WAVE = 6;
  * 与 scene/water/gerstner-waves.ts 的 CPU 参照共用同一公式。
  */
 export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOptions): THREE.ShaderMaterial {
+  const envelopeSize = options.envelopeSizeMeters ?? 0;
+  const envelopeFade = options.envelopeFadeBandMeters ?? NEAR_FIELD_FADE_BAND_METERS;
+  const micro = packMicroOctaves(options.microNormalTier ?? 'high');
   const waveData = new Float32Array(GERSTNER_MAX_WAVES * FLOATS_PER_WAVE);
   options.waves.slice(0, GERSTNER_MAX_WAVES).forEach((wave, index) => {
     const [rawDx, rawDz] = wave.direction;
@@ -39,9 +94,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
     waveData[base + 5] = wave.steepness;
   });
 
+  // 深水默认不透明单面（#2100 复审落实）：不做透明混合/背面渲染，消除排序与背景透出。
   return new THREE.ShaderMaterial({
-    transparent: true,
-    side: THREE.DoubleSide,
+    transparent: false,
+    side: THREE.FrontSide,
     uniforms: {
       uTime: { value: 0 },
       // 网格世界原点（跟船平移）：相位取世界坐标，波场不随原点移动漂移（#2097）。
@@ -49,6 +105,25 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uWaves: { value: waveData },
       uWaveCount: { value: Math.min(options.waves.length, GERSTNER_MAX_WAVES) },
       uAmplitudeScale: { value: options.amplitudeScale ?? 1 },
+      uEnvelopeHalfSize: { value: envelopeSize > 0 ? envelopeSize / 2 : 0 },
+      uEnvelopeFadeBand: { value: envelopeFade },
+      uNearCutoutHalfSize: { value: options.nearCutoutHalfSizeMeters ?? 0 },
+      uMicroOctaves: { value: micro.data },
+      uMicroOctaveCount: { value: micro.count },
+      uMicroFadeStart: { value: MICRO_NORMAL_FADE_DISTANCE_METERS * 0.35 },
+      uMicroFadeEnd: { value: MICRO_NORMAL_FADE_DISTANCE_METERS },
+      uSunIllumination: { value: options.sunIllumination ?? 1 },
+      uHullExclusionBoxes: { value: new Float32Array(MAX_HULL_EXCLUSION_BOXES * 4) },
+      uHullExclusionCount: { value: options.hullExclusionCount ?? 0 },
+      uShipHeading: { value: 0 },
+      uShoreSegments: { value: new Float32Array(MAX_SHORE_SEGMENTS * 4) },
+      // 羽流经组件层逐帧写 uniform（见 gerstner-water.tsx），材质默认零半径。
+      uShoreDepths: { value: new Float32Array(MAX_SHORE_SEGMENTS) },
+      uPlumeCenter: { value: new THREE.Vector2(0, 0) },
+      uPlumeRadius: { value: 0 },
+      uPlumeOpacity: { value: 0 },
+      uShoreSegmentCount: { value: 0 },
+      uShoreFadeBand: { value: 400 },
       uWaterColor: { value: new THREE.Color(options.waterColor) },
       uDeepColor: { value: new THREE.Color(options.deepColor) },
       uHorizonColor: { value: new THREE.Color(options.horizonColor) },
@@ -65,12 +140,22 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uWaves[MAX_WAVES * FLOATS_PER_WAVE];
       uniform int uWaveCount;
       uniform float uAmplitudeScale;
+      uniform float uEnvelopeHalfSize;
+      uniform float uEnvelopeFadeBand;
+      uniform float uNearCutoutHalfSize;
+      uniform vec4 uShoreSegments[4];
+      uniform float uShoreDepths[4];
+      uniform float uShoreSegmentCount;
+      uniform float uShoreFadeBand;
 
       varying vec3 vNormal;
+      varying vec3 vWorldNormal;
       varying vec3 vViewPosition;
       varying vec3 vWorldPos;
       varying float vCrest;
       varying float vElevation;
+      varying float vShoreShallow01;
+      varying vec2 vLocalXZ;
 
       void main() {
         vec3 pos = position;
@@ -78,17 +163,80 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 若逐波用已水平位移的 pos.xz 取相位，波序依赖且与 CPU 参照不再同公式。
         vec3 basePos = position;
         vec2 worldXZ = basePos.xz + uWorldOrigin;
+        // 岸线波幅衰减（#2102）：距岸线越近波幅越小（与 CPU shorelineAmplitudeAttenuation
+        // 同公式：岸边 0.15 残余，带内 smoothstep，带外 1）；纯显示输入，非水动力。
+        float shoreAttenuation = 1.0;
+        float nearestShoreDepth = 0.0;
+        if (uShoreSegmentCount > 0.0 && uShoreFadeBand > 0.0) {
+          float minDistance = 1e9;
+          for (int i = 0; i < 4; i++) {
+            if (float(i) >= uShoreSegmentCount) break;
+            vec4 seg = uShoreSegments[i];
+            vec2 ab = seg.zw - seg.xy;
+            float lenSq = dot(ab, ab);
+            float t = lenSq > 0.0 ? clamp(dot(worldXZ - seg.xy, ab) / lenSq, 0.0, 1.0) : 0.0;
+            float distance = length(worldXZ - (seg.xy + ab * t));
+            if (distance < minDistance) {
+              minDistance = distance;
+              nearestShoreDepth = uShoreDepths[i];
+            }
+          }
+          if (minDistance < uShoreFadeBand) {
+            float t = minDistance / uShoreFadeBand;
+            shoreAttenuation = 0.15 + 0.85 * t * t * (3.0 - 2.0 * t);
+          }
+        }
+        float effectiveAmplitudeScale = uAmplitudeScale * shoreAttenuation;
+        // 浅水因子（#2102 六轮复审）：近岸程度 × 岸深反比归一——水越浅效果越强
+        // （4m→~1、20m→0.05）：施工区浅水比深水港口呈现更强浅青绿。
+        float nearness = clamp((1.0 - shoreAttenuation) / 0.85, 0.0, 1.0);
+        float depthFactor = clamp((20.0 - nearestShoreDepth) / 16.0, 0.05, 1.0);
+        vShoreShallow01 = nearness * depthFactor;
+        // 近场幅度包络（#2098）：外环 smoothstep 衰减，一阶导两端为零避免折痕。
+        float envelope = 1.0;
+        if (uEnvelopeHalfSize > 0.0) {
+          float edgeDistance = max(abs(basePos.x), abs(basePos.z));
+          float fadeStart = uEnvelopeHalfSize - uEnvelopeFadeBand;
+          float t = clamp((edgeDistance - fadeStart) / uEnvelopeFadeBand, 0.0, 1.0);
+          envelope = 1.0 - t * t * (3.0 - 2.0 * t);
+        }
+        // 近场挖空（#2098 二轮复审）：传网格局部坐标，片元级精确判定
+        // （顶点二值标记会被光栅器插值，边界落到顶点中点而非 1024 m）。
+        vLocalXZ = basePos.xz;
+        // 包络梯度（#2098 复审）：衰减环内 dE/dd = -6t(1-t)/fade（两端为 0，C1）。
+        float envelopeDx = 0.0;
+        float envelopeDz = 0.0;
+        if (uEnvelopeHalfSize > 0.0) {
+          float ax = abs(basePos.x);
+          float az = abs(basePos.z);
+          float edgeDistance = max(ax, az);
+          float fadeStartE = uEnvelopeHalfSize - uEnvelopeFadeBand;
+          float te = clamp((edgeDistance - fadeStartE) / uEnvelopeFadeBand, 0.0, 1.0);
+          float dEdge = -6.0 * te * (1.0 - te) / uEnvelopeFadeBand;
+          envelopeDx = ax >= az ? dEdge * sign(basePos.x) : 0.0;
+          envelopeDz = az > ax ? dEdge * sign(basePos.z) : 0.0;
+        }
+        // 完整参数曲面偏导（#2098）：P(x,z) = (x+Sx, Y, z+Sz)，法线取 +Y 主导方向。
         float dYdx = 0.0;
         float dYdz = 0.0;
+        float dSxdx = 0.0;
+        float dSxdz = 0.0;
+        float dSzdx = 0.0;
+        float dSzdz = 0.0;
         float crestRaw = 0.0;
         float amplitudeSum = 0.0;
+        // 未包络原始位移累计（二轮复审）：乘积法则需要 E'·S，S 不得再含一次 E。
+        float rawY = 0.0;
+        float rawSx = 0.0;
+        float rawSz = 0.0;
 
         for (int i = 0; i < MAX_WAVES; i++) {
           if (i >= uWaveCount) break;
           int base = i * FLOATS_PER_WAVE;
           float dx = uWaves[base];
           float dz = uWaves[base + 1];
-          float amp = uWaves[base + 2] * uAmplitudeScale;
+          float ampRaw = uWaves[base + 2] * effectiveAmplitudeScale;
+          float amp = ampRaw * envelope;
           float wavelength = uWaves[base + 3];
           float speed = uWaves[base + 4];
           float steepness = uWaves[base + 5];
@@ -105,13 +253,28 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
 
           dYdx += amp * co * k * dx;
           dYdz += amp * co * k * dz;
+          dSxdx -= steepness * amp * s * k * dx * dx;
+          dSxdz -= steepness * amp * s * k * dx * dz;
+          dSzdx -= steepness * amp * s * k * dz * dx;
+          dSzdz -= steepness * amp * s * k * dz * dz;
           crestRaw += amp * s;
           amplitudeSum += amp;
+          rawY += ampRaw * s;
+          rawSx += steepness * ampRaw * dx * co;
+          rawSz += steepness * ampRaw * dz * co;
         }
 
         vElevation = pos.y;
         vCrest = amplitudeSum > 0.0 ? 0.5 * (1.0 + crestRaw / amplitudeSum) : 0.0;
-        vNormal = normalize(normalMatrix * normalize(vec3(-dYdx, 1.0, -dYdz)));
+        // 乘积法则（#2098 复审）：衰减环内 P = (x+E·Sx, E·Y, z+E·Sz)，
+        // 偏导补 E'×原始位移项（rawSx/rawY/rawSz 未含包络，避免 E'·E·S）。
+        vec3 dPdx = vec3(1.0 + dSxdx + envelopeDx * rawSx, dYdx + envelopeDx * rawY, dSzdx + envelopeDx * rawSz);
+        vec3 dPdz = vec3(dSxdz + envelopeDz * rawSx, dYdz + envelopeDz * rawY, 1.0 + dSzdz + envelopeDz * rawSz);
+        vec3 surfaceNormal = normalize(cross(dPdx, dPdz));
+        if (surfaceNormal.y < 0.0) surfaceNormal = -surfaceNormal;
+        // 世界空间几何法线（#2100 二轮复审）：光照/微法线/视线全程统一世界空间。
+        vWorldNormal = surfaceNormal;
+        vNormal = normalize(normalMatrix * surfaceNormal);
 
         vec4 worldPosition = modelMatrix * vec4(pos, 1.0);
         vWorldPos = worldPosition.xyz;
@@ -121,36 +284,134 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       }
     `,
     fragmentShader: /* glsl */ `
+      uniform float uTime;
+      uniform vec2 uWorldOrigin;
       uniform vec3 uWaterColor;
       uniform vec3 uDeepColor;
       uniform vec3 uHorizonColor;
       uniform vec3 uFoamColor;
       uniform vec3 uSunDirection;
       uniform sampler2D uFoamTex;
+      uniform float uNearCutoutHalfSize;
+      uniform float uMicroOctaves[3 * 5];
+      uniform int uMicroOctaveCount;
+      uniform float uMicroFadeStart;
+      uniform float uMicroFadeEnd;
+      uniform float uSunIllumination;
+      uniform vec4 uHullExclusionBoxes[6];
+      uniform float uHullExclusionCount;
+      uniform float uShipHeading;
+      uniform vec2 uPlumeCenter;
+      uniform float uPlumeRadius;
+      uniform float uPlumeOpacity;
+      uniform vec4 uShoreSegments[4];
+      uniform float uShoreDepths[4];
+      uniform float uShoreSegmentCount;
+      uniform float uShoreFadeBand;
 
       varying vec3 vNormal;
+      varying vec3 vWorldNormal;
       varying vec3 vViewPosition;
       varying vec3 vWorldPos;
       varying float vCrest;
       varying float vElevation;
+      varying float vShoreShallow01;
+      varying vec2 vLocalXZ;
 
       void main() {
-        vec3 viewDirection = normalize(-vViewPosition);
-        vec3 normal = normalize(vNormal);
+        // 近场挖空（#2098 二轮复审）：远场片元按网格局部坐标精确判定
+        // max(|x|,|z|) < 1024（顶点二值标记会被插值，边界落到顶点中点）。
+        if (uNearCutoutHalfSize > 0.0 && max(abs(vLocalXZ.x), abs(vLocalXZ.y)) < uNearCutoutHalfSize) discard;
+        // 船壳排水排除（#2101 四轮复审）：用位移后的世界坐标（vWorldPos - 网格原点）
+        // 旋转到船体局部再判定——顶点着色器的水平位移会使未位移的 vLocalXZ 与
+        // 实际渲染片元错开（壳缘穿水条带/误裁壳外海面）。
+        if (uHullExclusionCount > 0.0) {
+          vec2 displacedLocal = vWorldPos.xz - uWorldOrigin;
+          float cosH = cos(uShipHeading);
+          float sinH = sin(uShipHeading);
+          float localX = displacedLocal.x * cosH + displacedLocal.y * sinH;
+          float localZ = -displacedLocal.x * sinH + displacedLocal.y * cosH;
+          for (int i = 0; i < 6; i++) {
+            if (float(i) >= uHullExclusionCount) break;
+            vec4 box = uHullExclusionBoxes[i];
+            if (abs(localX - box.x) <= box.z && abs(localZ - box.y) <= box.w) discard;
+          }
+        }
+        // 世界空间统一（#2100 二轮复审）：法线/视线/光照全程世界空间，
+        // 相机旋转只改变视线本身，波纹与高光不随视图变换旋转。
+        vec3 viewDirection = normalize(cameraPosition - vWorldPos);
+        vec3 normal = normalize(vWorldNormal);
 
-        float light = max(dot(normal, uSunDirection), 0.0);
-        float specular = pow(max(dot(reflect(-uSunDirection, normal), viewDirection), 0.0), 64.0);
-        float fresnel = pow(1.0 - max(dot(viewDirection, normal), 0.0), 3.0);
+        // 微法线（#2100）：只对着色法线加高频细节（光学），不动几何/姿态；
+        // 像素脚印按相机距离 smoothstep 衰减，远海退化为基础法线不闪烁。
+        float cameraDistance = length(vViewPosition);
+        float footprint = clamp(
+          (uMicroFadeEnd - cameraDistance) / max(uMicroFadeEnd - uMicroFadeStart, 1.0),
+          0.0, 1.0);
+        footprint = footprint * footprint * (3.0 - 2.0 * footprint);
+        if (uMicroOctaveCount > 0 && footprint > 0.001) {
+          float slopeX = 0.0;
+          float slopeZ = 0.0;
+          for (int i = 0; i < 3; i++) {
+            if (i >= uMicroOctaveCount) break;
+            int base = i * 5;
+            float dx = uMicroOctaves[base];
+            float dz = uMicroOctaves[base + 1];
+            float k = uMicroOctaves[base + 2];
+            float amp = uMicroOctaves[base + 3];
+            float speedScale = uMicroOctaves[base + 4];
+            float phase = k * (dx * vWorldPos.x + dz * vWorldPos.z)
+              - k * speedScale * 1.2 * uTime;
+            float slope = amp * cos(phase) * k;
+            slopeX += slope * dx;
+            slopeZ += slope * dz;
+          }
+          normal = normalize(normal + vec3(slopeX, 0.0, slopeZ) * footprint);
+        }
+
+        // 同源辐照（#2100 复审）：入射角 × 预设太阳强度归一——暗预设下水色与泡沫
+        // 整体变暗（受光表面，非恒亮 additive）。
+        float light = max(dot(normal, uSunDirection), 0.0) * uSunIllumination;
 
         float foamNoise = texture2D(uFoamTex, vWorldPos.xz / 80.0).a;
         float foam = smoothstep(0.72, 0.95, vCrest) * smoothstep(0.35, 0.7, foamNoise);
 
-        vec3 color = mix(uDeepColor, uWaterColor, light * 0.65 + 0.35);
-        color = mix(color, uHorizonColor, fresnel * 0.45);
-        color += specular * 0.3;
-        color = mix(color, uFoamColor, foam * 0.85);
+        // 介质光学（#2100 二轮复审落实）：Fresnel-Schlick（F0=0.02）与 GGX 高光
+        // （D·F·G/(4 nv nl)，Smith-Schlick G），粗糙度随泡沫提升（受光且改变粗糙度）。
+        float nDotV = max(dot(normal, viewDirection), 1e-4);
+        float nDotL = max(dot(normal, uSunDirection), 0.0);
+        vec3 halfVector = normalize(uSunDirection + viewDirection);
+        float nDotH = max(dot(normal, halfVector), 0.0);
+        float roughness = mix(0.06, 0.6, foam);
+        float a = max(roughness * roughness, 1e-4);
+        float a2 = a * a;
+        float dTerm = (nDotH * nDotH) * (a2 - 1.0) + 1.0;
+        float distribution = a2 / (3.14159265 * dTerm * dTerm);
+        float vDotH = max(dot(viewDirection, halfVector), 0.0);
+        float fresnel = 0.02 + 0.98 * pow(1.0 - vDotH, 5.0);
+        float k = a / 2.0;
+        float gV = nDotV / (nDotV * (1.0 - k) + k);
+        float gL = max(nDotL, 1e-4) / (max(nDotL, 1e-4) * (1.0 - k) + k);
+        float specular = distribution * fresnel * gV * gL / max(4.0 * nDotV * max(nDotL, 1e-4), 1e-4);
+        float viewFresnel = 0.02 + 0.98 * pow(1.0 - nDotV, 5.0);
 
-        gl_FragColor = vec4(color, 0.94);
+        vec3 color = mix(uDeepColor, uWaterColor, light * 0.65 + 0.35 * uSunIllumination);
+        // 浅水色（#2102）：近岸（vShoreShallow01→1）向浅青绿过渡——作者态岸深的
+        // 视觉呈现（与衰减带同空间），纯显示输入非水动力。
+        color = mix(color, vec3(0.28, 0.52, 0.5), vShoreShallow01 * 0.45);
+        // 挖泥羽流（#2102 六轮复审）：水面片元内合成——贴合动态波面（波峰波谷下
+        // 持续可见）、不穿透前景几何（正常深度队列），软边径向过渡。
+        if (uPlumeRadius > 0.0 && uPlumeOpacity > 0.0) {
+          float plumeDistance = length(vWorldPos.xz - uPlumeCenter);
+          float plumeMix = (1.0 - smoothstep(uPlumeRadius * 0.55, uPlumeRadius, plumeDistance)) * uPlumeOpacity;
+          color = mix(color, vec3(0.478, 0.416, 0.322), plumeMix);
+        }
+        color = mix(color, uHorizonColor, viewFresnel * 0.45);
+        color += specular * uSunIllumination;
+        vec3 foamLit = uFoamColor * (light * 0.65 + 0.35 * uSunIllumination);
+        color = mix(color, foamLit, foam * 0.85);
+
+        gl_FragColor = vec4(color, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }

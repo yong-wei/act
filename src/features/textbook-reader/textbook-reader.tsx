@@ -12,6 +12,7 @@ import {
   TextbookReaderFragmentLink,
   TextbookReaderNavigationLink,
 } from './textbook-reader-link';
+import { TextbookReaderWorkspace } from './textbook-reader-workspace';
 
 function NavigationBranch({
   node,
@@ -109,17 +110,12 @@ export function TextbookReader({
   });
 
   return (
-    <main
-      className={`bg-background text-foreground ${
-        presentation === 'standalone' ? 'min-h-screen' : 'h-[min(92vh,980px)] overflow-hidden rounded-xl'
-      }`}
-      data-textbook-reader="true"
-      data-textbook-reader-presentation={presentation}
-      data-book-id={projection.book.bookId}
-      data-edition={projection.book.edition}
-    >
-      <header className="border-b border-border bg-background/95 px-4 py-4 sm:px-6">
-        <div className="mx-auto max-w-[1600px]">
+    <TextbookReaderWorkspace
+      presentation={presentation}
+      bookId={projection.book.bookId}
+      edition={projection.book.edition}
+      header={(
+        <>
           <div className="text-xs font-medium uppercase tracking-[0.18em] text-primary">
             教材阅读
           </div>
@@ -138,13 +134,10 @@ export function TextbookReader({
               </span>
             ))}
           </nav>
-        </div>
-      </header>
-
-      <div className={`mx-auto grid max-w-[1600px] lg:grid-cols-[18rem_minmax(0,1fr)_15rem] ${
-        presentation === 'modal' ? 'h-[calc(100%_-_7.25rem)]' : ''
-      }`}>
-        <aside className="border-b border-border bg-card p-4 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+        </>
+      )}
+      toc={(
+        <>
           <details className="lg:hidden">
             <summary className="cursor-pointer font-medium">展开全书目录</summary>
             <div className="mt-4 max-h-[55vh] overflow-y-auto">
@@ -154,8 +147,9 @@ export function TextbookReader({
           <div className="hidden lg:block">
             <BookNavigation projection={projection} />
           </div>
-        </aside>
-
+        </>
+      )}
+      reading={(
         <section className="min-w-0 overflow-y-auto px-4 py-6 sm:px-8 lg:px-10">
           <article className="mx-auto max-w-[860px] space-y-4 rounded-xl bg-card px-5 py-7 shadow-sm ring-1 ring-border sm:px-8">
             <TextbookFragmentFocus availableFragments={projection.fragments.map((fragment) => fragment.id)}>
@@ -189,8 +183,9 @@ export function TextbookReader({
             ) : <span />}
           </nav>
         </section>
-
-        <aside className="border-t border-border bg-card p-5 lg:overflow-y-auto lg:border-l lg:border-t-0">
+      )}
+      meta={(
+        <>
           <h2 className="text-sm font-semibold">当前位置</h2>
           <dl className="mt-3 space-y-3 text-sm">
             <div>
@@ -223,8 +218,8 @@ export function TextbookReader({
               </ul>
             </div>
           ) : null}
-        </aside>
-      </div>
-    </main>
+        </>
+      )}
+    />
   );
 }
