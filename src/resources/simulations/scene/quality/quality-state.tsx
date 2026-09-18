@@ -185,16 +185,24 @@ export function MarinePerformanceEvidenceProbe({
     // 后台标签页忽略（四轮复审）：隐藏期间暂停采样并重置时间基准——
     // 恢复后的首个间隔是挂起时长，不计为长帧（不污染 p95/worst/长帧数）。
     let suspended = document.visibilityState === 'hidden';
+    let wasSuspended = false;
     const onVisibilityChange = () => {
-      suspended = document.visibilityState === 'hidden';
-      if (suspended) lastMs = performance.now();
+      const hidden = document.visibilityState === 'hidden';
+      // 进入与恢复都重置时间基准；恢复后首个间隔是挂起时长，跳过（五轮复审）。
+      if (hidden !== suspended) {
+        suspended = hidden;
+        lastMs = performance.now();
+        if (!suspended) wasSuspended = true;
+      }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
     const tick = () => {
       const nowMs = performance.now();
       const delta = nowMs - lastMs;
       lastMs = nowMs;
-      if (!suspended && collecting && delta > 0 && delta < 1000) {
+      const skipThisFrame = wasSuspended;
+      wasSuspended = false;
+      if (!suspended && !skipThisFrame && collecting && delta > 0 && delta < 1000) {
         samples.push({ ms: delta, at: nowMs });
         while (samples.length > 0 && nowMs - samples[0]!.at > WINDOW_MS) samples.shift();
       }
@@ -231,7 +239,11 @@ export function MarinePerformanceEvidenceProbe({
             drawingBufferHeight: gl?.drawingBufferHeight ?? 0,
             cssWidth: canvas?.clientWidth ?? 0,
             cssHeight: canvas?.clientHeight ?? 0,
-            devicePixelRatio: window.devicePixelRatio,
+            // 渲染器实际 DPR（五轮复审）：drawingBuffer/CSS 推导——质量档 cap 后的
+            // 真实像素负载（设备 DPR 3 + low 档 cap 1 → 报 1，不误标 3）。
+            devicePixelRatio: canvas && canvas.clientWidth > 0 && gl
+              ? Number(((gl.drawingBufferWidth ?? 0) / canvas.clientWidth).toFixed(3))
+              : window.devicePixelRatio,
             gpuRenderer,
             browser: navigator.userAgent,
             hardwareConcurrency: navigator.hardwareConcurrency ?? 0,
