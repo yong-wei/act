@@ -48,6 +48,7 @@ import {
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
+  MarinePerformanceEvidenceProbe,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { drillingHysy981SceneVisual } from '../profiles/drilling-hysy981-scene';
@@ -1178,6 +1179,7 @@ export function DrillingSimulation() {
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />
+        <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'drilling', cameraView: String(cameraMode), seaState: config.seaStateLevel })} />
         <Suspense fallback={null}>
           <DrillingWater platformStateRef={platformStateRef} />
         </Suspense>

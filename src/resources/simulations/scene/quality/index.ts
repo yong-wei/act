@@ -16,3 +16,17 @@ export {
   SceneQualitySelect,
   useSceneQuality,
 } from './quality-state';
+export {
+  buildMarineFrameStatistics,
+  buildMarinePerformanceReport,
+  MARINE_PERFORMANCE_TARGETS,
+} from './performance-evidence';
+export type {
+  MarineFrameStatistics,
+  MarinePerformanceContext,
+  MarinePerformanceReport,
+} from './performance-evidence';
+export { DEGRADATION_LADDER, DEGRADATION_INVARIANTS, degradationDecision, degradationPreservesSemantics } from './degradation';
+export { MarineSceneResourceLedger, marineSceneResourceLedger } from './resource-ledger';
+export type { MarineResourceEntry, MarineResourceKind } from './resource-ledger';
+export { MarinePerformanceEvidenceProbe } from './quality-state';
