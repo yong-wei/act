@@ -182,11 +182,19 @@ export function MarinePerformanceEvidenceProbe({
     const samples: Array<{ ms: number; at: number }> = [];
     let collecting = false;
     let lastMs = performance.now();
+    // 后台标签页忽略（四轮复审）：隐藏期间暂停采样并重置时间基准——
+    // 恢复后的首个间隔是挂起时长，不计为长帧（不污染 p95/worst/长帧数）。
+    let suspended = document.visibilityState === 'hidden';
+    const onVisibilityChange = () => {
+      suspended = document.visibilityState === 'hidden';
+      if (suspended) lastMs = performance.now();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
     const tick = () => {
       const nowMs = performance.now();
       const delta = nowMs - lastMs;
       lastMs = nowMs;
-      if (collecting && delta > 0 && delta < 1000) {
+      if (!suspended && collecting && delta > 0 && delta < 1000) {
         samples.push({ ms: delta, at: nowMs });
         while (samples.length > 0 && nowMs - samples[0]!.at > WINDOW_MS) samples.shift();
       }
@@ -244,6 +252,7 @@ export function MarinePerformanceEvidenceProbe({
     };
     return () => {
       cancelAnimationFrame(raf);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       delete window.__marinePerformanceEvidence;
     };
   }, []);
