@@ -35,7 +35,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GerstnerWater } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -514,6 +514,7 @@ function DredgerWater({
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      seaState={3}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
@@ -549,10 +550,10 @@ function WakeTrailRig({
     if (!wakeQueryCacheRef.current || wakeQueryCacheRef.current.key !== key) {
       wakeQueryCacheRef.current = {
         key,
-        query: createNearFieldSurfaceQuery(1.02, mmgStateRef.current.x, mmgStateRef.current.y, timeRef.current),
+        query: createNearFieldSurfaceQuery(gerstnerAmplitudeScale(3), mmgStateRef.current.x, mmgStateRef.current.y, timeRef.current),
       };
     }
-    return wakeQueryCacheRef.current.query.heightAt(x ?? 0, z ?? 0) * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments, x ?? 0, z ?? 0, 400);;
+    return GERSTNER_WATER_BASE_Y + (wakeQueryCacheRef.current.query.heightAt(x ?? 0, z ?? 0) - GERSTNER_WATER_BASE_Y) * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments, x ?? 0, z ?? 0, 400);;
   };
 
   if (!wakeVisible) return null;
