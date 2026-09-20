@@ -540,9 +540,17 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 浅水消费者（#2119）：深度分级吸收（有界 Beer-Lambert——浅处向青绿、
         // 深处回基础色；替代固定 0.45 平铺混色）+ 有界折射（浅水梯度上按视线
         // 偏移细节采样 ≤0.35m，视觉近似非光线追踪）。
-        vec2 shoreFx = shoreEffects(vWorldPos.xz);
-        float absorption = exp(-max(shoreFx.y, 0.2) * 0.55);
-        vec2 refractionOffset = viewDirection.xz * (1.0 - absorption) * 0.35 * shoreFx.x;
+        // 开关整体包裹（复审修复）：关闭时吸收/折射/浅水混色的全部逐片元
+        // 计算（不只岸线循环）都不执行——性能 A/B 干净。
+        float absorption = 1.0;
+        vec2 refractionOffset = vec2(0.0);
+        float shallowMix = 0.0;
+        if (uShallowFxEnabled > 0.5) {
+          vec2 shoreFx = shoreEffects(vWorldPos.xz);
+          absorption = exp(-max(shoreFx.y, 0.2) * 0.55);
+          refractionOffset = viewDirection.xz * (1.0 - absorption) * 0.35 * shoreFx.x;
+          shallowMix = shoreFx.x;
+        }
         // 泡沫覆盖（#2115）：有历史场时覆盖 = 场密度（自然压缩 + 船体/推进器源
         // 的输运/衰减历史），无场回退平滑波峰覆盖——两条路径都乘多尺度细节，
         // 不再用单一 80m 平铺贴花。
@@ -576,7 +584,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 浅水色（#2102 → #2119 深度吸收）：近岸按估计水深做有界指数吸收——
         // 深度差异可见（4m 岸与 18m 岸的浅水带颜色不同）；船边遮挡由既有
         // 船壳排水排除（壳下水片元被丢弃，浅水色不从船底透出）。
-        color = mix(color, mix(vec3(0.28, 0.52, 0.5), color, absorption), shoreFx.x);
+        color = mix(color, mix(vec3(0.28, 0.52, 0.5), color, absorption), shallowMix);
         // 挖泥羽流（#2102 六轮复审）：水面片元内合成——贴合动态波面（波峰波谷下
         // 持续可见）、不穿透前景几何（正常深度队列），软边径向过渡；采样位置
         // 施加浅水折射偏移（羽流边缘随水层厚度弯折——水柱内容的可见折射）。

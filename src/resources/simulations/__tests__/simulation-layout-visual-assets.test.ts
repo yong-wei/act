@@ -57,6 +57,8 @@ describe('real distance LOD and instancing (#2119)', () => {
     expect(source).toContain('distance <= lodDistance * 1.15');
     expect(source).toContain('INSTANCE_REBUCKET_INTERVAL_SECONDS = 0.25');
     expect(source).toContain('mesh.count = batch.length');
+    // 动态重写后重算包围球（防旧包围球视锥剔除让迁入对象消失）。
+    expect(source).toContain('mesh.computeBoundingSphere();');
     expect(source).toContain('instanceScaleFor(object)');
     expect(source).toContain('new THREE.Vector3(object.scale, 14, Math.max(24, object.scale * 0.18))');
     expect(source).toContain('new THREE.Vector3(object.scale, 10, Math.max(8, object.scale * 0.3))');
@@ -66,6 +68,10 @@ describe('real distance LOD and instancing (#2119)', () => {
     const material = readSource('scene/water/gerstner-water-material.ts');
     expect(material).toContain('uShallowFxEnabled');
     expect(material).toContain('if (uShallowFxEnabled < 0.5 || uShoreSegmentCount <= 0.0');
+    // 吸收/折射/浅水混色整体进入开关分支（关闭 = 全部逐片元计算停止）。
+    expect(material).toContain('if (uShallowFxEnabled > 0.5) {');
+    expect(material).toContain('float absorption = 1.0;');
+    expect(material).toContain('vec2 refractionOffset = vec2(0.0);');
     const water = readSource('scene/water/gerstner-water.tsx');
     expect(water).toContain("get('qa-shallow') === 'off'");
   });

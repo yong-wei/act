@@ -336,6 +336,9 @@ function EnvironmentObjectInstances({
       }
       writeInstanceMatrices(mesh, batch, kind);
       mesh.count = batch.length;
+      // 复审修复（P1）：动态重写实例矩阵后包围球不会自动失效——重算，
+      // 否则旧包围球做视锥剔除会让迁入对象在 LOD 切换时消失。
+      mesh.computeBoundingSphere();
     };
     writeBatch(composite, compositeObjects);
     writeBatch(simplified, simplifiedObjects);
