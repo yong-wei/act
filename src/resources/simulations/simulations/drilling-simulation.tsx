@@ -742,7 +742,12 @@ function WakeTrailRig({
     wakeSceneCapacityForTier(tier),
   );
   const mainTrailCapacity = capacityAllocations[0];
-  const washTrailCapacity = capacityAllocations[1] ?? mainTrailCapacity;
+  // 逐推进器取各自分配（P2 修复）：分配器的余数分配使各槽容量可能不同
+  // （如 1100/138×4/137×4），复用单一槽位会突破场景硬上限。
+  const washTrailCapacityFor = (thrusterId: number): number => {
+    const layoutIndex = HYSY981_THRUSTER_LAYOUT.findIndex((item) => item.id === thrusterId);
+    return layoutIndex >= 0 ? (capacityAllocations[1 + layoutIndex] ?? mainTrailCapacity) : mainTrailCapacity;
+  };
 
   useFrame((frameState) => {
     transformRef.current.position = [platformStateRef.current.x, 0, platformStateRef.current.y];
@@ -800,7 +805,7 @@ function WakeTrailRig({
           includeKelvin={false}
           localWashOnly
           budgetShare={1 / HYSY981_THRUSTER_LAYOUT.length}
-          capacity={washTrailCapacity}
+          capacity={washTrailCapacityFor(thruster.id)}
           sunDirection={environmentLight.sunDirection}
           sunIllumination={environmentLight.sunIllumination}
           // 世界空间发射器（二轮复审）：避免 resolveEmitterAnchors 对世界坐标二次旋转平移。

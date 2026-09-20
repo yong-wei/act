@@ -12,7 +12,7 @@ import {
   naturalFoamSeaStateGate,
   naturalFoamSourceStrength,
 } from '../scene/water/foam-history';
-import { FOAM_DOMAIN_METERS } from '../scene/water/foam-history-layer';
+import { FOAM_DOMAIN_METERS, readMarineFoamFieldFromScene } from '../scene/water/foam-history-layer';
 import { GERSTNER_WAVE_SETS, type GerstnerWave } from '../scene/water/gerstner-waves';
 import { gerstnerAmplitudeScale } from '../scene/water/gerstner-water';
 import { allocateWakeCapacities, WAKE_SCENE_MAX_PARTICLES } from '../scene/wake/wake-physics';
@@ -322,7 +322,10 @@ describe('source contracts (#2115)', () => {
 
   it('wake trail deposits vessel foam into the shared field and keeps spray lit', () => {
     const source = readSource('scene/wake/wake-trail.tsx');
-    expect(source).toContain('useMarineFoamField');
+    // P1 修复：尾迹与水面互为兄弟节点——经 R3F scene.userData 跨兄弟读取，
+    // 而非 React Context（Context 不跨兄弟传播，会让沉积路径在真实场景不可达）。
+    expect(source).toContain('readMarineFoamFieldFromScene');
+    expect(source).not.toContain('useMarineFoamField()');
     expect(source).toContain('VESSEL_FOAM_RATE_PER_SECOND');
     expect(source).toContain('forEachWakeParticleVisual');
     expect(source).toContain('updateWakeSprayGeometry');
@@ -331,6 +334,8 @@ describe('source contracts (#2115)', () => {
     expect(source).toContain('light * 0.65 + 0.35 * uSunIllumination');
     // 沉积按视觉时间秒积分（不随帧率翻倍）。
     expect(source).toContain('visualDelta');
+    // 材质随场的出现/消失逐帧切换（水面晚挂载时从 additive 过渡到沉积模式）。
+    expect(source).toContain('meshRef.current.material !== targetMaterial');
   });
 
   it('multi-trail scenes allocate hard aggregate capacities', () => {
@@ -340,7 +345,33 @@ describe('source contracts (#2115)', () => {
     expect(destroyer).toContain('capacity={propulsorCapacities[index]}');
     const drilling = readSource('simulations/drilling-simulation.tsx');
     expect(drilling).toContain('allocateWakeCapacities');
-    expect(drilling).toContain('capacity={washTrailCapacity}');
+    // P2 修复：逐推进器取各自分配（复用单一槽位会突破场景硬上限）。
+    expect(drilling).toContain('capacity={washTrailCapacityFor(thruster.id)}');
+  });
+
+  it('drilling wash allocations respect the scene hard maximum across all thrusters', () => {
+    // 复算钻井平台接线：主尾迹 + 8 洗流按分配器切分，聚合不超场景总容量。
+    const capacities = allocateWakeCapacities(
+      [8, 1, 1, 1, 1, 1, 1, 1, 1],
+      2200,
+    );
+    const total = capacities.reduce((sum, value) => sum + value, 0);
+    expect(total).toBeLessThanOrEqual(2200);
+    // 余数分配后各槽容量可以互不相同——逐槽接线必须按索引取值。
+    const distinct = new Set(capacities).size;
+    expect(distinct).toBeGreaterThan(1);
+  });
+
+  it('reads the shared field from the R3F scene across sibling subtrees', () => {
+    const source = readSource('scene/water/foam-history-layer.tsx');
+    expect(source).toContain('MARINE_FOAM_FIELD_SCENE_KEY');
+    expect(source).toContain('scene.userData[MARINE_FOAM_FIELD_SCENE_KEY] = controller');
+    // 形状校验：垃圾值返回 null（缺 deposit/stats/field/texture 不进入沉积模式）。
+    expect(readMarineFoamFieldFromScene({ userData: {} })).toBeNull();
+    expect(readMarineFoamFieldFromScene({ userData: { marineFoamField: { bogus: 1 } } })).toBeNull();
+    expect(
+      readMarineFoamFieldFromScene({ userData: { marineFoamField: 'nope' } }),
+    ).toBeNull();
   });
 
   it('foam history layer exposes QA attribution and cost probe', () => {

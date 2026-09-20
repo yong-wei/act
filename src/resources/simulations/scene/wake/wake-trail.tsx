@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 
 import type { SceneShipVisualProfile } from '../types';
 import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { VESSEL_FOAM_RATE_PER_SECOND } from '../water/foam-history';
-import { useMarineFoamField } from '../water/foam-history-layer';
+import { readMarineFoamFieldFromScene } from '../water/foam-history-layer';
 import { createWakeTrailBuffer, type WakeAnchorSnapshot } from './wake-buffer';
 import {
   createWakeTrailGeometry,
@@ -314,10 +314,11 @@ export function WakeTrail({
   );
   const handle = useMemo(() => createWakeTrailGeometry(resolvedCapacity), [resolvedCapacity]);
   const alphaTexture = useMemo(() => createWakeParticleAlphaTexture(), []);
-  // 泡沫历史场（#2115）：场存在且船源归因开启 → 沉积模式（贴水泡沫由水面材质
-  // 呈现，quad 只保留少量受光飞沫）；无场时保持既有 additive 全量尾迹。
-  const foamField = useMarineFoamField();
-  const depositToField = foamField !== null && foamField.attribution.vessel;
+  // 泡沫历史场（#2115，P1 修复）：尾迹 Rig 与水面互为兄弟节点，Context 不可达——
+  // 逐帧从 R3F scene.userData 读取（水面晚挂载/卸载时自动过渡）。场存在且船源
+  // 归因开启 → 沉积模式（贴水泡沫由水面材质呈现，quad 只保留少量受光飞沫）；
+  // 无场时保持既有 additive 全量尾迹。
+  const scene = useThree((state) => state.scene);
   const sprayMaterial = useMemo(
     () =>
       createWakeSprayMaterial({
@@ -345,7 +346,7 @@ export function WakeTrail({
       }),
     [alphaTexture, buffer]
   );
-  const material = depositToField ? sprayMaterial : legacyMaterial;
+  const meshRef = useRef<THREE.Mesh>(null);
 
   const frameState = useRef({
     simTime: 0,
@@ -367,6 +368,15 @@ export function WakeTrail({
   useFrame((frameStateArg, delta) => {
     if (!buffer.style.enabled) {
       return;
+    }
+    // 逐帧解析泡沫场与沉积门控（水面可能晚于尾迹挂载或中途卸载）。
+    const foamField = readMarineFoamFieldFromScene(scene);
+    const depositToField = foamField !== null && foamField.attribution.vessel;
+    if (meshRef.current) {
+      const targetMaterial = depositToField ? sprayMaterial : legacyMaterial;
+      if (meshRef.current.material !== targetMaterial) {
+        meshRef.current.material = targetMaterial;
+      }
     }
     const state = frameState.current;
     const dt = Math.max(0, delta);
@@ -492,5 +502,13 @@ export function WakeTrail({
     return null;
   }
 
-  return <mesh geometry={handle.geometry} material={material} renderOrder={9} frustumCulled={false} />;
+  return (
+    <mesh
+      ref={meshRef}
+      geometry={handle.geometry}
+      material={legacyMaterial}
+      renderOrder={9}
+      frustumCulled={false}
+    />
+  );
 }

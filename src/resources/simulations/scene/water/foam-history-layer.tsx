@@ -93,6 +93,7 @@ export function MarineFoamFieldProvider({
   const marineVisualTime = useMarineVisualTime();
   // R32F 密度纹理要求 WebGL2；WebGL1 回退（context 为 null）保持既有渲染路径。
   const isWebGL2 = useThree((state) => state.gl.capabilities.isWebGL2);
+  const scene = useThree((state) => state.scene);
 
   const { controller, internal } = useMemo(() => {
     const spec = FOAM_HISTORY_BY_TIER[tier];
@@ -213,6 +214,18 @@ export function MarineFoamFieldProvider({
     internalRef.current.flushTexture();
   });
 
+  // 跨兄弟共享（P1 修复）：尾迹 Rig 是水面的兄弟节点，Context 不可达——
+  // controller 同步挂到 R3F scene.userData；水面卸载时若仍是当前实例则移除。
+  useEffect(() => {
+    if (!isWebGL2) return;
+    scene.userData[MARINE_FOAM_FIELD_SCENE_KEY] = controller;
+    return () => {
+      if (scene.userData[MARINE_FOAM_FIELD_SCENE_KEY] === controller) {
+        delete scene.userData[MARINE_FOAM_FIELD_SCENE_KEY];
+      }
+    };
+  }, [scene, controller, isWebGL2]);
+
   useEffect(() => {
     if (typeof window === 'undefined' || !isWebGL2) return;
     if (!new URLSearchParams(window.location.search).has('qa', 'marine-foam')) return;
@@ -234,7 +247,31 @@ export function MarineFoamFieldProvider({
   );
 }
 
-/** 消费共享泡沫场：GerstnerWater 宿主内有效；场外的尾迹保持既有渲染路径。 */
+/** 消费共享泡沫场（水面宿主子树内）：GerstnerWater 宿主内有效。 */
 export function useMarineFoamField(): MarineFoamFieldController | null {
   return useContext(MarineFoamFieldContext);
+}
+
+/**
+ * 跨兄弟消费共享泡沫场：尾迹 Rig 与水面组件在场景中互为兄弟（React Context
+ * 不跨兄弟传播），Provider 同时把 controller 挂到 R3F scene.userData 供
+ * 尾迹逐帧读取；水面晚于尾迹挂载（Suspense 纹理加载）时自动从 null 过渡。
+ */
+export const MARINE_FOAM_FIELD_SCENE_KEY = 'marineFoamField';
+
+export function readMarineFoamFieldFromScene(
+  scene: { userData: Record<string, unknown> },
+): MarineFoamFieldController | null {
+  const candidate = scene.userData[MARINE_FOAM_FIELD_SCENE_KEY];
+  if (!candidate || typeof candidate !== 'object') return null;
+  const controller = candidate as Partial<MarineFoamFieldController>;
+  if (
+    typeof controller.deposit !== 'function' ||
+    typeof controller.stats !== 'function' ||
+    !controller.field ||
+    !controller.texture
+  ) {
+    return null;
+  }
+  return controller as MarineFoamFieldController;
 }
