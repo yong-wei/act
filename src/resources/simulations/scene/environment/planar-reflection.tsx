@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 
-import { marineGpuTimerBeginPass, marineGpuTimerEndPass, pollMarineGpuTimer } from '../quality/gpu-frame-timer';
+import { marineGpuTimerBeginPass, marineGpuTimerBind, marineGpuTimerEndPass, pollMarineGpuTimer } from '../quality/gpu-frame-timer';
 
 /**
  * 反射 pass 隐藏名单（#2118 复审扩展）：以 `marine-` 前缀约定标识一切水面
@@ -161,8 +161,10 @@ export function MarinePlanarReflection({
     const previousTarget = gl.getRenderTarget();
     gl.setRenderTarget(renderTarget);
     gl.clear(true, true, true);
-    // 真实 GPU 计时（#2120）：对受控反射 pass 使用非阻塞 disjoint timer
-    //（无扩展时空操作；结果由证据探针如实报告）。
+    // 真实 GPU 计时（#2120）：绑定**本组件的 R3F renderer**（查询与渲染同一
+    // 上下文——多 canvas 页面不取别人的），对受控反射 pass 非阻塞测量；
+    // 无扩展时空操作，结果由证据探针如实报告。
+    marineGpuTimerBind(gl);
     marineGpuTimerBeginPass();
     gl.render(scene, mirrorCamera);
     marineGpuTimerEndPass();

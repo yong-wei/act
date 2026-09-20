@@ -5,10 +5,19 @@
  * 如实报告不可用（gpuTimerAvailable=false），不伪造 timer-query 口径。
  */
 
-/** EXT_disjoint_timer_query_webgl2 最小契约（dom lib 未含该扩展类型）。 */
+import type { THREE_WebGLRendererLike } from './gpu-frame-timer-types';
+
+/** 当前绑定上下文的扩展（未绑定为 null；由 marineGpuTimerBind 建立）。 */
+function resolveExtension(): DisjointTimerQueryExt | null {
+  if (extension !== undefined) return extension;
+  extension = null;
+  return extension;
+}
+
+/** EXT_disjoint_timer_query_webgl2 最小契约（dom lib 未含该扩展类型）。
+ * 注意：QUERY_RESULT / QUERY_RESULT_AVAILABLE 是 WebGL2 **核心**常量
+ * （在 context 上），扩展对象只提供 TIME_ELAPSED_EXT / GPU_DISJOINT_EXT。 */
 interface DisjointTimerQueryExt {
-  readonly QUERY_RESULT_EXT: number;
-  readonly QUERY_RESULT_AVAILABLE_EXT: number;
   readonly TIME_ELAPSED_EXT: number;
   readonly GPU_DISJOINT_EXT: number;
 }
@@ -29,31 +38,26 @@ export interface MarineGpuTimerState {
 
 let extension: (DisjointTimerQueryExt | null) | undefined;
 let context: WebGL2RenderingContext | null = null;
+let boundRendererKey: unknown = null;
 let pending: PendingQuery | null = null;
 let resolvedCount = 0;
 let lastMs: number | null = null;
 let avgMs: number | null = null;
 let disjointDrops = 0;
 
-function resolveExtension(): DisjointTimerQueryExt | null {
-  if (extension !== undefined) return extension;
-  extension = null;
-  if (typeof window === 'undefined') return extension;
-  // R3F 渲染器自己的画布（不是 document 上的任意 canvas）。
-  const canvases = Array.from(document.querySelectorAll('canvas'));
-  for (const canvas of canvases) {
-    const gl = canvas.getContext('webgl2') as WebGL2RenderingContext | null;
-    if (gl) {
-      const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
-      if (ext) {
-        context = gl;
-        extension = ext as DisjointTimerQueryExt;
-        break;
-      }
-    }
-  }
-  return extension;
+/** 绑定实际渲染反射 pass 的 renderer（P1 复审修复）：调用方（MarinePlanarReflection）
+ * 直接传入自己的 R3F `gl`——查询与渲染必须同一上下文；换绑时丢弃旧挂起查询。 */
+export function marineGpuTimerBind(renderer: THREE_WebGLRendererLike): void {
+  const gl = renderer.getContext() as WebGL2RenderingContext | null;
+  if (!gl) return;
+  if (boundRendererKey === renderer && extension !== undefined) return;
+  if (pending && context) context.deleteQuery(pending.query);
+  pending = null;
+  context = gl;
+  boundRendererKey = renderer;
+  extension = (gl.getExtension('EXT_disjoint_timer_query_webgl2') as DisjointTimerQueryExt | null) ?? null;
 }
+
 
 /** 目标 pass 开始前调用（无扩展时为空操作）。 */
 export function marineGpuTimerBeginPass(): void {
@@ -90,12 +94,14 @@ export function pollMarineGpuTimer(): void {
     disjointDrops += 1;
     return;
   }
+  // P1 复审修复：结果常量取 WebGL2 核心（context.QUERY_RESULT_AVAILABLE /
+  // QUERY_RESULT）——扩展对象不提供 *_EXT 变体。
   const available = context.getQueryParameter(
     query,
-    ext.QUERY_RESULT_AVAILABLE_EXT,
+    context.QUERY_RESULT_AVAILABLE,
   ) as boolean | null;
   if (!available) return;
-  const nanoseconds = context.getQueryParameter(query, ext.QUERY_RESULT_EXT) as number | null;
+  const nanoseconds = context.getQueryParameter(query, context.QUERY_RESULT) as number | null;
   context.deleteQuery(query);
   pending = null;
   if (typeof nanoseconds === 'number' && nanoseconds > 0) {

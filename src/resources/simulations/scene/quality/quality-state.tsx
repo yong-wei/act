@@ -202,7 +202,8 @@ export function MarinePerformanceEvidenceProbe({
     // （丢弃启动/加载/编译帧），stop() 结束采集。
     const WINDOW_MS = 60_000;
     const samples: Array<{ ms: number; at: number }> = [];
-    const longStalls: Array<{ ms: number; at: number }> = [];
+    let stallTotalCount = 0;
+    let stallWorstMs = 0;
     let collecting = false;
     let lastMs = performance.now();
     // 后台标签页忽略（四轮复审）：隐藏期间暂停采样并重置时间基准——
@@ -227,10 +228,10 @@ export function MarinePerformanceEvidenceProbe({
       wasSuspended = false;
       if (!suspended && !skipThisFrame && collecting && delta > 0) {
         if (delta >= 1000) {
-          // 复审修复（#2120）：前台 >=1s 卡顿不再静默丢弃——单独记录
-          //（不混入 p95 窗口，避免后台恢复污染统计口径）。
-          longStalls.push({ ms: delta, at: nowMs });
-          if (longStalls.length > 16) longStalls.shift();
+          // 复审修复（#2120 / 二轮）：前台 >=1s 卡顿不再静默丢弃——按测量窗口
+          // 聚合（总数+最差，无截断），start() 重置（窗口切分干净）。
+          stallTotalCount += 1;
+          stallWorstMs = Math.max(stallWorstMs, delta);
           raf = requestAnimationFrame(tick);
           return;
         }
@@ -257,6 +258,8 @@ export function MarinePerformanceEvidenceProbe({
     window.__marinePerformanceEvidence = {
       start: () => {
         samples.length = 0;
+        stallTotalCount = 0;
+        stallWorstMs = 0;
         collecting = true;
       },
       stop: () => {
@@ -288,8 +291,8 @@ export function MarinePerformanceEvidenceProbe({
           ...readMarineGpuTimerEvidence(),
           timerQueryExtensionPresent: Boolean(gl?.getExtension('EXT_disjoint_timer_query_webgl2')),
           frameMsSamples: samples.map((sample) => sample.ms),
-          longForegroundStallCount: longStalls.length,
-          longForegroundWorstMs: longStalls.reduce((worst, stall) => Math.max(worst, stall.ms), 0),
+          longForegroundStallCount: stallTotalCount,
+          longForegroundWorstMs: stallWorstMs,
           measuredAt: new Date().toISOString(),
         });
       },
