@@ -32,24 +32,38 @@ const SPECTRUM_INPUT = {
   seed: 17,
 } as const;
 
-/** 实验占位船体：逐帧由**逐点逆 DFT 水高查询**驱动（FFT 分支；两分支同负载）。
- * 查询结果驱动船体垂荡（真实消费查询，可测可见曲面接触）。 */
-function StandInVessel({ backend }: { readonly backend: 'fft' | 'gerstner' }) {
+/** 船体水高查询节拍（Hz）：完整 256² 逆 DFT 单点 ~10ms 级——**不得**进逐帧
+ * 热路径（帧耗归因波场后端，不归因查询）；固定低频节拍批量查询 3 点
+ * （垂荡/纵摇插值），完整查询延迟由 ?qa=fft-ocean 的 measurePointQueryMs
+ * 单独测量（受控比较口径分离）。 */
+const VESSEL_QUERY_HZ = 4;
+
+/** 实验占位船体：低频批量水高查询驱动垂荡/纵摇（两分支同负载）。 */
+function StandInVessel() {
   const meshRef = useRef<THREE.Mesh>(null);
   // 频谱一次构建（与 FFTOceanSurface 同输入——同一场的独立 CPU 查询路径）。
   const spectrum = useRef(fftOceanStaticSpectrum(SPECTRUM_INPUT)).current;
+  const queryRef = useRef({ accumulator: 0, lastTime: 0, mid: 0, pitch: 0 });
   useFrame((state) => {
-    if (!meshRef.current) return;
+    const mesh = meshRef.current;
+    if (!mesh) return;
     const t = state.clock.getElapsedTime();
-    // 船中点 + 艏艉两点（垂荡 + 纵摇由查询差分——可见接触由查询真实驱动）。
-    const mid = fftOceanHeightAt(spectrum, SPECTRUM_INPUT.domainMeters, t, 0, 0);
-    const bow = fftOceanHeightAt(spectrum, SPECTRUM_INPUT.domainMeters, t, 0, 85);
-    const stern = fftOceanHeightAt(spectrum, SPECTRUM_INPUT.domainMeters, t, 0, -85);
-    const pitch = Math.atan2(bow - stern, 170);
-    meshRef.current.position.set(0, 8 + mid, 0);
-    meshRef.current.rotation.set(pitch, 0, 0);
+    const dt = Math.min(0.25, Math.max(0, t - queryRef.current.lastTime));
+    queryRef.current.lastTime = t;
+    queryRef.current.accumulator += dt;
+    if (queryRef.current.accumulator >= 1 / VESSEL_QUERY_HZ) {
+      queryRef.current.accumulator = 0;
+      const domain = SPECTRUM_INPUT.domainMeters;
+      const mid = fftOceanHeightAt(spectrum, domain, t, 0, 0);
+      const bow = fftOceanHeightAt(spectrum, domain, t, 0, 85);
+      const stern = fftOceanHeightAt(spectrum, domain, t, 0, -85);
+      queryRef.current.mid = mid;
+      queryRef.current.pitch = Math.atan2(bow - stern, 170);
+    }
+    // 帧间线性插值（查询低频、运动平滑）。
+    mesh.position.set(0, 8 + queryRef.current.mid, 0);
+    mesh.rotation.set(queryRef.current.pitch, 0, 0);
   });
-  void backend;
   return (
     <mesh ref={meshRef} position={[0, 8, 0]} castShadow={false} receiveShadow={false}>
       <boxGeometry args={[24, 16, 180]} />
@@ -86,7 +100,7 @@ export default function FFTOceanComparisonClient({ backend }: { readonly backend
             <ambientLight intensity={0.6} />
             <directionalLight position={[300, 400, 200]} intensity={1.4} />
             <FarFieldPlane />
-            <StandInVessel backend={backend} />
+            <StandInVessel />
             <Suspense fallback={null}>
               {backend === 'fft' ? (
                 <FFTOceanSurface spectrumInput={SPECTRUM_INPUT} domainMeters={SPECTRUM_INPUT.domainMeters} />

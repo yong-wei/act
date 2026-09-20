@@ -207,11 +207,15 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(client).toContain('unresolvedDifference');
   });
 
-  it('drives the stand-in vessel heave/pitch from the point query each frame', () => {
+  it('drives the stand-in vessel from throttled batched point queries (not per-frame hot path)', () => {
     const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
-    expect(client).toContain('fftOceanHeightAt(spectrum, SPECTRUM_INPUT.domainMeters, t, 0, 0)');
-    expect(client).toContain('const pitch = Math.atan2(bow - stern, 170);');
-    expect(client).toContain('meshRef.current.position.set(0, 8 + mid, 0);');
+    // 完整 256² 逆 DFT 单点 ~10ms 级——固定低频节拍批量查询（帧耗归因波场后端）。
+    expect(client).toContain('VESSEL_QUERY_HZ = 4');
+    expect(client).toContain('if (queryRef.current.accumulator >= 1 / VESSEL_QUERY_HZ) {');
+    expect(client).toContain('const mid = fftOceanHeightAt(spectrum, domain, t, 0, 0);');
+    expect(client).toContain('queryRef.current.pitch = Math.atan2(bow - stern, 170);');
+    // 查询延迟单独测量（口径分离）。
+    expect(client).toContain('measurePointQueryMs');
   });
 
   it('evaluation script consumes real measurement files instead of rewriting empty templates', () => {
