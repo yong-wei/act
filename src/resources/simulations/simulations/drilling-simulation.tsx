@@ -232,7 +232,7 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
   });
 
   return (
-    <group ref={groupRef} position={[position.x, 5, position.z]}>
+    <group name="marine-annotations" ref={groupRef} position={[position.x, 5, position.z]}>
       {/* 目标圆圈 - 绿色安全区 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0, DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION * 10, 32]} />
@@ -1197,7 +1197,7 @@ export function DrillingSimulation() {
 
         {/* 网格 */}
         {showGrid ? (
-          <Grid
+          <Grid name="marine-grid"
             position={[0, 0.35, 0]}
             args={[20000, 20000]}
             cellSize={100}

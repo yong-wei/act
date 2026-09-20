@@ -522,6 +522,7 @@ export function WakeTrail({
   return (
     <mesh
       ref={meshRef}
+      name="marine-wake"
       geometry={handle.geometry}
       material={legacyMaterial}
       renderOrder={9}

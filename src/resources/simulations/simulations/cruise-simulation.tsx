@@ -237,7 +237,7 @@ function DirectionArrow({
 
   return (
     <>
-      <Line
+      <Line name="marine-annotations"
         points={[start, end]}
         color={color}
         lineWidth={lineWidth}
@@ -246,8 +246,8 @@ function DirectionArrow({
         dashSize={28}
         gapSize={14}
       />
-      <Line points={[leftWing, end]} color={color} lineWidth={lineWidth} />
-      <Line points={[rightWing, end]} color={color} lineWidth={lineWidth} />
+      <Line name="marine-annotations" points={[leftWing, end]} color={color} lineWidth={lineWidth} />
+      <Line name="marine-annotations" points={[rightWing, end]} color={color} lineWidth={lineWidth} />
     </>
   );
 }
@@ -1278,6 +1278,7 @@ function CruiseWater({ state, resetToken }: { state: CruiseSimulationState; rese
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      shipHeadingSampler={() => platformHeadingToSceneRad(state.heading)}
       shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
@@ -1393,7 +1394,7 @@ function VisualizationLayer({
         <CruiseWater state={state} resetToken={resetToken} />
       </Suspense>
       {showGrid ? (
-        <Grid
+        <Grid name="marine-grid"
           args={[20000, 20000]}
           cellSize={100}
           cellThickness={0.5}

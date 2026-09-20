@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 
 import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, type GerstnerWave } from './gerstner-waves';
@@ -18,8 +18,9 @@ import {
   nearFieldEnvelope,
   type OceanMeshBandSpec,
 } from './ocean-bands';
-import { createGerstnerWaterMaterial } from './gerstner-water-material';
+import { createGerstnerWaterMaterial, cubeUvDefinesForHeight } from './gerstner-water-material';
 import { MarineFoamFieldProvider, useMarineFoamField } from './foam-history-layer';
+import { MarinePlanarReflection } from '../environment/planar-reflection';
 import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { DEFAULT_ENVIRONMENT_PRESET_ID, getEnvironmentPreset } from '../environment/environment-presets';
 import { simulationScenePalette } from '../../components/simulation-theme';
@@ -293,6 +294,18 @@ export function createGerstnerWaterGeometry(size: number, resolution: number): T
 /** 未显式传色时的默认水色组：与默认环境预设（开阔海）同一真源，不再各自硬编码。 */
 const DEFAULT_WATER_COLORS = getEnvironmentPreset(DEFAULT_ENVIRONMENT_PRESET_ID).water;
 
+/** QA 方向诊断（#2118）：?qa=marine-env 让环境倒影随时间旋转——证明水面
+ * 真在读环境（PMREM），而不是一片纯色天空的静态混色。 */
+const ENV_QA_SPIN =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('qa', 'marine-env');
+
+/** QA 旋转复用对象（与 three WebGLMaterials 同构：绕 Y 旋转 + transpose）。 */
+const ENV_QA_SPIN_MATRIX = new THREE.Matrix4();
+
+/** QA 平面反射关闭开关（#2118）：?qa-planar=off。 */
+const PLANAR_QA_DISABLED =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-planar') === 'off';
+
 /** QA 归因开关（#2116）：?qa-micro=off 关闭全部微法线（挂载时解析一次）。 */
 const MICRO_QA_DISABLED =
   typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-micro') === 'off';
@@ -374,6 +387,7 @@ function BandWaterMesh({
   readonly foamTexture: THREE.Texture;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const scene = useThree((state) => state.scene);
   // 泡沫历史密度场（#2115）：宿主 Provider 注入；材质消费密度纹理，域原点逐帧跟随。
   const foamField = useMarineFoamField();
 
@@ -437,6 +451,53 @@ function BandWaterMesh({
     // 泡沫场域原点（#2115）：域按量化步长重定位（非逐帧平移），材质按域原点采样。
     if (foamField) {
       material.uniforms.uFoamOrigin.value.set(foamField.field.originX, foamField.field.originZ);
+    }
+    // 环境辐射（#2118）：与船体 PBR 同一 PMREM（scene.userData 跨兄弟共享）。
+    // 首次绑定/高度变化时补 CubeUV defines 并重编译；QA 旋转诊断经
+    // envMapRotation 随视觉时间旋转采样方向。
+    const env = (scene.userData as { marineEnvRadiance?: { texture: THREE.Texture; cubeUVHeight: number; intensity: number } }).marineEnvRadiance;
+    if (env && material.uniforms.envMap.value !== env.texture) {
+      material.uniforms.envMap.value = env.texture;
+      material.uniforms.envMapIntensity.value = env.intensity;
+      material.uniforms.uEnvEnabled.value = 1;
+      let definesChanged = false;
+      if (material.defines.USE_ENVMAP === undefined) {
+        material.defines.USE_ENVMAP = '';
+        material.defines.ENVMAP_TYPE_CUBE_UV = '';
+        definesChanged = true;
+      }
+      const defines = cubeUvDefinesForHeight(env.cubeUVHeight);
+      for (const [key, value] of Object.entries(defines)) {
+        if (material.defines[key] !== value) {
+          material.defines[key] = value;
+          definesChanged = true;
+        }
+      }
+      if (definesChanged) material.needsUpdate = true;
+    } else if (!env && material.uniforms.uEnvEnabled.value !== 0) {
+      material.uniforms.uEnvEnabled.value = 0;
+      material.uniforms.envMapIntensity.value = 0;
+    }
+    if (ENV_QA_SPIN && material.uniforms.uEnvEnabled.value > 0) {
+      const angle = state.clock.getElapsedTime() * 0.4;
+      // 与船体同一路径（复审修复）：three WebGLMaterials 对内建材质把
+      // scene.environmentRotation 的旋转矩阵转置后传入 envMapRotation——水面
+      // uniform 按 setFromMatrix4(makeRotationFromEuler).transpose() 同构构建，
+      // 两侧方向特征一致（不一边正转一边反转）。
+      (material.uniforms.envMapRotation.value as THREE.Matrix3)
+        .setFromMatrix4(ENV_QA_SPIN_MATRIX.makeRotationY(angle))
+        .transpose();
+      scene.environmentRotation?.set(0, angle, 0);
+    }
+    // 平面反射（#2118 受控高档）：反射组件经 scene.userData 提供纹理矩阵。
+    const planar = (scene.userData as { marinePlanarReflection?: { texture: THREE.Texture; matrix: THREE.Matrix4; strength: number; planeY: number } }).marinePlanarReflection;
+    if (planar) {
+      material.uniforms.uPlanarTex.value = planar.texture;
+      (material.uniforms.uPlanarMatrix.value as THREE.Matrix4).copy(planar.matrix);
+      material.uniforms.uPlanarStrength.value = planar.strength;
+      material.uniforms.uPlanarPlaneY.value = planar.planeY;
+    } else if (material.uniforms.uPlanarStrength.value !== 0) {
+      material.uniforms.uPlanarStrength.value = 0;
     }
     // 船壳排水排除（#2101）：逐帧写入船体局部框与船朝向（跟船网格原点=船位）。
     if (hullExclusionSampler) {
@@ -512,7 +573,14 @@ export function GerstnerWater({
       positionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
       resetToken={resetToken}
     >
-      <group>
+      {/* 受控高档平面反射（#2118）：高档且未显式关闭时启用（运动触发更新）。 */}
+      <MarinePlanarReflection
+        planeY={GERSTNER_WATER_BASE_Y}
+        enabled={tier === 'high' && !PLANAR_QA_DISABLED}
+        subjectPositionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
+        subjectHeadingSampler={shipHeadingSampler}
+      />
+      <group name="marine-water">
       <BandWaterMesh
         waves={farWaves}
         meshSpec={farSpec}

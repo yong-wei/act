@@ -54,7 +54,7 @@ function HeadingArc({ snapshot, shipLength }: { readonly snapshot: AnnotationSna
 
   return (
     <>
-      <Line
+      <Line name="marine-annotations"
         points={currentPoints}
         color={ANNOTATION_STYLE.headingArc.color}
         lineWidth={ANNOTATION_STYLE.headingArc.lineWidth}
@@ -62,7 +62,7 @@ function HeadingArc({ snapshot, shipLength }: { readonly snapshot: AnnotationSna
         opacity={ANNOTATION_STYLE.headingArc.opacity}
       />
       {targetPoints ? (
-        <Line
+        <Line name="marine-annotations"
           points={targetPoints}
           color={ANNOTATION_STYLE.targetCourse.color}
           lineWidth={ANNOTATION_STYLE.headingArc.lineWidth}
@@ -93,7 +93,7 @@ function TargetCourseLine({ snapshot, shipLength }: { readonly snapshot: Annotat
 
   if (!points) return null;
   return (
-    <Line
+    <Line name="marine-annotations"
       points={points}
       color={ANNOTATION_STYLE.targetCourse.color}
       lineWidth={2}
@@ -112,7 +112,7 @@ function DirectionArrow({ snapshot, shipLength }: { readonly snapshot: Annotatio
     [snapshot.headingRad]
   );
   return (
-    <arrowHelper
+    <arrowHelper name="marine-annotations"
       args={[
         forward,
         new THREE.Vector3(0, 2, 0),
@@ -187,7 +187,9 @@ export function TeachingAnnotations({
   if (!snapshot) return null;
 
   return (
-    <group position={[snapshot.x, snapshot.y, snapshot.z]}>
+    // marine- 前缀命名（#2118 复审）：整个教学标注组（含 WorldLabel sprite）
+    // 一起从平面反射 pass 隐藏——逐子件命名会漏掉新增子件。
+    <group name="marine-annotations" position={[snapshot.x, snapshot.y, snapshot.z]}>
       <HeadingArc snapshot={snapshot} shipLength={shipLength} />
       <TargetCourseLine snapshot={snapshot} shipLength={shipLength} />
       <DirectionArrow snapshot={snapshot} shipLength={shipLength} />

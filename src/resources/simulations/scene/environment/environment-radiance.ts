@@ -64,6 +64,8 @@ export interface MarinePmremSource {
 export interface MarineRadianceCacheEntry {
   readonly presetId: string;
   readonly texture: THREE.Texture;
+  /** CubeUV 布局高度（#2118）：水面 shader CUBEUV_* 定义推导输入。 */
+  readonly cubeUVHeight: number;
   /** 完整 RenderTarget dispose（二轮复审：仅 dispose texture 不释放 framebuffer/depth）。 */
   readonly dispose: () => void;
 }
@@ -113,9 +115,12 @@ export function resolveMarineEnvironmentRadiance(
   const cached = bucket.get(presetId);
   if (cached) return cached;
   const target = source.fromSkyScene(skySceneFactory());
+  const image = (target.texture as THREE.Texture & { image?: { height?: number } }).image;
   const entry: MarineRadianceCacheEntry = {
     presetId,
     texture: target.texture,
+    // CubeUV 布局高度（#2118）：水面自定义 shader 采样同一 PMREM 的定义输入。
+    cubeUVHeight: Number(image?.height) > 0 ? (image!.height as number) : 256,
     dispose: () => target.dispose(),
   };
   bucket.set(presetId, entry);
