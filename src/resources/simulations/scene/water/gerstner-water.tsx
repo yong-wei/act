@@ -505,7 +505,9 @@ export function GerstnerWater({
         amplitudeScale={amplitudeScale}
         envelopeSizeMeters={0}
         nearCutoutHalfSizeMeters={NEAR_FIELD_MESH_SPEC.size / 2}
-        microNormalTier="low"
+        /* #2116 复审：远场与近场同微法线档——接缝两侧光学连续（高 DPR/窄 FOV
+           下近场边缘微法线可达满幅；远距离由脚印过滤自然衰减 + 能量补偿）。 */
+        microNormalTier={tier}
         sunIllumination={sunIllumination}
         hullExclusionSampler={hullExclusionSampler}
         shipHeadingSampler={shipHeadingSampler}
