@@ -198,8 +198,20 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(client).toContain('domainMeters: 2048');
     expect(client).toContain('resolution: 256');
     expect(client).toContain('GerstnerWater tier="low"');
+    // 三轮复审：Gerstner 内置远场关闭（两分支远场统一由 FarFieldPlane 承担）。
+    expect(client).toContain('disableFarField');
+    const water = readSource('src/resources/simulations/scene/water/gerstner-water.tsx');
+    expect(water).toContain('disableFarField');
+    expect(water).toContain('{disableFarField ? null : (');
     // 残余差异声明（泡沫纹理只在 Gerstner 材质栈）。
     expect(client).toContain('unresolvedDifference');
+  });
+
+  it('drives the stand-in vessel heave/pitch from the point query each frame', () => {
+    const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
+    expect(client).toContain('fftOceanHeightAt(spectrum, SPECTRUM_INPUT.domainMeters, t, 0, 0)');
+    expect(client).toContain('const pitch = Math.atan2(bow - stern, 170);');
+    expect(client).toContain('meshRef.current.position.set(0, 8 + mid, 0);');
   });
 
   it('evaluation script consumes real measurement files instead of rewriting empty templates', () => {

@@ -5,7 +5,11 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 
+import { useFrame } from '@react-three/fiber';
+import { useRef } from 'react';
+
 import { FFTOceanSurface } from '@/resources/simulations/scene/water/fft-ocean-surface';
+import { fftOceanHeightAt, fftOceanStaticSpectrum } from '@/resources/simulations/scene/water/fft-ocean';
 import { GerstnerWater } from '@/resources/simulations/scene/water';
 import { SceneEnvironmentProvider } from '@/resources/simulations/scene/environment';
 
@@ -28,10 +32,26 @@ const SPECTRUM_INPUT = {
   seed: 17,
 } as const;
 
-/** 实验占位船体（两分支同负载；也是逐点水高查询的受测主体）。 */
-function StandInVessel() {
+/** 实验占位船体：逐帧由**逐点逆 DFT 水高查询**驱动（FFT 分支；两分支同负载）。
+ * 查询结果驱动船体垂荡（真实消费查询，可测可见曲面接触）。 */
+function StandInVessel({ backend }: { readonly backend: 'fft' | 'gerstner' }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  // 频谱一次构建（与 FFTOceanSurface 同输入——同一场的独立 CPU 查询路径）。
+  const spectrum = useRef(fftOceanStaticSpectrum(SPECTRUM_INPUT)).current;
+  useFrame((state) => {
+    if (!meshRef.current) return;
+    const t = state.clock.getElapsedTime();
+    // 船中点 + 艏艉两点（垂荡 + 纵摇由查询差分——可见接触由查询真实驱动）。
+    const mid = fftOceanHeightAt(spectrum, SPECTRUM_INPUT.domainMeters, t, 0, 0);
+    const bow = fftOceanHeightAt(spectrum, SPECTRUM_INPUT.domainMeters, t, 0, 85);
+    const stern = fftOceanHeightAt(spectrum, SPECTRUM_INPUT.domainMeters, t, 0, -85);
+    const pitch = Math.atan2(bow - stern, 170);
+    meshRef.current.position.set(0, 8 + mid, 0);
+    meshRef.current.rotation.set(pitch, 0, 0);
+  });
+  void backend;
   return (
-    <mesh position={[0, 4, 0]} castShadow={false} receiveShadow={false}>
+    <mesh ref={meshRef} position={[0, 8, 0]} castShadow={false} receiveShadow={false}>
       <boxGeometry args={[24, 16, 180]} />
       <meshStandardMaterial color={0x6a7681} roughness={0.85} metalness={0.1} />
     </mesh>
@@ -66,12 +86,14 @@ export default function FFTOceanComparisonClient({ backend }: { readonly backend
             <ambientLight intensity={0.6} />
             <directionalLight position={[300, 400, 200]} intensity={1.4} />
             <FarFieldPlane />
-            <StandInVessel />
+            <StandInVessel backend={backend} />
             <Suspense fallback={null}>
               {backend === 'fft' ? (
                 <FFTOceanSurface spectrumInput={SPECTRUM_INPUT} domainMeters={SPECTRUM_INPUT.domainMeters} />
               ) : (
-                <GerstnerWater tier="low" seaState={4} />
+                /* disableFarField：两分支远场负载统一由 FarFieldPlane 承担
+                   （Gerstner 内置 60km 远场关闭——帧耗差异只来自近场波场）。 */
+                <GerstnerWater tier="low" seaState={4} disableFarField />
               )}
             </Suspense>
             <OrbitControls enablePan enableZoom enableRotate minDistance={40} maxDistance={4000} />

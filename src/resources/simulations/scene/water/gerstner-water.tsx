@@ -342,6 +342,11 @@ export interface GerstnerWaterProps {
   readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
   /** 实验重置令牌（#2115）：变化时清空泡沫历史场（与尾迹 key 同一重置源）。 */
   readonly resetToken?: number;
+  /**
+   * 实验隔离（#2121 对照页）：跳过内置 60km 远场网格（由实验分支提供
+   * 统一的远场负载）。缺省 false（生产路径不变）。
+   */
+  readonly disableFarField?: boolean;
 }
 
 /** 单个带限水网格（#2098 内部组件）：几何/材质随波组与包络参数构建，逐帧写时间与原点。 */
@@ -545,6 +550,7 @@ export function GerstnerWater({
   shipPosition,
   positionSampler,
   resetToken,
+  disableFarField = false,
   seaState = DEFAULT_GERSTNER_SEA_STATE,
   waterColor = DEFAULT_WATER_COLORS.waterColor,
   deepColor = DEFAULT_WATER_COLORS.deepColor,
@@ -588,31 +594,33 @@ export function GerstnerWater({
         subjectHeadingSampler={shipHeadingSampler}
       />
       <group name="marine-water">
-      <BandWaterMesh
-        waves={farWaves}
-        meshSpec={farSpec}
-        amplitudeScale={amplitudeScale}
-        envelopeSizeMeters={0}
-        nearCutoutHalfSizeMeters={NEAR_FIELD_MESH_SPEC.size / 2}
-        /* #2116 复审：远场与近场同微法线档——接缝两侧光学连续（高 DPR/窄 FOV
-           下近场边缘微法线可达满幅；远距离由脚印过滤自然衰减 + 能量补偿）。 */
-        microNormalTier={tier}
-        sunIllumination={sunIllumination}
-        hullExclusionSampler={hullExclusionSampler}
-        shipHeadingSampler={shipHeadingSampler}
-        shoreSegments={shoreSegments}
-        shoreFadeBandMeters={shoreFadeBandMeters}
-        sedimentPlume={null}
-        marineVisualTime={marineVisualTime}
-        positionSampler={positionSampler}
-        shipPosition={shipPosition}
-        waterColor={waterColor}
-        deepColor={deepColor}
-        horizonColor={horizonColor}
-        foamColor={foamColor}
-        sunDirection={sunDirection}
-        foamTexture={foamTexture}
-      />
+      {disableFarField ? null : (
+        <BandWaterMesh
+          waves={farWaves}
+          meshSpec={farSpec}
+          amplitudeScale={amplitudeScale}
+          envelopeSizeMeters={0}
+          nearCutoutHalfSizeMeters={NEAR_FIELD_MESH_SPEC.size / 2}
+          /* #2116 复审：远场与近场同微法线档——接缝两侧光学连续（高 DPR/窄 FOV
+             下近场边缘微法线可达满幅；远距离由脚印过滤自然衰减 + 能量补偿）。 */
+          microNormalTier={tier}
+          sunIllumination={sunIllumination}
+          hullExclusionSampler={hullExclusionSampler}
+          shipHeadingSampler={shipHeadingSampler}
+          shoreSegments={shoreSegments}
+          shoreFadeBandMeters={shoreFadeBandMeters}
+          sedimentPlume={null}
+          marineVisualTime={marineVisualTime}
+          positionSampler={positionSampler}
+          shipPosition={shipPosition}
+          waterColor={waterColor}
+          deepColor={deepColor}
+          horizonColor={horizonColor}
+          foamColor={foamColor}
+          sunDirection={sunDirection}
+          foamTexture={foamTexture}
+        />
+      )}
       <BandWaterMesh
         waves={NEAR_FIELD_VISIBLE_WAVES}
         meshSpec={NEAR_FIELD_MESH_SPEC}
