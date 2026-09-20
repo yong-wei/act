@@ -438,6 +438,12 @@ describe('source contracts (#2115)', () => {
     }
     const destroyer = readSource('simulations/destroyer-simulation.tsx');
     expect(destroyer).toContain('<PresetWater simRef={simRef} resetToken={resetToken} />');
+    // 飞沫受光随环境预设：七个场景的尾迹都透传 useEnvironmentWaterColors。
+    for (const sim of ['container', 'cruise', 'icebreaker', 'dredger', 'lng', 'drilling', 'destroyer']) {
+      const source = readSource(`simulations/${sim}-simulation.tsx`);
+      expect(source).toContain('sunDirection={environmentLight.sunDirection}');
+      expect(source).toContain('sunIllumination={environmentLight.sunIllumination}');
+    }
   });
 
   it('multi-trail scenes allocate hard aggregate capacities', () => {
@@ -480,9 +486,11 @@ describe('source contracts (#2115)', () => {
     const source = readSource('scene/water/foam-history-layer.tsx');
     // 海况/振幅变化经 ref 更新（不重建场、不瞬清历史）。
     expect(source).toContain('sourcesRef.current = {');
-    // 档位变化按世界坐标重采样旧密度。
+    // 档位变化按世界坐标重采样旧密度，并继承旧场原点/时间/epoch
+    //（旧场已随船重定位，新场保持 (0,0) 会读到全零）。
     expect(source).toContain('previousFieldRef');
     expect(source).toContain('previous.densityAt(');
+    expect(source).toContain('field.originX = previous.originX;');
     // 材质端域缘羽化（无刚性方形边界）。
     const material = readSource('scene/water/gerstner-water-material.ts');
     expect(material).toContain('uFoamEdgeFade');

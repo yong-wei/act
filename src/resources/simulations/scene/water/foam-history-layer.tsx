@@ -128,6 +128,13 @@ export function MarineFoamFieldProvider({
     });
     const previous = previousFieldRef.current;
     if (previous) {
+      // 继承旧场原点/时间/epoch（P2 修复）：旧场已随船重定位（原点≠0），
+      // 新场若保持 (0,0) 再按自身世界坐标读旧场会得到全零。
+      field.originX = previous.originX;
+      field.originZ = previous.originZ;
+      field.timeSeconds = previous.timeSeconds;
+      field.naturalPhaseTimeSeconds = previous.naturalPhaseTimeSeconds;
+      field.epoch = previous.epoch;
       for (let j = 0; j < field.resolution; j += 1) {
         for (let i = 0; i < field.resolution; i += 1) {
           field.grid[j * field.resolution + i] = previous.densityAt(
