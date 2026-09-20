@@ -484,7 +484,7 @@ function GridHelper({
   return (
     <group ref={gridRef}>
       {lines.map((points, i) => (
-        <Line key={i} points={points} color={sceneTheme.gridCellColor} lineWidth={1.0} transparent opacity={sceneTheme.gridOpacity} />
+        <Line name="marine-annotations" key={i} points={points} color={sceneTheme.gridCellColor} lineWidth={1.0} transparent opacity={sceneTheme.gridOpacity} />
       ))}
     </group>
   );
@@ -492,7 +492,7 @@ function GridHelper({
 
 function GuideRoute({ points }: { points: THREE.Vector3[] }) {
   if (!points || points.length < 2) return null;
-  return <Line points={points} color={simulationScenePalette.danger} lineWidth={3} dashed={false} />;
+  return <Line name="marine-guide" points={points} color={simulationScenePalette.danger} lineWidth={3} dashed={false} />;
 }
 
 /** QA 钩子：把质量档位与派生预算暴露为 DOM 属性（性能 spec 与视觉 QA 消费）。 */

@@ -76,7 +76,7 @@ export function WaterHuggingLine({
 
   if (points.length < 2 || lifted.length < 2) return null;
   return (
-    <Line
+    <Line name="marine-trail"
       points={lifted as [number, number, number][]}
       color={color}
       lineWidth={lineWidth}

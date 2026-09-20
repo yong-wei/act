@@ -1197,7 +1197,7 @@ export function DrillingSimulation() {
 
         {/* 网格 */}
         {showGrid ? (
-          <Grid
+          <Grid name="marine-grid"
             position={[0, 0.35, 0]}
             args={[20000, 20000]}
             cellSize={100}

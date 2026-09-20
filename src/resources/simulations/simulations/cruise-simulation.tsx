@@ -237,7 +237,7 @@ function DirectionArrow({
 
   return (
     <>
-      <Line
+      <Line name="marine-annotations"
         points={[start, end]}
         color={color}
         lineWidth={lineWidth}
@@ -246,8 +246,8 @@ function DirectionArrow({
         dashSize={28}
         gapSize={14}
       />
-      <Line points={[leftWing, end]} color={color} lineWidth={lineWidth} />
-      <Line points={[rightWing, end]} color={color} lineWidth={lineWidth} />
+      <Line name="marine-annotations" points={[leftWing, end]} color={color} lineWidth={lineWidth} />
+      <Line name="marine-annotations" points={[rightWing, end]} color={color} lineWidth={lineWidth} />
     </>
   );
 }
@@ -1393,7 +1393,7 @@ function VisualizationLayer({
         <CruiseWater state={state} resetToken={resetToken} />
       </Suspense>
       {showGrid ? (
-        <Grid
+        <Grid name="marine-grid"
           args={[20000, 20000]}
           cellSize={100}
           cellThickness={0.5}

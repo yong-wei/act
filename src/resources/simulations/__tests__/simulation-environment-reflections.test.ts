@@ -33,7 +33,9 @@ describe('water shader consumes shared PMREM radiance (#2118)', () => {
     expect(source).toContain('#include <cube_uv_reflection_fragment>');
     expect(source).toContain('#include <envmap_common_pars_fragment>');
     expect(source).toContain('#include <envmap_physical_pars_fragment>');
-    expect(source).toContain('getIBLRadiance(viewDirection, normal, roughness)');
+    // P1 修复：世界空间直接采样（chunk 的 getIBLRadiance 期望视图空间入参）。
+    expect(source).toContain('textureCubeUV(envMap, envMapRotation * envReflect, roughness)');
+    expect(source).toContain('mix(envReflect, normal, pow4(roughness))');
     // 无环境时兜底回退 horizonColor 过渡（波光责任不变）。
     expect(source).toContain('reflectionTint = uHorizonColor;');
     expect(source).toContain('uEnvEnabled > 0.5');
@@ -80,19 +82,33 @@ describe('camera-relative sky and fog plumbing (#2118)', () => {
 });
 
 describe('controlled high-tier planar reflection (#2118)', () => {
-  it('mirrors the camera, hides the water itself, and renders on motion only', () => {
+  it('mirrors the camera, hides overlays by prefix, and renders on motion only', () => {
     const source = readSource('scene/environment/planar-reflection.tsx');
     expect(source).toContain("2 * planeY - source.position.y");
-    expect(source).toContain("REFLECTION_HIDDEN_NAMES");
-    expect(source).toContain("'marine-water'");
-    expect(source).toContain("'marine-wake'");
-    // 运动触发：静止场景不重画（默认无每帧反射成本）。
-    expect(source).toContain('if (state.hasRendered && !cameraMoved && !subjectMoved)');
-    // 禁用释放 + 卸载释放。
+    // 复审修复：marine- 前缀隐藏约定（水面/尾迹防递归 + 教学/辅助线不泄漏）。
+    expect(source).toContain("REFLECTION_HIDDEN_NAME_PREFIX = 'marine-'");
+    expect(source).toContain("object.name.startsWith(REFLECTION_HIDDEN_NAME_PREFIX)");
+    // 运动触发：静止场景不重画；原地转向（航向变化）同样失效（复审修复）。
+    expect(source).toContain('if (state.hasRendered && !cameraMoved && !subjectMoved && !subjectTurned)');
+    expect(source).toContain('subjectHeadingSampler');
+    expect(source).toContain('Math.abs(subjectHeading - state.lastSubjectHeading) > 0.02');
+    // 禁用释放（降档 dispose RT）+ 卸载释放 + 重启用重建。
     expect(source).toContain('delete scene.userData[MARINE_PLANAR_REFLECTION_SCENE_KEY]');
-    expect(source).toContain('renderTarget.dispose()');
+    expect(source).toContain('renderTargetRef.current?.dispose()');
+    expect(source).toContain('if (!renderTargetRef.current) {');
     // 纹理矩阵：bias × projection × view。
     expect(source).toContain('.multiply(mirrorCamera.projectionMatrix)');
+  });
+
+  it('names overlays with the marine- prefix across the fleet', () => {
+    expect(readSource('scene/annotations/teaching-annotations.tsx')).toContain('name="marine-annotations"');
+    expect(readSource('scene/lines/index.tsx')).toContain('name="marine-trail"');
+    for (const sim of ['container', 'cruise', 'lng']) {
+      const source = readSource(`simulations/${sim}-simulation.tsx`);
+      expect(source, sim).toContain('name="marine-annotations"');
+      expect(source, sim).toContain('name="marine-grid"');
+    }
+    expect(readSource('simulations/destroyer-simulation.tsx')).toContain('name="marine-guide"');
   });
 
   it('samples the reflection via projective texture with distance fade', () => {

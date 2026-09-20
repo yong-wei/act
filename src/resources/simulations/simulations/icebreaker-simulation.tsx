@@ -236,7 +236,7 @@ function HeadingIndicator({
   const endZ = position.z + Math.cos(headingRad) * length;
 
   return (
-    <Line
+    <Line name="marine-annotations"
       points={[
         [position.x, 5, position.z],
         [endX, 5, endZ],
@@ -456,7 +456,7 @@ function Scene({
       <WakeTrailRig position={position} heading={heading} speed={speed} playing={playing} resetToken={resetToken} />
 
       {showGrid ? (
-        <Grid
+        <Grid name="marine-grid"
           position={[0, 0.35, 0]}
           args={[20000, 20000]}
           cellSize={100}

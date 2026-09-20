@@ -185,7 +185,7 @@ function HeadingIndicator({
   return (
     <group>
       {/* 目标航向 (浅蓝虚线箭头) */}
-      <Line
+      <Line name="marine-annotations"
         points={[[position.x, 5, position.z], targetEnd]}
         color={simulationScenePalette.headingSecondary}
         lineWidth={2}
@@ -193,16 +193,16 @@ function HeadingIndicator({
         dashSize={20}
         gapSize={10}
       />
-      <Line points={[targetWings.left, targetEnd]} color={simulationScenePalette.headingSecondary} lineWidth={2} />
-      <Line points={[targetWings.right, targetEnd]} color={simulationScenePalette.headingSecondary} lineWidth={2} />
+      <Line name="marine-annotations" points={[targetWings.left, targetEnd]} color={simulationScenePalette.headingSecondary} lineWidth={2} />
+      <Line name="marine-annotations" points={[targetWings.right, targetEnd]} color={simulationScenePalette.headingSecondary} lineWidth={2} />
       {/* 当前航向 (深蓝实线箭头) */}
-      <Line
+      <Line name="marine-annotations"
         points={[[position.x, 5, position.z], currentEnd]}
         color={simulationScenePalette.headingPrimary}
         lineWidth={3}
       />
-      <Line points={[currentWings.left, currentEnd]} color={simulationScenePalette.headingPrimary} lineWidth={3} />
-      <Line points={[currentWings.right, currentEnd]} color={simulationScenePalette.headingPrimary} lineWidth={3} />
+      <Line name="marine-annotations" points={[currentWings.left, currentEnd]} color={simulationScenePalette.headingPrimary} lineWidth={3} />
+      <Line name="marine-annotations" points={[currentWings.right, currentEnd]} color={simulationScenePalette.headingPrimary} lineWidth={3} />
     </group>
   );
 }
@@ -500,7 +500,7 @@ function Scene({
       </Suspense>
 
       {showGrid ? (
-        <Grid
+        <Grid name="marine-grid"
           args={[10000, 10000]}
           cellSize={100}
           cellThickness={0.5}

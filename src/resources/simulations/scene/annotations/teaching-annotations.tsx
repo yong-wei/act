@@ -54,7 +54,7 @@ function HeadingArc({ snapshot, shipLength }: { readonly snapshot: AnnotationSna
 
   return (
     <>
-      <Line
+      <Line name="marine-annotations"
         points={currentPoints}
         color={ANNOTATION_STYLE.headingArc.color}
         lineWidth={ANNOTATION_STYLE.headingArc.lineWidth}
@@ -62,7 +62,7 @@ function HeadingArc({ snapshot, shipLength }: { readonly snapshot: AnnotationSna
         opacity={ANNOTATION_STYLE.headingArc.opacity}
       />
       {targetPoints ? (
-        <Line
+        <Line name="marine-annotations"
           points={targetPoints}
           color={ANNOTATION_STYLE.targetCourse.color}
           lineWidth={ANNOTATION_STYLE.headingArc.lineWidth}
@@ -93,7 +93,7 @@ function TargetCourseLine({ snapshot, shipLength }: { readonly snapshot: Annotat
 
   if (!points) return null;
   return (
-    <Line
+    <Line name="marine-annotations"
       points={points}
       color={ANNOTATION_STYLE.targetCourse.color}
       lineWidth={2}
@@ -112,7 +112,7 @@ function DirectionArrow({ snapshot, shipLength }: { readonly snapshot: Annotatio
     [snapshot.headingRad]
   );
   return (
-    <arrowHelper
+    <arrowHelper name="marine-annotations"
       args={[
         forward,
         new THREE.Vector3(0, 2, 0),

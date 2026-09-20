@@ -576,7 +576,13 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         vec3 reflectionTint = uHorizonColor;
         #ifdef USE_ENVMAP
         if (uEnvEnabled > 0.5) {
-          vec3 ibl = getIBLRadiance(viewDirection, normal, roughness);
+          // 世界空间直接采样（P1 修复）：three 的 getIBLRadiance 期望视图空间
+          // 入参（内部做 inverseTransformDirection(viewMatrix)）——这里手动展开
+          // 同一公式（pow4 粗糙度混合 + envMapRotation），与船体 PBR 方向一致。
+          vec3 envReflect = reflect(-viewDirection, normal);
+          envReflect = normalize(mix(envReflect, normal, pow4(roughness)));
+          vec3 ibl = textureCubeUV(envMap, envMapRotation * envReflect, roughness).rgb
+            * envMapIntensity;
           reflectionTint = mix(uHorizonColor, ibl, clamp(envMapIntensity, 0.0, 1.0));
         }
         #endif

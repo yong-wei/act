@@ -570,6 +570,7 @@ export function GerstnerWater({
         planeY={GERSTNER_WATER_BASE_Y}
         enabled={tier === 'high' && !PLANAR_QA_DISABLED}
         subjectPositionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
+        subjectHeadingSampler={shipHeadingSampler}
       />
       <group name="marine-water">
       <BandWaterMesh

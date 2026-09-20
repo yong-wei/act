@@ -173,7 +173,7 @@ function WindIndicator({
   ];
 
   return (
-    <Line
+    <Line name="marine-annotations"
       points={[[position.x, 100, position.z], end]}
       color={simulationScenePalette.headingSecondary}
       lineWidth={3}
@@ -226,23 +226,23 @@ function HeadingIndicator({
   return (
     <>
       {/* 目标航向 - 橙色虚线箭头 */}
-      <Line
+      <Line name="marine-annotations"
         points={[[position.x, 2, position.z], targetEnd]}
         color={simulationScenePalette.containerTarget}
         lineWidth={2}
         dashed
         dashScale={30}
       />
-      <Line points={[targetWings.left, targetEnd]} color={simulationScenePalette.containerTarget} lineWidth={2} />
-      <Line points={[targetWings.right, targetEnd]} color={simulationScenePalette.containerTarget} lineWidth={2} />
+      <Line name="marine-annotations" points={[targetWings.left, targetEnd]} color={simulationScenePalette.containerTarget} lineWidth={2} />
+      <Line name="marine-annotations" points={[targetWings.right, targetEnd]} color={simulationScenePalette.containerTarget} lineWidth={2} />
       {/* 当前航向 - 深橙色实线箭头 */}
-      <Line
+      <Line name="marine-annotations"
         points={[[position.x, 2, position.z], currentEnd]}
         color={simulationScenePalette.containerPrimary}
         lineWidth={3}
       />
-      <Line points={[currentWings.left, currentEnd]} color={simulationScenePalette.containerPrimary} lineWidth={3} />
-      <Line points={[currentWings.right, currentEnd]} color={simulationScenePalette.containerPrimary} lineWidth={3} />
+      <Line name="marine-annotations" points={[currentWings.left, currentEnd]} color={simulationScenePalette.containerPrimary} lineWidth={3} />
+      <Line name="marine-annotations" points={[currentWings.right, currentEnd]} color={simulationScenePalette.containerPrimary} lineWidth={3} />
     </>
   );
 }
@@ -625,7 +625,7 @@ function Scene({
 
       {/* 参考网格 */}
       {showGrid ? (
-        <Grid
+        <Grid name="marine-grid"
           args={[20000, 20000]}
           cellSize={100}
           cellThickness={0.5}
