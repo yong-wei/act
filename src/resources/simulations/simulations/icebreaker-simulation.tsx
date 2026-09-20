@@ -282,7 +282,7 @@ function SceneQualityAttributes() {
 }
 
 /** 海面颜色随环境预设、细分随质量档位的桥接组件。 */
-function IcebreakerWater({ position, resetToken }: { position: Vector2; resetToken: number }) {
+function IcebreakerWater({ position, heading, resetToken }: { position: Vector2; heading: number; resetToken: number }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
@@ -290,6 +290,7 @@ function IcebreakerWater({ position, resetToken }: { position: Vector2; resetTok
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: position.x, z: position.z })}
+      shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(heading))}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
@@ -430,7 +431,7 @@ function Scene({
       <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'icebreaker', cameraView: String(cameraMode), seaState: 3 })} />
       <Suspense fallback={null}>
-        <IcebreakerWater position={position} resetToken={resetToken} />
+        <IcebreakerWater position={position} heading={heading} resetToken={resetToken} />
       </Suspense>
 
       <Suspense

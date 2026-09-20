@@ -507,6 +507,7 @@ function ContainerWater({ state, resetToken }: { state: ContainerSimulationState
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      shipHeadingSampler={() => platformHeadingToSceneRad(state.heading)}
       shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}

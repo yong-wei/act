@@ -103,12 +103,22 @@ describe('controlled high-tier planar reflection (#2118)', () => {
   it('names overlays with the marine- prefix across the fleet', () => {
     expect(readSource('scene/annotations/teaching-annotations.tsx')).toContain('name="marine-annotations"');
     expect(readSource('scene/lines/index.tsx')).toContain('name="marine-trail"');
-    for (const sim of ['container', 'cruise', 'lng']) {
+    for (const sim of ['container', 'cruise', 'lng', 'dredger']) {
       const source = readSource(`simulations/${sim}-simulation.tsx`);
       expect(source, sim).toContain('name="marine-annotations"');
       expect(source, sim).toContain('name="marine-grid"');
     }
+    // 挖泥/钻井目标标记同样纳入前缀隐藏。
+    expect(readSource('simulations/dredger-simulation.tsx')).toContain('<group name="marine-annotations"');
+    expect(readSource('simulations/drilling-simulation.tsx')).toContain('<group name="marine-annotations"');
     expect(readSource('simulations/destroyer-simulation.tsx')).toContain('name="marine-guide"');
+  });
+
+  it('wires subject heading samplers into every water mount (turn invalidation)', () => {
+    for (const sim of ['container', 'cruise', 'lng', 'icebreaker', 'dredger', 'destroyer', 'drilling']) {
+      const source = readSource(`simulations/${sim}-simulation.tsx`);
+      expect(source, sim).toContain('shipHeadingSampler={');
+    }
   });
 
   it('samples the reflection via projective texture with distance fade', () => {

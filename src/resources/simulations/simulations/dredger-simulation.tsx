@@ -189,7 +189,7 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
   });
 
   return (
-    <group ref={groupRef} position={[position.x, 5, position.z]}>
+    <group name="marine-annotations" ref={groupRef} position={[position.x, 5, position.z]}>
       {/* 目标圆圈 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[8, 10, 32]} />
@@ -519,6 +519,7 @@ function DredgerWater({
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })}
+      shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi))}
       shoreSegments={MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments}
       sedimentPlume={marineLayoutSedimentPlume('shallow-construction-site')}
       waterColor={water.waterColor}
@@ -944,7 +945,7 @@ export function DredgerSimulation() {
 
         {/* 网格 */}
         {showGrid ? (
-          <Grid
+          <Grid name="marine-grid"
             position={[0, 0.35, 0]}
             args={[20000, 20000]}
             cellSize={100}
