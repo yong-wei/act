@@ -200,6 +200,8 @@ describe('layout mounting reuses the shared rendering stack (#2102 contracts)', 
     expect(source).toContain("position={[object.x, (object.y ?? 0) + (object.kind === 'ice-floe' ? 0.2 : 0), object.z]}");
     expect(source).toContain("new THREE.Vector3(object.x, (object.y ?? 0) + (kind === 'ice-floe' ? 0.2 : 0), object.z)");
     expect(source).not.toContain('positionSampler');
-    expect(source).not.toContain('camera');
+    // 对象位置不随相机平移（相机只允许驱动 LOD 层级切换，#2119 复审二轮）。
+    expect(source).not.toContain('camera.position.x, 0, camera.position.z');
+    expect(source).not.toContain('camera.position.x, 0, camera.position.z');
   });
 });

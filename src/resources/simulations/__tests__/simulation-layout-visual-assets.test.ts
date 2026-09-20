@@ -49,12 +49,25 @@ describe('real distance LOD and instancing (#2119)', () => {
     expect(source).toContain('<instancedMesh');
     expect(source).toContain('mesh.setMatrixAt(index, matrix)');
     expect(source).toContain('mesh.instanceMatrix.needsUpdate = true');
-    // 复审修复：实例批次按世界分区两级（近区复合轮廓/远区简化基元），
-    // 远区细节可测量下降；尺度按类别非等比（防波堤 1400 是长度非高度）。
-    expect(source).toContain('INSTANCE_NEAR_RADIUS_METERS = 2500');
+    // 复审修复（二轮）：实例层级按**相机距离**动态迁移（非固定世界分区）——
+    // 近相机实例进复合批、远实例进简化批（mesh.count 截断 + 滞回 0.85/1.15
+    // + 0.25s 节拍）；尺度按类别非等比（防波堤 1400 是长度非高度）。
+    expect(source).toContain('instanceLodDistanceMeters');
+    expect(source).toContain('distance <= lodDistance * 0.85');
+    expect(source).toContain('distance <= lodDistance * 1.15');
+    expect(source).toContain('INSTANCE_REBUCKET_INTERVAL_SECONDS = 0.25');
+    expect(source).toContain('mesh.count = batch.length');
     expect(source).toContain('instanceScaleFor(object)');
     expect(source).toContain('new THREE.Vector3(object.scale, 14, Math.max(24, object.scale * 0.18))');
     expect(source).toContain('new THREE.Vector3(object.scale, 10, Math.max(8, object.scale * 0.3))');
+  });
+
+  it('gates the shallow consumer with a QA kill switch that skips per-fragment work', () => {
+    const material = readSource('scene/water/gerstner-water-material.ts');
+    expect(material).toContain('uShallowFxEnabled');
+    expect(material).toContain('if (uShallowFxEnabled < 0.5 || uShoreSegmentCount <= 0.0');
+    const water = readSource('scene/water/gerstner-water.tsx');
+    expect(water).toContain("get('qa-shallow') === 'off'");
   });
 
   it('exposes an actual draw-call measurement probe', () => {

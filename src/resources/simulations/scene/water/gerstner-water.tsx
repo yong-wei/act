@@ -302,6 +302,10 @@ const ENV_QA_SPIN =
 /** QA 旋转复用对象（与 three WebGLMaterials 同构：绕 Y 旋转 + transpose）。 */
 const ENV_QA_SPIN_MATRIX = new THREE.Matrix4();
 
+/** QA 浅水消费者关闭开关（#2119）：?qa-shallow=off——逐片元跳过岸线循环。 */
+const SHALLOW_QA_DISABLED =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-shallow') === 'off';
+
 /** QA 平面反射关闭开关（#2118）：?qa-planar=off。 */
 const PLANAR_QA_DISABLED =
   typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-planar') === 'off';
@@ -447,6 +451,9 @@ function BandWaterMesh({
       meshRef.current.position.x = sampled.x;
       meshRef.current.position.z = sampled.z;
       material.uniforms.uWorldOrigin.value.set(sampled.x, sampled.z);
+    }
+    if (material.uniforms.uShallowFxEnabled.value !== (SHALLOW_QA_DISABLED ? 0 : 1)) {
+      material.uniforms.uShallowFxEnabled.value = SHALLOW_QA_DISABLED ? 0 : 1;
     }
     // 泡沫场域原点（#2115）：域按量化步长重定位（非逐帧平移），材质按域原点采样。
     if (foamField) {

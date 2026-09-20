@@ -191,6 +191,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uPlanarMatrix: { value: new THREE.Matrix4() },
       uPlanarStrength: { value: 0 },
       uPlanarPlaneY: { value: -1 },
+      // 浅水消费者开关（#2119 复审）：关闭时逐片元跳过岸线循环/吸收/折射
+      //（额外工作归零）。
+      uShallowFxEnabled: { value: 1 },
       // 雾（#2118）：材质 fog:true 时 renderer 按 scene.fog 刷新。
       fogColor: { value: new THREE.Color(0xffffff) },
       fogNear: { value: 1 },
@@ -377,6 +380,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform mat4 uPlanarMatrix;
       uniform float uPlanarStrength;
       uniform float uPlanarPlaneY;
+      uniform float uShallowFxEnabled;
 
       // 环境辐射（#2118）：与 three 内建 PBR 同一 CubeUV chunk（锁定版本布局）。
       #include <common>
@@ -397,7 +401,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       // 岸深反比），y = 估计水深（米）——供深度分级吸收与有界折射。
       // 远场细分降低后顶点插值不可用，片元按世界坐标独立求值。
       vec2 shoreEffects(vec2 worldXZ) {
-        if (uShoreSegmentCount <= 0.0 || uShoreFadeBand <= 0.0) return vec2(0.0, 20.0);
+        if (uShallowFxEnabled < 0.5 || uShoreSegmentCount <= 0.0 || uShoreFadeBand <= 0.0) return vec2(0.0, 20.0);
         float minDistance = 1e9;
         float nearestShoreDepth = 0.0;
         for (int i = 0; i < 4; i++) {

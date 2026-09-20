@@ -270,9 +270,20 @@ function writeInstanceMatrices(
 }
 
 /**
- * 重复物实例批处理（#2119 复审：近/远世界分区两级）——近区（≤2500m）实例
- * 用复合轮廓、远区实例用简化基元：相机绕船作业时远区细节可测量下降，
- * 两批各一次 draw（仍远少于逐对象 mesh）。
+ * 实例 LOD 相机距离（#2119 复审：按相机距离动态迁移——非固定世界分区）：
+ * 近于此距离用复合轮廓，远于（1+滞回带）用简化基元；滞回防抖动。
+ */
+function instanceLodDistanceMeters(object: MarineEnvironmentObject): number {
+  return Math.max(600, object.scale * 30);
+}
+
+/** 实例重分桶节拍（秒）：每 0.25s 按相机距离重算，矩阵重写成本可忽略。 */
+const INSTANCE_REBUCKET_INTERVAL_SECONDS = 0.25;
+
+/**
+ * 重复物实例批处理（#2119）：**按相机距离**动态两级——近相机实例进复合
+ * 轮廓批、远实例进简化基元批（两个 InstancedMesh 各一次 draw，mesh.count
+ * 动态截断）；相机驶近远处岸桥/驶离近处浮标时层级随投影尺寸迁移。
  */
 function EnvironmentObjectInstances({
   objects,
@@ -282,39 +293,70 @@ function EnvironmentObjectInstances({
   readonly kind: MarineEnvironmentObject['kind'];
 }) {
   const material = useMemo(() => materialFor(objects[0]), [objects]);
-  const nearRef = useRef<THREE.InstancedMesh>(null);
-  const farRef = useRef<THREE.InstancedMesh>(null);
-  const { near, far } = useMemo(() => {
-    const near = objects.filter((object) => Math.hypot(object.x, object.z) <= INSTANCE_NEAR_RADIUS_METERS);
-    const far = objects.filter((object) => Math.hypot(object.x, object.z) > INSTANCE_NEAR_RADIUS_METERS);
-    return { near, far };
-  }, [objects]);
-  useEffect(() => {
-    if (nearRef.current && near.length > 0) writeInstanceMatrices(nearRef.current, near, kind);
-    if (farRef.current && far.length > 0) writeInstanceMatrices(farRef.current, far, kind);
-  }, [near, far, kind]);
+  const compositeRef = useRef<THREE.InstancedMesh>(null);
+  const simplifiedRef = useRef<THREE.InstancedMesh>(null);
+  const camera = useThree((state) => state.camera);
+  const stateRef = useRef({
+    lastRebucketSeconds: Number.NaN,
+    /** 滞回成员表（对象 id → 当前是否在简化批）。 */
+    simplifiedIds: new Set<string>(),
+  });
+
+  useFrame(() => {
+    const composite = compositeRef.current;
+    const simplified = simplifiedRef.current;
+    if (!composite && !simplified) return;
+    const now = performance.now() / 1000;
+    const state = stateRef.current;
+    if (
+      !Number.isNaN(state.lastRebucketSeconds) &&
+      now - state.lastRebucketSeconds < INSTANCE_REBUCKET_INTERVAL_SECONDS
+    ) {
+      return;
+    }
+    state.lastRebucketSeconds = now;
+    const compositeObjects: MarineEnvironmentObject[] = [];
+    const simplifiedObjects: MarineEnvironmentObject[] = [];
+    for (const object of objects) {
+      const distance = Math.hypot(object.x - camera.position.x, object.z - camera.position.z);
+      const lodDistance = instanceLodDistanceMeters(object);
+      // 滞回：已简化对象要更近（×0.85）才升级回复合批；已精细对象要更远（×1.15）才降级。
+      const isComposite = state.simplifiedIds.has(object.id)
+        ? distance <= lodDistance * 0.85
+        : distance <= lodDistance * 1.15;
+      if (isComposite) state.simplifiedIds.delete(object.id);
+      else state.simplifiedIds.add(object.id);
+      (isComposite ? compositeObjects : simplifiedObjects).push(object);
+    }
+    const writeBatch = (mesh: THREE.InstancedMesh | null, batch: MarineEnvironmentObject[]) => {
+      if (!mesh) return;
+      if (batch.length === 0) {
+        mesh.count = 0;
+        return;
+      }
+      writeInstanceMatrices(mesh, batch, kind);
+      mesh.count = batch.length;
+    };
+    writeBatch(composite, compositeObjects);
+    writeBatch(simplified, simplifiedObjects);
+  });
+
   const compositeGeometry = useMemo(() => compositeGeometryFor(kind), [kind]);
   const simplifiedGeometry = useMemo(() => simplifiedGeometryFor(kind), [kind]);
   return (
     <>
-      {near.length > 0 ? (
-        <instancedMesh
-          key={`${kind}-near`}
-          ref={nearRef}
-          args={[compositeGeometry, material, near.length]}
-          castShadow={objects[0].detail === 'near'}
-          receiveShadow={objects[0].detail === 'near'}
-        />
-      ) : null}
-      {far.length > 0 ? (
-        <instancedMesh
-          key={`${kind}-far`}
-          ref={farRef}
-          args={[simplifiedGeometry, material, far.length]}
-          castShadow={false}
-          receiveShadow={false}
-        />
-      ) : null}
+      <instancedMesh
+        ref={compositeRef}
+        args={[compositeGeometry, material, objects.length]}
+        castShadow={objects[0].detail === 'near'}
+        receiveShadow={objects[0].detail === 'near'}
+      />
+      <instancedMesh
+        ref={simplifiedRef}
+        args={[simplifiedGeometry, material, objects.length]}
+        castShadow={false}
+        receiveShadow={false}
+      />
     </>
   );
 }
