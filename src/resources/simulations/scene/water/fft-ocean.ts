@@ -61,7 +61,9 @@ export function fftOceanStaticSpectrum(input: FFTOceanSpectrumInput): ComplexGri
   const data = new Float32Array(n * n * 2);
   const omegas = new Float32Array(n * n);
   const random = seededRandom(input.seed);
-  const peakFrequency = Math.min(0.45, (0.8 * 9.81) / Math.max(input.windSpeedMps, 1));
+  // 峰值频率（Hz）：0.8g/U 是角频率（rad/s）——除以 2π 换算（12m/s → ~0.104Hz，
+  // 峰值周期 ~9.6s，与 Gerstner 主波段同量级）。
+  const peakFrequency = Math.min(0.45, (0.8 * 9.81) / Math.max(input.windSpeedMps, 1) / (2 * Math.PI));
   const bandHz = 0.12;
   // 标定：ss4 风速 12 → Hs ≈ 1.3m（与教学海况同量级；×40 于初始标定）。
   const energyScale = Math.pow(Math.max(input.seaState, 1), 1.6) * 14;
@@ -237,4 +239,88 @@ export function significantWaveHeight(heights: Float32Array): number {
   let variance = 0;
   for (const h of heights) variance += (h - mean) ** 2;
   return 4 * Math.sqrt(variance / heights.length);
+}
+
+
+/**
+ * GPU pass 序列的纯 TS 镜像（#2121）：与 fft-ocean-surface 的着色器逐 pass 同
+ * 公式（演化 → 每轴位反转置换 → span 递增蝶形【twiddle 乘奇位输入：偶位输出
+ * = even + t，奇位输出 = even − t】→ 单次 /N²）。为 GPU 公式提供可测试验证
+ * （与 fftOceanSnapshot/逐点逆 DFT 两独立路径互证）。
+ */
+export function fftOceanGpuStages(
+  spectrum: ComplexGrid,
+  timeSeconds: number,
+): FFTOceanSnapshot {
+  const n = spectrum.resolution;
+  const data = new Float32Array(n * n * 2);
+  for (let i = 0; i < n * n; i += 1) {
+    const angle = spectrum.omegas[i] * timeSeconds;
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    data[i * 2] = spectrum.data[i * 2] * c - spectrum.data[i * 2 + 1] * s;
+    data[i * 2 + 1] = spectrum.data[i * 2] * s + spectrum.data[i * 2 + 1] * c;
+  }
+  const stages = Math.round(Math.log2(n));
+  const reverseBits = (value: number, bits: number) => {
+    let result = 0;
+    for (let b = 0; b < bits; b += 1) {
+      result = (result << 1) | (value & 1);
+      value >>= 1;
+    }
+    return result;
+  };
+  const scratch = new Float32Array(n * n * 2);
+  const permuteAxis = (horizontal: boolean) => {
+    for (let m = 0; m < n; m += 1) {
+      for (let ix = 0; ix < n; ix += 1) {
+        const sourceAxis = reverseBits(horizontal ? ix : m, stages);
+        const source = horizontal ? m * n + sourceAxis : sourceAxis * n + ix;
+        const target = m * n + ix;
+        scratch[target * 2] = data[source * 2];
+        scratch[target * 2 + 1] = data[source * 2 + 1];
+      }
+    }
+    data.set(scratch);
+  };
+  permuteAxis(true);
+  for (let pass = 0; pass < stages * 2; pass += 1) {
+    const horizontal = pass < stages;
+    if (pass === stages) permuteAxis(false);
+    const span = Math.pow(2, (pass % stages) + 1);
+    const half = span / 2;
+    for (let m = 0; m < n; m += 1) {
+      for (let ix = 0; ix < n; ix += 1) {
+        const axisN = horizontal ? ix : m;
+        const fixed = horizontal ? m : ix;
+        const isEven = axisN % span < half;
+        const partnerAxis = isEven ? axisN + half : axisN - half;
+        const self = m * n + ix;
+        const partner = horizontal ? fixed * n + partnerAxis : partnerAxis * n + fixed;
+        const aRe = data[self * 2];
+        const aIm = data[self * 2 + 1];
+        const bRe = data[partner * 2];
+        const bIm = data[partner * 2 + 1];
+        const j = axisN % half;
+        const angle = (2 * Math.PI * j) / span;
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        if (isEven) {
+          const tRe = bRe * c - bIm * s;
+          const tIm = bRe * s + bIm * c;
+          scratch[self * 2] = aRe + tRe;
+          scratch[self * 2 + 1] = aIm + tIm;
+        } else {
+          const tRe = aRe * c - aIm * s;
+          const tIm = aRe * s + aIm * c;
+          scratch[self * 2] = bRe - tRe;
+          scratch[self * 2 + 1] = bIm - tIm;
+        }
+      }
+    }
+    data.set(scratch);
+  }
+  const heights = new Float32Array(n * n);
+  for (let i = 0; i < heights.length; i += 1) heights[i] = data[i * 2] / (n * n);
+  return { heights, resolution: n };
 }

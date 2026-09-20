@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   binWaveNumber,
   dispersionOmega,
+  fftOceanGpuStages,
   fftOceanHeightAt,
   fftOceanSnapshot,
   fftOceanStaticSpectrum,
@@ -68,6 +69,24 @@ describe('FFT ocean correctness (#2121)', () => {
     }
   });
 
+  it('GPU stage mirror (evolve + bit-reversal + butterflies) matches the CPU snapshot', () => {
+    const spectrum = fftOceanStaticSpectrum(INPUT);
+    const t = 3.5;
+    const reference = fftOceanSnapshot(spectrum, INPUT.domainMeters, t);
+    const mirror = fftOceanGpuStages(spectrum, t);
+    let maxError = 0;
+    for (let i = 0; i < reference.heights.length; i += 1) {
+      maxError = Math.max(maxError, Math.abs(reference.heights[i] - mirror.heights[i]));
+    }
+    // 着色器逐 pass 公式（位反转 + twiddle 乘奇位）与 radix-2 DIT 一致（float32 噪声内）。
+    expect(maxError).toBeLessThan(1e-5);
+  });
+
+  it('peak frequency uses Hz (angular 0.8g/U divided by 2π)', () => {
+    const source = readSource('src/resources/simulations/scene/water/fft-ocean.ts');
+    expect(source).toContain('(0.8 * 9.81) / Math.max(input.windSpeedMps, 1) / (2 * Math.PI)');
+  });
+
   it('bin wave numbers follow the standard DFT convention and deep-water dispersion', () => {
     const domain = 256;
     expect(binWaveNumber(0, 8, domain)).toBe(0);
@@ -121,23 +140,30 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(source).not.toContain('pos.xz + uDomain * 0.5');
   });
 
-  it('keeps both branches on a comparable load: same canvas/camera, low-tier Gerstner, no planar reflection', () => {
-    const page = readSource('src/app/simulations/fft-ocean-comparison/page.tsx');
-    expect(page).toContain('GerstnerWater tier="low"');
-    expect(page).not.toContain('GerstnerWater tier="high"');
-    expect(page).toContain('同镜头/画布/像素负载');
+  it('keeps both branches on a comparable load: low-tier Gerstner matches FFT domain and density', () => {
+    const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
+    expect(client).toContain('GerstnerWater tier="low"');
+    expect(client).not.toContain('GerstnerWater tier="high"');
+    expect(client).toContain('同镜头/画布/像素负载');
   });
 
-  it('renders the FFT surface from the validated CPU pipeline at a bounded update rate', () => {
+  it('runs spectrum evolution and 2D IFFT on the GPU (shader passes mirror the validated stages)', () => {
     const source = readSource('src/resources/simulations/scene/water/fft-ocean-surface.tsx');
-    expect(source).toContain('fftOceanSnapshot');
-    expect(source).toContain('fftOceanHeightAt');
-    expect(source).toContain('HEIGHT_UPDATE_HZ = 12');
+    // GPU 演化 + 位反转 + 蝶形 + 输出四个 pass 类（数值模型不在前端 TS 主干）。
+    expect(source).toContain('const EVOLVE_FS');
+    expect(source).toContain('const PERMUTE_FS');
+    expect(source).toContain('const BUTTERFLY_FS');
+    expect(source).toContain('const OUTPUT_FS');
+    // 与验证过的镜像同公式：twiddle 乘奇位输入。
+    expect(source).toContain('vec2 oddIn = isEven ? partner : self;');
+    expect(source).toContain('vec2 result = isEven ? evenIn + t : evenIn - t;');
+    // CPU 快照只做挂载时 QA 统计，不进渲染循环。
+    expect(source).toContain('不进渲染循环');
+    expect(source).not.toContain('HEIGHT_UPDATE_HZ');
     // 船体查询无整纹理读回（逐点逆 DFT）。
+    expect(source).toContain('fftOceanHeightAt');
     expect(source).not.toContain('readRenderTargetPixels');
     expect(source).not.toContain('readPixels');
-    // GPU 侧 2D IFFT 蝶形未实现——诚实标注（不冒充）。
-    expect(source).toContain('未实现');
   });
 
   it('exposes a QA probe with statistics, point query latency and WebGPU capability', () => {
@@ -147,17 +173,33 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(source).toContain('cpuSignificantWaveHeightMeters');
     expect(source).toContain('measurePointQueryMs');
     expect(source).toContain("'gpu' in navigator");
+    expect(source).toContain('gpuPipelineActive');
+    expect(source).toContain('gpuFrames');
   });
 
-  it('comparison page switches backends under one camera/sea state without touching production', () => {
+  it('comparison page selects the backend via Next searchParams (SSR/client first frame agree)', () => {
     const page = readSource('src/app/simulations/fft-ocean-comparison/page.tsx');
-    expect(page).toContain("?backend=fft");
-    expect(page).toContain('?backend=gerstner');
-    expect(page).toContain('FFTOceanSurface');
-    expect(page).toContain('GerstnerWater');
+    const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
+    // 服务端组件读取 searchParams 传入客户端（无 window 判断 → 无水合分歧）。
+    expect(page).toContain('searchParams');
+    expect(page).not.toContain('typeof window');
+    expect(client).toContain('backend: \'fft\' | \'gerstner\'');
     // 生产不变量：实验路由不改生产默认（无 registry/生产入口引用本页）。
     const registry = readSource('src/lib/resource-registry.tsx');
     expect(registry.includes('fft-ocean-comparison')).toBe(false);
+  });
+
+  it('both branches share the vessel, far-field coverage, domain and mesh density', () => {
+    const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
+    // 同实验占位船体 + 同 60km 远场平面（两分支同负载/覆盖）。
+    expect(client).toContain('StandInVessel');
+    expect(client).toContain('FarFieldPlane');
+    // FFT 域 2048m/256² = Gerstner 近场（档位无关）同域同细分。
+    expect(client).toContain('domainMeters: 2048');
+    expect(client).toContain('resolution: 256');
+    expect(client).toContain('GerstnerWater tier="low"');
+    // 残余差异声明（泡沫纹理只在 Gerstner 材质栈）。
+    expect(client).toContain('unresolvedDifference');
   });
 
   it('evaluation script consumes real measurement files instead of rewriting empty templates', () => {
