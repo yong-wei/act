@@ -480,6 +480,9 @@ function BandWaterMesh({
       const cos = Math.cos(angle);
       const sin = Math.sin(angle);
       (material.uniforms.envMapRotation.value as THREE.Matrix3).set(cos, 0, sin, 0, 1, 0, -sin, 0, cos);
+      // 船体 PBR 同一旋转（scene.environmentRotation 驱动内建材质的 envMapRotation）：
+      // QA 方向诊断下水与船一致跟随，不制造消费者分歧（复审修复）。
+      scene.environmentRotation?.set(0, angle, 0);
     }
     // 平面反射（#2118 受控高档）：反射组件经 scene.userData 提供纹理矩阵。
     const planar = (scene.userData as { marinePlanarReflection?: { texture: THREE.Texture; matrix: THREE.Matrix4; strength: number; planeY: number } }).marinePlanarReflection;

@@ -21,6 +21,9 @@ export interface MarinePlanarReflectionBinding {
   readonly planeY: number;
 }
 
+/** 反射目标最长复用秒数（复审）：覆盖未显式采样的姿态起伏（升沉/横摇）。 */
+const MAX_REFLECTION_AGE_SECONDS = 0.5;
+
 /** 裁剪偏置：NDC → 纹理 UV。 */
 const BIAS_MATRIX = new THREE.Matrix4().set(
   0.5, 0, 0, 0.5,
@@ -64,6 +67,7 @@ export function MarinePlanarReflection({
     lastSubjectHeading: Number.NaN,
     textureMatrix: new THREE.Matrix4(),
     hasRendered: false,
+    lastRenderTimeSeconds: Number.NaN,
   });
 
   useEffect(() => {
@@ -105,9 +109,15 @@ export function MarinePlanarReflection({
     const cameraMoved =
       camera.position.distanceTo(state.lastCameraPosition) > 1.5 ||
       Math.abs(camera.quaternion.angleTo(state.lastCameraQuaternion)) > 0.004;
-    if (state.hasRendered && !cameraMoved && !subjectMoved && !subjectTurned) {
+    // 有界时效刷新（复审修复）：主体升沉/横摇等姿态变化不经显式采样——
+    // 最长 MAX_REFLECTION_AGE_SECONDS 强制重画一次，倒影不冻结。
+    const stale =
+      Number.isNaN(state.lastRenderTimeSeconds) ||
+      performance.now() / 1000 - state.lastRenderTimeSeconds > MAX_REFLECTION_AGE_SECONDS;
+    if (state.hasRendered && !cameraMoved && !subjectMoved && !subjectTurned && !stale) {
       return; // 静止场景不重画（默认无每帧反射成本）。
     }
+    state.lastRenderTimeSeconds = performance.now() / 1000;
     state.lastCameraPosition.copy(camera.position);
     state.lastCameraQuaternion.copy(camera.quaternion);
     if (subject) state.lastSubject.set(subject.x, subject.z);

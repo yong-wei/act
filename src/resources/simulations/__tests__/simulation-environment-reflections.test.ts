@@ -48,9 +48,11 @@ describe('water shader consumes shared PMREM radiance (#2118)', () => {
     expect(water).toContain('marineEnvRadiance');
     expect(water).toContain('cubeUvDefinesForHeight');
     expect(water).toContain("material.defines.USE_ENVMAP = ''");
-    // QA 方向诊断：?qa=marine-env 旋转 envMapRotation——证明水面在读环境。
+    // QA 方向诊断：?qa=marine-env 旋转 envMapRotation——证明水面在读环境；
+    // 船体 PBR 经 scene.environmentRotation 同步同一角度（消费者一致）。
     expect(water).toContain("has('qa', 'marine-env')");
     expect(water).toContain('envMapRotation');
+    expect(water).toContain('scene.environmentRotation?.set(0, angle, 0)');
   });
 
   it('shares the radiance cache entry height and publishes via scene.userData', () => {
@@ -89,7 +91,9 @@ describe('controlled high-tier planar reflection (#2118)', () => {
     expect(source).toContain("REFLECTION_HIDDEN_NAME_PREFIX = 'marine-'");
     expect(source).toContain("object.name.startsWith(REFLECTION_HIDDEN_NAME_PREFIX)");
     // 运动触发：静止场景不重画；原地转向（航向变化）同样失效（复审修复）。
-    expect(source).toContain('if (state.hasRendered && !cameraMoved && !subjectMoved && !subjectTurned)');
+    expect(source).toContain('if (state.hasRendered && !cameraMoved && !subjectMoved && !subjectTurned && !stale)');
+    // 有界时效刷新：未显式采样的姿态起伏（升沉/横摇）不冻结倒影。
+    expect(source).toContain('MAX_REFLECTION_AGE_SECONDS = 0.5');
     expect(source).toContain('subjectHeadingSampler');
     expect(source).toContain('Math.abs(subjectHeading - state.lastSubjectHeading) > 0.02');
     // 禁用释放（降档 dispose RT）+ 卸载释放 + 重启用重建。
