@@ -299,8 +299,7 @@ const DEFAULT_WATER_COLORS = getEnvironmentPreset(DEFAULT_ENVIRONMENT_PRESET_ID)
 const ENV_QA_SPIN =
   typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('qa', 'marine-env');
 
-/** QA 旋转复用对象（与 three WebGLMaterials 同构：makeRotationFromEuler + transpose）。 */
-const ENV_QA_SPIN_EULER = new THREE.Euler();
+/** QA 旋转复用对象（与 three WebGLMaterials 同构：绕 Y 旋转 + transpose）。 */
 const ENV_QA_SPIN_MATRIX = new THREE.Matrix4();
 
 /** QA 平面反射关闭开关（#2118）：?qa-planar=off。 */
@@ -486,7 +485,7 @@ function BandWaterMesh({
       // uniform 按 setFromMatrix4(makeRotationFromEuler).transpose() 同构构建，
       // 两侧方向特征一致（不一边正转一边反转）。
       (material.uniforms.envMapRotation.value as THREE.Matrix3)
-        .setFromMatrix4(ENV_QA_SPIN_MATRIX.makeRotationFromEuler(ENV_QA_SPIN_EULER.set(0, angle, 0)))
+        .setFromMatrix4(ENV_QA_SPIN_MATRIX.makeRotationY(angle))
         .transpose();
       scene.environmentRotation?.set(0, angle, 0);
     }

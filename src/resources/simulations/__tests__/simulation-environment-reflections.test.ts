@@ -55,7 +55,7 @@ describe('water shader consumes shared PMREM radiance (#2118)', () => {
     expect(water).toContain('scene.environmentRotation?.set(0, angle, 0)');
     // 与 three WebGLMaterials 同构（makeRotationFromEuler + transpose）——
     // 水与船的旋转方向一致（转置等价取逆）。
-    expect(water).toContain('.setFromMatrix4(ENV_QA_SPIN_MATRIX.makeRotationFromEuler(ENV_QA_SPIN_EULER.set(0, angle, 0)))');
+    expect(water).toContain('.setFromMatrix4(ENV_QA_SPIN_MATRIX.makeRotationY(angle))');
     expect(water).toContain('.transpose()');
   });
 
