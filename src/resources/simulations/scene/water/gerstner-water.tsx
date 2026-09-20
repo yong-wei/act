@@ -18,6 +18,7 @@ import {
   type OceanMeshBandSpec,
 } from './ocean-bands';
 import { createGerstnerWaterMaterial } from './gerstner-water-material';
+import { MarineFoamFieldProvider, useMarineFoamField } from './foam-history-layer';
 import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { DEFAULT_ENVIRONMENT_PRESET_ID, getEnvironmentPreset } from '../environment/environment-presets';
 import { simulationScenePalette } from '../../components/simulation-theme';
@@ -304,6 +305,8 @@ export interface GerstnerWaterProps {
   readonly shoreFadeBandMeters?: number;
   /** 挖泥羽流（#2102 六轮复审）：合入水面片元着色（贴合动态波面）。 */
   readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
+  /** 实验重置令牌（#2115）：变化时清空泡沫历史场（与尾迹 key 同一重置源）。 */
+  readonly resetToken?: number;
 }
 
 /** 单个带限水网格（#2098 内部组件）：几何/材质随波组与包络参数构建，逐帧写时间与原点。 */
@@ -353,6 +356,8 @@ function BandWaterMesh({
   readonly foamTexture: THREE.Texture;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  // 泡沫历史密度场（#2115）：宿主 Provider 注入；材质消费密度纹理，域原点逐帧跟随。
+  const foamField = useMarineFoamField();
 
   const geometry = useMemo(
     () => createGerstnerWaterGeometry(meshSpec.size, meshSpec.resolution),
@@ -375,8 +380,11 @@ function BandWaterMesh({
       sunIllumination,
       shoreSegments,
       shoreFadeBandMeters,
+      foamField: foamField
+        ? { texture: foamField.texture, domainMeters: foamField.domainMeters, resolution: foamField.field.resolution }
+        : null,
     }),
-    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, sunIllumination, shoreSegments, shoreFadeBandMeters]
+    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, sunIllumination, shoreSegments, shoreFadeBandMeters, foamField]
   );
   // 岸线段打包（#2102）：静态声明 → uniform 数组一次写入。
   useMemo(() => {
@@ -406,6 +414,10 @@ function BandWaterMesh({
       meshRef.current.position.x = sampled.x;
       meshRef.current.position.z = sampled.z;
       material.uniforms.uWorldOrigin.value.set(sampled.x, sampled.z);
+    }
+    // 泡沫场域原点（#2115）：域按量化步长重定位（非逐帧平移），材质按域原点采样。
+    if (foamField) {
+      material.uniforms.uFoamOrigin.value.set(foamField.field.originX, foamField.field.originZ);
     }
     // 船壳排水排除（#2101）：逐帧写入船体局部框与船朝向（跟船网格原点=船位）。
     if (hullExclusionSampler) {
@@ -445,6 +457,7 @@ export function GerstnerWater({
   tier = 'high',
   shipPosition,
   positionSampler,
+  resetToken,
   seaState = DEFAULT_GERSTNER_SEA_STATE,
   waterColor = DEFAULT_WATER_COLORS.waterColor,
   deepColor = DEFAULT_WATER_COLORS.deepColor,
@@ -470,7 +483,17 @@ export function GerstnerWater({
   const farSpec = useMemo(() => farFieldMeshSpecForTier(tier), [tier]);
 
   return (
-    <group>
+    // 泡沫历史场宿主（#2115）：每场景一个跟船密度场；场内尾迹沉积、自然白浪
+    // 注入与水面材质消费共用同一状态（Canvas 内 WakeTrail 经 context 接入）。
+    <MarineFoamFieldProvider
+      tier={tier}
+      seaState={seaState}
+      waves={NEAR_FIELD_VISIBLE_WAVES}
+      amplitudeScale={amplitudeScale}
+      positionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
+      resetToken={resetToken}
+    >
+      <group>
       <BandWaterMesh
         waves={farWaves}
         meshSpec={farSpec}
@@ -517,6 +540,7 @@ export function GerstnerWater({
         sunDirection={sunDirection}
         foamTexture={foamTexture}
       />
-    </group>
+      </group>
+    </MarineFoamFieldProvider>
   );
 }

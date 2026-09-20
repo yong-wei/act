@@ -1262,11 +1262,12 @@ function SceneQualityAttributes() {
 }
 
 /** 海面颜色随环境预设、细分随质量档位的桥接组件。 */
-function CruiseWater({ state }: { state: CruiseSimulationState }) {
+function CruiseWater({ state, resetToken }: { state: CruiseSimulationState; resetToken: number }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
       shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
@@ -1291,6 +1292,7 @@ function WakeTrailRig({
   playing: boolean;
   resetToken: number;
 }) {
+  const environmentLight = useEnvironmentWaterColors();
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const timeRef = useRef(0);
@@ -1319,6 +1321,8 @@ function WakeTrailRig({
   if (!wakeVisible) return null;
   return (
     <WakeTrail
+      sunDirection={environmentLight.sunDirection}
+      sunIllumination={environmentLight.sunIllumination}
       key={resetToken}
       profile={cruiseAdoraSceneVisual}
       shipTransform={transformRef.current}
@@ -1387,7 +1391,7 @@ function VisualizationLayer({
       <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'cruise', cameraView: String(cameraMode), seaState: state.seaState })} />
       <Suspense fallback={null}>
-        <CruiseWater state={state} />
+        <CruiseWater state={state} resetToken={resetToken} />
       </Suspense>
       {showGrid ? (
         <Grid

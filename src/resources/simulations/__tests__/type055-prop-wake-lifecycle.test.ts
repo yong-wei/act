@@ -55,7 +55,9 @@ describe('仿真引擎推进门控接线', () => {
 
 describe('尾迹生命周期：停发后存量粒子继续老化直至完全消散', () => {
   it('发射受 playing 门控，老化与几何刷新在门控之外每帧执行', () => {
-    const emitBlock = WAKE_TRAIL_SOURCE.indexOf('if (playing) {');
+    // 发射门控谓词允许扩展（#2115 归因隔离叠加 !vesselFoamSuppressed）；
+    // 契约锚定 if (playing 前缀而非完整谓词。
+    const emitBlock = WAKE_TRAIL_SOURCE.indexOf('if (playing');
     const agingBlock = WAKE_TRAIL_SOURCE.indexOf('buffer.update(state.simTime, state.pathLength);');
     expect(emitBlock).toBeGreaterThan(-1);
     expect(agingBlock).toBeGreaterThan(emitBlock);

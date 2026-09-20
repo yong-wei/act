@@ -4,16 +4,20 @@
  */
 export {
   DEFAULT_WAKE_TRAIL_STYLE,
+  allocateWakeCapacities,
   clamp01,
   computeWakeFamilyBudget,
   computeWakeSpeedActivity,
+  computeThrusterWashActivity,
   knotsToMetersPerSecond,
   resolveWakeTrailStyle,
   smoothstep,
   smoothstep01,
+  WAKE_SCENE_MAX_PARTICLES,
 } from './wake-physics';
 export type {
   ResolvedWakeTrailStyle,
+  ThrusterWashActivity,
   WakeFamilyBudget,
   WakeSpeedActivity,
   WakeTrailStyle,
@@ -36,9 +40,11 @@ export {
   MIN_WAKE_PARTICLE_OPACITY,
   computeWakeEnvelope,
   createWakeTrailGeometry,
+  forEachWakeParticleVisual,
   resolveWakeParticleVisual,
+  updateWakeSprayGeometry,
   updateWakeTrailGeometry,
 } from './wake-geometry';
 export type { WakeFamily, WakeParticleVisual, WakeTrailGeometryHandle } from './wake-geometry';
-export { WakeTrail } from './wake-trail';
+export { WakeTrail, wakeSceneCapacityForTier } from './wake-trail';
 export type { WakeQualityTier, WakeTrailProps } from './wake-trail';

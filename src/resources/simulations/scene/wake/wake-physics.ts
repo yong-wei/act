@@ -253,3 +253,46 @@ export const computeThrusterWashActivity = ({
     washFoamActivity: Math.pow(washActivity, 1.4),
   };
 };
+
+/** 场景级尾迹槽位总容量（#2115 硬预算）：多推进器共享的分配基数。 */
+export const WAKE_SCENE_MAX_PARTICLES = DEFAULT_WAKE_TRAIL_STYLE.maxParticles;
+
+/**
+ * 全场容量分配（#2115）：把场景总容量按份额切成各 Trail 的槽位容量。
+ * 份额和超过 1 时按比例归一（不超发），和不足 1 时保留余量；
+ * 每实例至少 1 槽；余数按小数部分大者优先分配。
+ * 分配出的容量即该实例环形缓冲容量——分配与活跃都被 Σ ≤ sceneMax 约束，
+ * 仅缩小发射率（budgetShare→emissionRate）不构成分配预算。
+ */
+export function allocateWakeCapacities(
+  shares: readonly number[],
+  sceneMax: number
+): number[] {
+  const max = Math.max(1, Math.floor(sceneMax));
+  const list = shares.length === 0 ? [1] : shares.map((share) => Math.max(0, share));
+  const total = list.reduce((sum, value) => sum + value, 0);
+  const scale = total > 1 ? 1 / total : 1;
+  const raw = list.map((share) => share * scale * max);
+  const capacities = raw.map((value) => Math.max(1, Math.floor(value)));
+  let used = capacities.reduce((sum, value) => sum + value, 0);
+  // 实例数超出总容量时从最大者逐个扣减，保持 Σ ≤ sceneMax。
+  while (used > max) {
+    let largest = 0;
+    for (let index = 1; index < capacities.length; index += 1) {
+      if (capacities[index] > capacities[largest]) largest = index;
+    }
+    if (capacities[largest] <= 1) break;
+    capacities[largest] -= 1;
+    used -= 1;
+  }
+  let remaining = max - used;
+  const order = raw
+    .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
+    .sort((a, b) => b.fraction - a.fraction);
+  for (const { index } of order) {
+    if (remaining <= 0) break;
+    capacities[index] += 1;
+    remaining -= 1;
+  }
+  return capacities;
+}

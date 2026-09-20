@@ -33,7 +33,11 @@ import {
   useSceneEnvironment,
 } from '../scene/environment';
 import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale } from '../scene/water';
-import { WakeTrail } from '../scene/wake';
+import {
+  allocateWakeCapacities,
+  WakeTrail,
+  wakeSceneCapacityForTier,
+} from '../scene/wake';
 import { computeThrusterWashActivity } from '../scene/wake/wake-physics';
 import type { HullExclusionBox } from '../scene/water/hull-exclusion';
 import {
@@ -691,13 +695,16 @@ const DRILLING_HULL_EXCLUSION: readonly HullExclusionBox[] = [
 /** 海面颜色随环境预设、细分随质量档位的桥接组件（DP 平台位置直读 ref）。 */
 function DrillingWater({
   platformStateRef,
+  resetToken,
 }: {
   platformStateRef: RefObject<SemiSubmersible3DOFState>;
+  resetToken: number;
 }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })}
       hullExclusionSampler={() => DRILLING_HULL_EXCLUSION}
@@ -724,11 +731,26 @@ function WakeTrailRig({
   resetToken: number;
 }) {
   const { wakeVisible } = useSceneEnvironment();
+  const environmentLight = useEnvironmentWaterColors();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const timeRef = useRef(0);
   // 近场查询帧记忆化（#2104）：本帧全部粒子共享同一角点缓存。
   const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
   const { tier } = useSceneQuality();
+
+  // 全场容量硬预算（#2115）：主转移尾迹 + 8 推进器洗流共享场景总容量
+  // （主尾迹占一半、各洗流等分另一半；分配与活跃均 Σ ≤ 场景总容量）。
+  const capacityAllocations = allocateWakeCapacities(
+    [HYSY981_THRUSTER_LAYOUT.length, ...HYSY981_THRUSTER_LAYOUT.map(() => 1)],
+    wakeSceneCapacityForTier(tier),
+  );
+  const mainTrailCapacity = capacityAllocations[0];
+  // 逐推进器取各自分配（P2 修复）：分配器的余数分配使各槽容量可能不同
+  // （如 1100/138×4/137×4），复用单一槽位会突破场景硬上限。
+  const washTrailCapacityFor = (thrusterId: number): number => {
+    const layoutIndex = HYSY981_THRUSTER_LAYOUT.findIndex((item) => item.id === thrusterId);
+    return layoutIndex >= 0 ? (capacityAllocations[1 + layoutIndex] ?? mainTrailCapacity) : mainTrailCapacity;
+  };
 
   useFrame((frameState) => {
     transformRef.current.position = [platformStateRef.current.x, 0, platformStateRef.current.y];
@@ -760,6 +782,9 @@ function WakeTrailRig({
       playing={playing}
       waterYSampler={waterYSampler}
       worldSpeedSampler={() => Math.hypot(platformStateRef.current.u, platformStateRef.current.v)}
+      capacity={mainTrailCapacity}
+      sunDirection={environmentLight.sunDirection}
+      sunIllumination={environmentLight.sunIllumination}
     />
     {/* 逐推进器局部洗流（#2101 复审）：按 HYSY981_THRUSTER_LAYOUT 世界位置与各推进器
         azimuth 方位发射，不同推力分配得到不同局部形态；全场预算按 1/8 × 份额共享。 */}
@@ -783,6 +808,9 @@ function WakeTrailRig({
           includeKelvin={false}
           localWashOnly
           budgetShare={1 / HYSY981_THRUSTER_LAYOUT.length}
+          capacity={washTrailCapacityFor(thruster.id)}
+          sunDirection={environmentLight.sunDirection}
+          sunIllumination={environmentLight.sunIllumination}
           // 世界空间发射器（二轮复审）：避免 resolveEmitterAnchors 对世界坐标二次旋转平移。
           emitterWorldSampler={() => [worldX, 0, worldZ]}
           waterYSampler={waterYSampler}
@@ -1168,7 +1196,7 @@ export function DrillingSimulation() {
         <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'drilling', cameraView: String(cameraMode), seaState: config.seaStateLevel })} />
         <Suspense fallback={null}>
-          <DrillingWater platformStateRef={platformStateRef} />
+          <DrillingWater platformStateRef={platformStateRef} resetToken={resetCount} />
         </Suspense>
 
         {/* 网格 */}
