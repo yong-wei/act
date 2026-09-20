@@ -175,6 +175,67 @@ describe('foam seek and reset policy (#2115)', () => {
     expect(field.epoch).toBe(1);
     expect(field.naturalPhaseTimeSeconds).toBe(12);
   });
+
+  it('advances decay and phase for stall time beyond the catch-up cap (P2)', () => {
+    const field = createField();
+    field.advanceTime(0, NO_SOURCES);
+    const cx = field.localToWorldI(24);
+    const cz = field.localToWorldJ(24);
+    field.deposit(cx, cz, 5, 0.9);
+    // 1.0s 单帧停顿（< seek 阈值 1.5s，> 补步上限 8×0.04=0.32s）：
+    // 不静默丢时——剩余时间按整体衰减推进，场时间与相位对齐绝对视觉时间。
+    field.advanceTime(1.0, NO_SOURCES);
+    expect(field.timeSeconds).toBeCloseTo(1.0, 6);
+    expect(field.naturalPhaseTimeSeconds).toBeCloseTo(1.0, 6);
+    const density = field.densityAt(cx, cz);
+    expect(density).toBeGreaterThan(0.2);
+    expect(density).toBeLessThan(0.9);
+  });
+
+  it('fades density smoothly at the domain edge (read-time feather, P2)', () => {
+    const field = createField({ domainMeters: 256 });
+    const res = field.resolution;
+    const cx = field.localToWorldI(Math.floor(res / 2));
+    const cz = field.localToWorldJ(Math.floor(res / 2));
+    const ex = field.localToWorldI(res - 2);
+    field.deposit(cx, cz, 5, 0.9);
+    field.deposit(ex, cz, 5, 0.9);
+    const center = field.densityAt(cx, cz);
+    const edge = field.densityAt(ex, cz);
+    expect(center).toBeGreaterThan(0.6);
+    // 域缘读数被羽化到显著低于中心（无刚性方形边界）。
+    expect(edge).toBeLessThan(center * 0.5);
+  });
+
+  it('injects natural coverage continuously instead of a coarse lattice (P2)', () => {
+    const field = createField({ domainMeters: 256 });
+    const sources = {
+      waves: GERSTNER_WAVE_SETS.high,
+      amplitudeScale: gerstnerAmplitudeScale(5),
+      seaState: 5,
+      naturalEnabled: true,
+    };
+    const calm = createField({ domainMeters: 256 });
+    const calmSources = {
+      waves: GERSTNER_WAVE_SETS.high,
+      amplitudeScale: gerstnerAmplitudeScale(1),
+      seaState: 1,
+      naturalEnabled: true,
+    };
+    for (let i = 0; i < 50; i += 1) field.step(0.04, sources);
+    for (let i = 0; i < 50; i += 1) calm.step(0.04, calmSources);
+    // 双线性插值注入：风暴下非零覆盖为连续区域（逐粗点冲点会留下周期空档）。
+    const coverage = (f: FoamHistoryField) => {
+      let covered = 0;
+      for (let index = 0; index < f.grid.length; index += 1) {
+        if (f.grid[index] > 0.05) covered += 1;
+      }
+      return covered / f.grid.length;
+    };
+    expect(coverage(field)).toBeGreaterThan(0.04);
+    expect(coverage(field)).toBeGreaterThan(coverage(calm) * 2);
+    expect(coverage(calm)).toBeLessThan(0.01);
+  });
 });
 
 describe('natural breaking-wave source (#2115)', () => {
@@ -357,6 +418,8 @@ describe('source contracts (#2115)', () => {
     // 不再被反复补沉积。
     expect(source).toContain('vesselSourceActive');
     expect(source).toContain('visualDelta > 0 && vesselSourceActive');
+    // 场模式几何始终为飞沫子集（是否沉积与几何选择分开——停推不闪现全量 quad）。
+    expect(source).toContain('} else if (depositToField && foamField) {');
   });
 
   it('clears the foam history on experiment reset via resetToken (P2)', () => {
@@ -411,6 +474,19 @@ describe('source contracts (#2115)', () => {
     expect(
       readMarineFoamFieldFromScene({ userData: { marineFoamField: 'nope' } }),
     ).toBeNull();
+  });
+
+  it('keeps the field stable across config changes and resamples on tier change (P2)', () => {
+    const source = readSource('scene/water/foam-history-layer.tsx');
+    // 海况/振幅变化经 ref 更新（不重建场、不瞬清历史）。
+    expect(source).toContain('sourcesRef.current = {');
+    // 档位变化按世界坐标重采样旧密度。
+    expect(source).toContain('previousFieldRef');
+    expect(source).toContain('previous.densityAt(');
+    // 材质端域缘羽化（无刚性方形边界）。
+    const material = readSource('scene/water/gerstner-water-material.ts');
+    expect(material).toContain('uFoamEdgeFade');
+    expect(material).toContain('feather');
   });
 
   it('foam history layer exposes QA attribution and cost probe', () => {

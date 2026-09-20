@@ -2,6 +2,7 @@ import * as THREE from 'three';
 
 import { GERSTNER_MAX_WAVES, type GerstnerWave } from './gerstner-waves';
 import { NEAR_FIELD_FADE_BAND_METERS } from './ocean-bands';
+import { FOAM_EDGE_FADE_METERS } from './foam-history';
 import { MAX_HULL_EXCLUSION_BOXES } from './hull-exclusion';
 import type { MarineShoreSegment } from '../environment/scene-layouts';
 
@@ -145,6 +146,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uFoamDomain: { value: options.foamField?.domainMeters ?? 0 },
       uFoamResolution: { value: options.foamField?.resolution ?? 0 },
       uFoamFieldEnabled: { value: options.foamField ? 1 : 0 },
+      uFoamEdgeFade: { value: FOAM_EDGE_FADE_METERS },
     },
     vertexShader: /* glsl */ `
       #define MAX_WAVES ${GERSTNER_MAX_WAVES}
@@ -328,6 +330,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uFoamDomain;
       uniform float uFoamResolution;
       uniform float uFoamFieldEnabled;
+      uniform float uFoamEdgeFade;
 
       varying vec3 vNormal;
       varying vec3 vWorldNormal;
@@ -339,9 +342,15 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       varying vec2 vLocalXZ;
 
       // 泡沫历史密度（#2115）：R 通道密度纹理 + 手动双线性（NearestFilter 上采样
-      // 与 GPU 无关，跨设备确定）。域外 0；地址钳制（ClampToEdge）不产生环回。
+      // 与 GPU 无关，跨设备确定）。域外 0；域缘按羽化带平滑衰减（ClampToEdge
+      // 只钳制寻址，不提供衰减——否则随船域缘出现刚性方形泡沫边界）。
       float sampleFoamField(vec2 worldXZ) {
         vec2 local = worldXZ - uFoamOrigin;
+        // 域缘羽化（P2 修复）：边缘带内 smoothstep 到 0。
+        vec2 edgeT = (abs(local) - (uFoamDomain * 0.5 - uFoamEdgeFade)) / max(uFoamEdgeFade, 1.0);
+        float edge = clamp(max(edgeT.x, edgeT.y), 0.0, 1.0);
+        float feather = 1.0 - edge * edge * (3.0 - 2.0 * edge);
+        if (feather <= 0.0) return 0.0;
         vec2 g = (local + uFoamDomain * 0.5) / (uFoamDomain / uFoamResolution) - 0.5;
         if (g.x < -0.5 || g.y < -0.5 || g.x > uFoamResolution - 0.5 || g.y > uFoamResolution - 0.5) {
           return 0.0;
@@ -354,7 +363,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         float t10 = texture2D(uFoamDensityTex, uv00 + vec2(inv, 0.0)).r;
         float t01 = texture2D(uFoamDensityTex, uv00 + vec2(0.0, inv)).r;
         float t11 = texture2D(uFoamDensityTex, uv00 + vec2(inv, inv)).r;
-        return mix(mix(t00, t10, f.x), mix(t01, t11, f.x), f.y);
+        return mix(mix(t00, t10, f.x), mix(t01, t11, f.x), f.y) * feather;
       }
 
       // 多尺度细节（#2115）：三个非谐波尺度 + 固定偏移去相关——同一噪声图不再

@@ -490,18 +490,22 @@ export function WakeTrail({
 
     if (vesselFoamSuppressed) {
       // 归因隔离：mesh 已隐藏，跳过沉积与几何刷新（不绘制任何船源泡沫）。
-    } else if (depositToField && foamField && visualDelta > 0 && vesselSourceActive) {
-      // 贴水泡沫沉积（#2115）：逐粒子视觉（世界位置 + 年龄/活跃度加权不透明度）
-      // 按秒积分写入共享密度场；转弯后旧泡沫留在原世界轨迹，随场输运/衰减消散。
-      const amount = VESSEL_FOAM_RATE_PER_SECOND * visualDelta;
-      forEachWakeParticleVisual(buffer, state.simTime, (visual) => {
-        foamField.deposit(
-          visual.center[0],
-          visual.center[2],
-          Math.max(3.5, visual.width * 0.7),
-          amount * visual.opacity
-        );
-      }, waterYSampler);
+    } else if (depositToField && foamField) {
+      // 场模式（P2 修复）：几何始终为受限飞沫子集（是否沉积与使用哪种几何分开
+      // ——停推/暂停时不再让全量 quad 以 spray 材质突然重现）。
+      if (visualDelta > 0 && vesselSourceActive) {
+        // 贴水泡沫沉积（#2115）：逐粒子视觉（世界位置 + 年龄/活跃度加权不透明度）
+        // 按秒积分写入共享密度场；转弯后旧泡沫留在原世界轨迹，随场输运/衰减消散。
+        const amount = VESSEL_FOAM_RATE_PER_SECOND * visualDelta;
+        forEachWakeParticleVisual(buffer, state.simTime, (visual) => {
+          foamField.deposit(
+            visual.center[0],
+            visual.center[2],
+            Math.max(3.5, visual.width * 0.7),
+            amount * visual.opacity
+          );
+        }, waterYSampler);
+      }
       updateWakeSprayGeometry(handle, buffer, state.simTime, waterYSampler);
     } else {
       updateWakeTrailGeometry(handle, buffer, state.simTime, waterYSampler);

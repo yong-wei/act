@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 
@@ -101,6 +101,24 @@ export function MarineFoamFieldProvider({
   const isWebGL2 = useThree((state) => state.gl.capabilities.isWebGL2);
   const scene = useThree((state) => state.scene);
 
+  // 归因只在挂载时解析一次（URL 参数）。
+  const [attribution] = useState(() => resolveAttributionFromLocation());
+  // 上一档位的场：档位切换时按世界坐标重采样旧密度（不瞬清，P2 修复）。
+  const previousFieldRef = useRef<FoamHistoryField | null>(null);
+  // 可变源参数（每渲染刷新，不触发场重建——海况/振幅变化只改注入门限与速率）。
+  const sourcesRef = useRef<FoamSourceInputs>({
+    waves,
+    amplitudeScale,
+    seaState,
+    naturalEnabled: attribution.natural,
+  });
+  sourcesRef.current = {
+    waves,
+    amplitudeScale,
+    seaState,
+    naturalEnabled: attribution.natural,
+  };
+
   const { controller, internal } = useMemo(() => {
     const spec = FOAM_HISTORY_BY_TIER[tier];
     const field = new FoamHistoryField({
@@ -108,6 +126,18 @@ export function MarineFoamFieldProvider({
       domainMeters: FOAM_DOMAIN_METERS,
       driftMetersPerSecond: displayDriftVelocity(waves, DISPLAY_DRIFT_SPEED_METERS_PER_SECOND),
     });
+    const previous = previousFieldRef.current;
+    if (previous) {
+      for (let j = 0; j < field.resolution; j += 1) {
+        for (let i = 0; i < field.resolution; i += 1) {
+          field.grid[j * field.resolution + i] = previous.densityAt(
+            field.localToWorldI(i),
+            field.localToWorldJ(j),
+          );
+        }
+      }
+    }
+    previousFieldRef.current = field;
     const texture = new THREE.DataTexture(
       field.grid,
       field.resolution,
@@ -121,20 +151,12 @@ export function MarineFoamFieldProvider({
     texture.wrapT = THREE.ClampToEdgeWrapping;
     texture.needsUpdate = true;
 
-    const attribution = resolveAttributionFromLocation();
     let deposits = 0;
     let depositsWindowStart = 0;
     let depositsLastSecond = 0;
     let lastStepCostMs = 0;
     let avgStepCostMs = 0;
     let textureDirty = false;
-
-    const sources: FoamSourceInputs = {
-      waves,
-      amplitudeScale,
-      seaState,
-      naturalEnabled: attribution.natural,
-    };
 
     const controllerValue: MarineFoamFieldController = {
       field,
@@ -168,7 +190,7 @@ export function MarineFoamFieldProvider({
       tick(visualTime) {
         const timeBefore = field.timeSeconds;
         const before = performance.now();
-        field.advanceTime(visualTime, sources);
+        field.advanceTime(visualTime, sourcesRef.current);
         const cost = performance.now() - before;
         if (field.timeSeconds !== timeBefore) {
           lastStepCostMs = cost;
@@ -201,7 +223,10 @@ export function MarineFoamFieldProvider({
     };
 
     return { controller: controllerValue, internal: internalHandle };
-  }, [tier, waves, amplitudeScale, seaState]);
+    // 海况/振幅倍率变化不重建场（源参数经 sourcesRef 每渲染更新——自然泡沫按
+    // 新门限继续演化，已沉积历史保留并衰减）；只有档位（分辨率/频率）变化重建。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tier, waves]);
 
   const controllerRef = useRef(controller);
   controllerRef.current = controller;

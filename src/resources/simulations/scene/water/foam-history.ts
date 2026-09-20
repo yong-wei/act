@@ -22,15 +22,16 @@ export const FOAM_SEEK_CLEAR_SECONDS = 1.5;
 /** 单次 advanceTime 的最大补步数：后台恢复后不做无限追赶（泡沫为显示状态）。 */
 export const FOAM_MAX_STEPS_PER_ADVANCE = 8;
 
+/** 域边缘羽化带宽（米）：历史密度在域缘平滑衰减到 0——避免随船移动的
+ * 刚性方形泡沫边界（ClampToEdge 只钳制寻址，不提供衰减）。 */
+export const FOAM_EDGE_FADE_METERS = 96;
+
 /** 自然白浪源：归一化压缩的起止门限（压缩区平滑出沫）。 */
-export const NATURAL_FOAM_COMPRESSION_THRESHOLD = 0.45;
-export const NATURAL_FOAM_COMPRESSION_FULL = 0.78;
+export const NATURAL_FOAM_COMPRESSION_THRESHOLD = 0.3;
+export const NATURAL_FOAM_COMPRESSION_FULL = 0.62;
 
 /** 自然白浪源注入速率（密度/秒，满强度处）。 */
 export const NATURAL_FOAM_RATE_PER_SECOND = 1.6;
-
-/** 自然白浪源冲点半径（米）。 */
-export const NATURAL_FOAM_RADIUS_METERS = 6;
 
 /** 船体/推进器源沉积速率基准（密度/秒/不透明度单位）。 */
 export const VESSEL_FOAM_RATE_PER_SECOND = 2.4;
@@ -172,6 +173,9 @@ export class FoamHistoryField {
   private accumulator = 0;
   private readonly naturalStride: number;
   private naturalCompressionCache: Float32Array | null = null;
+  /** 边缘羽化权重（按轴预计算）：step 写入时相乘。 */
+  private readonly edgeFeatherI: Float32Array;
+  private readonly edgeFeatherJ: Float32Array;
 
   constructor(options: FoamHistoryFieldOptions) {
     this.resolution = Math.max(8, Math.round(options.spec.resolution));
@@ -183,6 +187,26 @@ export class FoamHistoryField {
     this.naturalStride = Math.max(1, Math.round(options.spec.naturalStride));
     this.grid = new Float32Array(this.resolution * this.resolution);
     this.scratch = new Float32Array(this.resolution * this.resolution);
+    const fadeTexels = Math.min(
+      Math.max(2, Math.round(FOAM_EDGE_FADE_METERS / this.cellMeters)),
+      Math.floor(this.resolution / 4),
+    );
+    const smooth = (t: number) => {
+      const clamped = Math.min(Math.max(t, 0), 1);
+      return clamped * clamped * (3 - 2 * clamped);
+    };
+    this.edgeFeatherI = new Float32Array(this.resolution);
+    this.edgeFeatherJ = new Float32Array(this.resolution);
+    for (let i = 0; i < this.resolution; i += 1) {
+      this.edgeFeatherI[i] = Math.min(
+        smooth(i / fadeTexels),
+        smooth((this.resolution - 1 - i) / fadeTexels),
+      );
+      this.edgeFeatherJ[i] = Math.min(
+        smooth(i / fadeTexels),
+        smooth((this.resolution - 1 - i) / fadeTexels),
+      );
+    }
   }
 
   /** texel 中心的局部坐标（x/z）。 */
@@ -220,9 +244,20 @@ export class FoamHistoryField {
     return top * (1 - fz) + bottom * fz;
   }
 
-  /** 世界坐标密度读取（测试与 QA 探针）。 */
+  /** texel 轴向羽化权重 [0,1]（域缘平滑到 0）。 */
+  private featherAt(i: number, j: number): number {
+    return this.edgeFeatherI[i] * this.edgeFeatherJ[j];
+  }
+
+  /** 世界坐标密度读取（测试与 QA 探针）：含域缘羽化（与着色口径一致）。 */
   densityAt(worldX: number, worldZ: number): number {
-    return this.sampleGrid(this.grid, this.worldToGridX(worldX), this.worldToGridZ(worldZ));
+    const gx = this.worldToGridX(worldX);
+    const gz = this.worldToGridZ(worldZ);
+    const density = this.sampleGrid(this.grid, gx, gz);
+    if (density <= 0) return 0;
+    const i = Math.min(Math.max(Math.round(gx), 0), this.resolution - 1);
+    const j = Math.min(Math.max(Math.round(gz), 0), this.resolution - 1);
+    return density * this.featherAt(i, j);
   }
 
   /** 以 (worldX, worldZ) 为中心、半径 radius 的圆盘冲点（峰值密度 amount，边缘 smoothstep 衰减）。 */
@@ -278,7 +313,11 @@ export class FoamHistoryField {
     this.naturalPhaseTimeSeconds += dt;
   }
 
-  /** 自然源：粗步距网格上计算压缩，双线性放大到全网格冲点。 */
+  /**
+   * 自然源：粗步距网格上计算压缩，**双线性插值到全网格**后逐 texel 直接注入
+   * （P2 修复：逐粗点冲点会形成 stride×cell 米的规则稀疏格点——medium 档 32m
+   * 周期的刚性图案；插值注入使密度覆盖连续，细节纹理只负责形态）。
+   */
   private injectNatural(dt: number, sources: FoamSourceInputs): void {
     const stride = this.naturalStride;
     const res = this.resolution;
@@ -288,8 +327,6 @@ export class FoamHistoryField {
       cache = new Float32Array(coarse * coarse);
       this.naturalCompressionCache = cache;
     }
-    // 粗网格（步距 = stride texel）上的世界坐标
-    const coarseCell = this.cellMeters * stride;
     for (let cj = 0; cj < coarse; cj += 1) {
       const worldZ = (cj * stride + 0.5) * this.cellMeters - this.domainMeters / 2 + this.originZ;
       for (let ci = 0; ci < coarse; ci += 1) {
@@ -304,17 +341,26 @@ export class FoamHistoryField {
       }
     }
     const amount = NATURAL_FOAM_RATE_PER_SECOND * dt;
-    for (let cj = 0; cj + 1 < coarse; cj += 1) {
-      for (let ci = 0; ci + 1 < coarse; ci += 1) {
-        const strength = naturalFoamSourceStrength(cache[cj * coarse + ci], sources.seaState);
+    const sampleCoarse = (gx: number, gz: number): number => {
+      const ci = Math.min(Math.max(Math.floor(gx), 0), coarse - 1);
+      const cj = Math.min(Math.max(Math.floor(gz), 0), coarse - 1);
+      const fx = Math.min(Math.max(gx - ci, 0), 1);
+      const fz = Math.min(Math.max(gz - cj, 0), 1);
+      const top = cache[cj * coarse + ci] * (1 - fx) + cache[cj * coarse + Math.min(ci + 1, coarse - 1)] * fx;
+      const bottom =
+        cache[Math.min(cj + 1, coarse - 1) * coarse + ci] * (1 - fx) +
+        cache[Math.min(cj + 1, coarse - 1) * coarse + Math.min(ci + 1, coarse - 1)] * fx;
+      return top * (1 - fz) + bottom * fz;
+    };
+    for (let j = 0; j < res; j += 1) {
+      const gz = j / stride;
+      for (let i = 0; i < res; i += 1) {
+        const strength = naturalFoamSourceStrength(sampleCoarse(i / stride, gz), sources.seaState);
         if (strength <= 0.01) continue;
-        const i = ci * stride;
-        const j = cj * stride;
-        this.deposit(
-          this.localToWorldI(i),
-          this.localToWorldJ(j),
-          NATURAL_FOAM_RADIUS_METERS,
-          amount * strength,
+        const index = j * res + i;
+        this.grid[index] = Math.min(
+          MAX_FOAM_DENSITY,
+          this.grid[index] + amount * strength * this.edgeFeatherI[i] * this.edgeFeatherJ[j],
         );
       }
     }
@@ -388,6 +434,16 @@ export class FoamHistoryField {
       steps += 1;
     }
     if (this.accumulator >= this.fixedDtSeconds - 1e-9) {
+      // 补步上限之外的停顿时间（P2 修复）：不静默丢时——按剩余时间整体解析衰减
+      // （源注入跳过，显示状态可接受），场时间与自然相位同步推进，与水面
+      // shader 的绝对视觉时间保持同相，直到下次 seek/reset 重基线。
+      const skipped = this.accumulator;
+      const bulkDecay = foamDecayFactor(this.halfLifeSeconds, skipped);
+      for (let index = 0; index < this.grid.length; index += 1) {
+        this.grid[index] *= bulkDecay;
+      }
+      this.timeSeconds += skipped;
+      this.naturalPhaseTimeSeconds += skipped;
       this.accumulator = 0;
     }
   }
