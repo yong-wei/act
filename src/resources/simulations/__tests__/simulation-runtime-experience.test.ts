@@ -30,6 +30,7 @@ describe('probe binds the real renderer (#2120)', () => {
     expect(timer).toContain('export function marineGpuTimerStopWindow()');
     expect(timer).toContain('if (!ext || !context || !windowOpen) return;');
     expect(timer).toContain('resolvedGeneration === windowGeneration && windowOpen');
+    expect(timer).toContain('if (generation === windowGeneration && windowOpen) windowDisjointDrops += 1;');
     const probe2 = readSource('scene/quality/quality-state.tsx');
     expect(probe2).toContain('marineGpuTimerStopWindow();');
     expect(timer).toContain('gpuTimerAvailable: windowResolvedCount > 0');
@@ -83,11 +84,11 @@ describe('governor warm-up and background protection (#2120)', () => {
     // 挂载即隐藏（后台打开/会话恢复）也处于保护态。
     expect(source).toContain('hiddenRef.current = document.hidden;');
     // 预热以可见墙钟计（后台驻留不消耗预热窗口）。
-    expect(source).toContain('hiddenAccumRef.current += now - lastVisibilityTsRef.current;');
+    expect(source).toContain('if (wasHidden && !isHidden) hiddenAccumRef.current += now - lastVisibilityTsRef.current;');
     expect(source).toContain('now - mountedAtRef.current - hiddenAccumRef.current < GOVERNOR_WARMUP_MS');
     expect(source).toContain("document.addEventListener('visibilitychange', onVisibility)");
     // 恢复帧的巨大间隔被丢弃（lastRef 复位，不算超预算帧）。
-    expect(source).toContain('if (!document.hidden) lastRef.current = 0;');
+    expect(source).toContain('if (!isHidden) lastRef.current = 0;');
   });
 });
 

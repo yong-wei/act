@@ -112,7 +112,8 @@ export function pollMarineGpuTimer(): void {
     context.deleteQuery(query);
     pending = null;
     disjointDrops += 1;
-    windowDisjointDrops += 1;
+    // 窗口代次门控（二轮）：已停止/已切换窗口的 disjoint 不写回当前窗口。
+    if (generation === windowGeneration && windowOpen) windowDisjointDrops += 1;
     return;
   }
   // P1 复审修复：结果常量取 WebGL2 核心（context.QUERY_RESULT_AVAILABLE /

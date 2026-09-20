@@ -120,14 +120,18 @@ export function SceneQualityDriver({ onTierChange }: { readonly onTierChange?: (
     // 挂载即隐藏的页面（后台打开/会话恢复）：visibilitychange 已发生——
     // 用当前 document.hidden 初始化，隐藏期间不推进降档判定。
     hiddenRef.current = document.hidden;
+    // 挂载时若已隐藏，驻留计时从挂载点开始。
+    lastVisibilityTsRef.current = performance.now();
     const onVisibility = () => {
       const now = performance.now();
-      // 预热期以可见墙钟计（P2 二轮）：后台驻留不消耗预热窗口——恢复后
-      // 浏览器推迟的编译/上传慢帧仍处于保护期。
-      if (document.hidden) hiddenAccumRef.current += now - lastVisibilityTsRef.current;
+      const wasHidden = hiddenRef.current;
+      const isHidden = document.hidden;
+      // 预热期以可见墙钟计（P2 三轮）：**恢复可见时**累计刚结束的后台驻留
+      //（按转换前状态判定——隐藏挂载/预热期隐藏都不消耗预热窗口）。
+      if (wasHidden && !isHidden) hiddenAccumRef.current += now - lastVisibilityTsRef.current;
       lastVisibilityTsRef.current = now;
-      hiddenRef.current = document.hidden;
-      if (!document.hidden) lastRef.current = 0;
+      hiddenRef.current = isHidden;
+      if (!isHidden) lastRef.current = 0;
     };
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
