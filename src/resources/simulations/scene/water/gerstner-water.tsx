@@ -299,6 +299,10 @@ const DEFAULT_WATER_COLORS = getEnvironmentPreset(DEFAULT_ENVIRONMENT_PRESET_ID)
 const ENV_QA_SPIN =
   typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('qa', 'marine-env');
 
+/** QA 旋转复用对象（与 three WebGLMaterials 同构：makeRotationFromEuler + transpose）。 */
+const ENV_QA_SPIN_EULER = new THREE.Euler();
+const ENV_QA_SPIN_MATRIX = new THREE.Matrix4();
+
 /** QA 平面反射关闭开关（#2118）：?qa-planar=off。 */
 const PLANAR_QA_DISABLED =
   typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-planar') === 'off';
@@ -477,11 +481,13 @@ function BandWaterMesh({
     }
     if (ENV_QA_SPIN && material.uniforms.uEnvEnabled.value > 0) {
       const angle = state.clock.getElapsedTime() * 0.4;
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
-      (material.uniforms.envMapRotation.value as THREE.Matrix3).set(cos, 0, sin, 0, 1, 0, -sin, 0, cos);
-      // 船体 PBR 同一旋转（scene.environmentRotation 驱动内建材质的 envMapRotation）：
-      // QA 方向诊断下水与船一致跟随，不制造消费者分歧（复审修复）。
+      // 与船体同一路径（复审修复）：three WebGLMaterials 对内建材质把
+      // scene.environmentRotation 的旋转矩阵转置后传入 envMapRotation——水面
+      // uniform 按 setFromMatrix4(makeRotationFromEuler).transpose() 同构构建，
+      // 两侧方向特征一致（不一边正转一边反转）。
+      (material.uniforms.envMapRotation.value as THREE.Matrix3)
+        .setFromMatrix4(ENV_QA_SPIN_MATRIX.makeRotationFromEuler(ENV_QA_SPIN_EULER.set(0, angle, 0)))
+        .transpose();
       scene.environmentRotation?.set(0, angle, 0);
     }
     // 平面反射（#2118 受控高档）：反射组件经 scene.userData 提供纹理矩阵。
