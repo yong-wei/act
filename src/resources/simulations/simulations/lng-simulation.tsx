@@ -35,7 +35,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -110,11 +110,19 @@ function LNGShipModel(props: {
   simRef: React.MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
+  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
+  const waterHeight = useNearFieldWaterHeight({
+    positionSampler: () => props.position,
+    seaState: 3,
+      shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
+  });
+
   return (
     <VersionedFleetShip
       logicalId="lng-carrier"
       simRef={props.simRef}
       position={props.position}
+      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
       headingRad={props.heading}
       extraEuler={{ z: props.sloshingAngle * 0.1 }}
       sceneLengthMeters={LNG_CHANGHENG_PARAMS.LENGTH}
@@ -258,28 +266,19 @@ function WakeTrailRig({
   const environmentLight = useEnvironmentWaterColors();
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
-  // 近场查询帧记忆化（#2104）：本帧全部粒子共享同一角点缓存。
-  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
   const { tier } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [state.position.x, 0, state.position.z];
     transformRef.current.heading = platformHeadingToSceneRad(state.heading);
-    timeRef.current = frameState.clock.getElapsedTime();
   });
 
-  // 统一近场可见曲面（#2104）：帧记忆化查询——与 GPU 近场网格同参数（带限波组+包络）。
-  const waterYSampler = (x?: number, z?: number) => {
-    const key = `${timeRef.current}|${state.position.x}|${state.position.z}`;
-    if (!wakeQueryCacheRef.current || wakeQueryCacheRef.current.key !== key) {
-      wakeQueryCacheRef.current = {
-        key,
-        query: createNearFieldSurfaceQuery(gerstnerAmplitudeScale(3), state.position.x, state.position.z, timeRef.current),
-      };
-    }
-    return GERSTNER_WATER_BASE_Y + (wakeQueryCacheRef.current.query.heightAt(x ?? 0, z ?? 0) - GERSTNER_WATER_BASE_Y) * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400);;
-  };
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义（含岸线衰减）。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: state.position.x, z: state.position.z }),
+    seaState: 3,
+    shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
+  });
 
   if (!wakeVisible) return null;
   return (
@@ -567,6 +566,7 @@ function Scene({
 // ============ 主组件 ============
 
 export function LNGSimulation() {
+  const timeRef = useRef(0);
   const engineRef = useRef<LNGCarrierEngine | null>(null);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
@@ -586,7 +586,6 @@ export function LNGSimulation() {
     controlMode: 'pid' as LNGSimulationState['controlMode'],
   });
   const speedScaleRef = useRef(1);
-  const timeRef = useRef(0);
   const lastHudUpdateRef = useRef(0);
   const lastTrajectoryTimeRef = useRef(0);
   const bindingRef = useRef<BindingTelemetrySource>({
@@ -755,7 +754,6 @@ export function LNGSimulation() {
       engineRef.current.initialize(-3000, 0, 0);
     }
 
-    timeRef.current = 0;
     lastHudUpdateRef.current = 0;
     lastTrajectoryTimeRef.current = 0;
     attainmentRef.current = createAttainmentState(0);
@@ -782,6 +780,7 @@ export function LNGSimulation() {
       smithEnabled: false,
     });
     lastTimeRef.current = 0;
+    timeRef.current = 0;
     clockRef.current.reset();
     setTrajectory([]);
     setResetCount((previous) => previous + 1);

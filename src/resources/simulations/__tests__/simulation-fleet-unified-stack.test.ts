@@ -43,10 +43,14 @@ describe('fleet unified marine stack (#2104 contracts)', () => {
   });
 
   it('memoizes the near-field query per frame across the fleet', () => {
+    // #2117：帧记忆化收敛进 useNearFieldWaterHeight（共享视觉时钟 + 同参数查询，
+    // 含岸线衰减）；各 rig 消费同一 hook——不再各自维护 wakeQueryCacheRef。
     for (const file of FLEET) {
       const source = readFileSync(path.join(ROOT, 'src/resources/simulations/simulations', file), 'utf-8');
-      if (file === 'destroyer-simulation.tsx') continue; // 055 帧基座内建记忆化
-      expect(source, file).toContain('wakeQueryCacheRef');
+      expect(source, file).toContain('useNearFieldWaterHeight(');
+      // 水高查询不再走独立 wall-clock（其他合法用途不受影响）。
+      expect(source, file).not.toContain('timeRef.current = frameState.clock.getElapsedTime()');
+      expect(source, file).not.toContain('timeRef.current = state.clock.getElapsedTime()');
     }
   });
 });

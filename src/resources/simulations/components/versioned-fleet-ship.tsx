@@ -31,6 +31,7 @@ export function VersionedFleetShip({
   headingRad,
   extraEuler,
   waterY = 0,
+  waterYSampler,
   sceneLengthMeters,
   resetToken = 0,
   legacyYawOffsetRad,
@@ -44,6 +45,8 @@ export function VersionedFleetShip({
   headingRad: number;
   extraEuler?: { x?: number; z?: number };
   waterY?: number;
+  /** 逐帧水线采样（#2117）：提供时覆盖固定 waterY（共享波面参考，替代隐含 0）。 */
+  waterYSampler?: () => number;
   sceneLengthMeters: number;
   resetToken?: number;
   legacyYawOffsetRad: number;
@@ -68,6 +71,7 @@ export function VersionedFleetShip({
             headingRad={headingRad}
             extraEuler={extraEuler}
             waterY={waterY}
+            waterYSampler={waterYSampler}
             sceneLengthMeters={sceneLengthMeters}
             resetToken={resetToken}
             basisYawRad={0}
@@ -99,6 +103,7 @@ export function VersionedFleetShip({
             headingRad={headingRad}
             extraEuler={extraEuler}
             waterY={waterY}
+            waterYSampler={waterYSampler}
             sceneLengthMeters={sceneLengthMeters}
             resetToken={resetToken}
             basisYawRad={versioned && !useMatrix ? activated.basisYawRad : 0}
@@ -123,6 +128,7 @@ function FleetModelScene({
   headingRad,
   extraEuler,
   waterY,
+  waterYSampler,
   sceneLengthMeters,
   resetToken,
   basisYawRad,
@@ -140,6 +146,7 @@ function FleetModelScene({
   headingRad: number;
   extraEuler?: { x?: number; z?: number };
   waterY: number;
+  waterYSampler?: () => number;
   sceneLengthMeters: number;
   resetToken: number;
   basisYawRad: number;
@@ -186,7 +193,10 @@ function FleetModelScene({
 
   useFrame(() => {
     if (!groupRef.current) return;
-    groupRef.current.position.set(position.x, waterY + waterlineOffset, position.z);
+    // 水线参考（#2117）：采样器优先（共享波面），缺省回退显式 waterY——
+    // 不再隐含 waterY=0；数值横摇（extraEuler）不受影响。
+    const resolvedWaterY = waterYSampler ? waterYSampler() : waterY;
+    groupRef.current.position.set(position.x, resolvedWaterY + waterlineOffset, position.z);
     groupRef.current.rotation.set(
       extraEuler?.x ?? 0,
       -headingRad + outerYawOffsetRad,

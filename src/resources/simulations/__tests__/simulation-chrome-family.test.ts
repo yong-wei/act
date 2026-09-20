@@ -172,8 +172,10 @@ describe('chrome family polish', () => {
       expect(source, `${file} still feeds a flat per-frame water height`).not.toContain('waterYSampler={() => waterYRef.current}');
       // 位置感知采样：旧式世界坐标直采，或与可见水面同一坐标基准的共享采样器
       const legacyForm = source.includes('x ?? 0, z ?? 0, timeRef.current');
-      // #2098：共享采样器升级为近场批量查询（带限波组+包络，与 GPU 同参数）。
-      const sharedForm = source.includes('sampleVisibleWaterHeight(') || source.includes('createNearFieldSurfaceQuery(');
+      // #2098→#2117：共享采样器升级为 useNearFieldWaterHeight（帧记忆化近场批量
+      // 查询：带限波组+包络+岸线衰减，与 GPU 同参数、共享视觉时钟）。
+      const sharedForm = source.includes('sampleVisibleWaterHeight(')
+        || source.includes('useNearFieldWaterHeight(') || source.includes('createNearFieldSurfaceQuery(');
       expect(legacyForm || sharedForm, `${file} missing position-aware wake sampler`).toBe(true);
     }
   });
