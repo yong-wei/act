@@ -229,14 +229,20 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(client).toContain('unresolvedDifference');
   });
 
-  it('drives the stand-in vessel from interval-based queries outside the RAF hot path', () => {
+  it('drives the stand-in vessel from worker-thread DFT batches (main thread untouched)', () => {
     const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
-    // 三点 DFT 批次 ~31ms 级——在 setInterval（RAF 之外）异步执行；
-    // useFrame 只消费最近结果（被测帧不含查询成本）。
-    expect(client).toContain('VESSEL_QUERY_HZ = 4');
-    expect(client).toContain('window.setInterval(() => {');
-    expect(client).toContain('const mid = fftOceanHeightAt(spectrum, domain, t, 0, 0);');
-    expect(client).toContain('Math.atan2(bow - stern, 170)');
+    const worker = readSource('src/resources/simulations/scene/water/fft-query-worker.ts');
+    // 三点 DFT 批次在 Worker 线程执行（Blob 自包含源）；主线程只投递/消费。
+    expect(client).toContain('createFFTQueryWorker()');
+    expect(client).toContain('worker.post({');
+    expect(client).toContain('worker.dispose();');
+    // 过期结果按时间戳丢弃。
+    expect(client).toContain('if (result.timeSeconds < queryRef.current.time) return;');
+    // Worker 源与主线程公式同构（binWaveNumber/色散/相位同式）。
+    expect(worker).toContain('const phase = omega * timeSeconds + kx * worldX + kz * worldZ;');
+    expect(worker).toContain('sum / (resolution * resolution)');
+    // 回退路径如实标记（Worker 不可用时）。
+    expect(client).toContain('viaWorker: false');
     // 查询延迟单独测量（口径分离）。
     expect(client).toContain('measurePointQueryMs');
   });

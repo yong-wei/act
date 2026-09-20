@@ -9,7 +9,8 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 
 import { FFTOceanSurface } from '@/resources/simulations/scene/water/fft-ocean-surface';
-import { fftOceanHeightAt, fftOceanStaticSpectrum } from '@/resources/simulations/scene/water/fft-ocean';
+import { fftOceanStaticSpectrum } from '@/resources/simulations/scene/water/fft-ocean';
+import { createFFTQueryWorker } from '@/resources/simulations/scene/water/fft-query-worker';
 import { GerstnerWater } from '@/resources/simulations/scene/water';
 import { SceneEnvironmentProvider } from '@/resources/simulations/scene/environment';
 
@@ -32,32 +33,80 @@ const SPECTRUM_INPUT = {
   seed: 17,
 } as const;
 
-/** 船体水高查询节拍（Hz）：完整 256² 逆 DFT 三点批次 ~31ms 级——在 RAF 之外
- * 的 setInterval 异步执行（不占任何被测渲染帧）；useFrame 只消费最近结果。
- * 完整查询延迟由 ?qa=fft-ocean 的 measurePointQueryMs 单独测量。 */
+/** 船体水高查询节拍（Hz）：三点 256² 逆 DFT 批次在 **Worker 线程**执行
+ *（主线程零占用）；调度 setInterval 只投递任务。完整查询延迟由
+ * ?qa=fft-ocean 的 measurePointQueryMs 单独测量。 */
 const VESSEL_QUERY_HZ = 4;
 
 /**
- * 实验占位船体：批量 DFT 查询在 **setInterval（RAF 之外）** 异步执行——
- * 31ms 级查询批次不占用任何被测渲染帧（稳定帧耗只测波场后端）；useFrame
- * 只消费最近一次查询结果（帧间插值平滑）。完整查询延迟由
- * ?qa=fft-ocean 的 measurePointQueryMs 单独测量。
+ * 实验占位船体：三点 256² 逆 DFT 批次（~30ms 级）在 **Worker 线程**执行——
+ * 主线程与被测 RAF 零占用（稳定帧耗只测波场后端）；Worker 不可用时回退
+ * 主线程低频查询并如实标记。useFrame 只消费最近结果（按时间戳丢弃过期）。
+ * 完整查询延迟由 ?qa=fft-ocean 的 measurePointQueryMs 单独测量。
  */
 function StandInVessel() {
   const meshRef = useRef<THREE.Mesh>(null);
   // 频谱一次构建（与 FFTOceanSurface 同输入——同一场的独立 CPU 查询路径）。
   const spectrum = useRef(fftOceanStaticSpectrum(SPECTRUM_INPUT)).current;
-  const queryRef = useRef({ mid: 0, pitch: 0, time: 0 });
+  const queryRef = useRef({ mid: 0, pitch: 0, time: 0, viaWorker: false });
   useEffect(() => {
-    const interval = window.setInterval(() => {
+    const domain = SPECTRUM_INPUT.domainMeters;
+    const worker = createFFTQueryWorker();
+    if (worker) {
+      queryRef.current.viaWorker = true;
+      worker.onResult((result) => {
+        // 按时间戳丢弃过期结果（查询异步、结果单调推进）。
+        if (result.timeSeconds < queryRef.current.time) return;
+        const [mid, bow, stern] = result.results;
+        queryRef.current = {
+          mid,
+          pitch: Math.atan2(bow - stern, 170),
+          time: result.timeSeconds,
+          viaWorker: true,
+        };
+      });
+      let sequence = 0;
+      const interval = window.setInterval(() => {
+        sequence += 1 / VESSEL_QUERY_HZ;
+        worker.post({
+          spectrum: spectrum.data,
+          resolution: spectrum.resolution,
+          domain,
+          queries: [[0, 0], [0, 85], [0, -85]],
+          timeSeconds: sequence,
+        });
+      }, 1000 / VESSEL_QUERY_HZ);
+      return () => {
+        window.clearInterval(interval);
+        worker.dispose();
+      };
+    }
+    // 回退：主线程低频查询（Worker 不可用——如实标记非 Worker 路径）。
+    const fallback = window.setInterval(() => {
       const t = queryRef.current.time + 1 / VESSEL_QUERY_HZ;
-      const domain = SPECTRUM_INPUT.domainMeters;
-      const mid = fftOceanHeightAt(spectrum, domain, t, 0, 0);
-      const bow = fftOceanHeightAt(spectrum, domain, t, 0, 85);
-      const stern = fftOceanHeightAt(spectrum, domain, t, 0, -85);
-      queryRef.current = { mid, pitch: Math.atan2(bow - stern, 170), time: t };
+      const heightAt = (x: number, z: number) => {
+        let sum = 0;
+        for (let m = 0; m < spectrum.resolution; m += 1) {
+          const kz = (2 * Math.PI * (m <= spectrum.resolution / 2 ? m : m - spectrum.resolution)) / domain;
+          for (let ix = 0; ix < spectrum.resolution; ix += 1) {
+            const kx = (2 * Math.PI * (ix <= spectrum.resolution / 2 ? ix : ix - spectrum.resolution)) / domain;
+            const omega = Math.sqrt(9.81 * Math.max(Math.hypot(kx, kz), 1e-9));
+            const phase = omega * t + kx * x + kz * z;
+            const index = (m * spectrum.resolution + ix) * 2;
+            sum += spectrum.data[index] * Math.cos(phase) - spectrum.data[index + 1] * Math.sin(phase);
+          }
+        }
+        return sum / (spectrum.resolution * spectrum.resolution);
+      };
+      const mid = heightAt(0, 0);
+      queryRef.current = {
+        mid,
+        pitch: Math.atan2(heightAt(0, 85) - heightAt(0, -85), 170),
+        time: t,
+        viaWorker: false,
+      };
     }, 1000 / VESSEL_QUERY_HZ);
-    return () => window.clearInterval(interval);
+    return () => window.clearInterval(fallback);
   }, [spectrum]);
   useFrame(() => {
     const mesh = meshRef.current;
