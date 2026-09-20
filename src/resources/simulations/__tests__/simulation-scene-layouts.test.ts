@@ -197,7 +197,8 @@ describe('layout mounting reuses the shared rendering stack (#2102 contracts)', 
       'utf-8',
     );
     // 世界坐标静态放置；不挂相机/船位采样器（视差正确）。
-    expect(source).toContain('position={[object.x, (object.y ?? 0) + (isIce ? 0.2 : 0), object.z]}');
+    expect(source).toContain("position={[object.x, (object.y ?? 0) + (object.kind === 'ice-floe' ? 0.2 : 0), object.z]}");
+    expect(source).toContain("new THREE.Vector3(object.x, (object.y ?? 0) + (kind === 'ice-floe' ? 0.2 : 0), object.z)");
     expect(source).not.toContain('positionSampler');
     expect(source).not.toContain('camera');
   });

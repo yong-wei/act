@@ -393,10 +393,11 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       varying float vElevation;
       varying vec2 vLocalXZ;
 
-      // 浅水因子（#2117 复审移至片元）：远场细分降低后顶点间距可达公里级，
-      // 顶点插值的 400m 岸线带会消失/展宽——片元按世界坐标独立求值。
-      float shoreShallow01(vec2 worldXZ) {
-        if (uShoreSegmentCount <= 0.0 || uShoreFadeBand <= 0.0) return 0.0;
+      // 浅水效应（#2117 片元化 / #2119 深度消费者）：x = 浅水因子（近岸程度 ×
+      // 岸深反比），y = 估计水深（米）——供深度分级吸收与有界折射。
+      // 远场细分降低后顶点插值不可用，片元按世界坐标独立求值。
+      vec2 shoreEffects(vec2 worldXZ) {
+        if (uShoreSegmentCount <= 0.0 || uShoreFadeBand <= 0.0) return vec2(0.0, 20.0);
         float minDistance = 1e9;
         float nearestShoreDepth = 0.0;
         for (int i = 0; i < 4; i++) {
@@ -411,12 +412,14 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
             nearestShoreDepth = uShoreDepths[i];
           }
         }
-        if (minDistance >= uShoreFadeBand) return 0.0;
+        if (minDistance >= uShoreFadeBand) return vec2(0.0, 20.0);
         float t = minDistance / uShoreFadeBand;
         float attenuation = 0.15 + 0.85 * t * t * (3.0 - 2.0 * t);
         float nearness = clamp((1.0 - attenuation) / 0.85, 0.0, 1.0);
         float depthFactor = clamp((20.0 - nearestShoreDepth) / 16.0, 0.05, 1.0);
-        return nearness * depthFactor;
+        // 水深估计：岸边 ≈ 岸深的 15%（残余），带内线性到 ~岸深。
+        float depth = mix(nearestShoreDepth * 0.15, nearestShoreDepth, t);
+        return vec2(nearness * depthFactor, depth);
       }
 
       // 泡沫历史密度（#2115）：R 通道密度纹理 + 手动双线性（NearestFilter 上采样
@@ -530,13 +533,19 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 整体变暗（受光表面，非恒亮 additive）。
         float light = max(dot(normal, uSunDirection), 0.0) * uSunIllumination;
 
+        // 浅水消费者（#2119）：深度分级吸收（有界 Beer-Lambert——浅处向青绿、
+        // 深处回基础色；替代固定 0.45 平铺混色）+ 有界折射（浅水梯度上按视线
+        // 偏移细节采样 ≤0.35m，视觉近似非光线追踪）。
+        vec2 shoreFx = shoreEffects(vWorldPos.xz);
+        float absorption = exp(-max(shoreFx.y, 0.2) * 0.55);
+        vec2 refractionOffset = viewDirection.xz * (1.0 - absorption) * 0.35 * shoreFx.x;
         // 泡沫覆盖（#2115）：有历史场时覆盖 = 场密度（自然压缩 + 船体/推进器源
         // 的输运/衰减历史），无场回退平滑波峰覆盖——两条路径都乘多尺度细节，
         // 不再用单一 80m 平铺贴花。
         float foamCoverage = uFoamFieldEnabled > 0.5
           ? sampleFoamField(vWorldPos.xz)
           : smoothstep(0.72, 0.95, vCrest) * 0.55;
-        float foam = foamCoverage * smoothstep(0.22, 0.78, foamDetail(vWorldPos.xz));
+        float foam = foamCoverage * smoothstep(0.22, 0.78, foamDetail(vWorldPos.xz + refractionOffset));
 
         // 介质光学（#2100 二轮复审落实）：Fresnel-Schlick（F0=0.02）与 GGX 高光
         // （D·F·G/(4 nv nl)，Smith-Schlick G），粗糙度随泡沫提升（受光且改变粗糙度）。
@@ -560,9 +569,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         float viewFresnel = 0.02 + 0.98 * pow(1.0 - nDotV, 5.0);
 
         vec3 color = mix(uDeepColor, uWaterColor, light * 0.65 + 0.35 * uSunIllumination);
-        // 浅水色（#2102 / #2117 片元化）：近岸向浅青绿过渡——作者态岸深的
-        // 视觉呈现（与衰减带同空间），纯显示输入非水动力。
-        color = mix(color, vec3(0.28, 0.52, 0.5), shoreShallow01(vWorldPos.xz) * 0.45);
+        // 浅水色（#2102 → #2119 深度吸收）：近岸按估计水深做有界指数吸收——
+        // 深度差异可见（4m 岸与 18m 岸的浅水带颜色不同）；船边遮挡由既有
+        // 船壳排水排除（壳下水片元被丢弃，浅水色不从船底透出）。
+        color = mix(color, mix(vec3(0.28, 0.52, 0.5), color, absorption), shoreFx.x);
         // 挖泥羽流（#2102 六轮复审）：水面片元内合成——贴合动态波面（波峰波谷下
         // 持续可见）、不穿透前景几何（正常深度队列），软边径向过渡。
         if (uPlumeRadius > 0.0 && uPlumeOpacity > 0.0) {
