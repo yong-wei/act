@@ -383,13 +383,6 @@ export function WakeTrail({
         meshRef.current.material = targetMaterial;
       }
     }
-    if (vesselFoamSuppressed) {
-      // 归因隔离：老化照常（存量自然消散），但不再发射、沉积或绘制任何船源泡沫。
-      const state = frameState.current;
-      state.simTime = marineVisualTime(frameStateArg, delta);
-      buffer.update(state.simTime, state.pathLength);
-      return;
-    }
     const state = frameState.current;
     const dt = Math.max(0, delta);
     // 尾迹时间源 = 共享视觉时钟（同帧唯一；暂停下环境继续推进，存量粒子按政策走完生命周期）。
@@ -400,7 +393,9 @@ export function WakeTrail({
       : Math.min(Math.max(state.simTime - state.lastVisualTime, 0), 0.25);
     state.lastVisualTime = state.simTime;
 
-    if (playing) {
+    // 归因隔离（P2 修复）：场存在但船源显式关闭时不发射、不沉积、不绘制；
+    // 时间推进与老化仍每帧执行（存量粒子自然消散）。
+    if (playing && !vesselFoamSuppressed) {
       const { position, heading } = shipTransform;
       let worldSpeed = worldSpeedSampler?.() ?? 0;
       if (worldSpeedSampler === undefined) {
@@ -489,7 +484,9 @@ export function WakeTrail({
     // 老化不受播放门控：停发后存量粒子走完生命周期并完全消散。
     buffer.update(state.simTime, state.pathLength);
 
-    if (depositToField && foamField && visualDelta > 0) {
+    if (vesselFoamSuppressed) {
+      // 归因隔离：mesh 已隐藏，跳过沉积与几何刷新（不绘制任何船源泡沫）。
+    } else if (depositToField && foamField && visualDelta > 0) {
       // 贴水泡沫沉积（#2115）：逐粒子视觉（世界位置 + 年龄/活跃度加权不透明度）
       // 按秒积分写入共享密度场；转弯后旧泡沫留在原世界轨迹，随场输运/衰减消散。
       const amount = VESSEL_FOAM_RATE_PER_SECOND * visualDelta;
