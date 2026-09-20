@@ -162,6 +162,19 @@ describe('foam seek and reset policy (#2115)', () => {
     expect(field.epoch).toBe(1);
     expect(field.densityAt(0, 0)).toBe(0);
   });
+
+  it('aligns natural-source phase time to the absolute visual clock (P2)', () => {
+    const field = createField();
+    // 水面经 Suspense 晚挂载：首同步基线 = 当时绝对视觉时间（非 0）。
+    field.advanceTime(45, NO_SOURCES);
+    expect(field.naturalPhaseTimeSeconds).toBe(45);
+    field.step(0.04, NO_SOURCES);
+    expect(field.naturalPhaseTimeSeconds).toBeCloseTo(45.04, 9);
+    // seek 清空后由下次同步重定（与水面 shader 的新绝对时间同相）。
+    field.advanceTime(12, NO_SOURCES);
+    expect(field.epoch).toBe(1);
+    expect(field.naturalPhaseTimeSeconds).toBe(12);
+  });
 });
 
 describe('natural breaking-wave source (#2115)', () => {
@@ -336,6 +349,10 @@ describe('source contracts (#2115)', () => {
     expect(source).toContain('visualDelta');
     // 材质随场的出现/消失逐帧切换（水面晚挂载时从 additive 过渡到沉积模式）。
     expect(source).toContain('meshRef.current.material !== targetMaterial');
+    // 归因隔离（P2 修复）：场存在但船源显式关闭时不绘制任何船源泡沫——
+    // "只自然源/全关"镜头不得回退显示 legacy additive 尾迹。
+    expect(source).toContain('vesselFoamSuppressed');
+    expect(source).toContain('meshRef.current.visible = !vesselFoamSuppressed');
   });
 
   it('multi-trail scenes allocate hard aggregate capacities', () => {

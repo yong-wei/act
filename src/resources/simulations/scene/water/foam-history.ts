@@ -159,6 +159,12 @@ export class FoamHistoryField {
   originZ = 0;
   /** 场时间（秒）：固定步累计推进的视觉时间。 */
   timeSeconds = 0;
+  /**
+   * 自然源相位时间（秒）：对齐绝对视觉时钟（水面 shader 同源）——挂载时基线
+   * 为当时的视觉时间，seek/重置清空后由下次同步重定；跨更新节奏只随步数累加
+   * fixedDt（保持节奏不变性）。
+   */
+  naturalPhaseTimeSeconds = 0;
   /** 清空/重置计数（seek 政策与复现测试的 epoch 真源）。 */
   epoch = 0;
 
@@ -246,6 +252,8 @@ export class FoamHistoryField {
    * 1) 沿展示性漂移输运（采样上一状态于 w - drift·dt）；
    * 2) 指数衰减；
    * 3) 自然压缩源注入（粗步距采样压缩，按速率 × dt 积分）。
+   * 自然源相位使用对齐后的绝对视觉时间（phaseTimeSeconds，见 advanceTime），
+   * 与水面 shader 的波相位同源——否则泡沫注入位置与画面波峰错相。
    */
   step(dtSeconds: number, sources: FoamSourceInputs | null): void {
     const dt = Math.max(0, dtSeconds);
@@ -267,6 +275,7 @@ export class FoamHistoryField {
       this.injectNatural(dt, sources);
     }
     this.timeSeconds += dt;
+    this.naturalPhaseTimeSeconds += dt;
   }
 
   /** 自然源：粗步距网格上计算压缩，双线性放大到全网格冲点。 */
@@ -290,7 +299,7 @@ export class FoamHistoryField {
           sources.amplitudeScale,
           worldX,
           worldZ,
-          this.timeSeconds,
+          this.naturalPhaseTimeSeconds,
         );
       }
     }
@@ -358,12 +367,15 @@ export class FoamHistoryField {
   advanceTime(visualTimeSeconds: number, sources: FoamSourceInputs | null): void {
     if (this.lastVisualTime === null) {
       this.lastVisualTime = visualTimeSeconds;
+      // 相位对齐绝对视觉时钟（水面 Suspense 晚挂载/seek 后基线非零）。
+      this.naturalPhaseTimeSeconds = visualTimeSeconds;
       return;
     }
     const delta = visualTimeSeconds - this.lastVisualTime;
     if (delta < -1e-6 || delta > FOAM_SEEK_CLEAR_SECONDS) {
       this.clear();
       this.lastVisualTime = visualTimeSeconds;
+      this.naturalPhaseTimeSeconds = visualTimeSeconds;
       return;
     }
     this.lastVisualTime = visualTimeSeconds;

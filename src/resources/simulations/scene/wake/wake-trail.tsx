@@ -371,12 +371,24 @@ export function WakeTrail({
     }
     // 逐帧解析泡沫场与沉积门控（水面可能晚于尾迹挂载或中途卸载）。
     const foamField = readMarineFoamFieldFromScene(scene);
+    // 三态区分（P2 修复）：无场=兼容回退（additive 全量尾迹）；场+船源开=沉积
+    // 模式（场泡沫 + 少量受光飞沫）；场+船源显式关闭=归因隔离（不渲染任何
+    // 船源泡沫——"只自然源/全关"镜头不得再显示 legacy 船舶尾迹）。
+    const vesselFoamSuppressed = foamField !== null && !foamField.attribution.vessel;
     const depositToField = foamField !== null && foamField.attribution.vessel;
     if (meshRef.current) {
+      meshRef.current.visible = !vesselFoamSuppressed;
       const targetMaterial = depositToField ? sprayMaterial : legacyMaterial;
       if (meshRef.current.material !== targetMaterial) {
         meshRef.current.material = targetMaterial;
       }
+    }
+    if (vesselFoamSuppressed) {
+      // 归因隔离：老化照常（存量自然消散），但不再发射、沉积或绘制任何船源泡沫。
+      const state = frameState.current;
+      state.simTime = marineVisualTime(frameStateArg, delta);
+      buffer.update(state.simTime, state.pathLength);
+      return;
     }
     const state = frameState.current;
     const dt = Math.max(0, delta);
