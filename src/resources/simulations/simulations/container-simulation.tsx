@@ -35,7 +35,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -121,12 +121,20 @@ function ContainerShipModel(props: {
   simRef: React.MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
+  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
+  const waterHeight = useNearFieldWaterHeight({
+    positionSampler: () => props.position,
+    seaState: 3,
+      shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
+  });
+
   const currentDraft = containerDraftMeters(props.loadRatio);
   return (
     <VersionedFleetShip
       logicalId="container"
       simRef={props.simRef}
       position={props.position}
+      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
       headingRad={props.heading}
       extraEuler={{ z: props.rollAngle }}
       sceneLengthMeters={CONTAINER_MSC_PARAMS.LENGTH}
@@ -524,28 +532,19 @@ function WakeTrailRig({
   const environmentLight = useEnvironmentWaterColors();
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
-  // 近场查询帧记忆化（#2104）：本帧全部粒子共享同一角点缓存。
-  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
   const { tier } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [state.position.x, 0, state.position.z];
     transformRef.current.heading = platformHeadingToSceneRad(state.heading);
-    timeRef.current = frameState.clock.getElapsedTime();
   });
 
-  // 统一近场可见曲面（#2104）：帧记忆化查询——与 GPU 近场网格同参数（带限波组+包络）。
-  const waterYSampler = (x?: number, z?: number) => {
-    const key = `${timeRef.current}|${state.position.x}|${state.position.z}`;
-    if (!wakeQueryCacheRef.current || wakeQueryCacheRef.current.key !== key) {
-      wakeQueryCacheRef.current = {
-        key,
-        query: createNearFieldSurfaceQuery(gerstnerAmplitudeScale(3), state.position.x, state.position.z, timeRef.current),
-      };
-    }
-    return GERSTNER_WATER_BASE_Y + (wakeQueryCacheRef.current.query.heightAt(x ?? 0, z ?? 0) - GERSTNER_WATER_BASE_Y) * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400);;
-  };
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义（含岸线衰减）。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: state.position.x, z: state.position.z }),
+    seaState: 3,
+    shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
+  });
 
   if (!wakeVisible) return null;
   return (
@@ -705,6 +704,7 @@ function Scene({
 // ============ 主仿真组件 ============
 
 export default function ContainerSimulation() {
+  const timeRef = useRef(0);
   // 仿真引擎
   const engineRef = useRef<ContainerShipEngine | null>(null);
   const frameRef = useRef<number>(0);
@@ -725,7 +725,6 @@ export default function ContainerSimulation() {
     speed: CONTAINER_MSC_PARAMS.CRUISE_SPEED,
   });
   const speedScaleRef = useRef(1);
-  const timeRef = useRef(0);
   const lastHudUpdateRef = useRef(0);
   const bindingRef = useRef<BindingTelemetrySource>({
     rudderDeg: 0,
@@ -840,7 +839,6 @@ export default function ContainerSimulation() {
         setTrajectory(prev => [...prev.slice(-300), nextPosition]);
       }
 
-      timeRef.current = nextTime;
       // HUD/图表 setState 0.1s 节流（对齐 destroyer 口径）；被跳过的帧
       // 仅推进 timeRef，不再触发整树渲染。
       if (nextTime - lastHudUpdateRef.current > 0.1) {
@@ -905,7 +903,6 @@ export default function ContainerSimulation() {
       engine.initialize(0, 0, 0);
       engine.setLoadRatio(0.5);
     }
-    timeRef.current = 0;
     lastHudUpdateRef.current = 0;
     attainmentRef.current = createAttainmentState(0);
     bindingRef.current = {

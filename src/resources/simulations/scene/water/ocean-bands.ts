@@ -54,11 +54,15 @@ export const NEAR_FIELD_BAND_SPECS = {
 
 export type NearFieldBandTier = keyof typeof NEAR_FIELD_BAND_SPECS;
 
-/** 远场网格沿用既有 60 km 平面（分辨率按画质档）；该尺度几何上无可解析波分量。 */
+/**
+ * 远场网格沿用既有 60 km 平面；该尺度几何上无可解析波分量（远场波组为空集 →
+ * 平基面）。#2117：远场无几何波，细分只服务于片元级特性（近场挖空/岸线衰减/
+ * 泡沫采样），分辨率降至最小充分档——把顶点预算留给近景/船边近场网格。
+ */
 export const FAR_FIELD_BAND_SPECS = {
-  high: { size: 60000, resolution: 256 },
-  medium: { size: 60000, resolution: 128 },
-  low: { size: 60000, resolution: 64 },
+  high: { size: 60000, resolution: 32 },
+  medium: { size: 60000, resolution: 16 },
+  low: { size: 60000, resolution: 8 },
 } as const satisfies Record<string, OceanMeshBandSpec>;
 
 /** 近场外缘幅度衰减带宽度（米）：包络在该环内从 1 平滑过渡到 0。 */

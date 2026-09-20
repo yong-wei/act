@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
@@ -9,6 +9,7 @@ import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, type GerstnerWave } fr
 import { packHullExclusion, type HullExclusionBox } from './hull-exclusion';
 import { MAX_SHORE_SEGMENTS } from './gerstner-water-material';
 import type { MarineShoreSegment } from '../environment/scene-layouts';
+import { shorelineAmplitudeAttenuation } from '../environment/scene-layouts';
 import {
   bandCellSize,
   bandLimitWaves,
@@ -215,16 +216,25 @@ export interface VisibleWaterSurfaceQuery {
  * 近场可见曲面批量查询（#2098）：一次构建共享角点缓存，多点采样不再逐点新建
  * Map；带限波组 + 近场包络与 GPU 近场网格同一参数。
  */
+export interface NearFieldSurfaceQueryOptions {
+  /** 岸线段（#2117）：CPU 查询与 GPU 曲面同一衰减输入（缺省无衰减）。 */
+  readonly shoreSegments?: readonly MarineShoreSegment[];
+  readonly shoreFadeBandMeters?: number;
+}
+
 export function createNearFieldSurfaceQuery(
   amplitudeScale: number,
   originX: number,
   originZ: number,
   timeSeconds: number,
+  options?: NearFieldSurfaceQueryOptions,
 ): VisibleWaterSurfaceQuery {
   const mesh = NEAR_FIELD_MESH_SPEC;
   const cell = mesh.size / mesh.resolution;
   const half = mesh.size / 2;
   const lastCell = mesh.resolution - 1;
+  const shoreSegments = options?.shoreSegments;
+  const shoreFadeBand = options?.shoreFadeBandMeters ?? 400;
   const cornerCache = new Map<number, DisplacedVertex>();
   const heightAtLocal = (targetX: number, targetZ: number): number => {
     const baseI = Math.min(Math.max(Math.floor((targetX + half) / cell), 0), lastCell);
@@ -237,7 +247,11 @@ export function createNearFieldSurfaceQuery(
         const cornerLocalX = i * cell - half;
         const cornerLocalZ = j * cell - half;
         const cornerEnvelope = nearFieldEnvelope(cornerLocalX, cornerLocalZ, mesh.size);
-        vertex = displaceVertex(NEAR_FIELD_VISIBLE_WAVES, amplitudeScale * cornerEnvelope, cornerLocalX, cornerLocalZ, originX, originZ, timeSeconds);
+        // 岸线衰减（#2117）：与 GPU 顶点同一公式/输入——CPU/GPU 同一表面定义。
+        const shoreAttenuation = shoreSegments && shoreSegments.length > 0
+          ? shorelineAmplitudeAttenuation(shoreSegments, cornerLocalX + originX, cornerLocalZ + originZ, shoreFadeBand)
+          : 1;
+        vertex = displaceVertex(NEAR_FIELD_VISIBLE_WAVES, amplitudeScale * cornerEnvelope * shoreAttenuation, cornerLocalX, cornerLocalZ, originX, originZ, timeSeconds);
         cornerCache.set(key, vertex);
       }
       return vertex;
@@ -549,5 +563,66 @@ export function GerstnerWater({
       />
       </group>
     </MarineFoamFieldProvider>
+  );
+}
+
+/**
+ * 帧记忆化的近场水高采样 hook（#2117）：统一时间源与表面输入。
+ *
+ * - 时间 = 共享视觉时钟（useMarineVisualTime：Provider 场景同帧唯一、暂停/倍速
+ *   政策一致；无 Provider 场景回退 R3F 时钟——清除各 rig 的独立 wall-clock 旁路）。
+ * - 表面 = createNearFieldSurfaceQuery（带限波组 + 包络 + 岸线衰减），与 GPU
+ *   近场网格同一参数；同一 (time, origin, 参数) 只构建一次查询，本帧多点共享角点缓存。
+ */
+export function useNearFieldWaterHeight({
+  positionSampler,
+  seaState = DEFAULT_GERSTNER_SEA_STATE,
+  shoreSegments,
+  shoreFadeBandMeters = 400,
+}: {
+  readonly positionSampler: () => { readonly x: number; readonly z: number } | undefined;
+  readonly seaState?: number;
+  readonly shoreSegments?: readonly MarineShoreSegment[];
+  readonly shoreFadeBandMeters?: number;
+}): (x?: number, z?: number) => number {
+  const marineVisualTime = useMarineVisualTime();
+  const timeRef = useRef(0);
+  const cacheRef = useRef<{
+    key: string;
+    query: ReturnType<typeof createNearFieldSurfaceQuery>;
+  } | null>(null);
+  useEffect(() => {
+    // 重挂载（resetToken key）时丢弃旧查询缓存。
+    cacheRef.current = null;
+  }, []);
+  useFrame((state, delta) => {
+    timeRef.current = marineVisualTime(state, delta);
+  });
+  const amplitudeScale = gerstnerAmplitudeScale(seaState);
+  const paramsKey = `${amplitudeScale}|${shoreFadeBandMeters}|${shoreSegments?.length ?? 0}`;
+  return useCallback(
+    (x?: number, z?: number) => {
+      const origin = positionSampler();
+      if (!origin) return GERSTNER_WATER_BASE_Y;
+      const key = `${timeRef.current}|${origin.x}|${origin.z}|${paramsKey}`;
+      let cached = cacheRef.current;
+      if (!cached || cached.key !== key) {
+        cached = {
+          key,
+          query: createNearFieldSurfaceQuery(
+            amplitudeScale,
+            origin.x,
+            origin.z,
+            timeRef.current,
+            shoreSegments && shoreSegments.length > 0
+              ? { shoreSegments, shoreFadeBandMeters }
+              : undefined,
+          ),
+        };
+        cacheRef.current = cached;
+      }
+      return cached.query.heightAt(x ?? origin.x, z ?? origin.z);
+    },
+    [positionSampler, amplitudeScale, paramsKey, shoreSegments, shoreFadeBandMeters],
   );
 }

@@ -32,7 +32,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import {
   allocateWakeCapacities,
   WakeTrail,
@@ -200,11 +200,18 @@ function DrillingPlatformModel(props: {
   simRef: MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
+  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
+  const waterHeight = useNearFieldWaterHeight({
+    positionSampler: () => props.position,
+    seaState: 3,
+  });
+
   return (
     <VersionedFleetShip
       logicalId="drilling-rig"
       simRef={props.simRef}
       position={props.position}
+      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
       headingRad={props.heading}
       sceneLengthMeters={HYSY981_PLATFORM_PARAMS.LENGTH}
       resetToken={props.resetToken}
@@ -733,9 +740,6 @@ function WakeTrailRig({
   const { wakeVisible } = useSceneEnvironment();
   const environmentLight = useEnvironmentWaterColors();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
-  // 近场查询帧记忆化（#2104）：本帧全部粒子共享同一角点缓存。
-  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
   const { tier } = useSceneQuality();
 
   // 全场容量硬预算（#2115）：主转移尾迹 + 8 推进器洗流共享场景总容量
@@ -755,21 +759,13 @@ function WakeTrailRig({
   useFrame((frameState) => {
     transformRef.current.position = [platformStateRef.current.x, 0, platformStateRef.current.y];
     transformRef.current.heading = platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi));
-    timeRef.current = frameState.clock.getElapsedTime();
   });
 
-  // 统一近场可见曲面（#2104）：帧记忆化查询——与 GPU 近场网格同参数（带限波组+包络）；
-  // 主转移尾迹与逐推进器洗流共用同一查询。
-  const waterYSampler = (x?: number, z?: number) => {
-    const key = `${timeRef.current}|${platformStateRef.current.x}|${platformStateRef.current.y}`;
-    if (!wakeQueryCacheRef.current || wakeQueryCacheRef.current.key !== key) {
-      wakeQueryCacheRef.current = {
-        key,
-        query: createNearFieldSurfaceQuery(gerstnerAmplitudeScale(3), platformStateRef.current.x, platformStateRef.current.y, timeRef.current),
-      };
-    }
-    return wakeQueryCacheRef.current.query.heightAt(x ?? 0, z ?? 0);
-  };
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: platformStateRef.current.x, z: platformStateRef.current.y }),
+    seaState: 3,
+  });
 
   if (!wakeVisible) return null;
   return (
@@ -843,6 +839,7 @@ function TeachingAnnotationsGate({
 // ============ 主组件 ============
 
 export function DrillingSimulation() {
+  const timeRef = useRef(0);
   // 配置状态
   const defaultConfig = getDrillingDefaultConfig();
   const [config, setConfig] = useState<SimulationConfig>({
@@ -881,7 +878,6 @@ export function DrillingSimulation() {
   );
   const meanWindSpeedRef = useRef(10);
   const waveHeightRef = useRef(1.5);
-  const timeRef = useRef(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const lastUpdateRef = useRef(performance.now());
   const clockRef = useRef(
@@ -1141,7 +1137,6 @@ export function DrillingSimulation() {
       attainedCount: 0,
       advancing: false,
     };
-    timeRef.current = 0;
     lastUpdateRef.current = performance.now();
     clockRef.current.reset();
     setTrajectory([]);

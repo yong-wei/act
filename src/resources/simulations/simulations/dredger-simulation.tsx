@@ -35,7 +35,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -156,11 +156,19 @@ function DredgerModel(props: {
   simRef: MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
+  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
+  const waterHeight = useNearFieldWaterHeight({
+    positionSampler: () => props.position,
+    seaState: 3,
+      shoreSegments: MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments,
+  });
+
   return (
     <VersionedFleetShip
       logicalId="dredger"
       simRef={props.simRef}
       position={props.position}
+      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
       headingRad={props.heading}
       sceneLengthMeters={120}
       resetToken={props.resetToken}
@@ -537,28 +545,19 @@ function WakeTrailRig({
   const environmentLight = useEnvironmentWaterColors();
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
-  // 近场查询帧记忆化（#2104）：本帧全部粒子共享同一角点缓存。
-  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
   const { tier, params } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [mmgStateRef.current.x, 0, mmgStateRef.current.y];
     transformRef.current.heading = platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi));
-    timeRef.current = frameState.clock.getElapsedTime();
   });
 
-  // 统一近场可见曲面（#2104）：帧记忆化查询——与 GPU 近场网格同参数（带限波组+包络）。
-  const waterYSampler = (x?: number, z?: number) => {
-    const key = `${timeRef.current}|${mmgStateRef.current.x}|${mmgStateRef.current.y}`;
-    if (!wakeQueryCacheRef.current || wakeQueryCacheRef.current.key !== key) {
-      wakeQueryCacheRef.current = {
-        key,
-        query: createNearFieldSurfaceQuery(gerstnerAmplitudeScale(3), mmgStateRef.current.x, mmgStateRef.current.y, timeRef.current),
-      };
-    }
-    return GERSTNER_WATER_BASE_Y + (wakeQueryCacheRef.current.query.heightAt(x ?? 0, z ?? 0) - GERSTNER_WATER_BASE_Y) * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments, x ?? 0, z ?? 0, 400);;
-  };
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义（含岸线衰减）。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y }),
+    seaState: 3,
+    shoreSegments: MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments,
+  });
 
   if (!wakeVisible) return null;
   return (
@@ -592,6 +591,7 @@ function TeachingAnnotationsGate({
 // ============ 主组件 ============
 
 export function DredgerSimulation() {
+  const timeRef = useRef(0);
   // 配置状态
   const defaultConfig = getDredgerDefaultConfig();
   const [config, setConfig] = useState<SimulationConfig>({
@@ -625,7 +625,6 @@ export function DredgerSimulation() {
   const mmgStateRef = useRef<MMG3DOFState>(createMMG3DOFState(0, 0, 0, 0));
   const dpStateRef = useRef<DPState>(createDPState());
   const dredgingModelRef = useRef<DredgingImpactModel>(new DredgingImpactModel());
-  const timeRef = useRef(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const lastUpdateRef = useRef(performance.now());
   const clockRef = useRef(
@@ -865,7 +864,6 @@ export function DredgerSimulation() {
     mmgStateRef.current = createMMG3DOFState(0, 0, 0, 0);
     dpStateRef.current = createDPState();
     dredgingModelRef.current.reset();
-    timeRef.current = 0;
     lastUpdateRef.current = performance.now();
     clockRef.current.reset();
     setTrajectory([]);

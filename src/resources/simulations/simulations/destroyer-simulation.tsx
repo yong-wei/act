@@ -67,6 +67,7 @@ import {
   NEAR_FIELD_MESH_SPEC,
   NEAR_FIELD_VISIBLE_WAVES,
   sampleVisibleWaterHeight,
+  useNearFieldWaterHeight,
 } from '../scene/water';
 import {
   computeVisualWaterPose,
@@ -551,7 +552,6 @@ function WakeTrailRig({
   const { wakeVisible } = useSceneEnvironment();
   const environmentLight = useEnvironmentWaterColors();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
   const { tier, params } = useSceneQuality();
 
   // 版本化包声明推进器时逐桨一条航迹；无声明（旧链/回退）保持 profile 单航迹。
@@ -576,31 +576,16 @@ function WakeTrailRig({
     const sim = simRef.current;
     transformRef.current.position = [sim.position.x, sim.position.y, sim.position.z];
     transformRef.current.heading = platformHeadingToSceneRad(toDegrees(sim.headingRad));
-    timeRef.current = state.clock.getElapsedTime();
   });
 
   // 尾迹贴水（#2098）：近场可见曲面（带限波组 + 包络，档位无关），与 GPU 近场网格同参数。
   // 每帧（时间/原点键）只构建一次查询：本帧全部粒子共享同一角点缓存（复审修复）。
   // 七轮复审修复：缓存 Hook 必须位于 wakeVisible 提前返回之前（条件返回后 Hook 数量不得变化）。
-  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
-  const waterYSampler = (x?: number, z?: number) => {
-    const origin = simRef.current.position;
-    const key = `${timeRef.current}|${origin.x}|${origin.z}`;
-    let cached = wakeQueryCacheRef.current;
-    if (!cached || cached.key !== key) {
-      cached = {
-        key,
-        query: createNearFieldSurfaceQuery(
-          gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
-          origin.x,
-          origin.z,
-          timeRef.current,
-        ),
-      };
-      wakeQueryCacheRef.current = cached;
-    }
-    return cached.query.heightAt(x ?? origin.x, z ?? origin.z);
-  };
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: simRef.current.position.x, z: simRef.current.position.z }),
+    seaState: DEFAULT_GERSTNER_SEA_STATE,
+  });
 
   if (!wakeVisible) return null;
 
