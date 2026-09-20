@@ -12,6 +12,7 @@ import {
 import { useFrame, useThree } from '@react-three/fiber';
 
 import { buildMarinePerformanceReport } from './performance-evidence';
+import { readMarineGpuTimerEvidence } from './gpu-frame-timer';
 import { Gauge } from 'lucide-react';
 
 import { ChromePopoverButton } from '../chrome';
@@ -99,12 +100,28 @@ export function useSceneQuality(): SceneQualityContextValue {
   return value;
 }
 
+/** governor 预热窗口（毫秒）：冷启动编译/预热不参与降档判定。 */
+export const GOVERNOR_WARMUP_MS = 8000;
+
 /** Canvas 内的帧时间上报驱动：推动 governor 的自动降档并同步回 context（挂一次即可）。 */
 export function SceneQualityDriver({ onTierChange }: { readonly onTierChange?: (tier: QualityTierId) => void }) {
   const { governor, syncTierFromGovernor, params } = useSceneQuality();
   const setDpr = useThree((state) => state.setDpr);
   const gl = useThree((state) => state.gl);
   const lastRef = useRef(0);
+  // 预热与后台保护（#2120）：冷启动编译/预热不参与降档判定；页面隐藏时
+  // 不推进判定，恢复帧的巨大间隔被丢弃（不算一次超预算帧）。
+  const mountedAtRef = useRef(0);
+  const hiddenRef = useRef(false);
+  useEffect(() => {
+    mountedAtRef.current = performance.now();
+    const onVisibility = () => {
+      hiddenRef.current = document.hidden;
+      if (!document.hidden) lastRef.current = 0;
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
 
   // 档位渲染器消费：DPR 上限与阴影开关随档位/降档生效。
   useEffect(() => {
@@ -117,6 +134,8 @@ export function SceneQualityDriver({ onTierChange }: { readonly onTierChange?: (
     const now = performance.now();
     const frameMs = lastRef.current === 0 ? 0 : now - lastRef.current;
     lastRef.current = now;
+    const inWarmup = now - mountedAtRef.current < GOVERNOR_WARMUP_MS;
+    if (inWarmup || hiddenRef.current) return;
     const before = governor.tier;
     governor.reportFrame(frameMs, now);
     if (governor.tier !== before) {
@@ -167,7 +186,10 @@ export function MarinePerformanceEvidenceProbe({
 }: {
   /** 场景真实状态归因（复审）：船包/镜头/海况由各场景传入，不再占位。 */
   readonly contextInput?: () => MarinePerformanceEvidenceContextInput;
-} = {}) {
+}) {
+  // 绑定本 Canvas 的 R3F renderer（#2120 复审）：多 canvas 页面探针不再
+  // 不再按任意画布猜绑定。
+  const renderer = useThree((state) => state.gl);
   // ref 化（二轮复审）：read() 时调用最新回调——镜头等运行态切换后归因随场景。
   const contextInputRef = useRef(contextInput);
   contextInputRef.current = contextInput;
@@ -180,6 +202,7 @@ export function MarinePerformanceEvidenceProbe({
     // （丢弃启动/加载/编译帧），stop() 结束采集。
     const WINDOW_MS = 60_000;
     const samples: Array<{ ms: number; at: number }> = [];
+    const longStalls: Array<{ ms: number; at: number }> = [];
     let collecting = false;
     let lastMs = performance.now();
     // 后台标签页忽略（四轮复审）：隐藏期间暂停采样并重置时间基准——
@@ -202,17 +225,25 @@ export function MarinePerformanceEvidenceProbe({
       lastMs = nowMs;
       const skipThisFrame = wasSuspended;
       wasSuspended = false;
-      if (!suspended && !skipThisFrame && collecting && delta > 0 && delta < 1000) {
+      if (!suspended && !skipThisFrame && collecting && delta > 0) {
+        if (delta >= 1000) {
+          // 复审修复（#2120）：前台 >=1s 卡顿不再静默丢弃——单独记录
+          //（不混入 p95 窗口，避免后台恢复污染统计口径）。
+          longStalls.push({ ms: delta, at: nowMs });
+          if (longStalls.length > 16) longStalls.shift();
+          raf = requestAnimationFrame(tick);
+          return;
+        }
         samples.push({ ms: delta, at: nowMs });
         while (samples.length > 0 && nowMs - samples[0]!.at > WINDOW_MS) samples.shift();
       }
       raf = requestAnimationFrame(tick);
     };
     let raf = requestAnimationFrame(tick);
-    const canvas = document.querySelector('canvas') ?? null;
-    const gl = canvas instanceof HTMLCanvasElement
-      ? (canvas.getContext('webgl2') ?? canvas.getContext('webgl')) as WebGLRenderingContext | null
-      : null;
+    // 复审修复（#2120）：绑定本 Canvas 的 R3F renderer（多 canvas 页面里
+    // 猜画布可能取到图表画布）。
+    const canvas = renderer.domElement;
+    const gl = renderer.getContext() as WebGLRenderingContext | null;
     // GPU 渲染器身份（二轮复审）：WEBGL_debug_renderer_info 可用时读实际字符串，
     // 不可得才回退 null——硬件分级报告可按 GPU 归因。
     let gpuRenderer: string | null = null;
@@ -254,9 +285,11 @@ export function MarinePerformanceEvidenceProbe({
           },
           // 口径诚实（复审）：样本来自 rAF 墙钟帧间隔——即便扩展存在，未经实际
           // query 采集/disjoint 丢弃不得标 timer-query。扩展存在性单独记录。
-          gpuTimerAvailable: false,
+          ...readMarineGpuTimerEvidence(),
           timerQueryExtensionPresent: Boolean(gl?.getExtension('EXT_disjoint_timer_query_webgl2')),
           frameMsSamples: samples.map((sample) => sample.ms),
+          longForegroundStallCount: longStalls.length,
+          longForegroundWorstMs: longStalls.reduce((worst, stall) => Math.max(worst, stall.ms), 0),
           measuredAt: new Date().toISOString(),
         });
       },
@@ -267,7 +300,7 @@ export function MarinePerformanceEvidenceProbe({
       document.removeEventListener('visibilitychange', onVisibilityChange);
       delete window.__marinePerformanceEvidence;
     };
-  }, []);
+  }, [renderer]);
   return null;
 }
 

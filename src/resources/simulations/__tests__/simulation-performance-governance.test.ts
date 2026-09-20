@@ -93,7 +93,9 @@ describe('performance probe honesty and entry (#2103 contracts)', () => {
       'utf-8',
     );
     // 口径诚实：未经实际 query 采集，gpuTimerAvailable 恒 false；扩展存在性单独记录。
-    expect(source).toContain('gpuTimerAvailable: false,');
+    // #2120 修订：gpuTimerAvailable 由真实 disjoint query 结果驱动
+    //（readMarineGpuTimerEvidence——resolvedCount>0 才为 true），不再恒 false。
+    expect(source).toContain('...readMarineGpuTimerEvidence()');
     expect(source).toContain('timerQueryExtensionPresent: Boolean(');
   });
 

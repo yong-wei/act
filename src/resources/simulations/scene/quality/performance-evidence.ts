@@ -41,6 +41,14 @@ export interface MarinePerformanceReport {
   /** 测量方法：timer-query（GPU 段）或 frame-intervals（CPU/合成帧间隔）。 */
   readonly method: 'timer-query' | 'frame-intervals';
   readonly gpuTimerAvailable: boolean;
+  /** 非阻塞 GPU 计时（#2120）：真实 disjoint query 的已返回测量数与样本。 */
+  readonly gpuTimerResolvedCount: number;
+  readonly gpuTimerLastMs: number | null;
+  readonly gpuTimerAvgMs: number | null;
+  readonly gpuTimerDisjointDrops: number;
+  /** 前台 >=1s 卡顿（#2120）：单独计数，不混入 p95 窗口。 */
+  readonly longForegroundStallCount: number;
+  readonly longForegroundWorstMs: number;
   /** EXT_disjoint_timer_query_webgl2 扩展存在性（复审）：与实际采样口径分离记录。 */
   readonly timerQueryExtensionPresent?: boolean;
   readonly frameStats: MarineFrameStatistics;
@@ -90,6 +98,12 @@ export function buildMarineFrameStatistics(
 export function buildMarinePerformanceReport(input: {
   readonly context: MarinePerformanceContext;
   readonly gpuTimerAvailable: boolean;
+  readonly gpuTimerResolvedCount?: number;
+  readonly gpuTimerLastMs?: number | null;
+  readonly gpuTimerAvgMs?: number | null;
+  readonly gpuTimerDisjointDrops?: number;
+  readonly longForegroundStallCount?: number;
+  readonly longForegroundWorstMs?: number;
   readonly frameMsSamples: readonly number[];
   readonly measuredAt?: string | null;
   /** 扩展存在性（复审）：与实际采样口径分离记录。 */
@@ -99,6 +113,12 @@ export function buildMarinePerformanceReport(input: {
     context: input.context,
     method: input.gpuTimerAvailable ? 'timer-query' : 'frame-intervals',
     gpuTimerAvailable: input.gpuTimerAvailable,
+    gpuTimerResolvedCount: input.gpuTimerResolvedCount ?? 0,
+    gpuTimerLastMs: input.gpuTimerLastMs ?? null,
+    gpuTimerAvgMs: input.gpuTimerAvgMs ?? null,
+    gpuTimerDisjointDrops: input.gpuTimerDisjointDrops ?? 0,
+    longForegroundStallCount: input.longForegroundStallCount ?? 0,
+    longForegroundWorstMs: input.longForegroundWorstMs ?? 0,
     timerQueryExtensionPresent: input.timerQueryExtensionPresent ?? input.gpuTimerAvailable,
     frameStats: buildMarineFrameStatistics(input.frameMsSamples),
     measuredAt: input.measuredAt ?? null,
