@@ -574,9 +574,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 船壳排水排除（壳下水片元被丢弃，浅水色不从船底透出）。
         color = mix(color, mix(vec3(0.28, 0.52, 0.5), color, absorption), shoreFx.x);
         // 挖泥羽流（#2102 六轮复审）：水面片元内合成——贴合动态波面（波峰波谷下
-        // 持续可见）、不穿透前景几何（正常深度队列），软边径向过渡。
+        // 持续可见）、不穿透前景几何（正常深度队列），软边径向过渡；采样位置
+        // 施加浅水折射偏移（羽流边缘随水层厚度弯折——水柱内容的可见折射）。
         if (uPlumeRadius > 0.0 && uPlumeOpacity > 0.0) {
-          float plumeDistance = length(vWorldPos.xz - uPlumeCenter);
+          float plumeDistance = length(vWorldPos.xz + refractionOffset - uPlumeCenter);
           float plumeMix = (1.0 - smoothstep(uPlumeRadius * 0.55, uPlumeRadius, plumeDistance)) * uPlumeOpacity;
           color = mix(color, vec3(0.478, 0.416, 0.322), plumeMix);
         }

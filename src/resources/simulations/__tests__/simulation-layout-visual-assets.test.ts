@@ -75,6 +75,10 @@ describe('depth-graded shallow-water consumer (#2119)', () => {
     expect(material).toContain('refractionOffset');
     expect(material).toContain('(1.0 - absorption) * 0.35');
     expect(material).toContain('foamDetail(vWorldPos.xz + refractionOffset)');
+    // 受控视觉折射（复审声明修正）：偏移同时作用于羽流边缘（水柱内容弯折）；
+    // 非物理折射——无折射渲染通道（该断言钉住）。
+    expect(material).toContain('length(vWorldPos.xz + refractionOffset - uPlumeCenter)');
+    expect(material).not.toContain('refractionRenderTarget');
     // 深水（无岸线段）不进入浅水路径。
     expect(material).toContain('return vec2(0.0, 20.0)');
   });
