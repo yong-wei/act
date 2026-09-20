@@ -417,11 +417,12 @@ const DESTROYER_055_HULL_EXCLUSION: readonly HullExclusionBox[] = [
   { centerX: 0, centerZ: 0, halfX: 82, halfZ: 9 },
 ];
 
-function PresetWater({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
+function PresetWater({ simRef, resetToken }: { simRef: React.MutableRefObject<SimulationState>; resetToken: number }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })}
       hullExclusionSampler={() => DESTROYER_055_HULL_EXCLUSION}
@@ -1613,7 +1614,7 @@ export default function DestroyerSimulation() {
         <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'destroyer', cameraView: String(cameraMode), seaState: 3 })} />
         <Suspense fallback={null}>
-          <PresetWater simRef={simRef} />
+          <PresetWater simRef={simRef} resetToken={resetToken} />
         </Suspense>
         {showGrid ? <GridHelper simRef={simRef} sceneTheme={sceneTheme} /> : null}
         <GuideRoute points={guidePath} />

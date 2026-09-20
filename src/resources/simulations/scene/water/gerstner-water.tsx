@@ -305,6 +305,8 @@ export interface GerstnerWaterProps {
   readonly shoreFadeBandMeters?: number;
   /** 挖泥羽流（#2102 六轮复审）：合入水面片元着色（贴合动态波面）。 */
   readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
+  /** 实验重置令牌（#2115）：变化时清空泡沫历史场（与尾迹 key 同一重置源）。 */
+  readonly resetToken?: number;
 }
 
 /** 单个带限水网格（#2098 内部组件）：几何/材质随波组与包络参数构建，逐帧写时间与原点。 */
@@ -455,6 +457,7 @@ export function GerstnerWater({
   tier = 'high',
   shipPosition,
   positionSampler,
+  resetToken,
   seaState = DEFAULT_GERSTNER_SEA_STATE,
   waterColor = DEFAULT_WATER_COLORS.waterColor,
   deepColor = DEFAULT_WATER_COLORS.deepColor,
@@ -488,6 +491,7 @@ export function GerstnerWater({
       waves={NEAR_FIELD_VISIBLE_WAVES}
       amplitudeScale={amplitudeScale}
       positionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
+      resetToken={resetToken}
     >
       <group>
       <BandWaterMesh

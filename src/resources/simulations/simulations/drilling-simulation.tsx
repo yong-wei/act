@@ -695,13 +695,16 @@ const DRILLING_HULL_EXCLUSION: readonly HullExclusionBox[] = [
 /** 海面颜色随环境预设、细分随质量档位的桥接组件（DP 平台位置直读 ref）。 */
 function DrillingWater({
   platformStateRef,
+  resetToken,
 }: {
   platformStateRef: RefObject<SemiSubmersible3DOFState>;
+  resetToken: number;
 }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })}
       hullExclusionSampler={() => DRILLING_HULL_EXCLUSION}
@@ -1193,7 +1196,7 @@ export function DrillingSimulation() {
         <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'drilling', cameraView: String(cameraMode), seaState: config.seaStateLevel })} />
         <Suspense fallback={null}>
-          <DrillingWater platformStateRef={platformStateRef} />
+          <DrillingWater platformStateRef={platformStateRef} resetToken={resetCount} />
         </Suspense>
 
         {/* 网格 */}

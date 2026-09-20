@@ -225,11 +225,12 @@ function SceneQualityAttributes() {
 }
 
 /** 海面颜色随环境预设、细分随质量档位的桥接组件。 */
-function LNGWater({ state }: { state: LNGSimulationState }) {
+function LNGWater({ state, resetToken }: { state: LNGSimulationState; resetToken: number }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
       shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
@@ -493,7 +494,7 @@ function Scene({
       <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'lng', cameraView: String(cameraMode), seaState: 3 })} />
       <Suspense fallback={null}>
-        <LNGWater state={state} />
+        <LNGWater state={state} resetToken={resetToken} />
       </Suspense>
 
       {showGrid ? (

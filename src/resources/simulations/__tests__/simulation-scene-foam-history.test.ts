@@ -353,6 +353,28 @@ describe('source contracts (#2115)', () => {
     // "只自然源/全关"镜头不得回退显示 legacy additive 尾迹。
     expect(source).toContain('vesselFoamSuppressed');
     expect(source).toContain('meshRef.current.visible = !vesselFoamSuppressed');
+    // 沉积绑定当帧源活跃度（P2 修复）：停推/暂停后存量粒子只经场衰减消散，
+    // 不再被反复补沉积。
+    expect(source).toContain('vesselSourceActive');
+    expect(source).toContain('visualDelta > 0 && vesselSourceActive');
+  });
+
+  it('clears the foam history on experiment reset via resetToken (P2)', () => {
+    const water = readSource('scene/water/gerstner-water.tsx');
+    expect(water).toContain('resetToken={resetToken}');
+    const layer = readSource('scene/water/foam-history-layer.tsx');
+    expect(layer).toContain('internalRef.current.reset()');
+    // 七个仿真都把重置令牌接入水面（无 MarineFrameProvider 的场景也复位泡沫史）。
+    for (const sim of ['dredger', 'drilling']) {
+      const source = readSource(`simulations/${sim}-simulation.tsx`);
+      expect(source).toContain('resetToken={resetCount}');
+    }
+    for (const sim of ['container', 'cruise', 'icebreaker', 'lng']) {
+      const source = readSource(`simulations/${sim}-simulation.tsx`);
+      expect(source).toContain('resetToken={resetToken} />');
+    }
+    const destroyer = readSource('simulations/destroyer-simulation.tsx');
+    expect(destroyer).toContain('<PresetWater simRef={simRef} resetToken={resetToken} />');
   });
 
   it('multi-trail scenes allocate hard aggregate capacities', () => {

@@ -499,13 +499,16 @@ function SceneQualityAttributes() {
 /** 海面颜色随环境预设、细分随质量档位的桥接组件（船位直读 ref）。 */
 function DredgerWater({
   mmgStateRef,
+  resetToken,
 }: {
   mmgStateRef: RefObject<MMG3DOFState>;
+  resetToken: number;
 }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })}
       shoreSegments={MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments}
@@ -934,7 +937,7 @@ export function DredgerSimulation() {
         <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'dredger', cameraView: String(cameraMode), seaState: 3 })} />
         <Suspense fallback={null}>
-          <DredgerWater mmgStateRef={mmgStateRef} />
+          <DredgerWater mmgStateRef={mmgStateRef} resetToken={resetCount} />
         </Suspense>
 
         {/* 网格 */}

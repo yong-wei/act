@@ -392,6 +392,9 @@ export function WakeTrail({
       ? 0
       : Math.min(Math.max(state.simTime - state.lastVisualTime, 0), 0.25);
     state.lastVisualTime = state.simTime;
+    // 当帧源活跃度（P2 修复）：沉积只发生在推进/洗流真实活跃的帧——
+    // 停推/暂停后存量粒子只经场衰减消散，不再被反复补沉积。
+    let vesselSourceActive = false;
 
     // 归因隔离（P2 修复）：场存在但船源显式关闭时不发射、不沉积、不绘制；
     // 时间推进与老化仍每帧执行（存量粒子自然消散）。
@@ -421,6 +424,7 @@ export function WakeTrail({
       // 推进器洗流（#2101）：只抬升 core/foam（局部泡沫），不产生 Kelvin/远场——
       // 平台零平移时不编造航行尾波；航行船保持其更大的转移活跃度。
       const wash = washActivitySampler?.() ?? 0;
+      vesselSourceActive = transitActivity.wakeActivity > 0.01 || wash > 0.01;
       const activity = localWashOnly
         ? {
             ...transitActivity,
@@ -486,7 +490,7 @@ export function WakeTrail({
 
     if (vesselFoamSuppressed) {
       // 归因隔离：mesh 已隐藏，跳过沉积与几何刷新（不绘制任何船源泡沫）。
-    } else if (depositToField && foamField && visualDelta > 0) {
+    } else if (depositToField && foamField && visualDelta > 0 && vesselSourceActive) {
       // 贴水泡沫沉积（#2115）：逐粒子视觉（世界位置 + 年龄/活跃度加权不透明度）
       // 按秒积分写入共享密度场；转弯后旧泡沫留在原世界轨迹，随场输运/衰减消散。
       const amount = VESSEL_FOAM_RATE_PER_SECOND * visualDelta;

@@ -64,6 +64,8 @@ interface FoamFieldInternalHandle {
   recenter(x: number, z: number): void;
   /** 有变更时上传密度纹理。 */
   flushTexture(): void;
+  /** 显式清空（resetToken 变化）：清网格并重置时间基准（epoch 递增）。 */
+  reset(): void;
 }
 
 const MarineFoamFieldContext = createContext<MarineFoamFieldController | null>(null);
@@ -81,6 +83,7 @@ export function MarineFoamFieldProvider({
   waves,
   amplitudeScale,
   positionSampler,
+  resetToken,
   children,
 }: {
   readonly tier: 'high' | 'medium' | 'low';
@@ -88,6 +91,9 @@ export function MarineFoamFieldProvider({
   readonly waves: readonly GerstnerWave[];
   readonly amplitudeScale: number;
   readonly positionSampler?: () => { readonly x: number; readonly z: number } | undefined;
+  /** 实验重置令牌（P2 修复）：变化时显式清空历史场——未接 MarineFrameProvider
+   * 的场景视觉时钟单调增长，靠时间回退检测不到 reset。 */
+  readonly resetToken?: number;
   readonly children: ReactNode;
 }) {
   const marineVisualTime = useMarineVisualTime();
@@ -188,6 +194,10 @@ export function MarineFoamFieldProvider({
           textureDirty = false;
         }
       },
+      reset() {
+        field.clear();
+        textureDirty = true;
+      },
     };
 
     return { controller: controllerValue, internal: internalHandle };
@@ -197,6 +207,13 @@ export function MarineFoamFieldProvider({
   controllerRef.current = controller;
   const internalRef = useRef(internal);
   internalRef.current = internal;
+
+  // 实验重置（P2 修复）：resetToken 变化显式清空（clear 内部重置时间基准，
+  // 下次 tick 重新同步，不触发 seek 清空路径的重复语义）。
+  useEffect(() => {
+    if (resetToken === undefined) return;
+    internalRef.current.reset();
+  }, [resetToken]);
 
   const fieldContextValue = useMemo(
     () => (isWebGL2 ? controller : null),
