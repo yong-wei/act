@@ -144,8 +144,10 @@ export function microNormalSlope(
       footprintMetersPerPixel === undefined
         ? 1
         : microOctaveFootprintWeight(microOctaveWavelength(octave), footprintMetersPerPixel);
-    energyTotal += octave.slopeAmplitude;
-    energyRetained += octave.slopeAmplitude * weight;
+    // 斜率方差口径（复审）：进入法线的斜率 = amp·k·weight。
+    const slopeVariance = octave.slopeAmplitude * octave.waveNumber * octave.slopeAmplitude * octave.waveNumber;
+    energyTotal += slopeVariance;
+    energyRetained += slopeVariance * weight * weight;
     if (weight <= 0.002) continue;
     const phase =
       octave.waveNumber * (octave.direction[0] * worldX + octave.direction[1] * worldZ) -

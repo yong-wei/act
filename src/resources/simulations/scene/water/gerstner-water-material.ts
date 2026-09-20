@@ -426,8 +426,11 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
             // 逐频带脚印权重（与 microOctaveFootprintWeight 同公式）。
             float t = clamp((wavelength / pixelFootprint - 1.15) / 1.45, 0.0, 1.0);
             float weight = t * t * (3.0 - 2.0 * t);
-            slopeEnergyTotal += amp;
-            slopeEnergyRetained += amp * weight;
+            // 斜率方差口径（复审）：进入法线的斜率 = amp·k·weight，总方差按
+            // (amp·k)²、保留方差含 weight²——否则高波数被滤除时补偿明显低估。
+            float slopeVariance = amp * k * amp * k;
+            slopeEnergyTotal += slopeVariance;
+            slopeEnergyRetained += slopeVariance * weight * weight;
             if (weight > 0.002) {
               float phase = k * (dx * vWorldPos.x + dz * vWorldPos.z)
                 - k * speedScale * 1.2 * uTime + phaseOffset;
