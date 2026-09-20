@@ -115,6 +115,9 @@ export function SceneQualityDriver({ onTierChange }: { readonly onTierChange?: (
   const hiddenRef = useRef(false);
   useEffect(() => {
     mountedAtRef.current = performance.now();
+    // 挂载即隐藏的页面（后台打开/会话恢复）：visibilitychange 已发生——
+    // 用当前 document.hidden 初始化，隐藏期间不推进降档判定。
+    hiddenRef.current = document.hidden;
     const onVisibility = () => {
       hiddenRef.current = document.hidden;
       if (!document.hidden) lastRef.current = 0;

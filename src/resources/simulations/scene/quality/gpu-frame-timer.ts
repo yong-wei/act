@@ -130,12 +130,17 @@ export function pollMarineGpuTimer(): void {
   }
 }
 
-/** 测量窗口开始（P1 复审）：快照清零——只汇总本窗口完成的查询。 */
+/** 测量窗口开始（P1 复审 / 二轮）：快照清零并**丢弃在途查询**——上一窗口
+ * 发起的 pending 查询在窗口内完成时不再计入（预热/上一配置样本不混入 A/B）。 */
 export function marineGpuTimerStartWindow(): void {
   windowResolvedCount = 0;
   windowLastMs = null;
   windowAvgMs = null;
   windowDisjointDrops = 0;
+  if (context && pending) {
+    context.deleteQuery(pending.query);
+    pending = null;
+  }
 }
 
 /** 证据探针读取（展开进报告输入——窗口口径）。 */

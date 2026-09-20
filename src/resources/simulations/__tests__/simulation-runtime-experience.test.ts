@@ -24,6 +24,8 @@ describe('probe binds the real renderer (#2120)', () => {
     expect(probe).toContain('marineGpuTimerStartWindow();');
     const timer = readSource('scene/quality/gpu-frame-timer.ts');
     expect(timer).toContain('export function marineGpuTimerStartWindow()');
+    // 二轮：切窗丢弃在途查询（上一窗口 pending 完成不混入本窗口）。
+    expect(timer).toContain('context.deleteQuery(pending.query);');
     expect(timer).toContain('gpuTimerAvailable: windowResolvedCount > 0');
     // active/pending 状态机：只对本轮成功 begin 的查询执行 end。
     expect(timer).toContain('if (active || pending) return;');
@@ -72,6 +74,8 @@ describe('governor warm-up and background protection (#2120)', () => {
     const source = readSource('scene/quality/quality-state.tsx');
     expect(source).toContain('GOVERNOR_WARMUP_MS = 8000');
     expect(source).toContain('if (inWarmup || hiddenRef.current) return;');
+    // 挂载即隐藏（后台打开/会话恢复）也处于保护态。
+    expect(source).toContain('hiddenRef.current = document.hidden;');
     expect(source).toContain("document.addEventListener('visibilitychange', onVisibility)");
     // 恢复帧的巨大间隔被丢弃（lastRef 复位，不算超预算帧）。
     expect(source).toContain('if (!document.hidden) lastRef.current = 0;');
