@@ -101,7 +101,9 @@ describe('controlled high-tier planar reflection (#2118)', () => {
   });
 
   it('names overlays with the marine- prefix across the fleet', () => {
-    expect(readSource('scene/annotations/teaching-annotations.tsx')).toContain('name="marine-annotations"');
+    const annotations = readSource('scene/annotations/teaching-annotations.tsx');
+    // 公共父组整体命名（含 WorldLabel sprite——逐子件命名会漏新增子件）。
+    expect(annotations).toContain('<group name="marine-annotations" position={[snapshot.x, snapshot.y, snapshot.z]}>');
     expect(readSource('scene/lines/index.tsx')).toContain('name="marine-trail"');
     for (const sim of ['container', 'cruise', 'lng', 'dredger']) {
       const source = readSource(`simulations/${sim}-simulation.tsx`);

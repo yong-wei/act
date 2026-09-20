@@ -187,7 +187,9 @@ export function TeachingAnnotations({
   if (!snapshot) return null;
 
   return (
-    <group position={[snapshot.x, snapshot.y, snapshot.z]}>
+    // marine- 前缀命名（#2118 复审）：整个教学标注组（含 WorldLabel sprite）
+    // 一起从平面反射 pass 隐藏——逐子件命名会漏掉新增子件。
+    <group name="marine-annotations" position={[snapshot.x, snapshot.y, snapshot.z]}>
       <HeadingArc snapshot={snapshot} shipLength={shipLength} />
       <TargetCourseLine snapshot={snapshot} shipLength={shipLength} />
       <DirectionArrow snapshot={snapshot} shipLength={shipLength} />
