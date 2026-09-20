@@ -239,7 +239,10 @@ describe('optics do not touch motion or optional passes (#2100 contracts)', () =
       const source = readFileSync(path.join(ROOT, file), 'utf-8');
       expect(source).not.toContain('WebGLRenderTarget');
       expect(source).not.toContain('Reflector');
-      expect(source).not.toContain('refraction');
+      // #2119：片元内浅水有界折射（refractionOffset，无渲染 pass）允许；
+      // 禁止的是折射/反射渲染目标分配。
+      expect(source).not.toContain('refractionRenderTarget');
+      expect(source).not.toContain('RefractionRenderTarget');
     }
   });
 });

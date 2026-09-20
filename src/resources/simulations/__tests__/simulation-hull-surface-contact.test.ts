@@ -134,8 +134,8 @@ describe('simulation clocks restored after rig unification (#2117 review)', () =
 
   it('computes the shallow-water factor per fragment (tessellation-independent)', () => {
     const material = readSource('scene/water/gerstner-water-material.ts');
-    expect(material).toContain('float shoreShallow01(vec2 worldXZ)');
-    expect(material).toContain('shoreShallow01(vWorldPos.xz) * 0.45');
+    expect(material).toContain('vec2 shoreEffects(vec2 worldXZ)');
+    expect(material).toContain('shoreFx.x');
     // 顶点阶段不再输出浅水 varying（振幅衰减保留在顶点——几何量）。
     expect(material).not.toContain('vShoreShallow01');
   });

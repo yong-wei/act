@@ -65,3 +65,15 @@ The reflection feature SHALL include the default shared environment reflection a
 - **THEN** vessel reflection changes visibly without recursive water, teaching overlays or UI appearing in the reflection
 - **AND** the report records the additional rendering cost and the disabled path releases unused resources
 
+### Requirement: Shallow-water optics have a real depth-aware consumer
+At least one active shallow-water layout SHALL render depth-aware absorption and bounded refraction using a documented water-thickness interpretation rather than only a preset color gradient.
+
+#### Scenario: Water depth varies beside the vessel
+- **WHEN** the shallow-water camera views an authored shore-depth band with a foreground hull
+- **THEN** the estimated water layer depth (authored shore-depth profile over the shore-distance band) drives graded absorption and bounded refraction of water-column content (foam detail and plume edges), and foreground hull edges do not leak unrelated background samples via the hull exclusion
+- **AND** disabling the shallow-water consumer stops its extra per-fragment rendering work (the shore-segment loop, absorption and refraction sampling are skipped)
+
+#### Scenario: Physical bottom-texture refraction is out of scope
+- **WHEN** the shallow consumer renders
+- **THEN** refraction is a bounded visual approximation on water-column content sampling (documented offset cap), not a physical refraction of scene geometry; bottom-texture or refraction render targets remain an explicit upgrade path outside this requirement
+
