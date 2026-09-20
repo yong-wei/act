@@ -639,10 +639,13 @@ function WakeTrailRig({
 
 declare global {
   interface Window {
+    /** QA 重观测开关（#2120）：置 true 才逐帧 Box3/骨骼校验（普通运行零热点）。 */
+    __destroyerModelVisualProbe?: boolean;
     __destroyerModelVisual?: {
       url: string;
-      boxInView: boolean;
-      skinnedIntact: boolean;
+      /** 重观测关闭时为 undefined（不做逐帧 Box3/骨骼遍历）。 */
+      boxInView?: boolean;
+      skinnedIntact?: boolean;
       /** 仿真推进门控（QA 观测面）：false 时桨/天线/尾迹发射全部静止。 */
       advancing?: boolean;
       /** 左右桨节点局部四元数（QA 观测面：桨转速连续性/静止判定）。 */
@@ -798,20 +801,39 @@ function DestroyerModelScene({
       write(propNodes.starboard, 'starboard');
     }
 
+    // QA 门控（#2120 复审）：普通浏览器运行不做逐帧全模型 Box3 遍历与骨骼
+    // 绑定校验（热点成本）——页面置 window.__destroyerModelVisualProbe = true
+    // 才执行重观测；轻量字段（推进四元数/推进门控）始终写入。
     if (typeof window !== 'undefined') {
-      const box = new THREE.Box3().setFromObject(groupRef.current);
-      window.__destroyerModelVisual = {
-        url,
-        boxInView: boxProjectsInsideNdc(camera, box),
-        skinnedIntact: skinnedBindingsIntact(model),
-        advancing: sim.advancing,
+      const probe = window.__destroyerModelVisualProbe === true;
+      if (probe) {
+        const box = new THREE.Box3().setFromObject(groupRef.current);
+        window.__destroyerModelVisual = {
+          url,
+          boxInView: boxProjectsInsideNdc(camera, box),
+          skinnedIntact: skinnedBindingsIntact(model),
+          advancing: sim.advancing,
         propPortQuat: propNodes.port
           ? [propNodes.port.quaternion.x, propNodes.port.quaternion.y, propNodes.port.quaternion.z, propNodes.port.quaternion.w]
           : null,
         propStarboardQuat: propNodes.starboard
           ? [propNodes.starboard.quaternion.x, propNodes.starboard.quaternion.y, propNodes.starboard.quaternion.z, propNodes.starboard.quaternion.w]
           : null,
-      };
+        };
+      } else {
+        window.__destroyerModelVisual = {
+          url,
+          advancing: sim.advancing,
+          propPortQuat: propNodes.port
+            ? [propNodes.port.quaternion.x, propNodes.port.quaternion.y, propNodes.port.quaternion.z, propNodes.port.quaternion.w]
+            : null,
+          propStarboardQuat: propNodes.starboard
+            ? [propNodes.starboard.quaternion.x, propNodes.starboard.quaternion.y, propNodes.starboard.quaternion.z, propNodes.starboard.quaternion.w]
+            : null,
+          boxInView: undefined,
+          skinnedIntact: undefined,
+        };
+      }
     }
   });
 
