@@ -56,6 +56,15 @@ export interface GerstnerWaterMaterialOptions {
   /** 挖泥羽流（#2102 六轮复审）：合入水面片元着色（贴合动态波面，前景几何天然正确遮挡）。 */
   readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
   /**
+   * 环境辐射（#2118）：PMREM 天空纹理 + CubeUV 高度（来自 renderer×preset 缓存）。
+   * 水面菲涅尔项混合 IBL 天空倒影；缺省保持 horizonColor 过渡（行为不变）。
+   */
+  readonly environment?: {
+    readonly texture: THREE.Texture;
+    readonly cubeUVHeight: number;
+    readonly intensity: number;
+  } | null;
+  /**
    * 泡沫历史密度场（#2115）：密度纹理（R 通道，世界域跟船重定位）。
    * 提供时泡沫覆盖 = 场密度 × 多尺度细节；缺省回退平滑波峰覆盖（无重复贴花）。
    */
@@ -69,6 +78,19 @@ export interface GerstnerWaterMaterialOptions {
 const FLOATS_PER_WAVE = 6;
 const MAX_MICRO_OCTAVES = 8;
 const MICRO_FLOATS_PER_OCTAVE = 6;
+
+/** CubeUV 采样定义（#2118）：与 three WebGLProgram.generateCubeUVSize 同推导。 */
+export function cubeUvDefinesForHeight(imageHeight: number): Record<string, string> {
+  const height = Math.max(16, Math.round(imageHeight));
+  const maxMip = Math.log2(height) - 2;
+  const texelHeight = 1 / height;
+  const texelWidth = 1 / (3 * Math.max(Math.pow(2, maxMip), 7 * 16));
+  return {
+    CUBEUV_TEXEL_WIDTH: String(texelWidth),
+    CUBEUV_TEXEL_HEIGHT: String(texelHeight),
+    CUBEUV_MAX_MIP: `${maxMip.toFixed(1)}`,
+  };
+}
 
 function packMicroOctaves(tier: 'high' | 'medium' | 'low'): { data: Float32Array; count: number } {
   const octaves: readonly MicroNormalOctave[] = MICRO_NORMAL_OCTAVES_BY_TIER[tier];
@@ -108,9 +130,15 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
   });
 
   // 深水默认不透明单面（#2100 复审落实）：不做透明混合/背面渲染，消除排序与背景透出。
+  const env = options.environment ?? null;
   return new THREE.ShaderMaterial({
     transparent: false,
     side: THREE.FrontSide,
+    // 环境辐射（#2118）：CubeUV PMREM 采样（与 three 内建 PBR 同 chunk/布局）。
+    defines: env
+      ? { USE_ENVMAP: '', ENVMAP_TYPE_CUBE_UV: '', ...cubeUvDefinesForHeight(env.cubeUVHeight) }
+      : {},
+    fog: true,
     uniforms: {
       uTime: { value: 0 },
       // 网格世界原点（跟船平移）：相位取世界坐标，波场不随原点移动漂移（#2097）。
@@ -152,6 +180,22 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uFoamResolution: { value: options.foamField?.resolution ?? 0 },
       uFoamFieldEnabled: { value: options.foamField ? 1 : 0 },
       uFoamEdgeFade: { value: FOAM_EDGE_FADE_METERS },
+      // 环境辐射（#2118）：envMap/envMapIntensity/envMapRotation 为 three chunk
+      // 契约 uniform；uEnvEnabled 兜底禁用（无纹理时不采样）。
+      envMap: { value: env?.texture ?? null },
+      envMapIntensity: { value: env?.intensity ?? 0 },
+      envMapRotation: { value: new THREE.Matrix3() },
+      uEnvEnabled: { value: env ? 1 : 0 },
+      // 平面反射（#2118 受控高档）：投影矩阵/纹理/强度由反射组件逐帧写。
+      uPlanarTex: { value: null },
+      uPlanarMatrix: { value: new THREE.Matrix4() },
+      uPlanarStrength: { value: 0 },
+      uPlanarPlaneY: { value: -1 },
+      // 雾（#2118）：材质 fog:true 时 renderer 按 scene.fog 刷新。
+      fogColor: { value: new THREE.Color(0xffffff) },
+      fogNear: { value: 1 },
+      fogFar: { value: 30000 },
+      fogDensity: { value: 0.00025 },
     },
     vertexShader: /* glsl */ `
       #define MAX_WAVES ${GERSTNER_MAX_WAVES}
@@ -328,6 +372,18 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uFoamResolution;
       uniform float uFoamFieldEnabled;
       uniform float uFoamEdgeFade;
+      uniform float uEnvEnabled;
+      uniform sampler2D uPlanarTex;
+      uniform mat4 uPlanarMatrix;
+      uniform float uPlanarStrength;
+      uniform float uPlanarPlaneY;
+
+      // 环境辐射（#2118）：与 three 内建 PBR 同一 CubeUV chunk（锁定版本布局）。
+      #include <common>
+      #include <cube_uv_reflection_fragment>
+      #include <envmap_common_pars_fragment>
+      #include <envmap_physical_pars_fragment>
+      #include <fog_pars_fragment>
 
       varying vec3 vNormal;
       varying vec3 vWorldNormal;
@@ -514,12 +570,36 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           float plumeMix = (1.0 - smoothstep(uPlumeRadius * 0.55, uPlumeRadius, plumeDistance)) * uPlumeOpacity;
           color = mix(color, vec3(0.478, 0.416, 0.322), plumeMix);
         }
-        color = mix(color, uHorizonColor, viewFresnel * 0.45);
+        // 环境倒影（#2118）：菲涅尔项从纯 horizonColor 过渡升级为
+        // horizonColor↔PMREM 天空 IBL 混合（GGX 粗糙度感知，chunk 同布局采样）；
+        // 无环境（intensity 0）时退回原 horizon 过渡——波光责任不变。
+        vec3 reflectionTint = uHorizonColor;
+        #ifdef USE_ENVMAP
+        if (uEnvEnabled > 0.5) {
+          vec3 ibl = getIBLRadiance(viewDirection, normal, roughness);
+          reflectionTint = mix(uHorizonColor, ibl, clamp(envMapIntensity, 0.0, 1.0));
+        }
+        #endif
+        // 平面反射（#2118 受控高档）：镜像世界坐标投影采样；近船强、远端衰减，
+        // 掠射菲涅尔加权——船体倒影可开关且不递归（反射 pass 隐藏水面自身）。
+        if (uPlanarStrength > 0.001) {
+          vec3 mirrored = vec3(vWorldPos.x, 2.0 * uPlanarPlaneY - vWorldPos.y, vWorldPos.z);
+          vec4 planarUv = uPlanarMatrix * vec4(mirrored, 1.0);
+          vec3 planarColor = texture2DProj(uPlanarTex, planarUv).rgb;
+          float planarFade = 1.0 - smoothstep(120.0, 900.0, length(vWorldPos.xz - cameraPosition.xz));
+          reflectionTint = mix(
+            reflectionTint,
+            mix(reflectionTint, planarColor, uPlanarStrength * planarFade),
+            viewFresnel
+          );
+        }
+        color = mix(color, reflectionTint, viewFresnel * 0.45);
         color += specular * uSunIllumination;
         vec3 foamLit = uFoamColor * (light * 0.65 + 0.35 * uSunIllumination);
         color = mix(color, foamLit, foam * 0.85);
 
         gl_FragColor = vec4(color, 1.0);
+        #include <fog_fragment>
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }

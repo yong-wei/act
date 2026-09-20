@@ -69,6 +69,8 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
   }, [skyTexture, horizonTexture, cloudTexture, preset.scale]);
 
   const marineVisualTime = useMarineVisualTime();
+  const skyGroupRef = useRef<THREE.Group>(null);
+  const camera = useThree((state) => state.camera);
 
   // 环境辐射（#2099）：同一天空纹理构建仅含天空的离屏场景 → PMREM 按 preset 缓存，
   // 预设不变时复用不重生成；scene.environment 供船体 PBR 拾取，IBL 降权避免与
@@ -103,8 +105,18 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
     const entry = resolveMarineEnvironmentRadiance(source, skySceneFactory, preset.id, rendererKey);
     scene.environment = entry.texture;
     scene.environmentIntensity = MARINE_ENVIRONMENT_IBL_INTENSITY;
+    // 跨兄弟共享（#2118）：水面 shader 与船体 PBR 消费同一 PMREM
+    // （GerstnerWater 是兄弟组件，Context 不可达——经 scene.userData 提供）。
+    scene.userData.marineEnvRadiance = {
+      texture: entry.texture,
+      cubeUVHeight: entry.cubeUVHeight,
+      intensity: MARINE_ENVIRONMENT_IBL_INTENSITY,
+    };
     return () => {
       if (scene.environment === entry.texture) scene.environment = null;
+      if (scene.userData.marineEnvRadiance?.texture === entry.texture) {
+        delete scene.userData.marineEnvRadiance;
+      }
     };
   }, [gl, scene, preset.id, skyTexture]);
 
@@ -122,6 +134,10 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
   }, [gl]);
 
   useFrame((state, delta) => {
+    // 天空相机相对（#2118）：等效无限远——相机远离原点时天空不再留在后方。
+    if (skyGroupRef.current) {
+      skyGroupRef.current.position.set(camera.position.x, 0, camera.position.z);
+    }
     // 云漂移是共享视觉时间的纯函数：同帧唯一、可注入重放（不再自累加独立时钟）。
     cloudTexture.offset.set((marineVisualTime(state, delta) * 0.004) % 1, 0);
     // 方向光跟随主体（#2099）：位置 = 主体 + 太阳方向 × 距离；target = 主体。
@@ -170,6 +186,9 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
       />
       <directionalLight color={preset.fill.color} intensity={preset.fill.intensity} position={fillPosition} />
 
+      {/* 天空组（#2118 相机相对）：天空/地平线/云随相机 x/z 平移——物理布局
+          等效无限远，不随相机漂移；世界锚定物（岸物）保持世界位置产生视差。 */}
+      <group ref={skyGroupRef} renderOrder={-30}>
       {/* 天空球体 */}
       <mesh position={[0, 900, 0]} renderOrder={-30}>
         <sphereGeometry args={[10000 * preset.scale, 48, 24]} />
@@ -213,6 +232,7 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
           side={THREE.BackSide}
         />
       </mesh>
+      </group>
     </>
   );
 }
