@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   compensatedWaterRoughness,
+  directionalFootprintMeters,
   foamIlluminationFactor,
   ggxWaterSpecular,
   litFoamColor,
@@ -115,6 +116,26 @@ describe('projected pixel footprint filtering (#2116)', () => {
     expect(fine.lostSlopeFraction).toBeLessThan(0.05);
   });
 
+  it('uses directional footprints: waves along the short axis survive anisotropic glancing views', () => {
+    const octaves = MICRO_NORMAL_OCTAVES_BY_TIER.high;
+    // 掠射足迹：x 轴每像素 4m（长轴），z 轴 0.2m（短轴）。
+    const glancing = { stepX: [4.0, 0] as const, stepY: [0, 0.2] as const };
+    // 最贴短轴（z）传播的分量：各向同口径会误删，方向口径按自身方向保留。
+    const mostZAligned = [...octaves].sort(
+      (a, b) => Math.abs(b.direction[1]) - Math.abs(a.direction[1]),
+    )[0];
+    const wavelength = microOctaveWavelength(mostZAligned);
+    const directional = directionalFootprintMeters(mostZAligned, glancing);
+    const wDir = microOctaveFootprintWeight(wavelength, Math.max(directional, 1e-4));
+    const wIso = microOctaveFootprintWeight(wavelength, 4.0);
+    expect(wDir).toBeGreaterThan(wIso);
+    expect(wDir).toBeGreaterThan(0.1);
+    // 全场方向足迹的斜率能量损失严格低于各向同口径（不过度抹平定向波光）。
+    const slopeDir = microNormalSlope(octaves, 5, -8, 2.5, undefined, glancing);
+    const slopeIso = microNormalSlope(octaves, 5, -8, 2.5, 4.0);
+    expect(slopeDir.lostSlopeFraction).toBeLessThan(slopeIso.lostSlopeFraction);
+  });
+
   it('compensates filtered energy into bounded roughness instead of a mirror-flat far sea', () => {
     expect(compensatedWaterRoughness(0.06, 0)).toBeCloseTo(0.06, 9);
     expect(compensatedWaterRoughness(0.06, 1)).toBeCloseTo(MICRO_COMPENSATED_ROUGHNESS_CAP, 9);
@@ -200,7 +221,9 @@ describe('optics do not touch motion or optional passes (#2100 contracts)', () =
     expect(fragment).toContain('normal = normalize(normal + vec3(slopeX, 0.0, slopeZ));');
     // #2116：片元以 dFdx/dFdy 世界足迹做逐频带过滤（非仅距离衰减）。
     expect(fragment).toContain('dFdx(vWorldPos.xz)');
-    expect(fragment).toContain('wavelength / pixelFootprint');
+    // 各频带按传播方向投影像素步（掠射各向异性足迹不过度抹平定向波光）。
+    expect(fragment).toContain('directionalStep');
+    expect(fragment).toContain('wavelength / max(directionalStep, 1e-4)');
     expect(source.slice(vertexStart, fragmentStart)).not.toContain('uMicroOctaves');
     // 受光泡沫：照明因子乘泡沫色（非恒亮 additive）。
     expect(fragment).toContain('vec3 foamLit = uFoamColor * (light * 0.65 + 0.35 * uSunIllumination);');

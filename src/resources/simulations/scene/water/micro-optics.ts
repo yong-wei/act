@@ -128,20 +128,42 @@ export const LOW_TIER_ROUGHNESS_FLOOR = 0.22;
  * 风向对齐正弦斜率 (dSx, dSz)。与 GPU 片元实现同一公式；提供
  * footprintMetersPerPixel 时逐频带施加脚印权重并返回被滤除能量占比。
  */
+export interface PixelFootprintSteps {
+  /** 相邻像素的世界位移（x/z 分量；各向异性掠射足迹下长短轴不同）。 */
+  readonly stepX: readonly [number, number];
+  readonly stepY: readonly [number, number];
+}
+
+/** 分量方向上的有效每像素步长（米）：像素步在传播方向上的最大投影。 */
+export function directionalFootprintMeters(
+  octave: MicroNormalOctave,
+  steps: PixelFootprintSteps,
+): number {
+  return Math.max(
+    Math.abs(steps.stepX[0] * octave.direction[0] + steps.stepX[1] * octave.direction[1]),
+    Math.abs(steps.stepY[0] * octave.direction[0] + steps.stepY[1] * octave.direction[1]),
+  );
+}
+
 export function microNormalSlope(
   octaves: readonly MicroNormalOctave[],
   worldX: number,
   worldZ: number,
   timeSeconds: number,
   footprintMetersPerPixel?: number,
+  footprintSteps?: PixelFootprintSteps,
 ): { dx: number; dz: number; lostSlopeFraction: number } {
   let dx = 0;
   let dz = 0;
   let energyTotal = 0;
   let energyRetained = 0;
   for (const octave of octaves) {
-    const weight =
-      footprintMetersPerPixel === undefined
+    const weight = footprintSteps
+      ? microOctaveFootprintWeight(
+          microOctaveWavelength(octave),
+          Math.max(directionalFootprintMeters(octave, footprintSteps), 1e-4),
+        )
+      : footprintMetersPerPixel === undefined
         ? 1
         : microOctaveFootprintWeight(microOctaveWavelength(octave), footprintMetersPerPixel);
     // 斜率方差口径（复审）：进入法线的斜率 = amp·k·weight。

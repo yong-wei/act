@@ -407,7 +407,8 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 微法线（#2100 / #2116 修订）：只对着色法线加高频细节（光学），不动几何/姿态。
         // 投影像素脚印（dFdx/dFdy 世界足迹）逐频带过滤亚 Nyquist 分量——
         // 分辨率/FOV/掠射变化改变足迹，过滤随采样密度变化而非只随距离。
-        float pixelFootprint = max(length(dFdx(vWorldPos.xz)), length(dFdy(vWorldPos.xz)));
+        vec2 footprintStepX = dFdx(vWorldPos.xz);
+        vec2 footprintStepY = dFdy(vWorldPos.xz);
         float slopeX = 0.0;
         float slopeZ = 0.0;
         float slopeEnergyTotal = 0.0;
@@ -423,8 +424,13 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
             float speedScale = uMicroOctaves[base + 4];
             float phaseOffset = uMicroOctaves[base + 5];
             float wavelength = 6.28318530718 / k;
+            // 逐频带方向脚印（复审）：像素世界步投影到该分量传播方向——
+            // 掠射各向异性足迹下，沿短轴传播的波仍按自身方向可解析性过滤。
+            float directionalStep = max(
+              abs(footprintStepX.x * dx + footprintStepX.y * dz),
+              abs(footprintStepY.x * dx + footprintStepY.y * dz));
             // 逐频带脚印权重（与 microOctaveFootprintWeight 同公式）。
-            float t = clamp((wavelength / pixelFootprint - 1.15) / 1.45, 0.0, 1.0);
+            float t = clamp((wavelength / max(directionalStep, 1e-4) - 1.15) / 1.45, 0.0, 1.0);
             float weight = t * t * (3.0 - 2.0 * t);
             // 斜率方差口径（复审）：进入法线的斜率 = amp·k·weight，总方差按
             // (amp·k)²、保留方差含 weight²——否则高波数被滤除时补偿明显低估。
