@@ -39,6 +39,17 @@ function seededRandom(seed: number): () => number {
   };
 }
 
+/**
+ * 目标有效波高标定（#2121 复审）：对照页 ss4 Gerstner Hs≈6.5m——频谱能量按
+ * **实测标定**逼近同一 Hs（2048m/256²·ss4·12m/s·系数14 → Hs 0.161m ⇒
+ * 目标能量 = 14×4^1.6×(6.5/0.161) ≈ 5200；其他海况按 (ss/4)^1.6 相对缩放）。
+ */
+export const FFT_OCEAN_HS_CALIBRATION = {
+  seaState4TargetHsMeters: 6.5,
+  /** ss4 基准能量系数（Hs ∝ 系数·(ss/4)^1.6，按实测标定）。 */
+  seaState4EnergyCoefficient: 5200,
+} as const;
+
 export interface FFTOceanSpectrumInput {
   /** k 网格分辨率（2 的幂）。 */
   readonly resolution: number;
@@ -65,8 +76,10 @@ export function fftOceanStaticSpectrum(input: FFTOceanSpectrumInput): ComplexGri
   // 峰值周期 ~9.6s，与 Gerstner 主波段同量级）。
   const peakFrequency = Math.min(0.45, (0.8 * 9.81) / Math.max(input.windSpeedMps, 1) / (2 * Math.PI));
   const bandHz = 0.12;
-  // 标定：ss4 风速 12 → Hs ≈ 1.3m（与教学海况同量级；×40 于初始标定）。
-  const energyScale = Math.pow(Math.max(input.seaState, 1), 1.6) * 14;
+  // Hs 标定（复审）：ss4 → 目标 Hs≈6.5m（与对照页 Gerstner 同海况匹配）；
+  // 其他海况按 (ss/4)^1.6 相对缩放（保持原海况单调性）。
+  const relative = Math.pow(Math.max(input.seaState, 1) / 4, 1.6);
+  const energyScale = FFT_OCEAN_HS_CALIBRATION.seaState4EnergyCoefficient * relative;
   for (let m = 0; m < n; m += 1) {
     const kz = binWaveNumber(m, n, domain);
     for (let ix = 0; ix < n; ix += 1) {

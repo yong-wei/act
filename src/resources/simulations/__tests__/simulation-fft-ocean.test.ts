@@ -14,6 +14,7 @@ import {
 } from '../scene/water/fft-ocean';
 
 const ROOT = process.cwd();
+const src_calibration = () => readFileSync(path.join(ROOT, 'src/resources/simulations/scene/water/fft-ocean.ts'), 'utf8');
 const readSource = (relative: string) =>
   readFileSync(path.join(ROOT, relative), 'utf8');
 
@@ -43,8 +44,14 @@ describe('FFT ocean correctness (#2121)', () => {
       );
       maxError = Math.max(maxError, Math.abs(grid - point));
     }
-    // 两条独立路径（快速 IFFT vs 逐点直接求和）一致到浮点噪声。
-    expect(maxError).toBeLessThan(1e-6);
+    // 两条独立路径（快速 IFFT vs 逐点直接求和）一致——相对浮点噪声
+    //（标定后波幅 ~6.5m 量级，绝对噪声随幅度线性放大，用相对口径）。
+    const magnitude = Math.max(
+      ...[0, 0].map(() => 0),
+      Math.abs(fftOceanHeightAt(spectrum, INPUT.domainMeters, t, 0, 0)),
+      1,
+    );
+    expect(maxError / magnitude).toBeLessThan(1e-5);
   });
 
   it('single-bin spectrum renders an exact spatial sinusoid with the bin wavelength', () => {
@@ -105,6 +112,21 @@ describe('FFT ocean correctness (#2121)', () => {
     const hsStorm = significantWaveHeight(fftOceanSnapshot(storm, INPUT.domainMeters, 1).heights);
     expect(hsStorm).toBeGreaterThan(hsCalm * 2);
     expect(hsStorm).toBeGreaterThan(1);
+  });
+
+  it('calibrates ss4 to the comparison-page Gerstner significant wave height', () => {
+    // 对照页同参（2048m/256²·ss4·12m/s）：目标 Hs≈6.5m（与 Gerstner 近场同海况匹配）。
+    const spectrum = fftOceanStaticSpectrum({
+      resolution: 256,
+      domainMeters: 2048,
+      windSpeedMps: 12,
+      windDirectionRad: 0.2,
+      seaState: 4,
+      seed: 17,
+    });
+    const hs = significantWaveHeight(fftOceanSnapshot(spectrum, 2048, 0).heights);
+    expect(Math.abs(hs - 6.5)).toBeLessThan(0.5);
+    expect(src_calibration()).toContain('seaState4EnergyCoefficient: 5200');
   });
 
   it('ship water-height point query is self-consistent across query times', () => {
@@ -207,13 +229,14 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(client).toContain('unresolvedDifference');
   });
 
-  it('drives the stand-in vessel from throttled batched point queries (not per-frame hot path)', () => {
+  it('drives the stand-in vessel from interval-based queries outside the RAF hot path', () => {
     const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
-    // 完整 256² 逆 DFT 单点 ~10ms 级——固定低频节拍批量查询（帧耗归因波场后端）。
+    // 三点 DFT 批次 ~31ms 级——在 setInterval（RAF 之外）异步执行；
+    // useFrame 只消费最近结果（被测帧不含查询成本）。
     expect(client).toContain('VESSEL_QUERY_HZ = 4');
-    expect(client).toContain('if (queryRef.current.accumulator >= 1 / VESSEL_QUERY_HZ) {');
+    expect(client).toContain('window.setInterval(() => {');
     expect(client).toContain('const mid = fftOceanHeightAt(spectrum, domain, t, 0, 0);');
-    expect(client).toContain('queryRef.current.pitch = Math.atan2(bow - stern, 170);');
+    expect(client).toContain('Math.atan2(bow - stern, 170)');
     // 查询延迟单独测量（口径分离）。
     expect(client).toContain('measurePointQueryMs');
   });
