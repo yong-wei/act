@@ -52,6 +52,15 @@ export interface GerstnerWaterMaterialOptions {
   readonly shoreFadeBandMeters?: number;
   /** 挖泥羽流（#2102 六轮复审）：合入水面片元着色（贴合动态波面，前景几何天然正确遮挡）。 */
   readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
+  /**
+   * 泡沫历史密度场（#2115）：密度纹理（R 通道，世界域跟船重定位）。
+   * 提供时泡沫覆盖 = 场密度 × 多尺度细节；缺省回退平滑波峰覆盖（无重复贴花）。
+   */
+  readonly foamField?: {
+    readonly texture: THREE.Texture;
+    readonly domainMeters: number;
+    readonly resolution: number;
+  } | null;
 }
 
 const FLOATS_PER_WAVE = 6;
@@ -130,6 +139,12 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uFoamColor: { value: new THREE.Color(options.foamColor) },
       uSunDirection: { value: options.sunDirection.clone().normalize() },
       uFoamTex: { value: options.foamTexture ?? null },
+      // 泡沫历史密度场（#2115）：uFoamOrigin 由组件逐帧写（域跟船重定位）。
+      uFoamDensityTex: { value: options.foamField?.texture ?? null },
+      uFoamOrigin: { value: new THREE.Vector2(0, 0) },
+      uFoamDomain: { value: options.foamField?.domainMeters ?? 0 },
+      uFoamResolution: { value: options.foamField?.resolution ?? 0 },
+      uFoamFieldEnabled: { value: options.foamField ? 1 : 0 },
     },
     vertexShader: /* glsl */ `
       #define MAX_WAVES ${GERSTNER_MAX_WAVES}
@@ -308,6 +323,11 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uShoreDepths[4];
       uniform float uShoreSegmentCount;
       uniform float uShoreFadeBand;
+      uniform sampler2D uFoamDensityTex;
+      uniform vec2 uFoamOrigin;
+      uniform float uFoamDomain;
+      uniform float uFoamResolution;
+      uniform float uFoamFieldEnabled;
 
       varying vec3 vNormal;
       varying vec3 vWorldNormal;
@@ -317,6 +337,34 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       varying float vElevation;
       varying float vShoreShallow01;
       varying vec2 vLocalXZ;
+
+      // 泡沫历史密度（#2115）：R 通道密度纹理 + 手动双线性（NearestFilter 上采样
+      // 与 GPU 无关，跨设备确定）。域外 0；地址钳制（ClampToEdge）不产生环回。
+      float sampleFoamField(vec2 worldXZ) {
+        vec2 local = worldXZ - uFoamOrigin;
+        vec2 g = (local + uFoamDomain * 0.5) / (uFoamDomain / uFoamResolution) - 0.5;
+        if (g.x < -0.5 || g.y < -0.5 || g.x > uFoamResolution - 0.5 || g.y > uFoamResolution - 0.5) {
+          return 0.0;
+        }
+        vec2 base = floor(g);
+        vec2 f = clamp(g - base, 0.0, 1.0);
+        float inv = 1.0 / uFoamResolution;
+        vec2 uv00 = (base + vec2(0.5, 0.5)) * inv;
+        float t00 = texture2D(uFoamDensityTex, uv00).r;
+        float t10 = texture2D(uFoamDensityTex, uv00 + vec2(inv, 0.0)).r;
+        float t01 = texture2D(uFoamDensityTex, uv00 + vec2(0.0, inv)).r;
+        float t11 = texture2D(uFoamDensityTex, uv00 + vec2(inv, inv)).r;
+        return mix(mix(t00, t10, f.x), mix(t01, t11, f.x), f.y);
+      }
+
+      // 多尺度细节（#2115）：三个非谐波尺度 + 固定偏移去相关——同一噪声图不再
+      // 以单一周期平铺（消除 80m 大贴花）；相位只随世界位置变化，不逐帧换噪声。
+      float foamDetail(vec2 worldXZ) {
+        float a = texture2D(uFoamTex, worldXZ / 23.0).a;
+        float b = texture2D(uFoamTex, worldXZ / 71.0 + vec2(0.37, 0.13)).a;
+        float c = texture2D(uFoamTex, worldXZ / 149.0 + vec2(0.71, 0.53)).a;
+        return a * 0.4 + b * 0.35 + c * 0.25;
+      }
 
       void main() {
         // 近场挖空（#2098 二轮复审）：远场片元按网格局部坐标精确判定
@@ -373,8 +421,13 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 整体变暗（受光表面，非恒亮 additive）。
         float light = max(dot(normal, uSunDirection), 0.0) * uSunIllumination;
 
-        float foamNoise = texture2D(uFoamTex, vWorldPos.xz / 80.0).a;
-        float foam = smoothstep(0.72, 0.95, vCrest) * smoothstep(0.35, 0.7, foamNoise);
+        // 泡沫覆盖（#2115）：有历史场时覆盖 = 场密度（自然压缩 + 船体/推进器源
+        // 的输运/衰减历史），无场回退平滑波峰覆盖——两条路径都乘多尺度细节，
+        // 不再用单一 80m 平铺贴花。
+        float foamCoverage = uFoamFieldEnabled > 0.5
+          ? sampleFoamField(vWorldPos.xz)
+          : smoothstep(0.72, 0.95, vCrest) * 0.55;
+        float foam = foamCoverage * smoothstep(0.22, 0.78, foamDetail(vWorldPos.xz));
 
         // 介质光学（#2100 二轮复审落实）：Fresnel-Schlick（F0=0.02）与 GGX 高光
         // （D·F·G/(4 nv nl)，Smith-Schlick G），粗糙度随泡沫提升（受光且改变粗糙度）。

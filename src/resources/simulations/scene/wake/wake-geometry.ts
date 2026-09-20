@@ -284,6 +284,27 @@ const writeDegenerateQuad = (positions: Float32Array, colors: Float32Array, quad
 };
 
 /**
+ * 遍历当前时刻有视觉的粒子（复用 resolveWakeParticleVisual 的确定性推导）。
+ * 全量 quad 渲染与泡沫场沉积/飞沫子集共用同一视觉真源。
+ */
+export const forEachWakeParticleVisual = (
+  buffer: WakeTrailBuffer,
+  now: number,
+  visitor: (visual: WakeParticleVisual, slot: WakeParticleSlot) => void,
+  waterYSampler?: (x: number, z: number) => number
+): number => {
+  let visited = 0;
+  for (const slot of buffer.slots) {
+    const visual = resolveWakeParticleVisual(slot, buffer.style, now, waterYSampler);
+    if (visual) {
+      visited += 1;
+      visitor(visual, slot);
+    }
+  }
+  return visited;
+};
+
+/**
  * 按当前时刻刷新几何：可见粒子写入拉伸 quad，不可见槽位写入零面积退化 quad。
  * 只更新 position/color 属性并置 needsUpdate；返回可见粒子数。
  */
@@ -308,6 +329,55 @@ export const updateWakeTrailGeometry = (
     } else {
       writeDegenerateQuad(positions, colors, index);
     }
+  }
+
+  positionAttribute.needsUpdate = true;
+  colorAttribute.needsUpdate = true;
+  return visible;
+};
+
+/** 飞沫子集判定（#2115）：core 族前两个粒子、年轻（age01 ≤ 0.22）——贴水泡沫已由
+ * 泡沫历史场呈现，quad 只保留少量必要飞沫（船艏/桨后短暂溅起的水沫）。 */
+const SPRAY_MAX_AGE01 = 0.22;
+const SPRAY_PLAN_INDEX_LIMIT = 2;
+
+/** 飞沫抬升高度（米）：确定性哈希（同粒子稳定，不闪烁）。 */
+const sprayLiftMeters = (slot: WakeParticleSlot): number =>
+  0.6 + hash01(slot.emitOrdinal, slot.planIndex, 0, 0, 347) * 1.4;
+
+/**
+ * 飞沫几何（#2115）：泡沫场沉积模式下只渲染少量年轻 core 粒子为抬升的受光
+ * 飞沫 quad；其余槽位写退化 quad。返回飞沫粒子数。
+ */
+export const updateWakeSprayGeometry = (
+  handle: WakeTrailGeometryHandle,
+  buffer: WakeTrailBuffer,
+  now: number,
+  waterYSampler?: (x: number, z: number) => number
+): number => {
+  const positionAttribute = handle.geometry.getAttribute('position') as THREE.BufferAttribute;
+  const colorAttribute = handle.geometry.getAttribute('color') as THREE.BufferAttribute;
+  const positions = positionAttribute.array as Float32Array;
+  const colors = colorAttribute.array as Float32Array;
+  positions.fill(0);
+  colors.fill(0);
+
+  let visible = 0;
+  const slots = buffer.slots;
+  for (let index = 0; index < slots.length && index < handle.capacity; index += 1) {
+    const slot = slots[index];
+    if (!slot.active || slot.lifetime <= 0) continue;
+    const age01 = clamp01((now - slot.birthTime) / slot.lifetime);
+    if (age01 > SPRAY_MAX_AGE01 || slot.planIndex >= SPRAY_PLAN_INDEX_LIMIT) continue;
+    const visual = resolveWakeParticleVisual(slot, buffer.style, now, waterYSampler);
+    if (!visual || visual.family !== 'core') continue;
+    const lifted: WakeParticleVisual = {
+      ...visual,
+      center: [visual.center[0], visual.center[1] + sprayLiftMeters(slot), visual.center[2]],
+      opacity: Math.min(1, visual.opacity * 1.6),
+    };
+    writeQuad(positions, colors, index, lifted);
+    visible += 1;
   }
 
   positionAttribute.needsUpdate = true;

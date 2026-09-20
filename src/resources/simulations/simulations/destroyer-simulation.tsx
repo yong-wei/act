@@ -78,7 +78,11 @@ import {
   MarineFrameProvider,
   useMarineFrameRunner,
 } from '../scene/frame/marine-frame-provider';
-import { WakeTrail } from '../scene/wake';
+import {
+  allocateWakeCapacities,
+  WakeTrail,
+  wakeSceneCapacityForTier,
+} from '../scene/wake';
 import {
   EnvironmentScene,
   MarineSceneLayoutObjects,
@@ -544,6 +548,7 @@ function WakeTrailRig({
   propWakeRef: PropWakeAnchorsRef;
 }) {
   const { wakeVisible } = useSceneEnvironment();
+  const environmentLight = useEnvironmentWaterColors();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const timeRef = useRef(0);
   const { tier, params } = useSceneQuality();
@@ -553,6 +558,18 @@ function WakeTrailRig({
   const propulsorAnchors = descriptor
     ? propulsorSceneAnchors(descriptor, destroyer055SceneVisual.shipLengthMeters)
     : [];
+
+  // 全场容量硬预算（#2115）：多桨共用场景总容量（分配与活跃均 Σ≤总容量），
+  // 份额仍只驱动发射分布（budgetShare）——两者互补，不再各分整档容量。
+  // propulsorAnchors 每渲染由描述符查表重建；分配只依赖数量与档位，按其缓存。
+  const propulsorCount = propulsorAnchors.length;
+  const propulsorCapacities = useMemo(
+    () => allocateWakeCapacities(
+      new Array(Math.max(1, propulsorCount)).fill(1 / Math.max(1, propulsorCount)),
+      wakeSceneCapacityForTier(tier),
+    ),
+    [propulsorCount, tier],
+  );
 
   useFrame((state) => {
     const sim = simRef.current;
@@ -589,7 +606,7 @@ function WakeTrailRig({
   if (propulsorAnchors.length > 0) {
     return (
       <>
-        {propulsorAnchors.map(({ id, anchor }) => (
+        {propulsorAnchors.map(({ id, anchor }, index) => (
           <WakeTrail
             key={`${resetToken}-${id}`}
             profile={{
@@ -610,6 +627,9 @@ function WakeTrailRig({
               return world ? [world.x, world.y, world.z] : null;
             }}
             budgetShare={0.5}
+            capacity={propulsorCapacities[index]}
+            sunDirection={environmentLight.sunDirection}
+            sunIllumination={environmentLight.sunIllumination}
           />
         ))}
       </>
@@ -625,6 +645,8 @@ function WakeTrailRig({
       playing={playing}
       waterYSampler={waterYSampler}
       worldSpeedSampler={() => (simRef.current.advancing ? simRef.current.speedMps : 0)}
+      sunDirection={environmentLight.sunDirection}
+      sunIllumination={environmentLight.sunIllumination}
     />
   );
 }

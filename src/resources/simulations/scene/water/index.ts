@@ -25,3 +25,29 @@ export {
   NEAR_FIELD_FADE_BAND_METERS,
   nearFieldEnvelope,
 } from './ocean-bands';
+export {
+  displayDriftVelocity,
+  FoamHistoryField,
+  foamDecayFactor,
+  FOAM_HALF_LIFE_SECONDS,
+  FOAM_HISTORY_BY_TIER,
+  FOAM_RECENTER_STEP_METERS,
+  FOAM_SEEK_CLEAR_SECONDS,
+  MAX_FOAM_DENSITY,
+  naturalCompression,
+  naturalFoamSeaStateGate,
+  naturalFoamSourceStrength,
+  NATURAL_FOAM_RATE_PER_SECOND,
+  VESSEL_FOAM_RATE_PER_SECOND,
+} from './foam-history';
+export type {
+  FoamHistoryFieldOptions,
+  FoamHistoryTierSpec,
+  FoamSourceInputs,
+} from './foam-history';
+export { FOAM_DOMAIN_METERS, MarineFoamFieldProvider, useMarineFoamField } from './foam-history-layer';
+export type {
+  FoamAttribution,
+  MarineFoamFieldController,
+  MarineFoamFieldStats,
+} from './foam-history-layer';
