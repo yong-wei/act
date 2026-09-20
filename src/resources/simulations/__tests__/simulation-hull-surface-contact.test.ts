@@ -114,6 +114,33 @@ describe('explicit waterline mounts (#2117)', () => {
   });
 });
 
+describe('simulation clocks restored after rig unification (#2117 review)', () => {
+  it('keeps engine time writes and reset zeroing in the main simulation loops', () => {
+    const specs: Array<[string, string, number]> = [
+      ['container', 'timeRef.current = nextTime;', 1],
+      ['cruise', 'timeRef.current = nextTime;', 1],
+      ['lng', 'timeRef.current = nextTime;', 1],
+      ['container', 'timeRef.current = 0;', 1],
+      ['cruise', 'timeRef.current = 0;', 1],
+      ['lng', 'timeRef.current = 0;', 1],
+      ['dredger', 'timeRef.current = 0;', 1],
+      ['drilling', 'timeRef.current = 0;', 1],
+    ];
+    for (const [sim, needle, expected] of specs) {
+      const source = readSource(`simulations/${sim}-simulation.tsx`);
+      expect(source.split(needle).length - 1, sim).toBe(expected);
+    }
+  });
+
+  it('computes the shallow-water factor per fragment (tessellation-independent)', () => {
+    const material = readSource('scene/water/gerstner-water-material.ts');
+    expect(material).toContain('float shoreShallow01(vec2 worldXZ)');
+    expect(material).toContain('shoreShallow01(vWorldPos.xz) * 0.45');
+    // 顶点阶段不再输出浅水 varying（振幅衰减保留在顶点——几何量）。
+    expect(material).not.toContain('vShoreShallow01');
+  });
+});
+
 describe('far-field vertex budget (#2117)', () => {
   it('spends vertices on the near field: the waveless far plane uses minimal tessellation', () => {
     const bands = readSource('scene/water/ocean-bands.ts');

@@ -1137,6 +1137,7 @@ export function DrillingSimulation() {
       attainedCount: 0,
       advancing: false,
     };
+    timeRef.current = 0;
     lastUpdateRef.current = performance.now();
     clockRef.current.reset();
     setTrajectory([]);

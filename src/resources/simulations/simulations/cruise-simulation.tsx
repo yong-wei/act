@@ -1803,6 +1803,7 @@ export default function CruiseSimulation() {
       }
     });
 
+    timeRef.current = nextTime;
     if (simState && comfort && finMetrics && internalState) {
       if (nextTime - lastTrajectoryTime.current > 0.5) {
         trajectoryRef.current.push({ ...simState.position });
@@ -1909,6 +1910,7 @@ export default function CruiseSimulation() {
     trajectoryRef.current = [];
     lastTrajectoryTime.current = 0;
     lastTimeRef.current = 0;
+    timeRef.current = 0;
     lastHudUpdateRef.current = 0;
     attainmentRef.current = createAttainmentState(0);
     bindingRef.current = {

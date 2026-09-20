@@ -838,6 +838,7 @@ export default function ContainerSimulation() {
       if (Math.floor(timeRef.current) !== Math.floor(nextTime)) {
         setTrajectory(prev => [...prev.slice(-300), nextPosition]);
       }
+      timeRef.current = nextTime;
 
       // HUD/图表 setState 0.1s 节流（对齐 destroyer 口径）；被跳过的帧
       // 仅推进 timeRef，不再触发整树渲染。
@@ -903,6 +904,7 @@ export default function ContainerSimulation() {
       engine.initialize(0, 0, 0);
       engine.setLoadRatio(0.5);
     }
+    timeRef.current = 0;
     lastHudUpdateRef.current = 0;
     attainmentRef.current = createAttainmentState(0);
     bindingRef.current = {

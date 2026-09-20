@@ -864,6 +864,7 @@ export function DredgerSimulation() {
     mmgStateRef.current = createMMG3DOFState(0, 0, 0, 0);
     dpStateRef.current = createDPState();
     dredgingModelRef.current.reset();
+    timeRef.current = 0;
     lastUpdateRef.current = performance.now();
     clockRef.current.reset();
     setTrajectory([]);

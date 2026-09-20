@@ -674,6 +674,7 @@ export function LNGSimulation() {
       };
     });
 
+    timeRef.current = nextTime;
     // HUD setState 0.1s 节流、轨迹 0.5s 节流（对齐 destroyer 口径）；
     // 被跳过的帧仅推进 timeRef，不再触发整树渲染。
     if (nextTime - lastHudUpdateRef.current > 0.1) {
@@ -779,6 +780,7 @@ export function LNGSimulation() {
       smithEnabled: false,
     });
     lastTimeRef.current = 0;
+    timeRef.current = 0;
     clockRef.current.reset();
     setTrajectory([]);
     setResetCount((previous) => previous + 1);
