@@ -12,7 +12,7 @@ import {
 import { useFrame, useThree } from '@react-three/fiber';
 
 import { buildMarinePerformanceReport } from './performance-evidence';
-import { marineGpuTimerStartWindow, readMarineGpuTimerEvidence } from './gpu-frame-timer';
+import { marineGpuTimerStartWindow, marineGpuTimerStopWindow, readMarineGpuTimerEvidence } from './gpu-frame-timer';
 import { Gauge } from 'lucide-react';
 
 import { ChromePopoverButton } from '../chrome';
@@ -113,12 +113,19 @@ export function SceneQualityDriver({ onTierChange }: { readonly onTierChange?: (
   // 不推进判定，恢复帧的巨大间隔被丢弃（不算一次超预算帧）。
   const mountedAtRef = useRef(0);
   const hiddenRef = useRef(false);
+  const hiddenAccumRef = useRef(0);
+  const lastVisibilityTsRef = useRef(0);
   useEffect(() => {
     mountedAtRef.current = performance.now();
     // 挂载即隐藏的页面（后台打开/会话恢复）：visibilitychange 已发生——
     // 用当前 document.hidden 初始化，隐藏期间不推进降档判定。
     hiddenRef.current = document.hidden;
     const onVisibility = () => {
+      const now = performance.now();
+      // 预热期以可见墙钟计（P2 二轮）：后台驻留不消耗预热窗口——恢复后
+      // 浏览器推迟的编译/上传慢帧仍处于保护期。
+      if (document.hidden) hiddenAccumRef.current += now - lastVisibilityTsRef.current;
+      lastVisibilityTsRef.current = now;
       hiddenRef.current = document.hidden;
       if (!document.hidden) lastRef.current = 0;
     };
@@ -137,7 +144,7 @@ export function SceneQualityDriver({ onTierChange }: { readonly onTierChange?: (
     const now = performance.now();
     const frameMs = lastRef.current === 0 ? 0 : now - lastRef.current;
     lastRef.current = now;
-    const inWarmup = now - mountedAtRef.current < GOVERNOR_WARMUP_MS;
+    const inWarmup = now - mountedAtRef.current - hiddenAccumRef.current < GOVERNOR_WARMUP_MS;
     if (inWarmup || hiddenRef.current) return;
     const before = governor.tier;
     governor.reportFrame(frameMs, now);
@@ -272,6 +279,8 @@ export function MarinePerformanceEvidenceProbe({
       },
       stop: () => {
         collecting = false;
+        // GPU 窗口同步结束（P2 二轮）：停止后延迟 read()/在途查询不改变数值。
+        marineGpuTimerStopWindow();
       },
       read: () => {
         const input = contextInputRef.current?.();

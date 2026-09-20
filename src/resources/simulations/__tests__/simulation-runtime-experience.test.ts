@@ -26,6 +26,12 @@ describe('probe binds the real renderer (#2120)', () => {
     expect(timer).toContain('export function marineGpuTimerStartWindow()');
     // 二轮：切窗丢弃在途查询（上一窗口 pending 完成不混入本窗口）。
     expect(timer).toContain('context.deleteQuery(pending.query);');
+    // 二轮：stop() 冻结窗口（代次切换）——窗口外完成/新发起查询不写入。
+    expect(timer).toContain('export function marineGpuTimerStopWindow()');
+    expect(timer).toContain('if (!ext || !context || !windowOpen) return;');
+    expect(timer).toContain('resolvedGeneration === windowGeneration && windowOpen');
+    const probe2 = readSource('scene/quality/quality-state.tsx');
+    expect(probe2).toContain('marineGpuTimerStopWindow();');
     expect(timer).toContain('gpuTimerAvailable: windowResolvedCount > 0');
     // active/pending 状态机：只对本轮成功 begin 的查询执行 end。
     expect(timer).toContain('if (active || pending) return;');
@@ -49,7 +55,7 @@ describe('probe binds the real renderer (#2120)', () => {
 
   it('drives gpuTimerAvailable from real disjoint-query results', () => {
     const probe = readSource('scene/quality/quality-state.tsx');
-    expect(probe).toContain("import { marineGpuTimerStartWindow, readMarineGpuTimerEvidence } from './gpu-frame-timer'");
+    expect(probe).toContain("import { marineGpuTimerStartWindow, marineGpuTimerStopWindow, readMarineGpuTimerEvidence } from './gpu-frame-timer'");
     const timer = readSource('scene/quality/gpu-frame-timer.ts');
     expect(timer).toContain('EXT_disjoint_timer_query_webgl2');
     // P1 复审：结果常量取 WebGL2 核心（context.QUERY_RESULT*）——扩展对象只
@@ -76,6 +82,9 @@ describe('governor warm-up and background protection (#2120)', () => {
     expect(source).toContain('if (inWarmup || hiddenRef.current) return;');
     // 挂载即隐藏（后台打开/会话恢复）也处于保护态。
     expect(source).toContain('hiddenRef.current = document.hidden;');
+    // 预热以可见墙钟计（后台驻留不消耗预热窗口）。
+    expect(source).toContain('hiddenAccumRef.current += now - lastVisibilityTsRef.current;');
+    expect(source).toContain('now - mountedAtRef.current - hiddenAccumRef.current < GOVERNOR_WARMUP_MS');
     expect(source).toContain("document.addEventListener('visibilitychange', onVisibility)");
     // 恢复帧的巨大间隔被丢弃（lastRef 复位，不算超预算帧）。
     expect(source).toContain('if (!document.hidden) lastRef.current = 0;');
