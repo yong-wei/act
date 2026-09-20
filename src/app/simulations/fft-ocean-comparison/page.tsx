@@ -48,10 +48,14 @@ export default function FFTOceanComparisonPage() {
             <ambientLight intensity={0.6} />
             <directionalLight position={[300, 400, 200]} intensity={1.4} />
             <Suspense fallback={null}>
+              {/* 负载对齐（#2121 复审）：Gerstner 侧用 low 档（近场 64² 与 FFT
+                  网格同细分、无平面反射/微法线），两分支同镜头/画布/像素负载——
+                  帧耗差异可归因给波场算法；残余差异（泡沫纹理只在 Gerstner 栈）
+                  在评估 unresolvedDifferences 中声明。 */}
               {backend === 'fft' ? (
                 <FFTOceanSurface spectrumInput={SPECTRUM_INPUT} domainMeters={SPECTRUM_INPUT.domainMeters} />
               ) : (
-                <GerstnerWater tier="high" seaState={4} />
+                <GerstnerWater tier="low" seaState={4} />
               )}
             </Suspense>
             <OrbitControls enablePan enableZoom enableRotate minDistance={40} maxDistance={2000} />

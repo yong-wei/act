@@ -66,13 +66,14 @@ export function fftOceanStaticSpectrum(input: FFTOceanSpectrumInput): ComplexGri
   // 标定：ss4 风速 12 → Hs ≈ 1.3m（与教学海况同量级；×40 于初始标定）。
   const energyScale = Math.pow(Math.max(input.seaState, 1), 1.6) * 14;
   for (let m = 0; m < n; m += 1) {
-    const kz = (2 * Math.PI * (m - n / 2)) / domain;
+    const kz = binWaveNumber(m, n, domain);
     for (let ix = 0; ix < n; ix += 1) {
-      const kx = (2 * Math.PI * (ix - n / 2)) / domain;
+      const kx = binWaveNumber(ix, n, domain);
       const kMagnitude = Math.hypot(kx, kz);
       if (kMagnitude < 1e-6) continue; // 直流项无波
       // 频率（深水）→ PM 型单峰能量。
-      const frequencyHz = Math.sqrt(9.81 * kMagnitude / (2 * Math.PI)) ;
+      // 深水关系 ω=√(gk) → Hz = ω/(2π)（除法在根号外）。
+      const frequencyHz = Math.sqrt(9.81 * kMagnitude) / (2 * Math.PI);
       const frequencyFactor = Math.exp(-Math.pow((frequencyHz - peakFrequency) / bandHz, 2));
       // 方向扩散：风向对齐能量最大。
       const waveDirection = Math.atan2(kz, kx);

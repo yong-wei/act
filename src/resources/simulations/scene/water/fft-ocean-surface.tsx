@@ -124,7 +124,9 @@ export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurface
           varying vec3 vWorldPos;
           void main() {
             vec3 pos = position;
-            vec2 uvH = clamp((pos.xz + uDomain * 0.5) / uDomain, 0.0, 1.0);
+            // 世界原点 → 首个 texel（与逐点逆 DFT 的世界坐标语义一致：
+            // IFFT 网格采样点为 x_i = i·L/N，texel(0,0) 即世界原点）。
+            vec2 uvH = fract(pos.xz / uDomain);
             float h = texture2D(uHeightTexture, uvH).r;
             pos.y += h;
             vHeight = h;

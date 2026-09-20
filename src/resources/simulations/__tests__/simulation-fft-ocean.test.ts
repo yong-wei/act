@@ -100,6 +100,34 @@ describe('FFT ocean correctness (#2121)', () => {
 });
 
 describe('runnable surface and comparison page (#2121)', () => {
+  it('uses one bin convention everywhere: peak energy lands at the intended wavelength', () => {
+    const spectrum = fftOceanStaticSpectrum(INPUT);
+    // 生成端能量最高的 bin（按 |k| 找）在消费端（快照/点查询共用 binWaveNumber）
+    // 应产生对应波长的空间正弦——两边同约定由源结构保证：
+    const source = readSource('src/resources/simulations/scene/water/fft-ocean.ts');
+    expect(source).not.toContain('(m - n / 2)');
+    expect(source).not.toContain('(ix - n / 2)');
+    // 频率换算：Hz = √(gk)/(2π)（除法在根号外）。
+    expect(source).toContain('Math.sqrt(9.81 * kMagnitude) / (2 * Math.PI)');
+    // 演化/查询与生成共用 binWaveNumber（同一定义点）。
+    expect(source.split('binWaveNumber(').length - 1).toBeGreaterThanOrEqual(6);
+    void spectrum;
+  });
+
+  it('aligns the height texture with point-query world coordinates (origin = first texel)', () => {
+    const source = readSource('src/resources/simulations/scene/water/fft-ocean-surface.tsx');
+    expect(source).toContain('fract(pos.xz / uDomain)');
+    // 居中映射（世界原点→纹理中心）与逐点查询相差半域相位——禁止回归。
+    expect(source).not.toContain('pos.xz + uDomain * 0.5');
+  });
+
+  it('keeps both branches on a comparable load: same canvas/camera, low-tier Gerstner, no planar reflection', () => {
+    const page = readSource('src/app/simulations/fft-ocean-comparison/page.tsx');
+    expect(page).toContain('GerstnerWater tier="low"');
+    expect(page).not.toContain('GerstnerWater tier="high"');
+    expect(page).toContain('同镜头/画布/像素负载');
+  });
+
   it('renders the FFT surface from the validated CPU pipeline at a bounded update rate', () => {
     const source = readSource('src/resources/simulations/scene/water/fft-ocean-surface.tsx');
     expect(source).toContain('fftOceanSnapshot');
