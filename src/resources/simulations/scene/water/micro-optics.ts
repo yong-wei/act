@@ -1,10 +1,17 @@
 /**
- * 微尺度水体光学（#2100）：高频微法线与泡沫光照的档位参数与脚印过滤。
+ * 微尺度水体光学（#2100 建立 / #2115 后续 / #2116 修订）：
+ * 高频微法线、泡沫光照参数与**投影像素脚印逐频带过滤**。
  *
  * 纯模块。微法线只改变着色法线（光学），不进入几何位移与姿态采样——
- * 光学质量降档时船体姿态与基础波场不变（spec：optical quality changes）。
- * 纹理/斜率细节按像素脚印（相机距离）衰减：远海细节平滑退化为基础法线，
- * 不产生远距离高频闪烁。
+ * 光学质量降档时船体姿态与基础波场不变。
+ *
+ * #2116 修订：
+ * - 相干三分量（规则条纹来源）→ 风向锚定的**非共线/非整倍频**有限八分量组
+ *   （确定性构造，固定相位偏移与幅度抖动，温和时间变化）。
+ * - 距离衰减（315–900m）→ **投影像素脚印**逐频带过滤（dFdx/dFdy 世界足迹）：
+ *   分辨率/FOV/掠射角变化都会改变过滤，而不只随距离。
+ * - 被滤除的斜率能量以有界粗糙度补偿保留高光能量与远海质感（900m 处
+ *   不再硬变镜面）；低档/远场保持合理远海粗糙度（非零光学结构）。
  */
 
 import type { GerstnerWaterTier } from './gerstner-water';
@@ -18,60 +25,162 @@ export interface MicroNormalOctave {
   readonly slopeAmplitude: number;
   /** 相对主波场的时间频率倍率。 */
   readonly speedScale: number;
+  /** 固定相位偏移（弧度）：打乱同相叠加，消除刚性条纹。 */
+  readonly phaseOffset: number;
 }
-
-/** 各档位微法线八分量：high 3 / medium 2 / low 0（细节只影响光学，随档优雅退化）。 */
-export const MICRO_NORMAL_OCTAVES_BY_TIER: Record<GerstnerWaterTier, readonly MicroNormalOctave[]> = {
-  high: [
-    { direction: [0.92, 0.39], waveNumber: 1.35, slopeAmplitude: 0.055, speedScale: 1.0 },
-    { direction: [0.39, -0.92], waveNumber: 2.6, slopeAmplitude: 0.032, speedScale: 1.15 },
-    { direction: [-0.71, -0.71], waveNumber: 4.9, slopeAmplitude: 0.018, speedScale: 1.3 },
-  ],
-  medium: [
-    { direction: [0.92, 0.39], waveNumber: 1.35, slopeAmplitude: 0.055, speedScale: 1.0 },
-    { direction: [0.39, -0.92], waveNumber: 2.6, slopeAmplitude: 0.032, speedScale: 1.15 },
-  ],
-  low: [],
-};
-
-/** 微法线全衰减距离（米）：超过后细节为零（远海平滑，避免高频闪烁与混叠）。 */
-export const MICRO_NORMAL_FADE_DISTANCE_METERS = 900;
 
 /**
- * 像素脚印衰减：相机到水面点的距离驱动的平滑阶跃——近处 1，超过 fadeStart
- * 后 smoothstep 衰减到 fadeEnd 为 0。C1 连续（两端导数为零）。
+ * 风向基（主波向 [1, 0.1] 归一）：所有八分量在此 ±90° 扇区内散布。
  */
-export function microNormalFootprintAttenuation(
-  cameraDistanceMeters: number,
-  fadeStartMeters: number,
-  fadeEndMeters: number,
-): number {
-  if (cameraDistanceMeters <= fadeStartMeters) return 1;
-  if (cameraDistanceMeters >= fadeEndMeters) return 0;
-  const t = (cameraDistanceMeters - fadeStartMeters) / (fadeEndMeters - fadeStartMeters);
-  return 1 - t * t * (3 - 2 * t);
+const WIND_BASE_DIRECTION: readonly [number, number] = [0.99503719, 0.09950372];
+
+/** 确定性构造常量（固定种子语义：不用任何运行时随机源）。 */
+const MICRO_ANGLE_OFFSETS_DEG: readonly number[] = [0, 14, -23, 41, -58, 77, -89, 63];
+const MICRO_WAVENUMBERS: readonly number[] = [1.35, 2.17, 3.41, 4.87, 5.93, 7.11, 8.23, 9.05];
+const MICRO_AMPLITUDE_JITTER: readonly number[] = [1.0, 1.14, 0.88, 1.09, 0.83, 1.18, 0.91, 1.06];
+const MICRO_PHASE_OFFSETS: readonly number[] = [
+  0.0, 2.399, 4.106, 1.027, 5.312, 3.301, 0.733, 4.918,
+];
+/** 各档分量数：high 8 / medium 3 / low 0（细节只影响光学，随档优雅退化）。 */
+const MICRO_OCTAVE_COUNT_BY_TIER: Record<GerstnerWaterTier, number> = {
+  high: 8,
+  medium: 3,
+  low: 0,
+};
+
+const HIGH_TIER_SLOPE_AMPLITUDE = 0.055;
+
+function buildOctaves(count: number): readonly MicroNormalOctave[] {
+  const octaves: MicroNormalOctave[] = [];
+  const [windX, windZ] = WIND_BASE_DIRECTION;
+  for (let index = 0; index < count && index < MICRO_WAVENUMBERS.length; index += 1) {
+    const angle = (MICRO_ANGLE_OFFSETS_DEG[index] * Math.PI) / 180;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const direction: readonly [number, number] = [
+      windX * cos - windZ * sin,
+      windX * sin + windZ * cos,
+    ];
+    const waveNumber = MICRO_WAVENUMBERS[index];
+    // 高频分量幅度按 k^-0.85 递减 + 固定抖动：无单一主导周期条纹。
+    const slopeAmplitude =
+      (HIGH_TIER_SLOPE_AMPLITUDE * Math.pow(waveNumber / MICRO_WAVENUMBERS[0], -0.85)) *
+      MICRO_AMPLITUDE_JITTER[index];
+    octaves.push({
+      direction,
+      waveNumber,
+      slopeAmplitude,
+      speedScale: 1.0 + index * 0.06,
+      phaseOffset: MICRO_PHASE_OFFSETS[index],
+    });
+  }
+  return octaves;
 }
+
+/** 各档位微法线分量：非共线方向 × 非整倍频波数 × 固定相位偏移（非相干和）。 */
+export const MICRO_NORMAL_OCTAVES_BY_TIER: Record<GerstnerWaterTier, readonly MicroNormalOctave[]> = {
+  high: buildOctaves(MICRO_OCTAVE_COUNT_BY_TIER.high),
+  medium: buildOctaves(MICRO_OCTAVE_COUNT_BY_TIER.medium),
+  low: buildOctaves(MICRO_OCTAVE_COUNT_BY_TIER.low),
+};
+
+/** 单个分量的波长（米）。 */
+export const microOctaveWavelength = (octave: MicroNormalOctave): number =>
+  (2 * Math.PI) / octave.waveNumber;
+
+/**
+ * 逐频带投影像素脚印权重（#2116）：λ/footprint 从 2.6（充分可解析）到
+ * 1.15（亚 Nyquist）smoothstep 衰减——分辨率/FOV/掠射变化改变 footprint，
+ * 过滤随采样密度变化而非只随距离。与片元实现同一公式。
+ */
+export function microOctaveFootprintWeight(
+  wavelengthMeters: number,
+  footprintMetersPerPixel: number,
+): number {
+  if (footprintMetersPerPixel <= 0) return 1;
+  const t = Math.min(
+    Math.max((wavelengthMeters / footprintMetersPerPixel - 1.15) / (2.6 - 1.15), 0),
+    1,
+  );
+  return t * t * (3 - 2 * t);
+}
+
+/** 斜率能量补偿上限：被滤除能量全部转移时有界粗糙度（远海不镜面化）。 */
+export const MICRO_COMPENSATED_ROUGHNESS_CAP = 0.34;
+
+/**
+ * 粗糙度能量补偿（#2116）：被脚印过滤滤除的斜率能量按比例转成有界粗糙度，
+ * 保留高光能量与远海质感；lostFraction ∈ [0,1]。
+ */
+export function compensatedWaterRoughness(
+  baseRoughness: number,
+  lostSlopeFraction: number,
+): number {
+  const t = Math.min(Math.max(lostSlopeFraction, 0), 1);
+  return baseRoughness + (MICRO_COMPENSATED_ROUGHNESS_CAP - baseRoughness) * t;
+}
+
+/** 低档/远场粗糙度下限：无细节成本下保持合理远海粗糙度（非镜面平板）。 */
+export const LOW_TIER_ROUGHNESS_FLOOR = 0.22;
 
 /**
  * 微法线斜率（纯函数，供测试与 CPU 参照）：对世界坐标 (x,z) 与时间求
- * 风向对齐正弦斜率对 (dSx, dSz)。与 GPU 片元实现同一公式。
+ * 风向对齐正弦斜率 (dSx, dSz)。与 GPU 片元实现同一公式；提供
+ * footprintMetersPerPixel 时逐频带施加脚印权重并返回被滤除能量占比。
  */
+export interface PixelFootprintSteps {
+  /** 相邻像素的世界位移（x/z 分量；各向异性掠射足迹下长短轴不同）。 */
+  readonly stepX: readonly [number, number];
+  readonly stepY: readonly [number, number];
+}
+
+/** 分量方向上的有效每像素步长（米）：像素步在传播方向上的最大投影。 */
+export function directionalFootprintMeters(
+  octave: MicroNormalOctave,
+  steps: PixelFootprintSteps,
+): number {
+  return Math.max(
+    Math.abs(steps.stepX[0] * octave.direction[0] + steps.stepX[1] * octave.direction[1]),
+    Math.abs(steps.stepY[0] * octave.direction[0] + steps.stepY[1] * octave.direction[1]),
+  );
+}
+
 export function microNormalSlope(
   octaves: readonly MicroNormalOctave[],
   worldX: number,
   worldZ: number,
   timeSeconds: number,
-): { dx: number; dz: number } {
+  footprintMetersPerPixel?: number,
+  footprintSteps?: PixelFootprintSteps,
+): { dx: number; dz: number; lostSlopeFraction: number } {
   let dx = 0;
   let dz = 0;
+  let energyTotal = 0;
+  let energyRetained = 0;
   for (const octave of octaves) {
-    const phase = octave.waveNumber * (octave.direction[0] * worldX + octave.direction[1] * worldZ)
-      - octave.waveNumber * octave.speedScale * 1.2 * timeSeconds;
-    const slope = octave.slopeAmplitude * Math.cos(phase) * octave.waveNumber;
+    const weight = footprintSteps
+      ? microOctaveFootprintWeight(
+          microOctaveWavelength(octave),
+          Math.max(directionalFootprintMeters(octave, footprintSteps), 1e-4),
+        )
+      : footprintMetersPerPixel === undefined
+        ? 1
+        : microOctaveFootprintWeight(microOctaveWavelength(octave), footprintMetersPerPixel);
+    // 斜率方差口径（复审）：进入法线的斜率 = amp·k·weight。
+    const slopeVariance = octave.slopeAmplitude * octave.waveNumber * octave.slopeAmplitude * octave.waveNumber;
+    energyTotal += slopeVariance;
+    energyRetained += slopeVariance * weight * weight;
+    if (weight <= 0.002) continue;
+    const phase =
+      octave.waveNumber * (octave.direction[0] * worldX + octave.direction[1] * worldZ) -
+      octave.waveNumber * octave.speedScale * 1.2 * timeSeconds +
+      octave.phaseOffset;
+    const slope = octave.slopeAmplitude * Math.cos(phase) * octave.waveNumber * weight;
     dx += slope * octave.direction[0];
     dz += slope * octave.direction[1];
   }
-  return { dx, dz };
+  const lostSlopeFraction = energyTotal > 0 ? Math.min(Math.max(1 - energyRetained / energyTotal, 0), 1) : 0;
+  return { dx, dz, lostSlopeFraction };
 }
 
 /**

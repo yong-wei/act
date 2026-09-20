@@ -279,6 +279,10 @@ export function createGerstnerWaterGeometry(size: number, resolution: number): T
 /** 未显式传色时的默认水色组：与默认环境预设（开阔海）同一真源，不再各自硬编码。 */
 const DEFAULT_WATER_COLORS = getEnvironmentPreset(DEFAULT_ENVIRONMENT_PRESET_ID).water;
 
+/** QA 归因开关（#2116）：?qa-micro=off 关闭全部微法线（挂载时解析一次）。 */
+const MICRO_QA_DISABLED =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-micro') === 'off';
+
 export interface GerstnerWaterProps {
   /** 质量档位：波分量数与网格细分随之缩放。 */
   readonly tier?: keyof typeof GERSTNER_WAVE_SETS;
@@ -377,6 +381,7 @@ function BandWaterMesh({
       envelopeSizeMeters,
       nearCutoutHalfSizeMeters,
       microNormalTier,
+      microEnabled: !MICRO_QA_DISABLED,
       sunIllumination,
       shoreSegments,
       shoreFadeBandMeters,
@@ -500,7 +505,9 @@ export function GerstnerWater({
         amplitudeScale={amplitudeScale}
         envelopeSizeMeters={0}
         nearCutoutHalfSizeMeters={NEAR_FIELD_MESH_SPEC.size / 2}
-        microNormalTier="low"
+        /* #2116 复审：远场与近场同微法线档——接缝两侧光学连续（高 DPR/窄 FOV
+           下近场边缘微法线可达满幅；远距离由脚印过滤自然衰减 + 能量补偿）。 */
+        microNormalTier={tier}
         sunIllumination={sunIllumination}
         hullExclusionSampler={hullExclusionSampler}
         shipHeadingSampler={shipHeadingSampler}

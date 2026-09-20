@@ -9,8 +9,8 @@ import type { MarineShoreSegment } from '../environment/scene-layouts';
 /** 岸线段 uniform 上限（#2102）。 */
 export const MAX_SHORE_SEGMENTS = 4;
 import {
-  FOAM_ROUGHNESS,
-  MICRO_NORMAL_FADE_DISTANCE_METERS,
+  LOW_TIER_ROUGHNESS_FLOOR,
+  MICRO_COMPENSATED_ROUGHNESS_CAP,
   MICRO_NORMAL_OCTAVES_BY_TIER,
   WATER_BASE_ROUGHNESS,
   type MicroNormalOctave,
@@ -41,8 +41,10 @@ export interface GerstnerWaterMaterialOptions {
    * 避免透明平面与近场波谷重叠遮挡/交叉闪烁。0 表示不启用。
    */
   readonly nearCutoutHalfSizeMeters?: number;
-  /** 光学质量档（#2100）：微法线八分量数随档变化（high 3/medium 2/low 0），只影响着色法线。 */
+  /** 光学质量档（#2116 修订）：微法线分量数随档变化（high 8/medium 3/low 0），只影响着色法线。 */
   readonly microNormalTier?: 'high' | 'medium' | 'low';
+  /** 微法线 QA 归因开关（#2116）：false = 完全关闭（A/B 分层归因）。 */
+  readonly microEnabled?: boolean;
   /** 同源太阳辐照（#2100 复审）：preset.sun.intensity / 预设最大值，暗预设泡沫/水色随之变暗。 */
   readonly sunIllumination?: number;
   /** 船壳排水排除框数（#2101）：0 表示无排除（uniform 数组仍按上限分配）。 */
@@ -65,8 +67,8 @@ export interface GerstnerWaterMaterialOptions {
 }
 
 const FLOATS_PER_WAVE = 6;
-const MAX_MICRO_OCTAVES = 3;
-const MICRO_FLOATS_PER_OCTAVE = 5;
+const MAX_MICRO_OCTAVES = 8;
+const MICRO_FLOATS_PER_OCTAVE = 6;
 
 function packMicroOctaves(tier: 'high' | 'medium' | 'low'): { data: Float32Array; count: number } {
   const octaves: readonly MicroNormalOctave[] = MICRO_NORMAL_OCTAVES_BY_TIER[tier];
@@ -78,6 +80,7 @@ function packMicroOctaves(tier: 'high' | 'medium' | 'low'): { data: Float32Array
     data[base + 2] = octave.waveNumber;
     data[base + 3] = octave.slopeAmplitude;
     data[base + 4] = octave.speedScale;
+    data[base + 5] = octave.phaseOffset;
   });
   return { data, count: Math.min(octaves.length, MAX_MICRO_OCTAVES) };
 }
@@ -120,8 +123,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uNearCutoutHalfSize: { value: options.nearCutoutHalfSizeMeters ?? 0 },
       uMicroOctaves: { value: micro.data },
       uMicroOctaveCount: { value: micro.count },
-      uMicroFadeStart: { value: MICRO_NORMAL_FADE_DISTANCE_METERS * 0.35 },
-      uMicroFadeEnd: { value: MICRO_NORMAL_FADE_DISTANCE_METERS },
+      // QA 归因开关（#2116）：?qa-micro=off 关闭全部微法线（A/B 分离归因）。
+      uMicroEnabled: { value: options.microEnabled === false ? 0 : 1 },
+      // 低档/远场粗糙度下限（#2116）：无细节成本下保持合理远海粗糙度。
+      uMicroRoughnessFloor: { value: micro.count === 0 ? LOW_TIER_ROUGHNESS_FLOOR : WATER_BASE_ROUGHNESS },
       uSunIllumination: { value: options.sunIllumination ?? 1 },
       uHullExclusionBoxes: { value: new Float32Array(MAX_HULL_EXCLUSION_BOXES * 4) },
       uHullExclusionCount: { value: options.hullExclusionCount ?? 0 },
@@ -310,10 +315,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform vec3 uSunDirection;
       uniform sampler2D uFoamTex;
       uniform float uNearCutoutHalfSize;
-      uniform float uMicroOctaves[3 * 5];
+      uniform float uMicroOctaves[8 * 6];
       uniform int uMicroOctaveCount;
-      uniform float uMicroFadeStart;
-      uniform float uMicroFadeEnd;
+      uniform float uMicroEnabled;
+      uniform float uMicroRoughnessFloor;
       uniform float uSunIllumination;
       uniform vec4 uHullExclusionBoxes[6];
       uniform float uHullExclusionCount;
@@ -399,32 +404,54 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         vec3 viewDirection = normalize(cameraPosition - vWorldPos);
         vec3 normal = normalize(vWorldNormal);
 
-        // 微法线（#2100）：只对着色法线加高频细节（光学），不动几何/姿态；
-        // 像素脚印按相机距离 smoothstep 衰减，远海退化为基础法线不闪烁。
-        float cameraDistance = length(vViewPosition);
-        float footprint = clamp(
-          (uMicroFadeEnd - cameraDistance) / max(uMicroFadeEnd - uMicroFadeStart, 1.0),
-          0.0, 1.0);
-        footprint = footprint * footprint * (3.0 - 2.0 * footprint);
-        if (uMicroOctaveCount > 0 && footprint > 0.001) {
-          float slopeX = 0.0;
-          float slopeZ = 0.0;
-          for (int i = 0; i < 3; i++) {
+        // 微法线（#2100 / #2116 修订）：只对着色法线加高频细节（光学），不动几何/姿态。
+        // 投影像素脚印（dFdx/dFdy 世界足迹）逐频带过滤亚 Nyquist 分量——
+        // 分辨率/FOV/掠射变化改变足迹，过滤随采样密度变化而非只随距离。
+        vec2 footprintStepX = dFdx(vWorldPos.xz);
+        vec2 footprintStepY = dFdy(vWorldPos.xz);
+        float slopeX = 0.0;
+        float slopeZ = 0.0;
+        float slopeEnergyTotal = 0.0;
+        float slopeEnergyRetained = 0.0;
+        if (uMicroEnabled > 0.5 && uMicroOctaveCount > 0) {
+          for (int i = 0; i < 8; i++) {
             if (i >= uMicroOctaveCount) break;
-            int base = i * 5;
+            int base = i * 6;
             float dx = uMicroOctaves[base];
             float dz = uMicroOctaves[base + 1];
             float k = uMicroOctaves[base + 2];
             float amp = uMicroOctaves[base + 3];
             float speedScale = uMicroOctaves[base + 4];
-            float phase = k * (dx * vWorldPos.x + dz * vWorldPos.z)
-              - k * speedScale * 1.2 * uTime;
-            float slope = amp * cos(phase) * k;
-            slopeX += slope * dx;
-            slopeZ += slope * dz;
+            float phaseOffset = uMicroOctaves[base + 5];
+            float wavelength = 6.28318530718 / k;
+            // 逐频带方向脚印（复审）：像素世界步投影到该分量传播方向——
+            // 掠射各向异性足迹下，沿短轴传播的波仍按自身方向可解析性过滤。
+            float directionalStep = max(
+              abs(footprintStepX.x * dx + footprintStepX.y * dz),
+              abs(footprintStepY.x * dx + footprintStepY.y * dz));
+            // 逐频带脚印权重（与 microOctaveFootprintWeight 同公式）。
+            float t = clamp((wavelength / max(directionalStep, 1e-4) - 1.15) / 1.45, 0.0, 1.0);
+            float weight = t * t * (3.0 - 2.0 * t);
+            // 斜率方差口径（复审）：进入法线的斜率 = amp·k·weight，总方差按
+            // (amp·k)²、保留方差含 weight²——否则高波数被滤除时补偿明显低估。
+            float slopeVariance = amp * k * amp * k;
+            slopeEnergyTotal += slopeVariance;
+            slopeEnergyRetained += slopeVariance * weight * weight;
+            if (weight > 0.002) {
+              float phase = k * (dx * vWorldPos.x + dz * vWorldPos.z)
+                - k * speedScale * 1.2 * uTime + phaseOffset;
+              float slope = amp * cos(phase) * k * weight;
+              slopeX += slope * dx;
+              slopeZ += slope * dz;
+            }
           }
-          normal = normalize(normal + vec3(slopeX, 0.0, slopeZ) * footprint);
+          normal = normalize(normal + vec3(slopeX, 0.0, slopeZ));
         }
+        // 斜率能量补偿（#2116）：被滤除能量转成有界粗糙度——远海保留高光
+        // 能量与质感，900m 处不再硬变镜面；低档/远场用粗糙度下限兜底。
+        float lostSlopeFraction = slopeEnergyTotal > 0.0
+          ? clamp(1.0 - slopeEnergyRetained / slopeEnergyTotal, 0.0, 1.0)
+          : 0.0;
 
         // 同源辐照（#2100 复审）：入射角 × 预设太阳强度归一——暗预设下水色与泡沫
         // 整体变暗（受光表面，非恒亮 additive）。
@@ -444,7 +471,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         float nDotL = max(dot(normal, uSunDirection), 0.0);
         vec3 halfVector = normalize(uSunDirection + viewDirection);
         float nDotH = max(dot(normal, halfVector), 0.0);
-        float roughness = mix(0.06, 0.6, foam);
+        float baseRoughness = max(uMicroRoughnessFloor, mix(0.06, 0.6, foam));
+        float compensatedRoughness = mix(0.06, ${MICRO_COMPENSATED_ROUGHNESS_CAP}, lostSlopeFraction);
+        float roughness = max(baseRoughness, compensatedRoughness);
         float a = max(roughness * roughness, 1e-4);
         float a2 = a * a;
         float dTerm = (nDotH * nDotH) * (a2 - 1.0) + 1.0;
