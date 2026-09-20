@@ -8,7 +8,8 @@ declare global {
     __type055Qa?: {
       ready: boolean;
       shipUrl: string | null;
-      boxInView: boolean;
+      __destroyerModelVisualProbe?: boolean;
+    boxInView: boolean;
       skinnedIntact: boolean;
       playAnimation: (name: string) => string;
       sampleNode: (name: string) => { position: number[]; rotation: number[] } | null;
@@ -25,7 +26,8 @@ declare global {
     };
     __destroyerModelVisual?: {
       url: string;
-      boxInView: boolean;
+      __destroyerModelVisualProbe?: boolean;
+    boxInView: boolean;
       skinnedIntact: boolean;
     };
   }
@@ -239,6 +241,11 @@ test('falls back to the legacy candidate chain when the LOD GLB cannot load', as
 test('destroyer default path loads one LOD, frames the ship, and survives quality tier switching', async ({ page }) => {
   test.setTimeout(180_000);
   const ledger = trackGlbRequests(page);
+  // QA 重观测开关（#2120 复审）：本验收消费 boxInView/skinnedIntact——导航前
+  // 注入启用（普通用户路径保持关闭，无逐帧全模型遍历热点）。
+  await page.addInitScript(() => {
+    window.__destroyerModelVisualProbe = true;
+  });
   await page.goto('/simulations/destroyer', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('canvas', { timeout: 60_000 });
   await page.waitForSelector('[data-scene-quality-tier]', { state: 'attached', timeout: 30_000 });

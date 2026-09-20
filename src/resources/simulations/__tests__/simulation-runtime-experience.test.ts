@@ -17,6 +17,22 @@ describe('probe binds the real renderer (#2120)', () => {
     expect(source).not.toContain("querySelector('canvas')");
   });
 
+  it('starts a clean measurement window: baseline reset + GPU window snapshot', () => {
+    const probe = readSource('scene/quality/quality-state.tsx');
+    // start() 重置时间基准（start 前的阻塞段不计入本窗口）与 GPU 窗口快照。
+    expect(probe).toContain('lastMs = performance.now();');
+    expect(probe).toContain('marineGpuTimerStartWindow();');
+    const timer = readSource('scene/quality/gpu-frame-timer.ts');
+    expect(timer).toContain('export function marineGpuTimerStartWindow()');
+    expect(timer).toContain('gpuTimerAvailable: windowResolvedCount > 0');
+    // active/pending 状态机：只对本轮成功 begin 的查询执行 end。
+    expect(timer).toContain('if (active || pending) return;');
+    expect(timer).toContain('pending = active;');
+    // QA 验收流程显式启用重观测（普通用户路径保持关闭）。
+    const spec = readFileSync(path.join(ROOT, 'tests/type055-model-candidate.spec.ts'), 'utf8');
+    expect(spec).toContain('window.__destroyerModelVisualProbe = true;');
+  });
+
   it('records foreground stalls >= 1s separately instead of silently dropping them', () => {
     const source = readSource('scene/quality/quality-state.tsx');
     // P2 复审：按测量窗口聚合（总数+最差，无 16 条截断），start() 重置。
@@ -31,7 +47,7 @@ describe('probe binds the real renderer (#2120)', () => {
 
   it('drives gpuTimerAvailable from real disjoint-query results', () => {
     const probe = readSource('scene/quality/quality-state.tsx');
-    expect(probe).toContain("import { readMarineGpuTimerEvidence } from './gpu-frame-timer'");
+    expect(probe).toContain("import { marineGpuTimerStartWindow, readMarineGpuTimerEvidence } from './gpu-frame-timer'");
     const timer = readSource('scene/quality/gpu-frame-timer.ts');
     expect(timer).toContain('EXT_disjoint_timer_query_webgl2');
     // P1 复审：结果常量取 WebGL2 核心（context.QUERY_RESULT*）——扩展对象只
@@ -40,7 +56,7 @@ describe('probe binds the real renderer (#2120)', () => {
     expect(timer).toContain('context.QUERY_RESULT');
     expect(timer).toContain('GPU_DISJOINT_EXT');
     expect(timer).not.toContain('QUERY_RESULT_AVAILABLE_EXT');
-    expect(timer).toContain('gpuTimerAvailable: resolvedCount > 0');
+    expect(timer).toContain('gpuTimerAvailable: windowResolvedCount > 0');
     // P1 复审：查询绑定调用方传入的 R3F renderer（不扫描 document 找上下文）。
     expect(timer).toContain('export function marineGpuTimerBind(');
     const planar = readSource('scene/environment/planar-reflection.tsx');

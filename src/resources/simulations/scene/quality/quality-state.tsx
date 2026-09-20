@@ -12,7 +12,7 @@ import {
 import { useFrame, useThree } from '@react-three/fiber';
 
 import { buildMarinePerformanceReport } from './performance-evidence';
-import { readMarineGpuTimerEvidence } from './gpu-frame-timer';
+import { marineGpuTimerStartWindow, readMarineGpuTimerEvidence } from './gpu-frame-timer';
 import { Gauge } from 'lucide-react';
 
 import { ChromePopoverButton } from '../chrome';
@@ -260,6 +260,11 @@ export function MarinePerformanceEvidenceProbe({
         samples.length = 0;
         stallTotalCount = 0;
         stallWorstMs = 0;
+        // 时间基准重置（P2 复审）：start() 前的阻塞段不计入本窗口长卡顿；
+        // GPU 统计切窗口（只汇总本窗口完成的查询）。
+        lastMs = performance.now();
+        wasSuspended = false;
+        marineGpuTimerStartWindow();
         collecting = true;
       },
       stop: () => {

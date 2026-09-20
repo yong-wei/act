@@ -44,6 +44,12 @@ let resolvedCount = 0;
 let lastMs: number | null = null;
 let avgMs: number | null = null;
 let disjointDrops = 0;
+// 测量窗口快照（P1 复审）：start() 重置——报告只汇总本窗口内完成的查询，
+// 不携带冷启动/上一窗口数据。
+let windowResolvedCount = 0;
+let windowLastMs: number | null = null;
+let windowAvgMs: number | null = null;
+let windowDisjointDrops = 0;
 
 /** 绑定实际渲染反射 pass 的 renderer（P1 复审修复）：调用方（MarinePlanarReflection）
  * 直接传入自己的 R3F `gl`——查询与渲染必须同一上下文；换绑时丢弃旧挂起查询。 */
@@ -59,22 +65,30 @@ export function marineGpuTimerBind(renderer: THREE_WebGLRendererLike): void {
 }
 
 
-/** 目标 pass 开始前调用（无扩展时为空操作）。 */
+/** 活动查询（已 begin 未 end）与待取查询（已 end 等结果）分离（P2 复审）。 */
+let active: PendingQuery | null = null;
+
+/** 目标 pass 开始前调用（无扩展时空操作）。 */
 export function marineGpuTimerBeginPass(): void {
   const ext = resolveExtension();
-  if (!ext || !context || pending) return;
+  if (!ext || !context) return;
+  // 先轮询：上一轮结果就绪则收敛；仍未就绪则跳过本轮计时（不对无活动
+  // 查询执行 endQuery——那会产生 INVALID_OPERATION）。
+  pollMarineGpuTimer();
+  if (active || pending) return;
   const query = context.createQuery();
   if (!query) return;
   context.beginQuery(ext.TIME_ELAPSED_EXT, query);
-  pending = { query, issuedAtMs: performance.now() };
+  active = { query, issuedAtMs: performance.now() };
 }
 
-/** 目标 pass 结束后调用。 */
+/** 目标 pass 结束后调用——只对**本轮成功 begin** 的查询执行 end。 */
 export function marineGpuTimerEndPass(): void {
   const ext = resolveExtension();
-  if (!ext || !context || !pending) return;
+  if (!ext || !context || !active) return;
   context.endQuery(ext.TIME_ELAPSED_EXT);
-  // pending 保留至轮询完成（pollMarineGpuTimer）。
+  pending = active;
+  active = null;
 }
 
 /** 逐帧轮询：结果就绪或 disjoint 时收敛；挂起查询超时回收。 */
@@ -92,6 +106,7 @@ export function pollMarineGpuTimer(): void {
     context.deleteQuery(query);
     pending = null;
     disjointDrops += 1;
+    windowDisjointDrops += 1;
     return;
   }
   // P1 复审修复：结果常量取 WebGL2 核心（context.QUERY_RESULT_AVAILABLE /
@@ -109,10 +124,21 @@ export function pollMarineGpuTimer(): void {
     lastMs = ms;
     avgMs = avgMs === null ? ms : avgMs * 0.8 + ms * 0.2;
     resolvedCount += 1;
+    windowLastMs = ms;
+    windowAvgMs = windowAvgMs === null ? ms : windowAvgMs * 0.8 + ms * 0.2;
+    windowResolvedCount += 1;
   }
 }
 
-/** 证据探针读取（展开进报告输入）。 */
+/** 测量窗口开始（P1 复审）：快照清零——只汇总本窗口完成的查询。 */
+export function marineGpuTimerStartWindow(): void {
+  windowResolvedCount = 0;
+  windowLastMs = null;
+  windowAvgMs = null;
+  windowDisjointDrops = 0;
+}
+
+/** 证据探针读取（展开进报告输入——窗口口径）。 */
 export function readMarineGpuTimerEvidence(): {
   gpuTimerAvailable: boolean;
   gpuTimerResolvedCount: number;
@@ -121,11 +147,11 @@ export function readMarineGpuTimerEvidence(): {
   gpuTimerDisjointDrops: number;
 } {
   return {
-    gpuTimerAvailable: resolvedCount > 0,
-    gpuTimerResolvedCount: resolvedCount,
-    gpuTimerLastMs: lastMs,
-    gpuTimerAvgMs: avgMs,
-    gpuTimerDisjointDrops: disjointDrops,
+    gpuTimerAvailable: windowResolvedCount > 0,
+    gpuTimerResolvedCount: windowResolvedCount,
+    gpuTimerLastMs: windowLastMs,
+    gpuTimerAvgMs: windowAvgMs,
+    gpuTimerDisjointDrops: windowDisjointDrops,
   };
 }
 
