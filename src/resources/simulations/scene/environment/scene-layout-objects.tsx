@@ -168,6 +168,25 @@ function materialFor(object: MarineEnvironmentObject): THREE.Material {
   return object.detail === 'near' ? NEAR_MATERIAL : FAR_MATERIAL;
 }
 
+/**
+ * 类别尺度映射（#2119 复审修复）：\`scale\` 是横向特征尺寸（米），不是各轴
+ * 等比系数——防波堤 1400m 指长度，断面高度固定 ~14m；等比拉伸会把 1.3 单位
+ * 高的复合断面放大成 1.8km 高的墙。浮标/岩石/冰盘/岛屿/储罐/岸桥为等比体。
+ */
+function instanceScaleFor(object: MarineEnvironmentObject): THREE.Vector3 {
+  if (object.kind === 'breakwater') {
+    return new THREE.Vector3(object.scale, 14, Math.max(24, object.scale * 0.18));
+  }
+  if (object.kind === 'pier') {
+    return new THREE.Vector3(object.scale, 10, Math.max(8, object.scale * 0.3));
+  }
+  return new THREE.Vector3(object.scale, object.scale, object.scale);
+}
+
+/** 实例批次的世界分区半径（#2119 复审）：近区用复合轮廓、远区用简化基元——
+ * 相机绕船（近原点）作业时远区对象屏幕投影小，三角形细节可测量下降。 */
+const INSTANCE_NEAR_RADIUS_METERS = 2500;
+
 /** LOD 切换距离（米 × 对象尺度——大物体更晚降级）。 */
 function lodDistanceFor(object: MarineEnvironmentObject): number {
   return (object.detail === 'near' ? 900 : 4200) * Math.max(1, object.scale * 0.02);
@@ -177,17 +196,16 @@ function lodDistanceFor(object: MarineEnvironmentObject): number {
 function EnvironmentObjectLod({ object }: { readonly object: MarineEnvironmentObject }) {
   const lod = useMemo(() => {
     const node = new THREE.LOD();
-    const scale = object.scale;
+    const scale = instanceScaleFor(object);
     const composite = compositeGeometryFor(object.kind);
     const simplified = new THREE.Mesh(
       simplifiedGeometryFor(object.kind),
       materialFor(object),
     );
-    simplified.scale.setScalar(scale);
-    node.addLevel(
-      Object.assign(new THREE.Mesh(composite, materialFor(object)), { scale: new THREE.Vector3(scale, scale, scale) }),
-      0,
-    );
+    simplified.scale.copy(scale);
+    const detailed = new THREE.Mesh(composite, materialFor(object));
+    detailed.scale.copy(scale);
+    node.addLevel(detailed, 0);
     node.addLevel(simplified, lodDistanceFor(object));
     return node;
   }, [object]);
@@ -231,6 +249,31 @@ function simplifiedGeometryFor(kind: MarineEnvironmentObject['kind']): THREE.Buf
 }
 
 /** 重复物实例批处理：同 kind ≥2 时的 InstancedMesh（一次 draw call）。 */
+function writeInstanceMatrices(
+  mesh: THREE.InstancedMesh,
+  objects: readonly MarineEnvironmentObject[],
+  kind: MarineEnvironmentObject['kind'],
+): void {
+  const matrix = new THREE.Matrix4();
+  const rotation = new THREE.Quaternion();
+  const up = new THREE.Vector3(0, 1, 0);
+  objects.forEach((object, index) => {
+    rotation.setFromAxisAngle(up, object.headingRad ?? 0);
+    matrix.compose(
+      new THREE.Vector3(object.x, (object.y ?? 0) + (kind === 'ice-floe' ? 0.2 : 0), object.z),
+      rotation,
+      instanceScaleFor(object),
+    );
+    mesh.setMatrixAt(index, matrix);
+  });
+  mesh.instanceMatrix.needsUpdate = true;
+}
+
+/**
+ * 重复物实例批处理（#2119 复审：近/远世界分区两级）——近区（≤2500m）实例
+ * 用复合轮廓、远区实例用简化基元：相机绕船作业时远区细节可测量下降，
+ * 两批各一次 draw（仍远少于逐对象 mesh）。
+ */
 function EnvironmentObjectInstances({
   objects,
   kind,
@@ -239,32 +282,40 @@ function EnvironmentObjectInstances({
   readonly kind: MarineEnvironmentObject['kind'];
 }) {
   const material = useMemo(() => materialFor(objects[0]), [objects]);
-  const instancedRef = useRef<THREE.InstancedMesh>(null);
+  const nearRef = useRef<THREE.InstancedMesh>(null);
+  const farRef = useRef<THREE.InstancedMesh>(null);
+  const { near, far } = useMemo(() => {
+    const near = objects.filter((object) => Math.hypot(object.x, object.z) <= INSTANCE_NEAR_RADIUS_METERS);
+    const far = objects.filter((object) => Math.hypot(object.x, object.z) > INSTANCE_NEAR_RADIUS_METERS);
+    return { near, far };
+  }, [objects]);
   useEffect(() => {
-    const mesh = instancedRef.current;
-    if (!mesh) return;
-    const matrix = new THREE.Matrix4();
-    const rotation = new THREE.Quaternion();
-    const up = new THREE.Vector3(0, 1, 0);
-    objects.forEach((object, index) => {
-      rotation.setFromAxisAngle(up, object.headingRad ?? 0);
-      matrix.compose(
-        new THREE.Vector3(object.x, (object.y ?? 0) + (kind === 'ice-floe' ? 0.2 : 0), object.z),
-        rotation,
-        new THREE.Vector3(object.scale, object.scale, object.scale),
-      );
-      mesh.setMatrixAt(index, matrix);
-    });
-    mesh.instanceMatrix.needsUpdate = true;
-  }, [objects, kind]);
-  const geometry = useMemo(() => compositeGeometryFor(kind), [kind]);
+    if (nearRef.current && near.length > 0) writeInstanceMatrices(nearRef.current, near, kind);
+    if (farRef.current && far.length > 0) writeInstanceMatrices(farRef.current, far, kind);
+  }, [near, far, kind]);
+  const compositeGeometry = useMemo(() => compositeGeometryFor(kind), [kind]);
+  const simplifiedGeometry = useMemo(() => simplifiedGeometryFor(kind), [kind]);
   return (
-    <instancedMesh
-      ref={instancedRef}
-      args={[geometry, material, objects.length]}
-      castShadow={objects[0].detail === 'near'}
-      receiveShadow={objects[0].detail === 'near'}
-    />
+    <>
+      {near.length > 0 ? (
+        <instancedMesh
+          key={`${kind}-near`}
+          ref={nearRef}
+          args={[compositeGeometry, material, near.length]}
+          castShadow={objects[0].detail === 'near'}
+          receiveShadow={objects[0].detail === 'near'}
+        />
+      ) : null}
+      {far.length > 0 ? (
+        <instancedMesh
+          key={`${kind}-far`}
+          ref={farRef}
+          args={[simplifiedGeometry, material, far.length]}
+          castShadow={false}
+          receiveShadow={false}
+        />
+      ) : null}
+    </>
   );
 }
 

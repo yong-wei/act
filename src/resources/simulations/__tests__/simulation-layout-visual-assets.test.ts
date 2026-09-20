@@ -43,12 +43,18 @@ describe('real distance LOD and instancing (#2119)', () => {
     expect(source).toContain('simplifiedGeometryFor');
   });
 
-  it('batches repeated kinds into instanced meshes (one draw per kind)', () => {
+  it('batches repeated kinds into instanced meshes with near/far distance levels', () => {
     const source = readSource('scene/environment/scene-layout-objects.tsx');
     expect(source).toContain('INSTANCING_THRESHOLD = 2');
     expect(source).toContain('<instancedMesh');
     expect(source).toContain('mesh.setMatrixAt(index, matrix)');
     expect(source).toContain('mesh.instanceMatrix.needsUpdate = true');
+    // 复审修复：实例批次按世界分区两级（近区复合轮廓/远区简化基元），
+    // 远区细节可测量下降；尺度按类别非等比（防波堤 1400 是长度非高度）。
+    expect(source).toContain('INSTANCE_NEAR_RADIUS_METERS = 2500');
+    expect(source).toContain('instanceScaleFor(object)');
+    expect(source).toContain('new THREE.Vector3(object.scale, 14, Math.max(24, object.scale * 0.18))');
+    expect(source).toContain('new THREE.Vector3(object.scale, 10, Math.max(8, object.scale * 0.3))');
   });
 
   it('exposes an actual draw-call measurement probe', () => {
