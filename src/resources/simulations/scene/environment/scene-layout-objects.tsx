@@ -49,18 +49,18 @@ function buildCraneGeometry(): THREE.BufferGeometry {
   for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
     legs.push(unitBox(0.1, 0.95, 0.1, sx * legOffset, 0.475, sz * legOffset * 0.6));
   }
-  return mergeGeometries([
+  return mergeAll([
     ...legs,
     unitBox(0.86, 0.07, 0.5, 0, 0.99, 0), // 顶梁
     unitBox(0.62, 0.05, 0.08, 0.16, 1.06, 0), // 前伸臂
     unitBox(0.18, 0.1, 0.3, -0.36, 1.03, 0), // 配重
     unitBox(0.2, 0.12, 0.24, -0.1, 1.06, 0), // 机房
-  ], false) as THREE.BufferGeometry;
+  ]);
 }
 
 /** 多峰岛屿：三锥叠置的山脊剪影（替代单锥占位）。 */
 function buildIslandGeometry(): THREE.BufferGeometry {
-  return mergeGeometries([
+  return mergeAll([
     new THREE.ConeGeometry(0.7, 0.5, 9),
     (() => {
       const cone = new THREE.ConeGeometry(0.46, 0.34, 8);
@@ -74,7 +74,7 @@ function buildIslandGeometry(): THREE.BufferGeometry {
       cone.rotateY(-0.4);
       return cone;
     })(),
-  ], false) as THREE.BufferGeometry;
+  ]);
 }
 
 /** 码头：栈桥面 + 六桩（水面接触可信）。 */
@@ -83,30 +83,30 @@ function buildPierGeometry(): THREE.BufferGeometry {
   for (const [sx, sz] of [[-0.36, -0.3], [0.36, -0.3], [-0.36, 0.3], [0.36, 0.3], [0, -0.3], [0, 0.3]] as const) {
     pilings.push(unitCylinder(0.05, 0.05, 0.5, sx, -0.25, sz, 8));
   }
-  return mergeGeometries([unitBox(1, 0.12, 0.76, 0, 0.06, 0), ...pilings], false) as THREE.BufferGeometry;
+  return mergeAll([unitBox(1, 0.12, 0.76, 0, 0.06, 0), ...pilings]);
 }
 
 /** 储罐：罐体 + 穹顶（罐区轮廓）。 */
 function buildTankGeometry(): THREE.BufferGeometry {
   const dome = new THREE.SphereGeometry(0.5, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2);
   dome.translate(0, 0.7, 0);
-  return mergeGeometries([unitCylinder(0.5, 0.5, 0.7, 0, 0.35, 0, 16), dome], false) as THREE.BufferGeometry;
+  return mergeAll([unitCylinder(0.5, 0.5, 0.7, 0, 0.35, 0, 16), dome]);
 }
 
 /** 浮标：罐身 + 立杆 + 顶标（可辨识航标）。 */
 function buildBuoyGeometry(): THREE.BufferGeometry {
   const topMark = new THREE.SphereGeometry(0.1, 8, 6);
   topMark.translate(0, 1.75, 0);
-  return mergeGeometries([
+  return mergeAll([
     unitCylinder(0.35, 0.45, 1.2, 0, 0.6, 0, 12),
     unitCylinder(0.04, 0.04, 0.9, 0, 1.3, 0, 6),
     topMark,
-  ], false) as THREE.BufferGeometry;
+  ]);
 }
 
 /** 防波堤：堆石堤断面（底宽顶窄两层 + 块石点缀）。 */
 function buildBreakwaterGeometry(): THREE.BufferGeometry {
-  return mergeGeometries([
+  return mergeAll([
     unitBox(1, 0.7, 0.3, 0, 0.35, 0),
     unitBox(0.8, 0.5, 0.2, 0, 0.95, 0),
     (() => {
@@ -114,7 +114,21 @@ function buildBreakwaterGeometry(): THREE.BufferGeometry {
       rock.translate(0.2, 1.25, 0);
       return rock;
     })(),
-  ], false) as THREE.BufferGeometry;
+  ]);
+}
+
+/** 统一为非索引几何后合并（P1 修复）：Box/Cylinder/Cone/Sphere 是 indexed、
+ * Dodecahedron 非 indexed——直接 mergeGeometries 会因属性不兼容返回 null，
+ * 防波堤（盒+十二面体）触发首帧空几何异常。 */
+function mergeAll(geometries: THREE.BufferGeometry[]): THREE.BufferGeometry {
+  const merged = mergeGeometries(
+    geometries.map((geometry) => (geometry.index ? geometry.toNonIndexed() : geometry)),
+    false,
+  );
+  if (!merged) {
+    throw new Error('marine layout composite geometry merge failed');
+  }
+  return merged;
 }
 
 /** 岩石簇：主岩 + 伴岩。 */
@@ -122,17 +136,17 @@ function buildRockGeometry(): THREE.BufferGeometry {
   const companion = new THREE.DodecahedronGeometry(0.55, 0);
   companion.translate(0.62, 0, 0.3);
   companion.scale(1, 0.7, 1);
-  return mergeGeometries([new THREE.DodecahedronGeometry(1, 0), companion], false) as THREE.BufferGeometry;
+  return mergeAll([new THREE.DodecahedronGeometry(1, 0), companion]);
 }
 
 /** 冰盘：双层不规则薄盘。 */
 function buildIceFloeGeometry(): THREE.BufferGeometry {
   const upper = new THREE.CylinderGeometry(0.4, 0.5, 0.05, 7);
   upper.translate(0.1, 0.06, -0.05);
-  return mergeGeometries([
+  return mergeAll([
     new THREE.CylinderGeometry(0.5, 0.55, 0.08, 7),
     upper,
-  ], false) as THREE.BufferGeometry;
+  ]);
 }
 
 /** 复合轮廓（近景级）。 */

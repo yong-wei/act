@@ -18,6 +18,9 @@ describe('recognizable environment assets (#2119)', () => {
     expect(source).toContain('buildBuoyGeometry');
     expect(source).toContain('buildBreakwaterGeometry');
     expect(source).toContain('mergeGeometries');
+    // P1 复审修复：indexed（盒/柱/锥/球）与非 indexed（十二面体）统一转
+    // non-indexed 后合并——直接 merge 会因属性不兼容返回 null（防波堤首帧异常）。
+    expect(source).toContain('geometry.index ? geometry.toNonIndexed() : geometry');
     // 不再是单一锥体/立柱占位：复合几何由 ≥3 个基元合并。
     const craneMerge = source.slice(
       source.indexOf('function buildCraneGeometry'),
