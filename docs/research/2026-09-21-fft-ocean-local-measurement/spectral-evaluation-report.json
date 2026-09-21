@@ -1,0 +1,50 @@
+{
+  "controls": {
+    "vesselId": "type055",
+    "cameraView": "chase",
+    "drawingBufferWidth": 1920,
+    "drawingBufferHeight": 1080,
+    "environmentPresetId": "open-sea",
+    "seaState": 4,
+    "foamEnabled": true,
+    "materialStack": "shared-gerstner-material",
+    "fftResolution": 128,
+    "fftCascades": 1
+  },
+  "measurements": [
+    {
+      "backend": "gerstner-analytic",
+      "significantWaveHeightMeters": 6.516,
+      "repeatabilityDeltaMeters": 0,
+      "frameP95Ms": 17.4,
+      "firstLoadMs": 103.8,
+      "cpuQueryStrategy": "analytic-closed-form",
+      "visualQualityNotes": "本机（Apple M5 Max / ANGLE Metal / Playwright headed Chromium 1920x1080）实测 60s 窗口 60FPS 满帧、0 长卡顿；30s 视频与截图存档 video/gerstner.webm、gerstner-t30s.png；tier=low 简化分支（关平面反射/微法线，远场由对照页 FarFieldPlane 统一），Hs=6.516 为 #2121 解析标定口径（非本机采样），解析式确定性 repeatability=0；最终画质裁决留人工。"
+    },
+    {
+      "backend": "webgl-fft",
+      "significantWaveHeightMeters": 6.51555375650107,
+      "repeatabilityDeltaMeters": 0,
+      "frameP95Ms": 17.4,
+      "firstLoadMs": 103,
+      "cpuQueryStrategy": "per-point-inverse-dft-worker-thread",
+      "visualQualityNotes": "本机（Apple M5 Max / ANGLE Metal / Playwright headed Chromium 1920x1080）实测 60s 窗口 60FPS 满帧（另轮 120Hz 档 mean 8.3ms/p95 9.2ms 亦满帧）、0 长卡顿；跨两次独立加载 Hs 完全一致（6.5156m）；Worker 逐点逆 DFT 查询 1.12ms/点（60 样本均）无整纹理读回；navigator.gpu 存在；30s 视频与截图存档 video/fft.webm、fft-t30s.png；实验材质栈为简化 ShaderMaterial（高度着色+雾），最终画质裁决留人工。"
+    },
+    {
+      "backend": "webgpu-fft",
+      "significantWaveHeightMeters": null,
+      "repeatabilityDeltaMeters": null,
+      "frameP95Ms": null,
+      "firstLoadMs": null,
+      "cpuQueryStrategy": null,
+      "visualQualityNotes": null
+    }
+  ],
+  "unresolvedDifferences": [
+    "FFT 候选的级联频带覆盖与解析波组的手调频带边界不同（差异不归因给后端）",
+    "WebGPU 候选的着色器语言差异（WGSL/TSL）与现有 post 栈兼容性未验证"
+  ],
+  "hardwareContext": null,
+  "verdict": "keep-current-path",
+  "rationale": "实测证据不足（1 个候选必需字段未齐备，且硬件上下文缺失——p95/Hs/重复性/首载/CPU 查询/视觉记录为提案要求的完整检查集）：保留当前 Gerstner 解析路线；结论可以就是终点，采用需补充证据后另立 change。"
+}

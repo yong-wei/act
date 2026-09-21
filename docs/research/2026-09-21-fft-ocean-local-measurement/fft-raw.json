@@ -1,0 +1,43 @@
+{
+  "cold": {
+    "loadWallMs": 124,
+    "nav": {
+      "ttfbMs": 7.599999904632568,
+      "domContentLoadedMs": 31.700000286102295,
+      "loadEventMs": 103
+    },
+    "readyWaitMs": 122.90000009536743,
+    "coldHs": 6.51555375650107
+  },
+  "measured": {
+    "gpuRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "fftProbeBefore": {
+      "hs": 6.51555375650107,
+      "frames": 604,
+      "renderer": "WebKit WebGL"
+    },
+    "fftProbeAfter": {
+      "hs": 6.51555375650107,
+      "frames": 4205,
+      "webgpuAvailable": true,
+      "resolution": 256,
+      "pointQueryMs": 1.1233333269755046
+    },
+    "frameStats": {
+      "count": 3601,
+      "meanMs": 16.667,
+      "medianMs": 16.7,
+      "p95Ms": 17.4,
+      "worstMs": 17.8,
+      "approxFps": 60
+    },
+    "longForegroundStallCount": 0,
+    "longForegroundWorstMs": 0
+  },
+  "video": {
+    "shots": [
+      "/tmp/marine-fft-evidence-20260921/video/fft-t30s.png"
+    ],
+    "videoPath": "/tmp/marine-fft-evidence-20260921/video/fft.webm"
+  }
+}

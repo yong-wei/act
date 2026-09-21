@@ -1,0 +1,33 @@
+{
+  "cold": {
+    "loadWallMs": 163,
+    "nav": {
+      "ttfbMs": 5.600000381469727,
+      "domContentLoadedMs": 35.700000286102295,
+      "loadEventMs": 103.80000019073486
+    },
+    "readyWaitMs": 439.6000003814697,
+    "coldHs": null
+  },
+  "measured": {
+    "gpuRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "fftProbeBefore": null,
+    "fftProbeAfter": null,
+    "frameStats": {
+      "count": 3601,
+      "meanMs": 16.666,
+      "medianMs": 16.7,
+      "p95Ms": 17.4,
+      "worstMs": 18.4,
+      "approxFps": 60
+    },
+    "longForegroundStallCount": 0,
+    "longForegroundWorstMs": 0
+  },
+  "video": {
+    "shots": [
+      "/tmp/marine-fft-evidence-20260921/video/gerstner-t30s.png"
+    ],
+    "videoPath": "/tmp/marine-fft-evidence-20260921/video/gerstner.webm"
+  }
+}
