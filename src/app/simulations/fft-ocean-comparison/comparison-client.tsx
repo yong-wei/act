@@ -229,6 +229,8 @@ function FftWorkerPoster({
   const lastPostRef = useRef(-1);
 
   useEffect(() => {
+    lastPostRef.current = -1;
+    samplesRef.current = { mid: 0, bow: 0, stern: 0, time: 0 };
     const worker = createFFTQueryWorker();
     workerRef.current = worker;
     if (!worker) return undefined;
@@ -241,11 +243,6 @@ function FftWorkerPoster({
       worker.dispose();
       workerRef.current = null;
     };
-  }, [samplesRef]);
-
-  useEffect(() => {
-    lastPostRef.current = -1;
-    samplesRef.current = { mid: 0, bow: 0, stern: 0, time: 0 };
   }, [resetToken, samplesRef]);
 
   useFrame((state, delta) => {

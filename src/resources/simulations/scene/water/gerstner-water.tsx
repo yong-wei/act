@@ -374,6 +374,7 @@ function BandWaterMesh({
   foamColor,
   sunDirection,
   foamTexture,
+  disableEnvironment = false,
 }: {
   readonly waves: readonly GerstnerWave[];
   readonly meshSpec: GerstnerWaterMeshSpec;
@@ -396,6 +397,7 @@ function BandWaterMesh({
   readonly foamColor: string;
   readonly sunDirection: THREE.Vector3;
   readonly foamTexture: THREE.Texture;
+  readonly disableEnvironment?: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const scene = useThree((state) => state.scene);
@@ -469,7 +471,9 @@ function BandWaterMesh({
     // 环境辐射（#2118）：与船体 PBR 同一 PMREM（scene.userData 跨兄弟共享）。
     // 首次绑定/高度变化时补 CubeUV defines 并重编译；QA 旋转诊断经
     // envMapRotation 随视觉时间旋转采样方向。
-    const env = (scene.userData as { marineEnvRadiance?: { texture: THREE.Texture; cubeUVHeight: number; intensity: number } }).marineEnvRadiance;
+    const env = disableEnvironment
+      ? undefined
+      : (scene.userData as { marineEnvRadiance?: { texture: THREE.Texture; cubeUVHeight: number; intensity: number } }).marineEnvRadiance;
     if (env && material.uniforms.envMap.value !== env.texture) {
       material.uniforms.envMap.value = env.texture;
       material.uniforms.envMapIntensity.value = env.intensity;
@@ -625,6 +629,7 @@ export function GerstnerWater({
           foamColor={foamColor}
           sunDirection={sunDirection}
           foamTexture={foamTexture}
+          disableEnvironment={disableEffects}
         />
       )}
       <BandWaterMesh
@@ -649,6 +654,7 @@ export function GerstnerWater({
         foamColor={foamColor}
         sunDirection={sunDirection}
         foamTexture={foamTexture}
+        disableEnvironment={disableEffects}
       />
       </group>
     </MarineFoamFieldProvider>
