@@ -5,7 +5,7 @@
  * 旧单文件候选失败时沿用 bbox 居中与各船既有 yaw 补偿，保持可逆回退。
  */
 
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -38,6 +38,7 @@ export function VersionedFleetShip({
   fallbackDraftMeters,
   verticalOffsetMeters = 0,
   legacyOverlay,
+  onMountedUrl,
 }: {
   logicalId: SimulationModelId;
   simRef: React.MutableRefObject<BindingTelemetrySource>;
@@ -53,6 +54,7 @@ export function VersionedFleetShip({
   fallbackDraftMeters: number;
   verticalOffsetMeters?: number;
   legacyOverlay?: (scale: number) => React.ReactNode;
+  onMountedUrl?: (url: string) => void;
 }) {
   const { tier } = useSceneQuality();
   const activated = matchActivatedFleetPackage(logicalId, resolveVersionedDefault(logicalId));
@@ -80,6 +82,7 @@ export function VersionedFleetShip({
             fallbackDraftMeters={fallbackDraftMeters}
             verticalOffsetMeters={0}
             legacyOverlay={legacyOverlay}
+            onMountedUrl={onMountedUrl}
           />
         )}
       />
@@ -113,6 +116,7 @@ export function VersionedFleetShip({
             fallbackDraftMeters={fallbackDraftMeters}
             verticalOffsetMeters={versioned && !useMatrix ? verticalOffsetMeters : 0}
             legacyOverlay={versioned ? undefined : legacyOverlay}
+            onMountedUrl={onMountedUrl}
           />
         );
       }}
@@ -138,6 +142,7 @@ function FleetModelScene({
   fallbackDraftMeters,
   verticalOffsetMeters,
   legacyOverlay,
+  onMountedUrl,
 }: {
   url: string;
   descriptor: VersionedModelPackageDescriptor | null;
@@ -156,9 +161,14 @@ function FleetModelScene({
   fallbackDraftMeters: number;
   verticalOffsetMeters: number;
   legacyOverlay?: (scale: number) => React.ReactNode;
+  onMountedUrl?: (url: string) => void;
 }) {
   const { scene, animations } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
+
+  useEffect(() => {
+    onMountedUrl?.(url);
+  }, [url, onMountedUrl]);
 
   const { model, scale, waterlineOffset } = useMemo(() => {
     const cloned = cloneSkinnedScene(scene);

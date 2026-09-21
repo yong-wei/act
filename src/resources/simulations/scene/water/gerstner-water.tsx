@@ -347,6 +347,8 @@ export interface GerstnerWaterProps {
    * 统一的远场负载）。缺省 false（生产路径不变）。
    */
   readonly disableFarField?: boolean;
+  /** 对照 wave-only：关闭泡沫注入与平面反射，保留位移网格。 */
+  readonly disableEffects?: boolean;
 }
 
 /** 单个带限水网格（#2098 内部组件）：几何/材质随波组与包络参数构建，逐帧写时间与原点。 */
@@ -372,6 +374,7 @@ function BandWaterMesh({
   foamColor,
   sunDirection,
   foamTexture,
+  disableEnvironment = false,
 }: {
   readonly waves: readonly GerstnerWave[];
   readonly meshSpec: GerstnerWaterMeshSpec;
@@ -394,6 +397,7 @@ function BandWaterMesh({
   readonly foamColor: string;
   readonly sunDirection: THREE.Vector3;
   readonly foamTexture: THREE.Texture;
+  readonly disableEnvironment?: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const scene = useThree((state) => state.scene);
@@ -467,7 +471,9 @@ function BandWaterMesh({
     // 环境辐射（#2118）：与船体 PBR 同一 PMREM（scene.userData 跨兄弟共享）。
     // 首次绑定/高度变化时补 CubeUV defines 并重编译；QA 旋转诊断经
     // envMapRotation 随视觉时间旋转采样方向。
-    const env = (scene.userData as { marineEnvRadiance?: { texture: THREE.Texture; cubeUVHeight: number; intensity: number } }).marineEnvRadiance;
+    const env = disableEnvironment
+      ? undefined
+      : (scene.userData as { marineEnvRadiance?: { texture: THREE.Texture; cubeUVHeight: number; intensity: number } }).marineEnvRadiance;
     if (env && material.uniforms.envMap.value !== env.texture) {
       material.uniforms.envMap.value = env.texture;
       material.uniforms.envMapIntensity.value = env.intensity;
@@ -551,6 +557,7 @@ export function GerstnerWater({
   positionSampler,
   resetToken,
   disableFarField = false,
+  disableEffects = false,
   seaState = DEFAULT_GERSTNER_SEA_STATE,
   waterColor = DEFAULT_WATER_COLORS.waterColor,
   deepColor = DEFAULT_WATER_COLORS.deepColor,
@@ -585,14 +592,17 @@ export function GerstnerWater({
       amplitudeScale={amplitudeScale}
       positionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
       resetToken={resetToken}
+      attributionOverride={disableEffects ? { natural: false, vessel: false } : undefined}
     >
       {/* 受控高档平面反射（#2118）：高档且未显式关闭时启用（运动触发更新）。 */}
+      {disableEffects ? null : (
       <MarinePlanarReflection
         planeY={GERSTNER_WATER_BASE_Y}
         enabled={tier === 'high' && !PLANAR_QA_DISABLED}
         subjectPositionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
         subjectHeadingSampler={shipHeadingSampler}
       />
+      )}
       <group name="marine-water">
       {disableFarField ? null : (
         <BandWaterMesh
@@ -619,6 +629,7 @@ export function GerstnerWater({
           foamColor={foamColor}
           sunDirection={sunDirection}
           foamTexture={foamTexture}
+          disableEnvironment={disableEffects}
         />
       )}
       <BandWaterMesh
@@ -643,6 +654,7 @@ export function GerstnerWater({
         foamColor={foamColor}
         sunDirection={sunDirection}
         foamTexture={foamTexture}
+        disableEnvironment={disableEffects}
       />
       </group>
     </MarineFoamFieldProvider>
