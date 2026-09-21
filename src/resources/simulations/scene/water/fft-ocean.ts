@@ -46,8 +46,14 @@ function seededRandom(seed: number): () => number {
  */
 export const FFT_OCEAN_HS_CALIBRATION = {
   seaState4TargetHsMeters: 6.5,
-  /** ss4 基准能量系数（Hs ∝ 系数·(ss/4)^1.6，按实测标定）。 */
+  /** 旧 2048m/256² 标定系数：只作反例回归，不再当分辨率旋钮。 */
   seaState4EnergyCoefficient: 5200,
+  /** 固定 5200 系数在 2048m 域上的未归一化反例（独立复算）。 */
+  legacyUnnormalizedHsByResolution: {
+    128: 24.14,
+    256: 6.52,
+    512: 1.63,
+  },
 } as const;
 
 export interface FFTOceanSpectrumInput {
@@ -61,6 +67,8 @@ export interface FFTOceanSpectrumInput {
   /** 海况 1-6 → 能量缩放。 */
   readonly seaState: number;
   readonly seed: number;
+  /** 为 true 时保留未按目标 Hs 归一化的旧系数场，供反例回归。 */
+  readonly legacyUnnormalized?: boolean;
 }
 
 /**
@@ -105,7 +113,20 @@ export function fftOceanStaticSpectrum(input: FFTOceanSpectrumInput): ComplexGri
       omegas[m * n + ix] = dispersionOmega(kMagnitude);
     }
   }
-  return { data, omegas, resolution: n };
+  const spectrum = { data, omegas, resolution: n };
+  if (input.legacyUnnormalized) return spectrum;
+  const targetHs =
+    FFT_OCEAN_HS_CALIBRATION.seaState4TargetHsMeters
+    * Math.pow(Math.max(input.seaState, 1) / 4, 1.6);
+  scaleSpectrumToTargetHs(spectrum, domain, targetHs);
+  return spectrum;
+}
+
+function scaleSpectrumToTargetHs(spectrum: ComplexGrid, domainMeters: number, targetHs: number): void {
+  const measured = significantWaveHeight(fftOceanSnapshot(spectrum, domainMeters, 0).heights);
+  const scale = targetHs / Math.max(measured, 1e-9);
+  const data = spectrum.data;
+  for (let i = 0; i < data.length; i += 1) data[i] *= scale;
 }
 
 /** 一维迭代 radix-2 FFT（自然序输出；length 为 2 的幂；交错复数，

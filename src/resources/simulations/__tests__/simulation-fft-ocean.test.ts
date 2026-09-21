@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   binWaveNumber,
   dispersionOmega,
+  FFT_OCEAN_HS_CALIBRATION,
   fftOceanGpuStages,
   fftOceanHeightAt,
   fftOceanSnapshot,
@@ -127,6 +128,40 @@ describe('FFT ocean correctness (#2121)', () => {
     const hs = significantWaveHeight(fftOceanSnapshot(spectrum, 2048, 0).heights);
     expect(Math.abs(hs - 6.5)).toBeLessThan(0.5);
     expect(src_calibration()).toContain('seaState4EnergyCoefficient: 5200');
+  });
+
+  it('keeps Hs within 2% across 128/256/512 when the physical band is fixed', () => {
+    const base = {
+      domainMeters: 2048,
+      windSpeedMps: 12,
+      windDirectionRad: 0.2,
+      seaState: 4,
+      seed: 17,
+    } as const;
+    const heights = [128, 256, 512].map((resolution) => (
+      significantWaveHeight(fftOceanSnapshot(fftOceanStaticSpectrum({ ...base, resolution }), 2048, 0).heights)
+    ));
+    for (const hs of heights) {
+      expect(Math.abs(hs - FFT_OCEAN_HS_CALIBRATION.seaState4TargetHsMeters) / 6.5).toBeLessThan(0.02);
+    }
+  });
+
+  it('preserves the unnormalized 5200-coefficient resolution counterexample', () => {
+    const base = {
+      domainMeters: 2048,
+      windSpeedMps: 12,
+      windDirectionRad: 0.2,
+      seaState: 4,
+      seed: 17,
+      legacyUnnormalized: true,
+    } as const;
+    const expected = FFT_OCEAN_HS_CALIBRATION.legacyUnnormalizedHsByResolution;
+    for (const resolution of [128, 256, 512] as const) {
+      const hs = significantWaveHeight(
+        fftOceanSnapshot(fftOceanStaticSpectrum({ ...base, resolution }), 2048, 0).heights,
+      );
+      expect(hs).toBeCloseTo(expected[resolution], 1);
+    }
   });
 
   it('ship water-height point query is self-consistent across query times', () => {
