@@ -164,9 +164,10 @@ describe('runnable surface and comparison page (#2121)', () => {
 
   it('keeps both branches on a comparable load: low-tier Gerstner matches FFT domain and density', () => {
     const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
-    expect(client).toContain('GerstnerWater tier="low"');
+    expect(client).toContain('GerstnerWater');
+    expect(client).toContain("scene === 'feature-parity' ? tier : 'low'");
     expect(client).not.toContain('GerstnerWater tier="high"');
-    expect(client).toContain('同镜头/画布/像素负载');
+    expect(client).toContain('同镜头/画布');
   });
 
   it('runs spectrum evolution and 2D IFFT on the GPU (shader passes mirror the validated stages)', () => {
@@ -205,7 +206,7 @@ describe('runnable surface and comparison page (#2121)', () => {
     // 服务端组件读取 searchParams 传入客户端（无 window 判断 → 无水合分歧）。
     expect(page).toContain('searchParams');
     expect(page).not.toContain('typeof window');
-    expect(client).toContain('backend: \'fft\' | \'gerstner\'');
+    expect(client).toContain('backend: ComparisonBackend');
     // 生产不变量：实验路由不改生产默认（无 registry/生产入口引用本页）。
     const registry = readSource('src/lib/resource-registry.tsx');
     expect(registry.includes('fft-ocean-comparison')).toBe(false);
@@ -213,38 +214,39 @@ describe('runnable surface and comparison page (#2121)', () => {
 
   it('both branches share the vessel, far-field coverage, domain and mesh density', () => {
     const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
-    // 同实验占位船体 + 同 60km 远场平面（两分支同负载/覆盖）。
-    expect(client).toContain('StandInVessel');
-    expect(client).toContain('FarFieldPlane');
-    // FFT 域 2048m/256² = Gerstner 近场（档位无关）同域同细分。
-    expect(client).toContain('domainMeters: 2048');
-    expect(client).toContain('resolution: 256');
-    expect(client).toContain('GerstnerWater tier="low"');
-    // 三轮复审：Gerstner 内置远场关闭（两分支远场统一由 FarFieldPlane 承担）。
+    const lab = readSource('src/app/simulations/fft-ocean-comparison/comparison-lab.ts');
+    expect(client).toContain('VersionedFleetShip');
+    expect(client).toContain('FarFieldRing');
+    expect(client).toContain('ringGeometry');
+    expect(client).toContain('GERSTNER_WATER_BASE_Y');
+    expect(lab).toContain('domainMeters: 2048');
+    expect(lab).toContain('resolution: 256');
+    expect(client).toContain("scene === 'feature-parity' ? tier : 'low'");
     expect(client).toContain('disableFarField');
     const water = readSource('src/resources/simulations/scene/water/gerstner-water.tsx');
     expect(water).toContain('disableFarField');
     expect(water).toContain('{disableFarField ? null : (');
-    // 残余差异声明（泡沫纹理只在 Gerstner 材质栈）。
     expect(client).toContain('unresolvedDifference');
+    expect(client).not.toContain('StandInVessel');
+    expect(client).not.toContain('boxGeometry args={[24, 16, 180]}');
+    expect(client).not.toContain('sequence += 1 / VESSEL_QUERY_HZ');
   });
 
-  it('drives the stand-in vessel from worker-thread DFT batches (main thread untouched)', () => {
+  it('drives FFT vessel queries from worker-thread DFT batches using visualTime', () => {
     const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
     const worker = readSource('src/resources/simulations/scene/water/fft-query-worker.ts');
-    // 三点 DFT 批次在 Worker 线程执行（Blob 自包含源）；主线程只投递/消费。
+    const surface = readSource('src/resources/simulations/scene/water/fft-ocean-surface.tsx');
     expect(client).toContain('createFFTQueryWorker()');
     expect(client).toContain('worker.post({');
     expect(client).toContain('worker.dispose();');
-    // 过期结果按时间戳丢弃。
-    expect(client).toContain('if (result.timeSeconds < queryRef.current.time) return;');
-    // Worker 源与主线程公式同构（binWaveNumber/色散/相位同式）。
+    expect(client).toContain('if (result.timeSeconds < samplesRef.current.time) return;');
+    expect(client).toContain('createNearFieldSurfaceQuery');
+    expect(client).toContain('viaWorker: false');
+    expect(client).toContain('measurePointQueryMs');
+    expect(client).toContain('__marineComparisonLab');
+    expect(surface).toContain('useMarineVisualTime');
     expect(worker).toContain('const phase = omega * timeSeconds + kx * worldX + kz * worldZ;');
     expect(worker).toContain('sum / (resolution * resolution)');
-    // 回退路径如实标记（Worker 不可用时）。
-    expect(client).toContain('viaWorker: false');
-    // 查询延迟单独测量（口径分离）。
-    expect(client).toContain('measurePointQueryMs');
   });
 
   it('evaluation script consumes real measurement files instead of rewriting empty templates', () => {

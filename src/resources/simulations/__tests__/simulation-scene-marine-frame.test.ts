@@ -97,6 +97,16 @@ describe('marine frame runner (#2097)', () => {
     expect(paused.visualTimeSeconds).toBeCloseTo(1 / 60, 12);
   });
 
+  it('scales visual clock advance by playbackRate so visual mode can freeze', () => {
+    const runner = createMarineFrameRunner(fixtureInputs({ playbackRateSampler: () => 0 }));
+    const frozen = runner.consumeFrame(1, 1 / 60);
+    expect(frozen.playbackRate).toBe(0);
+    expect(frozen.visualTimeSeconds).toBe(0);
+    runner.clock.seek(1.5);
+    const stepped = runner.consumeFrame(2, 1 / 60);
+    expect(stepped.visualTimeSeconds).toBe(1.5);
+  });
+
   it('reproduces identical state for identical time, epoch, and inputs (deterministic replay)', () => {
     const pose = { x: 12, z: 34, headingRad: 1.2 };
     let time = 0;

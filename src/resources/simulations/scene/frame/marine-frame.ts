@@ -133,7 +133,8 @@ export function createMarineFrameRunner(inputs: MarineFrameInputs): MarineFrameR
     consumeFrame: (stamp, deltaSeconds) => {
       if (stamp !== lastStamp) {
         lastStamp = stamp;
-        clock.advance(deltaSeconds);
+        const playbackRate = inputs.playbackRateSampler?.() ?? 1;
+        clock.advance(deltaSeconds * playbackRate);
         current = build();
       }
       return current!;

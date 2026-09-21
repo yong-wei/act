@@ -1,0 +1,68 @@
+import { describe, expect, it } from 'vitest';
+
+import { GERSTNER_WATER_BASE_Y, GERSTNER_WATER_SIZE, NEAR_FIELD_MESH_SPEC } from '@/resources/simulations/scene/water';
+
+import {
+  comparisonFarFieldRing,
+  composeWaterDatum,
+  isHorizontalFarField,
+  labIsReady,
+  parseComparisonBackend,
+  parseComparisonScene,
+  vesselPitchFromSamples,
+  type ComparisonLabIdentity,
+} from '../comparison-lab';
+
+function identity(overrides: Partial<ComparisonLabIdentity> = {}): ComparisonLabIdentity {
+  const farField = comparisonFarFieldRing();
+  return {
+    backend: 'fft',
+    scene: 'wave-only',
+    runMode: 'performance',
+    queryBackend: 'fft',
+    waterBaseY: farField.baseY,
+    farFieldRotationX: farField.rotationX,
+    farFieldInnerRadius: farField.innerRadius,
+    farFieldOuterRadius: farField.outerRadius,
+    vesselPackageId: 'type055-nanchang-101',
+    vesselUrl: '/assets/model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-ship-lod2.glb',
+    vesselFallback: false,
+    vesselLoaded: true,
+    vesselLoadFailed: false,
+    firstFrameReady: true,
+    ...overrides,
+  };
+}
+
+describe('comparison lab helpers (#2130)', () => {
+  it('parses backend and scene without inventing extra routes', () => {
+    expect(parseComparisonBackend(undefined)).toBe('fft');
+    expect(parseComparisonBackend('gerstner')).toBe('gerstner');
+    expect(parseComparisonBackend('webgpu')).toBe('fft');
+    expect(parseComparisonScene(undefined)).toBe('wave-only');
+    expect(parseComparisonScene('feature-parity')).toBe('feature-parity');
+  });
+
+  it('places the far-field ring on XZ at the shared Gerstner water datum', () => {
+    const ring = comparisonFarFieldRing();
+    expect(ring.baseY).toBe(GERSTNER_WATER_BASE_Y);
+    expect(ring.innerRadius).toBe(NEAR_FIELD_MESH_SPEC.size / 2);
+    expect(ring.outerRadius).toBe(GERSTNER_WATER_SIZE / 2);
+    expect(isHorizontalFarField(ring.rotationX)).toBe(true);
+    expect(isHorizontalFarField(0)).toBe(false);
+  });
+
+  it('adds displacement onto the shared datum instead of a second origin', () => {
+    expect(composeWaterDatum(GERSTNER_WATER_BASE_Y, 0.4)).toBeCloseTo(GERSTNER_WATER_BASE_Y + 0.4);
+  });
+
+  it('derives pitch from bow/stern samples of the selected surface', () => {
+    expect(vesselPitchFromSamples(2, 0, 170)).toBeCloseTo(Math.atan2(2, 170));
+  });
+
+  it('treats a failed vessel load as ready-failed, never as a box success', () => {
+    expect(labIsReady(identity({ firstFrameReady: false }))).toBe(false);
+    expect(labIsReady(identity({ vesselLoaded: false, vesselLoadFailed: true }))).toBe(true);
+    expect(labIsReady(identity({ vesselLoaded: false, vesselLoadFailed: false }))).toBe(false);
+  });
+});

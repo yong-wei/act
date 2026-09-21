@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 
+import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import {
   fftOceanHeightAt,
   fftOceanSnapshot,
@@ -127,6 +128,7 @@ export interface FFTOceanSurfaceProps {
 export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurfaceProps) {
   const gl = useThree((state) => state.gl);
   const meshRef = useRef<THREE.Mesh>(null);
+  const marineVisualTime = useMarineVisualTime();
   const domain = domainMeters ?? spectrumInput.domainMeters;
 
   const spectrum = useMemo(() => fftOceanStaticSpectrum(spectrumInput), [spectrumInput]);
@@ -266,8 +268,8 @@ export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurface
 
   // 每帧跑 GPU pass（演化 + 2×(1+log₂N) 个 @256² pass——微小成本）。
   const statsRef = useRef({ frames: 0 });
-  useFrame((state) => {
-    pipeline.run(state.clock.getElapsedTime());
+  useFrame((state, delta) => {
+    pipeline.run(marineVisualTime(state, delta));
     statsRef.current.frames += 1;
   });
 
