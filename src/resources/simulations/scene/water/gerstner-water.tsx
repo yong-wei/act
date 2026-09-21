@@ -347,6 +347,8 @@ export interface GerstnerWaterProps {
    * 统一的远场负载）。缺省 false（生产路径不变）。
    */
   readonly disableFarField?: boolean;
+  /** 对照 wave-only：关闭泡沫注入与平面反射，保留位移网格。 */
+  readonly disableEffects?: boolean;
 }
 
 /** 单个带限水网格（#2098 内部组件）：几何/材质随波组与包络参数构建，逐帧写时间与原点。 */
@@ -551,6 +553,7 @@ export function GerstnerWater({
   positionSampler,
   resetToken,
   disableFarField = false,
+  disableEffects = false,
   seaState = DEFAULT_GERSTNER_SEA_STATE,
   waterColor = DEFAULT_WATER_COLORS.waterColor,
   deepColor = DEFAULT_WATER_COLORS.deepColor,
@@ -585,14 +588,17 @@ export function GerstnerWater({
       amplitudeScale={amplitudeScale}
       positionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
       resetToken={resetToken}
+      attributionOverride={disableEffects ? { natural: false, vessel: false } : undefined}
     >
       {/* 受控高档平面反射（#2118）：高档且未显式关闭时启用（运动触发更新）。 */}
+      {disableEffects ? null : (
       <MarinePlanarReflection
         planeY={GERSTNER_WATER_BASE_Y}
         enabled={tier === 'high' && !PLANAR_QA_DISABLED}
         subjectPositionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
         subjectHeadingSampler={shipHeadingSampler}
       />
+      )}
       <group name="marine-water">
       {disableFarField ? null : (
         <BandWaterMesh

@@ -28,8 +28,8 @@ export type ComparisonSceneId = 'wave-only' | 'feature-parity';
 export type ComparisonRunMode = 'performance' | 'visual';
 
 export interface ComparisonFarFieldRing {
-  readonly innerRadius: number;
-  readonly outerRadius: number;
+  readonly innerHalfExtent: number;
+  readonly outerHalfExtent: number;
   readonly rotationX: number;
   readonly baseY: number;
 }
@@ -41,8 +41,8 @@ export interface ComparisonLabIdentity {
   readonly queryBackend: ComparisonBackend;
   readonly waterBaseY: number;
   readonly farFieldRotationX: number;
-  readonly farFieldInnerRadius: number;
-  readonly farFieldOuterRadius: number;
+  readonly farFieldInnerHalfExtent: number;
+  readonly farFieldOuterHalfExtent: number;
   readonly vesselPackageId: string | null;
   readonly vesselUrl: string | null;
   readonly vesselFallback: boolean;
@@ -88,8 +88,8 @@ export function comparisonFarFieldRing(
   baseY = COMPARISON_WATER_BASE_Y,
 ): ComparisonFarFieldRing {
   return {
-    innerRadius: nearFieldSizeMeters / 2,
-    outerRadius: farFieldSizeMeters / 2,
+    innerHalfExtent: nearFieldSizeMeters / 2,
+    outerHalfExtent: farFieldSizeMeters / 2,
     rotationX: -Math.PI / 2,
     baseY,
   };

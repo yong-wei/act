@@ -22,8 +22,8 @@ function identity(overrides: Partial<ComparisonLabIdentity> = {}): ComparisonLab
     queryBackend: 'fft',
     waterBaseY: farField.baseY,
     farFieldRotationX: farField.rotationX,
-    farFieldInnerRadius: farField.innerRadius,
-    farFieldOuterRadius: farField.outerRadius,
+    farFieldInnerHalfExtent: farField.innerHalfExtent,
+    farFieldOuterHalfExtent: farField.outerHalfExtent,
     vesselPackageId: 'type055-nanchang-101',
     vesselUrl: '/assets/model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-ship-lod2.glb',
     vesselFallback: false,
@@ -46,8 +46,8 @@ describe('comparison lab helpers (#2130)', () => {
   it('places the far-field ring on XZ at the shared Gerstner water datum', () => {
     const ring = comparisonFarFieldRing();
     expect(ring.baseY).toBe(GERSTNER_WATER_BASE_Y);
-    expect(ring.innerRadius).toBe(NEAR_FIELD_MESH_SPEC.size / 2);
-    expect(ring.outerRadius).toBe(GERSTNER_WATER_SIZE / 2);
+    expect(ring.innerHalfExtent).toBe(NEAR_FIELD_MESH_SPEC.size / 2);
+    expect(ring.outerHalfExtent).toBe(GERSTNER_WATER_SIZE / 2);
     expect(isHorizontalFarField(ring.rotationX)).toBe(true);
     expect(isHorizontalFarField(0)).toBe(false);
   });

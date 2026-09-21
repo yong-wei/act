@@ -84,6 +84,7 @@ export function MarineFoamFieldProvider({
   amplitudeScale,
   positionSampler,
   resetToken,
+  attributionOverride,
   children,
 }: {
   readonly tier: 'high' | 'medium' | 'low';
@@ -94,6 +95,7 @@ export function MarineFoamFieldProvider({
   /** 实验重置令牌（P2 修复）：变化时显式清空历史场——未接 MarineFrameProvider
    * 的场景视觉时钟单调增长，靠时间回退检测不到 reset。 */
   readonly resetToken?: number;
+  readonly attributionOverride?: FoamAttribution;
   readonly children: ReactNode;
 }) {
   const marineVisualTime = useMarineVisualTime();
@@ -102,7 +104,7 @@ export function MarineFoamFieldProvider({
   const scene = useThree((state) => state.scene);
 
   // 归因只在挂载时解析一次（URL 参数）。
-  const [attribution] = useState(() => resolveAttributionFromLocation());
+  const [attribution] = useState(() => attributionOverride ?? resolveAttributionFromLocation());
   // 上一档位的场：档位切换时按世界坐标重采样旧密度（不瞬清，P2 修复）。
   const previousFieldRef = useRef<FoamHistoryField | null>(null);
   // 可变源参数（每渲染刷新，不触发场重建——海况/振幅变化只改注入门限与速率）。

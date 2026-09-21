@@ -83,14 +83,33 @@ function LockQualityTier({ tier }: { readonly tier: QualityTierId }) {
 }
 
 function FarFieldRing() {
+  const geometry = useMemo(() => {
+    const outer = FAR_FIELD.outerHalfExtent;
+    const inner = FAR_FIELD.innerHalfExtent;
+    const shape = new THREE.Shape();
+    shape.moveTo(-outer, -outer);
+    shape.lineTo(outer, -outer);
+    shape.lineTo(outer, outer);
+    shape.lineTo(-outer, outer);
+    shape.closePath();
+    const hole = new THREE.Path();
+    hole.moveTo(-inner, -inner);
+    hole.lineTo(-inner, inner);
+    hole.lineTo(inner, inner);
+    hole.lineTo(inner, -inner);
+    hole.closePath();
+    shape.holes.push(hole);
+    const next = new THREE.ShapeGeometry(shape);
+    next.rotateX(FAR_FIELD.rotationX);
+    return next;
+  }, []);
   return (
     <mesh
       name="comparison-far-field"
       position={[0, FAR_FIELD.baseY, 0]}
-      rotation={[FAR_FIELD.rotationX, 0, 0]}
+      geometry={geometry}
       renderOrder={-5}
     >
-      <ringGeometry args={[FAR_FIELD.innerRadius, FAR_FIELD.outerRadius, 64, 1]} />
       <meshBasicMaterial color={0x3c4a55} side={THREE.DoubleSide} />
     </mesh>
   );
@@ -137,18 +156,20 @@ function ComparisonVessel({
 
   return (
     <group ref={groupRef}>
-      <VersionedFleetShip
-        logicalId="destroyer"
-        simRef={simRef}
-        position={{ x: 0, z: 0 }}
-        headingRad={0}
-        waterYSampler={waterYSampler}
-        sceneLengthMeters={COMPARISON_VESSEL_LENGTH_METERS}
-        resetToken={resetToken}
-        legacyYawOffsetRad={0}
-        fallbackDraftMeters={8}
-        onMountedUrl={onMountedUrl}
-      />
+      <ModelAssetErrorBoundary fallback={<FailedVesselMarker onLoadFailed={onLoadFailed} />}>
+        <VersionedFleetShip
+          logicalId="destroyer"
+          simRef={simRef}
+          position={{ x: 0, z: 0 }}
+          headingRad={0}
+          waterYSampler={waterYSampler}
+          sceneLengthMeters={COMPARISON_VESSEL_LENGTH_METERS}
+          resetToken={resetToken}
+          legacyYawOffsetRad={0}
+          fallbackDraftMeters={8}
+          onMountedUrl={onMountedUrl}
+        />
+      </ModelAssetErrorBoundary>
     </group>
   );
 }
@@ -163,9 +184,11 @@ function FailedVesselMarker({ onLoadFailed }: { readonly onLoadFailed: () => voi
 function ComparisonQueries({
   backend,
   samplesRef,
+  resetToken,
 }: {
   readonly backend: ComparisonBackend;
   readonly samplesRef: React.MutableRefObject<{ mid: number; bow: number; stern: number; time: number }>;
+  readonly resetToken: number;
 }) {
   const marineVisualTime = useMarineVisualTime();
   const spectrum = useMemo(() => fftOceanStaticSpectrum(COMPARISON_SPECTRUM_INPUT), []);
@@ -188,15 +211,17 @@ function ComparisonQueries({
   });
 
   if (backend !== 'fft') return null;
-  return <FftWorkerPoster samplesRef={samplesRef} spectrum={spectrum} />;
+  return <FftWorkerPoster samplesRef={samplesRef} spectrum={spectrum} resetToken={resetToken} />;
 }
 
 function FftWorkerPoster({
   samplesRef,
   spectrum,
+  resetToken,
 }: {
   readonly samplesRef: React.MutableRefObject<{ mid: number; bow: number; stern: number; time: number }>;
   readonly spectrum: ReturnType<typeof fftOceanStaticSpectrum>;
+  readonly resetToken: number;
 }) {
   const runner = useMarineFrameRunner();
   const marineVisualTime = useMarineVisualTime();
@@ -217,6 +242,11 @@ function FftWorkerPoster({
       workerRef.current = null;
     };
   }, [samplesRef]);
+
+  useEffect(() => {
+    lastPostRef.current = -1;
+    samplesRef.current = { mid: 0, bow: 0, stern: 0, time: 0 };
+  }, [resetToken, samplesRef]);
 
   useFrame((state, delta) => {
     const timeSeconds = marineVisualTime(state, delta);
@@ -309,6 +339,8 @@ function ComparisonLabBridge({
     const api: ComparisonLabApi = {
       ready: () => labIsReady(identityRef.current),
       reset: () => {
+        samplesRef.current = { mid: 0, bow: 0, stern: 0, time: 0 };
+        pitchRef.current = 0;
         runner?.clock.reset();
         setResetToken((value) => value + 1);
       },
@@ -350,7 +382,7 @@ function ComparisonLabBridge({
     return () => {
       delete window.__marineComparisonLab;
     };
-  }, [identityRef, runner, runModeRef, sampleDisplacement, samplesRef, setResetToken]);
+  }, [identityRef, pitchRef, runner, runModeRef, sampleDisplacement, samplesRef, setResetToken]);
 
   useEffect(() => {
     identityRef.current = {
@@ -392,8 +424,8 @@ function ComparisonScene({
     queryBackend: backend,
     waterBaseY: GERSTNER_WATER_BASE_Y,
     farFieldRotationX: FAR_FIELD.rotationX,
-    farFieldInnerRadius: FAR_FIELD.innerRadius,
-    farFieldOuterRadius: FAR_FIELD.outerRadius,
+    farFieldInnerHalfExtent: FAR_FIELD.innerHalfExtent,
+    farFieldOuterHalfExtent: FAR_FIELD.outerHalfExtent,
     vesselPackageId: activated?.packageId ?? null,
     vesselUrl: null,
     vesselFallback: false,
@@ -456,7 +488,7 @@ function ComparisonScene({
   return (
     <MarineFrameProvider inputs={frameInputs}>
       <SceneQualityDriver />
-      <ComparisonQueries backend={backend} samplesRef={samplesRef} />
+      <ComparisonQueries backend={backend} samplesRef={samplesRef} resetToken={resetToken} />
       <ComparisonLabBridge
         backend={backend}
         scene={scene}
@@ -486,9 +518,12 @@ function ComparisonScene({
           </group>
         ) : (
           <GerstnerWater
+            key={scene}
             tier={gerstnerTier}
             seaState={COMPARISON_SPECTRUM_INPUT.seaState}
             disableFarField
+            disableEffects={scene === 'wave-only'}
+            resetToken={resetToken}
           />
         )}
       </Suspense>

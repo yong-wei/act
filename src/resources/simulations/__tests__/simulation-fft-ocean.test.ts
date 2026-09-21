@@ -217,7 +217,9 @@ describe('runnable surface and comparison page (#2121)', () => {
     const lab = readSource('src/app/simulations/fft-ocean-comparison/comparison-lab.ts');
     expect(client).toContain('VersionedFleetShip');
     expect(client).toContain('FarFieldRing');
-    expect(client).toContain('ringGeometry');
+    expect(client).toContain('ShapeGeometry');
+    expect(client).toContain('disableEffects={scene === \'wave-only\'}');
+    expect(client).toContain('resetToken={resetToken}');
     expect(client).toContain('GERSTNER_WATER_BASE_Y');
     expect(lab).toContain('domainMeters: 2048');
     expect(lab).toContain('resolution: 256');
