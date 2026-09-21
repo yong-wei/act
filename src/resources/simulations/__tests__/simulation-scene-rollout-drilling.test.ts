@@ -46,7 +46,9 @@ describe('drilling pipeline integration', () => {
   it('feeds the wake with body-frame speed magnitude and remounts it on reset', () => {
     const source = read(DRILLING);
     const rigStart = source.indexOf('WakeTrailRig');
-    const rig = source.slice(rigStart, rigStart + 1600);
+    // #2104：rig 迁移统一近场查询后函数变长——窗口改为整个函数体（意图是速度语义+重挂载，非字符数）。
+    const rigEnd = source.indexOf('\n}\n', rigStart);
+    const rig = source.slice(rigStart, rigEnd > rigStart ? rigEnd : rigStart + 1600);
     expect(rig).toContain('worldSpeedSampler');
     expect(rig).toContain('Math.hypot(platformStateRef.current.u, platformStateRef.current.v)');
     expect(rig).toContain('key={resetToken}');

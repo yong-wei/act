@@ -5,7 +5,7 @@
  * 长恒系列 LNG 运输船 - 带时滞和液货晃荡的高保真仿真
  */
 
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -35,7 +35,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -101,64 +101,6 @@ interface LNGSimulationState {
   smithEnabled: boolean;
 }
 
-// ============ 海面组件 ============
-
-function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  useFrame(({ clock }) => {
-    if (meshRef.current && meshRef.current.material instanceof THREE.ShaderMaterial) {
-      meshRef.current.material.uniforms.time.value = clock.getElapsedTime();
-    }
-  });
-
-  const shaderMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      uniforms: {
-        time: { value: 0 },
-        waterColor: { value: new THREE.Color(sceneTheme.waterColor) },
-        foamColor: { value: new THREE.Color(simulationScenePalette.white) },
-      },
-      vertexShader: `
-        uniform float time;
-        varying vec2 vUv;
-        varying float vElevation;
-
-        void main() {
-          vUv = uv;
-          vec3 pos = position;
-          float wave1 = sin(pos.x * 0.02 + time * 0.5) * 2.0;
-          float wave2 = sin(pos.z * 0.03 + time * 0.3) * 1.5;
-          float wave3 = sin((pos.x + pos.z) * 0.015 + time * 0.4) * 1.0;
-          pos.y += wave1 + wave2 + wave3;
-          vElevation = pos.y;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 waterColor;
-        uniform vec3 foamColor;
-        varying vec2 vUv;
-        varying float vElevation;
-
-        void main() {
-          float foam = smoothstep(2.0, 4.0, vElevation);
-          vec3 color = mix(waterColor, foamColor, foam * 0.3);
-          gl_FragColor = vec4(color, 0.9);
-        }
-      `,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
-  }, [sceneTheme.waterColor]);
-
-  return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} material={shaderMaterial}>
-      <planeGeometry args={[20000, 20000, 128, 128]} />
-    </mesh>
-  );
-}
-
 // ============ LNG 船模型组件 ============
 
 function LNGShipModel(props: {
@@ -168,11 +110,19 @@ function LNGShipModel(props: {
   simRef: React.MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
+  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
+  const waterHeight = useNearFieldWaterHeight({
+    positionSampler: () => props.position,
+    seaState: 3,
+      shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
+  });
+
   return (
     <VersionedFleetShip
       logicalId="lng-carrier"
       simRef={props.simRef}
       position={props.position}
+      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
       headingRad={props.heading}
       extraEuler={{ z: props.sloshingAngle * 0.1 }}
       sceneLengthMeters={LNG_CHANGHENG_PARAMS.LENGTH}
@@ -235,7 +185,7 @@ function HeadingIndicator({
   return (
     <group>
       {/* 目标航向 (浅蓝虚线箭头) */}
-      <Line
+      <Line name="marine-annotations"
         points={[[position.x, 5, position.z], targetEnd]}
         color={simulationScenePalette.headingSecondary}
         lineWidth={2}
@@ -243,16 +193,16 @@ function HeadingIndicator({
         dashSize={20}
         gapSize={10}
       />
-      <Line points={[targetWings.left, targetEnd]} color={simulationScenePalette.headingSecondary} lineWidth={2} />
-      <Line points={[targetWings.right, targetEnd]} color={simulationScenePalette.headingSecondary} lineWidth={2} />
+      <Line name="marine-annotations" points={[targetWings.left, targetEnd]} color={simulationScenePalette.headingSecondary} lineWidth={2} />
+      <Line name="marine-annotations" points={[targetWings.right, targetEnd]} color={simulationScenePalette.headingSecondary} lineWidth={2} />
       {/* 当前航向 (深蓝实线箭头) */}
-      <Line
+      <Line name="marine-annotations"
         points={[[position.x, 5, position.z], currentEnd]}
         color={simulationScenePalette.headingPrimary}
         lineWidth={3}
       />
-      <Line points={[currentWings.left, currentEnd]} color={simulationScenePalette.headingPrimary} lineWidth={3} />
-      <Line points={[currentWings.right, currentEnd]} color={simulationScenePalette.headingPrimary} lineWidth={3} />
+      <Line name="marine-annotations" points={[currentWings.left, currentEnd]} color={simulationScenePalette.headingPrimary} lineWidth={3} />
+      <Line name="marine-annotations" points={[currentWings.right, currentEnd]} color={simulationScenePalette.headingPrimary} lineWidth={3} />
     </group>
   );
 }
@@ -283,18 +233,21 @@ function SceneQualityAttributes() {
 }
 
 /** 海面颜色随环境预设、细分随质量档位的桥接组件。 */
-function LNGWater({ state }: { state: LNGSimulationState }) {
+function LNGWater({ state, resetToken }: { state: LNGSimulationState; resetToken: number }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      shipHeadingSampler={() => platformHeadingToSceneRad(state.heading)}
       shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      seaState={3}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
@@ -311,26 +264,34 @@ function WakeTrailRig({
   playing: boolean;
   resetToken: number;
 }) {
+  const environmentLight = useEnvironmentWaterColors();
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
-  const { tier, params } = useSceneQuality();
+  const { tier } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [state.position.x, 0, state.position.z];
     transformRef.current.heading = platformHeadingToSceneRad(state.heading);
-    timeRef.current = frameState.clock.getElapsedTime();
+  });
+
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义（含岸线衰减）。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: state.position.x, z: state.position.z }),
+    seaState: 3,
+    shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
   });
 
   if (!wakeVisible) return null;
   return (
     <WakeTrail
+      sunDirection={environmentLight.sunDirection}
+      sunIllumination={environmentLight.sunIllumination}
       key={resetToken}
       profile={lngChanghengSceneVisual}
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400)}
+      waterYSampler={waterYSampler}
       worldSpeedSampler={() => state.speed}
     />
   );
@@ -536,11 +497,11 @@ function Scene({
       <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'lng', cameraView: String(cameraMode), seaState: 3 })} />
       <Suspense fallback={null}>
-        <LNGWater state={state} />
+        <LNGWater state={state} resetToken={resetToken} />
       </Suspense>
 
       {showGrid ? (
-        <Grid
+        <Grid name="marine-grid"
           args={[10000, 10000]}
           cellSize={100}
           cellThickness={0.5}
@@ -606,6 +567,7 @@ function Scene({
 // ============ 主组件 ============
 
 export function LNGSimulation() {
+  const timeRef = useRef(0);
   const engineRef = useRef<LNGCarrierEngine | null>(null);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
@@ -625,7 +587,6 @@ export function LNGSimulation() {
     controlMode: 'pid' as LNGSimulationState['controlMode'],
   });
   const speedScaleRef = useRef(1);
-  const timeRef = useRef(0);
   const lastHudUpdateRef = useRef(0);
   const lastTrajectoryTimeRef = useRef(0);
   const bindingRef = useRef<BindingTelemetrySource>({
@@ -794,7 +755,6 @@ export function LNGSimulation() {
       engineRef.current.initialize(-3000, 0, 0);
     }
 
-    timeRef.current = 0;
     lastHudUpdateRef.current = 0;
     lastTrajectoryTimeRef.current = 0;
     attainmentRef.current = createAttainmentState(0);
@@ -821,6 +781,7 @@ export function LNGSimulation() {
       smithEnabled: false,
     });
     lastTimeRef.current = 0;
+    timeRef.current = 0;
     clockRef.current.reset();
     setTrajectory([]);
     setResetCount((previous) => previous + 1);

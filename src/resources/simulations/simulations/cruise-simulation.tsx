@@ -36,7 +36,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -237,7 +237,7 @@ function DirectionArrow({
 
   return (
     <>
-      <Line
+      <Line name="marine-annotations"
         points={[start, end]}
         color={color}
         lineWidth={lineWidth}
@@ -246,72 +246,9 @@ function DirectionArrow({
         dashSize={28}
         gapSize={14}
       />
-      <Line points={[leftWing, end]} color={color} lineWidth={lineWidth} />
-      <Line points={[rightWing, end]} color={color} lineWidth={lineWidth} />
+      <Line name="marine-annotations" points={[leftWing, end]} color={color} lineWidth={lineWidth} />
+      <Line name="marine-annotations" points={[rightWing, end]} color={color} lineWidth={lineWidth} />
     </>
-  );
-}
-
-// ============ 海面组件 ============
-
-function Ocean({ seaState, sceneTheme }: { seaState: number; sceneTheme: SimulationSceneTheme }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  useFrame(({ clock }) => {
-    if (meshRef.current && meshRef.current.material instanceof THREE.ShaderMaterial) {
-      meshRef.current.material.uniforms.time.value = clock.getElapsedTime();
-    }
-  });
-
-  const waveAmplitude = 1.0 + seaState * 0.8;
-
-  const shaderMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      uniforms: {
-        time: { value: 0 },
-        waterColor: { value: new THREE.Color(sceneTheme.waterColor) },
-        foamColor: { value: new THREE.Color(simulationScenePalette.white) },
-        waveAmplitude: { value: waveAmplitude },
-      },
-      vertexShader: `
-        uniform float time;
-        uniform float waveAmplitude;
-        varying vec2 vUv;
-        varying float vElevation;
-
-        void main() {
-          vUv = uv;
-          vec3 pos = position;
-          float wave1 = sin(pos.x * 0.015 + time * 0.4) * waveAmplitude;
-          float wave2 = sin(pos.z * 0.02 + time * 0.25) * waveAmplitude * 0.8;
-          float wave3 = sin((pos.x + pos.z) * 0.012 + time * 0.35) * waveAmplitude * 0.6;
-          pos.y += wave1 + wave2 + wave3;
-          vElevation = pos.y;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 waterColor;
-        uniform vec3 foamColor;
-        uniform float waveAmplitude;
-        varying vec2 vUv;
-        varying float vElevation;
-
-        void main() {
-          float foam = smoothstep(waveAmplitude * 2.0, waveAmplitude * 3.0, vElevation);
-          vec3 color = mix(waterColor, foamColor, foam * 0.25);
-          gl_FragColor = vec4(color, 0.9);
-        }
-      `,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
-  }, [sceneTheme.waterColor, waveAmplitude]);
-
-  return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} material={shaderMaterial}>
-      <planeGeometry args={[25000, 25000, 128, 128]} />
-    </mesh>
   );
 }
 
@@ -321,14 +258,22 @@ function CruiseShipModel(props: {
   position: Vector2;
   heading: number;
   rollAngle: number;
+  seaState: number;
   simRef: React.MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
+  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
+  const waterHeight = useNearFieldWaterHeight({
+    positionSampler: () => props.position,
+    seaState: props.seaState,
+    shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
+  });
   return (
     <VersionedFleetShip
       logicalId="luxury-liner"
       simRef={props.simRef}
       position={props.position}
+      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
       headingRad={props.heading}
       extraEuler={{ z: props.rollAngle }}
       sceneLengthMeters={CRUISE_ADORA_PARAMS.LENGTH}
@@ -1325,18 +1270,21 @@ function SceneQualityAttributes() {
 }
 
 /** 海面颜色随环境预设、细分随质量档位的桥接组件。 */
-function CruiseWater({ state }: { state: CruiseSimulationState }) {
+function CruiseWater({ state, resetToken }: { state: CruiseSimulationState; resetToken: number }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      shipHeadingSampler={() => platformHeadingToSceneRad(state.heading)}
       shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      seaState={state.seaState}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
@@ -1353,26 +1301,34 @@ function WakeTrailRig({
   playing: boolean;
   resetToken: number;
 }) {
+  const environmentLight = useEnvironmentWaterColors();
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
-  const { tier, params } = useSceneQuality();
+  const { tier } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [state.position.x, 0, state.position.z];
     transformRef.current.heading = platformHeadingToSceneRad(state.heading);
-    timeRef.current = frameState.clock.getElapsedTime();
+  });
+
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义（含岸线衰减）。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: state.position.x, z: state.position.z }),
+    seaState: state.seaState,
+    shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
   });
 
   if (!wakeVisible) return null;
   return (
     <WakeTrail
+      sunDirection={environmentLight.sunDirection}
+      sunIllumination={environmentLight.sunIllumination}
       key={resetToken}
       profile={cruiseAdoraSceneVisual}
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400)}
+      waterYSampler={waterYSampler}
       worldSpeedSampler={() => state.speed}
     />
   );
@@ -1435,10 +1391,10 @@ function VisualizationLayer({
       <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'cruise', cameraView: String(cameraMode), seaState: state.seaState })} />
       <Suspense fallback={null}>
-        <CruiseWater state={state} />
+        <CruiseWater state={state} resetToken={resetToken} />
       </Suspense>
       {showGrid ? (
-        <Grid
+        <Grid name="marine-grid"
           args={[20000, 20000]}
           cellSize={100}
           cellThickness={0.5}
@@ -1461,6 +1417,7 @@ function VisualizationLayer({
       >
         <CruiseShipModel
           position={state.position}
+          seaState={state.seaState}
           heading={toRadians(state.heading)}
           rollAngle={state.rollAngle}
           simRef={simRef}
@@ -1627,6 +1584,7 @@ function TelemetryBridge({
 // ============ 主仿真组件 ============
 
 export default function CruiseSimulation() {
+  const timeRef = useRef(0);
   const searchParams = useSearchParams();
   const isCourseMode = true;
   const isBoundCourseTask = searchParams.get('courseMode') === CRUISE_COURSE_MODE;
@@ -1667,7 +1625,6 @@ export default function CruiseSimulation() {
   });
   const speedScaleRef = useRef(1);
   const virtualModeRef = useRef(true);
-  const timeRef = useRef(0);
   const lastHudUpdateRef = useRef(0);
   const bindingRef = useRef<BindingTelemetrySource>({
     rudderDeg: 0,

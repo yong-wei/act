@@ -24,7 +24,7 @@ import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
-import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
+import { useSimulationSceneTheme, simulationScenePalette } from '../components/simulation-theme';
 import {
   EnvironmentScene,
   MARINE_SCENE_LAYOUTS,
@@ -35,7 +35,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -145,75 +145,9 @@ const DP_CHANNEL_MAX_POWER_KW = { surge: 8000, sway: 6000, yaw: 6000 } as const;
 
 // ============ 着色器材质 ============
 
-const waterVertexShader = `
-  uniform float time;
-  varying vec2 vUv;
-  varying float vHeight;
 
-  void main() {
-    vUv = uv;
-    vec3 pos = position;
-
-    float wave1 = sin(pos.x * 0.02 + time * 0.5) * 0.5;
-    float wave2 = sin(pos.y * 0.015 + time * 0.3) * 0.3;
-    float wave3 = sin((pos.x + pos.y) * 0.01 + time * 0.4) * 0.2;
-
-    pos.z = wave1 + wave2 + wave3;
-    vHeight = pos.z;
-
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-  }
-`;
-
-const waterFragmentShader = `
-  uniform float time;
-  varying vec2 vUv;
-  varying float vHeight;
-
-  void main() {
-    vec3 deepColor = vec3(0.0, 0.2, 0.4);
-    vec3 shallowColor = vec3(0.0, 0.5, 0.7);
-    vec3 foamColor = vec3(0.9, 0.95, 1.0);
-
-    float depth = smoothstep(-1.0, 1.0, vHeight);
-    vec3 waterColor = mix(deepColor, shallowColor, depth);
-
-    float foam = smoothstep(0.3, 0.5, vHeight);
-    waterColor = mix(waterColor, foamColor, foam * 0.3);
-
-    gl_FragColor = vec4(waterColor, 0.9);
-  }
-`;
 
 // ============ 3D 组件 ============
-
-/** 海面组件 */
-function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-
-  useFrame(({ clock }) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.time.value = clock.getElapsedTime();
-    }
-  });
-
-  return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]}>
-      <planeGeometry args={[5000, 5000, 128, 128]} />
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={waterVertexShader}
-        fragmentShader={waterFragmentShader}
-        uniforms={{
-          time: { value: 0 },
-        }}
-        transparent
-        side={THREE.DoubleSide}
-      />
-    </mesh>
-  );
-}
 
 /** 挖泥船模型 */
 function DredgerModel(props: {
@@ -222,11 +156,19 @@ function DredgerModel(props: {
   simRef: MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
+  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
+  const waterHeight = useNearFieldWaterHeight({
+    positionSampler: () => props.position,
+    seaState: 3,
+      shoreSegments: MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments,
+  });
+
   return (
     <VersionedFleetShip
       logicalId="dredger"
       simRef={props.simRef}
       position={props.position}
+      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
       headingRad={props.heading}
       sceneLengthMeters={120}
       resetToken={props.resetToken}
@@ -247,7 +189,7 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
   });
 
   return (
-    <group ref={groupRef} position={[position.x, 5, position.z]}>
+    <group name="marine-annotations" ref={groupRef} position={[position.x, 5, position.z]}>
       {/* 目标圆圈 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[8, 10, 32]} />
@@ -565,21 +507,26 @@ function SceneQualityAttributes() {
 /** 海面颜色随环境预设、细分随质量档位的桥接组件（船位直读 ref）。 */
 function DredgerWater({
   mmgStateRef,
+  resetToken,
 }: {
   mmgStateRef: RefObject<MMG3DOFState>;
+  resetToken: number;
 }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })}
+      shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi))}
       shoreSegments={MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments}
       sedimentPlume={marineLayoutSedimentPlume('shallow-construction-site')}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      seaState={3}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
@@ -596,26 +543,34 @@ function WakeTrailRig({
   playing: boolean;
   resetToken: number;
 }) {
+  const environmentLight = useEnvironmentWaterColors();
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
   const { tier, params } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [mmgStateRef.current.x, 0, mmgStateRef.current.y];
     transformRef.current.heading = platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi));
-    timeRef.current = frameState.clock.getElapsedTime();
+  });
+
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义（含岸线衰减）。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y }),
+    seaState: 3,
+    shoreSegments: MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments,
   });
 
   if (!wakeVisible) return null;
   return (
     <WakeTrail
+      sunDirection={environmentLight.sunDirection}
+      sunIllumination={environmentLight.sunIllumination}
       key={resetToken}
       profile={dredgerTianjingSceneVisual}
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments, x ?? 0, z ?? 0, 400)}
+      waterYSampler={waterYSampler}
       worldSpeedSampler={() => Math.hypot(mmgStateRef.current.u, mmgStateRef.current.v)}
     />
   );
@@ -637,6 +592,7 @@ function TeachingAnnotationsGate({
 // ============ 主组件 ============
 
 export function DredgerSimulation() {
+  const timeRef = useRef(0);
   // 配置状态
   const defaultConfig = getDredgerDefaultConfig();
   const [config, setConfig] = useState<SimulationConfig>({
@@ -670,7 +626,6 @@ export function DredgerSimulation() {
   const mmgStateRef = useRef<MMG3DOFState>(createMMG3DOFState(0, 0, 0, 0));
   const dpStateRef = useRef<DPState>(createDPState());
   const dredgingModelRef = useRef<DredgingImpactModel>(new DredgingImpactModel());
-  const timeRef = useRef(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const lastUpdateRef = useRef(performance.now());
   const clockRef = useRef(
@@ -985,12 +940,12 @@ export function DredgerSimulation() {
         <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'dredger', cameraView: String(cameraMode), seaState: 3 })} />
         <Suspense fallback={null}>
-          <DredgerWater mmgStateRef={mmgStateRef} />
+          <DredgerWater mmgStateRef={mmgStateRef} resetToken={resetCount} />
         </Suspense>
 
         {/* 网格 */}
         {showGrid ? (
-          <Grid
+          <Grid name="marine-grid"
             position={[0, 0.35, 0]}
             args={[20000, 20000]}
             cellSize={100}

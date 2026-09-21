@@ -115,10 +115,15 @@ describe('visual extension slots have runtime consumers (#2102 contracts)', () =
   });
 
   it('reuses the shore attenuation in wake water sampling (visual consistency)', () => {
+    // #2117：岸线衰减进入 useNearFieldWaterHeight 的 shoreSegments 参数——
+    // CPU 查询与 GPU 曲面同一衰减输入（此前各 rig 的后乘近似已移除）。
     for (const file of ['cruise-simulation.tsx', 'container-simulation.tsx', 'lng-simulation.tsx', 'dredger-simulation.tsx']) {
       const source = readFileSync(path.join(ROOT, 'src/resources/simulations/simulations', file), 'utf-8');
-      expect(source, file).toContain('shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS[');
+      expect(source, file).toContain('shoreSegments: MARINE_SCENE_LAYOUTS[');
     }
+    // CPU 查询本体接入同一衰减公式。
+    const water = readFileSync(path.join(ROOT, 'src/resources/simulations/scene/water/gerstner-water.tsx'), 'utf-8');
+    expect(water).toContain('shorelineAmplitudeAttenuation(shoreSegments');
   });
 
   it('drives polar ice visibility from live ice condition state', () => {
@@ -192,8 +197,11 @@ describe('layout mounting reuses the shared rendering stack (#2102 contracts)', 
       'utf-8',
     );
     // 世界坐标静态放置；不挂相机/船位采样器（视差正确）。
-    expect(source).toContain('position={[object.x, (object.y ?? 0) + (isIce ? 0.2 : 0), object.z]}');
+    expect(source).toContain("position={[object.x, (object.y ?? 0) + (object.kind === 'ice-floe' ? 0.2 : 0), object.z]}");
+    expect(source).toContain("new THREE.Vector3(object.x, (object.y ?? 0) + (kind === 'ice-floe' ? 0.2 : 0), object.z)");
     expect(source).not.toContain('positionSampler');
-    expect(source).not.toContain('camera');
+    // 对象位置不随相机平移（相机只允许驱动 LOD 层级切换，#2119 复审二轮）。
+    expect(source).not.toContain('camera.position.x, 0, camera.position.z');
+    expect(source).not.toContain('camera.position.x, 0, camera.position.z');
   });
 });

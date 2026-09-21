@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   createKonlingTeachingAssistantServerContextToken: vi.fn(),
   getServerAuthSession: vi.fn(),
+  resolveEngineeringGraphProductionSelection: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -11,6 +12,10 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/konling-teaching-assistant-server-context', () => ({
   createKonlingTeachingAssistantServerContextToken: mocks.createKonlingTeachingAssistantServerContextToken,
+}));
+
+vi.mock('@/lib/versioned-knowledge-activation/resolve', () => ({
+  resolveEngineeringGraphProductionSelection: mocks.resolveEngineeringGraphProductionSelection,
 }));
 
 import { GET } from '@/app/api/adaptive/path-advisor-context/route';
@@ -24,6 +29,10 @@ describe('path advisor context route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.createKonlingTeachingAssistantServerContextToken.mockReturnValue('signed-token');
+    mocks.resolveEngineeringGraphProductionSelection.mockReturnValue({
+      mode: 'use-combination',
+      resolved: { consumerStatus: 'READY' },
+    });
     mocks.getServerAuthSession.mockResolvedValue({
       user: {
         id: 'student-1',
@@ -205,5 +214,25 @@ describe('path advisor context route', () => {
         }),
       }),
     );
+  });
+
+  it('keeps a signed context but reports runtime-graph-unavailable when engineering-graph is not ready', async () => {
+    mocks.resolveEngineeringGraphProductionSelection.mockReturnValueOnce({
+      mode: 'pin-combination',
+      resolved: { consumerStatus: 'NOT_READY' },
+    });
+
+    const response = await request('goal=control-correction');
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.modeContextToken).toBe('signed-token');
+    expect(body.readiness).toMatchObject({
+      status: 'retryable',
+      reason: 'runtime-graph-unavailable',
+      studentAction: 'retry',
+    });
+    expect(body.readiness.studentMessage).toContain('工程图谱还没有就绪');
+    expect(body.readiness.studentMessage).not.toContain('学习证据还不充分');
   });
 });

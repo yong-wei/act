@@ -7,10 +7,12 @@ import {
 import { getAdaptivePathAdvisorGoalContext } from '@/features/personalization/path-planning/public-api';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
 import {
+  adaptiveGenerationReadinessFromEngineeringGraphSelection,
   buildAdaptiveGenerationReadiness,
   type AdaptiveGenerationReadiness,
 } from '@/features/personalization/path-planning/public-api';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
+import { resolveEngineeringGraphProductionSelection } from '@/lib/versioned-knowledge-activation/resolve';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,12 +65,16 @@ export async function GET(request: Request) {
     }));
   }
 
+  const graphReadiness = adaptiveGenerationReadinessFromEngineeringGraphSelection(
+    resolveEngineeringGraphProductionSelection(),
+  );
+
   return NextResponse.json({
     goalId,
     classId,
     graphNodeId,
     modeContextToken,
-    readiness: buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor' }),
+    readiness: graphReadiness ?? buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor' }),
     ...goalContext,
   });
 }

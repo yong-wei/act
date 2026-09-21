@@ -1,14 +1,15 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 
 import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, type GerstnerWave } from './gerstner-waves';
 import { packHullExclusion, type HullExclusionBox } from './hull-exclusion';
 import { MAX_SHORE_SEGMENTS } from './gerstner-water-material';
 import type { MarineShoreSegment } from '../environment/scene-layouts';
+import { shorelineAmplitudeAttenuation } from '../environment/scene-layouts';
 import {
   bandCellSize,
   bandLimitWaves,
@@ -17,7 +18,9 @@ import {
   nearFieldEnvelope,
   type OceanMeshBandSpec,
 } from './ocean-bands';
-import { createGerstnerWaterMaterial } from './gerstner-water-material';
+import { createGerstnerWaterMaterial, cubeUvDefinesForHeight } from './gerstner-water-material';
+import { MarineFoamFieldProvider, useMarineFoamField } from './foam-history-layer';
+import { MarinePlanarReflection } from '../environment/planar-reflection';
 import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { DEFAULT_ENVIRONMENT_PRESET_ID, getEnvironmentPreset } from '../environment/environment-presets';
 import { simulationScenePalette } from '../../components/simulation-theme';
@@ -214,16 +217,25 @@ export interface VisibleWaterSurfaceQuery {
  * 近场可见曲面批量查询（#2098）：一次构建共享角点缓存，多点采样不再逐点新建
  * Map；带限波组 + 近场包络与 GPU 近场网格同一参数。
  */
+export interface NearFieldSurfaceQueryOptions {
+  /** 岸线段（#2117）：CPU 查询与 GPU 曲面同一衰减输入（缺省无衰减）。 */
+  readonly shoreSegments?: readonly MarineShoreSegment[];
+  readonly shoreFadeBandMeters?: number;
+}
+
 export function createNearFieldSurfaceQuery(
   amplitudeScale: number,
   originX: number,
   originZ: number,
   timeSeconds: number,
+  options?: NearFieldSurfaceQueryOptions,
 ): VisibleWaterSurfaceQuery {
   const mesh = NEAR_FIELD_MESH_SPEC;
   const cell = mesh.size / mesh.resolution;
   const half = mesh.size / 2;
   const lastCell = mesh.resolution - 1;
+  const shoreSegments = options?.shoreSegments;
+  const shoreFadeBand = options?.shoreFadeBandMeters ?? 400;
   const cornerCache = new Map<number, DisplacedVertex>();
   const heightAtLocal = (targetX: number, targetZ: number): number => {
     const baseI = Math.min(Math.max(Math.floor((targetX + half) / cell), 0), lastCell);
@@ -236,7 +248,11 @@ export function createNearFieldSurfaceQuery(
         const cornerLocalX = i * cell - half;
         const cornerLocalZ = j * cell - half;
         const cornerEnvelope = nearFieldEnvelope(cornerLocalX, cornerLocalZ, mesh.size);
-        vertex = displaceVertex(NEAR_FIELD_VISIBLE_WAVES, amplitudeScale * cornerEnvelope, cornerLocalX, cornerLocalZ, originX, originZ, timeSeconds);
+        // 岸线衰减（#2117）：与 GPU 顶点同一公式/输入——CPU/GPU 同一表面定义。
+        const shoreAttenuation = shoreSegments && shoreSegments.length > 0
+          ? shorelineAmplitudeAttenuation(shoreSegments, cornerLocalX + originX, cornerLocalZ + originZ, shoreFadeBand)
+          : 1;
+        vertex = displaceVertex(NEAR_FIELD_VISIBLE_WAVES, amplitudeScale * cornerEnvelope * shoreAttenuation, cornerLocalX, cornerLocalZ, originX, originZ, timeSeconds);
         cornerCache.set(key, vertex);
       }
       return vertex;
@@ -278,6 +294,26 @@ export function createGerstnerWaterGeometry(size: number, resolution: number): T
 /** 未显式传色时的默认水色组：与默认环境预设（开阔海）同一真源，不再各自硬编码。 */
 const DEFAULT_WATER_COLORS = getEnvironmentPreset(DEFAULT_ENVIRONMENT_PRESET_ID).water;
 
+/** QA 方向诊断（#2118）：?qa=marine-env 让环境倒影随时间旋转——证明水面
+ * 真在读环境（PMREM），而不是一片纯色天空的静态混色。 */
+const ENV_QA_SPIN =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('qa', 'marine-env');
+
+/** QA 旋转复用对象（与 three WebGLMaterials 同构：绕 Y 旋转 + transpose）。 */
+const ENV_QA_SPIN_MATRIX = new THREE.Matrix4();
+
+/** QA 浅水消费者关闭开关（#2119）：?qa-shallow=off——逐片元跳过岸线循环。 */
+const SHALLOW_QA_DISABLED =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-shallow') === 'off';
+
+/** QA 平面反射关闭开关（#2118）：?qa-planar=off。 */
+const PLANAR_QA_DISABLED =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-planar') === 'off';
+
+/** QA 归因开关（#2116）：?qa-micro=off 关闭全部微法线（挂载时解析一次）。 */
+const MICRO_QA_DISABLED =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-micro') === 'off';
+
 export interface GerstnerWaterProps {
   /** 质量档位：波分量数与网格细分随之缩放。 */
   readonly tier?: keyof typeof GERSTNER_WAVE_SETS;
@@ -304,6 +340,13 @@ export interface GerstnerWaterProps {
   readonly shoreFadeBandMeters?: number;
   /** 挖泥羽流（#2102 六轮复审）：合入水面片元着色（贴合动态波面）。 */
   readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
+  /** 实验重置令牌（#2115）：变化时清空泡沫历史场（与尾迹 key 同一重置源）。 */
+  readonly resetToken?: number;
+  /**
+   * 实验隔离（#2121 对照页）：跳过内置 60km 远场网格（由实验分支提供
+   * 统一的远场负载）。缺省 false（生产路径不变）。
+   */
+  readonly disableFarField?: boolean;
 }
 
 /** 单个带限水网格（#2098 内部组件）：几何/材质随波组与包络参数构建，逐帧写时间与原点。 */
@@ -353,6 +396,9 @@ function BandWaterMesh({
   readonly foamTexture: THREE.Texture;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const scene = useThree((state) => state.scene);
+  // 泡沫历史密度场（#2115）：宿主 Provider 注入；材质消费密度纹理，域原点逐帧跟随。
+  const foamField = useMarineFoamField();
 
   const geometry = useMemo(
     () => createGerstnerWaterGeometry(meshSpec.size, meshSpec.resolution),
@@ -372,11 +418,15 @@ function BandWaterMesh({
       envelopeSizeMeters,
       nearCutoutHalfSizeMeters,
       microNormalTier,
+      microEnabled: !MICRO_QA_DISABLED,
       sunIllumination,
       shoreSegments,
       shoreFadeBandMeters,
+      foamField: foamField
+        ? { texture: foamField.texture, domainMeters: foamField.domainMeters, resolution: foamField.field.resolution }
+        : null,
     }),
-    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, sunIllumination, shoreSegments, shoreFadeBandMeters]
+    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, sunIllumination, shoreSegments, shoreFadeBandMeters, foamField]
   );
   // 岸线段打包（#2102）：静态声明 → uniform 数组一次写入。
   useMemo(() => {
@@ -406,6 +456,60 @@ function BandWaterMesh({
       meshRef.current.position.x = sampled.x;
       meshRef.current.position.z = sampled.z;
       material.uniforms.uWorldOrigin.value.set(sampled.x, sampled.z);
+    }
+    if (material.uniforms.uShallowFxEnabled.value !== (SHALLOW_QA_DISABLED ? 0 : 1)) {
+      material.uniforms.uShallowFxEnabled.value = SHALLOW_QA_DISABLED ? 0 : 1;
+    }
+    // 泡沫场域原点（#2115）：域按量化步长重定位（非逐帧平移），材质按域原点采样。
+    if (foamField) {
+      material.uniforms.uFoamOrigin.value.set(foamField.field.originX, foamField.field.originZ);
+    }
+    // 环境辐射（#2118）：与船体 PBR 同一 PMREM（scene.userData 跨兄弟共享）。
+    // 首次绑定/高度变化时补 CubeUV defines 并重编译；QA 旋转诊断经
+    // envMapRotation 随视觉时间旋转采样方向。
+    const env = (scene.userData as { marineEnvRadiance?: { texture: THREE.Texture; cubeUVHeight: number; intensity: number } }).marineEnvRadiance;
+    if (env && material.uniforms.envMap.value !== env.texture) {
+      material.uniforms.envMap.value = env.texture;
+      material.uniforms.envMapIntensity.value = env.intensity;
+      material.uniforms.uEnvEnabled.value = 1;
+      let definesChanged = false;
+      if (material.defines.USE_ENVMAP === undefined) {
+        material.defines.USE_ENVMAP = '';
+        material.defines.ENVMAP_TYPE_CUBE_UV = '';
+        definesChanged = true;
+      }
+      const defines = cubeUvDefinesForHeight(env.cubeUVHeight);
+      for (const [key, value] of Object.entries(defines)) {
+        if (material.defines[key] !== value) {
+          material.defines[key] = value;
+          definesChanged = true;
+        }
+      }
+      if (definesChanged) material.needsUpdate = true;
+    } else if (!env && material.uniforms.uEnvEnabled.value !== 0) {
+      material.uniforms.uEnvEnabled.value = 0;
+      material.uniforms.envMapIntensity.value = 0;
+    }
+    if (ENV_QA_SPIN && material.uniforms.uEnvEnabled.value > 0) {
+      const angle = state.clock.getElapsedTime() * 0.4;
+      // 与船体同一路径（复审修复）：three WebGLMaterials 对内建材质把
+      // scene.environmentRotation 的旋转矩阵转置后传入 envMapRotation——水面
+      // uniform 按 setFromMatrix4(makeRotationFromEuler).transpose() 同构构建，
+      // 两侧方向特征一致（不一边正转一边反转）。
+      (material.uniforms.envMapRotation.value as THREE.Matrix3)
+        .setFromMatrix4(ENV_QA_SPIN_MATRIX.makeRotationY(angle))
+        .transpose();
+      scene.environmentRotation?.set(0, angle, 0);
+    }
+    // 平面反射（#2118 受控高档）：反射组件经 scene.userData 提供纹理矩阵。
+    const planar = (scene.userData as { marinePlanarReflection?: { texture: THREE.Texture; matrix: THREE.Matrix4; strength: number; planeY: number } }).marinePlanarReflection;
+    if (planar) {
+      material.uniforms.uPlanarTex.value = planar.texture;
+      (material.uniforms.uPlanarMatrix.value as THREE.Matrix4).copy(planar.matrix);
+      material.uniforms.uPlanarStrength.value = planar.strength;
+      material.uniforms.uPlanarPlaneY.value = planar.planeY;
+    } else if (material.uniforms.uPlanarStrength.value !== 0) {
+      material.uniforms.uPlanarStrength.value = 0;
     }
     // 船壳排水排除（#2101）：逐帧写入船体局部框与船朝向（跟船网格原点=船位）。
     if (hullExclusionSampler) {
@@ -445,6 +549,8 @@ export function GerstnerWater({
   tier = 'high',
   shipPosition,
   positionSampler,
+  resetToken,
+  disableFarField = false,
   seaState = DEFAULT_GERSTNER_SEA_STATE,
   waterColor = DEFAULT_WATER_COLORS.waterColor,
   deepColor = DEFAULT_WATER_COLORS.deepColor,
@@ -470,30 +576,51 @@ export function GerstnerWater({
   const farSpec = useMemo(() => farFieldMeshSpecForTier(tier), [tier]);
 
   return (
-    <group>
-      <BandWaterMesh
-        waves={farWaves}
-        meshSpec={farSpec}
-        amplitudeScale={amplitudeScale}
-        envelopeSizeMeters={0}
-        nearCutoutHalfSizeMeters={NEAR_FIELD_MESH_SPEC.size / 2}
-        microNormalTier="low"
-        sunIllumination={sunIllumination}
-        hullExclusionSampler={hullExclusionSampler}
-        shipHeadingSampler={shipHeadingSampler}
-        shoreSegments={shoreSegments}
-        shoreFadeBandMeters={shoreFadeBandMeters}
-        sedimentPlume={null}
-        marineVisualTime={marineVisualTime}
-        positionSampler={positionSampler}
-        shipPosition={shipPosition}
-        waterColor={waterColor}
-        deepColor={deepColor}
-        horizonColor={horizonColor}
-        foamColor={foamColor}
-        sunDirection={sunDirection}
-        foamTexture={foamTexture}
+    // 泡沫历史场宿主（#2115）：每场景一个跟船密度场；场内尾迹沉积、自然白浪
+    // 注入与水面材质消费共用同一状态（Canvas 内 WakeTrail 经 context 接入）。
+    <MarineFoamFieldProvider
+      tier={tier}
+      seaState={seaState}
+      waves={NEAR_FIELD_VISIBLE_WAVES}
+      amplitudeScale={amplitudeScale}
+      positionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
+      resetToken={resetToken}
+    >
+      {/* 受控高档平面反射（#2118）：高档且未显式关闭时启用（运动触发更新）。 */}
+      <MarinePlanarReflection
+        planeY={GERSTNER_WATER_BASE_Y}
+        enabled={tier === 'high' && !PLANAR_QA_DISABLED}
+        subjectPositionSampler={positionSampler ?? (shipPosition ? () => shipPosition : undefined)}
+        subjectHeadingSampler={shipHeadingSampler}
       />
+      <group name="marine-water">
+      {disableFarField ? null : (
+        <BandWaterMesh
+          waves={farWaves}
+          meshSpec={farSpec}
+          amplitudeScale={amplitudeScale}
+          envelopeSizeMeters={0}
+          nearCutoutHalfSizeMeters={NEAR_FIELD_MESH_SPEC.size / 2}
+          /* #2116 复审：远场与近场同微法线档——接缝两侧光学连续（高 DPR/窄 FOV
+             下近场边缘微法线可达满幅；远距离由脚印过滤自然衰减 + 能量补偿）。 */
+          microNormalTier={tier}
+          sunIllumination={sunIllumination}
+          hullExclusionSampler={hullExclusionSampler}
+          shipHeadingSampler={shipHeadingSampler}
+          shoreSegments={shoreSegments}
+          shoreFadeBandMeters={shoreFadeBandMeters}
+          sedimentPlume={null}
+          marineVisualTime={marineVisualTime}
+          positionSampler={positionSampler}
+          shipPosition={shipPosition}
+          waterColor={waterColor}
+          deepColor={deepColor}
+          horizonColor={horizonColor}
+          foamColor={foamColor}
+          sunDirection={sunDirection}
+          foamTexture={foamTexture}
+        />
+      )}
       <BandWaterMesh
         waves={NEAR_FIELD_VISIBLE_WAVES}
         meshSpec={NEAR_FIELD_MESH_SPEC}
@@ -517,6 +644,68 @@ export function GerstnerWater({
         sunDirection={sunDirection}
         foamTexture={foamTexture}
       />
-    </group>
+      </group>
+    </MarineFoamFieldProvider>
+  );
+}
+
+/**
+ * 帧记忆化的近场水高采样 hook（#2117）：统一时间源与表面输入。
+ *
+ * - 时间 = 共享视觉时钟（useMarineVisualTime：Provider 场景同帧唯一、暂停/倍速
+ *   政策一致；无 Provider 场景回退 R3F 时钟——清除各 rig 的独立 wall-clock 旁路）。
+ * - 表面 = createNearFieldSurfaceQuery（带限波组 + 包络 + 岸线衰减），与 GPU
+ *   近场网格同一参数；同一 (time, origin, 参数) 只构建一次查询，本帧多点共享角点缓存。
+ */
+export function useNearFieldWaterHeight({
+  positionSampler,
+  seaState = DEFAULT_GERSTNER_SEA_STATE,
+  shoreSegments,
+  shoreFadeBandMeters = 400,
+}: {
+  readonly positionSampler: () => { readonly x: number; readonly z: number } | undefined;
+  readonly seaState?: number;
+  readonly shoreSegments?: readonly MarineShoreSegment[];
+  readonly shoreFadeBandMeters?: number;
+}): (x?: number, z?: number) => number {
+  const marineVisualTime = useMarineVisualTime();
+  const timeRef = useRef(0);
+  const cacheRef = useRef<{
+    key: string;
+    query: ReturnType<typeof createNearFieldSurfaceQuery>;
+  } | null>(null);
+  useEffect(() => {
+    // 重挂载（resetToken key）时丢弃旧查询缓存。
+    cacheRef.current = null;
+  }, []);
+  useFrame((state, delta) => {
+    timeRef.current = marineVisualTime(state, delta);
+  });
+  const amplitudeScale = gerstnerAmplitudeScale(seaState);
+  const paramsKey = `${amplitudeScale}|${shoreFadeBandMeters}|${shoreSegments?.length ?? 0}`;
+  return useCallback(
+    (x?: number, z?: number) => {
+      const origin = positionSampler();
+      if (!origin) return GERSTNER_WATER_BASE_Y;
+      const key = `${timeRef.current}|${origin.x}|${origin.z}|${paramsKey}`;
+      let cached = cacheRef.current;
+      if (!cached || cached.key !== key) {
+        cached = {
+          key,
+          query: createNearFieldSurfaceQuery(
+            amplitudeScale,
+            origin.x,
+            origin.z,
+            timeRef.current,
+            shoreSegments && shoreSegments.length > 0
+              ? { shoreSegments, shoreFadeBandMeters }
+              : undefined,
+          ),
+        };
+        cacheRef.current = cached;
+      }
+      return cached.query.heightAt(x ?? origin.x, z ?? origin.z);
+    },
+    [positionSampler, amplitudeScale, paramsKey, shoreSegments, shoreFadeBandMeters],
   );
 }

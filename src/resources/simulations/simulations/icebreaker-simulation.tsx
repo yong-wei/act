@@ -32,7 +32,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -177,11 +177,18 @@ function IcebreakerModel(props: {
   simRef: MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
+  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
+  const waterHeight = useNearFieldWaterHeight({
+    positionSampler: () => props.position,
+    seaState: 3,
+  });
+
   return (
     <VersionedFleetShip
       logicalId="icebreaker"
       simRef={props.simRef}
       position={props.position}
+      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
       headingRad={props.heading}
       sceneLengthMeters={XUELONG_ICEBREAKER_PARAMS.LENGTH}
       resetToken={props.resetToken}
@@ -229,7 +236,7 @@ function HeadingIndicator({
   const endZ = position.z + Math.cos(headingRad) * length;
 
   return (
-    <Line
+    <Line name="marine-annotations"
       points={[
         [position.x, 5, position.z],
         [endX, 5, endZ],
@@ -275,17 +282,20 @@ function SceneQualityAttributes() {
 }
 
 /** 海面颜色随环境预设、细分随质量档位的桥接组件。 */
-function IcebreakerWater({ position }: { position: Vector2 }) {
+function IcebreakerWater({ position, heading, resetToken }: { position: Vector2; heading: number; resetToken: number }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: position.x, z: position.z })}
+      shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(heading))}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      seaState={3}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
@@ -306,26 +316,33 @@ function WakeTrailRig({
   playing: boolean;
   resetToken: number;
 }) {
+  const environmentLight = useEnvironmentWaterColors();
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
-  const { tier, params } = useSceneQuality();
+  const { tier } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [position.x, 0, position.z];
     transformRef.current.heading = platformHeadingToSceneRad(toDegrees(heading));
-    timeRef.current = frameState.clock.getElapsedTime();
+  });
+
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: position.x, z: position.z }),
+    seaState: 3,
   });
 
   if (!wakeVisible) return null;
   return (
     <WakeTrail
+      sunDirection={environmentLight.sunDirection}
+      sunIllumination={environmentLight.sunIllumination}
       key={resetToken}
       profile={icebreakerXuelongSceneVisual}
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      waterYSampler={waterYSampler}
       worldSpeedSampler={() => speed}
     />
   );
@@ -414,7 +431,7 @@ function Scene({
       <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'icebreaker', cameraView: String(cameraMode), seaState: 3 })} />
       <Suspense fallback={null}>
-        <IcebreakerWater position={position} />
+        <IcebreakerWater position={position} heading={heading} resetToken={resetToken} />
       </Suspense>
 
       <Suspense
@@ -440,7 +457,7 @@ function Scene({
       <WakeTrailRig position={position} heading={heading} speed={speed} playing={playing} resetToken={resetToken} />
 
       {showGrid ? (
-        <Grid
+        <Grid name="marine-grid"
           position={[0, 0.35, 0]}
           args={[20000, 20000]}
           cellSize={100}

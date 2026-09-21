@@ -5,7 +5,7 @@
  * MSC Tessa 超大型集装箱船 - 变质量 + 风载荷 + 增益调度
  */
 
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -35,7 +35,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
@@ -105,64 +105,6 @@ interface ContainerSimulationState {
   currentT: number;
 }
 
-// ============ 海面组件 ============
-
-function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  useFrame(({ clock }) => {
-    if (meshRef.current && meshRef.current.material instanceof THREE.ShaderMaterial) {
-      meshRef.current.material.uniforms.time.value = clock.getElapsedTime();
-    }
-  });
-
-  const shaderMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      uniforms: {
-        time: { value: 0 },
-        waterColor: { value: new THREE.Color(sceneTheme.waterColor) },
-        foamColor: { value: new THREE.Color(simulationScenePalette.white) },
-      },
-      vertexShader: `
-        uniform float time;
-        varying vec2 vUv;
-        varying float vElevation;
-
-        void main() {
-          vUv = uv;
-          vec3 pos = position;
-          float wave1 = sin(pos.x * 0.015 + time * 0.4) * 2.5;
-          float wave2 = sin(pos.z * 0.02 + time * 0.25) * 2.0;
-          float wave3 = sin((pos.x + pos.z) * 0.012 + time * 0.35) * 1.5;
-          pos.y += wave1 + wave2 + wave3;
-          vElevation = pos.y;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 waterColor;
-        uniform vec3 foamColor;
-        varying vec2 vUv;
-        varying float vElevation;
-
-        void main() {
-          float foam = smoothstep(3.0, 5.0, vElevation);
-          vec3 color = mix(waterColor, foamColor, foam * 0.25);
-          gl_FragColor = vec4(color, 0.9);
-        }
-      `,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
-  }, [sceneTheme.waterColor]);
-
-  return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} material={shaderMaterial}>
-      <planeGeometry args={[25000, 25000, 128, 128]} />
-    </mesh>
-  );
-}
-
 // ============ 集装箱船模型组件 ============
 
 function containerDraftMeters(loadRatio: number): number {
@@ -179,12 +121,20 @@ function ContainerShipModel(props: {
   simRef: React.MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
+  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
+  const waterHeight = useNearFieldWaterHeight({
+    positionSampler: () => props.position,
+    seaState: 3,
+      shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
+  });
+
   const currentDraft = containerDraftMeters(props.loadRatio);
   return (
     <VersionedFleetShip
       logicalId="container"
       simRef={props.simRef}
       position={props.position}
+      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
       headingRad={props.heading}
       extraEuler={{ z: props.rollAngle }}
       sceneLengthMeters={CONTAINER_MSC_PARAMS.LENGTH}
@@ -223,7 +173,7 @@ function WindIndicator({
   ];
 
   return (
-    <Line
+    <Line name="marine-annotations"
       points={[[position.x, 100, position.z], end]}
       color={simulationScenePalette.headingSecondary}
       lineWidth={3}
@@ -276,23 +226,23 @@ function HeadingIndicator({
   return (
     <>
       {/* 目标航向 - 橙色虚线箭头 */}
-      <Line
+      <Line name="marine-annotations"
         points={[[position.x, 2, position.z], targetEnd]}
         color={simulationScenePalette.containerTarget}
         lineWidth={2}
         dashed
         dashScale={30}
       />
-      <Line points={[targetWings.left, targetEnd]} color={simulationScenePalette.containerTarget} lineWidth={2} />
-      <Line points={[targetWings.right, targetEnd]} color={simulationScenePalette.containerTarget} lineWidth={2} />
+      <Line name="marine-annotations" points={[targetWings.left, targetEnd]} color={simulationScenePalette.containerTarget} lineWidth={2} />
+      <Line name="marine-annotations" points={[targetWings.right, targetEnd]} color={simulationScenePalette.containerTarget} lineWidth={2} />
       {/* 当前航向 - 深橙色实线箭头 */}
-      <Line
+      <Line name="marine-annotations"
         points={[[position.x, 2, position.z], currentEnd]}
         color={simulationScenePalette.containerPrimary}
         lineWidth={3}
       />
-      <Line points={[currentWings.left, currentEnd]} color={simulationScenePalette.containerPrimary} lineWidth={3} />
-      <Line points={[currentWings.right, currentEnd]} color={simulationScenePalette.containerPrimary} lineWidth={3} />
+      <Line name="marine-annotations" points={[currentWings.left, currentEnd]} color={simulationScenePalette.containerPrimary} lineWidth={3} />
+      <Line name="marine-annotations" points={[currentWings.right, currentEnd]} color={simulationScenePalette.containerPrimary} lineWidth={3} />
     </>
   );
 }
@@ -549,18 +499,21 @@ function SceneQualityAttributes() {
 }
 
 /** 海面颜色随环境预设、细分随质量档位的桥接组件。 */
-function ContainerWater({ state }: { state: ContainerSimulationState }) {
+function ContainerWater({ state, resetToken }: { state: ContainerSimulationState; resetToken: number }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      shipHeadingSampler={() => platformHeadingToSceneRad(state.heading)}
       shoreSegments={MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      seaState={3}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
@@ -577,26 +530,34 @@ function WakeTrailRig({
   playing: boolean;
   resetToken: number;
 }) {
+  const environmentLight = useEnvironmentWaterColors();
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
-  const { tier, params } = useSceneQuality();
+  const { tier } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [state.position.x, 0, state.position.z];
     transformRef.current.heading = platformHeadingToSceneRad(state.heading);
-    timeRef.current = frameState.clock.getElapsedTime();
+  });
+
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义（含岸线衰减）。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: state.position.x, z: state.position.z }),
+    seaState: 3,
+    shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
   });
 
   if (!wakeVisible) return null;
   return (
     <WakeTrail
+      sunDirection={environmentLight.sunDirection}
+      sunIllumination={environmentLight.sunIllumination}
       key={resetToken}
       profile={containerMscSceneVisual}
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y * shorelineAmplitudeAttenuation(MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments, x ?? 0, z ?? 0, 400)}
+      waterYSampler={waterYSampler}
       worldSpeedSampler={() => state.speed}
     />
   );
@@ -660,12 +621,12 @@ function Scene({
       <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'container', cameraView: String(cameraMode), seaState: 3 })} />
       <Suspense fallback={null}>
-        <ContainerWater state={state} />
+        <ContainerWater state={state} resetToken={resetToken} />
       </Suspense>
 
       {/* 参考网格 */}
       {showGrid ? (
-        <Grid
+        <Grid name="marine-grid"
           args={[20000, 20000]}
           cellSize={100}
           cellThickness={0.5}
@@ -744,6 +705,7 @@ function Scene({
 // ============ 主仿真组件 ============
 
 export default function ContainerSimulation() {
+  const timeRef = useRef(0);
   // 仿真引擎
   const engineRef = useRef<ContainerShipEngine | null>(null);
   const frameRef = useRef<number>(0);
@@ -764,7 +726,6 @@ export default function ContainerSimulation() {
     speed: CONTAINER_MSC_PARAMS.CRUISE_SPEED,
   });
   const speedScaleRef = useRef(1);
-  const timeRef = useRef(0);
   const lastHudUpdateRef = useRef(0);
   const bindingRef = useRef<BindingTelemetrySource>({
     rudderDeg: 0,
@@ -878,8 +839,8 @@ export default function ContainerSimulation() {
       if (Math.floor(timeRef.current) !== Math.floor(nextTime)) {
         setTrajectory(prev => [...prev.slice(-300), nextPosition]);
       }
-
       timeRef.current = nextTime;
+
       // HUD/图表 setState 0.1s 节流（对齐 destroyer 口径）；被跳过的帧
       // 仅推进 timeRef，不再触发整树渲染。
       if (nextTime - lastHudUpdateRef.current > 0.1) {

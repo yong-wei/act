@@ -3858,7 +3858,8 @@ export default function AdaptivePracticePage() {
             setPathAdvisorReadiness(readAdaptiveGenerationReadiness(payload) ?? adaptiveGenerationReadinessFromHttp({
               status: response.status,
               source: 'path-advisor',
-              fallbackReason: response.status === 401 ? 'auth-required' : 'service-unavailable',
+              error: typeof payload.error === 'string' ? payload.error : null,
+              fallbackReason: response.status === 401 ? 'auth-required' : undefined,
             }));
           }
           return;

@@ -67,6 +67,7 @@ import {
   NEAR_FIELD_MESH_SPEC,
   NEAR_FIELD_VISIBLE_WAVES,
   sampleVisibleWaterHeight,
+  useNearFieldWaterHeight,
 } from '../scene/water';
 import {
   computeVisualWaterPose,
@@ -78,7 +79,11 @@ import {
   MarineFrameProvider,
   useMarineFrameRunner,
 } from '../scene/frame/marine-frame-provider';
-import { WakeTrail } from '../scene/wake';
+import {
+  allocateWakeCapacities,
+  WakeTrail,
+  wakeSceneCapacityForTier,
+} from '../scene/wake';
 import {
   EnvironmentScene,
   MarineSceneLayoutObjects,
@@ -413,11 +418,12 @@ const DESTROYER_055_HULL_EXCLUSION: readonly HullExclusionBox[] = [
   { centerX: 0, centerZ: 0, halfX: 82, halfZ: 9 },
 ];
 
-function PresetWater({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
+function PresetWater({ simRef, resetToken }: { simRef: React.MutableRefObject<SimulationState>; resetToken: number }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
     <GerstnerWater
+      resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })}
       hullExclusionSampler={() => DESTROYER_055_HULL_EXCLUSION}
@@ -478,7 +484,7 @@ function GridHelper({
   return (
     <group ref={gridRef}>
       {lines.map((points, i) => (
-        <Line key={i} points={points} color={sceneTheme.gridCellColor} lineWidth={1.0} transparent opacity={sceneTheme.gridOpacity} />
+        <Line name="marine-annotations" key={i} points={points} color={sceneTheme.gridCellColor} lineWidth={1.0} transparent opacity={sceneTheme.gridOpacity} />
       ))}
     </group>
   );
@@ -486,7 +492,7 @@ function GridHelper({
 
 function GuideRoute({ points }: { points: THREE.Vector3[] }) {
   if (!points || points.length < 2) return null;
-  return <Line points={points} color={simulationScenePalette.danger} lineWidth={3} dashed={false} />;
+  return <Line name="marine-guide" points={points} color={simulationScenePalette.danger} lineWidth={3} dashed={false} />;
 }
 
 /** QA 钩子：把质量档位与派生预算暴露为 DOM 属性（性能 spec 与视觉 QA 消费）。 */
@@ -544,8 +550,8 @@ function WakeTrailRig({
   propWakeRef: PropWakeAnchorsRef;
 }) {
   const { wakeVisible } = useSceneEnvironment();
+  const environmentLight = useEnvironmentWaterColors();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const timeRef = useRef(0);
   const { tier, params } = useSceneQuality();
 
   // 版本化包声明推进器时逐桨一条航迹；无声明（旧链/回退）保持 profile 单航迹。
@@ -554,42 +560,39 @@ function WakeTrailRig({
     ? propulsorSceneAnchors(descriptor, destroyer055SceneVisual.shipLengthMeters)
     : [];
 
+  // 全场容量硬预算（#2115）：多桨共用场景总容量（分配与活跃均 Σ≤总容量），
+  // 份额仍只驱动发射分布（budgetShare）——两者互补，不再各分整档容量。
+  // propulsorAnchors 每渲染由描述符查表重建；分配只依赖数量与档位，按其缓存。
+  const propulsorCount = propulsorAnchors.length;
+  const propulsorCapacities = useMemo(
+    () => allocateWakeCapacities(
+      new Array(Math.max(1, propulsorCount)).fill(1 / Math.max(1, propulsorCount)),
+      wakeSceneCapacityForTier(tier),
+    ),
+    [propulsorCount, tier],
+  );
+
   useFrame((state) => {
     const sim = simRef.current;
     transformRef.current.position = [sim.position.x, sim.position.y, sim.position.z];
     transformRef.current.heading = platformHeadingToSceneRad(toDegrees(sim.headingRad));
-    timeRef.current = state.clock.getElapsedTime();
   });
 
   // 尾迹贴水（#2098）：近场可见曲面（带限波组 + 包络，档位无关），与 GPU 近场网格同参数。
   // 每帧（时间/原点键）只构建一次查询：本帧全部粒子共享同一角点缓存（复审修复）。
   // 七轮复审修复：缓存 Hook 必须位于 wakeVisible 提前返回之前（条件返回后 Hook 数量不得变化）。
-  const wakeQueryCacheRef = useRef<{ key: string; query: ReturnType<typeof createNearFieldSurfaceQuery> } | null>(null);
-  const waterYSampler = (x?: number, z?: number) => {
-    const origin = simRef.current.position;
-    const key = `${timeRef.current}|${origin.x}|${origin.z}`;
-    let cached = wakeQueryCacheRef.current;
-    if (!cached || cached.key !== key) {
-      cached = {
-        key,
-        query: createNearFieldSurfaceQuery(
-          gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
-          origin.x,
-          origin.z,
-          timeRef.current,
-        ),
-      };
-      wakeQueryCacheRef.current = cached;
-    }
-    return cached.query.heightAt(x ?? origin.x, z ?? origin.z);
-  };
+  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义。
+  const waterYSampler = useNearFieldWaterHeight({
+    positionSampler: () => ({ x: simRef.current.position.x, z: simRef.current.position.z }),
+    seaState: DEFAULT_GERSTNER_SEA_STATE,
+  });
 
   if (!wakeVisible) return null;
 
   if (propulsorAnchors.length > 0) {
     return (
       <>
-        {propulsorAnchors.map(({ id, anchor }) => (
+        {propulsorAnchors.map(({ id, anchor }, index) => (
           <WakeTrail
             key={`${resetToken}-${id}`}
             profile={{
@@ -610,6 +613,9 @@ function WakeTrailRig({
               return world ? [world.x, world.y, world.z] : null;
             }}
             budgetShare={0.5}
+            capacity={propulsorCapacities[index]}
+            sunDirection={environmentLight.sunDirection}
+            sunIllumination={environmentLight.sunIllumination}
           />
         ))}
       </>
@@ -625,16 +631,21 @@ function WakeTrailRig({
       playing={playing}
       waterYSampler={waterYSampler}
       worldSpeedSampler={() => (simRef.current.advancing ? simRef.current.speedMps : 0)}
+      sunDirection={environmentLight.sunDirection}
+      sunIllumination={environmentLight.sunIllumination}
     />
   );
 }
 
 declare global {
   interface Window {
+    /** QA 重观测开关（#2120）：置 true 才逐帧 Box3/骨骼校验（普通运行零热点）。 */
+    __destroyerModelVisualProbe?: boolean;
     __destroyerModelVisual?: {
       url: string;
-      boxInView: boolean;
-      skinnedIntact: boolean;
+      /** 重观测关闭时为 undefined（不做逐帧 Box3/骨骼遍历）。 */
+      boxInView?: boolean;
+      skinnedIntact?: boolean;
       /** 仿真推进门控（QA 观测面）：false 时桨/天线/尾迹发射全部静止。 */
       advancing?: boolean;
       /** 左右桨节点局部四元数（QA 观测面：桨转速连续性/静止判定）。 */
@@ -790,20 +801,39 @@ function DestroyerModelScene({
       write(propNodes.starboard, 'starboard');
     }
 
+    // QA 门控（#2120 复审）：普通浏览器运行不做逐帧全模型 Box3 遍历与骨骼
+    // 绑定校验（热点成本）——页面置 window.__destroyerModelVisualProbe = true
+    // 才执行重观测；轻量字段（推进四元数/推进门控）始终写入。
     if (typeof window !== 'undefined') {
-      const box = new THREE.Box3().setFromObject(groupRef.current);
-      window.__destroyerModelVisual = {
-        url,
-        boxInView: boxProjectsInsideNdc(camera, box),
-        skinnedIntact: skinnedBindingsIntact(model),
-        advancing: sim.advancing,
+      const probe = window.__destroyerModelVisualProbe === true;
+      if (probe) {
+        const box = new THREE.Box3().setFromObject(groupRef.current);
+        window.__destroyerModelVisual = {
+          url,
+          boxInView: boxProjectsInsideNdc(camera, box),
+          skinnedIntact: skinnedBindingsIntact(model),
+          advancing: sim.advancing,
         propPortQuat: propNodes.port
           ? [propNodes.port.quaternion.x, propNodes.port.quaternion.y, propNodes.port.quaternion.z, propNodes.port.quaternion.w]
           : null,
         propStarboardQuat: propNodes.starboard
           ? [propNodes.starboard.quaternion.x, propNodes.starboard.quaternion.y, propNodes.starboard.quaternion.z, propNodes.starboard.quaternion.w]
           : null,
-      };
+        };
+      } else {
+        window.__destroyerModelVisual = {
+          url,
+          advancing: sim.advancing,
+          propPortQuat: propNodes.port
+            ? [propNodes.port.quaternion.x, propNodes.port.quaternion.y, propNodes.port.quaternion.z, propNodes.port.quaternion.w]
+            : null,
+          propStarboardQuat: propNodes.starboard
+            ? [propNodes.starboard.quaternion.x, propNodes.starboard.quaternion.y, propNodes.starboard.quaternion.z, propNodes.starboard.quaternion.w]
+            : null,
+          boxInView: undefined,
+          skinnedIntact: undefined,
+        };
+      }
     }
   });
 
@@ -1591,7 +1621,7 @@ export default function DestroyerSimulation() {
         <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'destroyer', cameraView: String(cameraMode), seaState: 3 })} />
         <Suspense fallback={null}>
-          <PresetWater simRef={simRef} />
+          <PresetWater simRef={simRef} resetToken={resetToken} />
         </Suspense>
         {showGrid ? <GridHelper simRef={simRef} sceneTheme={sceneTheme} /> : null}
         <GuideRoute points={guidePath} />

@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-09-17
-摘要: 生产应用 `v0.7.27-dbf94d9`（`origin/main` `dbf94d9fbc…`）已部署；Runtime 仍为 `runtime-b24b84a4…`。教材章节可记录完成，资源预览不再重复整节自锚点。不要 archive OpenSpec，不要关 #1033。
+最后更新: 2026-09-18
+摘要: 生产应用 `v0.7.28-370b068`（`origin/main` `370b06840c…`）已部署；Runtime 仍为 `runtime-b24b84a4…`。教材预览分层渲染，「学习下一个」进入下一资源预览，阅读器可折叠/最大化。不要 archive OpenSpec，不要关 #1033。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -16,6 +16,7 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-09-18 生产应用 `v0.7.28-370b068` 已 `deploy:app --skip-build`：冻结 `origin/main` `370b06840cbc9953dd1ac731441650275ecf459d`，镜像 `localhost/act-obe-platform:0.7.28-370b068`，tar SHA256 `809ea5dbc1b0f5e63b923e749eae0f3a925bb4de2e6dd44e89f2512f4cc01f4f`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.28。教材节预览改为标题/正文摘录/知识点列表并渲染公式；「学习下一个」进入下一资源预览页；阅读器可收起目录、侧栏并最大化。公网 `/`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`（tree `e7fb21aad691…`）。绑定仍为 `control-theory-engineering-v0.48-b55` hash `5db90c74…`。不要 archive OpenSpec，不要关 #1033。
 - 2026-09-17 生产应用 `v0.7.27-dbf94d9` 已 `deploy:app --skip-build`：冻结 `origin/main` `dbf94d9fbc7278950a9b76a61d9f7b5d614861e2`，镜像 `localhost/act-obe-platform:0.7.27-dbf94d9`，tar SHA256 `e80e57694e6269dcb16b01fe176842776c235297376c5eea9918cf7c822a43b0`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.27。教材 `route` 资源与独立教材阅读页可点「我已完成阅读」；路径中心打开后可「已学习该资料，继续路径」；发布资源预览隐藏整节自锚点并去重。公网 `/`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`（tree `e7fb21aad691…`）。绑定仍为 `control-theory-engineering-v0.48-b55` hash `5db90c74…`。不要 archive OpenSpec，不要关 #1033。
 - 2026-09-17 生产应用 `v0.7.26-e09f2f9` 已 `deploy:app --skip-build`：冻结 `origin/main` `e09f2f99cddecfe5401317073e8ae12e0804028a`，镜像 `localhost/act-obe-platform:0.7.26-e09f2f9`，tar SHA256 `df81d7a3b205d032c509f5f65f4b6098ae72f909771765fbc96f2af2ee7640a2`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.26。已完成路径节点「回顾 / 继续互动」打开规范地址；学生证据不再回显内部标识。公网 `/`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`（tree `e7fb21aad691…`）。不要 archive OpenSpec，不要关 #1033。
 - 2026-09-17 生产应用 `v0.7.25-af5fc7a` 已 `deploy:app --skip-build`：冻结 `origin/main` `af5fc7afcc2bc25f3604a2c394ce43d2b5ffc6bb`，镜像 `localhost/act-obe-platform:0.7.25-af5fc7a`，tar SHA256 `7edea23b7b80bdfd02e293a22a0ecebf98d45da0d86b7de2410c6b58380f969b`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.25。Runtime `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`（source `af5fc7afcc`，tree `e7fb21aad691…`，previous `runtime-32868ff…`）已 activate。公网 `/api/readyz` 的 runtime identity 与该 release 一致；容器绑定 `control-theory-engineering-v0.48-b55` hash `5db90c74…`，blob-view 与 hot-index 一致。检查器首页可展开、路径纳入同伴信息图。不要 archive OpenSpec，不要关 #1033。
