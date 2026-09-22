@@ -18,6 +18,12 @@ declare global {
       reset: () => void;
       step: (dtSeconds: number) => void;
       setRunMode: (mode: 'performance' | 'visual') => void;
+      setShallowEnabled?: (enabled: boolean) => void;
+      optics?: () => {
+        profile: 'neutral' | 'shared';
+        shallowEnabled: boolean;
+        shallowPassAllocated: boolean;
+      };
       capture: () => {
         visualTimeSeconds: number;
         waterHeightOrigin: number;
@@ -119,6 +125,34 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     expect(pair.first.queryBackend).toBe('gerstner');
     expect(pair.second.visualTimeSeconds).toBeCloseTo(pair.first.visualTimeSeconds, 5);
     expect(pair.second.waterHeightOrigin).toBeCloseTo(pair.first.waterHeightOrigin, 5);
+  });
+
+  test('feature-parity shallow refraction changes the visible water color', async ({ page }) => {
+    await page.goto(`${PAGE}?backend=fft&scene=feature-parity`, { waitUntil: 'domcontentloaded' });
+    await waitForLab(page);
+    await page.waitForFunction(() => window.__marineComparisonLab?.optics?.().profile === 'shared', { timeout: 30_000 });
+    const before = await page.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      if (!canvas) return null;
+      const gl = canvas.getContext('webgl2');
+      if (!gl) return null;
+      const pixels = new Uint8Array(4);
+      gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      return Array.from(pixels);
+    });
+    await page.evaluate(() => window.__marineComparisonLab?.setShallowEnabled?.(false));
+    await page.waitForFunction(() => window.__marineComparisonLab?.optics?.().shallowPassAllocated === false, { timeout: 10_000 });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const after = await page.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      if (!canvas) return null;
+      const gl = canvas.getContext('webgl2');
+      if (!gl) return null;
+      const pixels = new Uint8Array(4);
+      gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      return Array.from(pixels);
+    });
+    expect(before).not.toEqual(after);
   });
 
   test('failed vessel load is reported and does not fall back to a success box', async ({ page }) => {

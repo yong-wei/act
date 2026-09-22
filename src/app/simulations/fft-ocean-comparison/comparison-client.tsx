@@ -32,15 +32,21 @@ import {
   fftOceanStaticSpectrum,
 } from '@/resources/simulations/scene/water/fft-ocean';
 import { createFFTQueryWorker } from '@/resources/simulations/scene/water/fft-query-worker';
+import { MarineShallowBackdrop, COMPARISON_SUN_DIRECTION } from '@/resources/simulations/scene/water/shared-water-optics';
+import { MarinePlanarReflection } from '@/resources/simulations/scene/environment/planar-reflection';
+import { MarineFoamFieldProvider } from '@/resources/simulations/scene/water/foam-history-layer';
 import {
   GerstnerWater,
   GERSTNER_WATER_BASE_Y,
   createNearFieldSurfaceQuery,
   gerstnerAmplitudeScale,
+  NEAR_FIELD_VISIBLE_WAVES,
 } from '@/resources/simulations/scene/water';
 import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
 import {
   COMPARISON_BOW_OFFSET_METERS,
+  COMPARISON_FEATURE_MATRIX,
+  COMPARISON_SHORE_SEGMENT,
   COMPARISON_MISSING_VESSEL_URL,
   COMPARISON_QUERY_SPAN_METERS,
   COMPARISON_SPECTRUM_INPUT,
@@ -54,6 +60,7 @@ import {
   type ComparisonLabApi,
   type ComparisonLabCapture,
   type ComparisonLabIdentity,
+  type ComparisonOpticsState,
   type ComparisonQueryMetrics,
   type ComparisonRunMode,
   type ComparisonSceneId,
@@ -321,6 +328,8 @@ function ComparisonLabBridge({
   identityRef,
   runModeRef,
   setResetToken,
+  setShallowEnabled,
+  opticsRef,
 }: {
   readonly backend: ComparisonBackend;
   readonly scene: ComparisonSceneId;
@@ -330,6 +339,8 @@ function ComparisonLabBridge({
   readonly identityRef: React.MutableRefObject<ComparisonLabIdentity>;
   readonly runModeRef: React.MutableRefObject<ComparisonRunMode>;
   readonly setResetToken: (updater: (value: number) => number) => void;
+  readonly setShallowEnabled: (enabled: boolean) => void;
+  readonly opticsRef: React.MutableRefObject<ComparisonOpticsState>;
 }) {
   const runner = useMarineFrameRunner();
   const [firstFrameReady, setFirstFrameReady] = useState(false);
@@ -416,12 +427,16 @@ function ComparisonLabBridge({
       },
       identity: () => identityRef.current,
       queryMetrics: () => metricsRef.current,
+      setShallowEnabled: (enabled: boolean) => {
+        setShallowEnabled(enabled);
+      },
+      optics: (): ComparisonOpticsState => opticsRef.current,
     };
     window.__marineComparisonLab = api;
     return () => {
       delete window.__marineComparisonLab;
     };
-  }, [identityRef, metricsRef, pitchRef, runner, runModeRef, sampleDisplacement, samplesRef, setResetToken]);
+  }, [identityRef, metricsRef, opticsRef, pitchRef, runner, runModeRef, sampleDisplacement, samplesRef, setResetToken, setShallowEnabled]);
 
   useEffect(() => {
     identityRef.current = {
@@ -450,6 +465,26 @@ function ComparisonScene({
   const pitchRef = useRef(0);
   const runModeRef = useRef<ComparisonRunMode>('performance');
   const [resetToken, setResetToken] = useState(0);
+  const feature = COMPARISON_FEATURE_MATRIX[scene];
+  const [shallowEnabled, setShallowEnabled] = useState(feature.shallow);
+  const opticsRef = useRef<ComparisonOpticsState>({
+    profile: feature.optics,
+    shallowEnabled: feature.shallow,
+    shallowPassAllocated: feature.shallow,
+    sunX: COMPARISON_SUN_DIRECTION.x,
+    sunY: COMPARISON_SUN_DIRECTION.y,
+    sunZ: COMPARISON_SUN_DIRECTION.z,
+  });
+  useEffect(() => {
+    opticsRef.current = {
+      profile: feature.optics,
+      shallowEnabled,
+      shallowPassAllocated: feature.shallow && shallowEnabled,
+      sunX: COMPARISON_SUN_DIRECTION.x,
+      sunY: COMPARISON_SUN_DIRECTION.y,
+      sunZ: COMPARISON_SUN_DIRECTION.z,
+    };
+  }, [feature.optics, feature.shallow, opticsRef, shallowEnabled]);
   const simRef = useRef<BindingTelemetrySource>({
     rudderDeg: 0,
     speedMps: 0,
@@ -538,6 +573,8 @@ function ComparisonScene({
         identityRef={identityRef}
         runModeRef={runModeRef}
         setResetToken={setResetToken}
+        setShallowEnabled={setShallowEnabled}
+        opticsRef={opticsRef}
       />
       <FarFieldRing />
       <ComparisonVessel
@@ -550,21 +587,40 @@ function ComparisonScene({
         onLoadFailed={onLoadFailed}
       />
       <Suspense fallback={null}>
+        {feature.shallow && shallowEnabled ? <MarineShallowBackdrop enabled /> : null}
         {backend === 'fft' ? (
-          <group position={[0, GERSTNER_WATER_BASE_Y, 0]}>
-            <FFTOceanSurface
-              spectrumInput={COMPARISON_SPECTRUM_INPUT}
-              domainMeters={COMPARISON_SPECTRUM_INPUT.domainMeters}
-            />
-          </group>
+          <MarineFoamFieldProvider
+            tier={gerstnerTier}
+            seaState={COMPARISON_SPECTRUM_INPUT.seaState}
+            waves={NEAR_FIELD_VISIBLE_WAVES}
+            amplitudeScale={gerstnerAmplitudeScale(COMPARISON_SPECTRUM_INPUT.seaState)}
+            resetToken={resetToken}
+            attributionOverride={feature.foam ? undefined : { natural: false, vessel: false }}
+          >
+            {feature.planar ? (
+              <MarinePlanarReflection planeY={GERSTNER_WATER_BASE_Y} enabled={gerstnerTier === 'high'} />
+            ) : null}
+            <group position={[0, GERSTNER_WATER_BASE_Y, 0]}>
+              <FFTOceanSurface
+                spectrumInput={COMPARISON_SPECTRUM_INPUT}
+                domainMeters={COMPARISON_SPECTRUM_INPUT.domainMeters}
+                optics={feature.optics}
+                shoreSegments={feature.shallow ? [COMPARISON_SHORE_SEGMENT] : undefined}
+                shallowEnabled={feature.shallow && shallowEnabled}
+              />
+            </group>
+          </MarineFoamFieldProvider>
         ) : (
           <GerstnerWater
             key={scene}
             tier={gerstnerTier}
             seaState={COMPARISON_SPECTRUM_INPUT.seaState}
             disableFarField
-            disableEffects={scene === 'wave-only'}
+            disableEffects={!feature.ibl}
             resetToken={resetToken}
+            sunDirection={COMPARISON_SUN_DIRECTION}
+            shoreSegments={feature.shallow ? [COMPARISON_SHORE_SEGMENT] : undefined}
+            shallowEnabled={shallowEnabled}
           />
         )}
       </Suspense>
@@ -602,10 +658,17 @@ export default function FFTOceanComparisonClient({
         <SceneQualityProvider initialTier={qualityTier}>
           <LockQualityTier tier={qualityTier} />
           <SceneEnvironmentProvider>
-            <Canvas>
+            <Canvas gl={{ preserveDrawingBuffer: true }}>
               <PerspectiveCamera makeDefault position={[0, 60, 600]} fov={55} near={1} far={50000} />
               <ambientLight intensity={0.6} />
-              <directionalLight position={[300, 400, 200]} intensity={1.4} />
+              <directionalLight
+                position={[
+                  COMPARISON_SUN_DIRECTION.x * 800,
+                  COMPARISON_SUN_DIRECTION.y * 800,
+                  COMPARISON_SUN_DIRECTION.z * 800,
+                ]}
+                intensity={1.4}
+              />
               <ComparisonScene backend={backend} scene={scene} failAsset={failAsset} />
               <OrbitControls enablePan enableZoom enableRotate minDistance={40} maxDistance={4000} />
             </Canvas>

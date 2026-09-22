@@ -336,7 +336,10 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(client).toContain('VersionedFleetShip');
     expect(client).toContain('FarFieldRing');
     expect(client).toContain('ShapeGeometry');
-    expect(client).toContain('disableEffects={scene === \'wave-only\'}');
+    expect(client).toContain('disableEffects={!feature.ibl}');
+    expect(client).toContain('optics={feature.optics}');
+    expect(client).toContain('MarineShallowBackdrop');
+    expect(client).toContain('COMPARISON_SUN_DIRECTION');
     expect(client).toContain('resetToken={resetToken}');
     expect(client).toContain('GERSTNER_WATER_BASE_Y');
     expect(lab).toContain('domainMeters: 2048');
