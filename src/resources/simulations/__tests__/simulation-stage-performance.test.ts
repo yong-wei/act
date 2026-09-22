@@ -25,6 +25,13 @@ import {
   type OffscreenRenderer,
   type ViewportBox,
 } from '@/resources/simulations/scene/quality/stage-performance';
+import {
+  marineGpuTimerBeginPass,
+  marineGpuTimerBind,
+  marineGpuTimerEndPass,
+  marineGpuTimerStartWindow,
+  marineGpuTimerStopWindow,
+} from '@/resources/simulations/scene/quality/gpu-frame-timer';
 
 const ROOT = process.cwd();
 
@@ -225,6 +232,12 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
     const chart = { id: 'chart', getContext: () => null };
     const marineGl = {
       getExtension: () => ({ TIME_ELAPSED_EXT: 1, GPU_DISJOINT_EXT: 2 }),
+      createQuery: () => ({ id: 1 }),
+      beginQuery() { return undefined; },
+      endQuery() { return undefined; },
+      deleteQuery() { return undefined; },
+      getQueryParameter: () => null,
+      getParameter: () => false,
       fenceSync: () => ({}),
       flush: () => undefined,
       clientWaitSync: () => 0,
@@ -249,6 +262,23 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
     expect(chartTimer.describe().method).toBe('completed-work');
     expect(chartTimer.describe().gpuTimeAvailable).toBe(false);
     expect(JSON.stringify(chartTimer.describe())).not.toContain('gpuMs');
+    const advertisedOnly = bindMarineStageTimer({
+      getContext: () => ({
+        getExtension: () => ({ TIME_ELAPSED_EXT: 1, GPU_DISJOINT_EXT: 2 }),
+        fenceSync: () => ({}),
+        flush: () => undefined,
+        clientWaitSync: () => 0,
+        deleteSync: () => undefined,
+        SYNC_GPU_COMMANDS_COMPLETE: 1,
+        ALREADY_SIGNALED: 2,
+        CONDITION_SATISFIED: 3,
+        TIMEOUT_EXPIRED: 4,
+        WAIT_FAILED: 5,
+      }),
+    });
+    expect(advertisedOnly.describe().extension).toBe('none');
+    expect(advertisedOnly.describe().gpuTimeAvailable).toBe(false);
+    expect(advertisedOnly.describe().method).toBe('completed-work');
   });
 
   it('uses a WebGPU timestamp period when the device already exposes it', () => {
@@ -264,8 +294,9 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
     features.add('timestamp-query');
     const withQuery = bindMarineStageTimer({ getContext: () => null, device });
     expect(withQuery.describe().extension).toBe('timestamp-query');
-    expect(withQuery.describe().quantizationNs).toBe(41.6);
-    expect(withQuery.describe().gpuTimeAvailable).toBe(true);
+    expect(withQuery.describe().method).toBe('completed-work');
+    expect(withQuery.describe().quantizationNs).toBeNull();
+    expect(withQuery.describe().gpuTimeAvailable).toBe(false);
     expect(withQuery.describe().defaultStages[0]?.fusedWith).toBe('water-draw');
     expect(withQuery.describe().defaultStages[0]?.ms).toBeNull();
   });
@@ -406,6 +437,146 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
     expect(gpuSample.gpuMs).toBeNull();
     expect(gpuSample.labeledAs).toBe('submit-to-complete-wall-clock');
   });
+
+  it('issues a disjoint timer query around the measured work and resolves it', async () => {
+    const calls: string[] = [];
+    let pending: { id: number } | null = null;
+    const gl = {
+      getExtension: () => ({ TIME_ELAPSED_EXT: 0x88BF, GPU_DISJOINT_EXT: 0x8F9D }),
+      createQuery() {
+        calls.push('create');
+        return { id: 1 };
+      },
+      beginQuery() {
+        calls.push('begin');
+      },
+      endQuery() {
+        calls.push('end');
+        pending = { id: 1 };
+      },
+      deleteQuery() {
+        calls.push('deleteQuery');
+        pending = null;
+      },
+      getParameter: () => false,
+      getQueryParameter: (_query: unknown, pname: number) => {
+        if (pname === gl.QUERY_RESULT_AVAILABLE) return true;
+        if (pname === gl.QUERY_RESULT) return 2_500_000;
+        return null;
+      },
+      QUERY_RESULT_AVAILABLE: 0x8867,
+      QUERY_RESULT: 0x8866,
+      fenceSync: () => ({}),
+      flush: () => undefined,
+      clientWaitSync: () => 0,
+      deleteSync: () => undefined,
+      SYNC_GPU_COMMANDS_COMPLETE: 1,
+      ALREADY_SIGNALED: 2,
+      CONDITION_SATISFIED: 3,
+      TIMEOUT_EXPIRED: 4,
+      WAIT_FAILED: 5,
+    };
+    const timer = bindMarineStageTimer({ getContext: () => gl });
+    const sample = await timer.collectRound(() => {
+      calls.push('work');
+    });
+    expect(calls.slice(0, 4)).toEqual(['create', 'begin', 'work', 'end']);
+    expect(calls).toContain('deleteQuery');
+    expect(pending).toBeNull();
+    expect(sample.method).toBe('gpu-elapsed');
+    expect(sample.gpuMs).toBeCloseTo(2.5);
+    expect(sample.completedWorkMs).toBeGreaterThanOrEqual(0);
+    expect(timer.latest()).toBe(sample);
+  });
+
+  it('resolves WebGPU timestamps from the render pass that did the work', async () => {
+    const calls: string[] = [];
+    let tracking = false;
+    const renderer = {
+      getContext: () => null,
+      backend: {
+        get trackTimestamp() {
+          return tracking;
+        },
+        set trackTimestamp(value: boolean) {
+          tracking = value;
+        },
+        device: {
+          features: { has: (name: string) => name === 'timestamp-query' },
+          limits: { timestampPeriod: 41.6 },
+          queue: { onSubmittedWorkDone: () => Promise.resolve() },
+        },
+      },
+      async resolveTimestampsAsync(type?: string) {
+        expect(tracking).toBe(true);
+        expect(type).toBe('render');
+        calls.push('resolve');
+        return 2.5;
+      },
+    };
+    const timer = bindMarineStageTimer(renderer);
+    expect(timer.describe().gpuTimeAvailable).toBe(true);
+    expect(timer.describe().quantizationNs).toBe(41.6);
+    const sample = await timer.collectRound(() => {
+      expect(tracking).toBe(true);
+      calls.push('work');
+    });
+    expect(calls).toEqual(['work', 'resolve']);
+    expect(tracking).toBe(false);
+    expect(sample.method).toBe('gpu-elapsed');
+    expect(sample.gpuMs).toBeCloseTo(2.5);
+    expect(sample.gpuMs).not.toBe(sample.completedWorkMs);
+  });
+
+  it('does not nest a reflection timer query inside the stage query', async () => {
+    const calls: string[] = [];
+    const gl = {
+      getExtension: () => ({ TIME_ELAPSED_EXT: 0x88BF, GPU_DISJOINT_EXT: 0x8F9D }),
+      createQuery() {
+        calls.push('create');
+        return { id: calls.length };
+      },
+      beginQuery() {
+        calls.push('begin');
+      },
+      endQuery() {
+        calls.push('end');
+      },
+      deleteQuery() {
+        calls.push('deleteQuery');
+      },
+      getParameter: () => false,
+      getQueryParameter: (_query: unknown, pname: number) => {
+        if (pname === gl.QUERY_RESULT_AVAILABLE) return true;
+        if (pname === gl.QUERY_RESULT) return 1_000_000;
+        return null;
+      },
+      QUERY_RESULT_AVAILABLE: 0x8867,
+      QUERY_RESULT: 0x8866,
+      fenceSync: () => ({}),
+      flush: () => undefined,
+      clientWaitSync: () => 0,
+      deleteSync: () => undefined,
+      SYNC_GPU_COMMANDS_COMPLETE: 1,
+      ALREADY_SIGNALED: 2,
+      CONDITION_SATISFIED: 3,
+      TIMEOUT_EXPIRED: 4,
+      WAIT_FAILED: 5,
+    };
+    marineGpuTimerBind({ getContext: () => gl as unknown as WebGL2RenderingContext });
+    marineGpuTimerStartWindow();
+    try {
+      const timer = bindMarineStageTimer({ getContext: () => gl });
+      await timer.collectRound(() => {
+        marineGpuTimerBeginPass();
+        marineGpuTimerEndPass();
+      });
+    } finally {
+      marineGpuTimerStopWindow();
+    }
+    expect(calls.filter((call) => call === 'create')).toHaveLength(1);
+    expect(calls.filter((call) => call === 'begin')).toHaveLength(1);
+  });
 });
 
 describe('local paired sample (#2135)', () => {
@@ -499,13 +670,14 @@ describe('local paired sample (#2135)', () => {
     const bindAt = quality.indexOf('bindMarineStageTimer(renderer)');
     expect(guardAt).toBeGreaterThan(-1);
     expect(bindAt).toBeGreaterThan(guardAt);
-    expect(quality).toContain('stageTimer: (): StageTimerDescription => stageTimer.describe()');
+    expect(quality).toContain('void collectBoundStage(stageTimer, renderer as unknown as StageDrawRenderer, scene, camera)');
+    expect(quality).toContain('collectStageWindow(stageTimer, work)');
     expect(quality).not.toContain("querySelector('canvas')");
 
     const surface = readFileSync(path.join(ROOT, 'src/resources/simulations/scene/water/fft-ocean-surface.tsx'), 'utf8');
     expect(surface).toContain('pointQueryKind: MAIN_THREAD_POINT_QUERY_KIND');
     const stageSource = readFileSync(path.join(ROOT, 'src/resources/simulations/scene/quality/stage-performance.ts'), 'utf8');
-    expect(stageSource).not.toMatch(/\.finish\s*\(/);
+    expect(stageSource).not.toMatch(/\bgl\.finish\s*\(/);
     expect(stageSource).not.toMatch(/readPixels\s*\(/);
 
     const collector = readFileSync(path.join(ROOT, 'scripts/tests/collect-marine-fft-measurement.mjs'), 'utf8');
@@ -515,11 +687,16 @@ describe('local paired sample (#2135)', () => {
     );
     expect(measurement).toContain('pointQueryMs: rt.measurePointQueryMs(60)');
     expect(measurement).toContain('pointQueryKind: rt.pointQueryKind');
+    expect(measurement).toContain('window.__marineStagePerformance');
+    expect(measurement).toContain('probe.collect()');
+    expect(collector).toContain('equalPresentationIsEqualCost: false');
+    expect(collector).toContain('function stageRouteCost');
     expect(measurement).not.toContain('recordVideo');
 
     const client = readFileSync(path.join(ROOT, 'src/app/simulations/fft-ocean-comparison/comparison-client.tsx'), 'utf8');
     expect(client).toContain('assembleWorkerQueryReport({');
     expect(client).toContain('queryKind: report.kind');
     expect(client).toContain("queryKind: 'main-thread-fallback'");
+    expect(client).toContain('<MarineStagePerformanceProbe />');
   });
 });

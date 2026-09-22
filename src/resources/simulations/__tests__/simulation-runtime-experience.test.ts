@@ -56,7 +56,10 @@ describe('probe binds the real renderer (#2120)', () => {
 
   it('drives gpuTimerAvailable from real disjoint-query results', () => {
     const probe = readSource('scene/quality/quality-state.tsx');
-    expect(probe).toContain("import { marineGpuTimerStartWindow, marineGpuTimerStopWindow, readMarineGpuTimerEvidence } from './gpu-frame-timer'");
+    expect(probe).toContain('marineGpuTimerStartWindow');
+    expect(probe).toContain('marineGpuTimerStopWindow');
+    expect(probe).toContain('readMarineGpuTimerEvidence');
+    expect(probe).toContain("from './gpu-frame-timer'");
     const timer = readSource('scene/quality/gpu-frame-timer.ts');
     expect(timer).toContain('EXT_disjoint_timer_query_webgl2');
     // P1 复审：结果常量取 WebGL2 核心（context.QUERY_RESULT*）——扩展对象只

@@ -4,6 +4,11 @@
  * 无合法时间戳时继续用有标签的完成墙钟，不把该墙钟写入 GPU 时长。
  */
 
+import {
+  marineGpuTimerHoldDisjointQuery,
+  marineGpuTimerPassActive,
+} from './gpu-frame-timer';
+
 export const MAIN_THREAD_POINT_QUERY_KIND = 'main-thread-reference-call' as const;
 /** 历史探针 raw：主线程循环 fftOceanHeightAt 的均值，不是 Worker 端到端。 */
 export const HISTORICAL_POINT_QUERY_RAW_MS = 1.12;
@@ -63,6 +68,11 @@ interface GpuDeviceLike {
   readonly queue?: { readonly onSubmittedWorkDone?: () => Promise<void> };
 }
 
+interface TimestampResolvingRenderer extends MarineStageRenderer {
+  resolveTimestampsAsync?(type?: string): Promise<number | undefined>;
+  backend?: { trackTimestamp?: boolean; device?: GpuDeviceLike };
+}
+
 interface WebGL2TimerContext {
   getExtension(name: string): { readonly TIME_ELAPSED_EXT: number; readonly GPU_DISJOINT_EXT: number } | null;
   fenceSync(condition: number, flags: number): unknown;
@@ -109,6 +119,9 @@ export interface StageTimerBinding {
   describe(): StageTimerDescription;
   beginQuery(): void;
   endQuery(): void;
+  poll(): TimingSample | null;
+  latest(): TimingSample | null;
+  collectRound(work: () => void): Promise<TimingSample>;
   accept(sample: {
     readonly gpuElapsedNs: number | null;
     readonly quantumNs?: number | null;
@@ -597,6 +610,47 @@ export function measureOffscreenBatch<T>(
 }
 
 const FENCE_WAIT_MS = 2000;
+const QUERY_RESULT_AVAILABLE = 0x8867;
+const QUERY_RESULT = 0x8866;
+
+interface DisjointTimerExt {
+  readonly TIME_ELAPSED_EXT: number;
+  readonly GPU_DISJOINT_EXT: number;
+}
+
+interface QueryRecordingContext extends WebGL2TimerContext {
+  createQuery(): unknown;
+  beginQuery(target: number, query: unknown): void;
+  endQuery(target: number): void;
+  deleteQuery(query: unknown): void;
+  getQueryParameter(query: unknown, pname: number): unknown;
+  getParameter(pname: number): unknown;
+  readonly QUERY_RESULT_AVAILABLE?: number;
+  readonly QUERY_RESULT?: number;
+}
+
+interface IssuedQuery {
+  readonly query: unknown;
+  readonly wallClockMs: number;
+}
+
+function canIssueDisjointQuery(
+  gl: WebGL2TimerContext | null,
+  extension: DisjointTimerExt | null,
+): gl is QueryRecordingContext {
+  if (!gl || !extension) return false;
+  const candidate = gl as Partial<QueryRecordingContext>;
+  return typeof candidate.createQuery === 'function'
+    && typeof candidate.beginQuery === 'function'
+    && typeof candidate.endQuery === 'function'
+    && typeof candidate.getQueryParameter === 'function'
+    && typeof candidate.deleteQuery === 'function'
+    && typeof candidate.getParameter === 'function';
+}
+
+function canResolvePassTimestamps(renderer: MarineStageRenderer, periodNs: number | null): renderer is TimestampResolvingRenderer {
+  return periodNs !== null && typeof (renderer as TimestampResolvingRenderer).resolveTimestampsAsync === 'function';
+}
 
 async function waitForWebGlCompletion(gl: WebGL2TimerContext): Promise<boolean> {
   const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -631,22 +685,197 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
   const extension = webgl?.getExtension('EXT_disjoint_timer_query_webgl2') ?? null;
   const timestampFeature = Boolean(device?.features?.has('timestamp-query'));
   const timestampPeriod = timestampFeature ? finiteOrNull(device?.limits?.timestampPeriod ?? null) : null;
-  const useDisjoint = Boolean(extension);
-  const useTimestamp = !useDisjoint && timestampFeature && timestampPeriod !== null;
-  const method: 'gpu-elapsed' | 'completed-work' = useDisjoint || useTimestamp ? 'gpu-elapsed' : 'completed-work';
-  const quantizationNs = useDisjoint ? 1 : useTimestamp ? timestampPeriod : null;
+  const queryGl = canIssueDisjointQuery(webgl, extension) ? webgl : null;
+  const canDisjoint = queryGl !== null;
+  const canTimestamp = !canDisjoint && timestampFeature && canResolvePassTimestamps(renderer, timestampPeriod);
+  const method: 'gpu-elapsed' | 'completed-work' = canDisjoint || canTimestamp ? 'gpu-elapsed' : 'completed-work';
+  const quantizationNs = canDisjoint ? 1 : canTimestamp ? timestampPeriod : null;
   let queryOpen = false;
+  let queryStartedAt = 0;
+  let issued: IssuedQuery | null = null;
+  let latestSample: TimingSample | null = null;
+
+  function remember(sample: TimingSample): TimingSample {
+    latestSample = sample;
+    return sample;
+  }
+
+  async function measureCompletedWork(work: () => void): Promise<TimingSample> {
+    const started = performance.now();
+    work();
+    let waited = false;
+    if (webgl) waited = await waitForWebGlCompletion(webgl);
+    else if (device?.queue?.onSubmittedWorkDone) {
+      await device.queue.onSubmittedWorkDone();
+      waited = true;
+    }
+    const wallMs = performance.now() - started;
+    if (!waited) return remember(separateCpuSubmit(wallMs));
+    return remember({
+      gpuMs: null,
+      completedWorkMs: wallMs,
+      frameIntervalMs: null,
+      method: 'completed-work',
+      reason: 'wall-clock',
+      quantizationNs: null,
+      rawGpuNs: null,
+      treatedAsFree: false,
+      disjointDropped: false,
+      labeledAs: 'submit-to-complete-wall-clock',
+    });
+  }
+
+  function beginQuery(): void {
+    if (queryOpen) throw new Error('stage timer queries must not nest');
+    queryOpen = true;
+    queryStartedAt = performance.now();
+    if (!queryGl || !extension || marineGpuTimerPassActive()) return;
+    const query = queryGl.createQuery();
+    if (!query) return;
+    marineGpuTimerHoldDisjointQuery(true);
+    try {
+      queryGl.beginQuery(extension.TIME_ELAPSED_EXT, query);
+    } catch (error) {
+      queryOpen = false;
+      marineGpuTimerHoldDisjointQuery(false);
+      queryGl.deleteQuery(query);
+      throw error;
+    }
+    issued = { query, wallClockMs: 0 };
+  }
+
+  function endQuery(): void {
+    if (!queryOpen) throw new Error('stage timer query is not open');
+    queryOpen = false;
+    const wallClockMs = performance.now() - queryStartedAt;
+    marineGpuTimerHoldDisjointQuery(false);
+    if (!queryGl || !extension || !issued) return;
+    queryGl.endQuery(extension.TIME_ELAPSED_EXT);
+    issued = { query: issued.query, wallClockMs };
+  }
+
+  function poll(): TimingSample | null {
+    if (!queryGl || !extension || !issued || queryOpen) return null;
+    const disjoint = Boolean(extension.GPU_DISJOINT_EXT) && Boolean(queryGl.getParameter(extension.GPU_DISJOINT_EXT));
+    if (disjoint) {
+      queryGl.deleteQuery(issued.query);
+      const wallClockMs = issued.wallClockMs;
+      issued = null;
+      return remember(acceptTimingSample({
+        gpuElapsedNs: null,
+        quantumNs: quantizationNs,
+        disjoint: true,
+        completedWorkMs: wallClockMs,
+        frameIntervalMs: null,
+      }));
+    }
+    const availableName = queryGl.QUERY_RESULT_AVAILABLE ?? QUERY_RESULT_AVAILABLE;
+    const resultName = queryGl.QUERY_RESULT ?? QUERY_RESULT;
+    if (!queryGl.getQueryParameter(issued.query, availableName)) return null;
+    const raw = queryGl.getQueryParameter(issued.query, resultName);
+    queryGl.deleteQuery(issued.query);
+    const wallClockMs = issued.wallClockMs;
+    issued = null;
+    const gpuElapsedNs = typeof raw === 'number' && Number.isFinite(raw) ? raw : null;
+    return remember(acceptTimingSample({
+      gpuElapsedNs,
+      quantumNs: quantizationNs,
+      disjoint: false,
+      completedWorkMs: wallClockMs,
+      frameIntervalMs: null,
+    }));
+  }
+
+  function discardIssuedQuery(): void {
+    if (queryGl && issued) queryGl.deleteQuery(issued.query);
+    issued = null;
+    marineGpuTimerHoldDisjointQuery(false);
+  }
+
+  async function collectDisjointRound(work: () => void): Promise<TimingSample> {
+    if (marineGpuTimerPassActive()) return measureCompletedWork(work);
+    const started = performance.now();
+    beginQuery();
+    try {
+      work();
+    } catch (error) {
+      if (queryOpen) endQuery();
+      discardIssuedQuery();
+      throw error;
+    }
+    if (queryOpen) endQuery();
+    if (!issued) {
+      return remember(acceptTimingSample({
+        gpuElapsedNs: null,
+        quantumNs: quantizationNs,
+        disjoint: false,
+        completedWorkMs: performance.now() - started,
+        frameIntervalMs: null,
+      }));
+    }
+    const deadline = performance.now() + FENCE_WAIT_MS;
+    while (performance.now() < deadline) {
+      const sample = poll();
+      if (sample) return sample;
+      await new Promise((resolve) => {
+        setTimeout(resolve, 1);
+      });
+    }
+    const wallClockMs = issued?.wallClockMs ?? (performance.now() - started);
+    discardIssuedQuery();
+    return remember(acceptTimingSample({
+      gpuElapsedNs: null,
+      quantumNs: quantizationNs,
+      disjoint: false,
+      completedWorkMs: wallClockMs,
+      frameIntervalMs: null,
+    }));
+  }
+
+  async function collectTimestampRound(work: () => void): Promise<TimingSample> {
+    const resolving = renderer as TimestampResolvingRenderer;
+    if (!canTimestamp || timestampPeriod === null || !resolving.resolveTimestampsAsync) {
+      return measureCompletedWork(work);
+    }
+    const backend = resolving.backend;
+    const previousTracking = backend?.trackTimestamp;
+    if (backend) backend.trackTimestamp = true;
+    const started = performance.now();
+    let workFinished = false;
+    try {
+      work();
+      workFinished = true;
+      const durationMs = await resolving.resolveTimestampsAsync('render');
+      const wallClockMs = performance.now() - started;
+      const gpuElapsedNs = typeof durationMs === 'number' && Number.isFinite(durationMs)
+        ? durationMs * 1e6
+        : null;
+      return remember(acceptTimingSample({
+        gpuElapsedNs,
+        quantumNs: timestampPeriod,
+        disjoint: false,
+        completedWorkMs: wallClockMs,
+        frameIntervalMs: null,
+      }));
+    } catch (error) {
+      if (!workFinished) throw error;
+      return remember(separateCpuSubmit(performance.now() - started));
+    } finally {
+      if (backend) backend.trackTimestamp = previousTracking ?? false;
+    }
+  }
+
   const binding: StageTimerBinding = {
     describe() {
       return {
         method,
-        extension: useDisjoint
+        extension: canDisjoint
           ? 'disjoint-time-elapsed'
           : timestampFeature
             ? 'timestamp-query'
             : 'none',
         quantizationNs,
-        gpuTimeAvailable: method === 'gpu-elapsed' && quantizationNs !== null,
+        gpuTimeAvailable: canDisjoint || canTimestamp,
         contextIdentity: rendererIdentity(renderer),
         defaultStages: [
           recordFusedWaveDraw(),
@@ -660,12 +889,17 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
       };
     },
     beginQuery() {
-      if (queryOpen) throw new Error('stage timer queries must not nest');
-      queryOpen = true;
+      beginQuery();
     },
     endQuery() {
-      if (!queryOpen) throw new Error('stage timer query is not open');
-      queryOpen = false;
+      endQuery();
+    },
+    poll,
+    latest: () => latestSample,
+    async collectRound(work) {
+      if (canDisjoint) return collectDisjointRound(work);
+      if (canTimestamp) return collectTimestampRound(work);
+      return measureCompletedWork(work);
     },
     accept(sample) {
       return acceptTimingSample({
@@ -676,32 +910,23 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
         frameIntervalMs: sample.frameIntervalMs ?? null,
       });
     },
-    async measureCompletedWork(work) {
-      const started = performance.now();
-      work();
-      let waited = false;
-      if (webgl) waited = await waitForWebGlCompletion(webgl);
-      else if (device?.queue?.onSubmittedWorkDone) {
-        await device.queue.onSubmittedWorkDone();
-        waited = true;
-      }
-      const wallMs = performance.now() - started;
-      if (!waited) return separateCpuSubmit(wallMs);
-      return {
-        gpuMs: null,
-        completedWorkMs: wallMs,
-        frameIntervalMs: null,
-        method: 'completed-work',
-        reason: 'wall-clock',
-        quantizationNs: null,
-        rawGpuNs: null,
-        treatedAsFree: false,
-        disjointDropped: false,
-        labeledAs: 'submit-to-complete-wall-clock',
-      };
-    },
+    measureCompletedWork,
   };
   return binding;
+}
+
+export async function collectStageWindow(
+  binding: StageTimerBinding,
+  work: () => void,
+): Promise<{
+  readonly rounds: readonly TimingSample[];
+  readonly screenRecorded: false;
+}> {
+  const rounds = [];
+  for (let round = 0; round < PAIRED_ROUND_COUNT; round += 1) {
+    rounds.push(await binding.collectRound(work));
+  }
+  return { rounds, screenRecorded: false };
 }
 
 export function buildLocalStageSample(input: {

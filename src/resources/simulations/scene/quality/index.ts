@@ -29,4 +29,4 @@ export type {
 export { DEGRADATION_LADDER, DEGRADATION_INVARIANTS, degradationDecision, degradationPreservesSemantics } from './degradation';
 export { MarineSceneResourceLedger, marineSceneResourceLedger } from './resource-ledger';
 export type { MarineResourceEntry, MarineResourceKind } from './resource-ledger';
-export { MarinePerformanceEvidenceProbe } from './quality-state';
+export { MarinePerformanceEvidenceProbe, MarineStagePerformanceProbe } from './quality-state';

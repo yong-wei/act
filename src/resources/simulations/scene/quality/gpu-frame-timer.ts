@@ -74,8 +74,21 @@ export function marineGpuTimerBind(renderer: THREE_WebGLRendererLike): void {
 /** 活动查询（已 begin 未 end）与待取查询（已 end 等结果）分离（P2 复审）。 */
 let active: PendingQuery | null = null;
 
+/** 反射 pass 的 disjoint 查询仍未 end 时，分项查询不能再 begin 同类 query。 */
+export function marineGpuTimerPassActive(): boolean {
+  return active !== null;
+}
+
+/** 整段离屏查询占用 TIME_ELAPSED 时，反射 pass 不再嵌套同类 query。 */
+let disjointQueryHeld = false;
+
+export function marineGpuTimerHoldDisjointQuery(held: boolean): void {
+  disjointQueryHeld = held;
+}
+
 /** 目标 pass 开始前调用（无扩展时空操作；窗口关闭后不再发起新查询）。 */
 export function marineGpuTimerBeginPass(): void {
+  if (disjointQueryHeld) return;
   const ext = resolveExtension();
   if (!ext || !context || !windowOpen) return;
   // 先轮询：上一轮结果就绪则收敛；仍未就绪则跳过本轮计时（不对无活动

@@ -12,6 +12,7 @@ import { matchActivatedFleetPackage } from '@/resources/simulations/model-packag
 import { resolveVersionedDefault } from '@/lib/browser-delivery/client';
 import { SceneEnvironmentProvider } from '@/resources/simulations/scene/environment';
 import {
+  MarineStagePerformanceProbe,
   SceneQualityDriver,
   SceneQualityProvider,
   useSceneQuality,
@@ -691,6 +692,7 @@ export default function FFTOceanComparisonClient({
                 ]}
                 intensity={1.4}
               />
+              <MarineStagePerformanceProbe />
               <ComparisonScene backend={backend} scene={scene} failAsset={failAsset} />
               <OrbitControls enablePan enableZoom enableRotate minDistance={40} maxDistance={4000} />
             </Canvas>

@@ -145,6 +145,11 @@ async function measurementRound(browser, backend) {
       })
     : null;
   const window1 = await page.evaluate(rafWindow, 60_000);
+  const stageCollection = await page.evaluate(async () => {
+    const probe = window.__marineStagePerformance;
+    if (!probe?.collect) throw new Error('stage performance probe missing');
+    return probe.collect();
+  });
   const fftProbeAfter = backend === 'fft'
     ? await page.evaluate(() => {
         const rt = window.__fftOceanRuntime;
@@ -164,6 +169,7 @@ async function measurementRound(browser, backend) {
     fftProbeBefore,
     fftProbeAfter,
     frameStats: stats(window1.samples),
+    stageCollection,
     longForegroundStallCount: window1.stallCount,
     longForegroundWorstMs: Number(window1.stallWorstMs.toFixed(1)),
   };
@@ -193,6 +199,45 @@ async function videoRound(browser, backend) {
   return { shots: [shot], videoPath };
 }
 
+function median(values) {
+  const sorted = [...values].sort((left, right) => left - right);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+function stageRouteCost(measured) {
+  const rounds = measured?.stageCollection?.rounds;
+  if (!Array.isArray(rounds) || rounds.length === 0) {
+    throw new Error('刷新率样本不能代替阶段或完成工作量');
+  }
+  const costs = rounds.map((round) => {
+    if (round.labeledAs === 'frame-intervals' || round.method === 'frame-intervals') {
+      throw new Error('阶段采集不得把帧间隔当成 GPU 耗时');
+    }
+    if (round.method === 'gpu-elapsed') {
+      if (!(round.gpuMs > 0)) throw new Error('GPU 查询没有返回有效耗时');
+      return { gpuMs: round.gpuMs, completedWorkMs: round.completedWorkMs ?? null };
+    }
+    if (round.method === 'completed-work') {
+      if (round.gpuMs !== null) throw new Error('完成墙钟不能写入 GPU 耗时');
+      if (!(typeof round.completedWorkMs === 'number' && Number.isFinite(round.completedWorkMs))) {
+        throw new Error('完成工作量缺失');
+      }
+      return { gpuMs: null, completedWorkMs: round.completedWorkMs };
+    }
+    throw new Error(`未知阶段计时方法 ${round.method}`);
+  });
+  const gpuValues = costs.map((cost) => cost.gpuMs).filter((value) => value !== null);
+  const completedValues = costs.map((cost) => cost.completedWorkMs).filter((value) => value !== null);
+  const gpuReady = gpuValues.length === costs.length;
+  return {
+    method: gpuReady ? 'gpu-elapsed' : 'completed-work',
+    gpuMs: gpuReady ? median(gpuValues) : null,
+    completedWorkMs: completedValues.length === costs.length ? median(completedValues) : null,
+    rounds: costs.length,
+  };
+}
+
 const browser = await chromium.launch({ headless: false });
 for (const backend of BACKENDS) {
   console.log(`[${backend}] 冷加载轮…`);
@@ -211,4 +256,14 @@ for (const f of readdirSync(OUT)) {
   if (f.endsWith('-raw.json')) merged[f.replace('-raw.json', '')] = JSON.parse(readFileSync(join(OUT, f), 'utf8'));
 }
 writeFileSync(join(OUT, 'raw-summary.json'), `${JSON.stringify(merged, null, 2)}\n`);
+const routeCosts = {};
+for (const [backend, payload] of Object.entries(merged)) {
+  routeCosts[backend] = stageRouteCost(payload.measured);
+}
+const routes = Object.values(routeCosts);
+writeFileSync(join(OUT, 'cost-comparison.json'), `${JSON.stringify({
+  equalPresentationIsEqualCost: false,
+  method: routes.length > 0 && routes.every((route) => route.method === 'gpu-elapsed') ? 'gpu-elapsed' : 'completed-work',
+  routes: routeCosts,
+}, null, 2)}\n`);
 console.log(`done → ${OUT}`);
