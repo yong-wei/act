@@ -94,7 +94,7 @@ function LockQualityTier({ tier }: { readonly tier: QualityTierId }) {
   return null;
 }
 
-function FarFieldRing() {
+export function FarFieldRing() {
   const geometry = useMemo(() => {
     const outer = FAR_FIELD.outerHalfExtent;
     const inner = FAR_FIELD.innerHalfExtent;
@@ -132,7 +132,7 @@ function MissingVesselAsset() {
   return null;
 }
 
-function ComparisonVessel({
+export function ComparisonVessel({
   failAsset,
   waterYSampler,
   pitchRef,

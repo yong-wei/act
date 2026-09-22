@@ -25,6 +25,15 @@ export const COMPARISON_MISSING_VESSEL_URL = '/assets/__comparison-missing-vesse
 
 export type ComparisonBackend = 'fft' | 'gerstner';
 export type ComparisonSceneId = 'wave-only' | 'feature-parity';
+export type ComparisonGraphicsApi = 'webgl' | 'webgpu';
+
+/** 算法与图形 API 分开：四条路线都能被点名，WebGPU 不是 WebGL FFT 的别名。 */
+export const COMPARISON_ROUTES = [
+  { api: 'webgl', backend: 'fft' },
+  { api: 'webgl', backend: 'gerstner' },
+  { api: 'webgpu', backend: 'fft' },
+  { api: 'webgpu', backend: 'gerstner' },
+] as const;
 
 /** 两条 WebGL 路线共用的功能矩阵。wave-only 用中性材质，feature-parity 用完整光学。 */
 export const COMPARISON_FEATURE_MATRIX = {
@@ -121,6 +130,14 @@ export interface ComparisonOpticsState {
 
 export function parseComparisonBackend(value: string | undefined): ComparisonBackend {
   return value === 'gerstner' ? 'gerstner' : 'fft';
+}
+
+export function parseComparisonGraphicsApi(value: string | undefined): ComparisonGraphicsApi {
+  return value === 'webgpu' ? 'webgpu' : 'webgl';
+}
+
+export function comparisonRouteKey(api: ComparisonGraphicsApi, backend: ComparisonBackend): string {
+  return `${api}-${backend}`;
 }
 
 export function parseComparisonScene(value: string | undefined): ComparisonSceneId {
