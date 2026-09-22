@@ -52,6 +52,7 @@ const FFT_SHARED_VERTEX = /* glsl */ `
   varying float vCrest;
   varying float vElevation;
   varying vec2 vLocalXZ;
+  varying vec2 vHorizontalDisp;
   vec3 sampleDisplaced(vec2 uv, vec3 lattice) {
     float h = texture2D(uHeightTexture, uv).r;
     float dx = texture2D(uDispXTexture, uv).r;
@@ -80,6 +81,7 @@ const FFT_SHARED_VERTEX = /* glsl */ `
     vCrest = clamp(1.0 - jacobian, 0.0, 1.0);
     vElevation = p0.y;
     vLocalXZ = pos.xz;
+    vHorizontalDisp = vec2(p0.x - pos.x, p0.z - pos.z);
     vec4 world = modelMatrix * vec4(p0, 1.0);
     vWorldPos = world.xyz;
     vec4 viewPosition = viewMatrix * world;
@@ -247,6 +249,7 @@ export function FFTOceanSurface({
           varying float vElevation;
           varying vec3 vWorldPos;
           varying vec3 vWorldNormal;
+          varying vec2 vHorizontalDisp;
           vec3 sampleDisplaced(vec2 uv, vec3 lattice) {
             float h = texture2D(uHeightTexture, uv).r;
             float dx = texture2D(uDispXTexture, uv).r;
@@ -264,6 +267,7 @@ export function FFTOceanSurface({
             vWorldNormal = normalize(cross(pF - p0, pR - p0));
             if (vWorldNormal.y < 0.0) vWorldNormal = -vWorldNormal;
             vElevation = p0.y;
+            vHorizontalDisp = vec2(p0.x - pos.x, p0.z - pos.z);
             vec4 world = modelMatrix * vec4(p0, 1.0);
             vWorldPos = world.xyz;
             gl_Position = projectionMatrix * viewMatrix * world;

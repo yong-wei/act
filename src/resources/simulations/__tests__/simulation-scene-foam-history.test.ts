@@ -8,10 +8,15 @@ import {
   FoamHistoryField,
   FOAM_HISTORY_BY_TIER,
   foamDecayFactor,
+  NATURAL_FOAM_BAND_METERS,
   naturalCompression,
+  naturalFoamSampleSpacingMeters,
   naturalFoamSeaStateGate,
   naturalFoamSourceStrength,
+  naturalFoamSpacingResolvesBand,
+  replayLocalizedWash,
 } from '../scene/water/foam-history';
+import { HYSY981_THRUSTER_LAYOUT } from '../core/constants';
 import { FOAM_DOMAIN_METERS, readMarineFoamFieldFromScene } from '../scene/water/foam-history-layer';
 import { GERSTNER_WAVE_SETS, type GerstnerWave } from '../scene/water/gerstner-waves';
 import { gerstnerAmplitudeScale } from '../scene/water/gerstner-water';
@@ -32,6 +37,67 @@ const createField = (options?: { domainMeters?: number; drift?: readonly [number
   });
 
 const NO_SOURCES = null;
+
+describe('natural foam source band (#2133)', () => {
+  it('keeps every tier at or under half the declared 32 m band', () => {
+    for (const spec of Object.values(FOAM_HISTORY_BY_TIER)) {
+      expect(naturalFoamSpacingResolvesBand(spec.resolution, spec.naturalStride, FOAM_DOMAIN_METERS)).toBe(true);
+      expect(naturalFoamSampleSpacingMeters(spec.resolution, spec.naturalStride, FOAM_DOMAIN_METERS))
+        .toBeLessThanOrEqual(NATURAL_FOAM_BAND_METERS / 2);
+    }
+  });
+
+  it('resolves a 32 m crest that a 32 m sample step would repeat', () => {
+    const wave: GerstnerWave = {
+      direction: [0, 1],
+      amplitude: 1.2,
+      wavelength: 32,
+      speed: 1.1,
+      steepness: 0.6,
+    };
+    const at = (z: number) => naturalCompression([wave], 1, 0, z, 0);
+    expect(at(0)).toBeCloseTo(at(32), 5);
+    expect(Math.abs(at(8) - at(0))).toBeGreaterThan(0.2);
+
+    const sources = {
+      waves: [wave],
+      amplitudeScale: 1,
+      seaState: 5,
+      naturalEnabled: true,
+    };
+    const resolved = new FoamHistoryField({
+      spec: FOAM_HISTORY_BY_TIER.low,
+      domainMeters: FOAM_DOMAIN_METERS,
+    });
+    const aliased = new FoamHistoryField({
+      spec: { resolution: 64, updateHz: 12.5, naturalStride: 2 },
+      domainMeters: FOAM_DOMAIN_METERS,
+    });
+    for (let step = 0; step < 8; step += 1) {
+      resolved.step(resolved.fixedDtSeconds, sources);
+      aliased.step(aliased.fixedDtSeconds, sources);
+    }
+    const spread = (field: FoamHistoryField) => Math.abs(field.densityAt(0, 8) - field.densityAt(0, 0));
+    expect(spread(resolved)).toBeGreaterThan(0.05);
+    expect(spread(aliased)).toBeLessThan(spread(resolved) * 0.35);
+  });
+
+  it('keeps station-keeping wash on the real propulsors and open water clear', () => {
+    const field = createField({ domainMeters: 256 });
+    const originX = field.originX;
+    const originZ = field.originZ;
+    const propulsors = HYSY981_THRUSTER_LAYOUT.map(
+      (thruster) => [thruster.positionX, thruster.positionY] as const,
+    );
+    replayLocalizedWash(field, propulsors, 3);
+    for (const [x, z] of propulsors) {
+      expect(field.densityAt(x, z)).toBeGreaterThan(0.25);
+    }
+    expect(field.densityAt(0, 0)).toBeLessThan(0.05);
+    expect(field.originX).toBe(originX);
+    expect(field.originZ).toBe(originZ);
+  });
+});
 
 describe('foam decay and dissipation (#2115)', () => {
   it('halves density per half-life without any source', () => {
@@ -380,9 +446,11 @@ describe('source contracts (#2115)', () => {
     // 去除单一 80m 平铺贴花。
     expect(source).not.toContain('vWorldPos.xz / 80.0');
     // 多尺度去相关细节（非谐波尺度 + 固定偏移）。
-    expect(source).toContain('worldXZ / 23.0');
-    expect(source).toContain('worldXZ / 71.0');
-    expect(source).toContain('worldXZ / 149.0');
+    expect(source).toContain('uFoamDrift * uTime - vHorizontalDisp');
+    expect(source).not.toContain('+ vHorizontalDisp');
+    expect(source).toContain('carried / 23.0');
+    expect(source).toContain('carried / 71.0');
+    expect(source).toContain('carried / 149.0');
     // 无场回退路径仍是平滑波峰覆盖（不依赖重复贴花）。
     expect(source).toContain('smoothstep(0.72, 0.95, vCrest) * 0.55');
   });
@@ -408,6 +476,8 @@ describe('source contracts (#2115)', () => {
     expect(source).toContain('light * 0.65 + 0.35 * uSunIllumination');
     // 沉积按视觉时间秒积分（不随帧率翻倍）。
     expect(source).toContain('visualDelta');
+    expect(source).toContain('bowWorld');
+    expect(source).toContain('washActivitySampler');
     // 材质随场的出现/消失逐帧切换（水面晚挂载时从 additive 过渡到沉积模式）。
     expect(source).toContain('meshRef.current.material !== targetMaterial');
     // 归因隔离（P2 修复）：场存在但船源显式关闭时不绘制任何船源泡沫——

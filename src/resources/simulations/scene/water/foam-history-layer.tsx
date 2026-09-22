@@ -51,6 +51,7 @@ export interface MarineFoamFieldController {
   readonly field: FoamHistoryField;
   readonly texture: THREE.DataTexture;
   readonly domainMeters: number;
+  readonly driftMetersPerSecond: readonly [number, number];
   readonly attribution: FoamAttribution;
   /** 船源沉积入口（世界坐标；WakeTrail 等消费者按秒积分调用）。 */
   deposit(worldX: number, worldZ: number, radiusMeters: number, amount: number): void;
@@ -175,6 +176,7 @@ export function MarineFoamFieldProvider({
       field,
       texture,
       domainMeters: FOAM_DOMAIN_METERS,
+      driftMetersPerSecond: field.driftMetersPerSecond,
       attribution,
       deposit(worldX, worldZ, radiusMeters, amount) {
         field.deposit(worldX, worldZ, radiusMeters, amount);
