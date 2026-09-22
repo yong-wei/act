@@ -9,7 +9,7 @@ import type { MarineShoreSegment } from '../environment/scene-layouts';
 import { DEFAULT_ENVIRONMENT_PRESET_ID, getEnvironmentPreset } from '../environment/environment-presets';
 import { createGerstnerWaterMaterial } from './gerstner-water-material';
 import { useMarineFoamField } from './foam-history-layer';
-import { COMPARISON_SUN_DIRECTION, syncSharedWaterOptics } from './shared-water-optics';
+import { COMPARISON_SUN_DIRECTION, NEUTRAL_WATER_FRAGMENT, syncSharedWaterOptics } from './shared-water-optics';
 import {
   FFT_OCEAN_CONTACT_TOLERANCE_METERS,
   fftOceanCascadeSplit,
@@ -239,10 +239,9 @@ export function FFTOceanSurface({
           uniform sampler2D uDispZTexture;
           uniform float uDomain;
           uniform float uResolution;
-          varying float vHeight;
-          varying float vJacobian;
+          varying float vElevation;
           varying vec3 vWorldPos;
-          varying vec3 vNormal;
+          varying vec3 vWorldNormal;
           vec3 sampleDisplaced(vec2 uv, vec3 lattice) {
             float h = texture2D(uHeightTexture, uv).r;
             float dx = texture2D(uDispXTexture, uv).r;
@@ -257,38 +256,15 @@ export function FFTOceanSurface({
             vec3 p0 = sampleDisplaced(uvH, pos);
             vec3 pR = sampleDisplaced(fract(uvH + vec2(texel, 0.0)), pos + vec3(cell, 0.0, 0.0));
             vec3 pF = sampleDisplaced(fract(uvH + vec2(0.0, texel)), pos + vec3(0.0, 0.0, cell));
-            vec3 pL = sampleDisplaced(fract(uvH - vec2(texel, 0.0)), pos - vec3(cell, 0.0, 0.0));
-            vec3 pB = sampleDisplaced(fract(uvH - vec2(0.0, texel)), pos - vec3(0.0, 0.0, cell));
-            vNormal = normalize(cross(pF - p0, pR - p0));
-            float dDxDx = (pR.x - pL.x) / (2.0 * cell) - 1.0;
-            float dDzDz = (pF.z - pB.z) / (2.0 * cell) - 1.0;
-            float dDxDz = (pF.x - pB.x) / (2.0 * cell);
-            float dDzDx = (pR.z - pL.z) / (2.0 * cell);
-            vJacobian = (1.0 + dDxDx) * (1.0 + dDzDz) - dDxDz * dDzDx;
-            vHeight = p0.y;
+            vWorldNormal = normalize(cross(pF - p0, pR - p0));
+            if (vWorldNormal.y < 0.0) vWorldNormal = -vWorldNormal;
+            vElevation = p0.y;
             vec4 world = modelMatrix * vec4(p0, 1.0);
             vWorldPos = world.xyz;
             gl_Position = projectionMatrix * viewMatrix * world;
           }
         `,
-        fragmentShader: /* glsl */ `
-          varying float vHeight;
-          varying float vJacobian;
-          varying vec3 vWorldPos;
-          varying vec3 vNormal;
-          void main() {
-            vec3 n = normalize(vNormal);
-            float ndl = clamp(dot(n, normalize(vec3(0.35, 1.0, 0.25))), 0.25, 1.0);
-            float foam = clamp(1.0 - vJacobian, 0.0, 1.0);
-            float shade = clamp(0.5 + vHeight * 0.6, 0.35, 1.0);
-            vec3 color = mix(vec3(0.05, 0.16, 0.24), vec3(0.12, 0.30, 0.38), shade);
-            color *= ndl;
-            color = mix(color, vec3(0.78, 0.86, 0.90), foam * 0.35);
-            float fog = clamp(length(vWorldPos.xz - cameraPosition.xz) / 9000.0, 0.0, 1.0);
-            color = mix(color, vec3(0.58, 0.66, 0.72), fog * 0.6);
-            gl_FragColor = vec4(color, 1.0);
-          }
-        `,
+        fragmentShader: NEUTRAL_WATER_FRAGMENT,
       });
     },
     [

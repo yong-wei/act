@@ -9,6 +9,23 @@ import { useFrame, useThree } from '@react-three/fiber';
 
 import { cubeUvDefinesForHeight } from './gerstner-water-material';
 
+/** wave-only 两条路线共用的中性片元：只有高度明暗和几何法线，不含 Fresnel/GGX/IBL。 */
+export const NEUTRAL_WATER_FRAGMENT = /* glsl */ `
+  varying float vElevation;
+  varying vec3 vWorldPos;
+  varying vec3 vWorldNormal;
+  void main() {
+    vec3 n = normalize(vWorldNormal);
+    float ndl = clamp(dot(n, normalize(vec3(0.35, 1.0, 0.25))), 0.25, 1.0);
+    float shade = clamp(0.5 + vElevation * 0.6, 0.35, 1.0);
+    vec3 color = mix(vec3(0.05, 0.16, 0.24), vec3(0.12, 0.30, 0.38), shade);
+    color *= ndl;
+    float fog = clamp(length(vWorldPos.xz - cameraPosition.xz) / 9000.0, 0.0, 1.0);
+    color = mix(color, vec3(0.58, 0.66, 0.72), fog * 0.6);
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
 /** Beer-Lambert 水层吸收。深度用米，系数与片元着色器 `exp(-depth * 0.55)` 相同。 */
 export function shallowPathAbsorption(depthMeters: number): number {
   return Math.exp(-Math.max(depthMeters, 0.2) * 0.55);
@@ -34,7 +51,7 @@ const VIEWPORT_SIZE = new THREE.Vector2();
 export function syncSharedWaterOptics(frame: SharedWaterOpticsFrame): void {
   const { material, scene, gl, disableEnvironment, shallowEnabled } = frame;
   material.uniforms.uShallowFxEnabled.value = shallowEnabled ? 1 : 0;
-  gl.getSize(VIEWPORT_SIZE);
+  gl.getDrawingBufferSize(VIEWPORT_SIZE);
   material.uniforms.uViewport.value.set(VIEWPORT_SIZE.x, VIEWPORT_SIZE.y);
   if (frame.foamOrigin) {
     material.uniforms.uFoamOrigin.value.set(frame.foamOrigin.x, frame.foamOrigin.z);

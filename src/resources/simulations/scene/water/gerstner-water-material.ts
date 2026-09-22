@@ -57,6 +57,8 @@ export interface GerstnerWaterMaterialOptions {
   readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
   /** 替换顶点波场（FFT 位移纹理）时仍使用同一片元光学。 */
   readonly vertexShaderOverride?: string;
+  /** wave-only 中性片元，与 FFT 共用，不含 Fresnel/GGX。 */
+  readonly fragmentShaderOverride?: string;
   /**
    * 环境辐射（#2118）：PMREM 天空纹理 + CubeUV 高度（来自 renderer×preset 缓存）。
    * 水面菲涅尔项混合 IBL 天空倒影；缺省保持 horizonColor 过渡（行为不变）。
@@ -349,7 +351,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         gl_Position = projectionMatrix * viewPosition;
       }
     `,
-    fragmentShader: /* glsl */ `
+    fragmentShader: options.fragmentShaderOverride ?? /* glsl */ `
       uniform float uTime;
       uniform vec2 uWorldOrigin;
       uniform vec3 uWaterColor;

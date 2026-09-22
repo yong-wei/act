@@ -28,6 +28,7 @@ import {
 } from '@/resources/simulations/scene/water/fft-ocean-surface';
 import {
   FFT_OCEAN_CHOP_LAMBDA,
+  createFftOceanCompressionSampler,
   fftOceanContactHeightAt,
   fftOceanStaticSpectrum,
 } from '@/resources/simulations/scene/water/fft-ocean';
@@ -40,7 +41,6 @@ import {
   GERSTNER_WATER_BASE_Y,
   createNearFieldSurfaceQuery,
   gerstnerAmplitudeScale,
-  NEAR_FIELD_VISIBLE_WAVES,
 } from '@/resources/simulations/scene/water';
 import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
 import {
@@ -559,6 +559,13 @@ function ComparisonScene({
   }), [backend, tier]);
 
   const gerstnerTier = scene === 'feature-parity' ? tier : 'low';
+  const fftCompressionAt = useMemo(
+    () => createFftOceanCompressionSampler(
+      fftOceanStaticSpectrum(COMPARISON_SPECTRUM_INPUT),
+      COMPARISON_SPECTRUM_INPUT.domainMeters,
+    ),
+    [],
+  );
 
   return (
     <MarineFrameProvider inputs={frameInputs}>
@@ -592,7 +599,8 @@ function ComparisonScene({
           <MarineFoamFieldProvider
             tier={gerstnerTier}
             seaState={COMPARISON_SPECTRUM_INPUT.seaState}
-            waves={NEAR_FIELD_VISIBLE_WAVES}
+            waves={[]}
+            compressionAt={feature.foam ? fftCompressionAt : undefined}
             amplitudeScale={gerstnerAmplitudeScale(COMPARISON_SPECTRUM_INPUT.seaState)}
             resetToken={resetToken}
             attributionOverride={feature.foam ? undefined : { natural: false, vessel: false }}
@@ -621,6 +629,7 @@ function ComparisonScene({
             sunDirection={COMPARISON_SUN_DIRECTION}
             shoreSegments={feature.shallow ? [COMPARISON_SHORE_SEGMENT] : undefined}
             shallowEnabled={shallowEnabled}
+            neutralOptics={feature.optics === 'neutral'}
           />
         )}
       </Suspense>

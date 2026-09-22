@@ -140,6 +140,8 @@ export interface FoamSourceInputs {
   readonly seaState: number;
   /** 自然源开关（QA 归因）。 */
   readonly naturalEnabled: boolean;
+  /** 若提供，自然泡沫用该压缩场，不再用 Gerstner 波组。 */
+  readonly compressionAt?: (worldX: number, worldZ: number, timeSeconds: number) => number;
 }
 
 /** 有界泡沫历史场：网格数据 + 步进/沉积/重定位/seek 政策。无渲染依赖，可纯测试。 */
@@ -306,7 +308,7 @@ export class FoamHistoryField {
     }
     this.grid.set(next);
 
-    if (sources && sources.naturalEnabled && sources.waves.length > 0) {
+    if (sources && sources.naturalEnabled && (sources.compressionAt || sources.waves.length > 0)) {
       this.injectNatural(dt, sources);
     }
     this.timeSeconds += dt;
@@ -331,13 +333,15 @@ export class FoamHistoryField {
       const worldZ = (cj * stride + 0.5) * this.cellMeters - this.domainMeters / 2 + this.originZ;
       for (let ci = 0; ci < coarse; ci += 1) {
         const worldX = (ci * stride + 0.5) * this.cellMeters - this.domainMeters / 2 + this.originX;
-        cache[cj * coarse + ci] = naturalCompression(
-          sources.waves,
-          sources.amplitudeScale,
-          worldX,
-          worldZ,
-          this.naturalPhaseTimeSeconds,
-        );
+        cache[cj * coarse + ci] = sources.compressionAt
+          ? sources.compressionAt(worldX, worldZ, this.naturalPhaseTimeSeconds)
+          : naturalCompression(
+            sources.waves,
+            sources.amplitudeScale,
+            worldX,
+            worldZ,
+            this.naturalPhaseTimeSeconds,
+          );
       }
     }
     const amount = NATURAL_FOAM_RATE_PER_SECOND * dt;

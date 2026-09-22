@@ -288,6 +288,44 @@ export function fftOceanSnapshot(
   return { heights: ifft2dReal(evolved, n), resolution: n };
 }
 
+/**
+ * FFT 压缩采样器：每个时刻只做一次位移 IFFT，泡沫历史按网格查 Jacobian 亏损。
+ * 返回值在 0–1，正值表示水平位移收敛。
+ */
+export function createFftOceanCompressionSampler(
+  spectrum: ComplexGrid,
+  domainMeters: number,
+): (worldX: number, worldZ: number, timeSeconds: number) => number {
+  let cachedTime = Number.NaN;
+  let grid = new Float32Array(0);
+  const resolution = spectrum.resolution;
+  return (worldX, worldZ, timeSeconds) => {
+    if (timeSeconds !== cachedTime) {
+      const displaced = fftOceanDisplacementSnapshot(spectrum, domainMeters, timeSeconds);
+      grid = new Float32Array(resolution * resolution);
+      const cell = domainMeters / resolution;
+      for (let j = 0; j < resolution; j += 1) {
+        const j1 = (j + 1) % resolution;
+        for (let i = 0; i < resolution; i += 1) {
+          const i1 = (i + 1) % resolution;
+          const dx0 = displaced.dx[j * resolution + i];
+          const dx1 = displaced.dx[j * resolution + i1];
+          const dz0 = displaced.dz[j * resolution + i];
+          const dz1 = displaced.dz[j1 * resolution + i];
+          const jacobian = (1 + (dx1 - dx0) / cell) * (1 + (dz1 - dz0) / cell);
+          grid[j * resolution + i] = Math.min(1, Math.max(0, 1 - jacobian));
+        }
+      }
+      cachedTime = timeSeconds;
+    }
+    const wrappedX = ((worldX % domainMeters) + domainMeters) % domainMeters;
+    const wrappedZ = ((worldZ % domainMeters) + domainMeters) % domainMeters;
+    const i = Math.min(resolution - 1, Math.floor((wrappedX / domainMeters) * resolution));
+    const j = Math.min(resolution - 1, Math.floor((wrappedZ / domainMeters) * resolution));
+    return grid[j * resolution + i] ?? 0;
+  };
+}
+
 /** CPU IFFT 水平位移（与 GPU chop 同公式：λ (k_axis/|k|) i H）。 */
 export function fftOceanDisplacementSnapshot(
   spectrum: ComplexGrid,
