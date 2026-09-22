@@ -206,6 +206,21 @@ function lodDistanceFor(object: MarineEnvironmentObject): number {
   return (object.detail === 'near' ? 900 : 4200) * Math.max(1, object.scale * 0.02);
 }
 
+function triangleCount(geometry: THREE.BufferGeometry): number {
+  const position = geometry.getAttribute('position');
+  if (!position) return 0;
+  return (geometry.index ? geometry.index.count : position.count) / 3;
+}
+
+/** 近景复合轮廓与远景简化基元的三角形数（同一几何缓存）。 */
+export function marineLayoutLevelTriangles(
+  kind: MarineEnvironmentObject['kind'],
+  level: 'composite' | 'simplified',
+): number {
+  const geometry = level === 'composite' ? compositeGeometryFor(kind) : simplifiedGeometryFor(kind);
+  return triangleCount(geometry);
+}
+
 /** 单个环境物：真实按距 LOD（复合轮廓 → 简化基元），世界锚定。 */
 function EnvironmentObjectLod({ object }: { readonly object: MarineEnvironmentObject }) {
   const lod = useMemo(() => {
@@ -287,8 +302,19 @@ function writeInstanceMatrices(
  * 实例 LOD 相机距离（#2119 复审：按相机距离动态迁移——非固定世界分区）：
  * 近于此距离用复合轮廓，远于（1+滞回带）用简化基元；滞回防抖动。
  */
-function instanceLodDistanceMeters(object: MarineEnvironmentObject): number {
+export function instanceLodDistanceMeters(object: MarineEnvironmentObject): number {
   return Math.max(600, object.scale * 30);
+}
+
+/** 实例批次滞回：已简化的对象要更近才回到复合轮廓。 */
+export function instanceKeepsCompositeDetail(
+  distance: number,
+  lodDistance: number,
+  currentlySimplified: boolean,
+): boolean {
+  return currentlySimplified
+    ? distance <= lodDistance * 0.85
+    : distance <= lodDistance * 1.15;
 }
 
 /** 实例重分桶节拍（秒）：每 0.25s 按相机距离重算，矩阵重写成本可忽略。 */
@@ -335,9 +361,11 @@ function EnvironmentObjectInstances({
       const distance = Math.hypot(object.x - camera.position.x, object.z - camera.position.z);
       const lodDistance = instanceLodDistanceMeters(object);
       // 滞回：已简化对象要更近（×0.85）才升级回复合批；已精细对象要更远（×1.15）才降级。
-      const isComposite = state.simplifiedIds.has(object.id)
-        ? distance <= lodDistance * 0.85
-        : distance <= lodDistance * 1.15;
+      const isComposite = instanceKeepsCompositeDetail(
+        distance,
+        lodDistance,
+        state.simplifiedIds.has(object.id),
+      );
       if (isComposite) state.simplifiedIds.delete(object.id);
       else state.simplifiedIds.add(object.id);
       (isComposite ? compositeObjects : simplifiedObjects).push(object);

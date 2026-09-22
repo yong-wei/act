@@ -184,6 +184,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uFoamResolution: { value: options.foamField?.resolution ?? 0 },
       uFoamFieldEnabled: { value: options.foamField ? 1 : 0 },
       uFoamEdgeFade: { value: FOAM_EDGE_FADE_METERS },
+      uFoamDrift: { value: new THREE.Vector2(0, 0) },
       // 环境辐射（#2118）：envMap/envMapIntensity/envMapRotation 为 three chunk
       // 契约 uniform；uEnvEnabled 兜底禁用（无纹理时不采样）。
       envMap: { value: env?.texture ?? null },
@@ -231,6 +232,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       varying float vCrest;
       varying float vElevation;
       varying vec2 vLocalXZ;
+      varying vec2 vHorizontalDisp;
 
       void main() {
         vec3 pos = position;
@@ -333,6 +335,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         }
 
         vElevation = pos.y;
+        vHorizontalDisp = vec2(pos.x - basePos.x, pos.z - basePos.z);
         vCrest = amplitudeSum > 0.0 ? 0.5 * (1.0 + crestRaw / amplitudeSum) : 0.0;
         // 乘积法则（#2098 复审）：衰减环内 P = (x+E·Sx, E·Y, z+E·Sz)，
         // 偏导补 E'×原始位移项（rawSx/rawY/rawSz 未含包络，避免 E'·E·S）。
@@ -382,6 +385,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uFoamResolution;
       uniform float uFoamFieldEnabled;
       uniform float uFoamEdgeFade;
+      uniform vec2 uFoamDrift;
       uniform float uEnvEnabled;
       uniform sampler2D uPlanarTex;
       uniform mat4 uPlanarMatrix;
@@ -406,6 +410,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       varying float vCrest;
       varying float vElevation;
       varying vec2 vLocalXZ;
+      varying vec2 vHorizontalDisp;
 
       // 浅水效应（#2117 片元化 / #2119 深度消费者）：x = 浅水因子（近岸程度 ×
       // 岸深反比），y = 估计水深（米）——供深度分级吸收与有界折射。
@@ -464,9 +469,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       // 多尺度细节（#2115）：三个非谐波尺度 + 固定偏移去相关——同一噪声图不再
       // 以单一周期平铺（消除 80m 大贴花）；相位只随世界位置变化，不逐帧换噪声。
       float foamDetail(vec2 worldXZ) {
-        float a = texture2D(uFoamTex, worldXZ / 23.0).a;
-        float b = texture2D(uFoamTex, worldXZ / 71.0 + vec2(0.37, 0.13)).a;
-        float c = texture2D(uFoamTex, worldXZ / 149.0 + vec2(0.71, 0.53)).a;
+        vec2 carried = worldXZ - uFoamDrift * uTime + vHorizontalDisp * 0.35;
+        float a = texture2D(uFoamTex, carried / 23.0).a;
+        float b = texture2D(uFoamTex, carried / 71.0 + vec2(0.37, 0.13)).a;
+        float c = texture2D(uFoamTex, carried / 149.0 + vec2(0.71, 0.53)).a;
         return a * 0.4 + b * 0.35 + c * 0.25;
       }
 

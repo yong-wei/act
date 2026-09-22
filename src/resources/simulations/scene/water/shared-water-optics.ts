@@ -14,10 +14,11 @@ export const NEUTRAL_WATER_FRAGMENT = /* glsl */ `
   varying float vElevation;
   varying vec3 vWorldPos;
   varying vec3 vWorldNormal;
+  varying vec2 vHorizontalDisp;
   void main() {
     vec3 n = normalize(vWorldNormal);
     float ndl = clamp(dot(n, normalize(vec3(0.35, 1.0, 0.25))), 0.25, 1.0);
-    float shade = clamp(0.5 + vElevation * 0.6, 0.35, 1.0);
+    float shade = clamp(0.5 + vElevation * 0.6 + length(vHorizontalDisp) * 1e-8, 0.35, 1.0);
     vec3 color = mix(vec3(0.05, 0.16, 0.24), vec3(0.12, 0.30, 0.38), shade);
     color *= ndl;
     float fog = clamp(length(vWorldPos.xz - cameraPosition.xz) / 9000.0, 0.0, 1.0);
@@ -55,6 +56,12 @@ export function syncSharedWaterOptics(frame: SharedWaterOpticsFrame): void {
   material.uniforms.uViewport.value.set(VIEWPORT_SIZE.x, VIEWPORT_SIZE.y);
   if (frame.foamOrigin) {
     material.uniforms.uFoamOrigin.value.set(frame.foamOrigin.x, frame.foamOrigin.z);
+  }
+  const foamDrift = (scene.userData as {
+    marineFoamField?: { driftMetersPerSecond?: readonly [number, number] };
+  }).marineFoamField?.driftMetersPerSecond;
+  if (foamDrift && material.uniforms.uFoamDrift) {
+    material.uniforms.uFoamDrift.value.set(foamDrift[0], foamDrift[1]);
   }
   const env = disableEnvironment
     ? undefined

@@ -48,12 +48,34 @@ export interface FoamHistoryTierSpec {
   readonly naturalStride: number;
 }
 
+/** 自然白浪声明频带（米）：近场最短可解波长。采样间距不得超过半波长。 */
+export const NATURAL_FOAM_BAND_METERS = 32;
+
 /** 三档退化（设计：低档降低分辨率/更新频率，不退回大尺度重复贴花）。 */
 export const FOAM_HISTORY_BY_TIER: Record<'high' | 'medium' | 'low', FoamHistoryTierSpec> = {
   high: { resolution: 256, updateHz: 25, naturalStride: 4 },
-  medium: { resolution: 128, updateHz: 20, naturalStride: 4 },
-  low: { resolution: 64, updateHz: 12.5, naturalStride: 2 },
+  medium: { resolution: 128, updateHz: 20, naturalStride: 2 },
+  low: { resolution: 64, updateHz: 12.5, naturalStride: 1 },
 };
+
+/** 自然源在世界上的采样间距（米）= 格距 × stride。 */
+export function naturalFoamSampleSpacingMeters(
+  resolution: number,
+  stride: number,
+  domainMeters: number,
+): number {
+  return (domainMeters / resolution) * stride;
+}
+
+/** 间距不大于声明频带的半波长，未分辨的更短波不进入源网格。 */
+export function naturalFoamSpacingResolvesBand(
+  resolution: number,
+  stride: number,
+  domainMeters: number,
+  bandMeters = NATURAL_FOAM_BAND_METERS,
+): boolean {
+  return naturalFoamSampleSpacingMeters(resolution, stride, domainMeters) <= bandMeters / 2;
+}
 
 /** 海况门限（自然白浪需要足够能量；平静海况不得始终满屏白沫）。 */
 export function naturalFoamSeaStateGate(seaState: number): number {
@@ -112,6 +134,24 @@ export function naturalFoamSourceStrength(normalizedCompression: number, seaStat
 /** 密度衰减因子（纯函数）：exp(-ln2·dt/halfLife)。 */
 export function foamDecayFactor(halfLifeSeconds: number, dtSeconds: number): number {
   return Math.exp((-Math.LN2 * Math.max(0, dtSeconds)) / Math.max(1e-6, halfLifeSeconds));
+}
+
+/**
+ * 固定船体位置上的推进器洗流回放：只在给定推进器点沉积，船不平移。
+ * 开放水面应保持接近零密度。
+ */
+export function replayLocalizedWash(
+  field: FoamHistoryField,
+  propulsors: ReadonlyArray<readonly [number, number]>,
+  seconds: number,
+  ratePerSecond = VESSEL_FOAM_RATE_PER_SECOND,
+): void {
+  const dt = 0.1;
+  const steps = Math.max(1, Math.round(seconds / dt));
+  for (let step = 0; step < steps; step += 1) {
+    for (const [x, z] of propulsors) field.deposit(x, z, 6, ratePerSecond * dt);
+    field.step(dt, null);
+  }
 }
 
 /** 展示性漂移（米/秒）：沿主波向的受控慢漂——不是波峰相速度，也不是教学海流。 */
