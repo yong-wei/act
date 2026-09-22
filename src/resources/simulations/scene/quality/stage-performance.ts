@@ -281,7 +281,7 @@ export function separateCpuSubmit(cpuSubmitMs: number): TimingSample {
     gpuMs: null,
     completedWorkMs: cpuSubmitMs,
     frameIntervalMs: null,
-    method: 'completed-work',
+    method: 'frame-intervals',
     reason: 'cpu-submit',
     quantizationNs: null,
     rawGpuNs: null,
@@ -648,8 +648,8 @@ function canIssueDisjointQuery(
     && typeof candidate.getParameter === 'function';
 }
 
-function canResolvePassTimestamps(renderer: MarineStageRenderer, periodNs: number | null): renderer is TimestampResolvingRenderer {
-  return periodNs !== null && typeof (renderer as TimestampResolvingRenderer).resolveTimestampsAsync === 'function';
+function canResolvePassTimestamps(renderer: MarineStageRenderer): renderer is TimestampResolvingRenderer {
+  return typeof (renderer as TimestampResolvingRenderer).resolveTimestampsAsync === 'function';
 }
 
 async function waitForWebGlCompletion(gl: WebGL2TimerContext): Promise<boolean> {
@@ -687,9 +687,9 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
   const timestampPeriod = timestampFeature ? finiteOrNull(device?.limits?.timestampPeriod ?? null) : null;
   const queryGl = canIssueDisjointQuery(webgl, extension) ? webgl : null;
   const canDisjoint = queryGl !== null;
-  const canTimestamp = !canDisjoint && timestampFeature && canResolvePassTimestamps(renderer, timestampPeriod);
+  const canTimestamp = !canDisjoint && timestampFeature && canResolvePassTimestamps(renderer);
   const method: 'gpu-elapsed' | 'completed-work' = canDisjoint || canTimestamp ? 'gpu-elapsed' : 'completed-work';
-  const quantizationNs = canDisjoint ? 1 : canTimestamp ? timestampPeriod : null;
+  const quantizationNs = canDisjoint ? 1 : canTimestamp ? (timestampPeriod ?? 1) : null;
   let queryOpen = false;
   let queryStartedAt = 0;
   let issued: IssuedQuery | null = null;
@@ -819,7 +819,7 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
 
   async function collectTimestampRound(work: () => void | Promise<void>): Promise<TimingSample> {
     const resolving = renderer as TimestampResolvingRenderer;
-    if (!canTimestamp || timestampPeriod === null || !resolving.resolveTimestampsAsync) {
+    if (!canTimestamp || !resolving.resolveTimestampsAsync) {
       return measureCompletedWork(work);
     }
     const backend = resolving.backend;
@@ -830,14 +830,17 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
     try {
       await work();
       workFinished = true;
-      const durationMs = await resolving.resolveTimestampsAsync('render');
+      const renderMs = await resolving.resolveTimestampsAsync('render');
+      const computeMs = await resolving.resolveTimestampsAsync('compute');
+      const parts = [renderMs, computeMs].filter((value): value is number => (
+        typeof value === 'number' && Number.isFinite(value) && value > 0
+      ));
+      const durationMs = parts.length === 0 ? null : parts.reduce((sum, value) => sum + value, 0);
       const wallClockMs = performance.now() - started;
-      const gpuElapsedNs = typeof durationMs === 'number' && Number.isFinite(durationMs)
-        ? durationMs * 1e6
-        : null;
+      const gpuElapsedNs = durationMs === null ? null : durationMs * 1e6;
       return remember(acceptTimingSample({
         gpuElapsedNs,
-        quantumNs: timestampPeriod,
+        quantumNs: quantizationNs,
         disjoint: false,
         completedWorkMs: wallClockMs,
         frameIntervalMs: null,

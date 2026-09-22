@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
@@ -181,9 +182,12 @@ function WebGpuOcean({
             timeSeconds,
             amplitudeScale: 1,
           });
-        fieldRef.current?.dispose();
+        const previous = fieldRef.current;
         fieldRef.current = next;
-        onField(next);
+        flushSync(() => {
+          onField(next);
+        });
+        previous?.dispose();
       } finally {
         busy.current = false;
       }

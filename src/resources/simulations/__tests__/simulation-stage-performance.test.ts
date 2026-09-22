@@ -178,7 +178,8 @@ describe('stage timing labels (#2135)', () => {
     expect(sample.labeledAs).toBe('cpu-submit');
     expect(sample.completedWorkMs).toBe(3.5);
     expect(sample.gpuMs).toBeNull();
-    expect(sample.method).toBe('completed-work');
+    expect(sample.method).toBe('frame-intervals');
+    expect(sample.method).not.toBe('completed-work');
     expect(JSON.stringify(sample)).not.toContain('"gpuMs":3.5');
   });
 });
@@ -554,25 +555,26 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
         },
         device: {
           features: { has: (name: string) => name === 'timestamp-query' },
-          limits: { timestampPeriod: 41.6 },
+          limits: {},
           queue: { onSubmittedWorkDone: () => Promise.resolve() },
         },
       },
       async resolveTimestampsAsync(type?: string) {
         expect(tracking).toBe(true);
-        expect(type).toBe('render');
-        calls.push('resolve');
-        return 2.5;
+        calls.push(type ?? 'missing');
+        if (type === 'compute') return 1.5;
+        if (type === 'render') return 1;
+        return undefined;
       },
     };
     const timer = bindMarineStageTimer(renderer);
     expect(timer.describe().gpuTimeAvailable).toBe(true);
-    expect(timer.describe().quantizationNs).toBe(41.6);
+    expect(timer.describe().quantizationNs).toBe(1);
     const sample = await timer.collectRound(() => {
       expect(tracking).toBe(true);
       calls.push('work');
     });
-    expect(calls).toEqual(['work', 'resolve']);
+    expect(calls).toEqual(['work', 'render', 'compute']);
     expect(tracking).toBe(false);
     expect(sample.method).toBe('gpu-elapsed');
     expect(sample.gpuMs).toBeCloseTo(2.5);
@@ -741,7 +743,7 @@ describe('local paired sample (#2135)', () => {
     expect(measurement).toContain('window.__marineStagePerformance');
     expect(measurement).toContain('probe.collect()');
     expect(collector).toContain('equalPresentationIsEqualCost: false');
-    expect(collector).toContain('function stageRouteCost');
+    expect(collector).toContain("round.labeledAs !== 'cpu-submit'");
     expect(measurement).not.toContain('recordVideo');
 
     const client = readFileSync(path.join(ROOT, 'src/app/simulations/fft-ocean-comparison/comparison-client.tsx'), 'utf8');
@@ -754,7 +756,8 @@ describe('local paired sample (#2135)', () => {
     expect(collector).toContain('api=webgpu');
     const webgpuClient = readFileSync(path.join(ROOT, 'src/app/simulations/fft-ocean-comparison/webgpu-comparison-client.tsx'), 'utf8');
     expect(webgpuClient).toContain('<MarineStagePerformanceProbe />');
-    expect(webgpuClient).toContain('window.__marineStageAdvance');
+    expect(webgpuClient).toContain('flushSync(() =>');
+    expect(webgpuClient).toContain('previous?.dispose()');
     const fftSurface = readFileSync(path.join(ROOT, 'src/resources/simulations/scene/water/fft-ocean-surface.tsx'), 'utf8');
     expect(fftSurface).toContain('window.__marineStageAdvance');
     expect(fftSurface).toContain('pipeline.run(timeSeconds)');

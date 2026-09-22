@@ -283,7 +283,11 @@ function stageRouteCost(measured) {
   if (!Array.isArray(rounds) || rounds.length === 0) {
     throw new Error('刷新率样本不能代替阶段或完成工作量');
   }
-  const costs = rounds.map((round) => {
+  const usable = rounds.filter((round) => round.labeledAs !== 'cpu-submit');
+  if (usable.length === 0) {
+    throw new Error('完成等待失败，不能把 CPU 提交耗时当成路线成本');
+  }
+  const costs = usable.map((round) => {
     if (round.labeledAs === 'frame-intervals' || round.method === 'frame-intervals') {
       throw new Error('阶段采集不得把帧间隔当成 GPU 耗时');
     }
