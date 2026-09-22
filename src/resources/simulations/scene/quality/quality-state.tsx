@@ -13,6 +13,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 
 import { buildMarinePerformanceReport } from './performance-evidence';
 import { marineGpuTimerStartWindow, marineGpuTimerStopWindow, readMarineGpuTimerEvidence } from './gpu-frame-timer';
+import { bindMarineStageTimer, type StageTimerDescription } from './stage-performance';
 import { Gauge } from 'lucide-react';
 
 import { ChromePopoverButton } from '../chrome';
@@ -212,6 +213,7 @@ export function MarinePerformanceEvidenceProbe({
     // QA 入口（复审对齐）：既有帧契约入口 marine-frame 与本采集入口 marine-performance 均接受。
     const qaParams = new URLSearchParams(window.location.search).getAll('qa');
     if (!qaParams.includes('marine-performance') && !qaParams.includes('marine-frame')) return;
+    const stageTimer = bindMarineStageTimer(renderer);
     // 预热后 60s 时间窗（二轮复审）：按经过时间维护窗口，start() 显式开始并重置
     // （丢弃启动/加载/编译帧），stop() 结束采集。
     const WINDOW_MS = 60_000;
@@ -286,6 +288,7 @@ export function MarinePerformanceEvidenceProbe({
         // GPU 窗口同步结束（P2 二轮）：停止后延迟 read()/在途查询不改变数值。
         marineGpuTimerStopWindow();
       },
+      stageTimer: (): StageTimerDescription => stageTimer.describe(),
       read: () => {
         const input = contextInputRef.current?.();
         return buildMarinePerformanceReport({
@@ -334,6 +337,7 @@ declare global {
     __marinePerformanceEvidence?: {
       start(): void;
       stop(): void;
+      stageTimer(): StageTimerDescription;
       read(): ReturnType<typeof buildMarinePerformanceReport>;
       sampleCount(): number;
     };

@@ -33,6 +33,7 @@ import {
   fftOceanStaticSpectrum,
 } from '@/resources/simulations/scene/water/fft-ocean';
 import { createFFTQueryWorker } from '@/resources/simulations/scene/water/fft-query-worker';
+import { assembleWorkerQueryReport } from '@/resources/simulations/scene/quality/stage-performance';
 import { MarineShallowBackdrop, COMPARISON_SUN_DIRECTION } from '@/resources/simulations/scene/water/shared-water-optics';
 import { MarinePlanarReflection } from '@/resources/simulations/scene/environment/planar-reflection';
 import { MarineFoamFieldProvider } from '@/resources/simulations/scene/water/foam-history-layer';
@@ -270,12 +271,21 @@ function FftWorkerPoster({
       const [mid, bow, stern] = result.results;
       samplesRef.current = { mid, bow, stern, time: result.timeSeconds };
       const receivedAt = performance.timeOrigin + performance.now();
-      metricsRef.current = {
+      const report = assembleWorkerQueryReport({
         computeMs: result.computeMs,
         queueMs: result.queueMs,
         e2eMs: receivedAt - result.postedAt,
         resultAgeSeconds: Math.max(0, visualTimeRef.current - result.timeSeconds),
+      });
+      metricsRef.current = {
+        computeMs: report.computeMs,
+        queueMs: report.queueMs,
+        transferMs: report.transferMs,
+        e2eMs: report.e2eMs,
+        resultAgeSeconds: report.resultAgeSeconds,
         viaWorker: true,
+        initChargedPerQuery: report.initChargedPerQuery,
+        queryKind: report.kind,
       };
     });
     return () => {
@@ -310,9 +320,12 @@ function FftWorkerPoster({
     metricsRef.current = {
       computeMs: performance.now() - started,
       queueMs: 0,
+      transferMs: null,
       e2eMs: performance.now() - started,
       resultAgeSeconds: 0,
       viaWorker: false,
+      initChargedPerQuery: false,
+      queryKind: 'main-thread-fallback',
     };
     void runner;
   });

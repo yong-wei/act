@@ -32,9 +32,12 @@ declare global {
       queryMetrics?: () => {
         computeMs: number;
         queueMs: number;
+        transferMs: number | null;
         e2eMs: number;
         resultAgeSeconds: number;
         viaWorker: boolean;
+        initChargedPerQuery: boolean;
+        queryKind: string;
       } | null;
       identity: () => {
         queryBackend: 'fft' | 'gerstner';
@@ -100,7 +103,10 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     expect(metrics?.computeMs).toBeGreaterThan(0);
     expect(metrics?.queueMs).toBeGreaterThanOrEqual(0);
     expect(metrics?.e2eMs).toBeGreaterThan(0);
+    expect(metrics?.transferMs).toBeGreaterThanOrEqual(0);
     expect(metrics?.resultAgeSeconds).toBeGreaterThanOrEqual(0);
+    expect(metrics?.initChargedPerQuery).toBe(false);
+    expect(metrics?.queryKind).toBe('worker-batch');
   });
 
   test('replays the same visual time after reset and step', async ({ page }) => {

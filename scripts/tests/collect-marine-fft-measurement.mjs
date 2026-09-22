@@ -154,6 +154,7 @@ async function measurementRound(browser, backend) {
           webgpuAvailable: rt.webgpuAvailable,
           resolution: rt.resolution,
           pointQueryMs: rt.measurePointQueryMs(60),
+          pointQueryKind: rt.pointQueryKind,
         };
       })
     : null;
