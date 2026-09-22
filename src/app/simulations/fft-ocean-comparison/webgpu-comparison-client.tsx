@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
+import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
+
+import { ComparisonVessel, FarFieldRing } from './comparison-client';
 import * as THREE from 'three';
 import { color, float, Fn, mix, positionLocal, vec3, vertexIndex } from 'three/tsl';
 import { MeshStandardNodeMaterial, WebGPURenderer } from 'three/webgpu';
@@ -24,14 +27,7 @@ import {
   type ComparisonSceneId,
 } from './comparison-lab';
 
-const VALIDATION_SPECTRUM = {
-  resolution: 32,
-  domainMeters: 256,
-  windSpeedMps: COMPARISON_SPECTRUM_INPUT.windSpeedMps,
-  windDirectionRad: COMPARISON_SPECTRUM_INPUT.windDirectionRad,
-  seaState: COMPARISON_SPECTRUM_INPUT.seaState,
-  seed: COMPARISON_SPECTRUM_INPUT.seed,
-} as const;
+const FFT_SPECTRUM = COMPARISON_SPECTRUM_INPUT;
 
 interface WebGpuProbe {
   ready: () => boolean;
@@ -76,8 +72,8 @@ function WaterMesh({
     for (let j = 0; j < n; j += 1) {
       for (let i = 0; i < n; i += 1) {
         const index = j * n + i;
-        positions[index * 3] = (i / (n - 1) - 0.5) * VALIDATION_SPECTRUM.domainMeters;
-        positions[index * 3 + 2] = (j / (n - 1) - 0.5) * VALIDATION_SPECTRUM.domainMeters;
+        positions[index * 3] = (i / (n - 1) - 0.5) * FFT_SPECTRUM.domainMeters;
+        positions[index * 3 + 2] = (j / (n - 1) - 0.5) * FFT_SPECTRUM.domainMeters;
       }
     }
     for (let j = 0; j < n - 1; j += 1) {
@@ -132,43 +128,41 @@ function WebGpuOcean({
   readonly onFieldError: (message: string) => void;
 }) {
   const renderer = useThree((state) => state.gl) as unknown as WebGPURenderer;
-  const threeScene = useThree((state) => state.scene);
-  const feature = COMPARISON_FEATURE_MATRIX[scene];
-  useEffect(() => {
-    let disposed = false;
-    let field: WebGpuOceanField | null = null;
-    const run = async () => {
-      field = await computeWebGpuOceanField(renderer, backend === 'fft'
-        ? {
-          algorithm: 'fft',
-          spectrum: fftOceanStaticSpectrum(VALIDATION_SPECTRUM),
-          domainMeters: VALIDATION_SPECTRUM.domainMeters,
-          timeSeconds: 1.5,
-        }
-        : {
-          algorithm: 'gerstner',
-          waves: GERSTNER_WAVE_SETS.low,
-          domainMeters: VALIDATION_SPECTRUM.domainMeters,
-          timeSeconds: 1.5,
-          amplitudeScale: 1,
-        });
-      if (disposed) {
-        field.dispose();
-        return;
+  const busy = useRef(false);
+  const lastTime = useRef(-1);
+  const fieldRef = useRef<WebGpuOceanField | null>(null);
+  useFrame((state) => {
+    const timeSeconds = state.clock.elapsedTime;
+    if (busy.current || (lastTime.current >= 0 && timeSeconds - lastTime.current < 0.5)) return;
+    busy.current = true;
+    lastTime.current = timeSeconds;
+    const previous = fieldRef.current;
+    void computeWebGpuOceanField(renderer, backend === 'fft'
+      ? {
+        algorithm: 'fft',
+        spectrum: fftOceanStaticSpectrum(FFT_SPECTRUM),
+        domainMeters: FFT_SPECTRUM.domainMeters,
+        timeSeconds,
       }
+      : {
+        algorithm: 'gerstner',
+        waves: GERSTNER_WAVE_SETS.low,
+        domainMeters: FFT_SPECTRUM.domainMeters,
+        timeSeconds,
+        amplitudeScale: 1,
+      }).then((field) => {
+      previous?.dispose();
+      fieldRef.current = field;
       onField(field);
-    };
-    void run().catch((error: unknown) => {
+    }).catch((error: unknown) => {
       const message = error instanceof Error ? error.message : String(error);
       console.error(message);
-      if (!disposed) onFieldError(message);
+      onFieldError(message);
+    }).finally(() => {
+      busy.current = false;
     });
-    return () => {
-      disposed = true;
-      field?.dispose();
-      threeScene.environment = null;
-    };
-  }, [backend, feature.ibl, onField, onFieldError, renderer, threeScene]);
+  });
+  useEffect(() => () => fieldRef.current?.dispose(), []);
   return null;
 }
 
@@ -211,8 +205,8 @@ export default function WebGpuComparisonClient({
       features: () => ({
         optics: feature.optics,
         ibl: false,
-        planar: feature.planar,
-        foam: feature.foam,
+        planar: false,
+        foam: feature.foam && feature.optics === 'shared',
         shallow: feature.shallow,
         fallbackToWebGL: false,
       }),
@@ -262,12 +256,35 @@ export default function WebGpuComparisonClient({
           <ambientLight intensity={0.4} />
           <directionalLight position={[40, 80, 30]} intensity={1.5} />
           <WebGpuOcean backend={backend} scene={scene} onField={setField} onFieldError={setComputeError} />
+          <FarFieldRing />
+          <WebGpuVessel />
           <PlanarPass enabled={feature.planar} />
           {field ? <WaterMesh field={field} scene={scene} /> : null}
           <OrbitControls />
         </Canvas>
       </div>
     </main>
+  );
+}
+
+function WebGpuVessel() {
+  const simRef = useRef<BindingTelemetrySource>({
+    rudderDeg: 0,
+    speedMps: 0,
+    attainedCount: 0,
+    advancing: true,
+  });
+  const pitchRef = useRef(0);
+  return (
+    <ComparisonVessel
+      failAsset={false}
+      waterYSampler={() => -1}
+      pitchRef={pitchRef}
+      simRef={simRef}
+      resetToken={0}
+      onMountedUrl={() => undefined}
+      onLoadFailed={() => undefined}
+    />
   );
 }
 

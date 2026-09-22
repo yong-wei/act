@@ -35,7 +35,7 @@ test.describe('WebGPU marine parity (#2134)', () => {
     await openRoute(page, 'api=webgpu&backend=fft&scene=wave-only');
     const unavailable = await page.locator('[data-webgpu-status="unavailable"], [data-webgpu-status="failed"]').count();
     test.skip(unavailable > 0, '这台浏览器没有可用的 WebGPU 设备');
-    let fft: { heightL2: number; slopeL2: number; nativeBackend: boolean; route: string } | null = null;
+    let fft: { heightL2: number; slopeL2: number; displacementL2: number; nativeBackend: boolean; route: string } | null = null;
     const deadline = Date.now() + 70_000;
     let lastState = 'pending';
     while (Date.now() < deadline) {
@@ -59,6 +59,7 @@ test.describe('WebGPU marine parity (#2134)', () => {
     expect(fft?.route).toBe('webgpu-fft');
     expect(fft?.heightL2).toBeLessThan(2e-2);
     expect(fft?.slopeL2).toBeLessThan(2e-2);
+    expect(fft?.displacementL2).toBeLessThan(2e-2);
     const features = await page.evaluate(() => window.__marineWebGpu?.features());
     expect(features?.fallbackToWebGL).toBe(false);
     expect(features?.optics).toBe('neutral');
@@ -86,8 +87,8 @@ test.describe('WebGPU marine parity (#2134)', () => {
     expect(gerstner?.heightL2).toBeLessThan(2e-2);
     expect(gerstner?.displacementL2).toBeLessThan(2e-2);
     expect(gerstnerFeatures?.optics).toBe('shared');
-    expect(gerstnerFeatures?.foam).toBe(true);
     expect(gerstnerFeatures?.shallow).toBe(true);
+    expect(gerstnerFeatures?.foam).toBe(true);
     expect(gerstnerFeatures?.fallbackToWebGL).toBe(false);
   });
 });

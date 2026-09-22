@@ -25,6 +25,7 @@ import {
   fftOceanSnapshot,
   type ComplexGrid,
 } from './fft-ocean';
+import { runWebGpuButterflyIfft } from './webgpu-ifft';
 import { computeGerstnerDisplacement, type GerstnerWave } from './gerstner-waves';
 
 export type MarineWebGpuStatus = 'ready' | 'unavailable' | 'failed';
@@ -208,167 +209,6 @@ function asStorage(node: unknown): StorageNode {
   return node as StorageNode;
 }
 
-const DIRECT_DFT_SHADER = `
-fn bin_k(i: u32, n: u32, domain: f32) -> f32 {
-  let folded = select(i32(i) - i32(n), i32(i), i <= n / 2u);
-  return 6.283185307179586 * f32(folded) / domain;
-}
-
-struct Params {
-  n: u32,
-  time: f32,
-  domain: f32,
-  pad: f32,
-}
-
-@group(0) @binding(0) var<storage, read> spectrum: array<vec2<f32>>;
-@group(0) @binding(1) var<storage, read_write> heights: array<f32>;
-@group(0) @binding(2) var<storage, read_write> slopes: array<f32>;
-@group(0) @binding(3) var<uniform> params: Params;
-
-@compute @workgroup_size(64)
-fn height_main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let n = params.n;
-  let count = n * n;
-  if (gid.x >= count) { return; }
-  let col = gid.x % n;
-  let row = gid.x / n;
-  let x = f32(col) * params.domain / f32(n);
-  let z = f32(row) * params.domain / f32(n);
-  var sum = 0.0;
-  for (var m: u32 = 0u; m < n; m = m + 1u) {
-    let kz = bin_k(m, n, params.domain);
-    for (var ix: u32 = 0u; ix < n; ix = ix + 1u) {
-      let kx = bin_k(ix, n, params.domain);
-      let omega = sqrt(9.81 * max(sqrt(kx * kx + kz * kz), 1e-9));
-      let phase = omega * params.time + kx * x + kz * z;
-      let sample = spectrum[m * n + ix];
-      sum = sum + sample.x * cos(phase) - sample.y * sin(phase);
-    }
-  }
-  heights[gid.x] = sum / f32(count);
-}
-
-@compute @workgroup_size(64)
-fn slope_main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let n = params.n;
-  if (gid.x >= n * n) { return; }
-  let col = gid.x % n;
-  let row = gid.x / n;
-  let right = heights[row * n + (col + 1u) % n];
-  let left = heights[row * n + (col + n - 1u) % n];
-  let cell = params.domain / f32(n);
-  slopes[gid.x] = (right - left) / (2.0 * cell);
-}
-`;
-
-const GPU_MAP_READ = 0x0001;
-const GPU_COPY_SRC = 0x0004;
-const GPU_COPY_DST = 0x0008;
-const GPU_UNIFORM = 0x0040;
-const GPU_STORAGE = 0x0080;
-const GPU_SHADER_COMPUTE = 0x4;
-
-async function readStorageFloats(device: any, source: any, floatCount: number): Promise<Float32Array> {
-  const byteLength = floatCount * 4;
-  const readback = device.createBuffer({
-    size: byteLength,
-    usage: GPU_COPY_DST | GPU_MAP_READ,
-  });
-  const encoder = device.createCommandEncoder();
-  encoder.copyBufferToBuffer(source, 0, readback, 0, byteLength);
-  device.queue.submit([encoder.finish()]);
-  await readback.mapAsync(GPU_MAP_READ);
-  const copy = new Float32Array(readback.getMappedRange().slice(0));
-  readback.destroy();
-  return copy;
-}
-
-async function runDirectWebGpuDft(
-  renderer: WebGPURenderer,
-  spectrum: ComplexGrid,
-  domainMeters: number,
-  timeSeconds: number,
-): Promise<{ heights: Float32Array; slope: Float32Array }> {
-  const device: any = (renderer as unknown as { backend: { device: unknown } }).backend.device;
-  const n = spectrum.resolution;
-  const count = n * n;
-  const module = device.createShaderModule({ code: DIRECT_DFT_SHADER });
-  const compiled = await module.getCompilationInfo();
-  const errors = compiled.messages.filter((message: { type: string }) => message.type === 'error');
-  if (errors.length > 0) {
-    throw new Error(errors.map((message: { message: string }) => message.message).join('\n'));
-  }
-  const params = new ArrayBuffer(16);
-  const paramsView = new DataView(params);
-  paramsView.setUint32(0, n, true);
-  paramsView.setFloat32(4, timeSeconds, true);
-  paramsView.setFloat32(8, domainMeters, true);
-  const spectrumBuffer = device.createBuffer({
-    size: spectrum.data.byteLength,
-    usage: GPU_STORAGE | GPU_COPY_DST,
-  });
-  const heightBuffer = device.createBuffer({
-    size: count * 4,
-    usage: GPU_STORAGE | GPU_COPY_SRC,
-  });
-  const slopeBuffer = device.createBuffer({
-    size: count * 4,
-    usage: GPU_STORAGE | GPU_COPY_SRC,
-  });
-  const uniformBuffer = device.createBuffer({
-    size: 16,
-    usage: GPU_UNIFORM | GPU_COPY_DST,
-  });
-  device.queue.writeBuffer(spectrumBuffer, 0, spectrum.data);
-  device.queue.writeBuffer(uniformBuffer, 0, params);
-  const bindGroupLayout = device.createBindGroupLayout({
-    entries: [
-      { binding: 0, visibility: GPU_SHADER_COMPUTE, buffer: { type: 'read-only-storage' } },
-      { binding: 1, visibility: GPU_SHADER_COMPUTE, buffer: { type: 'storage' } },
-      { binding: 2, visibility: GPU_SHADER_COMPUTE, buffer: { type: 'storage' } },
-      { binding: 3, visibility: GPU_SHADER_COMPUTE, buffer: { type: 'uniform' } },
-    ],
-  });
-  const pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
-  const heightPipeline = device.createComputePipeline({
-    layout: pipelineLayout,
-    compute: { module, entryPoint: 'height_main' },
-  });
-  const slopePipeline = device.createComputePipeline({
-    layout: pipelineLayout,
-    compute: { module, entryPoint: 'slope_main' },
-  });
-  const bound = device.createBindGroup({
-    layout: bindGroupLayout,
-    entries: [
-      { binding: 0, resource: { buffer: spectrumBuffer } },
-      { binding: 1, resource: { buffer: heightBuffer } },
-      { binding: 2, resource: { buffer: slopeBuffer } },
-      { binding: 3, resource: { buffer: uniformBuffer } },
-    ],
-  });
-  const encoder = device.createCommandEncoder();
-  const heightPass = encoder.beginComputePass();
-  heightPass.setPipeline(heightPipeline);
-  heightPass.setBindGroup(0, bound);
-  heightPass.dispatchWorkgroups(Math.ceil(count / 64));
-  heightPass.end();
-  const slopePass = encoder.beginComputePass();
-  slopePass.setPipeline(slopePipeline);
-  slopePass.setBindGroup(0, bound);
-  slopePass.dispatchWorkgroups(Math.ceil(count / 64));
-  slopePass.end();
-  device.queue.submit([encoder.finish()]);
-  const heights = await readStorageFloats(device, heightBuffer, count);
-  const slope = await readStorageFloats(device, slopeBuffer, count);
-  spectrumBuffer.destroy();
-  heightBuffer.destroy();
-  slopeBuffer.destroy();
-  uniformBuffer.destroy();
-  return { heights, slope };
-}
-
 export interface WebGpuOceanField {
   readonly resolution: number;
   readonly heights: Float32Array;
@@ -426,6 +266,8 @@ export async function computeWebGpuOceanField(
 
   let directHeights: Float32Array | null = null;
   let directSlope: Float32Array | null = null;
+  let directDx: Float32Array | null = null;
+  let directDz: Float32Array | null = null;
   if (input.algorithm === 'gerstner') {
     const waves = input.waves ?? [];
     const scale = input.amplitudeScale ?? 1;
@@ -457,22 +299,25 @@ export async function computeWebGpuOceanField(
   } else {
     const spectrum = input.spectrum;
     if (!spectrum) throw new Error('WebGPU FFT requires a spectrum');
-    const direct = await runDirectWebGpuDft(renderer, spectrum, domainMeters, timeSeconds);
+    const direct = await runWebGpuButterflyIfft(renderer, spectrum, domainMeters, timeSeconds);
     directHeights = direct.heights;
     directSlope = direct.slope;
+    directDx = direct.dx;
+    directDz = direct.dz;
     const packedField = field.value.array as Float32Array;
     for (let i = 0; i < count; i += 1) {
       packedField[i * 4] = direct.heights[i];
-      packedField[i * 4 + 1] = 0;
-      packedField[i * 4 + 2] = direct.slope[i];
-      packedField[i * 4 + 3] = 0;
+      packedField[i * 4 + 1] = direct.dx[i];
+      packedField[i * 4 + 2] = direct.dz[i];
+      packedField[i * 4 + 3] = direct.slope[i];
     }
     field.value.needsUpdate = true;
   }
 
   const cell = input.domainMeters / resolution;
   const heights = directHeights ?? new Float32Array(count);
-  const dx = new Float32Array(count);
+  const dx = directDx ?? new Float32Array(count);
+  const dz = directDz ?? new Float32Array(count);
   const slope = directSlope ?? new Float32Array(count);
   if (!directHeights) {
   const slopePass = Fn(() => {
@@ -516,6 +361,8 @@ export async function computeWebGpuOceanField(
     referenceHeights = Array.from(reference.heights.slice(0, 8));
     heightL2 = fieldRelativeL2(heights, reference.heights);
     displacementL2 = fieldRelativeL2(dx, displacement.dx);
+    const verticalL2 = fieldRelativeL2(dz, displacement.dz);
+    if (verticalL2 > displacementL2) displacementL2 = verticalL2;
     slopeL2 = fieldRelativeL2(slope, referenceSlope);
   } else if (input.waves) {
     const scale = input.amplitudeScale ?? 1;
