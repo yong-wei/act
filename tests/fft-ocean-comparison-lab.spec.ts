@@ -32,9 +32,12 @@ declare global {
       queryMetrics?: () => {
         computeMs: number;
         queueMs: number;
+        transferMs: number | null;
         e2eMs: number;
         resultAgeSeconds: number;
         viaWorker: boolean;
+        initChargedPerQuery: boolean;
+        queryKind: string;
       } | null;
       identity: () => {
         queryBackend: 'fft' | 'gerstner';
@@ -46,6 +49,17 @@ declare global {
         vesselFallback: boolean;
         firstFrameReady: boolean;
       };
+    };
+    __marineStagePerformance?: {
+      collect: () => Promise<{
+        screenRecorded: boolean;
+        rounds: Array<{
+          method: string;
+          gpuMs: number | null;
+          completedWorkMs: number | null;
+          labeledAs: string;
+        }>;
+      }>;
     };
   }
 }
@@ -100,7 +114,19 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     expect(metrics?.computeMs).toBeGreaterThan(0);
     expect(metrics?.queueMs).toBeGreaterThanOrEqual(0);
     expect(metrics?.e2eMs).toBeGreaterThan(0);
+    expect(metrics?.transferMs).toBeGreaterThanOrEqual(0);
     expect(metrics?.resultAgeSeconds).toBeGreaterThanOrEqual(0);
+    expect(metrics?.initChargedPerQuery).toBe(false);
+    expect(metrics?.queryKind).toBe('worker-batch');
+    const stage = await page.evaluate(async () => window.__marineStagePerformance?.collect());
+    expect(stage?.screenRecorded).toBe(false);
+    expect(stage?.rounds).toHaveLength(3);
+    for (const round of stage?.rounds ?? []) {
+      expect(round.method === 'gpu-elapsed' || round.method === 'completed-work').toBe(true);
+      expect(round.labeledAs === 'frame-intervals').toBe(false);
+      if (round.method === 'completed-work') expect(round.gpuMs).toBeNull();
+      if (round.method === 'gpu-elapsed') expect(round.gpuMs).toBeGreaterThan(0);
+    }
   });
 
   test('replays the same visual time after reset and step', async ({ page }) => {

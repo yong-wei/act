@@ -11,8 +11,24 @@ import {
 } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 
+import * as THREE from 'three';
+
 import { buildMarinePerformanceReport } from './performance-evidence';
-import { marineGpuTimerStartWindow, marineGpuTimerStopWindow, readMarineGpuTimerEvidence } from './gpu-frame-timer';
+import {
+  marineGpuTimerPassActive,
+  marineGpuTimerStartWindow,
+  marineGpuTimerStopWindow,
+  readMarineGpuTimerEvidence,
+} from './gpu-frame-timer';
+import {
+  bindMarineStageTimer,
+  collectStageWindow,
+  measureOffscreenBatch,
+  type OffscreenRenderer,
+  type StageTimerBinding,
+  type StageTimerDescription,
+  type TimingSample,
+} from './stage-performance';
 import { Gauge } from 'lucide-react';
 
 import { ChromePopoverButton } from '../chrome';
@@ -204,6 +220,8 @@ export function MarinePerformanceEvidenceProbe({
   // 绑定本 Canvas 的 R3F renderer（#2120 复审）：多 canvas 页面探针不再
   // 不再按任意画布猜绑定。
   const renderer = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
   // ref 化（二轮复审）：read() 时调用最新回调——镜头等运行态切换后归因随场景。
   const contextInputRef = useRef(contextInput);
   contextInputRef.current = contextInput;
@@ -212,6 +230,7 @@ export function MarinePerformanceEvidenceProbe({
     // QA 入口（复审对齐）：既有帧契约入口 marine-frame 与本采集入口 marine-performance 均接受。
     const qaParams = new URLSearchParams(window.location.search).getAll('qa');
     if (!qaParams.includes('marine-performance') && !qaParams.includes('marine-frame')) return;
+    const stageTimer = bindMarineStageTimer(renderer);
     // 预热后 60s 时间窗（二轮复审）：按经过时间维护窗口，start() 显式开始并重置
     // （丢弃启动/加载/编译帧），stop() 结束采集。
     const WINDOW_MS = 60_000;
@@ -280,12 +299,17 @@ export function MarinePerformanceEvidenceProbe({
         wasSuspended = false;
         marineGpuTimerStartWindow();
         collecting = true;
+        void collectBoundStage(stageTimer, renderer as unknown as StageDrawRenderer, scene, camera);
       },
       stop: () => {
         collecting = false;
         // GPU 窗口同步结束（P2 二轮）：停止后延迟 read()/在途查询不改变数值。
         marineGpuTimerStopWindow();
       },
+      stageTimer: (): StageTimerDescription & { readonly latest: TimingSample | null } => ({
+        ...stageTimer.describe(),
+        latest: stageTimer.latest(),
+      }),
       read: () => {
         const input = contextInputRef.current?.();
         return buildMarinePerformanceReport({
@@ -324,7 +348,71 @@ export function MarinePerformanceEvidenceProbe({
       document.removeEventListener('visibilitychange', onVisibilityChange);
       delete window.__marinePerformanceEvidence;
     };
-  }, [renderer]);
+  }, [camera, renderer, scene]);
+  return null;
+}
+
+type StageDrawRenderer = OffscreenRenderer & {
+  render(scene: object, camera: object): void;
+  readonly info: { readonly render: { calls: number } };
+};
+
+async function renderOffscreenStage(renderer: StageDrawRenderer, scene: object, camera: object): Promise<void> {
+  const targets: THREE.WebGLRenderTarget[] = [];
+  try {
+    const batch = await measureOffscreenBatch(renderer, {
+      maxBatch: 4,
+      createTarget(width, height) {
+        const target = new THREE.WebGLRenderTarget(width, height);
+        targets.push(target);
+        return target;
+      },
+      async draw(index) {
+        const advance = window.__marineStageAdvance;
+        if (advance) await advance(index * 0.25);
+        renderer.render(scene, camera);
+        const calls = renderer.info.render.calls;
+        if (calls <= 0) return 0;
+        return calls * 1000 + index;
+      },
+    });
+    if (!batch.workObserved) throw new Error('offscreen stage sample did not change the draw count');
+  } finally {
+    for (const target of targets) target.dispose();
+  }
+}
+
+async function collectBoundStage(
+  stageTimer: StageTimerBinding,
+  renderer: StageDrawRenderer,
+  scene: object,
+  camera: object,
+): Promise<{ readonly rounds: readonly TimingSample[]; readonly screenRecorded: false }> {
+  for (let attempt = 0; attempt < 5 && marineGpuTimerPassActive(); attempt += 1) {
+    await new Promise((resolve) => {
+      requestAnimationFrame(() => resolve(undefined));
+    });
+  }
+  const work = () => renderOffscreenStage(renderer, scene, camera);
+  return collectStageWindow(stageTimer, work);
+}
+
+/** 对照页分项采集：不随普通帧运行，只在 collect() 时测离屏批次。 */
+export function MarineStagePerformanceProbe() {
+  const renderer = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
+  useEffect(() => {
+    const stageTimer = bindMarineStageTimer(renderer);
+    const drawRenderer = renderer as unknown as StageDrawRenderer;
+    window.__marineStagePerformance = {
+      describe: () => stageTimer.describe(),
+      collect: () => collectBoundStage(stageTimer, drawRenderer, scene, camera),
+    };
+    return () => {
+      delete window.__marineStagePerformance;
+    };
+  }, [camera, renderer, scene]);
   return null;
 }
 
@@ -334,8 +422,14 @@ declare global {
     __marinePerformanceEvidence?: {
       start(): void;
       stop(): void;
+      stageTimer(): StageTimerDescription & { readonly latest: TimingSample | null };
       read(): ReturnType<typeof buildMarinePerformanceReport>;
       sampleCount(): number;
     };
+    __marineStagePerformance?: {
+      describe(): StageTimerDescription;
+      collect(): Promise<{ readonly rounds: readonly TimingSample[]; readonly screenRecorded: false }>;
+    };
+    __marineStageAdvance?: (timeSeconds: number) => void | Promise<void>;
   }
 }

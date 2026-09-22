@@ -101,9 +101,12 @@ export interface ComparisonLabCapture {
 export interface ComparisonQueryMetrics {
   readonly computeMs: number;
   readonly queueMs: number;
+  readonly transferMs: number | null;
   readonly e2eMs: number;
   readonly resultAgeSeconds: number;
   readonly viaWorker: boolean;
+  readonly initChargedPerQuery: false;
+  readonly queryKind: 'worker-batch' | 'main-thread-fallback';
 }
 
 export interface ComparisonLabApi {

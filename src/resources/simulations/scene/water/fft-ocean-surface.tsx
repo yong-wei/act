@@ -23,6 +23,7 @@ import {
   type FFTOceanSpectrumInput,
 } from './fft-ocean';
 import { createFftOceanGpuPipeline, validateFftOceanGpuAgainstDft } from './fft-ocean-gpu-pipeline';
+import { MAIN_THREAD_POINT_QUERY_KIND } from '../quality/stage-performance';
 
 /**
  * WebGL GPU FFT 海面（#2131）：GPU 频谱演化 + GPU 2D IFFT（高度与 chop 位移）+ GPU 渲染。
@@ -122,6 +123,15 @@ export function FFTOceanSurface({
 
   useEffect(() => () => pipeline.dispose(), [pipeline]);
 
+  useEffect(() => {
+    window.__marineStageAdvance = (timeSeconds: number) => {
+      if (pipeline.ready) pipeline.run(timeSeconds);
+    };
+    return () => {
+      delete window.__marineStageAdvance;
+    };
+  }, [pipeline]);
+
   const statsRef = useRef({ frames: 0 });
   const sharedMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
   useFrame((state, delta) => {
@@ -159,6 +169,7 @@ export function FFTOceanSurface({
         fftOceanContactHeightAt(spectrum, domain, t, x, z)
       ),
       fieldQuery: (x: number, z: number, t: number) => fftOceanFieldAt(spectrum, domain, t, x, z),
+      pointQueryKind: MAIN_THREAD_POINT_QUERY_KIND,
       measurePointQueryMs: (samples = 60) => {
         const startedAt = performance.now();
         for (let i = 0; i < samples; i += 1) {
@@ -316,6 +327,7 @@ declare global {
         z: number,
         t: number,
       ) => ReturnType<typeof fftOceanFieldAt>;
+      readonly pointQueryKind: typeof MAIN_THREAD_POINT_QUERY_KIND;
       readonly measurePointQueryMs: (samples?: number) => number;
       readonly validateGpuAgainstDft: () => ReturnType<typeof validateFftOceanGpuAgainstDft>;
       readonly cascadeEnergies: () => {
