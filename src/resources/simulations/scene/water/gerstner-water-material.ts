@@ -55,6 +55,10 @@ export interface GerstnerWaterMaterialOptions {
   readonly shoreFadeBandMeters?: number;
   /** 挖泥羽流（#2102 六轮复审）：合入水面片元着色（贴合动态波面，前景几何天然正确遮挡）。 */
   readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
+  /** 替换顶点波场（FFT 位移纹理）时仍使用同一片元光学。 */
+  readonly vertexShaderOverride?: string;
+  /** wave-only 中性片元，与 FFT 共用，不含 Fresnel/GGX。 */
+  readonly fragmentShaderOverride?: string;
   /**
    * 环境辐射（#2118）：PMREM 天空纹理 + CubeUV 高度（来自 renderer×preset 缓存）。
    * 水面菲涅尔项混合 IBL 天空倒影；缺省保持 horizonColor 过渡（行为不变）。
@@ -191,6 +195,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uPlanarMatrix: { value: new THREE.Matrix4() },
       uPlanarStrength: { value: 0 },
       uPlanarPlaneY: { value: -1 },
+      uShallowBgTex: { value: null },
+      uShallowBgEnabled: { value: 0 },
+      uViewport: { value: new THREE.Vector2(1, 1) },
       // 浅水消费者开关（#2119 复审）：关闭时逐片元跳过岸线循环/吸收/折射
       //（额外工作归零）。
       uShallowFxEnabled: { value: 1 },
@@ -200,7 +207,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       fogFar: { value: 30000 },
       fogDensity: { value: 0.00025 },
     },
-    vertexShader: /* glsl */ `
+    vertexShader: options.vertexShaderOverride ?? /* glsl */ `
       #define MAX_WAVES ${GERSTNER_MAX_WAVES}
       #define FLOATS_PER_WAVE ${FLOATS_PER_WAVE}
 
@@ -344,7 +351,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         gl_Position = projectionMatrix * viewPosition;
       }
     `,
-    fragmentShader: /* glsl */ `
+    fragmentShader: options.fragmentShaderOverride ?? /* glsl */ `
       uniform float uTime;
       uniform vec2 uWorldOrigin;
       uniform vec3 uWaterColor;
@@ -380,6 +387,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform mat4 uPlanarMatrix;
       uniform float uPlanarStrength;
       uniform float uPlanarPlaneY;
+      uniform sampler2D uShallowBgTex;
+      uniform float uShallowBgEnabled;
+      uniform vec2 uViewport;
       uniform float uShallowFxEnabled;
 
       // 环境辐射（#2118）：与 three 内建 PBR 同一 CubeUV chunk（锁定版本布局）。
@@ -584,7 +594,17 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 浅水色（#2102 → #2119 深度吸收）：近岸按估计水深做有界指数吸收——
         // 深度差异可见（4m 岸与 18m 岸的浅水带颜色不同）；船边遮挡由既有
         // 船壳排水排除（壳下水片元被丢弃，浅水色不从船底透出）。
-        color = mix(color, mix(vec3(0.28, 0.52, 0.5), color, absorption), shallowMix);
+        vec3 shallowColor = mix(vec3(0.28, 0.52, 0.5), color, absorption);
+        if (uShallowBgEnabled > 0.5) {
+          vec2 screenUv = gl_FragCoord.xy / max(uViewport, vec2(1.0));
+          vec2 shift = clamp(refractionOffset / 40.0, vec2(-0.02), vec2(0.02));
+          vec4 centerSample = texture2D(uShallowBgTex, screenUv);
+          vec4 shiftedSample = texture2D(uShallowBgTex, screenUv + shift);
+          float depthFault = abs(shiftedSample.a - centerSample.a);
+          vec3 background = depthFault > 0.2 ? centerSample.rgb : shiftedSample.rgb;
+          shallowColor = background * absorption;
+        }
+        color = mix(color, shallowColor, shallowMix);
         // 挖泥羽流（#2102 六轮复审）：水面片元内合成——贴合动态波面（波峰波谷下
         // 持续可见）、不穿透前景几何（正常深度队列），软边径向过渡；采样位置
         // 施加浅水折射偏移（羽流边缘随水层厚度弯折——水柱内容的可见折射）。

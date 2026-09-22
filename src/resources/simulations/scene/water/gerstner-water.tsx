@@ -19,6 +19,7 @@ import {
   type OceanMeshBandSpec,
 } from './ocean-bands';
 import { createGerstnerWaterMaterial, cubeUvDefinesForHeight } from './gerstner-water-material';
+import { NEUTRAL_WATER_FRAGMENT, syncSharedWaterOptics } from './shared-water-optics';
 import { MarineFoamFieldProvider, useMarineFoamField } from './foam-history-layer';
 import { MarinePlanarReflection } from '../environment/planar-reflection';
 import { useMarineVisualTime } from '../frame/marine-frame-provider';
@@ -340,6 +341,10 @@ export interface GerstnerWaterProps {
   readonly shoreFadeBandMeters?: number;
   /** 挖泥羽流（#2102 六轮复审）：合入水面片元着色（贴合动态波面）。 */
   readonly sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
+  /** 关闭时不跑浅水吸收和背景采样。 */
+  readonly shallowEnabled?: boolean;
+  /** wave-only：与 FFT 共用中性片元，不跑 Fresnel/GGX。 */
+  readonly neutralOptics?: boolean;
   /** 实验重置令牌（#2115）：变化时清空泡沫历史场（与尾迹 key 同一重置源）。 */
   readonly resetToken?: number;
   /**
@@ -375,6 +380,8 @@ function BandWaterMesh({
   sunDirection,
   foamTexture,
   disableEnvironment = false,
+  shallowEnabled = true,
+  neutralOptics = false,
 }: {
   readonly waves: readonly GerstnerWave[];
   readonly meshSpec: GerstnerWaterMeshSpec;
@@ -398,6 +405,8 @@ function BandWaterMesh({
   readonly sunDirection: THREE.Vector3;
   readonly foamTexture: THREE.Texture;
   readonly disableEnvironment?: boolean;
+  readonly shallowEnabled?: boolean;
+  readonly neutralOptics?: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const scene = useThree((state) => state.scene);
@@ -429,8 +438,9 @@ function BandWaterMesh({
       foamField: foamField
         ? { texture: foamField.texture, domainMeters: foamField.domainMeters, resolution: foamField.field.resolution }
         : null,
+      fragmentShaderOverride: neutralOptics ? NEUTRAL_WATER_FRAGMENT : undefined,
     }),
-    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, sunIllumination, shoreSegments, shoreFadeBandMeters, foamField]
+    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, sunIllumination, shoreSegments, shoreFadeBandMeters, foamField, neutralOptics]
   );
   // 岸线段打包（#2102）：静态声明 → uniform 数组一次写入。
   useMemo(() => {
@@ -461,9 +471,22 @@ function BandWaterMesh({
       meshRef.current.position.z = sampled.z;
       material.uniforms.uWorldOrigin.value.set(sampled.x, sampled.z);
     }
-    if (material.uniforms.uShallowFxEnabled.value !== (SHALLOW_QA_DISABLED ? 0 : 1)) {
-      material.uniforms.uShallowFxEnabled.value = SHALLOW_QA_DISABLED ? 0 : 1;
+    const shallowOn = !SHALLOW_QA_DISABLED && shallowEnabled;
+    if (material.uniforms.uShallowFxEnabled.value !== (shallowOn ? 1 : 0)) {
+      material.uniforms.uShallowFxEnabled.value = shallowOn ? 1 : 0;
     }
+    syncSharedWaterOptics({
+      material,
+      scene,
+      gl: state.gl,
+      disableEnvironment,
+      shallowEnabled: shallowOn,
+      foamOrigin: foamField
+        ? { x: foamField.field.originX, z: foamField.field.originZ }
+        : null,
+      envSpin: ENV_QA_SPIN,
+      elapsedSeconds: state.clock.getElapsedTime(),
+    });
     // 泡沫场域原点（#2115）：域按量化步长重定位（非逐帧平移），材质按域原点采样。
     if (foamField) {
       material.uniforms.uFoamOrigin.value.set(foamField.field.originX, foamField.field.originZ);
@@ -570,6 +593,8 @@ export function GerstnerWater({
   shoreSegments,
   shoreFadeBandMeters = 400,
   sedimentPlume = null,
+  shallowEnabled = true,
+  neutralOptics = false,
 }: GerstnerWaterProps) {
   const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
   // 共享视觉时间：Provider 场景同帧唯一（暂停/倍速政策一致）；未接入场景回退 R3F 时钟。
@@ -630,6 +655,8 @@ export function GerstnerWater({
           sunDirection={sunDirection}
           foamTexture={foamTexture}
           disableEnvironment={disableEffects}
+          shallowEnabled={shallowEnabled}
+          neutralOptics={neutralOptics}
         />
       )}
       <BandWaterMesh
@@ -655,6 +682,8 @@ export function GerstnerWater({
         sunDirection={sunDirection}
         foamTexture={foamTexture}
         disableEnvironment={disableEffects}
+        shallowEnabled={shallowEnabled}
+        neutralOptics={neutralOptics}
       />
       </group>
     </MarineFoamFieldProvider>

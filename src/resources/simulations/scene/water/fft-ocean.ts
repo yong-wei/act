@@ -288,6 +288,54 @@ export function fftOceanSnapshot(
   return { heights: ifft2dReal(evolved, n), resolution: n };
 }
 
+/**
+ * FFT 压缩采样器：每个时刻只做一次位移 IFFT，泡沫历史按网格查 Jacobian 亏损。
+ * 返回值在 0–1，正值表示水平位移收敛。
+ */
+export function createFftOceanCompressionSampler(
+  spectrum: ComplexGrid,
+  domainMeters: number,
+): (worldX: number, worldZ: number, timeSeconds: number) => number {
+  let cachedTime = Number.NaN;
+  let grid = new Float32Array(0);
+  const resolution = spectrum.resolution;
+  return (worldX, worldZ, timeSeconds) => {
+    if (timeSeconds !== cachedTime) {
+      const displaced = fftOceanDisplacementSnapshot(spectrum, domainMeters, timeSeconds);
+      grid = new Float32Array(resolution * resolution);
+      const cell = domainMeters / resolution;
+      for (let j = 0; j < resolution; j += 1) {
+        const jF = (j + 1) % resolution;
+        const jB = (j - 1 + resolution) % resolution;
+        for (let i = 0; i < resolution; i += 1) {
+          const iR = (i + 1) % resolution;
+          const iL = (i - 1 + resolution) % resolution;
+          const dxR = displaced.dx[j * resolution + iR];
+          const dxL = displaced.dx[j * resolution + iL];
+          const dxF = displaced.dx[jF * resolution + i];
+          const dxB = displaced.dx[jB * resolution + i];
+          const dzR = displaced.dz[j * resolution + iR];
+          const dzL = displaced.dz[j * resolution + iL];
+          const dzF = displaced.dz[jF * resolution + i];
+          const dzB = displaced.dz[jB * resolution + i];
+          const dDxDx = (dxR - dxL) / (2 * cell);
+          const dDzDz = (dzF - dzB) / (2 * cell);
+          const dDxDz = (dxF - dxB) / (2 * cell);
+          const dDzDx = (dzR - dzL) / (2 * cell);
+          const jacobian = (1 + dDxDx) * (1 + dDzDz) - dDxDz * dDzDx;
+          grid[j * resolution + i] = Math.min(1, Math.max(0, 1 - jacobian));
+        }
+      }
+      cachedTime = timeSeconds;
+    }
+    const wrappedX = ((worldX % domainMeters) + domainMeters) % domainMeters;
+    const wrappedZ = ((worldZ % domainMeters) + domainMeters) % domainMeters;
+    const i = Math.min(resolution - 1, Math.floor((wrappedX / domainMeters) * resolution));
+    const j = Math.min(resolution - 1, Math.floor((wrappedZ / domainMeters) * resolution));
+    return grid[j * resolution + i] ?? 0;
+  };
+}
+
 /** CPU IFFT 水平位移（与 GPU chop 同公式：λ (k_axis/|k|) i H）。 */
 export function fftOceanDisplacementSnapshot(
   spectrum: ComplexGrid,

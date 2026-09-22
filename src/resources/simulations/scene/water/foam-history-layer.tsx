@@ -85,12 +85,14 @@ export function MarineFoamFieldProvider({
   positionSampler,
   resetToken,
   attributionOverride,
+  compressionAt,
   children,
 }: {
   readonly tier: 'high' | 'medium' | 'low';
   readonly seaState: number;
   readonly waves: readonly GerstnerWave[];
   readonly amplitudeScale: number;
+  readonly compressionAt?: (worldX: number, worldZ: number, timeSeconds: number) => number;
   readonly positionSampler?: () => { readonly x: number; readonly z: number } | undefined;
   /** 实验重置令牌（P2 修复）：变化时显式清空历史场——未接 MarineFrameProvider
    * 的场景视觉时钟单调增长，靠时间回退检测不到 reset。 */
@@ -113,12 +115,14 @@ export function MarineFoamFieldProvider({
     amplitudeScale,
     seaState,
     naturalEnabled: attribution.natural,
+    compressionAt,
   });
   sourcesRef.current = {
     waves,
     amplitudeScale,
     seaState,
     naturalEnabled: attribution.natural,
+    compressionAt,
   };
 
   const { controller, internal } = useMemo(() => {

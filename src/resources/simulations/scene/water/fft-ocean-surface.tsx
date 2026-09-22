@@ -3,8 +3,14 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
+import { useTexture } from '@react-three/drei';
 
 import { useMarineVisualTime } from '../frame/marine-frame-provider';
+import type { MarineShoreSegment } from '../environment/scene-layouts';
+import { DEFAULT_ENVIRONMENT_PRESET_ID, getEnvironmentPreset } from '../environment/environment-presets';
+import { createGerstnerWaterMaterial } from './gerstner-water-material';
+import { useMarineFoamField } from './foam-history-layer';
+import { COMPARISON_SUN_DIRECTION, NEUTRAL_WATER_FRAGMENT, syncSharedWaterOptics } from './shared-water-optics';
 import {
   FFT_OCEAN_CONTACT_TOLERANCE_METERS,
   fftOceanCascadeSplit,
@@ -26,10 +32,76 @@ import { createFftOceanGpuPipeline, validateFftOceanGpuAgainstDft } from './fft-
 export interface FFTOceanSurfaceProps {
   readonly spectrumInput: FFTOceanSpectrumInput;
   readonly domainMeters?: number;
+  /** neutral：对照 wave-only。shared：与 Gerstner 同一片元光学。 */
+  readonly optics?: 'neutral' | 'shared';
+  readonly shoreSegments?: readonly MarineShoreSegment[];
+  readonly shoreFadeBandMeters?: number;
+  readonly shallowEnabled?: boolean;
 }
 
-export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurfaceProps) {
+const FFT_SHARED_VERTEX = /* glsl */ `
+  uniform sampler2D uHeightTexture;
+  uniform sampler2D uDispXTexture;
+  uniform sampler2D uDispZTexture;
+  uniform float uDomain;
+  uniform float uResolution;
+  varying vec3 vNormal;
+  varying vec3 vWorldNormal;
+  varying vec3 vViewPosition;
+  varying vec3 vWorldPos;
+  varying float vCrest;
+  varying float vElevation;
+  varying vec2 vLocalXZ;
+  vec3 sampleDisplaced(vec2 uv, vec3 lattice) {
+    float h = texture2D(uHeightTexture, uv).r;
+    float dx = texture2D(uDispXTexture, uv).r;
+    float dz = texture2D(uDispZTexture, uv).r;
+    return vec3(lattice.x + dx, h, lattice.z + dz);
+  }
+  void main() {
+    vec3 pos = position;
+    vec2 uvH = fract(pos.xz / uDomain);
+    float texel = 1.0 / uResolution;
+    float cell = uDomain / uResolution;
+    vec3 p0 = sampleDisplaced(uvH, pos);
+    vec3 pR = sampleDisplaced(fract(uvH + vec2(texel, 0.0)), pos + vec3(cell, 0.0, 0.0));
+    vec3 pF = sampleDisplaced(fract(uvH + vec2(0.0, texel)), pos + vec3(0.0, 0.0, cell));
+    vec3 pL = sampleDisplaced(fract(uvH - vec2(texel, 0.0)), pos - vec3(cell, 0.0, 0.0));
+    vec3 pB = sampleDisplaced(fract(uvH - vec2(0.0, texel)), pos - vec3(0.0, 0.0, cell));
+    vec3 geometricNormal = normalize(cross(pF - p0, pR - p0));
+    if (geometricNormal.y < 0.0) geometricNormal = -geometricNormal;
+    float dDxDx = (pR.x - pL.x) / (2.0 * cell) - 1.0;
+    float dDzDz = (pF.z - pB.z) / (2.0 * cell) - 1.0;
+    float dDxDz = (pF.x - pB.x) / (2.0 * cell);
+    float dDzDx = (pR.z - pL.z) / (2.0 * cell);
+    float jacobian = (1.0 + dDxDx) * (1.0 + dDzDz) - dDxDz * dDzDx;
+    vWorldNormal = geometricNormal;
+    vNormal = normalize(normalMatrix * geometricNormal);
+    vCrest = clamp(1.0 - jacobian, 0.0, 1.0);
+    vElevation = p0.y;
+    vLocalXZ = pos.xz;
+    vec4 world = modelMatrix * vec4(p0, 1.0);
+    vWorldPos = world.xyz;
+    vec4 viewPosition = viewMatrix * world;
+    vViewPosition = viewPosition.xyz;
+    gl_Position = projectionMatrix * viewPosition;
+  }
+`;
+
+export function FFTOceanSurface({
+  spectrumInput,
+  domainMeters,
+  optics = 'neutral',
+  shoreSegments,
+  shoreFadeBandMeters = 500,
+  shallowEnabled = false,
+}: FFTOceanSurfaceProps) {
   const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
+  const foamField = useMarineFoamField();
+  const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
+  foamTexture.wrapS = THREE.RepeatWrapping;
+  foamTexture.wrapT = THREE.RepeatWrapping;
   const meshRef = useRef<THREE.Mesh>(null);
   const marineVisualTime = useMarineVisualTime();
   const domain = domainMeters ?? spectrumInput.domainMeters;
@@ -49,10 +121,27 @@ export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurface
   useEffect(() => () => pipeline.dispose(), [pipeline]);
 
   const statsRef = useRef({ frames: 0 });
+  const sharedMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
   useFrame((state, delta) => {
     if (!pipeline.ready) return;
-    pipeline.run(marineVisualTime(state, delta));
+    const timeSeconds = marineVisualTime(state, delta);
+    pipeline.run(timeSeconds);
     statsRef.current.frames += 1;
+    const shared = sharedMaterialRef.current;
+    if (!shared || optics !== 'shared') return;
+    shared.uniforms.uTime.value = timeSeconds;
+    const qaSpin = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('qa', 'marine-env');
+    const qaShallowOff = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-shallow') === 'off';
+    syncSharedWaterOptics({
+      material: shared,
+      scene,
+      gl,
+      disableEnvironment: false,
+      shallowEnabled: shallowEnabled && !qaShallowOff,
+      foamOrigin: foamField ? { x: foamField.field.originX, z: foamField.field.originZ } : null,
+      envSpin: qaSpin,
+      elapsedSeconds: state.clock.getElapsedTime(),
+    });
   });
 
   useEffect(() => {
@@ -99,8 +188,49 @@ export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurface
   }, [domain, spectrum.resolution]);
 
   const material = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
+    () => {
+      if (optics === 'shared') {
+        const colors = getEnvironmentPreset(DEFAULT_ENVIRONMENT_PRESET_ID).water;
+        const shared = createGerstnerWaterMaterial({
+          waves: [],
+          waterColor: colors.waterColor,
+          deepColor: colors.deepColor,
+          horizonColor: colors.horizonColor,
+          foamColor: '#d7e4ea',
+          sunDirection: COMPARISON_SUN_DIRECTION,
+          foamTexture,
+          microNormalTier: 'high',
+          vertexShaderOverride: FFT_SHARED_VERTEX,
+          foamField: foamField
+            ? {
+              texture: foamField.texture,
+              domainMeters: foamField.domainMeters,
+              resolution: foamField.field.resolution,
+            }
+            : null,
+        });
+        shared.uniforms.uHeightTexture = { value: pipeline.heightTexture };
+        shared.uniforms.uDispXTexture = { value: pipeline.displacementXTexture };
+        shared.uniforms.uDispZTexture = { value: pipeline.displacementZTexture };
+        shared.uniforms.uDomain = { value: domain };
+        shared.uniforms.uResolution = { value: spectrum.resolution };
+        const shoreArray = shared.uniforms.uShoreSegments.value as Float32Array;
+        shoreArray.fill(0);
+        (shoreSegments ?? []).slice(0, 4).forEach((segment, index) => {
+          const base = index * 4;
+          shoreArray[base] = segment.from[0];
+          shoreArray[base + 1] = segment.from[1];
+          shoreArray[base + 2] = segment.to[0];
+          shoreArray[base + 3] = segment.to[1];
+          (shared.uniforms.uShoreDepths.value as Float32Array)[index] = segment.shoreDepthMeters;
+        });
+        shared.uniforms.uShoreSegmentCount.value = Math.min(shoreSegments?.length ?? 0, 4);
+        shared.uniforms.uShoreFadeBand.value = shoreFadeBandMeters;
+        sharedMaterialRef.current = shared;
+        return shared;
+      }
+      sharedMaterialRef.current = null;
+      return new THREE.ShaderMaterial({
         uniforms: {
           uHeightTexture: { value: pipeline.heightTexture },
           uDispXTexture: { value: pipeline.displacementXTexture },
@@ -114,10 +244,9 @@ export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurface
           uniform sampler2D uDispZTexture;
           uniform float uDomain;
           uniform float uResolution;
-          varying float vHeight;
-          varying float vJacobian;
+          varying float vElevation;
           varying vec3 vWorldPos;
-          varying vec3 vNormal;
+          varying vec3 vWorldNormal;
           vec3 sampleDisplaced(vec2 uv, vec3 lattice) {
             float h = texture2D(uHeightTexture, uv).r;
             float dx = texture2D(uDispXTexture, uv).r;
@@ -132,40 +261,29 @@ export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurface
             vec3 p0 = sampleDisplaced(uvH, pos);
             vec3 pR = sampleDisplaced(fract(uvH + vec2(texel, 0.0)), pos + vec3(cell, 0.0, 0.0));
             vec3 pF = sampleDisplaced(fract(uvH + vec2(0.0, texel)), pos + vec3(0.0, 0.0, cell));
-            vec3 pL = sampleDisplaced(fract(uvH - vec2(texel, 0.0)), pos - vec3(cell, 0.0, 0.0));
-            vec3 pB = sampleDisplaced(fract(uvH - vec2(0.0, texel)), pos - vec3(0.0, 0.0, cell));
-            vNormal = normalize(cross(pF - p0, pR - p0));
-            float dDxDx = (pR.x - pL.x) / (2.0 * cell) - 1.0;
-            float dDzDz = (pF.z - pB.z) / (2.0 * cell) - 1.0;
-            float dDxDz = (pF.x - pB.x) / (2.0 * cell);
-            float dDzDx = (pR.z - pL.z) / (2.0 * cell);
-            vJacobian = (1.0 + dDxDx) * (1.0 + dDzDz) - dDxDz * dDzDx;
-            vHeight = p0.y;
+            vWorldNormal = normalize(cross(pF - p0, pR - p0));
+            if (vWorldNormal.y < 0.0) vWorldNormal = -vWorldNormal;
+            vElevation = p0.y;
             vec4 world = modelMatrix * vec4(p0, 1.0);
             vWorldPos = world.xyz;
             gl_Position = projectionMatrix * viewMatrix * world;
           }
         `,
-        fragmentShader: /* glsl */ `
-          varying float vHeight;
-          varying float vJacobian;
-          varying vec3 vWorldPos;
-          varying vec3 vNormal;
-          void main() {
-            vec3 n = normalize(vNormal);
-            float ndl = clamp(dot(n, normalize(vec3(0.35, 1.0, 0.25))), 0.25, 1.0);
-            float foam = clamp(1.0 - vJacobian, 0.0, 1.0);
-            float shade = clamp(0.5 + vHeight * 0.6, 0.35, 1.0);
-            vec3 color = mix(vec3(0.05, 0.16, 0.24), vec3(0.12, 0.30, 0.38), shade);
-            color *= ndl;
-            color = mix(color, vec3(0.78, 0.86, 0.90), foam * 0.35);
-            float fog = clamp(length(vWorldPos.xz - cameraPosition.xz) / 9000.0, 0.0, 1.0);
-            color = mix(color, vec3(0.58, 0.66, 0.72), fog * 0.6);
-            gl_FragColor = vec4(color, 1.0);
-          }
-        `,
-      }),
-    [pipeline.heightTexture, pipeline.displacementXTexture, pipeline.displacementZTexture, domain, spectrum.resolution],
+        fragmentShader: NEUTRAL_WATER_FRAGMENT,
+      });
+    },
+    [
+      optics,
+      domain,
+      spectrum.resolution,
+      pipeline.heightTexture,
+      pipeline.displacementXTexture,
+      pipeline.displacementZTexture,
+      foamField,
+      foamTexture,
+      shoreSegments,
+      shoreFadeBandMeters,
+    ],
   );
 
   return (

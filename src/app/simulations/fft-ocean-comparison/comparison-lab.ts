@@ -25,6 +25,31 @@ export const COMPARISON_MISSING_VESSEL_URL = '/assets/__comparison-missing-vesse
 
 export type ComparisonBackend = 'fft' | 'gerstner';
 export type ComparisonSceneId = 'wave-only' | 'feature-parity';
+
+/** 两条 WebGL 路线共用的功能矩阵。wave-only 用中性材质，feature-parity 用完整光学。 */
+export const COMPARISON_FEATURE_MATRIX = {
+  'wave-only': {
+    optics: 'neutral',
+    ibl: false,
+    planar: false,
+    foam: false,
+    shallow: false,
+  },
+  'feature-parity': {
+    optics: 'shared',
+    ibl: true,
+    planar: true,
+    foam: true,
+    shallow: true,
+  },
+} as const;
+
+export const COMPARISON_SHORE_SEGMENT = {
+  id: 'comparison-shore',
+  from: [-900, 180] as const,
+  to: [900, 180] as const,
+  shoreDepthMeters: 4,
+};
 export type ComparisonRunMode = 'performance' | 'visual';
 
 export interface ComparisonFarFieldRing {
@@ -81,6 +106,17 @@ export interface ComparisonLabApi {
   readonly capture: () => ComparisonLabCapture;
   readonly identity: () => ComparisonLabIdentity;
   readonly queryMetrics: () => ComparisonQueryMetrics | null;
+  readonly setShallowEnabled: (enabled: boolean) => void;
+  readonly optics: () => ComparisonOpticsState;
+}
+
+export interface ComparisonOpticsState {
+  readonly profile: 'neutral' | 'shared';
+  readonly shallowEnabled: boolean;
+  readonly shallowPassAllocated: boolean;
+  readonly sunX: number;
+  readonly sunY: number;
+  readonly sunZ: number;
 }
 
 export function parseComparisonBackend(value: string | undefined): ComparisonBackend {

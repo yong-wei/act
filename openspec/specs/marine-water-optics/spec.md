@@ -77,3 +77,17 @@ At least one active shallow-water layout SHALL render depth-aware absorption and
 - **WHEN** the shallow consumer renders
 - **THEN** refraction is a bounded visual approximation on water-column content sampling (documented offset cap), not a physical refraction of scene geometry; bottom-texture or refraction render targets remain an explicit upgrade path outside this requirement
 
+### Requirement: Comparable ocean routes meet declared optical parity
+Routes admitted to feature-parity comparison SHALL implement the same predeclared optical and interaction features rather than their currently implemented intersection.
+
+#### Scenario: A candidate lacks environment reflection
+- **WHEN** The runner requests the complete profile
+- **THEN** The missing feature makes that candidate incomplete and the better implementation is not downgraded to conceal it.
+
+### Requirement: Shallow refraction changes actual underwater appearance
+The shallow-water feature SHALL use declared water depth or thickness and actual background appearance with correct occlusion.
+
+#### Scenario: A submerged test object is viewed
+- **WHEN** The runner toggles shallow refraction at fixed inputs
+- **THEN** The underwater appearance changes as specified without leaking foreground objects; shifting only foam coordinates is insufficient.
+
