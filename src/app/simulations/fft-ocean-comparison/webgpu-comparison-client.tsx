@@ -10,8 +10,9 @@ import * as THREE from 'three';
 import { color, float, Fn, mix, positionLocal, vec3, vertexIndex } from 'three/tsl';
 import { MeshStandardNodeMaterial, WebGPURenderer } from 'three/webgpu';
 
-import { GERSTNER_WAVE_SETS } from '@/resources/simulations/scene/water/gerstner-waves';
+import { MarineStagePerformanceProbe } from '@/resources/simulations/scene/quality';
 import { fftOceanStaticSpectrum } from '@/resources/simulations/scene/water/fft-ocean';
+import { GERSTNER_WAVE_SETS } from '@/resources/simulations/scene/water/gerstner-waves';
 import { shallowPathAbsorption } from '@/resources/simulations/scene/water/shared-water-optics';
 import {
   computeWebGpuOceanField,
@@ -162,6 +163,35 @@ function WebGpuOcean({
       busy.current = false;
     });
   });
+  useEffect(() => {
+    window.__marineStageAdvance = async (timeSeconds: number) => {
+      busy.current = true;
+      try {
+        const next = await computeWebGpuOceanField(renderer, backend === 'fft'
+          ? {
+            algorithm: 'fft',
+            spectrum: fftOceanStaticSpectrum(FFT_SPECTRUM),
+            domainMeters: FFT_SPECTRUM.domainMeters,
+            timeSeconds,
+          }
+          : {
+            algorithm: 'gerstner',
+            waves: GERSTNER_WAVE_SETS.low,
+            domainMeters: FFT_SPECTRUM.domainMeters,
+            timeSeconds,
+            amplitudeScale: 1,
+          });
+        fieldRef.current?.dispose();
+        fieldRef.current = next;
+        onField(next);
+      } finally {
+        busy.current = false;
+      }
+    };
+    return () => {
+      delete window.__marineStageAdvance;
+    };
+  }, [backend, onField, renderer]);
   useEffect(() => () => fieldRef.current?.dispose(), []);
   return null;
 }
@@ -256,6 +286,7 @@ export default function WebGpuComparisonClient({
           <ambientLight intensity={0.4} />
           <directionalLight position={[40, 80, 30]} intensity={1.5} />
           <WebGpuOcean backend={backend} scene={scene} onField={setField} onFieldError={setComputeError} />
+          <MarineStagePerformanceProbe />
           <FarFieldRing />
           <WebGpuVessel />
           <PlanarPass enabled={feature.planar} />

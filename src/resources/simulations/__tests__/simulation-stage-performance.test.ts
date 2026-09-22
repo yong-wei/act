@@ -309,11 +309,11 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
     expect(() => timer.endQuery()).toThrow(/not open/);
   });
 
-  it('renders a capped same-size batch, observes changing output, and restores state', () => {
+  it('renders a capped same-size batch, observes changing output, and restores state', async () => {
     const renderer = createOffscreenRenderer(800, 450);
     const screen = renderer.target;
     let created: { width: number; height: number } | null = null;
-    const result = measureOffscreenBatch(renderer, {
+    const result = await measureOffscreenBatch(renderer, {
       maxBatch: 100,
       createTarget(width, height) {
         const started = performance.now();
@@ -352,9 +352,9 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
     expect(renderer.scissorTest).toBe(true);
   });
 
-  it('rejects an unchanged batch as unobserved work and still restores after a draw failure', () => {
+  it('rejects an unchanged batch as unobserved work and still restores after a draw failure', async () => {
     const unchanged = createOffscreenRenderer();
-    const flat = measureOffscreenBatch(unchanged, {
+    const flat = await measureOffscreenBatch(unchanged, {
       maxBatch: 4,
       createTarget: () => ({ id: 'off' }),
       draw: () => 7,
@@ -364,7 +364,7 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
 
     const renderer = createOffscreenRenderer();
     const screen = renderer.target;
-    expect(() => measureOffscreenBatch(renderer, {
+    await expect(measureOffscreenBatch(renderer, {
       maxBatch: 4,
       createTarget: () => ({ id: 'off' }),
       draw(index) {
@@ -372,7 +372,7 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
         if (index === 1) throw new Error('draw failed');
         return index;
       },
-    })).toThrow(/draw failed/);
+    })).rejects.toThrow(/draw failed/);
     expect(renderer.target).toBe(screen);
     expect(renderer.viewport).toMatchObject({ x: 2, y: 4, z: 640, w: 360 });
   });
@@ -489,6 +489,57 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
     expect(timer.latest()).toBe(sample);
   });
 
+  it('waits for GPU completion when a disjoint query is dropped', async () => {
+    const calls: string[] = [];
+    const gl = {
+      getExtension: () => ({ TIME_ELAPSED_EXT: 0x88BF, GPU_DISJOINT_EXT: 0x8F9D }),
+      createQuery() {
+        calls.push('create');
+        return { id: 1 };
+      },
+      beginQuery() {
+        calls.push('begin');
+      },
+      endQuery() {
+        calls.push('end');
+      },
+      deleteQuery() {
+        calls.push('deleteQuery');
+      },
+      getParameter: () => true,
+      getQueryParameter: () => null,
+      fenceSync() {
+        calls.push('fence');
+        return { id: 'sync' };
+      },
+      flush() {
+        calls.push('flush');
+      },
+      clientWaitSync() {
+        calls.push('wait');
+        return this.ALREADY_SIGNALED;
+      },
+      deleteSync() {
+        calls.push('delete');
+      },
+      SYNC_GPU_COMMANDS_COMPLETE: 1,
+      ALREADY_SIGNALED: 2,
+      CONDITION_SATISFIED: 3,
+      TIMEOUT_EXPIRED: 4,
+      WAIT_FAILED: 5,
+    };
+    const timer = bindMarineStageTimer({ getContext: () => gl });
+    let runs = 0;
+    const sample = await timer.collectRound(() => {
+      runs += 1;
+    });
+    expect(runs).toBe(2);
+    expect(calls).toEqual(expect.arrayContaining(['fence', 'flush', 'wait', 'delete']));
+    expect(sample.gpuMs).toBeNull();
+    expect(sample.method).toBe('completed-work');
+    expect(sample.labeledAs).toBe('submit-to-complete-wall-clock');
+  });
+
   it('resolves WebGPU timestamps from the render pass that did the work', async () => {
     const calls: string[] = [];
     let tracking = false;
@@ -580,9 +631,9 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
 });
 
 describe('local paired sample (#2135)', () => {
-  it('keeps raw presentation and point-query numbers, overhead, and an inconclusive delta', () => {
+  it('keeps raw presentation and point-query numbers, overhead, and an inconclusive delta', async () => {
     const renderer = createOffscreenRenderer(320, 180);
-    const batch = measureOffscreenBatch(renderer, {
+    const batch = await measureOffscreenBatch(renderer, {
       maxBatch: 4,
       createTarget: (width, height) => ({ width, height }),
       draw: (index) => index + 1,
@@ -698,5 +749,14 @@ describe('local paired sample (#2135)', () => {
     expect(client).toContain('queryKind: report.kind');
     expect(client).toContain("queryKind: 'main-thread-fallback'");
     expect(client).toContain('<MarineStagePerformanceProbe />');
+    expect(quality).toContain('window.__marineStageAdvance');
+    expect(collector).toContain('webgpu:fft');
+    expect(collector).toContain('api=webgpu');
+    const webgpuClient = readFileSync(path.join(ROOT, 'src/app/simulations/fft-ocean-comparison/webgpu-comparison-client.tsx'), 'utf8');
+    expect(webgpuClient).toContain('<MarineStagePerformanceProbe />');
+    expect(webgpuClient).toContain('window.__marineStageAdvance');
+    const fftSurface = readFileSync(path.join(ROOT, 'src/resources/simulations/scene/water/fft-ocean-surface.tsx'), 'utf8');
+    expect(fftSurface).toContain('window.__marineStageAdvance');
+    expect(fftSurface).toContain('pipeline.run(timeSeconds)');
   });
 });

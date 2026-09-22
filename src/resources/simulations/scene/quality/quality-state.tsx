@@ -357,17 +357,19 @@ type StageDrawRenderer = OffscreenRenderer & {
   readonly info: { readonly render: { calls: number } };
 };
 
-function renderOffscreenStage(renderer: StageDrawRenderer, scene: object, camera: object): void {
+async function renderOffscreenStage(renderer: StageDrawRenderer, scene: object, camera: object): Promise<void> {
   const targets: THREE.WebGLRenderTarget[] = [];
   try {
-    const batch = measureOffscreenBatch(renderer, {
+    const batch = await measureOffscreenBatch(renderer, {
       maxBatch: 4,
       createTarget(width, height) {
         const target = new THREE.WebGLRenderTarget(width, height);
         targets.push(target);
         return target;
       },
-      draw(index) {
+      async draw(index) {
+        const advance = window.__marineStageAdvance;
+        if (advance) await advance(index * 0.25);
         renderer.render(scene, camera);
         const calls = renderer.info.render.calls;
         if (calls <= 0) return 0;
@@ -435,5 +437,6 @@ declare global {
       describe(): StageTimerDescription;
       collect(): Promise<{ readonly rounds: readonly TimingSample[]; readonly screenRecorded: false }>;
     };
+    __marineStageAdvance?: (timeSeconds: number) => void | Promise<void>;
   }
 }

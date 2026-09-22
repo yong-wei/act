@@ -121,7 +121,7 @@ export interface StageTimerBinding {
   endQuery(): void;
   poll(): TimingSample | null;
   latest(): TimingSample | null;
-  collectRound(work: () => void): Promise<TimingSample>;
+  collectRound(work: () => void | Promise<void>): Promise<TimingSample>;
   accept(sample: {
     readonly gpuElapsedNs: number | null;
     readonly quantumNs?: number | null;
@@ -129,7 +129,7 @@ export interface StageTimerBinding {
     readonly completedWorkMs?: number | null;
     readonly frameIntervalMs?: number | null;
   }): TimingSample;
-  measureCompletedWork(work: () => void): Promise<TimingSample>;
+  measureCompletedWork(work: () => void | Promise<void>): Promise<TimingSample>;
 }
 
 const rendererIdentities = new WeakMap<object, string>();
@@ -510,14 +510,14 @@ function sameBox(left: ViewportBox, right: ViewportBox): boolean {
   return left.x === right.x && left.y === right.y && left.z === right.z && left.w === right.w;
 }
 
-export function measureOffscreenBatch<T>(
+export async function measureOffscreenBatch<T>(
   renderer: OffscreenRenderer,
   options: {
     readonly maxBatch: number;
     readonly createTarget: (width: number, height: number) => T;
-    readonly draw: (index: number, target: T) => number;
+    readonly draw: (index: number, target: T) => number | Promise<number>;
   },
-): {
+): Promise<{
   readonly executedBatch: number;
   readonly requestedBatch: number;
   readonly capped: boolean;
@@ -532,7 +532,7 @@ export function measureOffscreenBatch<T>(
   readonly method: 'completed-work';
   readonly gpuMs: null;
   readonly screenRecorded: false;
-} {
+}> {
   if (!Number.isInteger(options.maxBatch) || options.maxBatch < 2) {
     throw new Error('offscreen batch requires at least two draws');
   }
@@ -560,7 +560,7 @@ export function measureOffscreenBatch<T>(
     setupMs = performance.now() - setupStarted;
     const workStarted = performance.now();
     for (let index = 0; index < executedBatch; index += 1) {
-      checksums.push(options.draw(index, target));
+      checksums.push(await options.draw(index, target));
     }
     wallClockMs = performance.now() - workStarted;
   } catch (error) {
@@ -700,9 +700,9 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
     return sample;
   }
 
-  async function measureCompletedWork(work: () => void): Promise<TimingSample> {
+  async function measureCompletedWork(work: () => void | Promise<void>): Promise<TimingSample> {
     const started = performance.now();
-    work();
+    await work();
     let waited = false;
     if (webgl) waited = await waitForWebGlCompletion(webgl);
     else if (device?.queue?.onSubmittedWorkDone) {
@@ -792,47 +792,32 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
     marineGpuTimerHoldDisjointQuery(false);
   }
 
-  async function collectDisjointRound(work: () => void): Promise<TimingSample> {
+  async function collectDisjointRound(work: () => void | Promise<void>): Promise<TimingSample> {
     if (marineGpuTimerPassActive()) return measureCompletedWork(work);
-    const started = performance.now();
     beginQuery();
     try {
-      work();
+      await work();
     } catch (error) {
       if (queryOpen) endQuery();
       discardIssuedQuery();
       throw error;
     }
     if (queryOpen) endQuery();
-    if (!issued) {
-      return remember(acceptTimingSample({
-        gpuElapsedNs: null,
-        quantumNs: quantizationNs,
-        disjoint: false,
-        completedWorkMs: performance.now() - started,
-        frameIntervalMs: null,
-      }));
-    }
+    if (!issued) return measureCompletedWork(work);
     const deadline = performance.now() + FENCE_WAIT_MS;
     while (performance.now() < deadline) {
       const sample = poll();
-      if (sample) return sample;
+      if (sample?.method === 'gpu-elapsed' && sample.gpuMs !== null && !sample.disjointDropped) return sample;
+      if (sample) return measureCompletedWork(work);
       await new Promise((resolve) => {
         setTimeout(resolve, 1);
       });
     }
-    const wallClockMs = issued?.wallClockMs ?? (performance.now() - started);
     discardIssuedQuery();
-    return remember(acceptTimingSample({
-      gpuElapsedNs: null,
-      quantumNs: quantizationNs,
-      disjoint: false,
-      completedWorkMs: wallClockMs,
-      frameIntervalMs: null,
-    }));
+    return measureCompletedWork(work);
   }
 
-  async function collectTimestampRound(work: () => void): Promise<TimingSample> {
+  async function collectTimestampRound(work: () => void | Promise<void>): Promise<TimingSample> {
     const resolving = renderer as TimestampResolvingRenderer;
     if (!canTimestamp || timestampPeriod === null || !resolving.resolveTimestampsAsync) {
       return measureCompletedWork(work);
@@ -843,7 +828,7 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
     const started = performance.now();
     let workFinished = false;
     try {
-      work();
+      await work();
       workFinished = true;
       const durationMs = await resolving.resolveTimestampsAsync('render');
       const wallClockMs = performance.now() - started;
@@ -917,7 +902,7 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
 
 export async function collectStageWindow(
   binding: StageTimerBinding,
-  work: () => void,
+  work: () => void | Promise<void>,
 ): Promise<{
   readonly rounds: readonly TimingSample[];
   readonly screenRecorded: false;

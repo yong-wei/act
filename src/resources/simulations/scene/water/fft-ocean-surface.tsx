@@ -123,6 +123,15 @@ export function FFTOceanSurface({
 
   useEffect(() => () => pipeline.dispose(), [pipeline]);
 
+  useEffect(() => {
+    window.__marineStageAdvance = (timeSeconds: number) => {
+      if (pipeline.ready) pipeline.run(timeSeconds);
+    };
+    return () => {
+      delete window.__marineStageAdvance;
+    };
+  }, [pipeline]);
+
   const statsRef = useRef({ frames: 0 });
   const sharedMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
   useFrame((state, delta) => {
