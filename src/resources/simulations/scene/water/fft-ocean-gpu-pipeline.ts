@@ -185,6 +185,39 @@ function floatRenderTargetsReady(gl: THREE.WebGLRenderer, target: THREE.WebGLRen
   return status === ctx.FRAMEBUFFER_COMPLETE;
 }
 
+function shaderPassesLinked(
+  gl: THREE.WebGLRenderer,
+  materials: readonly THREE.ShaderMaterial[],
+): boolean {
+  const ctx = gl.getContext();
+  if (!ctx || typeof WebGL2RenderingContext === 'undefined' || !(ctx instanceof WebGL2RenderingContext)) {
+    return false;
+  }
+  const probe = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2));
+  probe.add(mesh);
+  const renderer = gl as unknown as {
+    compile(scene: THREE.Scene, camera: THREE.Camera): void;
+    properties: {
+      get(material: THREE.Material): { currentProgram?: { program?: WebGLProgram } };
+    };
+  };
+  try {
+    for (const material of materials) {
+      mesh.material = material;
+      renderer.compile(probe, camera);
+      const program = renderer.properties.get(material).currentProgram?.program;
+      if (!program || ctx.getProgramParameter(program, ctx.LINK_STATUS) === false) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  } finally {
+    mesh.geometry.dispose();
+  }
+}
+
 function makeFloatTarget(n: number): THREE.WebGLRenderTarget {
   const target = new THREE.WebGLRenderTarget(n, n, {
     type: THREE.FloatType,
@@ -377,7 +410,14 @@ export function createFftOceanGpuPipeline(
     return grid;
   };
 
-  const ready = floatRenderTargetsReady(gl, heightTarget);
+  const ready = floatRenderTargetsReady(gl, heightTarget) && shaderPassesLinked(gl, [
+    evolveMaterial,
+    permuteMaterial,
+    butterflyMaterial,
+    outputMaterial,
+    copyMaterial,
+    chopMaterial,
+  ]);
 
   const run = (timeSeconds: number) => {
     if (!ready) return;

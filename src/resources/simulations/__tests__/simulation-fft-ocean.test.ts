@@ -291,6 +291,8 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(pipeline).toContain('getScissor');
     expect(pipeline).toContain('checkFramebufferStatus');
     expect(pipeline).toContain('EXT_color_buffer_float');
+    expect(pipeline).toContain('renderer.compile(probe, camera)');
+    expect(pipeline).toContain('LINK_STATUS');
     expect(pipeline).toContain('validateFftOceanGpuAgainstDft');
     expect(pipeline).toContain('readRenderTargetPixels');
     expect(surface).toContain('createFftOceanGpuPipeline');
