@@ -64,6 +64,15 @@ export interface ComparisonLabCapture {
   readonly vesselLoadFailed: boolean;
 }
 
+export interface ComparisonQueryMetrics {
+  readonly computeMs: number;
+  readonly queueMs: number;
+  readonly e2eMs: number;
+  readonly resultAgeSeconds: number;
+  readonly viaWorker: boolean;
+  readonly contactErrorMeters: number;
+}
+
 export interface ComparisonLabApi {
   readonly ready: () => boolean;
   readonly reset: () => void;
@@ -72,6 +81,7 @@ export interface ComparisonLabApi {
   readonly setRunMode: (mode: ComparisonRunMode) => void;
   readonly capture: () => ComparisonLabCapture;
   readonly identity: () => ComparisonLabIdentity;
+  readonly queryMetrics: () => ComparisonQueryMetrics | null;
 }
 
 export function parseComparisonBackend(value: string | undefined): ComparisonBackend {

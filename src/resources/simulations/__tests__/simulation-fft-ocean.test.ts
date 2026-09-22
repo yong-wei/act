@@ -6,8 +6,15 @@ import { describe, expect, it } from 'vitest';
 import {
   binWaveNumber,
   dispersionOmega,
+  FFT_OCEAN_CASCADE_SPLIT_WAVELENGTH_METERS,
+  FFT_OCEAN_CONTACT_TOLERANCE_METERS,
   FFT_OCEAN_HS_CALIBRATION,
+  fftOceanCascadeSplit,
+  fftOceanContactHeightAt,
+  fftOceanDisplacementSnapshot,
+  fftOceanFieldAt,
   fftOceanGpuStages,
+  fftOceanGridWorld,
   fftOceanHeightAt,
   fftOceanSnapshot,
   fftOceanStaticSpectrum,
@@ -173,6 +180,70 @@ describe('FFT ocean correctness (#2121)', () => {
     expect(later).not.toBe(a);
     expect(Number.isFinite(a)).toBe(true);
   });
+
+  it('direct DFT field matches height, IFFT chop displacement and jacobian of a flat sea', () => {
+    const spectrum = fftOceanStaticSpectrum(INPUT);
+    const t = 2.25;
+    const x = fftOceanGridWorld(5, INPUT.resolution, INPUT.domainMeters);
+    const z = fftOceanGridWorld(11, INPUT.resolution, INPUT.domainMeters);
+    const field = fftOceanFieldAt(spectrum, INPUT.domainMeters, t, x, z);
+    expect(field.height).toBeCloseTo(fftOceanHeightAt(spectrum, INPUT.domainMeters, t, x, z), 10);
+    const displaced = fftOceanDisplacementSnapshot(spectrum, INPUT.domainMeters, t);
+    const index = 11 * INPUT.resolution + 5;
+    expect(Math.abs(displaced.dx[index] - field.displacementX)).toBeLessThan(1e-5);
+    expect(Math.abs(displaced.dz[index] - field.displacementZ)).toBeLessThan(1e-5);
+    const zero = {
+      data: new Float32Array(INPUT.resolution * INPUT.resolution * 2),
+      omegas: new Float32Array(INPUT.resolution * INPUT.resolution),
+      resolution: INPUT.resolution,
+    };
+    expect(fftOceanFieldAt(zero, INPUT.domainMeters, t, x, z).jacobian).toBeCloseTo(1, 10);
+  });
+
+  it('cascade split is complementary in k and reconstructs the original field', () => {
+    const spectrum = fftOceanStaticSpectrum(INPUT);
+    const split = fftOceanCascadeSplit(spectrum, INPUT.domainMeters);
+    expect(split.kSplit).toBeCloseTo((2 * Math.PI) / FFT_OCEAN_CASCADE_SPLIT_WAVELENGTH_METERS, 12);
+    expect(split.lowEnergy + split.highEnergy).toBeCloseTo(split.totalEnergy, 8);
+    expect(split.lowEnergy).toBeGreaterThan(0);
+    expect(split.highEnergy).toBeGreaterThan(0);
+    const t = 1.5;
+    const x = 12;
+    const z = -18;
+    const full = fftOceanFieldAt(spectrum, INPUT.domainMeters, t, x, z);
+    const low = fftOceanFieldAt(split.low, INPUT.domainMeters, t, x, z);
+    const high = fftOceanFieldAt(split.high, INPUT.domainMeters, t, x, z);
+    expect(low.height + high.height).toBeCloseTo(full.height, 8);
+    expect(low.displacementX + high.displacementX).toBeCloseTo(full.displacementX, 8);
+    expect(low.displacementZ + high.displacementZ).toBeCloseTo(full.displacementZ, 8);
+  });
+
+  it('contact query inverts chop onto the displaced lattice within the declared tolerance', () => {
+    const spectrum = fftOceanStaticSpectrum(INPUT);
+    const t = 4;
+    const latticeX = fftOceanGridWorld(7, INPUT.resolution, INPUT.domainMeters);
+    const latticeZ = fftOceanGridWorld(13, INPUT.resolution, INPUT.domainMeters);
+    const field = fftOceanFieldAt(spectrum, INPUT.domainMeters, t, latticeX, latticeZ);
+    const worldX = latticeX + field.displacementX;
+    const worldZ = latticeZ + field.displacementZ;
+    const contact = fftOceanContactHeightAt(spectrum, INPUT.domainMeters, t, worldX, worldZ);
+    expect(Math.abs(contact - field.height)).toBeLessThan(FFT_OCEAN_CONTACT_TOLERANCE_METERS);
+  });
+
+  it('band-limited mesh interpolation stays within contact tolerance', () => {
+    const n = 32;
+    const domain = 256;
+    const data = new Float32Array(n * n * 2);
+    const omegas = new Float32Array(n * n);
+    data[1 * 2] = n * n;
+    const spectrum = { data, omegas, resolution: n };
+    const snapshot = fftOceanSnapshot(spectrum, domain, 0);
+    const i0 = 4;
+    const interpolated = 0.5 * (snapshot.heights[i0] + snapshot.heights[i0 + 1]);
+    const midX = fftOceanGridWorld(i0, n, domain) + domain / n * 0.5;
+    const continuous = fftOceanHeightAt(spectrum, domain, 0, midX, 0);
+    expect(Math.abs(continuous - interpolated)).toBeLessThan(FFT_OCEAN_CONTACT_TOLERANCE_METERS);
+  });
 });
 
 describe('runnable surface and comparison page (#2121)', () => {
@@ -206,22 +277,27 @@ describe('runnable surface and comparison page (#2121)', () => {
   });
 
   it('runs spectrum evolution and 2D IFFT on the GPU (shader passes mirror the validated stages)', () => {
-    const source = readSource('src/resources/simulations/scene/water/fft-ocean-surface.tsx');
-    // GPU 演化 + 位反转 + 蝶形 + 输出四个 pass 类（数值模型不在前端 TS 主干）。
-    expect(source).toContain('const EVOLVE_FS');
-    expect(source).toContain('const PERMUTE_FS');
-    expect(source).toContain('const BUTTERFLY_FS');
-    expect(source).toContain('const OUTPUT_FS');
-    // 与验证过的镜像同公式：twiddle 乘奇位输入。
-    expect(source).toContain('vec2 oddIn = isEven ? partner : self;');
-    expect(source).toContain('vec2 result = isEven ? evenIn + t : evenIn - t;');
-    // CPU 快照只做挂载时 QA 统计，不进渲染循环。
-    expect(source).toContain('不进渲染循环');
-    expect(source).not.toContain('HEIGHT_UPDATE_HZ');
-    // 船体查询无整纹理读回（逐点逆 DFT）。
-    expect(source).toContain('fftOceanHeightAt');
-    expect(source).not.toContain('readRenderTargetPixels');
-    expect(source).not.toContain('readPixels');
+    const surface = readSource('src/resources/simulations/scene/water/fft-ocean-surface.tsx');
+    const pipeline = readSource('src/resources/simulations/scene/water/fft-ocean-gpu-pipeline.ts');
+    expect(pipeline).toContain('const EVOLVE_FS');
+    expect(pipeline).toContain('const PERMUTE_FS');
+    expect(pipeline).toContain('const BUTTERFLY_FS');
+    expect(pipeline).toContain('const OUTPUT_FS');
+    expect(pipeline).toContain('const CHOP_FS');
+    expect(pipeline).toContain('vec2 oddIn = isEven ? partner : self;');
+    expect(pipeline).toContain('vec2 result = isEven ? evenIn + t : evenIn - t;');
+    expect(pipeline).toContain('getRenderTarget');
+    expect(pipeline).toContain('getViewport');
+    expect(pipeline).toContain('getScissor');
+    expect(pipeline).toContain('validateFftOceanGpuAgainstDft');
+    expect(pipeline).toContain('readRenderTargetPixels');
+    expect(surface).toContain('createFftOceanGpuPipeline');
+    expect(surface).toContain('不进渲染循环');
+    expect(surface).not.toContain('HEIGHT_UPDATE_HZ');
+    expect(surface).toContain('fftOceanHeightAt');
+    expect(surface).not.toContain('readRenderTargetPixels');
+    expect(surface).not.toContain('readPixels');
+    expect(surface).toContain('spectrum.resolution, spectrum.resolution');
   });
 
   it('exposes a QA probe with statistics, point query latency and WebGPU capability', () => {
@@ -233,6 +309,9 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(source).toContain("'gpu' in navigator");
     expect(source).toContain('gpuPipelineActive');
     expect(source).toContain('gpuFrames');
+    expect(source).toContain('validateGpuAgainstDft');
+    expect(source).toContain('cascadeEnergies');
+    expect(source).toContain('contactQuery');
   });
 
   it('comparison page selects the backend via Next searchParams (SSR/client first frame agree)', () => {
@@ -274,8 +353,10 @@ describe('runnable surface and comparison page (#2121)', () => {
     const worker = readSource('src/resources/simulations/scene/water/fft-query-worker.ts');
     const surface = readSource('src/resources/simulations/scene/water/fft-ocean-surface.tsx');
     expect(client).toContain('createFFTQueryWorker()');
+    expect(client).toContain('worker.init({');
     expect(client).toContain('worker.post({');
     expect(client).toContain('worker.dispose();');
+    expect(worker).toContain("type === 'init'");
     expect(client).toContain('if (result.timeSeconds < samplesRef.current.time) return;');
     expect(client).toContain('createNearFieldSurfaceQuery');
     expect(client).toContain('viaWorker: false');
@@ -283,7 +364,12 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(client).toContain('__marineComparisonLab');
     expect(surface).toContain('useMarineVisualTime');
     expect(worker).toContain('const phase = omega * timeSeconds + kx * worldX + kz * worldZ;');
-    expect(worker).toContain('sum / (resolution * resolution)');
+    expect(worker).toContain('contactHeightAt');
+    expect(worker).toContain('queueMs');
+    expect(client).toContain('chopLambda: FFT_OCEAN_CHOP_LAMBDA');
+    expect(client).toContain('queryMetrics');
+    expect(client).toContain('resultAgeSeconds');
+    expect(client).toContain('contactErrorMeters');
   });
 
   it('evaluation script consumes real measurement files instead of rewriting empty templates', () => {

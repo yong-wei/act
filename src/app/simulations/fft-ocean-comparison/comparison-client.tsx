@@ -26,7 +26,11 @@ import type { MarineFrameInputs, MarinePoseOwnership } from '@/resources/simulat
 import {
   FFTOceanSurface,
 } from '@/resources/simulations/scene/water/fft-ocean-surface';
-import { fftOceanHeightAt, fftOceanStaticSpectrum } from '@/resources/simulations/scene/water/fft-ocean';
+import {
+  FFT_OCEAN_CHOP_LAMBDA,
+  fftOceanContactHeightAt,
+  fftOceanStaticSpectrum,
+} from '@/resources/simulations/scene/water/fft-ocean';
 import { createFFTQueryWorker } from '@/resources/simulations/scene/water/fft-query-worker';
 import {
   GerstnerWater,
@@ -50,6 +54,7 @@ import {
   type ComparisonLabApi,
   type ComparisonLabCapture,
   type ComparisonLabIdentity,
+  type ComparisonQueryMetrics,
   type ComparisonRunMode,
   type ComparisonSceneId,
 } from './comparison-lab';
@@ -184,10 +189,12 @@ function FailedVesselMarker({ onLoadFailed }: { readonly onLoadFailed: () => voi
 function ComparisonQueries({
   backend,
   samplesRef,
+  metricsRef,
   resetToken,
 }: {
   readonly backend: ComparisonBackend;
   readonly samplesRef: React.MutableRefObject<{ mid: number; bow: number; stern: number; time: number }>;
+  readonly metricsRef: React.MutableRefObject<ComparisonQueryMetrics | null>;
   readonly resetToken: number;
 }) {
   const marineVisualTime = useMarineVisualTime();
@@ -211,15 +218,24 @@ function ComparisonQueries({
   });
 
   if (backend !== 'fft') return null;
-  return <FftWorkerPoster samplesRef={samplesRef} spectrum={spectrum} resetToken={resetToken} />;
+  return (
+    <FftWorkerPoster
+      samplesRef={samplesRef}
+      metricsRef={metricsRef}
+      spectrum={spectrum}
+      resetToken={resetToken}
+    />
+  );
 }
 
 function FftWorkerPoster({
   samplesRef,
+  metricsRef,
   spectrum,
   resetToken,
 }: {
   readonly samplesRef: React.MutableRefObject<{ mid: number; bow: number; stern: number; time: number }>;
+  readonly metricsRef: React.MutableRefObject<ComparisonQueryMetrics | null>;
   readonly spectrum: ReturnType<typeof fftOceanStaticSpectrum>;
   readonly resetToken: number;
 }) {
@@ -227,46 +243,73 @@ function FftWorkerPoster({
   const marineVisualTime = useMarineVisualTime();
   const workerRef = useRef<ReturnType<typeof createFFTQueryWorker>>(null);
   const lastPostRef = useRef(-1);
+  const visualTimeRef = useRef(0);
 
   useEffect(() => {
     lastPostRef.current = -1;
     samplesRef.current = { mid: 0, bow: 0, stern: 0, time: 0 };
+    metricsRef.current = null;
     const worker = createFFTQueryWorker();
     workerRef.current = worker;
     if (!worker) return undefined;
+    worker.init({
+      spectrum: spectrum.data,
+      resolution: spectrum.resolution,
+      domain: COMPARISON_SPECTRUM_INPUT.domainMeters,
+      chopLambda: FFT_OCEAN_CHOP_LAMBDA,
+    });
     worker.onResult((result) => {
       if (result.timeSeconds < samplesRef.current.time) return;
       const [mid, bow, stern] = result.results;
       samplesRef.current = { mid, bow, stern, time: result.timeSeconds };
+      const domain = COMPARISON_SPECTRUM_INPUT.domainMeters;
+      const contact = fftOceanContactHeightAt(spectrum, domain, result.timeSeconds, 0, 0);
+      const receivedAt = performance.now();
+      metricsRef.current = {
+        computeMs: result.computeMs,
+        queueMs: result.queueMs,
+        e2eMs: receivedAt - result.postedAt,
+        resultAgeSeconds: Math.max(0, visualTimeRef.current - result.timeSeconds),
+        viaWorker: true,
+        contactErrorMeters: Math.abs(mid - contact),
+      };
     });
     return () => {
       worker.dispose();
       workerRef.current = null;
     };
-  }, [resetToken, samplesRef]);
+  }, [resetToken, samplesRef, metricsRef, spectrum]);
 
   useFrame((state, delta) => {
     const timeSeconds = marineVisualTime(state, delta);
+    visualTimeRef.current = timeSeconds;
     if (timeSeconds - lastPostRef.current < 1 / COMPARISON_VESSEL_QUERY_HZ) return;
     lastPostRef.current = timeSeconds;
     const worker = workerRef.current;
     if (worker) {
       worker.post({
-        spectrum: spectrum.data,
-        resolution: spectrum.resolution,
-        domain: COMPARISON_SPECTRUM_INPUT.domainMeters,
         queries: [[0, 0], [0, COMPARISON_BOW_OFFSET_METERS], [0, -COMPARISON_BOW_OFFSET_METERS]],
         timeSeconds,
+        postedAt: performance.now(),
       });
       return;
     }
     // 回退：Worker 不可用时主线程低频查询，viaWorker: false。
     const domain = COMPARISON_SPECTRUM_INPUT.domainMeters;
+    const started = performance.now();
     samplesRef.current = {
-      mid: fftOceanHeightAt(spectrum, domain, timeSeconds, 0, 0),
-      bow: fftOceanHeightAt(spectrum, domain, timeSeconds, 0, COMPARISON_BOW_OFFSET_METERS),
-      stern: fftOceanHeightAt(spectrum, domain, timeSeconds, 0, -COMPARISON_BOW_OFFSET_METERS),
+      mid: fftOceanContactHeightAt(spectrum, domain, timeSeconds, 0, 0),
+      bow: fftOceanContactHeightAt(spectrum, domain, timeSeconds, 0, COMPARISON_BOW_OFFSET_METERS),
+      stern: fftOceanContactHeightAt(spectrum, domain, timeSeconds, 0, -COMPARISON_BOW_OFFSET_METERS),
       time: timeSeconds,
+    };
+    metricsRef.current = {
+      computeMs: performance.now() - started,
+      queueMs: 0,
+      e2eMs: performance.now() - started,
+      resultAgeSeconds: 0,
+      viaWorker: false,
+      contactErrorMeters: 0,
     };
     void runner;
   });
@@ -277,6 +320,7 @@ function ComparisonLabBridge({
   backend,
   scene,
   samplesRef,
+  metricsRef,
   pitchRef,
   identityRef,
   runModeRef,
@@ -285,6 +329,7 @@ function ComparisonLabBridge({
   readonly backend: ComparisonBackend;
   readonly scene: ComparisonSceneId;
   readonly samplesRef: React.MutableRefObject<{ mid: number; bow: number; stern: number; time: number }>;
+  readonly metricsRef: React.MutableRefObject<ComparisonQueryMetrics | null>;
   readonly pitchRef: React.MutableRefObject<number>;
   readonly identityRef: React.MutableRefObject<ComparisonLabIdentity>;
   readonly runModeRef: React.MutableRefObject<ComparisonRunMode>;
@@ -322,7 +367,7 @@ function ComparisonLabBridge({
       if (x === 0 && z === COMPARISON_BOW_OFFSET_METERS) return samplesRef.current.bow;
       if (x === 0 && z === -COMPARISON_BOW_OFFSET_METERS) return samplesRef.current.stern;
     }
-    return fftOceanHeightAt(
+    return fftOceanContactHeightAt(
       fftOceanStaticSpectrum(COMPARISON_SPECTRUM_INPUT),
       COMPARISON_SPECTRUM_INPUT.domainMeters,
       timeSeconds,
@@ -374,12 +419,13 @@ function ComparisonLabBridge({
         };
       },
       identity: () => identityRef.current,
+      queryMetrics: () => metricsRef.current,
     };
     window.__marineComparisonLab = api;
     return () => {
       delete window.__marineComparisonLab;
     };
-  }, [identityRef, pitchRef, runner, runModeRef, sampleDisplacement, samplesRef, setResetToken]);
+  }, [identityRef, metricsRef, pitchRef, runner, runModeRef, sampleDisplacement, samplesRef, setResetToken]);
 
   useEffect(() => {
     identityRef.current = {
@@ -404,6 +450,7 @@ function ComparisonScene({
 }) {
   const { tier } = useSceneQuality();
   const samplesRef = useRef({ mid: 0, bow: 0, stern: 0, time: 0 });
+  const metricsRef = useRef<ComparisonQueryMetrics | null>(null);
   const pitchRef = useRef(0);
   const runModeRef = useRef<ComparisonRunMode>('performance');
   const [resetToken, setResetToken] = useState(0);
@@ -485,11 +532,12 @@ function ComparisonScene({
   return (
     <MarineFrameProvider inputs={frameInputs}>
       <SceneQualityDriver />
-      <ComparisonQueries backend={backend} samplesRef={samplesRef} resetToken={resetToken} />
+      <ComparisonQueries backend={backend} samplesRef={samplesRef} metricsRef={metricsRef} resetToken={resetToken} />
       <ComparisonLabBridge
         backend={backend}
         scene={scene}
         samplesRef={samplesRef}
+        metricsRef={metricsRef}
         pitchRef={pitchRef}
         identityRef={identityRef}
         runModeRef={runModeRef}

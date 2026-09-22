@@ -180,23 +180,33 @@ function normalizeComplexRange(data: Float32Array, offset: number, length: numbe
   }
 }
 
+/** 水平位移强度（Tessendorf chop）。 */
+export const FFT_OCEAN_CHOP_LAMBDA = 0.8;
+
+/** 近场接触查询目标（米）：查询相对可见曲面，不含刚体穿透。 */
+export const FFT_OCEAN_CONTACT_TOLERANCE_METERS = 0.05;
+
+/** 两级级联分界波长（米）：更长的进低频带，更短的进中频带。 */
+export const FFT_OCEAN_CASCADE_SPLIT_WAVELENGTH_METERS = 32;
+
 export interface FFTOceanSnapshot {
   /** 高度网格（row-major，长度 resolution²）。 */
   readonly heights: Float32Array;
   readonly resolution: number;
 }
 
-/**
- * CPU 参照海面：静态谱 + 时间演化相位 → 2D IFFT 高度网格。
- * 行/列分离 radix-2（GPU Stockham 蝶形的快速对照）。
- */
-export function fftOceanSnapshot(
+export interface FFTOceanDisplacementSnapshot {
+  readonly dx: Float32Array;
+  readonly dz: Float32Array;
+  readonly resolution: number;
+}
+
+function evolveSpectrumData(
   spectrum: ComplexGrid,
   domainMeters: number,
   timeSeconds: number,
-): FFTOceanSnapshot {
+): Float32Array {
   const n = spectrum.resolution;
-  // 演化相位 e^{iωt} 逐 bin 施加（复制，不改静态谱）。
   const evolved = new Float32Array(spectrum.data);
   for (let m = 0; m < n; m += 1) {
     const kz = binWaveNumber(m, n, domainMeters);
@@ -213,14 +223,40 @@ export function fftOceanSnapshot(
       evolved[index + 1] = im;
     }
   }
-  // 2D IFFT：行（stride=1 复数, 长度 n）再列（stride=n）。
+  return evolved;
+}
+
+function applyChopInPlace(
+  data: Float32Array,
+  resolution: number,
+  domainMeters: number,
+  axis: 'x' | 'z',
+  chopLambda: number,
+): void {
+  const n = resolution;
+  for (let m = 0; m < n; m += 1) {
+    const kz = binWaveNumber(m, n, domainMeters);
+    for (let ix = 0; ix < n; ix += 1) {
+      const kx = binWaveNumber(ix, n, domainMeters);
+      const kMagnitude = Math.hypot(kx, kz);
+      const index = (m * n + ix) * 2;
+      const re = data[index];
+      const im = data[index + 1];
+      const axisK = axis === 'x' ? kx : kz;
+      const scale = kMagnitude > 1e-6 ? (chopLambda * axisK) / kMagnitude : 0;
+      data[index] = scale * -im;
+      data[index + 1] = scale * re;
+    }
+  }
+}
+
+function ifft2dReal(evolved: Float32Array, n: number): Float32Array {
   for (let row = 0; row < n; row += 1) {
     const rowFloat = row * n * 2;
     fft1d(evolved, rowFloat, n, 2, true);
     normalizeComplexRange(evolved, rowFloat, n);
   }
   for (let col = 0; col < n; col += 1) {
-    // 列的复元素 float 槽距为 2n——先抽到连续缓冲再变换。
     const column = new Float32Array(n * 2);
     for (let r = 0; r < n; r += 1) {
       column[r * 2] = evolved[(r * n + col) * 2];
@@ -233,9 +269,38 @@ export function fftOceanSnapshot(
       evolved[(r * n + col) * 2 + 1] = column[r * 2 + 1];
     }
   }
-  const heights = new Float32Array(n * n);
-  for (let i = 0; i < heights.length; i += 1) heights[i] = evolved[i * 2];
-  return { heights, resolution: n };
+  const real = new Float32Array(n * n);
+  for (let i = 0; i < real.length; i += 1) real[i] = evolved[i * 2];
+  return real;
+}
+
+/**
+ * CPU 参照海面：静态谱 + 时间演化相位 → 2D IFFT 高度网格。
+ * 行/列分离 radix-2（GPU Stockham 蝶形的快速对照）。
+ */
+export function fftOceanSnapshot(
+  spectrum: ComplexGrid,
+  domainMeters: number,
+  timeSeconds: number,
+): FFTOceanSnapshot {
+  const n = spectrum.resolution;
+  const evolved = evolveSpectrumData(spectrum, domainMeters, timeSeconds);
+  return { heights: ifft2dReal(evolved, n), resolution: n };
+}
+
+/** CPU IFFT 水平位移（与 GPU chop 同公式：λ (k_axis/|k|) i H）。 */
+export function fftOceanDisplacementSnapshot(
+  spectrum: ComplexGrid,
+  domainMeters: number,
+  timeSeconds: number,
+  chopLambda: number = FFT_OCEAN_CHOP_LAMBDA,
+): FFTOceanDisplacementSnapshot {
+  const n = spectrum.resolution;
+  const evolvedX = evolveSpectrumData(spectrum, domainMeters, timeSeconds);
+  const evolvedZ = new Float32Array(evolvedX);
+  applyChopInPlace(evolvedX, n, domainMeters, 'x', chopLambda);
+  applyChopInPlace(evolvedZ, n, domainMeters, 'z', chopLambda);
+  return { dx: ifft2dReal(evolvedX, n), dz: ifft2dReal(evolvedZ, n), resolution: n };
 }
 
 /**
@@ -265,6 +330,182 @@ export function fftOceanHeightAt(
   return sum / (n * n);
 }
 
+export interface FFTOceanFieldSample {
+  readonly height: number;
+  readonly displacementX: number;
+  readonly displacementZ: number;
+  readonly slopeX: number;
+  readonly slopeZ: number;
+  readonly jacobian: number;
+  /** ∂(x+Dx)/∂x，chop 反解牛顿步用。 */
+  readonly mapXx: number;
+  readonly mapXz: number;
+  readonly mapZx: number;
+  readonly mapZz: number;
+}
+
+/**
+ * 独立直接 DFT 场采样（非 IFFT / 非 GPU 镜像）：高度、chop 位移、斜率与雅可比。
+ * Re[i H e^{iφ}] = -im cos φ - re sin φ。
+ */
+export function fftOceanFieldAt(
+  spectrum: ComplexGrid,
+  domainMeters: number,
+  timeSeconds: number,
+  worldX: number,
+  worldZ: number,
+  chopLambda: number = FFT_OCEAN_CHOP_LAMBDA,
+): FFTOceanFieldSample {
+  const n = spectrum.resolution;
+  const inv = 1 / (n * n);
+  let height = 0;
+  let displacementX = 0;
+  let displacementZ = 0;
+  let slopeX = 0;
+  let slopeZ = 0;
+  let dDxDx = 0;
+  let dDzDz = 0;
+  let dDxDz = 0;
+  let dDzDx = 0;
+  for (let m = 0; m < n; m += 1) {
+    const kz = binWaveNumber(m, n, domainMeters);
+    for (let ix = 0; ix < n; ix += 1) {
+      const kx = binWaveNumber(ix, n, domainMeters);
+      const kMagnitude = Math.hypot(kx, kz);
+      const omega = dispersionOmega(kMagnitude);
+      const phase = omega * timeSeconds + kx * worldX + kz * worldZ;
+      const index = (m * n + ix) * 2;
+      const re = spectrum.data[index];
+      const im = spectrum.data[index + 1];
+      const cos = Math.cos(phase);
+      const sin = Math.sin(phase);
+      const heightTerm = re * cos - im * sin;
+      const imagRot = -im * cos - re * sin;
+      height += heightTerm;
+      slopeX += imagRot * kx;
+      slopeZ += imagRot * kz;
+      if (kMagnitude > 1e-6) {
+        const kxHat = kx / kMagnitude;
+        const kzHat = kz / kMagnitude;
+        displacementX += imagRot * kxHat;
+        displacementZ += imagRot * kzHat;
+        const realNeg = -(re * cos - im * sin);
+        dDxDx += realNeg * kx * kxHat;
+        dDzDz += realNeg * kz * kzHat;
+        dDxDz += realNeg * kz * kxHat;
+        dDzDx += realNeg * kx * kzHat;
+      }
+    }
+  }
+  const dx = chopLambda * displacementX * inv;
+  const dz = chopLambda * displacementZ * inv;
+  const j00 = 1 + chopLambda * dDxDx * inv;
+  const j11 = 1 + chopLambda * dDzDz * inv;
+  const j01 = chopLambda * dDxDz * inv;
+  const j10 = chopLambda * dDzDx * inv;
+  return {
+    height: height * inv,
+    displacementX: dx,
+    displacementZ: dz,
+    slopeX: slopeX * inv,
+    slopeZ: slopeZ * inv,
+    jacobian: j00 * j11 - j01 * j10,
+    mapXx: j00,
+    mapXz: j01,
+    mapZx: j10,
+    mapZz: j11,
+  };
+}
+
+/** 接触查询：牛顿反解 chop，使世界点落到未位移格点。 */
+export function fftOceanContactHeightAt(
+  spectrum: ComplexGrid,
+  domainMeters: number,
+  timeSeconds: number,
+  worldX: number,
+  worldZ: number,
+): number {
+  let latticeX = worldX;
+  let latticeZ = worldZ;
+  for (let step = 0; step < 3; step += 1) {
+    const sample = fftOceanFieldAt(spectrum, domainMeters, timeSeconds, latticeX, latticeZ);
+    const residualX = latticeX + sample.displacementX - worldX;
+    const residualZ = latticeZ + sample.displacementZ - worldZ;
+    const det = sample.mapXx * sample.mapZz - sample.mapXz * sample.mapZx;
+    if (Math.abs(det) < 1e-8) break;
+    latticeX -= (sample.mapZz * residualX - sample.mapXz * residualZ) / det;
+    latticeZ -= (-sample.mapZx * residualX + sample.mapXx * residualZ) / det;
+  }
+  return fftOceanFieldAt(spectrum, domainMeters, timeSeconds, latticeX, latticeZ).height;
+}
+
+export interface FFTOceanCascadeSplit {
+  readonly low: ComplexGrid;
+  readonly high: ComplexGrid;
+  readonly kSplit: number;
+  readonly lowEnergy: number;
+  readonly highEnergy: number;
+  readonly totalEnergy: number;
+}
+
+function cloneSpectrum(spectrum: ComplexGrid): ComplexGrid {
+  return {
+    data: new Float32Array(spectrum.data),
+    omegas: new Float32Array(spectrum.omegas),
+    resolution: spectrum.resolution,
+  };
+}
+
+function binEnergy(spectrum: ComplexGrid, index: number): number {
+  const re = spectrum.data[index * 2];
+  const im = spectrum.data[index * 2 + 1];
+  return re * re + im * im;
+}
+
+/** 同一变换上的两级带限：分界波长两侧能量不重叠。 */
+export function fftOceanCascadeSplit(
+  spectrum: ComplexGrid,
+  domainMeters: number,
+  splitWavelengthMeters: number = FFT_OCEAN_CASCADE_SPLIT_WAVELENGTH_METERS,
+): FFTOceanCascadeSplit {
+  const n = spectrum.resolution;
+  const kSplit = (2 * Math.PI) / splitWavelengthMeters;
+  const low = cloneSpectrum(spectrum);
+  const high = cloneSpectrum(spectrum);
+  let lowEnergy = 0;
+  let highEnergy = 0;
+  for (let m = 0; m < n; m += 1) {
+    const kz = binWaveNumber(m, n, domainMeters);
+    for (let ix = 0; ix < n; ix += 1) {
+      const kx = binWaveNumber(ix, n, domainMeters);
+      const kMagnitude = Math.hypot(kx, kz);
+      const index = m * n + ix;
+      const energy = binEnergy(spectrum, index);
+      if (kMagnitude < kSplit) {
+        high.data[index * 2] = 0;
+        high.data[index * 2 + 1] = 0;
+        lowEnergy += energy;
+      } else {
+        low.data[index * 2] = 0;
+        low.data[index * 2 + 1] = 0;
+        highEnergy += energy;
+      }
+    }
+  }
+  return {
+    low,
+    high,
+    kSplit,
+    lowEnergy,
+    highEnergy,
+    totalEnergy: lowEnergy + highEnergy,
+  };
+}
+
+export function fftOceanGridWorld(index: number, resolution: number, domainMeters: number): number {
+  return (index * domainMeters) / resolution;
+}
+
 /** 有效波高 Hs = 4·std(h)（空间统计）。 */
 export function significantWaveHeight(heights: Float32Array): number {
   let mean = 0;
@@ -277,7 +518,7 @@ export function significantWaveHeight(heights: Float32Array): number {
 
 
 /**
- * GPU pass 序列的纯 TS 镜像（#2121）：与 fft-ocean-surface 的着色器逐 pass 同
+ * GPU pass 序列的纯 TS 镜像（#2121）：与 fft-ocean-gpu-pipeline 的着色器逐 pass 同
  * 公式（演化 → 每轴位反转置换 → span 递增蝶形【twiddle 乘奇位输入：偶位输出
  * = even + t，奇位输出 = even − t】→ 单次 /N²）。为 GPU 公式提供可测试验证
  * （与 fftOceanSnapshot/逐点逆 DFT 两独立路径互证）。

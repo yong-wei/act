@@ -38,3 +38,10 @@ Acceptance SHALL distinguish query-to-visible-surface error, geometric approxima
 - **WHEN** measured query error exceeds the 0.05 metre near-field target
 - **THEN** the implementation fixes the sampling or representation and records the result instead of increasing an unrelated omitted-frequency bound to pass
 
+### Requirement: Spectral point queries match rendered sampling
+Spectral point queries SHALL use the current visual time, periodic sampling convention and horizontal displacement convention, with measured error and result age.
+
+#### Scenario: A vessel samples a non-grid position
+- **WHEN** The selected spectral surface is queried between vertices
+- **THEN** The returned contact height agrees with the actual visible surface within the declared contact tolerance.
+

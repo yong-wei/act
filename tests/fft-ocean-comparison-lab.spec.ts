@@ -2,6 +2,17 @@ import { expect, test, type Page } from '@playwright/test';
 
 declare global {
   interface Window {
+    __fftOceanRuntime?: {
+      gpuFrames: () => number;
+      validateGpuAgainstDft: () => {
+        ok: boolean;
+        relativeL2: number;
+        maxAbsError: number;
+        displacementMaxAbsError: number;
+        slopeMaxAbsError: number;
+        reason?: string;
+      };
+    };
     __marineComparisonLab?: {
       ready: () => boolean;
       reset: () => void;
@@ -12,6 +23,14 @@ declare global {
         waterHeightOrigin: number;
         queryBackend: 'fft' | 'gerstner';
       };
+      queryMetrics?: () => {
+        computeMs: number;
+        queueMs: number;
+        e2eMs: number;
+        resultAgeSeconds: number;
+        viaWorker: boolean;
+        contactErrorMeters: number;
+      } | null;
       identity: () => {
         queryBackend: 'fft' | 'gerstner';
         waterBaseY: number;
@@ -46,6 +65,38 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     expect(identity?.vesselLoaded).toBe(true);
     expect(identity?.vesselUrl).toBeTruthy();
     expect(identity?.vesselFallback).toBe(false);
+  });
+
+  test('GPU small transform readback matches independent DFT within float32 bounds', async ({ page }) => {
+    await page.goto(`${PAGE}?backend=fft&scene=wave-only&qa=fft-ocean`, { waitUntil: 'domcontentloaded' });
+    await waitForLab(page);
+    await page.waitForFunction(() => {
+      const runtime = window.__fftOceanRuntime;
+      return Boolean(runtime && runtime.gpuFrames() > 2);
+    }, { timeout: 90_000 });
+    const report = await page.evaluate(() => window.__fftOceanRuntime?.validateGpuAgainstDft());
+    expect(report?.reason ?? null, JSON.stringify(report)).toBeNull();
+    expect(report?.ok, JSON.stringify(report)).toBe(true);
+    expect(report?.relativeL2).toBeLessThan(2e-4);
+    expect(report?.maxAbsError).toBeLessThan(1e-3);
+    expect(report?.displacementMaxAbsError).toBeLessThan(1e-3);
+    expect(report?.slopeMaxAbsError).toBeLessThan(1e-3);
+  });
+
+  test('FFT worker contact queries report compute, queue, e2e and result age', async ({ page }) => {
+    await page.goto(`${PAGE}?backend=fft&scene=wave-only&qa=fft-ocean`, { waitUntil: 'domcontentloaded' });
+    await waitForLab(page);
+    await page.waitForFunction(() => {
+      const metrics = window.__marineComparisonLab?.queryMetrics?.();
+      return Boolean(metrics && metrics.viaWorker && Number.isFinite(metrics.computeMs));
+    }, { timeout: 90_000 });
+    const metrics = await page.evaluate(() => window.__marineComparisonLab?.queryMetrics?.());
+    expect(metrics?.viaWorker).toBe(true);
+    expect(metrics?.computeMs).toBeGreaterThan(0);
+    expect(metrics?.queueMs).toBeGreaterThanOrEqual(0);
+    expect(metrics?.e2eMs).toBeGreaterThan(0);
+    expect(metrics?.resultAgeSeconds).toBeGreaterThanOrEqual(0);
+    expect(metrics?.contactErrorMeters).toBeLessThan(0.05);
   });
 
   test('replays the same visual time after reset and step', async ({ page }) => {
