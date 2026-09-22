@@ -4,11 +4,14 @@ import { GERSTNER_WATER_BASE_Y, GERSTNER_WATER_SIZE, NEAR_FIELD_MESH_SPEC } from
 
 import {
   COMPARISON_FEATURE_MATRIX,
+  COMPARISON_ROUTES,
   comparisonFarFieldRing,
+  comparisonRouteKey,
   composeWaterDatum,
   isHorizontalFarField,
   labIsReady,
   parseComparisonBackend,
+  parseComparisonGraphicsApi,
   parseComparisonScene,
   vesselPitchFromSamples,
   type ComparisonLabIdentity,
@@ -42,6 +45,15 @@ describe('comparison lab helpers (#2130)', () => {
     expect(parseComparisonBackend(undefined)).toBe('fft');
     expect(parseComparisonBackend('gerstner')).toBe('gerstner');
     expect(parseComparisonBackend('webgpu')).toBe('fft');
+    expect(parseComparisonGraphicsApi('webgpu')).toBe('webgpu');
+    expect(parseComparisonGraphicsApi('webgl')).toBe('webgl');
+    expect(parseComparisonGraphicsApi(undefined)).toBe('webgl');
+    expect(COMPARISON_ROUTES.map((route) => comparisonRouteKey(route.api, route.backend))).toEqual([
+      'webgl-fft',
+      'webgl-gerstner',
+      'webgpu-fft',
+      'webgpu-gerstner',
+    ]);
     expect(parseComparisonScene(undefined)).toBe('wave-only');
     expect(parseComparisonScene('feature-parity')).toBe('feature-parity');
   });

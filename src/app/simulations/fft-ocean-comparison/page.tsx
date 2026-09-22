@@ -1,5 +1,6 @@
 import FFTOceanComparisonClient from './comparison-client';
-import { parseComparisonBackend, parseComparisonScene } from './comparison-lab';
+import WebGpuComparisonClient from './webgpu-comparison-client';
+import { parseComparisonBackend, parseComparisonGraphicsApi, parseComparisonScene } from './comparison-lab';
 
 /**
  * FFT ↔ Gerstner 对照实验页（#2130，服务端组件外壳）：
@@ -14,11 +15,16 @@ export default async function FFTOceanComparisonPage({
     readonly backend?: string;
     readonly scene?: string;
     readonly vessel?: string;
+    readonly api?: string;
   }>;
 }) {
   const params = await searchParams;
   const backend = parseComparisonBackend(params?.backend);
   const scene = parseComparisonScene(params?.scene);
+  const graphicsApi = parseComparisonGraphicsApi(params?.api);
   const failAsset = params?.vessel === 'missing';
+  if (graphicsApi === 'webgpu') {
+    return <WebGpuComparisonClient backend={backend} scene={scene} />;
+  }
   return <FFTOceanComparisonClient backend={backend} scene={scene} failAsset={failAsset} />;
 }
