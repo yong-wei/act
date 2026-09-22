@@ -305,14 +305,24 @@ export function createFftOceanCompressionSampler(
       grid = new Float32Array(resolution * resolution);
       const cell = domainMeters / resolution;
       for (let j = 0; j < resolution; j += 1) {
-        const j1 = (j + 1) % resolution;
+        const jF = (j + 1) % resolution;
+        const jB = (j - 1 + resolution) % resolution;
         for (let i = 0; i < resolution; i += 1) {
-          const i1 = (i + 1) % resolution;
-          const dx0 = displaced.dx[j * resolution + i];
-          const dx1 = displaced.dx[j * resolution + i1];
-          const dz0 = displaced.dz[j * resolution + i];
-          const dz1 = displaced.dz[j1 * resolution + i];
-          const jacobian = (1 + (dx1 - dx0) / cell) * (1 + (dz1 - dz0) / cell);
+          const iR = (i + 1) % resolution;
+          const iL = (i - 1 + resolution) % resolution;
+          const dxR = displaced.dx[j * resolution + iR];
+          const dxL = displaced.dx[j * resolution + iL];
+          const dxF = displaced.dx[jF * resolution + i];
+          const dxB = displaced.dx[jB * resolution + i];
+          const dzR = displaced.dz[j * resolution + iR];
+          const dzL = displaced.dz[j * resolution + iL];
+          const dzF = displaced.dz[jF * resolution + i];
+          const dzB = displaced.dz[jB * resolution + i];
+          const dDxDx = (dxR - dxL) / (2 * cell);
+          const dDzDz = (dzF - dzB) / (2 * cell);
+          const dDxDz = (dxF - dxB) / (2 * cell);
+          const dDzDx = (dzR - dzL) / (2 * cell);
+          const jacobian = (1 + dDxDx) * (1 + dDzDz) - dDxDz * dDzDx;
           grid[j * resolution + i] = Math.min(1, Math.max(0, 1 - jacobian));
         }
       }

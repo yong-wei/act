@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
+import { useTexture } from '@react-three/drei';
 
 import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import type { MarineShoreSegment } from '../environment/scene-layouts';
@@ -98,6 +99,9 @@ export function FFTOceanSurface({
   const gl = useThree((state) => state.gl);
   const scene = useThree((state) => state.scene);
   const foamField = useMarineFoamField();
+  const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
+  foamTexture.wrapS = THREE.RepeatWrapping;
+  foamTexture.wrapT = THREE.RepeatWrapping;
   const meshRef = useRef<THREE.Mesh>(null);
   const marineVisualTime = useMarineVisualTime();
   const domain = domainMeters ?? spectrumInput.domainMeters;
@@ -194,6 +198,7 @@ export function FFTOceanSurface({
           horizonColor: colors.horizonColor,
           foamColor: '#d7e4ea',
           sunDirection: COMPARISON_SUN_DIRECTION,
+          foamTexture,
           microNormalTier: 'high',
           vertexShaderOverride: FFT_SHARED_VERTEX,
           foamField: foamField
@@ -275,6 +280,7 @@ export function FFTOceanSurface({
       pipeline.displacementXTexture,
       pipeline.displacementZTexture,
       foamField,
+      foamTexture,
       shoreSegments,
       shoreFadeBandMeters,
     ],
