@@ -466,10 +466,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         return mix(mix(t00, t10, f.x), mix(t01, t11, f.x), f.y) * feather;
       }
 
-      // 多尺度细节（#2115）：三个非谐波尺度 + 固定偏移去相关——同一噪声图不再
-      // 以单一周期平铺（消除 80m 大贴花）；相位只随世界位置变化，不逐帧换噪声。
+      // 多尺度细节（#2115/#2133）：worldXZ 已含水平位移。减回位移得到水质点坐标，
+      // 再减去与密度场相同的漂移，细节才随流而不是逆着波面滑动。
       float foamDetail(vec2 worldXZ) {
-        vec2 carried = worldXZ - uFoamDrift * uTime + vHorizontalDisp * 0.35;
+        vec2 carried = worldXZ - uFoamDrift * uTime - vHorizontalDisp;
         float a = texture2D(uFoamTex, carried / 23.0).a;
         float b = texture2D(uFoamTex, carried / 71.0 + vec2(0.37, 0.13)).a;
         float c = texture2D(uFoamTex, carried / 149.0 + vec2(0.71, 0.53)).a;

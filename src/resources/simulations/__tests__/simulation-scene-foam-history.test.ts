@@ -446,8 +446,8 @@ describe('source contracts (#2115)', () => {
     // 去除单一 80m 平铺贴花。
     expect(source).not.toContain('vWorldPos.xz / 80.0');
     // 多尺度去相关细节（非谐波尺度 + 固定偏移）。
-    expect(source).toContain('uFoamDrift * uTime');
-    expect(source).toContain('vHorizontalDisp');
+    expect(source).toContain('uFoamDrift * uTime - vHorizontalDisp');
+    expect(source).not.toContain('+ vHorizontalDisp');
     expect(source).toContain('carried / 23.0');
     expect(source).toContain('carried / 71.0');
     expect(source).toContain('carried / 149.0');
