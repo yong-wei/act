@@ -289,6 +289,8 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(pipeline).toContain('getRenderTarget');
     expect(pipeline).toContain('getViewport');
     expect(pipeline).toContain('getScissor');
+    expect(pipeline).toContain('checkFramebufferStatus');
+    expect(pipeline).toContain('EXT_color_buffer_float');
     expect(pipeline).toContain('validateFftOceanGpuAgainstDft');
     expect(pipeline).toContain('readRenderTargetPixels');
     expect(surface).toContain('createFftOceanGpuPipeline');
@@ -366,10 +368,15 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(worker).toContain('const phase = omega * timeSeconds + kx * worldX + kz * worldZ;');
     expect(worker).toContain('contactHeightAt');
     expect(worker).toContain('queueMs');
+    expect(worker).toContain('performance.timeOrigin');
     expect(client).toContain('chopLambda: FFT_OCEAN_CHOP_LAMBDA');
     expect(client).toContain('queryMetrics');
     expect(client).toContain('resultAgeSeconds');
-    expect(client).toContain('contactErrorMeters');
+    expect(client).toContain('performance.timeOrigin + performance.now()');
+    expect(client).not.toContain('contactErrorMeters');
+    const onResultStart = client.indexOf('worker.onResult');
+    const onResultEnd = client.indexOf('return () => {', onResultStart);
+    expect(client.slice(onResultStart, onResultEnd)).not.toContain('fftOceanContactHeightAt');
   });
 
   it('evaluation script consumes real measurement files instead of rewriting empty templates', () => {

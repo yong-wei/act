@@ -29,7 +29,6 @@ declare global {
         e2eMs: number;
         resultAgeSeconds: number;
         viaWorker: boolean;
-        contactErrorMeters: number;
       } | null;
       identity: () => {
         queryBackend: 'fft' | 'gerstner';
@@ -96,7 +95,6 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     expect(metrics?.queueMs).toBeGreaterThanOrEqual(0);
     expect(metrics?.e2eMs).toBeGreaterThan(0);
     expect(metrics?.resultAgeSeconds).toBeGreaterThanOrEqual(0);
-    expect(metrics?.contactErrorMeters).toBeLessThan(0.05);
   });
 
   test('replays the same visual time after reset and step', async ({ page }) => {

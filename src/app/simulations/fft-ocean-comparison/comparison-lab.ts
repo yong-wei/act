@@ -70,7 +70,6 @@ export interface ComparisonQueryMetrics {
   readonly e2eMs: number;
   readonly resultAgeSeconds: number;
   readonly viaWorker: boolean;
-  readonly contactErrorMeters: number;
 }
 
 export interface ComparisonLabApi {

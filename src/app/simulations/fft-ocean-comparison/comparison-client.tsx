@@ -262,16 +262,13 @@ function FftWorkerPoster({
       if (result.timeSeconds < samplesRef.current.time) return;
       const [mid, bow, stern] = result.results;
       samplesRef.current = { mid, bow, stern, time: result.timeSeconds };
-      const domain = COMPARISON_SPECTRUM_INPUT.domainMeters;
-      const contact = fftOceanContactHeightAt(spectrum, domain, result.timeSeconds, 0, 0);
-      const receivedAt = performance.now();
+      const receivedAt = performance.timeOrigin + performance.now();
       metricsRef.current = {
         computeMs: result.computeMs,
         queueMs: result.queueMs,
         e2eMs: receivedAt - result.postedAt,
         resultAgeSeconds: Math.max(0, visualTimeRef.current - result.timeSeconds),
         viaWorker: true,
-        contactErrorMeters: Math.abs(mid - contact),
       };
     });
     return () => {
@@ -290,7 +287,7 @@ function FftWorkerPoster({
       worker.post({
         queries: [[0, 0], [0, COMPARISON_BOW_OFFSET_METERS], [0, -COMPARISON_BOW_OFFSET_METERS]],
         timeSeconds,
-        postedAt: performance.now(),
+        postedAt: performance.timeOrigin + performance.now(),
       });
       return;
     }
@@ -309,7 +306,6 @@ function FftWorkerPoster({
       e2eMs: performance.now() - started,
       resultAgeSeconds: 0,
       viaWorker: false,
-      contactErrorMeters: 0,
     };
     void runner;
   });

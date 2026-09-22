@@ -161,11 +161,28 @@ export interface FftOceanGpuPipeline {
   readonly slopeZTexture: THREE.Texture | null;
   readonly resolution: number;
   readonly domainMeters: number;
+  readonly ready: boolean;
   readHeightGrid(): Float32Array | null;
   readDisplacementXGrid(): Float32Array | null;
   readDisplacementZGrid(): Float32Array | null;
   readSlopeXGrid(): Float32Array | null;
   readSlopeZGrid(): Float32Array | null;
+}
+
+function floatRenderTargetsReady(gl: THREE.WebGLRenderer, target: THREE.WebGLRenderTarget): boolean {
+  const ctx = gl.getContext();
+  if (!ctx || typeof WebGL2RenderingContext === 'undefined' || !(ctx instanceof WebGL2RenderingContext)) {
+    return false;
+  }
+  if (!ctx.getExtension('EXT_color_buffer_float')) return false;
+  const previousTarget = gl.getRenderTarget();
+  const viewport = new THREE.Vector4();
+  gl.getViewport(viewport);
+  gl.setRenderTarget(target);
+  const status = ctx.checkFramebufferStatus(ctx.FRAMEBUFFER);
+  gl.setRenderTarget(previousTarget);
+  gl.setViewport(viewport);
+  return status === ctx.FRAMEBUFFER_COMPLETE;
 }
 
 function makeFloatTarget(n: number): THREE.WebGLRenderTarget {
@@ -360,7 +377,10 @@ export function createFftOceanGpuPipeline(
     return grid;
   };
 
+  const ready = floatRenderTargetsReady(gl, heightTarget);
+
   const run = (timeSeconds: number) => {
+    if (!ready) return;
     withRestoredGl(() => {
       evolveMaterial.uniforms.uTimeSeconds.value = timeSeconds;
       renderPass(evolveMaterial, ping);
@@ -405,6 +425,7 @@ export function createFftOceanGpuPipeline(
     slopeZTexture: slopeZTarget?.texture ?? null,
     resolution: n,
     domainMeters,
+    ready,
     readHeightGrid: () => readGrid(heightTarget),
     readDisplacementXGrid: () => readGrid(dispXTarget),
     readDisplacementZGrid: () => readGrid(dispZTarget),
@@ -506,6 +527,10 @@ export function validateFftOceanGpuAgainstDft(gl: THREE.WebGLRenderer): FftOcean
     const pipeline = createFftOceanGpuPipeline(gl, spectrum, domainMeters, {
       includeSlopes: true,
     });
+    if (!pipeline.ready) {
+      pipeline.dispose();
+      return failed('float-rt-unavailable');
+    }
     try {
       for (const timeSeconds of times) {
         pipeline.run(timeSeconds);

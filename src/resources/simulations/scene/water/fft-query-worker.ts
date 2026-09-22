@@ -83,7 +83,8 @@ self.onmessage = (event) => {
     return;
   }
   if (!cached) return;
-  const started = performance.now();
+  const startedMs = performance.now();
+  const startedAbs = performance.timeOrigin + startedMs;
   const { queries, timeSeconds, postedAt } = message;
   const results = queries.map(([x, z]) => contactHeightAt(
     cached.spectrum,
@@ -94,12 +95,12 @@ self.onmessage = (event) => {
     z,
     cached.chopLambda,
   ));
-  const computeMs = performance.now() - started;
+  const computeMs = performance.now() - startedMs;
   self.postMessage({
     timeSeconds,
     results,
     computeMs,
-    queueMs: Math.max(0, started - postedAt),
+    queueMs: Math.max(0, startedAbs - postedAt),
     postedAt,
   });
 };
@@ -161,7 +162,7 @@ export function createFFTQueryWorker(): {
         type: 'query',
         queries: input.queries,
         timeSeconds: input.timeSeconds,
-        postedAt: input.postedAt ?? performance.now(),
+        postedAt: input.postedAt ?? (performance.timeOrigin + performance.now()),
       });
     },
     onResult(next) {

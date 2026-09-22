@@ -50,6 +50,7 @@ export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurface
 
   const statsRef = useRef({ frames: 0 });
   useFrame((state, delta) => {
+    if (!pipeline.ready) return;
     pipeline.run(marineVisualTime(state, delta));
     statsRef.current.frames += 1;
   });
@@ -60,7 +61,7 @@ export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurface
     window.__fftOceanRuntime = {
       resolution: spectrum.resolution,
       cpuSignificantWaveHeightMeters: cpuHs,
-      gpuPipelineActive: true,
+      gpuPipelineActive: pipeline.ready,
       gpuFrames: () => statsRef.current.frames,
       pointQuery: (x: number, z: number, t: number) => fftOceanHeightAt(spectrum, domain, t, x, z),
       contactQuery: (x: number, z: number, t: number) => (
@@ -88,7 +89,7 @@ export function FFTOceanSurface({ spectrumInput, domainMeters }: FFTOceanSurface
     return () => {
       delete window.__fftOceanRuntime;
     };
-  }, [spectrum, cpuHs, domain, gl, cascade]);
+  }, [spectrum, cpuHs, domain, gl, cascade, pipeline]);
 
   const geometry = useMemo(() => {
     // N 格点 / N 区间闭合边界：顶点间距 L/N，两端重合周期缝。
