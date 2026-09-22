@@ -394,13 +394,6 @@ async function collectBoundStage(
     });
   }
   const work = () => renderOffscreenStage(renderer, scene, camera);
-  if (marineGpuTimerPassActive()) {
-    const rounds = [];
-    for (let round = 0; round < 3; round += 1) {
-      rounds.push(await stageTimer.measureCompletedWork(work));
-    }
-    return { rounds, screenRecorded: false };
-  }
   return collectStageWindow(stageTimer, work);
 }
 

@@ -17,6 +17,7 @@ import {
   buildStageReport,
   judgePairDelta,
   labelPointQuerySample,
+  collectStageWindow,
   measureOffscreenBatch,
   recordFusedWaveDraw,
   runPairedStageSample,
@@ -581,6 +582,60 @@ describe('offscreen throughput and renderer binding (#2135)', () => {
     expect(sample.gpuMs).not.toBe(sample.completedWorkMs);
   });
 
+  it('falls back to completed work when the compute timestamp is missing', async () => {
+    let runs = 0;
+    const renderer = {
+      getContext: () => null,
+      backend: {
+        trackTimestamp: false,
+        device: {
+          features: { has: (name: string) => name === 'timestamp-query' },
+          limits: {},
+          queue: { onSubmittedWorkDone: () => Promise.resolve() },
+        },
+      },
+      async resolveTimestampsAsync(type?: string) {
+        return type === 'render' ? 1 : undefined;
+      },
+    };
+    const timer = bindMarineStageTimer(renderer);
+    const sample = await timer.collectRound(() => {
+      runs += 1;
+    });
+    expect(runs).toBe(2);
+    expect(sample.method).toBe('completed-work');
+    expect(sample.gpuMs).toBeNull();
+    expect(sample.labeledAs).toBe('submit-to-complete-wall-clock');
+  });
+
+  it('retries until a paired stage window has three usable rounds', async () => {
+    let attempts = 0;
+    const binding = {
+      async collectRound() {
+        attempts += 1;
+        if (attempts <= 2) return separateCpuSubmit(1);
+        return acceptTimingSample({
+          gpuElapsedNs: 2_000_000,
+          quantumNs: 1,
+          disjoint: false,
+          completedWorkMs: 4,
+          frameIntervalMs: null,
+        });
+      },
+    };
+    const collected = await collectStageWindow(binding as never, () => undefined);
+    expect(collected.rounds).toHaveLength(3);
+    expect(attempts).toBe(5);
+    expect(collected.rounds.every((round) => round.labeledAs !== 'cpu-submit')).toBe(true);
+
+    const failing = {
+      async collectRound() {
+        return separateCpuSubmit(1);
+      },
+    };
+    await expect(collectStageWindow(failing as never, () => undefined)).rejects.toThrow(/paired stage sample incomplete/);
+  });
+
   it('does not nest a reflection timer query inside the stage query', async () => {
     const calls: string[] = [];
     const gl = {
@@ -743,7 +798,8 @@ describe('local paired sample (#2135)', () => {
     expect(measurement).toContain('window.__marineStagePerformance');
     expect(measurement).toContain('probe.collect()');
     expect(collector).toContain('equalPresentationIsEqualCost: false');
-    expect(collector).toContain("round.labeledAs !== 'cpu-submit'");
+    expect(collector).toContain('usable.length !== 3');
+    expect(collector).toContain('paired stage sample incomplete');
     expect(measurement).not.toContain('recordVideo');
 
     const client = readFileSync(path.join(ROOT, 'src/app/simulations/fft-ocean-comparison/comparison-client.tsx'), 'utf8');

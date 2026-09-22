@@ -216,7 +216,22 @@ async function measurementRound(browser, route) {
     const probe = window.__marineStagePerformance;
     if (!probe?.collect) throw new Error('stage performance probe missing');
     return probe.collect();
+  }).catch(async (error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes('paired stage sample incomplete')) throw error;
+    await context.close();
+    return null;
   });
+  if (!stageCollection) {
+    return {
+      unavailable: true,
+      status: 'incomplete-pairs',
+      stageCollection: null,
+      frameStats: null,
+      longForegroundStallCount: 0,
+      longForegroundWorstMs: 0,
+    };
+  }
   const fftProbeAfter = backend === 'fft' && route.api !== 'webgpu'
     ? await page.evaluate(() => {
         const rt = window.__fftOceanRuntime;
@@ -284,8 +299,8 @@ function stageRouteCost(measured) {
     throw new Error('刷新率样本不能代替阶段或完成工作量');
   }
   const usable = rounds.filter((round) => round.labeledAs !== 'cpu-submit');
-  if (usable.length === 0) {
-    throw new Error('完成等待失败，不能把 CPU 提交耗时当成路线成本');
+  if (usable.length !== 3) {
+    return null;
   }
   const costs = usable.map((round) => {
     if (round.labeledAs === 'frame-intervals' || round.method === 'frame-intervals') {

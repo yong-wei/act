@@ -832,12 +832,12 @@ export function bindMarineStageTimer(renderer: MarineStageRenderer): StageTimerB
       workFinished = true;
       const renderMs = await resolving.resolveTimestampsAsync('render');
       const computeMs = await resolving.resolveTimestampsAsync('compute');
-      const parts = [renderMs, computeMs].filter((value): value is number => (
-        typeof value === 'number' && Number.isFinite(value) && value > 0
-      ));
-      const durationMs = parts.length === 0 ? null : parts.reduce((sum, value) => sum + value, 0);
+      if (typeof renderMs !== 'number' || typeof computeMs !== 'number' || !(renderMs > 0) || !(computeMs > 0)) {
+        return measureCompletedWork(work);
+      }
+      const durationMs = renderMs + computeMs;
       const wallClockMs = performance.now() - started;
-      const gpuElapsedNs = durationMs === null ? null : durationMs * 1e6;
+      const gpuElapsedNs = durationMs * 1e6;
       return remember(acceptTimingSample({
         gpuElapsedNs,
         quantumNs: quantizationNs,
@@ -911,8 +911,14 @@ export async function collectStageWindow(
   readonly screenRecorded: false;
 }> {
   const rounds = [];
-  for (let round = 0; round < PAIRED_ROUND_COUNT; round += 1) {
-    rounds.push(await binding.collectRound(work));
+  const maxAttempts = PAIRED_ROUND_COUNT * 2;
+  for (let attempt = 0; attempt < maxAttempts && rounds.length < PAIRED_ROUND_COUNT; attempt += 1) {
+    const sample = await binding.collectRound(work);
+    if (sample.labeledAs === 'cpu-submit') continue;
+    rounds.push(sample);
+  }
+  if (rounds.length < PAIRED_ROUND_COUNT) {
+    throw new Error('paired stage sample incomplete');
   }
   return { rounds, screenRecorded: false };
 }
