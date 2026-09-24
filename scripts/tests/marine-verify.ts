@@ -257,14 +257,14 @@ async function main() {
         await cdp.send('Emulation.setCPUThrottlingRate', { rate });
         const elapsed = await page.evaluate(`new Promise((resolve) => {
           const worker = new Worker(URL.createObjectURL(new Blob([
-            'self.onmessage=(event)=>{let x=0;const n=event.data|0;for(let i=0;i<n;i+=1){x=(Math.imul(x,1664525)+1013904223)>>>0}postMessage(x)}'
+            'self.onmessage=(event)=>{const n=event.data|0;const start=performance.now();let x=0;for(let i=0;i<n;i+=1){x=(Math.imul(x,1664525)+1013904223)>>>0}postMessage(performance.now()-start)}'
           ], { type: 'text/javascript' })));
-          const started = performance.now();
-          worker.onmessage = () => { const ms = performance.now() - started; worker.terminate(); resolve(ms); };
+          worker.onmessage = (event) => { worker.terminate(); resolve(event.data); };
           worker.postMessage(4000000);
         })`);
         return typeof elapsed === 'number' ? elapsed : Number.NaN;
       };
+      await workerAt(1);
       scans.workerAt1Ms = await workerAt(1);
       scans.workerAt4Ms = await workerAt(4);
       scans.workerScope = scans.workerAt4Ms > scans.workerAt1Ms * 1.5 ? 'worker-limited' : 'main-thread-only';
