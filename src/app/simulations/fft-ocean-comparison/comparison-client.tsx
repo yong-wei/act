@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -36,9 +36,11 @@ import {
 import { createFFTQueryWorker } from '@/resources/simulations/scene/water/fft-query-worker';
 import { assembleWorkerQueryReport } from '@/resources/simulations/scene/quality/stage-performance';
 import {
-  healthyWaveOnlyScene,
-  runMarineVisualAcceptance,
-  type VisualAcceptanceScene,
+  judgeFleetObservations,
+  judgeMarineObservation,
+  measurePositionSpans,
+  type FleetConsumerObservation,
+  type MarineSceneObservation,
 } from '@/resources/simulations/scene/quality/visual-acceptance';
 import { MarineShallowBackdrop, COMPARISON_SUN_DIRECTION } from '@/resources/simulations/scene/water/shared-water-optics';
 import { MarinePlanarReflection } from '@/resources/simulations/scene/environment/planar-reflection';
@@ -348,6 +350,8 @@ function ComparisonLabBridge({
   runModeRef,
   setResetToken,
   setShallowEnabled,
+  setReflectionEnabled,
+  reflectionEnabledRef,
   opticsRef,
 }: {
   readonly backend: ComparisonBackend;
@@ -359,9 +363,13 @@ function ComparisonLabBridge({
   readonly runModeRef: React.MutableRefObject<ComparisonRunMode>;
   readonly setResetToken: (updater: (value: number) => number) => void;
   readonly setShallowEnabled: (enabled: boolean) => void;
+  readonly setReflectionEnabled: (enabled: boolean) => void;
+  readonly reflectionEnabledRef: React.MutableRefObject<boolean>;
   readonly opticsRef: React.MutableRefObject<ComparisonOpticsState>;
 }) {
   const runner = useMarineFrameRunner();
+  const root = useThree((state) => state.scene);
+  const renderer = useThree((state) => state.gl);
   const [firstFrameReady, setFirstFrameReady] = useState(false);
 
   useFrame(() => {
@@ -449,29 +457,98 @@ function ComparisonLabBridge({
       setShallowEnabled: (enabled: boolean) => {
         setShallowEnabled(enabled);
       },
+      setReflectionEnabled: (enabled: boolean) => {
+        setReflectionEnabled(enabled);
+        if (!enabled) {
+          root.userData.marinePlanarReflectionSuspended = true;
+          delete root.userData.marinePlanarReflection;
+        } else {
+          delete root.userData.marinePlanarReflectionSuspended;
+        }
+      },
       optics: (): ComparisonOpticsState => opticsRef.current,
     };
     window.__marineComparisonLab = api;
-    const sceneForAcceptance = (): VisualAcceptanceScene => {
-      const identity = identityRef.current;
-      const featureParity = identity.scene === 'feature-parity';
+    const readObservation = (): MarineSceneObservation => {
+      const mesh = root.getObjectByName('comparison-far-field');
+      const geometry = mesh && 'geometry' in mesh ? (mesh as THREE.Mesh).geometry : null;
+      const position = geometry?.getAttribute('position');
+      const userData = root.userData as {
+        marinePlanarReflection?: { strength?: number; texture?: unknown };
+        marineFoamField?: unknown;
+      };
+      const planar = userData.marinePlanarReflection;
+      const heightAtRest = sampleDisplacement(0, 0, 0);
+      const heightLater = sampleDisplacement(0, 0, 1.5);
+      const heightBeside = sampleDisplacement(8, 0, 1.5);
+      const context = renderer.getContext() as WebGLRenderingContext | null;
+      const width = context?.drawingBufferWidth ?? 0;
+      const height = context?.drawingBufferHeight ?? 0;
+      let pixelMean = 0;
+      if (context && width > 0 && height > 0) {
+        const pixel = new Uint8Array(4);
+        context.readPixels(
+          Math.floor(width / 2),
+          Math.floor(height / 2),
+          1,
+          1,
+          context.RGBA,
+          context.UNSIGNED_BYTE,
+          pixel,
+        );
+        pixelMean = (pixel[0]! + pixel[1]! + pixel[2]!) / (3 * 255);
+      }
+      const contactPitch = Math.atan2(
+        samplesRef.current.bow - samplesRef.current.stern,
+        COMPARISON_QUERY_SPAN_METERS,
+      );
       return {
-        ...healthyWaveOnlyScene(identity.farFieldRotationX),
-        reflectionRequired: featureParity,
-        reflectionEnabled: featureParity,
-        foamRequired: featureParity,
-        foamEnabled: featureParity,
+        drawingBufferWidth: width,
+        drawingBufferHeight: height,
+        farField: position ? measurePositionSpans(position.array as ArrayLike<number>) : null,
+        planarReflectionStrength: planar && planar.texture && typeof planar.strength === 'number'
+          ? planar.strength
+          : null,
+        foamFieldPresent: Boolean(userData.marineFoamField),
+        waveHeights: [heightAtRest, heightLater],
+        normalSlope: Math.abs(heightBeside - heightLater) / 8,
+        pixelMean,
+        reportedPitch: pitchRef.current,
+        contactPitch,
       };
     };
     window.__marineVisualAcceptance = {
-      run: () => runMarineVisualAcceptance(sceneForAcceptance()),
-      runWithOverride: (override) => runMarineVisualAcceptance({ ...sceneForAcceptance(), ...override }),
+      run: () => {
+        const feature = COMPARISON_FEATURE_MATRIX[identityRef.current.scene];
+        return judgeMarineObservation(readObservation(), {
+          reflectionRequired: feature.planar,
+          foamRequired: feature.foam,
+        });
+      },
+      breakFarField: () => {
+        const mesh = root.getObjectByName('comparison-far-field') as THREE.Mesh | undefined;
+        const position = mesh?.geometry.getAttribute('position') as THREE.BufferAttribute | undefined;
+        if (!position) return;
+        for (let index = 0; index < position.count; index += 1) {
+          position.setY(index, position.getX(index));
+          position.setZ(index, 0);
+        }
+        position.needsUpdate = true;
+      },
+      clearReflection: () => {
+        delete root.userData.marinePlanarReflection;
+      },
+      clearFoam: () => {
+        delete root.userData.marineFoamField;
+      },
+      judgeFleet: (observations: readonly FleetConsumerObservation[]) => judgeFleetObservations(observations),
+      reflectionEnabled: () => reflectionEnabledRef.current,
     };
     return () => {
       delete window.__marineComparisonLab;
       delete window.__marineVisualAcceptance;
     };
-  }, [identityRef, metricsRef, opticsRef, pitchRef, runner, runModeRef, sampleDisplacement, samplesRef, setResetToken, setShallowEnabled]);
+  }, [identityRef, metricsRef, opticsRef, pitchRef, reflectionEnabledRef, renderer, root, runner, runModeRef, sampleDisplacement, samplesRef, setReflectionEnabled, setResetToken, setShallowEnabled]);
 
   useEffect(() => {
     identityRef.current = {
@@ -502,6 +579,9 @@ function ComparisonScene({
   const [resetToken, setResetToken] = useState(0);
   const feature = COMPARISON_FEATURE_MATRIX[scene];
   const [shallowEnabled, setShallowEnabled] = useState(feature.shallow);
+  const [reflectionEnabled, setReflectionEnabled] = useState(feature.planar);
+  const reflectionEnabledRef = useRef(reflectionEnabled);
+  reflectionEnabledRef.current = reflectionEnabled;
   const opticsRef = useRef<ComparisonOpticsState>({
     profile: feature.optics,
     shallowEnabled: feature.shallow,
@@ -616,6 +696,8 @@ function ComparisonScene({
         runModeRef={runModeRef}
         setResetToken={setResetToken}
         setShallowEnabled={setShallowEnabled}
+        setReflectionEnabled={setReflectionEnabled}
+        reflectionEnabledRef={reflectionEnabledRef}
         opticsRef={opticsRef}
       />
       <FarFieldRing />
@@ -641,7 +723,7 @@ function ComparisonScene({
             attributionOverride={feature.foam ? undefined : { natural: false, vessel: false }}
           >
             {feature.planar ? (
-              <MarinePlanarReflection planeY={GERSTNER_WATER_BASE_Y} enabled={gerstnerTier === 'high'} />
+              <MarinePlanarReflection planeY={GERSTNER_WATER_BASE_Y} enabled={reflectionEnabled && gerstnerTier === 'high'} />
             ) : null}
             <group position={[0, GERSTNER_WATER_BASE_Y, 0]}>
               <FFTOceanSurface
@@ -728,8 +810,12 @@ declare global {
   interface Window {
     __marineComparisonLab?: ComparisonLabApi;
     __marineVisualAcceptance?: {
-      run(): ReturnType<typeof runMarineVisualAcceptance>;
-      runWithOverride(override: Partial<VisualAcceptanceScene>): ReturnType<typeof runMarineVisualAcceptance>;
+      run(): ReturnType<typeof judgeMarineObservation>;
+      breakFarField(): void;
+      clearReflection(): void;
+      clearFoam(): void;
+      judgeFleet(observations: readonly FleetConsumerObservation[]): ReturnType<typeof judgeFleetObservations>;
+      reflectionEnabled(): boolean;
     };
   }
 }

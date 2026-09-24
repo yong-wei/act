@@ -1,44 +1,40 @@
 /**
  * 海洋画面验收（#2136）。
- * 本地规则判断远场平面、反射、法线、水线、泡沫和七船重放。
- * 不产生漂亮度总分，失败时不改写金图。
+ * 只判断调用方从场景、画布和采样器读到的测量值。
+ * 不根据路由名称合成反射、泡沫或七船姿态，也不产生漂亮度总分。
  */
 
-import { FLEET_ACTIVE_PACKAGES } from '@/resources/simulations/model-packages/fleet-packages';
-import type { SimulationModelId } from '@/lib/browser-delivery/types';
-import { containerMscSceneVisual } from '@/resources/simulations/profiles/container-msc-scene';
-import { cruiseAdoraSceneVisual } from '@/resources/simulations/profiles/cruise-adora-scene';
-import { destroyer055SceneVisual } from '@/resources/simulations/profiles/destroyer-055-scene';
-import { dredgerTianjingSceneVisual } from '@/resources/simulations/profiles/dredger-tianjing-scene';
-import { drillingHysy981SceneVisual } from '@/resources/simulations/profiles/drilling-hysy981-scene';
-import { icebreakerXuelongSceneVisual } from '@/resources/simulations/profiles/icebreaker-xuelong-scene';
-import { lngChanghengSceneVisual } from '@/resources/simulations/profiles/lng-changheng-scene';
-import { computeVisualWaterPose, resolveMarineVisualPose } from '@/resources/simulations/scene/frame/marine-frame';
-import type { SceneShipVisualProfile } from '@/resources/simulations/scene/types';
-import {
-  GERSTNER_WATER_BASE_Y,
-  createNearFieldSurfaceQuery,
-  gerstnerAmplitudeScale,
-} from '@/resources/simulations/scene/water/gerstner-water';
-import {
-  GERSTNER_WAVE_SETS,
-  computeGerstnerDisplacement,
-} from '@/resources/simulations/scene/water/gerstner-waves';
+export interface PositionSpans {
+  readonly xSpan: number;
+  readonly ySpan: number;
+  readonly zSpan: number;
+}
 
-const GRID = 16;
-const CRUISE_TELEMETRY_ROLL = 0.21;
+export interface MarineSceneObservation {
+  readonly drawingBufferWidth: number;
+  readonly drawingBufferHeight: number;
+  readonly farField: PositionSpans | null;
+  readonly planarReflectionStrength: number | null;
+  readonly foamFieldPresent: boolean;
+  readonly waveHeights: readonly [number, number];
+  readonly normalSlope: number;
+  readonly pixelMean: number;
+  readonly reportedPitch: number | null;
+  readonly contactPitch: number | null;
+}
 
-export interface VisualAcceptanceScene {
-  readonly farFieldRotationX: number;
+export interface MarineSceneRequirements {
   readonly reflectionRequired: boolean;
-  readonly reflectionEnabled: boolean;
   readonly foamRequired: boolean;
-  readonly foamEnabled: boolean;
-  readonly normalsEnabled: boolean;
-  readonly frozen: boolean;
-  readonly blurred: boolean;
-  readonly nonblank: boolean;
-  readonly waterlinePitchOverride?: number | null;
+}
+
+export interface FleetConsumerObservation {
+  readonly consumerId: string;
+  readonly drawingBufferWidth: number;
+  readonly drawingBufferHeight: number;
+  readonly waveDelta: number;
+  readonly resolvedRoll: number | null;
+  readonly telemetryRoll: number | null;
 }
 
 export interface VisualDefect {
@@ -46,23 +42,13 @@ export interface VisualDefect {
     | 'vertical-far-field'
     | 'reflection-missing'
     | 'frozen-surface'
-    | 'excess-blur'
     | 'foam-disabled'
     | 'normal-disabled'
     | 'waterline-pitch'
+    | 'canvas-empty'
     | 'fleet-gap';
   readonly location: string;
   readonly detail: string;
-}
-
-export interface FleetVisualCheck {
-  readonly id: SimulationModelId;
-  readonly caseId: 'destroyer' | 'lng' | 'container' | 'ice' | 'cruise' | 'platform' | 'shallow-water';
-  readonly packageId: string;
-  readonly heave: number;
-  readonly pitch: number;
-  readonly roll: number;
-  readonly resolvedRoll: number;
 }
 
 export interface VisualImageSummary {
@@ -81,272 +67,121 @@ export interface VisualAcceptanceReport {
   readonly stillnessRewarded: false;
   readonly metrics: {
     readonly farFieldHorizontal: boolean;
-    readonly reflectionTracksSky: boolean;
-    readonly waveMotionMeters: number;
-    readonly observedFrameDelta: number;
-    readonly blurRatio: number;
-    readonly foamCoverage: number;
+    readonly waveMotion: number;
     readonly normalSlope: number;
+    readonly pixelMean: number;
+    readonly planarReflectionStrength: number | null;
     readonly fleetCount: number;
   };
-  readonly fleet: readonly FleetVisualCheck[];
   readonly images: readonly VisualImageSummary[];
 }
 
-const FLEET: readonly {
-  readonly id: SimulationModelId;
-  readonly caseId: FleetVisualCheck['caseId'];
-  readonly profile: SceneShipVisualProfile;
-}[] = [
-  { id: 'destroyer', caseId: 'destroyer', profile: destroyer055SceneVisual },
-  { id: 'lng-carrier', caseId: 'lng', profile: lngChanghengSceneVisual },
-  { id: 'container', caseId: 'container', profile: containerMscSceneVisual },
-  { id: 'icebreaker', caseId: 'ice', profile: icebreakerXuelongSceneVisual },
-  { id: 'luxury-liner', caseId: 'cruise', profile: cruiseAdoraSceneVisual },
-  { id: 'drilling-rig', caseId: 'platform', profile: drillingHysy981SceneVisual },
-  { id: 'dredger', caseId: 'shallow-water', profile: dredgerTianjingSceneVisual },
-];
+export const FLEET_CONSUMER_IDS = [
+  'destroyer',
+  'lng',
+  'container',
+  'icebreaker',
+  'cruise',
+  'drilling',
+  'dredger',
+] as const;
 
-function mean(values: ArrayLike<number>): number {
-  if (values.length === 0) return 0;
-  let sum = 0;
-  for (let index = 0; index < values.length; index += 1) sum += values[index]!;
-  return sum / values.length;
-}
-
-function farFieldIsHorizontal(rotationX: number): boolean {
-  return Math.abs(rotationX + Math.PI / 2) < 1e-6;
-}
-
-export function reflectionDiagnostic(enabled: boolean): { readonly sky: readonly number[]; readonly water: readonly number[] } {
-  const sky = [0.12, 0.84];
-  const water = enabled ? [0.12, 0.84] : [0.22, 0.22];
-  return { sky, water };
-}
-
-function reflectionTracksSky(enabled: boolean): boolean {
-  const sample = reflectionDiagnostic(enabled);
-  const skySpan = Math.abs(sample.sky[0]! - sample.sky[1]!);
-  const waterSpan = Math.abs(sample.water[0]! - sample.water[1]!);
-  if (skySpan < 0.2) return false;
-  return waterSpan > skySpan * 0.5;
-}
-
-function heightGrid(blurred: boolean): Float64Array {
-  const raw = new Float64Array(GRID * GRID);
-  const cell = 8;
-  for (let row = 0; row < GRID; row += 1) {
-    for (let column = 0; column < GRID; column += 1) {
-      raw[row * GRID + column] = computeGerstnerDisplacement(
-        GERSTNER_WAVE_SETS.low,
-        column * cell,
-        row * cell,
-        1.5,
-      ).y;
-    }
+export function measurePositionSpans(positions: ArrayLike<number>): PositionSpans {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  let minZ = Infinity;
+  let maxZ = -Infinity;
+  for (let index = 0; index + 2 < positions.length; index += 3) {
+    const x = positions[index]!;
+    const y = positions[index + 1]!;
+    const z = positions[index + 2]!;
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y);
+    maxY = Math.max(maxY, y);
+    minZ = Math.min(minZ, z);
+    maxZ = Math.max(maxZ, z);
   }
-  if (!blurred) return raw;
-  let current = raw;
-  for (let pass = 0; pass < 6; pass += 1) {
-    const next = new Float64Array(GRID * GRID);
-    for (let row = 0; row < GRID; row += 1) {
-      for (let column = 0; column < GRID; column += 1) {
-        let sum = 0;
-        let count = 0;
-        for (let dRow = -1; dRow <= 1; dRow += 1) {
-          for (let dColumn = -1; dColumn <= 1; dColumn += 1) {
-            const sampleRow = Math.min(GRID - 1, Math.max(0, row + dRow));
-            const sampleColumn = Math.min(GRID - 1, Math.max(0, column + dColumn));
-            sum += current[sampleRow * GRID + sampleColumn]!;
-            count += 1;
-          }
-        }
-        next[row * GRID + column] = sum / count;
-      }
-    }
-    current = next;
-  }
-  return current;
+  if (!Number.isFinite(minX)) return { xSpan: 0, ySpan: 0, zSpan: 0 };
+  return { xSpan: maxX - minX, ySpan: maxY - minY, zSpan: maxZ - minZ };
 }
 
-function highFrequency(grid: Float64Array): number {
-  let energy = 0;
-  let count = 0;
-  for (let row = 0; row < GRID; row += 1) {
-    for (let column = 0; column < GRID - 1; column += 1) {
-      energy += Math.abs(grid[row * GRID + column]! - grid[row * GRID + column + 1]!);
-      count += 1;
-    }
-  }
-  return count === 0 ? 0 : energy / count;
+export function farFieldIsHorizontal(spans: PositionSpans): boolean {
+  return spans.zSpan > 100 && spans.ySpan < spans.zSpan * 0.05;
 }
 
-function meanAbsSlope(grid: Float64Array): number {
-  return highFrequency(grid);
+function waveMotion(heights: readonly [number, number]): number {
+  return Math.abs(heights[1] - heights[0]);
 }
 
-function crestCoverage(): number {
-  let covered = 0;
-  const count = 12;
-  for (let index = 0; index < count; index += 1) {
-    const crest = computeGerstnerDisplacement(GERSTNER_WAVE_SETS.low, index * 17, -index * 9, 2.2).crest;
-    if (crest >= 0.5) covered += 1;
-  }
-  return covered / count;
-}
-
-function waveMotionMeters(): number {
-  const times = [0, 0.75, 1.5];
-  const heights = times.map((time) => computeGerstnerDisplacement(GERSTNER_WAVE_SETS.low, 12, -40, time).y);
-  return Math.max(...heights) - Math.min(...heights);
-}
-
-function beamMeters(profile: SceneShipVisualProfile): number {
-  return Math.abs(profile.wakeAnchors.portShoulder[0] - profile.wakeAnchors.starboardShoulder[0]);
-}
-
-function fleetChecks(waterlinePitchOverride: number | null): { readonly fleet: FleetVisualCheck[]; readonly defects: VisualDefect[] } {
+export function judgeMarineObservation(
+  observation: MarineSceneObservation,
+  requirements: MarineSceneRequirements,
+): VisualAcceptanceReport {
   const defects: VisualDefect[] = [];
-  const query = createNearFieldSurfaceQuery(gerstnerAmplitudeScale(4), 0, 0, 3.5);
-  const fleet = FLEET.map((ship) => {
-    const descriptor = FLEET_ACTIVE_PACKAGES[ship.id];
-    if (!descriptor) {
-      defects.push({
-        code: 'fleet-gap',
-        location: `fleet.${ship.id}`,
-        detail: 'active fleet package missing',
-      });
-    }
-    const width = beamMeters(ship.profile);
-    const length = ship.profile.shipLengthMeters;
-    const visual = computeVisualWaterPose(
-      (x, z) => query.heightAt(x, z),
-      { x: 0, z: 0, headingRad: 0 },
-      { length, width },
-    );
-    const bow = query.heightAt(length / 2, 0);
-    const stern = query.heightAt(-length / 2, 0);
-    const contactPitch = Math.atan2(bow - stern, length);
-    const reportedPitch = waterlinePitchOverride ?? visual.pitch;
-    if (Math.abs(reportedPitch - contactPitch) > 1e-3 && Math.abs(bow - stern) > 0.05) {
-      defects.push({
-        code: 'waterline-pitch',
-        location: `fleet.${ship.id}.waterline`,
-        detail: `reported ${reportedPitch} differs from bow-stern ${contactPitch}`,
-      });
-    }
-    const resolved = resolveMarineVisualPose({
-      ownership: ship.id === 'luxury-liner'
-        ? { heave: 'visual-water', pitch: 'fixed', roll: 'telemetry' }
-        : { heave: 'visual-water', pitch: 'visual-water', roll: 'visual-water' },
-      visualWater: visual,
-      telemetry: { roll: CRUISE_TELEMETRY_ROLL },
+  if (observation.drawingBufferWidth <= 0 || observation.drawingBufferHeight <= 0) {
+    defects.push({
+      code: 'canvas-empty',
+      location: 'canvas.drawingBuffer',
+      detail: `${observation.drawingBufferWidth}x${observation.drawingBufferHeight}`,
     });
-    if (ship.id === 'luxury-liner' && resolved.roll !== CRUISE_TELEMETRY_ROLL) {
-      defects.push({
-        code: 'fleet-gap',
-        location: 'fleet.luxury-liner.roll',
-        detail: 'cruise roll left the telemetry value',
-      });
-    }
-    return {
-      id: ship.id,
-      caseId: ship.caseId,
-      packageId: descriptor?.packageId ?? 'missing',
-      heave: visual.heave,
-      pitch: visual.pitch,
-      roll: visual.roll,
-      resolvedRoll: resolved.roll,
-    };
-  });
-  if (fleet.length !== 7) {
-    defects.push({ code: 'fleet-gap', location: 'fleet', detail: `expected 7 ships, saw ${fleet.length}` });
   }
-  for (const caseId of ['cruise', 'platform', 'ice', 'shallow-water'] as const) {
-    if (!fleet.some((ship) => ship.caseId === caseId)) {
-      defects.push({ code: 'fleet-gap', location: `fleet.${caseId}`, detail: 'named case missing' });
-    }
-  }
-  return { fleet, defects };
-}
-
-export function runMarineVisualAcceptance(scene: VisualAcceptanceScene): VisualAcceptanceReport {
-  const defects: VisualDefect[] = [];
-  const horizontal = farFieldIsHorizontal(scene.farFieldRotationX);
-  if (!horizontal) {
+  const horizontal = observation.farField !== null && farFieldIsHorizontal(observation.farField);
+  if (!observation.farField) {
     defects.push({
       code: 'vertical-far-field',
-      location: 'far-field.rotationX',
-      detail: `rotationX ${scene.farFieldRotationX} is not the horizontal ocean plane`,
+      location: 'far-field.mesh',
+      detail: 'comparison far-field mesh is missing',
+    });
+  } else if (!horizontal) {
+    defects.push({
+      code: 'vertical-far-field',
+      location: 'far-field.position',
+      detail: `ySpan ${observation.farField.ySpan} zSpan ${observation.farField.zSpan}`,
     });
   }
-  const tracksSky = reflectionTracksSky(scene.reflectionEnabled);
-  if (scene.reflectionRequired && !tracksSky) {
+  if (requirements.reflectionRequired && !(
+    observation.planarReflectionStrength !== null && observation.planarReflectionStrength > 0
+  )) {
     defects.push({
       code: 'reflection-missing',
-      location: 'diagnostic.reflection',
-      detail: 'water does not follow the directional sky',
+      location: 'scene.marinePlanarReflection',
+      detail: 'planar reflection is not attached to the running scene',
     });
   }
-  const motion = waveMotionMeters();
-  const observedFrameDelta = scene.frozen ? 0 : motion;
-  if (motion > 0.05 && observedFrameDelta < motion * 0.05) {
-    defects.push({
-      code: 'frozen-surface',
-      location: 'wave.time-series',
-      detail: `expected motion ${motion} m but observed frame delta ${observedFrameDelta}`,
-    });
-  }
-  const reference = heightGrid(false);
-  const candidate = heightGrid(scene.blurred);
-  const referenceEnergy = highFrequency(reference);
-  const candidateEnergy = highFrequency(candidate);
-  const blurRatio = referenceEnergy === 0 ? 1 : candidateEnergy / referenceEnergy;
-  if (blurRatio < 0.45) {
-    defects.push({
-      code: 'excess-blur',
-      location: 'reference.blur',
-      detail: `high-frequency ratio ${blurRatio} against the same-route reference`,
-    });
-  }
-  const slope = meanAbsSlope(reference);
-  if (!scene.normalsEnabled && slope > 1e-3) {
-    defects.push({
-      code: 'normal-disabled',
-      location: 'diagnostic.normal',
-      detail: `surface slope ${slope} has no matching normal`,
-    });
-  }
-  const foam = scene.foamEnabled ? crestCoverage() : 0;
-  if (scene.foamRequired && foam <= 0) {
+  if (requirements.foamRequired && !observation.foamFieldPresent) {
     defects.push({
       code: 'foam-disabled',
-      location: 'foam.coverage',
-      detail: 'required foam coverage is zero',
+      location: 'scene.marineFoamField',
+      detail: 'foam field is not attached to the running scene',
     });
   }
-  const fleet = fleetChecks(scene.waterlinePitchOverride ?? null);
-  defects.push(...fleet.defects);
-  const reflection = reflectionDiagnostic(scene.reflectionEnabled);
-  const images: VisualImageSummary[] = [
-    {
-      id: 'reflection-water',
-      width: reflection.water.length,
-      height: 1,
-      mean: mean(reflection.water),
-    },
-    {
-      id: 'height-reference',
-      width: GRID,
-      height: GRID,
-      mean: mean(reference),
-    },
-  ];
-  if (scene.nonblank && images.every((image) => image.mean === 0)) {
+  const motion = waveMotion(observation.waveHeights);
+  if (!(motion > 1e-4)) {
     defects.push({
-      code: 'fleet-gap',
-      location: 'images',
-      detail: 'diagnostic image is blank',
+      code: 'frozen-surface',
+      location: 'water.sampler',
+      detail: `heights ${observation.waveHeights[0]} and ${observation.waveHeights[1]}`,
+    });
+  }
+  if (motion > 1e-4 && observation.normalSlope <= 1e-6) {
+    defects.push({
+      code: 'normal-disabled',
+      location: 'water.normalSlope',
+      detail: 'the moving surface has no measurable slope',
+    });
+  }
+  if (
+    observation.reportedPitch !== null
+    && observation.contactPitch !== null
+    && Math.abs(observation.reportedPitch - observation.contactPitch) > 1e-3
+  ) {
+    defects.push({
+      code: 'waterline-pitch',
+      location: 'vessel.waterline',
+      detail: `reported ${observation.reportedPitch} contact ${observation.contactPitch}`,
     });
   }
   return {
@@ -358,40 +193,85 @@ export function runMarineVisualAcceptance(scene: VisualAcceptanceScene): VisualA
     stillnessRewarded: false,
     metrics: {
       farFieldHorizontal: horizontal,
-      reflectionTracksSky: tracksSky,
-      waveMotionMeters: motion,
-      observedFrameDelta,
-      blurRatio,
-      foamCoverage: foam,
-      normalSlope: slope,
-      fleetCount: fleet.fleet.length,
+      waveMotion: motion,
+      normalSlope: observation.normalSlope,
+      pixelMean: observation.pixelMean,
+      planarReflectionStrength: observation.planarReflectionStrength,
+      fleetCount: 0,
     },
-    fleet: fleet.fleet,
-    images,
+    images: [{
+      id: 'canvas-center',
+      width: observation.drawingBufferWidth,
+      height: observation.drawingBufferHeight,
+      mean: observation.pixelMean,
+    }],
   };
 }
 
-export function healthyWaveOnlyScene(farFieldRotationX: number): VisualAcceptanceScene {
+export function judgeFleetObservations(
+  observations: readonly FleetConsumerObservation[],
+): VisualAcceptanceReport {
+  const defects: VisualDefect[] = [];
+  const seen = new Set(observations.map((item) => item.consumerId));
+  for (const consumerId of FLEET_CONSUMER_IDS) {
+    if (!seen.has(consumerId)) {
+      defects.push({
+        code: 'fleet-gap',
+        location: `fleet.${consumerId}`,
+        detail: 'active consumer did not report a drawing buffer',
+      });
+    }
+  }
+  for (const observation of observations) {
+    if (observation.drawingBufferWidth <= 0 || observation.drawingBufferHeight <= 0) {
+      defects.push({
+        code: 'canvas-empty',
+        location: `fleet.${observation.consumerId}.canvas`,
+        detail: `${observation.drawingBufferWidth}x${observation.drawingBufferHeight}`,
+      });
+    }
+    if (!(observation.waveDelta > 0)) {
+      defects.push({
+        code: 'frozen-surface',
+        location: `fleet.${observation.consumerId}.uTime`,
+        detail: 'water time did not advance',
+      });
+    }
+    if (
+      observation.consumerId === 'cruise'
+      && observation.telemetryRoll !== null
+      && observation.resolvedRoll !== observation.telemetryRoll
+    ) {
+      defects.push({
+        code: 'fleet-gap',
+        location: 'fleet.cruise.roll',
+        detail: 'resolved roll left the telemetry value',
+      });
+    }
+  }
   return {
-    farFieldRotationX,
-    reflectionRequired: false,
-    reflectionEnabled: false,
-    foamRequired: false,
-    foamEnabled: false,
-    normalsEnabled: true,
-    frozen: false,
-    blurred: false,
-    nonblank: true,
+    passed: defects.length === 0 && observations.length >= FLEET_CONSUMER_IDS.length,
+    defects,
+    beautyScore: null,
+    goldenRewritten: false,
+    crossAlgorithmPixelScore: null,
+    stillnessRewarded: false,
+    metrics: {
+      farFieldHorizontal: false,
+      waveMotion: 0,
+      normalSlope: 0,
+      pixelMean: 0,
+      planarReflectionStrength: null,
+      fleetCount: observations.length,
+    },
+    images: [],
   };
 }
 
 export function commitGoldenUpdate(
-  report: VisualAcceptanceReport,
   options: { readonly updateGolden: boolean; readonly reviewed: boolean },
 ): { readonly goldenRewritten: boolean } {
   if (!options.updateGolden) return { goldenRewritten: false };
   if (!options.reviewed) throw new Error('golden update requires an explicit review');
   return { goldenRewritten: true };
 }
-
-export const VISUAL_ACCEPTANCE_WATER_BASE_Y = GERSTNER_WATER_BASE_Y;

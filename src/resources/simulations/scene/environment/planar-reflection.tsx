@@ -92,8 +92,8 @@ export function MarinePlanarReflection({
   };
 
   useFrame(() => {
-    if (!enabled) {
-      if (renderTargetRef.current) releaseBinding();
+    if (!enabled || scene.userData.marinePlanarReflectionSuspended === true) {
+      releaseBinding();
       return;
     }
     const state = stateRef.current;

@@ -226,6 +226,33 @@ export function MarinePerformanceEvidenceProbe({
   const contextInputRef = useRef(contextInput);
   contextInputRef.current = contextInput;
   useEffect(() => {
+    window.__marineConsumerObservation = {
+      collect: async () => {
+        const input = contextInputRef.current?.();
+        const context = renderer.getContext() as WebGLRenderingContext | null;
+        const started = readWaterTime(scene);
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => resolve(undefined));
+        });
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => resolve(undefined));
+        });
+        const later = readWaterTime(scene);
+        return {
+          consumerId: input?.vesselId ?? 'unknown',
+          drawingBufferWidth: context?.drawingBufferWidth ?? 0,
+          drawingBufferHeight: context?.drawingBufferHeight ?? 0,
+          waveDelta: started === null || later === null ? 0 : Math.abs(later - started),
+          resolvedRoll: null,
+          telemetryRoll: null,
+        };
+      },
+    };
+    return () => {
+      delete window.__marineConsumerObservation;
+    };
+  }, [renderer, scene]);
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     // QA 入口（复审对齐）：既有帧契约入口 marine-frame 与本采集入口 marine-performance 均接受。
     const qaParams = new URLSearchParams(window.location.search).getAll('qa');
@@ -357,6 +384,18 @@ type StageDrawRenderer = OffscreenRenderer & {
   readonly info: { readonly render: { calls: number } };
 };
 
+function readWaterTime(root: THREE.Object3D): number | null {
+  let time: number | null = null;
+  root.traverse((object) => {
+    const material = (object as THREE.Mesh).material;
+    if (!material || Array.isArray(material)) return;
+    const uniforms = (material as THREE.ShaderMaterial).uniforms;
+    const value = uniforms?.uTime?.value;
+    if (typeof value === 'number') time = value;
+  });
+  return time;
+}
+
 async function renderOffscreenStage(renderer: StageDrawRenderer, scene: object, camera: object): Promise<void> {
   const targets: THREE.WebGLRenderTarget[] = [];
   try {
@@ -425,6 +464,16 @@ declare global {
       stageTimer(): StageTimerDescription & { readonly latest: TimingSample | null };
       read(): ReturnType<typeof buildMarinePerformanceReport>;
       sampleCount(): number;
+    };
+    __marineConsumerObservation?: {
+      collect(): Promise<{
+        consumerId: string;
+        drawingBufferWidth: number;
+        drawingBufferHeight: number;
+        waveDelta: number;
+        resolvedRoll: number | null;
+        telemetryRoll: number | null;
+      }>;
     };
     __marineStagePerformance?: {
       describe(): StageTimerDescription;

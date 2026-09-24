@@ -19,6 +19,7 @@ declare global {
       step: (dtSeconds: number) => void;
       setRunMode: (mode: 'performance' | 'visual') => void;
       setShallowEnabled?: (enabled: boolean) => void;
+      setReflectionEnabled?: (enabled: boolean) => void;
       optics?: () => {
         profile: 'neutral' | 'shared';
         shallowEnabled: boolean;
@@ -58,21 +59,13 @@ declare global {
         crossAlgorithmPixelScore: null;
         stillnessRewarded: boolean;
         defects: Array<{ code: string; location: string }>;
-        fleet: unknown[];
+        metrics: { farFieldHorizontal: boolean; waveMotion: number; pixelMean: number };
         images: Array<{ mean: number }>;
       };
-      runWithOverride: (override: {
-        farFieldRotationX?: number;
-        reflectionRequired?: boolean;
-        reflectionEnabled?: boolean;
-        frozen?: boolean;
-        nonblank?: boolean;
-      }) => {
-        passed: boolean;
-        goldenRewritten: boolean;
-        defects: Array<{ code: string; location: string }>;
-        images: Array<{ mean: number }>;
-      };
+      breakFarField: () => void;
+      clearReflection: () => void;
+      clearFoam: () => void;
+      reflectionEnabled?: () => boolean;
     };
     __marineStagePerformance?: {
       collect: () => Promise<{
@@ -153,7 +146,7 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     }
   });
 
-  test('visual acceptance rejects a vertical far field and a missing reflection', async ({ page }) => {
+  test('visual acceptance reads the live far field and rejects a broken mesh', async ({ page }) => {
     await page.goto(`${PAGE}?backend=gerstner&scene=wave-only`, { waitUntil: 'domcontentloaded' });
     await waitForLab(page);
     const live = await page.evaluate(() => window.__marineVisualAcceptance?.run());
@@ -162,22 +155,35 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     expect(live?.goldenRewritten).toBe(false);
     expect(live?.crossAlgorithmPixelScore).toBeNull();
     expect(live?.stillnessRewarded).toBe(false);
-    expect(live?.fleet).toHaveLength(7);
-    const bad = await page.evaluate(() => window.__marineVisualAcceptance?.runWithOverride({
-      farFieldRotationX: 0,
-      reflectionRequired: true,
-      reflectionEnabled: false,
-      frozen: true,
-      nonblank: true,
+    expect(live?.metrics.farFieldHorizontal).toBe(true);
+    expect(live?.metrics.waveMotion).toBeGreaterThan(0);
+    await page.evaluate(() => window.__marineVisualAcceptance?.breakFarField());
+    const broken = await page.evaluate(() => window.__marineVisualAcceptance?.run());
+    expect(broken?.passed).toBe(false);
+    expect(broken?.defects.map((defect) => defect.code)).toContain('vertical-far-field');
+    expect(broken?.defects.some((defect) => defect.location === 'far-field.position')).toBe(true);
+    expect(broken?.goldenRewritten).toBe(false);
+  });
+
+  test('feature-parity acceptance fails when the running reflection is removed', async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.goto(`${PAGE}?backend=gerstner&scene=feature-parity`, { waitUntil: 'domcontentloaded' });
+    await waitForLab(page);
+    await page.waitForFunction(() => window.__marineVisualAcceptance?.run()?.passed === true, { timeout: 90_000 });
+    await page.evaluate(() => {
+      window.__marineComparisonLab?.setReflectionEnabled?.(false);
+      window.__marineVisualAcceptance?.clearFoam();
+    });
+    await page.waitForFunction(() => window.__marineVisualAcceptance?.reflectionEnabled?.() === false);
+    await page.evaluate(() => new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve(undefined)));
     }));
-    expect(bad?.passed).toBe(false);
-    expect(bad?.goldenRewritten).toBe(false);
-    const codes = (bad?.defects ?? []).map((defect) => defect.code);
-    expect(codes).toContain('vertical-far-field');
-    expect(codes).toContain('reflection-missing');
-    expect(codes).toContain('frozen-surface');
-    expect((bad?.defects ?? []).some((defect) => defect.location.length > 0)).toBe(true);
-    expect((bad?.images ?? []).some((image) => image.mean > 0)).toBe(true);
+    const broken = await page.evaluate(() => window.__marineVisualAcceptance?.run());
+    expect(broken?.passed, JSON.stringify(broken)).toBe(false);
+    const codes = (broken?.defects ?? []).map((defect) => defect.code);
+    expect(codes, JSON.stringify(broken)).toContain('reflection-missing');
+    expect(codes).toContain('foam-disabled');
+    expect((broken?.images ?? []).some((image) => image.mean >= 0)).toBe(true);
   });
 
   test('replays the same visual time after reset and step', async ({ page }) => {

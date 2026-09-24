@@ -1,87 +1,107 @@
 import { describe, expect, it } from 'vitest';
+import * as THREE from 'three';
 
-import { isHorizontalFarField } from '@/app/simulations/fft-ocean-comparison/comparison-lab';
+import { resolveMarineVisualPose } from '@/resources/simulations/scene/frame/marine-frame';
 import {
+  FLEET_CONSUMER_IDS,
   commitGoldenUpdate,
-  healthyWaveOnlyScene,
-  reflectionDiagnostic,
-  runMarineVisualAcceptance,
+  farFieldIsHorizontal,
+  judgeFleetObservations,
+  judgeMarineObservation,
+  measurePositionSpans,
+  type MarineSceneObservation,
 } from '@/resources/simulations/scene/quality/visual-acceptance';
 
-const HORIZONTAL = -Math.PI / 2;
+function spansOf(geometry: THREE.BufferGeometry) {
+  return measurePositionSpans(geometry.getAttribute('position').array);
+}
+
+function observation(overrides: Partial<MarineSceneObservation> = {}): MarineSceneObservation {
+  const horizontal = new THREE.PlaneGeometry(4000, 4000);
+  horizontal.rotateX(-Math.PI / 2);
+  return {
+    drawingBufferWidth: 1280,
+    drawingBufferHeight: 720,
+    farField: spansOf(horizontal),
+    planarReflectionStrength: null,
+    foamFieldPresent: false,
+    waveHeights: [0.2, 1.1],
+    normalSlope: 0.04,
+    pixelMean: 0.31,
+    reportedPitch: 0.02,
+    contactPitch: 0.02,
+    ...overrides,
+  };
+}
 
 describe('marine visual acceptance (#2136)', () => {
-  it('passes the horizontal wave-only scene without a beauty score or golden rewrite', () => {
-    const report = runMarineVisualAcceptance(healthyWaveOnlyScene(HORIZONTAL));
-    expect(report.passed, JSON.stringify(report.defects)).toBe(true);
-    expect(report.beautyScore).toBeNull();
-    expect(report.goldenRewritten).toBe(false);
-    expect(report.crossAlgorithmPixelScore).toBeNull();
-    expect(report.stillnessRewarded).toBe(false);
-    expect(report.metrics.waveMotionMeters).toBeGreaterThan(0.05);
-    expect(report.metrics.observedFrameDelta).toBeGreaterThan(0);
-    expect(report.fleet).toHaveLength(7);
-    expect(report.fleet.map((ship) => ship.caseId).sort()).toEqual(
-      ['container', 'cruise', 'destroyer', 'ice', 'lng', 'platform', 'shallow-water'].sort(),
-    );
-    const cruise = report.fleet.find((ship) => ship.caseId === 'cruise');
-    expect(cruise?.resolvedRoll).toBe(0.21);
-    expect(report.images.some((image) => image.mean !== 0 || image.width > 1)).toBe(true);
+  it('reads a rotated far-field geometry as horizontal and a raw plane as vertical', () => {
+    const horizontal = new THREE.PlaneGeometry(4000, 4000);
+    horizontal.rotateX(-Math.PI / 2);
+    const vertical = new THREE.PlaneGeometry(4000, 4000);
+    expect(farFieldIsHorizontal(spansOf(horizontal))).toBe(true);
+    expect(farFieldIsHorizontal(spansOf(vertical))).toBe(false);
+    const live = judgeMarineObservation(observation(), {
+      reflectionRequired: false,
+      foamRequired: false,
+    });
+    expect(live.passed, JSON.stringify(live.defects)).toBe(true);
+    expect(live.beautyScore).toBeNull();
+    expect(live.goldenRewritten).toBe(false);
+    expect(live.crossAlgorithmPixelScore).toBeNull();
+    expect(live.stillnessRewarded).toBe(false);
+    expect(live.metrics.pixelMean).toBeGreaterThan(0);
   });
 
-  it('matches the comparison far-field horizontal contract', () => {
-    for (const rotation of [0, Math.PI / 2, -Math.PI / 2, -1]) {
-      const report = runMarineVisualAcceptance({
-        ...healthyWaveOnlyScene(rotation),
-      });
-      const vertical = report.defects.some((defect) => defect.code === 'vertical-far-field');
-      expect(vertical).toBe(!isHorizontalFarField(rotation));
-      if (vertical) {
-        expect(report.defects.find((defect) => defect.code === 'vertical-far-field')?.location).toBe('far-field.rotationX');
-      }
-    }
-  });
-
-  it('rejects a nonblank image when reflection, normals, foam, motion or sharpness are wrong', () => {
-    const disabled = reflectionDiagnostic(false);
-    expect(disabled.water.every((value) => value > 0)).toBe(true);
-    const bad = runMarineVisualAcceptance({
-      ...healthyWaveOnlyScene(0),
+  it('rejects a nonblank canvas when the measured scene lost reflection, motion, foam or slope', () => {
+    const bad = judgeMarineObservation(observation({
+      farField: spansOf(new THREE.PlaneGeometry(4000, 4000)),
+      planarReflectionStrength: null,
+      foamFieldPresent: false,
+      waveHeights: [0.4, 0.4],
+      normalSlope: 0,
+      pixelMean: 0.22,
+    }), {
       reflectionRequired: true,
-      reflectionEnabled: false,
       foamRequired: true,
-      foamEnabled: false,
-      normalsEnabled: false,
-      frozen: true,
-      blurred: true,
-      nonblank: true,
-      waterlinePitchOverride: 0,
     });
     expect(bad.passed).toBe(false);
-    expect(bad.beautyScore).toBeNull();
-    expect(bad.stillnessRewarded).toBe(false);
-    expect(bad.goldenRewritten).toBe(false);
+    expect(bad.images[0]?.mean).toBeGreaterThan(0);
     const codes = bad.defects.map((defect) => defect.code);
     expect(codes).toContain('vertical-far-field');
     expect(codes).toContain('reflection-missing');
-    expect(codes).toContain('frozen-surface');
-    expect(codes).toContain('excess-blur');
     expect(codes).toContain('foam-disabled');
-    expect(codes).toContain('normal-disabled');
-    expect(codes).toContain('waterline-pitch');
-    expect(bad.images.some((image) => image.id === 'reflection-water' && image.mean > 0)).toBe(true);
-    expect(bad.metrics.blurRatio).toBeLessThan(0.45);
-    expect(bad.metrics.foamCoverage).toBe(0);
+    expect(codes).toContain('frozen-surface');
+    expect(codes).not.toContain('normal-disabled');
+    expect(bad.defects.every((defect) => defect.location.length > 0)).toBe(true);
+    expect(bad.goldenRewritten).toBe(false);
+  });
+
+  it('requires drawing-buffer evidence from all seven consumers', () => {
+    const cruisePose = resolveMarineVisualPose({
+      ownership: { heave: 'visual-water', pitch: 'fixed', roll: 'telemetry' },
+      visualWater: { heave: 0.4, pitch: 0.2, roll: 0.8 },
+      telemetry: { roll: 0.21 },
+    });
+    const observations = FLEET_CONSUMER_IDS.map((consumerId) => ({
+      consumerId,
+      drawingBufferWidth: 960,
+      drawingBufferHeight: 540,
+      waveDelta: 0.016,
+      resolvedRoll: consumerId === 'cruise' ? cruisePose.roll : null,
+      telemetryRoll: consumerId === 'cruise' ? 0.21 : null,
+    }));
+    expect(judgeFleetObservations(observations).passed).toBe(true);
+    expect(judgeFleetObservations(observations.slice(1)).defects.some((defect) => defect.location === 'fleet.destroyer')).toBe(true);
+    const drifted = observations.map((item) => (
+      item.consumerId === 'cruise' ? { ...item, resolvedRoll: 0.8 } : item
+    ));
+    expect(judgeFleetObservations(drifted).defects.some((defect) => defect.location === 'fleet.cruise.roll')).toBe(true);
   });
 
   it('does not rewrite a golden image unless review explicitly allows it', () => {
-    const failed = runMarineVisualAcceptance({
-      ...healthyWaveOnlyScene(0),
-      reflectionRequired: true,
-      reflectionEnabled: false,
-    });
-    expect(commitGoldenUpdate(failed, { updateGolden: false, reviewed: false }).goldenRewritten).toBe(false);
-    expect(() => commitGoldenUpdate(failed, { updateGolden: true, reviewed: false })).toThrow(/explicit review/);
-    expect(commitGoldenUpdate(failed, { updateGolden: true, reviewed: true }).goldenRewritten).toBe(true);
+    expect(commitGoldenUpdate({ updateGolden: false, reviewed: false }).goldenRewritten).toBe(false);
+    expect(() => commitGoldenUpdate({ updateGolden: true, reviewed: false })).toThrow(/explicit review/);
+    expect(commitGoldenUpdate({ updateGolden: true, reviewed: true }).goldenRewritten).toBe(true);
   });
 });
