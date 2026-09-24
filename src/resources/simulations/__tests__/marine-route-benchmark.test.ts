@@ -4,7 +4,9 @@ import {
   REQUIRED_M5_ROUTES,
   REQUIRED_M5_SCENES,
   assertProductionDefaultUnchanged,
+  extendedCoverageFailures,
   frameIntervalIsVsyncLocked,
+  htmlLooksLikeNextDev,
   judgeMarineRouteBenchmark,
   type RouteObservation,
 } from '@/resources/simulations/scene/quality/marine-route-benchmark';
@@ -108,6 +110,32 @@ describe('marine route benchmark (#2137)', () => {
       'webgpu-fft',
     ]);
     expect(report.significantWinner).toBeNull();
+  });
+
+  it('rejects the current turbopack dev page and an incomplete pressure matrix', () => {
+    expect(htmlLooksLikeNextDev('<script src="/_next/static/chunks/browser_dev_hmr-client.js"></script><next-devtools>')).toBe(true);
+    expect(htmlLooksLikeNextDev('<html><body>production</body></html>')).toBe(false);
+    const throttle = observation({ evidenceKind: 'cpu-throttle' });
+    const pixel = observation({ evidenceKind: 'pixel-scale' });
+    const effect = observation({ evidenceKind: 'effect-injection', coreFeaturesPresent: false });
+    expect(extendedCoverageFailures({
+      observations: [throttle],
+      pixelScales: [1280, 1920],
+      cpuRates: [4],
+      fftResolutions: [256],
+      lods: ['low'],
+      workerCheckRan: false,
+      fleet: [{ layout: null, expectedLayout: 'open-sea-distant-islands', canvasWidth: 0 }],
+    })).toEqual(expect.arrayContaining(['cpu-throttle', 'pixel-scale', 'worker-throttle', 'fft-resolution', 'lod', 'fleet-layout']));
+    expect(extendedCoverageFailures({
+      observations: [throttle, throttle, throttle, pixel, pixel, pixel, pixel, effect],
+      pixelScales: [1280, 1920, 2560, 3840],
+      cpuRates: [1, 4, 6],
+      fftResolutions: [128, 256, 512],
+      lods: ['low', 'high'],
+      workerCheckRan: true,
+      fleet: [{ layout: 'open-sea-distant-islands', expectedLayout: 'open-sea-distant-islands', canvasWidth: 1280 }],
+    })).toEqual([]);
   });
 
   it('refuses to change the production backend', () => {

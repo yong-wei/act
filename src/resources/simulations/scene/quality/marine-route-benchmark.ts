@@ -142,13 +142,13 @@ export function judgeMarineRouteBenchmark(input: {
   for (const observation of actual) {
     if (failedRoutes.some((failure) => failure.route === observation.route && failure.scene === observation.scene)) continue;
     const cost = sampleCost(observation);
-    if (!cost) continue;
+    if (!cost || observation.qualityScore === null || !Number.isFinite(observation.qualityScore)) continue;
     rankedByMethod[cost.method].push({
       route: observation.route,
       scene: observation.scene,
       method: cost.method,
       costMs: cost.costMs,
-      qualityScore: observation.qualityScore ?? 1,
+      qualityScore: observation.qualityScore,
     });
   }
   const paretoPool = rankedByMethod['gpu-elapsed'].length > 0
@@ -194,23 +194,30 @@ export function judgeMarineRouteBenchmark(input: {
   };
 }
 
+export function htmlLooksLikeNextDev(html: string): boolean {
+  return ['webpack-hmr', '__nextjs_original-stack-frames', 'browser_dev_hmr-client', 'next-devtools'].some((token) => html.includes(token));
+}
+
 export function extendedCoverageFailures(input: {
   readonly observations: readonly RouteObservation[];
   readonly pixelScales: readonly number[];
+  readonly cpuRates: readonly number[];
   readonly fftResolutions: readonly number[];
   readonly lods: readonly string[];
+  readonly workerCheckRan: boolean;
   readonly fleet: readonly { readonly layout: string | null; readonly expectedLayout: string; readonly canvasWidth: number }[];
 }): readonly string[] {
   const failures: string[] = [];
   const throttle = input.observations.filter((item) => item.evidenceKind === 'cpu-throttle');
   const pixels = input.observations.filter((item) => item.evidenceKind === 'pixel-scale');
   const effect = input.observations.filter((item) => item.evidenceKind === 'effect-injection');
-  if (throttle.length === 0 || throttle.some((item) => !item.implemented || !item.coreFeaturesPresent)) {
+  if (![1, 4, 6].every((rate) => input.cpuRates.includes(rate)) || throttle.length < 3 || throttle.some((item) => !item.implemented || !item.coreFeaturesPresent)) {
     failures.push('cpu-throttle');
   }
-  if (new Set(input.pixelScales.filter((width) => width > 0)).size < 2 || pixels.some((item) => !item.implemented)) {
+  if (new Set(input.pixelScales.filter((width) => width > 0)).size < 4 || pixels.length < 4 || pixels.some((item) => !item.implemented)) {
     failures.push('pixel-scale');
   }
+  if (!input.workerCheckRan) failures.push('worker-throttle');
   if (effect.length === 0 || effect.some((item) => item.coreFeaturesPresent || !item.implemented)) {
     failures.push('effect-injection');
   }

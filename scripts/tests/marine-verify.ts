@@ -14,6 +14,7 @@ import { chromium, type Browser, type Page } from 'playwright';
 
 import {
   extendedCoverageFailures,
+  htmlLooksLikeNextDev,
   judgeMarineRouteBenchmark,
   type EvidenceKind,
   type M5RouteId,
@@ -60,7 +61,7 @@ async function assertProductionServer(base: string): Promise<void> {
   } catch {
     throw new Error(`marine:verify needs a production server at ${base}. Start it with npm run build && npm run start, then set MARINE_VERIFY_BASE. This command does not start next dev.`);
   }
-  if (html.includes('webpack-hmr') || html.includes('__nextjs_original-stack-frames')) {
+  if (htmlLooksLikeNextDev(html)) {
     throw new Error(`marine:verify refuses the next dev server at ${base}. Official cost reports require a production build.`);
   }
 }
@@ -205,7 +206,8 @@ async function main() {
   const scans = {
     fftResolutions: [] as number[],
     lods: [] as string[],
-    cpuThrottle: null as number | null,
+    cpuRates: [] as number[],
+    workerCheckRan: false,
     pixelScales: [] as number[],
     effectInjection: null as string | null,
     workerThrottleMeasured: false,
@@ -235,21 +237,36 @@ async function main() {
     if (suite === 'extended') {
       const readyExpression = "!!((window.__marineComparisonLab && window.__marineComparisonLab.ready && window.__marineComparisonLab.ready()) || (window.__marineWebGpu && window.__marineWebGpu.ready && window.__marineWebGpu.ready()) || document.querySelector('[data-webgpu-status=\"unavailable\"], [data-webgpu-status=\"failed\"]'))";
       const cdp = await page.context().newCDPSession(page);
-      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-      scans.cpuThrottle = 4;
       await page.goto(routeUrl(base, ROUTES[0]!, 'wave-only'), { waitUntil: 'domcontentloaded', timeout: 120_000 });
       await page.waitForFunction(readyExpression, undefined, { timeout: 90_000 });
-      const throttled = await readComparison(page, 800);
-      observations.push(toObservation({
-        route: 'webgl-gerstner',
-        scene: 'wave-only',
-        reading: throttled,
-        imagePath: 'images/cpu-throttle.png',
-        evidenceKind: 'cpu-throttle',
-      }));
+      for (const rate of [1, 4, 6]) {
+        await cdp.send('Emulation.setCPUThrottlingRate', { rate });
+        scans.cpuRates.push(rate);
+        const throttled = await readComparison(page, 800);
+        observations.push(toObservation({
+          route: 'webgl-gerstner',
+          scene: 'wave-only',
+          reading: throttled,
+          imagePath: `images/cpu-throttle-${rate}.png`,
+          evidenceKind: 'cpu-throttle',
+        }));
+      }
+      const workerAt = async (rate: number) => {
+        await cdp.send('Emulation.setCPUThrottlingRate', { rate });
+        return page.evaluate(`new Promise((resolve) => {
+          const worker = new Worker(URL.createObjectURL(new Blob([
+            'self.onmessage=()=>{const start=performance.now();while(performance.now()-start<40){}postMessage(performance.now()-start)}'
+          ], { type: 'text/javascript' })));
+          worker.onmessage = (event) => { worker.terminate(); resolve(event.data); };
+        })`);
+      };
+      await workerAt(1);
+      await workerAt(4);
+      scans.workerCheckRan = true;
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
-      for (const width of [1280, 1920]) {
-        await page.setViewportSize({ width, height: width === 1280 ? 720 : 1080 });
+      for (const width of [1280, 1920, 2560, 3840]) {
+        const height = width === 1280 ? 720 : width === 1920 ? 1080 : width === 2560 ? 1440 : 2160;
+        await page.setViewportSize({ width, height });
         await page.goto(routeUrl(base, ROUTES[0]!, 'wave-only'), { waitUntil: 'domcontentloaded', timeout: 120_000 });
         await page.waitForFunction(readyExpression, undefined, { timeout: 90_000 });
         const scaled = await readComparison(page, 400);
@@ -305,6 +322,8 @@ async function main() {
     ? extendedCoverageFailures({
       observations,
       pixelScales: scans.pixelScales,
+      cpuRates: scans.cpuRates,
+      workerCheckRan: scans.workerCheckRan,
       fftResolutions: scans.fftResolutions,
       lods: scans.lods,
       fleet,
