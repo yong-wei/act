@@ -50,6 +50,30 @@ declare global {
         firstFrameReady: boolean;
       };
     };
+    __marineVisualAcceptance?: {
+      run: () => {
+        passed: boolean;
+        beautyScore: null;
+        goldenRewritten: boolean;
+        crossAlgorithmPixelScore: null;
+        stillnessRewarded: boolean;
+        defects: Array<{ code: string; location: string }>;
+        fleet: unknown[];
+        images: Array<{ mean: number }>;
+      };
+      runWithOverride: (override: {
+        farFieldRotationX?: number;
+        reflectionRequired?: boolean;
+        reflectionEnabled?: boolean;
+        frozen?: boolean;
+        nonblank?: boolean;
+      }) => {
+        passed: boolean;
+        goldenRewritten: boolean;
+        defects: Array<{ code: string; location: string }>;
+        images: Array<{ mean: number }>;
+      };
+    };
     __marineStagePerformance?: {
       collect: () => Promise<{
         screenRecorded: boolean;
@@ -127,6 +151,33 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
       if (round.method === 'completed-work') expect(round.gpuMs).toBeNull();
       if (round.method === 'gpu-elapsed') expect(round.gpuMs).toBeGreaterThan(0);
     }
+  });
+
+  test('visual acceptance rejects a vertical far field and a missing reflection', async ({ page }) => {
+    await page.goto(`${PAGE}?backend=gerstner&scene=wave-only`, { waitUntil: 'domcontentloaded' });
+    await waitForLab(page);
+    const live = await page.evaluate(() => window.__marineVisualAcceptance?.run());
+    expect(live?.passed, JSON.stringify(live?.defects)).toBe(true);
+    expect(live?.beautyScore).toBeNull();
+    expect(live?.goldenRewritten).toBe(false);
+    expect(live?.crossAlgorithmPixelScore).toBeNull();
+    expect(live?.stillnessRewarded).toBe(false);
+    expect(live?.fleet).toHaveLength(7);
+    const bad = await page.evaluate(() => window.__marineVisualAcceptance?.runWithOverride({
+      farFieldRotationX: 0,
+      reflectionRequired: true,
+      reflectionEnabled: false,
+      frozen: true,
+      nonblank: true,
+    }));
+    expect(bad?.passed).toBe(false);
+    expect(bad?.goldenRewritten).toBe(false);
+    const codes = (bad?.defects ?? []).map((defect) => defect.code);
+    expect(codes).toContain('vertical-far-field');
+    expect(codes).toContain('reflection-missing');
+    expect(codes).toContain('frozen-surface');
+    expect((bad?.defects ?? []).some((defect) => defect.location.length > 0)).toBe(true);
+    expect((bad?.images ?? []).some((image) => image.mean > 0)).toBe(true);
   });
 
   test('replays the same visual time after reset and step', async ({ page }) => {

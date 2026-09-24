@@ -35,6 +35,11 @@ import {
 } from '@/resources/simulations/scene/water/fft-ocean';
 import { createFFTQueryWorker } from '@/resources/simulations/scene/water/fft-query-worker';
 import { assembleWorkerQueryReport } from '@/resources/simulations/scene/quality/stage-performance';
+import {
+  healthyWaveOnlyScene,
+  runMarineVisualAcceptance,
+  type VisualAcceptanceScene,
+} from '@/resources/simulations/scene/quality/visual-acceptance';
 import { MarineShallowBackdrop, COMPARISON_SUN_DIRECTION } from '@/resources/simulations/scene/water/shared-water-optics';
 import { MarinePlanarReflection } from '@/resources/simulations/scene/environment/planar-reflection';
 import { MarineFoamFieldProvider } from '@/resources/simulations/scene/water/foam-history-layer';
@@ -447,8 +452,24 @@ function ComparisonLabBridge({
       optics: (): ComparisonOpticsState => opticsRef.current,
     };
     window.__marineComparisonLab = api;
+    const sceneForAcceptance = (): VisualAcceptanceScene => {
+      const identity = identityRef.current;
+      const featureParity = identity.scene === 'feature-parity';
+      return {
+        ...healthyWaveOnlyScene(identity.farFieldRotationX),
+        reflectionRequired: featureParity,
+        reflectionEnabled: featureParity,
+        foamRequired: featureParity,
+        foamEnabled: featureParity,
+      };
+    };
+    window.__marineVisualAcceptance = {
+      run: () => runMarineVisualAcceptance(sceneForAcceptance()),
+      runWithOverride: (override) => runMarineVisualAcceptance({ ...sceneForAcceptance(), ...override }),
+    };
     return () => {
       delete window.__marineComparisonLab;
+      delete window.__marineVisualAcceptance;
     };
   }, [identityRef, metricsRef, opticsRef, pitchRef, runner, runModeRef, sampleDisplacement, samplesRef, setResetToken, setShallowEnabled]);
 
@@ -706,5 +727,9 @@ export default function FFTOceanComparisonClient({
 declare global {
   interface Window {
     __marineComparisonLab?: ComparisonLabApi;
+    __marineVisualAcceptance?: {
+      run(): ReturnType<typeof runMarineVisualAcceptance>;
+      runWithOverride(override: Partial<VisualAcceptanceScene>): ReturnType<typeof runMarineVisualAcceptance>;
+    };
   }
 }
