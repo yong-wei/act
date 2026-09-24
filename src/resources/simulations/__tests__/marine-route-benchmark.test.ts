@@ -22,6 +22,7 @@ function observation(overrides: Partial<RouteObservation> = {}): RouteObservatio
     frameMedianMs: 16.7,
     gpuMs: 4,
     completedWorkMs: null,
+    costSamples: [4, 4, 4],
     qualityScore: 0.8,
     pixelMean: 0.4,
     imagePath: 'images/webgl-gerstner-wave-only.png',
@@ -32,17 +33,22 @@ function observation(overrides: Partial<RouteObservation> = {}): RouteObservatio
 }
 
 function completeSet(overrides: Partial<RouteObservation> = {}): RouteObservation[] {
-  return REQUIRED_M5_ROUTES.flatMap((route, routeIndex) => REQUIRED_M5_SCENES.map((scene, sceneIndex) => observation({
-    route,
-    scene,
-    gpuMs: 4 + routeIndex + sceneIndex,
-    qualityScore: 0.9 - routeIndex * 0.05,
-    ...overrides,
-  })));
+  return REQUIRED_M5_ROUTES.flatMap((route, routeIndex) => REQUIRED_M5_SCENES.map((scene, sceneIndex) => {
+    const cost = 4 + routeIndex + sceneIndex;
+    return observation({
+      route,
+      scene,
+      gpuMs: cost,
+      costSamples: [cost, cost, cost],
+      qualityScore: 0.9 - routeIndex * 0.05,
+      ...overrides,
+    });
+  }));
 }
 
 describe('marine route benchmark (#2137)', () => {
   it('fails a stub route instead of calling the run a successful keep-current decision', () => {
+    expect(judgeMarineRouteBenchmark({ observations: completeSet() }).significantWinner).toBe('webgl-gerstner');
     const observations = completeSet();
     observations[1] = observation({
       route: 'webgl-gerstner',
@@ -101,7 +107,7 @@ describe('marine route benchmark (#2137)', () => {
       'webgpu-fft',
       'webgpu-fft',
     ]);
-    expect(report.significantWinner).toBe('webgl-gerstner');
+    expect(report.significantWinner).toBeNull();
   });
 
   it('refuses to change the production backend', () => {

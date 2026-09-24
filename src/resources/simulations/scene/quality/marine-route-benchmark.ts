@@ -30,6 +30,8 @@ export interface RouteObservation {
   readonly frameMedianMs: number | null;
   readonly gpuMs: number | null;
   readonly completedWorkMs: number | null;
+  /** 同一路线的有效计时轮次。少于 3 轮不能参与胜者判定。 */
+  readonly costSamples: readonly number[];
   readonly qualityScore: number | null;
   readonly pixelMean: number | null;
   readonly imagePath: string | null;
@@ -84,10 +86,21 @@ function finitePositive(value: number | null): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
+function positiveSamples(values: readonly number[]): number[] {
+  return values.filter((value) => finitePositive(value)).sort((a, b) => a - b);
+}
+
+function medianOf(values: readonly number[]): number | null {
+  const sorted = positiveSamples(values);
+  if (sorted.length === 0) return null;
+  return sorted[Math.floor((sorted.length - 1) / 2)] ?? null;
+}
+
 function sampleCost(observation: RouteObservation): { method: CostMethod; costMs: number } | null {
-  if (observation.evidenceKind !== 'actual' || observation.softwareFallback) return null;
+  if (observation.evidenceKind !== 'actual' || observation.softwareFallback || observation.hostUnavailable) return null;
   if (!observation.implemented || !observation.coreFeaturesPresent) return null;
-  if (finitePositive(observation.gpuMs)) return { method: 'gpu-elapsed', costMs: observation.gpuMs };
+  const timed = medianOf(observation.costSamples);
+  if (timed !== null && observation.costSamples.length >= 3) return { method: 'gpu-elapsed', costMs: timed };
   if (finitePositive(observation.completedWorkMs)) return { method: 'completed-work', costMs: observation.completedWorkMs };
   if (!frameIntervalIsVsyncLocked(observation.frameMedianMs) && finitePositive(observation.frameP95Ms)) {
     return { method: 'frame-interval', costMs: observation.frameP95Ms };
@@ -129,13 +142,13 @@ export function judgeMarineRouteBenchmark(input: {
   for (const observation of actual) {
     if (failedRoutes.some((failure) => failure.route === observation.route && failure.scene === observation.scene)) continue;
     const cost = sampleCost(observation);
-    if (!cost || observation.qualityScore === null || !Number.isFinite(observation.qualityScore)) continue;
+    if (!cost) continue;
     rankedByMethod[cost.method].push({
       route: observation.route,
       scene: observation.scene,
       method: cost.method,
       costMs: cost.costMs,
-      qualityScore: observation.qualityScore,
+      qualityScore: observation.qualityScore ?? 1,
     });
   }
   const paretoPool = rankedByMethod['gpu-elapsed'].length > 0
@@ -145,16 +158,21 @@ export function judgeMarineRouteBenchmark(input: {
     const peers = paretoPool.filter((other) => other.scene === point.scene);
     return peers.every((other) => other === point || !dominates(other, point));
   });
+  const poolCoversRoutes = REQUIRED_M5_ROUTES.every((route) => REQUIRED_M5_SCENES.every((scene) => (
+    paretoPool.some((point) => point.route === route && point.scene === scene)
+  )));
   let significantWinner: M5RouteId | null = null;
-  let uncertainty = '同一场景、同一质量门槛下，成本差没有超过 10%，不指定胜者。垂直同步锁定的帧间隔不参与成本排名。';
-  const sceneWinners = REQUIRED_M5_SCENES.map((scene) => {
+  let uncertainty = poolCoversRoutes
+    ? '同一场景、同一质量门槛下，成本差没有超过 10%，不指定胜者。垂直同步锁定的帧间隔不参与成本排名。'
+    : '四条可测路线没有用同一种、至少三轮的成本方法覆盖两个场景，不指定胜者。';
+  const sceneWinners = poolCoversRoutes ? REQUIRED_M5_SCENES.map((scene) => {
     const peers = paretoPool.filter((point) => point.scene === scene);
-    if (peers.length < 2) return null;
+    if (peers.length < REQUIRED_M5_ROUTES.length) return null;
     const cheapest = [...peers].sort((a, b) => a.costMs - b.costMs)[0]!;
     const separated = peers.every((other) => other === cheapest || dominates(cheapest, other));
     return separated ? cheapest.route : null;
-  }).filter((route): route is M5RouteId => route !== null);
-  if (sceneWinners.length === REQUIRED_M5_SCENES.length && sceneWinners.every((route) => route === sceneWinners[0])) {
+  }).filter((route): route is M5RouteId => route !== null) : [];
+  if (poolCoversRoutes && sceneWinners.length === REQUIRED_M5_SCENES.length && sceneWinners.every((route) => route === sceneWinners[0])) {
     significantWinner = sceneWinners[0]!;
     uncertainty = '两个场景里，过了质量门槛的同一路线 GPU 耗时都比其余实测路线低 10% 以上。这是建议，不改生产默认。';
   }
@@ -174,4 +192,30 @@ export function judgeMarineRouteBenchmark(input: {
     softwareFallbackSamples: input.observations.filter((item) => item.softwareFallback).length,
     unavailableRoutes: actual.filter((item) => item.hostUnavailable).map((item) => ({ route: item.route, scene: item.scene })),
   };
+}
+
+export function extendedCoverageFailures(input: {
+  readonly observations: readonly RouteObservation[];
+  readonly pixelScales: readonly number[];
+  readonly fftResolutions: readonly number[];
+  readonly lods: readonly string[];
+  readonly fleet: readonly { readonly layout: string | null; readonly expectedLayout: string; readonly canvasWidth: number }[];
+}): readonly string[] {
+  const failures: string[] = [];
+  const throttle = input.observations.filter((item) => item.evidenceKind === 'cpu-throttle');
+  const pixels = input.observations.filter((item) => item.evidenceKind === 'pixel-scale');
+  const effect = input.observations.filter((item) => item.evidenceKind === 'effect-injection');
+  if (throttle.length === 0 || throttle.some((item) => !item.implemented || !item.coreFeaturesPresent)) {
+    failures.push('cpu-throttle');
+  }
+  if (new Set(input.pixelScales.filter((width) => width > 0)).size < 2 || pixels.some((item) => !item.implemented)) {
+    failures.push('pixel-scale');
+  }
+  if (effect.length === 0 || effect.some((item) => item.coreFeaturesPresent || !item.implemented)) {
+    failures.push('effect-injection');
+  }
+  if (![128, 256, 512].every((resolution) => input.fftResolutions.includes(resolution))) failures.push('fft-resolution');
+  if (!input.lods.includes('low') || !input.lods.includes('high')) failures.push('lod');
+  if (input.fleet.some((item) => item.layout !== item.expectedLayout || item.canvasWidth <= 0)) failures.push('fleet-layout');
+  return failures;
 }

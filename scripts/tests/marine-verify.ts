@@ -7,13 +7,13 @@
  * extended 另加有界的像素/CPU/效果压力，以及七船页面上的五个布局。
  * 不改生产默认后端。模拟压力不会被写成另一台设备。
  */
-import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { chromium, type Browser, type Page } from 'playwright';
 
 import {
+  extendedCoverageFailures,
   judgeMarineRouteBenchmark,
   type EvidenceKind,
   type M5RouteId,
@@ -50,29 +50,19 @@ function suiteFromArgv(argv: readonly string[]): Suite {
   return value as Suite;
 }
 
-async function ensureServer(base: string): Promise<ChildProcess | null> {
+async function assertProductionServer(base: string): Promise<void> {
+  let html = '';
   try {
-    const response = await fetch(base, { signal: AbortSignal.timeout(2000) });
-    if (response.ok || response.status < 500) return null;
+    const response = await fetch(`${base}/simulations/fft-ocean-comparison?backend=gerstner&scene=wave-only`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    html = await response.text();
   } catch {
-    // 下面启动本机开发服务。
+    throw new Error(`marine:verify needs a production server at ${base}. Start it with npm run build && npm run start, then set MARINE_VERIFY_BASE. This command does not start next dev.`);
   }
-  const port = new URL(base).port || '3211';
-  const child = spawn(process.execPath, ['./node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', port], {
-    stdio: 'ignore',
-    detached: false,
-  });
-  const deadline = Date.now() + 120_000;
-  while (Date.now() < deadline) {
-    try {
-      const response = await fetch(base, { signal: AbortSignal.timeout(2000) });
-      if (response.status < 500) return child;
-    } catch {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
+  if (html.includes('webpack-hmr') || html.includes('__nextjs_original-stack-frames')) {
+    throw new Error(`marine:verify refuses the next dev server at ${base}. Official cost reports require a production build.`);
   }
-  child.kill('SIGTERM');
-  throw new Error(`dev server did not answer ${base}`);
 }
 
 function routeUrl(base: string, route: (typeof ROUTES)[number], scene: M5SceneId): string {
@@ -90,6 +80,7 @@ interface ComparisonReading {
   webgpuReady: boolean;
   features: { optics?: string; foam?: boolean; planar?: boolean; shallow?: boolean } | null;
   gpuMs: number | null;
+  gpuSamples: number[];
   completedWorkMs: number | null;
   pixelMean: number | null;
   canvasWidth: number;
@@ -131,8 +122,8 @@ async function readComparison(page: Page, durationMs: number): Promise<Compariso
       ? await window.__marineStagePerformance.collect()
       : null;
     const rounds = stage && stage.rounds ? stage.rounds : [];
-    const gpuRound = rounds.find((round) => round.method === 'gpu-elapsed' && round.gpuMs > 0);
-    const workRound = rounds.find((round) => round.method === 'completed-work');
+    const gpuSamples = rounds.filter((round) => round.method === 'gpu-elapsed' && round.gpuMs > 0).map((round) => round.gpuMs).sort((a, b) => a - b);
+    const workSamples = rounds.filter((round) => round.completedWorkMs > 0).map((round) => round.completedWorkMs).sort((a, b) => a - b);
     const statusNode = document.querySelector('[data-webgpu-status]');
     const status = statusNode ? statusNode.getAttribute('data-webgpu-status') : null;
     let pixel = null;
@@ -150,8 +141,9 @@ async function readComparison(page: Page, durationMs: number): Promise<Compariso
       visualPassed: !!(visual && visual.passed === true),
       webgpuReady: !!(webgpu && webgpu.ready && webgpu.ready()),
       features,
-      gpuMs: gpuRound ? gpuRound.gpuMs : null,
-      completedWorkMs: workRound ? workRound.completedWorkMs : null,
+      gpuMs: gpuSamples.length ? gpuSamples[Math.floor((gpuSamples.length - 1) / 2)] : null,
+      gpuSamples,
+      completedWorkMs: workSamples.length ? workSamples[Math.floor((workSamples.length - 1) / 2)] : null,
       pixelMean: pixel,
       canvasWidth: canvas ? canvas.width : 0,
     };
@@ -191,6 +183,7 @@ function toObservation(input: {
     frameMedianMs: reading.frameMedianMs,
     gpuMs: reading.gpuMs,
     completedWorkMs: reading.completedWorkMs,
+    costSamples: reading.gpuSamples,
     qualityScore: reading.pixelMean,
     pixelMean: reading.pixelMean,
     imagePath: input.imagePath,
@@ -205,13 +198,13 @@ async function main() {
   const stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
   const outDir = join(process.cwd(), '.logs', `marine-verify-${stamp}`);
   mkdirSync(join(outDir, 'images'), { recursive: true });
-  const server = await ensureServer(base);
+  await assertProductionServer(base);
   const browser: Browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || 'chrome', headless: true });
   const observations: RouteObservation[] = [];
   const fleet: Array<{ href: string; layout: string | null; expectedLayout: string; canvasWidth: number }> = [];
   const scans = {
-    fftResolution: 'not-exposed',
-    lod: 'not-exposed',
+    fftResolutions: [] as number[],
+    lods: [] as string[],
     cpuThrottle: null as number | null,
     pixelScales: [] as number[],
     effectInjection: null as string | null,
@@ -240,10 +233,12 @@ async function main() {
       }
     }
     if (suite === 'extended') {
+      const readyExpression = "!!((window.__marineComparisonLab && window.__marineComparisonLab.ready && window.__marineComparisonLab.ready()) || (window.__marineWebGpu && window.__marineWebGpu.ready && window.__marineWebGpu.ready()) || document.querySelector('[data-webgpu-status=\"unavailable\"], [data-webgpu-status=\"failed\"]'))";
       const cdp = await page.context().newCDPSession(page);
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
       scans.cpuThrottle = 4;
       await page.goto(routeUrl(base, ROUTES[0]!, 'wave-only'), { waitUntil: 'domcontentloaded', timeout: 120_000 });
+      await page.waitForFunction(readyExpression, undefined, { timeout: 90_000 });
       const throttled = await readComparison(page, 800);
       observations.push(toObservation({
         route: 'webgl-gerstner',
@@ -256,6 +251,7 @@ async function main() {
       for (const width of [1280, 1920]) {
         await page.setViewportSize({ width, height: width === 1280 ? 720 : 1080 });
         await page.goto(routeUrl(base, ROUTES[0]!, 'wave-only'), { waitUntil: 'domcontentloaded', timeout: 120_000 });
+        await page.waitForFunction(readyExpression, undefined, { timeout: 90_000 });
         const scaled = await readComparison(page, 400);
         scans.pixelScales.push(scaled.canvasWidth);
         observations.push(toObservation({
@@ -268,18 +264,29 @@ async function main() {
       }
       await page.setViewportSize({ width: 1280, height: 720 });
       await page.goto(routeUrl(base, ROUTES[0]!, 'feature-parity'), { waitUntil: 'domcontentloaded', timeout: 120_000 });
-      await page.evaluate(() => {
-        (window as unknown as { __marineComparisonLab?: { setReflectionEnabled?: (enabled: boolean) => void } }).__marineComparisonLab?.setReflectionEnabled?.(false);
-      });
+      await page.waitForFunction(readyExpression, undefined, { timeout: 90_000 });
+      await page.evaluate("window.__marineComparisonLab && window.__marineComparisonLab.setReflectionEnabled && window.__marineComparisonLab.setReflectionEnabled(false)");
       scans.effectInjection = 'reflection-disabled';
       const broken = await readComparison(page, 400);
       observations.push(toObservation({
         route: 'webgl-gerstner',
         scene: 'feature-parity',
-        reading: { ...broken, visualPassed: false },
+        reading: broken,
         imagePath: 'images/effect-injection.png',
         evidenceKind: 'effect-injection',
       }));
+      for (const resolution of [128, 256, 512]) {
+        await page.goto(`${routeUrl(base, ROUTES[1]!, 'wave-only')}&resolution=${resolution}`, { waitUntil: 'domcontentloaded', timeout: 120_000 });
+        await page.waitForFunction(readyExpression, undefined, { timeout: 90_000 });
+        const reported = await page.locator('[data-fft-resolution]').getAttribute('data-fft-resolution');
+        if (reported === String(resolution)) scans.fftResolutions.push(resolution);
+      }
+      for (const lod of ['low', 'high']) {
+        await page.goto(`${routeUrl(base, ROUTES[1]!, 'wave-only')}&lod=${lod}`, { waitUntil: 'domcontentloaded', timeout: 120_000 });
+        await page.waitForFunction(readyExpression, undefined, { timeout: 90_000 });
+        const reported = await page.locator('[data-lod]').getAttribute('data-lod');
+        if (reported === lod) scans.lods.push(lod);
+      }
       for (const ship of FLEET) {
         await page.goto(`${base}${ship.href}`, { waitUntil: 'domcontentloaded', timeout: 120_000 });
         await page.waitForFunction("!!(window.__marineLayoutStats && window.__marineLayoutStats.layoutId)", undefined, { timeout: 90_000 });
@@ -292,11 +299,18 @@ async function main() {
     }
   } finally {
     await browser.close();
-    server?.kill('SIGTERM');
   }
   const report = judgeMarineRouteBenchmark({ observations, productionDefaultChanged: false });
-  const fleetMismatch = fleet.filter((item) => item.layout !== item.expectedLayout || item.canvasWidth <= 0);
-  const passed = report.passed && fleetMismatch.length === 0 && (suite !== 'smoke' || observations.length > 0);
+  const coverageFailures = suite === 'extended'
+    ? extendedCoverageFailures({
+      observations,
+      pixelScales: scans.pixelScales,
+      fftResolutions: scans.fftResolutions,
+      lods: scans.lods,
+      fleet,
+    })
+    : [];
+  const passed = report.passed && coverageFailures.length === 0 && (suite !== 'smoke' || observations.length > 0);
   const payload = {
     suite,
     passed,
@@ -304,7 +318,7 @@ async function main() {
     observations,
     scans,
     fleet,
-    fleetMismatch,
+    coverageFailures,
     productionDefaultChanged: false,
   };
   writeFileSync(join(outDir, 'report.json'), `${JSON.stringify(payload, null, 2)}\n`);

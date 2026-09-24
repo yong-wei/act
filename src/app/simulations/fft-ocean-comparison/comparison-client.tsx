@@ -66,6 +66,8 @@ import {
   labIsReady,
   vesselPitchFromSamples,
   type ComparisonBackend,
+  type ComparisonFftResolution,
+  type ComparisonLod,
   type ComparisonLabApi,
   type ComparisonLabCapture,
   type ComparisonLabIdentity,
@@ -207,14 +209,19 @@ function ComparisonQueries({
   samplesRef,
   metricsRef,
   resetToken,
+  resolution,
 }: {
   readonly backend: ComparisonBackend;
   readonly samplesRef: React.MutableRefObject<{ mid: number; bow: number; stern: number; time: number }>;
   readonly metricsRef: React.MutableRefObject<ComparisonQueryMetrics | null>;
   readonly resetToken: number;
+  readonly resolution: ComparisonFftResolution;
 }) {
   const marineVisualTime = useMarineVisualTime();
-  const spectrum = useMemo(() => fftOceanStaticSpectrum(COMPARISON_SPECTRUM_INPUT), []);
+  const spectrum = useMemo(
+    () => fftOceanStaticSpectrum({ ...COMPARISON_SPECTRUM_INPUT, resolution }),
+    [resolution],
+  );
 
   useFrame((state, delta) => {
     if (backend !== 'gerstner') return;
@@ -353,6 +360,7 @@ function ComparisonLabBridge({
   setReflectionEnabled,
   reflectionEnabledRef,
   opticsRef,
+  resolution,
 }: {
   readonly backend: ComparisonBackend;
   readonly scene: ComparisonSceneId;
@@ -366,6 +374,7 @@ function ComparisonLabBridge({
   readonly setReflectionEnabled: (enabled: boolean) => void;
   readonly reflectionEnabledRef: React.MutableRefObject<boolean>;
   readonly opticsRef: React.MutableRefObject<ComparisonOpticsState>;
+  readonly resolution: ComparisonFftResolution;
 }) {
   const runner = useMarineFrameRunner();
   const root = useThree((state) => state.scene);
@@ -402,13 +411,13 @@ function ComparisonLabBridge({
       if (x === 0 && z === -COMPARISON_BOW_OFFSET_METERS) return samplesRef.current.stern;
     }
     return fftOceanContactHeightAt(
-      fftOceanStaticSpectrum(COMPARISON_SPECTRUM_INPUT),
+      fftOceanStaticSpectrum({ ...COMPARISON_SPECTRUM_INPUT, resolution }),
       COMPARISON_SPECTRUM_INPUT.domainMeters,
       timeSeconds,
       x,
       z,
     );
-  }, [backend, samplesRef]);
+  }, [backend, resolution, samplesRef]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -580,10 +589,12 @@ function ComparisonScene({
   backend,
   scene,
   failAsset,
+  resolution,
 }: {
   readonly backend: ComparisonBackend;
   readonly scene: ComparisonSceneId;
   readonly failAsset: boolean;
+  readonly resolution: ComparisonFftResolution;
 }) {
   const { tier } = useSceneQuality();
   const samplesRef = useRef({ mid: 0, bow: 0, stern: 0, time: 0 });
@@ -690,16 +701,16 @@ function ComparisonScene({
   const gerstnerTier = scene === 'feature-parity' ? tier : 'low';
   const fftCompressionAt = useMemo(
     () => createFftOceanCompressionSampler(
-      fftOceanStaticSpectrum(COMPARISON_SPECTRUM_INPUT),
+      fftOceanStaticSpectrum({ ...COMPARISON_SPECTRUM_INPUT, resolution }),
       COMPARISON_SPECTRUM_INPUT.domainMeters,
     ),
-    [],
+    [resolution],
   );
 
   return (
     <MarineFrameProvider inputs={frameInputs}>
       <SceneQualityDriver />
-      <ComparisonQueries backend={backend} samplesRef={samplesRef} metricsRef={metricsRef} resetToken={resetToken} />
+      <ComparisonQueries backend={backend} samplesRef={samplesRef} metricsRef={metricsRef} resetToken={resetToken} resolution={resolution} />
       <ComparisonLabBridge
         backend={backend}
         scene={scene}
@@ -713,6 +724,7 @@ function ComparisonScene({
         setReflectionEnabled={setReflectionEnabled}
         reflectionEnabledRef={reflectionEnabledRef}
         opticsRef={opticsRef}
+        resolution={resolution}
       />
       <FarFieldRing />
       <ComparisonVessel
@@ -772,12 +784,16 @@ export default function FFTOceanComparisonClient({
   backend,
   scene,
   failAsset = false,
+  resolution = 256,
+  lod = null,
 }: {
   readonly backend: ComparisonBackend;
   readonly scene: ComparisonSceneId;
   readonly failAsset?: boolean;
+  readonly resolution?: ComparisonFftResolution;
+  readonly lod?: ComparisonLod | null;
 }) {
-  const qualityTier: QualityTierId = scene === 'feature-parity' ? 'high' : 'low';
+  const qualityTier: QualityTierId = lod ?? (scene === 'feature-parity' ? 'high' : 'low');
   return (
     <main className="flex h-screen flex-col bg-slate-950 text-slate-100">
       <header className="border-b border-slate-800 px-4 py-2 text-sm">
@@ -785,6 +801,8 @@ export default function FFTOceanComparisonClient({
           data-fft-comparison-page="true"
           data-backend={backend}
           data-scene={scene}
+          data-fft-resolution={resolution}
+          data-lod={qualityTier}
           data-water-base-y={GERSTNER_WATER_BASE_Y}
           data-far-field="xz-ring"
         >
@@ -810,7 +828,7 @@ export default function FFTOceanComparisonClient({
                 intensity={1.4}
               />
               <MarineStagePerformanceProbe />
-              <ComparisonScene backend={backend} scene={scene} failAsset={failAsset} />
+              <ComparisonScene backend={backend} scene={scene} failAsset={failAsset} resolution={resolution} />
               <OrbitControls enablePan enableZoom enableRotate minDistance={40} maxDistance={4000} />
             </Canvas>
           </SceneEnvironmentProvider>
