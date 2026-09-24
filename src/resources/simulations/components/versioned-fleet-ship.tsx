@@ -215,7 +215,7 @@ function FleetModelScene({
   });
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} name="fleet-ship-root">
       <group rotation-y={basisYawRad}>
         <HeroModelBasis matrix={modelToSceneMatrix}>
           <primitive object={model} scale={scale} />

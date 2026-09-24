@@ -838,7 +838,7 @@ function DestroyerModelScene({
   });
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} name="fleet-ship-root">
       <group rotation-y={basisYawRad}>
         <HeroModelBasis matrix={descriptor?.modelToSceneMatrix}>
           <primitive object={model} scale={scale} />

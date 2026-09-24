@@ -232,7 +232,8 @@ export function MarinePerformanceEvidenceProbe({
         const context = renderer.getContext() as WebGLRenderingContext | null;
         let started = readWaterTime(scene);
         let later = started;
-        const deadline = performance.now() + 3000;
+        let hull = readFleetShip(scene);
+        const deadline = performance.now() + 8000;
         while (performance.now() < deadline) {
           await new Promise((resolve) => {
             requestAnimationFrame(() => resolve(undefined));
@@ -243,7 +244,9 @@ export function MarinePerformanceEvidenceProbe({
             continue;
           }
           later = sample;
-          if (started !== null && later !== null && Math.abs(later - started) > 0) break;
+          hull = readFleetShip(scene);
+          const moved = started !== null && later !== null && Math.abs(later - started) > 0;
+          if (moved && hull && hull.radius > 1) break;
         }
         const width = context?.drawingBufferWidth ?? 0;
         const height = context?.drawingBufferHeight ?? 0;
@@ -261,18 +264,18 @@ export function MarinePerformanceEvidenceProbe({
           );
           pixelMean = (pixel[0]! + pixel[1]! + pixel[2]!) / (3 * 255);
         }
-        const hull = largestShipHull(scene);
+        const settledHull = hull ?? readFleetShip(scene);
         return {
           consumerId: input?.vesselId ?? 'unknown',
           drawingBufferWidth: width,
           drawingBufferHeight: height,
           pixelMean,
           waveDelta: started === null || later === null ? 0 : Math.abs(later - started),
-          shipRadius: hull?.radius ?? 0,
-          shipX: hull?.x ?? null,
-          shipY: hull?.y ?? null,
-          shipZ: hull?.z ?? null,
-          shipYaw: hull?.yaw ?? null,
+          shipRadius: settledHull?.radius ?? 0,
+          shipX: settledHull?.x ?? null,
+          shipY: settledHull?.y ?? null,
+          shipZ: settledHull?.z ?? null,
+          shipYaw: settledHull?.yaw ?? null,
           resolvedRoll: null,
           telemetryRoll: null,
         };
@@ -414,28 +417,27 @@ type StageDrawRenderer = OffscreenRenderer & {
   readonly info: { readonly render: { calls: number } };
 };
 
-function largestShipHull(root: THREE.Object3D): {
+function readFleetShip(root: THREE.Object3D): {
   radius: number;
   x: number;
   y: number;
   z: number;
   yaw: number;
 } | null {
-  let best: THREE.Object3D | null = null;
+  const hull = root.getObjectByName('fleet-ship-root');
+  if (!hull) return null;
   let bestRadius = 0;
-  root.traverse((object) => {
+  hull.traverse((object) => {
     const mesh = object as THREE.Mesh;
-    if (!mesh.geometry || object.name.startsWith('marine-')) return;
+    if (!mesh.geometry) return;
     if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
-    const radius = mesh.geometry.boundingSphere?.radius ?? 0;
-    if (radius > bestRadius) {
-      best = object;
-      bestRadius = radius;
-    }
+    bestRadius = Math.max(bestRadius, mesh.geometry.boundingSphere?.radius ?? 0);
   });
-  if (!best || bestRadius <= 1) return null;
-  const hull = best as THREE.Object3D;
   hull.updateWorldMatrix(true, false);
+  const scale = new THREE.Vector3();
+  hull.getWorldScale(scale);
+  const radius = bestRadius * Math.max(Math.abs(scale.x), Math.abs(scale.y), Math.abs(scale.z), 1);
+  if (radius <= 1) return null;
   const position = new THREE.Vector3();
   const quaternion = new THREE.Quaternion();
   hull.getWorldPosition(position);
@@ -444,7 +446,7 @@ function largestShipHull(root: THREE.Object3D): {
     2 * (quaternion.w * quaternion.y + quaternion.x * quaternion.z),
     1 - 2 * (quaternion.y * quaternion.y + quaternion.z * quaternion.z),
   );
-  return { radius: bestRadius, x: position.x, y: position.y, z: position.z, yaw };
+  return { radius, x: position.x, y: position.y, z: position.z, yaw };
 }
 
 function readWaterTime(root: THREE.Object3D): number | null {
