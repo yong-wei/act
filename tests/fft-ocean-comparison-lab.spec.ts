@@ -66,6 +66,28 @@ declare global {
       clearReflection: () => void;
       clearFoam: () => void;
       reflectionEnabled?: () => boolean;
+      judgeFleet: (observations: Array<{
+        consumerId: string;
+        drawingBufferWidth: number;
+        drawingBufferHeight: number;
+        waveDelta: number;
+        resolvedRoll: number | null;
+        telemetryRoll: number | null;
+      }>) => {
+        passed: boolean;
+        defects: Array<{ code: string; location: string }>;
+        metrics: { fleetCount: number };
+      };
+    };
+    __marineConsumerObservation?: {
+      collect: () => Promise<{
+        consumerId: string;
+        drawingBufferWidth: number;
+        drawingBufferHeight: number;
+        waveDelta: number;
+        resolvedRoll: number | null;
+        telemetryRoll: number | null;
+      }>;
     };
     __marineStagePerformance?: {
       collect: () => Promise<{
@@ -157,6 +179,7 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     expect(live?.stillnessRewarded).toBe(false);
     expect(live?.metrics.farFieldHorizontal).toBe(true);
     expect(live?.metrics.waveMotion).toBeGreaterThan(0);
+    expect(live?.metrics.pixelMean).toBeGreaterThan(0.02);
     await page.evaluate(() => window.__marineVisualAcceptance?.breakFarField());
     const broken = await page.evaluate(() => window.__marineVisualAcceptance?.run());
     expect(broken?.passed).toBe(false);
@@ -183,7 +206,35 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     const codes = (broken?.defects ?? []).map((defect) => defect.code);
     expect(codes, JSON.stringify(broken)).toContain('reflection-missing');
     expect(codes).toContain('foam-disabled');
-    expect((broken?.images ?? []).some((image) => image.mean >= 0)).toBe(true);
+    expect((broken?.images ?? []).some((image) => image.mean > 0.02)).toBe(true);
+  });
+
+  test('seven production routes report live canvases to the fleet judgment', async ({ page }) => {
+    test.setTimeout(420_000);
+    const routes = [
+      ['/simulations/destroyer', 'destroyer'],
+      ['/simulations/lng', 'lng'],
+      ['/simulations/container', 'container'],
+      ['/simulations/icebreaker', 'icebreaker'],
+      ['/simulations/cruise', 'cruise'],
+      ['/simulations/drilling', 'drilling'],
+      ['/simulations/dredger', 'dredger'],
+    ] as const;
+    const observations = [];
+    for (const [href, consumerId] of routes) {
+      await page.goto(href, { waitUntil: 'domcontentloaded', timeout: 120_000 });
+      await page.waitForFunction(() => typeof window.__marineConsumerObservation?.collect === 'function', { timeout: 90_000 });
+      const observation = await page.evaluate(async () => window.__marineConsumerObservation?.collect());
+      expect(observation?.consumerId, href).toBe(consumerId);
+      expect(observation?.drawingBufferWidth, href).toBeGreaterThan(0);
+      expect(observation?.waveDelta, href).toBeGreaterThan(0);
+      observations.push(observation);
+    }
+    await page.goto(`${PAGE}?backend=gerstner&scene=wave-only`, { waitUntil: 'domcontentloaded' });
+    await waitForLab(page);
+    const report = await page.evaluate(async (items) => window.__marineVisualAcceptance?.judgeFleet(items), observations);
+    expect(report?.passed, JSON.stringify(report?.defects)).toBe(true);
+    expect(report?.metrics.fleetCount).toBe(7);
   });
 
   test('replays the same visual time after reset and step', async ({ page }) => {

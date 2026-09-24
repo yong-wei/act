@@ -17,6 +17,7 @@ export const MARINE_PLANAR_REFLECTION_SCENE_KEY = 'marinePlanarReflection';
 
 export interface MarinePlanarReflectionBinding {
   readonly texture: THREE.Texture;
+  readonly target: THREE.WebGLRenderTarget;
   /** 世界→反射 RT 采样的纹理矩阵（bias × projection × view）。 */
   readonly matrix: THREE.Matrix4;
   readonly strength: number;
@@ -174,6 +175,7 @@ export function MarinePlanarReflection({
 
     scene.userData[MARINE_PLANAR_REFLECTION_SCENE_KEY] = {
       texture: renderTarget.texture,
+      target: renderTarget,
       matrix: state.textureMatrix.clone(),
       strength,
       planeY,

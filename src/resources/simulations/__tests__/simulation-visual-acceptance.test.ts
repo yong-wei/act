@@ -28,6 +28,7 @@ function observation(overrides: Partial<MarineSceneObservation> = {}): MarineSce
     waveHeights: [0.2, 1.1],
     normalSlope: 0.04,
     pixelMean: 0.31,
+    reflectionPixelMean: null,
     reportedPitch: 0.02,
     contactPitch: 0.02,
     ...overrides,
@@ -50,7 +51,20 @@ describe('marine visual acceptance (#2136)', () => {
     expect(live.goldenRewritten).toBe(false);
     expect(live.crossAlgorithmPixelScore).toBeNull();
     expect(live.stillnessRewarded).toBe(false);
-    expect(live.metrics.pixelMean).toBeGreaterThan(0);
+    expect(live.metrics.pixelMean).toBeGreaterThan(0.02);
+    const blank = judgeMarineObservation(observation({ pixelMean: 0 }), {
+      reflectionRequired: false,
+      foamRequired: false,
+    });
+    expect(blank.defects.map((defect) => defect.code)).toContain('canvas-blank');
+    const darkReflection = judgeMarineObservation(observation({
+      planarReflectionStrength: 0.85,
+      reflectionPixelMean: 0,
+    }), {
+      reflectionRequired: true,
+      foamRequired: false,
+    });
+    expect(darkReflection.defects.map((defect) => defect.code)).toContain('reflection-missing');
   });
 
   it('rejects a nonblank canvas when the measured scene lost reflection, motion, foam or slope', () => {

@@ -474,10 +474,23 @@ function ComparisonLabBridge({
       const geometry = mesh && 'geometry' in mesh ? (mesh as THREE.Mesh).geometry : null;
       const position = geometry?.getAttribute('position');
       const userData = root.userData as {
-        marinePlanarReflection?: { strength?: number; texture?: unknown };
+        marinePlanarReflection?: {
+          strength?: number;
+          texture?: unknown;
+          target?: THREE.WebGLRenderTarget;
+        };
         marineFoamField?: unknown;
       };
       const planar = userData.marinePlanarReflection;
+      let reflectionPixelMean: number | null = null;
+      const reflectionTarget = planar?.target;
+      if (reflectionTarget) {
+        const sample = new Uint8Array(4);
+        const sampleX = Math.max(0, Math.floor(reflectionTarget.width / 2));
+        const sampleY = Math.max(0, Math.floor(reflectionTarget.height / 2));
+        (renderer as THREE.WebGLRenderer).readRenderTargetPixels(reflectionTarget, sampleX, sampleY, 1, 1, sample);
+        reflectionPixelMean = (sample[0]! + sample[1]! + sample[2]!) / (3 * 255);
+      }
       const heightAtRest = sampleDisplacement(0, 0, 0);
       const heightLater = sampleDisplacement(0, 0, 1.5);
       const heightBeside = sampleDisplacement(8, 0, 1.5);
@@ -513,6 +526,7 @@ function ComparisonLabBridge({
         waveHeights: [heightAtRest, heightLater],
         normalSlope: Math.abs(heightBeside - heightLater) / 8,
         pixelMean,
+        reflectionPixelMean,
         reportedPitch: pitchRef.current,
         contactPitch,
       };

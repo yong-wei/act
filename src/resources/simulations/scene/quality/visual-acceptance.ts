@@ -19,6 +19,7 @@ export interface MarineSceneObservation {
   readonly waveHeights: readonly [number, number];
   readonly normalSlope: number;
   readonly pixelMean: number;
+  readonly reflectionPixelMean: number | null;
   readonly reportedPitch: number | null;
   readonly contactPitch: number | null;
 }
@@ -46,6 +47,7 @@ export interface VisualDefect {
     | 'normal-disabled'
     | 'waterline-pitch'
     | 'canvas-empty'
+    | 'canvas-blank'
     | 'fleet-gap';
   readonly location: string;
   readonly detail: string;
@@ -127,6 +129,12 @@ export function judgeMarineObservation(
       location: 'canvas.drawingBuffer',
       detail: `${observation.drawingBufferWidth}x${observation.drawingBufferHeight}`,
     });
+  } else if (observation.pixelMean < 0.02) {
+    defects.push({
+      code: 'canvas-blank',
+      location: 'canvas.center',
+      detail: `center pixel mean ${observation.pixelMean}`,
+    });
   }
   const horizontal = observation.farField !== null && farFieldIsHorizontal(observation.farField);
   if (!observation.farField) {
@@ -142,13 +150,15 @@ export function judgeMarineObservation(
       detail: `ySpan ${observation.farField.ySpan} zSpan ${observation.farField.zSpan}`,
     });
   }
-  if (requirements.reflectionRequired && !(
-    observation.planarReflectionStrength !== null && observation.planarReflectionStrength > 0
-  )) {
+  const reflectionAttached = observation.planarReflectionStrength !== null && observation.planarReflectionStrength > 0;
+  const reflectionVisible = observation.reflectionPixelMean !== null && observation.reflectionPixelMean >= 0.02;
+  if (requirements.reflectionRequired && (!reflectionAttached || !reflectionVisible)) {
     defects.push({
       code: 'reflection-missing',
-      location: 'scene.marinePlanarReflection',
-      detail: 'planar reflection is not attached to the running scene',
+      location: 'scene.marinePlanarReflection.pixels',
+      detail: reflectionAttached
+        ? `reflection target mean ${observation.reflectionPixelMean}`
+        : 'planar reflection is not attached to the running scene',
     });
   }
   if (requirements.foamRequired && !observation.foamFieldPresent) {

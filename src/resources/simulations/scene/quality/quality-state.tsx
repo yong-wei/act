@@ -230,14 +230,21 @@ export function MarinePerformanceEvidenceProbe({
       collect: async () => {
         const input = contextInputRef.current?.();
         const context = renderer.getContext() as WebGLRenderingContext | null;
-        const started = readWaterTime(scene);
-        await new Promise((resolve) => {
-          requestAnimationFrame(() => resolve(undefined));
-        });
-        await new Promise((resolve) => {
-          requestAnimationFrame(() => resolve(undefined));
-        });
-        const later = readWaterTime(scene);
+        let started = readWaterTime(scene);
+        let later = started;
+        const deadline = performance.now() + 3000;
+        while (performance.now() < deadline) {
+          await new Promise((resolve) => {
+            requestAnimationFrame(() => resolve(undefined));
+          });
+          const sample = readWaterTime(scene);
+          if (started === null && sample !== null) {
+            started = sample;
+            continue;
+          }
+          later = sample;
+          if (started !== null && later !== null && Math.abs(later - started) > 0) break;
+        }
         return {
           consumerId: input?.vesselId ?? 'unknown',
           drawingBufferWidth: context?.drawingBufferWidth ?? 0,
