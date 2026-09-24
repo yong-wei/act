@@ -245,11 +245,34 @@ export function MarinePerformanceEvidenceProbe({
           later = sample;
           if (started !== null && later !== null && Math.abs(later - started) > 0) break;
         }
+        const width = context?.drawingBufferWidth ?? 0;
+        const height = context?.drawingBufferHeight ?? 0;
+        let pixelMean = 0;
+        if (context && width > 0 && height > 0) {
+          const pixel = new Uint8Array(4);
+          context.readPixels(
+            Math.floor(width / 2),
+            Math.floor(height / 2),
+            1,
+            1,
+            context.RGBA,
+            context.UNSIGNED_BYTE,
+            pixel,
+          );
+          pixelMean = (pixel[0]! + pixel[1]! + pixel[2]!) / (3 * 255);
+        }
+        const hull = largestShipHull(scene);
         return {
           consumerId: input?.vesselId ?? 'unknown',
-          drawingBufferWidth: context?.drawingBufferWidth ?? 0,
-          drawingBufferHeight: context?.drawingBufferHeight ?? 0,
+          drawingBufferWidth: width,
+          drawingBufferHeight: height,
+          pixelMean,
           waveDelta: started === null || later === null ? 0 : Math.abs(later - started),
+          shipRadius: hull?.radius ?? 0,
+          shipX: hull?.x ?? null,
+          shipY: hull?.y ?? null,
+          shipZ: hull?.z ?? null,
+          shipYaw: hull?.yaw ?? null,
           resolvedRoll: null,
           telemetryRoll: null,
         };
@@ -391,6 +414,39 @@ type StageDrawRenderer = OffscreenRenderer & {
   readonly info: { readonly render: { calls: number } };
 };
 
+function largestShipHull(root: THREE.Object3D): {
+  radius: number;
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+} | null {
+  let best: THREE.Object3D | null = null;
+  let bestRadius = 0;
+  root.traverse((object) => {
+    const mesh = object as THREE.Mesh;
+    if (!mesh.geometry || object.name.startsWith('marine-')) return;
+    if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
+    const radius = mesh.geometry.boundingSphere?.radius ?? 0;
+    if (radius > bestRadius) {
+      best = object;
+      bestRadius = radius;
+    }
+  });
+  if (!best || bestRadius <= 1) return null;
+  const hull = best as THREE.Object3D;
+  hull.updateWorldMatrix(true, false);
+  const position = new THREE.Vector3();
+  const quaternion = new THREE.Quaternion();
+  hull.getWorldPosition(position);
+  hull.getWorldQuaternion(quaternion);
+  const yaw = Math.atan2(
+    2 * (quaternion.w * quaternion.y + quaternion.x * quaternion.z),
+    1 - 2 * (quaternion.y * quaternion.y + quaternion.z * quaternion.z),
+  );
+  return { radius: bestRadius, x: position.x, y: position.y, z: position.z, yaw };
+}
+
 function readWaterTime(root: THREE.Object3D): number | null {
   let time: number | null = null;
   root.traverse((object) => {
@@ -477,7 +533,13 @@ declare global {
         consumerId: string;
         drawingBufferWidth: number;
         drawingBufferHeight: number;
+        pixelMean: number;
         waveDelta: number;
+        shipRadius: number;
+        shipX: number | null;
+        shipY: number | null;
+        shipZ: number | null;
+        shipYaw: number | null;
         resolvedRoll: number | null;
         telemetryRoll: number | null;
       }>;

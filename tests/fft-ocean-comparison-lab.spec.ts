@@ -70,7 +70,13 @@ declare global {
         consumerId: string;
         drawingBufferWidth: number;
         drawingBufferHeight: number;
+        pixelMean: number;
         waveDelta: number;
+        shipRadius: number;
+        shipX: number | null;
+        shipY: number | null;
+        shipZ: number | null;
+        shipYaw: number | null;
         resolvedRoll: number | null;
         telemetryRoll: number | null;
       }>) => {
@@ -84,7 +90,13 @@ declare global {
         consumerId: string;
         drawingBufferWidth: number;
         drawingBufferHeight: number;
+        pixelMean: number;
         waveDelta: number;
+        shipRadius: number;
+        shipX: number | null;
+        shipY: number | null;
+        shipZ: number | null;
+        shipYaw: number | null;
         resolvedRoll: number | null;
         telemetryRoll: number | null;
       }>;
@@ -227,7 +239,10 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
       const observation = await page.evaluate(async () => window.__marineConsumerObservation?.collect());
       expect(observation?.consumerId, href).toBe(consumerId);
       expect(observation?.drawingBufferWidth, href).toBeGreaterThan(0);
+      expect(observation?.pixelMean, href).toBeGreaterThan(0.02);
       expect(observation?.waveDelta, href).toBeGreaterThan(0);
+      expect(observation?.shipRadius, href).toBeGreaterThan(1);
+      expect(observation?.shipYaw, href).not.toBeNull();
       observations.push(observation);
     }
     await page.goto(`${PAGE}?backend=gerstner&scene=wave-only`, { waitUntil: 'domcontentloaded' });

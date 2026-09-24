@@ -33,7 +33,13 @@ export interface FleetConsumerObservation {
   readonly consumerId: string;
   readonly drawingBufferWidth: number;
   readonly drawingBufferHeight: number;
+  readonly pixelMean: number;
   readonly waveDelta: number;
+  readonly shipRadius: number;
+  readonly shipX: number | null;
+  readonly shipY: number | null;
+  readonly shipZ: number | null;
+  readonly shipYaw: number | null;
   readonly resolvedRoll: number | null;
   readonly telemetryRoll: number | null;
 }
@@ -238,6 +244,20 @@ export function judgeFleetObservations(
         code: 'canvas-empty',
         location: `fleet.${observation.consumerId}.canvas`,
         detail: `${observation.drawingBufferWidth}x${observation.drawingBufferHeight}`,
+      });
+    }
+    if (observation.pixelMean < 0.02) {
+      defects.push({
+        code: 'canvas-blank',
+        location: `fleet.${observation.consumerId}.canvas`,
+        detail: `center pixel mean ${observation.pixelMean}`,
+      });
+    }
+    if (!(observation.shipRadius > 1) || observation.shipX === null || observation.shipYaw === null) {
+      defects.push({
+        code: 'fleet-gap',
+        location: `fleet.${observation.consumerId}.hull`,
+        detail: 'ship mesh transform was not measured',
       });
     }
     if (!(observation.waveDelta > 0)) {

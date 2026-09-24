@@ -101,11 +101,24 @@ describe('marine visual acceptance (#2136)', () => {
       consumerId,
       drawingBufferWidth: 960,
       drawingBufferHeight: 540,
+      pixelMean: 0.4,
       waveDelta: 0.016,
+      shipRadius: 40,
+      shipX: 0,
+      shipY: 0,
+      shipZ: 0,
+      shipYaw: 0.2,
       resolvedRoll: consumerId === 'cruise' ? cruisePose.roll : null,
       telemetryRoll: consumerId === 'cruise' ? 0.21 : null,
     }));
-    expect(judgeFleetObservations(observations).passed).toBe(true);
+    expect(judgeFleetObservations(observations).passed, JSON.stringify(judgeFleetObservations(observations).defects)).toBe(true);
+    const black = observations.map((item) => (
+      item.consumerId === 'destroyer' ? { ...item, pixelMean: 0, shipRadius: 0, shipX: null, shipYaw: null } : item
+    ));
+    const blackReport = judgeFleetObservations(black);
+    expect(blackReport.passed).toBe(false);
+    expect(blackReport.defects.map((defect) => defect.location)).toContain('fleet.destroyer.canvas');
+    expect(blackReport.defects.map((defect) => defect.location)).toContain('fleet.destroyer.hull');
     expect(judgeFleetObservations(observations.slice(1)).defects.some((defect) => defect.location === 'fleet.destroyer')).toBe(true);
     const drifted = observations.map((item) => (
       item.consumerId === 'cruise' ? { ...item, resolvedRoll: 0.8 } : item
