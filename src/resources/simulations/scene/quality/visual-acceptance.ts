@@ -40,6 +40,7 @@ export interface FleetConsumerObservation {
   readonly shipY: number | null;
   readonly shipZ: number | null;
   readonly shipYaw: number | null;
+  readonly shipDelta: number;
   readonly resolvedRoll: number | null;
   readonly telemetryRoll: number | null;
 }
@@ -260,6 +261,13 @@ export function judgeFleetObservations(
         detail: 'ship mesh transform was not measured',
       });
     }
+    if (!(observation.shipDelta > 1e-4)) {
+      defects.push({
+        code: 'frozen-surface',
+        location: `fleet.${observation.consumerId}.hull`,
+        detail: `ship transform delta ${observation.shipDelta}`,
+      });
+    }
     if (!(observation.waveDelta > 0)) {
       defects.push({
         code: 'frozen-surface',
@@ -267,16 +275,20 @@ export function judgeFleetObservations(
         detail: 'water time did not advance',
       });
     }
-    if (
-      observation.consumerId === 'cruise'
-      && observation.telemetryRoll !== null
-      && observation.resolvedRoll !== observation.telemetryRoll
-    ) {
-      defects.push({
-        code: 'fleet-gap',
-        location: 'fleet.cruise.roll',
-        detail: 'resolved roll left the telemetry value',
-      });
+    if (observation.consumerId === 'cruise') {
+      if (observation.telemetryRoll === null || observation.resolvedRoll === null) {
+        defects.push({
+          code: 'fleet-gap',
+          location: 'fleet.cruise.roll',
+          detail: 'cruise telemetry roll was not measured',
+        });
+      } else if (Math.abs(observation.resolvedRoll - observation.telemetryRoll) > 1e-3) {
+        defects.push({
+          code: 'fleet-gap',
+          location: 'fleet.cruise.roll',
+          detail: 'resolved roll left the telemetry value',
+        });
+      }
     }
   }
   return {

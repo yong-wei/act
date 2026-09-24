@@ -268,6 +268,10 @@ function CruiseShipModel(props: {
     seaState: props.seaState,
     shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
   });
+  const scene = useThree((state) => state.scene);
+  useFrame(() => {
+    scene.userData.marineShipTelemetry = { roll: props.rollAngle };
+  });
   return (
     <VersionedFleetShip
       logicalId="luxury-liner"

@@ -77,6 +77,7 @@ declare global {
         shipY: number | null;
         shipZ: number | null;
         shipYaw: number | null;
+        shipDelta: number;
         resolvedRoll: number | null;
         telemetryRoll: number | null;
       }>) => {
@@ -97,6 +98,7 @@ declare global {
         shipY: number | null;
         shipZ: number | null;
         shipYaw: number | null;
+        shipDelta: number;
         resolvedRoll: number | null;
         telemetryRoll: number | null;
       }>;
@@ -223,6 +225,7 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
 
   test('seven production routes report live canvases to the fleet judgment', async ({ page }) => {
     test.setTimeout(420_000);
+    await page.setViewportSize({ width: 1600, height: 900 });
     const routes = [
       ['/simulations/destroyer', 'destroyer'],
       ['/simulations/lng', 'lng'],
@@ -236,6 +239,11 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     for (const [href, consumerId] of routes) {
       await page.goto(href, { waitUntil: 'domcontentloaded', timeout: 120_000 });
       await page.waitForFunction(() => typeof window.__marineConsumerObservation?.collect === 'function', { timeout: 90_000 });
+      const restore = page.locator('[data-simulation-panel-restore-handle="right"]');
+      if (await restore.count()) await restore.click();
+      const start = page.locator('[data-sound-start]');
+      await expect(start.first()).toBeVisible({ timeout: 30_000 });
+      await start.first().click();
       const observation = await page.evaluate(async () => window.__marineConsumerObservation?.collect());
       expect(observation?.consumerId, href).toBe(consumerId);
       expect(observation?.drawingBufferWidth, href).toBeGreaterThan(0);
@@ -243,6 +251,11 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
       expect(observation?.waveDelta, href).toBeGreaterThan(0);
       expect(observation?.shipRadius, href).toBeGreaterThan(1);
       expect(observation?.shipYaw, href).not.toBeNull();
+      expect(observation?.shipDelta, href).toBeGreaterThan(1e-4);
+      if (consumerId === 'cruise') {
+        expect(observation?.telemetryRoll, href).not.toBeNull();
+        expect(observation?.resolvedRoll, href).toBeCloseTo(observation?.telemetryRoll ?? 0, 3);
+      }
       observations.push(observation);
     }
     await page.goto(`${PAGE}?backend=gerstner&scene=wave-only`, { waitUntil: 'domcontentloaded' });
