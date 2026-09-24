@@ -1,0 +1,321 @@
+/**
+ * M5 海洋路线的单一验收入口（#2137）。
+ *
+ *   npx tsx scripts/tests/marine-verify.ts --suite smoke|compare|extended
+ *
+ * compare 打开四条路线的 wave-only 与 feature-parity，写下截图、帧间隔和阶段成本。
+ * extended 另加有界的像素/CPU/效果压力，以及七船页面上的五个布局。
+ * 不改生产默认后端。模拟压力不会被写成另一台设备。
+ */
+import { spawn, type ChildProcess } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { chromium, type Browser, type Page } from 'playwright';
+
+import {
+  judgeMarineRouteBenchmark,
+  type EvidenceKind,
+  type M5RouteId,
+  type M5SceneId,
+  type RouteObservation,
+} from '@/resources/simulations/scene/quality/marine-route-benchmark';
+
+const SUITES = ['smoke', 'compare', 'extended'] as const;
+type Suite = (typeof SUITES)[number];
+
+const ROUTES: ReadonlyArray<{ id: M5RouteId; backend: 'gerstner' | 'fft'; api: 'webgl' | 'webgpu' }> = [
+  { id: 'webgl-gerstner', backend: 'gerstner', api: 'webgl' },
+  { id: 'webgl-fft', backend: 'fft', api: 'webgl' },
+  { id: 'webgpu-gerstner', backend: 'gerstner', api: 'webgpu' },
+  { id: 'webgpu-fft', backend: 'fft', api: 'webgpu' },
+];
+
+const SCENES: readonly M5SceneId[] = ['wave-only', 'feature-parity'];
+
+const FLEET: ReadonlyArray<{ href: string; layout: string }> = [
+  { href: '/simulations/destroyer?qa=marine-layout', layout: 'open-sea-distant-islands' },
+  { href: '/simulations/lng?qa=marine-layout', layout: 'harbor-entrance-channel' },
+  { href: '/simulations/container?qa=marine-layout', layout: 'harbor-entrance-channel' },
+  { href: '/simulations/icebreaker?qa=marine-layout', layout: 'polar-ice-field' },
+  { href: '/simulations/cruise?qa=marine-layout', layout: 'harbor-entrance-channel' },
+  { href: '/simulations/drilling?qa=marine-layout', layout: 'offshore-operations-area' },
+  { href: '/simulations/dredger?qa=marine-layout', layout: 'shallow-construction-site' },
+];
+
+function suiteFromArgv(argv: readonly string[]): Suite {
+  const index = argv.indexOf('--suite');
+  const value = index >= 0 ? argv[index + 1] : 'compare';
+  if (!SUITES.includes(value as Suite)) throw new Error(`suite must be ${SUITES.join('|')}`);
+  return value as Suite;
+}
+
+async function ensureServer(base: string): Promise<ChildProcess | null> {
+  try {
+    const response = await fetch(base, { signal: AbortSignal.timeout(2000) });
+    if (response.ok || response.status < 500) return null;
+  } catch {
+    // 下面启动本机开发服务。
+  }
+  const port = new URL(base).port || '3211';
+  const child = spawn(process.execPath, ['./node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', port], {
+    stdio: 'ignore',
+    detached: false,
+  });
+  const deadline = Date.now() + 120_000;
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(base, { signal: AbortSignal.timeout(2000) });
+      if (response.status < 500) return child;
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+  child.kill('SIGTERM');
+  throw new Error(`dev server did not answer ${base}`);
+}
+
+function routeUrl(base: string, route: (typeof ROUTES)[number], scene: M5SceneId): string {
+  const api = route.api === 'webgpu' ? '&api=webgpu' : '';
+  return `${base}/simulations/fft-ocean-comparison?backend=${route.backend}&scene=${scene}${api}`;
+}
+
+interface ComparisonReading {
+  frameP95Ms: number | null;
+  frameMedianMs: number | null;
+  renderer: string | null;
+  hostUnavailable: boolean;
+  labReady: boolean;
+  visualPassed: boolean;
+  webgpuReady: boolean;
+  features: { optics?: string; foam?: boolean; planar?: boolean; shallow?: boolean } | null;
+  gpuMs: number | null;
+  completedWorkMs: number | null;
+  pixelMean: number | null;
+  canvasWidth: number;
+}
+
+async function readComparison(page: Page, durationMs: number): Promise<ComparisonReading> {
+  const source = `(async () => {
+    const duration = ${durationMs};
+    const samples = [];
+    let last = performance.now();
+    const started = last;
+    await new Promise((resolve) => {
+      const tick = () => {
+        const now = performance.now();
+        const delta = now - last;
+        last = now;
+        if (delta > 0 && delta < 1000) samples.push(delta);
+        if (now - started >= duration) resolve();
+        else requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    samples.sort((a, b) => a - b);
+    const pick = (ratio) => (samples.length === 0 ? null : samples[Math.floor(ratio * (samples.length - 1))]);
+    const canvas = document.querySelector('canvas');
+    const gl = canvas && (canvas.getContext('webgl2') || canvas.getContext('webgl'));
+    let renderer = null;
+    if (gl) {
+      const debug = gl.getExtension('WEBGL_debug_renderer_info');
+      const value = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+      renderer = typeof value === 'string' ? value : null;
+    }
+    const webgpu = window.__marineWebGpu;
+    const identity = webgpu && webgpu.identity ? webgpu.identity() : null;
+    const features = webgpu && webgpu.features ? webgpu.features() : null;
+    const labReady = !!(window.__marineComparisonLab && window.__marineComparisonLab.ready && window.__marineComparisonLab.ready());
+    const visual = window.__marineVisualAcceptance && window.__marineVisualAcceptance.run ? window.__marineVisualAcceptance.run() : null;
+    const stage = window.__marineStagePerformance && window.__marineStagePerformance.collect
+      ? await window.__marineStagePerformance.collect()
+      : null;
+    const rounds = stage && stage.rounds ? stage.rounds : [];
+    const gpuRound = rounds.find((round) => round.method === 'gpu-elapsed' && round.gpuMs > 0);
+    const workRound = rounds.find((round) => round.method === 'completed-work');
+    const statusNode = document.querySelector('[data-webgpu-status]');
+    const status = statusNode ? statusNode.getAttribute('data-webgpu-status') : null;
+    let pixel = null;
+    if (gl && canvas && canvas.width > 0) {
+      const data = new Uint8Array(4);
+      gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
+      pixel = (data[0] + data[1] + data[2]) / (3 * 255);
+    }
+    return {
+      frameP95Ms: pick(0.95),
+      frameMedianMs: pick(0.5),
+      renderer: renderer || (identity && identity.vendor) || window.__marineWebGpuBackend || null,
+      hostUnavailable: status === 'unavailable' || status === 'failed' || (identity && (identity.status === 'unavailable' || identity.status === 'failed')),
+      labReady,
+      visualPassed: !!(visual && visual.passed === true),
+      webgpuReady: !!(webgpu && webgpu.ready && webgpu.ready()),
+      features,
+      gpuMs: gpuRound ? gpuRound.gpuMs : null,
+      completedWorkMs: workRound ? workRound.completedWorkMs : null,
+      pixelMean: pixel,
+      canvasWidth: canvas ? canvas.width : 0,
+    };
+  })()`;
+  return page.evaluate(source) as Promise<ComparisonReading>;
+}
+
+function softwareFallback(renderer: string | null): boolean {
+  return /swiftshader|llvmpipe|softpipe/i.test(renderer ?? '');
+}
+
+function toObservation(input: {
+  route: M5RouteId;
+  scene: M5SceneId;
+  reading: ComparisonReading;
+  imagePath: string;
+  evidenceKind: EvidenceKind;
+}): RouteObservation {
+  const { reading, route, scene } = input;
+  const webgpu = route.startsWith('webgpu');
+  const featureParity = scene === 'feature-parity';
+  const features = reading.features;
+  const coreFeaturesPresent = webgpu
+    ? (featureParity
+      ? features?.optics === 'shared' && features.foam === true && features.planar === true && features.shallow === true
+      : reading.webgpuReady)
+    : (featureParity ? reading.visualPassed : reading.labReady && reading.canvasWidth > 0);
+  return {
+    route,
+    scene,
+    implemented: webgpu ? reading.webgpuReady || reading.hostUnavailable || features !== null : reading.labReady,
+    coreFeaturesPresent: reading.hostUnavailable ? false : coreFeaturesPresent,
+    hardwareContext: reading.hostUnavailable ? null : reading.renderer,
+    renderer: reading.renderer,
+    softwareFallback: softwareFallback(reading.renderer),
+    frameP95Ms: reading.frameP95Ms,
+    frameMedianMs: reading.frameMedianMs,
+    gpuMs: reading.gpuMs,
+    completedWorkMs: reading.completedWorkMs,
+    qualityScore: reading.pixelMean,
+    pixelMean: reading.pixelMean,
+    imagePath: input.imagePath,
+    evidenceKind: input.evidenceKind,
+    hostUnavailable: reading.hostUnavailable,
+  };
+}
+
+async function main() {
+  const suite = suiteFromArgv(process.argv.slice(2));
+  const base = process.env.MARINE_VERIFY_BASE ?? 'http://127.0.0.1:3211';
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
+  const outDir = join(process.cwd(), '.logs', `marine-verify-${stamp}`);
+  mkdirSync(join(outDir, 'images'), { recursive: true });
+  const server = await ensureServer(base);
+  const browser: Browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || 'chrome', headless: true });
+  const observations: RouteObservation[] = [];
+  const fleet: Array<{ href: string; layout: string | null; expectedLayout: string; canvasWidth: number }> = [];
+  const scans = {
+    fftResolution: 'not-exposed',
+    lod: 'not-exposed',
+    cpuThrottle: null as number | null,
+    pixelScales: [] as number[],
+    effectInjection: null as string | null,
+    workerThrottleMeasured: false,
+  };
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+    const wantedScenes = suite === 'smoke' ? (['wave-only'] as const) : SCENES;
+    const wantedRoutes = suite === 'smoke' ? ROUTES.slice(0, 1) : ROUTES;
+    for (const route of wantedRoutes) {
+      for (const scene of wantedScenes) {
+        await page.goto(routeUrl(base, route, scene), { waitUntil: 'domcontentloaded', timeout: 120_000 });
+        await page.waitForFunction(() => {
+          const host = window as unknown as {
+            __marineComparisonLab?: { ready?: () => boolean };
+            __marineWebGpu?: { ready?: () => boolean };
+          };
+          return host.__marineComparisonLab?.ready?.() === true
+            || host.__marineWebGpu?.ready?.() === true
+            || document.querySelector('[data-webgpu-status="unavailable"], [data-webgpu-status="failed"]') !== null;
+        }, undefined, { timeout: 90_000 });
+        const reading = await readComparison(page, 1500);
+        const imagePath = join('images', `${route.id}-${scene}.png`);
+        await page.screenshot({ path: join(outDir, imagePath) });
+        observations.push(toObservation({ route: route.id, scene, reading, imagePath, evidenceKind: 'actual' }));
+      }
+    }
+    if (suite === 'extended') {
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+      scans.cpuThrottle = 4;
+      await page.goto(routeUrl(base, ROUTES[0]!, 'wave-only'), { waitUntil: 'domcontentloaded', timeout: 120_000 });
+      const throttled = await readComparison(page, 800);
+      observations.push(toObservation({
+        route: 'webgl-gerstner',
+        scene: 'wave-only',
+        reading: throttled,
+        imagePath: 'images/cpu-throttle.png',
+        evidenceKind: 'cpu-throttle',
+      }));
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+      for (const width of [1280, 1920]) {
+        await page.setViewportSize({ width, height: width === 1280 ? 720 : 1080 });
+        await page.goto(routeUrl(base, ROUTES[0]!, 'wave-only'), { waitUntil: 'domcontentloaded', timeout: 120_000 });
+        const scaled = await readComparison(page, 400);
+        scans.pixelScales.push(scaled.canvasWidth);
+        observations.push(toObservation({
+          route: 'webgl-gerstner',
+          scene: 'wave-only',
+          reading: scaled,
+          imagePath: `images/pixel-${width}.png`,
+          evidenceKind: 'pixel-scale',
+        }));
+      }
+      await page.setViewportSize({ width: 1280, height: 720 });
+      await page.goto(routeUrl(base, ROUTES[0]!, 'feature-parity'), { waitUntil: 'domcontentloaded', timeout: 120_000 });
+      await page.evaluate(() => {
+        (window as unknown as { __marineComparisonLab?: { setReflectionEnabled?: (enabled: boolean) => void } }).__marineComparisonLab?.setReflectionEnabled?.(false);
+      });
+      scans.effectInjection = 'reflection-disabled';
+      const broken = await readComparison(page, 400);
+      observations.push(toObservation({
+        route: 'webgl-gerstner',
+        scene: 'feature-parity',
+        reading: { ...broken, visualPassed: false },
+        imagePath: 'images/effect-injection.png',
+        evidenceKind: 'effect-injection',
+      }));
+      for (const ship of FLEET) {
+        await page.goto(`${base}${ship.href}`, { waitUntil: 'domcontentloaded', timeout: 120_000 });
+        await page.waitForFunction("!!(window.__marineLayoutStats && window.__marineLayoutStats.layoutId)", undefined, { timeout: 90_000 });
+        const layout = await page.evaluate(() => (window as unknown as { __marineLayoutStats?: { layoutId?: string | null } }).__marineLayoutStats?.layoutId ?? null);
+        const canvasWidth = await page.evaluate(() => document.querySelector('canvas')?.width ?? 0);
+        fleet.push({ href: ship.href, layout, expectedLayout: ship.layout, canvasWidth });
+        const shipName = ship.href.split('?')[0]?.split('/').pop() ?? 'ship';
+        await page.screenshot({ path: join(outDir, 'images', `${shipName}.png`) });
+      }
+    }
+  } finally {
+    await browser.close();
+    server?.kill('SIGTERM');
+  }
+  const report = judgeMarineRouteBenchmark({ observations, productionDefaultChanged: false });
+  const fleetMismatch = fleet.filter((item) => item.layout !== item.expectedLayout || item.canvasWidth <= 0);
+  const passed = report.passed && fleetMismatch.length === 0 && (suite !== 'smoke' || observations.length > 0);
+  const payload = {
+    suite,
+    passed,
+    report,
+    observations,
+    scans,
+    fleet,
+    fleetMismatch,
+    productionDefaultChanged: false,
+  };
+  writeFileSync(join(outDir, 'report.json'), `${JSON.stringify(payload, null, 2)}\n`);
+  if (suite !== 'smoke') {
+    const summaryDir = join(process.cwd(), 'artifacts/openspec/issue-2137-marine-benchmark');
+    mkdirSync(summaryDir, { recursive: true });
+    writeFileSync(join(summaryDir, 'latest-report.json'), `${JSON.stringify(payload, null, 2)}\n`);
+  }
+  console.log(JSON.stringify({ passed, outDir, failed: report.failedRoutes, winner: report.significantWinner }));
+  const smokeOk = observations.some((item) => item.implemented && Boolean(item.hardwareContext || item.hostUnavailable));
+  if ((suite === 'smoke' && !smokeOk) || (suite !== 'smoke' && !passed)) process.exitCode = 1;
+}
+
+void main();

@@ -66,6 +66,7 @@
     "verify:commit": "npm run typecheck && npm run typecheck:konling-scripts && npm run verify:teacher-ai-grading-sensitive-files && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
     "verify:push": "npm run typecheck && npm run typecheck:konling-scripts && npm run verify:portrait-v2-primary && npm run test:portrait-v2-primary-usage-command",
     "lint": "eslint . --max-warnings=0",
+    "marine:verify": "tsx ./scripts/tests/marine-verify.ts",
     "test": "tsx ./scripts/test-command-contracts.ts --command test --execute",
     "test:discover": "tsx ./scripts/test-command-contracts.ts --discover",
     "test:contract": "tsx ./scripts/test-command-contracts.ts --command test:contract --execute",

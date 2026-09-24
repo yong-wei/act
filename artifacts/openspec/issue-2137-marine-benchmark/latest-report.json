@@ -1,0 +1,342 @@
+{
+  "suite": "extended",
+  "passed": true,
+  "report": {
+    "passed": true,
+    "productionDefaultChanged": false,
+    "adoption": "not-adopted",
+    "hardwareContext": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "historicalDeviceGate": "本轮声明主机是 M5。#2103/#2104/#2120 的低端或移动真机条目保留为历史外部覆盖，不阻塞本轮，也不把模拟压力写成另一台设备。",
+    "failedRoutes": [],
+    "rankedByMethod": {
+      "gpu-elapsed": [
+        {
+          "route": "webgl-gerstner",
+          "scene": "wave-only",
+          "method": "gpu-elapsed",
+          "costMs": 1.092874,
+          "qualityScore": 0.6562091503267974
+        },
+        {
+          "route": "webgl-gerstner",
+          "scene": "feature-parity",
+          "method": "gpu-elapsed",
+          "costMs": 2.691625,
+          "qualityScore": 0.6549019607843137
+        },
+        {
+          "route": "webgl-fft",
+          "scene": "wave-only",
+          "method": "gpu-elapsed",
+          "costMs": 11.3155,
+          "qualityScore": 0.657516339869281
+        },
+        {
+          "route": "webgl-fft",
+          "scene": "feature-parity",
+          "method": "gpu-elapsed",
+          "costMs": 15.989334,
+          "qualityScore": 0.5686274509803921
+        }
+      ],
+      "completed-work": [],
+      "frame-interval": []
+    },
+    "pareto": [
+      {
+        "route": "webgl-gerstner",
+        "scene": "wave-only",
+        "method": "gpu-elapsed",
+        "costMs": 1.092874,
+        "qualityScore": 0.6562091503267974
+      },
+      {
+        "route": "webgl-gerstner",
+        "scene": "feature-parity",
+        "method": "gpu-elapsed",
+        "costMs": 2.691625,
+        "qualityScore": 0.6549019607843137
+      }
+    ],
+    "significantWinner": "webgl-gerstner",
+    "uncertainty": "两个场景里，过了质量门槛的同一路线 GPU 耗时都比其余实测路线低 10% 以上。这是建议，不改生产默认。",
+    "simulatedSamples": 4,
+    "softwareFallbackSamples": 0,
+    "unavailableRoutes": []
+  },
+  "observations": [
+    {
+      "route": "webgl-gerstner",
+      "scene": "wave-only",
+      "implemented": true,
+      "coreFeaturesPresent": true,
+      "hardwareContext": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "softwareFallback": false,
+      "frameP95Ms": 18.299999713897705,
+      "frameMedianMs": 16.59999990463257,
+      "gpuMs": 1.092874,
+      "completedWorkMs": null,
+      "qualityScore": 0.6562091503267974,
+      "pixelMean": 0.6562091503267974,
+      "imagePath": "images/webgl-gerstner-wave-only.png",
+      "evidenceKind": "actual",
+      "hostUnavailable": null
+    },
+    {
+      "route": "webgl-gerstner",
+      "scene": "feature-parity",
+      "implemented": true,
+      "coreFeaturesPresent": true,
+      "hardwareContext": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "softwareFallback": false,
+      "frameP95Ms": 20.09999990463257,
+      "frameMedianMs": 16.200000286102295,
+      "gpuMs": 2.691625,
+      "completedWorkMs": null,
+      "qualityScore": 0.6549019607843137,
+      "pixelMean": 0.6549019607843137,
+      "imagePath": "images/webgl-gerstner-feature-parity.png",
+      "evidenceKind": "actual",
+      "hostUnavailable": null
+    },
+    {
+      "route": "webgl-fft",
+      "scene": "wave-only",
+      "implemented": true,
+      "coreFeaturesPresent": true,
+      "hardwareContext": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "softwareFallback": false,
+      "frameP95Ms": 18.199999809265137,
+      "frameMedianMs": 16.699999809265137,
+      "gpuMs": 11.3155,
+      "completedWorkMs": null,
+      "qualityScore": 0.657516339869281,
+      "pixelMean": 0.657516339869281,
+      "imagePath": "images/webgl-fft-wave-only.png",
+      "evidenceKind": "actual",
+      "hostUnavailable": null
+    },
+    {
+      "route": "webgl-fft",
+      "scene": "feature-parity",
+      "implemented": true,
+      "coreFeaturesPresent": true,
+      "hardwareContext": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "softwareFallback": false,
+      "frameP95Ms": 23.699999809265137,
+      "frameMedianMs": 16.600000381469727,
+      "gpuMs": 15.989334,
+      "completedWorkMs": null,
+      "qualityScore": 0.5686274509803921,
+      "pixelMean": 0.5686274509803921,
+      "imagePath": "images/webgl-fft-feature-parity.png",
+      "evidenceKind": "actual",
+      "hostUnavailable": null
+    },
+    {
+      "route": "webgpu-gerstner",
+      "scene": "wave-only",
+      "implemented": true,
+      "coreFeaturesPresent": true,
+      "hardwareContext": "apple",
+      "renderer": "apple",
+      "softwareFallback": false,
+      "frameP95Ms": 18.700000286102295,
+      "frameMedianMs": 16.699999809265137,
+      "gpuMs": 0.32768,
+      "completedWorkMs": 38.5,
+      "qualityScore": null,
+      "pixelMean": null,
+      "imagePath": "images/webgpu-gerstner-wave-only.png",
+      "evidenceKind": "actual",
+      "hostUnavailable": false
+    },
+    {
+      "route": "webgpu-gerstner",
+      "scene": "feature-parity",
+      "implemented": true,
+      "coreFeaturesPresent": true,
+      "hardwareContext": "apple",
+      "renderer": "apple",
+      "softwareFallback": false,
+      "frameP95Ms": 18.600000381469727,
+      "frameMedianMs": 16.5,
+      "gpuMs": 1.4417920000000002,
+      "completedWorkMs": null,
+      "qualityScore": null,
+      "pixelMean": null,
+      "imagePath": "images/webgpu-gerstner-feature-parity.png",
+      "evidenceKind": "actual",
+      "hostUnavailable": false
+    },
+    {
+      "route": "webgpu-fft",
+      "scene": "wave-only",
+      "implemented": true,
+      "coreFeaturesPresent": true,
+      "hardwareContext": "apple",
+      "renderer": "apple",
+      "softwareFallback": false,
+      "frameP95Ms": 28.59999990463257,
+      "frameMedianMs": 16.699999809265137,
+      "gpuMs": null,
+      "completedWorkMs": 411,
+      "qualityScore": null,
+      "pixelMean": null,
+      "imagePath": "images/webgpu-fft-wave-only.png",
+      "evidenceKind": "actual",
+      "hostUnavailable": false
+    },
+    {
+      "route": "webgpu-fft",
+      "scene": "feature-parity",
+      "implemented": true,
+      "coreFeaturesPresent": true,
+      "hardwareContext": "apple",
+      "renderer": "apple",
+      "softwareFallback": false,
+      "frameP95Ms": 29.40000009536743,
+      "frameMedianMs": 16.40000009536743,
+      "gpuMs": null,
+      "completedWorkMs": 385.2000002861023,
+      "qualityScore": null,
+      "pixelMean": null,
+      "imagePath": "images/webgpu-fft-feature-parity.png",
+      "evidenceKind": "actual",
+      "hostUnavailable": false
+    },
+    {
+      "route": "webgl-gerstner",
+      "scene": "wave-only",
+      "implemented": false,
+      "coreFeaturesPresent": false,
+      "hardwareContext": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "softwareFallback": false,
+      "frameP95Ms": 85.89999961853027,
+      "frameMedianMs": 20.800000190734863,
+      "gpuMs": null,
+      "completedWorkMs": null,
+      "qualityScore": 0,
+      "pixelMean": 0,
+      "imagePath": "images/cpu-throttle.png",
+      "evidenceKind": "cpu-throttle",
+      "hostUnavailable": null
+    },
+    {
+      "route": "webgl-gerstner",
+      "scene": "wave-only",
+      "implemented": false,
+      "coreFeaturesPresent": false,
+      "hardwareContext": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "softwareFallback": false,
+      "frameP95Ms": 24.699999809265137,
+      "frameMedianMs": 16.59999990463257,
+      "gpuMs": null,
+      "completedWorkMs": null,
+      "qualityScore": 0,
+      "pixelMean": 0,
+      "imagePath": "images/pixel-1280.png",
+      "evidenceKind": "pixel-scale",
+      "hostUnavailable": null
+    },
+    {
+      "route": "webgl-gerstner",
+      "scene": "wave-only",
+      "implemented": false,
+      "coreFeaturesPresent": false,
+      "hardwareContext": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "softwareFallback": false,
+      "frameP95Ms": 25.300000190734863,
+      "frameMedianMs": 16.5,
+      "gpuMs": null,
+      "completedWorkMs": null,
+      "qualityScore": 0,
+      "pixelMean": 0,
+      "imagePath": "images/pixel-1920.png",
+      "evidenceKind": "pixel-scale",
+      "hostUnavailable": null
+    },
+    {
+      "route": "webgl-gerstner",
+      "scene": "feature-parity",
+      "implemented": false,
+      "coreFeaturesPresent": false,
+      "hardwareContext": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "softwareFallback": false,
+      "frameP95Ms": 21.300000190734863,
+      "frameMedianMs": 16.699999809265137,
+      "gpuMs": null,
+      "completedWorkMs": null,
+      "qualityScore": 0,
+      "pixelMean": 0,
+      "imagePath": "images/effect-injection.png",
+      "evidenceKind": "effect-injection",
+      "hostUnavailable": null
+    }
+  ],
+  "scans": {
+    "fftResolution": "not-exposed",
+    "lod": "not-exposed",
+    "cpuThrottle": 4,
+    "pixelScales": [
+      1280,
+      1920
+    ],
+    "effectInjection": "reflection-disabled",
+    "workerThrottleMeasured": false
+  },
+  "fleet": [
+    {
+      "href": "/simulations/destroyer?qa=marine-layout",
+      "layout": "open-sea-distant-islands",
+      "expectedLayout": "open-sea-distant-islands",
+      "canvasWidth": 1158
+    },
+    {
+      "href": "/simulations/lng?qa=marine-layout",
+      "layout": "harbor-entrance-channel",
+      "expectedLayout": "harbor-entrance-channel",
+      "canvasWidth": 1158
+    },
+    {
+      "href": "/simulations/container?qa=marine-layout",
+      "layout": "harbor-entrance-channel",
+      "expectedLayout": "harbor-entrance-channel",
+      "canvasWidth": 1158
+    },
+    {
+      "href": "/simulations/icebreaker?qa=marine-layout",
+      "layout": "polar-ice-field",
+      "expectedLayout": "polar-ice-field",
+      "canvasWidth": 1158
+    },
+    {
+      "href": "/simulations/cruise?qa=marine-layout",
+      "layout": "harbor-entrance-channel",
+      "expectedLayout": "harbor-entrance-channel",
+      "canvasWidth": 1158
+    },
+    {
+      "href": "/simulations/drilling?qa=marine-layout",
+      "layout": "offshore-operations-area",
+      "expectedLayout": "offshore-operations-area",
+      "canvasWidth": 1158
+    },
+    {
+      "href": "/simulations/dredger?qa=marine-layout",
+      "layout": "shallow-construction-site",
+      "expectedLayout": "shallow-construction-site",
+      "canvasWidth": 1158
+    }
+  ],
+  "fleetMismatch": [],
+  "productionDefaultChanged": false
+}

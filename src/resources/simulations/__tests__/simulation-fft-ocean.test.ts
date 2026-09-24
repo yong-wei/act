@@ -389,5 +389,7 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(script).toContain('measurementsPath');
     expect(script).toContain('readFileSync(measurementsPath');
     expect(script).toContain('不重写空模板');
+    expect(script).toContain('MARINE_HARDWARE_CONTEXT');
+    expect(script).not.toContain('hardwareContext: null');
   });
 });

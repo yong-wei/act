@@ -238,8 +238,8 @@ export default function WebGpuComparisonClient({
       } : null,
       features: () => ({
         optics: feature.optics,
-        ibl: false,
-        planar: false,
+        ibl: feature.ibl,
+        planar: feature.planar,
         foam: feature.foam && feature.optics === 'shared',
         shallow: feature.shallow,
         fallbackToWebGL: false,
