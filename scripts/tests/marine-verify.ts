@@ -207,7 +207,9 @@ async function main() {
     fftResolutions: [] as number[],
     lods: [] as string[],
     cpuRates: [] as number[],
-    workerCheckRan: false,
+    workerAt1Ms: null as number | null,
+    workerAt4Ms: null as number | null,
+    workerScope: null as 'worker-limited' | 'main-thread-only' | null,
     pixelScales: [] as number[],
     effectInjection: null as string | null,
     workerThrottleMeasured: false,
@@ -253,16 +255,19 @@ async function main() {
       }
       const workerAt = async (rate: number) => {
         await cdp.send('Emulation.setCPUThrottlingRate', { rate });
-        return page.evaluate(`new Promise((resolve) => {
+        const elapsed = await page.evaluate(`new Promise((resolve) => {
           const worker = new Worker(URL.createObjectURL(new Blob([
-            'self.onmessage=()=>{const start=performance.now();while(performance.now()-start<40){}postMessage(performance.now()-start)}'
+            'self.onmessage=(event)=>{let x=0;const n=event.data|0;for(let i=0;i<n;i+=1){x=(Math.imul(x,1664525)+1013904223)>>>0}postMessage(x)}'
           ], { type: 'text/javascript' })));
-          worker.onmessage = (event) => { worker.terminate(); resolve(event.data); };
+          const started = performance.now();
+          worker.onmessage = () => { const ms = performance.now() - started; worker.terminate(); resolve(ms); };
+          worker.postMessage(4000000);
         })`);
+        return typeof elapsed === 'number' ? elapsed : Number.NaN;
       };
-      await workerAt(1);
-      await workerAt(4);
-      scans.workerCheckRan = true;
+      scans.workerAt1Ms = await workerAt(1);
+      scans.workerAt4Ms = await workerAt(4);
+      scans.workerScope = scans.workerAt4Ms > scans.workerAt1Ms * 1.5 ? 'worker-limited' : 'main-thread-only';
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
       for (const width of [1280, 1920, 2560, 3840]) {
         const height = width === 1280 ? 720 : width === 1920 ? 1080 : width === 2560 ? 1440 : 2160;
@@ -323,7 +328,8 @@ async function main() {
       observations,
       pixelScales: scans.pixelScales,
       cpuRates: scans.cpuRates,
-      workerCheckRan: scans.workerCheckRan,
+      workerAt1Ms: scans.workerAt1Ms,
+      workerAt4Ms: scans.workerAt4Ms,
       fftResolutions: scans.fftResolutions,
       lods: scans.lods,
       fleet,

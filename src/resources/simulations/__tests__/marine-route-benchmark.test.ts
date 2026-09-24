@@ -124,7 +124,8 @@ describe('marine route benchmark (#2137)', () => {
       cpuRates: [4],
       fftResolutions: [256],
       lods: ['low'],
-      workerCheckRan: false,
+      workerAt1Ms: null,
+      workerAt4Ms: null,
       fleet: [{ layout: null, expectedLayout: 'open-sea-distant-islands', canvasWidth: 0 }],
     })).toEqual(expect.arrayContaining(['cpu-throttle', 'pixel-scale', 'worker-throttle', 'fft-resolution', 'lod', 'fleet-layout']));
     expect(extendedCoverageFailures({
@@ -133,7 +134,8 @@ describe('marine route benchmark (#2137)', () => {
       cpuRates: [1, 4, 6],
       fftResolutions: [128, 256, 512],
       lods: ['low', 'high'],
-      workerCheckRan: true,
+      workerAt1Ms: 12,
+      workerAt4Ms: 12,
       fleet: [{ layout: 'open-sea-distant-islands', expectedLayout: 'open-sea-distant-islands', canvasWidth: 1280 }],
     })).toEqual([]);
   });

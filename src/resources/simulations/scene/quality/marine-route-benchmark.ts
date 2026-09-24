@@ -204,7 +204,8 @@ export function extendedCoverageFailures(input: {
   readonly cpuRates: readonly number[];
   readonly fftResolutions: readonly number[];
   readonly lods: readonly string[];
-  readonly workerCheckRan: boolean;
+  readonly workerAt1Ms: number | null;
+  readonly workerAt4Ms: number | null;
   readonly fleet: readonly { readonly layout: string | null; readonly expectedLayout: string; readonly canvasWidth: number }[];
 }): readonly string[] {
   const failures: string[] = [];
@@ -217,7 +218,9 @@ export function extendedCoverageFailures(input: {
   if (new Set(input.pixelScales.filter((width) => width > 0)).size < 4 || pixels.length < 4 || pixels.some((item) => !item.implemented)) {
     failures.push('pixel-scale');
   }
-  if (!input.workerCheckRan) failures.push('worker-throttle');
+  if (!Number.isFinite(input.workerAt1Ms) || !Number.isFinite(input.workerAt4Ms) || (input.workerAt1Ms ?? 0) <= 0 || (input.workerAt4Ms ?? 0) <= 0) {
+    failures.push('worker-throttle');
+  }
   if (effect.length === 0 || effect.some((item) => item.coreFeaturesPresent || !item.implemented)) {
     failures.push('effect-injection');
   }
