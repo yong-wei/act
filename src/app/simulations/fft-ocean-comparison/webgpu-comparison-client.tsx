@@ -121,11 +121,13 @@ function WaterMesh({
 function WebGpuOcean({
   backend,
   scene,
+  resolution,
   onField,
   onFieldError,
 }: {
   readonly backend: ComparisonBackend;
   readonly scene: ComparisonSceneId;
+  readonly resolution: 128 | 256 | 512;
   readonly onField: (field: WebGpuOceanField) => void;
   readonly onFieldError: (message: string) => void;
 }) {
@@ -142,7 +144,7 @@ function WebGpuOcean({
     void computeWebGpuOceanField(renderer, backend === 'fft'
       ? {
         algorithm: 'fft',
-        spectrum: fftOceanStaticSpectrum(FFT_SPECTRUM),
+        spectrum: fftOceanStaticSpectrum({ ...FFT_SPECTRUM, resolution }),
         domainMeters: FFT_SPECTRUM.domainMeters,
         timeSeconds,
       }
@@ -171,7 +173,7 @@ function WebGpuOcean({
         const next = await computeWebGpuOceanField(renderer, backend === 'fft'
           ? {
             algorithm: 'fft',
-            spectrum: fftOceanStaticSpectrum(FFT_SPECTRUM),
+            spectrum: fftOceanStaticSpectrum({ ...FFT_SPECTRUM, resolution }),
             domainMeters: FFT_SPECTRUM.domainMeters,
             timeSeconds,
           }
@@ -203,9 +205,13 @@ function WebGpuOcean({
 export default function WebGpuComparisonClient({
   backend,
   scene,
+  resolution = 256,
+  lod = null,
 }: {
   readonly backend: ComparisonBackend;
   readonly scene: ComparisonSceneId;
+  readonly resolution?: 128 | 256 | 512;
+  readonly lod?: 'low' | 'medium' | 'high' | null;
 }) {
   const [identity, setIdentity] = useState<MarineWebGpuIdentity | null>(null);
   const [field, setField] = useState<WebGpuOceanField | null>(null);
@@ -238,8 +244,8 @@ export default function WebGpuComparisonClient({
       } : null,
       features: () => ({
         optics: feature.optics,
-        ibl: false,
-        planar: false,
+        ibl: feature.ibl,
+        planar: feature.planar,
         foam: feature.foam && feature.optics === 'shared',
         shallow: feature.shallow,
         fallbackToWebGL: false,
@@ -271,6 +277,8 @@ export default function WebGpuComparisonClient({
           data-backend={backend}
           data-scene={scene}
           data-route={route}
+          data-fft-resolution={resolution}
+          data-lod={lod ?? (scene === 'feature-parity' ? 'high' : 'low')}
           data-fallback="false"
         >
           WebGPU {backend === 'fft' ? 'FFT' : 'Gerstner 控制组'} / {scene}
@@ -289,7 +297,7 @@ export default function WebGpuComparisonClient({
           <PerspectiveCamera makeDefault position={[0, 40, 180]} fov={55} />
           <ambientLight intensity={0.4} />
           <directionalLight position={[40, 80, 30]} intensity={1.5} />
-          <WebGpuOcean backend={backend} scene={scene} onField={setField} onFieldError={setComputeError} />
+          <WebGpuOcean backend={backend} scene={scene} resolution={resolution} onField={setField} onFieldError={setComputeError} />
           <MarineStagePerformanceProbe />
           <FarFieldRing />
           <WebGpuVessel />

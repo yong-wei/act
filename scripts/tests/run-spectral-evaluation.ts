@@ -51,7 +51,7 @@ const report = evaluateSpectralBackends({
     'FFT 候选的级联频带覆盖与解析波组的手调频带边界不同（差异不归因给后端）',
     'WebGPU 候选的着色器语言差异（WGSL/TSL）与现有 post 栈兼容性未验证',
   ],
-  hardwareContext: null,
+  hardwareContext: process.env.MARINE_HARDWARE_CONTEXT?.trim() || null,
 });
 
 const out = process.argv[2] ?? 'artifacts/openspec/issue-2105-spectral/evidence/spectral-evaluation-report.json';

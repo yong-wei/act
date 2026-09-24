@@ -148,6 +148,19 @@ export function parseComparisonScene(value: string | undefined): ComparisonScene
   return value === 'feature-parity' ? 'feature-parity' : 'wave-only';
 }
 
+export type ComparisonFftResolution = 128 | 256 | 512;
+export type ComparisonLod = 'low' | 'medium' | 'high';
+
+export function parseComparisonResolution(value: string | undefined): ComparisonFftResolution {
+  if (value === '128' || value === '512') return Number(value) as ComparisonFftResolution;
+  return 256;
+}
+
+export function parseComparisonLod(value: string | undefined): ComparisonLod | null {
+  if (value === 'low' || value === 'medium' || value === 'high') return value;
+  return null;
+}
+
 export function comparisonFarFieldRing(
   nearFieldSizeMeters = COMPARISON_NEAR_FIELD_SIZE_METERS,
   farFieldSizeMeters = COMPARISON_FAR_FIELD_SIZE_METERS,
