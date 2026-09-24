@@ -253,20 +253,35 @@ async function main() {
           evidenceKind: 'cpu-throttle',
         }));
       }
-      const workerAt = async (rate: number) => {
-        await cdp.send('Emulation.setCPUThrottlingRate', { rate });
-        const elapsed = await page.evaluate(`new Promise((resolve) => {
-          const worker = new Worker(URL.createObjectURL(new Blob([
-            'self.onmessage=(event)=>{const n=event.data|0;const start=performance.now();let x=0;for(let i=0;i<n;i+=1){x=(Math.imul(x,1664525)+1013904223)>>>0}postMessage(performance.now()-start)}'
-          ], { type: 'text/javascript' })));
-          worker.onmessage = (event) => { worker.terminate(); resolve(event.data); };
-          worker.postMessage(4000000);
-        })`);
-        return typeof elapsed === 'number' ? elapsed : Number.NaN;
+      await page.evaluate(`(() => {
+        const worker = new Worker(URL.createObjectURL(new Blob([
+          'self.onmessage=(event)=>{const n=event.data|0;const start=performance.now();let x=0;for(let i=0;i<n;i+=1){x=(Math.imul(x,1664525)+1013904223)>>>0}postMessage(performance.now()-start)}'
+        ], { type: 'text/javascript' })));
+        window.__marineWorkerBench = {
+          once() {
+            return new Promise((resolve) => {
+              worker.onmessage = (event) => resolve(event.data);
+              worker.postMessage(4000000);
+            });
+          },
+          stop() { worker.terminate(); },
+        };
+      })()`);
+      const workerMedian = async () => {
+        const values: number[] = [];
+        for (let index = 0; index < 3; index += 1) {
+          const elapsed = await page.evaluate('window.__marineWorkerBench.once()');
+          values.push(typeof elapsed === 'number' ? elapsed : Number.NaN);
+        }
+        values.sort((left, right) => left - right);
+        return values[1] ?? Number.NaN;
       };
-      await workerAt(1);
-      scans.workerAt1Ms = await workerAt(1);
-      scans.workerAt4Ms = await workerAt(4);
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+      await page.evaluate('window.__marineWorkerBench.once()');
+      scans.workerAt1Ms = await workerMedian();
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+      scans.workerAt4Ms = await workerMedian();
+      await page.evaluate('window.__marineWorkerBench.stop()');
       scans.workerScope = scans.workerAt4Ms > scans.workerAt1Ms * 1.5 ? 'worker-limited' : 'main-thread-only';
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
       for (const width of [1280, 1920, 2560, 3840]) {
