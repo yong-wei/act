@@ -40,7 +40,10 @@ export interface FleetConsumerObservation {
   readonly shipY: number | null;
   readonly shipZ: number | null;
   readonly shipYaw: number | null;
-  readonly shipDelta: number;
+  readonly horizontalDelta: number;
+  readonly yawDelta: number;
+  readonly rollDelta: number;
+  readonly propulsionDelta: number;
   readonly resolvedRoll: number | null;
   readonly telemetryRoll: number | null;
 }
@@ -261,11 +264,11 @@ export function judgeFleetObservations(
         detail: 'ship mesh transform was not measured',
       });
     }
-    if (!(observation.shipDelta > 1e-4)) {
+    if (!(observation.horizontalDelta > 1e-4) && !(observation.yawDelta > 1e-4) && !(observation.propulsionDelta > 1e-4)) {
       defects.push({
         code: 'frozen-surface',
         location: `fleet.${observation.consumerId}.hull`,
-        detail: `ship transform delta ${observation.shipDelta}`,
+        detail: `ship dynamics horizontal ${observation.horizontalDelta} yaw ${observation.yawDelta} propulsion ${observation.propulsionDelta}`,
       });
     }
     if (!(observation.waveDelta > 0)) {
@@ -287,6 +290,13 @@ export function judgeFleetObservations(
           code: 'fleet-gap',
           location: 'fleet.cruise.roll',
           detail: 'resolved roll left the telemetry value',
+        });
+      }
+      if (!(observation.rollDelta > 1e-4)) {
+        defects.push({
+          code: 'frozen-surface',
+          location: 'fleet.cruise.roll',
+          detail: `cruise roll delta ${observation.rollDelta}`,
         });
       }
     }

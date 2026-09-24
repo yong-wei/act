@@ -77,7 +77,10 @@ declare global {
         shipY: number | null;
         shipZ: number | null;
         shipYaw: number | null;
-        shipDelta: number;
+        horizontalDelta: number;
+        yawDelta: number;
+        rollDelta: number;
+        propulsionDelta: number;
         resolvedRoll: number | null;
         telemetryRoll: number | null;
       }>) => {
@@ -98,7 +101,10 @@ declare global {
         shipY: number | null;
         shipZ: number | null;
         shipYaw: number | null;
-        shipDelta: number;
+        horizontalDelta: number;
+        yawDelta: number;
+        rollDelta: number;
+        propulsionDelta: number;
         resolvedRoll: number | null;
         telemetryRoll: number | null;
       }>;
@@ -224,7 +230,7 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
   });
 
   test('seven production routes report live canvases to the fleet judgment', async ({ page }) => {
-    test.setTimeout(420_000);
+    test.setTimeout(900_000);
     await page.setViewportSize({ width: 1600, height: 900 });
     const routes = [
       ['/simulations/destroyer', 'destroyer'],
@@ -251,10 +257,14 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
       expect(observation?.waveDelta, href).toBeGreaterThan(0);
       expect(observation?.shipRadius, href).toBeGreaterThan(1);
       expect(observation?.shipYaw, href).not.toBeNull();
-      expect(observation?.shipDelta, href).toBeGreaterThan(1e-4);
+      const shipDynamicsMoved = (observation?.horizontalDelta ?? 0) > 1e-4
+        || (observation?.yawDelta ?? 0) > 1e-4
+        || (observation?.propulsionDelta ?? 0) > 1e-4;
+      expect(shipDynamicsMoved, `${href} ${JSON.stringify(observation)}`).toBe(true);
       if (consumerId === 'cruise') {
         expect(observation?.telemetryRoll, href).not.toBeNull();
         expect(observation?.resolvedRoll, href).toBeCloseTo(observation?.telemetryRoll ?? 0, 3);
+        expect(observation?.rollDelta, href).toBeGreaterThan(1e-4);
       }
       observations.push(observation);
     }

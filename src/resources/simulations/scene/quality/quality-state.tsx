@@ -234,7 +234,7 @@ export function MarinePerformanceEvidenceProbe({
         let later = started;
         let hull = readFleetShip(scene);
         let firstHull = hull && hull.radius > 1 ? hull : null;
-        const deadline = performance.now() + 20000;
+        const deadline = performance.now() + 12000;
         while (performance.now() < deadline) {
           await new Promise((resolve) => {
             requestAnimationFrame(() => resolve(undefined));
@@ -251,8 +251,10 @@ export function MarinePerformanceEvidenceProbe({
             continue;
           }
           const moved = started !== null && later !== null && Math.abs(later - started) > 0;
-          const shipMoved = firstHull && hull ? poseSeparation(firstHull, hull) > 1e-4 : false;
-          if (moved && shipMoved) break;
+          const channels = firstHull && hull ? poseChannels(firstHull, hull) : null;
+          const navigation = Boolean(channels && (channels.horizontalDelta > 1e-4 || channels.yawDelta > 1e-4 || channels.propulsionDelta > 1e-4));
+          const cruiseRollReady = input?.vesselId !== 'cruise' || Boolean(channels && channels.rollDelta > 1e-4);
+          if (moved && navigation && cruiseRollReady) break;
         }
         const width = context?.drawingBufferWidth ?? 0;
         const height = context?.drawingBufferHeight ?? 0;
@@ -272,7 +274,9 @@ export function MarinePerformanceEvidenceProbe({
         }
         const settledHull = hull ?? readFleetShip(scene);
         const telemetry = (scene.userData as { marineShipTelemetry?: { roll?: number } }).marineShipTelemetry;
-        const shipDelta = firstHull && settledHull ? poseSeparation(firstHull, settledHull) : 0;
+        const channels = firstHull && settledHull
+          ? poseChannels(firstHull, settledHull)
+          : { horizontalDelta: 0, yawDelta: 0, pitchDelta: 0, rollDelta: 0, propulsionDelta: 0 };
         return {
           consumerId: input?.vesselId ?? 'unknown',
           drawingBufferWidth: width,
@@ -284,7 +288,10 @@ export function MarinePerformanceEvidenceProbe({
           shipY: settledHull?.y ?? null,
           shipZ: settledHull?.z ?? null,
           shipYaw: settledHull?.yaw ?? null,
-          shipDelta,
+          horizontalDelta: channels.horizontalDelta,
+          yawDelta: channels.yawDelta,
+          rollDelta: channels.rollDelta,
+          propulsionDelta: channels.propulsionDelta,
           resolvedRoll: settledHull?.roll ?? null,
           telemetryRoll: typeof telemetry?.roll === 'number' ? telemetry.roll : null,
         };
@@ -434,6 +441,7 @@ function readFleetShip(root: THREE.Object3D): {
   yaw: number;
   pitch: number;
   roll: number;
+  propulsionAngle: number | null;
 } | null {
   const hull = root.getObjectByName('fleet-ship-root');
   if (!hull) return null;
@@ -465,22 +473,25 @@ function readFleetShip(root: THREE.Object3D): {
     yaw,
     pitch: hull.rotation.x,
     roll: hull.rotation.z,
+    propulsionAngle: hull.getObjectByName('TJ_CUTTER')?.rotation.x ?? null,
   };
 }
 
-function poseSeparation(
-  first: { x: number; y: number; z: number; yaw: number; pitch: number; roll: number },
-  later: { x: number; y: number; z: number; yaw: number; pitch: number; roll: number },
-): number {
-  const wrap = (delta: number) => Math.atan2(Math.sin(delta), Math.cos(delta));
-  return Math.hypot(
-    later.x - first.x,
-    later.y - first.y,
-    later.z - first.z,
-    wrap(later.yaw - first.yaw),
-    wrap(later.pitch - first.pitch),
-    wrap(later.roll - first.roll),
-  );
+function poseChannels(
+  first: { x: number; z: number; yaw: number; pitch: number; roll: number; propulsionAngle: number | null },
+  later: { x: number; z: number; yaw: number; pitch: number; roll: number; propulsionAngle: number | null },
+): { horizontalDelta: number; yawDelta: number; pitchDelta: number; rollDelta: number; propulsionDelta: number } {
+  const wrap = (delta: number) => Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta)));
+  const propulsionDelta = first.propulsionAngle === null || later.propulsionAngle === null
+    ? 0
+    : wrap(later.propulsionAngle - first.propulsionAngle);
+  return {
+    horizontalDelta: Math.hypot(later.x - first.x, later.z - first.z),
+    yawDelta: wrap(later.yaw - first.yaw),
+    pitchDelta: wrap(later.pitch - first.pitch),
+    rollDelta: wrap(later.roll - first.roll),
+    propulsionDelta,
+  };
 }
 
 function readWaterTime(root: THREE.Object3D): number | null {
@@ -576,7 +587,10 @@ declare global {
         shipY: number | null;
         shipZ: number | null;
         shipYaw: number | null;
-        shipDelta: number;
+        horizontalDelta: number;
+        yawDelta: number;
+        rollDelta: number;
+        propulsionDelta: number;
         resolvedRoll: number | null;
         telemetryRoll: number | null;
       }>;

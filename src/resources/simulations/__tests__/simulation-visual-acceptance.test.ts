@@ -108,7 +108,10 @@ describe('marine visual acceptance (#2136)', () => {
       shipY: 0,
       shipZ: 0,
       shipYaw: 0.2,
-      shipDelta: 0.05,
+      horizontalDelta: 0.05,
+      yawDelta: 0,
+      rollDelta: consumerId === 'cruise' ? 0.02 : 0,
+      propulsionDelta: 0,
       resolvedRoll: consumerId === 'cruise' ? cruisePose.roll : null,
       telemetryRoll: consumerId === 'cruise' ? 0.21 : null,
     }));
@@ -125,12 +128,22 @@ describe('marine visual acceptance (#2136)', () => {
       item.consumerId === 'cruise' ? { ...item, resolvedRoll: 0.8 } : item
     ));
     expect(judgeFleetObservations(drifted).defects.some((defect) => defect.location === 'fleet.cruise.roll')).toBe(true);
-    const frozen = observations.map((item) => ({ ...item, shipDelta: 0 }));
+    const stationKeeping = observations.map((item) => (
+      item.consumerId === 'dredger'
+        ? { ...item, horizontalDelta: 0, yawDelta: 0, propulsionDelta: 0.4 }
+        : item
+    ));
+    expect(judgeFleetObservations(stationKeeping).passed, JSON.stringify(judgeFleetObservations(stationKeeping).defects)).toBe(true);
+    const frozen = observations.map((item) => ({ ...item, horizontalDelta: 0, yawDelta: 0, propulsionDelta: 0 }));
     expect(judgeFleetObservations(frozen).defects.some((defect) => defect.code === 'frozen-surface' && defect.location === 'fleet.destroyer.hull')).toBe(true);
     const skippedRoll = observations.map((item) => (
       item.consumerId === 'cruise' ? { ...item, resolvedRoll: null, telemetryRoll: null } : item
     ));
     expect(judgeFleetObservations(skippedRoll).defects.some((defect) => defect.location === 'fleet.cruise.roll')).toBe(true);
+    const stillRoll = observations.map((item) => (
+      item.consumerId === 'cruise' ? { ...item, rollDelta: 0 } : item
+    ));
+    expect(judgeFleetObservations(stillRoll).defects.some((defect) => defect.code === 'frozen-surface' && defect.location === 'fleet.cruise.roll')).toBe(true);
   });
 
   it('does not rewrite a golden image unless review explicitly allows it', () => {
