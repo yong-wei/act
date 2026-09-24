@@ -119,6 +119,7 @@ export interface ComparisonLabApi {
   readonly identity: () => ComparisonLabIdentity;
   readonly queryMetrics: () => ComparisonQueryMetrics | null;
   readonly setShallowEnabled: (enabled: boolean) => void;
+  readonly setReflectionEnabled: (enabled: boolean) => void;
   readonly optics: () => ComparisonOpticsState;
 }
 

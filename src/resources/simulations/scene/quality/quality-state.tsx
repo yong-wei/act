@@ -14,6 +14,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
 import { buildMarinePerformanceReport } from './performance-evidence';
+import { shipHeadingChannel } from './visual-acceptance';
 import {
   marineGpuTimerPassActive,
   marineGpuTimerStartWindow,
@@ -226,6 +227,82 @@ export function MarinePerformanceEvidenceProbe({
   const contextInputRef = useRef(contextInput);
   contextInputRef.current = contextInput;
   useEffect(() => {
+    window.__marineConsumerObservation = {
+      collect: async () => {
+        const input = contextInputRef.current?.();
+        const context = renderer.getContext() as WebGLRenderingContext | null;
+        let started = readWaterTime(scene);
+        let later = started;
+        let hull = readFleetShip(scene);
+        let firstHull = hull && hull.radius > 1 ? hull : null;
+        const deadline = performance.now() + 12000;
+        while (performance.now() < deadline) {
+          await new Promise((resolve) => {
+            requestAnimationFrame(() => resolve(undefined));
+          });
+          const sample = readWaterTime(scene);
+          if (started === null && sample !== null) {
+            started = sample;
+            continue;
+          }
+          later = sample;
+          hull = readFleetShip(scene);
+          if (!firstHull && hull && hull.radius > 1) {
+            firstHull = hull;
+            continue;
+          }
+          const moved = started !== null && later !== null && Math.abs(later - started) > 0;
+          const channels = firstHull && hull ? poseChannels(firstHull, hull) : null;
+          const navigation = Boolean(channels && (channels.horizontalDelta > 1e-4 || channels.yawDelta > 1e-4 || channels.propulsionDelta > 1e-4));
+          const cruiseRollReady = input?.vesselId !== 'cruise' || Boolean(channels && channels.rollDelta > 1e-4);
+          if (moved && navigation && cruiseRollReady) break;
+        }
+        const width = context?.drawingBufferWidth ?? 0;
+        const height = context?.drawingBufferHeight ?? 0;
+        let pixelMean = 0;
+        if (context && width > 0 && height > 0) {
+          const pixel = new Uint8Array(4);
+          context.readPixels(
+            Math.floor(width / 2),
+            Math.floor(height / 2),
+            1,
+            1,
+            context.RGBA,
+            context.UNSIGNED_BYTE,
+            pixel,
+          );
+          pixelMean = (pixel[0]! + pixel[1]! + pixel[2]!) / (3 * 255);
+        }
+        const settledHull = hull ?? readFleetShip(scene);
+        const telemetry = (scene.userData as { marineShipTelemetry?: { roll?: number } }).marineShipTelemetry;
+        const channels = firstHull && settledHull
+          ? poseChannels(firstHull, settledHull)
+          : { horizontalDelta: 0, yawDelta: 0, pitchDelta: 0, rollDelta: 0, propulsionDelta: 0 };
+        return {
+          consumerId: input?.vesselId ?? 'unknown',
+          drawingBufferWidth: width,
+          drawingBufferHeight: height,
+          pixelMean,
+          waveDelta: started === null || later === null ? 0 : Math.abs(later - started),
+          shipRadius: settledHull?.radius ?? 0,
+          shipX: settledHull?.x ?? null,
+          shipY: settledHull?.y ?? null,
+          shipZ: settledHull?.z ?? null,
+          shipYaw: settledHull?.yaw ?? null,
+          horizontalDelta: channels.horizontalDelta,
+          yawDelta: channels.yawDelta,
+          rollDelta: channels.rollDelta,
+          propulsionDelta: channels.propulsionDelta,
+          resolvedRoll: settledHull?.roll ?? null,
+          telemetryRoll: typeof telemetry?.roll === 'number' ? telemetry.roll : null,
+        };
+      },
+    };
+    return () => {
+      delete window.__marineConsumerObservation;
+    };
+  }, [renderer, scene]);
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     // QA 入口（复审对齐）：既有帧契约入口 marine-frame 与本采集入口 marine-performance 均接受。
     const qaParams = new URLSearchParams(window.location.search).getAll('qa');
@@ -357,6 +434,73 @@ type StageDrawRenderer = OffscreenRenderer & {
   readonly info: { readonly render: { calls: number } };
 };
 
+function readFleetShip(root: THREE.Object3D): {
+  radius: number;
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  pitch: number;
+  roll: number;
+  propulsionAngle: number | null;
+} | null {
+  const hull = root.getObjectByName('fleet-ship-root');
+  if (!hull) return null;
+  let bestRadius = 0;
+  hull.traverse((object) => {
+    const mesh = object as THREE.Mesh;
+    if (!mesh.geometry) return;
+    if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
+    bestRadius = Math.max(bestRadius, mesh.geometry.boundingSphere?.radius ?? 0);
+  });
+  hull.updateWorldMatrix(true, false);
+  const scale = new THREE.Vector3();
+  hull.getWorldScale(scale);
+  const radius = bestRadius * Math.max(Math.abs(scale.x), Math.abs(scale.y), Math.abs(scale.z), 1);
+  if (radius <= 1) return null;
+  const position = new THREE.Vector3();
+  hull.getWorldPosition(position);
+  return {
+    radius,
+    x: position.x,
+    y: position.y,
+    z: position.z,
+    yaw: shipHeadingChannel(hull.rotation.y),
+    pitch: hull.rotation.x,
+    roll: hull.rotation.z,
+    propulsionAngle: hull.getObjectByName('TJ_CUTTER')?.rotation.x ?? null,
+  };
+}
+
+function poseChannels(
+  first: { x: number; z: number; yaw: number; pitch: number; roll: number; propulsionAngle: number | null },
+  later: { x: number; z: number; yaw: number; pitch: number; roll: number; propulsionAngle: number | null },
+): { horizontalDelta: number; yawDelta: number; pitchDelta: number; rollDelta: number; propulsionDelta: number } {
+  const wrap = (delta: number) => Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta)));
+  const propulsionDelta = first.propulsionAngle === null || later.propulsionAngle === null
+    ? 0
+    : wrap(later.propulsionAngle - first.propulsionAngle);
+  return {
+    horizontalDelta: Math.hypot(later.x - first.x, later.z - first.z),
+    yawDelta: wrap(later.yaw - first.yaw),
+    pitchDelta: wrap(later.pitch - first.pitch),
+    rollDelta: wrap(later.roll - first.roll),
+    propulsionDelta,
+  };
+}
+
+function readWaterTime(root: THREE.Object3D): number | null {
+  let time: number | null = null;
+  root.traverse((object) => {
+    const material = (object as THREE.Mesh).material;
+    if (!material || Array.isArray(material)) return;
+    const uniforms = (material as THREE.ShaderMaterial).uniforms;
+    const value = uniforms?.uTime?.value;
+    if (typeof value === 'number') time = value;
+  });
+  return time;
+}
+
 async function renderOffscreenStage(renderer: StageDrawRenderer, scene: object, camera: object): Promise<void> {
   const targets: THREE.WebGLRenderTarget[] = [];
   try {
@@ -425,6 +569,26 @@ declare global {
       stageTimer(): StageTimerDescription & { readonly latest: TimingSample | null };
       read(): ReturnType<typeof buildMarinePerformanceReport>;
       sampleCount(): number;
+    };
+    __marineConsumerObservation?: {
+      collect(): Promise<{
+        consumerId: string;
+        drawingBufferWidth: number;
+        drawingBufferHeight: number;
+        pixelMean: number;
+        waveDelta: number;
+        shipRadius: number;
+        shipX: number | null;
+        shipY: number | null;
+        shipZ: number | null;
+        shipYaw: number | null;
+        horizontalDelta: number;
+        yawDelta: number;
+        rollDelta: number;
+        propulsionDelta: number;
+        resolvedRoll: number | null;
+        telemetryRoll: number | null;
+      }>;
     };
     __marineStagePerformance?: {
       describe(): StageTimerDescription;

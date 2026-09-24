@@ -19,6 +19,7 @@ declare global {
       step: (dtSeconds: number) => void;
       setRunMode: (mode: 'performance' | 'visual') => void;
       setShallowEnabled?: (enabled: boolean) => void;
+      setReflectionEnabled?: (enabled: boolean) => void;
       optics?: () => {
         profile: 'neutral' | 'shared';
         shallowEnabled: boolean;
@@ -49,6 +50,64 @@ declare global {
         vesselFallback: boolean;
         firstFrameReady: boolean;
       };
+    };
+    __marineVisualAcceptance?: {
+      run: () => {
+        passed: boolean;
+        beautyScore: null;
+        goldenRewritten: boolean;
+        crossAlgorithmPixelScore: null;
+        stillnessRewarded: boolean;
+        defects: Array<{ code: string; location: string }>;
+        metrics: { farFieldHorizontal: boolean; waveMotion: number; pixelMean: number };
+        images: Array<{ mean: number }>;
+      };
+      breakFarField: () => void;
+      clearReflection: () => void;
+      clearFoam: () => void;
+      reflectionEnabled?: () => boolean;
+      judgeFleet: (observations: Array<{
+        consumerId: string;
+        drawingBufferWidth: number;
+        drawingBufferHeight: number;
+        pixelMean: number;
+        waveDelta: number;
+        shipRadius: number;
+        shipX: number | null;
+        shipY: number | null;
+        shipZ: number | null;
+        shipYaw: number | null;
+        horizontalDelta: number;
+        yawDelta: number;
+        rollDelta: number;
+        propulsionDelta: number;
+        resolvedRoll: number | null;
+        telemetryRoll: number | null;
+      }>) => {
+        passed: boolean;
+        defects: Array<{ code: string; location: string }>;
+        metrics: { fleetCount: number };
+      };
+    };
+    __marineConsumerObservation?: {
+      collect: () => Promise<{
+        consumerId: string;
+        drawingBufferWidth: number;
+        drawingBufferHeight: number;
+        pixelMean: number;
+        waveDelta: number;
+        shipRadius: number;
+        shipX: number | null;
+        shipY: number | null;
+        shipZ: number | null;
+        shipYaw: number | null;
+        horizontalDelta: number;
+        yawDelta: number;
+        rollDelta: number;
+        propulsionDelta: number;
+        resolvedRoll: number | null;
+        telemetryRoll: number | null;
+      }>;
     };
     __marineStagePerformance?: {
       collect: () => Promise<{
@@ -127,6 +186,93 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
       if (round.method === 'completed-work') expect(round.gpuMs).toBeNull();
       if (round.method === 'gpu-elapsed') expect(round.gpuMs).toBeGreaterThan(0);
     }
+  });
+
+  test('visual acceptance reads the live far field and rejects a broken mesh', async ({ page }) => {
+    await page.goto(`${PAGE}?backend=gerstner&scene=wave-only`, { waitUntil: 'domcontentloaded' });
+    await waitForLab(page);
+    const live = await page.evaluate(() => window.__marineVisualAcceptance?.run());
+    expect(live?.passed, JSON.stringify(live?.defects)).toBe(true);
+    expect(live?.beautyScore).toBeNull();
+    expect(live?.goldenRewritten).toBe(false);
+    expect(live?.crossAlgorithmPixelScore).toBeNull();
+    expect(live?.stillnessRewarded).toBe(false);
+    expect(live?.metrics.farFieldHorizontal).toBe(true);
+    expect(live?.metrics.waveMotion).toBeGreaterThan(0);
+    expect(live?.metrics.pixelMean).toBeGreaterThan(0.02);
+    await page.evaluate(() => window.__marineVisualAcceptance?.breakFarField());
+    const broken = await page.evaluate(() => window.__marineVisualAcceptance?.run());
+    expect(broken?.passed).toBe(false);
+    expect(broken?.defects.map((defect) => defect.code)).toContain('vertical-far-field');
+    expect(broken?.defects.some((defect) => defect.location === 'far-field.position')).toBe(true);
+    expect(broken?.goldenRewritten).toBe(false);
+  });
+
+  test('feature-parity acceptance fails when the running reflection is removed', async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.goto(`${PAGE}?backend=gerstner&scene=feature-parity`, { waitUntil: 'domcontentloaded' });
+    await waitForLab(page);
+    await page.waitForFunction(() => window.__marineVisualAcceptance?.run()?.passed === true, { timeout: 90_000 });
+    await page.evaluate(() => {
+      window.__marineComparisonLab?.setReflectionEnabled?.(false);
+      window.__marineVisualAcceptance?.clearFoam();
+    });
+    await page.waitForFunction(() => window.__marineVisualAcceptance?.reflectionEnabled?.() === false);
+    await page.evaluate(() => new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve(undefined)));
+    }));
+    const broken = await page.evaluate(() => window.__marineVisualAcceptance?.run());
+    expect(broken?.passed, JSON.stringify(broken)).toBe(false);
+    const codes = (broken?.defects ?? []).map((defect) => defect.code);
+    expect(codes, JSON.stringify(broken)).toContain('reflection-missing');
+    expect(codes).toContain('foam-disabled');
+    expect((broken?.images ?? []).some((image) => image.mean > 0.02)).toBe(true);
+  });
+
+  test('seven production routes report live canvases to the fleet judgment', async ({ page }) => {
+    test.setTimeout(900_000);
+    await page.setViewportSize({ width: 1600, height: 900 });
+    const routes = [
+      ['/simulations/destroyer', 'destroyer'],
+      ['/simulations/lng', 'lng'],
+      ['/simulations/container', 'container'],
+      ['/simulations/icebreaker', 'icebreaker'],
+      ['/simulations/cruise', 'cruise'],
+      ['/simulations/drilling', 'drilling'],
+      ['/simulations/dredger', 'dredger'],
+    ] as const;
+    const observations = [];
+    for (const [href, consumerId] of routes) {
+      await page.goto(href, { waitUntil: 'domcontentloaded', timeout: 120_000 });
+      await page.waitForFunction(() => typeof window.__marineConsumerObservation?.collect === 'function', { timeout: 90_000 });
+      const restore = page.locator('[data-simulation-panel-restore-handle="right"]');
+      if (await restore.count()) await restore.click();
+      const start = page.locator('[data-sound-start]');
+      await expect(start.first()).toBeVisible({ timeout: 30_000 });
+      await start.first().click();
+      const observation = await page.evaluate(async () => window.__marineConsumerObservation?.collect());
+      expect(observation?.consumerId, href).toBe(consumerId);
+      expect(observation?.drawingBufferWidth, href).toBeGreaterThan(0);
+      expect(observation?.pixelMean, href).toBeGreaterThan(0.02);
+      expect(observation?.waveDelta, href).toBeGreaterThan(0);
+      expect(observation?.shipRadius, href).toBeGreaterThan(1);
+      expect(observation?.shipYaw, href).not.toBeNull();
+      const shipDynamicsMoved = (observation?.horizontalDelta ?? 0) > 1e-4
+        || (observation?.yawDelta ?? 0) > 1e-4
+        || (observation?.propulsionDelta ?? 0) > 1e-4;
+      expect(shipDynamicsMoved, `${href} ${JSON.stringify(observation)}`).toBe(true);
+      if (consumerId === 'cruise') {
+        expect(observation?.telemetryRoll, href).not.toBeNull();
+        expect(observation?.resolvedRoll, href).toBeCloseTo(observation?.telemetryRoll ?? 0, 3);
+        expect(observation?.rollDelta, href).toBeGreaterThan(1e-4);
+      }
+      observations.push(observation);
+    }
+    await page.goto(`${PAGE}?backend=gerstner&scene=wave-only`, { waitUntil: 'domcontentloaded' });
+    await waitForLab(page);
+    const report = await page.evaluate(async (items) => window.__marineVisualAcceptance?.judgeFleet(items), observations);
+    expect(report?.passed, JSON.stringify(report?.defects)).toBe(true);
+    expect(report?.metrics.fleetCount).toBe(7);
   });
 
   test('replays the same visual time after reset and step', async ({ page }) => {
