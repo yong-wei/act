@@ -9,6 +9,7 @@ import {
   judgeFleetObservations,
   judgeMarineObservation,
   measurePositionSpans,
+  shipHeadingChannel,
   type MarineSceneObservation,
 } from '@/resources/simulations/scene/quality/visual-acceptance';
 
@@ -144,6 +145,19 @@ describe('marine visual acceptance (#2136)', () => {
       item.consumerId === 'cruise' ? { ...item, rollDelta: 0 } : item
     ));
     expect(judgeFleetObservations(stillRoll).defects.some((defect) => defect.code === 'frozen-surface' && defect.location === 'fleet.cruise.roll')).toBe(true);
+  });
+
+  it('reads heading from the XYZ yaw channel so roll cannot impersonate it', () => {
+    const hull = new THREE.Group();
+    hull.rotation.set(0, 0.4, 0);
+    hull.rotation.z = 0.55;
+    const quaternion = hull.quaternion;
+    const coupledYaw = Math.atan2(
+      2 * (quaternion.w * quaternion.y + quaternion.x * quaternion.z),
+      1 - 2 * (quaternion.y * quaternion.y + quaternion.z * quaternion.z),
+    );
+    expect(shipHeadingChannel(hull.rotation.y)).toBeCloseTo(0.4);
+    expect(Math.abs(coupledYaw - hull.rotation.y)).toBeGreaterThan(1e-3);
   });
 
   it('does not rewrite a golden image unless review explicitly allows it', () => {

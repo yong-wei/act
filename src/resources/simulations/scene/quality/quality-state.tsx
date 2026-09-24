@@ -14,6 +14,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
 import { buildMarinePerformanceReport } from './performance-evidence';
+import { shipHeadingChannel } from './visual-acceptance';
 import {
   marineGpuTimerPassActive,
   marineGpuTimerStartWindow,
@@ -458,19 +459,13 @@ function readFleetShip(root: THREE.Object3D): {
   const radius = bestRadius * Math.max(Math.abs(scale.x), Math.abs(scale.y), Math.abs(scale.z), 1);
   if (radius <= 1) return null;
   const position = new THREE.Vector3();
-  const quaternion = new THREE.Quaternion();
   hull.getWorldPosition(position);
-  hull.getWorldQuaternion(quaternion);
-  const yaw = Math.atan2(
-    2 * (quaternion.w * quaternion.y + quaternion.x * quaternion.z),
-    1 - 2 * (quaternion.y * quaternion.y + quaternion.z * quaternion.z),
-  );
   return {
     radius,
     x: position.x,
     y: position.y,
     z: position.z,
-    yaw,
+    yaw: shipHeadingChannel(hull.rotation.y),
     pitch: hull.rotation.x,
     roll: hull.rotation.z,
     propulsionAngle: hull.getObjectByName('TJ_CUTTER')?.rotation.x ?? null,

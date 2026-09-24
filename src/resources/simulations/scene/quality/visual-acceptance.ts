@@ -48,6 +48,11 @@ export interface FleetConsumerObservation {
   readonly telemetryRoll: number | null;
 }
 
+/** 船根按 XYZ 欧拉把航向写在 rotation.y。横摇留在 rotation.z，不能从四元数反解航向。 */
+export function shipHeadingChannel(rotationY: number): number {
+  return rotationY;
+}
+
 export interface VisualDefect {
   readonly code:
     | 'vertical-far-field'
