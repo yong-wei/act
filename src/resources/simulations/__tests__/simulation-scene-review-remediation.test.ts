@@ -8,12 +8,12 @@ const WAKE_TRAIL = path.join(process.cwd(), 'src/resources/simulations/scene/wak
 
 describe('review remediation: wake lifecycle and speed semantics', () => {
   const rigFunctionBlock = (destroyer: string) =>
-    destroyer.slice(destroyer.indexOf('function WakeTrailRig'), destroyer.indexOf('declare global'));
+    destroyer.slice(destroyer.indexOf('function PresetWater'), destroyer.indexOf('function GridHelper'));
 
   it('remounts the wake trail on the simulation reset token so stale particles and path length clear', () => {
     const destroyer = readFileSync(DESTROYER, 'utf8');
     expect(destroyer).toContain('resetToken={resetToken}');
-    const rigBlock = destroyer.slice(destroyer.indexOf('<WakeTrailRig'), destroyer.indexOf('<WakeTrailRig') + 200);
+    const rigBlock = destroyer.slice(destroyer.indexOf('<MarineWater'), destroyer.indexOf('<MarineWater') + 200);
     expect(rigBlock).toContain('resetToken');
     const rigFn = rigFunctionBlock(destroyer);
     expect(rigFn).toContain('resetToken');

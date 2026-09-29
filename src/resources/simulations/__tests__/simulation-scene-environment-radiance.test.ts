@@ -146,8 +146,8 @@ describe('environment scene and fleet wiring (#2099 source contracts)', () => {
     expect(source).toContain('sunLight.position.copy(frame.lightPosition);');
     expect(source).toContain('sunTarget.position.copy(frame.targetPosition);');
     expect(source).toContain('sunLight.target = sunTarget;');
-    expect(source).toContain('shadow-camera-left={-MARINE_SHADOW_BOUNDS_METERS}');
-    expect(source).toContain(`shadow-bias={-0.0004}`);
+    expect(source).toContain('left: -MARINE_SHADOW_BOUNDS_METERS');
+    expect(source).toContain(`shadow.bias = -0.0004`);
     expect(String(MARINE_SHADOW_BOUNDS_METERS)).toBe('260');
     expect(String(MARINE_ENVIRONMENT_IBL_INTENSITY)).toBe('0.85');
   });

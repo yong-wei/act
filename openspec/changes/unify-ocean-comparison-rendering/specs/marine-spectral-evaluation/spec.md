@@ -54,3 +54,19 @@ Both graphics APIs SHALL share surface-breaking foam generation, accumulation, a
 - **WHEN** playback pauses, resets or seeks
 - **THEN** histories freeze, clear or deterministically rebuild with bounded per-frame work
 - **AND** whole-field readback remains diagnostic-only
+
+### Requirement: Production marine scenes share the spectral ocean
+All seven vessel simulations and their active embedded consumers SHALL default to the shared FFT surface, moving-pressure ship waves and persistent foam, with vessel-specific inputs and unchanged authoritative dynamics.
+
+#### Scenario: A vessel turns
+- **WHEN** an active simulation changes vessel heading and position
+- **THEN** its pressure source follows the actual vessel while previous waves and foam retain world-space history
+- **AND** water contact queries consume the rendered surface rather than the replaced Gerstner field
+
+### Requirement: Automatic graphics selection preserves feature parity
+Automatic mode SHALL select WebGPU only when adapter capability and initialization satisfy the shared renderer requirements, and SHALL fall back to WebGL on unavailability or initialization failure.
+
+#### Scenario: Native WebGPU is unavailable
+- **WHEN** adapter acquisition or device initialization fails
+- **THEN** the scene initializes the same FFT, wake, foam and optical implementation with WebGL and exposes its actual backend
+- **AND** existing vessel controls, environment and camera remain available

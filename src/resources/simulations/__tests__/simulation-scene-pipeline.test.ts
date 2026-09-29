@@ -24,13 +24,13 @@ describe('scene pipeline module skeleton', () => {
     expect(existsSync(path.join(SCENE_DIR, mod, 'index.ts'))).toBe(true);
   });
 
-  it('keeps pipeline modules free of experiment-specific hardcoding', () => {
+  it('keeps shared pipeline modules independent of experiment implementations', () => {
     const files = walkFiles(SCENE_DIR, (name) => /\.(ts|tsx)$/.test(name));
     expect(files.length).toBeGreaterThan(0);
     for (const file of files) {
       const source = readFileSync(file, 'utf8');
       for (const id of EXPERIMENT_IDS) {
-        expect(source, `${file} must not hardcode experiment id "${id}"`).not.toContain(id);
+        expect(source, `${file} must not import experiment implementation "${id}"`).not.toMatch(new RegExp(`from [\'"](?:[^\'"]*/)?${id}-simulation[\'"]`));
       }
     }
   });

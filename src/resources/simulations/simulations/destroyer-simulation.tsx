@@ -1,4 +1,5 @@
 'use client';
+import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-line';
 
 /**
  * 055型驱逐舰航向控制仿真
@@ -6,10 +7,12 @@
  */
 
 import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Line, useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/drei';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { MarineCanvas } from '../scene/marine-canvas';
+import { MarineWater } from '../scene/water/marine-water';
 import { SimulationClock } from '@/lib/simulation';
 import {
   advanceAttainment,
@@ -62,7 +65,6 @@ import {
   createNearFieldSurfaceQuery,
   DEFAULT_GERSTNER_SEA_STATE,
   gerstnerAmplitudeScale,
-  GerstnerWater,
   nearFieldEnvelope,
   NEAR_FIELD_MESH_SPEC,
   NEAR_FIELD_VISIBLE_WAVES,
@@ -79,11 +81,6 @@ import {
   MarineFrameProvider,
   useMarineFrameRunner,
 } from '../scene/frame/marine-frame-provider';
-import {
-  allocateWakeCapacities,
-  WakeTrail,
-  wakeSceneCapacityForTier,
-} from '../scene/wake';
 import {
   EnvironmentScene,
   MarineSceneLayoutObjects,
@@ -422,12 +419,14 @@ function PresetWater({ simRef, resetToken }: { simRef: React.MutableRefObject<Si
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
-    <GerstnerWater
+    <MarineWater
+      worldSpeedSampler={() => simRef.current.advancing ? simRef.current.speedMps : 0}
+      vesselLengthMeters={180} vesselBeamMeters={20}
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })}
       hullExclusionSampler={() => DESTROYER_055_HULL_EXCLUSION}
-      shipHeadingSampler={() => simRef.current.headingRad}
+      shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(simRef.current.headingRad))}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
@@ -536,106 +535,6 @@ type PropWakeAnchorsRef = React.MutableRefObject<{
   port: THREE.Vector3 | null;
   starboard: THREE.Vector3 | null;
 }>;
-
-/** 尾迹粒子场桥接：逐帧喂入船位/航向与 Gerstner 波面高度（采样点=船位=海面跟随中心）。 */
-function WakeTrailRig({
-  simRef,
-  playing,
-  resetToken,
-  propWakeRef,
-}: {
-  simRef: React.MutableRefObject<SimulationState>;
-  playing: boolean;
-  resetToken: number;
-  propWakeRef: PropWakeAnchorsRef;
-}) {
-  const { wakeVisible } = useSceneEnvironment();
-  const environmentLight = useEnvironmentWaterColors();
-  const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const { tier, params } = useSceneQuality();
-
-  // 版本化包声明推进器时逐桨一条航迹；无声明（旧链/回退）保持 profile 单航迹。
-  const descriptor = matchActivatedType055Package(resolveVersionedDefault('destroyer'));
-  const propulsorAnchors = descriptor
-    ? propulsorSceneAnchors(descriptor, destroyer055SceneVisual.shipLengthMeters)
-    : [];
-
-  // 全场容量硬预算（#2115）：多桨共用场景总容量（分配与活跃均 Σ≤总容量），
-  // 份额仍只驱动发射分布（budgetShare）——两者互补，不再各分整档容量。
-  // propulsorAnchors 每渲染由描述符查表重建；分配只依赖数量与档位，按其缓存。
-  const propulsorCount = propulsorAnchors.length;
-  const propulsorCapacities = useMemo(
-    () => allocateWakeCapacities(
-      new Array(Math.max(1, propulsorCount)).fill(1 / Math.max(1, propulsorCount)),
-      wakeSceneCapacityForTier(tier),
-    ),
-    [propulsorCount, tier],
-  );
-
-  useFrame((state) => {
-    const sim = simRef.current;
-    transformRef.current.position = [sim.position.x, sim.position.y, sim.position.z];
-    transformRef.current.heading = platformHeadingToSceneRad(toDegrees(sim.headingRad));
-  });
-
-  // 尾迹贴水（#2098）：近场可见曲面（带限波组 + 包络，档位无关），与 GPU 近场网格同参数。
-  // 每帧（时间/原点键）只构建一次查询：本帧全部粒子共享同一角点缓存（复审修复）。
-  // 七轮复审修复：缓存 Hook 必须位于 wakeVisible 提前返回之前（条件返回后 Hook 数量不得变化）。
-  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义。
-  const waterYSampler = useNearFieldWaterHeight({
-    positionSampler: () => ({ x: simRef.current.position.x, z: simRef.current.position.z }),
-    seaState: DEFAULT_GERSTNER_SEA_STATE,
-  });
-
-  if (!wakeVisible) return null;
-
-  if (propulsorAnchors.length > 0) {
-    return (
-      <>
-        {propulsorAnchors.map(({ id, anchor }, index) => (
-          <WakeTrail
-            key={`${resetToken}-${id}`}
-            profile={{
-              ...destroyer055SceneVisual,
-              wakeAnchors: {
-                stern: anchor,
-                portShoulder: [anchor[0] + 6, 0, anchor[2] + 30],
-                starboardShoulder: [anchor[0] - 6, 0, anchor[2] + 30],
-              },
-            }}
-            shipTransform={transformRef.current}
-            qualityTier={tier}
-            playing={playing}
-            waterYSampler={waterYSampler}
-            worldSpeedSampler={() => (simRef.current.advancing ? simRef.current.speedMps : 0)}
-            emitterWorldSampler={() => {
-              const world = id === 'prop-port' ? propWakeRef.current.port : propWakeRef.current.starboard;
-              return world ? [world.x, world.y, world.z] : null;
-            }}
-            budgetShare={0.5}
-            capacity={propulsorCapacities[index]}
-            sunDirection={environmentLight.sunDirection}
-            sunIllumination={environmentLight.sunIllumination}
-          />
-        ))}
-      </>
-    );
-  }
-
-  return (
-    <WakeTrail
-      key={resetToken}
-      profile={destroyer055SceneVisual}
-      shipTransform={transformRef.current}
-      qualityTier={tier}
-      playing={playing}
-      waterYSampler={waterYSampler}
-      worldSpeedSampler={() => (simRef.current.advancing ? simRef.current.speedMps : 0)}
-      sunDirection={environmentLight.sunDirection}
-      sunIllumination={environmentLight.sunIllumination}
-    />
-  );
-}
 
 declare global {
   interface Window {
@@ -1610,7 +1509,7 @@ export default function DestroyerSimulation() {
     <SceneQualityProvider>
     <div className={simulationUi.root} data-sim-ui>
       <SceneQualityAttributes />
-      <Canvas shadows={{ type: THREE.PCFShadowMap }}>
+      <MarineCanvas shadows={{ type: THREE.PCFShadowMap }}>
         <PerspectiveCamera makeDefault position={[0, 200, 500]} fov={60} near={1} far={50000} />
         <MarineFrameRuntime simRef={simRef} simTimeRef={simTimeRef} resetToken={resetToken}>
         <Suspense fallback={null}>
@@ -1630,7 +1529,7 @@ export default function DestroyerSimulation() {
           simRef={simRef}
           targetHeadingSampler={() => platformHeadingToSceneRad(scenarioLogic.getDesiredHeading(hudState.time))}
         />
-        <WakeTrailRig simRef={simRef} playing={isRunning} resetToken={resetToken} propWakeRef={propWakeRef} />
+
         <Suspense
           fallback={(
             <ModelLoadingPlaceholder
@@ -1685,7 +1584,7 @@ export default function DestroyerSimulation() {
         />
         <ScenePostEffects />
         </MarineFrameRuntime>
-      </Canvas>
+      </MarineCanvas>
 
       <SimulationDock
         side="left"

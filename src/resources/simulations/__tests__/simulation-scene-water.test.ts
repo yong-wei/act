@@ -110,7 +110,7 @@ describe('gerstner water material and component', () => {
     const destroyer = readFileSync(
       path.join(process.cwd(), 'src/resources/simulations/simulations/destroyer-simulation.tsx'), 'utf8'
     );
-    expect(destroyer).toContain('<GerstnerWater');
+    expect(destroyer).toContain('<MarineWater');
     expect(destroyer).not.toContain('function WaveWater(');
   });
 });

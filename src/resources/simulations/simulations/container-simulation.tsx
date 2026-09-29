@@ -1,4 +1,6 @@
 'use client';
+import { MarineGrid as Grid } from '../scene/lines/marine-grid';
+import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-line';
 
 /**
  * 集装箱船仿真组件
@@ -6,17 +8,17 @@
  */
 
 import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  Grid,
   Html,
   PerspectiveCamera,
-  Line,
-} from '@react-three/drei';
+  } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
+import { MarineCanvas } from '../scene/marine-canvas';
+import { MarineWater } from '../scene/water/marine-water';
 import { SimulationClock } from '@/lib/simulation';
 import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
 import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
@@ -35,8 +37,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
-import { WakeTrail } from '../scene/wake';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import {
   SceneSoundscapeProvider,
   SoundscapeAmbienceDriver,
@@ -503,7 +504,9 @@ function ContainerWater({ state, resetToken }: { state: ContainerSimulationState
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
-    <GerstnerWater
+    <MarineWater
+      worldSpeedSampler={() => state.isRunning && !state.isPaused ? state.speed : 0}
+      vesselLengthMeters={399.9} vesselBeamMeters={61.5}
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
@@ -516,49 +519,6 @@ function ContainerWater({ state, resetToken }: { state: ContainerSimulationState
       seaState={3}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
-    />
-  );
-}
-
-/** 尾迹粒子场桥接：逐帧喂入船位/航向与 Gerstner 波面高度。 */
-function WakeTrailRig({
-  state,
-  playing,
-  resetToken,
-}: {
-  state: ContainerSimulationState;
-  playing: boolean;
-  resetToken: number;
-}) {
-  const environmentLight = useEnvironmentWaterColors();
-  const { wakeVisible } = useSceneEnvironment();
-  const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const { tier } = useSceneQuality();
-
-  useFrame((frameState) => {
-    transformRef.current.position = [state.position.x, 0, state.position.z];
-    transformRef.current.heading = platformHeadingToSceneRad(state.heading);
-  });
-
-  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义（含岸线衰减）。
-  const waterYSampler = useNearFieldWaterHeight({
-    positionSampler: () => ({ x: state.position.x, z: state.position.z }),
-    seaState: 3,
-    shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
-  });
-
-  if (!wakeVisible) return null;
-  return (
-    <WakeTrail
-      sunDirection={environmentLight.sunDirection}
-      sunIllumination={environmentLight.sunIllumination}
-      key={resetToken}
-      profile={containerMscSceneVisual}
-      shipTransform={transformRef.current}
-      qualityTier={tier}
-      playing={playing}
-      waterYSampler={waterYSampler}
-      worldSpeedSampler={() => state.speed}
     />
   );
 }
@@ -676,7 +636,6 @@ function Scene({
         />
       </Suspense>
 
-      <WakeTrailRig state={state} playing={state.isRunning && !state.isPaused} resetToken={resetToken} />
 
       {/* 相机控制 */}
       <OrbitControls
@@ -993,7 +952,7 @@ export default function ContainerSimulation() {
     <SceneQualityProvider>
     <div className={simulationUi.root} data-sim-ui>
       <SceneQualityAttributes />
-      <Canvas shadows={{ type: THREE.PCFShadowMap }} gl={{ antialias: true }}>
+      <MarineCanvas shadows={{ type: THREE.PCFShadowMap }}>
         <Scene
           state={simState}
           trajectory={trajectory}
@@ -1006,7 +965,7 @@ export default function ContainerSimulation() {
           resetSignal={viewResetCount}
           simRef={bindingRef}
         />
-      </Canvas>
+      </MarineCanvas>
 
       <SimulationDock
         side="left"

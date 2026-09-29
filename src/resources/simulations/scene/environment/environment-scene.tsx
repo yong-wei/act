@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { DirectionalLight, HemisphereLight } from 'three/webgpu';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 
@@ -48,6 +49,8 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
   const { params } = useSceneQuality();
   const scene = useThree((state) => state.scene);
   const gl = useThree((state) => state.gl);
+  const nodeLights = useMemo(() => ({ sun: new DirectionalLight(), fill: new DirectionalLight(), hemisphere: new HemisphereLight() }), [params.shadowMapSize, params.shadowsEnabled]);
+  useEffect(() => () => { nodeLights.sun.shadow.dispose(); }, [nodeLights]);
   const sunLightRef = useRef<THREE.DirectionalLight>(null);
   const sunTargetRef = useRef<THREE.Object3D>(null);
 
@@ -76,6 +79,14 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
   // 预设不变时复用不重生成；scene.environment 供船体 PBR 拾取，IBL 降权避免与
   // 方向光太阳能量重复计入。
   useEffect(() => {
+    if ('isWebGPURenderer' in gl) {
+      const environment = skyTexture.clone();
+      environment.mapping = THREE.EquirectangularReflectionMapping;
+      environment.needsUpdate = true;
+      scene.environment = environment;
+      scene.environmentIntensity = MARINE_ENVIRONMENT_IBL_INTENSITY;
+      return () => { if (scene.environment === environment) scene.environment = null; environment.dispose(); };
+    }
     const source: MarinePmremSource = {
       fromSkyScene: (skyScene) => {
         // generator 按 renderer 复用；缓存条目持完整 RenderTarget（dispose 释放 framebuffer/depth/GPU 纹理）。
@@ -159,32 +170,27 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
   );
   const fillPosition = useMemo(() => sunPosition.clone().multiplyScalar(-1), [sunPosition]);
 
+  nodeLights.hemisphere.color.set(preset.hemisphere.skyColor);
+  nodeLights.hemisphere.groundColor.set(preset.hemisphere.groundColor);
+  nodeLights.hemisphere.intensity = preset.hemisphere.intensity;
+  nodeLights.sun.color.set(preset.sun.color); nodeLights.sun.intensity = preset.sun.intensity;
+  nodeLights.sun.position.copy(sunPosition); nodeLights.sun.castShadow = params.shadowsEnabled;
+  nodeLights.sun.shadow.mapSize.set(params.shadowMapSize, params.shadowMapSize);
+  Object.assign(nodeLights.sun.shadow.camera, { near: 100, far: 2200, left: -MARINE_SHADOW_BOUNDS_METERS,
+    right: MARINE_SHADOW_BOUNDS_METERS, top: MARINE_SHADOW_BOUNDS_METERS, bottom: -MARINE_SHADOW_BOUNDS_METERS });
+  nodeLights.sun.shadow.camera.updateProjectionMatrix();
+  nodeLights.sun.shadow.bias = -0.0004; nodeLights.sun.shadow.normalBias = 0.6;
+  nodeLights.fill.color.set(preset.fill.color); nodeLights.fill.intensity = preset.fill.intensity;
+  nodeLights.fill.position.copy(fillPosition);
+
   return (
     <>
       <fog attach="fog" args={[preset.fog.color, 4500 * preset.fog.nearScale, 18000 * preset.fog.farScale]} />
 
-      <hemisphereLight
-        args={[preset.hemisphere.skyColor, preset.hemisphere.groundColor, preset.hemisphere.intensity]}
-      />
+      <primitive object={nodeLights.hemisphere} />
       <object3D ref={sunTargetRef} />
-      <directionalLight
-        ref={sunLightRef}
-        key={`sun-${params.shadowMapSize}`}
-        color={preset.sun.color}
-        intensity={preset.sun.intensity}
-        position={sunPosition}
-        castShadow={params.shadowsEnabled}
-        shadow-mapSize={params.shadowMapSize}
-        shadow-camera-near={100}
-        shadow-camera-far={2200}
-        shadow-camera-left={-MARINE_SHADOW_BOUNDS_METERS}
-        shadow-camera-right={MARINE_SHADOW_BOUNDS_METERS}
-        shadow-camera-top={MARINE_SHADOW_BOUNDS_METERS}
-        shadow-camera-bottom={-MARINE_SHADOW_BOUNDS_METERS}
-        shadow-bias={-0.0004}
-        shadow-normalBias={0.6}
-      />
-      <directionalLight color={preset.fill.color} intensity={preset.fill.intensity} position={fillPosition} />
+      <primitive object={nodeLights.sun} ref={sunLightRef} />
+      <primitive object={nodeLights.fill} />
 
       {/* 天空组（#2118 相机相对）：天空/地平线/云随相机 x/z 平移——物理布局
           等效无限远，不随相机漂移；世界锚定物（岸物）保持世界位置产生视差。 */}

@@ -12,6 +12,7 @@ import {
 import { useFrame, useThree } from '@react-three/fiber';
 
 import * as THREE from 'three';
+import { RenderTarget, type WebGPURenderer } from 'three/webgpu';
 
 import { buildMarinePerformanceReport } from './performance-evidence';
 import { shipHeadingChannel } from './visual-acceptance';
@@ -257,10 +258,20 @@ export function MarinePerformanceEvidenceProbe({
           const cruiseRollReady = input?.vesselId !== 'cruise' || Boolean(channels && channels.rollDelta > 1e-4);
           if (moved && navigation && cruiseRollReady) break;
         }
-        const width = context?.drawingBufferWidth ?? 0;
-        const height = context?.drawingBufferHeight ?? 0;
+        const width = renderer.domElement.width;
+        const height = renderer.domElement.height;
         let pixelMean = 0;
-        if (context && width > 0 && height > 0) {
+        if ('isWebGPURenderer' in renderer) {
+          const gpu = renderer as unknown as WebGPURenderer;
+          const target = new RenderTarget(64, 64);
+          const previous = gpu.getRenderTarget();
+          try {
+            gpu.setRenderTarget(target); gpu.render(scene, camera); gpu.setRenderTarget(previous);
+            const pixels = await gpu.readRenderTargetPixelsAsync(target, 0, 0, 64, 64);
+            for (let i = 0; i < pixels.length; i += 4) pixelMean += pixels[i] + pixels[i + 1] + pixels[i + 2];
+            pixelMean /= 64 * 64 * 3 * 255;
+          } finally { gpu.setRenderTarget(previous); target.dispose(); }
+        } else if (context && typeof context.readPixels === 'function' && width > 0 && height > 0) {
           const pixel = new Uint8Array(4);
           context.readPixels(
             Math.floor(width / 2),
@@ -301,7 +312,7 @@ export function MarinePerformanceEvidenceProbe({
     return () => {
       delete window.__marineConsumerObservation;
     };
-  }, [renderer, scene]);
+  }, [renderer, scene, camera]);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     // QA 入口（复审对齐）：既有帧契约入口 marine-frame 与本采集入口 marine-performance 均接受。
@@ -358,7 +369,7 @@ export function MarinePerformanceEvidenceProbe({
     // GPU 渲染器身份（二轮复审）：WEBGL_debug_renderer_info 可用时读实际字符串，
     // 不可得才回退 null——硬件分级报告可按 GPU 归因。
     let gpuRenderer: string | null = null;
-    if (gl) {
+    if (gl && typeof gl.getExtension === 'function') {
       const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
       if (debugInfo) {
         const raw = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
@@ -490,6 +501,7 @@ function poseChannels(
 }
 
 function readWaterTime(root: THREE.Object3D): number | null {
+  if (root.userData.marineOcean) return root.userData.marineOcean.identity().time;
   let time: number | null = null;
   root.traverse((object) => {
     const material = (object as THREE.Mesh).material;

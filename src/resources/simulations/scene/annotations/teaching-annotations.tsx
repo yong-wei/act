@@ -1,9 +1,10 @@
 'use client';
+import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-line';
 
 import { useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { Line } from '@react-three/drei';
+import { } from '@react-three/drei';
 
 import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { ANNOTATION_STYLE } from './annotation-logic';

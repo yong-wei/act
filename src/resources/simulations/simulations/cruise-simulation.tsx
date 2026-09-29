@@ -1,4 +1,6 @@
 'use client';
+import { MarineGrid as Grid } from '../scene/lines/marine-grid';
+import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-line';
 
 /**
  * 邮轮仿真组件
@@ -6,17 +8,17 @@
  */
 
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  Line,
-  Grid,
   PerspectiveCamera,
 } from '@react-three/drei';
 import { useSearchParams } from 'next/navigation';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
+import { MarineCanvas } from '../scene/marine-canvas';
+import { MarineWater } from '../scene/water/marine-water';
 import { SimulationClock } from '@/lib/simulation';
 import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
 import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
@@ -36,8 +38,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
-import { WakeTrail } from '../scene/wake';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import {
   SceneSoundscapeProvider,
   SoundscapeAmbienceDriver,
@@ -1278,7 +1279,9 @@ function CruiseWater({ state, resetToken }: { state: CruiseSimulationState; rese
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
-    <GerstnerWater
+    <MarineWater
+      worldSpeedSampler={() => state.isRunning && !state.isPaused ? state.speed : 0}
+      vesselLengthMeters={323.6} vesselBeamMeters={37.2}
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
@@ -1291,49 +1294,6 @@ function CruiseWater({ state, resetToken }: { state: CruiseSimulationState; rese
       seaState={state.seaState}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
-    />
-  );
-}
-
-/** 尾迹粒子场桥接：逐帧喂入船位/航向与 Gerstner 波面高度。 */
-function WakeTrailRig({
-  state,
-  playing,
-  resetToken,
-}: {
-  state: CruiseSimulationState;
-  playing: boolean;
-  resetToken: number;
-}) {
-  const environmentLight = useEnvironmentWaterColors();
-  const { wakeVisible } = useSceneEnvironment();
-  const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const { tier } = useSceneQuality();
-
-  useFrame((frameState) => {
-    transformRef.current.position = [state.position.x, 0, state.position.z];
-    transformRef.current.heading = platformHeadingToSceneRad(state.heading);
-  });
-
-  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义（含岸线衰减）。
-  const waterYSampler = useNearFieldWaterHeight({
-    positionSampler: () => ({ x: state.position.x, z: state.position.z }),
-    seaState: state.seaState,
-    shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
-  });
-
-  if (!wakeVisible) return null;
-  return (
-    <WakeTrail
-      sunDirection={environmentLight.sunDirection}
-      sunIllumination={environmentLight.sunIllumination}
-      key={resetToken}
-      profile={cruiseAdoraSceneVisual}
-      shipTransform={transformRef.current}
-      qualityTier={tier}
-      playing={playing}
-      waterYSampler={waterYSampler}
-      worldSpeedSampler={() => state.speed}
     />
   );
 }
@@ -1386,7 +1346,7 @@ function VisualizationLayer({
   simRef: React.MutableRefObject<BindingTelemetrySource>;
 }) {
   return (
-    <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
+    <MarineCanvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
       <Suspense fallback={null}>
         <EnvironmentScene subjectPositionSampler={() => ({ x: state.position.x, z: state.position.z })} />
         <MarineSceneLayoutObjects layoutId="harbor-entrance-channel" />
@@ -1435,7 +1395,7 @@ function VisualizationLayer({
         targetHeading={state.targetHeading}
         currentHeading={state.heading}
       />
-      <WakeTrailRig state={state} playing={state.isRunning && !state.isPaused} resetToken={resetToken} />
+
       <OrbitControls
         ref={controlsRef}
         enablePan
@@ -1455,7 +1415,7 @@ function VisualizationLayer({
       resetSignal={resetSignal}
       />
       <ScenePostEffects />
-    </Canvas>
+    </MarineCanvas>
   );
 }
 

@@ -52,7 +52,7 @@ describe('experiment line overlays migrated to water hugging', () => {
 describe('destroyer heading convention adaptation', () => {
   it('feeds wake and camera samplers through the adapter on psi radians', () => {
     const source = read(DESTROYER);
-    expect(source).toContain('transformRef.current.heading = platformHeadingToSceneRad(toDegrees(sim.headingRad))');
+    expect(source).toContain('shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(simRef.current.headingRad))}');
     expect(source).toContain('headingSampler={() => platformHeadingToSceneRad(toDegrees(simRef.current.headingRad))}');
     expect(source).not.toContain('headingSampler={() => simRef.current.headingRad}');
     expect(source).not.toContain('transformRef.current.heading = sim.headingRad');

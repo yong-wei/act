@@ -369,7 +369,7 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(client).toContain('VersionedFleetShip');
     expect(client).toContain('FarFieldRing');
     expect(client).toContain('ShapeGeometry');
-    const shared = readSource('src/app/simulations/fft-ocean-comparison/comparison-water.tsx');
+    const shared = readSource('src/resources/simulations/scene/water/shared-ocean-surface.tsx');
     expect(client).toContain('ComparisonWater');
     expect(shared).toContain('createComparisonWaterMaterial');
     expect(shared).toContain('ShallowBackdrop');

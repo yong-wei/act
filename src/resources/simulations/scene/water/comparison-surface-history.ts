@@ -1,5 +1,5 @@
 /** 持久船行波与表面泡沫。GPU 状态，两种 API 共用 TSL 和既有 IFFT。 */
-import { FloatType, RGBAFormat, NearestFilter, RenderTarget, MeshBasicNodeMaterial, QuadMesh, Vector4, type WebGPURenderer, type Node } from 'three/webgpu';
+import { FloatType, RGBAFormat, NearestFilter, RenderTarget, MeshBasicNodeMaterial, QuadMesh, Vector2, Vector4, type WebGPURenderer, type Node } from 'three/webgpu';
 import { Fn, uv, uniform, texture, vec2, vec4, float, dot, exp, smoothstep, max, abs, mix } from 'three/tsl';
 import { SimulationClock } from '@/lib/simulation/clock';
 import { SIMULATION_FIXED_STEP_SECONDS, SIMULATION_MAX_SUB_STEPS } from '../../lib/simulation-timing';
@@ -8,6 +8,7 @@ import { FOAM_HALF_LIFE_SECONDS } from './foam-history';
 import type { ComparisonOceanPipeline } from './comparison-ocean-pipeline';
 import type { createComparisonWaterMaterial } from './comparison-water-material';
 
+export interface MarineFoamEmitter { x: number; z: number; headingRad: number; activity: number; }
 export interface SurfaceHistoryPose { x: number; z: number; headingRad: number; speedMps: number; }
 export const SHIP_PRESSURE_HEAD_METERS = 1.2;
 export const SHIP_PRESSURE_LENGTH_SIGMA = 36;
@@ -24,8 +25,13 @@ export function createComparisonSurfaceHistory(
   domain: number,
   poseAt: (time: number) => SurfaceHistoryPose,
   updateBase: (time: number) => void,
+  options: { followFoam?: boolean; lengthMeters?: number; beamMeters?: number; foamEmitters?: () => readonly MarineFoamEmitter[] } = {},
 ) {
   const n = transform.resolution;
+  const lengthScale = (options.lengthMeters ?? 180) / 180;
+  const beamScale = (options.beamMeters ?? 20) / 20;
+  const foamOrigin = water.foamOrigin;
+  const previousFoamOrigin = uniform(new Vector2());
   const foamN = SURFACE_FOAM_RESOLUTION;
   const target = (size: number) => new RenderTarget(size, size, {
     type: FloatType, format: RGBAFormat, minFilter: NearestFilter, magFilter: NearestFilter,
@@ -38,6 +44,7 @@ export function createComparisonSurfaceHistory(
   const foamInput = texture(foam[0].texture);
   const boat = uniform(new Vector4());
   const vesselSource = uniform(1);
+  const emitters = Array.from({ length: options.foamEmitters ? 8 : 0 }, () => uniform(new Vector4()));
   const naturalSource = uniform(1);
   const pulse = uniform(new Vector4(0, 0, 8, 0));
   const material = (node: Node<'vec4'>) => {
@@ -59,9 +66,9 @@ export function createComparisonSurfaceHistory(
     const along = dot(k, forward);
     const across = dot(k, vec2(forward.y, forward.x.negate()));
     // Fourier transform of an elliptical Gaussian pressure head, in the IFFT's N² convention.
-    const shape = exp(along.mul(SHIP_PRESSURE_LENGTH_SIGMA).pow(2)
-      .add(across.mul(SHIP_PRESSURE_BEAM_SIGMA).pow(2)).mul(-0.5));
-    const area = 2 * Math.PI * SHIP_PRESSURE_LENGTH_SIGMA * SHIP_PRESSURE_BEAM_SIGMA * n * n / (domain * domain);
+    const shape = exp(along.mul(SHIP_PRESSURE_LENGTH_SIGMA * lengthScale).pow(2)
+      .add(across.mul(SHIP_PRESSURE_BEAM_SIGMA * beamScale).pow(2)).mul(-0.5));
+    const area = 2 * Math.PI * SHIP_PRESSURE_LENGTH_SIGMA * SHIP_PRESSURE_BEAM_SIGMA * lengthScale * beamScale * n * n / (domain * domain);
     const force = km.mul(-9.81 * SHIP_PRESSURE_HEAD_METERS * area).mul(shape)
       .mul(vesselSource).mul(smoothstep(0, 4, boat.w));
     const phase = dot(k, boat.xy).negate();
@@ -78,9 +85,10 @@ export function createComparisonSurfaceHistory(
     return band.select(vec4(h, v).mul(damping), vec4(0));
   })());
   const foamStep = material(Fn(() => {
-    const p = uv().sub(0.5).mul(domain);
+    const local = uv().sub(0.5).mul(domain);
+    const p = local.add(foamOrigin);
     const drift = vec2(...SURFACE_FOAM_DRIFT);
-    const previousUV = uv().sub(drift.mul(FOAM_DT / domain));
+    const previousUV = uv().add(foamOrigin.sub(previousFoamOrigin).div(domain)).sub(drift.mul(FOAM_DT / domain));
     const bilinear = (at: Node<'vec2'>) => sampleBilinearHistory(foamInput, at, foamN);
     const history = bilinear(previousUV);
     const cellUV = 1 / foamN;
@@ -103,14 +111,21 @@ export function createComparisonSurfaceHistory(
     const relative = p.sub(boat.xy);
     const along = dot(relative, forward);
     const across = dot(relative, vec2(forward.y, forward.x.negate()));
-    const stern = exp(along.add(78).div(14).pow(2).add(across.div(10).pow(2)).mul(-0.5))
+    const stern = exp(along.add(78 * lengthScale).div(14 * lengthScale).pow(2).add(across.div(10 * beamScale).pow(2)).mul(-0.5))
       .mul(vesselSource).mul(smoothstep(0, 6, boat.w));
     const pulseShape = exp(p.sub(pulse.xy).length().div(pulse.z).pow(2).mul(-0.5)).mul(pulse.w);
-    const source = breaking.mul(0.75).add(stern.mul(1.8)).add(pulseShape);
+    const source = breaking.mul(0.75).add(stern.mul(1.8)).add(pulseShape).toVar();
+    for (const emitter of emitters) {
+      const direction = vec2(emitter.z.sin(), emitter.z.cos());
+      const offset = p.sub(emitter.xy);
+      const along = dot(offset, direction).add(8).div(14);
+      const across = dot(offset, vec2(direction.y, direction.x.negate())).div(5);
+      source.addAssign(exp(along.pow(2).add(across.pow(2)).mul(-0.5)).mul(emitter.w).mul(vesselSource).mul(2));
+    }
     const retained = mixed.r.mul(Math.exp(-Math.LN2 * FOAM_DT / FOAM_HALF_LIFE_SECONDS));
     const density = float(1).sub(float(1).sub(retained).mul(exp(source.mul(-FOAM_DT))));
     const fresh = max(mixed.g.mul(Math.exp(-Math.LN2 * FOAM_DT / 1.8)), float(1).sub(exp(source.mul(-FOAM_DT * 2))));
-    const edge = float(1).sub(smoothstep(domain / 2 - 80, domain / 2, max(abs(p.x), abs(p.y))));
+    const edge = float(1).sub(smoothstep(domain / 2 - 80, domain / 2, max(abs(local.x), abs(local.y))));
     return vec4(density, fresh, 0, 1).mul(edge);
   })());
   const quad = new QuadMesh(clear);
@@ -129,13 +144,14 @@ export function createComparisonSurfaceHistory(
     const previous = renderer.getRenderTarget();
     try { for (const dest of [...spectral, ...foam, wake]) draw(clear, dest); }
     finally { renderer.setRenderTarget(previous); }
+    foamOrigin.value.set(0, 0); previousFoamOrigin.value.set(0, 0);
     steps = 0; requested = 0; resolvedWaveStep = 0; waveIndex = foamIndex = 0; clock.reset();
     water.wakeTexture.value = wake.texture;
     water.historyTexture.value = foam[0].texture;
   };
   reset();
   return {
-    stats: () => ({ time: steps * dt, requested, steps, readbacks: reads, vesselSource: vesselSource.value > 0, naturalSource: naturalSource.value > 0 }),
+    stats: () => ({ time: steps * dt, requested, steps, readbacks: reads, foamOrigin: [foamOrigin.value.x, foamOrigin.value.y], vesselSource: vesselSource.value > 0, naturalSource: naturalSource.value > 0 }),
     setSources(vessel: boolean, natural: boolean) { vesselSource.value = Number(vessel); naturalSource.value = Number(natural); },
     injectFoam(x: number, z: number, radius = 16) { pulse.value.set(x, z, radius, 30); },
     advance(seconds: number) {
@@ -148,6 +164,11 @@ export function createComparisonSurfaceHistory(
         clock.advance(delta + (delta > 0 ? 1e-10 : 0), () => {
           const pose = poseAt((steps + 0.5) * dt);
           boat.value.set(pose.x, pose.z, pose.headingRad, pose.speedMps);
+          const sources = options.foamEmitters?.() ?? [];
+          emitters.forEach((uniform, index) => {
+            const source = sources[index];
+            uniform.value.set(source?.x ?? 0, source?.z ?? 0, source?.headingRad ?? 0, source?.activity ?? 0);
+          });
           waveInput.value = spectral[waveIndex].texture;
           waveIndex = 1 - waveIndex;
           draw(waveStep, spectral[waveIndex]);
@@ -156,6 +177,11 @@ export function createComparisonSurfaceHistory(
             resolveWake();
             updateBase(steps * dt);
             water.time.value = steps * dt;
+            previousFoamOrigin.value.copy(foamOrigin.value);
+            if (options.followFoam && Math.max(Math.abs(pose.x - foamOrigin.value.x), Math.abs(pose.z - foamOrigin.value.y)) > domain / 4) {
+              const cell = domain / foamN;
+              foamOrigin.value.set(Math.round(pose.x / cell) * cell, Math.round(pose.z / cell) * cell);
+            }
             foamInput.value = foam[foamIndex].texture;
             foamIndex = 1 - foamIndex;
             draw(foamStep, foam[foamIndex]);
@@ -193,7 +219,7 @@ export function createComparisonSurfaceHistory(
         modes.push({ x, z, heightRe: value[0], heightIm: value[1], velocityRe: value[2], velocityIm: value[3] });
       }
       return { time: steps * dt, minHeight, maxHeight, energy: energy / (n * n), foamMass: mass,
-        foamCentroid: [cx, cz], foamVariance: variance / Math.max(mass, 1e-12) - cx * cx - cz * cz, modes };
+        foamCentroid: [cx + foamOrigin.value.x, cz + foamOrigin.value.y], foamVariance: variance / Math.max(mass, 1e-12) - cx * cx - cz * cz, modes };
     },
     dispose() {
       if (disposed) return; disposed = true;

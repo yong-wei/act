@@ -1,4 +1,5 @@
 'use client';
+import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-line';
 
 /**
  * 贴水折线：线状覆盖层（航迹/期望航线/实际路径）随 Gerstner 波面逐点抬升，
@@ -6,8 +7,8 @@
  */
 
 import { useRef, useState } from 'react';
-import { Line } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
+import { } from '@react-three/drei';
+import { useFrame, useThree } from '@react-three/fiber';
 
 import { useMarineFrameRunner, useMarineVisualTime } from '../frame/marine-frame-provider';
 import { useSceneQuality } from '../quality';
@@ -48,6 +49,7 @@ export function WaterHuggingLine({
   waterOriginSampler,
 }: WaterHuggingLineProps) {
   const { params } = useSceneQuality();
+  const scene = useThree(state => state.scene);
   const [lifted, setLifted] = useState<readonly [number, number, number][]>([]);
   const frameCountRef = useRef(0);
 
@@ -63,7 +65,7 @@ export function WaterHuggingLine({
     const amplitudeScale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
     const stride = params.waterTier === 'low' ? 2 : 1;
     // 贴水线取近场可见曲面（#2098）：带限波组 + 包络，档位无关。
-    const query = createNearFieldSurfaceQuery(amplitudeScale, origin.x, origin.z, time);
+    const query = scene.userData.marineSurfaceSampling ?? createNearFieldSurfaceQuery(amplitudeScale, origin.x, origin.z, time);
     let lastY = GERSTNER_WATER_BASE_Y + epsilon;
     const next: [number, number, number][] = points.map((point, index) => {
       if (index % stride === 0) {

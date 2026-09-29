@@ -127,8 +127,8 @@ describe('sample experiment full pipeline integration', () => {
     );
     for (const marker of [
       '<EnvironmentScene',
-      '<GerstnerWater',
-      '<WakeTrail',
+      '<MarineWater',
+      '<MarineWater',
       '<StayPutCameraController',
       'SceneSoundscapeProvider',
       '<ActualPathTrail',

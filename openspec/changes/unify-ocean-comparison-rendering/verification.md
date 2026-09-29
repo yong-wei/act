@@ -118,3 +118,30 @@ rtk proxy env PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 PLAYWRIGHT_SKIP_WEB_SERV
 ## 提交前复核
 
 2026-09-29：生产web/worker类型检查通过。相关五个Vitest文件合计48项：两项过时页面文案/字段断言改为共享相机、场景和曲面采样契约后，失败文件23项复跑通过，其余25项已通过。沿用未修改实现的浏览器验证。审查范围仅为此测试修订；本轮增量审查未发现新的P0/P1重大问题。
+
+## 正式七船统一 FFT 与自动后端（2026-09-29）
+
+增量基线：`b1fe8ac2b5`（此前对比页实现已提交并推送）。正式入口统一使用资源层 `MarineCanvas`、`MarineWater`、`SharedOceanSurface`，对比页仅保留参数适配。七船原有Rust/WASM控制和运动逻辑保持；共享波谱、压力波、泡沫、材质和采样，不复制WebGL/WebGPU效果。
+
+实际验证：
+
+- 相关海面/环境/船型/FFT领域320项Vitest通过；新增异步曲面缓存的样本刷新、重置代次和长航迹不挤掉船体请求3项通过，共323项。
+- 四个Playwright文件共49个用例。完整运行48通过、1个WebGPU质量切换失败；定位到旧阴影节点在禁用后重用空深度目标，修复为按阴影配置重建灯光实例。双API质量切换复测2通过；加入并发诊断读回后，三类自动回退和双API质量切换复测共5通过。最终49个不同用例均有通过证据，不把失败初跑标成全绿。
+- 其中正式入口覆盖七船×WebGL/自动WebGPU共14项，缺失GPU/适配器失败/设备创建失败3项；动态舰队用例实际启动七船，校验舰体移动/旋转/推进，以及邮轮数值滚转保持。
+- 共用场回归覆盖四条对照路线、DPR1/2、128/512、独立DFT比对、持久泡沫输运/衰减、压力源关闭后的波传播及重放。
+- 生产类型检查与聚焦浏览器/脚本类型检查通过；定向ESLint无错误，055原有simTimeRef依赖提示单列，不作为新增错误。严格OpenSpec与diff检查通过。
+- 浏览器为本机Chrome/Apple GPU。正式驱逐舰运行读回在实际世界坐标约(-5997.5,0)，泡沫区域原点(-6000,0)，无页面异常，证明初始远离世界原点时能跟随而不丢失海面。截图和数值保存于 `.logs/ocean-shared-rendering/production-recenter.png` 与 `production-recenter.json`。
+
+执行命令：
+
+```sh
+rtk proxy npx vitest run src/resources/simulations/__tests__/simulation-scene-*.test.ts src/resources/simulations/__tests__/simulation-fft-ocean.test.ts src/resources/simulations/__tests__/simulation-water-hugging-lines.test.ts src/resources/simulations/__tests__/simulation-fleet-unified-stack.test.ts
+rtk npm exec vitest run src/resources/simulations/__tests__/marine-surface-sampling.test.ts
+rtk proxy env PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 PLAYWRIGHT_SKIP_WEB_SERVER=1 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/marine-unified-production.spec.ts tests/marine-surface-history.spec.ts tests/marine-webgpu-parity.spec.ts tests/fft-ocean-comparison-lab.spec.ts --workers=1
+rtk proxy env PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 PLAYWRIGHT_SKIP_WEB_SERVER=1 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/marine-unified-production.spec.ts --grep 'quality changes|fallback' --workers=1
+rtk npm run typecheck
+```
+
+增量审查核验：真实船位/航向/速度适配、暂停源门控、重置代次、质量不重置波场、资源销毁、后端身份与回退、远离原点采样、各船原有数值模型。发现并修复质量切换的阴影失效，以及连续船体查询可能饿死诊断读回的问题；读回现为先进先出的串行队列，卸载会拒绝待处理请求，旧代次结果不写回新场景。另以近船距离维护有界请求队列，长航迹不能挤掉船体接触请求。
+
+本轮增量审查未发现新的P0/P1重大问题；已接受问题均修复。边界：未做生产构建/部署、其他显卡实测或真实设备拔除测试；自动选择是能力与初始化选择，不是跨后端性能竞速。船行波仍是线性深水表面近似，远场采用光学细节，异步接触存在样本年龄，未向数值动力学增加水动力耦合。旧架构字符串测试已改为当前资源入口与速度/航向/生命周期契约；独立数值测试保持。

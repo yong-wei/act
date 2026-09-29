@@ -1,4 +1,5 @@
 'use client';
+import { MarineGrid as Grid } from '../scene/lines/marine-grid';
 
 /**
  * 海洋石油981深水钻井平台动力定位仿真
@@ -6,16 +7,17 @@
  */
 
 import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type RefObject } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  Grid,
   Html,
   PerspectiveCamera,
   Line,
 } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { MarineCanvas } from '../scene/marine-canvas';
+import { MarineWater } from '../scene/water/marine-water';
 import { SimulationClock } from '@/lib/simulation';
 import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
 import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
@@ -32,12 +34,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
-import {
-  allocateWakeCapacities,
-  WakeTrail,
-  wakeSceneCapacityForTier,
-} from '../scene/wake';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import { computeThrusterWashActivity } from '../scene/wake/wake-physics';
 import type { HullExclusionBox } from '../scene/water/hull-exclusion';
 import {
@@ -703,19 +700,37 @@ const DRILLING_HULL_EXCLUSION: readonly HullExclusionBox[] = [
 function DrillingWater({
   platformStateRef,
   resetToken,
+  playing,
 }: {
   platformStateRef: RefObject<SemiSubmersible3DOFState>;
   resetToken: number;
+  playing: boolean;
 }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
-    <GerstnerWater
+    <MarineWater
+      worldSpeedSampler={() => playing ? Math.hypot(platformStateRef.current.u, platformStateRef.current.v) : 0}
+      foamEmittersSampler={() => {
+        if (!playing) return [];
+        const state = platformStateRef.current;
+        return state.thrusters.flatMap(thruster => {
+          const layout = HYSY981_THRUSTER_LAYOUT.find(item => item.id === thruster.id);
+          if (!layout || !thruster.enabled || thruster.failed || Math.abs(thruster.power) < 1) return [];
+          return [{
+            x: state.x + layout.positionX * Math.cos(state.psi) - layout.positionY * Math.sin(state.psi),
+            z: state.y + layout.positionX * Math.sin(state.psi) + layout.positionY * Math.cos(state.psi),
+            headingRad: platformHeadingToSceneRad(toDegrees(state.psi) + thruster.azimuth),
+            activity: computeThrusterWashActivity({ totalThrustPower: Math.abs(thruster.power), ratedPowerPerThruster: 4500, thrusterCount: 1 }).washFoamActivity,
+          }];
+        });
+      }}
+      vesselLengthMeters={114} vesselBeamMeters={89}
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })}
       hullExclusionSampler={() => DRILLING_HULL_EXCLUSION}
-      shipHeadingSampler={() => platformStateRef.current.psi}
+      shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
@@ -724,102 +739,6 @@ function DrillingWater({
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
-  );
-}
-
-/** 尾迹粒子场桥接：逐帧直读 platformStateRef 喂入船位/航向与 Gerstner 波面高度。 */
-function WakeTrailRig({
-  platformStateRef,
-  playing,
-  resetToken,
-}: {
-  platformStateRef: RefObject<SemiSubmersible3DOFState>;
-  playing: boolean;
-  resetToken: number;
-}) {
-  const { wakeVisible } = useSceneEnvironment();
-  const environmentLight = useEnvironmentWaterColors();
-  const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const { tier } = useSceneQuality();
-
-  // 全场容量硬预算（#2115）：主转移尾迹 + 8 推进器洗流共享场景总容量
-  // （主尾迹占一半、各洗流等分另一半；分配与活跃均 Σ ≤ 场景总容量）。
-  const capacityAllocations = allocateWakeCapacities(
-    [HYSY981_THRUSTER_LAYOUT.length, ...HYSY981_THRUSTER_LAYOUT.map(() => 1)],
-    wakeSceneCapacityForTier(tier),
-  );
-  const mainTrailCapacity = capacityAllocations[0];
-  // 逐推进器取各自分配（P2 修复）：分配器的余数分配使各槽容量可能不同
-  // （如 1100/138×4/137×4），复用单一槽位会突破场景硬上限。
-  const washTrailCapacityFor = (thrusterId: number): number => {
-    const layoutIndex = HYSY981_THRUSTER_LAYOUT.findIndex((item) => item.id === thrusterId);
-    return layoutIndex >= 0 ? (capacityAllocations[1 + layoutIndex] ?? mainTrailCapacity) : mainTrailCapacity;
-  };
-
-  useFrame((frameState) => {
-    transformRef.current.position = [platformStateRef.current.x, 0, platformStateRef.current.y];
-    transformRef.current.heading = platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi));
-  });
-
-  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义。
-  const waterYSampler = useNearFieldWaterHeight({
-    positionSampler: () => ({ x: platformStateRef.current.x, z: platformStateRef.current.y }),
-    seaState: 3,
-  });
-
-  if (!wakeVisible) return null;
-  return (
-    <>
-    <WakeTrail
-      key={resetToken}
-      profile={drillingHysy981SceneVisual}
-      shipTransform={transformRef.current}
-      qualityTier={tier}
-      playing={playing}
-      waterYSampler={waterYSampler}
-      worldSpeedSampler={() => Math.hypot(platformStateRef.current.u, platformStateRef.current.v)}
-      capacity={mainTrailCapacity}
-      sunDirection={environmentLight.sunDirection}
-      sunIllumination={environmentLight.sunIllumination}
-    />
-    {/* 逐推进器局部洗流（#2101 复审）：按 HYSY981_THRUSTER_LAYOUT 世界位置与各推进器
-        azimuth 方位发射，不同推力分配得到不同局部形态；全场预算按 1/8 × 份额共享。 */}
-    {platformStateRef.current.thrusters.map((thruster) => {
-      const layout = HYSY981_THRUSTER_LAYOUT.find((item) => item.id === thruster.id);
-      if (!layout || !thruster.enabled || thruster.failed || Math.abs(thruster.power) < 1) return null;
-      const psi = platformStateRef.current.psi;
-      const cos = Math.cos(psi);
-      const sin = Math.sin(psi);
-      const worldX = platformStateRef.current.x + layout.positionX * cos - layout.positionY * sin;
-      const worldZ = platformStateRef.current.y + layout.positionX * sin + layout.positionY * cos;
-      // 推进器方位为平台局部（0=前）：世界方位 = psi + azimuth，再转场景视觉约定。
-      const washHeadingRad = platformHeadingToSceneRad(toDegrees(psi) + thruster.azimuth);
-      return (
-        <WakeTrail
-          key={`${resetToken}-wash-${thruster.id}`}
-          profile={drillingHysy981SceneVisual}
-          shipTransform={{ position: transformRef.current.position, heading: washHeadingRad }}
-          qualityTier={tier}
-          playing={playing}
-          includeKelvin={false}
-          localWashOnly
-          budgetShare={1 / HYSY981_THRUSTER_LAYOUT.length}
-          capacity={washTrailCapacityFor(thruster.id)}
-          sunDirection={environmentLight.sunDirection}
-          sunIllumination={environmentLight.sunIllumination}
-          // 世界空间发射器（二轮复审）：避免 resolveEmitterAnchors 对世界坐标二次旋转平移。
-          emitterWorldSampler={() => [worldX, 0, worldZ]}
-          waterYSampler={waterYSampler}
-          worldSpeedSampler={() => 0}
-          washActivitySampler={() => computeThrusterWashActivity({
-            totalThrustPower: Math.abs(thruster.power),
-            ratedPowerPerThruster: 4500,
-            thrusterCount: 1,
-          }).washFoamActivity}
-        />
-      );
-    })}
-    </>
   );
 }
 
@@ -1171,7 +1090,7 @@ export function DrillingSimulation() {
     <div className={simulationUi.root} data-sim-ui>
       <SceneQualityAttributes />
       {/* 3D 场景 */}
-      <Canvas shadows={{ type: THREE.PCFShadowMap }}>
+      <MarineCanvas shadows={{ type: THREE.PCFShadowMap }}>
         <PerspectiveCamera makeDefault position={[400, 300, 400]} fov={60} near={1} far={50000} />
         <OrbitControls
           ref={controlsRef}
@@ -1192,7 +1111,7 @@ export function DrillingSimulation() {
         <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'drilling', cameraView: String(cameraMode), seaState: config.seaStateLevel })} />
         <Suspense fallback={null}>
-          <DrillingWater platformStateRef={platformStateRef} resetToken={resetCount} />
+          <DrillingWater playing={isRunning} platformStateRef={platformStateRef} resetToken={resetCount} />
         </Suspense>
 
         {/* 网格 */}
@@ -1234,7 +1153,6 @@ export function DrillingSimulation() {
         {/* 航迹 */}
         {trajectory.length > 1 && <TrajectoryLine points={trajectory} waterOriginSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })} />}
 
-        <WakeTrailRig platformStateRef={platformStateRef} playing={isRunning} resetToken={resetCount} />
 
         <StayPutCameraController
           view={cameraMode}
@@ -1245,7 +1163,7 @@ export function DrillingSimulation() {
         resetSignal={viewResetCount}
         />
         <ScenePostEffects />
-      </Canvas>
+      </MarineCanvas>
 
       <CameraViewSwitcher
         currentMode={cameraMode}

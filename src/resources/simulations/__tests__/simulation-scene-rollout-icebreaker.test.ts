@@ -23,8 +23,8 @@ describe('icebreaker pipeline integration', () => {
     const source = read(ICEBREAKER);
     for (const marker of [
       '<EnvironmentScene',
-      'GerstnerWater',
-      '<WakeTrail',
+      'MarineWater',
+      '<MarineWater',
       '<StayPutCameraController',
       'SceneEnvironmentProvider',
       'SceneSoundscapeProvider',
@@ -46,13 +46,13 @@ describe('icebreaker pipeline integration', () => {
 
   it('feeds the wake with model-speed semantics and remounts it on reset', () => {
     const source = read(ICEBREAKER);
-    const rigStart = source.indexOf('WakeTrailRig');
+    const rigStart = source.indexOf('<MarineWater');
     // #2104：rig 迁移统一近场查询后函数变长——窗口改为整个函数体（意图是速度语义+重挂载，非字符数）。
     const rigEnd = source.indexOf('\n}\n', rigStart);
     const rig = source.slice(rigStart, rigEnd > rigStart ? rigEnd : rigStart + 1600);
     expect(rig).toContain('worldSpeedSampler');
-    expect(rig).toContain('() => speed');
-    expect(rig).toContain('key={resetToken}');
+    expect(rig).toContain('playing ? speed : 0');
+    expect(rig).toContain('resetToken={resetToken}');
     expect(source).toContain('speed={metrics.speed}');
   });
 
@@ -74,7 +74,7 @@ describe('icebreaker pipeline integration', () => {
 describe('icebreaker heading convention adaptation', () => {
   it('feeds wake and camera samplers through the adapter on psi radians', () => {
     const source = read(ICEBREAKER);
-    expect(source).toContain('transformRef.current.heading = platformHeadingToSceneRad(toDegrees(heading))');
+    expect(source).toContain('shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(heading))}');
     expect(source).toContain('headingSampler={() => platformHeadingToSceneRad(toDegrees(heading))}');
     expect(source).not.toContain('headingSampler={() => toRadians(');
     expect(source).not.toContain('headingSampler={() => heading}');

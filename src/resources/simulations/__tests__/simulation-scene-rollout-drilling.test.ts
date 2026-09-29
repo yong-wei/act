@@ -23,8 +23,8 @@ describe('drilling pipeline integration', () => {
     const source = read(DRILLING);
     for (const marker of [
       '<EnvironmentScene',
-      'GerstnerWater',
-      '<WakeTrail',
+      'MarineWater',
+      '<MarineWater',
       '<StayPutCameraController',
       'SceneEnvironmentProvider',
       'SceneSoundscapeProvider',
@@ -45,13 +45,13 @@ describe('drilling pipeline integration', () => {
 
   it('feeds the wake with body-frame speed magnitude and remounts it on reset', () => {
     const source = read(DRILLING);
-    const rigStart = source.indexOf('WakeTrailRig');
+    const rigStart = source.indexOf('<MarineWater');
     // #2104：rig 迁移统一近场查询后函数变长——窗口改为整个函数体（意图是速度语义+重挂载，非字符数）。
     const rigEnd = source.indexOf('\n}\n', rigStart);
     const rig = source.slice(rigStart, rigEnd > rigStart ? rigEnd : rigStart + 1600);
     expect(rig).toContain('worldSpeedSampler');
     expect(rig).toContain('Math.hypot(platformStateRef.current.u, platformStateRef.current.v)');
-    expect(rig).toContain('key={resetToken}');
+    expect(rig).toContain('resetToken={resetToken}');
   });
 
   it('wires the optimized model with error boundary and culling workaround', () => {
@@ -72,7 +72,7 @@ describe('drilling pipeline integration', () => {
 describe('drilling heading convention adaptation', () => {
   it('feeds wake and camera samplers through the adapter on psi radians', () => {
     const source = read(DRILLING);
-    expect(source).toContain('transformRef.current.heading = platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))');
+    expect(source).toContain('shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))}');
     expect(source).toContain('headingSampler={() => platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))}');
     expect(source).not.toContain('headingSampler={() => toRadians(');
   });

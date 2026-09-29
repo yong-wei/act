@@ -61,7 +61,7 @@ let windowOpen = false;
  * 直接传入自己的 R3F `gl`——查询与渲染必须同一上下文；换绑时丢弃旧挂起查询。 */
 export function marineGpuTimerBind(renderer: THREE_WebGLRendererLike): void {
   const gl = renderer.getContext() as WebGL2RenderingContext | null;
-  if (!gl) return;
+  if (!gl || typeof gl.getExtension !== 'function') return;
   if (boundRendererKey === renderer && extension !== undefined) return;
   if (pending && context) context.deleteQuery(pending.query);
   pending = null;

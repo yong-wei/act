@@ -1,4 +1,5 @@
 'use client';
+import { MarineGrid as Grid } from '../scene/lines/marine-grid';
 
 /**
  * 天鲸号挖泥船动力定位仿真
@@ -6,16 +7,17 @@
  */
 
 import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type RefObject } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  Grid,
   Html,
   PerspectiveCamera,
   Line,
 } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { MarineCanvas } from '../scene/marine-canvas';
+import { MarineWater } from '../scene/water/marine-water';
 import { SimulationClock } from '@/lib/simulation';
 import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
 import { type BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
@@ -35,8 +37,7 @@ import {
   useEnvironmentWaterColors,
   useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, GerstnerWater, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
-import { WakeTrail } from '../scene/wake';
+import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import {
   SceneSoundscapeProvider,
   SoundscapeAmbienceDriver,
@@ -508,14 +509,18 @@ function SceneQualityAttributes() {
 function DredgerWater({
   mmgStateRef,
   resetToken,
+  playing,
 }: {
   mmgStateRef: RefObject<MMG3DOFState>;
   resetToken: number;
+  playing: boolean;
 }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
   return (
-    <GerstnerWater
+    <MarineWater
+      worldSpeedSampler={() => playing ? Math.hypot(mmgStateRef.current.u, mmgStateRef.current.v) : 0}
+      vesselLengthMeters={127.5} vesselBeamMeters={23}
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })}
@@ -529,49 +534,6 @@ function DredgerWater({
       seaState={3}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
-    />
-  );
-}
-
-/** 尾迹粒子场桥接：逐帧直读 mmgStateRef 喂入船位/航向与 Gerstner 波面高度。 */
-function WakeTrailRig({
-  mmgStateRef,
-  playing,
-  resetToken,
-}: {
-  mmgStateRef: RefObject<MMG3DOFState>;
-  playing: boolean;
-  resetToken: number;
-}) {
-  const environmentLight = useEnvironmentWaterColors();
-  const { wakeVisible } = useSceneEnvironment();
-  const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const { tier, params } = useSceneQuality();
-
-  useFrame((frameState) => {
-    transformRef.current.position = [mmgStateRef.current.x, 0, mmgStateRef.current.y];
-    transformRef.current.heading = platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi));
-  });
-
-  // 统一水高采样（#2117）：共享视觉时钟 + 与 GPU 同一表面定义（含岸线衰减）。
-  const waterYSampler = useNearFieldWaterHeight({
-    positionSampler: () => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y }),
-    seaState: 3,
-    shoreSegments: MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments,
-  });
-
-  if (!wakeVisible) return null;
-  return (
-    <WakeTrail
-      sunDirection={environmentLight.sunDirection}
-      sunIllumination={environmentLight.sunIllumination}
-      key={resetToken}
-      profile={dredgerTianjingSceneVisual}
-      shipTransform={transformRef.current}
-      qualityTier={tier}
-      playing={playing}
-      waterYSampler={waterYSampler}
-      worldSpeedSampler={() => Math.hypot(mmgStateRef.current.u, mmgStateRef.current.v)}
     />
   );
 }
@@ -919,7 +881,7 @@ export function DredgerSimulation() {
     <div className={simulationUi.root} data-sim-ui>
       <SceneQualityAttributes />
       {/* 3D 场景 */}
-      <Canvas shadows={{ type: THREE.PCFShadowMap }}>
+      <MarineCanvas shadows={{ type: THREE.PCFShadowMap }}>
         <PerspectiveCamera makeDefault position={[300, 200, 300]} fov={60} near={1} far={50000} />
         <OrbitControls
           ref={controlsRef}
@@ -940,7 +902,7 @@ export function DredgerSimulation() {
         <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'dredger', cameraView: String(cameraMode), seaState: 3 })} />
         <Suspense fallback={null}>
-          <DredgerWater mmgStateRef={mmgStateRef} resetToken={resetCount} />
+          <DredgerWater playing={isRunning} mmgStateRef={mmgStateRef} resetToken={resetCount} />
         </Suspense>
 
         {/* 网格 */}
@@ -982,7 +944,6 @@ export function DredgerSimulation() {
         {/* 航迹 */}
         {trajectory.length > 1 && <TrajectoryLine points={trajectory} waterOriginSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })} />}
 
-        <WakeTrailRig mmgStateRef={mmgStateRef} playing={isRunning} resetToken={resetCount} />
 
         <StayPutCameraController
           view={cameraMode}
@@ -993,7 +954,7 @@ export function DredgerSimulation() {
         resetSignal={viewResetCount}
         />
         <ScenePostEffects />
-      </Canvas>
+      </MarineCanvas>
 
       <CameraViewSwitcher
         currentMode={cameraMode}

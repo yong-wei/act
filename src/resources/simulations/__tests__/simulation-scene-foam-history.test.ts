@@ -511,20 +511,19 @@ describe('source contracts (#2115)', () => {
     // 飞沫受光随环境预设：七个场景的尾迹都透传 useEnvironmentWaterColors。
     for (const sim of ['container', 'cruise', 'icebreaker', 'dredger', 'lng', 'drilling', 'destroyer']) {
       const source = readSource(`simulations/${sim}-simulation.tsx`);
-      expect(source).toContain('sunDirection={environmentLight.sunDirection}');
-      expect(source).toContain('sunIllumination={environmentLight.sunIllumination}');
+      expect(source).toContain('sunDirection={water.sunDirection}');
+      expect(source).toContain('sunIllumination={water.sunIllumination}');
     }
   });
 
-  it('multi-trail scenes allocate hard aggregate capacities', () => {
-    const destroyer = readSource('simulations/destroyer-simulation.tsx');
-    expect(destroyer).toContain('allocateWakeCapacities');
-    expect(destroyer).toContain('wakeSceneCapacityForTier');
-    expect(destroyer).toContain('capacity={propulsorCapacities[index]}');
+  it('production washes share one bounded GPU foam field', () => {
+    const history = readSource('scene/water/comparison-surface-history.ts');
+    expect(history).toContain('SURFACE_FOAM_RESOLUTION = 512');
+    expect(history).toContain('options.foamEmitters ? 8 : 0');
     const drilling = readSource('simulations/drilling-simulation.tsx');
-    expect(drilling).toContain('allocateWakeCapacities');
-    // P2 修复：逐推进器取各自分配（复用单一槽位会突破场景硬上限）。
-    expect(drilling).toContain('capacity={washTrailCapacityFor(thruster.id)}');
+    expect(drilling).toContain('foamEmittersSampler');
+    expect(drilling).toContain('thruster.failed');
+    expect(drilling).not.toContain('<WakeTrail');
   });
 
   it('drilling wash allocations respect the scene hard maximum across all thrusters', () => {

@@ -1,5 +1,6 @@
 'use client';
 
+import { useThree } from '@react-three/fiber';
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
 
 import {
@@ -43,7 +44,10 @@ export function MarineFrameProvider({
   readonly inputs: MarineFrameInputs;
   readonly children: ReactNode;
 }) {
-  const runner = useMemo(() => createMarineFrameRunner(inputs), [inputs]);
+  const scene = useThree(state => state.scene);
+  const runner = useMemo(() => createMarineFrameRunner({ ...inputs,
+    waterSampler: (x, z, time) => scene.userData.marineSurfaceSampling?.heightAt(x, z) ?? inputs.waterSampler(x, z, time),
+  }), [inputs, scene]);
 
   useEffect(() => {
     // QA 注入入口：?qa=marine-frame 开启（与知识图谱 QA 探针同一模式）。

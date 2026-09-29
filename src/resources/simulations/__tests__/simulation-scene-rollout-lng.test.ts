@@ -25,7 +25,7 @@ describe('lng pipeline integration', () => {
     const source = read(LNG);
     for (const marker of [
       '<EnvironmentScene',
-      '<WakeTrail',
+      '<MarineWater',
       '<StayPutCameraController',
       'SceneEnvironmentProvider',
       'SceneSoundscapeProvider',
@@ -46,13 +46,13 @@ describe('lng pipeline integration', () => {
 
   it('feeds the wake with model-speed semantics and remounts it on reset', () => {
     const source = read(LNG);
-    const rigStart = source.indexOf('WakeTrailRig');
+    const rigStart = source.indexOf('<MarineWater');
     // #2104：rig 迁移统一近场查询后函数变长——窗口改为整个函数体（意图是速度语义+重挂载，非字符数）。
     const rigEnd = source.indexOf('\n}\n', rigStart);
     const rig = source.slice(rigStart, rigEnd > rigStart ? rigEnd : rigStart + 1600);
     expect(rig).toContain('worldSpeedSampler');
     expect(rig).toContain('state.speed');
-    expect(rig).toContain('key={resetToken}');
+    expect(rig).toContain('resetToken={resetToken}');
   });
 
   it('wires the optimized model with error boundary and culling workaround', () => {
@@ -85,7 +85,7 @@ describe('heading convention adaptation', () => {
 
   it('feeds wake and camera samplers through the adapter, never bare toRadians', () => {
     const source = read(LNG);
-    expect(source).toContain('transformRef.current.heading = platformHeadingToSceneRad(state.heading)');
+    expect(source).toContain('shipHeadingSampler={() => platformHeadingToSceneRad(state.heading)}');
     expect(source).toContain('headingSampler={() => platformHeadingToSceneRad(state.heading)}');
     expect(source).not.toContain('headingSampler={() => toRadians(');
   });

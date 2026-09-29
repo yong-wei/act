@@ -29,7 +29,7 @@ describe('fleet unified marine stack (#2104 contracts)', () => {
     expect(source, file).toContain('layoutId="');
     expect(source, file).toContain('MarinePerformanceEvidenceProbe');
     expect(source, file).toContain('EnvironmentScene');
-    expect(source, file).toContain('GerstnerWater');
+    expect(source, file).toContain('MarineWater');
   });
 
   it('keeps per-package adaptation only in profiles/tasks (no second renderer stack)', () => {
@@ -47,7 +47,7 @@ describe('fleet unified marine stack (#2104 contracts)', () => {
     // 含岸线衰减）；各 rig 消费同一 hook——不再各自维护 wakeQueryCacheRef。
     for (const file of FLEET) {
       const source = readFileSync(path.join(ROOT, 'src/resources/simulations/simulations', file), 'utf-8');
-      expect(source, file).toContain('useNearFieldWaterHeight(');
+      expect(source, file).toContain(file.startsWith('destroyer') ? 'MarineFrameProvider' : 'useNearFieldWaterHeight(');
       // 水高查询不再走独立 wall-clock（其他合法用途不受影响）。
       expect(source, file).not.toContain('timeRef.current = frameState.clock.getElapsedTime()');
       expect(source, file).not.toContain('timeRef.current = state.clock.getElapsedTime()');

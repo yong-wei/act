@@ -726,6 +726,7 @@ export function useNearFieldWaterHeight({
   readonly shoreFadeBandMeters?: number;
 }): (x?: number, z?: number) => number {
   const marineVisualTime = useMarineVisualTime();
+  const scene = useThree(state => state.scene);
   const timeRef = useRef(0);
   const cacheRef = useRef<{
     key: string;
@@ -744,6 +745,8 @@ export function useNearFieldWaterHeight({
     (x?: number, z?: number) => {
       const origin = positionSampler();
       if (!origin) return GERSTNER_WATER_BASE_Y;
+      const shared = scene.userData.marineSurfaceSampling;
+      if (shared) return shared.heightAt(x ?? origin.x, z ?? origin.z);
       const key = `${timeRef.current}|${origin.x}|${origin.z}|${paramsKey}`;
       let cached = cacheRef.current;
       if (!cached || cached.key !== key) {
@@ -763,6 +766,6 @@ export function useNearFieldWaterHeight({
       }
       return cached.query.heightAt(x ?? origin.x, z ?? origin.z);
     },
-    [positionSampler, amplitudeScale, paramsKey, shoreSegments, shoreFadeBandMeters],
+    [scene, positionSampler, amplitudeScale, paramsKey, shoreSegments, shoreFadeBandMeters],
   );
 }
