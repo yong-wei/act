@@ -193,8 +193,8 @@ export async function runWebGpuButterflyIfft(
   const device: any = (renderer as unknown as { backend: { device: unknown } }).backend.device;
   const n = spectrum.resolution;
   const count = n * n;
-  const module = device.createShaderModule({ code: IFFT_SHADER });
-  const compiled = await module.getCompilationInfo();
+  const shaderModule = device.createShaderModule({ code: IFFT_SHADER });
+  const compiled = await shaderModule.getCompilationInfo();
   const errors = compiled.messages.filter((message: { type: string }) => message.type === 'error');
   if (errors.length > 0) {
     throw new Error(errors.map((message: { message: string }) => message.message).join('\n'));
@@ -220,7 +220,7 @@ export async function runWebGpuButterflyIfft(
   const pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
   const pipeline = (entryPoint: string) => device.createComputePipeline({
     layout: pipelineLayout,
-    compute: { module, entryPoint },
+    compute: { module: shaderModule, entryPoint },
   });
   const pipelines = {
     evolve: pipeline('evolve'),

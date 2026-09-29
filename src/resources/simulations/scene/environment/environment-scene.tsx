@@ -49,7 +49,12 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
   const { params } = useSceneQuality();
   const scene = useThree((state) => state.scene);
   const gl = useThree((state) => state.gl);
-  const nodeLights = useMemo(() => ({ sun: new DirectionalLight(), fill: new DirectionalLight(), hemisphere: new HemisphereLight() }), [params.shadowMapSize, params.shadowsEnabled]);
+  const nodeLights = useMemo(() => {
+    const sun = new DirectionalLight();
+    sun.castShadow = params.shadowsEnabled;
+    sun.shadow.mapSize.set(params.shadowMapSize, params.shadowMapSize);
+    return { sun, fill: new DirectionalLight(), hemisphere: new HemisphereLight() };
+  }, [params.shadowMapSize, params.shadowsEnabled]);
   useEffect(() => () => { nodeLights.sun.shadow.dispose(); }, [nodeLights]);
   const sunLightRef = useRef<THREE.DirectionalLight>(null);
   const sunTargetRef = useRef<THREE.Object3D>(null);

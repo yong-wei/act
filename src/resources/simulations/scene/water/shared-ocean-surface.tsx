@@ -234,6 +234,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
     advanceRef.current(config.timeSampler?.(seconds) ?? seconds);
   });
   useEffect(() => {
+    const metricsState = metrics.current;
     const step = (seconds: number) => advanceRef.current(seconds);
     window.__marineStageAdvance = step;
     let active = true;
@@ -382,7 +383,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
     return () => {
       active = false;
       for (const task of waiting.splice(0)) task.reject(new Error('Surface sampler disposed'));
-      metrics.current.validating = false;
+      metricsState.validating = false;
       if (scene.userData.marineOcean === probe) delete scene.userData.marineOcean;
       sampleMaterial?.dispose(); sampleTarget.dispose();
       if (surfaceRef.current === probe) surfaceRef.current = null;

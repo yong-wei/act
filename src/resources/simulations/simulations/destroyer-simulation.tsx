@@ -839,7 +839,7 @@ function SimulationEngine({
     attainmentRef.current = createAttainmentState();
     finishedRef.current = false;
     clockRef.current.reset();
-  }, [resetToken]);
+  }, [resetToken, simTimeRef]);
 
   const interpolateHeading = useCallback(
     (t: number) => {

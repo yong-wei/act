@@ -78,8 +78,8 @@ export async function identifyMarineWebGpu(probe?: MarineWebGpuProbe): Promise<M
     return { ...unavailableWebGpuIdentity(), status: 'failed' };
   }
   const device = await adapter.requestDevice();
-  const module = device.createShaderModule({ code: '@compute @workgroup_size(1) fn main() {}' });
-  const info = await module.getCompilationInfo?.();
+  const shaderModule = device.createShaderModule({ code: '@compute @workgroup_size(1) fn main() {}' });
+  const info = await shaderModule.getCompilationInfo?.();
   const failed = info?.messages.some((message) => message.type === 'error') ?? false;
   const vendor = adapter.info?.vendor ?? null;
   const architecture = adapter.info?.architecture ?? adapter.info?.description ?? null;
