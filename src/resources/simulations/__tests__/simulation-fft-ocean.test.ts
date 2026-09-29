@@ -26,6 +26,28 @@ const src_calibration = () => readFileSync(path.join(ROOT, 'src/resources/simula
 const readSource = (relative: string) =>
   readFileSync(path.join(ROOT, relative), 'utf8');
 
+function wavelengthEnergy(spectrum: { data: Float32Array; resolution: number }, domainMeters: number) {
+  const n = spectrum.resolution;
+  let swell = 0;
+  let cloth = 0;
+  let total = 0;
+  for (let m = 0; m < n; m += 1) {
+    const kz = binWaveNumber(m, n, domainMeters);
+    for (let ix = 0; ix < n; ix += 1) {
+      const kx = binWaveNumber(ix, n, domainMeters);
+      const k = Math.hypot(kx, kz);
+      if (k < 1e-6) continue;
+      const index = (m * n + ix) * 2;
+      const energy = spectrum.data[index] ** 2 + spectrum.data[index + 1] ** 2;
+      const wavelength = (2 * Math.PI) / k;
+      total += energy;
+      if (wavelength >= 48) swell += energy;
+      if (wavelength < 20) cloth += energy;
+    }
+  }
+  return { swell, cloth, total };
+}
+
 const INPUT = {
   resolution: 32,
   domainMeters: 256,
@@ -53,7 +75,7 @@ describe('FFT ocean correctness (#2121)', () => {
       maxError = Math.max(maxError, Math.abs(grid - point));
     }
     // 两条独立路径（快速 IFFT vs 逐点直接求和）一致——相对浮点噪声
-    //（标定后波幅 ~6.5m 量级，绝对噪声随幅度线性放大，用相对口径）。
+    //（标定后的米级波幅，绝对噪声随幅度线性放大，用相对口径）。
     const magnitude = Math.max(
       ...[0, 0].map(() => 0),
       Math.abs(fftOceanHeightAt(spectrum, INPUT.domainMeters, t, 0, 0)),
@@ -122,8 +144,8 @@ describe('FFT ocean correctness (#2121)', () => {
     expect(hsStorm).toBeGreaterThan(1);
   });
 
-  it('calibrates ss4 to the comparison-page Gerstner significant wave height', () => {
-    // 对照页同参（2048m/256²·ss4·12m/s）：目标 Hs≈6.5m（与 Gerstner 近场同海况匹配）。
+  it('calibrates ss4 to a moderate 2m significant wave height', () => {
+    // 与旧 6.5m 放大标定区分：中等海况代表值，不依赖 Gerstner 外观。
     const spectrum = fftOceanStaticSpectrum({
       resolution: 256,
       domainMeters: 2048,
@@ -132,9 +154,14 @@ describe('FFT ocean correctness (#2121)', () => {
       seaState: 4,
       seed: 17,
     });
-    const hs = significantWaveHeight(fftOceanSnapshot(spectrum, 2048, 0).heights);
-    expect(Math.abs(hs - 6.5)).toBeLessThan(0.5);
+    for (const time of [0, 5, 15, 60]) {
+      const hs = significantWaveHeight(fftOceanSnapshot(spectrum, 2048, time).heights);
+      expect(Math.abs(hs - 2)).toBeLessThan(0.04);
+    }
     expect(src_calibration()).toContain('seaState4EnergyCoefficient: 5200');
+    const bands = wavelengthEnergy(spectrum, 2048);
+    expect(bands.swell / bands.total).toBeGreaterThan(0.55);
+    expect(bands.cloth / bands.total).toBeLessThan(0.02);
   });
 
   it('keeps Hs within 2% across 128/256/512 when the physical band is fixed', () => {
@@ -149,7 +176,7 @@ describe('FFT ocean correctness (#2121)', () => {
       significantWaveHeight(fftOceanSnapshot(fftOceanStaticSpectrum({ ...base, resolution }), 2048, 0).heights)
     ));
     for (const hs of heights) {
-      expect(Math.abs(hs - FFT_OCEAN_HS_CALIBRATION.seaState4TargetHsMeters) / 6.5).toBeLessThan(0.02);
+      expect(Math.abs(hs - FFT_OCEAN_HS_CALIBRATION.seaState4TargetHsMeters) / FFT_OCEAN_HS_CALIBRATION.seaState4TargetHsMeters).toBeLessThan(0.02);
     }
   });
 
@@ -270,10 +297,11 @@ describe('runnable surface and comparison page (#2121)', () => {
 
   it('keeps both branches on a comparable load: low-tier Gerstner matches FFT domain and density', () => {
     const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
-    expect(client).toContain('GerstnerWater');
+    expect(client).toContain('ComparisonWater');
     expect(client).toContain("scene === 'feature-parity' ? tier : 'low'");
     expect(client).not.toContain('GerstnerWater tier="high"');
-    expect(client).toContain('同镜头/画布');
+    expect(client).toContain('<PerspectiveCamera makeDefault');
+    expect(client).toContain('<ComparisonScene following={following}');
   });
 
   it('runs spectrum evolution and 2D IFFT on the GPU (shader passes mirror the validated stages)', () => {
@@ -325,6 +353,11 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(page).toContain('searchParams');
     expect(page).not.toContain('typeof window');
     expect(client).toContain('backend: ComparisonBackend');
+    const webgpu = readSource('src/app/simulations/fft-ocean-comparison/webgpu-comparison-client.tsx');
+    expect(webgpu).toContain('<FFTOceanComparisonClient {...props} api="webgpu" />');
+    expect(webgpu).not.toContain('computeWebGpuOceanField');
+    expect(client).toContain('<SceneQualityProvider');
+    expect(client).toContain('<LockQualityTier tier={qualityTier} />');
     // 生产不变量：实验路由不改生产默认（无 registry/生产入口引用本页）。
     const registry = readSource('src/lib/resource-registry.tsx');
     expect(registry.includes('fft-ocean-comparison')).toBe(false);
@@ -336,52 +369,36 @@ describe('runnable surface and comparison page (#2121)', () => {
     expect(client).toContain('VersionedFleetShip');
     expect(client).toContain('FarFieldRing');
     expect(client).toContain('ShapeGeometry');
-    expect(client).toContain('disableEffects={!feature.ibl}');
-    expect(client).toContain('optics={feature.optics}');
-    expect(client).toContain('MarineShallowBackdrop');
+    const shared = readSource('src/app/simulations/fft-ocean-comparison/comparison-water.tsx');
+    expect(client).toContain('ComparisonWater');
+    expect(shared).toContain('createComparisonWaterMaterial');
+    expect(shared).toContain('ShallowBackdrop');
     expect(client).toContain('COMPARISON_SUN_DIRECTION');
     expect(client).toContain('resetToken={resetToken}');
     expect(client).toContain('GERSTNER_WATER_BASE_Y');
     expect(lab).toContain('domainMeters: 2048');
     expect(lab).toContain('resolution: 256');
     expect(client).toContain("scene === 'feature-parity' ? tier : 'low'");
-    expect(client).toContain('disableFarField');
+    expect(shared).not.toContain('FarFieldRing');
     const water = readSource('src/resources/simulations/scene/water/gerstner-water.tsx');
     expect(water).toContain('disableFarField');
     expect(water).toContain('{disableFarField ? null : (');
-    expect(client).toContain('unresolvedDifference');
+    expect(shared).toContain('sampleSurface');
     expect(client).not.toContain('StandInVessel');
     expect(client).not.toContain('boxGeometry args={[24, 16, 180]}');
     expect(client).not.toContain('sequence += 1 / VESSEL_QUERY_HZ');
   });
 
-  it('drives FFT vessel queries from worker-thread DFT batches using visualTime', () => {
+  it('keeps independent DFT tooling while sampling the combined moving surface for vessel contact', () => {
     const client = readSource('src/app/simulations/fft-ocean-comparison/comparison-client.tsx');
     const worker = readSource('src/resources/simulations/scene/water/fft-query-worker.ts');
-    const surface = readSource('src/resources/simulations/scene/water/fft-ocean-surface.tsx');
-    expect(client).toContain('createFFTQueryWorker()');
-    expect(client).toContain('worker.init({');
-    expect(client).toContain('worker.post({');
-    expect(client).toContain('worker.dispose();');
-    expect(worker).toContain("type === 'init'");
-    expect(client).toContain('if (result.timeSeconds < samplesRef.current.time) return;');
-    expect(client).toContain('createNearFieldSurfaceQuery');
-    expect(client).toContain('viaWorker: false');
-    expect(client).toContain('measurePointQueryMs');
-    expect(client).toContain('__marineComparisonLab');
-    expect(surface).toContain('useMarineVisualTime');
+    expect(client).toContain('surface.sampleSurface(comparisonContactPoints(time))');
+    expect(client).toContain('requestEpoch !== epoch.current');
+    expect(client).toContain("queryKind: 'gpu-surface'");
     expect(worker).toContain('const phase = omega * timeSeconds + kx * worldX + kz * worldZ;');
     expect(worker).toContain('contactHeightAt');
     expect(worker).toContain('queueMs');
     expect(worker).toContain('performance.timeOrigin');
-    expect(client).toContain('chopLambda: FFT_OCEAN_CHOP_LAMBDA');
-    expect(client).toContain('queryMetrics');
-    expect(client).toContain('resultAgeSeconds');
-    expect(client).toContain('performance.timeOrigin + performance.now()');
-    expect(client).not.toContain('contactErrorMeters');
-    const onResultStart = client.indexOf('worker.onResult');
-    const onResultEnd = client.indexOf('return () => {', onResultStart);
-    expect(client.slice(onResultStart, onResultEnd)).not.toContain('fftOceanContactHeightAt');
   });
 
   it('evaluation script consumes real measurement files instead of rewriting empty templates', () => {

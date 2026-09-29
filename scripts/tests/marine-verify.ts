@@ -114,33 +114,28 @@ async function readComparison(page: Page, durationMs: number): Promise<Compariso
       const value = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
       renderer = typeof value === 'string' ? value : null;
     }
-    const webgpu = window.__marineWebGpu;
-    const identity = webgpu && webgpu.identity ? webgpu.identity() : null;
-    const features = webgpu && webgpu.features ? webgpu.features() : null;
+    const ocean = window.__comparisonOcean;
+    const identity = ocean && ocean.identity ? ocean.identity() : null;
+    const features = ocean && ocean.features ? ocean.features() : null;
     const labReady = !!(window.__marineComparisonLab && window.__marineComparisonLab.ready && window.__marineComparisonLab.ready());
-    const visual = window.__marineVisualAcceptance && window.__marineVisualAcceptance.run ? window.__marineVisualAcceptance.run() : null;
+    const visual = window.__marineVisualAcceptance && window.__marineVisualAcceptance.run ? await window.__marineVisualAcceptance.run() : null;
     const stage = window.__marineStagePerformance && window.__marineStagePerformance.collect
       ? await window.__marineStagePerformance.collect()
       : null;
     const rounds = stage && stage.rounds ? stage.rounds : [];
     const gpuSamples = rounds.filter((round) => round.method === 'gpu-elapsed' && round.gpuMs > 0).map((round) => round.gpuMs).sort((a, b) => a - b);
     const workSamples = rounds.filter((round) => round.completedWorkMs > 0).map((round) => round.completedWorkMs).sort((a, b) => a - b);
-    const statusNode = document.querySelector('[data-webgpu-status]');
+    const statusNode = document.querySelector('[data-webgpu-status], [data-renderer-error]');
     const status = statusNode ? statusNode.getAttribute('data-webgpu-status') : null;
-    let pixel = null;
-    if (gl && canvas && canvas.width > 0) {
-      const data = new Uint8Array(4);
-      gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
-      pixel = (data[0] + data[1] + data[2]) / (3 * 255);
-    }
+    const pixel = visual && visual.metrics ? visual.metrics.pixelMean : null;
     return {
       frameP95Ms: pick(0.95),
       frameMedianMs: pick(0.5),
-      renderer: renderer || (identity && identity.vendor) || window.__marineWebGpuBackend || null,
-      hostUnavailable: status === 'unavailable' || status === 'failed' || (identity && (identity.status === 'unavailable' || identity.status === 'failed')),
+      renderer: renderer || (identity && identity.hardware) || null,
+      hostUnavailable: status === 'unavailable' || status === 'failed' || !!document.querySelector('[data-renderer-error]'),
       labReady,
       visualPassed: !!(visual && visual.passed === true),
-      webgpuReady: !!(webgpu && webgpu.ready && webgpu.ready()),
+      webgpuReady: !!(identity && identity.api === 'WebGPUBackend' && identity.frames > 0),
       features,
       gpuMs: gpuSamples.length ? gpuSamples[Math.floor((gpuSamples.length - 1) / 2)] : null,
       gpuSamples,
@@ -224,11 +219,9 @@ async function main() {
         await page.waitForFunction(() => {
           const host = window as unknown as {
             __marineComparisonLab?: { ready?: () => boolean };
-            __marineWebGpu?: { ready?: () => boolean };
           };
           return host.__marineComparisonLab?.ready?.() === true
-            || host.__marineWebGpu?.ready?.() === true
-            || document.querySelector('[data-webgpu-status="unavailable"], [data-webgpu-status="failed"]') !== null;
+            || document.querySelector('[data-renderer-error], [data-webgpu-status="unavailable"], [data-webgpu-status="failed"]') !== null;
         }, undefined, { timeout: 90_000 });
         const reading = await readComparison(page, 1500);
         const imagePath = join('images', `${route.id}-${scene}.png`);
@@ -237,7 +230,7 @@ async function main() {
       }
     }
     if (suite === 'extended') {
-      const readyExpression = "!!((window.__marineComparisonLab && window.__marineComparisonLab.ready && window.__marineComparisonLab.ready()) || (window.__marineWebGpu && window.__marineWebGpu.ready && window.__marineWebGpu.ready()) || document.querySelector('[data-webgpu-status=\"unavailable\"], [data-webgpu-status=\"failed\"]'))";
+      const readyExpression = "!!(window.__marineComparisonLab?.ready?.() || document.querySelector('[data-renderer-error]'))";
       const cdp = await page.context().newCDPSession(page);
       await page.goto(routeUrl(base, ROUTES[0]!, 'wave-only'), { waitUntil: 'domcontentloaded', timeout: 120_000 });
       await page.waitForFunction(readyExpression, undefined, { timeout: 90_000 });

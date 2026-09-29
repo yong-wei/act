@@ -3,7 +3,10 @@
  * 接触查询含 chop 反解；回传计算耗时与排队，主线程再记端到端与结果年龄。
  */
 
+import { displacedGridHeightAt } from './displaced-grid-query';
+
 const WORKER_SOURCE = `
+const displacedGridHeightAt = (${displacedGridHeightAt.toString()});
 function dispersionOmega(k) { return Math.sqrt(9.81 * Math.max(k, 1e-9)); }
 function binWaveNumber(index, resolution, domainMeters) {
   const folded = index <= resolution / 2 ? index : index - resolution;
@@ -79,6 +82,7 @@ self.onmessage = (event) => {
       resolution: message.resolution,
       domain: message.domain,
       chopLambda: message.chopLambda,
+      renderedGrid: message.renderedGrid === true,
     };
     return;
   }
@@ -86,7 +90,10 @@ self.onmessage = (event) => {
   const startedMs = performance.now();
   const startedAbs = performance.timeOrigin + startedMs;
   const { queries, timeSeconds, postedAt } = message;
-  const results = queries.map(([x, z]) => contactHeightAt(
+  const results = queries.map(([x, z]) => cached.renderedGrid
+    ? displacedGridHeightAt(x, z, cached.domain / cached.resolution, (px, pz) =>
+      fieldAt(cached.spectrum, cached.resolution, cached.domain, timeSeconds, px, pz, cached.chopLambda))
+    : contactHeightAt(
     cached.spectrum,
     cached.resolution,
     cached.domain,
@@ -120,6 +127,8 @@ export interface FFTQueryWorkerInit {
   readonly resolution: number;
   readonly domain: number;
   readonly chopLambda: number;
+  /** 对比页查询实际三角网格；缺省保留解析曲面查询。 */
+  readonly renderedGrid?: boolean;
 }
 
 export interface FFTQueryWorkerQuery {

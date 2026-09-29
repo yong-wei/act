@@ -93,6 +93,14 @@ describe('gerstner water material and component', () => {
     expect(source).toContain('GERSTNER_MAX_WAVES');
   });
 
+  it('tints a shallow backdrop sample instead of replacing lit wave color', () => {
+    const source = readSource('gerstner-water-material.ts');
+    expect(source).not.toContain('shallowColor = background * absorption');
+    expect(source).toContain('picked.a > 0.02');
+    expect(source).toContain('exp(-max(picked.a * 30.0, 0.2) * 0.55)');
+    expect(source).toContain('shallowColor = mix(shallowColor, color * tint, bottomTransmission)');
+  });
+
   it('samples the copied foam noise texture for crest foam', () => {
     const source = readSource('gerstner-water.tsx');
     expect(source).toContain('ocean-foam-noise-alpha.png');

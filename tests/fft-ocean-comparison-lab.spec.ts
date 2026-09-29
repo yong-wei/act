@@ -1,127 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-declare global {
-  interface Window {
-    __fftOceanRuntime?: {
-      gpuFrames: () => number;
-      validateGpuAgainstDft: () => {
-        ok: boolean;
-        relativeL2: number;
-        maxAbsError: number;
-        displacementMaxAbsError: number;
-        slopeMaxAbsError: number;
-        reason?: string;
-      };
-    };
-    __marineComparisonLab?: {
-      ready: () => boolean;
-      reset: () => void;
-      step: (dtSeconds: number) => void;
-      setRunMode: (mode: 'performance' | 'visual') => void;
-      setShallowEnabled?: (enabled: boolean) => void;
-      setReflectionEnabled?: (enabled: boolean) => void;
-      optics?: () => {
-        profile: 'neutral' | 'shared';
-        shallowEnabled: boolean;
-        shallowPassAllocated: boolean;
-      };
-      capture: () => {
-        visualTimeSeconds: number;
-        waterHeightOrigin: number;
-        queryBackend: 'fft' | 'gerstner';
-      };
-      queryMetrics?: () => {
-        computeMs: number;
-        queueMs: number;
-        transferMs: number | null;
-        e2eMs: number;
-        resultAgeSeconds: number;
-        viaWorker: boolean;
-        initChargedPerQuery: boolean;
-        queryKind: string;
-      } | null;
-      identity: () => {
-        queryBackend: 'fft' | 'gerstner';
-        waterBaseY: number;
-        farFieldRotationX: number;
-        vesselLoadFailed: boolean;
-        vesselLoaded: boolean;
-        vesselUrl: string | null;
-        vesselFallback: boolean;
-        firstFrameReady: boolean;
-      };
-    };
-    __marineVisualAcceptance?: {
-      run: () => {
-        passed: boolean;
-        beautyScore: null;
-        goldenRewritten: boolean;
-        crossAlgorithmPixelScore: null;
-        stillnessRewarded: boolean;
-        defects: Array<{ code: string; location: string }>;
-        metrics: { farFieldHorizontal: boolean; waveMotion: number; pixelMean: number };
-        images: Array<{ mean: number }>;
-      };
-      breakFarField: () => void;
-      clearReflection: () => void;
-      clearFoam: () => void;
-      reflectionEnabled?: () => boolean;
-      judgeFleet: (observations: Array<{
-        consumerId: string;
-        drawingBufferWidth: number;
-        drawingBufferHeight: number;
-        pixelMean: number;
-        waveDelta: number;
-        shipRadius: number;
-        shipX: number | null;
-        shipY: number | null;
-        shipZ: number | null;
-        shipYaw: number | null;
-        horizontalDelta: number;
-        yawDelta: number;
-        rollDelta: number;
-        propulsionDelta: number;
-        resolvedRoll: number | null;
-        telemetryRoll: number | null;
-      }>) => {
-        passed: boolean;
-        defects: Array<{ code: string; location: string }>;
-        metrics: { fleetCount: number };
-      };
-    };
-    __marineConsumerObservation?: {
-      collect: () => Promise<{
-        consumerId: string;
-        drawingBufferWidth: number;
-        drawingBufferHeight: number;
-        pixelMean: number;
-        waveDelta: number;
-        shipRadius: number;
-        shipX: number | null;
-        shipY: number | null;
-        shipZ: number | null;
-        shipYaw: number | null;
-        horizontalDelta: number;
-        yawDelta: number;
-        rollDelta: number;
-        propulsionDelta: number;
-        resolvedRoll: number | null;
-        telemetryRoll: number | null;
-      }>;
-    };
-    __marineStagePerformance?: {
-      collect: () => Promise<{
-        screenRecorded: boolean;
-        rounds: Array<{
-          method: string;
-          gpuMs: number | null;
-          completedWorkMs: number | null;
-          labeledAs: string;
-        }>;
-      }>;
-    };
-  }
-}
+import type {} from '../src/app/simulations/fft-ocean-comparison/comparison-client';
 
 const PAGE = '/simulations/fft-ocean-comparison';
 
@@ -145,38 +24,41 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     expect(identity?.vesselFallback).toBe(false);
   });
 
-  test('GPU small transform readback matches independent DFT within float32 bounds', async ({ page }) => {
-    await page.goto(`${PAGE}?backend=fft&scene=wave-only&qa=fft-ocean`, { waitUntil: 'domcontentloaded' });
-    await waitForLab(page);
-    await page.waitForFunction(() => {
-      const runtime = window.__fftOceanRuntime;
-      return Boolean(runtime && runtime.gpuFrames() > 2);
-    }, { timeout: 90_000 });
-    const report = await page.evaluate(() => window.__fftOceanRuntime?.validateGpuAgainstDft());
-    expect(report?.reason ?? null, JSON.stringify(report)).toBeNull();
-    expect(report?.ok, JSON.stringify(report)).toBe(true);
-    expect(report?.relativeL2).toBeLessThan(2e-4);
-    expect(report?.maxAbsError).toBeLessThan(1e-3);
-    expect(report?.displacementMaxAbsError).toBeLessThan(1e-3);
-    expect(report?.slopeMaxAbsError).toBeLessThan(1e-3);
-  });
+  for (const dpr of [1, 2]) {
+    test.describe('GPU readback at DPR=' + dpr, () => {
+      test.use({ deviceScaleFactor: dpr });
+      test('GPU small transform readback matches independent DFT within float32 bounds', async ({ page }) => {
+        await page.goto(`${PAGE}?backend=fft&scene=feature-parity&qa=fft-ocean`, { waitUntil: 'domcontentloaded' });
+        await waitForLab(page);
+        await page.waitForFunction(() => {
+          const runtime = window.__comparisonOcean;
+          return Boolean(runtime && runtime.identity().frames > 2);
+        }, { timeout: 90_000 });
+        const report = await page.evaluate(() => window.__comparisonOcean?.validate());
+        expect(report?.ok, JSON.stringify(report)).toBe(true);
+        expect(report?.relativeL2).toBeLessThan(2e-4);
+        expect(report?.maxAbsError).toBeLessThan(1e-3);
+        expect(report?.displacementMaxAbsError).toBeLessThan(1e-3);
+      });
+    });
+  }
 
-  test('FFT worker contact queries report compute, queue, e2e and result age', async ({ page }) => {
+  test('combined GPU contact queries report readback latency and result age', async ({ page }) => {
     await page.goto(`${PAGE}?backend=fft&scene=wave-only&qa=fft-ocean`, { waitUntil: 'domcontentloaded' });
     await waitForLab(page);
     await page.waitForFunction(() => {
       const metrics = window.__marineComparisonLab?.queryMetrics?.();
-      return Boolean(metrics && metrics.viaWorker && Number.isFinite(metrics.computeMs));
+      return Boolean(metrics && metrics.queryKind === 'gpu-surface' && Number.isFinite(metrics.e2eMs));
     }, { timeout: 90_000 });
     const metrics = await page.evaluate(() => window.__marineComparisonLab?.queryMetrics?.());
-    expect(metrics?.viaWorker).toBe(true);
-    expect(metrics?.computeMs).toBeGreaterThan(0);
-    expect(metrics?.queueMs).toBeGreaterThanOrEqual(0);
+    expect(metrics?.viaWorker).toBe(false);
+    expect(metrics?.computeMs).toBeNull();
+    expect(metrics?.queueMs).toBeNull();
     expect(metrics?.e2eMs).toBeGreaterThan(0);
-    expect(metrics?.transferMs).toBeGreaterThanOrEqual(0);
+    expect(metrics?.transferMs).toBeNull();
     expect(metrics?.resultAgeSeconds).toBeGreaterThanOrEqual(0);
     expect(metrics?.initChargedPerQuery).toBe(false);
-    expect(metrics?.queryKind).toBe('worker-batch');
+    expect(metrics?.queryKind).toBe('gpu-surface');
     const stage = await page.evaluate(async () => window.__marineStagePerformance?.collect());
     expect(stage?.screenRecorded).toBe(false);
     expect(stage?.rounds).toHaveLength(3);
@@ -212,7 +94,7 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     test.setTimeout(180_000);
     await page.goto(`${PAGE}?backend=gerstner&scene=feature-parity`, { waitUntil: 'domcontentloaded' });
     await waitForLab(page);
-    await page.waitForFunction(() => window.__marineVisualAcceptance?.run()?.passed === true, { timeout: 90_000 });
+    await page.waitForFunction(async () => (await window.__marineVisualAcceptance?.run())?.passed === true, { timeout: 90_000 });
     await page.evaluate(() => {
       window.__marineComparisonLab?.setReflectionEnabled?.(false);
       window.__marineVisualAcceptance?.clearFoam();
@@ -251,6 +133,7 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
       await expect(start.first()).toBeVisible({ timeout: 30_000 });
       await start.first().click();
       const observation = await page.evaluate(async () => window.__marineConsumerObservation?.collect());
+      if (!observation) throw new Error(`Missing fleet observation: ${href}`);
       expect(observation?.consumerId, href).toBe(consumerId);
       expect(observation?.drawingBufferWidth, href).toBeGreaterThan(0);
       expect(observation?.pixelMean, href).toBeGreaterThan(0.02);
@@ -283,14 +166,26 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
       if (!lab) throw new Error('lab missing');
       lab.setRunMode('visual');
       lab.reset();
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise<void>(resolve => {
+        const wait = () => lab.ready() ? resolve() : requestAnimationFrame(wait);
+        requestAnimationFrame(wait);
+      });
       lab.step(1.5);
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise<void>(resolve => {
+        const wait = () => lab.ready() ? resolve() : requestAnimationFrame(wait);
+        requestAnimationFrame(wait);
+      });
       const first = lab.capture();
       lab.reset();
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise<void>(resolve => {
+        const wait = () => lab.ready() ? resolve() : requestAnimationFrame(wait);
+        requestAnimationFrame(wait);
+      });
       lab.step(1.5);
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise<void>(resolve => {
+        const wait = () => lab.ready() ? resolve() : requestAnimationFrame(wait);
+        requestAnimationFrame(wait);
+      });
       const second = lab.capture();
       return { first, second };
     });
@@ -303,28 +198,18 @@ test.describe('FFT ocean comparison lab (#2130)', () => {
     await page.goto(`${PAGE}?backend=fft&scene=feature-parity`, { waitUntil: 'domcontentloaded' });
     await waitForLab(page);
     await page.waitForFunction(() => window.__marineComparisonLab?.optics?.().profile === 'shared', { timeout: 30_000 });
-    const before = await page.evaluate(() => {
-      const canvas = document.querySelector('canvas');
-      if (!canvas) return null;
-      const gl = canvas.getContext('webgl2');
-      if (!gl) return null;
-      const pixels = new Uint8Array(4);
-      gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-      return Array.from(pixels);
+    await page.evaluate(() => {
+      window.__marineComparisonLab!.setRunMode('visual');
+      window.__marineComparisonLab!.reset();
+      window.__marineComparisonLab!.step(3);
     });
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const before = await page.screenshot();
     await page.evaluate(() => window.__marineComparisonLab?.setShallowEnabled?.(false));
-    await page.waitForFunction(() => window.__marineComparisonLab?.optics?.().shallowPassAllocated === false, { timeout: 10_000 });
-    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-    const after = await page.evaluate(() => {
-      const canvas = document.querySelector('canvas');
-      if (!canvas) return null;
-      const gl = canvas.getContext('webgl2');
-      if (!gl) return null;
-      const pixels = new Uint8Array(4);
-      gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-      return Array.from(pixels);
-    });
-    expect(before).not.toEqual(after);
+    await page.waitForFunction(() => window.__marineComparisonLab?.optics?.().shallowPassAllocated === false);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const after = await page.screenshot();
+    expect(before.equals(after)).toBe(false);
   });
 
   test('failed vessel load is reported and does not fall back to a success box', async ({ page }) => {

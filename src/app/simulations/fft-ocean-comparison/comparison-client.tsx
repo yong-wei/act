@@ -4,6 +4,11 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { AmbientLight, DirectionalLight, RenderTarget, WebGPURenderer } from 'three/webgpu';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { SCENE_CAMERA_SHOTS } from '@/resources/simulations/scene/camera/camera-shots';
+import { ComparisonWater, type ComparisonOceanProbe } from './comparison-water';
+import { createComparisonRenderer } from './comparison-renderer';
 
 import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
 import { ModelAssetErrorBoundary } from '@/resources/simulations/components/fallback-gltf-model';
@@ -25,16 +30,9 @@ import {
 } from '@/resources/simulations/scene/frame/marine-frame-provider';
 import type { MarineFrameInputs, MarinePoseOwnership } from '@/resources/simulations/scene/frame/marine-frame';
 import {
-  FFTOceanSurface,
-} from '@/resources/simulations/scene/water/fft-ocean-surface';
-import {
-  FFT_OCEAN_CHOP_LAMBDA,
-  createFftOceanCompressionSampler,
-  fftOceanContactHeightAt,
+  fftOceanRenderedHeightAt,
   fftOceanStaticSpectrum,
 } from '@/resources/simulations/scene/water/fft-ocean';
-import { createFFTQueryWorker } from '@/resources/simulations/scene/water/fft-query-worker';
-import { assembleWorkerQueryReport } from '@/resources/simulations/scene/quality/stage-performance';
 import {
   judgeFleetObservations,
   judgeMarineObservation,
@@ -42,18 +40,15 @@ import {
   type FleetConsumerObservation,
   type MarineSceneObservation,
 } from '@/resources/simulations/scene/quality/visual-acceptance';
-import { MarineShallowBackdrop, COMPARISON_SUN_DIRECTION } from '@/resources/simulations/scene/water/shared-water-optics';
-import { MarinePlanarReflection } from '@/resources/simulations/scene/environment/planar-reflection';
-import { MarineFoamFieldProvider } from '@/resources/simulations/scene/water/foam-history-layer';
+import { COMPARISON_SUN_DIRECTION } from '@/resources/simulations/scene/water/shared-water-optics';
 import {
-  GerstnerWater,
   GERSTNER_WATER_BASE_Y,
   createNearFieldSurfaceQuery,
   gerstnerAmplitudeScale,
 } from '@/resources/simulations/scene/water';
 import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
 import {
-  COMPARISON_BOW_OFFSET_METERS,
+  comparisonVesselPose, comparisonContactPoints,
   COMPARISON_FEATURE_MATRIX,
   COMPARISON_SHORE_SEGMENT,
   COMPARISON_MISSING_VESSEL_URL,
@@ -66,6 +61,7 @@ import {
   labIsReady,
   vesselPitchFromSamples,
   type ComparisonBackend,
+  type ComparisonGraphicsApi,
   type ComparisonFftResolution,
   type ComparisonLod,
   type ComparisonLabApi,
@@ -76,28 +72,19 @@ import {
   type ComparisonRunMode,
   type ComparisonSceneId,
 } from './comparison-lab';
+import { ComparisonModeSwitch } from './comparison-mode-switch';
 
-/**
- * 对照客户端（#2130）：?backend=fft|gerstner 与 ?scene=wave-only|feature-parity
- * 由服务端 searchParams 传入（无水合分歧）。
- *
- * 两分支同镜头/画布、同高精 055、同水平远场环带、同一 GERSTNER_WATER_BASE_Y。
- * 船体查询走当前后端；visualTime 来自 MarineFrame，不用 setInterval 自造时间。
- * wave-only 固定 Gerstner low 与 FFT 同域同细分（domainMeters: 2048 / resolution: 256）；
- * feature-parity 使用完整档位。查询延迟单独测量（口径分离）：measurePointQueryMs
- * 仍由 ?qa=fft-ocean 的 __fftOceanRuntime 提供。
- * 残余差异（Gerstner 材质栈含泡沫纹理/浅水/岸线输入）声明为 unresolvedDifference。
- */
-
+/** 对照页共享场景：规定圆轨迹、战术镜头与实际可见水面的低频三点接触查询。 */
 const COMPARISON_POSE_OWNERSHIP: MarinePoseOwnership = {
   heave: 'visual-water',
   pitch: 'visual-water',
   roll: 'fixed',
 };
+const COMPARISON_SHORE_SEGMENTS = [COMPARISON_SHORE_SEGMENT] as const;
 
 const FAR_FIELD = comparisonFarFieldRing();
 
-function LockQualityTier({ tier }: { readonly tier: QualityTierId }) {
+export function LockQualityTier({ tier }: { readonly tier: QualityTierId }) {
   const { setOverride } = useSceneQuality();
   useEffect(() => {
     setOverride(tier);
@@ -144,6 +131,7 @@ function MissingVesselAsset() {
 }
 
 export function ComparisonVessel({
+  surfaceRef,
   failAsset,
   waterYSampler,
   pitchRef,
@@ -152,6 +140,7 @@ export function ComparisonVessel({
   onMountedUrl,
   onLoadFailed,
 }: {
+  readonly surfaceRef: React.MutableRefObject<ComparisonOceanProbe | null>;
   readonly failAsset: boolean;
   readonly waterYSampler: () => number;
   readonly pitchRef: React.MutableRefObject<number>;
@@ -161,8 +150,17 @@ export function ComparisonVessel({
   readonly onLoadFailed: () => void;
 }) {
   const groupRef = useRef<THREE.Group>(null);
-  useFrame(() => {
-    if (groupRef.current) groupRef.current.rotation.x = pitchRef.current;
+  const visualTime = useMarineVisualTime();
+  const previousTime = useRef(0);
+  useFrame((state, delta) => {
+    const seconds = surfaceRef.current?.identity().time ?? visualTime(state, delta);
+    const pose = comparisonVesselPose(seconds);
+    simRef.current = { ...simRef.current, speedMps: pose.speedMps, advancing: seconds > previousTime.current };
+    previousTime.current = seconds;
+    if (groupRef.current) {
+      groupRef.current.position.set(pose.x, 0, pose.z);
+      groupRef.current.rotation.set(-pitchRef.current, pose.headingRad, 0, 'YXZ');
+    }
   });
 
   if (failAsset) {
@@ -178,13 +176,13 @@ export function ComparisonVessel({
   }
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} name="comparison-vessel-motion">
       <ModelAssetErrorBoundary fallback={<FailedVesselMarker onLoadFailed={onLoadFailed} />}>
         <VersionedFleetShip
           logicalId="destroyer"
           simRef={simRef}
           position={{ x: 0, z: 0 }}
-          headingRad={0}
+          headingRad={Math.PI / 2}
           waterYSampler={waterYSampler}
           sceneLengthMeters={COMPARISON_VESSEL_LENGTH_METERS}
           resetToken={resetToken}
@@ -204,147 +202,71 @@ function FailedVesselMarker({ onLoadFailed }: { readonly onLoadFailed: () => voi
   return null;
 }
 
-function ComparisonQueries({
-  backend,
-  samplesRef,
-  metricsRef,
-  resetToken,
-  resolution,
-}: {
-  readonly backend: ComparisonBackend;
-  readonly samplesRef: React.MutableRefObject<{ mid: number; bow: number; stern: number; time: number }>;
-  readonly metricsRef: React.MutableRefObject<ComparisonQueryMetrics | null>;
-  readonly resetToken: number;
-  readonly resolution: ComparisonFftResolution;
-}) {
-  const marineVisualTime = useMarineVisualTime();
-  const spectrum = useMemo(
-    () => fftOceanStaticSpectrum({ ...COMPARISON_SPECTRUM_INPUT, resolution }),
-    [resolution],
+function comparisonGerstnerQuery(timeSeconds: number, scene: ComparisonSceneId) {
+  const query = createNearFieldSurfaceQuery(
+    gerstnerAmplitudeScale(COMPARISON_SPECTRUM_INPUT.seaState), 0, 0, timeSeconds,
+    scene === 'feature-parity' ? { shoreSegments: COMPARISON_SHORE_SEGMENTS } : undefined,
   );
-
-  useFrame((state, delta) => {
-    if (backend !== 'gerstner') return;
-    const timeSeconds = marineVisualTime(state, delta);
-    const query = createNearFieldSurfaceQuery(
-      gerstnerAmplitudeScale(COMPARISON_SPECTRUM_INPUT.seaState),
-      0,
-      0,
-      timeSeconds,
-    );
-    samplesRef.current = {
-      mid: query.heightAt(0, 0),
-      bow: query.heightAt(0, COMPARISON_BOW_OFFSET_METERS),
-      stern: query.heightAt(0, -COMPARISON_BOW_OFFSET_METERS),
-      time: timeSeconds,
-    };
-  });
-
-  if (backend !== 'fft') return null;
-  return (
-    <FftWorkerPoster
-      samplesRef={samplesRef}
-      metricsRef={metricsRef}
-      spectrum={spectrum}
-      resetToken={resetToken}
-    />
-  );
+  return { heightAt: (x: number, z: number) => query.heightAt(x, z) - GERSTNER_WATER_BASE_Y };
 }
 
-function FftWorkerPoster({
-  samplesRef,
-  metricsRef,
-  spectrum,
-  resetToken,
-}: {
-  readonly samplesRef: React.MutableRefObject<{ mid: number; bow: number; stern: number; time: number }>;
-  readonly metricsRef: React.MutableRefObject<ComparisonQueryMetrics | null>;
-  readonly spectrum: ReturnType<typeof fftOceanStaticSpectrum>;
-  readonly resetToken: number;
+function ComparisonQueries({ surfaceRef, samplesRef, metricsRef, resetToken, runModeRef }: {
+  runModeRef: React.MutableRefObject<ComparisonRunMode>;
+  surfaceRef: React.MutableRefObject<ComparisonOceanProbe | null>;
+  samplesRef: React.MutableRefObject<{ mid: number; bow: number; stern: number; time: number }>;
+  metricsRef: React.MutableRefObject<ComparisonQueryMetrics | null>;
+  resetToken: number;
 }) {
-  const runner = useMarineFrameRunner();
-  const marineVisualTime = useMarineVisualTime();
-  const workerRef = useRef<ReturnType<typeof createFFTQueryWorker>>(null);
-  const lastPostRef = useRef(-1);
-  const visualTimeRef = useRef(0);
-
+  const pending = useRef(false);
+  const epoch = useRef(0);
   useEffect(() => {
-    lastPostRef.current = -1;
-    samplesRef.current = { mid: 0, bow: 0, stern: 0, time: 0 };
+    epoch.current += 1;
+    samplesRef.current = { mid: 0, bow: 0, stern: 0, time: -1 };
     metricsRef.current = null;
-    const worker = createFFTQueryWorker();
-    workerRef.current = worker;
-    if (!worker) return undefined;
-    worker.init({
-      spectrum: spectrum.data,
-      resolution: spectrum.resolution,
-      domain: COMPARISON_SPECTRUM_INPUT.domainMeters,
-      chopLambda: FFT_OCEAN_CHOP_LAMBDA,
-    });
-    worker.onResult((result) => {
-      if (result.timeSeconds < samplesRef.current.time) return;
-      const [mid, bow, stern] = result.results;
-      samplesRef.current = { mid, bow, stern, time: result.timeSeconds };
-      const receivedAt = performance.timeOrigin + performance.now();
-      const report = assembleWorkerQueryReport({
-        computeMs: result.computeMs,
-        queueMs: result.queueMs,
-        e2eMs: receivedAt - result.postedAt,
-        resultAgeSeconds: Math.max(0, visualTimeRef.current - result.timeSeconds),
-      });
-      metricsRef.current = {
-        computeMs: report.computeMs,
-        queueMs: report.queueMs,
-        transferMs: report.transferMs,
-        e2eMs: report.e2eMs,
-        resultAgeSeconds: report.resultAgeSeconds,
-        viaWorker: true,
-        initChargedPerQuery: report.initChargedPerQuery,
-        queryKind: report.kind,
-      };
-    });
-    return () => {
-      worker.dispose();
-      workerRef.current = null;
-    };
-  }, [resetToken, samplesRef, metricsRef, spectrum]);
-
-  useFrame((state, delta) => {
-    const timeSeconds = marineVisualTime(state, delta);
-    visualTimeRef.current = timeSeconds;
-    if (timeSeconds - lastPostRef.current < 1 / COMPARISON_VESSEL_QUERY_HZ) return;
-    lastPostRef.current = timeSeconds;
-    const worker = workerRef.current;
-    if (worker) {
-      worker.post({
-        queries: [[0, 0], [0, COMPARISON_BOW_OFFSET_METERS], [0, -COMPARISON_BOW_OFFSET_METERS]],
-        timeSeconds,
-        postedAt: performance.timeOrigin + performance.now(),
-      });
-      return;
-    }
-    // 回退：Worker 不可用时主线程低频查询，viaWorker: false。
-    const domain = COMPARISON_SPECTRUM_INPUT.domainMeters;
+    return () => { epoch.current += 1; };
+  }, [resetToken, samplesRef, metricsRef]);
+  useFrame(() => {
+    const surface = surfaceRef.current;
+    if (!surface || !surface.history() || pending.current) return;
+    const time = surface.identity().time;
+    if (Math.abs(time - samplesRef.current.time) < 1e-6) return;
+    if (Math.abs(surface.history()!.requested - time) > 1 / 60 + 1e-5) return;
+    if (runModeRef.current !== 'visual' && time >= samplesRef.current.time
+      && time - samplesRef.current.time < 1 / COMPARISON_VESSEL_QUERY_HZ) return;
+    const requestEpoch = epoch.current;
     const started = performance.now();
-    samplesRef.current = {
-      mid: fftOceanContactHeightAt(spectrum, domain, timeSeconds, 0, 0),
-      bow: fftOceanContactHeightAt(spectrum, domain, timeSeconds, 0, COMPARISON_BOW_OFFSET_METERS),
-      stern: fftOceanContactHeightAt(spectrum, domain, timeSeconds, 0, -COMPARISON_BOW_OFFSET_METERS),
-      time: timeSeconds,
-    };
-    metricsRef.current = {
-      computeMs: performance.now() - started,
-      queueMs: 0,
-      transferMs: null,
-      e2eMs: performance.now() - started,
-      resultAgeSeconds: 0,
-      viaWorker: false,
-      initChargedPerQuery: false,
-      queryKind: 'main-thread-fallback',
-    };
-    void runner;
+    pending.current = true;
+    void surface.sampleSurface(comparisonContactPoints(time)).then(points => {
+      if (requestEpoch !== epoch.current || surfaceRef.current !== surface) return;
+      const [mid, bow, stern] = points.map(p => p.height - GERSTNER_WATER_BASE_Y);
+      samplesRef.current = { mid, bow, stern, time };
+      const elapsed = performance.now() - started;
+      // 本指标是三点采样端到端延迟，不能解释为纯 GPU 计算时间。
+      metricsRef.current = { computeMs: null, queueMs: null, transferMs: null, e2eMs: elapsed,
+        resultAgeSeconds: Math.max(0, surface.identity().time - time), viaWorker: false,
+        initChargedPerQuery: false, queryKind: 'gpu-surface' };
+    }).catch(() => { /* 诊断读回占用时下一帧重试，卸载后不发布旧结果。 */ })
+      .finally(() => { pending.current = false; });
   });
   return null;
+}
+
+function ComparisonCamera({ surfaceRef, following, onFree }: {
+  surfaceRef: React.MutableRefObject<ComparisonOceanProbe | null>; following: boolean; onFree: () => void;
+}) {
+  const camera = useThree(s => s.camera);
+  const controls = useRef<OrbitControlsImpl>(null);
+  useFrame(() => {
+    if (!following || !controls.current) return;
+    const pose = comparisonVesselPose(surfaceRef.current?.identity().time ?? 0);
+    const frame = SCENE_CAMERA_SHOTS.tactical.frame({ shipX: pose.x, shipZ: pose.z,
+      headingRad: pose.headingRad, shipLength: COMPARISON_VESSEL_LENGTH_METERS });
+    camera.position.copy(frame.position);
+    controls.current.target.copy(frame.target);
+    controls.current.update();
+  });
+  return <OrbitControls ref={controls} makeDefault enableDamping={false} onStart={onFree}
+    enablePan enableZoom enableRotate minDistance={40} maxDistance={4000} />;
 }
 
 function ComparisonLabBridge({
@@ -378,6 +300,7 @@ function ComparisonLabBridge({
 }) {
   const runner = useMarineFrameRunner();
   const root = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
   const renderer = useThree((state) => state.gl);
   const [firstFrameReady, setFirstFrameReady] = useState(false);
 
@@ -398,31 +321,30 @@ function ComparisonLabBridge({
 
   const sampleDisplacement = useCallback((x: number, z: number, timeSeconds: number) => {
     if (backend === 'gerstner') {
-      return createNearFieldSurfaceQuery(
-        gerstnerAmplitudeScale(COMPARISON_SPECTRUM_INPUT.seaState),
-        0,
-        0,
-        timeSeconds,
-      ).heightAt(x, z);
+      return comparisonGerstnerQuery(timeSeconds, scene).heightAt(x, z);
     }
-    if (Math.abs(timeSeconds - samplesRef.current.time) < 1e-3) {
-      if (x === 0 && z === 0) return samplesRef.current.mid;
-      if (x === 0 && z === COMPARISON_BOW_OFFSET_METERS) return samplesRef.current.bow;
-      if (x === 0 && z === -COMPARISON_BOW_OFFSET_METERS) return samplesRef.current.stern;
-    }
-    return fftOceanContactHeightAt(
+    return fftOceanRenderedHeightAt(
       fftOceanStaticSpectrum({ ...COMPARISON_SPECTRUM_INPUT, resolution }),
       COMPARISON_SPECTRUM_INPUT.domainMeters,
       timeSeconds,
       x,
       z,
     );
-  }, [backend, resolution, samplesRef]);
+  }, [backend, resolution, scene]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     const api: ComparisonLabApi = {
-      ready: () => labIsReady(identityRef.current),
+      motion: () => {
+        const vessel = root.getObjectByName('comparison-vessel-motion');
+        const position = vessel?.position ?? new THREE.Vector3();
+        return { x: position.x, z: position.z, headingRad: vessel?.rotation.y ?? 0,
+          camera: camera.position.toArray(), projectedCenter: position.clone().project(camera).toArray() };
+      },
+      ready: () => labIsReady(identityRef.current)
+        && (window.__comparisonOcean?.identity().frames ?? 0) > 0
+        && Math.abs((window.__comparisonOcean?.identity().time ?? -1) - (runner?.clock.timeSeconds() ?? 0)) < 1 / 60 + 1e-5
+        && Math.abs(samplesRef.current.time - (window.__comparisonOcean?.identity().time ?? -1)) < (runModeRef.current === 'visual' ? 1e-5 : 0.4),
       reset: () => {
         samplesRef.current = { mid: 0, bow: 0, stern: 0, time: 0 };
         pitchRef.current = 0;
@@ -444,14 +366,16 @@ function ComparisonLabBridge({
         const identity = identityRef.current;
         return {
           visualTimeSeconds: timeSeconds,
-          waterHeightOrigin: composeWaterDatum(GERSTNER_WATER_BASE_Y, sampleDisplacement(0, 0, timeSeconds)),
+          vesselPose: comparisonVesselPose(samplesRef.current.time),
+          sampleTimeSeconds: samplesRef.current.time,
+          waterHeightOrigin: composeWaterDatum(GERSTNER_WATER_BASE_Y, samplesRef.current.mid),
           bowHeight: composeWaterDatum(
             GERSTNER_WATER_BASE_Y,
-            sampleDisplacement(0, COMPARISON_BOW_OFFSET_METERS, timeSeconds),
+            samplesRef.current.bow,
           ),
           sternHeight: composeWaterDatum(
             GERSTNER_WATER_BASE_Y,
-            sampleDisplacement(0, -COMPARISON_BOW_OFFSET_METERS, timeSeconds),
+            samplesRef.current.stern,
           ),
           backend: identity.backend,
           scene: identity.scene,
@@ -478,7 +402,8 @@ function ComparisonLabBridge({
       optics: (): ComparisonOpticsState => opticsRef.current,
     };
     window.__marineComparisonLab = api;
-    const readObservation = (): MarineSceneObservation => {
+    const readObservation = async (): Promise<MarineSceneObservation> => {
+      const gpu = renderer as unknown as WebGPURenderer;
       const mesh = root.getObjectByName('comparison-far-field');
       const geometry = mesh && 'geometry' in mesh ? (mesh as THREE.Mesh).geometry : null;
       const position = geometry?.getAttribute('position');
@@ -494,31 +419,31 @@ function ComparisonLabBridge({
       let reflectionPixelMean: number | null = null;
       const reflectionTarget = planar?.target;
       if (reflectionTarget) {
-        const sample = new Uint8Array(4);
         const sampleX = Math.max(0, Math.floor(reflectionTarget.width / 2));
         const sampleY = Math.max(0, Math.floor(reflectionTarget.height / 2));
-        (renderer as THREE.WebGLRenderer).readRenderTargetPixels(reflectionTarget, sampleX, sampleY, 1, 1, sample);
+        const sample = await gpu.readRenderTargetPixelsAsync(reflectionTarget, sampleX, sampleY, 1, 1);
         reflectionPixelMean = (sample[0]! + sample[1]! + sample[2]!) / (3 * 255);
       }
       const heightAtRest = sampleDisplacement(0, 0, 0);
       const heightLater = sampleDisplacement(0, 0, 1.5);
       const heightBeside = sampleDisplacement(8, 0, 1.5);
-      const context = renderer.getContext() as WebGLRenderingContext | null;
-      const width = context?.drawingBufferWidth ?? 0;
-      const height = context?.drawingBufferHeight ?? 0;
+      const size = gpu.getDrawingBufferSize(new THREE.Vector2());
+      const width = size.x;
+      const height = size.y;
       let pixelMean = 0;
-      if (context && width > 0 && height > 0) {
-        const pixel = new Uint8Array(4);
-        context.readPixels(
-          Math.floor(width / 2),
-          Math.floor(height / 2),
-          1,
-          1,
-          context.RGBA,
-          context.UNSIGNED_BYTE,
-          pixel,
-        );
-        pixelMean = (pixel[0]! + pixel[1]! + pixel[2]!) / (3 * 255);
+      if (width > 0 && height > 0) {
+        const target = new RenderTarget(width, height);
+        const previous = gpu.getRenderTarget();
+        try {
+          gpu.setRenderTarget(target);
+          gpu.render(root, camera);
+          gpu.setRenderTarget(previous);
+          const pixel = await gpu.readRenderTargetPixelsAsync(target, Math.floor(width / 2), Math.floor(height / 2), 1, 1);
+          pixelMean = (pixel[0]! + pixel[1]! + pixel[2]!) / (3 * 255);
+        } finally {
+          gpu.setRenderTarget(previous);
+          target.dispose();
+        }
       }
       const contactPitch = Math.atan2(
         samplesRef.current.bow - samplesRef.current.stern,
@@ -541,9 +466,9 @@ function ComparisonLabBridge({
       };
     };
     window.__marineVisualAcceptance = {
-      run: () => {
+      run: async () => {
         const feature = COMPARISON_FEATURE_MATRIX[identityRef.current.scene];
-        return judgeMarineObservation(readObservation(), {
+        return judgeMarineObservation(await readObservation(), {
           reflectionRequired: feature.planar,
           foamRequired: feature.foam,
         });
@@ -571,7 +496,7 @@ function ComparisonLabBridge({
       delete window.__marineComparisonLab;
       delete window.__marineVisualAcceptance;
     };
-  }, [identityRef, metricsRef, opticsRef, pitchRef, reflectionEnabledRef, renderer, root, runner, runModeRef, sampleDisplacement, samplesRef, setReflectionEnabled, setResetToken, setShallowEnabled]);
+  }, [camera, identityRef, metricsRef, opticsRef, pitchRef, reflectionEnabledRef, renderer, root, runner, runModeRef, sampleDisplacement, samplesRef, setReflectionEnabled, setResetToken, setShallowEnabled]);
 
   useEffect(() => {
     identityRef.current = {
@@ -586,11 +511,13 @@ function ComparisonLabBridge({
 }
 
 function ComparisonScene({
+  following, onFree, paused,
   backend,
   scene,
   failAsset,
   resolution,
 }: {
+  readonly following: boolean; readonly onFree: () => void; readonly paused: boolean;
   readonly backend: ComparisonBackend;
   readonly scene: ComparisonSceneId;
   readonly failAsset: boolean;
@@ -601,6 +528,8 @@ function ComparisonScene({
   const metricsRef = useRef<ComparisonQueryMetrics | null>(null);
   const pitchRef = useRef(0);
   const runModeRef = useRef<ComparisonRunMode>('performance');
+  const surfaceRef = useRef<ComparisonOceanProbe | null>(null);
+  useEffect(() => { runModeRef.current = paused ? 'visual' : 'performance'; }, [paused]);
   const [resetToken, setResetToken] = useState(0);
   const feature = COMPARISON_FEATURE_MATRIX[scene];
   const [shallowEnabled, setShallowEnabled] = useState(feature.shallow);
@@ -675,42 +604,31 @@ function ComparisonScene({
   );
 
   const frameInputs = useMemo<MarineFrameInputs>(() => ({
-    worldPoseSampler: () => ({ x: 0, z: 0, headingRad: 0 }),
+    worldPoseSampler: () => comparisonVesselPose(surfaceRef.current?.identity().time ?? 0),
     renderOriginSampler: () => ({ x: 0, z: 0 }),
-    simulationTimeSampler: () => 0,
+    simulationTimeSampler: () => surfaceRef.current?.identity().time ?? 0,
     advancingSampler: () => true,
     playbackRateSampler: () => (runModeRef.current === 'visual' ? 0 : 1),
     waterSampler: (worldX, worldZ, timeSeconds) => {
       if (backend === 'gerstner') {
         return composeWaterDatum(
           GERSTNER_WATER_BASE_Y,
-          createNearFieldSurfaceQuery(
-            gerstnerAmplitudeScale(COMPARISON_SPECTRUM_INPUT.seaState),
-            0,
-            0,
-            timeSeconds,
-          ).heightAt(worldX, worldZ),
+          comparisonGerstnerQuery(timeSeconds, scene).heightAt(worldX, worldZ),
         );
       }
       return composeWaterDatum(GERSTNER_WATER_BASE_Y, samplesRef.current.mid);
     },
     ownership: COMPARISON_POSE_OWNERSHIP,
     qualityTierSampler: () => tier,
-  }), [backend, tier]);
+  }), [backend, tier, scene]);
 
   const gerstnerTier = scene === 'feature-parity' ? tier : 'low';
-  const fftCompressionAt = useMemo(
-    () => createFftOceanCompressionSampler(
-      fftOceanStaticSpectrum({ ...COMPARISON_SPECTRUM_INPUT, resolution }),
-      COMPARISON_SPECTRUM_INPUT.domainMeters,
-    ),
-    [resolution],
-  );
 
   return (
     <MarineFrameProvider inputs={frameInputs}>
       <SceneQualityDriver />
-      <ComparisonQueries backend={backend} samplesRef={samplesRef} metricsRef={metricsRef} resetToken={resetToken} resolution={resolution} />
+      <ComparisonQueries runModeRef={runModeRef} surfaceRef={surfaceRef} samplesRef={samplesRef} metricsRef={metricsRef} resetToken={resetToken} />
+      <ComparisonCamera surfaceRef={surfaceRef} following={following} onFree={onFree} />
       <ComparisonLabBridge
         backend={backend}
         scene={scene}
@@ -728,6 +646,7 @@ function ComparisonScene({
       />
       <FarFieldRing />
       <ComparisonVessel
+        surfaceRef={surfaceRef}
         failAsset={failAsset}
         waterYSampler={waterYSampler}
         pitchRef={pitchRef}
@@ -737,50 +656,16 @@ function ComparisonScene({
         onLoadFailed={onLoadFailed}
       />
       <Suspense fallback={null}>
-        {feature.shallow && shallowEnabled ? <MarineShallowBackdrop enabled /> : null}
-        {backend === 'fft' ? (
-          <MarineFoamFieldProvider
-            tier={gerstnerTier}
-            seaState={COMPARISON_SPECTRUM_INPUT.seaState}
-            waves={[]}
-            compressionAt={feature.foam ? fftCompressionAt : undefined}
-            amplitudeScale={gerstnerAmplitudeScale(COMPARISON_SPECTRUM_INPUT.seaState)}
-            resetToken={resetToken}
-            attributionOverride={feature.foam ? undefined : { natural: false, vessel: false }}
-          >
-            {feature.planar ? (
-              <MarinePlanarReflection planeY={GERSTNER_WATER_BASE_Y} enabled={reflectionEnabled && gerstnerTier === 'high'} />
-            ) : null}
-            <group position={[0, GERSTNER_WATER_BASE_Y, 0]}>
-              <FFTOceanSurface
-                spectrumInput={COMPARISON_SPECTRUM_INPUT}
-                domainMeters={COMPARISON_SPECTRUM_INPUT.domainMeters}
-                optics={feature.optics}
-                shoreSegments={feature.shallow ? [COMPARISON_SHORE_SEGMENT] : undefined}
-                shallowEnabled={feature.shallow && shallowEnabled}
-              />
-            </group>
-          </MarineFoamFieldProvider>
-        ) : (
-          <GerstnerWater
-            key={scene}
-            tier={gerstnerTier}
-            seaState={COMPARISON_SPECTRUM_INPUT.seaState}
-            disableFarField
-            disableEffects={!feature.ibl}
-            resetToken={resetToken}
-            sunDirection={COMPARISON_SUN_DIRECTION}
-            shoreSegments={feature.shallow ? [COMPARISON_SHORE_SEGMENT] : undefined}
-            shallowEnabled={shallowEnabled}
-            neutralOptics={feature.optics === 'neutral'}
-          />
-        )}
+        <ComparisonWater surfaceRef={surfaceRef} backend={backend} scene={scene} tier={gerstnerTier}
+          resolution={resolution} resetToken={resetToken}
+          shallowEnabled={shallowEnabled} reflectionEnabled={reflectionEnabled} />
       </Suspense>
     </MarineFrameProvider>
   );
 }
 
 export default function FFTOceanComparisonClient({
+  api = 'webgl',
   backend,
   scene,
   failAsset = false,
@@ -790,15 +675,28 @@ export default function FFTOceanComparisonClient({
   readonly backend: ComparisonBackend;
   readonly scene: ComparisonSceneId;
   readonly failAsset?: boolean;
+  readonly api?: ComparisonGraphicsApi;
   readonly resolution?: ComparisonFftResolution;
   readonly lod?: ComparisonLod | null;
 }) {
   const qualityTier: QualityTierId = lod ?? (scene === 'feature-parity' ? 'high' : 'low');
+  const [following, setFollowing] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const [rendererError, setRendererError] = useState<string | null>(null);
+  useEffect(() => setRendererError(null), [api]);
+  const lights = useMemo(() => {
+    const ambient = new AmbientLight(0xffffff, 0.6);
+    const sun = new DirectionalLight(0xffffff, 1.4);
+    sun.position.copy(COMPARISON_SUN_DIRECTION).multiplyScalar(800);
+    return { ambient, sun };
+  }, []);
   return (
     <main className="flex h-screen flex-col bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-800 px-4 py-2 text-sm">
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-800 px-4 py-2 text-sm">
         <span
           data-fft-comparison-page="true"
+          data-api={api}
+          data-webgpu-comparison-page={api === 'webgpu' ? 'true' : undefined}
           data-backend={backend}
           data-scene={scene}
           data-fft-resolution={resolution}
@@ -806,33 +704,51 @@ export default function FFTOceanComparisonClient({
           data-water-base-y={GERSTNER_WATER_BASE_Y}
           data-far-field="xz-ring"
         >
-          海面后端对照实验（{backend === 'fft' ? 'WebGL FFT（GPU 演化 + GPU 2D IFFT）' : 'Gerstner 解析'} / {scene}）
+          海面后端对照实验（{api === 'webgpu' ? 'WebGPU' : 'WebGL'} / {backend === 'fft' ? 'FFT（GPU 演化 + GPU 2D IFFT）' : 'Gerstner 解析'} / {scene}）
         </span>
-        <span className="ml-3 text-slate-400">
-          切换：/simulations/fft-ocean-comparison?backend=fft|gerstner&scene=wave-only|feature-parity（同镜头/海况/高精055/水平远场；实验路由，不影响生产）
-        </span>
+        <ComparisonModeSwitch
+          api={api}
+          backend={backend}
+          scene={scene}
+          resolution={resolution}
+          lod={lod}
+          failAsset={failAsset}
+        />
+        <button type="button" onClick={() => setFollowing(true)} aria-pressed={following}>战术视角</button>
+        <button type="button" onClick={() => setPaused(value => !value)}>{paused ? '继续航行' : '暂停航行'}</button>
+        <button type="button" onClick={() => window.__marineComparisonLab?.reset()}>重新开始</button>
+        <span className="text-xs opacity-70">圆周航行 · 半径 300 米 · 航速 12 米/秒</span>
       </header>
       <div className="relative flex-1">
+        {rendererError ? (
+          <p role="alert" data-renderer-error="true" data-fallback="false" className="p-6">
+            {rendererError} 请使用上方入口切换渲染接口。
+          </p>
+        ) : (
         <SceneQualityProvider initialTier={qualityTier}>
           <LockQualityTier tier={qualityTier} />
           <SceneEnvironmentProvider>
-            <Canvas gl={{ preserveDrawingBuffer: true }}>
-              <PerspectiveCamera makeDefault position={[0, 60, 600]} fov={55} near={1} far={50000} />
-              <ambientLight intensity={0.6} />
-              <directionalLight
-                position={[
-                  COMPARISON_SUN_DIRECTION.x * 800,
-                  COMPARISON_SUN_DIRECTION.y * 800,
-                  COMPARISON_SUN_DIRECTION.z * 800,
-                ]}
-                intensity={1.4}
-              />
+            <Canvas key={`${api}-${backend}-${scene}-${resolution}`} gl={async (props) => {
+              try {
+                const renderer = await createComparisonRenderer(props.canvas as HTMLCanvasElement, api);
+                renderer.onDeviceLost = () => {
+                  setRendererError('图形设备连接已中断，请刷新页面。');
+                };
+                return renderer;
+              } catch (error) {
+                setRendererError(error instanceof Error ? error.message : '图形接口初始化失败。');
+                throw error;
+              }
+            }}>
+              <PerspectiveCamera makeDefault position={[-180, 254.56, -180]} fov={55} near={1} far={50000} />
+              <primitive object={lights.ambient} />
+              <primitive object={lights.sun} />
               <MarineStagePerformanceProbe />
-              <ComparisonScene backend={backend} scene={scene} failAsset={failAsset} resolution={resolution} />
-              <OrbitControls enablePan enableZoom enableRotate minDistance={40} maxDistance={4000} />
+              <ComparisonScene following={following} onFree={() => setFollowing(false)} paused={paused} backend={backend} scene={scene} failAsset={failAsset} resolution={resolution} />
             </Canvas>
           </SceneEnvironmentProvider>
         </SceneQualityProvider>
+        )}
       </div>
     </main>
   );
@@ -842,7 +758,7 @@ declare global {
   interface Window {
     __marineComparisonLab?: ComparisonLabApi;
     __marineVisualAcceptance?: {
-      run(): ReturnType<typeof judgeMarineObservation>;
+      run(): Promise<ReturnType<typeof judgeMarineObservation>>;
       breakFarField(): void;
       clearReflection(): void;
       clearFoam(): void;

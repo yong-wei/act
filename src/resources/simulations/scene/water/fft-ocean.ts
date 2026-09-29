@@ -11,6 +11,8 @@
  * 实验代码：不接入生产默认海洋后端（采用需单独 change）。
  */
 
+import { displacedGridHeightAt } from './displaced-grid-query';
+
 export interface ComplexGrid {
   /** 交错复数（re, im），长度 resolution²×2。 */
   readonly data: Float32Array;
@@ -39,13 +41,9 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-/**
- * 目标有效波高标定（#2121 复审）：对照页 ss4 Gerstner Hs≈6.5m——频谱能量按
- * **实测标定**逼近同一 Hs（2048m/256²·ss4·12m/s·系数14 → Hs 0.161m ⇒
- * 目标能量 = 14×4^1.6×(6.5/0.161) ≈ 5200；其他海况按 (ss/4)^1.6 相对缩放）。
- */
+/** 四级海况取中等浪的代表值 Hs=2m；不再以旧 Gerstner 的放大外观作标定。 */
 export const FFT_OCEAN_HS_CALIBRATION = {
-  seaState4TargetHsMeters: 6.5,
+  seaState4TargetHsMeters: 2,
   /** 旧 2048m/256² 标定系数：只作反例回归，不再当分辨率旋钮。 */
   seaState4EnergyCoefficient: 5200,
   /** 固定 5200 系数在 2048m 域上的未归一化反例（独立复算）。 */
@@ -84,17 +82,24 @@ export function fftOceanStaticSpectrum(input: FFTOceanSpectrumInput): ComplexGri
   // 峰值周期 ~9.6s，与 Gerstner 主波段同量级）。
   const peakFrequency = Math.min(0.45, (0.8 * 9.81) / Math.max(input.windSpeedMps, 1) / (2 * Math.PI));
   const bandHz = 0.12;
-  // Hs 标定（复审）：ss4 → 目标 Hs≈6.5m（与对照页 Gerstner 同海况匹配）；
+  // Hs 标定：ss4 → 2m；分辨率不能改变波高。
   // 其他海况按 (ss/4)^1.6 相对缩放（保持原海况单调性）。
   const relative = Math.pow(Math.max(input.seaState, 1) / 4, 1.6);
   const energyScale = FFT_OCEAN_HS_CALIBRATION.seaState4EnergyCoefficient * relative;
+  // Phillips 谱：方差按 exp(-1/(kL)^2)/k^4 落在涌浪，而不是每个波数箱同等振幅。
+  // 旧高斯箱把 Hs 堆进 Nyquist 细纹，远看像布。L = U²/g。
+  // 保留方向扩散，不按船长人为抬高特定短波频带。
+  const phillipsFetchMeters = (input.windSpeedMps * input.windSpeedMps) / 9.81;
   for (let m = 0; m < n; m += 1) {
     const kz = binWaveNumber(m, n, domain);
     for (let ix = 0; ix < n; ix += 1) {
       const kx = binWaveNumber(ix, n, domain);
       const kMagnitude = Math.hypot(kx, kz);
       if (kMagnitude < 1e-6) continue; // 直流项无波
-      // 频率（深水）→ PM 型单峰能量。
+      // 短于 4 个网格的波会折成布纹。归一化谱只保留网格画得出的波长，
+      // 更短的光学细节仍由共用微法线负责。旧反例不裁。
+      if (!input.legacyUnnormalized && (2 * Math.PI) / kMagnitude < 4 * (domain / n)) continue;
+      // 频率（深水）→ 旧 PM 型单峰，只留给未归一化反例。
       // 深水关系 ω=√(gk) → Hz = ω/(2π)（除法在根号外）。
       const frequencyHz = Math.sqrt(9.81 * kMagnitude) / (2 * Math.PI);
       const frequencyFactor = Math.exp(-Math.pow((frequencyHz - peakFrequency) / bandHz, 2));
@@ -102,11 +107,15 @@ export function fftOceanStaticSpectrum(input: FFTOceanSpectrumInput): ComplexGri
       const waveDirection = Math.atan2(kz, kx);
       let directionDelta = Math.abs(waveDirection - input.windDirectionRad);
       directionDelta = Math.min(directionDelta, Math.PI * 2 - directionDelta);
+      // 旧反例保持 cos^6 窄方向，Hs 反例才稳定。归一化海况改在 normalizedSpread。
       const directionSpread = Math.pow(Math.cos(Math.min(directionDelta, Math.PI / 2)), 6);
-      const amplitude =
-        energyScale * frequencyFactor * directionSpread * (0.7 + 0.6 * random());
-      // 随机相位（确定性）。
+      const unit = random();
       const phase = random() * Math.PI * 2;
+      const amplitude = input.legacyUnnormalized
+        ? energyScale * frequencyFactor * directionSpread * (0.7 + 0.6 * unit)
+        : Math.sqrt(phillipsAmplitudeSquared(kMagnitude, phillipsFetchMeters))
+          * normalizedSpread(waveDirection, input.windDirectionRad)
+          * (0.7 + 0.6 * unit);
       const index = (m * n + ix) * 2;
       data[index] = amplitude * Math.cos(phase);
       data[index + 1] = amplitude * Math.sin(phase);
@@ -120,6 +129,28 @@ export function fftOceanStaticSpectrum(input: FFTOceanSpectrumInput): ComplexGri
     * Math.pow(Math.max(input.seaState, 1) / 4, 1.6);
   scaleSpectrumToTargetHs(spectrum, domain, targetHs);
   return spectrum;
+}
+
+/** Phillips 平衡谱的单箱方差，不含方向和随机相位。 */
+function phillipsAmplitudeSquared(waveNumber: number, fetchMeters: number): number {
+  const kL = waveNumber * fetchMeters;
+  const k2 = waveNumber * waveNumber;
+  return Math.exp(-1 / (kL * kL)) / (k2 * k2);
+}
+
+function directionalLobe(waveDirection: number, windDirection: number, power: number): number {
+  let delta = Math.abs(waveDirection - windDirection);
+  delta = Math.min(delta, Math.PI * 2 - delta);
+  return Math.pow(Math.cos(Math.min(delta, Math.PI / 2)), power);
+}
+
+/**
+ * 归一化谱的方向分布：主浪加约 66° 的交叉浪。
+ * 窄的 cos^6 单峰在船侧看是一整面斜坡，180m 船长上没有波峰转折。
+ */
+function normalizedSpread(waveDirection: number, windDirection: number): number {
+  return directionalLobe(waveDirection, windDirection, 2)
+    + 0.9 * directionalLobe(waveDirection, windDirection + 1.15, 2);
 }
 
 function scaleSpectrumToTargetHs(spectrum: ComplexGrid, domainMeters: number, targetHs: number): void {
@@ -485,6 +516,14 @@ export function fftOceanContactHeightAt(
     latticeZ -= (-sample.mapZx * residualX + sample.mapXx * residualZ) / det;
   }
   return fftOceanFieldAt(spectrum, domainMeters, timeSeconds, latticeX, latticeZ).height;
+}
+
+/** 节点对比页的可见网格查询：与 N 间隔的周期三角网格对齐。 */
+export function fftOceanRenderedHeightAt(
+  spectrum: ComplexGrid, domain: number, time: number, x: number, z: number,
+): number {
+  return displacedGridHeightAt(x, z, domain / spectrum.resolution,
+    (px, pz) => fftOceanFieldAt(spectrum, domain, time, px, pz));
 }
 
 export interface FFTOceanCascadeSplit {

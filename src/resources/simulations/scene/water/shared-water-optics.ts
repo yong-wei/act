@@ -17,9 +17,10 @@ export const NEUTRAL_WATER_FRAGMENT = /* glsl */ `
   varying vec2 vHorizontalDisp;
   void main() {
     vec3 n = normalize(vWorldNormal);
-    float ndl = clamp(dot(n, normalize(vec3(0.35, 1.0, 0.25))), 0.25, 1.0);
-    float shade = clamp(0.5 + vElevation * 0.6 + length(vHorizontalDisp) * 1e-8, 0.35, 1.0);
-    vec3 color = mix(vec3(0.05, 0.16, 0.24), vec3(0.12, 0.30, 0.38), shade);
+    float ndl = clamp(dot(n, normalize(vec3(0.35, 1.0, 0.25))), 0.4, 1.0);
+    // 高度只作轻微明暗，避免 6m 涌浪被 0.6/m 饱和成另一片海。
+    float shade = clamp(0.58 + vElevation * 0.09, 0.32, 0.95);
+    vec3 color = mix(vec3(0.05, 0.20, 0.32), vec3(0.18, 0.48, 0.62), shade);
     color *= ndl;
     float fog = clamp(length(vWorldPos.xz - cameraPosition.xz) / 9000.0, 0.0, 1.0);
     color = mix(color, vec3(0.58, 0.66, 0.72), fog * 0.6);
@@ -33,6 +34,8 @@ export function shallowPathAbsorption(depthMeters: number): number {
 }
 
 export const COMPARISON_SUN_DIRECTION = new THREE.Vector3(0.45, 0.75, 0.35).normalize();
+/** 对照 feature-parity 俯视时的波高明暗（每米）。生产海面保持 0。 */
+export const COMPARISON_OVERHEAD_WAVE_SHADE = 0.12;
 
 export interface SharedWaterOpticsFrame {
   readonly material: THREE.ShaderMaterial;
@@ -116,10 +119,15 @@ export function syncSharedWaterOptics(frame: SharedWaterOpticsFrame): void {
     material.uniforms.uShallowBgEnabled.value = 0;
     material.uniforms.uShallowBgTex.value = null;
   }
+  // ShaderMaterial 只在换材质或该标志为真时上传自定义 uniform。
+  // 浅水开关和视口每帧都变，不标的话 GPU 会停在初值 0。
+  material.uniformsNeedUpdate = true;
 }
 
 const BACKDROP_VS = /* glsl */ `
+  varying vec2 vBottomUv;
   void main() {
+    vBottomUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
@@ -127,8 +135,12 @@ const BACKDROP_VS = /* glsl */ `
 const BACKDROP_FS = /* glsl */ `
   uniform vec3 uColor;
   uniform float uDepthNorm;
+  varying vec2 vBottomUv;
   void main() {
-    gl_FragColor = vec4(uColor, uDepthNorm);
+    // 测试底面边缘逐渐加深到 30m，由水层吸收消隐，避免矩形色块。
+    vec2 edge = min(vBottomUv, 1.0 - vBottomUv);
+    float interior = smoothstep(0.0, 0.2, min(edge.x, edge.y));
+    gl_FragColor = vec4(uColor, mix(1.0, uDepthNorm, interior));
   }
 `;
 
@@ -203,14 +215,19 @@ export function MarineShallowBackdrop({ enabled }: { readonly enabled: boolean }
     const target = targetRef.current;
     if (!enabled || !target) return;
     const previous = gl.getRenderTarget();
-    const viewport = new THREE.Vector4();
-    gl.getViewport(viewport);
-    gl.setRenderTarget(target);
-    gl.setViewport(0, 0, target.width, target.height);
-    gl.clear(true, true, true);
-    gl.render(backdropScene, camera);
-    gl.setRenderTarget(previous);
-    gl.setViewport(viewport);
+    const clearColor = gl.getClearColor(new THREE.Color());
+    const clearAlpha = gl.getClearAlpha();
+    try {
+      // 目标自带物理像素视口；不再通过 setViewport 重复乘 DPR。
+      gl.setRenderTarget(target);
+      // 空白编码为 30m 深水；线性过滤跨边界时不会插值出虚假的浅水。
+      gl.setClearColor(0xffffff, 1);
+      gl.clear(true, true, true);
+      gl.render(backdropScene, camera);
+    } finally {
+      gl.setClearColor(clearColor, clearAlpha);
+      gl.setRenderTarget(previous);
+    }
   });
 
   return null;

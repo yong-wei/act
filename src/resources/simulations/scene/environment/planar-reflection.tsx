@@ -165,13 +165,21 @@ export function MarinePlanarReflection({
     // 真实 GPU 计时（#2120）：绑定**本组件的 R3F renderer**（查询与渲染同一
     // 上下文——多 canvas 页面不取别人的），对受控反射 pass 非阻塞测量；
     // 无扩展时空操作，结果由证据探针如实报告。
-    marineGpuTimerBind(gl);
-    marineGpuTimerBeginPass();
-    gl.render(scene, mirrorCamera);
-    marineGpuTimerEndPass();
-    gl.setRenderTarget(previousTarget);
-    pollMarineGpuTimer();
-    for (const object of hidden) object.visible = true;
+    const legacyTimer = (gl as unknown as { isWebGLRenderer?: boolean }).isWebGLRenderer === true;
+    if (legacyTimer) {
+      marineGpuTimerBind(gl);
+      marineGpuTimerBeginPass();
+    }
+    try {
+      gl.render(scene, mirrorCamera);
+    } finally {
+      if (legacyTimer) {
+        marineGpuTimerEndPass();
+        pollMarineGpuTimer();
+      }
+      gl.setRenderTarget(previousTarget);
+      for (const object of hidden) object.visible = true;
+    }
 
     scene.userData[MARINE_PLANAR_REFLECTION_SCENE_KEY] = {
       texture: renderTarget.texture,

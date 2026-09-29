@@ -87,6 +87,7 @@ export function MarineFoamFieldProvider({
   resetToken,
   attributionOverride,
   compressionAt,
+  floatTexturesSupported,
   children,
 }: {
   readonly tier: 'high' | 'medium' | 'low';
@@ -94,6 +95,8 @@ export function MarineFoamFieldProvider({
   readonly waves: readonly GerstnerWave[];
   readonly amplitudeScale: number;
   readonly compressionAt?: (worldX: number, worldZ: number, timeSeconds: number) => number;
+  /** 已初始化节点渲染器的数据适配器可显式声明浮点纹理能力。 */
+  readonly floatTexturesSupported?: boolean;
   readonly positionSampler?: () => { readonly x: number; readonly z: number } | undefined;
   /** 实验重置令牌（P2 修复）：变化时显式清空历史场——未接 MarineFrameProvider
    * 的场景视觉时钟单调增长，靠时间回退检测不到 reset。 */
@@ -103,7 +106,8 @@ export function MarineFoamFieldProvider({
 }) {
   const marineVisualTime = useMarineVisualTime();
   // R32F 密度纹理要求 WebGL2；WebGL1 回退（context 为 null）保持既有渲染路径。
-  const isWebGL2 = useThree((state) => state.gl.capabilities.isWebGL2);
+  const legacyFloatTextures = useThree((state) => state.gl.capabilities?.isWebGL2 === true);
+  const isWebGL2 = floatTexturesSupported ?? legacyFloatTextures;
   const scene = useThree((state) => state.scene);
 
   // 归因只在挂载时解析一次（URL 参数）。

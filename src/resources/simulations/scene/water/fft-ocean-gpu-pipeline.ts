@@ -337,8 +337,8 @@ export function createFftOceanGpuPipeline(
 
   const renderPass = (material: THREE.ShaderMaterial, target: THREE.WebGLRenderTarget) => {
     quad.material = material;
+    // setRenderTarget 使用纹理像素视口；setViewport 会额外乘屏幕 DPR，破坏 FFT 索引。
     gl.setRenderTarget(target);
-    gl.setViewport(0, 0, n, n);
     gl.clear(true, false, false);
     gl.render(scene, camera);
   };

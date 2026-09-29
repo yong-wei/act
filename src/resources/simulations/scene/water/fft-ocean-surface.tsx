@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
@@ -10,7 +10,7 @@ import type { MarineShoreSegment } from '../environment/scene-layouts';
 import { DEFAULT_ENVIRONMENT_PRESET_ID, getEnvironmentPreset } from '../environment/environment-presets';
 import { createGerstnerWaterMaterial } from './gerstner-water-material';
 import { useMarineFoamField } from './foam-history-layer';
-import { COMPARISON_SUN_DIRECTION, NEUTRAL_WATER_FRAGMENT, syncSharedWaterOptics } from './shared-water-optics';
+import { COMPARISON_OVERHEAD_WAVE_SHADE, COMPARISON_SUN_DIRECTION, NEUTRAL_WATER_FRAGMENT, syncSharedWaterOptics } from './shared-water-optics';
 import {
   FFT_OCEAN_CONTACT_TOLERANCE_METERS,
   fftOceanCascadeSplit,
@@ -116,32 +116,60 @@ export function FFTOceanSurface({
   );
   const cascade = useMemo(() => fftOceanCascadeSplit(spectrum, domain), [spectrum, domain]);
 
-  const pipeline = useMemo(
-    () => createFftOceanGpuPipeline(gl, spectrum, domain),
-    [gl, spectrum, domain],
-  );
+  const pipelineRef = useRef<ReturnType<typeof createFftOceanGpuPipeline> | null>(null);
+  const [pipeline, setPipeline] = useState<ReturnType<typeof createFftOceanGpuPipeline> | null>(null);
 
-  useEffect(() => () => pipeline.dispose(), [pipeline]);
+  useEffect(() => {
+    // 渲染期创建会撞上正在绘制的上下文，ready 会锁死；useMemo 还会在
+    // StrictMode 清掉效果后交回已释放的管线。切算法时因此要刷新才有浪。
+    let disposed = false;
+    let current = createFftOceanGpuPipeline(gl, spectrum, domain);
+    const publish = (next: ReturnType<typeof createFftOceanGpuPipeline>) => {
+      current = next;
+      pipelineRef.current = next;
+      setPipeline(next);
+    };
+    publish(current);
+    const retry = window.setTimeout(() => {
+      if (disposed || current.ready) return;
+      current.dispose();
+      publish(createFftOceanGpuPipeline(gl, spectrum, domain));
+    }, 0);
+    return () => {
+      disposed = true;
+      window.clearTimeout(retry);
+      if (pipelineRef.current === current) pipelineRef.current = null;
+      current.dispose();
+    };
+  }, [gl, spectrum, domain]);
 
   useEffect(() => {
     window.__marineStageAdvance = (timeSeconds: number) => {
-      if (pipeline.ready) pipeline.run(timeSeconds);
+      const live = pipelineRef.current;
+      if (live?.ready) live.run(timeSeconds);
     };
     return () => {
       delete window.__marineStageAdvance;
     };
-  }, [pipeline]);
+  }, []);
 
   const statsRef = useRef({ frames: 0 });
   const sharedMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
   useFrame((state, delta) => {
-    if (!pipeline.ready) return;
+    const live = pipelineRef.current;
+    if (!live?.ready) return;
     const timeSeconds = marineVisualTime(state, delta);
-    pipeline.run(timeSeconds);
+    live.run(timeSeconds);
     statsRef.current.frames += 1;
     const shared = sharedMaterialRef.current;
     if (!shared || optics !== 'shared') return;
+    const mesh = meshRef.current;
+    // 重渲染会做出新材质。网格若还拿着上一份，浅水和泡沫贴图就写不到画面上。
+    if (mesh && mesh.material !== shared) mesh.material = shared;
     shared.uniforms.uTime.value = timeSeconds;
+    if (shared.uniforms.uFoamTex.value !== foamTexture) {
+      shared.uniforms.uFoamTex.value = foamTexture;
+    }
     const qaSpin = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('qa', 'marine-env');
     const qaShallowOff = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa-shallow') === 'off';
     syncSharedWaterOptics({
@@ -157,7 +185,7 @@ export function FFTOceanSurface({
   });
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !pipeline) return;
     if (!new URLSearchParams(window.location.search).has('qa', 'fft-ocean')) return;
     window.__fftOceanRuntime = {
       resolution: spectrum.resolution,
@@ -185,6 +213,25 @@ export function FFTOceanSurface({
         totalEnergy: cascade.totalEnergy,
       }),
       contactToleranceMeters: FFT_OCEAN_CONTACT_TOLERANCE_METERS,
+      materialState: () => {
+        const meshMaterial = meshRef.current?.material;
+        const material = meshMaterial instanceof THREE.ShaderMaterial
+          ? meshMaterial
+          : sharedMaterialRef.current;
+        if (!material) return null;
+        const uniforms = material.uniforms;
+        return {
+          shoreCount: uniforms.uShoreSegmentCount?.value ?? null,
+          fade: uniforms.uShoreFadeBand?.value ?? null,
+          shallowFx: uniforms.uShallowFxEnabled?.value ?? null,
+          shallowBg: uniforms.uShallowBgEnabled?.value ?? null,
+          foam: uniforms.uFoamFieldEnabled?.value ?? null,
+          overhead: uniforms.uOverheadWaveShade?.value ?? null,
+          crestFoam: uniforms.uCrestFoamGain?.value ?? null,
+          domain: uniforms.uDomain?.value ?? null,
+          hasHeight: Boolean(uniforms.uHeightTexture?.value),
+        };
+      },
       webgpuAvailable: typeof navigator !== 'undefined' && 'gpu' in navigator,
       rendererInfo: gl.getContext().getParameter(gl.getContext().RENDERER) ?? null,
     };
@@ -202,6 +249,10 @@ export function FFTOceanSurface({
 
   const material = useMemo(
     () => {
+      if (!pipeline) {
+        sharedMaterialRef.current = null;
+        return null;
+      }
       if (optics === 'shared') {
         const colors = getEnvironmentPreset(DEFAULT_ENVIRONMENT_PRESET_ID).water;
         const shared = createGerstnerWaterMaterial({
@@ -213,6 +264,9 @@ export function FFTOceanSurface({
           sunDirection: COMPARISON_SUN_DIRECTION,
           foamTexture,
           microNormalTier: 'high',
+          microSlopeScale: 0.4,
+          overheadWaveShade: COMPARISON_OVERHEAD_WAVE_SHADE,
+          crestFoamGain: 1,
           vertexShaderOverride: FFT_SHARED_VERTEX,
           foamField: foamField
             ? {
@@ -291,15 +345,15 @@ export function FFTOceanSurface({
       optics,
       domain,
       spectrum.resolution,
-      pipeline.heightTexture,
-      pipeline.displacementXTexture,
-      pipeline.displacementZTexture,
+      pipeline,
       foamField,
       foamTexture,
       shoreSegments,
       shoreFadeBandMeters,
     ],
   );
+
+  if (!material) return null;
 
   return (
     <mesh
@@ -337,6 +391,17 @@ declare global {
         readonly totalEnergy: number;
       };
       readonly contactToleranceMeters: number;
+      readonly materialState: () => {
+        shoreCount: number | null;
+        fade: number | null;
+        shallowFx: number | null;
+        shallowBg: number | null;
+        foam: number | null;
+        overhead: number | null;
+        crestFoam: number | null;
+        domain: number | null;
+        hasHeight: boolean;
+      } | null;
       readonly webgpuAvailable: boolean;
       readonly rendererInfo: string | null;
     };

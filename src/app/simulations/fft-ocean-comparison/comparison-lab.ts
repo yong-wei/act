@@ -86,6 +86,8 @@ export interface ComparisonLabIdentity {
 }
 
 export interface ComparisonLabCapture {
+  readonly vesselPose: ReturnType<typeof comparisonVesselPose>;
+  readonly sampleTimeSeconds: number;
   readonly visualTimeSeconds: number;
   readonly waterHeightOrigin: number;
   readonly bowHeight: number;
@@ -99,17 +101,18 @@ export interface ComparisonLabCapture {
 }
 
 export interface ComparisonQueryMetrics {
-  readonly computeMs: number;
-  readonly queueMs: number;
+  readonly computeMs: number | null;
+  readonly queueMs: number | null;
   readonly transferMs: number | null;
   readonly e2eMs: number;
   readonly resultAgeSeconds: number;
   readonly viaWorker: boolean;
   readonly initChargedPerQuery: false;
-  readonly queryKind: 'worker-batch' | 'main-thread-fallback';
+  readonly queryKind: 'worker-batch' | 'main-thread-fallback' | 'gpu-surface';
 }
 
 export interface ComparisonLabApi {
+  readonly motion: () => { x: number; z: number; headingRad: number; camera: number[]; projectedCenter: number[] };
   readonly ready: () => boolean;
   readonly reset: () => void;
   readonly seek: (timeSeconds: number) => void;
@@ -151,6 +154,28 @@ export function parseComparisonScene(value: string | undefined): ComparisonScene
 export type ComparisonFftResolution = 128 | 256 | 512;
 export type ComparisonLod = 'low' | 'medium' | 'high';
 
+const COMPARISON_LAB_PATH = '/simulations/fft-ocean-comparison';
+
+/** 页内切换用的地址。只改被点的那一项，其余查询保持不变。 */
+export function comparisonLabHref(input: {
+  readonly backend: ComparisonBackend;
+  readonly scene: ComparisonSceneId;
+  readonly api: ComparisonGraphicsApi;
+  readonly resolution?: ComparisonFftResolution;
+  readonly lod?: ComparisonLod | null;
+  readonly failAsset?: boolean;
+}): string {
+  const params = new URLSearchParams();
+  params.set('backend', input.backend);
+  params.set('scene', input.scene);
+  if (input.api === 'webgpu') params.set('api', 'webgpu');
+  if (input.resolution && input.resolution !== 256) params.set('resolution', String(input.resolution));
+  if (input.lod) params.set('lod', input.lod);
+  if (input.failAsset) params.set('vessel', 'missing');
+  const query = params.toString();
+  return query ? `${COMPARISON_LAB_PATH}?${query}` : COMPARISON_LAB_PATH;
+}
+
 export function parseComparisonResolution(value: string | undefined): ComparisonFftResolution {
   if (value === '128' || value === '512') return Number(value) as ComparisonFftResolution;
   return 256;
@@ -190,4 +215,23 @@ export function labIsReady(identity: ComparisonLabIdentity): boolean {
   if (!identity.firstFrameReady) return false;
   if (identity.vesselLoadFailed) return true;
   return identity.vesselLoaded;
+}
+
+/** 规定航迹，仅用于对照实验，不是船舶动力学求解器。 */
+export const COMPARISON_CIRCLE_RADIUS = 300;
+export const COMPARISON_SPEED_MPS = 12;
+export function comparisonVesselPose(time: number) {
+  const angle = Math.max(0, time) * COMPARISON_SPEED_MPS / COMPARISON_CIRCLE_RADIUS;
+  return {
+    x: COMPARISON_CIRCLE_RADIUS * (Math.cos(angle) - 1),
+    z: COMPARISON_CIRCLE_RADIUS * Math.sin(angle),
+    headingRad: -angle,
+    speedMps: COMPARISON_SPEED_MPS,
+  };
+}
+export function comparisonContactPoints(time: number): [number, number][] {
+  const pose = comparisonVesselPose(time);
+  const dx = Math.sin(pose.headingRad) * COMPARISON_BOW_OFFSET_METERS;
+  const dz = Math.cos(pose.headingRad) * COMPARISON_BOW_OFFSET_METERS;
+  return [[pose.x, pose.z], [pose.x + dx, pose.z + dz], [pose.x - dx, pose.z - dz]];
 }

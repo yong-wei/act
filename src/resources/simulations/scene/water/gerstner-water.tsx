@@ -345,6 +345,10 @@ export interface GerstnerWaterProps {
   readonly shallowEnabled?: boolean;
   /** wave-only：与 FFT 共用中性片元，不跑 Fresnel/GGX。 */
   readonly neutralOptics?: boolean;
+  /** 微法线斜率倍率，缺省 1。对照页用小于 1 的值让几何涌浪保留光照。 */
+  readonly microSlopeScale?: number;
+  /** 俯视波高明暗（每米）。缺省 0，生产海面不随波高改亮度。 */
+  readonly overheadWaveShade?: number;
   /** 实验重置令牌（#2115）：变化时清空泡沫历史场（与尾迹 key 同一重置源）。 */
   readonly resetToken?: number;
   /**
@@ -382,6 +386,8 @@ function BandWaterMesh({
   disableEnvironment = false,
   shallowEnabled = true,
   neutralOptics = false,
+  microSlopeScale = 1,
+  overheadWaveShade = 0,
 }: {
   readonly waves: readonly GerstnerWave[];
   readonly meshSpec: GerstnerWaterMeshSpec;
@@ -407,6 +413,8 @@ function BandWaterMesh({
   readonly disableEnvironment?: boolean;
   readonly shallowEnabled?: boolean;
   readonly neutralOptics?: boolean;
+  readonly microSlopeScale?: number;
+  readonly overheadWaveShade?: number;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const scene = useThree((state) => state.scene);
@@ -432,6 +440,8 @@ function BandWaterMesh({
       nearCutoutHalfSizeMeters,
       microNormalTier,
       microEnabled: !MICRO_QA_DISABLED,
+      microSlopeScale,
+      overheadWaveShade,
       sunIllumination,
       shoreSegments,
       shoreFadeBandMeters,
@@ -440,7 +450,7 @@ function BandWaterMesh({
         : null,
       fragmentShaderOverride: neutralOptics ? NEUTRAL_WATER_FRAGMENT : undefined,
     }),
-    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, sunIllumination, shoreSegments, shoreFadeBandMeters, foamField, neutralOptics]
+    [waves, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale, envelopeSizeMeters, nearCutoutHalfSizeMeters, microNormalTier, microSlopeScale, overheadWaveShade, sunIllumination, shoreSegments, shoreFadeBandMeters, foamField, neutralOptics]
   );
   // 岸线段打包（#2102）：静态声明 → uniform 数组一次写入。
   useMemo(() => {
@@ -595,6 +605,8 @@ export function GerstnerWater({
   sedimentPlume = null,
   shallowEnabled = true,
   neutralOptics = false,
+  microSlopeScale = 1,
+  overheadWaveShade = 0,
 }: GerstnerWaterProps) {
   const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
   // 共享视觉时间：Provider 场景同帧唯一（暂停/倍速政策一致）；未接入场景回退 R3F 时钟。
@@ -657,6 +669,8 @@ export function GerstnerWater({
           disableEnvironment={disableEffects}
           shallowEnabled={shallowEnabled}
           neutralOptics={neutralOptics}
+          microSlopeScale={microSlopeScale}
+          overheadWaveShade={overheadWaveShade}
         />
       )}
       <BandWaterMesh
@@ -684,6 +698,8 @@ export function GerstnerWater({
         disableEnvironment={disableEffects}
         shallowEnabled={shallowEnabled}
         neutralOptics={neutralOptics}
+        microSlopeScale={microSlopeScale}
+        overheadWaveShade={overheadWaveShade}
       />
       </group>
     </MarineFoamFieldProvider>

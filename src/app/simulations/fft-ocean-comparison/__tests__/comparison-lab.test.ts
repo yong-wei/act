@@ -6,6 +6,7 @@ import {
   COMPARISON_FEATURE_MATRIX,
   COMPARISON_ROUTES,
   comparisonFarFieldRing,
+  comparisonLabHref,
   comparisonRouteKey,
   composeWaterDatum,
   isHorizontalFarField,
@@ -56,6 +57,19 @@ describe('comparison lab helpers (#2130)', () => {
     ]);
     expect(parseComparisonScene(undefined)).toBe('wave-only');
     expect(parseComparisonScene('feature-parity')).toBe('feature-parity');
+    expect(comparisonLabHref({
+      backend: 'fft',
+      scene: 'wave-only',
+      api: 'webgl',
+    })).toBe('/simulations/fft-ocean-comparison?backend=fft&scene=wave-only');
+    expect(comparisonLabHref({
+      backend: 'gerstner',
+      scene: 'feature-parity',
+      api: 'webgpu',
+      resolution: 512,
+      lod: 'high',
+      failAsset: true,
+    })).toBe('/simulations/fft-ocean-comparison?backend=gerstner&scene=feature-parity&api=webgpu&resolution=512&lod=high&vessel=missing');
   });
 
   it('places the far-field ring on XZ at the shared Gerstner water datum', () => {

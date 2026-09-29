@@ -45,6 +45,18 @@ export interface GerstnerWaterMaterialOptions {
   readonly microNormalTier?: 'high' | 'medium' | 'low';
   /** 微法线 QA 归因开关（#2116）：false = 完全关闭（A/B 分层归因）。 */
   readonly microEnabled?: boolean;
+  /** 微法线斜率倍率。1 为生产强度；对照页降低后几何涌浪仍能被光照看见。 */
+  readonly microSlopeScale?: number;
+  /**
+   * 俯视波高明暗（每米）。0 为生产缺省：掠射角仍靠菲涅尔看见涌浪。
+   * 对照页俯视时菲涅尔接近 0，几何位移还在，但水色几乎不随波高变化。
+   */
+  readonly overheadWaveShade?: number;
+  /**
+   * FFT 波峰白沫增益。0 为生产缺省：Gerstner 仍只用泡沫历史场。
+   * FFT 的 vCrest 是 Jacobian 亏损（大约 0.1–0.3），不能走 Gerstner 的 0.72 门限。
+   */
+  readonly crestFoamGain?: number;
   /** 同源太阳辐照（#2100 复审）：preset.sun.intensity / 预设最大值，暗预设泡沫/水色随之变暗。 */
   readonly sunIllumination?: number;
   /** 船壳排水排除框数（#2101）：0 表示无排除（uniform 数组仍按上限分配）。 */
@@ -157,6 +169,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uMicroOctaveCount: { value: micro.count },
       // QA 归因开关（#2116）：?qa-micro=off 关闭全部微法线（A/B 分离归因）。
       uMicroEnabled: { value: options.microEnabled === false ? 0 : 1 },
+      uMicroSlopeScale: { value: options.microSlopeScale ?? 1 },
+      uOverheadWaveShade: { value: options.overheadWaveShade ?? 0 },
+      uCrestFoamGain: { value: options.crestFoamGain ?? 0 },
       // 低档/远场粗糙度下限（#2116）：无细节成本下保持合理远海粗糙度。
       uMicroRoughnessFloor: { value: micro.count === 0 ? LOW_TIER_ROUGHNESS_FLOOR : WATER_BASE_ROUGHNESS },
       uSunIllumination: { value: options.sunIllumination ?? 1 },
@@ -367,6 +382,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uMicroOctaves[8 * 6];
       uniform int uMicroOctaveCount;
       uniform float uMicroEnabled;
+      uniform float uMicroSlopeScale;
+      uniform float uOverheadWaveShade;
+      uniform float uCrestFoamGain;
       uniform float uMicroRoughnessFloor;
       uniform float uSunIllumination;
       uniform vec4 uHullExclusionBoxes[6];
@@ -536,7 +554,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
             if (weight > 0.002) {
               float phase = k * (dx * vWorldPos.x + dz * vWorldPos.z)
                 - k * speedScale * 1.2 * uTime + phaseOffset;
-              float slope = amp * cos(phase) * k * weight;
+              float slope = amp * cos(phase) * k * weight * uMicroSlopeScale;
               slopeX += slope * dx;
               slopeZ += slope * dz;
             }
@@ -570,10 +588,17 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 泡沫覆盖（#2115）：有历史场时覆盖 = 场密度（自然压缩 + 船体/推进器源
         // 的输运/衰减历史），无场回退平滑波峰覆盖——两条路径都乘多尺度细节，
         // 不再用单一 80m 平铺贴花。
+        float foamDetailSample = foamDetail(vWorldPos.xz + refractionOffset);
         float foamCoverage = uFoamFieldEnabled > 0.5
           ? sampleFoamField(vWorldPos.xz)
           : smoothstep(0.72, 0.95, vCrest) * 0.55;
-        float foam = foamCoverage * smoothstep(0.22, 0.78, foamDetail(vWorldPos.xz + refractionOffset));
+        float foam = foamCoverage * smoothstep(0.22, 0.78, foamDetailSample);
+        // FFT 的 vCrest 是 Jacobian 亏损，比 Gerstner 的 0–1 波峰因子小一个量级。
+        // 增益为 0 时这条不执行，生产 Gerstner 白沫不变。
+        if (uCrestFoamGain > 0.0) {
+          float crest = smoothstep(0.015, 0.10, vCrest) * uCrestFoamGain;
+          foam = max(foam, crest * smoothstep(0.16, 0.55, foamDetailSample));
+        }
 
         // 介质光学（#2100 二轮复审落实）：Fresnel-Schlick（F0=0.02）与 GGX 高光
         // （D·F·G/(4 nv nl)，Smith-Schlick G），粗糙度随泡沫提升（受光且改变粗糙度）。
@@ -607,8 +632,16 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
           vec4 centerSample = texture2D(uShallowBgTex, screenUv);
           vec4 shiftedSample = texture2D(uShallowBgTex, screenUv + shift);
           float depthFault = abs(shiftedSample.a - centerSample.a);
-          vec3 background = depthFault > 0.2 ? centerSample.rgb : shiftedSample.rgb;
-          shallowColor = background * absorption;
+          vec4 picked = depthFault > 0.2 ? centerSample : shiftedSample;
+          // 海底面是平的。用它替换已受光水色会抹掉涌浪明暗，近景看起来像没有波浪。
+          // 采到海底时只按其色相染色；采空则保留上面的吸收混色。
+          if (picked.a > 0.02) {
+            float peak = max(picked.r, max(picked.g, picked.b));
+            vec3 tint = picked.rgb / max(peak, 1e-3);
+            // alpha 编码水层厚度 / 30；深底及底面边缘应被吸收，而非恒定强染色。
+            float bottomTransmission = exp(-max(picked.a * 30.0, 0.2) * 0.55);
+            shallowColor = mix(shallowColor, color * tint, bottomTransmission);
+          }
         }
         color = mix(color, shallowColor, shallowMix);
         // 挖泥羽流（#2102 六轮复审）：水面片元内合成——贴合动态波面（波峰波谷下
@@ -652,6 +685,10 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         color += specular * uSunIllumination;
         vec3 foamLit = uFoamColor * (light * 0.65 + 0.35 * uSunIllumination);
         color = mix(color, foamLit, foam * 0.85);
+        // 斜视和俯视时菲涅尔对长涌几乎不敏感。按波高略压暗波谷、提亮波峰。
+        // 视线贴着海面时不介入；uOverheadWaveShade=0 的生产海面不变。
+        float overhead = smoothstep(0.04, 0.42, max(viewDirection.y, 0.0));
+        color *= 1.0 + overhead * clamp(vElevation * uOverheadWaveShade, -0.42, 0.42);
 
         gl_FragColor = vec4(color, 1.0);
         #include <fog_fragment>

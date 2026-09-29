@@ -17,8 +17,7 @@
  *
  * 已知坑（勿回退）：
  *   - 对照页不设置 data-scene-quality-tier（生产 simulation 页专用标记）——
- *     gerstner 分支 ready 判定只能用 canvas + 2 rAF；fft 分支用 __fftOceanRuntime
- *     出现 + gpuFrames()>0（因此 fft 轮 URL 必须带 qa=fft-ocean）。
+ *     两后端统一检查 __comparisonOcean 的真实 API、帧数和船体 ready。
  *   - page.evaluate(expressionString, arg) 不给字符串表达式传参——页面内逻辑必须以
  *     真函数传入。
  *   - 同机 rAF 口径随前台刷新档在 60/120Hz 间浮动（都算满帧锁定，如实记录档位）。
@@ -72,7 +71,7 @@ const GPU_INFO = `(() => {
   const canvas = document.querySelector('canvas');
   if (!canvas) return null;
   const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-  if (!gl) return null;
+  if (!gl) return window.__comparisonOcean?.identity().hardware ?? null;
   const dbg = gl.getExtension('WEBGL_debug_renderer_info');
   return dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
 })()`;
@@ -107,23 +106,6 @@ const rafWindow = (durationMs) => new Promise((resolve) => {
   requestAnimationFrame(tick);
 });
 
-const backendReady = (backend) => new Promise((resolve) => {
-  const started = performance.now();
-  const check = () => {
-    if (backend === 'fft') {
-      const rt = window.__fftOceanRuntime;
-      if (rt && rt.gpuPipelineActive && typeof rt.gpuFrames === 'function' && rt.gpuFrames() > 0) {
-        resolve(performance.now() - started); return;
-      }
-    } else if (document.querySelector('canvas')) {
-      requestAnimationFrame(() => requestAnimationFrame(() => { resolve(performance.now() - started); }));
-      return;
-    }
-    requestAnimationFrame(check);
-  };
-  requestAnimationFrame(check);
-});
-
 const routeReady = (route) => new Promise((resolve) => {
   const started = performance.now();
   const finish = (ready, status) => resolve({
@@ -136,24 +118,16 @@ const routeReady = (route) => new Promise((resolve) => {
       finish(false, 'timeout');
       return;
     }
-    const status = document.querySelector('[data-webgpu-status]')?.getAttribute('data-webgpu-status');
+    const status = document.querySelector('[data-renderer-error]') ? 'failed' : null;
     if (status && status !== 'ready') {
       finish(false, status);
       return;
     }
-    if (route.api === 'webgpu') {
-      if (window.__marineWebGpu?.ready?.() && document.querySelector('canvas')) {
-        finish(true, 'ready');
-        return;
-      }
-    } else if (route.backend === 'fft') {
-      const rt = window.__fftOceanRuntime;
-      if (rt && rt.gpuPipelineActive && typeof rt.gpuFrames === 'function' && rt.gpuFrames() > 0) {
-        finish(true, 'ready');
-        return;
-      }
-    } else if (document.querySelector('canvas')) {
-      requestAnimationFrame(() => requestAnimationFrame(() => finish(true, 'ready')));
+    const identity = window.__comparisonOcean?.identity();
+    const expectedApi = route.api === 'webgpu' ? 'WebGPUBackend' : 'WebGLBackend';
+    if (identity?.api === expectedApi && identity.backend === route.backend
+      && identity.frames > 0 && window.__marineComparisonLab?.ready()) {
+      finish(true, 'ready');
       return;
     }
     requestAnimationFrame(check);
@@ -173,8 +147,8 @@ async function coldLoadRound(browser, route) {
     return n ? { ttfbMs: n.responseStart, domContentLoadedMs: n.domContentLoadedEventEnd, loadEventMs: n.loadEventEnd } : null;
   });
   const ready = await page.evaluate(routeReady, route);
-  const coldHs = backend === 'fft' && route.api !== 'webgpu'
-    ? await page.evaluate(() => window.__fftOceanRuntime?.cpuSignificantWaveHeightMeters ?? null)
+  const coldHs = backend === 'fft'
+    ? await page.evaluate(() => window.__comparisonOcean?.reference().hs ?? null)
     : null;
   await context.close();
   return { loadWallMs, nav, readyWaitMs: ready.waitMs, ready, coldHs };
@@ -205,10 +179,10 @@ async function measurementRound(browser, route) {
     throw new Error(`软件渲染路径（${gpuRenderer}）——测量无效，中止`);
   }
   await page.waitForTimeout(10_000);
-  const fftProbeBefore = backend === 'fft' && route.api !== 'webgpu'
+  const fftProbeBefore = backend === 'fft'
     ? await page.evaluate(() => {
-        const rt = window.__fftOceanRuntime;
-        return { hs: rt.cpuSignificantWaveHeightMeters, frames: rt.gpuFrames(), renderer: rt.rendererInfo };
+        const rt = window.__comparisonOcean;
+        return { hs: rt.reference().hs, frames: rt.identity().frames, renderer: rt.identity().api };
       })
     : null;
   const window1 = await page.evaluate(rafWindow, 60_000);
@@ -232,16 +206,16 @@ async function measurementRound(browser, route) {
       longForegroundWorstMs: 0,
     };
   }
-  const fftProbeAfter = backend === 'fft' && route.api !== 'webgpu'
+  const fftProbeAfter = backend === 'fft'
     ? await page.evaluate(() => {
-        const rt = window.__fftOceanRuntime;
+        const rt = window.__comparisonOcean;
         return {
-          hs: rt.cpuSignificantWaveHeightMeters,
-          frames: rt.gpuFrames(),
-          webgpuAvailable: rt.webgpuAvailable,
-          resolution: rt.resolution,
+          hs: rt.reference().hs,
+          frames: rt.identity().frames,
+          webgpuAvailable: 'gpu' in navigator,
+          resolution: rt.reference().resolution,
           pointQueryMs: rt.measurePointQueryMs(60),
-          pointQueryKind: rt.pointQueryKind,
+          pointQueryKind: 'main-thread-point-query',
         };
       })
     : null;

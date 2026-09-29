@@ -213,6 +213,7 @@ export interface WebGpuOceanField {
   readonly resolution: number;
   readonly heights: Float32Array;
   readonly dx: Float32Array;
+  readonly dz: Float32Array;
   readonly slope: Float32Array;
   readonly heightL2: number;
   readonly displacementL2: number;
@@ -389,6 +390,7 @@ export async function computeWebGpuOceanField(
     resolution,
     heights,
     dx,
+    dz: directDz ?? new Float32Array(count),
     slope,
     heightL2,
     displacementL2,

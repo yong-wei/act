@@ -28,7 +28,7 @@ export default async function FFTOceanComparisonPage({
   const lod = parseComparisonLod(params?.lod);
   const failAsset = params?.vessel === 'missing';
   if (graphicsApi === 'webgpu') {
-    return <WebGpuComparisonClient backend={backend} scene={scene} resolution={resolution} lod={lod} />;
+    return <WebGpuComparisonClient backend={backend} scene={scene} resolution={resolution} lod={lod} failAsset={failAsset} />;
   }
   return <FFTOceanComparisonClient backend={backend} scene={scene} failAsset={failAsset} resolution={resolution} lod={lod} />;
 }
