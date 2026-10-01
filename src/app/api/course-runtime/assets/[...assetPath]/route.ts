@@ -118,13 +118,13 @@ async function readPinnedReleaseManifest(
 ): Promise<AnyActRuntimeReleaseManifest | null> {
   for (const objectKey of [runtimeReleaseManifestObjectKey(releaseId), runtimeBlobReleaseManifestObjectKey(releaseId)]) {
     try {
-    const { stream } = await client.getStream(objectKey);
-    const chunks: Buffer[] = [];
-    for await (const chunk of stream) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    }
-    const manifest = parseAnyRuntimeReleaseManifest(JSON.parse(Buffer.concat(chunks).toString('utf8')));
-    return manifest.releaseId === releaseId ? manifest : null;
+      const { stream } = await client.getStream(objectKey);
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+      const manifest = parseAnyRuntimeReleaseManifest(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+      return manifest.releaseId === releaseId ? manifest : null;
     } catch (error) {
       if ((error as { code?: string }).code !== 'NoSuchKey') return null;
     }

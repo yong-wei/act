@@ -39,7 +39,7 @@ uv run --with oss2==2.19.1 python3 scripts/runtime-release/public_teaching_media
 ## 应用与分发切换
 
 1. 将已验证的应用修订送入 origin/main，按应用部署手册构建新的版本化镜像和 tar/provenance。只部署应用，保持原 Runtime 与图谱选择器。
-   `deploy:app` 装载精确镜像后使用现有 `--runtime-cutover-app-only` 容器替换模式，保留数据库和 Redis，不导入数据库、写入知识种子或执行迁移。systemd 通过 `ACT_SERVICE_CONFIGURE_ONLY=1` 更新配置，不再次重启数据服务。需要数据库迁移的其他发布应采用单独获授权的数据面操作。
+   `deploy:app` 装载精确镜像后使用现有 `--runtime-cutover-app-only` 容器替换模式，保留数据库和 Redis，不导入数据库、写入知识种子或执行迁移。按应用修订追加完整资源绑定库存治理快照并 verify-only，不改资源、用户数据、绑定决策和 crosswalk。systemd 通过 `ACT_SERVICE_CONFIGURE_ONLY=1` 更新配置，不再次重启数据服务。需要数据库迁移的其他发布应采用单独获授权的数据面操作。
 2. 核验新应用、worker 和 readyz。比对切换前后的 Runtime、Authority、Teaching 和资源绑定身份。
 3. 把完整 published-index 写入宿主机 `data/runtime/public-teaching-media/` 的独立临时文件。核对源 Runtime ID、manifest SHA、verified 状态、完整条数与发布计数，并确认捕获 Runtime 仍为活动版本。
 4. 目录权限设为 0755、索引设为 0644，使容器非 root 用户能经既有 `/app/act-runtime-state` 只读挂载读取。备份已有索引后，同目录原子 rename 为 `current.json`。这一步只切换媒体分发索引。
