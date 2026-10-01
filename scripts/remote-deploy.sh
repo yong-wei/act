@@ -686,6 +686,8 @@ podman exec \"\${DB_CONTAINER_REAL}\" psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NA
 log "- 核验 ActKG Release 与 CourseCoverage Overlay 部署投影"
 remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-authoritative-actkg-release.ts --verify-only"
 remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-course-coverage-overlay.ts --verify-only"
+log "- 登记当前应用修订的资源绑定治理库存（不修改内容或绑定决策）"
+remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-canonical-resource-binding-shadow.ts"
 remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-canonical-resource-binding-shadow.ts --verify-only"
 
 log "- 校验 runtime 知识图谱已同步到数据库"

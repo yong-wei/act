@@ -68,3 +68,7 @@ uv run --with oss2==2.19.1 python3 scripts/runtime-release/public_teaching_media
 标注修复后的分发与共享媒体回归共 52 项通过，类型检查与定向 ESLint 通过。首次资源特征测试有 1 项缺少教材 units 外置 fixture；只向隔离工作树补齐本机已有的七份 units.jsonl 后，该测试文件 15 项全部通过。未向服务器发布这些测试资料。
 
 应用部署脚本定向回归覆盖：不导入或 seed 数据、精确镜像装载、既有零数据库写入替换路径、configure-only 不重启数据服务、默认 systemd 重启行为保留。remote deploy、runtime cutover app-only、Podman DNS readiness 和外置 Runtime 部署四套脚本验证通过，Shell 语法检查通过。人工审查范围为本轮 main 基线到工作区 diff；未发现本轮新增的 P0/P1 重大问题。
+
+`0.7.32-4f89280` 应用与分发索引已启用，原 Runtime、六份选择器、数据库与 Redis 容器身份相同。初次部署验证缺少新应用修订的库存，使用既有工具追加 7804 条库存项后 verify-only 通过，绑定决策与 crosswalk 均为 0。线上发现旧媒体入口只取 v1 清单键；本轮补齐 v2 Blob Release 的固定版本读取，缺失 v1 时才查 v2，摘要与 Release ID 校验保持。此整改使用新应用版本 `0.7.33`。
+
+当前 Authority 学习内容清单仍绑定 v0.37 / `proj-0260a81c…`，活动图谱和教学投影为 v0.48 / `proj-0734e535…`。原内容资格检查因此返回 404，已接受历史图片的原始文件仍可按 SHA 经 ESA 读取；本轮没有更改图谱、学习内容清单或 Runtime 来解除这一既有版本漂移。既有 Bode 等当前可用信息图已验证匿名 307 到 ESA，图片正文 SHA 一致。

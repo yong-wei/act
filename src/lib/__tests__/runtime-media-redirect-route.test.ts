@@ -50,7 +50,7 @@ function invoke(assetPath: string[], search = '') {
 
 describe('runtime media signed redirect route', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mocks.publicTeachingMediaUrlForDigest.mockResolvedValue(null);
     process.env = { ...originalEnvironment, ACT_RUNTIME_OSS_RAM_ROLE: 'act-runtime-ecs-role' };
     mocks.isRuntimeMediaPath.mockReturnValue(true);
@@ -110,6 +110,28 @@ describe('runtime media signed redirect route', () => {
     expect(response.status).toBe(307);
     expect(response.headers.get('location')).toBe('https://act.example/course-runtime/lessons/1-1/media/intro.mp4');
     expect(mocks.createEcsRamRoleOssClient).not.toHaveBeenCalled();
+  });
+
+  it('reads the v2 blob release manifest when the legacy object does not exist', async () => {
+    const digest = 'c'.repeat(64);
+    mocks.getStream.mockRejectedValueOnce(Object.assign(new Error('missing'), { code: 'NoSuchKey' }))
+      .mockResolvedValueOnce({ stream: Readable.from([JSON.stringify({ schemaVersion: 'act-runtime-release.v2', releaseId: 'runtime-captured', files: [] })]) });
+    mocks.findRuntimeMediaReleaseObject.mockReturnValue({ sha256: digest, objectKey: `runtime/blobs/sha256/${digest}` });
+    mocks.publicTeachingMediaUrlForDigest.mockResolvedValue(`https://static.adapt-learn.online/teaching-media/sha256/${digest}/asset.mp4`);
+    const response = await invoke(['lessons', '1-1', 'media', 'intro.mp4'], '?releaseId=runtime-captured');
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toContain(digest);
+    expect(mocks.getStream).toHaveBeenNthCalledWith(2, 'runtime/blob-releases/runtime-captured/manifest.json');
+    expect(mocks.readActiveRuntimeReleaseManifest).not.toHaveBeenCalled();
+  });
+
+  it('rejects a mismatched pinned manifest and never substitutes current bytes', async () => {
+    mocks.getStream.mockResolvedValue({ stream: Readable.from([JSON.stringify({ releaseId: 'runtime-other', files: [] })]) });
+    const response = await invoke(['lessons', '1-1', 'media', 'intro.mp4'], '?releaseId=runtime-captured');
+    expect(response.status).toBe(404);
+    expect(mocks.getStream).toHaveBeenCalledOnce();
+    expect(mocks.publicTeachingMediaUrlForDigest).not.toHaveBeenCalled();
+    expect(mocks.readActiveRuntimeReleaseManifest).not.toHaveBeenCalled();
   });
 
   it('redirects only an active-manifest media object through a short-lived OSS URL', async () => {
