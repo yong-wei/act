@@ -63,4 +63,8 @@ uv run --with oss2==2.19.1 python3 scripts/runtime-release/public_teaching_media
 
 应用发布与索引启用结果在实际切换完成后补记。
 
+第一次容器构建的编译和类型检查通过，随后因 14 个外置文件追踪告警被构建门禁拒绝，未产生部署工件。新增分发索引文件读取与共享资源索引中的 Runtime 路径补充了项目既有的 `turbopackIgnore` 标注；门禁保持启用，发布须以再次完整构建成功为准。
+
+标注修复后的分发与共享媒体回归共 52 项通过，类型检查与定向 ESLint 通过。首次资源特征测试有 1 项缺少教材 units 外置 fixture；只向隔离工作树补齐本机已有的七份 units.jsonl 后，该测试文件 15 项全部通过。未向服务器发布这些测试资料。
+
 应用部署脚本定向回归覆盖：不导入或 seed 数据、精确镜像装载、既有零数据库写入替换路径、configure-only 不重启数据服务、默认 systemd 重启行为保留。remote deploy、runtime cutover app-only、Podman DNS readiness 和外置 Runtime 部署四套脚本验证通过，Shell 语法检查通过。人工审查范围为本轮 main 基线到工作区 diff；未发现本轮新增的 P0/P1 重大问题。

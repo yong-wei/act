@@ -73,13 +73,13 @@ function objectUrl(object: PublicTeachingMediaObject): string {
 
 async function loadIndex(): Promise<LoadedIndex | null> {
   const filename = process.env.ACT_PUBLIC_TEACHING_MEDIA_INDEX_PATH?.trim()
-    || path.join(process.cwd(), 'act-runtime-state', 'public-teaching-media', 'current.json');
+    || path.join(/*turbopackIgnore: true*/ process.cwd(), 'act-runtime-state', 'public-teaching-media', 'current.json');
   try {
-    const metadata = await stat(filename);
+    const metadata = await stat(/*turbopackIgnore: true*/ filename);
     if (!metadata.isFile()) return null;
     const key = `${filename}:${metadata.dev}:${metadata.ino}:${metadata.mtimeMs}:${metadata.size}`;
     if (cached?.key === key) return cached.loaded;
-    const index = parsePublicTeachingMediaIndex(JSON.parse(await readFile(filename, 'utf8')));
+    const index = parsePublicTeachingMediaIndex(JSON.parse(await readFile(/*turbopackIgnore: true*/ filename, 'utf8')));
     if (!index) {
       cached = { key, loaded: null };
       return null;
@@ -120,9 +120,9 @@ export async function publicTeachingMediaUrlForPath(runtimePath: string): Promis
   const object = loaded?.byPath.get(runtimePath);
   if (!loaded || !object) return null;
   const receiptPath = process.env.ACT_RUNTIME_ACTIVE_RECEIPT_PATH?.trim()
-    || path.join(process.cwd(), 'course-content', 'runtime', 'act-runtime-active-receipt.json');
+    || path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'runtime', 'act-runtime-active-receipt.json');
   try {
-    const receipt = JSON.parse(await readFile(receiptPath, 'utf8'));
+    const receipt = JSON.parse(await readFile(/*turbopackIgnore: true*/ receiptPath, 'utf8'));
     if (receipt.schemaVersion !== 'runtime-release-active-receipt.v1'
       || receipt.selection?.releaseId !== loaded.index.sourceRuntime.releaseId
       || receipt.selection?.manifestSha256 !== loaded.index.sourceRuntime.manifestSha256) return null;
