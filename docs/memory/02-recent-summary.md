@@ -2,7 +2,7 @@
 
 状态: active
 最后更新: 2026-10-01
-摘要: 生产应用 `v0.7.31-bf815b5`（`origin/main` `bf815b58b8…`）已部署；Runtime 仍为 `runtime-b24b84a4…`。生产海面不再挖船体矩形洞。不要 archive OpenSpec，不要关 #1033。
+摘要: 生产应用 `v0.7.33-eff1c0a` 已部署，7250 个逻辑教学媒体资源经 ESA 分发；Runtime 仍为 `runtime-b24b84a4…`，图谱与资源选择器不变。生产海面不再挖船体矩形洞。不要 archive 其他 OpenSpec，不要关 #1033。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
