@@ -108,3 +108,6 @@
 - 要改平台 UI 壳层：先读 `src/components/platform/*`、`src/lib/platform-role-navigation.ts` 和 `openspec/changes/archive/2026-06-12-harden-unified-ui-governance-gates/`。
 - 要改 Arena 或控制工作台：先读 `src/features/arena/`、`src/features/control-workbench/`、`src/app/interactive-learning/control-workbench/page.tsx`。
 - 要排查部署、依赖、启动或工作树环境：先读 [30-operations/00-index.md](30-operations/00-index.md) 和 `scripts/dev/sync-local-worktree-config.sh`。
+# 2026-10-01 公开教学媒体 ESA
+
+生产应用已更新至 `0.7.33-eff1c0a`（`eff1c0a35af5de396f9c0c900df77bbef2a6e928`），镜像 tar SHA `334d8dca7c31c845b193c6e6e2ade765ec1e0279273e9f23f1d8b4a4eafb28de`。7250 个逻辑媒体资源 / 7247 个对象通过 `static.adapt-learn.online/teaching-media/sha256/` 分发，信息图图片入口允许匿名，原内容资格检查保留。完整应用部署、27 项匿名 HTTP、七类正文 SHA/Range/CORS/HIT 与浏览器图像/视频验证通过。Runtime `runtime-b24b84a4…`、六份选择器、数据库与 Redis 容器身份不变。既有 Authority 信息图清单 v0.37 与活动 v0.48 不符，仍返回 404；未执行内容重导出或 Runtime/图谱激活。操作与恢复见 [公开教学媒体 ESA 分发](../operations/public-teaching-media-esa.md)。

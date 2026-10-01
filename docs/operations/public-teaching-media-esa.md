@@ -61,7 +61,7 @@ uv run --with oss2==2.19.1 python3 scripts/runtime-release/public_teaching_media
 
 直接回归与相关 Vitest 共 36 项、Python 单元测试 7 项通过，Python 编译、定向 ESLint 与 OpenSpec 严格验证通过。额外运行的未修改 learning-content 全套测试因本地隔离工作树缺少完整外置 Runtime/匹配 fixture 而失败；不把此结果视为生产资格验证通过，生产切换后须验证真实内容读取。原资格读取器未修改。
 
-应用发布与索引启用结果在实际切换完成后补记。
+最终应用发布与切换结果见下节。
 
 第一次容器构建的编译和类型检查通过，随后因 14 个外置文件追踪告警被构建门禁拒绝，未产生部署工件。新增分发索引文件读取与共享资源索引中的 Runtime 路径补充了项目既有的 `turbopackIgnore` 标注；门禁保持启用，发布须以再次完整构建成功为准。
 
@@ -72,3 +72,13 @@ uv run --with oss2==2.19.1 python3 scripts/runtime-release/public_teaching_media
 `0.7.32-4f89280` 应用与分发索引已启用，原 Runtime、六份选择器、数据库与 Redis 容器身份相同。初次部署验证缺少新应用修订的库存，使用既有工具追加 7804 条库存项后 verify-only 通过，绑定决策与 crosswalk 均为 0。线上发现旧媒体入口只取 v1 清单键；本轮补齐 v2 Blob Release 的固定版本读取，缺失 v1 时才查 v2，摘要与 Release ID 校验保持。此整改使用新应用版本 `0.7.33`。
 
 当前 Authority 学习内容清单仍绑定 v0.37 / `proj-0260a81c…`，活动图谱和教学投影为 v0.48 / `proj-0734e535…`。原内容资格检查因此返回 404，已接受历史图片的原始文件仍可按 SHA 经 ESA 读取；本轮没有更改图谱、学习内容清单或 Runtime 来解除这一既有版本漂移。既有 Bode 等当前可用信息图已验证匿名 307 到 ESA，图片正文 SHA 一致。
+
+## 最终生产状态
+
+2026-10-01 已部署 `0.7.33-eff1c0a`，应用修订 `eff1c0a35af5de396f9c0c900df77bbef2a6e928`，镜像 tar SHA-256 `334d8dca7c31c845b193c6e6e2ade765ec1e0279273e9f23f1d8b4a4eafb28de`。完整 deploy:app 验证退出 0，app/worker 使用同一镜像；app、数据库、Redis、Runtime readyz 均通过，画像 fence 已收敛。WASM、Chromium 与 LibreOffice 在最终容器内存在；Wolfram smoke 沿用生产维护窗口的显式跳过设置。
+
+分发索引已于 08:16:07 UTC 原子启用，7250 个逻辑资源对应 7247 个不可变对象。最终匿名 HTTP 验证共 27 项：20 项 307 到 ESA 并返回精确 206，其余 7 项确认私有入口 404、受保护节点 401、陈旧资源引用 409 及既有信息图资格拒绝。固定 Release ID 的 v2 视频现已返回正确摘要地址。浏览器实际显示 Bode 信息图，视频为 1920×1080、readyState=4、无解码错误。
+
+原 Runtime selection（含 generation=36）、六份 Authority/Teaching/资源选择器、数据库与 Redis 容器 ID 在操作前后逐项一致。应用修订只追加完整治理库存快照，正式绑定决策与 crosswalk 均为 0。未运行 Runtime、图谱、教学或资源绑定激活。
+
+增量人工审查覆盖 `4f89280c…eff1c0a3` 的固定版本清单修复和发布登记调整，并复核此前构建与库存问题：均已解决，未发现新的 P0/P1 重大问题。Authority 信息图的 v0.37/v0.48 漂移属于既有数据状态，保留原拒绝行为，未扩大到新的内容发布。
