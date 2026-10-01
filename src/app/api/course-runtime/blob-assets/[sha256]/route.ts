@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { runtimeBlobObjectKey } from '@/lib/runtime-release';
 import { createEcsRamRoleOssClient } from '@/lib/runtime-release-store';
+import { publicTeachingMediaUrlForDigest } from '@/lib/public-teaching-media';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,9 @@ export async function GET(
   if (!SHA256_PATTERN.test(normalized)) {
     return NextResponse.json({ error: 'Runtime blob asset was not found.' }, { status: 404 });
   }
+
+  const publicUrl = await publicTeachingMediaUrlForDigest(normalized);
+  if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
 
   const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
   if (!ramRole) {

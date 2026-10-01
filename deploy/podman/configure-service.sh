@@ -237,7 +237,9 @@ UNIT
 
 systemctl daemon-reload
 systemctl enable "$SERVICE_NAME" >/dev/null
-systemctl restart "$SERVICE_NAME"
+if [ "${ACT_SERVICE_CONFIGURE_ONLY:-0}" != "1" ]; then
+  systemctl restart "$SERVICE_NAME"
+fi
 
 if ! podman ps --format '{{.Names}}' | grep -Fxq "$DB_CONTAINER"; then
   echo "ERROR: systemd 启动后数据库容器未运行: $DB_CONTAINER" >&2

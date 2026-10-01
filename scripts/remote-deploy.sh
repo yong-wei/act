@@ -612,30 +612,17 @@ log
 log "[4/5] 远端部署"
 remote "bash -lc 'set -euo pipefail
 {
-  echo \"[remote-deploy] Step 1/7: 导出现有数据库\"
-  \"${REMOTE_EXPORT_DB_SCRIPT}\"
-  echo \"[remote-deploy] Step 2/7: 装载镜像\"
-  \"${REMOTE_LOAD_IMAGES_SCRIPT}\"
+  echo \"[remote-deploy] Step 1/3: 装载已验证的应用镜像\"
+  podman load -i \"${REMOTE_IMAGE_TAR}\"
   IMAGE_REVISION=\$(podman image inspect \"${REMOTE_APP_IMAGE}\" --format \"{{ index .Labels \\\"org.opencontainers.image.revision\\\" }}\")
   if [ \"\${IMAGE_REVISION}\" != \"${PROVENANCE_APP_REVISION}\" ]; then
     echo \"ERROR: loaded image revision mismatch: expected=${PROVENANCE_APP_REVISION} actual=\${IMAGE_REVISION}\" >&2
     exit 1
   fi
-  echo \"[remote-deploy] Step 3/7: 启动数据库容器\"
-  APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --db-only
-  echo \"[remote-deploy] Step 4/7: 导入最新数据库\"
-  \"${REMOTE_IMPORT_DB_SCRIPT}\"
-  echo \"[remote-deploy] Step 5/8: 启动应用容器\"
-  APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
-  echo \"[remote-deploy] Step 6/8: 同步 runtime 知识图谱到数据库\"
-  # seed:knowledge is intentionally apply-gated for ad-hoc use. This is the
-  # controlled deployment execution path after the immutable runtime is mounted.
-  podman exec \"${APP_NAME_HINT}\" test -s course-content/contracts/knowledge-relation-coverage-audit.json
-  podman exec \"${APP_NAME_HINT}\" node scripts/db/seed-all-knowledge.mjs
-  echo \"[remote-deploy] Step 7/8: 配置 Nginx 域名反向代理\"
-  \"${REMOTE_NGINX_SCRIPT}\"
-  echo \"[remote-deploy] Step 8/8: 配置 systemd 开机自启\"
-  \"${REMOTE_SERVICE_SCRIPT}\"
+  echo \"[remote-deploy] Step 2/3: 替换应用与 worker，保留现有数据服务\"
+  APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --runtime-cutover-app-only
+  echo \"[remote-deploy] Step 3/3: 更新 systemd 配置，保持已运行服务\"
+  ACT_SERVICE_CONFIGURE_ONLY=1 \"${REMOTE_SERVICE_SCRIPT}\"
 } 2>&1 | tee \"${REMOTE_LOG_FILE}\"'"
 
 log "[5/5] 部署验证"

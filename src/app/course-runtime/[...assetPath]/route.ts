@@ -4,6 +4,7 @@ import { extname, join, posix } from 'node:path';
 import { NextResponse } from 'next/server';
 
 import { RUNTIME_BLOB_HELPER_NAME } from '@/lib/runtime-content-path';
+import { publicTeachingMediaUrlForPath } from '@/lib/public-teaching-media';
 
 const RUNTIME_ROOT = join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'runtime');
 
@@ -73,6 +74,9 @@ export async function GET(_request: Request, props: { params: Promise<{ assetPat
   if (!absolutePath.startsWith(RUNTIME_ROOT)) {
     return NextResponse.json({ error: 'Invalid asset path' }, { status: 400 });
   }
+
+  const publicUrl = await publicTeachingMediaUrlForPath(relativePath);
+  if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
 
   try {
     const buffer = await readFile(/*turbopackIgnore: true*/ absolutePath);

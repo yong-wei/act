@@ -133,6 +133,8 @@ Active 图谱的本地修复已加入固定 2D/3D 坐标与相机、选中邻域
 
 正式页面应读取 runtime，不直接回读 authoring。互动课程实现优先使用 `src/features/interactive/shared/manifest-runtime/`，只有确实无法标准化的控制曲线、可行域、黑箱数据预演或专用工作区才保留课程私有实现。
 
+公开教学媒体使用 `static.adapt-learn.online/teaching-media/sha256/` 的不可变分发副本。启用已验证分发索引后，课程音视频、图片、PDF、教材插图与已接受的信息图经 ESA 返回；课堂固定资源仍以原 Release 清单和内容摘要定位。信息图图片允许匿名读取，保留审核、Authority/Teaching、摘要与资源引用校验；图谱和节点详情继续使用原权限规则。操作与恢复见 [公开教学媒体 ESA 分发](./operations/public-teaching-media-esa.md)。
+
 互动课程正在从“课程私有组件变体”迁移到“标准模块框架”。新课应使用注册过的模块和 manifest 契约；未注册模块、未声明题型或无法治理的提交结构应被测试闸门拦截。
 
 `1-1` 单元当前已经按“系统全貌”定位完成标准互动课首轮实现，入口路由为 `/interactive-learning/courses/unit-1-1-see-the-full-picture`，学生与教师课堂页位于该路由下的私有 `[sessionId]` 子路由。实现文件包括 `src/lib/unit-1-1-course.ts`、`src/lib/lesson-1-1-ai-contexts.ts` 和 `src/features/interactive/unit-1-1-see-the-full-picture/*`。作者态材料、互动契约和 acceptance 已齐备，manifest audit 已达到 15 steps、91 modules、0 issues。当前剩余工程口径是把 `1-1` 纳入严格实现契约注册，避免后续标准课被旧的 migrated-lesson 语义遗漏。

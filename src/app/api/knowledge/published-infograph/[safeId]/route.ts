@@ -4,7 +4,6 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 import {
   activeUnavailableResponse,
-  authorizeActiveGraph,
 } from '@/app/api/knowledge/_active-authority';
 import { knowledgeSurfaceSelectorRejection } from '@/lib/knowledge-surface';
 import {
@@ -17,6 +16,7 @@ import {
 } from '@/lib/authority-domain-shards/learning-content';
 import { parsePublishedResourceHref } from '@/lib/published-resource-reference';
 import { resolvePublishedResourceFeature } from '@/lib/published-resource-index';
+import { publicTeachingMediaUrlForBuffer } from '@/lib/public-teaching-media';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -38,8 +38,6 @@ export async function GET(
   const rejected = knowledgeSurfaceSelectorRejection(request);
   if (rejected) return rejected;
   try {
-    const authorization = await authorizeActiveGraph();
-    if (!authorization.ok) return authorization.response;
     const locale = resolveActiveLocaleRequest(request, activeLocaleCapability());
     if (!locale.ok) return locale.response;
     const referenceHref = new URL(request.url).searchParams.get('resourceRef');
@@ -58,10 +56,12 @@ export async function GET(
     if (reference && !(await resolvePublishedResourceFeature(reference))?.current) {
       return NextResponse.json({ error: '信息图引用版本已变化。' }, { status: 409 });
     }
+    const publicUrl = await publicTeachingMediaUrlForBuffer(image, 'image/png');
+    if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
     return new NextResponse(image, {
       headers: {
         'content-type': 'image/png',
-        'cache-control': 'private, max-age=300',
+        'cache-control': 'public, max-age=300',
       },
     });
   } catch (error) {

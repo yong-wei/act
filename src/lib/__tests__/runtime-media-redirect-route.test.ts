@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   isRuntimeMediaPath: vi.fn(),
   readActiveRuntimeReleaseManifest: vi.fn(),
   getStream: vi.fn(),
+  publicTeachingMediaUrlForDigest: vi.fn(),
 }));
 
 vi.mock('@/lib/runtime-release', async (importOriginal) => {
@@ -34,6 +35,8 @@ vi.mock('@/lib/runtime-release-store', () => ({
   createEcsRamRoleOssClient: mocks.createEcsRamRoleOssClient,
 }));
 
+vi.mock('@/lib/public-teaching-media', () => ({ publicTeachingMediaUrlForDigest: mocks.publicTeachingMediaUrlForDigest }));
+
 import { GET } from '@/app/api/course-runtime/assets/[...assetPath]/route';
 
 const originalEnvironment = { ...process.env };
@@ -48,6 +51,7 @@ function invoke(assetPath: string[], search = '') {
 describe('runtime media signed redirect route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.publicTeachingMediaUrlForDigest.mockResolvedValue(null);
     process.env = { ...originalEnvironment, ACT_RUNTIME_OSS_RAM_ROLE: 'act-runtime-ecs-role' };
     mocks.isRuntimeMediaPath.mockReturnValue(true);
     mocks.createEcsRamRoleOssClient.mockReturnValue({
@@ -151,6 +155,29 @@ describe('runtime media signed redirect route', () => {
     mocks.readActiveRuntimeReleaseManifest.mockResolvedValue({ releaseId: 'runtime-1' });
     mocks.findRuntimeMediaReleaseObject.mockReturnValue(null);
     expect((await invoke(['lessons', '1-1', 'media', 'missing.mp4'])).status).toBe(404);
+  });
+
+  it('uses the verified public copy of the exact active digest', async () => {
+    const digest = 'a'.repeat(64);
+    const url = `https://static.adapt-learn.online/teaching-media/sha256/${digest}/asset.mp4`;
+    mocks.readActiveRuntimeReleaseManifest.mockResolvedValue({ releaseId: 'runtime-v2' });
+    mocks.findRuntimeMediaReleaseObject.mockReturnValue({ sha256: digest, objectKey: `runtime/blobs/sha256/${digest}` });
+    mocks.publicTeachingMediaUrlForDigest.mockResolvedValue(url);
+    const response = await invoke(['lessons', '1-1', 'media', 'intro.mp4']);
+    expect(response.headers.get('location')).toBe(url);
+    expect(mocks.publicTeachingMediaUrlForDigest).toHaveBeenCalledWith(digest);
+    expect(mocks.asyncSignatureUrl).not.toHaveBeenCalled();
+  });
+
+  it('uses the pinned manifest digest rather than a newer active same-path object', async () => {
+    const digest = 'b'.repeat(64);
+    mocks.getStream.mockResolvedValue({ stream: Readable.from([JSON.stringify({ releaseId: 'runtime-captured', files: [] })]) });
+    mocks.findRuntimeMediaReleaseObject.mockReturnValue({ sha256: digest, objectKey: `runtime/blobs/sha256/${digest}` });
+    mocks.publicTeachingMediaUrlForDigest.mockResolvedValue(`https://static.adapt-learn.online/teaching-media/sha256/${digest}/asset.mp4`);
+    const response = await invoke(['lessons', '1-1', 'media', 'intro.mp4'], '?releaseId=runtime-captured');
+    expect(response.headers.get('location')).toContain(digest);
+    expect(mocks.publicTeachingMediaUrlForDigest).toHaveBeenCalledWith(digest);
+    expect(mocks.readActiveRuntimeReleaseManifest).not.toHaveBeenCalled();
   });
 
   it('serves bound release bytes when the workstation has no RAM role', async () => {
