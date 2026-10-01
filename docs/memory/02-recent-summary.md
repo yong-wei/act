@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-09-29
-摘要: 生产应用 `v0.7.30-237d17b`（`origin/main` `237d17bdb3…`）已部署；Runtime 仍为 `runtime-b24b84a4…`。七船场景默认共用自适应 FFT 海面。不要 archive OpenSpec，不要关 #1033。
+最后更新: 2026-10-01
+摘要: 生产应用 `v0.7.31-bf815b5`（`origin/main` `bf815b58b8…`）已部署；Runtime 仍为 `runtime-b24b84a4…`。生产海面不再挖船体矩形洞。不要 archive OpenSpec，不要关 #1033。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -16,6 +16,7 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-10-01 生产应用 `v0.7.31-bf815b5` 已 `deploy:app --skip-build`：冻结 `origin/main` `bf815b58b8196f2ca4c0769c2db3f071baa34056`，镜像 `localhost/act-obe-platform:0.7.31-bf815b5`，tar SHA256 `878d42b7c791de6de4d1d11e875a8fb248e053472b058af73418ce8c4e8a3092`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.31。生产海面去掉驱逐舰与钻井平台的船体排除框；远海补面与近场同高，近场内丢弃远海片元以保留负浪高；图形后端按稳定标志识别。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime.ready 均为 true）通过；Redis `noeviction`。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`。装载前删除了远端已有本地副本的 `act-obe-0.7.28-370b068.tar`。不要 archive OpenSpec，不要关 #1033。
 - 2026-09-29 生产应用 `v0.7.30-237d17b` 已 `deploy:app --skip-build`：冻结 `origin/main` `237d17bdb373d4929cf4523430cd2a7d5e2656bc`，镜像 `localhost/act-obe-platform:0.7.30-237d17b`，tar SHA256 `0068bf729e1d399ba0f3ee9f4620165e0b0fd1aee08bb86ce4d3905b95c0daba`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.30。合入 M5 四路线海洋对照与自动验收，七船场景默认共用自适应 FFT 海面并保留持久船尾迹；浅水采样只给已受光水色染色。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime.ready 均为 true）通过；Redis `noeviction`。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`。不要 archive OpenSpec，不要关 #1033。
 - 2026-09-21 生产应用 `v0.7.29-d1668f0` 已 `deploy:app --skip-build`：冻结 `origin/main` `d1668f04f20142ffec891190dc106fc8f92c7f52`，镜像 `localhost/act-obe-platform:0.7.29-d1668f0`，tar SHA256 `114afee3ec9a29c6ff1683b7e64e457ee79fbb7d65b17375089588f7fdac7751`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.29。合入集成分支 12 个提交：七船统一海洋环境、FFT/Gerstner 对照、天空倒影、泡沫历史、水线共享波面、路径图谱未就绪明确失败。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime.ready 均为 true）通过；Redis `noeviction`。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`。不要 archive OpenSpec，不要关 #1033。
 - 2026-09-18 生产应用 `v0.7.28-370b068` 已 `deploy:app --skip-build`：冻结 `origin/main` `370b06840cbc9953dd1ac731441650275ecf459d`，镜像 `localhost/act-obe-platform:0.7.28-370b068`，tar SHA256 `809ea5dbc1b0f5e63b923e749eae0f3a925bb4de2e6dd44e89f2512f4cc01f4f`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.28。教材节预览改为标题/正文摘录/知识点列表并渲染公式；「学习下一个」进入下一资源预览页；阅读器可收起目录、侧栏并最大化。公网 `/`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`（tree `e7fb21aad691…`）。绑定仍为 `control-theory-engineering-v0.48-b55` hash `5db90c74…`。不要 archive OpenSpec，不要关 #1033。
