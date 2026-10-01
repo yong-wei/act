@@ -206,7 +206,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
       const cell = config.spectrum.domainMeters / resolution;
       bundle.origin.value.set(Math.round(position.x / cell) * cell, Math.round(position.z / cell) * cell);
       meshRef.current?.position.set(bundle.origin.value.x, -1, bundle.origin.value.y);
-      farRef.current?.position.set(bundle.origin.value.x, -1.01, bundle.origin.value.y);
+      farRef.current?.position.set(bundle.origin.value.x, -1, bundle.origin.value.y);
     }
     bundle.opticalOctaves.value = tier === 'high' ? 8 : tier === 'medium' ? 3 : 0;
     const pose = config.poseAt(seconds);
@@ -282,7 +282,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
           for (const [x, z] of points) {
             if (!active) throw new Error('Surface sampler disposed');
             if (config.production && bundle && Math.max(Math.abs(x - bundle.origin.value.x), Math.abs(z - bundle.origin.value.y)) > config.spectrum.domainMeters / 2) {
-              result.push({ x, z, height: -1.01, slopeX: 0, slopeZ: 0 });
+              result.push({ x, z, height: -1, slopeX: 0, slopeZ: 0 });
               continue;
             }
             for (const object of sampleScene.children) object.position.set(bundle?.origin.value.x ?? 0, -1, bundle?.origin.value.y ?? 0);
@@ -393,7 +393,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
   }, [backend, bundle, geometry, history, pipeline, renderer, resolution, scene, sceneId, shallowEnabled, sky, spectrum, surfaceRef, config]);
   if (!bundle) return null;
   return <>
-    {farGeometry && farMaterial ? <mesh ref={farRef} name="marine-far-ocean" geometry={farGeometry} material={farMaterial} position={[0, -1.01, 0]} /> : null}
+    {farGeometry && farMaterial ? <mesh ref={farRef} name="marine-far-ocean" geometry={farGeometry} material={farMaterial} position={[0, -1, 0]} /> : null}
     <mesh ref={meshRef} name="marine-comparison-water" geometry={geometry} material={bundle.material} position={[0, -1, 0]} />
   </>;
 }

@@ -1,5 +1,6 @@
 /** 数据后端边界：显式设备、真实身份、生命周期；场景和材质不按 API 分叉。 */
 import { WebGPURenderer } from 'three/webgpu';
+import { marineBackendName } from './marine-backend';
 export type MarineGraphicsApi = 'webgl' | 'webgpu';
 
 const identities = new WeakMap<WebGPURenderer, { api: string; hardware: string | null }>();
@@ -17,7 +18,7 @@ interface ComparisonGpuHost {
 }
 
 export function marineRendererIdentity(renderer: WebGPURenderer) {
-  return identities.get(renderer) ?? { api: renderer.backend.constructor.name, hardware: null };
+  return identities.get(renderer) ?? { api: marineBackendName(renderer.backend), hardware: null };
 }
 
 export async function createMarineRenderer(canvas: HTMLCanvasElement, api: MarineGraphicsApi) {
@@ -49,7 +50,7 @@ export async function createMarineRenderer(canvas: HTMLCanvasElement, api: Marin
   };
   try {
     await renderer.init();
-    const backend = renderer.backend.constructor.name;
+    const backend = marineBackendName(renderer.backend);
     if (backend !== (api === 'webgpu' ? 'WebGPUBackend' : 'WebGLBackend')) {
       throw new Error('实际图形后端与所选接口不一致。');
     }

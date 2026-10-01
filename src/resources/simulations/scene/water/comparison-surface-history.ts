@@ -1,3 +1,4 @@
+import { marineBackendName } from '../marine-backend';
 /** 持久船行波与表面泡沫。GPU 状态，两种 API 共用 TSL 和既有 IFFT。 */
 import { FloatType, RGBAFormat, NearestFilter, RenderTarget, MeshBasicNodeMaterial, QuadMesh, Vector2, Vector4, type WebGPURenderer, type Node } from 'three/webgpu';
 import { Fn, uv, uniform, texture, vec2, vec4, float, dot, exp, smoothstep, max, abs, mix } from 'three/tsl';
@@ -200,7 +201,7 @@ export function createComparisonSurfaceHistory(
         renderer.readRenderTargetPixelsAsync(wake, 0, 0, n, n),
         renderer.readRenderTargetPixelsAsync(foam[foamIndex], 0, 0, foamN, foamN),
       ]);
-      const flip = renderer.backend.constructor.name === 'WebGLBackend';
+      const flip = marineBackendName(renderer.backend) === 'WebGLBackend';
       let minHeight = Infinity; let maxHeight = -Infinity; let energy = 0;
       for (let i = 0; i < w.length; i += 4) {
         minHeight = Math.min(minHeight, w[i]); maxHeight = Math.max(maxHeight, w[i]); energy += w[i] ** 2;

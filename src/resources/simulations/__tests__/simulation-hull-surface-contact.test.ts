@@ -71,7 +71,7 @@ describe('shared visual time across the fleet (#2117)', () => {
   it('every wake rig consumes the shared water height hook, not an independent wall clock', () => {
     for (const sim of ['destroyer', 'drilling', 'container', 'cruise', 'icebreaker', 'dredger', 'lng']) {
       const source = readSource(`simulations/${sim}-simulation.tsx`);
-      expect(source, sim).toContain('useNearFieldWaterHeight({');
+      expect(source, sim).toContain(sim === 'destroyer' ? 'waterSampler:' : 'useNearFieldWaterHeight({');
       expect(source, sim).not.toContain('timeRef.current = frameState.clock.getElapsedTime()');
       expect(source, sim).not.toContain('timeRef.current = state.clock.getElapsedTime()');
     }
@@ -105,10 +105,10 @@ describe('explicit waterline mounts (#2117)', () => {
     expect(lng).toContain('extraEuler={{ z: props.sloshingAngle * 0.1 }}');
   });
 
-  it('keeps the semi-submersible moon pool open (column/pontoon boxes only)', () => {
+  it('keeps the semi-submersible moon pool open without rectangular water cutouts', () => {
     const drilling = readSource('simulations/drilling-simulation.tsx');
-    expect(drilling).toContain('DRILLING_HULL_EXCLUSION');
-    // 四立柱 + 两浮筒框：域中心（月池）不在排除框内。
+    expect(drilling).not.toContain('hullExclusionSampler=');
+    // 不再通过平台包围框挖空水面，月池由实际模型几何保留。
     const centerExcluded = /\{ centerX: 0,/.test(drilling);
     expect(centerExcluded).toBe(false);
   });

@@ -102,39 +102,21 @@ describe('hull water exclusion (#2101)', () => {
 });
 
 describe('vessel interaction wiring (#2101 source contracts)', () => {
-  it('shares the scene wake budget across the twin 055 propulsor trails', () => {
-    const source = readFileSync(
-      path.join(ROOT, 'src/resources/simulations/simulations/destroyer-simulation.tsx'),
-      'utf-8',
-    );
-    expect(source).toContain('budgetShare={0.5}');
-    // 排除框声明（船体局部近似）与水面桥接接线。
-    expect(source).toContain('DESTROYER_055_HULL_EXCLUSION');
-    expect(source).toContain('hullExclusionSampler={() => DESTROYER_055_HULL_EXCLUSION}');
-    expect(source).toContain('shipHeadingSampler={() => simRef.current.headingRad}');
+  it('uses shared displaced water without a rectangular cutout around the 055 hull', () => {
+    const source = readFileSync(path.join(ROOT, 'src/resources/simulations/simulations/destroyer-simulation.tsx'), 'utf-8');
+    expect(source).toContain('<MarineWater');
+    expect(source).not.toContain('hullExclusionSampler=');
+    expect(source).toContain('shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(simRef.current.headingRad))}');
   });
 
-  it('drives platform wash from existing thrust telemetry without inventing transit wake', () => {
-    const source = readFileSync(
-      path.join(ROOT, 'src/resources/simulations/simulations/drilling-simulation.tsx'),
-      'utf-8',
-    );
-    expect(source).toContain('washActivitySampler={() => computeThrusterWashActivity({');
-    // 主 Trail 只负责真实平移尾迹；洗流全部由逐推进器 Trail 承担（二轮复审）。
-    expect(source).not.toContain('platformStateRef.current.thrusters.reduce');
+  it('uses individual thruster inputs and actual hull occlusion for the platform', () => {
+    const source = readFileSync(path.join(ROOT, 'src/resources/simulations/simulations/drilling-simulation.tsx'), 'utf-8');
+    expect(source).toContain('foamEmittersSampler=');
+    expect(source).toContain('computeThrusterWashActivity({ totalThrustPower: Math.abs(thruster.power)');
     expect(source).toContain('HYSY981_THRUSTER_LAYOUT.find');
-    expect(source).toContain('emitterWorldSampler={() => [worldX, 0, worldZ]}');
-    expect(source).toContain('localWashOnly');
-    // 半潜排除按浮筒/立柱独立声明（非整平台 bbox）。
-    expect(source).toContain('DRILLING_HULL_EXCLUSION');
+    expect(source).not.toContain('hullExclusionSampler=');
     expect(source).not.toContain('halfX: 100');
-    // 排除框朝向用物理 psi（forward=(cosψ,sinψ)），不是场景视觉镜像约定（复审）。
-    expect(source).toContain('shipHeadingSampler={() => platformStateRef.current.psi}');
-    expect(source).not.toContain('shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))}');
-    // 逐推进器局部洗流：按布局世界位置 + 各推进器方位，全场份额 1/8（复审）。
-    expect(source).toContain('HYSY981_THRUSTER_LAYOUT.find');
-    expect(source).toContain('platformHeadingToSceneRad(toDegrees(psi) + thruster.azimuth)');
-    expect(source).toContain('budgetShare={1 / HYSY981_THRUSTER_LAYOUT.length}');
+    expect(source).toContain('shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))}');
   });
 
   it('blends wash into core/foam only and gates emission budget by share', () => {

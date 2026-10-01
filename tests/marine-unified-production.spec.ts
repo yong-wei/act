@@ -3,7 +3,7 @@ import type {} from '../src/resources/simulations/scene/water/shared-ocean-surfa
 
 const routes = ['destroyer', 'lng', 'container', 'icebreaker', 'cruise', 'drilling', 'dredger'] as const;
 for (const graphics of ['webgl', 'auto'] as const) for (const route of routes) {
-  test(`${route}: shared FFT with ${graphics}`, async ({ page }) => {
+  test(`${route}: shared FFT with ${graphics}`, async ({ page }, testInfo) => {
     test.setTimeout(120000);
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -18,6 +18,14 @@ for (const graphics of ['webgl', 'auto'] as const) for (const route of routes) {
     await page.waitForFunction(time => window.__comparisonOcean!.identity().time > time + 1, identity.time);
     expect(await page.evaluate(() => window.__comparisonOcean!.identity().readbacks)).toBe(0);
     expect(await page.evaluate(() => window.__comparisonOcean!.history()?.steps)).toBeGreaterThan(30);
+    for (const name of ['收起状态监控', '收起控制与探究']) {
+      const button = page.getByRole('button', { name, exact: true });
+      if (await button.count()) await button.click();
+    }
+    await page.getByRole('button', { name: '视图', exact: true }).click();
+    await page.getByText('战术', { exact: true }).click();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: testInfo.outputPath(`${route}-${graphics}.png`) });
     expect(errors).toEqual([]);
   });
 }

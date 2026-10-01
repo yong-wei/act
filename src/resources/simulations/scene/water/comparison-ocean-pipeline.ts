@@ -1,3 +1,4 @@
+import { marineBackendName } from '../marine-backend';
 /**
  * 对比页专用、GPU 常驻的节点 FFT。
  * 数学只定义一次，TSL 分别生成 WebGL GLSL / WebGPU WGSL。
@@ -149,7 +150,7 @@ export function createComparisonOceanPipeline(
       const read = async (target: RenderTarget) => {
         const values = await renderer.readRenderTargetPixelsAsync(target, 0, 0, n, n);
         const packed = values as Float32Array;
-        const flipRows = renderer.backend.constructor.name === 'WebGLBackend';
+        const flipRows = marineBackendName(renderer.backend) === 'WebGLBackend';
         // WebGPU readback 保留 256-byte 行对齐（末行无 padding）。
         const rowStride = (packed.length - n * 4) / (n - 1);
         return Float32Array.from({ length: n * n }, (_, i) => {

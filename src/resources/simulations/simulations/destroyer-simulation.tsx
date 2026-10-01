@@ -60,7 +60,6 @@ import { Input } from '@/components/ui/input';
 
 import { destroyer055Profile } from '../profiles/destroyer-055';
 import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
-import type { HullExclusionBox } from '../scene/water/hull-exclusion';
 import {
   createNearFieldSurfaceQuery,
   DEFAULT_GERSTNER_SEA_STATE,
@@ -410,11 +409,6 @@ function MarineFrameRuntime({
 }
 
 /** 海面颜色随环境预设驱动、水面细分随质量档位驱动的桥接组件（Canvas 内消费 provider 状态）。 */
-/** 055 船壳排水排除框（#2101，船体局部坐标近似：船壳主体，不含开口结构的精确轮廓）。 */
-const DESTROYER_055_HULL_EXCLUSION: readonly HullExclusionBox[] = [
-  { centerX: 0, centerZ: 0, halfX: 82, halfZ: 9 },
-];
-
 function PresetWater({ simRef, resetToken }: { simRef: React.MutableRefObject<SimulationState>; resetToken: number }) {
   const water = useEnvironmentWaterColors();
   const { params } = useSceneQuality();
@@ -425,7 +419,6 @@ function PresetWater({ simRef, resetToken }: { simRef: React.MutableRefObject<Si
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })}
-      hullExclusionSampler={() => DESTROYER_055_HULL_EXCLUSION}
       shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(simRef.current.headingRad))}
       waterColor={water.waterColor}
       deepColor={water.deepColor}

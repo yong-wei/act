@@ -36,7 +36,6 @@ import {
 } from '../scene/environment';
 import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import { computeThrusterWashActivity } from '../scene/wake/wake-physics';
-import type { HullExclusionBox } from '../scene/water/hull-exclusion';
 import {
   SceneSoundscapeProvider,
   SoundscapeAmbienceDriver,
@@ -685,17 +684,6 @@ function SceneQualityAttributes() {
   );
 }
 
-/** 半潜平台排水排除框（#2101，船体局部坐标）：两根浮筒 + 四立柱独立声明——
- * 框间与立柱之间的开口区域保留海水（从上往下看可见海水），实心结构内不显示穿水面板。 */
-const DRILLING_HULL_EXCLUSION: readonly HullExclusionBox[] = [
-  { centerX: -35, centerZ: 0, halfX: 30, halfZ: 8 },
-  { centerX: 35, centerZ: 0, halfX: 30, halfZ: 8 },
-  { centerX: -35, centerZ: -28, halfX: 6, halfZ: 6 },
-  { centerX: -35, centerZ: 28, halfX: 6, halfZ: 6 },
-  { centerX: 35, centerZ: -28, halfX: 6, halfZ: 6 },
-  { centerX: 35, centerZ: 28, halfX: 6, halfZ: 6 },
-];
-
 /** 海面颜色随环境预设、细分随质量档位的桥接组件（DP 平台位置直读 ref）。 */
 function DrillingWater({
   platformStateRef,
@@ -729,7 +717,6 @@ function DrillingWater({
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })}
-      hullExclusionSampler={() => DRILLING_HULL_EXCLUSION}
       shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))}
       waterColor={water.waterColor}
       deepColor={water.deepColor}

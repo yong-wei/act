@@ -58,6 +58,7 @@ export function createComparisonWaterMaterial(options: {
   const foamDrift = uniform(new Vector2(...SURFACE_FOAM_DRIFT));
   const n = varyingProperty('vec3', 'oceanNormal');
   const height = varyingProperty('float', 'oceanHeight');
+  const farSurface = varyingProperty('float', 'oceanFarSurface');
   const horizontal = varyingProperty('vec2', 'oceanHorizontal');
   const shoreDistance = (p: Node<'vec2'>) => {
     let distance: Node<'float'> = float(1e6);
@@ -111,6 +112,7 @@ export function createComparisonWaterMaterial(options: {
   });
   const material = new MeshBasicNodeMaterial();
   material.positionNode = Fn(() => {
+    farSurface.assign(0);
     const p = positionLocal.xz.add(origin);
     const cell = pipeline ? domain / pipeline.resolution : 0.5;
     const visibleDisplace = (at: Node<'vec2'>) => {
@@ -144,6 +146,11 @@ export function createComparisonWaterMaterial(options: {
   const illumination = options.sunIllumination ?? 1;
   const noise = texture(foamNoise);
   const waterColorNode = Fn(() => {
+    // 远海只填补近场网格之外；否则平均海平面会把所有负浪高截平。
+    if (options.worldSpace) {
+      const distance = max(abs(positionWorld.x.sub(origin.x)), abs(positionWorld.z.sub(origin.y)));
+      If(farSurface.greaterThan(0.5).and(distance.lessThan(domain / 2)), () => { Discard(); });
+    }
     const relative = positionWorld.xz.sub(shipPose.xy);
     const forward = vec2(shipPose.z.sin(), shipPose.z.cos());
     const local = vec2(dot(relative, forward), dot(relative, vec2(forward.y.negate(), forward.x)));
@@ -256,6 +263,7 @@ export function createComparisonWaterMaterial(options: {
     createFarMaterial() {
       const far = material.clone();
       far.positionNode = Fn(() => {
+        farSurface.assign(1);
         n.assign(vec3(0, 1, 0)); height.assign(0); horizontal.assign(vec2(0));
         return positionLocal;
       })();
