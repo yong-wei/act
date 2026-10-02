@@ -13,6 +13,18 @@ import runtime_media_storage as MEDIA
 PRIVATE_PREFIX = 'runtime/blobs/sha256/'
 
 
+def response_rows(value):
+    # ossutil's XML-to-JSON encoder uses one object for a single XML child,
+    # an array for repeated children, and string scalars for numeric values.
+    if value is None:
+        return []
+    if isinstance(value, dict):
+        return [value]
+    if isinstance(value, list):
+        return value
+    raise MEDIA.MediaStorageError('invalid-body-object-list')
+
+
 def body_digest(bucket, key):
     if bucket == MEDIA.SOURCE_BUCKET:
         return key[len(PRIVATE_PREFIX):] if key.startswith(PRIVATE_PREFIX) and MEDIA.SHA256.fullmatch(key[len(PRIVATE_PREFIX):]) else None
@@ -91,15 +103,13 @@ class BodyStore:
             if token:
                 arguments.extend(['--continuation-token', token])
             page = self.json('list-objects-v2', arguments)
-            contents = page.get('Contents', [])
-            if contents is None:
-                contents = []
-            if not isinstance(contents, list):
-                raise MEDIA.MediaStorageError('invalid-body-object-list')
+            contents = response_rows(page.get('Contents'))
             for row in contents:
                 key = row.get('Key') if isinstance(row, dict) else None
                 size = row.get('Size') if isinstance(row, dict) else None
-                if not isinstance(key, str) or key in seen_keys or not isinstance(size, int) or size < 0:
+                if isinstance(size, str) and re.fullmatch(r'[0-9]+', size):
+                    size = int(size)
+                if not isinstance(key, str) or key in seen_keys or not isinstance(size, int) or isinstance(size, bool) or size < 0:
                     raise MEDIA.MediaStorageError('invalid-body-object-list')
                 seen_keys.add(key)
                 if not body_digest(self.bucket, key):
@@ -153,9 +163,7 @@ class BodyStore:
                 json.dump({'Quiet': 'false', 'Object': [{'Key': key} for key in requested]}, handle)
                 handle.flush()
                 result = self.json('delete-multiple-objects', ['--delete', 'file://' + handle.name])
-            deleted = result.get('Deleted', [])
-            if not isinstance(deleted, list):
-                raise MEDIA.MediaStorageError('invalid-body-delete-result')
+            deleted = response_rows(result.get('Deleted'))
             keys = [row.get('Key') for row in deleted if isinstance(row, dict)]
             if len(keys) != len(deleted) or len(set(keys)) != len(keys) or any(key not in requested for key in keys):
                 raise MEDIA.MediaStorageError('invalid-body-delete-result')

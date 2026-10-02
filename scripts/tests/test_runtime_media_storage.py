@@ -360,6 +360,21 @@ class RuntimeMediaStorageTests(unittest.TestCase):
             store.delete_many(rows, recorded.append)
         self.assertEqual(recorded, rows[:1])
 
+    def test_real_ossutil_singleton_and_string_scalar_response_contract(self):
+        store = BodyStore(MEDIA.SOURCE_BUCKET)
+        key = PRIVATE_PREFIX + 'a' * 64
+        # Captured field shapes from installed ossutil 2.3.0, without identities.
+        one = {'Contents': {'Key': key, 'Size': '3', 'ETag': 'etag'},
+               'IsTruncated': 'true', 'NextContinuationToken': 'next'}
+        empty = {'IsTruncated': 'false', 'KeyCount': '0'}
+        with patch.object(store, 'json', side_effect=[{'+@xmlns': 'oss'}, one, empty]):
+            rows = store.list()
+        self.assertEqual(rows, [{'bucket': MEDIA.SOURCE_BUCKET, 'key': key, 'sizeBytes': 3, 'etag': 'etag'}])
+        confirmed = []
+        with patch.object(store, 'json', return_value={'Deleted': {'Key': key}}):
+            store.delete_many(rows, confirmed.append)
+        self.assertEqual(confirmed, rows)
+
 
 if __name__ == '__main__':
     unittest.main()
