@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "act-public-media-post-retirement-proof.v1",
+  "checks": {
+    "allPlannedSourceKeysAbsentInOss": true,
+    "allCanonicalTargetEtagsAndSizesPreserved": true,
+    "canonicalDirectoryActive": true,
+    "legacyCopiesDisabled": true,
+    "oldImageRejectedBeforeContainerChanges": true,
+    "newImageAndReadOnlyMediaHelperAccepted": true,
+    "runtimeViewsPreserved": true,
+    "otherReceiptsAndSelectorsPreserved": true,
+    "dataAndProductionConsumerIdsPreserved": true
+  },
+  "plannedSourceCopies": 7247,
+  "absentSourceCopies": 7247,
+  "canonicalObjectsPreserved": 7247,
+  "releasedBytes": 6320284091,
+  "directorySha256": "83bbdb008dd4985e9bbd85f558b332418f99ab410913d3db31e983adf930137a",
+  "planSha256": "48431fd8b7bbc606da0c8e4979f07e6edc519145f3707208d11159d1ed4d60f5",
+  "retirementReceiptSha256": "961fc3fc91f09de267fb4810b35207f3a31612d20895f0f1571e4db02d1288bc"
+}

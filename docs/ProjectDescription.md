@@ -137,7 +137,7 @@ Active 图谱的本地修复已加入固定 2D/3D 坐标与相机、选中邻域
 
 正式页面应读取 runtime，不直接回读 authoring。互动课程实现优先使用 `src/features/interactive/shared/manifest-runtime/`，只有确实无法标准化的控制曲线、可行域、黑箱数据预演或专用工作区才保留课程私有实现。
 
-公开教学媒体使用 `static.adapt-learn.online/teaching-media/sha256/` 的不可变分发副本。启用已验证分发索引后，课程音视频、图片、PDF、教材插图与已接受的信息图经 ESA 返回；课堂固定资源仍以原 Release 清单和内容摘要定位。信息图图片允许匿名读取，保留审核、Authority/Teaching、摘要与资源引用校验；图谱和节点详情继续使用原权限规则。操作与恢复见 [公开教学媒体 ESA 分发](./operations/public-teaching-media-esa.md)。
+公开教学媒体以内容摘要保存在私有 `act-course-models/teaching-media/sha256/`，通过 `static.adapt-learn.online/teaching-media/sha256/` 分发。独立规范目录服务课程音视频、图片、PDF、教材插图与已接受的信息图；课堂固定资源仍以原 Release 清单和内容摘要定位。信息图图片允许匿名读取，保留审核、Authority/Teaching、摘要与资源引用校验；图谱和节点详情继续使用原权限规则。操作与恢复见 [公开教学媒体 ESA 分发](./operations/public-teaching-media-esa.md)。
 
 互动课程正在从“课程私有组件变体”迁移到“标准模块框架”。新课应使用注册过的模块和 manifest 契约；未注册模块、未声明题型或无法治理的提交结构应被测试闸门拦截。
 
@@ -307,7 +307,7 @@ rtk npm run runtime:activate -- --store-dir /home/projects/act/data/runtime/cas-
 
 回滚交换 `current`/`previous`：`rtk npm run runtime:rollback -- --store-dir <store> --state-dir <state>`。全量校验与回收只走显式 `runtime:doctor` / `runtime:gc`。
 
-教学媒体采用独立的摘要位置目录，公开合格的新正文直接写入现有 `act-course-models/teaching-media/sha256/`，未改媒体跨Runtime复用。物化视图、OSS签名、课堂与开发者网关解析同一规范位置；停用ESA不改变正文归属。正文回收使用显式 `runtime:gc --reclaim-blobs`，保护两指针、课堂、人工pin、开发者与有限发布/签名租约，并与发布及课堂引用写入互斥。一次性副本迁移、恢复和旧镜像门禁见 [教学媒体存储与回收](./operations/runtime-media-storage.md)；生产启用状态以实际迁移回执为准。
+教学媒体采用独立的摘要位置目录，公开合格的新正文直接写入现有 `act-course-models/teaching-media/sha256/`，未改媒体跨Runtime复用。物化视图、OSS签名、课堂与开发者网关解析同一规范位置；停用ESA不改变正文归属。正文回收使用显式 `runtime:gc --reclaim-blobs`，保护两指针、课堂、人工pin、开发者与有限发布/签名租约，并与发布及课堂引用写入互斥。v0.7.35已在生产完成规范位置切换及7,247份原桶副本退役，释放6,320,284,091字节；新旧媒体入口、删除后读取、恢复路径及旧镜像门禁已有实际证据。一次性副本迁移、恢复和旧镜像门禁见 [教学媒体存储与回收](./operations/runtime-media-storage.md)及其交付回执。
 
 生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`/api/readyz` 在 blob-view 模式下投影最小 active runtime 身份（Release ID 与 digest），供开发工作站发现，不返回对象路径或凭据。应用镜像构建（`scripts/build.sh`）只生成明确未绑定 runtime 的 app-only provenance，应用发布不校验也不绑定本地外置教材资源。`legacy-rsync`、`deploy:runtime` 与 `deploy:all` 已退役；更新 runtime 只能使用 `runtime:publish` 与 `runtime:activate`。合作者在 Linux/WSL2/Lima 中使用 `npm run startup:oss-runtime`，经 ECS 激活网关按需读取签发时的 host-active Release；同一机器上的多个 worktree 共享一份网关 Blob 适配器与磁盘缓存，Release pin 与租约仍按 checkout 独立。凭据是仓库外共享网关令牌，不复用 Publisher、OSS AccessKey 或 SSH。隔离的 `static.adapt-learn.online` ESA PoC 由 `npm run esa-delivery:qualify` 资格合同约束：只用 `act-course-delivery`、禁止 Authority Bucket origin，没有 owner 接受服务角色前不得改 DNS。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)、[开发 OSS 接入说明](./operations/developer-oss-runtime-access.md)、[共享缓存](./operations/developer-oss-shared-cache.md) 与 [static ESA Delivery](./operations/static-esa-delivery.md)。
 

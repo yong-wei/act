@@ -85,4 +85,8 @@ rtk proxy python3 scripts/runtime-release/migrate-public-media.py prepare \
 
 ## 本轮验证与生产状态
 
-本轮实现与回归证据见 [OpenSpec验证记录](../../openspec/changes/decouple-public-media-storage-and-gc/verification.md)。v0.7.34前置发布已完成。新规范目录、权限、挂载与原副本退役须以随后实际生产回执为准。
+本轮实现与回归证据见 [OpenSpec验证记录](../../openspec/changes/decouple-public-media-storage-and-gc/verification.md)。v0.7.34前置发布及v0.7.35规范存储应用部署均已完成。
+
+2026-10-02已完成7,247份原桶副本退役，释放6,320,284,091字节。全部目标/原副本及两份受保护视图通过完整SHA校验；OSS清单确认原键全部缺失、目标ETag与大小保持。删除前后真实应用、worker、网关、ESA、停用ESA后的签名和文件读取均通过。当前Runtime全部131,454个文件大小审计通过；Runtime、图谱选择和活动回执保持。
+
+当前`legacyCopiesAvailable=false`。旧镜像部署会在容器替换前被拒绝，确需回滚时先按上述流程恢复原副本。一份非空原对象已实际删除并恢复，SHA和ETag一致；未执行整套旧应用部署回滚。精确计划、逐项回执和恢复证明见 [生产迁移交付回执](../../artifacts/public-teaching-media/canonical-storage-2026-10-02/receipt.json)，应用镜像与发布证据见 [v0.7.35回执](../../artifacts/app-releases/v0.7.35/receipt.json)。
