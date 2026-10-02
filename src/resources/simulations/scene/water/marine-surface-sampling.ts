@@ -50,7 +50,7 @@ export function createMarineSurfaceSampling() {
         if (!active || generation !== epoch) return;
         result.forEach((sample, index) => {
           const key = batch[index][0];
-          samples.delete(key); samples.set(key, { ...sample, time });
+          samples.delete(key); samples.set(key, { ...sample, time: sample.time ?? time });
         });
         while (samples.size > 512) samples.delete(samples.keys().next().value!);
       } finally { busy = false; }

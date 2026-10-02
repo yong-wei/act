@@ -516,10 +516,10 @@ describe('source contracts (#2115)', () => {
     }
   });
 
-  it('production washes share one bounded GPU foam field', () => {
+  it('production washes use bounded shared natural and local GPU fields', () => {
     const history = readSource('scene/water/comparison-surface-history.ts');
     expect(history).toContain('SURFACE_FOAM_RESOLUTION = 512');
-    expect(history).toContain('options.foamEmitters ? 8 : 0');
+    expect(history).toContain('Array.from({ length: 8 }');
     const drilling = readSource('simulations/drilling-simulation.tsx');
     expect(drilling).toContain('foamEmittersSampler');
     expect(drilling).toContain('thruster.failed');

@@ -9,13 +9,15 @@
  * 单条绑定解析失败 fail closed（告警并跳过），不影响模型与其余绑定。
  */
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 
 import { pickRandomSubset } from '../lib/heading-attainment';
 import { cloneSkinnedScene } from '../model-packages/clone-skinned-scene';
+import { createMarinePropulsors } from '../model-packages/marine-propulsors';
+import { captureSemanticAnimationState, restoreSemanticAnimationState } from '../model-packages/semantic-animation-state';
 import type {
   LiveRotationBinding,
   LiveSpinBinding,
@@ -43,6 +45,29 @@ export interface BindingTelemetrySource {
   }>;
   /** 绞吸挖泥船绞刀转速；缺省不驱动绞刀节点。 */
   readonly cutterRpm?: number;
+}
+
+function createDemoPlayback() {
+  return { elapsed: new Map<string, number>(), snapshot: null as ReturnType<typeof captureSemanticAnimationState> | null,
+    holdUntil: 0 };
+}
+function createSemanticSession(resetToken = 0) {
+  return {
+    resetToken,
+    elapsedRef: { current: new Map<string, number>() },
+    animationStateRef: { current: null as ReturnType<typeof captureSemanticAnimationState> | null },
+    spinStateRef: { current: new Map<string, number>() },
+    patrolStartedRef: { current: false }, lastAttainedRef: { current: 0 },
+    demoRequest: null as { clip: string; key: number } | null,
+    demoPlayback: createDemoPlayback(),
+  };
+}
+const SemanticSession = createContext<ReturnType<typeof createSemanticSession> | null>(null);
+
+/** 状态归模型包所有；下载错误边界或LOD重建不能重置动画、实时桨相位和演示进度。 */
+export function SemanticBindingsStateProvider({ resetToken, children }: { resetToken: number; children: ReactNode }) {
+  const session = useMemo(() => createSemanticSession(resetToken), [resetToken]);
+  return <SemanticSession.Provider value={session}>{children}</SemanticSession.Provider>;
 }
 
 /** 有效航速：仿真不推进（暂停/未就绪/播完）时归零，速度类视觉绑定随之静止。 */
@@ -92,6 +117,22 @@ function readRpm(sim: BindingTelemetrySource, binding: LiveSpinBinding): number 
   return null;
 }
 
+/** 静态代理与正式LOD都能读取同版本推进器；不要求代理提供精细动画。 */
+export function MarinePropulsorsRig({ model, animations, descriptor, simRef }: {
+  model: THREE.Object3D;
+  animations: THREE.AnimationClip[];
+  descriptor: VersionedModelPackageDescriptor;
+  simRef: React.MutableRefObject<BindingTelemetrySource>;
+}) {
+  const scene = useThree(state => state.scene);
+  useEffect(() => {
+    const propulsors = createMarinePropulsors(model, animations, descriptor, () => simRef.current);
+    scene.userData.marinePropulsors = propulsors;
+    return () => { if (scene.userData.marinePropulsors === propulsors) delete scene.userData.marinePropulsors; };
+  }, [model, animations, descriptor, simRef, scene]);
+  return null;
+}
+
 export function SemanticBindingsRig({
   model,
   animations,
@@ -106,12 +147,19 @@ export function SemanticBindingsRig({
   modelScale: number;
 }) {
   const mixer = useMemo(() => new THREE.AnimationMixer(model), [model]);
+  const shared = useContext(SemanticSession);
+  const session = useMemo(() => shared ?? createSemanticSession(), [shared]);
+  const { elapsedRef, animationStateRef, spinStateRef, patrolStartedRef, lastAttainedRef } = session;
   const speedCoupledRef = useRef<{ action: THREE.AnimationAction; rate: number }[]>([]);
-  const patrolStartedRef = useRef(false);
-  const lastAttainedRef = useRef(0);
-  const [demoRequest, setDemoRequest] = useState<{ clip: string; key: number } | null>(null);
+  const [demoRequest, setDemoRequestState] = useState(session.demoRequest);
+  const setDemoRequest = useCallback((request: typeof session.demoRequest) => {
+    if (request?.key !== session.demoRequest?.key) session.demoPlayback = createDemoPlayback();
+    session.demoRequest = request; setDemoRequestState(request);
+  }, [session]);
+  const finishDemo = useCallback(() => setDemoRequest(null), [setDemoRequest]);
 
   useEffect(() => {
+    const elapsed = elapsedRef.current, spinState = spinStateRef.current;
     speedCoupledRef.current = [];
     for (const binding of descriptor.semanticBindings ?? []) {
       if (binding.drive !== 'clip-loop') continue;
@@ -124,8 +172,26 @@ export function SemanticBindingsRig({
       action.play();
       if (binding.speedCoupled) speedCoupledRef.current.push({ action, rate: binding.rate ?? 1 });
     }
-    return () => { mixer.stopAllAction(); };
-  }, [mixer, animations, descriptor]);
+    if (animationStateRef.current) restoreSemanticAnimationState(mixer, animations, animationStateRef.current);
+    for (const binding of descriptor.semanticBindings ?? []) {
+      if (binding.drive !== 'live-spin') continue;
+      for (const name of binding.nodes) {
+        const angle = spinStateRef.current.get(name + ':' + binding.axis), node = model.getObjectByName(name);
+        if (node && angle !== undefined) node.rotation[binding.axis] = angle;
+      }
+    }
+    return () => {
+      animationStateRef.current = captureSemanticAnimationState(mixer, animations, elapsed);
+      for (const binding of descriptor.semanticBindings ?? []) {
+        if (binding.drive !== 'live-spin') continue;
+        for (const name of binding.nodes) {
+          const node = model.getObjectByName(name);
+          if (node) spinState.set(name + ':' + binding.axis, node.rotation[binding.axis]);
+        }
+      }
+      mixer.stopAllAction();
+    };
+  }, [mixer, model, animations, descriptor, elapsedRef, animationStateRef, spinStateRef]);
 
   const procedural = useMemo(() => (descriptor.semanticBindings ?? [])
     .filter((binding) => binding.drive === 'procedural')
@@ -206,6 +272,7 @@ export function SemanticBindingsRig({
           continue;
         }
         const action = mixer.clipAction(clip);
+        elapsedRef.current.set(clip.name, 0);
         action.setLoop(patrol.loop === 'pingpong' ? THREE.LoopPingPong : THREE.LoopRepeat, Infinity);
         action.play();
       }
@@ -228,6 +295,7 @@ export function SemanticBindingsRig({
             continue;
           }
           const action = mixer.clipAction(clip);
+          elapsedRef.current.set(clip.name, 0);
           action.reset();
           action.setLoop(THREE.LoopOnce, 1);
           action.clampWhenFinished = true;
@@ -236,6 +304,10 @@ export function SemanticBindingsRig({
       }
     }
 
+    for (const clip of animations) {
+      const action = mixer.existingAction(clip);
+      if (action?.isRunning()) elapsedRef.current.set(clip.name, (elapsedRef.current.get(clip.name) ?? 0) + delta * action.timeScale);
+    }
     mixer.update(delta);
   });
 
@@ -249,7 +321,8 @@ export function SemanticBindingsRig({
         clipName={demoRequest.clip}
         modelOffset={model.position}
         modelScale={modelScale}
-        onDone={() => setDemoRequest(null)}
+        onDone={finishDemo}
+        playback={session.demoPlayback}
       />
     </Suspense>
   );
@@ -262,23 +335,26 @@ function WeaponDemoAction({
   modelOffset,
   modelScale,
   onDone,
+  playback,
 }: {
   url: string;
   clipName: string;
   modelOffset: THREE.Vector3;
   modelScale: number;
   onDone: () => void;
+  playback: ReturnType<typeof createDemoPlayback>;
 }) {
   const { scene, animations } = useGLTF(url, true, true);
+  const { x: offsetX, y: offsetY, z: offsetZ } = modelOffset;
 
   const demoModel = useMemo(() => {
     const cloned = cloneSkinnedScene(scene);
-    cloned.position.copy(modelOffset);
+    cloned.position.set(offsetX, offsetY, offsetZ);
     cloned.traverse((child) => {
       if (child instanceof THREE.Mesh) child.frustumCulled = false;
     });
     return cloned;
-  }, [scene, modelOffset]);
+  }, [scene, offsetX, offsetY, offsetZ]);
 
   const mixer = useMemo(() => new THREE.AnimationMixer(demoModel), [demoModel]);
 
@@ -293,19 +369,28 @@ function WeaponDemoAction({
     action.setLoop(THREE.LoopOnce, 1);
     action.clampWhenFinished = true;
     action.play();
+    if (playback.snapshot) restoreSemanticAnimationState(mixer, animations, playback.snapshot);
     let holdTimer = 0;
     const onFinished = () => {
+      playback.holdUntil = performance.now() + 1200;
       holdTimer = window.setTimeout(onDone, 1200);
     };
+    if (playback.holdUntil > 0) holdTimer = window.setTimeout(onDone, Math.max(0, playback.holdUntil - performance.now()));
     mixer.addEventListener('finished', onFinished);
     return () => {
       mixer.removeEventListener('finished', onFinished);
       window.clearTimeout(holdTimer);
+      playback.snapshot = captureSemanticAnimationState(mixer, animations, playback.elapsed);
       mixer.stopAllAction();
     };
-  }, [mixer, animations, clipName, onDone]);
+  }, [mixer, animations, clipName, onDone, playback]);
 
-  useFrame((_, delta) => mixer.update(delta));
+  useFrame((_, delta) => {
+    const clip = animations.find(clip => clip.name === clipName);
+    const action = clip ? mixer.existingAction(clip) : null;
+    if (action?.isRunning()) playback.elapsed.set(clipName, (playback.elapsed.get(clipName) ?? 0) + delta * action.timeScale);
+    mixer.update(delta);
+  });
 
   return <primitive object={demoModel} scale={modelScale} />;
 }

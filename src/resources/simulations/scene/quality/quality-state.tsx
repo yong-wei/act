@@ -229,6 +229,11 @@ export function MarinePerformanceEvidenceProbe({
   contextInputRef.current = contextInput;
   useEffect(() => {
     window.__marineConsumerObservation = {
+      model: () => {
+        const hull = scene.getObjectByName('fleet-ship-root');
+        return hull ? { url: String(hull.userData.modelUrl ?? ''), scale: Number(hull.userData.modelScale ?? 1),
+          matrix: hull.userData.mountMatrix as readonly number[] | null } : null;
+      },
       collect: async () => {
         const input = contextInputRef.current?.();
         const context = renderer.getContext() as WebGLRenderingContext | null;
@@ -583,6 +588,7 @@ declare global {
       sampleCount(): number;
     };
     __marineConsumerObservation?: {
+      model: () => { url: string; scale: number; matrix: readonly number[] | null } | null;
       collect(): Promise<{
         consumerId: string;
         drawingBufferWidth: number;

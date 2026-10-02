@@ -8,8 +8,9 @@ import {
   DataTexture, FloatType, NearestFilter, RGBAFormat, RenderTarget,
   MeshBasicNodeMaterial, QuadMesh, type WebGPURenderer, type Node,
 } from 'three/webgpu';
-import { Fn, float, vec2, vec4, uv, texture, uniform } from 'three/tsl';
+import { Fn, vec2, vec4, uv, texture, uniform } from 'three/tsl';
 import { FFT_OCEAN_CHOP_LAMBDA, type ComplexGrid } from './fft-ocean';
+import { createOceanGpuTransform } from './ocean-gpu-transform';
 
 let resourceGeneration = 0;
 
@@ -19,7 +20,7 @@ export function createComparisonOceanPipeline(
   domain: number,
 ) {
   const n = spectrum.resolution;
-  const bits = Math.round(Math.log2(n));
+  const transform = createOceanGpuTransform(renderer, n);
   const rgba = new Float32Array(n * n * 4);
   for (let i = 0; i < n * n; i += 1) {
     rgba[i * 4] = spectrum.data[i * 2];
@@ -35,15 +36,12 @@ export function createComparisonOceanPipeline(
     depthBuffer: false, stencilBuffer: false,
   });
   const ping = makeTarget();
-  const pong = makeTarget();
   const evolved = makeTarget();
   const height = makeTarget();
   const dx = makeTarget();
   const dz = makeTarget();
   const input = texture(sourceTexture);
   const t = uniform(0);
-  const horizontal = uniform(1);
-  const span = uniform(2);
   const axisX = uniform(1);
   const sample = (at: Node) => texture(input, at, 0);
   const material = (output: Node) => {
@@ -58,31 +56,6 @@ export function createComparisonOceanPipeline(
     return vec4(bin.x.mul(angle.cos()).sub(bin.y.mul(angle.sin())),
       bin.x.mul(angle.sin()).add(bin.y.mul(angle.cos())), 0, 1);
   })());
-  const permute = material(Fn(() => {
-    const index = horizontal.greaterThan(0.5).select(uv().x, uv().y).mul(n).floor();
-    const reversed = float(0).toVar();
-    for (let b = 0; b < bits; b += 1) {
-      reversed.assign(reversed.mul(2).add(index.div(2 ** b).floor().mod(2)));
-    }
-    const p = reversed.add(0.5).div(n);
-    return sample(horizontal.greaterThan(0.5).select(vec2(p, uv().y), vec2(uv().x, p)));
-  })());
-  const butterfly = material(Fn(() => {
-    const index = horizontal.greaterThan(0.5).select(uv().x, uv().y).mul(n).floor();
-    const half = span.mul(0.5);
-    const even = index.mod(span).lessThan(half);
-    const partner = even.select(index.add(half), index.sub(half)).add(0.5).div(n);
-    const self = sample(uv()).xy;
-    const other = sample(horizontal.greaterThan(0.5).select(
-      vec2(partner, uv().y), vec2(uv().x, partner))).xy;
-    const oddInput = even.select<'vec2'>(other, self);
-    const evenInput = even.select<'vec2'>(self, other);
-    const angle = index.mod(half).mul(2 * Math.PI).div(span);
-    const twiddle = vec2(oddInput.x.mul(angle.cos()).sub(oddInput.y.mul(angle.sin())),
-      oddInput.x.mul(angle.sin()).add(oddInput.y.mul(angle.cos())));
-    return vec4(even.select(evenInput.add(twiddle), evenInput.sub(twiddle)), 0, 1);
-  })());
-  const output = material(vec4(sample(uv()).x.div(n * n), 0, 0, 1));
   const chop = material(Fn(() => {
     const index = uv().mul(n).floor();
     const k = vec2(index.x.lessThanEqual(n / 2).select(index.x, index.x.sub(n)),
@@ -104,22 +77,7 @@ export function createComparisonOceanPipeline(
     renderer.setRenderTarget(target);
     quad.render(renderer);
   };
-  const inverse = (from: RenderTarget, target: RenderTarget) => {
-    let source = from;
-    for (const axis of [1, 0]) {
-      horizontal.value = axis;
-      let sink = source === ping ? pong : ping;
-      pass(permute, sink, source);
-      source = sink;
-      for (let stage = 0; stage < bits; stage += 1) {
-        span.value = 2 ** (stage + 1);
-        sink = source === ping ? pong : ping;
-        pass(butterfly, sink, source);
-        source = sink;
-      }
-    }
-    pass(output, target, source);
-  };
+  const inverse = (from: RenderTarget, target: RenderTarget) => transform.run(from, target);
   return {
     heightTexture: height.texture, displacementXTexture: dx.texture, displacementZTexture: dz.texture,
     resolution: n,
@@ -165,8 +123,9 @@ export function createComparisonOceanPipeline(
       if (disposed) return;
       disposed = true;
       sourceTexture.dispose();
-      for (const target of [ping, pong, evolved, height, dx, dz]) target.dispose();
-      for (const mat of [evolve, permute, butterfly, output, chop]) mat.dispose();
+      transform.dispose();
+      for (const target of [ping, evolved, height, dx, dz]) target.dispose();
+      for (const mat of [evolve, chop]) mat.dispose();
     },
   };
 }

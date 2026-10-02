@@ -1,0 +1,238 @@
+{
+  "schema": "act-propulsion-anchors/1",
+  "assetId": "xue-long-2",
+  "version": "1.1.0",
+  "coordinates": {
+    "unit": "meter",
+    "modelAxes": {
+      "bow": "+X",
+      "up": "+Y",
+      "starboard": "+Z"
+    },
+    "sceneAxes": {
+      "bow": "+Z",
+      "up": "+Y",
+      "port": "+X"
+    },
+    "matrixLayout": "row-major",
+    "modelToSceneMatrix": [
+      0,
+      0,
+      -1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "modelDwlY": 0,
+    "sceneWaterLevel": -0.18
+  },
+  "frame": "GLTF_MODEL_Y_UP_METERS",
+  "pose": "EXPORTED_REST",
+  "policy": "Transform positions once with modelToSceneMatrix; transform shaft axes with its rotation. Azimuth rotates about model +Y at the declared parent pivot. No physical RPM/thrust/power inferred from demo clips.",
+  "propulsors": [
+    {
+      "id": "XL2_PROP_P",
+      "proxyNode": "PropulsorAnchor_1",
+      "lodNode": "XL2_PROP_P",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        -55,
+        -2.700000047683716,
+        -5
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        -52.650001525878906,
+        -5.850000381469727,
+        -5
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 4.25,
+      "immersionM": 5.850000381469727,
+      "side": "port",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "PUBLISHED_DIAMETER; LOCATION_DESIGN_APPROXIMATION",
+        "source": "assets/xue_long_2/parameters/ship.json",
+        "sourceSha256": "288ce18df7e5e6641693d9c49509bd7beb80363573fd5d9885f885a75fd2edff",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "XL2_PROP_S",
+      "proxyNode": "PropulsorAnchor_2",
+      "lodNode": "XL2_PROP_S",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        -55,
+        -2.700000047683716,
+        5
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        -52.650001525878906,
+        -5.850000381469727,
+        5
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 4.25,
+      "immersionM": 5.850000381469727,
+      "side": "starboard",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "PUBLISHED_DIAMETER; LOCATION_DESIGN_APPROXIMATION",
+        "source": "assets/xue_long_2/parameters/ship.json",
+        "sourceSha256": "288ce18df7e5e6641693d9c49509bd7beb80363573fd5d9885f885a75fd2edff",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    }
+  ],
+  "lodProofs": [
+    {
+      "id": "LOD0",
+      "file": "models/XueLong2-LOD0.glb",
+      "sha256": "a1e33b97c240c821c0f9f2e226e41cb1cf4391b8fd2e12ec3bb8ea4d416e4e80",
+      "anchors": [
+        {
+          "id": "XL2_PROP_P",
+          "positionModelM": [
+            -52.650001525878906,
+            -5.850000381469727,
+            -5
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "XL2_PROP_S",
+          "positionModelM": [
+            -52.650001525878906,
+            -5.850000381469727,
+            5
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD1",
+      "file": "models/XueLong2-LOD1.glb",
+      "sha256": "dc09a991112beaf33afdcb51e09fbefa4155f9577ec8a9d8b0b6ccc5e607e45d",
+      "anchors": [
+        {
+          "id": "XL2_PROP_P",
+          "positionModelM": [
+            -52.650001525878906,
+            -5.850000381469727,
+            -5
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "XL2_PROP_S",
+          "positionModelM": [
+            -52.650001525878906,
+            -5.850000381469727,
+            5
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD2",
+      "file": "models/XueLong2-LOD2.glb",
+      "sha256": "f9d90d22c36a867ad6a76cc469ebf0252acca349f675683d2ee02ec3dd6cef12",
+      "anchors": [
+        {
+          "id": "XL2_PROP_P",
+          "positionModelM": [
+            -52.650001525878906,
+            -5.850000381469727,
+            -5
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "XL2_PROP_S",
+          "positionModelM": [
+            -52.650001525878906,
+            -5.850000381469727,
+            5
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "ids": [
+        "XL2_PROP_P",
+        "XL2_PROP_S"
+      ],
+      "distanceM": 10,
+      "transverseSpacingM": 10,
+      "axisDot": 1
+    }
+  ]
+}

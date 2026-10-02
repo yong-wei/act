@@ -31,6 +31,13 @@ describe('shared asynchronous surface contact', () => {
     expect(cache.diagnostics().samples).toHaveLength(0);
     expect(cache.heightAt(0, 0)).toBe(-1);
   });
+  it('uses the captured GPU batch time rather than the earlier request time', async () => {
+    const cache = createMarineSurfaceSampling();
+    const probe = { identity: () => ({ time: 1 }), sampleSurface: async () =>
+      [{ x: 0, z: 0, height: 2, slopeX: 0, slopeZ: 0, time: 1.05 }] } as ComparisonOceanProbe;
+    cache.heightAt(0, 0); await cache.update(probe, 0, 0);
+    expect(cache.diagnostics().samples[0].time).toBe(1.05);
+  });
   it('keeps vessel contact requests when a long annotation trail fills the queue', async () => {
     const cache = createMarineSurfaceSampling();
     let sampled: readonly (readonly [number, number])[] = [];

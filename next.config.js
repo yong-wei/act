@@ -65,6 +65,12 @@ const nextConfig = {
     ],
   },
   output: 'standalone',
+  async headers() {
+    return [{
+      source: '/assets/model-releases/:packageId/:version(v\\d+\\.\\d+\\.\\d+)/:path*',
+      headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+    }];
+  },
   serverExternalPackages: ['@alicloud/credentials', 'ali-oss'],
   ...(buildFilesystemRoot ? { outputFileTracingRoot: buildFilesystemRoot } : {}),
   outputFileTracingIncludes: {

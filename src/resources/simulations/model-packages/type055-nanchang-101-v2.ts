@@ -1,12 +1,13 @@
+import { RELEASED_PROPULSION_ANCHORS } from './released-propulsion-anchors';
 /**
  * type055-nanchang-101 版本化模型包的 ACT 侧只读描述符。
  *
  * 身份由 `scripts/models/receive-fleet-model-release.mjs` 接收时逐文件核验，
- * 收据位于 `artifacts/model-releases/type055-nanchang-101-v2.2.1/receipt.json`。
+ * 收据位于 `artifacts/model-releases/type055-nanchang-101-v2.3.0/receipt.json`。
  * 本模块只登记当前激活版；旧版描述符与目录已退役。
  * ACT 不修补上游模型字节（缺陷返回 3DModels 发新版本）。
  *
- * v2.2.1：ACT_RUNTIME_ONLY，GLB 在 models/，贴图在 textures/；
+ * v2.3.0：ACT_RUNTIME_ONLY，GLB 在 models/，贴图在 textures/；
  * 声明矩阵一次挂载（含 Y=−7.05）。加载失败只回退 registry 单文件链。
  */
 
@@ -118,16 +119,18 @@ const HERO_055_TO_SCENE = [
   0, 0, 0, 1,
 ] as const;
 
-const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.2.1';
+const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.3.0';
 
 export const TYPE055_NANCHANG_101_V2: VersionedModelPackageDescriptor = {
   packageId: 'type055-nanchang-101',
   shipId: 'type_055_destroyer_101_nanchang',
-  modelVersion: '2.2.1',
-  releaseManifestSha256: '37502cc1814b6be408b124d9b72a20b7f66031cd4a364bfe6a74fb3dda8081d8',
+  modelVersion: '2.3.0',
+  releaseManifestSha256: 'b8abeb1b6dd6f14cd32a02630488a336638fc5ff97cbb66a9eb32bcac58583dc',
   sourceBlendSha256: 'eafce990f09757d4631305516bb80f8a5d95a920b1321c375c446dc117aaac83',
   baseUrl: BASE_URL,
   roles: {
+    'ship-proxy': artifact(BASE_URL, 'ship-proxy', 'models/type055-nanchang-101-ship-proxy.glb', '3b6e2458ee2b10cb895bf00692798edcf6874be0577066fa59ddaec4578d4b48', 45052),
+    'propulsion-anchors': artifact(BASE_URL, 'propulsion-anchors', 'interfaces/propulsion-anchors.json', '54b645da219f75cba3e93e65d092b2caaa51cc7335e0728e6a0ec20ec110f0e4', 5758),
     'ship-lod0': artifact(BASE_URL, 'ship-lod0', 'models/type055-nanchang-101-ship-lod0.glb', 'ca07f94f0cbc015b42fe492bd050b39b9a89887ce4f872af241ada109ece6bfd', 3370584),
     'ship-lod1': artifact(BASE_URL, 'ship-lod1', 'models/type055-nanchang-101-ship-lod1.glb', '83c01d5a97a09b3ea9e9305d2ecad39cc4374f3b11ecb289eaa8a7011c32dbcd', 1569240),
     'ship-lod2': artifact(BASE_URL, 'ship-lod2', 'models/type055-nanchang-101-ship-lod2.glb', '61586d12b971e63bc9fa4afbaca8f39a0d7ff33aeaeba685cda3c98fc0bbc556', 988780),
@@ -136,6 +139,7 @@ export const TYPE055_NANCHANG_101_V2: VersionedModelPackageDescriptor = {
     demo: artifact(BASE_URL, 'demo', 'models/type055-nanchang-101-weapon-demo.glb', 'bcbbf38947fbb2e90942b162cc1c6fcd3e82f506de1c6616c66ee498bc3e767b', 185120),
     'interactive-systems': artifact(BASE_URL, 'interactive-systems', 'models/type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
   },
+  propulsionAnchors: RELEASED_PROPULSION_ANCHORS['type055-nanchang-101'],
   coordinateBasis: { forward: '+X', up: '+Y' },
   basisYawRad: 0,
   modelToSceneMatrix: HERO_055_TO_SCENE,

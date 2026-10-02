@@ -11,6 +11,7 @@ import Color4 from 'three/src/renderers/common/Color4.js';
 import { Fn, float, vec4, uv, smoothstep, min, mix } from 'three/tsl';
 import { createComparisonOceanPipeline, type ComparisonOceanPipeline } from '@/resources/simulations/scene/water/comparison-ocean-pipeline';
 import { createComparisonWaterMaterial } from '@/resources/simulations/scene/water/comparison-water-material';
+import { createMarineSurfaceGeometry } from './marine-surface-geometry';
 import { fftOceanStaticSpectrum, fftOceanFieldAt, fftOceanSnapshot, significantWaveHeight, fftOceanRenderedHeightAt, type ComplexGrid } from '@/resources/simulations/scene/water/fft-ocean';
 import { gerstnerAmplitudeScale } from '@/resources/simulations/scene/water/gerstner-water';
 import { MarinePlanarReflection } from '@/resources/simulations/scene/environment/planar-reflection';
@@ -32,7 +33,7 @@ export interface SharedOceanConfig {
   sunDirection?: Vector3;
   sunIllumination?: number;
   production?: boolean;
-  foamEmitters?: () => readonly MarineFoamEmitter[];
+  foamEmitters?: (pose: SurfaceHistoryPose) => readonly MarineFoamEmitter[];
   hullExclusions?: readonly HullExclusionBox[];
   sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
   lengthMeters?: number;
@@ -53,7 +54,7 @@ export interface ComparisonOceanProbe {
   reference(): { hs: number; resolution: number };
   measurePointQueryMs(samples?: number): number;
   validateCurrentField(): Promise<{ maxAbsError: number; resolution: number; samples: number }>;
-  sampleSurface(points: readonly (readonly [number, number])[]): Promise<{ x: number; z: number; height: number; slopeX: number; slopeZ: number }[]>;
+  sampleSurface(points: readonly (readonly [number, number])[]): Promise<{ x: number; z: number; height: number; slopeX: number; slopeZ: number; time?: number }[]>;
 }
 
 declare global {
@@ -175,7 +176,16 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
     if (!pipeline || !bundle) return;
     const next = createComparisonSurfaceHistory(renderer, pipeline, bundle, config.spectrum.domainMeters,
       config.poseAt, seconds => { if (backend === 'fft') pipeline.run(seconds); },
-      { followFoam: config.production, lengthMeters: config.lengthMeters, beamMeters: config.beamMeters, foamEmitters: config.foamEmitters });
+      { followFoam: config.production, lengthMeters: config.lengthMeters, beamMeters: config.beamMeters,
+        foamEmitters: pose => {
+          const anchors: readonly MarineFoamEmitter[] = scene.userData.marinePropulsors?.sample(pose) ?? [];
+          if (!config.foamEmitters) return anchors;
+          // DP 等已有推力/故障状态优先；位置、桨径与浸深仍从当前可见模型读取。
+          return config.foamEmitters(pose).map(source => {
+            const anchor = source.id ? anchors.find(anchor => anchor.id === source.id) : undefined;
+            return anchor ? { ...anchor, headingRad: source.headingRad, activity: source.activity } : source;
+          });
+        } });
     setHistory(next);
     scene.userData.marineFoamField = next;
     return () => {
@@ -188,7 +198,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
     // 周期 FFT 的 N 个样本对应 N 个间隔；闭合端点复用第 0 个样本。
     const intervals = backend === 'fft' ? resolution : 256;
     const domain = config.spectrum.domainMeters;
-    return new PlaneGeometry(domain, domain, intervals, intervals).rotateX(-Math.PI / 2);
+    return createMarineSurfaceGeometry(domain, intervals);
   }, [backend, resolution, config.spectrum.domainMeters]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   useEffect(() => () => bundle?.dispose(), [bundle]);
@@ -201,17 +211,17 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
   const metrics = useRef({ frames: 0, time: 0, validating: false });
   const advance = (seconds: number) => {
     if (!bundle || metrics.current.validating) return;
-    if (config.production && config.positionSampler) {
-      const position = config.positionSampler();
-      const cell = config.spectrum.domainMeters / resolution;
-      bundle.origin.value.set(Math.round(position.x / cell) * cell, Math.round(position.z / cell) * cell);
-      meshRef.current?.position.set(bundle.origin.value.x, -1, bundle.origin.value.y);
-      farRef.current?.position.set(bundle.origin.value.x, -1, bundle.origin.value.y);
-    }
     bundle.opticalOctaves.value = tier === 'high' ? 8 : tier === 'medium' ? 3 : 0;
     const pose = config.poseAt(seconds);
+    if (!history || history.stats().steps === 0) {
+      bundle.wakeOrigin.value.set(Math.round(pose.x / 48) * 48, Math.round(pose.z / 48) * 48);
+    }
     bundle.shipPose.value.set(pose.x, pose.z, pose.headingRad);
     history?.advance(seconds);
+    // 整个局部波域必须落在细网格内；网格与波域同原点，背景相位仍锚定世界。
+    bundle.origin.value.copy(bundle.wakeOrigin.value);
+    meshRef.current?.position.set(bundle.origin.value.x, -1, bundle.origin.value.y);
+    farRef.current?.position.set(bundle.origin.value.x, -1, bundle.origin.value.y);
     const renderedTime = history?.stats().time ?? seconds;
     if (backend === 'fft') pipeline?.run(renderedTime);
     bundle.time.value = renderedTime;
@@ -261,7 +271,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
     sampleCamera.coordinateSystem = renderer.coordinateSystem;
     sampleCamera.updateProjectionMatrix();
     sampleCamera.up.set(0, 0, -1);
-    const sampleTarget = new RenderTarget(1, 1, { type: FloatType });
+    const sampleTarget = new RenderTarget(8, 1, { type: FloatType });
     const probe: ComparisonOceanProbe = {
       history: () => history?.stats() ?? null,
       readHistory: async () => {
@@ -274,32 +284,42 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
       injectFoam: (x, z, radius) => history?.injectFoam(x, z, radius),
       sampleSurface: async points => {
         if (!sampleMaterial) throw new Error('Ocean is not ready for sampling');
-        await lock();
+        // 普通 useFrame 消费者先完成本帧推进；小批命令提交后不占用 GPU 等待锁。
+        await Promise.resolve();
         const camera = sampleCamera;
         const target = sampleTarget;
-        const result = [];
-        try {
-          for (const [x, z] of points) {
+        const result: Awaited<ReturnType<ComparisonOceanProbe['sampleSurface']>> = [];
+        for (let start = 0; start < points.length; start += 8) {
+          await lock();
+          const batch = points.slice(start, start + 8), outside: boolean[] = [];
+          const time = metrics.current.time, previous = renderer.getRenderTarget(), autoClear = renderer.autoClear;
+          let copy: ReturnType<WebGPURenderer['readRenderTargetPixelsAsync']>;
+          try {
             if (!active) throw new Error('Surface sampler disposed');
-            if (config.production && bundle && Math.max(Math.abs(x - bundle.origin.value.x), Math.abs(z - bundle.origin.value.y)) > config.spectrum.domainMeters / 2) {
-              result.push({ x, z, height: -1, slopeX: 0, slopeZ: 0 });
-              continue;
-            }
+            target.viewport.set(0, 0, 8, 1); target.scissorTest = false;
+            renderer.setRenderTarget(target); renderer.clear(); renderer.autoClear = false;
             for (const object of sampleScene.children) object.position.set(bundle?.origin.value.x ?? 0, -1, bundle?.origin.value.y ?? 0);
-            camera.position.set(x, 100, z);
-            camera.lookAt(x, -1, z);
-            const previous = renderer.getRenderTarget();
-            try {
-              renderer.setRenderTarget(target);
-              renderer.render(sampleScene, camera);
-            } finally { renderer.setRenderTarget(previous); }
-            const pixel = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 1, 1);
-            result.push({ x, z, height: pixel[0], slopeX: pixel[1], slopeZ: pixel[2] });
+            batch.forEach(([x, z], index) => {
+              const isOutside = Boolean(config.production && bundle && Math.max(Math.abs(x - bundle.origin.value.x), Math.abs(z - bundle.origin.value.y)) > config.spectrum.domainMeters / 2);
+              outside.push(isOutside);
+              if (isOutside) return;
+              camera.position.set(x, 100, z); camera.lookAt(x, -1, z);
+              target.viewport.set(index, 0, 1, 1); target.scissor.set(index, 0, 1, 1); target.scissorTest = true;
+              renderer.setRenderTarget(target); renderer.render(sampleScene, camera);
+            });
+            // 两种 backend 均在首个 await 前把纹理拷贝提交到独立读回缓冲。
+            copy = renderer.readRenderTargetPixelsAsync(target, 0, 0, batch.length, 1);
+          } finally {
+            target.viewport.set(0, 0, 8, 1); target.scissorTest = false;
+            renderer.autoClear = autoClear; renderer.setRenderTarget(previous); unlock();
           }
-          return result;
-        } finally {
-          unlock();
+          const pixels = await copy;
+          if (!active) throw new Error('Surface sampler disposed');
+          batch.forEach(([x, z], index) => result.push(outside[index]
+            ? { x, z, height: -1, slopeX: 0, slopeZ: 0, time }
+            : { x, z, height: pixels[index * 4], slopeX: pixels[index * 4 + 1], slopeZ: pixels[index * 4 + 2], time }));
         }
+        return result;
       },
       reference: () => ({
         hs: significantWaveHeight(fftOceanSnapshot(spectrum, config.spectrum.domainMeters, 0).heights),

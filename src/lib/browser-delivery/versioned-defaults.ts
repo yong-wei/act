@@ -15,38 +15,38 @@ export interface VersionedDefaultActivation {
 export const SIMULATION_VERSIONED_DEFAULTS: Partial<Record<SimulationModelId, VersionedDefaultActivation>> = {
   destroyer: {
     packageId: 'type055-nanchang-101',
-    modelVersion: '2.2.1',
-    baseUrl: '/assets/model-releases/type055-nanchang-101/v2.2.1',
+    modelVersion: '2.3.0',
+    baseUrl: '/assets/model-releases/type055-nanchang-101/v2.3.0',
   },
   'lng-carrier': {
     packageId: 'lng-changheng',
-    modelVersion: '1.1.1',
-    baseUrl: '/assets/model-releases/lng-changheng/v1.1.1',
+    modelVersion: '1.2.0',
+    baseUrl: '/assets/model-releases/lng-changheng/v1.2.0',
   },
   container: {
     packageId: 'msc-tessa',
-    modelVersion: '1.1.1',
-    baseUrl: '/assets/model-releases/msc-tessa/v1.1.1',
+    modelVersion: '1.2.0',
+    baseUrl: '/assets/model-releases/msc-tessa/v1.2.0',
   },
   icebreaker: {
     packageId: 'xue-long-2',
-    modelVersion: '1.0.1',
-    baseUrl: '/assets/model-releases/xue-long-2/v1.0.1',
+    modelVersion: '1.1.0',
+    baseUrl: '/assets/model-releases/xue-long-2/v1.1.0',
   },
   'luxury-liner': {
     packageId: 'adora-magic-city',
-    modelVersion: '1.0.1',
-    baseUrl: '/assets/model-releases/adora-magic-city/v1.0.1',
+    modelVersion: '1.1.0',
+    baseUrl: '/assets/model-releases/adora-magic-city/v1.1.0',
   },
   'drilling-rig': {
     packageId: 'hysy-981',
-    modelVersion: '1.1.1',
-    baseUrl: '/assets/model-releases/hysy-981/v1.1.1',
+    modelVersion: '1.2.0',
+    baseUrl: '/assets/model-releases/hysy-981/v1.2.0',
   },
   dredger: {
     packageId: 'dredger-tianjing',
-    modelVersion: '1.1.1',
-    baseUrl: '/assets/model-releases/dredger-tianjing/v1.1.1',
+    modelVersion: '1.2.0',
+    baseUrl: '/assets/model-releases/dredger-tianjing/v1.2.0',
   },
 };
 

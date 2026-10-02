@@ -18,10 +18,10 @@ import {
 import { FallbackGltfModel } from './fallback-gltf-model';
 import { HeroModelBasis } from './hero-model-basis';
 import { VersionedShipModel } from './versioned-ship-model';
-import { SemanticBindingsRig, type BindingTelemetrySource } from './semantic-bindings-rig';
+import { MarinePropulsorsRig, SemanticBindingsRig, type BindingTelemetrySource } from './semantic-bindings-rig';
 import { cloneSkinnedScene } from '../model-packages/clone-skinned-scene';
 import { matchActivatedFleetPackage } from '../model-packages/fleet-packages';
-import { isDescriptorArtifactUrl, type VersionedModelPackageDescriptor } from '../model-packages/types';
+import { isDescriptorArtifactUrl, isShipProxyUrl, type VersionedModelPackageDescriptor } from '../model-packages/types';
 import { useSceneQuality } from '../scene/quality';
 
 export function VersionedFleetShip({
@@ -92,6 +92,7 @@ export function VersionedFleetShip({
   return (
     <VersionedShipModel
       descriptor={activated}
+      resetToken={resetToken}
       tier={tier}
       legacyCandidates={MODEL.candidates}
       renderScene={(url) => {
@@ -215,11 +216,12 @@ function FleetModelScene({
   });
 
   return (
-    <group ref={groupRef} name="fleet-ship-root">
+    <group ref={groupRef} name="fleet-ship-root" userData={{ modelUrl: url, modelScale: scale, mountMatrix: modelToSceneMatrix ?? null }}>
       <group rotation-y={basisYawRad}>
         <HeroModelBasis matrix={modelToSceneMatrix}>
           <primitive object={model} scale={scale} />
-          {descriptor ? (
+          {descriptor ? <MarinePropulsorsRig model={model} animations={animations} descriptor={descriptor} simRef={simRef} /> : null}
+          {descriptor && !isShipProxyUrl(descriptor, url) ? (
             <SemanticBindingsRig
               key={resetToken}
               model={model}

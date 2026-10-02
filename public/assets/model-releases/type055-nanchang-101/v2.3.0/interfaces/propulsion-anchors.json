@@ -1,0 +1,218 @@
+{
+  "schema": "act-propulsion-anchors/1",
+  "assetId": "type055",
+  "version": "2.3.0",
+  "coordinates": {
+    "unit": "meter",
+    "modelAxes": {
+      "bow": "+X",
+      "up": "+Y",
+      "starboard": "+Z"
+    },
+    "sceneAxes": {
+      "bow": "+Z",
+      "up": "+Y",
+      "port": "+X"
+    },
+    "matrixLayout": "row-major",
+    "modelToSceneMatrix": [
+      0,
+      0,
+      -1,
+      0,
+      0,
+      1,
+      0,
+      -7.05,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "modelDwlY": 7.05,
+    "sceneWaterLevel": 0
+  },
+  "frame": "GLTF_MODEL_Y_UP_METERS",
+  "pose": "EXPORTED_REST",
+  "policy": "Transform positions once with modelToSceneMatrix; transform shaft axes with its rotation. Azimuth rotates about model +Y at the declared parent pivot. No physical RPM/thrust/power inferred from demo clips.",
+  "propulsors": [
+    {
+      "id": "PROP_PORT",
+      "proxyNode": "PropulsorAnchor_1",
+      "lodNode": "PROP_PORT",
+      "kind": "FIXED_SCREW",
+      "positionModelM": [
+        -82.9700927734375,
+        2.7126998901367188,
+        -4.800000190734863
+      ],
+      "shaftAxisModel": [
+        -0.9993413026689003,
+        -0.036289954257381185,
+        -1.5094608453782666e-7
+      ],
+      "diameterM": 4.6,
+      "immersionM": 4.337300109863281,
+      "side": "port",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "DESIGN_APPROXIMATION",
+        "source": "assets/type_055_destroyer/type055-nanchang-101-contract-pack-v2.0.0/parameters/g04-propulsion-final-batch.json",
+        "sourceSha256": "a2b740b3f0e4b49beabb6f61cc93d162dc28e7b219c67dee97428cdac2713df4",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "PROP_STARBOARD",
+      "proxyNode": "PropulsorAnchor_2",
+      "lodNode": "PROP_STARBOARD",
+      "kind": "FIXED_SCREW",
+      "positionModelM": [
+        -82.9700927734375,
+        2.7126998901367188,
+        4.800000190734863
+      ],
+      "shaftAxisModel": [
+        -0.9993413026689003,
+        -0.036289954257381185,
+        -1.5094608453782666e-7
+      ],
+      "diameterM": 4.6,
+      "immersionM": 4.337300109863281,
+      "side": "starboard",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "DESIGN_APPROXIMATION",
+        "source": "assets/type_055_destroyer/type055-nanchang-101-contract-pack-v2.0.0/parameters/g04-propulsion-final-batch.json",
+        "sourceSha256": "a2b740b3f0e4b49beabb6f61cc93d162dc28e7b219c67dee97428cdac2713df4",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    }
+  ],
+  "lodProofs": [
+    {
+      "id": "LOD0",
+      "file": "models/type055-nanchang-101-ship-lod0.glb",
+      "sha256": "ca07f94f0cbc015b42fe492bd050b39b9a89887ce4f872af241ada109ece6bfd",
+      "anchors": [
+        {
+          "id": "PROP_PORT",
+          "positionModelM": [
+            -82.9700927734375,
+            2.7126998901367188,
+            -4.800000190734863
+          ],
+          "shaftAxisModel": [
+            -0.9993413026689003,
+            -0.036289954257381185,
+            -1.5094608453782666e-7
+          ]
+        },
+        {
+          "id": "PROP_STARBOARD",
+          "positionModelM": [
+            -82.9700927734375,
+            2.7126998901367188,
+            4.800000190734863
+          ],
+          "shaftAxisModel": [
+            -0.9993413026689003,
+            -0.036289954257381185,
+            -1.5094608453782666e-7
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD1",
+      "file": "models/type055-nanchang-101-ship-lod1.glb",
+      "sha256": "83c01d5a97a09b3ea9e9305d2ecad39cc4374f3b11ecb289eaa8a7011c32dbcd",
+      "anchors": [
+        {
+          "id": "PROP_PORT",
+          "positionModelM": [
+            -82.9700927734375,
+            2.7126998901367188,
+            -4.800000190734863
+          ],
+          "shaftAxisModel": [
+            -0.9993413026689003,
+            -0.036289954257381185,
+            -1.5094608453782666e-7
+          ]
+        },
+        {
+          "id": "PROP_STARBOARD",
+          "positionModelM": [
+            -82.9700927734375,
+            2.7126998901367188,
+            4.800000190734863
+          ],
+          "shaftAxisModel": [
+            -0.9993413026689003,
+            -0.036289954257381185,
+            -1.5094608453782666e-7
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD2",
+      "file": "models/type055-nanchang-101-ship-lod2.glb",
+      "sha256": "61586d12b971e63bc9fa4afbaca8f39a0d7ff33aeaeba685cda3c98fc0bbc556",
+      "anchors": [
+        {
+          "id": "PROP_PORT",
+          "positionModelM": [
+            -82.9700927734375,
+            2.7126998901367188,
+            -4.800000190734863
+          ],
+          "shaftAxisModel": [
+            -0.9993413026689003,
+            -0.036289954257381185,
+            -1.5094608453782666e-7
+          ]
+        },
+        {
+          "id": "PROP_STARBOARD",
+          "positionModelM": [
+            -82.9700927734375,
+            2.7126998901367188,
+            4.800000190734863
+          ],
+          "shaftAxisModel": [
+            -0.9993413026689003,
+            -0.036289954257381185,
+            -1.5094608453782666e-7
+          ]
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "ids": [
+        "PROP_PORT",
+        "PROP_STARBOARD"
+      ],
+      "distanceM": 9.600000381469727,
+      "transverseSpacingM": 9.600000381469727,
+      "axisDot": 1.0000000000000002
+    }
+  ]
+}

@@ -8,13 +8,13 @@ import { resolveVersionedDefault } from '@/lib/browser-delivery/client';
 import type { SimulationModelId } from '@/lib/browser-delivery/types';
 import { validateReceivedModelPackage, type ModelPackageFileIo } from '../model-packages/model-package-validation';
 import {
-  ADORA_MAGIC_CITY_V101,
-  DREDGER_TIANJING_V111,
+  ADORA_MAGIC_CITY_V110,
+  DREDGER_TIANJING_V120,
   FLEET_ACTIVE_PACKAGES,
-  HYSY_981_V111,
-  LNG_CHANGHENG_V111,
-  MSC_TESSA_V111,
-  XUE_LONG_2_V101,
+  HYSY_981_V120,
+  LNG_CHANGHENG_V120,
+  MSC_TESSA_V120,
+  XUE_LONG_2_V110,
   matchActivatedFleetPackage,
 } from '../model-packages/fleet-packages';
 import { TYPE055_NANCHANG_101_V2 } from '../model-packages/type055-nanchang-101-v2';
@@ -40,39 +40,39 @@ const FLEET: Array<{
 }> = [
   {
     logicalId: 'lng-carrier',
-    descriptor: LNG_CHANGHENG_V111,
-    receiptRel: 'artifacts/model-releases/lng-changheng-v1.1.1/receipt.json',
-    packageRel: 'public/assets/model-releases/lng-changheng/v1.1.1',
+    descriptor: LNG_CHANGHENG_V120,
+    receiptRel: 'artifacts/model-releases/lng-changheng-v1.2.0/receipt.json',
+    packageRel: 'public/assets/model-releases/lng-changheng/v1.2.0',
   },
   {
     logicalId: 'container',
-    descriptor: MSC_TESSA_V111,
-    receiptRel: 'artifacts/model-releases/msc-tessa-v1.1.1/receipt.json',
-    packageRel: 'public/assets/model-releases/msc-tessa/v1.1.1',
+    descriptor: MSC_TESSA_V120,
+    receiptRel: 'artifacts/model-releases/msc-tessa-v1.2.0/receipt.json',
+    packageRel: 'public/assets/model-releases/msc-tessa/v1.2.0',
   },
   {
     logicalId: 'icebreaker',
-    descriptor: XUE_LONG_2_V101,
-    receiptRel: 'artifacts/model-releases/xue-long-2-v1.0.1/receipt.json',
-    packageRel: 'public/assets/model-releases/xue-long-2/v1.0.1',
+    descriptor: XUE_LONG_2_V110,
+    receiptRel: 'artifacts/model-releases/xue-long-2-v1.1.0/receipt.json',
+    packageRel: 'public/assets/model-releases/xue-long-2/v1.1.0',
   },
   {
     logicalId: 'luxury-liner',
-    descriptor: ADORA_MAGIC_CITY_V101,
-    receiptRel: 'artifacts/model-releases/adora-magic-city-v1.0.1/receipt.json',
-    packageRel: 'public/assets/model-releases/adora-magic-city/v1.0.1',
+    descriptor: ADORA_MAGIC_CITY_V110,
+    receiptRel: 'artifacts/model-releases/adora-magic-city-v1.1.0/receipt.json',
+    packageRel: 'public/assets/model-releases/adora-magic-city/v1.1.0',
   },
   {
     logicalId: 'drilling-rig',
-    descriptor: HYSY_981_V111,
-    receiptRel: 'artifacts/model-releases/hysy-981-v1.1.1/receipt.json',
-    packageRel: 'public/assets/model-releases/hysy-981/v1.1.1',
+    descriptor: HYSY_981_V120,
+    receiptRel: 'artifacts/model-releases/hysy-981-v1.2.0/receipt.json',
+    packageRel: 'public/assets/model-releases/hysy-981/v1.2.0',
   },
   {
     logicalId: 'dredger',
-    descriptor: DREDGER_TIANJING_V111,
-    receiptRel: 'artifacts/model-releases/dredger-tianjing-v1.1.1/receipt.json',
-    packageRel: 'public/assets/model-releases/dredger-tianjing/v1.1.1',
+    descriptor: DREDGER_TIANJING_V120,
+    receiptRel: 'artifacts/model-releases/dredger-tianjing-v1.2.0/receipt.json',
+    packageRel: 'public/assets/model-releases/dredger-tianjing/v1.2.0',
   },
 ];
 
@@ -93,7 +93,7 @@ function packageIo(packageDir: string): ModelPackageFileIo {
 }
 
 describe('fleet versioned model packages', () => {
-  it('activates all seven ships including Tianjing v1.1.1', () => {
+  it('activates all seven ships including Tianjing v1.2.0', () => {
     expect(matchActivatedFleetPackage('destroyer', resolveVersionedDefault('destroyer'))).toEqual(TYPE055_NANCHANG_101_V2);
     expect(FLEET_ACTIVE_PACKAGES.destroyer).toEqual(TYPE055_NANCHANG_101_V2);
     for (const entry of FLEET) {
@@ -105,7 +105,7 @@ describe('fleet versioned model packages', () => {
     for (const entry of FLEET) {
       const roles = entry.descriptor.roles;
       expect(roles).toBeDefined();
-      expect(Object.keys(roles ?? {}).sort()).toEqual(['ship-lod0', 'ship-lod1', 'ship-lod2']);
+      expect(Object.keys(roles ?? {}).sort()).toEqual(['propulsion-anchors', 'ship-lod0', 'ship-lod1', 'ship-lod2', 'ship-proxy']);
       expect(roles?.demo).toBeUndefined();
       expect(roles?.payload).toBeUndefined();
       expect(shipLodUrlForQualityTier(entry.descriptor, 'high')).toBe(roles?.['ship-lod0'].url);
@@ -119,13 +119,13 @@ describe('fleet versioned model packages', () => {
       expect(entry.descriptor.basisYawRad).toBe(0);
       expect(entry.descriptor.modelToSceneMatrix).toEqual([...HERO_NATIVE_TO_SCENE]);
     }
-    expect(DREDGER_TIANJING_V111.modelVersion).toBe('1.1.1');
-    expect(DREDGER_TIANJING_V111.modelLengthMeters).toBe(120);
-    expect(HYSY_981_V111.modelVersion).toBe('1.1.1');
-    expect(XUE_LONG_2_V101.modelVersion).toBe('1.0.1');
-    expect(ADORA_MAGIC_CITY_V101.modelVersion).toBe('1.0.1');
-    expect(LNG_CHANGHENG_V111.modelVersion).toBe('1.1.1');
-    expect(MSC_TESSA_V111.modelVersion).toBe('1.1.1');
+    expect(DREDGER_TIANJING_V120.modelVersion).toBe('1.2.0');
+    expect(DREDGER_TIANJING_V120.modelLengthMeters).toBe(120);
+    expect(HYSY_981_V120.modelVersion).toBe('1.2.0');
+    expect(XUE_LONG_2_V110.modelVersion).toBe('1.1.0');
+    expect(ADORA_MAGIC_CITY_V110.modelVersion).toBe('1.1.0');
+    expect(LNG_CHANGHENG_V120.modelVersion).toBe('1.2.0');
+    expect(MSC_TESSA_V120.modelVersion).toBe('1.2.0');
     expect(TYPE055_NANCHANG_101_V2.modelToSceneMatrix?.[7]).toBe(-7.05);
   });
 
@@ -176,11 +176,11 @@ describe('fleet versioned model packages', () => {
     expect(existsSync(path.join(process.cwd(), 'public/assets/model-releases/dredger-tianjing/v1.1.0'))).toBe(false);
     expect(existsSync(path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.1.3'))).toBe(false);
     expect(existsSync(path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.2.0'))).toBe(false);
-    expect(FLEET_ACTIVE_PACKAGES['drilling-rig']).toEqual(HYSY_981_V111);
+    expect(FLEET_ACTIVE_PACKAGES['drilling-rig']).toEqual(HYSY_981_V120);
     expect(resolveVersionedDefault('drilling-rig')).toEqual({
       packageId: 'hysy-981',
-      modelVersion: '1.1.1',
-      baseUrl: '/assets/model-releases/hysy-981/v1.1.1',
+      modelVersion: '1.2.0',
+      baseUrl: '/assets/model-releases/hysy-981/v1.2.0',
     });
   });
 });
@@ -203,15 +203,16 @@ describe('homepage preview uses activated low LOD', () => {
   });
 });
 
-describe('versioned ship model first-paints the same-origin copy', () => {
-  it('does not pass the public URL to useGLTF until a HEAD probe succeeds', () => {
+describe('versioned ship model selects a stable source for progressive loading', () => {
+  it('prepares formal LODs after the first visible candidate', () => {
     const source = readFileSync(
       path.join(process.cwd(), 'src/resources/simulations/components/versioned-ship-model.tsx'),
       'utf8',
     );
-    expect(source).toContain('useState(local)');
-    expect(source).toContain("fetch(preferred, { method: 'HEAD'");
-    expect(source).toContain('uniqueUrls([local, ...legacyCandidates])');
+    const preparation = readFileSync(path.join(process.cwd(), 'src/resources/simulations/model-packages/lod-preparation.ts'), 'utf8');
+    expect(source).toContain("shipLodMountPlan(descriptor, 'low').local");
+    expect(preparation).toContain("fetch(preferred, { method: 'HEAD'");
+    expect(preparation).toContain('return await available ? [preferred, local] : [local]');
     expect(source).not.toContain('useState(lodCandidates[0])');
   });
 });
@@ -237,28 +238,28 @@ describe('shared fleet mount disables frustum culling', () => {
 describe('homepage posters follow the activated package', () => {
   it('maps every activated package prefix including Tianjing and OSS URLs', async () => {
     const { getShipModelPosterPath } = await import('../ship-model-assets');
-    expect(getShipModelPosterPath('/assets/model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-ship-lod2.glb')).toBe(
+    expect(getShipModelPosterPath('/assets/model-releases/type055-nanchang-101/v2.3.0/models/type055-nanchang-101-ship-lod2.glb')).toBe(
       '/assets/destroyer.png',
     );
-    expect(getShipModelPosterPath('https://static.adapt-learn.online/model-releases/lng-changheng/v1.1.1/models/lng-changheng-ship-lod2.glb')).toBe(
+    expect(getShipModelPosterPath('https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/models/lng-changheng-ship-lod2.glb')).toBe(
       '/assets/Lng-carrier.png',
     );
-    expect(getShipModelPosterPath('/assets/model-releases/lng-changheng/v1.1.1/models/lng-changheng-ship-lod2.glb')).toBe(
+    expect(getShipModelPosterPath('/assets/model-releases/lng-changheng/v1.2.0/models/lng-changheng-ship-lod2.glb')).toBe(
       '/assets/Lng-carrier.png',
     );
-    expect(getShipModelPosterPath('/assets/model-releases/msc-tessa/v1.1.1/models/msc-tessa-ship-lod2.glb')).toBe(
+    expect(getShipModelPosterPath('/assets/model-releases/msc-tessa/v1.2.0/models/msc-tessa-ship-lod2.glb')).toBe(
       '/assets/container.png',
     );
-    expect(getShipModelPosterPath('/assets/model-releases/xue-long-2/v1.0.1/models/xue-long-2-ship-lod2.glb')).toBe(
+    expect(getShipModelPosterPath('/assets/model-releases/xue-long-2/v1.1.0/models/xue-long-2-ship-lod2.glb')).toBe(
       '/assets/icebreaker.png',
     );
-    expect(getShipModelPosterPath('/assets/model-releases/adora-magic-city/v1.0.1/models/adora-magic-city-ship-lod2.glb')).toBe(
+    expect(getShipModelPosterPath('/assets/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-lod2.glb')).toBe(
       '/assets/luxury-liner.png',
     );
-    expect(getShipModelPosterPath('/assets/model-releases/hysy-981/v1.1.1/models/hysy-981-ship-lod2.glb')).toBe(
+    expect(getShipModelPosterPath('/assets/model-releases/hysy-981/v1.2.0/models/hysy-981-ship-lod2.glb')).toBe(
       '/assets/drilling-rig.png',
     );
-    expect(getShipModelPosterPath('/assets/model-releases/dredger-tianjing/v1.1.1/models/dredger-tianjing-ship-lod2.glb')).toBe(
+    expect(getShipModelPosterPath('/assets/model-releases/dredger-tianjing/v1.2.0/models/dredger-tianjing-ship-lod2.glb')).toBe(
       '/assets/dredger-tianjing.png',
     );
     expect(getShipModelPosterPath('/assets/dredger.glb')).toBe('/assets/dredger-tianjing.png');
