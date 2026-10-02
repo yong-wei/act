@@ -107,7 +107,10 @@ async function selectedFile(runtimePath: string): Promise<SelectedFile | null> {
     || path.join(root, 'act-runtime-active-receipt.json');
   try {
     const marker = path.join(root, '.act-runtime-release.v2.json');
-    const metadata = await Promise.all([stat(marker), stat(receipt)]);
+    const metadata = await Promise.all([
+      stat(/*turbopackIgnore: true*/ marker),
+      stat(/*turbopackIgnore: true*/ receipt),
+    ]);
     if (metadata.some(item => !item.isFile())) return null;
     const key = [root, receipt, ...metadata.flatMap(item => [item.dev, item.ino, item.mtimeMs, item.size])].join(':');
     if (selectedCache?.key !== key) {
