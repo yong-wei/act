@@ -1,0 +1,96 @@
+{
+  "truncated": false,
+  "hasMore": false,
+  "events": [
+    {
+      "method": "Network.requestWillBeSent",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-proxy.glb"
+    },
+    {
+      "method": "Network.responseReceived",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-proxy.glb",
+      "status": 200
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-lod2.glb"
+    },
+    {
+      "method": "Network.responseReceived",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-lod2.glb",
+      "status": 200
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-lod2.glb"
+    },
+    {
+      "method": "Network.responseReceived",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-lod2.glb",
+      "status": 200
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1.png"
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba.png"
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220.png"
+    },
+    {
+      "method": "Network.responseReceived",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1.png",
+      "status": 200
+    },
+    {
+      "method": "Network.responseReceived",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba.png",
+      "status": 200
+    },
+    {
+      "method": "Network.responseReceived",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220.png",
+      "status": 200
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-lod0.glb"
+    },
+    {
+      "method": "Network.responseReceived",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-lod0.glb",
+      "status": 200
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1.png"
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba.png"
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220.png"
+    },
+    {
+      "method": "Network.responseReceived",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1.png",
+      "status": 200
+    },
+    {
+      "method": "Network.responseReceived",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba.png",
+      "status": 200
+    },
+    {
+      "method": "Network.responseReceived",
+      "url": "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220.png",
+      "status": 200
+    }
+  ]
+}

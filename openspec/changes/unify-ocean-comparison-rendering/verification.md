@@ -282,3 +282,20 @@ rtk proxy git diff --check
 用户授权提交推送。当前`act-dev1`的`dev1-integration`与新获取的`origin/integration`均为`2e123726533b93abbfa3f6d0de6fdd2bb7a2681b`，本次交付包含第8–10组相关代码、七船同版消费闭包及验证证据。主工作树的课程媒体改动不在提交范围。
 
 交付前`rtk npm run typecheck`再次通过生产web/worker门禁，receipt分别为`c9d52bcaacc52ecf334054cf0bb9d30e3c621fdf66bc1204684e8a547b64d441`和`a784672daa4dc7fb82651e89e392524f704bd76009ce6b2c9bbdf45281839016`。既有有效单元、浏览器、lint及对象完整性验证覆盖未改变的实现；提交与推送执行已安装的托管Git门禁。
+
+
+## 2026-10-02 v0.7.34 发布与生产应用验收
+
+用户授权先合并集成分支、发版并部署，再继续教学媒体存储改造。`origin/integration` 的 `099270df61f97c45ceec2fc4e15f075e1f465cad` 已合入 `main`，冻结应用修订为 `d2d8ee767731e8e67a81ea9f079607ac2915fbe8`。包版本与正式 GitHub Release 均为 `0.7.34`；部署仅更新应用和 worker。
+
+本机 `scripts/build.sh` 构建成功。镜像标签为 `localhost/act-obe-platform:0.7.34-d2d8ee7`，tar 共 1677991424 字节，SHA-256 为 `e38148fb22e36071c0fdba6720d5aa73e5938839c0e8245ca2878495171640a3`。镜像内179个模型对象逐个摘要吻合，WASM、Chromium和LibreOffice可用。`deploy:app -- --skip-build` 使用该精确镜像包，退出0；远端 OCI revision 与冻结修订一致，app/worker使用同一镜像。
+
+部署前后数据库与Redis容器身份、Runtime current/previous及六份选择器摘要不变。公网首页、认证、readyz与画像fence通过；当前修订的7804项资源库存登记并verify-only通过，绑定决策与crosswalk均为0。Wolfram检查沿用既有生产维护窗口设置跳过。
+
+生产Chrome验收覆盖驱逐舰船行波、邮轮和981动力定位。邮轮完整刷新实际请求顺序为ESA代理→LOD2→LOD0，模型与贴图响应均200；浏览器错误0。已有Three多实例警告仍存在，未将其解释为新的运行失败。
+
+同修订本机smoke/Arena等257项测试及类型、托管Git门禁通过。GitHub CI `36980041028` 的Lint与优化GLB校验通过，但smoke入口以dirty-worktree拒绝执行；前驱CI `36840423909`同样失败。发布回执明确保留这一限制，没有宣称远端CI全通过。
+
+发布附加修改仅为版本号和部署脚本的既有语义测试断言；相应直接回归通过。本轮增量审查未发现新的P0/P1重大问题。生产验收未覆盖其他显卡，不触发Runtime激活或本change自动归档。
+
+回执与生产浏览器证据：`artifacts/app-releases/v0.7.34/receipt.json`。应用回滚镜像`0.7.33-eff1c0a`及其tar保留。

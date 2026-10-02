@@ -1,0 +1,8 @@
+{
+  "viewsUnchanged": true,
+  "fingerprintsUnchanged": true,
+  "postgresUnchanged": true,
+  "redisUnchanged": true,
+  "revisionMatches": true,
+  "appWorkerImageMatches": true
+}
