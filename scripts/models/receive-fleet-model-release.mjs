@@ -3,7 +3,7 @@
  * 接收 3DModels act-ship-release/1 的 ACT_RUNTIME_ONLY 包。
  *
  * 源目录必须含 release.json，并与 fleet-runtime-releases.json 的 manifestSha256 一致。
- * 复制 models/ 三档主舰（爱达无 LOD0 时用 LOD1/2/3）+ 可选 055 辅助 GLB + textures/。
+ * 复制 models/ 三档主舰、静态代理、独立推进器接口、可选 055 辅助 GLB 与 textures/。
  * GLB 图像 URI 为 ../textures/<sha>.png，不得只收 GLB。
  * 只保留当前激活版本；同 packageId 的旧目录与收据在接收成功后删除。
  * 服务回退只走 registry 单文件链，不保留旧版本化包。
@@ -24,7 +24,7 @@ import {
 } from 'node:fs';
 import path from 'node:path';
 
-const DEFAULT_HERO_ROOT = '/Users/YW/.codex/worktrees/8440/3DModels';
+const DEFAULT_HERO_ROOT = '/Users/YW/Documents/Project/3DModels';
 const FLEET_RUNTIME_CATALOG = 'shared/export/fleet-runtime-releases.json';
 
 const OTHER_ROLE_BY_FILE = {
@@ -36,39 +36,39 @@ const OTHER_ROLE_BY_FILE = {
 
 const CATALOG = {
   'xue-long-2': {
-    sourceRel: 'assets/xue_long_2/exports/v1.0.1',
-    expectedManifestSha256: 'a7be9f64a4254b58f0529e2a9044d5f348dfb06261fcec1c9f4566a92cd28153',
+    sourceRel: 'assets/xue_long_2/exports/v1.1.0',
+    expectedManifestSha256: 'c5bdf72202e284f44fabd11faec7a1e64340c8c6381f9c6d7322593e2a19cfe4',
     posters: ['public/assets/icebreaker.png'],
   },
   'adora-magic-city': {
-    sourceRel: 'assets/adora_magic_city/exports/v1.0.1',
-    expectedManifestSha256: 'accabefd39060f5f2af2248f835380c28ed2379c3c7cf1b75f752cf2bdb7564a',
+    sourceRel: 'assets/adora_magic_city/exports/v1.1.0',
+    expectedManifestSha256: 'eb4e19b2fa798912bc1335e902d7b5675e826e8f83990ee724181ca8936ba3bc',
     posters: ['public/assets/luxury-liner.png'],
   },
   'msc-tessa': {
-    sourceRel: 'assets/msc_tessa/exports/v1.1.1',
-    expectedManifestSha256: 'ebfcda97940c9a12a6b4c5359b10534776550a2a481c34bd8c71c1eacc586328',
+    sourceRel: 'assets/msc_tessa/exports/v1.2.0',
+    expectedManifestSha256: '8f6af2d336236eb6a670aa645263e219ed79acc133f5fe96ed21f0e47c083b7a',
     posters: ['public/assets/container.png'],
   },
   'lng-changheng': {
-    sourceRel: 'assets/lng_changheng/exports/v1.1.1',
-    expectedManifestSha256: '03d57970f916b6f86e0362189f21decdcf68396c939262b86447f3bee4147332',
+    sourceRel: 'assets/lng_changheng/exports/v1.2.0',
+    expectedManifestSha256: 'd58958515c7f5363e039ce7d362fc412168ff3030ba295c1e9de8fb9a90db8e7',
     posters: ['public/assets/Lng-carrier.png'],
   },
   'dredger-tianjing': {
-    sourceRel: 'models/act-dredger-tianjing/exports/v1.1.1',
-    expectedManifestSha256: 'c86bad48aca4d90ef7444e85622628a037a10c8d5345d84f1b3aac389052d606',
+    sourceRel: 'models/act-dredger-tianjing/exports/v1.2.0',
+    expectedManifestSha256: 'f8ca3b2fc2e3ae31ea2a155028cfd6fda959280a98725c79d29dc96298cfba7d',
     posters: ['public/assets/dredger.png', 'public/assets/dredger-tianjing.png'],
   },
   'type055-nanchang-101': {
-    sourceRel: 'assets/type_055_destroyer/exports/v2.2.1',
-    expectedManifestSha256: '78b236851c5e59a62171ac3d7a616aeb79798eebcc420207811ffb667f959782',
+    sourceRel: 'assets/type_055_destroyer/exports/v2.3.0',
+    expectedManifestSha256: 'fcfe6687037081b1d2ff9b1fcdb637ab0869423ab6c80b3ada95fe3291a31474',
     includeOtherGlbs: true,
     posters: ['public/assets/destroyer.png'],
   },
   'hysy-981': {
-    sourceRel: 'models/hysy981-blender/exports/v1.1.1',
-    expectedManifestSha256: 'cb54aa1124768777bccd38a67031ae32b0f77129e55e2bc4c338087f70949044',
+    sourceRel: 'models/hysy981-blender/exports/v1.2.0',
+    expectedManifestSha256: 'dfcc09ee3a275b7515079c15409ebf05a8129b6bf8e65b30b053ff2745b50949',
     posters: ['public/assets/drilling-rig.png'],
   },
 };
@@ -216,6 +216,24 @@ function receivePackage(packageId, heroRoot, sourceOverride) {
     kind: 'ship',
     lod: index,
   }));
+
+  const proxy = release.models.auxiliary?.find(item => item.role === 'ship-proxy');
+  if (!proxy || proxy.textureDependencies?.length || proxy.requiredExtensions?.length
+    || proxy.bytes > 102400 || proxy.triangles < 500 || proxy.triangles > 2000) fail('invalid ship-proxy contract');
+  planned.push({ role: 'ship-proxy', from: proxy.file, to: `models/${packageId}-ship-proxy.glb`,
+    sha256: proxy.sha256, bytes: proxy.bytes, kind: 'proxy', lod: null });
+  const anchorsPath = path.join(sourceDir, proxy.propulsionAnchors);
+  const anchors = JSON.parse(readFileSync(anchorsPath, 'utf8'));
+  if (anchors.schema !== 'act-propulsion-anchors/1' || anchors.version !== modelVersion
+    || JSON.stringify(anchors.coordinates.modelToSceneMatrix) !== JSON.stringify(release.coordinates.modelToSceneMatrix)) {
+    fail('propulsion anchors version/coordinates drift');
+  }
+  const anchorHash = createHash('sha256').update(readFileSync(anchorsPath)).digest('hex');
+  const fleetCatalog = JSON.parse(readFileSync(path.join(heroRoot, FLEET_RUNTIME_CATALOG), 'utf8'));
+  const declaredAnchors = fleetCatalog.releases.find(item => item.path === spec.sourceRel)?.propulsionAnchors;
+  if (declaredAnchors?.sha256 !== anchorHash) fail('propulsion anchors catalog drift');
+  planned.push({ role: 'propulsion-anchors', from: proxy.propulsionAnchors, to: 'interfaces/propulsion-anchors.json',
+    sha256: anchorHash, bytes: statSync(anchorsPath).size, kind: 'interface', lod: null });
 
   if (spec.includeOtherGlbs) {
     for (const rel of release.models.otherGlbs ?? []) {
@@ -370,7 +388,7 @@ function receivePackage(packageId, heroRoot, sourceOverride) {
   mkdirSync(path.dirname(receiptPath), { recursive: true });
   writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);
   retirePriorVersions(root, packageId, modelVersion);
-  console.log(`received ${packageId} v${modelVersion} (${roles.length} models + ${textures.length} textures + manifest)`);
+  console.log(`received ${packageId} v${modelVersion} (${roles.filter(item => item.file.endsWith('.glb')).length} models + 1 interface + ${textures.length} textures + manifest)`);
   console.log(`target: ${targetRelative}`);
   console.log(`manifestSha256: ${manifestSha}`);
 }

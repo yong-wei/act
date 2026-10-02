@@ -160,3 +160,125 @@ rtk npm run typecheck
 - 类型：生产web/worker检查及包含新增浏览器夹具的独立TypeScript检查；ESLint与diff检查。
 - 范围审查：9f8de0762c至本轮工作区，仅检查海面拼接、船壳遮挡、后端身份与直接测试修改。未发现新的P0/P1重大问题。
 - 验证限于本机Chrome/Apple M5 Max，未执行完整Next生产构建、未部署；压缩回归直接打包并运行真实渲染模块，不将开发模式结果冒充部署验证。
+
+## 2026-10-01 微法线规则纹路修正
+
+增量基线：`2e12372653`，act-dev1已快进至本轮刷新后的origin/integration；本节仅记录微法线与高光改动，不重复前轮全范围审查。
+
+- 归因：用真实共享材质、256²FFT、固定5秒和同一低视角分别关闭微法线、直射高光、主波法线。仅关闭微法线能消除密集交叉纹路；关闭高光仍有纹路。截图位于本机临时目录`/tmp/act-water-smooth/`，不作为可移植发布工件。
+- 修改：周期正弦微法线换成连续二维Perlin噪声；保留细节分级，按纵横两个方向的像素足迹过滤。GGX与环境反射共用法线变化补偿后的粗糙度。没有修改波谱、位移、网格、泡沫历史或船体查询。
+- 固定时间截图：低视角水面及对照页5秒前后对比显示规则细纹减少，保留起伏和不规则波光；正式驱逐舰渲染无页面异常。未提供Blender材质与灯光设置，未声明精确复现其预览。
+- 按用户补充要求，在日落预设下将视线降低到约4–8度，镜头高于平均水面约8m与13m，分别观察反光带中心、边缘及近处水面。同一5秒FFT、镜头与灯光的前后截图中，规则网纹明显减少；双API画面一致。另在正式驱逐舰页切换日落/高画质、关闭教学网格，环绕观察六个方向，无页面异常或常规整场读回；未将诊断截图中的最强反光角度当作默认镜头。
+- 单元测试51项通过：`simulation-scene-micro-optics`、`simulation-fft-ocean`、`simulation-scene-water`。
+- 浏览器20项通过：`marine-webgpu-parity`16项、`marine-minified-renderer`2项、`marine-unified-production`双API画质切换2项。覆盖双算法/双API、DPR1/2、128/512、独立DFT、船体三点接触、光学开关、接口切换、压缩初始化和历史不因画质切换重置。
+- 最终代码的生产web/worker类型检查、定向ESLint、严格OpenSpec与diff检查通过。Browser插件不可用，使用已有Playwright与本机Chrome完成验收。
+
+执行命令：
+
+```sh
+rtk proxy npx vitest run src/resources/simulations/__tests__/simulation-scene-micro-optics.test.ts src/resources/simulations/__tests__/simulation-fft-ocean.test.ts src/resources/simulations/__tests__/simulation-scene-water.test.ts
+rtk proxy env PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 PLAYWRIGHT_SKIP_WEB_SERVER=1 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/marine-webgpu-parity.spec.ts tests/marine-minified-renderer.spec.ts --workers=1 --output=/tmp/act-water-smooth/parity
+rtk proxy env PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 PLAYWRIGHT_SKIP_WEB_SERVER=1 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/marine-unified-production.spec.ts --grep 'quality changes' --workers=1 --output=/tmp/act-water-smooth/quality
+rtk npm run typecheck
+rtk proxy npx eslint src/resources/simulations/scene/water/comparison-water-material.ts
+rtk proxy openspec validate unify-ocean-comparison-rendering --type change --strict
+rtk proxy git diff --check
+```
+
+审查范围：`2e12372653`至当前工作区，仅含共享微法线、投影过滤、高光粗糙度及上述记录。本轮增量审查未发现新的P0/P1重大问题；前轮矩形裁剪和压缩初始化修复的直接回归仍通过。验证限于本机Chrome/Apple GPU，未测其他显卡、未做完整Next生产构建或部署；未宣称与Blender离线渲染等价或已完成跨硬件性能比较。
+
+## 2026-10-02 现有模型渐进加载检查点
+
+- 上游七船ship-proxy已登记至3DModels #7，发布与ACT代理接线等待用户通知。
+- 首次用本包LOD2；目标候选在独立Suspense中下载/解析，使用当前渲染器的纹理初始化与`compileAsync(object,camera,targetScene)`准备，保留当前可见模型直到候选就绪。绑定到临时对象的骨骼可清理，共享几何/材质不释放。
+- 替换前核验声明的动画接口，快速变档的过期准备不提交。请求失败保留当前模型；用户切档重试会清除失败的useGLTF请求缓存。已消费资产记住来源，不换域重载同一已显示档。
+- CORS诊断已校正：配置中的应用Origin act.adapt-learn.online得到200、准确Allow-Origin和Vary:Origin；开发Origin和未配置Origin的拒绝不能证明CDN整体失效。开发直接使用同源包，正式Origin保留公共探测/回退；未改云权限或生产应用。版本化同源资源实测Cache-Control为一年期immutable。
+- Vitest：versioned-ship-model.client、fallback-gltf-model.client、model-package-fleet共19项通过，覆盖低档优先、GPU准备完成才提交、失败保留、快速变档及接口拒绝。
+- 浏览器：marine-unified-production的双API画质历史2项通过；marine-model-loading双API2项通过，实际延迟LOD0、503拒绝LOD1及后续重试，当前船体持续可见。主动注入的503会被React开发模式报告，测试仅允许该精确错误，其它页面错误仍失败。
+- 定向ESLint、生产web/worker类型检查、当前change严格OpenSpec通过。此检查点尚不代表后续船行波修复已完成，最终类型与风险验证须覆盖最终代码。
+
+## 2026-10-02 船行波、逐桨洗流与加载修复完成
+
+基线：`2e123726533b93abbfa3f6d0de6fdd2bb7a2681b`；结果为当前工作区，未提交、推送或部署。上游代理由3DModels #7共同发布，接收与接线继续等待用户通知。
+
+### 实现与校准
+
+- 背景谱与波高保持不变，共享变换扩为高度/速度两个复数通道的正/逆变换。局部波域768m/512²，生成波长下限8m；整个局部域以2m可见格距覆盖，粗细边界共享顶点。波域、水面和远场孔洞共同跟随原点，背景位移的相位仍在世界空间。
+- 艏艉双源及速度水头参数见design。最终系数0.10在正常船速下持续响应；直航与圆迹实际生成色散位移，保持过去世界航迹。吸收同时作用于高度/速度；无航行波历史的零速洗流不执行船波变换。
+- 六艘航行船的实际可见模型解析出2/2/1/2/2/2个桨源（055/LNG/集装箱/雪龙/邮轮/挖泥），刀盘不作为船桨。981合并实际8个模型锚点与既有推力、方位及故障状态；显示直径约3.48m、深度约22m属于模型读数和视觉估计，不是实船测量。
+- 自然、洗流、船波破碎使用独立密度和新生层，保持26/8/12s半衰期及世界输运。去掉固定船艉源与老泡沫的最低白覆盖；局部新生层连续积累和衰减。诊断按面积合并不同域，避免把不同像素尺寸直接相加。
+- 贴水读回原先逐点等待并持有海面更新锁，WebGL实际更新次数远低于rAF。现用8像素小批读回，拷贝提交后解除更新锁，并携带实际捕获时刻；不同来源时刻不再混为一次船姿观测。
+- LOD升级保留动画累计进度、pingpong方向、已完成动作末帧和实时桨相位。初次失败的低档也能在后续请求重试；GPU/接口准备失败不清除已经成功解析的共享模型缓存。
+
+### 验证命令与结果
+
+所有命令在本工作树使用rtk，浏览器使用Chrome、`PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001`及`PLAYWRIGHT_SKIP_WEB_SERVER=1`。诊断脚本和截图保存在`/tmp/act-marine-repairs/`；这些临时产物不代替仓库内回归测试。
+
+- 受影响Vitest：FFT、WebGPU、泡沫、帧时钟、画质、海面分带/响应、船舶交互、贴水缓存/网格、推进器、动画状态、模型包及加载回退，以及对比页契约。共17文件、171项通过。主要新增测试为`marine-propulsors`、`marine-surface-geometry`、`semantic-animation-state`和`versioned-ship-model.client`。
+- `npx playwright test tests/marine-ship-wave.spec.ts tests/marine-surface-history.spec.ts tests/fft-ocean-comparison-lab.spec.ts tests/marine-minified-renderer.spec.ts --workers=1`：最终几何/窗口/新生层代码24项通过。含独立连续时间Duhamel积分、两复数通道变换、可见三角面与字段比较、4/8/16m/s航速、80s吸收边界、世界平移、零速洗流、源停止、暂停、倒放、压缩初始化、DPR及负浪谷。
+- `npx playwright test tests/marine-propulsor-binding.spec.ts tests/marine-unified-production.spec.ts --workers=1`：最终代码23项通过。含七船双API、真实DP八锚点与近零平移推力、等待读回时海面继续更新、三种自动降级及切档历史保持。
+- `npx playwright test tests/marine-model-loading.spec.ts --workers=1`：最终加载合同2项通过。实际阻塞LOD0、让LOD1返回503后恢复，船体持续可见并成功重试；仅允许测试主动制造的精确503，其它页面错误失败。
+- `marine-webgpu-parity`的16项直接相关检查通过，覆盖双API/DPR、128/512背景场独立DFT、光学开关、缺失设备和切换销毁；随后几何改变的受影响投影/位移及生命周期由上述最终回归覆盖。
+- 最终生产web/worker类型检查通过：web receipt `63dce802e26548f6aefe4deca3eaf66c165371a570c5de3662bba7f7be7d5460`，worker receipt `c1ce5b98cb3685a8aba7d881b0d620510949d7c0f63cd832edee0c7767ebcae6`。变更文件ESLint与`git diff --check`通过；本change严格OpenSpec校验通过。
+
+### 本机画面与性能
+
+- 最终双API30s圆迹的战术与低视角截图无页面错误。局部波范围约-0.931/+0.582m，两后端误差小于1e-6m；船波破碎面积约40.77m²。洗流密度还依赖显示模型的异步贴水姿态，未承诺两后端泡沫逐像素一致或把模型状态变化当作纯变换误差。
+- Chrome/Apple M5 Max，1280×720、DPR1，055和邮轮的高/低档、WebGL/WebGPU共8个独立窗口：海面实际更新约60次/s，rAF中位16.5–16.9ms，95分位18.9–20.6ms；常规全场读回为零，页面错误为零。这里的帧间隔不能解释为GPU耗时，也不构成跨硬件或生产比较。
+- 浏览器冷资源/服务器已热的模型挂载诊断：055约1.19s、邮轮约1.14s；重载约1.13/1.00s。首次GLB请求为LOD2，055约402KB/22ms、邮轮约1.07MB/57ms，随后才请求目标LOD0。目标准备过程中保留低档；没有本地加载后换域重复消费。
+- 头部缓存与浏览器消费是不同证据：版本化同源地址实测一年期immutable，低档重载命中缓存；本机headless的邮轮LOD0仍可能重新传输8MB，未宣称大包总能缓存或首屏已显著加速。专用代理和分级压缩贴图仍依赖上游新版本。
+
+### 限定范围审查
+
+审查范围：上述基线至当前工作区，包含已接受的微法线修改和本轮船行波/加载修复；旧代码只在直接相关数据路径上核验。本轮增量审查未发现新的P0/P1重大问题。已发现的读回停更、异步船姿观测、动画重建与失败缓存问题均已处理，并有直接回归证据。
+
+尚未覆盖完整Next生产构建、远端容器运行或其他显卡；未进行部署或Runtime激活。本轮修复完成不等于上游代理已经发布，不触发本change自动归档。
+
+
+## 2026-10-02 七船代理接线与OSS/ESA发布完成
+
+审查基线仍为`2e123726533b93abbfa3f6d0de6fdd2bb7a2681b`。本轮范围为代理接收、角色/默认版本登记、渐进加载、推进器接口、动画状态生命周期、分发脚本与证据；前轮已审海面代码只在这些直接调用路径上核验。代码结果为act-dev1工作区，未提交、推送、构建应用镜像或部署。
+
+### 同版本接收与接线
+
+| 船型 | 新版本 | 代理字节 | 代理面数 |
+|---|---|---:|---:|
+| 055南昌舰 | 2.3.0 | 45052 | 915 |
+| 爱达·魔都号 | 1.1.0 | 66092 | 1558 |
+| 雪龙2 | 1.1.0 | 36928 | 818 |
+| 长恒LNG | 1.2.0 | 37280 | 1002 |
+| MSC Tessa | 1.2.0 | 95432 | 1742 |
+| 天鲸号 | 1.2.0 | 30952 | 792 |
+| 海洋石油981 | 1.2.0 | 92384 | 1320 |
+
+上游GitHub发布tag均指向`9748b9111eb3fea17c1567712bc99acec43dc0fa`，本地七个ZIP的SHA与GitHub附件digest及fleet-runtime catalog一致。源manifest固定摘要核验后接收；原有GLB/贴图不修改。代理均为1个批次，无外部图像、动画或解码扩展。ACT接收三档主模型、代理、独立推进器接口及055辅助消费角色，按既有规则退役本地旧版本目录；OSS历史版本保留。
+
+生产允许Origin先请求ESA代理，开发Origin使用同源代理；代理就绪后准备LOD2，再直接准备当前所需目标档。低档失败时允许目标档直接替换代理，准备失败保留可见模型；矩阵与声明长度缩放共用。19个船用推进器从同版独立接口取得锚点、轴向和名义桨径，实际LOD仍消费已显示节点；静态代理按已有遥测映射方位。其近似/UNKNOWN出处保留在接口，未从演示片段推定真实RPM或推力。
+
+最终验收发现下载错误边界会重建动画组件，原组件内ref不能保存跨LOD状态；状态已移至包会话。Three动作恢复另有已有时钟和缓存零速率问题：独立复现中期望位置0.4，错误恢复为1.4或0；现相对目标时钟调度并先以单位速率恢复，随后还原暂停/速率。循环、clamped末帧、实时桨角和L2演示播放/停留状态一起处理，显式实验重置建立新状态。真实暂停切档方向回归已通过。
+
+### 实际对象发布与分发
+
+- 通过已登录OSS控制台的系统文件选择器上传179个新版本对象，任务列表为上传成功179、失败0；文件ACL为私有。只涉及`act-course-models/model-releases/<package>/v<version>/`，没有改变Bucket公共访问、CORS、ESA规则、应用凭据或Runtime选择。
+- 消费闭包为32个GLB、7个接口、133张相对贴图及7份manifest，共169771786字节。经ESA逐对象GET核验SHA-256和字节数、MIME、准确的应用Origin、Vary与一年TTL；重复带/不带Origin、32字节Range及HTTP到HTTPS检查通过。既有ESA只读身份认证HEAD返回200，匿名直接OSS HEAD返回403。
+- 回执为`artifacts/model-releases/oss-publication.json`与`esa-verification.json`，核验入口为`python3 scripts/models/verify-fleet-model-esa.py`。JSON GET存在两个Vary字段，核验器按完整字段集合读取，未把Accept-Encoding覆盖Origin误判为云端缺陷。
+
+### 命令与有效验证
+
+本工作树命令均使用rtk。浏览器环境为Chrome、Apple M5 Max，`PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001`与`PLAYWRIGHT_SKIP_WEB_SERVER=1`。
+
+- 7个受影响Vitest文件共57项通过：type055/fleet完整性、独立代理/接口、推进器、渐进加载、回退及动画恢复。新增覆盖实际GLTFLoader独立加载七个代理、锚点与版本/矩阵绑定、代理/实际吊舱一致性、代理或低档失败、非零目标时钟和重复零速率恢复。
+- 最终`npx playwright test tests/marine-proxy-loading.spec.ts tests/marine-model-esa.spec.ts --workers=1`共18项通过：七船双API实际代理→低档→目标档、延迟期间可见、静态代理推进器与矩阵/缩放、真实ESA先取及503同源回退。检查七船实际代理截图；981保留开放月池。
+- `tests/marine-model-animation-continuity.spec.ts`双API2项通过；`tests/marine-model-loading.spec.ts`双API2项通过，主动503后仍保持模型并能重试；`tests/marine-propulsor-binding.spec.ts`4项通过，含DP八源及等待读回时继续更新。以上按受影响范围分阶段验证，没有因交付阶段变化重跑未改海面域。
+- ESA浏览器用例直接打包当前消费者并置于允许Origin，ESA请求走真实网络。本机TUN将域名解析为198.18/ULA地址，Chrome初次阻止本地地址空间访问；显式`PLAYWRIGHT_ESA_PROXY=http://127.0.0.1:7890`使用既有HTTP代理后通过，没有关闭浏览器保护或修改云端跨域设置。Next开发热更新的跨Origin转接不作为分发证据。
+- 最终生产web/worker类型检查通过：web receipt `643d5cc3a5037ed3ce74e636e4f578b92e974a25ca1be2ba21b1fef079191882`，worker receipt `2777cb414a168cf2564cec026367fca1dcab4b44153b4ff587e1a1b08e8b32eb`。变更文件ESLint、Python编译和diff检查通过；本change严格OpenSpec校验通过。
+
+### 审查结论与边界
+
+本轮增量审查未发现新的P0/P1重大问题。此前动画连续性验收缺口已修复，并有重复初始化、暂停切档及真实模型替换证据。对象发布已经完成；生产应用仍未部署本工作区代码，允许Origin夹具不构成在线应用已切换的证明。未做完整Next生产构建、其他显卡或生产容器验收，不进行Runtime激活或自动归档。
+
+## 2026-10-02 Git交付准备
+
+用户授权提交推送。当前`act-dev1`的`dev1-integration`与新获取的`origin/integration`均为`2e123726533b93abbfa3f6d0de6fdd2bb7a2681b`，本次交付包含第8–10组相关代码、七船同版消费闭包及验证证据。主工作树的课程媒体改动不在提交范围。
+
+交付前`rtk npm run typecheck`再次通过生产web/worker门禁，receipt分别为`c9d52bcaacc52ecf334054cf0bb9d30e3c621fdf66bc1204684e8a547b64d441`和`a784672daa4dc7fb82651e89e392524f704bd76009ce6b2c9bbdf45281839016`。既有有效单元、浏览器、lint及对象完整性验证覆盖未改变的实现；提交与推送执行已安装的托管Git门禁。

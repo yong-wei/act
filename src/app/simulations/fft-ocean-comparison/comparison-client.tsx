@@ -92,7 +92,8 @@ export function LockQualityTier({ tier }: { readonly tier: QualityTierId }) {
   return null;
 }
 
-export function FarFieldRing() {
+export function FarFieldRing({ surfaceRef }: { surfaceRef?: React.MutableRefObject<ComparisonOceanProbe | null> }) {
+  const meshRef = useRef<THREE.Mesh>(null);
   const geometry = useMemo(() => {
     const outer = FAR_FIELD.outerHalfExtent;
     const inner = FAR_FIELD.innerHalfExtent;
@@ -115,10 +116,17 @@ export function FarFieldRing() {
   }, []);
   return (
     <mesh
+      ref={meshRef}
       name="comparison-far-field"
       position={[0, FAR_FIELD.baseY, 0]}
       geometry={geometry}
       renderOrder={-5}
+      onBeforeRender={() => {
+        const origin = surfaceRef?.current?.history()?.wakeOrigin, mesh = meshRef.current;
+        if (origin && mesh) {
+          mesh.position.set(origin[0], FAR_FIELD.baseY, origin[1]); mesh.updateMatrixWorld();
+        }
+      }}
     >
       <meshBasicMaterial color={0x3c4a55} side={THREE.DoubleSide} />
     </mesh>
@@ -135,6 +143,7 @@ export function ComparisonVessel({
   failAsset,
   waterYSampler,
   pitchRef,
+  samplesRef,
   simRef,
   resetToken,
   onMountedUrl,
@@ -144,6 +153,7 @@ export function ComparisonVessel({
   readonly failAsset: boolean;
   readonly waterYSampler: () => number;
   readonly pitchRef: React.MutableRefObject<number>;
+  readonly samplesRef: React.MutableRefObject<{ mid: number; bow: number; stern: number; time: number }>;
   readonly simRef: React.MutableRefObject<BindingTelemetrySource>;
   readonly resetToken: number;
   readonly onMountedUrl: (url: string) => void;
@@ -158,8 +168,11 @@ export function ComparisonVessel({
     simRef.current = { ...simRef.current, speedMps: pose.speedMps, advancing: seconds > previousTime.current };
     previousTime.current = seconds;
     if (groupRef.current) {
+      const contact = samplesRef.current;
+      pitchRef.current = vesselPitchFromSamples(contact.bow, contact.stern, COMPARISON_QUERY_SPAN_METERS);
       groupRef.current.position.set(pose.x, 0, pose.z);
       groupRef.current.rotation.set(-pitchRef.current, pose.headingRad, 0, 'YXZ');
+      groupRef.current.userData.marineRenderedContact = { ...contact };
     }
   });
 
@@ -239,11 +252,12 @@ function ComparisonQueries({ surfaceRef, samplesRef, metricsRef, resetToken, run
     void surface.sampleSurface(comparisonContactPoints(time)).then(points => {
       if (requestEpoch !== epoch.current || surfaceRef.current !== surface) return;
       const [mid, bow, stern] = points.map(p => p.height - GERSTNER_WATER_BASE_Y);
-      samplesRef.current = { mid, bow, stern, time };
+      const sampledTime = points[0]?.time ?? time;
+      samplesRef.current = { mid, bow, stern, time: sampledTime };
       const elapsed = performance.now() - started;
       // 本指标是三点采样端到端延迟，不能解释为纯 GPU 计算时间。
       metricsRef.current = { computeMs: null, queueMs: null, transferMs: null, e2eMs: elapsed,
-        resultAgeSeconds: Math.max(0, surface.identity().time - time), viaWorker: false,
+        resultAgeSeconds: Math.max(0, surface.identity().time - sampledTime), viaWorker: false,
         initChargedPerQuery: false, queryKind: 'gpu-surface' };
     }).catch(() => { /* 诊断读回占用时下一帧重试，卸载后不发布旧结果。 */ })
       .finally(() => { pending.current = false; });
@@ -305,11 +319,6 @@ function ComparisonLabBridge({
   const [firstFrameReady, setFirstFrameReady] = useState(false);
 
   useFrame(() => {
-    pitchRef.current = vesselPitchFromSamples(
-      samplesRef.current.bow,
-      samplesRef.current.stern,
-      COMPARISON_QUERY_SPAN_METERS,
-    );
     if (!firstFrameReady) setFirstFrameReady(true);
     identityRef.current = {
       ...identityRef.current,
@@ -445,10 +454,10 @@ function ComparisonLabBridge({
           target.dispose();
         }
       }
-      const contactPitch = Math.atan2(
-        samplesRef.current.bow - samplesRef.current.stern,
-        COMPARISON_QUERY_SPAN_METERS,
-      );
+      // 异步新样本可能在两次绘制之间到达；比较实际船姿与该次绘制消费的样本。
+      const vessel = root.getObjectByName('comparison-vessel-motion');
+      const contact = vessel?.userData.marineRenderedContact as { bow: number; stern: number } | undefined;
+      const contactPitch = contact ? Math.atan2(contact.bow - contact.stern, COMPARISON_QUERY_SPAN_METERS) : null;
       return {
         drawingBufferWidth: width,
         drawingBufferHeight: height,
@@ -461,7 +470,7 @@ function ComparisonLabBridge({
         normalSlope: Math.abs(heightBeside - heightLater) / 8,
         pixelMean,
         reflectionPixelMean,
-        reportedPitch: pitchRef.current,
+        reportedPitch: vessel ? -vessel.rotation.x : null,
         contactPitch,
       };
     };
@@ -644,12 +653,13 @@ function ComparisonScene({
         opticsRef={opticsRef}
         resolution={resolution}
       />
-      <FarFieldRing />
+      <FarFieldRing surfaceRef={surfaceRef} />
       <ComparisonVessel
         surfaceRef={surfaceRef}
         failAsset={failAsset}
         waterYSampler={waterYSampler}
         pitchRef={pitchRef}
+        samplesRef={samplesRef}
         simRef={simRef}
         resetToken={resetToken}
         onMountedUrl={onMountedUrl}

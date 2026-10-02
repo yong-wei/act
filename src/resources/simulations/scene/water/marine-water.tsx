@@ -19,7 +19,15 @@ export function MarineWater(props: GerstnerWaterProps & { vesselLengthMeters?: n
     previous: { x: 0, z: 0, headingRad: 0, speedMps: 0 } as SurfaceHistoryPose,
     current: { x: 0, z: 0, headingRad: 0, speedMps: 0 } as SurfaceHistoryPose });
   const config = useMemo<SharedOceanConfig>(() => ({
-    foamEmitters: hasFoamEmitters ? () => latest.current.foamEmittersSampler?.() ?? [] : undefined,
+    foamEmitters: hasFoamEmitters ? pose => {
+      const current = timing.current.current;
+      const delta = pose.headingRad - current.headingRad;
+      return (latest.current.foamEmittersSampler?.() ?? []).map(source => {
+        const x = source.x - current.x, z = source.z - current.z;
+        return { ...source, x: pose.x + x * Math.cos(delta) + z * Math.sin(delta),
+          z: pose.z - x * Math.sin(delta) + z * Math.cos(delta), headingRad: source.headingRad + delta };
+      });
+    } : undefined,
     production: true, hullExclusions: latest.current.hullExclusionSampler?.() ?? undefined, sedimentPlume: props.sedimentPlume,
     spectrum: { domainMeters: 2048, windSpeedMps: 12, windDirectionRad: 0.2, seaState: props.seaState ?? 4, seed: 17 },
     skyTexture: preset.skyTexture, colors: preset.water,
@@ -33,6 +41,7 @@ export function MarineWater(props: GerstnerWaterProps & { vesselLengthMeters?: n
       if (!Number.isFinite(state.start)) {
         state.start = seconds;
         state.current = { ...position, headingRad: latest.current.shipHeadingSampler?.() ?? 0, speedMps: 0 };
+        state.previous = state.current;
       }
       const time = Math.max(0, seconds - state.start);
       if (time > state.time) {

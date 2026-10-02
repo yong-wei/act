@@ -29,10 +29,10 @@ import {
   isType055VersionedAssetUrl,
   matchActivatedType055Package,
   matchType055DescriptorByUrl,
-  propulsorSceneAnchors,
   type VersionedModelPackageDescriptor,
 } from '@/resources/simulations/model-packages/type055-nanchang-101-v2';
-import { SemanticBindingsRig } from '@/resources/simulations/components/semantic-bindings-rig';
+import { MarinePropulsorsRig, SemanticBindingsRig } from '@/resources/simulations/components/semantic-bindings-rig';
+import { isShipProxyUrl } from '@/resources/simulations/model-packages/types';
 import { boxProjectsInsideNdc } from '@/resources/simulations/scene/camera';
 import {
   Play,
@@ -523,12 +523,6 @@ function TeachingAnnotationsGate({
   );
 }
 
-/** 双桨逐帧发射锚点共享 ref：模型侧每帧写入桨节点世界位置，尾迹侧读取。 */
-type PropWakeAnchorsRef = React.MutableRefObject<{
-  port: THREE.Vector3 | null;
-  starboard: THREE.Vector3 | null;
-}>;
-
 declare global {
   interface Window {
     /** QA 重观测开关（#2120）：置 true 才逐帧 Box3/骨骼校验（普通运行零热点）。 */
@@ -554,11 +548,9 @@ const MODEL = resolveRegisteredSimulationModel('destroyer');
 function DestroyerModel({
   simRef,
   resetToken,
-  propWakeRef,
 }: {
   simRef: React.MutableRefObject<SimulationState>;
   resetToken: number;
-  propWakeRef: PropWakeAnchorsRef;
 }) {
   const { tier } = useSceneQuality();
   const descriptor = matchActivatedType055Package(resolveVersionedDefault('destroyer'));
@@ -567,7 +559,7 @@ function DestroyerModel({
     return (
       <FallbackGltfModel
         candidates={MODEL.candidates}
-        render={(url) => <DestroyerModelScene url={url} simRef={simRef} propWakeRef={propWakeRef} />}
+        render={(url) => <DestroyerModelScene url={url} simRef={simRef} />}
       />
     );
   }
@@ -575,6 +567,7 @@ function DestroyerModel({
   return (
     <VersionedShipModel
       descriptor={descriptor}
+      resetToken={resetToken}
       tier={tier}
       legacyCandidates={MODEL.candidates}
       renderScene={(url) => {
@@ -585,7 +578,6 @@ function DestroyerModel({
             url={url}
             simRef={simRef}
             resetToken={resetToken}
-            propWakeRef={propWakeRef}
             // 旧 2.1.x 仍用一次基 yaw；2.2.0 矩阵路径不再叠 yaw。旧单文件不施加。
             basisYawRad={isType055VersionedAssetUrl(url) && !useMatrix ? TYPE055_V2_BASIS_YAW_RAD : 0}
             descriptor={resolved}
@@ -602,7 +594,6 @@ function DestroyerModelScene({
   basisYawRad = 0,
   descriptor = null,
   resetToken = 0,
-  propWakeRef,
 }: {
   url: string;
   simRef: React.MutableRefObject<SimulationState>;
@@ -612,7 +603,6 @@ function DestroyerModelScene({
   descriptor?: VersionedModelPackageDescriptor | null;
   /** 实验重置令牌：透传给彩蛋装配，触发状态随实验生命周期复位。 */
   resetToken?: number;
-  propWakeRef?: PropWakeAnchorsRef;
 }) {
   const { camera } = useThree();
   const { scene, animations } = useGLTF(url, true, true);
@@ -678,21 +668,6 @@ function DestroyerModelScene({
     );
     groupRef.current.rotation.set(sim.wavePitch, -sim.headingRad + Math.PI / 2, sim.waveRoll);
 
-    // 逐帧推进器世界位置 → 尾迹发射锚点（节点未解析时置 null，尾迹回退静态锚点）。
-    if (propWakeRef) {
-      const write = (node: THREE.Object3D | null, key: 'port' | 'starboard') => {
-        if (!node) {
-          propWakeRef.current[key] = null;
-          return;
-        }
-        const target = propWakeRef.current[key] ?? new THREE.Vector3();
-        node.getWorldPosition(target);
-        propWakeRef.current[key] = target;
-      };
-      write(propNodes.port, 'port');
-      write(propNodes.starboard, 'starboard');
-    }
-
     // QA 门控（#2120 复审）：普通浏览器运行不做逐帧全模型 Box3 遍历与骨骼
     // 绑定校验（热点成本）——页面置 window.__destroyerModelVisualProbe = true
     // 才执行重观测；轻量字段（推进四元数/推进门控）始终写入。
@@ -730,11 +705,12 @@ function DestroyerModelScene({
   });
 
   return (
-    <group ref={groupRef} name="fleet-ship-root">
+    <group ref={groupRef} name="fleet-ship-root" userData={{ modelUrl: url, modelScale: scale, mountMatrix: descriptor?.modelToSceneMatrix ?? null }}>
       <group rotation-y={basisYawRad}>
         <HeroModelBasis matrix={descriptor?.modelToSceneMatrix}>
           <primitive object={model} scale={scale} />
-          {descriptor ? (
+          {descriptor ? <MarinePropulsorsRig model={model} animations={animations} descriptor={descriptor} simRef={simRef} /> : null}
+          {descriptor && !isShipProxyUrl(descriptor, url) ? (
             <SemanticBindingsRig
               key={resetToken}
               model={model}
@@ -1416,11 +1392,6 @@ export default function DestroyerSimulation() {
   const shipRef = useRef<THREE.Group | null>(null);
   // 数值仿真时间（#2097 提升）：引擎逐 fixed-step 写入，帧快照 simulationTime 只读消费。
   const simTimeRef = useRef(0);
-  // 双桨尾迹发射锚点：模型侧逐帧写入桨节点世界位置，尾迹侧逐帧读取。
-  const propWakeRef = useRef<{ port: THREE.Vector3 | null; starboard: THREE.Vector3 | null }>({
-    port: null,
-    starboard: null,
-  });
 
   // 计算场景逻辑
   const task = tasks[selectedTask];
@@ -1531,7 +1502,7 @@ export default function DestroyerSimulation() {
             />
           )}
         >
-          <DestroyerModel simRef={simRef} resetToken={resetToken} propWakeRef={propWakeRef} />
+          <DestroyerModel simRef={simRef} resetToken={resetToken} />
         </Suspense>
 
         <OrbitControls

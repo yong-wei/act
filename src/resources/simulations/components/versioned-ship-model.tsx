@@ -1,110 +1,122 @@
 'use client';
 
-/**
- * 版本化模型包的共享挂载边界：质量档位 → 主舰 LOD 的唯一映射、
- * 就绪前保留当前模型、候选失败进入旧模型候选链。
- *
- * 共享加载器职责（spec: simulation-scene-visual-pipeline）：
- * - 档位切换只在下一 LOD 就绪后替换主舰 GLB，不重置仿真/相机/世界变换；
- * - 已可见模型的替换失败保持当前模型继续挂载；
- * - 首次候选加载失败沿 legacy 候选链回退（FallbackGltfModel 语义）。
- * 实验自有场景代码不得另建第二套重试状态机。
- *
- * 激活 LOD 的首选仍是公开存储，但首帧只挂同源镜像；
- * 短超时 HEAD 探测成功后再切到公开地址，避免对未接通域名 useGLTF。
- */
-
-import { Suspense, useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useGLTF } from '@react-three/drei';
-
+import { useThree } from '@react-three/fiber';
+import type { WebGPURenderer } from 'three/webgpu';
 import { FallbackGltfModel, ModelAssetErrorBoundary } from './fallback-gltf-model';
-import {
-  shipLodMountPlan,
-  type VersionedModelPackageDescriptor,
-} from '../model-packages/type055-nanchang-101-v2';
+import { SemanticBindingsStateProvider } from './semantic-bindings-rig';
+import { initialShipArtifactUrls, isShipProxyUrl, shipLodMountPlan, type VersionedModelPackageDescriptor } from '../model-packages/types';
+import { prepareShipLod, rememberShipLodUrl, resolvePreparedShipLodUrls, validatePreparedShipLod } from '../model-packages/lod-preparation';
 
-function uniqueUrls(urls: readonly string[]): string[] {
-  return [...new Set(urls)];
+type Props = {
+  descriptor: VersionedModelPackageDescriptor;
+  tier: 'high' | 'medium' | 'low';
+  legacyCandidates: readonly string[];
+  renderScene: (url: string) => ReactNode;
+  resetToken?: number;
+};
+const failedPreparations = new Set<string>();
+class ParsedShipLodError extends Error {}
+
+function DisplayedLod({ url, onReady, renderScene }: {
+  url: string; onReady: (url: string) => void; renderScene: Props['renderScene'];
+}) {
+  useGLTF(url, true, true);
+  useEffect(() => { onReady(url); }, [url, onReady]);
+  return <>{renderScene(url)}</>;
 }
 
-/** 后台预载下一 LOD；加载完成前不渲染任何东西，失败由外层边界吞掉并保持当前模型。 */
-function LodPrefetch({ url, onReady }: { url: string; onReady: () => void }) {
-  useGLTF(url, true, true);
-  useEffect(() => { onReady(); }, [url, onReady]);
+function PreparingLod({ url, descriptor, onReady }: { url: string; descriptor: Props['descriptor']; onReady: (url: string) => void }) {
+  const { scene: model, parser } = useGLTF(url, true, true);
+  const renderer = useThree(state => state.gl) as unknown as WebGPURenderer;
+  const scene = useThree(state => state.scene);
+  const camera = useThree(state => state.camera);
+  const [error, setError] = useState<Error | null>(null);
+  useEffect(() => {
+    let active = true;
+    void Promise.resolve().then(() => {
+      validatePreparedShipLod(descriptor, { animations: parser.json.animations ?? [], nodes: parser.json.nodes ?? [] });
+      return prepareShipLod(renderer, model, camera, scene, () => active);
+    }).then(ready => {
+      if (ready && active) onReady(url);
+    }).catch(error => { if (active) setError(new ParsedShipLodError(error instanceof Error ? error.message : String(error))); });
+    return () => { active = false; };
+  }, [url, descriptor, model, parser, renderer, camera, scene, onReady]);
+  if (error) throw error;
   return null;
 }
 
-function LodPrefetchChain({
-  urls,
-  onReady,
-}: {
-  urls: readonly string[];
-  onReady: (url: string) => void;
-}) {
-  const url = urls[0];
+function PreparingChain({ urls, descriptor, onReady }: { urls: readonly string[]; descriptor: Props['descriptor']; onReady: (url: string) => void }) {
+  const [url, ...rest] = urls;
   if (!url) return null;
-  const rest = urls.slice(1);
-  return (
-    <ModelAssetErrorBoundary
-      key={url}
-      fallback={rest.length > 0 ? <LodPrefetchChain urls={rest} onReady={onReady} /> : null}
-    >
-      <Suspense fallback={null}>
-        <LodPrefetch url={url} onReady={() => onReady(url)} />
-      </Suspense>
-    </ModelAssetErrorBoundary>
-  );
+  return <ModelAssetErrorBoundary key={url} onError={error => {
+    // 解析成功后的 GPU/接口准备失败不能使其他可见实例丢掉成功的 useGLTF 缓存。
+    if (!(error instanceof ParsedShipLodError)) failedPreparations.add(url);
+  }}
+    fallback={rest.length ? <PreparingChain urls={rest} descriptor={descriptor} onReady={onReady} /> : null}>
+    <Suspense fallback={null}><PreparingLod url={url} descriptor={descriptor} onReady={onReady} /></Suspense>
+  </ModelAssetErrorBoundary>;
 }
 
-export function VersionedShipModel({
-  descriptor,
-  tier,
-  legacyCandidates,
-  renderScene,
-}: {
-  descriptor: VersionedModelPackageDescriptor;
-  tier: 'high' | 'medium' | 'low';
-  /** 旧模型候选链（现有 browser-delivery registry 解析结果），作为最终回退。 */
-  legacyCandidates: readonly string[];
-  renderScene: (url: string) => ReactNode;
-}) {
-  const { preferred, local } = shipLodMountPlan(descriptor, tier);
-  const [committedUrl, setCommittedUrl] = useState(local);
-  const publicReady = committedUrl === preferred;
+/** 包变更立即重建边界，不能把旧包模型套到新包的坐标与接口上。 */
+export function VersionedShipModel(props: Props) {
+  const key = props.descriptor.packageId + ':' + props.descriptor.releaseManifestSha256;
+  return <SemanticBindingsStateProvider key={key} resetToken={props.resetToken ?? 0}>
+    <ProgressiveShipModel {...props} />
+  </SemanticBindingsStateProvider>;
+}
 
+function ProgressiveShipModel({ descriptor, tier, legacyCandidates, renderScene }: Props) {
+  const initial = useMemo(() => Array.from(new Set([
+    ...(descriptor.roles['ship-proxy'] ? initialShipArtifactUrls(descriptor.roles['ship-proxy']) : []),
+    shipLodMountPlan(descriptor, 'low').local,
+    shipLodMountPlan(descriptor, 'medium').local,
+    shipLodMountPlan(descriptor, 'high').local,
+    ...legacyCandidates,
+  ])), [descriptor, legacyCandidates]);
+  const [displayedUrl, setDisplayedUrl] = useState(initial[0]);
+  const [displayedReady, setDisplayedReady] = useState(false);
+  const previousUrl = useRef(initial[0]);
+  const visibleUrl = useRef(displayedUrl); visibleUrl.current = displayedUrl;
+  const [prepared, setPrepared] = useState<{ key: string; urls: readonly string[] } | null>(null);
+  const desired = shipLodMountPlan(descriptor, tier);
+  const showingProxy = isShipProxyUrl(descriptor, displayedUrl);
+  const low = shipLodMountPlan(descriptor, 'low');
+  const requestKey = desired.local + ':' + showingProxy;
+  const latestDesired = useRef(requestKey); latestDesired.current = requestKey;
+  const displayedIsDesired = displayedUrl === desired.local || displayedUrl === desired.preferred;
+  const ready = useCallback((url: string) => {
+    rememberShipLodUrl(descriptor, url);
+    if (url !== visibleUrl.current) previousUrl.current = visibleUrl.current;
+    setDisplayedUrl(url); setDisplayedReady(true);
+  }, [descriptor]);
+  const replacementReady = useCallback((url: string) => {
+    if (latestDesired.current === requestKey && (url === desired.local || url === desired.preferred
+      || (showingProxy && (url === low.local || url === low.preferred)))) ready(url);
+  }, [requestKey, showingProxy, low.local, low.preferred, desired.local, desired.preferred, ready]);
   useEffect(() => {
-    setCommittedUrl(local);
-  }, [local]);
-
-  useEffect(() => {
-    if (preferred === local || !preferred.startsWith('https://')) return undefined;
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), 1500);
-    fetch(preferred, { method: 'HEAD', mode: 'cors', signal: controller.signal })
-      .then((response) => {
-        if (response.ok) setCommittedUrl(preferred);
-      })
-      .catch(() => undefined)
-      .finally(() => window.clearTimeout(timer));
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [preferred, local]);
-
-  const mountCandidates = publicReady
-    ? uniqueUrls([preferred, local, ...legacyCandidates])
-    : uniqueUrls([local, ...legacyCandidates]);
-
-  return (
-    <>
-      <FallbackGltfModel
-        candidates={mountCandidates}
-        render={renderScene}
-      />
-      {publicReady || mountCandidates.includes(committedUrl) ? null : (
-        <LodPrefetchChain urls={[local]} onReady={setCommittedUrl} />
-      )}
-    </>
-  );
+    let active = true;
+    setPrepared(null);
+    if (displayedReady && !displayedIsDesired) {
+      void (async () => {
+        const first = await resolvePreparedShipLodUrls(descriptor, showingProxy ? 'low' : tier);
+        const target = showingProxy && tier !== 'low' ? await resolvePreparedShipLodUrls(descriptor, tier) : [];
+        return Array.from(new Set([...first, ...target]));
+      })().then(urls => {
+        if (!active) return;
+        for (const url of urls) if (failedPreparations.delete(url)) useGLTF.clear(url);
+        setPrepared({ key: requestKey, urls });
+      });
+    }
+    return () => { active = false; };
+  }, [descriptor, tier, displayedReady, displayedIsDesired, showingProxy, requestKey]);
+  const visibleCandidates = Array.from(new Set([displayedUrl, previousUrl.current, ...initial]));
+  return <>
+    <FallbackGltfModel candidates={visibleCandidates}
+      onCandidateError={url => failedPreparations.add(url)}
+      render={url => <DisplayedLod url={url} onReady={ready} renderScene={renderScene} />} />
+    {displayedReady && !displayedIsDesired && prepared?.key === requestKey
+      ? <PreparingChain key={requestKey + ':' + prepared.urls.join('|')} urls={prepared.urls} descriptor={descriptor} onReady={replacementReady} /> : null}
+  </>;
 }

@@ -1,0 +1,218 @@
+{
+  "schema": "act-propulsion-anchors/1",
+  "assetId": "lng-changheng",
+  "version": "1.2.0",
+  "coordinates": {
+    "unit": "meter",
+    "modelAxes": {
+      "bow": "+X",
+      "up": "+Y",
+      "starboard": "+Z"
+    },
+    "sceneAxes": {
+      "bow": "+Z",
+      "up": "+Y",
+      "port": "+X"
+    },
+    "matrixLayout": "row-major",
+    "modelToSceneMatrix": [
+      0,
+      0,
+      -1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "modelDwlY": 0,
+    "sceneWaterLevel": -1.1
+  },
+  "frame": "GLTF_MODEL_Y_UP_METERS",
+  "pose": "EXPORTED_REST",
+  "policy": "Transform positions once with modelToSceneMatrix; transform shaft axes with its rotation. Azimuth rotates about model +Y at the declared parent pivot. No physical RPM/thrust/power inferred from demo clips.",
+  "propulsors": [
+    {
+      "id": "ACT.Propeller.port",
+      "proxyNode": "PropulsorAnchor_1",
+      "lodNode": "ACT.Propeller.port",
+      "kind": "FIXED_SCREW",
+      "positionModelM": [
+        -138.60000610351562,
+        -7.25,
+        -8.399999618530273
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 6.5,
+      "immersionM": 7.25,
+      "side": "port",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "DESIGN_APPROXIMATION",
+        "source": "assets/lng_changheng/parameters/equipment.json",
+        "sourceSha256": "f18fd37c964ddc82bcffeb0e90a726c47122871573bc55f5de7ce88a50749e5a",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "ACT.Propeller.starboard",
+      "proxyNode": "PropulsorAnchor_2",
+      "lodNode": "ACT.Propeller.starboard",
+      "kind": "FIXED_SCREW",
+      "positionModelM": [
+        -138.60000610351562,
+        -7.25,
+        8.399999618530273
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 6.5,
+      "immersionM": 7.25,
+      "side": "starboard",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "DESIGN_APPROXIMATION",
+        "source": "assets/lng_changheng/parameters/equipment.json",
+        "sourceSha256": "f18fd37c964ddc82bcffeb0e90a726c47122871573bc55f5de7ce88a50749e5a",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    }
+  ],
+  "lodProofs": [
+    {
+      "id": "LOD0",
+      "file": "models/LNG-Changheng-LOD0.glb",
+      "sha256": "6f294e520e3bbfebb631dcf3791f453f3387651cb0b1833aaafcfd4cadf56d2f",
+      "anchors": [
+        {
+          "id": "ACT.Propeller.port",
+          "positionModelM": [
+            -138.60000610351562,
+            -7.25,
+            -8.399999618530273
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "ACT.Propeller.starboard",
+          "positionModelM": [
+            -138.60000610351562,
+            -7.25,
+            8.399999618530273
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD1",
+      "file": "models/LNG-Changheng-LOD1.glb",
+      "sha256": "2c615e8bcbc2100b2ab7227ad9d5290f7e37e6c7148719d32fe538f64a92bdc5",
+      "anchors": [
+        {
+          "id": "ACT.Propeller.port",
+          "positionModelM": [
+            -138.60000610351562,
+            -7.25,
+            -8.399999618530273
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "ACT.Propeller.starboard",
+          "positionModelM": [
+            -138.60000610351562,
+            -7.25,
+            8.399999618530273
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD2",
+      "file": "models/LNG-Changheng-LOD2.glb",
+      "sha256": "4995b614934ccefad0830602e874e74e949edf8366b7eadc1407eb355f6297af",
+      "anchors": [
+        {
+          "id": "ACT.Propeller.port",
+          "positionModelM": [
+            -138.60000610351562,
+            -7.25,
+            -8.399999618530273
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "ACT.Propeller.starboard",
+          "positionModelM": [
+            -138.60000610351562,
+            -7.25,
+            8.399999618530273
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "ids": [
+        "ACT.Propeller.port",
+        "ACT.Propeller.starboard"
+      ],
+      "distanceM": 16.799999237060547,
+      "transverseSpacingM": 16.799999237060547,
+      "axisDot": 1
+    }
+  ]
+}

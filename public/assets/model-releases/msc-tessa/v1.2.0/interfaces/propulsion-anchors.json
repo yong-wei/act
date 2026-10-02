@@ -1,0 +1,138 @@
+{
+  "schema": "act-propulsion-anchors/1",
+  "assetId": "msc-tessa",
+  "version": "1.2.0",
+  "coordinates": {
+    "unit": "meter",
+    "modelAxes": {
+      "bow": "+X",
+      "up": "+Y",
+      "starboard": "+Z"
+    },
+    "sceneAxes": {
+      "bow": "+Z",
+      "up": "+Y",
+      "port": "+X"
+    },
+    "matrixLayout": "row-major",
+    "modelToSceneMatrix": [
+      0,
+      0,
+      -1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "modelDwlY": 0,
+    "sceneWaterLevel": -2.6
+  },
+  "frame": "GLTF_MODEL_Y_UP_METERS",
+  "pose": "EXPORTED_REST",
+  "policy": "Transform positions once with modelToSceneMatrix; transform shaft axes with its rotation. Azimuth rotates about model +Y at the declared parent pivot. No physical RPM/thrust/power inferred from demo clips.",
+  "propulsors": [
+    {
+      "id": "ACT.Propeller",
+      "proxyNode": "PropulsorAnchor_1",
+      "lodNode": "ACT.Propeller",
+      "kind": "FIXED_SCREW",
+      "positionModelM": [
+        -189.5,
+        -9.199999809265137,
+        0
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 10.4,
+      "immersionM": 9.199999809265137,
+      "side": "centerline",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "DESIGN_APPROXIMATION",
+        "source": "assets/msc_tessa/scripts/equipment.py",
+        "sourceSha256": "9fc99ed1cafaaf8de4969608fdb5edd437493c5b192099ba1f27e66a3fab0c05",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    }
+  ],
+  "lodProofs": [
+    {
+      "id": "LOD0",
+      "file": "models/MSC-Tessa-LOD0.glb",
+      "sha256": "52519cc2c3c8ef939b0fa7c22c487d44c6f6c931d214c86d3311a88b3084a487",
+      "anchors": [
+        {
+          "id": "ACT.Propeller",
+          "positionModelM": [
+            -189.5,
+            -9.199999809265137,
+            0
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD1",
+      "file": "models/MSC-Tessa-LOD1.glb",
+      "sha256": "e56b291d700cc75143ee531aceea2b0fec90e483fdd4469e8ccdd9acc0a41e29",
+      "anchors": [
+        {
+          "id": "ACT.Propeller",
+          "positionModelM": [
+            -189.5,
+            -9.199999809265137,
+            0
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD2",
+      "file": "models/MSC-Tessa-LOD2.glb",
+      "sha256": "13b3355f3379616f854f06283e590d3cf2327529556b32116333194fb6398052",
+      "anchors": [
+        {
+          "id": "ACT.Propeller",
+          "positionModelM": [
+            -189.5,
+            -9.199999809265137,
+            0
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "pairs": []
+}

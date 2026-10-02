@@ -1,0 +1,251 @@
+{
+  "schema": "act-propulsion-anchors/1",
+  "assetId": "tianjing",
+  "version": "1.2.0",
+  "coordinates": {
+    "unit": "meter",
+    "modelAxes": {
+      "bow": "+X",
+      "up": "+Y",
+      "starboard": "+Z"
+    },
+    "sceneAxes": {
+      "bow": "+Z",
+      "up": "+Y",
+      "port": "+X"
+    },
+    "matrixLayout": "row-major",
+    "modelToSceneMatrix": [
+      0,
+      0,
+      -1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "modelDwlY": 0,
+    "sceneWaterLevel": -0.3
+  },
+  "frame": "GLTF_MODEL_Y_UP_METERS",
+  "pose": "EXPORTED_REST",
+  "policy": "Transform positions once with modelToSceneMatrix; transform shaft axes with its rotation. Azimuth rotates about model +Y at the declared parent pivot. No physical RPM/thrust/power inferred from demo clips.",
+  "propulsors": [
+    {
+      "id": "TJ_PROP_PORT",
+      "proxyNode": "PropulsorAnchor_1",
+      "lodNode": "TJ_PROP_PORT",
+      "kind": "FIXED_SCREW",
+      "positionModelM": [
+        -53.5,
+        -3.299999952316284,
+        -6.099999904632568
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.4,
+      "immersionM": 3.299999952316284,
+      "side": "port",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "DESIGN_APPROXIMATION",
+        "source": "models/act-dredger-tianjing/blender/parameters/design.json",
+        "sourceSha256": "695fab090f996d8aa4b5cceac4990d2c905c72e4bd7ecef54c5ddbd2c2f13119",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "TJ_PROP_STBD",
+      "proxyNode": "PropulsorAnchor_2",
+      "lodNode": "TJ_PROP_STBD",
+      "kind": "FIXED_SCREW",
+      "positionModelM": [
+        -53.5,
+        -3.299999952316284,
+        6.099999904632568
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.4,
+      "immersionM": 3.299999952316284,
+      "side": "starboard",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "DESIGN_APPROXIMATION",
+        "source": "models/act-dredger-tianjing/blender/parameters/design.json",
+        "sourceSha256": "695fab090f996d8aa4b5cceac4990d2c905c72e4bd7ecef54c5ddbd2c2f13119",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    }
+  ],
+  "lodProofs": [
+    {
+      "id": "LOD0",
+      "file": "models/Tianjing-LOD0.glb",
+      "sha256": "25613ad60b2f2cea1bd32366fc0d84f56fafd3168c53f7d8c786e60a9649110d",
+      "anchors": [
+        {
+          "id": "TJ_PROP_PORT",
+          "positionModelM": [
+            -53.5,
+            -3.299999952316284,
+            -6.099999904632568
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "TJ_PROP_STBD",
+          "positionModelM": [
+            -53.5,
+            -3.299999952316284,
+            6.099999904632568
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD1",
+      "file": "models/Tianjing-LOD1.glb",
+      "sha256": "56d58219b57876f37eb014aad737554212bd92720caa35c33c4e6985f34f72e2",
+      "anchors": [
+        {
+          "id": "TJ_PROP_PORT",
+          "positionModelM": [
+            -53.5,
+            -3.299999952316284,
+            -6.099999904632568
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "TJ_PROP_STBD",
+          "positionModelM": [
+            -53.5,
+            -3.299999952316284,
+            6.099999904632568
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD2",
+      "file": "models/Tianjing-LOD2.glb",
+      "sha256": "9f613d41583ff09e0dbdedbbbd405eabdac6c191dd244e90c1cb6174104b5091",
+      "anchors": [
+        {
+          "id": "TJ_PROP_PORT",
+          "positionModelM": [
+            -53.5,
+            -3.299999952316284,
+            -6.099999904632568
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "TJ_PROP_STBD",
+          "positionModelM": [
+            -53.5,
+            -3.299999952316284,
+            6.099999904632568
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD3",
+      "file": "models/Tianjing-LOD3.glb",
+      "sha256": "a3a2ff95464223a89b0d558ce71031b92563530b16eee695500b1fe11af22559",
+      "anchors": [
+        {
+          "id": "TJ_PROP_PORT",
+          "positionModelM": [
+            -53.5,
+            -3.299999952316284,
+            -6.099999904632568
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "TJ_PROP_STBD",
+          "positionModelM": [
+            -53.5,
+            -3.299999952316284,
+            6.099999904632568
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "ids": [
+        "TJ_PROP_PORT",
+        "TJ_PROP_STBD"
+      ],
+      "distanceM": 12.199999809265137,
+      "transverseSpacingM": 12.199999809265137,
+      "axisDot": 1
+    }
+  ]
+}

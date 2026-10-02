@@ -3,7 +3,7 @@ import { Color, DataTexture, MeshBasicNodeMaterial, Vector2, Vector3, Matrix4, t
 import {
   Fn, If, Discard, float, vec2, vec3, vec4, uniform, texture, positionLocal, positionWorld,
   cameraPosition, varyingProperty, mix, smoothstep, max, abs, normalize,
-  dot, cross, reflect, pow, exp, dFdx, dFdy, screenUV, pmremTexture,
+  dot, cross, reflect, pow, exp, dFdx, dFdy, screenUV, pmremTexture, mx_noise_float,
 } from 'three/tsl';
 import type { ComparisonOceanPipeline } from './comparison-ocean-pipeline';
 import { MICRO_NORMAL_OCTAVES_BY_TIER, MICRO_COMPENSATED_ROUGHNESS_CAP, LOW_TIER_ROUGHNESS_FLOOR } from './micro-optics';
@@ -13,8 +13,10 @@ import type { HullExclusionBox } from './hull-exclusion';
 import type { MarineShoreSegment } from '../environment/scene-layouts';
 import { getEnvironmentPreset, DEFAULT_ENVIRONMENT_PRESET_ID } from '../environment/environment-presets';
 import { COMPARISON_OVERHEAD_WAVE_SHADE, COMPARISON_SUN_DIRECTION } from './shared-water-optics';
-import { sampleBilinearHistory } from './comparison-texture-sampling';
+import { sampleBilinearHistory, sampleBilinearPeriodic } from './comparison-texture-sampling';
 import { SURFACE_FOAM_DRIFT, SURFACE_FOAM_RESOLUTION } from './comparison-surface-history';
+import { SHIP_WAVE_DOMAIN_METERS, SHIP_WAVE_RESOLUTION } from './ship-wave-config';
+import { SHIP_SURFACE_CELL_METERS } from './marine-surface-geometry';
 
 export function createComparisonWaterMaterial(options: {
   pipeline: ComparisonOceanPipeline | null;
@@ -41,6 +43,8 @@ export function createComparisonWaterMaterial(options: {
   const shipPose = uniform(new Vector3());
   const origin = uniform(new Vector2());
   const foamOrigin = uniform(new Vector2());
+  const wakeOrigin = uniform(new Vector2());
+  const washOrigin = uniform(new Vector2());
   const shores = options.shores ?? (options.shore ? [options.shore] : []);
   const shoreDepth = Math.min(30, ...shores.map(shore => shore.shoreDepthMeters));
   const shallowEnabled = uniform(0);
@@ -54,6 +58,7 @@ export function createComparisonWaterMaterial(options: {
   zeroTexture.needsUpdate = true;
   const wakeTexture = texture(zeroTexture);
   const historyTexture = texture(zeroTexture);
+  const washTexture = texture(zeroTexture);
   const historyEnabled = uniform(0);
   const foamDrift = uniform(new Vector2(...SURFACE_FOAM_DRIFT));
   const n = varyingProperty('vec3', 'oceanNormal');
@@ -75,11 +80,9 @@ export function createComparisonWaterMaterial(options: {
   const baseDisplace = Fn(([p]: [Node<'vec2'>]) => {
     if (pipeline) {
       const at = p.div(domain).add(0.5 / pipeline.resolution).fract();
-      return vec3(
-        p.x.add(texture(pipeline.displacementXTexture, at, 0).r),
-        texture(pipeline.heightTexture, at, 0).r,
-        p.y.add(texture(pipeline.displacementZTexture, at, 0).r),
-      );
+      return vec3(p.x.add(sampleBilinearPeriodic(texture(pipeline.displacementXTexture), at, pipeline.resolution).r),
+        sampleBilinearPeriodic(texture(pipeline.heightTexture), at, pipeline.resolution).r,
+        p.y.add(sampleBilinearPeriodic(texture(pipeline.displacementZTexture), at, pipeline.resolution).r));
     }
     const displacement = vec3(0).toVar();
     const envelope = float(1).sub(smoothstep(domain / 2 - NEAR_FIELD_FADE_BAND_METERS, domain / 2, max(abs(p.x), abs(p.y))));
@@ -100,21 +103,28 @@ export function createComparisonWaterMaterial(options: {
     }
     return vec3(p.x, 0, p.y).add(displacement.mul(envelope).mul(shore));
   });
+  const wakeHeight = Fn(([p]: [Node<'vec2'>]) => sampleBilinearHistory(wakeTexture,
+    p.sub(wakeOrigin).div(SHIP_WAVE_DOMAIN_METERS).add(0.5 + 0.5 / SHIP_WAVE_RESOLUTION), SHIP_WAVE_RESOLUTION).r);
+  const attenuate = (p: Node<'vec2'>, value: Node<'vec3'>) => {
+    if (!options.worldSpace || neutral || !shores.length) return value;
+    const t = shoreDistance(p).div(options.shoreFadeBandMeters ?? 400).clamp();
+    const attenuation = float(0.15).add(t.mul(t).mul(float(3).sub(t.mul(2))).mul(0.85));
+    return vec3(p.x, 0, p.y).add(value.sub(vec3(p.x, 0, p.y)).mul(attenuation));
+  };
+  const backgroundDisplace = Fn(([p]: [Node<'vec2'>]) => attenuate(p, baseDisplace(p)));
   const displace = Fn(([p]: [Node<'vec2'>]) => {
     const base = baseDisplace(p);
     // 船行波采样在世界空间，跟随船的只有压力源，不旋转旧波场。
-    const wake = wakeTexture.sample(p.div(domain).add(0.5 / options.wakeResolution).fract()).r;
+    const wake = wakeHeight(p);
     const combined = base.add(vec3(0, wake, 0));
-    if (!options.worldSpace || neutral || !shores.length) return combined;
-    const t = shoreDistance(p).div(options.shoreFadeBandMeters ?? 400).clamp();
-    const attenuation = float(0.15).add(t.mul(t).mul(float(3).sub(t.mul(2))).mul(0.85));
-    return vec3(p.x, 0, p.y).add(combined.sub(vec3(p.x, 0, p.y)).mul(attenuation));
+    return attenuate(p, combined);
   });
   const material = new MeshBasicNodeMaterial();
   material.positionNode = Fn(() => {
     farSurface.assign(0);
     const p = positionLocal.xz.add(origin);
-    const cell = pipeline ? domain / pipeline.resolution : 0.5;
+    const cell = pipeline ? mix(float(SHIP_SURFACE_CELL_METERS), float(domain / pipeline.resolution),
+      smoothstep(384, 512, max(abs(p.x.sub(wakeOrigin.x)), abs(p.y.sub(wakeOrigin.y))))) : float(0.5);
     const visibleDisplace = (at: Node<'vec2'>) => {
       const value = displace(at);
       if (!options.worldSpace) return value;
@@ -173,14 +183,25 @@ export function createComparisonWaterMaterial(options: {
     let energy = 0;
     for (const [index, octave] of MICRO_NORMAL_OCTAVES_BY_TIER[tier].entries()) {
       const direction = vec2(...octave.direction);
-      const footprint = max(abs(dot(stepX, direction)), abs(dot(stepY, direction))).max(1e-4);
-      const weight = smoothstep(1.15, 2.6, float(2 * Math.PI / octave.waveNumber).div(footprint)).mul(opticalOctaves.greaterThan(index).select(1, 0));
+      const across = vec2(-octave.direction[1], octave.direction[0]);
+      const wavelength = 2 * Math.PI / octave.waveNumber;
+      const footprint = max(
+        max(abs(dot(stepX, direction)), abs(dot(stepY, direction))),
+        max(abs(dot(stepX, across)), abs(dot(stepY, across))).mul(0.65),
+      ).max(1e-4);
+      const weight = smoothstep(1.15, 2.6, float(wavelength).div(footprint)).mul(opticalOctaves.greaterThan(index).select(1, 0));
       const variance = (octave.slopeAmplitude * octave.waveNumber) ** 2;
       energy += variance;
       retained.addAssign(weight.mul(weight).mul(variance));
-      const phase = dot(positionWorld.xz, direction).mul(octave.waveNumber)
-        .sub(time.mul(octave.waveNumber * octave.speedScale * 1.2)).add(octave.phaseOffset);
-      slopes.addAssign(direction.mul(phase.cos()).mul(weight).mul(octave.slopeAmplitude * octave.waveNumber * 0.4));
+      // 有限组正弦波仍会形成整齐的交叉条纹；用连续噪声生成不规则的小波纹。
+      // 世界坐标输运保持暂停/重放确定性，横向足迹也参与过滤。
+      If(weight.greaterThan(0), () => {
+        const at = vec2(
+          dot(positionWorld.xz, direction).sub(time.mul(octave.speedScale * 1.2)),
+          dot(positionWorld.xz, across).mul(0.65),
+        ).div(wavelength).add(vec2(octave.phaseOffset, octave.phaseOffset * 1.618));
+        slopes.addAssign(direction.mul(mx_noise_float(at)).mul(weight).mul(octave.slopeAmplitude * octave.waveNumber * 0.8));
+      });
     }
     normal.assign(normalize(normal.add(vec3(slopes.x, 0, slopes.y))));
     const lost = energy > 0 ? float(1).sub(retained.div(energy)).clamp() : float(0);
@@ -201,18 +222,25 @@ export function createComparisonWaterMaterial(options: {
       .add(noise.sample(carried.div(pipeline ? 37 : 149).add(vec2(0.71, 0.53))).a.mul(0.25));
     const coverage = float(0).toVar();
     const history = sampleBilinearHistory(historyTexture, positionWorld.xz.sub(foamOrigin).div(domain).add(0.5), SURFACE_FOAM_RESOLUTION);
+    const wash = sampleBilinearHistory(washTexture, positionWorld.xz.sub(washOrigin).div(SHIP_WAVE_DOMAIN_METERS).add(0.5), SHIP_WAVE_RESOLUTION);
     If(historyEnabled.greaterThan(0.5), () => {
       // 新生白沫较密，残留泡沫逐渐破碎为斑驳薄层；位置来自输运场。
-      coverage.assign(max(float(0),
-        history.r.mul(smoothstep(0.18, 0.65, detail).mul(0.65).add(0.35)).add(history.g.mul(0.4)).clamp()));
+      const patches = smoothstep(0.22, 0.70, detail);
+      coverage.assign(history.r.mul(patches).add(history.g.mul(0.25))
+        .add(wash.r.mul(patches).mul(0.65)).add(wash.g.mul(0.28))
+        .add(wash.b.mul(patches).mul(0.75)).add(wash.a.mul(0.28)).clamp());
     });
     const nv = dot(normal, view).max(1e-4);
     const nl = dot(normal, sun).max(0);
     const half = normalize(sun.add(view));
     const nh = dot(normal, half).max(0);
-    const roughness = max(
+    const baseRoughness = max(
       max(opticalOctaves.equal(0).select(LOW_TIER_ROUGHNESS_FLOOR, 0.06), mix(0.06, 0.6, coverage)),
       mix(0.06, MICRO_COMPENSATED_ROUGHNESS_CAP, lost));
+    // 像素内法线变化扩大高光瓣，避免低粗糙度把细节放大为鱼鳞状闪点。
+    const normalDx = dFdx(normal), normalDy = dFdy(normal);
+    const normalVariance = dot(normalDx, normalDx).add(dot(normalDy, normalDy)).mul(0.15);
+    const roughness = pow(pow(baseRoughness, 4).add(normalVariance.mul(2).min(0.2)).min(1), 0.25);
     const a = roughness.mul(roughness).max(1e-4);
     const a2 = a.mul(a);
     const denominator = nh.mul(nh).mul(a2.sub(1)).add(1);
@@ -258,7 +286,8 @@ export function createComparisonWaterMaterial(options: {
   // 已在上面计算完整光学，不能再走 BasicMaterial 的环境乘色。
   material.fragmentNode = vec4(waterColorNode, 1);
   return {
-    material, time, opticalOctaves, origin, foamOrigin, shipPose, displace, wakeTexture, historyTexture, historyEnabled, shallowEnabled, shallowTexture, planarTexture, planarStrength, planarMatrix,
+    material, time, opticalOctaves, origin, foamOrigin, wakeOrigin, washOrigin, shipPose, displace, backgroundDisplace, wakeHeight,
+    wakeTexture, historyTexture, washTexture, historyEnabled, shallowEnabled, shallowTexture, planarTexture, planarStrength, planarMatrix,
     emptyTexture: placeholder,
     createFarMaterial() {
       const far = material.clone();

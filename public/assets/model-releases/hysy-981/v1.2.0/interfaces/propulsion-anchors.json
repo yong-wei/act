@@ -1,0 +1,961 @@
+{
+  "schema": "act-propulsion-anchors/1",
+  "assetId": "hysy981-blender",
+  "version": "1.2.0",
+  "coordinates": {
+    "unit": "meter",
+    "modelAxes": {
+      "bow": "+X",
+      "up": "+Y",
+      "starboard": "+Z"
+    },
+    "sceneAxes": {
+      "bow": "+Z",
+      "up": "+Y",
+      "port": "+X"
+    },
+    "matrixLayout": "row-major",
+    "modelToSceneMatrix": [
+      0,
+      0,
+      -1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "modelDwlY": 0,
+    "sceneWaterLevel": 0
+  },
+  "frame": "GLTF_MODEL_Y_UP_METERS",
+  "pose": "EXPORTED_REST",
+  "policy": "Transform positions once with modelToSceneMatrix; transform shaft axes with its rotation. Azimuth rotates about model +Y at the declared parent pivot. No physical RPM/thrust/power inferred from demo clips.",
+  "propulsors": [
+    {
+      "id": "Thruster_1_SpinPivot",
+      "proxyNode": "PropulsorAnchor_1",
+      "lodNode": "Thruster_1_SpinPivot",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        46.400001525878906,
+        -19,
+        23.799999237060547
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        46.400001525878906,
+        -21.799999237060547,
+        23.799999237060547
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.6,
+      "immersionM": 21.799999237060547,
+      "side": "starboard",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "XY_DOCUMENTED; Z_AND_DIAMETER_DESIGN_APPROXIMATION",
+        "source": "models/hysy981-blender/parameters/dimensions.json",
+        "sourceSha256": "be873002936a2307365bc04d3dc634f27674e9fdf3ea53d458f20970f73d3faf",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "Thruster_2_SpinPivot",
+      "proxyNode": "PropulsorAnchor_2",
+      "lodNode": "Thruster_2_SpinPivot",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        46.400001525878906,
+        -19,
+        34.79999923706055
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        46.400001525878906,
+        -21.799999237060547,
+        34.79999923706055
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.6,
+      "immersionM": 21.799999237060547,
+      "side": "starboard",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "XY_DOCUMENTED; Z_AND_DIAMETER_DESIGN_APPROXIMATION",
+        "source": "models/hysy981-blender/parameters/dimensions.json",
+        "sourceSha256": "be873002936a2307365bc04d3dc634f27674e9fdf3ea53d458f20970f73d3faf",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "Thruster_3_SpinPivot",
+      "proxyNode": "PropulsorAnchor_3",
+      "lodNode": "Thruster_3_SpinPivot",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        -46.400001525878906,
+        -19,
+        34.79999923706055
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        -46.400001525878906,
+        -21.799999237060547,
+        34.79999923706055
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.6,
+      "immersionM": 21.799999237060547,
+      "side": "starboard",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "XY_DOCUMENTED; Z_AND_DIAMETER_DESIGN_APPROXIMATION",
+        "source": "models/hysy981-blender/parameters/dimensions.json",
+        "sourceSha256": "be873002936a2307365bc04d3dc634f27674e9fdf3ea53d458f20970f73d3faf",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "Thruster_4_SpinPivot",
+      "proxyNode": "PropulsorAnchor_4",
+      "lodNode": "Thruster_4_SpinPivot",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        -46.400001525878906,
+        -19,
+        23.799999237060547
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        -46.400001525878906,
+        -21.799999237060547,
+        23.799999237060547
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.6,
+      "immersionM": 21.799999237060547,
+      "side": "starboard",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "XY_DOCUMENTED; Z_AND_DIAMETER_DESIGN_APPROXIMATION",
+        "source": "models/hysy981-blender/parameters/dimensions.json",
+        "sourceSha256": "be873002936a2307365bc04d3dc634f27674e9fdf3ea53d458f20970f73d3faf",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "Thruster_5_SpinPivot",
+      "proxyNode": "PropulsorAnchor_5",
+      "lodNode": "Thruster_5_SpinPivot",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        -46.400001525878906,
+        -19,
+        -23.799999237060547
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        -46.400001525878906,
+        -21.799999237060547,
+        -23.799999237060547
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.6,
+      "immersionM": 21.799999237060547,
+      "side": "port",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "XY_DOCUMENTED; Z_AND_DIAMETER_DESIGN_APPROXIMATION",
+        "source": "models/hysy981-blender/parameters/dimensions.json",
+        "sourceSha256": "be873002936a2307365bc04d3dc634f27674e9fdf3ea53d458f20970f73d3faf",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "Thruster_6_SpinPivot",
+      "proxyNode": "PropulsorAnchor_6",
+      "lodNode": "Thruster_6_SpinPivot",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        -46.400001525878906,
+        -19,
+        -34.79999923706055
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        -46.400001525878906,
+        -21.799999237060547,
+        -34.79999923706055
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.6,
+      "immersionM": 21.799999237060547,
+      "side": "port",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "XY_DOCUMENTED; Z_AND_DIAMETER_DESIGN_APPROXIMATION",
+        "source": "models/hysy981-blender/parameters/dimensions.json",
+        "sourceSha256": "be873002936a2307365bc04d3dc634f27674e9fdf3ea53d458f20970f73d3faf",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "Thruster_7_SpinPivot",
+      "proxyNode": "PropulsorAnchor_7",
+      "lodNode": "Thruster_7_SpinPivot",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        46.400001525878906,
+        -19,
+        -34.79999923706055
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        46.400001525878906,
+        -21.799999237060547,
+        -34.79999923706055
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.6,
+      "immersionM": 21.799999237060547,
+      "side": "port",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "XY_DOCUMENTED; Z_AND_DIAMETER_DESIGN_APPROXIMATION",
+        "source": "models/hysy981-blender/parameters/dimensions.json",
+        "sourceSha256": "be873002936a2307365bc04d3dc634f27674e9fdf3ea53d458f20970f73d3faf",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "Thruster_8_SpinPivot",
+      "proxyNode": "PropulsorAnchor_8",
+      "lodNode": "Thruster_8_SpinPivot",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        46.400001525878906,
+        -19,
+        -23.799999237060547
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        46.400001525878906,
+        -21.799999237060547,
+        -23.799999237060547
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.6,
+      "immersionM": 21.799999237060547,
+      "side": "port",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "XY_DOCUMENTED; Z_AND_DIAMETER_DESIGN_APPROXIMATION",
+        "source": "models/hysy981-blender/parameters/dimensions.json",
+        "sourceSha256": "be873002936a2307365bc04d3dc634f27674e9fdf3ea53d458f20970f73d3faf",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    }
+  ],
+  "lodProofs": [
+    {
+      "id": "LOD0",
+      "file": "models/HYSY981-LOD0.glb",
+      "sha256": "26625689a73c013117fcdcef1c28a7a4b91a09ea345febf83d58c46884693349",
+      "anchors": [
+        {
+          "id": "Thruster_1_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_2_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_3_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_4_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_5_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            -23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_6_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            -34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_7_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            -34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_8_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            -23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD1",
+      "file": "models/HYSY981-LOD1.glb",
+      "sha256": "66437e66825ae1f75e0d878ed2c3932361be2323b9c0ef6b94087aa712b25977",
+      "anchors": [
+        {
+          "id": "Thruster_1_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_2_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_3_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_4_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_5_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            -23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_6_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            -34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_7_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            -34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_8_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            -23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD2",
+      "file": "models/HYSY981-LOD2.glb",
+      "sha256": "148bcbde326301a8b5060209bdc313c1eca72a57f5efc86135a988e9c6d6b8b8",
+      "anchors": [
+        {
+          "id": "Thruster_1_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_2_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_3_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_4_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_5_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            -23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_6_SpinPivot",
+          "positionModelM": [
+            -46.400001525878906,
+            -21.799999237060547,
+            -34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_7_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            -34.79999923706055
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "Thruster_8_SpinPivot",
+          "positionModelM": [
+            46.400001525878906,
+            -21.799999237060547,
+            -23.799999237060547
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "ids": [
+        "Thruster_1_SpinPivot",
+        "Thruster_2_SpinPivot"
+      ],
+      "distanceM": 11,
+      "transverseSpacingM": 11,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_1_SpinPivot",
+        "Thruster_3_SpinPivot"
+      ],
+      "distanceM": 93.44966862651927,
+      "transverseSpacingM": 11,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_1_SpinPivot",
+        "Thruster_4_SpinPivot"
+      ],
+      "distanceM": 92.80000305175781,
+      "transverseSpacingM": 0,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_1_SpinPivot",
+        "Thruster_5_SpinPivot"
+      ],
+      "distanceM": 104.29573539288454,
+      "transverseSpacingM": 47.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_1_SpinPivot",
+        "Thruster_6_SpinPivot"
+      ],
+      "distanceM": 109.75336162311045,
+      "transverseSpacingM": 58.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_1_SpinPivot",
+        "Thruster_7_SpinPivot"
+      ],
+      "distanceM": 58.599998474121094,
+      "transverseSpacingM": 58.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_1_SpinPivot",
+        "Thruster_8_SpinPivot"
+      ],
+      "distanceM": 47.599998474121094,
+      "transverseSpacingM": 47.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_2_SpinPivot",
+        "Thruster_3_SpinPivot"
+      ],
+      "distanceM": 92.80000305175781,
+      "transverseSpacingM": 0,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_2_SpinPivot",
+        "Thruster_4_SpinPivot"
+      ],
+      "distanceM": 93.44966862651927,
+      "transverseSpacingM": 11,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_2_SpinPivot",
+        "Thruster_5_SpinPivot"
+      ],
+      "distanceM": 109.75336162311045,
+      "transverseSpacingM": 58.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_2_SpinPivot",
+        "Thruster_6_SpinPivot"
+      ],
+      "distanceM": 116.00000152587894,
+      "transverseSpacingM": 69.5999984741211,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_2_SpinPivot",
+        "Thruster_7_SpinPivot"
+      ],
+      "distanceM": 69.5999984741211,
+      "transverseSpacingM": 69.5999984741211,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_2_SpinPivot",
+        "Thruster_8_SpinPivot"
+      ],
+      "distanceM": 58.599998474121094,
+      "transverseSpacingM": 58.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_3_SpinPivot",
+        "Thruster_4_SpinPivot"
+      ],
+      "distanceM": 11,
+      "transverseSpacingM": 11,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_3_SpinPivot",
+        "Thruster_5_SpinPivot"
+      ],
+      "distanceM": 58.599998474121094,
+      "transverseSpacingM": 58.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_3_SpinPivot",
+        "Thruster_6_SpinPivot"
+      ],
+      "distanceM": 69.5999984741211,
+      "transverseSpacingM": 69.5999984741211,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_3_SpinPivot",
+        "Thruster_7_SpinPivot"
+      ],
+      "distanceM": 116.00000152587894,
+      "transverseSpacingM": 69.5999984741211,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_3_SpinPivot",
+        "Thruster_8_SpinPivot"
+      ],
+      "distanceM": 109.75336162311045,
+      "transverseSpacingM": 58.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_4_SpinPivot",
+        "Thruster_5_SpinPivot"
+      ],
+      "distanceM": 47.599998474121094,
+      "transverseSpacingM": 47.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_4_SpinPivot",
+        "Thruster_6_SpinPivot"
+      ],
+      "distanceM": 58.599998474121094,
+      "transverseSpacingM": 58.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_4_SpinPivot",
+        "Thruster_7_SpinPivot"
+      ],
+      "distanceM": 109.75336162311045,
+      "transverseSpacingM": 58.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_4_SpinPivot",
+        "Thruster_8_SpinPivot"
+      ],
+      "distanceM": 104.29573539288454,
+      "transverseSpacingM": 47.599998474121094,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_5_SpinPivot",
+        "Thruster_6_SpinPivot"
+      ],
+      "distanceM": 11,
+      "transverseSpacingM": 11,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_5_SpinPivot",
+        "Thruster_7_SpinPivot"
+      ],
+      "distanceM": 93.44966862651927,
+      "transverseSpacingM": 11,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_5_SpinPivot",
+        "Thruster_8_SpinPivot"
+      ],
+      "distanceM": 92.80000305175781,
+      "transverseSpacingM": 0,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_6_SpinPivot",
+        "Thruster_7_SpinPivot"
+      ],
+      "distanceM": 92.80000305175781,
+      "transverseSpacingM": 0,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_6_SpinPivot",
+        "Thruster_8_SpinPivot"
+      ],
+      "distanceM": 93.44966862651927,
+      "transverseSpacingM": 11,
+      "axisDot": 1
+    },
+    {
+      "ids": [
+        "Thruster_7_SpinPivot",
+        "Thruster_8_SpinPivot"
+      ],
+      "distanceM": 11,
+      "transverseSpacingM": 11,
+      "axisDot": 1
+    }
+  ]
+}
