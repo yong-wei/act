@@ -9,6 +9,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from scripts.tests.runtime_storage_test_support import coordinated_oss_transport
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -23,11 +24,12 @@ class PublishRuntimeTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(body, encoding="utf-8")
 
-    def publish(self, *args: str, expect_ok: bool = True) -> subprocess.CompletedProcess[str] | dict:
+    def publish(self, *args: str, expect_ok: bool = True, env=None) -> subprocess.CompletedProcess[str] | dict:
         result = subprocess.run(
             ["python3", str(SCRIPT), *args],
             text=True,
             capture_output=True,
+            env=env,
         )
         if expect_ok:
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -220,7 +222,9 @@ class PublishRuntimeTests(unittest.TestCase):
             )
             os.chmod(fake, os.stat(fake).st_mode | stat.S_IEXEC)
             self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"1-1"}\n'})
+            coordination, env = coordinated_oss_transport(root, 'test-bucket')
             first = self.publish(
+                *coordination,
                 "--root",
                 str(runtime),
                 "--index",
@@ -232,9 +236,11 @@ class PublishRuntimeTests(unittest.TestCase):
                 "--source-revision",
                 SOURCE_REVISION,
                 "--bootstrap",
+                env=env,
             )
             self.assertEqual(first["uploadedBlobs"], 1)
             second = self.publish(
+                *coordination,
                 "--root",
                 str(runtime),
                 "--index",
@@ -245,6 +251,7 @@ class PublishRuntimeTests(unittest.TestCase):
                 str(fake),
                 "--source-revision",
                 SOURCE_REVISION,
+                env=env,
             )
             self.assertEqual(second["hashed"], 0)
             self.assertEqual(second["uploaded"], 0)
@@ -292,7 +299,9 @@ class PublishRuntimeTests(unittest.TestCase):
             )
             os.chmod(fake, os.stat(fake).st_mode | stat.S_IEXEC)
             self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"1-1"}\n'})
+            coordination, env = coordinated_oss_transport(root, 'test-bucket')
             result = self.publish(
+                *coordination,
                 "--root",
                 str(runtime),
                 "--index",
@@ -305,6 +314,7 @@ class PublishRuntimeTests(unittest.TestCase):
                 SOURCE_REVISION,
                 "--bootstrap",
                 expect_ok=False,
+                env=env,
             )
             self.assertIn("conditional PUT failed", result.stderr)
             self.assertFalse(any(store.rglob("*")))
@@ -333,7 +343,9 @@ class PublishRuntimeTests(unittest.TestCase):
             )
             os.chmod(fake, os.stat(fake).st_mode | stat.S_IEXEC)
             self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"1-1"}\n'})
+            coordination, env = coordinated_oss_transport(root, 'test-bucket')
             result = self.publish(
+                *coordination,
                 "--root",
                 str(runtime),
                 "--index",
@@ -346,6 +358,7 @@ class PublishRuntimeTests(unittest.TestCase):
                 SOURCE_REVISION,
                 "--bootstrap",
                 expect_ok=False,
+                env=env,
             )
             self.assertIn("conditional PUT failed", result.stderr)
             self.assertFalse(any(store.rglob("*")))

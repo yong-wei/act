@@ -3,15 +3,19 @@ import 'server-only';
 import { createHash } from 'node:crypto';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
+import {
+  isPublicTeachingMediaPath,
+  loadRuntimeMediaDirectory,
+  RUNTIME_PUBLIC_MEDIA_TYPES,
+  runtimePublicMediaObject,
+} from '@/lib/runtime-media-storage';
+
+export { isPublicTeachingMediaPath } from '@/lib/runtime-media-storage';
 
 const SHA256 = /^[a-f0-9]{64}$/;
 const RELEASE_ID = /^runtime-[a-f0-9]{20,80}$/;
-const TYPES: Readonly<Record<string, string>> = {
-  '.mp4': 'video/mp4', '.webm': 'video/webm',
-  '.m4a': 'audio/mp4', '.mp3': 'audio/mpeg', '.wav': 'audio/wav',
-  '.pdf': 'application/pdf', '.png': 'image/png', '.svg': 'image/svg+xml',
-  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif',
-};
+const TYPES = RUNTIME_PUBLIC_MEDIA_TYPES;
 
 export interface PublicTeachingMediaObject {
   path: string;
@@ -31,21 +35,9 @@ export interface PublicTeachingMediaIndex {
 type LoadedIndex = {
   index: PublicTeachingMediaIndex;
   byPath: Map<string, PublicTeachingMediaObject>;
-  byDigest: Map<string, PublicTeachingMediaObject[]>;
 };
 
 let cached: { key: string; loaded: LoadedIndex | null } | undefined;
-
-export function isPublicTeachingMediaPath(value: string): boolean {
-  if (value.includes('\\') || value.includes('\0') || value.split('/').some((part) => !part || part.startsWith('.'))) return false;
-  const extension = path.posix.extname(value).toLowerCase();
-  if (!TYPES[extension]) return false;
-  return /^lessons\/[^/]+\/media\/[^/]+$/u.test(value)
-    || (/^lessons\/[^/]+\/[^/]+$/u.test(value) && extension === '.pdf')
-    || (/^resources\/textbooks\/[a-z0-9][a-z0-9-]{0,95}\/assets\/[^/]+\/[^/]+$/u.test(value)
-      && TYPES[extension].startsWith('image/'))
-    || (/^knowledge\/infographs\/(?:authority\/)?nodes\/[^/]+$/u.test(value) && extension === '.png');
-}
 
 export function parsePublicTeachingMediaIndex(value: unknown): PublicTeachingMediaIndex | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -66,11 +58,6 @@ export function parsePublicTeachingMediaIndex(value: unknown): PublicTeachingMed
   return index as PublicTeachingMediaIndex;
 }
 
-function objectUrl(object: PublicTeachingMediaObject): string {
-  const extension = path.posix.extname(object.path).toLowerCase();
-  return `https://static.adapt-learn.online/teaching-media/sha256/${object.sha256}/asset${extension}`;
-}
-
 async function loadIndex(): Promise<LoadedIndex | null> {
   const filename = process.env.ACT_PUBLIC_TEACHING_MEDIA_INDEX_PATH?.trim()
     || path.join(/*turbopackIgnore: true*/ process.cwd(), 'act-runtime-state', 'public-teaching-media', 'current.json');
@@ -85,11 +72,7 @@ async function loadIndex(): Promise<LoadedIndex | null> {
       return null;
     }
     const byPath = new Map(index.objects.map((object) => [object.path, object]));
-    const byDigest = new Map<string, PublicTeachingMediaObject[]>();
-    for (const object of index.objects) {
-      byDigest.set(object.sha256, [...(byDigest.get(object.sha256) ?? []), object]);
-    }
-    const loaded = { index, byPath, byDigest };
+    const loaded = { index, byPath };
     cached = { key, loaded };
     return loaded;
   } catch {
@@ -100,22 +83,55 @@ async function loadIndex(): Promise<LoadedIndex | null> {
 export async function publicTeachingMediaUrlForDigest(
   sha256: string,
   mediaType?: string,
+  sizeBytes?: number,
 ): Promise<string | null> {
-  if (!SHA256.test(sha256)) return null;
-  const loaded = await loadIndex();
-  const object = loaded?.byDigest.get(sha256)?.find((item) => !mediaType || item.mediaType === mediaType);
-  return object ? objectUrl(object) : null;
+  if (process.env.ACT_PUBLIC_TEACHING_MEDIA_ESA_ENABLED === '0') return null;
+  const object = runtimePublicMediaObject(sha256, mediaType, sizeBytes);
+  return object ? `https://static.adapt-learn.online/${object.objectKey}` : null;
 }
 
 export async function publicTeachingMediaUrlForBuffer(
   content: Buffer,
   mediaType: string,
 ): Promise<string | null> {
-  return publicTeachingMediaUrlForDigest(createHash('sha256').update(content).digest('hex'), mediaType);
+  return publicTeachingMediaUrlForDigest(createHash('sha256').update(content).digest('hex'), mediaType, content.length);
+}
+
+type SelectedFile = { sha256: string; sizeBytes: number };
+let selectedCache: { key: string; files: Promise<Map<string, SelectedFile>> } | undefined;
+
+async function selectedFile(runtimePath: string): Promise<SelectedFile | null> {
+  const root = process.env.ACT_RUNTIME_ROOT?.trim()
+    || path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'runtime');
+  const receipt = process.env.ACT_RUNTIME_ACTIVE_RECEIPT_PATH?.trim()
+    || path.join(root, 'act-runtime-active-receipt.json');
+  try {
+    const marker = path.join(root, '.act-runtime-release.v2.json');
+    const metadata = await Promise.all([stat(marker), stat(receipt)]);
+    if (metadata.some(item => !item.isFile())) return null;
+    const key = [root, receipt, ...metadata.flatMap(item => [item.dev, item.ino, item.mtimeMs, item.size])].join(':');
+    if (selectedCache?.key !== key) {
+      const files = readActiveRuntimeReleaseManifest(root, receipt).then(manifest => new Map(
+        manifest?.files.map(item => [item.path, { sha256: item.sha256, sizeBytes: item.sizeBytes }]) ?? [],
+      )).catch(error => {
+        if (selectedCache?.key === key) selectedCache = undefined;
+        throw error;
+      });
+      // 多个图片请求共用一次完整清单校验，选择变化后按文件身份刷新。
+      selectedCache = { key, files };
+    }
+    return (await selectedCache.files).get(runtimePath) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function publicTeachingMediaUrlForPath(runtimePath: string): Promise<string | null> {
   if (!isPublicTeachingMediaPath(runtimePath)) return null;
+  if (loadRuntimeMediaDirectory()?.canonical) {
+    const binding = await selectedFile(runtimePath);
+    return binding ? publicTeachingMediaUrlForDigest(binding.sha256, TYPES[path.posix.extname(runtimePath).toLowerCase()], binding.sizeBytes) : null;
+  }
   const loaded = await loadIndex();
   const object = loaded?.byPath.get(runtimePath);
   if (!loaded || !object) return null;
@@ -126,7 +142,7 @@ export async function publicTeachingMediaUrlForPath(runtimePath: string): Promis
     if (receipt.schemaVersion !== 'runtime-release-active-receipt.v1'
       || receipt.selection?.releaseId !== loaded.index.sourceRuntime.releaseId
       || receipt.selection?.manifestSha256 !== loaded.index.sourceRuntime.manifestSha256) return null;
-    return objectUrl(object);
+    return publicTeachingMediaUrlForDigest(object.sha256, object.mediaType, object.sizeBytes);
   } catch {
     return null;
   }

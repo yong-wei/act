@@ -66,17 +66,21 @@ def destination_key(item):
     return '{}/{}/asset{}'.format(PREFIX, item['sha256'], Path(item['path']).suffix.lower())
 
 
-def build_inventory(source):
+def build_inventory(source, allow_empty=False):
     identity = source['sourceRuntime']
     if not re.fullmatch(r'runtime-[a-f0-9]{20,80}', identity['releaseId']) or not SHA256.fullmatch(identity['manifestSha256']):
         raise ValueError('invalid-runtime-identity')
-    learning = source['learning']
-    if learning.get('contract') != 'act-authority-learning-content-manifest/v2':
-        raise ValueError('invalid-learning-content-contract')
-    if not learning.get('teachingProjectionId') or not SHA256.fullmatch(learning.get('teachingProjectionHash', '')):
-        raise ValueError('unsealed-learning-content')
+    learning = source.get('learning')
+    has_authority = any(row['path'].startswith('knowledge/infographs/authority/nodes/') for row in source['files'])
+    if learning is None and has_authority:
+        raise ValueError('missing-learning-content-qualification')
+    if learning is not None:
+        if not isinstance(learning, dict) or learning.get('contract') != 'act-authority-learning-content-manifest/v2':
+            raise ValueError('invalid-learning-content-contract')
+        if not learning.get('teachingProjectionId') or not SHA256.fullmatch(learning.get('teachingProjectionHash', '')):
+            raise ValueError('unsealed-learning-content')
     accepted = {}
-    for row in learning['nodes']:
+    for row in learning['nodes'] if learning is not None else []:
         image = row['infograph']
         if image.get('state') != 'available':
             continue
@@ -88,7 +92,10 @@ def build_inventory(source):
             raise ValueError('duplicate-accepted-infograph')
         accepted[p] = image['sha256']
     legacy_paths = set()
-    for row in source['legacy'].get('items', []):
+    legacy = source.get('legacy')
+    if legacy is None and any(re.fullmatch(r'knowledge/infographs/nodes/[^/]+\.png', row['path']) for row in source['files']):
+        raise ValueError('missing-legacy-infograph-qualification')
+    for row in (legacy or {}).get('items', []):
         p = row.get('path', '')
         if p.startswith('course-content/runtime/'):
             p = p[len('course-content/runtime/'):]
@@ -126,7 +133,7 @@ def build_inventory(source):
         })
     if not set(accepted).issubset(seen):
         raise ValueError('accepted-infograph-missing-from-runtime')
-    if not objects:
+    if not objects and not allow_empty:
         raise ValueError('empty-public-inventory')
     return {
         'schemaVersion': 'act-public-teaching-media/v1', 'verified': False,

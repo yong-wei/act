@@ -30,4 +30,10 @@ printf '%s\n' \
   '--dir_mode=0755' >"$temporary"
 chmod 0600 "$temporary"
 mv -f "$temporary" "$CONFIG_DIR/blobs.conf"
+temporary="$(mktemp "$CONFIG_DIR/.public-media.XXXXXX")"
+sed -e 's/--oss_bucket=act-course-assets/--oss_bucket=act-course-models/' \
+  -e 's@--oss_bucket_prefix=runtime/blobs/sha256/@--oss_bucket_prefix=teaching-media/sha256/@' \
+  "$CONFIG_DIR/blobs.conf" >"$temporary"
+chmod 0600 "$temporary"
+mv -f "$temporary" "$CONFIG_DIR/public-media.conf"
 trap - EXIT

@@ -452,6 +452,13 @@ require_runtime_delivery_mount() {
         echo "ERROR: ossfs-blob-view helper 挂载必须只读: $helper_root" >&2
         exit 1
       fi
+      local media_helper_root="$RUNTIME_CONTENT_DIR/.act-runtime-public-media"
+      if findmnt -rn -M "$media_helper_root" -o FSTYPE | grep -Eq '^fuse(\.|$)'; then
+        if [ -L "$media_helper_root" ] || ! findmnt -rn -M "$media_helper_root" -o OPTIONS | grep -Eq '(^|,)ro(,|$)'; then
+          echo "ERROR: canonical media helper must be a real read-only mount" >&2
+          exit 1
+        fi
+      fi
       ;;
     *)
       echo "ERROR: RUNTIME_DELIVERY_MODE 必须为 legacy-rsync、ossfs-release 或 ossfs-blob-view，实际为: $RUNTIME_DELIVERY_MODE" >&2
@@ -1075,6 +1082,15 @@ if ! APP_IMAGE="$(resolve_image "$APP_IMAGE" '(^|/)act-obe-platform:')"; then
   exit 1
 fi
 
+if [ "$MODE" != "--db-only" ] && { [ -e "${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}/public-teaching-media/current.json" ] \
+  || [ -L "${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}/public-teaching-media/current.json" ] \
+  || [ -e "${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}/public-teaching-media/storage-state.json" ]; }; then
+  media_capability="$(podman image inspect "$APP_IMAGE" --format '{{ index .Labels "io.act.runtime-media-storage.version" }}')"
+  python3 "${PROJECT_DIR}/scripts/runtime-release/check-media-storage-image.py" \
+    --directory "${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}/public-teaching-media/current.json" \
+    --capability "$media_capability" --media-helper "${RUNTIME_CONTENT_DIR}/.act-runtime-public-media"
+fi
+
 if ! DB_IMAGE="$(resolve_image "$DB_IMAGE" '(^|/)postgres:15-alpine-amd64$')"; then
   echo "ERROR: 未找到 PostgreSQL 镜像。请先执行 load-images。" >&2
   exit 1
@@ -1293,6 +1309,7 @@ APP_ENV_ARGS=(
   -e ACT_RUNTIME_OSS_BUCKET="$ACT_RUNTIME_OSS_BUCKET"
   -e ACT_RUNTIME_OSS_REGION="$ACT_RUNTIME_OSS_REGION"
   -e ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$RUNTIME_ACTIVE_RECEIPT_CONTAINER_PATH"
+  -e ACT_PUBLIC_TEACHING_MEDIA_ESA_ENABLED="${ACT_PUBLIC_TEACHING_MEDIA_ESA_ENABLED:-1}"
   -e ACT_COORDINATED_CUTOVER_REQUIRED="$ACT_COORDINATED_CUTOVER_REQUIRED"
   -e ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$COORDINATED_ACTIVE_RECEIPT_CONTAINER_PATH"
   -e ACT_LATEST_CUTOVER_CANDIDATE_ROOT="$ACT_LATEST_CUTOVER_CANDIDATE_ROOT"
@@ -1424,6 +1441,12 @@ if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-blob-view" ]; then
   RUNTIME_HELPER_MOUNT_ARGS+=(
     -v "${RUNTIME_CONTENT_DIR}/.act-runtime-blobs:/app/course-content/runtime/.act-runtime-blobs:ro"
   )
+  if [ -d "${RUNTIME_CONTENT_DIR}/.act-runtime-public-media" ] \
+    && findmnt -rn -M "${RUNTIME_CONTENT_DIR}/.act-runtime-public-media" -o FSTYPE | grep -Eq '^fuse(\.|$)'; then
+    RUNTIME_HELPER_MOUNT_ARGS+=(
+      -v "${RUNTIME_CONTENT_DIR}/.act-runtime-public-media:/app/course-content/runtime/.act-runtime-public-media:ro"
+    )
+  fi
 fi
 
 echo "- 启动应用容器: $APP_CONTAINER"
@@ -1454,6 +1477,11 @@ WORKER_ENV_ARGS=(
   "${WORKER_STORAGE_ENV_ARGS[@]}"
   "${AI_PROVIDER_ENV_ARGS[@]}"
   "${MATHPIX_ENV_ARGS[@]}"
+  -e ACT_RUNTIME_OSS_RAM_ROLE="$ACT_RUNTIME_OSS_RAM_ROLE"
+  -e ACT_RUNTIME_OSS_BUCKET="$ACT_RUNTIME_OSS_BUCKET"
+  -e ACT_RUNTIME_OSS_REGION="$ACT_RUNTIME_OSS_REGION"
+  -e ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$RUNTIME_ACTIVE_RECEIPT_CONTAINER_PATH"
+  -e ACT_PUBLIC_TEACHING_MEDIA_ESA_ENABLED="${ACT_PUBLIC_TEACHING_MEDIA_ESA_ENABLED:-1}"
   -e RUN_MIGRATIONS_ON_START=0
   -e WORKER_CONCURRENCY="$WORKER_CONCURRENCY"
   -e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED"
@@ -1470,6 +1498,9 @@ run_detached_container "$WORKER_CONTAINER" podman run -d \
   --health-timeout 5s \
   --health-retries 6 \
   -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" \
+  -v "${RUNTIME_CONTENT_DIR}:/app/course-content/runtime:ro" \
+  ${RUNTIME_HELPER_MOUNT_ARGS[@]+"${RUNTIME_HELPER_MOUNT_ARGS[@]}"} \
+  -v "${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}:/app/act-runtime-state:ro" \
   "${DB_HOST_ARGS[@]}" \
   "${REDIS_HOST_ARGS[@]}" \
   "${WORKER_ENV_ARGS[@]}" \

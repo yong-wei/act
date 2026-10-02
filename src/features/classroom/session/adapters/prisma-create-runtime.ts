@@ -147,7 +147,7 @@ export function createPrismaClassroomCreateRuntime(): ClassroomCreateRuntime {
     generateJoinCode: () => generateUniqueJoinCode(prisma),
     persistAndCreateSession: async (input) => {
       const createSession = async (
-        db: Pick<Prisma.TransactionClient, 'classSession' | 'courseBundleRevision'>,
+        db: Pick<Prisma.TransactionClient, 'classSession' | 'courseBundleRevision' | '$queryRaw'>,
       ) => {
         const bundleRevision = await persistCourseBundleRevision(db, input.bundleIdentity as never);
         return db.classSession.create({
@@ -207,9 +207,12 @@ export function createPrismaClassroomCreateRuntime(): ClassroomCreateRuntime {
               return createSession(tx);
             },
           })
-          : await createSession(prisma);
+          : await prisma.$transaction((tx) => createSession(tx));
         return newSession as Record<string, unknown>;
       } catch (error) {
+        if (error instanceof CourseBundleCaptureError) {
+          throw new ClassroomSessionError('conflict', '课程资源正在更新，请稍后重新发起课堂。');
+        }
         if (error instanceof DuplicateClassroomSessionError) {
           const classroomIdentity = buildClassroomIdentityPayload(error.session);
           if (error.reuseExistingSession) {

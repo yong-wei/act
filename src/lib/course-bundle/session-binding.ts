@@ -2,11 +2,13 @@ import 'server-only';
 
 import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient, type CourseBundleRevision } from '@prisma/client';
+import { readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
 
 import {
   COURSE_BUNDLE_PLAN_PROJECTION_QUALIFICATION,
   COURSE_BUNDLE_REVISION_QUALIFICATION,
   CourseBundleDriftError,
+  CourseBundleCaptureError,
   canonicalJson,
   generatedCoursewareBundleId,
   sha256Hex,
@@ -82,7 +84,7 @@ export function sessionBundleBindingFromRevision(revision: {
 }
 
 type BundleDb = Pick<PrismaClient, 'courseBundleRevision' | 'classSessionIntegrityIncident'>;
-type BundleTx = Pick<Prisma.TransactionClient, 'courseBundleRevision'>;
+type BundleTx = Pick<Prisma.TransactionClient, 'courseBundleRevision' | '$queryRaw'>;
 
 function isUniqueConstraintViolation(error: unknown): boolean {
   return typeof error === 'object'
@@ -101,6 +103,13 @@ export async function persistCourseBundleRevision(
   tx: BundleTx,
   identity: CourseBundleIdentity,
 ): Promise<CourseBundleRevision> {
+  const publishedRuntime = identity.runtimeReleaseId.startsWith('runtime-');
+  if (publishedRuntime) {
+    const acquired = await tx.$queryRaw<Array<{ locked: boolean }>>`SELECT pg_try_advisory_xact_lock_shared(1633907764, 1) AS locked`;
+    if (acquired[0]?.locked !== true) {
+      throw new CourseBundleCaptureError('resource-unreadable', 'Course resources are being maintained; retry classroom creation.');
+    }
+  }
   const existing = await tx.courseBundleRevision.findUnique({
     where: {
       bundleId_bundleDigest_runtimeReleaseId_runtimeTreeSha256: {
@@ -112,6 +121,18 @@ export async function persistCourseBundleRevision(
     },
   });
   if (existing) return existing;
+
+  if (publishedRuntime) {
+    try {
+      const active = await readActiveRuntimeReleaseManifest();
+      if (!active || active.releaseId !== identity.runtimeReleaseId
+        || active.treeSha256 !== identity.runtimeTreeSha256 || active.manifestSha256 !== identity.runtimeManifestSha256) {
+        throw new Error('captured Runtime is no longer active');
+      }
+    } catch (error) {
+      throw new CourseBundleCaptureError('resource-unreadable', 'Course content changed before classroom creation.', { cause: error });
+    }
+  }
 
   const latest = await tx.courseBundleRevision.aggregate({
     where: { bundleId: identity.bundleId },

@@ -11,6 +11,9 @@ import shutil
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import runtime_media_storage as MEDIA_STORAGE
+
 
 SCHEMA_VERSION = "act-runtime-release.v2"
 RECEIPT_SCHEMA_VERSION = "act-runtime-release-receipt.v2"
@@ -29,6 +32,8 @@ RESERVED_VIEW_NAMES = {
     MATERIALIZED_MANIFEST,
     MATERIALIZATION_RECEIPT,
     HELPER_NAME,
+    MEDIA_STORAGE.MEDIA_HELPER,
+    'storage-retention',
     ".act-runtime-release-receipt.v2.json",
 }
 
@@ -336,7 +341,10 @@ def report_active(view_root):
     return {"activeReleaseId": release_id, "viewPath": str(view)}
 
 
-def blob_path(store, digest, blob_root=None):
+def blob_path(store, digest, blob_root=None, media_locations=None, media_root=None):
+    location = (media_locations or {}).get(digest)
+    if location:
+        return MEDIA_STORAGE.public_blob_path(store, digest, location, media_root)
     if blob_root is not None:
         return Path(blob_root) / digest
     prefixed = store / "runtime" / "blobs" / "sha256" / digest
@@ -372,11 +380,12 @@ def changed_paths(current, candidate):
     return changed
 
 
-def assert_blobs_visible(store, manifest, paths, blob_root=None):
+def assert_blobs_visible(store, manifest, paths, blob_root=None, media_locations=None, media_root=None):
     bindings = file_bindings(manifest)
     for relative in paths:
         item = bindings[relative]
-        blob = blob_path(store, item["sha256"], blob_root=blob_root)
+        MEDIA_STORAGE.location_for(item, media_locations or {})
+        blob = blob_path(store, item["sha256"], blob_root=blob_root, media_locations=media_locations, media_root=media_root)
         try:
             size = blob.stat().st_size
         except OSError:
@@ -406,16 +415,23 @@ def link_or_copy(source, destination):
         shutil.copyfile(source, destination, follow_symlinks=False)
 
 
-def place_logical_file(store, view, item, blob_root=None, use_helper_leaves=False):
+def place_logical_file(store, view, item, blob_root=None, use_helper_leaves=False, media_locations=None, media_root=None):
     destination = resolve_view_destination(view, item["path"])
+    location = MEDIA_STORAGE.location_for(item, media_locations or {})
     if use_helper_leaves:
-        helper_leaf = view / HELPER_NAME / item["sha256"]
+        helper_leaf = (view / MEDIA_STORAGE.MEDIA_HELPER).joinpath(*location['objectKey'][len(MEDIA_STORAGE.MEDIA_PREFIX):].split('/')) if location else view / HELPER_NAME / item["sha256"]
         destination.parent.mkdir(parents=True, exist_ok=True)
-        if destination.exists() or destination.is_symlink():
-            destination.unlink()
-        os.symlink(os.path.relpath(str(helper_leaf), str(destination.parent)), str(destination))
+        temporary = destination.with_name('.' + destination.name + '.runtime-link')
+        try:
+            if temporary.exists() or temporary.is_symlink():
+                temporary.unlink()
+            os.symlink(os.path.relpath(str(helper_leaf), str(destination.parent)), str(temporary))
+            os.replace(str(temporary), str(destination))
+        finally:
+            if temporary.is_symlink():
+                temporary.unlink()
         return
-    source = blob_path(store, item["sha256"], blob_root=blob_root)
+    source = blob_path(store, item["sha256"], blob_root=blob_root, media_locations=media_locations, media_root=media_root)
     if not source.is_file():
         raise MaterializeError("blob is not visible: %s" % item["objectKey"])
     link_or_copy(source, destination)
@@ -436,6 +452,10 @@ def write_materialization_artifacts(view, manifest):
     if helper.is_symlink() or helper.is_file():
         helper.unlink()
     helper.mkdir(parents=True, exist_ok=True)
+    media_helper = view / MEDIA_STORAGE.MEDIA_HELPER
+    if media_helper.is_symlink() or media_helper.is_file():
+        raise MaterializeError('public media helper must be a real directory')
+    media_helper.mkdir(parents=True, exist_ok=True)
 
 
 def view_matches_manifest(view, manifest):
@@ -457,18 +477,19 @@ def prepare_view(view, manifest):
     return view
 
 
-def populate_view(store, manifest, view, blob_root=None, use_helper_leaves=False):
+def populate_view(store, manifest, view, blob_root=None, use_helper_leaves=False, media_locations=None, media_root=None):
     for item in manifest["files"]:
-        place_logical_file(store, view, item, blob_root=blob_root, use_helper_leaves=use_helper_leaves)
+        place_logical_file(store, view, item, blob_root=blob_root, use_helper_leaves=use_helper_leaves,
+                           media_locations=media_locations, media_root=media_root)
     return view
 
 
-def materialize_view(store, manifest, view, blob_root=None):
+def materialize_view(store, manifest, view, blob_root=None, media_locations=None, media_root=None):
     validate_manifest(manifest)
     if view_matches_manifest(view, manifest):
         return view
     prepare_view(view, manifest)
-    populate_view(store, manifest, view, blob_root=blob_root)
+    populate_view(store, manifest, view, blob_root=blob_root, media_locations=media_locations, media_root=media_root)
     return view
 
 
@@ -479,6 +500,8 @@ def build_parser():
     parser.add_argument("--view", required=True)
     parser.add_argument("--blob-root")
     parser.add_argument("--manifest")
+    parser.add_argument("--media-directory")
+    parser.add_argument("--media-root")
     return parser
 
 
@@ -501,8 +524,10 @@ def main(argv=None):
         manifest = load_manifest(source)
         if manifest["releaseId"] != args.release_id:
             raise MaterializeError("manifest releaseId does not match --release-id")
-        materialize_view(store, manifest, Path(args.view), blob_root=args.blob_root)
-    except MaterializeError as error:
+        catalog, canonical = MEDIA_STORAGE.load_catalog(args.media_directory, required=bool(args.media_directory))
+        locations = MEDIA_STORAGE.object_map(catalog) if canonical else {}
+        materialize_view(store, manifest, Path(args.view), blob_root=args.blob_root, media_locations=locations, media_root=args.media_root)
+    except (MaterializeError, MEDIA_STORAGE.MediaStorageError) as error:
         sys.stderr.write("%s\n" % error)
         return error.code
     return 0

@@ -1,6 +1,6 @@
 # 公开教学媒体 ESA 分发
 
-教学媒体分发与课程 Runtime、图谱、教学投影的激活分别执行。应用通过现有只读状态挂载中的 `public-teaching-media/current.json` 决定是否重定向；没有合格索引时使用原读取链路。
+教学媒体分发与课程 Runtime、图谱、教学投影的激活分别执行。本文保留2026-10-01的一次性副本分发证据。新的独立摘要目录、直接发布、正文GC、迁移与恢复流程见 [教学媒体存储与回收](./runtime-media-storage.md)。规范目录启用后，`public-teaching-media/current.json` 同时决定内部正文位置，不能通过删除目录停用ESA。
 
 ## 对象与权限
 
@@ -17,7 +17,7 @@ ESA 只读身份沿用 `act-esa-model-read`，v3 仅允许 `oss:GetObject` 到�
 
 缓存规则 `ACT公开教学媒体不可变缓存` 同时匹配 static 主机名与 `/teaching-media/`。源对象使用 `public, max-age=31536000, immutable`，浏览器遵循源响应头，边缘遵循源 TTL，缺失时回退一年。CORS 沿用应用 Origin 的 GET/HEAD 与 Range 配置。
 
-## 捕获与发布
+## 历史一次性捕获与副本发布
 
 凭据仅从仓库外的受管 Publisher 环境载入，不能提交环境文件或输出认证值。以下命令在仓库根目录执行；`<artifact-dir>` 为本次不提交的证据目录。
 
@@ -36,7 +36,7 @@ uv run --with oss2==2.19.1 python3 scripts/runtime-release/public_teaching_media
 
 发布后每类资源至少选择一个代表对象，经 ESA 完整下载核对 SHA-256，验证 MIME、应用 Origin CORS、精确 Content-Range 和重复请求 HIT。对 OSS 的未签名直连仍须拒绝。
 
-## 应用与分发切换
+## 历史v1索引切换
 
 1. 将已验证的应用修订送入 origin/main，按应用部署手册构建新的版本化镜像和 tar/provenance。只部署应用，保持原 Runtime 与图谱选择器。
    `deploy:app` 装载精确镜像后使用现有 `--runtime-cutover-app-only` 容器替换模式，保留数据库和 Redis，不导入数据库、写入知识种子或执行迁移。按应用修订追加完整资源绑定库存治理快照并 verify-only，不改资源、用户数据、绑定决策和 crosswalk。systemd 通过 `ACT_SERVICE_CONFIGURE_ONLY=1` 更新配置，不再次重启数据服务。需要数据库迁移的其他发布应采用单独获授权的数据面操作。
@@ -51,7 +51,7 @@ uv run --with oss2==2.19.1 python3 scripts/runtime-release/public_teaching_media
 
 ## 停用与恢复
 
-将 `current.json` 原子移到同目录的保留文件即可停用重定向；无需重启应用或变更 Runtime。文件不存在后，应用立即使用原读取链路。恢复只可原子装入完整 verified 索引，并再次核验 Runtime 身份与公开分发响应。不要删除不可变对象、撤销其他产品权限或恢复旧 Runtime 来停用媒体缓存。
+v1分发阶段可通过移出索引回到原桶。v2规范存储阶段应设置 `ACT_PUBLIC_TEACHING_MEDIA_ESA_ENABLED=0`，保留目录、只读helper和规范对象；内部读取与短时签名继续使用相同正文。需要旧应用时须先恢复原副本，具体步骤见新存储手册。
 
 ## 2026-10-01 发布前证据
 

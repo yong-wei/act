@@ -569,6 +569,12 @@ remote "chmod +x '${REMOTE_TMP_SERVICE_SCRIPT}' && mv '${REMOTE_TMP_SERVICE_SCRI
 
 scp -q "${LOCAL_START_WRAPPER_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_START_WRAPPER_SCRIPT}"
 remote "chmod +x '${REMOTE_TMP_START_WRAPPER_SCRIPT}' && mv '${REMOTE_TMP_START_WRAPPER_SCRIPT}' '${REMOTE_START_WRAPPER_SCRIPT}'"
+remote "mkdir -p '${REMOTE_PROJECT_DIR}/scripts/runtime-release'"
+for media_storage_helper in check-media-storage-image.py runtime_media_storage.py; do
+  scp -q "${ROOT_DIR}/scripts/runtime-release/${media_storage_helper}" \
+    "${SSH_TARGET}:${REMOTE_PROJECT_DIR}/scripts/runtime-release/${media_storage_helper}.tmp"
+  remote "mv '${REMOTE_PROJECT_DIR}/scripts/runtime-release/${media_storage_helper}.tmp' '${REMOTE_PROJECT_DIR}/scripts/runtime-release/${media_storage_helper}'"
+done
 
 log "远端 runtime 目录: ${REMOTE_RUNTIME_DIR}"
 log "远端应用部署脚本: ${REMOTE_APP_DEPLOY_SCRIPT}"
