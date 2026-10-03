@@ -38,6 +38,12 @@ const contentTraceExcludes = [
   './tests/**/*',
   './.codex/**/*',
   './.wolf/**/*',
+  './course-content/authoring/resources/**/*',
+  './image/**/*',
+  './var/**/*',
+  './evaluate/**/*',
+  './.logs/**/*',
+  './public/assets/model-releases/**/*',
 ]
 
 /** @type {import('next').NextConfig} */

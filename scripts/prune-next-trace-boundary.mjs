@@ -29,6 +29,12 @@ const blockedTraceFragments = [
   'tests/',
   '.codex/',
   '.wolf/',
+  'course-content/authoring/resources/',
+  'image/',
+  'var/',
+  'evaluate/',
+  '.logs/',
+  'public/assets/model-releases/',
 ];
 
 const allowedTraceEntries = new Set([
@@ -63,6 +69,12 @@ const blockedStandalonePaths = [
   'openspec',
   'rust',
   'tests',
+  path.join('course-content', 'authoring', 'resources'),
+  'image',
+  'var',
+  'evaluate',
+  '.logs',
+  path.join('public', 'assets', 'model-releases'),
 ];
 
 const blockedStandaloneFiles = [

@@ -1007,7 +1007,10 @@ describe('production Authority/Projection packaging (#1274 P1)', () => {
     );
     expect(dockerfile).toContain('course-content/authoring/knowledge/authority');
     expect(dockerfile).toContain('course-content/runtime/knowledge/projection');
-    expect(dockerignore).toContain('!course-content/runtime/knowledge/projection');
+    const runnerStage = dockerfile.slice(dockerfile.indexOf('FROM runner-os AS runner'));
+    expect(runnerStage).not.toContain('course-content/authoring/knowledge/authority ./');
+    expect(runnerStage).not.toContain('course-content/runtime/knowledge/projection ./');
+    expect(dockerignore).not.toContain('!course-content/runtime/knowledge/projection');
     expect(deploy).toContain('ACT_AUTHORITY_STORE_ROOT');
     expect(deploy).toContain('ACT_TEACHING_PROJECTION_STORE_ROOT');
     expect(deploy).toContain('ACT_KNOWLEDGE_DEPLOYMENT_MODE="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"');

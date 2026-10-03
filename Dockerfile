@@ -183,31 +183,12 @@ COPY --from=builder /app/scripts/math-calc ./scripts/math-calc
 COPY --from=builder /app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases
 COPY --from=builder /app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage
 COPY --from=builder /app/course-content/contracts/knowledge-relation-coverage-audit.json ./course-content/contracts/knowledge-relation-coverage-audit.json
-COPY --from=builder /app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl
-# Authority + Teaching Projection stores selected by activation gate (#1274).
-# Builder materializes these directories (empty scaffold when no activation
-# output is present) so COPY is stable; production mounts via
-# ACT_AUTHORITY_STORE_ROOT / ACT_TEACHING_PROJECTION_STORE_ROOT or build-time
-# packaging of current.json + releases make Konling teaching context reachable.
-COPY --from=builder /app/course-content/authoring/knowledge/authority ./course-content/authoring/knowledge/authority
 COPY --from=builder /app/course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json ./course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json
 COPY --from=builder /app/course-content/authoring/knowledge/cutover/envelopes/locale-manifests ./course-content/authoring/knowledge/cutover/envelopes/locale-manifests
-# Image fallback for latest-cutover Teaching artifacts. Production bind-mounts
-# the same path via ACT_LATEST_CUTOVER_CANDIDATE_ROOT; a future provider switch
-# must change this candidate identity or the verifier fails closed.
-COPY --from=builder /app/course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5 ./course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5
-COPY --from=builder /app/course-content/runtime/knowledge/authority-domain-shards ./course-content/runtime/knowledge/authority-domain-shards
-COPY --from=builder /app/course-content/runtime/knowledge/authority-learning-content-manifest.json ./course-content/runtime/knowledge/authority-learning-content-manifest.json
-COPY --from=builder /app/course-content/runtime/knowledge/cards/authority ./course-content/runtime/knowledge/cards/authority
-COPY --from=builder /app/course-content/runtime/knowledge/infographs/authority ./course-content/runtime/knowledge/infographs/authority
-COPY --from=builder /app/course-content/runtime/knowledge/projection ./course-content/runtime/knowledge/projection
-# Production keeps candidate releases/receipts but never packages an authority
-# or teaching-projection current pointer without an explicit production cutover.
-RUN rm -f \
-  course-content/authoring/knowledge/authority/current.json \
-  course-content/runtime/knowledge/authority-domain-shards/current.json \
-  course-content/runtime/knowledge/projection/current.json \
-  && test -f course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json
+# Authority, teaching projection, shards, cards, infographs and the latest
+# cutover candidate are host or OSS mounts. The packaging gate forbids copying
+# them into this image; production overlays the same paths at start.
+RUN test -f course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json
 COPY --from=builder /app/.app-revision ./.app-revision
 COPY --from=builder /app/.active-authority-shards-product ./.active-authority-shards-product
 
