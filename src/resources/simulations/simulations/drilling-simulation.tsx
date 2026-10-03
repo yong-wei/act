@@ -698,6 +698,7 @@ function DrillingWater({
   const { params } = useSceneQuality();
   return (
     <MarineWater
+      foamVessel="drilling"
       worldSpeedSampler={() => playing ? Math.hypot(platformStateRef.current.u, platformStateRef.current.v) : 0}
       foamEmittersSampler={() => {
         if (!playing) return [];

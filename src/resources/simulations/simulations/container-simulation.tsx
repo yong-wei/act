@@ -505,6 +505,7 @@ function ContainerWater({ state, resetToken }: { state: ContainerSimulationState
   const { params } = useSceneQuality();
   return (
     <MarineWater
+      foamVessel="container"
       worldSpeedSampler={() => state.isRunning && !state.isPaused ? state.speed : 0}
       vesselLengthMeters={399.9} vesselBeamMeters={61.5}
       resetToken={resetToken}

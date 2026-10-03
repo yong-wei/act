@@ -1,0 +1,229 @@
+{
+  "schemaVersion": "act.marine-foam-calibration.v1",
+  "baseRevision": "58c7acf3e15a8026316ea05ca4e1deae60c32d60",
+  "priorCheckpointPushed": true,
+  "branch": "codex/fix-invisible-ship-wake",
+  "sourceState": "working-tree",
+  "status": "local-verified",
+  "featureCommitted": false,
+  "featurePushed": false,
+  "deployed": false,
+  "sourceSha256": {
+    "src/resources/simulations/scene/water/marine-foam-profile.ts": "fa343ddf8ce425c8117594def669cdefe02410338fcf7f2a5089bfcf01a832eb",
+    "src/resources/simulations/scene/water/comparison-surface-history.ts": "a0df00077d8f85f7b754f7f72c82e7fe687dbb9fb2474d17a1c860b783d50b38",
+    "src/resources/simulations/scene/water/comparison-water-material.ts": "13d1cd16fa8adcbdd7fccc31128c1caf3c7641911d701517db22925b4732d0b7",
+    "src/resources/simulations/scene/water/marine-water.tsx": "173c7eeaffc7c326f29dcfbbe32dddba12e47dbbf06aa48d3f0023df87979181",
+    "src/resources/simulations/scene/water/shared-ocean-surface.tsx": "5fe494fe9ba384cb565a8070e55f4cac5e4ae773286f4b85803dce318d150b9d",
+    "src/resources/simulations/simulations/destroyer-simulation.tsx": "61f62d7239fe30e4ff6626e181544240d5a3e5ee1e1da678ca9f412d2c1e7a9e",
+    "src/resources/simulations/simulations/cruise-simulation.tsx": "a4d0848c0b76176926118a9962ce6139867bac0954965b4de024f8c954bd66a8",
+    "src/resources/simulations/simulations/lng-simulation.tsx": "c976d9f27e39de562e8811b96d60c273aac8cc622fe3539d87d8aa7e4ad45e91",
+    "src/resources/simulations/simulations/container-simulation.tsx": "479a10489f2e7265d249153272f7835dfdacad02c5da7303af242f8eb2154cfe",
+    "src/resources/simulations/simulations/icebreaker-simulation.tsx": "e0010d27399975f95a9f0222f58b7b1093a3ccbdd87c8fc6340d58da95469a7c",
+    "src/resources/simulations/simulations/dredger-simulation.tsx": "dbfb40a3c847b6ae2b17e6d21c15003bb467d3ca524663421dcfe81902b8e999",
+    "src/resources/simulations/simulations/drilling-simulation.tsx": "d98b8a48d0dae8313d35c09e1df6712019be0629b0a075c861b828b8681812e4"
+  },
+  "testSha256": {
+    "tests/fixtures/marine-ship-history-probe.ts": "1723455aab57e2b31089f2048feee954fcdf60258fd799fd64790a3c1d5a15f0",
+    "tests/marine-ship-wave.spec.ts": "6819e4d6cc1040603394a9002297c6ff14076e6210897360ae26d6504914fe69",
+    "tests/marine-unified-production.spec.ts": "8855cec15872ce29a4c322f06be6a57032f88856e2a6cd7477ccd15aee90d23e"
+  },
+  "sourceDigest": "81d646ee83ef45f9e1841ef5548d8e05c370718042c4e79c380056947ed00eb2",
+  "calibrationFields": [
+    "foamHalfLifeSeconds",
+    "bubbleHalfLifeSeconds",
+    "trailDomainMeters",
+    "diffusivityMeters2PerSecond"
+  ],
+  "visualCalibrations": {
+    "destroyer": [
+      24,
+      90,
+      6144,
+      3
+    ],
+    "cruise": [
+      30,
+      110,
+      6144,
+      4
+    ],
+    "lng": [
+      28,
+      100,
+      6144,
+      3.5
+    ],
+    "container": [
+      30,
+      120,
+      6144,
+      4.5
+    ],
+    "icebreaker": [
+      22,
+      80,
+      4096,
+      3
+    ],
+    "dredger": [
+      18,
+      65,
+      4096,
+      2.5
+    ],
+    "drilling": [
+      16,
+      60,
+      3072,
+      2
+    ]
+  },
+  "additionalTrailTextureBytes": 8388608,
+  "checks": {
+    "dualApiFieldAndPixelCases": 44,
+    "productionAndQualityCases": 16,
+    "sustainedNativeWebGpuCases": 1,
+    "sustainedWallSeconds": 120,
+    "comparisonApiAlgorithmCases": 4,
+    "relatedUnitCases": 53,
+    "targetedLint": true,
+    "strictOpenSpec": true,
+    "diffCheck": true,
+    "typecheckWeb": "a17f4405c3be654a3568a6145a0900e83747ffffa2ce93a1ec1623c1a3009333",
+    "typecheckWorker": "64e73fd4f25e0fcfed6aff0140be86c49f7dc3a1d5767accc3ee4d665d91292c"
+  },
+  "review": {
+    "scopeBase": "58c7acf3e15a8026316ea05ca4e1deae60c32d60",
+    "scopeEnd": "working-tree",
+    "newBlockingFindings": 0,
+    "acceptedBindingFinding": "resolved-with-dual-api-pixel-regression"
+  },
+  "observedLimitation": {
+    "temporaryIabPageExited": true,
+    "cause": "not-established",
+    "userPreviewHealthy": true,
+    "singleNativeChrome120SecondsPassed": true
+  },
+  "notes": [
+    "Visual calibration, not measured full-scale hydrodynamics.",
+    "Screenshot waiting times are wall time; simulations and views differ.",
+    "Thin red, white or blue lines are existing teaching routes; foam is the surrounding pale water.",
+    "44 unique field/pixel cases covered by the passing 40-case set and four corrected/additional cases.",
+    "No other GPU hardware or sustained multi-page concurrency claim."
+  ],
+  "evidence": {
+    "comparison-webgl-fft.png": {
+      "sha256": "47bed601bfe7366a49c8256f792730b105ec5c402632336f2fa4dbc35d51ff87",
+      "bytes": 676928
+    },
+    "comparison-webgl-gerstner.png": {
+      "sha256": "4abe14bfd7b37e438bbc0696c46aaf854dfcc7f5c636474633803a03b586400e",
+      "bytes": 712645
+    },
+    "comparison-webgpu-fft.png": {
+      "sha256": "ba18ed43a339b6e83a99eff3fa52a69ac228d201ddd09477c939452044acebaf",
+      "bytes": 678386
+    },
+    "comparison-webgpu-gerstner.png": {
+      "sha256": "22270bafc03a64eb87e293df6449d05076dd618129856887f9fb3cd9c5efd57e",
+      "bytes": 712515
+    },
+    "cruise-webgpu-20s.jpg": {
+      "sha256": "1445ef80d60c03696014926c31c3d4c3f93999855298e4bfdbd02f18d53695ee",
+      "bytes": 96349
+    },
+    "cruise-webgpu-20s.json": {
+      "sha256": "f7f676d4943911a618449b4861b45d7acd6edfcfbe644314b8cf619fe0e784bf",
+      "bytes": 1881
+    },
+    "cruise-webgpu-tactical.jpg": {
+      "sha256": "69310f603c8e77f4f4f990c60467b4b61aa527c0d6d1d8c8297e87da90c0778d",
+      "bytes": 94163
+    },
+    "cruise-webgpu-tactical.json": {
+      "sha256": "7000d1f301181c250337e0696a2c49e8d56f1ca494d584f43a0596da64f67d07",
+      "bytes": 1913
+    },
+    "destroyer-webgpu-35s.jpg": {
+      "sha256": "52e59bf104428647b7daccc80db2e30813161e9166e7eca644c9d85a70689c0b",
+      "bytes": 89052
+    },
+    "destroyer-webgpu-35s.json": {
+      "sha256": "7ab7c6adc2abd5ff4ab5ec7a46cd02eeaec856f178b628b5c256b1cdffeb40cb",
+      "bytes": 1915
+    },
+    "destroyer-webgpu.jpg": {
+      "sha256": "ffd616f3c6193bf0692315a904fa5becf66fe05c61b354212aadfc13f5e3fca7",
+      "bytes": 39488
+    },
+    "destroyer-webgpu.json": {
+      "sha256": "f52b443585f9c203742419d9f57aaf4aadb169398b3e6f3ea1f15a30385515fb",
+      "bytes": 1977
+    },
+    "drilling-webgpu-20s.jpg": {
+      "sha256": "8375b458b025787ca7d09e1d70c4c493278984bc26c0cadd5b7155e2d40428c0",
+      "bytes": 75763
+    },
+    "drilling-webgpu-20s.json": {
+      "sha256": "5faae67561305f47b2ef43bdc1fabfc104c3211230e77fe90d9819556770006a",
+      "bytes": 2952
+    },
+    "scene-container-auto.png": {
+      "sha256": "897b13dcafca043043bfdd669d99ed8c7eca8bf4da41f222bc5c4a59bb5cfde4",
+      "bytes": 540009
+    },
+    "scene-container-webgl.png": {
+      "sha256": "c94d3fc7a0efbf1ce07011159b71b5ea502cc777f6e57b3dc2de4a78f1381cb6",
+      "bytes": 539927
+    },
+    "scene-cruise-auto.png": {
+      "sha256": "a3ba42548af46eaf3f52e7866e85abe12b7c54754dbd9ec00cf670f1ec264f96",
+      "bytes": 520144
+    },
+    "scene-cruise-webgl.png": {
+      "sha256": "7ce66d72feddf87fed7df8d574560c4a46b806efca6f0618d23e422208395583",
+      "bytes": 519516
+    },
+    "scene-destroyer-auto.png": {
+      "sha256": "f9952a4fd26303c1c2cb50123b238beb10fe09f66816443efe2b4a9e4dddf555",
+      "bytes": 528722
+    },
+    "scene-destroyer-webgl.png": {
+      "sha256": "7ff4380dbc03b064e2b04ff59a7191c8dc9b3c96156341cf69a2c65573952a7f",
+      "bytes": 452159
+    },
+    "scene-dredger-auto.png": {
+      "sha256": "cb4f6d44eb57d42cd6be5999a9321f9cf520494e30a3527bd3ae7b53efe7319c",
+      "bytes": 613256
+    },
+    "scene-dredger-webgl.png": {
+      "sha256": "000966f53bf749f6f9d4522247d24a7a41c02e67a6f74418930e64064c150c5d",
+      "bytes": 613223
+    },
+    "scene-drilling-auto.png": {
+      "sha256": "afff89101381b19a04b21c0b9f85418e4a1da8fc94fae79dcac1bf7dc08abfac",
+      "bytes": 592676
+    },
+    "scene-drilling-webgl.png": {
+      "sha256": "0c0204865056d2c57e1d17ab28ab6eb1504bb2eccbf78d9e8781005e36e78296",
+      "bytes": 592442
+    },
+    "scene-icebreaker-auto.png": {
+      "sha256": "5968781906308e63b6229f9dabad959f79ea874ee27048e4a7874bd3949d111f",
+      "bytes": 545904
+    },
+    "scene-icebreaker-webgl.png": {
+      "sha256": "aac29d25125df244806bd96c6bef33404c9f302aac335448ccbdb23d003fb283",
+      "bytes": 546295
+    },
+    "scene-lng-auto.png": {
+      "sha256": "47775c22139ce66eb94f59907a8691cde413762d8269bf62cc790ded033944cc",
+      "bytes": 501619
+    },
+    "scene-lng-webgl.png": {
+      "sha256": "a806c1d7af5c7b9c2497fbe6506393c8e5b49ad12386bd1baf28390212e90099",
+      "bytes": 500038
+    }
+  },
+  "capturePhase": "verified-before-git-delivery"
+}

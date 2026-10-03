@@ -7,8 +7,9 @@ import { SharedOceanSurface, ShallowBackdrop, type ComparisonOceanProbe, type Sh
 import type { GerstnerWaterProps } from './gerstner-water';
 import { createMarineSurfaceSampling } from './marine-surface-sampling';
 import type { SurfaceHistoryPose, MarineFoamEmitter } from './comparison-surface-history';
+import { MARINE_FOAM_PROFILES, type MarineFoamVessel } from './marine-foam-profile';
 
-export function MarineWater(props: GerstnerWaterProps & { vesselLengthMeters?: number; vesselBeamMeters?: number; worldSpeedSampler: () => number; advancingSampler?: () => boolean; foamEmittersSampler?: () => readonly MarineFoamEmitter[] }) {
+export function MarineWater(props: GerstnerWaterProps & { foamVessel: MarineFoamVessel; vesselLengthMeters?: number; vesselBeamMeters?: number; worldSpeedSampler: () => number; advancingSampler?: () => boolean; foamEmittersSampler?: () => readonly MarineFoamEmitter[] }) {
   const { preset, wakeVisible } = useSceneEnvironment();
   const scene = useThree(state => state.scene);
   const latest = useRef(props); latest.current = props;
@@ -34,6 +35,7 @@ export function MarineWater(props: GerstnerWaterProps & { vesselLengthMeters?: n
     sunDirection: props.sunDirection, sunIllumination: props.sunIllumination,
     shores: props.shoreSegments,
     lengthMeters: props.vesselLengthMeters, beamMeters: props.vesselBeamMeters,
+    foamProfile: MARINE_FOAM_PROFILES[props.foamVessel],
     positionSampler: () => latest.current.positionSampler?.() ?? latest.current.shipPosition ?? { x: 0, z: 0 },
     timeSampler: seconds => {
       const state = timing.current;
@@ -58,7 +60,7 @@ export function MarineWater(props: GerstnerWaterProps & { vesselLengthMeters?: n
       const headingDelta = Math.atan2(Math.sin(b.headingRad - a.headingRad), Math.cos(b.headingRad - a.headingRad));
       return { x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t, headingRad: a.headingRad + headingDelta * t, speedMps: b.speedMps };
     },
-  }), [preset, hasFoamEmitters, props.sedimentPlume, props.seaState, props.shoreSegments, props.sunDirection, props.sunIllumination, props.vesselLengthMeters, props.vesselBeamMeters]);
+  }), [preset, hasFoamEmitters, props.foamVessel, props.sedimentPlume, props.seaState, props.shoreSegments, props.sunDirection, props.sunIllumination, props.vesselLengthMeters, props.vesselBeamMeters]);
   useEffect(() => {
     timing.current.start = NaN; timing.current.time = timing.current.previousTime = 0;
     sampling.reset();

@@ -19,6 +19,7 @@ import { useMarineVisualTime } from '@/resources/simulations/scene/frame/marine-
 import type { MarineShoreSegment } from '../environment/scene-layouts';
 import type { HullExclusionBox } from './hull-exclusion';
 import type { SurfaceHistoryPose, MarineFoamEmitter } from './comparison-surface-history';
+import type { MarineFoamProfile } from './marine-foam-profile';
 import type { Vector3 } from 'three';
 type ComparisonBackend = 'fft' | 'gerstner';
 type ComparisonSceneId = 'wave-only' | 'feature-parity';
@@ -38,6 +39,7 @@ export interface SharedOceanConfig {
   sedimentPlume?: { x: number; z: number; radiusMeters: number; opacity: number } | null;
   lengthMeters?: number;
   beamMeters?: number;
+  foamProfile?: MarineFoamProfile;
   positionSampler?: () => { x: number; z: number };
 }
 import { createComparisonSurfaceHistory, type ComparisonSurfaceHistory } from '@/resources/simulations/scene/water/comparison-surface-history';
@@ -169,6 +171,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
       shore: config.shore, shores: config.shores, worldSpace: config.production,
       hullExclusions: config.hullExclusions, sedimentPlume: config.sedimentPlume,
       colors: config.colors, sunDirection: config.sunDirection, sunIllumination: config.sunIllumination,
+      foamProfile: config.foamProfile,
     });
   }, [backend, pipeline, sceneId, materialTier, noise, sky, resolution, config]);
   const [history, setHistory] = useState<ComparisonSurfaceHistory | null>(null);
@@ -177,6 +180,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
     const next = createComparisonSurfaceHistory(renderer, pipeline, bundle, config.spectrum.domainMeters,
       config.poseAt, seconds => { if (backend === 'fft') pipeline.run(seconds); },
       { followFoam: config.production, lengthMeters: config.lengthMeters, beamMeters: config.beamMeters,
+        foamProfile: config.foamProfile,
         foamEmitters: pose => {
           const anchors: readonly MarineFoamEmitter[] = scene.userData.marinePropulsors?.sample(pose) ?? [];
           if (!config.foamEmitters) return anchors;

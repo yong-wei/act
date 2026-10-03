@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 import type {} from '../src/resources/simulations/scene/water/shared-ocean-surface';
 
 const routes = ['destroyer', 'lng', 'container', 'icebreaker', 'cruise', 'drilling', 'dredger'] as const;
+const foamCalibration = { destroyer: [24, 90, 6144], lng: [28, 100, 6144], container: [30, 120, 6144],
+  icebreaker: [22, 80, 4096], cruise: [30, 110, 6144], drilling: [16, 60, 3072], dredger: [18, 65, 4096] };
 for (const graphics of ['webgl', 'auto'] as const) for (const route of routes) {
   test(`${route}: shared FFT with ${graphics}`, async ({ page }, testInfo) => {
     test.setTimeout(120000);
@@ -12,6 +14,8 @@ for (const graphics of ['webgl', 'auto'] as const) for (const route of routes) {
     const identity = await page.evaluate(() => window.__comparisonOcean!.identity());
     expect(identity.backend).toBe('fft');
     expect(identity.api).toBe(graphics === 'webgl' ? 'WebGLBackend' : 'WebGPUBackend');
+    const history = await page.evaluate(() => window.__comparisonOcean!.history());
+    expect([history?.foamHalfLifeSeconds, history?.bubbleHalfLifeSeconds, history?.trailDomainMeters]).toEqual(foamCalibration[route]);
     const restore = page.locator('[data-simulation-panel-restore-handle="right"]');
     if (await restore.count()) await restore.click();
     await page.locator('[data-sound-start]').first().click();
@@ -74,3 +78,25 @@ for (const graphics of ['webgl', 'webgpu'] as const) {
     expect(errors).toEqual([]);
   });
 }
+
+test('native WebGPU retains one scene and its histories during a sustained run', async ({ page }, testInfo) => {
+  test.setTimeout(180000);
+  const errors: string[] = []; let crashed = false;
+  page.on('pageerror', error => errors.push(error.message)); page.on('crash', () => { crashed = true; });
+  await page.goto('/simulations/destroyer?graphics=webgpu');
+  await page.waitForFunction(() => (window.__comparisonOcean?.identity().frames ?? 0) > 5);
+  const restore = page.locator('[data-simulation-panel-restore-handle="right"]');
+  if (await restore.count()) await restore.click();
+  await page.locator('[data-sound-start]').first().click();
+  const before = await page.evaluate(() => window.__comparisonOcean!.identity());
+  await page.waitForTimeout(120000);
+  const after = await page.evaluate(() => window.__comparisonOcean!.identity());
+  expect(crashed).toBe(false); expect(errors).toEqual([]);
+  expect(after.api).toBe('WebGPUBackend'); expect(after.frames).toBeGreaterThan(before.frames + 100);
+  expect(after.time).toBeGreaterThan(before.time + 30);
+  expect(after.resourceGeneration).toBe(before.resourceGeneration); expect(after.readbacks).toBe(0);
+  const field = await page.evaluate(() => window.__comparisonOcean!.readHistory());
+  expect(field!.trailFoamArea).toBeGreaterThan(0); expect(field!.bubbleArea).toBeGreaterThan(0);
+  expect(field!.hullFoamArea).toBeGreaterThan(0);
+  await testInfo.attach('sustained-scene-readback', { body: JSON.stringify({ before, after, field }), contentType: 'application/json' });
+});

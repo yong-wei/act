@@ -288,6 +288,7 @@ function IcebreakerWater({ position, heading, speed, playing, resetToken }: { po
   const { params } = useSceneQuality();
   return (
     <MarineWater
+      foamVessel="icebreaker"
       worldSpeedSampler={() => playing ? speed : 0}
       vesselLengthMeters={122.5} vesselBeamMeters={22.3}
       resetToken={resetToken}

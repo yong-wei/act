@@ -239,6 +239,7 @@ function LNGWater({ state, resetToken }: { state: LNGSimulationState; resetToken
   const { params } = useSceneQuality();
   return (
     <MarineWater
+      foamVessel="lng"
       worldSpeedSampler={() => state.isRunning && !state.isPaused ? state.speed : 0}
       vesselLengthMeters={295} vesselBeamMeters={45}
       resetToken={resetToken}

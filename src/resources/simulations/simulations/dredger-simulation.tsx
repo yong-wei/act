@@ -519,6 +519,7 @@ function DredgerWater({
   const { params } = useSceneQuality();
   return (
     <MarineWater
+      foamVessel="dredger"
       worldSpeedSampler={() => playing ? Math.hypot(mmgStateRef.current.u, mmgStateRef.current.v) : 0}
       vesselLengthMeters={127.5} vesselBeamMeters={23}
       resetToken={resetToken}

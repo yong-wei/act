@@ -17,6 +17,7 @@ import { sampleBilinearHistory, sampleBilinearPeriodic } from './comparison-text
 import { SURFACE_FOAM_DRIFT, SURFACE_FOAM_RESOLUTION } from './comparison-surface-history';
 import { SHIP_WAVE_DOMAIN_METERS, SHIP_WAVE_RESOLUTION } from './ship-wave-config';
 import { SHIP_SURFACE_CELL_METERS } from './marine-surface-geometry';
+import { MARINE_FOAM_PROFILES, MARINE_TRAIL_RESOLUTION, FINE_FOAM_BLEND_START_METERS, FINE_FOAM_BLEND_END_METERS, type MarineFoamProfile } from './marine-foam-profile';
 
 export function createComparisonWaterMaterial(options: {
   pipeline: ComparisonOceanPipeline | null;
@@ -36,6 +37,7 @@ export function createComparisonWaterMaterial(options: {
   colors?: { waterColor: string; deepColor: string; horizonColor: string };
   sunDirection?: Vector3;
   sunIllumination?: number;
+  foamProfile?: MarineFoamProfile;
 }) {
   const { pipeline, domain, neutral, tier, foamNoise, environment } = options;
   const time = uniform(0);
@@ -45,6 +47,10 @@ export function createComparisonWaterMaterial(options: {
   const foamOrigin = uniform(new Vector2());
   const wakeOrigin = uniform(new Vector2());
   const washOrigin = uniform(new Vector2());
+  const trailOrigin = uniform(new Vector2());
+  const foamProfile = options.foamProfile ?? MARINE_FOAM_PROFILES.destroyer;
+  const trailDomain = uniform(foamProfile.trailDomainMeters);
+  const trailBubbleStrength = uniform(foamProfile.bubbleOpticalStrength);
   const shores = options.shores ?? (options.shore ? [options.shore] : []);
   const shoreDepth = Math.min(30, ...shores.map(shore => shore.shoreDepthMeters));
   const shallowEnabled = uniform(0);
@@ -54,11 +60,14 @@ export function createComparisonWaterMaterial(options: {
   placeholder.needsUpdate = true;
   const shallowTexture = texture(placeholder);
   const planarTexture = texture(placeholder);
-  const zeroTexture = new DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1);
-  zeroTexture.needsUpdate = true;
-  const wakeTexture = texture(zeroTexture);
-  const historyTexture = texture(zeroTexture);
-  const washTexture = texture(zeroTexture);
+  // TSL按初始纹理身份合并绑定；各个可变历史必须有独立占位，避免更新某场时读到另一场。
+  const zeroTextures = Array.from({ length: 4 }, () => {
+    const value = new DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1); value.needsUpdate = true; return value;
+  });
+  const wakeTexture = texture(zeroTextures[0]);
+  const historyTexture = texture(zeroTextures[1]);
+  const washTexture = texture(zeroTextures[2]);
+  const trailTexture = texture(zeroTextures[3]);
   const historyEnabled = uniform(0);
   const foamDrift = uniform(new Vector2(...SURFACE_FOAM_DRIFT));
   const n = varyingProperty('vec3', 'oceanNormal');
@@ -223,14 +232,18 @@ export function createComparisonWaterMaterial(options: {
     const coverage = float(0).toVar();
     const history = sampleBilinearHistory(historyTexture, positionWorld.xz.sub(foamOrigin).div(domain).add(0.5), SURFACE_FOAM_RESOLUTION);
     const wash = sampleBilinearHistory(washTexture, positionWorld.xz.sub(washOrigin).div(SHIP_WAVE_DOMAIN_METERS).add(0.5), SHIP_WAVE_RESOLUTION);
+    const trail = sampleBilinearHistory(trailTexture, positionWorld.xz.sub(trailOrigin).div(trailDomain).add(0.5), MARINE_TRAIL_RESOLUTION);
+    const fineWeight = float(1).sub(smoothstep(FINE_FOAM_BLEND_START_METERS, FINE_FOAM_BLEND_END_METERS,
+      max(abs(positionWorld.x.sub(washOrigin.x)), abs(positionWorld.z.sub(washOrigin.y)))));
     If(historyEnabled.greaterThan(0.5), () => {
       // 新生白沫较密，残留泡沫逐渐破碎为斑驳薄层；位置来自输运场。
       const patches = smoothstep(0.22, 0.70, detail);
       // 洗流密度决定可见量，稀疏纹理只调节斑驳，不能抹去已有残留层。
       const washPatches = mix(0.35, 1, patches);
-      coverage.assign(history.r.mul(patches).add(history.g.mul(0.25))
-        .add(wash.r.mul(washPatches).mul(0.65)).add(wash.g.mul(0.28))
-        .add(wash.b.mul(patches).mul(0.75)).add(wash.a.mul(0.28)).clamp());
+      const fineCoverage = wash.r.mul(washPatches).mul(0.65).add(wash.g.mul(0.28))
+        .add(wash.b.mul(patches).mul(0.75)).add(wash.a.mul(0.28));
+      const trailCoverage = trail.r.mul(washPatches).mul(0.65).add(trail.b.mul(patches).mul(0.75));
+      coverage.assign(history.r.mul(patches).add(history.g.mul(0.25)).add(mix(trailCoverage, fineCoverage, fineWeight)).clamp());
     });
     const nv = dot(normal, view).max(1e-4);
     const nl = dot(normal, sun).max(0);
@@ -281,6 +294,10 @@ export function createComparisonWaterMaterial(options: {
       color.assign(mix(color, vec3(0.29, 0.24, 0.13).mul(light.mul(0.65).add(0.35)), coverage));
     }
     const foamLit = colorNode('#d7e4ea').mul(light.mul(0.65).add(0.35)).mul(illumination);
+    // 水下气泡只产生较弱的水色散射；旧尾迹不会持续变成亮白涂层。
+    const bubbles = historyEnabled.greaterThan(0.5).select(trail.g.mul(trailBubbleStrength).clamp(0, 0.18), 0);
+    const bubbleLit = color.add(waterColor.mul(0.4)).add(vec3(0.025, 0.07, 0.055).mul(light.mul(0.65).add(0.35)).mul(illumination));
+    color.assign(mix(color, bubbleLit, bubbles));
     color.assign(mix(color, foamLit, coverage.mul(0.85)));
     const overhead = smoothstep(0.04, 0.42, view.y.max(0));
     return color.mul(float(1).add(overhead.mul(height.mul(COMPARISON_OVERHEAD_WAVE_SHADE).clamp(-0.42, 0.42))));
@@ -288,8 +305,8 @@ export function createComparisonWaterMaterial(options: {
   // 已在上面计算完整光学，不能再走 BasicMaterial 的环境乘色。
   material.fragmentNode = vec4(waterColorNode, 1);
   return {
-    material, time, opticalOctaves, origin, foamOrigin, wakeOrigin, washOrigin, shipPose, displace, backgroundDisplace, wakeHeight,
-    wakeTexture, historyTexture, washTexture, historyEnabled, shallowEnabled, shallowTexture, planarTexture, planarStrength, planarMatrix,
+    material, time, opticalOctaves, origin, foamOrigin, wakeOrigin, washOrigin, trailOrigin, trailDomain, trailBubbleStrength, shipPose, displace, backgroundDisplace, wakeHeight,
+    wakeTexture, historyTexture, washTexture, trailTexture, historyEnabled, shallowEnabled, shallowTexture, planarTexture, planarStrength, planarMatrix,
     emptyTexture: placeholder,
     createFarMaterial() {
       const far = material.clone();
@@ -306,6 +323,6 @@ export function createComparisonWaterMaterial(options: {
       probe.toneMapped = false;
       return probe;
     },
-    dispose() { material.dispose(); placeholder.dispose(); zeroTexture.dispose(); },
+    dispose() { material.dispose(); placeholder.dispose(); for (const value of zeroTextures) value.dispose(); },
   };
 }

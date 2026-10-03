@@ -1280,6 +1280,7 @@ function CruiseWater({ state, resetToken }: { state: CruiseSimulationState; rese
   const { params } = useSceneQuality();
   return (
     <MarineWater
+      foamVessel="cruise"
       worldSpeedSampler={() => state.isRunning && !state.isPaused ? state.speed : 0}
       vesselLengthMeters={323.6} vesselBeamMeters={37.2}
       resetToken={resetToken}

@@ -414,6 +414,7 @@ function PresetWater({ simRef, resetToken }: { simRef: React.MutableRefObject<Si
   const { params } = useSceneQuality();
   return (
     <MarineWater
+      foamVessel="destroyer"
       worldSpeedSampler={() => simRef.current.advancing ? simRef.current.speedMps : 0}
       vesselLengthMeters={180} vesselBeamMeters={20}
       resetToken={resetToken}

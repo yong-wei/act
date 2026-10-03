@@ -108,3 +108,32 @@ The shared marine loader SHALL present an authorized received ship proxy first, 
 - **WHEN** a ready replacement is mounted within the same immutable model package
 - **THEN** current animation progress, pingpong direction, clamped action state and live propulsor phase are preserved
 - **AND** simulation state, camera and the declared waterline remain under their existing owners
+
+### Requirement: Vessel foam uses shared logic and separate vessel calibration
+The seven production vessel scenes and their active embedded consumers SHALL use one GPU foam implementation with explicit vessel-specific lifetime, diffusion, source, optical and waterline parameters. Parameters SHALL be identified as visual calibration rather than measured vessel physics.
+
+#### Scenario: Vessel identity changes
+- **WHEN** destroyer, cruise, LNG, container, icebreaker, dredger or drilling scenes initialize
+- **THEN** each consumes its declared calibration through the shared surface host
+- **AND** authoritative vessel dynamics and actual propulsor identities remain unchanged
+
+### Requirement: Long vessel traces survive the fine wave region
+Vessel traces SHALL retain world-space surface foam and lower-contrast bubble signatures beyond the fine wave region, with separate lifetimes and bounded optical contribution.
+
+#### Scenario: The vessel leaves an emitted trace behind
+- **WHEN** the vessel moves the fine field away from an old trace
+- **THEN** the larger history retains that trace without a bright overlap or fine-field cutoff
+- **AND** source cessation, translation, pause, reset and replay preserve the fixed-step lifecycle
+- **AND** natural foam and the background wave-height calibration remain under their existing owners
+
+### Requirement: Hull foam reflects localized waterline excitation
+Hull foam SHALL follow the configured wet hull bands and available motion or wave excitation, including bow shoulders and vessel sides. It SHALL NOT create an unconditional bright hull border or change water exclusion geometry.
+
+#### Scenario: Calm stationary hull has no excitation
+- **WHEN** hull translation, ambient waves and propulsor activity are zero
+- **THEN** no vessel-generated foam or bubble trace is produced
+
+#### Scenario: A semi-submersible platform receives wave excitation
+- **WHEN** the drilling platform has wave-excited hull foam
+- **THEN** foam follows its separate column waterlines while openings retain water
+- **AND** zero-translation thrust can still generate localized propulsor wash without transit waves
