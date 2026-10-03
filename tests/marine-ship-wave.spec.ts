@@ -42,6 +42,16 @@ function pressureMode(x: number, z: number, time: number) {
 for (const api of ['webgl', 'webgpu'] as const) {
   test.describe(`${api} local ship field`, () => {
     test.setTimeout(180000);
+    test('persistent propulsor foam remains visible after the fresh layer fades', async ({ page }) => {
+      await setup(page, api, 0);
+      const result = await page.evaluate(async api => {
+        const url = '/__ship-wave-probe.js', probe = await import(url);
+        return probe.persistentWashVisibility(api);
+      }, api);
+      expect(result.visibleIncrease).toBeGreaterThan(0.025);
+      expect(result.cleared).toEqual(result.background);
+      expect(result.identity.api).toBe(api === 'webgpu' ? 'WebGPUBackend' : 'WebGLBackend');
+    });
     test('complex roundtrip, independent pressure and visible fine geometry agree', async ({ page }) => {
       const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
       await setup(page, api, 12, 'circle');

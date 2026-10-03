@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "act.marine-wake-visibility.v1",
+  "baseRevision": "d4ef2b6ae74f542065ceb4fa62d269e163268613",
+  "status": "local-verified",
+  "branch": "codex/fix-invisible-ship-wake",
+  "productionAppVersion": "0.7.35",
+  "productionAppRevision": "63f81b7449aa56f71f6673554f4b26112c9bf575",
+  "fixPublished": false,
+  "sourceSha256": "b2ae3685d0acf2736f2633f53d35f71886a73d615d2f79236686290f656c3f28",
+  "sparseAlpha": 0.13725490196078433,
+  "residualDensity": 0.5,
+  "freshDensity": 0,
+  "beforeVisibleIncrease": 0,
+  "afterVisibleIncrease": 0.056022523902356625,
+  "checks": {
+    "webglPixelRegression": true,
+    "webgpuPixelRegression": true,
+    "zeroDensityRestoresBackground": true,
+    "bothApiLifecycleRegression": true,
+    "webglActualVessel": true,
+    "webgpuActualVessel": true,
+    "typecheck": true,
+    "targetedLint": true
+  },
+  "evidence": {
+    "production-webgpu-before.png": {
+      "sha256": "3c8763d548ccbf1283a5ce84792aefe7088bc0ec71c69bc6c69ce044e4b21d10",
+      "bytes": 117424
+    },
+    "local-webgpu-after-visible.png": {
+      "sha256": "00c81d5825a21a5e5cfdc5677ea50eb2c391383bca86da0ca37b3cfb83669dfc",
+      "bytes": 88977
+    },
+    "local-webgl-after-visible.png": {
+      "sha256": "6bded104bc0c0e284d1ba1a99f583481f9f45d3b057fc85d7e3d5ea467540f7a",
+      "bytes": 72407
+    },
+    "visibility-webgpu-before.json": {
+      "sha256": "523cab3c869a2e27f8f788f56cf1b7d4271cdf3c187e8bdd75cd761158c695b6",
+      "bytes": 391
+    },
+    "visibility-webgpu-after.json": {
+      "sha256": "052e3f3da14de271fe971cd21786ebad58f4b2243843bc3293580da2e0f60a3c",
+      "bytes": 409
+    },
+    "production-history-before.json": {
+      "sha256": "2bc1147843ba4d8a90ea26630a98cdc4bfaa1044c54f3f78ae68aa93c8b8fc74",
+      "bytes": 2343
+    },
+    "local-history-after-20s.json": {
+      "sha256": "270f076ed09d0268bd9010a4c84bff1a17b7d7e4744586b0c63d6f90afc81672",
+      "bytes": 2737
+    },
+    "local-history-webgl-after-20s.json": {
+      "sha256": "2f9183423ed52bfc37d26823b011b6e09e32db5c75582ede3a04da17b4a88522",
+      "bytes": 2778
+    }
+  }
+}

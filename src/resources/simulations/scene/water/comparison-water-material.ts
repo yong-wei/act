@@ -226,8 +226,10 @@ export function createComparisonWaterMaterial(options: {
     If(historyEnabled.greaterThan(0.5), () => {
       // 新生白沫较密，残留泡沫逐渐破碎为斑驳薄层；位置来自输运场。
       const patches = smoothstep(0.22, 0.70, detail);
+      // 洗流密度决定可见量，稀疏纹理只调节斑驳，不能抹去已有残留层。
+      const washPatches = mix(0.35, 1, patches);
       coverage.assign(history.r.mul(patches).add(history.g.mul(0.25))
-        .add(wash.r.mul(patches).mul(0.65)).add(wash.g.mul(0.28))
+        .add(wash.r.mul(washPatches).mul(0.65)).add(wash.g.mul(0.28))
         .add(wash.b.mul(patches).mul(0.75)).add(wash.a.mul(0.28)).clamp());
     });
     const nv = dot(normal, view).max(1e-4);

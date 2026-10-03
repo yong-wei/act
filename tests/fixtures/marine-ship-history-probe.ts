@@ -5,7 +5,7 @@ import { createComparisonSurfaceHistory, type SurfaceHistoryPose, type MarineFoa
 import { createMarineSurfaceGeometry } from '../../src/resources/simulations/scene/water/marine-surface-geometry';
 import { fftOceanStaticSpectrum } from '../../src/resources/simulations/scene/water/fft-ocean';
 import { createOceanGpuTransform } from '../../src/resources/simulations/scene/water/ocean-gpu-transform';
-import { DataTexture, FloatType, RGBAFormat, RenderTarget, Vector2, Scene, Mesh, OrthographicCamera, MeshBasicNodeMaterial, QuadMesh } from 'three/webgpu';
+import { DataTexture, FloatType, RGBAFormat, RenderTarget, Vector2, Scene, Mesh, OrthographicCamera, MeshBasicNodeMaterial, QuadMesh, EquirectangularReflectionMapping, SRGBColorSpace } from 'three/webgpu';
 import { uniform, vec4 } from 'three/tsl';
 
 export async function create(api: 'webgl' | 'webgpu', speed = 12, path: 'straight' | 'circle' = 'straight') {
@@ -70,6 +70,49 @@ export async function create(api: 'webgl' | 'webgpu', speed = 12, path: 'straigh
     },
     dispose() { history.dispose(); background.dispose(); water.dispose(); zero.dispose(); sampleTarget.dispose(); geometry.dispose(); probeMaterial.dispose(); pointMaterial.dispose(); renderer.dispose(); },
   };
+}
+
+/** 实际共享光学：稀疏噪声下，新生层消退后仍能看见已有洗流密度。 */
+export async function persistentWashVisibility(api: 'webgl' | 'webgpu') {
+  const renderer = await createMarineRenderer(document.createElement('canvas'), api);
+  renderer.setSize(32, 32);
+  const zero = new DataTexture(new Float32Array(4), 1, 1, RGBAFormat, FloatType);
+  const density = new DataTexture(new Float32Array([0.5, 0, 0, 0]), 1, 1, RGBAFormat, FloatType);
+  // 正式alpha纹理均值约0.138；常值排除视点及多尺度采样造成的偶然白斑。
+  const noise = new DataTexture(new Uint8Array([255, 255, 255, 35]), 1, 1);
+  const skyData = new Uint8Array(256 * 128 * 4);
+  for (let i = 0; i < skyData.length; i += 4) skyData.set([60, 94, 145, 255], i);
+  const sky = new DataTexture(skyData, 256, 128);
+  sky.mapping = EquirectangularReflectionMapping; sky.colorSpace = SRGBColorSpace;
+  for (const input of [zero, density, noise, sky]) input.needsUpdate = true;
+  const water = createComparisonWaterMaterial({ pipeline: null, domain: 2048, wakeResolution: 512,
+    neutral: false, tier: 'low', foamNoise: noise, environment: sky, amplitudeScale: 0 });
+  water.historyEnabled.value = 1;
+  const geometry = createMarineSurfaceGeometry(2048, 256), scene = new Scene();
+  const mesh = new Mesh(geometry, water.material); mesh.position.y = -1; scene.add(mesh);
+  const camera = new OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
+  camera.coordinateSystem = renderer.coordinateSystem; camera.up.set(0, 0, -1);
+  camera.position.set(0, 100, 0); camera.lookAt(0, -1, 0); camera.updateProjectionMatrix();
+  const target = new RenderTarget(1, 1, { type: FloatType });
+  const read = async () => {
+    renderer.setRenderTarget(target); renderer.render(scene, camera);
+    const values = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 1, 1);
+    return Array.from(values).slice(0, 3);
+  };
+  try {
+    water.washTexture.value = zero;
+    const background = await read();
+    water.washTexture.value = density;
+    const wash = await read();
+    water.washTexture.value = zero;
+    const cleared = await read();
+    return { identity: marineRendererIdentity(renderer), background, wash, cleared,
+      visibleIncrease: wash[0] - background[0] };
+  } finally {
+    renderer.setRenderTarget(null); geometry.dispose(); water.dispose();
+    for (const input of [zero, density, noise, sky]) input.dispose();
+    target.dispose(); renderer.dispose();
+  }
 }
 
 declare global { interface Window { __shipHistoryFixture?: Awaited<ReturnType<typeof create>>; } }

@@ -1,0 +1,99 @@
+{
+  "result": {
+    "type": "object",
+    "value": {
+      "history": {
+        "emitters": [
+          {
+            "activity": 1.0109049184370085,
+            "depthMeters": 4.479221492720376,
+            "diameterMeters": 4.607935889587623,
+            "estimated": true,
+            "headingRad": 1.5707970488462624,
+            "id": "PROP_PORT",
+            "x": -5772.363232228943,
+            "z": -4.808281119329269
+          },
+          {
+            "activity": 1.0109049184370085,
+            "depthMeters": 4.479221492720376,
+            "diameterMeters": 4.607935889587623,
+            "estimated": true,
+            "headingRad": 1.5707970488462624,
+            "id": "PROP_STARBOARD",
+            "x": -5772.363232228943,
+            "z": 4.8082811193292585
+          }
+        ],
+        "energy": 0.006415898801176583,
+        "foamCentroid": [
+          -5872.395362206748,
+          -22.227970436242565
+        ],
+        "foamMass": 1227.5858588552487,
+        "foamVariance": 482281.7206243258,
+        "maxHeight": 0.936870813369751,
+        "minHeight": -1.859236240386963,
+        "modes": [
+          {
+            "heightIm": -79.39461517333984,
+            "heightRe": 145.5728759765625,
+            "velocityIm": -21.27277374267578,
+            "velocityRe": -14.935280799865724,
+            "x": 1,
+            "z": 2
+          },
+          {
+            "heightIm": -14.096869468688965,
+            "heightRe": 28.440229415893555,
+            "velocityIm": 12.375109672546388,
+            "velocityRe": -2.0472214221954346,
+            "x": 3,
+            "z": 5
+          },
+          {
+            "heightIm": 100.37168884277344,
+            "heightRe": -45.930084228515625,
+            "velocityIm": 20.0992431640625,
+            "velocityRe": 68.09037780761719,
+            "x": 8,
+            "z": 4
+          }
+        ],
+        "naturalFoamArea": 16653.325905407066,
+        "shipBreakingFoamArea": 1139.7475863806412,
+        "time": 29.65,
+        "washFoamArea": 1848.3002498962005
+      },
+      "identity": {
+        "api": "WebGPUBackend",
+        "backend": "fft",
+        "frames": 1079,
+        "hardware": "apple / metal-3",
+        "material": "shared-comparison-water",
+        "readbacks": 0,
+        "resourceGeneration": 2,
+        "time": 29.65
+      },
+      "stats": {
+        "foamOrigin": [
+          -5992,
+          0
+        ],
+        "naturalSource": true,
+        "readbacks": 0,
+        "requested": 29.66229999446874,
+        "steps": 1779,
+        "time": 29.65,
+        "vesselSource": true,
+        "wakeOrigin": [
+          -5712,
+          0
+        ],
+        "waveDomainMeters": 768,
+        "wavePasses": 1779,
+        "waveResolution": 512
+      }
+    }
+  }
+}
