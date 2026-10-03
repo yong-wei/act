@@ -93,6 +93,7 @@ try {
   assert.equal(inspected.user, 'nextjs');
   const names = inspected.files.map((file) => file.name);
   assert.ok(names.includes('app/hello.txt'));
+  assert.ok(names.includes('app/later.txt'));
   assert.equal(names.includes('usr/bin/keep'), false);
   assert.equal(names.includes('usr/bin/chromium'), false);
   const link = inspected.files.find((file) => file.name === 'app/link.txt');
@@ -179,6 +180,7 @@ exit 99
   });
   assert.equal(assembled.status, 0, `${assembled.stderr}\n${assembled.stdout}`);
   assert.equal(fs.readFileSync(path.join(mount, 'app/hello.txt'), 'utf8'), 'hi\n');
+  assert.equal(fs.readFileSync(path.join(mount, 'app/later.txt'), 'utf8'), 'later\n');
   assert.equal(fs.existsSync(path.join(mount, 'usr/bin/keep')), false);
   const commit = fs.readFileSync(commitLog, 'utf8');
   assert.match(commit, /USER nextjs/u);

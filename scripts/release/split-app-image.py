@@ -308,11 +308,16 @@ def remove_extracted(root: str, rel: str) -> None:
 def extract_member(root: str, rel: str, member: tarfile.TarInfo, layer: tarfile.TarFile) -> None:
     destination = os.path.join(root, rel)
     ensure_parent(destination)
-    if os.path.lexists(destination) or os.path.islink(destination):
-        remove_extracted(root, rel)
+    exists = os.path.lexists(destination) or os.path.islink(destination)
     if member.isdir():
+        # Later COPY layers repeat parent directories. Replacing an existing
+        # directory would drop files copied by earlier layers.
+        if exists and not (os.path.isdir(destination) and not os.path.islink(destination)):
+            remove_extracted(root, rel)
         os.makedirs(destination, exist_ok=True)
         return
+    if exists:
+        remove_extracted(root, rel)
     if member.issym():
         os.symlink(member.linkname, destination)
         return
@@ -667,10 +672,16 @@ def command_write_fixture(options: dict[str, str]) -> None:
     ]
     if poison:
         app_entries.append((poison, b'leak\n', {}))
+    later_entries: list[tuple[str, bytes | None, dict]] = [
+        ('app', None, {'mode': 0o755}),
+        ('app/later.txt', b'later\n', {'mode': 0o644, 'uid': 1001, 'gid': 1001}),
+    ]
     base_tar = tar_bytes(base_entries)
     app_tar = tar_bytes(app_entries)
+    later_tar = tar_bytes(later_entries)
     base_diff, base_digest, base_blob = layer_blob(base_tar)
     app_diff, app_digest, app_blob = layer_blob(app_tar)
+    later_diff, later_digest, later_blob = layer_blob(later_tar)
     created_by = (
         'RUN /bin/sh -c apt-get install -y --no-install-recommends chromium libreoffice '
         '&& printf act-runner-os-rev'
@@ -694,19 +705,20 @@ def command_write_fixture(options: dict[str, str]) -> None:
                 'io.act.runtime-media-storage.version': '1',
             },
         },
-        'rootfs': {'type': 'layers', 'diff_ids': [base_diff, app_diff]},
+        'rootfs': {'type': 'layers', 'diff_ids': [base_diff, app_diff, later_diff]},
         'history': [
             {'created_by': created_by, 'empty_layer': False},
             {'created_by': 'COPY app/hello.txt', 'empty_layer': False},
+            {'created_by': 'COPY app/later.txt', 'empty_layer': False},
         ],
     }
     ensure_parent(destination)
     write_docker_image(
         destination,
         config,
-        [base_digest, app_digest],
-        [(base_digest, base_blob), (app_digest, app_blob)],
-        f'localhost/act-obe-platform:fixture',
+        [base_digest, app_digest, later_digest],
+        [(base_digest, base_blob), (app_digest, app_blob), (later_digest, later_blob)],
+        'localhost/act-obe-platform:fixture',
     )
 
 
