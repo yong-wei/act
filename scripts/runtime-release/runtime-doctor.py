@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -66,8 +67,15 @@ def audit(args):
         raise DoctorError("manifest releaseId does not match the requested release")
     checked = 0
     hashed = 0
+    directory = MATERIALIZE.MEDIA_STORAGE.catalog_path(args.state_dir, args.media_directory) if args.state_dir else args.media_directory
+    catalog, canonical = MATERIALIZE.MEDIA_STORAGE.load_catalog(directory, required=bool(args.media_directory))
+    locations = MATERIALIZE.MEDIA_STORAGE.object_map(catalog) if canonical else {}
+    media_root = args.media_root or os.environ.get('ACT_RUNTIME_PUBLIC_MEDIA_ROOT')
+    if not media_root and args.state_dir and Path(args.state_dir).name == 'blob-views':
+        media_root = Path(args.state_dir).parent / 'ossfs' / 'public-media'
     for item in manifest["files"]:
-        blob = MATERIALIZE.blob_path(store, item["sha256"], blob_root=args.blob_root)
+        MATERIALIZE.MEDIA_STORAGE.location_for(item, locations)
+        blob = MATERIALIZE.blob_path(store, item["sha256"], blob_root=args.blob_root, media_locations=locations, media_root=media_root)
         try:
             size = blob.stat().st_size
         except OSError:
@@ -98,6 +106,8 @@ def build_parser():
     parser.add_argument("--release-id")
     parser.add_argument("--manifest")
     parser.add_argument("--blob-root")
+    parser.add_argument("--media-directory")
+    parser.add_argument("--media-root")
     parser.add_argument("--full", action="store_true")
     return parser
 
@@ -111,7 +121,7 @@ def main(argv=None):
             after = read_pointers(Path(args.state_dir))
             if after != before:
                 raise DoctorError("doctor must not change pointers")
-    except (DoctorError, MATERIALIZE.MaterializeError) as error:
+    except (DoctorError, MATERIALIZE.MaterializeError, MATERIALIZE.MEDIA_STORAGE.MediaStorageError) as error:
         sys.stderr.write("%s\n" % error)
         return getattr(error, "code", 2)
     sys.stdout.write(json.dumps(result, indent=2, sort_keys=True) + "\n")

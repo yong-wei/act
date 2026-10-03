@@ -2,6 +2,7 @@ import 'server-only';
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { RUNTIME_PUBLIC_MEDIA_HELPER_NAME } from '@/lib/runtime-media-storage';
 
 const PROJECT_ROOT = process.cwd();
 const RUNTIME_PREFIX = 'course-content/runtime/';
@@ -44,7 +45,7 @@ function resolveInsideRoot(root: string, relativePath: string, errorLabel: strin
     || normalizedRelative.startsWith('../')
     || normalizedRelative === '..'
     || path.posix.isAbsolute(normalizedRelative)
-    || normalizedRelative.split('/')[0] === RUNTIME_BLOB_HELPER_NAME
+    || [RUNTIME_BLOB_HELPER_NAME, RUNTIME_PUBLIC_MEDIA_HELPER_NAME].includes(normalizedRelative.split('/')[0])
   ) {
     throw new Error(`${errorLabel}: ${relativePath}`);
   }

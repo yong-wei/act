@@ -36,6 +36,10 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 
 默认战术视角下，被试船沿半径300米的圆轨迹航行。船行波由移动压力激发并实际改变水面高度和法线；破碎泡沫在持久场中产生、漂移、扩散和消散，转弯不会旋转旧航迹。两种图形接口共用这套实现；表面近似不等于三维卷浪或工程级船体流体计算。解析波场仍保留为独立参考。七个正式船型及其嵌入入口现已共用这套FFT、船行波与泡沫实现，保持各自控制和数值运动。默认检测WebGPU设备能力并尝试初始化，不可用时自动回退WebGL；诊断可用`graphics=webgl|webgpu`指定接口。质量档位只调整光学和渲染成本，FFT交互场保持一致。开发服务器上的功能验证不能替代生产构建和跨硬件性能测量。实现及验收记录见 `openspec/changes/unify-ocean-comparison-rendering/`。
 
+船周另有768米、512²的局部船行波场，使用航速相关的艏艉压力、细化的连续水面网格和吸收边缘，保持背景海浪校准。逐桨洗流读取已显示模型的节点、轴向和可用推进状态，与自然破碎和船行波泡沫分别演化；定位平台可在近零平移时显示有推力的局部洗流。贴水查询使用实际合成三角面，批量异步读回保留采样时间，等待GPU期间海面继续更新。
+
+版本化船模先显示本船超低面代理，再在后台准备低档与当前所需档位；下载、解析或材质准备失败时保留已显示模型，升级保持控制、动画进度与水线。七船已接收 [3DModels #7](https://github.com/yong-wei/3DModels/issues/7) 交付的新版本，代理约30–93KiB、单绘制批次、无外部贴图。独立推进器接口绑定同版本坐标与出处，代理期间也消费可用推进状态。七船模型、接口、清单与相对贴图共179个对象已发布到私有OSS，经ESA分发；生产Origin使用远程优先与同源回退，开发Origin使用同源不可变地址。模型对象发布与应用代码部署分别验收。
+
 ## 主要角色
 
 ### 学生端
@@ -132,6 +136,8 @@ Active 图谱的本地修复已加入固定 2D/3D 坐标与相机、选中邻域
 本地知识卡内容已覆盖选定的458个概念节点，其中基础与核心343张、专业扩展115张。卡片提供定义、可复算例、适用边界、常见误区和自检，并按精确节点身份进入资源绑定；学生可从图谱详情或对应学习目标的推荐路径访问同一版本。最优控制、鲁棒控制和非线性控制分别有明确的基础学习目标。图谱检查器有新卡时优先显示卡片首页并可展开详情，未覆盖节点仍显示默认描述；学习路径打开知识卡时纳入同伴信息图。课内旧图谱卡暂时保留。
 
 正式页面应读取 runtime，不直接回读 authoring。互动课程实现优先使用 `src/features/interactive/shared/manifest-runtime/`，只有确实无法标准化的控制曲线、可行域、黑箱数据预演或专用工作区才保留课程私有实现。
+
+公开教学媒体以内容摘要保存在私有 `act-course-models/teaching-media/sha256/`，通过 `static.adapt-learn.online/teaching-media/sha256/` 分发。独立规范目录服务课程音视频、图片、PDF、教材插图与已接受的信息图；课堂固定资源仍以原 Release 清单和内容摘要定位。信息图图片允许匿名读取，保留审核、Authority/Teaching、摘要与资源引用校验；图谱和节点详情继续使用原权限规则。操作与恢复见 [公开教学媒体 ESA 分发](./operations/public-teaching-media-esa.md)。
 
 互动课程正在从“课程私有组件变体”迁移到“标准模块框架”。新课应使用注册过的模块和 manifest 契约；未注册模块、未声明题型或无法治理的提交结构应被测试闸门拦截。
 
@@ -302,6 +308,8 @@ rtk npm run runtime:activate -- --store-dir /home/projects/act/data/runtime/cas-
 ```
 
 回滚交换 `current`/`previous`：`rtk npm run runtime:rollback -- --store-dir <store> --state-dir <state>`。全量校验与回收只走显式 `runtime:doctor` / `runtime:gc`。
+
+教学媒体采用独立的摘要位置目录，公开合格的新正文直接写入现有 `act-course-models/teaching-media/sha256/`，未改媒体跨Runtime复用。物化视图、OSS签名、课堂与开发者网关解析同一规范位置；停用ESA不改变正文归属。正文回收使用显式 `runtime:gc --reclaim-blobs`，保护两指针、课堂、人工pin、开发者与有限发布/签名租约，并与发布及课堂引用写入互斥。v0.7.35已在生产完成规范位置切换及7,247份原桶副本退役，释放6,320,284,091字节；新旧媒体入口、删除后读取、恢复路径及旧镜像门禁已有实际证据。一次性副本迁移、恢复和旧镜像门禁见 [教学媒体存储与回收](./operations/runtime-media-storage.md)及其交付回执。
 
 生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`/api/readyz` 在 blob-view 模式下投影最小 active runtime 身份（Release ID 与 digest），供开发工作站发现，不返回对象路径或凭据。应用镜像构建（`scripts/build.sh`）只生成明确未绑定 runtime 的 app-only provenance，应用发布不校验也不绑定本地外置教材资源。`legacy-rsync`、`deploy:runtime` 与 `deploy:all` 已退役；更新 runtime 只能使用 `runtime:publish` 与 `runtime:activate`。合作者在 Linux/WSL2/Lima 中使用 `npm run startup:oss-runtime`，经 ECS 激活网关按需读取签发时的 host-active Release；同一机器上的多个 worktree 共享一份网关 Blob 适配器与磁盘缓存，Release pin 与租约仍按 checkout 独立。凭据是仓库外共享网关令牌，不复用 Publisher、OSS AccessKey 或 SSH。隔离的 `static.adapt-learn.online` ESA PoC 由 `npm run esa-delivery:qualify` 资格合同约束：只用 `act-course-delivery`、禁止 Authority Bucket origin，没有 owner 接受服务角色前不得改 DNS。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)、[开发 OSS 接入说明](./operations/developer-oss-runtime-access.md)、[共享缓存](./operations/developer-oss-shared-cache.md) 与 [static ESA Delivery](./operations/static-esa-delivery.md)。
 

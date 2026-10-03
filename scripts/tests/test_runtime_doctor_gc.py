@@ -171,7 +171,8 @@ class RuntimeDoctorGcTests(unittest.TestCase):
             self.assertEqual(dry["blobsDeleted"], 0)
             self.assertEqual(dry["current"], third["releaseId"])
             self.assertEqual(dry["previous"], second["releaseId"])
-            self.assertEqual(dry["removableReleases"], [first["releaseId"]])
+            self.assertEqual(dry["removableReleases"], [])
+            self.assertIn(first["releaseId"], dry['retained'])
             blobs_before = sorted(path.name for path in (store / "runtime" / "blobs" / "sha256").iterdir())
             pinned = self.run_json(
                 [
@@ -190,6 +191,10 @@ class RuntimeDoctorGcTests(unittest.TestCase):
             )
             self.assertEqual(pinned["removableReleases"], [])
             self.assertTrue((store / "runtime" / "blob-releases" / first["releaseId"]).is_dir())
+            lease_path = state / 'storage-retention' / (first['releaseId'] + '.json')
+            lease = json.loads(lease_path.read_text())
+            lease['expiresAt'] = time.time() - 1
+            lease_path.write_text(json.dumps(lease))
             executed = self.run_json(
                 [
                     "python3",

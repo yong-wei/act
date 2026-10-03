@@ -70,3 +70,41 @@ Automatic mode SHALL select WebGPU only when adapter capability and initializati
 - **WHEN** adapter acquisition or device initialization fails
 - **THEN** the scene initializes the same FFT, wake, foam and optical implementation with WebGL and exposes its actual backend
 - **AND** existing vessel controls, environment and camera remain available
+
+### Requirement: Vessel wave detail resolves its declared local band
+Vessel waves SHALL use a documented pressure distribution and speed-dependent inputs, with a visible mesh adequate for the generated wavelength band. Background FFT calibration SHALL remain unchanged, and water contact SHALL sample the combined visible surface.
+
+#### Scenario: Steady vessel speed changes
+- **WHEN** a controlled deep-water straight run changes between low, medium and high vessel speed
+- **THEN** the wave pattern and source strength reflect the actual motion without a low-speed gate flattening all normal transit speeds
+- **AND** local field boundaries do not wrap visible historical waves ahead of the vessel or create an overlapping plane that clips troughs
+
+#### Scenario: Rendered contact is read asynchronously
+- **WHEN** the shared sampler captures a small batch of points on the fine combined surface
+- **THEN** returned heights and slopes are from that rendered triangle mesh and carry the captured surface time
+- **AND** normal ocean updates continue after the GPU copy commands are submitted while the readback is pending
+
+### Requirement: Propulsor wash consumes actual emitter identity
+Active wash SHALL consume the declared or verified propulsor world position, direction and available read-only propulsion state. Visual estimates SHALL be distinguished from actual telemetry, and demonstration animation rates SHALL NOT be treated as measured propulsion state.
+
+#### Scenario: A twin-propulsor vessel advances
+- **WHEN** the vessel moves with available propulsion input
+- **THEN** its local wash originates at the corresponding propulsors instead of a single generic stern center
+- **AND** previous foam stays in world coordinates when the vessel turns
+
+#### Scenario: A positioning platform uses thrust at zero translation
+- **WHEN** existing thruster telemetry is active while hull translation is near zero
+- **THEN** localized wash remains visible without inventing transit waves or modifying the authoritative thrust
+
+### Requirement: Existing marine LOD loading preserves the visible scene
+The shared marine loader SHALL present an authorized received ship proxy first, falling back to an available low LOD when the proxy is unavailable, and prepare requested replacements while retaining the displayed model. Asset preparation and address resolution SHALL avoid redundant consumption of the same immutable artifact. Upstream proxy wiring SHALL require explicit reception authorization.
+
+#### Scenario: A replacement load is delayed or fails
+- **WHEN** a visible vessel requests another LOD whose network, parsing or material preparation is delayed or fails
+- **THEN** the current model remains visible with its transform, waterline and simulation state
+- **AND** a later successful candidate replaces it only when ready to render
+
+#### Scenario: A prepared LOD replaces an animated vessel
+- **WHEN** a ready replacement is mounted within the same immutable model package
+- **THEN** current animation progress, pingpong direction, clamped action state and live propulsor phase are preserved
+- **AND** simulation state, camera and the declared waterline remain under their existing owners

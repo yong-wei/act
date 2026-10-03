@@ -2,6 +2,8 @@ import { Prisma } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
+  readActiveRuntimeReleaseManifest: vi.fn(),
+  $queryRaw: vi.fn(),
   courseBundleRevision: {
     findUnique: vi.fn(),
     aggregate: vi.fn(),
@@ -13,6 +15,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('server-only', () => ({}));
+vi.mock('@/lib/runtime-active-release', () => ({ readActiveRuntimeReleaseManifest: mocks.readActiveRuntimeReleaseManifest }));
 
 import { prisma } from '@/lib/prisma';
 vi.mock('@/lib/prisma', () => ({
@@ -113,6 +116,31 @@ describe('persistCourseBundleRevision', () => {
         data: expect.objectContaining({ runtimeReleaseId: 'rel-2', bundleRevision: 2 }),
       }),
     );
+  });
+
+  it('holds a shared database root lock through persisting a current Runtime revision', async () => {
+    const captured = identity({ runtimeReleaseId: 'runtime-' + 'a'.repeat(55) });
+    mocks.$queryRaw.mockResolvedValue([{ locked: true }]);
+    mocks.readActiveRuntimeReleaseManifest.mockResolvedValue({ releaseId: captured.runtimeReleaseId,
+      treeSha256: captured.runtimeTreeSha256, manifestSha256: captured.runtimeManifestSha256 });
+    mocks.courseBundleRevision.findUnique.mockResolvedValue(null);
+    mocks.courseBundleRevision.aggregate.mockResolvedValue({ _max: { bundleRevision: 0 } });
+    mocks.courseBundleRevision.create.mockResolvedValue(persistedRevision());
+    await persistCourseBundleRevision(mocks as never, captured);
+    expect(mocks.$queryRaw.mock.invocationCallOrder[0]).toBeLessThan(mocks.courseBundleRevision.findUnique.mock.invocationCallOrder[0]);
+    expect(mocks.readActiveRuntimeReleaseManifest.mock.invocationCallOrder[0]).toBeLessThan(mocks.courseBundleRevision.create.mock.invocationCallOrder[0]);
+  });
+
+  it('rejects a new root while GC holds the exclusive database lock or the captured Runtime has changed', async () => {
+    const captured = identity({ runtimeReleaseId: 'runtime-' + 'a'.repeat(55) });
+    mocks.$queryRaw.mockResolvedValue([{ locked: false }]);
+    await expect(persistCourseBundleRevision(mocks as never, captured)).rejects.toMatchObject({ code: 'resource-unreadable' });
+    expect(mocks.courseBundleRevision.findUnique).not.toHaveBeenCalled();
+    mocks.$queryRaw.mockResolvedValue([{ locked: true }]);
+    mocks.courseBundleRevision.findUnique.mockResolvedValue(null);
+    mocks.readActiveRuntimeReleaseManifest.mockResolvedValue({ releaseId: 'runtime-' + 'b'.repeat(55) });
+    await expect(persistCourseBundleRevision(mocks as never, captured)).rejects.toMatchObject({ code: 'resource-unreadable' });
+    expect(mocks.courseBundleRevision.create).not.toHaveBeenCalled();
   });
 
   it('allocates the next monotonic revision for new content', async () => {

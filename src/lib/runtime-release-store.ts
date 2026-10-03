@@ -3,6 +3,7 @@ import { createReadStream } from 'node:fs';
 import { lstat, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Readable } from 'node:stream';
+import { canonicalRuntimeMediaLocation } from '@/lib/runtime-media-storage';
 
 import {
   type ActRuntimeBlobReleaseReceipt,
@@ -400,11 +401,11 @@ export function createEcsRamRoleOssClient(input: {
     refreshSTSTokenInterval: number;
     refreshSTSToken: () => Promise<{ accessKeyId: string; accessKeySecret: string; stsToken: string }>;
   }) => EcsRamRoleOssClient;
-  let clientPromise: Promise<EcsRamRoleOssClient> | null = null;
-  const client = async () => {
-    if (!clientPromise) {
-      clientPromise = credentialClient.getCredential().then((credential) => new ossConstructor({
-        bucket: input.bucket,
+  const clients = new Map<string, Promise<EcsRamRoleOssClient>>();
+  const client = async (bucket = input.bucket) => {
+    if (!clients.has(bucket)) {
+      clients.set(bucket, credentialClient.getCredential().then((credential) => new ossConstructor({
+        bucket,
         region: input.region,
         accessKeyId: credential.accessKeyId,
         accessKeySecret: credential.accessKeySecret,
@@ -418,14 +419,20 @@ export function createEcsRamRoleOssClient(input: {
             stsToken: refreshed.securityToken,
           };
         },
-      }));
+      })));
     }
-    return clientPromise;
+    return clients.get(bucket)!;
   };
   return {
     list: async (input) => (await client()).list(input),
-    getStream: async (key) => (await client()).getStream(key),
-    asyncSignatureUrl: async (key, options) => (await client()).asyncSignatureUrl(key, options),
+    getStream: async (key) => {
+      const location = input.bucket === 'act-course-assets' ? canonicalRuntimeMediaLocation(key) : null;
+      return (await client(location?.bucket)).getStream(location?.objectKey ?? key);
+    },
+    asyncSignatureUrl: async (key, options) => {
+      const location = input.bucket === 'act-course-assets' ? canonicalRuntimeMediaLocation(key) : null;
+      return (await client(location?.bucket)).asyncSignatureUrl(location?.objectKey ?? key, options);
+    },
   };
 }
 

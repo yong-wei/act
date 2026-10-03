@@ -1,0 +1,16 @@
+{
+  "Version": "1",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["oss:GetObject"],
+      "Resource": ["acs:oss:*:*:act-course-models/teaching-media/sha256/*"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["oss:ListObjects"],
+      "Resource": ["acs:oss:*:*:act-course-models"],
+      "Condition": {"StringLike": {"oss:Prefix": ["teaching-media/sha256/*"]}}
+    }
+  ]
+}

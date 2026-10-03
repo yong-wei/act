@@ -1021,13 +1021,15 @@ function main() {
     /podman exec '\$\{APP_NAME_HINT\}' \.\/node_modules\/\.bin\/tsx scripts\/db\/import-authoritative-actkg-release\.ts --verify-only/,
     'remote-deploy 最终阶段必须以只读模式核验 Release roundtrip/receipt/count/hash 与 Overlay selector/receipt',
   );
-  assert.ok(
-    remoteDeployScript.includes('podman exec \\"${APP_NAME_HINT}\\" node scripts/db/seed-all-knowledge.mjs'),
-    'remote-deploy 必须在受控发布路径中实际同步 runtime 知识图谱，不能调用仅拒绝执行的 package gate',
+  assert.doesNotMatch(
+    remoteDeployScript,
+    /node scripts\/db\/seed-all-knowledge\.mjs/,
+    '应用部署不得重写 Runtime 知识数据；内容发布与应用镜像部署分别执行',
   );
-  assert.ok(
-    remoteDeployScript.includes('podman exec \\"${APP_NAME_HINT}\\" test -s course-content/contracts/knowledge-relation-coverage-audit.json'),
-    'remote-deploy 必须在容器内确认关系审计契约可用后再同步知识图谱',
+  assert.match(
+    remoteDeployScript,
+    /\$\{REMOTE_APP_DEPLOY_SCRIPT\}[^\n]+--runtime-cutover-app-only/,
+    '应用部署必须使用保留现有数据服务及 Runtime 的镜像替换路径',
   );
   for (const verifier of [
     'scripts/db/import-authoritative-actkg-release.ts --verify-only',

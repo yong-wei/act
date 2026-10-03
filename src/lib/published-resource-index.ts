@@ -118,16 +118,16 @@ function listMetadataFiles(root: string, predicate: (file: string) => boolean): 
 }
 
 function runtimeMetadataStamp(): string {
-  const runtimeRoot = join(process.cwd(), 'course-content/runtime');
+  const runtimeRoot = join(/*turbopackIgnore: true*/ process.cwd(), 'course-content/runtime');
   const mediaFiles = listMetadataFiles(join(runtimeRoot, 'lessons'), (file) => {
     const runtimePath = relative(runtimeRoot, file).replaceAll('\\', '/');
     return isSafeRuntimeMediaPath(runtimePath);
   });
   const lessonContentFiles = listMetadataFiles(join(runtimeRoot, 'lessons'), (file) => /\.(?:json|jsonl)$/iu.test(file));
-  const infographFiles = INFOGRAPH_SOURCE_ROOTS.flatMap((root) => listMetadataFiles(join(runtimeRoot, root), (file) => file.endsWith('.png')));
+  const infographFiles = INFOGRAPH_SOURCE_ROOTS.flatMap((root) => listMetadataFiles(join(/*turbopackIgnore: true*/ runtimeRoot, root), (file) => file.endsWith('.png')));
   const infographPaths = INFOGRAPH_SOURCE_ROOTS.flatMap((root) => [
-    join(runtimeRoot, root),
-    ...infographFiles.filter((file) => file.startsWith(join(runtimeRoot, root))),
+    join(/*turbopackIgnore: true*/ runtimeRoot, root),
+    ...infographFiles.filter((file) => file.startsWith(join(/*turbopackIgnore: true*/ runtimeRoot, root))),
   ]);
   const textbookAssets = listMetadataFiles(join(runtimeRoot, 'resources/textbooks'), () => true);
   const textbookFiles = listMetadataFiles(join(runtimeRoot, TEXTBOOK_RUNTIME_RELATIVE), (file) => /(?:manifest\.json|\.jsonl)$/iu.test(file));
@@ -262,13 +262,13 @@ function publishedMediaResolution(input: {
     if (hash) {
       const path = input.localContentMedia?.get(hash);
       if (!path) return { reason: '尚未找到与已发布内容一致的媒体文件。' };
-      const local = localMediaResolution(path, mediaType, input.runtimeRoot ?? join(process.cwd(), 'course-content/runtime'), input.mediaPathValidator);
+      const local = localMediaResolution(path, mediaType, input.runtimeRoot ?? join(/*turbopackIgnore: true*/ process.cwd(), 'course-content/runtime'), input.mediaPathValidator);
       return 'backend' in local ? { ...local, versionStamp: `content:${hash}` } : local;
     }
     const localPath = AUTHORING_MEDIA_PATH_PATTERN.exec(sourcePath);
     if (!localPath) return { reason: '媒体来源路径未映射。' };
     const runtimePath = `${localPath[1]}${localPath[2]}`;
-    return localMediaResolution(runtimePath, mediaType, input.runtimeRoot ?? join(process.cwd(), 'course-content/runtime'), input.mediaPathValidator);
+    return localMediaResolution(runtimePath, mediaType, input.runtimeRoot ?? join(/*turbopackIgnore: true*/ process.cwd(), 'course-content/runtime'), input.mediaPathValidator);
   }
 
   const manifest = input.runtimeManifest;
@@ -295,7 +295,7 @@ function publishedMediaResolution(input: {
 /** Initial indexing may hash local media; unchanged files reuse their recorded digest. */
 export async function buildLocalPublishedMediaIndex(
   resources: readonly TeachingResourceRuntime[],
-  runtimeRoot = join(process.cwd(), 'course-content/runtime'),
+  runtimeRoot = join(/*turbopackIgnore: true*/ process.cwd(), 'course-content/runtime'),
 ): Promise<ReadonlyMap<string, string>> {
   const expected = new Set(resources.filter((resource) => MEDIA_RESOURCE_TYPES.has(resource.resourceType))
     .flatMap((resource) => resource.sourcePath?.match(CONTENT_KEY_PATTERN)?.[1] ?? []));
@@ -648,7 +648,7 @@ export function buildPublishedResourceFeatureIndex(input: {
   }
   const launch = buildTeachingResourceLaunchMaps(artifacts.resources);
   const ids = new Set<string>();
-  const runtimeRoot = input.runtimeRoot ?? join(process.cwd(), 'course-content/runtime');
+  const runtimeRoot = input.runtimeRoot ?? join(/*turbopackIgnore: true*/ process.cwd(), 'course-content/runtime');
   const versionState: ResourceVersionState = {
     sourceContent: new Map(), infographicContent: new Map(), textbookUnits: new Map(),
     runtimeFiles: input.runtimeManifest ? new Map(input.runtimeManifest.files.map((file) => [file.path, file.sha256])) : undefined,

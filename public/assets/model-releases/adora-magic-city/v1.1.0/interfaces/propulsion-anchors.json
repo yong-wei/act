@@ -1,0 +1,238 @@
+{
+  "schema": "act-propulsion-anchors/1",
+  "assetId": "adora-magic-city",
+  "version": "1.1.0",
+  "coordinates": {
+    "unit": "meter",
+    "modelAxes": {
+      "bow": "+X",
+      "up": "+Y",
+      "starboard": "+Z"
+    },
+    "sceneAxes": {
+      "bow": "+Z",
+      "up": "+Y",
+      "port": "+X"
+    },
+    "matrixLayout": "row-major",
+    "modelToSceneMatrix": [
+      0,
+      0,
+      -1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "modelDwlY": 0,
+    "sceneWaterLevel": -0.22
+  },
+  "frame": "GLTF_MODEL_Y_UP_METERS",
+  "pose": "EXPORTED_REST",
+  "policy": "Transform positions once with modelToSceneMatrix; transform shaft axes with its rotation. Azimuth rotates about model +Y at the declared parent pivot. No physical RPM/thrust/power inferred from demo clips.",
+  "propulsors": [
+    {
+      "id": "AMC_OUT_PROP_P",
+      "proxyNode": "PropulsorAnchor_1",
+      "lodNode": "AMC_OUT_PROP_P",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        -136,
+        -4.548704624176025,
+        -7
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        -134.14999389648438,
+        -6.548704624176025,
+        -7
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.1,
+      "immersionM": 6.548704624176025,
+      "side": "port",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "DESIGN_APPROXIMATION",
+        "source": "assets/adora_magic_city/scripts/g04_outfitting.py",
+        "sourceSha256": "06906888ce8b607b84d632efc1a871382f0a45da26faed1e272b0cb24db458cc",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    },
+    {
+      "id": "AMC_OUT_PROP_S",
+      "proxyNode": "PropulsorAnchor_2",
+      "lodNode": "AMC_OUT_PROP_S",
+      "kind": "AZIMUTH_PROPULSOR",
+      "azimuthPivotModelM": [
+        -136,
+        -4.548704624176025,
+        7
+      ],
+      "azimuthAxisModel": [
+        0,
+        1,
+        0
+      ],
+      "positionModelM": [
+        -134.14999389648438,
+        -6.548704624176025,
+        7
+      ],
+      "shaftAxisModel": [
+        1,
+        0,
+        0
+      ],
+      "diameterM": 3.1,
+      "immersionM": 6.548704624176025,
+      "side": "starboard",
+      "physical": {
+        "rpm": "UNKNOWN",
+        "thrustN": "UNKNOWN",
+        "powerW": "UNKNOWN"
+      },
+      "provenance": {
+        "status": "DESIGN_APPROXIMATION",
+        "source": "assets/adora_magic_city/scripts/g04_outfitting.py",
+        "sourceSha256": "06906888ce8b607b84d632efc1a871382f0a45da26faed1e272b0cb24db458cc",
+        "positionSource": "EXPORTED_LOD_REST_PIVOT",
+        "axisSource": "LOCAL_POSITIVE_X_TRANSFORMED; thrust sign is not inferred"
+      }
+    }
+  ],
+  "lodProofs": [
+    {
+      "id": "LOD1",
+      "file": "models/adora-magic-city-h1508-lod1.glb",
+      "sha256": "badabacafdef99ce846db44cfb529e1c4424dda3e02e1cdeb4172b332b52faec",
+      "anchors": [
+        {
+          "id": "AMC_OUT_PROP_P",
+          "positionModelM": [
+            -134.14999389648438,
+            -6.548704624176025,
+            -7
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "AMC_OUT_PROP_S",
+          "positionModelM": [
+            -134.14999389648438,
+            -6.548704624176025,
+            7
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD2",
+      "file": "models/adora-magic-city-h1508-lod2.glb",
+      "sha256": "23babd95b7659cb7a842107279053c579e6235b8c338b86b1317c538bf99cc78",
+      "anchors": [
+        {
+          "id": "AMC_OUT_PROP_P",
+          "positionModelM": [
+            -134.14999389648438,
+            -6.548704624176025,
+            -7
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "AMC_OUT_PROP_S",
+          "positionModelM": [
+            -134.14999389648438,
+            -6.548704624176025,
+            7
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LOD3",
+      "file": "models/adora-magic-city-h1508-lod3.glb",
+      "sha256": "026c737c8b46cbed6cd7dec33e47beaaf18327355a5553a086c8c3cff82652b0",
+      "anchors": [
+        {
+          "id": "AMC_OUT_PROP_P",
+          "positionModelM": [
+            -134.14999389648438,
+            -6.548704624176025,
+            -7
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "AMC_OUT_PROP_S",
+          "positionModelM": [
+            -134.14999389648438,
+            -6.548704624176025,
+            7
+          ],
+          "shaftAxisModel": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "ids": [
+        "AMC_OUT_PROP_P",
+        "AMC_OUT_PROP_S"
+      ],
+      "distanceM": 14,
+      "transverseSpacingM": 14,
+      "axisDot": 1
+    }
+  ]
+}

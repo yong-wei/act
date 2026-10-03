@@ -1,14 +1,14 @@
 /**
  * 版本化仿真模型包的共享类型与 LOD 映射。
  *
- * 055 仍登记 collision/payload/demo/interactive-systems；其余船队包只声明三档主舰 LOD。
+ * 055 仍登记 collision/payload/demo/interactive-systems；其余船队包声明三档主舰 LOD；七船均有独立代理和推进器接口。
  * ACT 不修补上游模型字节。
  */
 
 import { STATIC_HOSTNAME } from '@/lib/browser-delivery/types';
 
 export type VersionedShipLodRole = 'ship-lod0' | 'ship-lod1' | 'ship-lod2';
-export type VersionedOptionalRole = 'collision' | 'payload' | 'demo' | 'interactive-systems';
+export type VersionedOptionalRole = 'collision' | 'payload' | 'demo' | 'interactive-systems' | 'ship-proxy' | 'propulsion-anchors';
 export type VersionedModelRole = VersionedShipLodRole | VersionedOptionalRole;
 
 export interface VersionedModelArtifact {
@@ -123,6 +123,8 @@ export interface VersionedModelPackageDescriptor {
     readonly node: string;
     readonly position: readonly [number, number, number];
   }[];
+  /** 上游同版本独立接口；位置/轴为导出静止姿态的模型坐标，物理量未知不补值。 */
+  readonly propulsionAnchors?: readonly PublishedPropulsionAnchor[];
   readonly semanticBindings?: readonly SemanticAnimationBinding[];
   readonly telemetryScale?: {
     readonly designSpeedMps: number;
@@ -133,6 +135,19 @@ export interface VersionedModelPackageDescriptor {
     /** 主舰 GLB 内达标彩蛋：每次达标随机播放 1..n 条 LoopOnce。 */
     readonly attainmentClips?: readonly string[];
   };
+}
+
+export interface PublishedPropulsionAnchor {
+  readonly id: string;
+  readonly proxyNode: string;
+  readonly lodNode: string;
+  readonly positionModelM: readonly [number, number, number];
+  readonly shaftAxisModel: readonly [number, number, number];
+  readonly diameterM: number;
+  readonly immersionM: number;
+  readonly azimuthPivotModelM?: readonly [number, number, number];
+  readonly azimuthAxisModel?: readonly [number, number, number];
+  readonly provenance: { readonly status: string };
 }
 
 export function artifact(
@@ -189,6 +204,17 @@ export function ossArtifactUrl(item: VersionedModelArtifact): string {
 
 export function artifactCandidateUrls(item: VersionedModelArtifact): readonly [string, string] {
   return [ossArtifactUrl(item), item.url];
+}
+
+/** 生产Origin允许ESA；开发环境不发送必然失败的跨域请求。 */
+export function initialShipArtifactUrls(item: VersionedModelArtifact): readonly string[] {
+  return typeof window !== 'undefined' && window.location.origin === 'https://act.adapt-learn.online'
+    ? artifactCandidateUrls(item) : [item.url];
+}
+
+export function isShipProxyUrl(descriptor: VersionedModelPackageDescriptor, url: string): boolean {
+  const item = descriptor.roles['ship-proxy'];
+  return !!item && (url === item.url || url === ossArtifactUrl(item));
 }
 
 export function shipLodMountPlan(

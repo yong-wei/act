@@ -22,8 +22,8 @@ import {
 import { cloneSkinnedScene, skinnedBindingsIntact } from '../model-packages/clone-skinned-scene';
 import { findAnimationIndex, listLoadedInstanceNames, listMunitionTemplateNames } from '../model-packages/model-interface';
 
-const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.2.1');
-const RECEIPT_PATH = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.2.1/receipt.json');
+const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.3.0');
+const RECEIPT_PATH = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.3.0/receipt.json');
 
 function listFilesRecursive(dir: string, prefix = ''): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -54,20 +54,20 @@ function tamperedIo(mutate: (files: Map<string, { bytes: Uint8Array }>) => void)
   };
 }
 
-describe('type055-nanchang-101 v2.2.1 received package integrity', () => {
+describe('type055-nanchang-101 v2.3.0 received package integrity', () => {
   it('verifies the complete seven-role denominator, hashes, sizes and manifest identity', () => {
     const receipt = validateReceivedModelPackage(TYPE055_NANCHANG_101_V2, realIo());
     expect(receipt.packageId).toBe('type055-nanchang-101');
-    expect(receipt.modelVersion).toBe('2.2.1');
-    expect(Object.keys(receipt.roles)).toHaveLength(7);
+    expect(receipt.modelVersion).toBe('2.3.0');
+    expect(Object.keys(receipt.roles)).toHaveLength(9);
     expect(receipt.manifestSha256).toBe(TYPE055_NANCHANG_101_V2.releaseManifestSha256);
   });
 
   it('registers each role exactly once with unique files including interactive-systems', () => {
     const roleFiles = Object.values(TYPE055_NANCHANG_101_V2.roles).map((role) => role.file);
-    expect(new Set(roleFiles).size).toBe(7);
+    expect(new Set(roleFiles).size).toBe(9);
     expect(Object.keys(TYPE055_NANCHANG_101_V2.roles).sort()).toEqual(
-      ['collision', 'demo', 'interactive-systems', 'payload', 'ship-lod0', 'ship-lod1', 'ship-lod2'],
+      ['collision', 'demo', 'interactive-systems', 'payload', 'propulsion-anchors', 'ship-lod0', 'ship-lod1', 'ship-lod2', 'ship-proxy'],
     );
   });
 
@@ -132,7 +132,7 @@ describe('type055-nanchang-101 v2.2.1 received package integrity', () => {
   });
 });
 
-describe('type055-nanchang-101 v2.2.1 semantic interface contract', () => {
+describe('type055-nanchang-101 v2.3.0 semantic interface contract', () => {
   const glbJsonOf = (file: string) => {
     const bytes = new Uint8Array(readFileSync(path.join(PACKAGE_DIR, file)));
     return parseGlb(bytes);
@@ -190,7 +190,7 @@ describe('type055-nanchang-101 v2.2.1 semantic interface contract', () => {
   });
 });
 
-describe('v2.2.1 declared waterline anchor, propulsors and semantic bindings', () => {
+describe('v2.3.0 declared waterline anchor, propulsors and semantic bindings', () => {
   const glbJsonOf = (file: string) => {
     const bytes = new Uint8Array(readFileSync(path.join(PACKAGE_DIR, file)));
     const jsonLength = bytes[12] | (bytes[13] << 8) | (bytes[14] << 16) | (bytes[15] << 24);
@@ -281,10 +281,10 @@ describe('quality tier to LOD mapping and coordinate basis adapter', () => {
   });
 });
 
-describe('type055-nanchang-101 v2.2.1 hero activation', () => {
-  it('activates 2.2.1 with the declared model-to-scene matrix and no extra waterline', () => {
-    expect(TYPE055_NANCHANG_101_V2.modelVersion).toBe('2.2.1');
-    expect(TYPE055_NANCHANG_101_V2.baseUrl).toBe('/assets/model-releases/type055-nanchang-101/v2.2.1');
+describe('type055-nanchang-101 v2.3.0 hero activation', () => {
+  it('activates 2.3.0 with the declared model-to-scene matrix and no extra waterline', () => {
+    expect(TYPE055_NANCHANG_101_V2.modelVersion).toBe('2.3.0');
+    expect(TYPE055_NANCHANG_101_V2.baseUrl).toBe('/assets/model-releases/type055-nanchang-101/v2.3.0');
     expect(TYPE055_NANCHANG_101_V2.basisYawRad).toBe(0);
     expect(TYPE055_NANCHANG_101_V2.verticalAnchor?.designWaterlineY).toBe(0);
     expect(TYPE055_NANCHANG_101_V2.modelToSceneMatrix).toEqual([
@@ -301,7 +301,7 @@ describe('type055-nanchang-101 v2.2.1 hero activation', () => {
     const plan = shipLodMountPlan(TYPE055_NANCHANG_101_V2, 'high');
     const [oss, local] = shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2, 'high');
     expect(plan.local).toBe(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2, 'high'));
-    expect(plan.preferred).toBe('https://static.adapt-learn.online/model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-ship-lod0.glb');
+    expect(plan.preferred).toBe('https://static.adapt-learn.online/model-releases/type055-nanchang-101/v2.3.0/models/type055-nanchang-101-ship-lod0.glb');
     expect(local).toBe(plan.local);
     expect(oss).toBe(plan.preferred);
   });

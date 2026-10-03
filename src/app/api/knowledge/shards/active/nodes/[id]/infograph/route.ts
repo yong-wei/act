@@ -4,7 +4,6 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 import {
   activeUnavailableResponse,
-  authorizeActiveGraph,
   readActiveDetailInfograph,
 } from '@/app/api/knowledge/_active-authority';
 import { knowledgeSurfaceSelectorRejection } from '@/lib/knowledge-surface';
@@ -12,6 +11,7 @@ import {
   activeLocaleCapability,
   resolveActiveLocaleRequest,
 } from '@/lib/authority-locale-readiness/request';
+import { publicTeachingMediaUrlForBuffer } from '@/lib/public-teaching-media';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -30,8 +30,6 @@ export async function GET(
   const rejected = knowledgeSurfaceSelectorRejection(request);
   if (rejected) return rejected;
   try {
-    const authorization = await authorizeActiveGraph();
-    if (!authorization.ok) return authorization.response;
     const locale = resolveActiveLocaleRequest(request, activeLocaleCapability());
     if (!locale.ok) return locale.response;
     const image = readActiveDetailInfograph(id);
@@ -41,10 +39,12 @@ export async function GET(
         { status: 404 },
       );
     }
+    const publicUrl = await publicTeachingMediaUrlForBuffer(image, 'image/png');
+    if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
     return new NextResponse(image, {
       headers: {
         'content-type': 'image/png',
-        'cache-control': 'private, max-age=300',
+        'cache-control': 'public, max-age=300',
       },
     });
   } catch (error) {

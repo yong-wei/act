@@ -1,0 +1,9 @@
+{
+  "appRevision": "d2d8ee767731e8e67a81ea9f079607ac2915fbe8",
+  "version": "0.7.34",
+  "modelObjects": 179,
+  "modelBytes": 169771786,
+  "wasmExports": 12,
+  "chromium": "Chromium 151.0.7922.173 built on Debian GNU/Linux 12 (bookworm)",
+  "libreoffice": "LibreOffice 7.4.7.2 40(Build:2)"
+}

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import nullcontext
 import gzip
 import json
 import os
@@ -87,22 +88,26 @@ def make_handler(service: GatewayService, limiter: RateLimiter):
                 path = parsed.path.rstrip("/") or "/"
                 if self.command == "POST" and path == "/v1/leases":
                     payload = json.loads(self._read_body().decode("utf-8"))
-                    result = service.issue_lease(payload.get("identity"), str(payload.get("checkoutId") or ""))
+                    with service._host.storage_lock() if isinstance(service._host, DiskHost) else nullcontext():
+                        result = service.issue_lease(payload.get("identity"), str(payload.get("checkoutId") or ""))
                     self._send(201, json.dumps(result, sort_keys=True).encode("utf-8"))
                     return
                 lease_id = self.headers.get(LEASE_HEADER) or ""
                 transport = self.headers.get(TRANSPORT_HEADER)
                 parts = path.strip("/").split("/")
                 if self.command == "POST" and len(parts) == 4 and parts[0] == "v1" and parts[1] == "leases" and parts[3] == "transport":
-                    result = service.renew_transport(parts[2])
+                    with service._host.storage_lock() if isinstance(service._host, DiskHost) else nullcontext():
+                        result = service.renew_transport(parts[2])
                     self._send(200, json.dumps(result, sort_keys=True).encode("utf-8"))
                     return
                 if self.command == "POST" and len(parts) == 4 and parts[0] == "v1" and parts[1] == "leases" and parts[3] == "heartbeat":
-                    service.heartbeat(parts[2])
+                    with service._host.storage_lock() if isinstance(service._host, DiskHost) else nullcontext():
+                        service.heartbeat(parts[2])
                     self._send(204, b"")
                     return
                 if self.command == "DELETE" and len(parts) == 3 and parts[0] == "v1" and parts[1] == "leases":
-                    service.stop_checkout(parts[2])
+                    with service._host.storage_lock() if isinstance(service._host, DiskHost) else nullcontext():
+                        service.stop_checkout(parts[2])
                     self._send(204, b"")
                     return
                 if self.command == "GET" and len(parts) == 4 and parts[0] == "v1" and parts[1] == "leases" and parts[3] == "manifest":
@@ -154,16 +159,21 @@ def main() -> int:
     parser.add_argument("--active-receipt", default="", help=argparse.SUPPRESS)
     parser.add_argument("--view-root", required=True)
     parser.add_argument("--blob-root", required=True)
+    parser.add_argument('--media-root')
+    parser.add_argument('--media-directory')
     args = parser.parse_args()
     host, port_text = args.listen.rsplit(":", 1)
     token_path = Path(args.token_file)
-    disk = DiskHost(Path(args.view_root), Path(args.blob_root))
+    disk = DiskHost(Path(args.view_root), Path(args.blob_root),
+                    Path(args.media_root) if args.media_root else None,
+                    Path(args.media_directory) if args.media_directory else None)
     lease_store = Path(args.lease_store) if args.lease_store else None
     service = GatewayService(
         read_token_file(token_path),
         disk,
         token_fn=lambda: read_token_file(token_path),
         lease_store=lease_store,
+        persist_interval_seconds=0,
     )
     httpd = serve(host, int(port_text), service)
     sys.stderr.write("developer runtime gateway listening on %s\n" % args.listen)

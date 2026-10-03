@@ -1,0 +1,16 @@
+[Unit]
+Description=ACT canonical public teaching media mount
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=ACT_RUNTIME_PUBLIC_MEDIA_ROOT=/home/projects/act/data/runtime/ossfs/public-media
+Environment=ACT_RUNTIME_BLOB_OSSFS_CONFIG_DIR=/etc/act-runtime-blob-ossfs
+ExecStartPre=/usr/bin/mkdir -p ${ACT_RUNTIME_PUBLIC_MEDIA_ROOT}
+ExecStart=/usr/local/bin/ossfs2 mount ${ACT_RUNTIME_PUBLIC_MEDIA_ROOT} -c ${ACT_RUNTIME_BLOB_OSSFS_CONFIG_DIR}/public-media.conf
+ExecStop=/usr/bin/umount ${ACT_RUNTIME_PUBLIC_MEDIA_ROOT}
+
+[Install]
+WantedBy=multi-user.target

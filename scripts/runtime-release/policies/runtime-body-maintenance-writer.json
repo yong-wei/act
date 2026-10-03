@@ -1,0 +1,30 @@
+{
+  "Version": "1",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["oss:GetObject", "oss:PutObject", "oss:PutObjectAcl", "oss:DeleteObject"],
+      "Resource": [
+        "acs:oss:*:*:act-course-assets/runtime/blobs/sha256/*",
+        "acs:oss:*:*:act-course-models/teaching-media/sha256/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["oss:ListObjects"],
+      "Resource": ["acs:oss:*:*:act-course-assets"],
+      "Condition": {"StringLike": {"oss:Prefix": ["runtime/blobs/sha256/*"]}}
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["oss:ListObjects"],
+      "Resource": ["acs:oss:*:*:act-course-models"],
+      "Condition": {"StringLike": {"oss:Prefix": ["teaching-media/sha256/*"]}}
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["oss:GetBucketVersioning"],
+      "Resource": ["acs:oss:*:*:act-course-assets", "acs:oss:*:*:act-course-models"]
+    }
+  ]
+}

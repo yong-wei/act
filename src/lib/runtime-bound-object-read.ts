@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { lstat, readlink, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { canonicalRuntimeMediaPath, RUNTIME_PUBLIC_MEDIA_HELPER_NAME } from '@/lib/runtime-media-storage';
 
 import type { AdaptivePathObjectKeyVerifier } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
 
@@ -27,7 +28,7 @@ export function boundRuntimeObjectPath(runtimeRoot: string, objectKey: string): 
   if (objectKey.startsWith('blob:')) {
     const sha = objectKey.slice('blob:'.length).toLowerCase();
     if (!SHA256.test(sha)) return null;
-    return resolveInside(runtimeRoot, path.join(HELPER, sha));
+    return canonicalRuntimeMediaPath(runtimeRoot, sha) ?? resolveInside(runtimeRoot, path.join(HELPER, sha));
   }
   return resolveInside(runtimeRoot, objectKey);
 }
@@ -84,12 +85,18 @@ export async function verifyBoundRuntimeObject(
     let named: string | null = null;
     if (info.isSymbolicLink()) {
       const target = path.resolve(path.dirname(abs), await readlink(abs));
-      const helperRoot = path.resolve(runtimeRoot, HELPER);
-      if (target !== helperRoot && !target.startsWith(`${helperRoot}${path.sep}`)) {
+      const helperRoots = [HELPER, RUNTIME_PUBLIC_MEDIA_HELPER_NAME].map(name => path.resolve(runtimeRoot, name));
+      if (!helperRoots.some(root => target.startsWith(`${root}${path.sep}`))) {
         return { state: 'forbidden', contentSha256: null };
       }
       const base = path.basename(target).toLowerCase();
       if (SHA256.test(base)) named = base;
+      else {
+        const digest = path.basename(path.dirname(target));
+        const canonical = SHA256.test(digest) && canonicalRuntimeMediaPath(runtimeRoot, digest);
+        if (!canonical || path.resolve(canonical) !== target) return { state: 'forbidden', contentSha256: null };
+        named = digest;
+      }
     } else if (objectKey.startsWith('blob:')) {
       named = objectKey.slice('blob:'.length).toLowerCase();
     }

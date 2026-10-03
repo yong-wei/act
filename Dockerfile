@@ -144,6 +144,7 @@ RUN --mount=type=cache,id=act-apt-${CACHE_PLATFORM},target=/var/cache/apt,sharin
 FROM runner-os AS runner
 WORKDIR /app
 ARG APP_REVISION
+LABEL io.act.runtime-media-storage.version="1"
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

@@ -18,10 +18,12 @@ import {
 } from '@/lib/runtime-bound-object-read';
 import {
   parseAnyRuntimeReleaseManifest,
+  runtimeBlobReleaseManifestObjectKey,
   runtimeReleaseManifestObjectKey,
   type AnyActRuntimeReleaseManifest,
 } from '@/lib/runtime-release';
 import { createEcsRamRoleOssClient } from '@/lib/runtime-release-store';
+import { publicTeachingMediaUrlForDigest } from '@/lib/public-teaching-media';
 
 export const dynamic = 'force-dynamic';
 
@@ -114,16 +116,20 @@ async function readPinnedReleaseManifest(
   client: ReturnType<typeof createEcsRamRoleOssClient>,
   releaseId: string,
 ): Promise<AnyActRuntimeReleaseManifest | null> {
-  try {
-    const { stream } = await client.getStream(runtimeReleaseManifestObjectKey(releaseId));
-    const chunks: Buffer[] = [];
-    for await (const chunk of stream) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  for (const objectKey of [runtimeReleaseManifestObjectKey(releaseId), runtimeBlobReleaseManifestObjectKey(releaseId)]) {
+    try {
+      const { stream } = await client.getStream(objectKey);
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+      const manifest = parseAnyRuntimeReleaseManifest(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+      return manifest.releaseId === releaseId ? manifest : null;
+    } catch (error) {
+      if ((error as { code?: string }).code !== 'NoSuchKey') return null;
     }
-    return parseAnyRuntimeReleaseManifest(JSON.parse(Buffer.concat(chunks).toString('utf8')));
-  } catch {
-    return null;
   }
+  return null;
 }
 
 export async function GET(request: Request, props: { params: Promise<{ assetPath: string[] }> }) {
@@ -152,6 +158,8 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
     if (!releaseObject) {
       return classifiedFailure('missing', 404);
     }
+    const publicUrl = await publicTeachingMediaUrlForDigest(releaseObject.sha256);
+    if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
     return serveBoundReleaseMedia(request, runtimePath, releaseObject.sha256);
   }
 
@@ -180,6 +188,8 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
       if (!releaseObject) {
         return NextResponse.json({ error: 'Runtime media asset was not found.' }, { status: 404 });
       }
+      const publicUrl = await publicTeachingMediaUrlForDigest(releaseObject.sha256);
+      if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
       return NextResponse.redirect(await client.asyncSignatureUrl(releaseObject.objectKey, {
         expires: 300,
         method: 'GET',
@@ -196,6 +206,8 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
     if (!releaseObject) {
       return NextResponse.json({ error: 'Runtime media asset was not found.' }, { status: 404 });
     }
+    const publicUrl = await publicTeachingMediaUrlForDigest(releaseObject.sha256);
+    if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
     return NextResponse.redirect(await client.asyncSignatureUrl(releaseObject.objectKey, {
       expires: 300,
       method: 'GET',

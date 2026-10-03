@@ -34,6 +34,9 @@ def load_materializer():
 
 
 MATERIALIZE = load_materializer()
+spec = importlib.util.spec_from_file_location('act_activation_storage', str(SCRIPT_DIR / 'storage-lifecycle.py'))
+STORAGE = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(STORAGE)
 
 
 class ActivateError(RuntimeError):
@@ -223,6 +226,15 @@ def resolve_blob_root(args):
     return optional_command(args.blob_root, os.environ.get("ACT_RUNTIME_BLOB_ROOT"))
 
 
+def resolve_media_root(args, state_dir):
+    configured = getattr(args, 'media_root', None) or os.environ.get('ACT_RUNTIME_PUBLIC_MEDIA_ROOT')
+    if configured:
+        return configured
+    if is_production_view_root(state_dir):
+        return str(state_dir.parent / 'ossfs' / 'public-media')
+    return None
+
+
 def default_bind_helper_command(state_dir, blob_root):
     if not (is_production_view_root(state_dir) and blob_root):
         return None
@@ -233,7 +245,7 @@ def resolve_bind_helper(args, state_dir, blob_root):
     return optional_command(args.bind_helper, os.environ.get("ACT_RUNTIME_BIND_HELPER"), default_bind_helper_command(state_dir, blob_root))
 
 
-def run_bind_helper(command, view, blob_root):
+def run_bind_helper(command, view, blob_root, media_root=None, media_directory=None):
     if not command:
         return
     env = os.environ.copy()
@@ -242,6 +254,10 @@ def run_bind_helper(command, view, blob_root):
     env["ACT_RUNTIME_BLOB_VIEW"] = candidate
     if blob_root:
         env["ACT_RUNTIME_BLOB_ROOT"] = blob_root
+    if media_root:
+        env['ACT_RUNTIME_PUBLIC_MEDIA_ROOT'] = media_root
+    if media_directory:
+        env['ACT_RUNTIME_PUBLIC_MEDIA_DIRECTORY'] = str(media_directory)
     run_shell(command, env, "candidate helper bind failed")
 
 
@@ -256,9 +272,15 @@ def make_view_selectable(args, store, state_dir, view, manifest, blob_root):
     if not MATERIALIZE.view_matches_manifest(view, manifest):
         MATERIALIZE.prepare_view(view, manifest)
     bind = resolve_bind_helper(args, state_dir, blob_root)
-    run_bind_helper(bind, view, blob_root)
+    supplied = getattr(args, 'media_directory', None)
+    directory = MATERIALIZE.MEDIA_STORAGE.catalog_path(state_dir, supplied)
+    catalog, canonical = MATERIALIZE.MEDIA_STORAGE.load_catalog(directory, required=bool(supplied))
+    locations = MATERIALIZE.MEDIA_STORAGE.object_map(catalog) if canonical else {}
+    media_root = resolve_media_root(args, state_dir)
+    run_bind_helper(bind, view, blob_root, media_root, directory)
     use_helper = uses_helper_leaves(view, bind)
-    MATERIALIZE.populate_view(store, manifest, view, blob_root=blob_root, use_helper_leaves=use_helper)
+    MATERIALIZE.populate_view(store, manifest, view, blob_root=blob_root, use_helper_leaves=use_helper,
+                              media_locations=locations, media_root=media_root)
     return open_sentinels(view, manifest, args.sentinel)
 
 
@@ -285,12 +307,21 @@ def activate(args):
     if pointers["current"]:
         current_manifest = load_release_manifest(store, state_dir, pointers["current"], None)
     delta = MATERIALIZE.changed_paths(current_manifest, candidate)
-    MATERIALIZE.assert_blobs_visible(store, candidate, delta, blob_root=blob_root)
+    supplied = getattr(args, 'media_directory', None)
+    directory = MATERIALIZE.MEDIA_STORAGE.catalog_path(state_dir, supplied)
+    catalog, canonical = MATERIALIZE.MEDIA_STORAGE.load_catalog(directory, required=bool(supplied))
+    locations = MATERIALIZE.MEDIA_STORAGE.object_map(catalog) if canonical else {}
+    media_root = resolve_media_root(args, state_dir)
+    MATERIALIZE.assert_blobs_visible(store, candidate, delta, blob_root=blob_root, media_locations=locations, media_root=media_root)
     view = state_dir / "views" / candidate["releaseId"]
     opened = make_view_selectable(args, store, state_dir, view, candidate, blob_root)
     smoke = optional_command(args.smoke, os.environ.get("ACT_RUNTIME_SMOKE"))
     run_smoke(smoke, view, smoke_required(args, state_dir))
     next_pointers = {"current": candidate["releaseId"], "previous": pointers["current"]}
+    outgoing = pointers.get('previous')
+    if outgoing and outgoing not in next_pointers.values():
+        STORAGE.retain(state_dir, load_release_manifest(store, state_dir, outgoing, None),
+                       STORAGE.SIGNED_MEDIA_SECONDS, 'signed-media')
     receipt_path = resolve_active_receipt_path(args, state_dir)
     previous_receipt = snapshot_bytes(receipt_path)
     commit_selection(state_dir, next_pointers, view)
@@ -371,6 +402,8 @@ def build_parser():
     parser.add_argument("--release-id")
     parser.add_argument("--manifest")
     parser.add_argument("--blob-root")
+    parser.add_argument("--media-directory")
+    parser.add_argument("--media-root")
     parser.add_argument("--rollback", action="store_true")
     parser.add_argument("--sentinel", action="append", default=[])
     parser.add_argument("--smoke")
@@ -393,7 +426,7 @@ def main(argv=None):
                 if not args.release_id:
                     raise ActivateError("--release-id is required unless --rollback is set")
                 result = activate(args)
-    except (ActivateError, MATERIALIZE.MaterializeError) as error:
+    except (ActivateError, MATERIALIZE.MaterializeError, MATERIALIZE.MEDIA_STORAGE.MediaStorageError) as error:
         sys.stderr.write("%s\n" % error)
         return getattr(error, "code", 2)
     sys.stdout.write(json.dumps(result, indent=2, sort_keys=True) + "\n")

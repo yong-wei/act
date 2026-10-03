@@ -4,11 +4,19 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
+import sys
 from typing import Any, Mapping
 
 from gateway_service import SHA256, GatewayError, DENIED_BODY, require_identity
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import runtime_media_storage as MEDIA
+spec = importlib.util.spec_from_file_location('gateway_materializer', str(Path(__file__).resolve().parents[1] / 'materialize-runtime.py'))
+MATERIALIZE = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(MATERIALIZE)
 
 
 class MemoryHost:
@@ -52,9 +60,14 @@ class MemoryHost:
 class DiskHost:
     """Follow current for new leases; retain pinned manifests for existing leases."""
 
-    def __init__(self, view_root: Path, blob_root: Path) -> None:
+    def __init__(self, view_root: Path, blob_root: Path, media_root: Path | None = None, media_directory: Path | None = None) -> None:
         self.view_root = view_root
         self.blob_root = blob_root
+        self.media_root = media_root or view_root.parent / 'ossfs' / 'public-media'
+        self.media_directory = media_directory or MEDIA.catalog_path(view_root)
+
+    def storage_lock(self):
+        return MATERIALIZE.selection_lock(self.view_root)
 
     def active_identity(self) -> dict[str, str]:
         manifest = self.view_root / "current" / ".act-runtime-release.v2.json"
@@ -64,7 +77,7 @@ class DiskHost:
     def _view_dir(self, identity: Mapping[str, str]) -> Path:
         current = self.view_root / "current"
         pinned = self.view_root / "views" / identity["releaseId"]
-        for candidate in (pinned, current):
+        for candidate in (pinned, self.view_root / identity['releaseId'], current):
             manifest = candidate / ".act-runtime-release.v2.json"
             if manifest.is_file() and not manifest.is_symlink():
                 try:
@@ -88,7 +101,15 @@ class DiskHost:
     def blob_bytes(self, digest: str) -> bytes | None:
         if not SHA256.fullmatch(digest):
             return None
-        path = self.blob_root / digest
-        if not path.is_file() or path.is_symlink():
+        try:
+            catalog, canonical = MEDIA.load_catalog(self.media_directory)
+            location = MEDIA.object_map(catalog).get(digest) if canonical else None
+            path = MEDIA.public_blob_path(None, digest, location, self.media_root) if location else self.blob_root / digest
+            if not path.is_file() or path.is_symlink():
+                return None
+            payload = path.read_bytes()
+            if location and (len(payload) != location['sizeBytes'] or hashlib.sha256(payload).hexdigest() != digest):
+                return None
+            return payload
+        except (MEDIA.MediaStorageError, OSError, ValueError):
             return None
-        return path.read_bytes()

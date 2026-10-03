@@ -204,6 +204,12 @@ function verifyLegacyRemoteTransactionQuoting(script) {
   const end = script.indexOf('\n\nlog "[5/5] 部署验证"', start);
   assert.ok(start >= 0 && end > start, '远端部署必须保留单一 Step 4 事务');
   const transaction = script.slice(start, end);
+  assert.doesNotMatch(transaction, /--db-only|REMOTE_IMPORT_DB_SCRIPT|seed-all-knowledge|REMOTE_EXPORT_DB_SCRIPT|REMOTE_NGINX_SCRIPT/,
+    'application deployment must not replace data services, import or seed data, or rewrite unrelated proxy settings');
+  assert.match(transaction, /--runtime-cutover-app-only/,
+    'application deployment must use the existing zero-database-write container replacement path');
+  assert.match(transaction, /ACT_SERVICE_CONFIGURE_ONLY=1/,
+    'service configuration must not restart the preserved database and Redis');
   assert.doesNotMatch(
     transaction,
     /RUNTIME_DELIVERY_MODE=legacy-rsync/,
@@ -227,6 +233,7 @@ REMOTE_PROVENANCE_FILE=/tmp/act/provenance.json
 REMOTE_EXPORT_DB_SCRIPT=/tmp/act/export-db.sh
 REMOTE_LOAD_IMAGES_SCRIPT=/tmp/act/load-images.sh
 REMOTE_APP_IMAGE=localhost/test:latest
+REMOTE_IMAGE_TAR=/tmp/act/image.tar
 PROVENANCE_APP_REVISION=${'a'.repeat(40)}
 REMOTE_APP_DEPLOY_SCRIPT=/tmp/act/deploy.sh
 REMOTE_IMPORT_DB_SCRIPT=/tmp/act/import-db.sh
@@ -247,6 +254,23 @@ ${transaction}
 function main() {
   const script = read('scripts/remote-deploy.sh');
   const buildScript = read('scripts/build.sh');
+  const serviceScript = read('deploy/podman/configure-service.sh');
+  const serviceStart = serviceScript.indexOf('systemctl daemon-reload');
+  const serviceEnd = serviceScript.indexOf('\nif ! podman ps', serviceStart);
+  assert.ok(serviceStart >= 0 && serviceEnd > serviceStart);
+  for (const configureOnly of ['1', '0']) {
+    const result = spawnSync('bash', ['-c', `
+set -eu
+systemctl() { printf '%s\\n' "$*"; }
+SERVICE_NAME=fixture.service
+ACT_SERVICE_CONFIGURE_ONLY=${configureOnly}
+${serviceScript.slice(serviceStart, serviceEnd)}
+`], { encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.includes('restart fixture.service'), configureOnly === '0',
+      'configure-only must preserve running data services while the default retains restart behavior');
+    assert.match(result.stdout, /daemon-reload/);
+  }
   const remoteRuntimeCheck = script.slice(
     script.indexOf('check_remote_textbook_v2_files()'),
     script.indexOf('check_container_textbook_v2_files()'),
@@ -441,41 +465,41 @@ function main() {
   assert.equal(
     script.includes('REMOTE_EXPORT_DB_SCRIPT="${REMOTE_EXPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/1-export-db.sh}"') &&
       script.includes('\\"${REMOTE_EXPORT_DB_SCRIPT}\\"'),
-    true,
-    '远端部署脚本必须直接编排数据库导出脚本'
+    false,
+    '应用部署不得调用数据库导出脚本'
   );
 
   assert.equal(
     script.includes('REMOTE_LOAD_IMAGES_SCRIPT="${REMOTE_LOAD_IMAGES_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/2-load-images.sh}"') &&
       script.includes('\\"${REMOTE_LOAD_IMAGES_SCRIPT}\\"'),
-    true,
-    '远端部署脚本必须直接编排镜像装载脚本'
+    false,
+    '应用部署只装载本次精确镜像，不遍历其他历史归档'
   );
 
   assert.equal(
     script.includes('REMOTE_IMPORT_DB_SCRIPT="${REMOTE_IMPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/3-import-db.sh}"') &&
       script.includes('\\"${REMOTE_IMPORT_DB_SCRIPT}\\"'),
-    true,
-    '远端部署脚本必须直接编排数据库导入脚本'
+    false,
+    '应用部署不得导入数据库'
   );
 
   assert.equal(
     script.includes('\\"${REMOTE_APP_DEPLOY_SCRIPT}\\" --db-only'),
-    true,
-    '远端部署脚本必须直接调用已同步的 4-deploy.sh 启动数据库'
+    false,
+    '应用部署不得替换数据库容器'
   );
 
   assert.equal(
-    script.includes('\\"${REMOTE_APP_DEPLOY_SCRIPT}\\" --app-only'),
+    script.includes('\\"${REMOTE_APP_DEPLOY_SCRIPT}\\" --runtime-cutover-app-only'),
     true,
-    '远端部署脚本必须直接调用已同步的 4-deploy.sh 启动应用'
+    '应用部署必须使用既有零数据写入路径替换 app 和 worker'
   );
 
   assert.equal(
     script.includes('REMOTE_NGINX_SCRIPT="${REMOTE_NGINX_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/6-configure-nginx.sh}"') &&
       script.includes('\\"${REMOTE_NGINX_SCRIPT}\\"'),
-    true,
-    '远端部署脚本必须直接编排 Nginx 配置脚本'
+    false,
+    '应用部署不得重写既有 Nginx 配置'
   );
 
   assert.equal(
@@ -587,8 +611,8 @@ function main() {
 
   assert.equal(
     script.includes('podman exec \\"${APP_NAME_HINT}\\" node scripts/db/seed-all-knowledge.mjs'),
-    true,
-    'Git-free 生产 runner 必须在挂载不可变 runtime 后走 apply-gated 知识图谱导入入口',
+    false,
+    '应用部署不得写入知识图谱数据',
   );
 
   assert.equal(

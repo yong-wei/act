@@ -706,6 +706,7 @@ function DrillingWater({
           const layout = HYSY981_THRUSTER_LAYOUT.find(item => item.id === thruster.id);
           if (!layout || !thruster.enabled || thruster.failed || Math.abs(thruster.power) < 1) return [];
           return [{
+            id: `thruster-${thruster.id}`, diameterMeters: 3.5, depthMeters: 8,
             x: state.x + layout.positionX * Math.cos(state.psi) - layout.positionY * Math.sin(state.psi),
             z: state.y + layout.positionX * Math.sin(state.psi) + layout.positionY * Math.cos(state.psi),
             headingRad: platformHeadingToSceneRad(toDegrees(state.psi) + thruster.azimuth),

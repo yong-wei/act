@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "act-public-media-production-qa.v1",
+  "appRevision": "63f81b7449aa56f71f6673554f4b26112c9bf575",
+  "runtimeReleaseId": "runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752",
+  "manifestSha256": "cdd2f4bec3232beaa0cf4932246349d0ad2bddf4f752e7a2dce3db961aafd54f",
+  "catalogSha256": "5c5e05184c4c6253032c1af4b73c8a776abc0050fb035a5c929da31feada9f36",
+  "legacyCopiesAvailable": false,
+  "sampleTypes": [
+    ".m4a",
+    ".mp4",
+    ".pdf",
+    ".png"
+  ],
+  "checks": {
+    "act-obe-appBoundMediaSha256": true,
+    "act-obe-workerBoundMediaSha256": true,
+    "gatewayPinnedManifestAndCanonicalMedia": true,
+    "gatewayRange": true,
+    "validDeveloperLeaseIdentitiesPreserved": true,
+    "publicPinnedApiAndEsaSha256": true,
+    "esaDisabledSignedMediaSha256": true,
+    "helperPublicAccessDenied": true,
+    "esaDisabledBoundMediaSha256": true
+  }
+}
