@@ -140,7 +140,6 @@ function main() {
     '/app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases',
     '/app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage',
     '/app/course-content/contracts/knowledge-relation-coverage-audit.json ./course-content/contracts/knowledge-relation-coverage-audit.json',
-    '/app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
     '/app/.app-revision ./.app-revision',
   ]) {
     assert.ok(
@@ -151,49 +150,42 @@ function main() {
   const runnerStage = dockerfile.slice(
     dockerfile.indexOf('FROM runner-os AS runner'),
   );
-  assert.match(
-    runnerStage,
-    /COPY --from=builder \/app\/course-content\/authoring\/knowledge\/authority[\s\S]*RUN rm -f[\s\S]*course-content\/authoring\/knowledge\/authority\/current\.json[\s\S]*course-content\/runtime\/knowledge\/projection\/current\.json/,
-    'Docker runner 必须在复制候选 authority/projection 工件后删除 production current pointer',
-  );
-  assert.ok(
-    dockerignore.includes('!course-content/runtime/knowledge/authority-domain-shards/**'),
-    'Docker ignore 必须放行 immutable Authority domain shard set',
-  );
-  for (const allowedRuntimeAsset of [
-    '!course-content/runtime/knowledge/authority-learning-content-manifest.json',
-    '!course-content/runtime/knowledge/cards/authority/**',
-    '!course-content/runtime/knowledge/infographs/authority/**',
+  for (const mountedTree of [
+    'course-content/authoring/knowledge/authority ./course-content/authoring/knowledge/authority',
+    'course-content/authoring/knowledge/cutover/candidates/',
+    'course-content/runtime/knowledge/authority-domain-shards ./course-content/runtime/knowledge/authority-domain-shards',
+    'course-content/runtime/knowledge/cards/authority',
+    'course-content/runtime/knowledge/infographs/authority',
+    'course-content/runtime/knowledge/projection ./course-content/runtime/knowledge/projection',
+    'runtime-resource-projections.jsonl',
   ]) {
-    assert.ok(
-      dockerignore.includes(allowedRuntimeAsset),
-      `Docker ignore 必须放行 Authority 学习内容: ${allowedRuntimeAsset}`,
+    assert.equal(
+      runnerStage.includes(mountedTree),
+      false,
+      `Docker runner 不得复制已由 OSS 或宿主机挂载提供的内容: ${mountedTree}`,
     );
   }
-  assert.match(
-    dockerfile,
-    /course-content\/runtime\/knowledge\/authority-domain-shards[\s\S]*COPY --from=builder \/app\/course-content\/runtime\/knowledge\/authority-domain-shards \.\/course-content\/runtime\/knowledge\/authority-domain-shards[\s\S]*course-content\/runtime\/knowledge\/authority-domain-shards\/current\.json/,
-    'Docker builder/runner 必须覆盖 Authority domain shard set，并删除 runtime current pointer',
+  for (const deniedAllow of [
+    '!course-content/runtime/knowledge/authority-domain-shards/**',
+    '!course-content/runtime/knowledge/cards/authority/**',
+    '!course-content/runtime/knowledge/infographs/authority/**',
+    '!course-content/runtime/knowledge/projection/**',
+    '!course-content/authoring/knowledge/authority/**',
+  ]) {
+    assert.equal(
+      dockerignore.includes(deniedAllow),
+      false,
+      `Docker ignore 不得再放行挂载内容: ${deniedAllow}`,
+    );
+  }
+  assert.ok(
+    dockerignore.includes('!course-content/runtime/knowledge/authority-learning-content-manifest.json'),
+    'Docker ignore 必须保留构建期学习内容清单检查',
   );
   assert.ok(
     runnerStage.indexOf('course-content/authoring/knowledge/releases') >= 0,
     'Docker runner 必须保留 authority candidate release assets',
   );
-  assert.ok(
-    runnerStage.indexOf('RUN rm -f') >
-      runnerStage.indexOf('COPY --from=builder /app/course-content/runtime/knowledge/projection'),
-    'Docker runner 的 current pointer 删除必须发生在 projection COPY 之后',
-  );
-  for (const requiredLearningCopy of [
-    '/app/course-content/runtime/knowledge/authority-learning-content-manifest.json ./course-content/runtime/knowledge/authority-learning-content-manifest.json',
-    '/app/course-content/runtime/knowledge/cards/authority ./course-content/runtime/knowledge/cards/authority',
-    '/app/course-content/runtime/knowledge/infographs/authority ./course-content/runtime/knowledge/infographs/authority',
-  ]) {
-    assert.ok(
-      runnerStage.includes(requiredLearningCopy),
-      `Docker runner 必须包含 Authority 学习内容: ${requiredLearningCopy}`,
-    );
-  }
   assert.match(
     remoteDeployScript,
     /REMOTE_AUTHORITY_CURRENT_POINTER="\$\{REMOTE_AUTHORITY_CURRENT_POINTER:-\$\{REMOTE_PROJECT_DIR\}\/course-content\/authoring\/knowledge\/authority\/current\.json\}"/,

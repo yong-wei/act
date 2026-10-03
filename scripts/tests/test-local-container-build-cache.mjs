@@ -113,6 +113,14 @@ function createFixture() {
     path.join(fixture, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
     'process.exit(0);\n',
   );
+  fs.copyFileSync(
+    path.join(root, 'scripts/release/split-app-image.py'),
+    path.join(fixture, 'scripts/release/split-app-image.py'),
+  );
+  fs.copyFileSync(
+    path.join(root, 'scripts/release/app-image-packaging-policy.json'),
+    path.join(fixture, 'scripts/release/app-image-packaging-policy.json'),
+  );
 
   const dockerLog = path.join(fixture, 'docker.log');
   const builderMarker = path.join(fixture, 'builder.ready');
@@ -174,7 +182,10 @@ case "\$command" in
     if [[ "\${FAKE_DOCKER_FAIL_FINAL:-0}" == 1 ]]; then exit 42; fi
     if [[ -n "\$output_tar" ]]; then
       mkdir -p "\$(dirname "\$output_tar")"
-      printf '%s\\n' image > "\$output_tar"
+      python3 scripts/release/split-app-image.py write-fixture \
+        --dest "\$output_tar" \
+        --revision "\${APP_REVISION}" \
+        --runner-os-rev "\${RUNNER_OS_REV}"
     fi
     if [[ "\$cache_to" == type=local,* ]]; then
       destination="\${cache_to#*dest=}"

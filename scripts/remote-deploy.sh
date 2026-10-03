@@ -54,6 +54,8 @@ LOCAL_PROVENANCE_HELPER="${ROOT_DIR}/scripts/release/textbook-runtime-v2-provena
 REMOTE_PROVENANCE_HELPER="${REMOTE_PROJECT_DIR}/scripts/textbook-runtime-v2-provenance.mjs"
 LOCAL_PROVENANCE_INPUT_HELPER="${ROOT_DIR}/scripts/release/textbook-runtime-input-provenance.mjs"
 REMOTE_PROVENANCE_INPUT_HELPER="${REMOTE_PROJECT_DIR}/scripts/textbook-runtime-input-provenance.mjs"
+LOCAL_ASSEMBLE_HELPER="${ROOT_DIR}/scripts/release/assemble-app-image.mjs"
+REMOTE_ASSEMBLE_HELPER="${REMOTE_PROJECT_DIR}/scripts/assemble-app-image.mjs"
 REMOTE_EXPORT_DB_SCRIPT="${REMOTE_EXPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/1-export-db.sh}"
 REMOTE_LOAD_IMAGES_SCRIPT="${REMOTE_LOAD_IMAGES_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/2-load-images.sh}"
 REMOTE_IMPORT_DB_SCRIPT="${REMOTE_IMPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/3-import-db.sh}"
@@ -569,6 +571,8 @@ remote "chmod +x '${REMOTE_TMP_SERVICE_SCRIPT}' && mv '${REMOTE_TMP_SERVICE_SCRI
 
 scp -q "${LOCAL_START_WRAPPER_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_START_WRAPPER_SCRIPT}"
 remote "chmod +x '${REMOTE_TMP_START_WRAPPER_SCRIPT}' && mv '${REMOTE_TMP_START_WRAPPER_SCRIPT}' '${REMOTE_START_WRAPPER_SCRIPT}'"
+scp -q "${LOCAL_ASSEMBLE_HELPER}" "${SSH_TARGET}:${REMOTE_PROJECT_DIR}/scripts/assemble-app-image.mjs.tmp"
+remote "mv '${REMOTE_PROJECT_DIR}/scripts/assemble-app-image.mjs.tmp' '${REMOTE_ASSEMBLE_HELPER}'"
 remote "mkdir -p '${REMOTE_PROJECT_DIR}/scripts/runtime-release'"
 for media_storage_helper in check-media-storage-image.py runtime_media_storage.py; do
   scp -q "${ROOT_DIR}/scripts/runtime-release/${media_storage_helper}" \
@@ -580,6 +584,22 @@ log "远端 runtime 目录: ${REMOTE_RUNTIME_DIR}"
 log "远端应用部署脚本: ${REMOTE_APP_DEPLOY_SCRIPT}"
 log "远端 systemd 配置脚本: ${REMOTE_SERVICE_SCRIPT}"
 log "远端容器启动包装脚本: ${REMOTE_START_WRAPPER_SCRIPT}"
+
+IMAGE_KIND="$(python3 "${ROOT_DIR}/scripts/release/split-app-image.py" kind --image-tar "${LOCAL_IMAGE_TAR}")"
+LOCAL_RUNNER_OS_TAR=""
+REMOTE_RUNNER_OS_TAR=""
+if [[ "${IMAGE_KIND}" == "bundle" ]]; then
+  BUNDLE_RUNNER_OS_REV="$(python3 "${ROOT_DIR}/scripts/release/split-app-image.py" print-field \
+    --bundle "${LOCAL_IMAGE_TAR}" --field runnerOsRev)"
+  LOCAL_RUNNER_OS_TAR="$(dirname "${LOCAL_IMAGE_TAR}")/act-obe-runner-os-${BUNDLE_RUNNER_OS_REV}.tar"
+  [[ -s "${LOCAL_RUNNER_OS_TAR}" ]] || fail "缺少与应用增量包配套的运行系统镜像: ${LOCAL_RUNNER_OS_TAR}"
+  REMOTE_RUNNER_OS_TAR="${REMOTE_IMAGES_DIR}/act-obe-runner-os-${BUNDLE_RUNNER_OS_REV}.tar"
+  log "应用包类型: 增量包；运行系统镜像 ${LOCAL_RUNNER_OS_TAR}"
+elif [[ "${IMAGE_KIND}" == "docker-image" ]]; then
+  log "应用包类型: 完整 docker 镜像"
+else
+  fail "无法识别的应用镜像包: ${LOCAL_IMAGE_TAR}"
+fi
 
 log
 log "[3/5] 上传镜像"
@@ -614,12 +634,42 @@ remote "cd '${REMOTE_PROJECT_DIR}' && node '${REMOTE_PROVENANCE_HELPER}' verify-
   --image-tar '${REMOTE_IMAGE_TAR}' \
   --sidecar '${REMOTE_PROVENANCE_FILE}'"
 
+if [[ "${IMAGE_KIND}" == "bundle" ]]; then
+  log "上传运行系统镜像（远端已有相同文件时跳过）"
+  REMOTE_RUNNER_OS_SHA=""
+  if remote "test -f '${REMOTE_RUNNER_OS_TAR}'"; then
+    REMOTE_RUNNER_OS_SHA="$(remote_sha256 "${REMOTE_RUNNER_OS_TAR}")"
+  fi
+  LOCAL_RUNNER_OS_SHA="$(local_sha256 "${LOCAL_RUNNER_OS_TAR}")"
+  if [[ "${REMOTE_RUNNER_OS_SHA}" == "${LOCAL_RUNNER_OS_SHA}" ]]; then
+    log "远端运行系统镜像已是相同 SHA256，跳过重复上传"
+  else
+    REMOTE_RUNNER_OS_TMP="${REMOTE_RUNNER_OS_TAR}.tmp"
+    remote "rm -f '${REMOTE_RUNNER_OS_TMP}'"
+    scp -q "${LOCAL_RUNNER_OS_TAR}" "${SSH_TARGET}:${REMOTE_RUNNER_OS_TMP}"
+    REMOTE_RUNNER_OS_TMP_SHA="$(remote_sha256 "${REMOTE_RUNNER_OS_TMP}")"
+    if [[ "${LOCAL_RUNNER_OS_SHA}" != "${REMOTE_RUNNER_OS_TMP_SHA}" ]]; then
+      remote "rm -f '${REMOTE_RUNNER_OS_TMP}'" || true
+      fail "运行系统镜像 SHA256 不一致，本地=${LOCAL_RUNNER_OS_SHA}，远端=${REMOTE_RUNNER_OS_TMP_SHA}"
+    fi
+    remote "mv '${REMOTE_RUNNER_OS_TMP}' '${REMOTE_RUNNER_OS_TAR}'"
+  fi
+fi
+
 log
 log "[4/5] 远端部署"
 remote "bash -lc 'set -euo pipefail
 {
-  echo \"[remote-deploy] Step 1/3: 装载已验证的应用镜像\"
-  podman load -i \"${REMOTE_IMAGE_TAR}\"
+  if [ \"${IMAGE_KIND}\" = bundle ]; then
+    echo \"[remote-deploy] Step 1/3: 在已装载的运行系统镜像上组装应用\"
+    node \"${REMOTE_ASSEMBLE_HELPER}\" \
+      --bundle \"${REMOTE_IMAGE_TAR}\" \
+      --runner-os-tar \"${REMOTE_RUNNER_OS_TAR}\" \
+      --image \"${REMOTE_APP_IMAGE}\"
+  else
+    echo \"[remote-deploy] Step 1/3: 装载已验证的应用镜像\"
+    podman load -i \"${REMOTE_IMAGE_TAR}\"
+  fi
   IMAGE_REVISION=\$(podman image inspect \"${REMOTE_APP_IMAGE}\" --format \"{{ index .Labels \\\"org.opencontainers.image.revision\\\" }}\")
   if [ \"\${IMAGE_REVISION}\" != \"${PROVENANCE_APP_REVISION}\" ]; then
     echo \"ERROR: loaded image revision mismatch: expected=${PROVENANCE_APP_REVISION} actual=\${IMAGE_REVISION}\" >&2

@@ -149,6 +149,7 @@ if [[ ! "${APP_REVISION}" =~ ^[0-9a-f]{40}$ ]]; then
   echo "ERROR: 无法取得有效的 40 位 Git HEAD。" >&2
   exit 1
 fi
+export APP_REVISION RUNNER_OS_REV
 
 echo "[preflight] 校验 CourseCoverage Overlay"
 APP_REVISION="${APP_REVISION}" ./node_modules/.bin/tsx \
@@ -169,10 +170,14 @@ LOCK_HELD=0
 GENERATION_DIR=""
 PREVIOUS_GENERATION_DIR=""
 CURRENT_LINK_TMP=""
+MONOLITH_TAR=""
 GENERATION_PUBLISHED=0
 
 cleanup() {
   local status=$?
+  if [[ -n "${MONOLITH_TAR}" ]]; then
+    rm -f "${MONOLITH_TAR}" || true
+  fi
   if [[ -n "${CURRENT_LINK_TMP}" ]]; then
     rm -f "${CURRENT_LINK_TMP}" || true
   fi
@@ -316,6 +321,8 @@ docker buildx build \
 
 echo "[3/3] 构建并导出镜像（容器内 next build 同样执行类型检查）"
 echo "[build] 外部运行时资源目录由宿主机提供，不进入镜像构建上下文: ${EXTERNAL_RUNTIME_DIR}"
+MONOLITH_TAR="${OUTPUT_TAR}.monolith"
+RUNNER_OS_TAR="$(dirname "${OUTPUT_TAR}")/act-obe-runner-os-${RUNNER_OS_REV}.tar"
 DATABASE_URL="${DATABASE_URL_FOR_BUILD}" docker buildx build \
   --builder "${BUILDER_NAME}" \
   --platform "${PLATFORM}" \
@@ -325,13 +332,24 @@ DATABASE_URL="${DATABASE_URL_FOR_BUILD}" docker buildx build \
   "${CACHE_TO_ARG}" \
   -t "${IMAGE_TAG}" \
   --label "org.opencontainers.image.revision=${APP_REVISION}" \
-  --output="type=docker,dest=${OUTPUT_TAR}" \
+  --output="type=docker,dest=${MONOLITH_TAR}" \
   .
 
 if [[ ! -f "${GENERATION_DIR}/index.json" ]]; then
   echo "ERROR: Docker build 成功但未生成可导入的 local cache index。" >&2
   exit 1
 fi
+
+echo "[package] 拆出运行系统镜像，并审计应用增量包"
+python3 "${ROOT_DIR}/scripts/release/split-app-image.py" split \
+  --image-tar "${MONOLITH_TAR}" \
+  --policy "${ROOT_DIR}/scripts/release/app-image-packaging-policy.json" \
+  --bundle-tar "${OUTPUT_TAR}" \
+  --runner-os-tar "${RUNNER_OS_TAR}" \
+  --expected-revision "${APP_REVISION}" \
+  --expected-runner-os-rev "${RUNNER_OS_REV}"
+rm -f "${MONOLITH_TAR}"
+MONOLITH_TAR=""
 
 node "${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs" write-app-only-sidecar \
   --image-tar "${OUTPUT_TAR}" \
@@ -349,7 +367,8 @@ prune_old_cache_generations
 echo "[cache] 已原子发布 generation: ${GENERATION_DIR}"
 echo "构建完成"
 echo "  镜像标签: ${IMAGE_TAG}"
-echo "  导出文件: ${OUTPUT_TAR}"
+echo "  应用增量包: ${OUTPUT_TAR}"
+echo "  运行系统镜像: ${RUNNER_OS_TAR}"
 echo "  溯源文件: ${PROVENANCE_FILE}"
 if command -v shasum >/dev/null 2>&1; then
   echo "  SHA256: $(shasum -a 256 "${OUTPUT_TAR}" | awk '{print $1}')"

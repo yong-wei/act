@@ -63,7 +63,6 @@ assert.ok(knowledgeDenyIndex >= 0, 'authoring knowledge must be default-deny');
 for (const admittedKnowledgePath of [
   '!course-content/authoring/knowledge/releases/**',
   '!course-content/authoring/knowledge/course-coverage/**',
-  '!course-content/authoring/knowledge/authority/**',
   '!course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json',
 ]) {
   requireRule(admittedKnowledgePath);
@@ -92,16 +91,12 @@ for (const requiredInput of [
   'course-content/authoring/shared/lesson-id-map.json',
   'course-content/authoring/knowledge/releases',
   'course-content/authoring/knowledge/course-coverage',
-  'course-content/authoring/knowledge/authority',
   'course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json',
+  'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/candidate-receipt.json',
   'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
   'course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
   'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
-  'course-content/runtime/knowledge/authority-domain-shards',
   'course-content/runtime/knowledge/authority-learning-content-manifest.json',
-  'course-content/runtime/knowledge/cards/authority',
-  'course-content/runtime/knowledge/infographs/authority',
-  'course-content/runtime/knowledge/projection',
   'public/assets/models-opt/manifest.json',
 ]) {
   requirePath(requiredInput);
@@ -110,28 +105,33 @@ for (const requiredInput of [
 for (const requiredRunnerCopy of [
   '/app/course-content/authoring/knowledge/releases',
   '/app/course-content/authoring/knowledge/course-coverage',
-  '/app/course-content/authoring/knowledge/authority',
-  '/app/course-content/runtime/knowledge/authority-domain-shards',
-  '/app/course-content/runtime/knowledge/cards/authority',
-  '/app/course-content/runtime/knowledge/infographs/authority',
-  '/app/course-content/runtime/knowledge/projection',
+  '/app/course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json',
+  '/app/course-content/authoring/knowledge/cutover/envelopes/locale-manifests',
 ]) {
   assert.ok(dockerfile.includes(requiredRunnerCopy), `Docker runner copy missing: ${requiredRunnerCopy}`);
 }
 
-assert.equal(
-  rules.includes('course-content/authoring/resources')
-    || rules.includes('course-content/authoring/resources/**'),
-  false,
-  'authoring resources remain admitted until standalone trace ownership is corrected',
-);
-for (const authorityAllowlist of [
-  '!course-content/runtime/knowledge/authority-domain-shards/**',
-  '!course-content/runtime/knowledge/cards/authority/**',
-  '!course-content/runtime/knowledge/infographs/authority/**',
-  '!course-content/runtime/knowledge/projection/**',
+const runnerStage = dockerfile.slice(dockerfile.indexOf('FROM runner-os AS runner'));
+for (const forbiddenRunnerCopy of [
+  '/app/course-content/authoring/knowledge/authority',
+  '/app/course-content/authoring/knowledge/cutover/candidates/',
+  '/app/course-content/authoring/resources',
+  '/app/course-content/runtime/knowledge/',
+  '/app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
 ]) {
-  requireRule(authorityAllowlist);
+  assert.equal(
+    runnerStage.includes(forbiddenRunnerCopy),
+    false,
+    `Docker runner must not copy mounted or non-runtime content: ${forbiddenRunnerCopy}`,
+  );
+}
+for (const deniedContext of [
+  '/course-content/authoring/resources',
+  '/image',
+  '/var',
+  '/evaluate',
+]) {
+  requireRule(deniedContext);
 }
 
 console.log('container build context contract passed');
