@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { BaseControllerId, ControllerId, LevelTier } from '../level-data';
+import type { OdysseyInputTrace } from '../engine/input-trace';
 import { clearTelemetry } from '../engine/telemetry-history';
 
 export type GameState = 'IDLE' | 'RUNNING' | 'PAUSED' | 'GAME_OVER' | 'VICTORY';
@@ -51,6 +52,7 @@ interface ControlOdysseyState {
   autoOffset: number;
   controlCredits: number;
   runId: string;
+  inputTrace: OdysseyInputTrace | null;
 
   // 游戏控制
   setGameState: (state: GameState) => void;
@@ -109,6 +111,7 @@ export const useGameStore = create<ControlOdysseyState>((set) => ({
   difficultyScale: 1,
   autoOffset: 0,
   controlCredits: 0,
+  inputTrace: null,
   runId: createRunId(),
 
   setGameState: (state) => {
@@ -162,6 +165,7 @@ export const useGameStore = create<ControlOdysseyState>((set) => ({
       shipU: 0,
       shipR: 200,
       autoOffset: 0,
+      inputTrace: null,
       runId: createRunId(),
       resetToken: state.resetToken + 1
     }));

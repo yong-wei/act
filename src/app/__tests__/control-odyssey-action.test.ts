@@ -7,9 +7,12 @@ const mocks = vi.hoisted(() => ({
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
   requestRealtimeSimulationTaskReconciliation: vi.fn(),
   computeOfficialOdysseyTelemetry: vi.fn(),
+  replayOdysseyInput: vi.fn(),
   listSubmissions: vi.fn(),
   prisma: {
     $transaction: vi.fn(),
+    $executeRaw: vi.fn(),
+    $queryRaw: vi.fn(),
     mission: {
       findUnique: vi.fn(),
     },
@@ -67,15 +70,29 @@ vi.mock('@/features/arena/teacher/publication-store', () => ({
 
 vi.mock('@/resources/interactive-learning/control-odyssey/engine/official-simulation', () => ({
   computeOfficialOdysseyTelemetry: mocks.computeOfficialOdysseyTelemetry,
+  replayOdysseyInput: mocks.replayOdysseyInput,
 }));
 
 vi.mock('@/lib/data-governance/simulation-task-reconciliation', () => ({
   requestRealtimeSimulationTaskReconciliation: mocks.requestRealtimeSimulationTaskReconciliation,
 }));
 
-import { getControlProfile, getLevelLeaderboard, submitGameScore } from '../actions/control-odyssey';
+import { getControlProfile, getLevelLeaderboard, submitGameScore as rawSubmitGameScore } from '../actions/control-odyssey';
+
+const inputTrace = (overrides: Record<string, unknown> = {}) => ({
+  version: 1 as const, totalSteps: 1160, changes: [{ step: 0, command: 0, config: {
+    controlMode: 'AUTO' as const, controllerId: 'PID' as const,
+    pidParams: { kp: 2.1, ki: 0.4, kd: 0.12 },
+    extraParams: { speedFeedbackTau: 0.05, feedforwardGain: 0.05, smithDelay: 0.1 },
+    enableSpeedFeedback: false, enableFeedforward: false, enableSmithPredictor: false, difficultyScale: 1,
+    ...overrides,
+  } }],
+});
+const submitGameScore: typeof rawSubmitGameScore = (levelId, score, metrics, context) =>
+  rawSubmitGameScore(levelId, score, metrics, context ? { inputTrace: inputTrace(context), ...context } : context);
 
 const officialSnapshot = (runId: string, overrides: Record<string, unknown> = {}) => ({
+  inputTrace: inputTrace(),
   replaySnapshotVersion: 1,
   levelId: 'level-1',
   runId,
@@ -96,7 +113,7 @@ const officialSnapshot = (runId: string, overrides: Record<string, unknown> = {}
 
 describe('submitGameScore Arena publication bridge', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mocks.getServerSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
     mocks.prisma.mission.findUnique.mockResolvedValue({ id: 'level-1' });
     mocks.prisma.simulationLog.findFirst.mockResolvedValue(null);
@@ -104,6 +121,14 @@ describe('submitGameScore Arena publication bridge', () => {
     mocks.prisma.simulationLog.updateMany.mockResolvedValue({ count: 1 });
     mocks.prisma.$transaction.mockImplementation(async (callback: (tx: typeof mocks.prisma) => unknown) => callback(mocks.prisma));
     mocks.prisma.simulationLog.findMany.mockResolvedValue([]);
+    mocks.prisma.$executeRaw.mockResolvedValue(1);
+    mocks.prisma.$queryRaw.mockResolvedValue([]);
+    mocks.replayOdysseyInput.mockImplementation((input) => ({
+      trace: input.inputTrace, metrics: {
+        settlingTime: 4.2, maxOvershoot: 5, steadyError: 1.5, avgRelativeError: 2,
+        controlEnergy: 3.4, controlSmoothness: 0.8,
+      },
+    }));
     mocks.listSubmissions.mockResolvedValue([]);
     mocks.prisma.simulationLog.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
       ...data,
@@ -113,12 +138,15 @@ describe('submitGameScore Arena publication bridge', () => {
     mocks.prisma.studentProfile.findUnique.mockResolvedValue({
       controlCredits: 10,
       controlUnlocks: ['P'],
-      controlOdysseyProgress: {},
+      controlOdysseyProgress: { 'level-1': 'gold', 'level-2': 'gold' },
       controlControllerLevels: {},
     });
     mocks.prisma.studentProfile.create.mockResolvedValue({});
     mocks.prisma.studentProfile.update.mockResolvedValue({});
-    mocks.prisma.studentProfile.upsert.mockResolvedValue({});
+    mocks.prisma.studentProfile.upsert.mockImplementation(async ({ create }) => ({
+      controlCredits: 0, controlUnlocks: ['P'], controlOdysseyProgress: {},
+      controlControllerLevels: { P: 1, PI: 0, PD: 0, PID: 0, VFB: 0, FF: 0, SMITH: 0 }, ...create,
+    }));
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
     mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
     mocks.getArenaTaskForOdysseyLevel.mockReturnValue('task-odyssey-level-one-growth');
@@ -153,6 +181,29 @@ describe('submitGameScore Arena publication bridge', () => {
     expect(result).toMatchObject({ status: 'failed', errorCode: 'AUTH_REQUIRED' });
     expect(mocks.prisma.mission.findUnique).not.toHaveBeenCalled();
     expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects a new run with no input record before creating a rewardable log', async () => {
+    const result = await rawSubmitGameScore('level-1', 1e9, {}, { runId: 'missing-trace', tier: 'bronze' });
+    expect(result).toMatchObject({ status: 'failed', errorCode: 'ODYSSEY_INPUT_REQUIRED' });
+    expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
+  });
+
+  it('computes the ordinary score from server replay rather than forged client metrics', async () => {
+    const result = await submitGameScore('level-1', 1e9, { maxOvershoot: -1e9, steadyError: -1e9 }, { runId: 'forged-score', tier: 'gold' });
+    expect(result).toMatchObject({ score: 14765, metrics: { maxOvershoot: 5, steadyError: 1.5, gameTelemetrySource: 'server-rust-replay' } });
+    expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledWith(expect.objectContaining({ update: expect.objectContaining({ controlCredits: { increment: 147 } }) }));
+  });
+
+  it('rejects an ordinary locked level or tier before creating a completed log', async () => {
+    mocks.prisma.studentProfile.findUnique.mockResolvedValue({ controlCredits: 10, controlUnlocks: ['P'], controlOdysseyProgress: {}, controlControllerLevels: {} });
+    for (const [levelId, tier] of [['level-5', 'bronze'], ['level-1', 'gold']]) {
+      const result = await submitGameScore(levelId, 1e9, {}, { runId: 'locked-' + levelId, tier });
+      expect(result).toMatchObject({ status: 'failed', errorCode: 'ODYSSEY_LEVEL_LOCKED' });
+    }
+    expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
   });
 
   it('writes task evidence after an ordinary Odyssey run is persistently completed', async () => {
@@ -332,6 +383,7 @@ describe('submitGameScore Arena publication bridge', () => {
       id: 'existing-log',
       createdAt: new Date('2026-05-15T10:00:00.000Z'),
       inputParams: {
+        inputTrace: inputTrace(),
         replaySnapshotVersion: 1,
         levelId: 'level-1',
         runId: 'run-stable',
@@ -364,10 +416,9 @@ describe('submitGameScore Arena publication bridge', () => {
     expect(mocks.resolveAccessibleArenaPublicationForStudent).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       publicationId: 'publication-1',
     }));
-    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.replayOdysseyInput).toHaveBeenCalledWith(expect.objectContaining({
       tier: 'silver',
-      controllerId: 'PID',
-      pidParams: { kp: 1.8, ki: 0.3, kd: 0.08 },
+      inputTrace: inputTrace(),
     }));
     expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledWith(expect.objectContaining({
       runId: 'run-stable',
@@ -398,11 +449,81 @@ describe('submitGameScore Arena publication bridge', () => {
     });
 
     expect(result).toMatchObject({
-      id: 'legacy-log',
-      actionError: expect.objectContaining({ code: 'ODYSSEY_REPLAY_SNAPSHOT_INCOMPLETE' }),
+      status: 'failed', errorCode: 'ODYSSEY_INPUT_REQUIRED',
     });
     expect(mocks.computeOfficialOdysseyTelemetry).not.toHaveBeenCalled();
     expect(mocks.bridgeOdysseyRunToArenaSubmission).not.toHaveBeenCalled();
+  });
+
+  it.each([null, new Date('2026-05-15T09:00:00.000Z')])('recovers a legacy AUTO Arena run with persisted inputs and no ordinary side effects (old credit %s)', async (creditAppliedAt) => {
+    const store = installDurableRunStore('legacy-auto-recovery');
+    const { inputTrace: _trace, ...snapshot } = officialSnapshot('legacy-auto-recovery', {
+      tier: 'bronze', controllerId: 'P', pidParams: { kp: 1.6, ki: 0, kd: 0 },
+      controllerLevels: { P: 5, PI: 0, PD: 0, PID: 0, VFB: 0, FF: 0, SMITH: 0 },
+      arenaAssigned: false,
+    });
+    store.seed({
+      id: 'legacy-auto-log', controlMode: 'GAME', odysseyRunId: 'legacy-auto-recovery',
+      inputParams: snapshot, score: 820, metrics: { settlingTime: 2.8 },
+      createdAt: new Date('2026-05-15T10:00:00.000Z'),
+      odysseyCompletedAt: null, odysseyCreditAppliedAt: creditAppliedAt,
+      odysseyLeaseToken: 'expired-owner', odysseyLeaseExpiresAt: new Date(0),
+      odysseyOfficialMetrics: null, odysseySubmissionId: null,
+    });
+
+    const result = await submitGameScore('level-15', 1e9, { settlingTime: -1e9 }, {
+      runId: 'legacy-auto-recovery', arenaTaskId: 'forged-task', publicationId: 'forged-publication',
+      tier: 'gold', controlMode: 'MANUAL', controllerId: 'PID', pidParams: { kp: 99, ki: 99, kd: 99 },
+      inputTrace: { version: 1, totalSteps: 1, changes: [] },
+    });
+
+    expect(result).toMatchObject({ id: 'legacy-auto-log', score: 820, arenaSubmissionId: 'submission-1' });
+    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledWith(expect.objectContaining({
+      levelId: 'level-1', tier: 'bronze', controllerId: 'P', controlMode: 'AUTO',
+      pidParams: { kp: 1.6, ki: 0, kd: 0 },
+      controllerLevels: { P: 5, PI: 0, PD: 0, PID: 0, VFB: 0, FF: 0, SMITH: 0 },
+    }));
+    expect(mocks.resolveAccessibleArenaPublicationForStudent).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ publicationId: 'publication-1' }));
+    expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledWith(expect.objectContaining({
+      levelId: 'level-1', tier: 'bronze', controllerId: 'P', publicationId: 'publication-1',
+    }));
+    expect(mocks.replayOdysseyInput).not.toHaveBeenCalled();
+    expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).not.toHaveBeenCalled();
+    expect(store.log).toMatchObject({ inputParams: snapshot, score: 820, metrics: { settlingTime: 2.8 }, odysseyCreditAppliedAt: creditAppliedAt, odysseyCompletedAt: expect.any(Date) });
+    expect(store.log?.inputParams).not.toHaveProperty('inputTrace');
+
+    // A completed legacy retry must not enter the ordinary evidence repair branch.
+    await submitGameScore('level-15', 1e9, {}, { runId: 'legacy-auto-recovery' });
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { label: 'ordinary', arenaTaskId: undefined, controlMode: 'AUTO' },
+    { label: 'manual official', arenaTaskId: 'task-odyssey-level-one-growth', controlMode: 'MANUAL' },
+    { label: 'mismatched task', arenaTaskId: 'wrong-task', controlMode: 'AUTO' },
+  ])('rejects a trace-less old $label run and cannot replace it with retry inputs', async ({ arenaTaskId, controlMode }) => {
+    const store = installDurableRunStore('legacy-ineligible');
+    const { inputTrace: _trace, ...snapshot } = officialSnapshot('legacy-ineligible', { arenaTaskId, controlMode });
+    store.seed({
+      id: 'legacy-ineligible-log', controlMode: 'GAME', odysseyRunId: 'legacy-ineligible',
+      inputParams: snapshot, score: 820, metrics: {}, createdAt: new Date('2026-05-15T10:00:00.000Z'),
+      odysseyCompletedAt: null, odysseyCreditAppliedAt: null, odysseyLeaseToken: null, odysseyLeaseExpiresAt: null,
+    });
+    const result = await submitGameScore('level-1', 1e9, {}, {
+      runId: 'legacy-ineligible', controlMode: 'AUTO', arenaTaskId: 'task-odyssey-level-one-growth',
+    });
+    expect(result).toMatchObject({ status: 'failed', errorCode: 'ODYSSEY_INPUT_REQUIRED' });
+    expect(mocks.computeOfficialOdysseyTelemetry).not.toHaveBeenCalled();
+    expect(mocks.replayOdysseyInput).not.toHaveBeenCalled();
+    expect(mocks.bridgeOdysseyRunToArenaSubmission).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+    expect(store.log?.odysseyCompletedAt).toBeNull();
+    expect(store.log?.inputParams).toEqual(snapshot);
   });
 
   it('uses the persisted controller-level snapshot when the profile changes before retry', async () => {
@@ -410,6 +531,7 @@ describe('submitGameScore Arena publication bridge', () => {
       id: 'existing-log',
       createdAt: new Date('2026-05-15T10:00:00.000Z'),
       inputParams: {
+        inputTrace: inputTrace(),
         replaySnapshotVersion: 1,
         runId: 'run-profile-stable',
         levelId: 'level-1',
@@ -442,10 +564,9 @@ describe('submitGameScore Arena publication bridge', () => {
       pidParams: { kp: 99, ki: 99, kd: 99 },
     });
 
-    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.replayOdysseyInput).toHaveBeenCalledWith(expect.objectContaining({
       controllerLevels: { P: 2, PI: 2, PD: 2, PID: 2, VFB: 0, FF: 0, SMITH: 0 },
-      controllerId: 'PID',
-      pidParams: { kp: 2.1, ki: 0.4, kd: 0.12 },
+      inputTrace: inputTrace(),
     }));
   });
 
@@ -492,7 +613,7 @@ describe('submitGameScore Arena publication bridge', () => {
     expect(second).toMatchObject({ id: 'concurrent-log' });
     expect(mocks.prisma.simulationLog.create).toHaveBeenCalledTimes(2);
     expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
-    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledTimes(1);
+    expect(mocks.computeOfficialOdysseyTelemetry).not.toHaveBeenCalled();
     expect(mocks.resolveAccessibleArenaPublicationForStudent).toHaveBeenCalledTimes(1);
     expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
   });
@@ -541,6 +662,7 @@ describe('submitGameScore Arena publication bridge', () => {
   it('takes over an expired claim after a crash immediately after log creation', async () => {
     const store = installDurableRunStore('run-crash-create');
     mocks.prisma.$transaction
+      .mockImplementationOnce(async (callback: (tx: typeof mocks.prisma) => unknown) => callback(mocks.prisma))
       .mockRejectedValueOnce(new Error('process crashed after create'))
       .mockImplementation(async (callback: (tx: typeof mocks.prisma) => unknown) => callback(mocks.prisma));
     const context = {
@@ -564,6 +686,7 @@ describe('submitGameScore Arena publication bridge', () => {
   it('credits an expired takeover from the first persisted score instead of a forged retry score', async () => {
     const store = installDurableRunStore('run-score-stable');
     mocks.prisma.$transaction
+      .mockImplementationOnce(async (callback: (tx: typeof mocks.prisma) => unknown) => callback(mocks.prisma))
       .mockRejectedValueOnce(new Error('process crashed before credit'))
       .mockImplementation(async (callback: (tx: typeof mocks.prisma) => unknown) => callback(mocks.prisma));
     const context = {
@@ -578,7 +701,7 @@ describe('submitGameScore Arena publication bridge', () => {
     await submitGameScore('level-1', 99_900, {}, context);
 
     expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      update: expect.objectContaining({ controlCredits: { increment: 1 } }),
+      update: expect.objectContaining({ controlCredits: { increment: 97 } }),
     }));
   });
 
@@ -604,7 +727,7 @@ describe('submitGameScore Arena publication bridge', () => {
     await submitGameScore('level-1', 820, {}, context);
 
     expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
-    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledTimes(1);
+    expect(mocks.computeOfficialOdysseyTelemetry).not.toHaveBeenCalled();
     expect(store.log).toMatchObject({
       odysseyCreditAppliedAt: expect.any(Date),
       odysseyOfficialMetrics: expect.any(Object),
@@ -637,7 +760,7 @@ describe('submitGameScore Arena publication bridge', () => {
 
     expect(store.submissions.size).toBe(1);
     expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
-    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledTimes(1);
+    expect(mocks.computeOfficialOdysseyTelemetry).not.toHaveBeenCalled();
     expect(store.log).toMatchObject({
       odysseySubmissionId: 'submission-crash-recovery',
       odysseyCompletedAt: expect.any(Date),
@@ -674,7 +797,7 @@ describe('submitGameScore Arena publication bridge', () => {
     expect(first).toMatchObject({ id: 'log-run-takeover' });
     expect(second).toMatchObject({ id: 'log-run-takeover' });
     expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
-    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledTimes(1);
+    expect(mocks.computeOfficialOdysseyTelemetry).not.toHaveBeenCalled();
     expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
   });
 
@@ -724,29 +847,25 @@ describe('submitGameScore Arena publication bridge', () => {
       unlocks: ['P'],
       controllerLevels: expect.objectContaining({ P: 1, PID: 0 }),
     });
-    expect(mocks.prisma.studentProfile.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
+    expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
         userId: 'student-1',
         controlUnlocks: ['P'],
         controlControllerLevels: expect.objectContaining({ P: 1, PID: 0 }),
       }),
-    });
+    }));
   });
 
   it('keeps the public leaderboard readable for unauthenticated visitors', async () => {
     mocks.getServerSession.mockResolvedValueOnce(null);
-    mocks.prisma.simulationLog.findMany.mockResolvedValueOnce([
+    mocks.prisma.$queryRaw.mockResolvedValueOnce([
       {
         userId: 'student-1',
         score: 910,
         metrics: { maxOvershoot: 5 },
-        inputParams: { tier: 'gold' },
+        tier: 'gold',
         createdAt: new Date('2026-06-12T00:00:00.000Z'),
-        user: {
-          name: '学生甲',
-          image: null,
-          email: 'student@example.com',
-        },
+        name: '学生甲', image: null, email: 'student@example.com',
       },
     ]);
 
@@ -760,11 +879,7 @@ describe('submitGameScore Arena publication bridge', () => {
         tier: 'gold',
       }),
     ]);
-    expect(mocks.prisma.simulationLog.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({
-        OR: expect.any(Array),
-      }),
-    }));
+    expect(mocks.prisma.$queryRaw).toHaveBeenCalled();
   });
 
   it('resolves publication context before creating an Odyssey Arena bridge submission', async () => {
@@ -813,6 +928,7 @@ describe('submitGameScore Arena publication bridge', () => {
   });
 
   it('keeps an Arena-assigned run out of ordinary Odyssey progression', async () => {
+    mocks.prisma.studentProfile.findUnique.mockResolvedValue({ controlCredits: 10, controlUnlocks: ['P'], controlOdysseyProgress: {}, controlControllerLevels: {} });
     await submitGameScore('level-1', 820, {
       settlingTime: 2.8,
       maxOvershoot: 7,
@@ -885,7 +1001,7 @@ describe('submitGameScore Arena publication bridge', () => {
   });
 
   it('does not create an Arena bridge submission when server-side telemetry cannot be verified', async () => {
-    mocks.computeOfficialOdysseyTelemetry.mockImplementationOnce(() => {
+    mocks.replayOdysseyInput.mockImplementationOnce(() => {
       throw new Error('Server-side Odyssey telemetry simulation failed.');
     });
 
@@ -899,18 +1015,8 @@ describe('submitGameScore Arena publication bridge', () => {
     });
 
     expect(mocks.bridgeOdysseyRunToArenaSubmission).not.toHaveBeenCalled();
-    expect(mocks.prisma.simulationLog.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({ id: 'log-1' }),
-      data: expect.objectContaining({
-        metrics: expect.objectContaining({
-          arenaBridge: expect.objectContaining({
-            ok: false,
-            reason: 'Server-side Odyssey telemetry simulation failed.',
-            gameScorePreserved: true,
-          }),
-        }),
-      }),
-    }));
+    expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
   });
 
   it('does not create an Arena bridge submission for manual runs without input trace replay', async () => {
@@ -935,7 +1041,7 @@ describe('submitGameScore Arena publication bridge', () => {
         metrics: expect.objectContaining({
           arenaBridge: expect.objectContaining({
             ok: false,
-            reason: 'Manual Odyssey runs require input trace replay before official Arena submission.',
+            reason: '此运行包含手动操作，不能作为 Arena 官方成绩。',
             gameScorePreserved: true,
           }),
         }),

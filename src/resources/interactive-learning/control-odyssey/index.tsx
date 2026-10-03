@@ -1,5 +1,6 @@
 'use client';
 
+import { useShallow } from 'zustand/react/shallow';
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ReactMarkdown, { type Components } from 'react-markdown';
@@ -139,7 +140,36 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     controlCredits,
     setControlCredits,
     runId
-  } = useGameStore();
+  } = useGameStore(useShallow(state => ({
+    gameState: state.gameState,
+    setGameState: state.setGameState,
+    resetGame: state.resetGame,
+    distance: state.distance,
+    maxDistance: state.maxDistance,
+    metrics: state.metrics,
+    controlMode: state.controlMode,
+    setControlMode: state.setControlMode,
+    setCurrentLevelId: state.setCurrentLevelId,
+    currentTier: state.currentTier,
+    setCurrentTier: state.setCurrentTier,
+    controllerId: state.controllerId,
+    setControllerId: state.setControllerId,
+    unlockedControllers: state.unlockedControllers,
+    setUnlockedControllers: state.setUnlockedControllers,
+    controllerLevels: state.controllerLevels,
+    setControllerLevels: state.setControllerLevels,
+    pidParams: state.pidParams,
+    extraParams: state.extraParams,
+    enableSpeedFeedback: state.enableSpeedFeedback,
+    enableFeedforward: state.enableFeedforward,
+    enableSmithPredictor: state.enableSmithPredictor,
+    difficultyScale: state.difficultyScale,
+    setDifficultyScale: state.setDifficultyScale,
+    autoOffset: state.autoOffset,
+    controlCredits: state.controlCredits,
+    setControlCredits: state.setControlCredits,
+    runId: state.runId
+  })));
 
   const [currentView, setCurrentView] = useState<ViewState>(
     isArenaAssignedSession ? 'MODE_SELECT' : 'INTRO',
@@ -275,7 +305,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             difficultyScale,
             arenaTaskId,
             arenaAssigned: isArenaAssignedSession,
-            publicationId
+            publicationId,
+            inputTrace: useGameStore.getState().inputTrace ?? undefined
           }
         );
         const synchronization = await synchronizeOdysseySubmission({
@@ -382,21 +413,6 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     if (!selectedLevelId) return;
     loadAiHistory();
   }, [selectedLevelId]);
-
-  useEffect(() => {
-    if (gameState !== 'VICTORY') return;
-    if (isArenaAssignedSession) return;
-
-    setLevels((prev) => {
-      const index = prev.findIndex((level) => level.id === selectedLevelId);
-      if (index < 0 || index >= prev.length - 1) return prev;
-      const next = prev[index + 1];
-      if (next.unlocked) return prev;
-      const updated = [...prev];
-      updated[index + 1] = { ...next, unlocked: true };
-      return updated;
-    });
-  }, [gameState, isArenaAssignedSession, selectedLevelId]);
 
   useEffect(() => {
     const loadProfile = async () => {

@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
+use std::collections::VecDeque;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -367,7 +369,44 @@ fn compute_simulation_step_inner(
     Ok(SimulationStepResult { state, sample })
 }
 
+const DISCRETE_CACHE_CAPACITY: usize = 32;
+#[derive(PartialEq, Eq)]
+struct DiscreteKey {
+    model_type: String,
+    coefficient_order: String,
+    numerator: Vec<u64>,
+    denominator: Vec<u64>,
+    dt: u64,
+}
+
+thread_local! {
+    static DISCRETE_CACHE: RefCell<VecDeque<(DiscreteKey, DiscretePlant)>> = RefCell::new(VecDeque::new());
+}
+
 fn discretize_transfer_function(model: &SimulationModel, dt: f64) -> Result<DiscretePlant, String> {
+    // Delay is applied by push_delay and does not participate in discretization.
+    let key = DiscreteKey {
+        model_type: model.model_type.clone(),
+        coefficient_order: model.coefficient_order.clone(),
+        numerator: model.numerator.iter().map(|v| v.to_bits()).collect(),
+        denominator: model.denominator.iter().map(|v| v.to_bits()).collect(),
+        dt: dt.to_bits(),
+    };
+    DISCRETE_CACHE.with(|cache| {
+        if let Some((_, plant)) = cache.borrow().iter().find(|(candidate, _)| *candidate == key) {
+            return Ok(plant.clone());
+        }
+        let plant = discretize_transfer_function_uncached(model, dt)?;
+        let mut entries = cache.borrow_mut();
+        if entries.len() >= DISCRETE_CACHE_CAPACITY {
+            entries.pop_front();
+        }
+        entries.push_back((key, plant.clone()));
+        Ok(plant)
+    })
+}
+
+fn discretize_transfer_function_uncached(model: &SimulationModel, dt: f64) -> Result<DiscretePlant, String> {
     let mut numerator = model.numerator.clone();
     let mut denominator = model.denominator.clone();
     if model.coefficient_order == "descending" {
@@ -455,8 +494,8 @@ fn push_delay(buffer: &mut Vec<f64>, delay: f64, dt: f64, value: f64) -> f64 {
         buffer.clear();
         return value;
     }
-    if buffer.len() != steps + 1 {
-        *buffer = vec![0.0; steps + 1];
+    if buffer.len() != steps {
+        *buffer = vec![0.0; steps];
     }
     buffer.push(value);
     buffer.remove(0)
@@ -574,4 +613,48 @@ fn invert(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, String> {
         }
     }
     Ok(augmented.into_iter().map(|row| row[n..].to_vec()).collect())
+}
+
+#[cfg(test)]
+mod execution_tests {
+    use super::*;
+
+    #[test]
+    fn pure_delay_has_exact_sample_count() {
+        for samples in 0..=2 {
+            let mut buffer = Vec::new();
+            let actual: Vec<f64> = (1..=6).map(|v| push_delay(&mut buffer, samples as f64 / 60.0, 1.0 / 60.0, v as f64)).collect();
+            let expected: Vec<f64> = (1..=6).map(|v| if v <= samples { 0.0 } else { (v - samples) as f64 }).collect();
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn cache_preserves_values_and_complete_discretization_key() {
+        DISCRETE_CACHE.with(|cache| cache.borrow_mut().clear());
+        let model = SimulationModel {
+            model_type: "transferFunction".into(), numerator: vec![2.0],
+            denominator: vec![1.0, 0.5], coefficient_order: "ascending".into(), delay: 0.0,
+        };
+        for index in 0..40 {
+            let dt = 0.01 + index as f64 * 0.001;
+            let cached = discretize_transfer_function(&model, dt).unwrap();
+            let direct = discretize_transfer_function_uncached(&model, dt).unwrap();
+            assert_eq!(cached.a, direct.a);
+            assert_eq!(cached.b, direct.b);
+            assert_eq!(cached.c, direct.c);
+            assert_eq!(cached.d, direct.d);
+        }
+        DISCRETE_CACHE.with(|cache| assert_eq!(cache.borrow().len(), DISCRETE_CACHE_CAPACITY));
+        let mut reversed = model.clone();
+        reversed.coefficient_order = "descending".into();
+        reversed.denominator.reverse();
+        let a = discretize_transfer_function(&model, 1.0 / 60.0).unwrap();
+        let b = discretize_transfer_function(&reversed, 1.0 / 60.0).unwrap();
+        assert_eq!(a.a, b.a);
+        assert_eq!(a.b, b.b);
+        let mut changed = model.clone();
+        changed.numerator = vec![3.0];
+        assert_ne!(a.c, discretize_transfer_function(&changed, 1.0 / 60.0).unwrap().c);
+    }
 }

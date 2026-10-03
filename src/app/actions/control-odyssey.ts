@@ -4,8 +4,10 @@ import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { revalidatePath } from 'next/cache';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import {
+  CONTROL_BASE_CONTROLLERS,
+  CONTROL_ODYSSEY_LEVELS,
   CONTROL_SHOP_CONFIG,
   CONTROLLER_UPGRADE_RULES,
   type ControllerId,
@@ -17,7 +19,8 @@ import {
   resolveAccessibleArenaPublicationForStudent,
   type ArenaResolvedSubmissionContext,
 } from '@/features/arena/teacher/publication-store';
-import { computeOfficialOdysseyTelemetry } from '@/resources/interactive-learning/control-odyssey/engine/official-simulation';
+import { replayOdysseyInput, computeOfficialOdysseyTelemetry } from '@/resources/interactive-learning/control-odyssey/engine/official-simulation';
+import { calculateOdysseyScore, type OdysseyInputTrace } from '@/resources/interactive-learning/control-odyssey/engine/input-trace';
 import { randomUUID } from 'node:crypto';
 import { materializeOdysseyTaskEvidence } from '@/lib/data-governance/simulation-task-materialization';
 import { persistAcceptedSimulationTaskEvidence } from '@/lib/data-governance/simulation-task-learning-fact';
@@ -111,6 +114,7 @@ const buildOdysseyReplaySnapshot = (
   arenaTaskId: context.arenaTaskId,
   arenaAssigned: context.arenaAssigned ?? false,
   publicationId: context.publicationId,
+  inputTrace: context.inputTrace,
 });
 
 const readOdysseyReplaySnapshot = (value: unknown) => {
@@ -133,6 +137,26 @@ const readOdysseyReplaySnapshot = (value: unknown) => {
   return value;
 };
 
+const readLegacyArenaRecoverySnapshot = (value: unknown, runId: string) => {
+  const snapshot = readOdysseyReplaySnapshot(value);
+  if (!snapshot || snapshot.inputTrace !== undefined || snapshot.runId !== runId
+    || snapshot.controlMode !== 'AUTO' || !isLevelTier(snapshot.tier)
+    || !CONTROL_ODYSSEY_LEVELS.some(level => level.id === snapshot.levelId)
+    || !CONTROL_BASE_CONTROLLERS.includes(snapshot.controllerId as typeof CONTROL_BASE_CONTROLLERS[number])
+    || typeof snapshot.arenaTaskId !== 'string'
+    || getArenaTaskForOdysseyLevel(snapshot.levelId as string) !== snapshot.arenaTaskId.trim()) return null;
+  const pid = snapshot.pidParams as Record<string, unknown>;
+  const extra = snapshot.extraParams as Record<string, unknown>;
+  const levels = snapshot.controllerLevels as Record<string, unknown>;
+  const finite = (value: unknown) => typeof value === 'number' && Number.isFinite(value);
+  if (!['kp', 'ki', 'kd'].every(key => finite(pid[key]))
+    || !['speedFeedbackTau', 'feedforwardGain'].every(key => finite(extra[key]))
+    || (extra.smithDelay !== undefined && !finite(extra.smithDelay))
+    || !['P', 'PI', 'PD', 'PID', 'VFB', 'FF', 'SMITH'].every(key => finite(levels[key]) && Number.isInteger(levels[key]) && (levels[key] as number) >= 0 && (levels[key] as number) <= 10)
+    || !finite(snapshot.difficultyScale)) return null;
+  return snapshot;
+};
+
 const isPersistedArenaAssignedRun = (value: unknown): boolean => {
   if (!isRecord(value)
     || value.arenaAssigned !== true
@@ -152,23 +176,6 @@ type ControlBestScores = Record<
     tiers: Partial<Record<LevelTier, number>>;
   }
 >;
-type ControlBestScoreLog = {
-  score: number | null;
-  missionId: string | null;
-  inputParams: unknown;
-};
-type ControlLeaderboardLog = {
-  userId: string;
-  inputParams: unknown;
-  score: number | null;
-  metrics: unknown;
-  createdAt: Date;
-  user: {
-    name: string | null;
-    image: string | null;
-    email: string | null;
-  };
-};
 type ControlConfigLog = {
   score: number | null;
   createdAt: Date;
@@ -338,42 +345,28 @@ const resolveTierUnlock = (currentTier: LevelTier | undefined, completedTier?: L
   return nextTierAfter(current);
 };
 
-const buildBestScores = async (userId: string): Promise<ControlBestScores> => {
-  const logs = (await prisma.simulationLog.findMany({
-    where: {
-      userId,
-      controlMode: 'GAME',
-      score: {
-        not: null
-      }
-    },
-    select: {
-      score: true,
-      missionId: true,
-      inputParams: true
-    }
-  })) as ControlBestScoreLog[];
-  const bestScores: ControlBestScores = {};
-
-  logs.forEach((log) => {
-    const params = log.inputParams as { levelId?: string; tier?: LevelTier } | null;
-    const levelId = params?.levelId ?? log.missionId ?? undefined;
-    if (!levelId) return;
-    const score = log.score ?? 0;
-    if (!bestScores[levelId]) {
-      bestScores[levelId] = { overall: score, tiers: {} };
-    } else {
-      bestScores[levelId].overall = Math.max(bestScores[levelId].overall, score);
-    }
-    if (isLevelTier(params?.tier)) {
-      const current = bestScores[levelId].tiers[params.tier];
-      if (current === undefined || score > current) {
-        bestScores[levelId].tiers[params.tier] = score;
-      }
-    }
+const withOdysseyAccount = <T>(userId: string, action: (tx: Prisma.TransactionClient) => Promise<T>) =>
+  prisma.$transaction(async (tx) => {
+    await tx.$executeRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${'control-odyssey:' + userId}))`);
+    return action(tx);
   });
 
-  return bestScores;
+const buildBestScores = async (userId: string, db: Pick<Prisma.TransactionClient, '$queryRaw'> = prisma): Promise<ControlBestScores> => {
+  const rows = await db.$queryRaw<{ levelId: string; tier: string | null; score: number }[]>(Prisma.sql`
+    SELECT COALESCE("inputParams"->>'levelId', "missionId") AS "levelId",
+      "inputParams"->>'tier' AS tier, MAX(score) AS score
+    FROM "SimulationLog"
+    WHERE "userId" = ${userId} AND "controlMode" = 'GAME' AND score IS NOT NULL
+    GROUP BY COALESCE("inputParams"->>'levelId', "missionId"), "inputParams"->>'tier'
+  `);
+  const best: ControlBestScores = {};
+  for (const row of rows) {
+    if (!row.levelId) continue;
+    const item = best[row.levelId] ??= { overall: row.score, tiers: {} };
+    item.overall = Math.max(item.overall, row.score);
+    if (isLevelTier(row.tier)) item.tiers[row.tier] = row.score;
+  }
+  return best;
 };
 
 export async function getControlProfile(): Promise<ControlProfileSnapshot | null> {
@@ -383,40 +376,20 @@ export async function getControlProfile(): Promise<ControlProfileSnapshot | null
     return null;
   }
 
-  const profile = await prisma.studentProfile.findUnique({
-    where: { userId: actionUser.id },
-    select: {
-      controlCredits: true,
-      controlUnlocks: true,
-      controlOdysseyProgress: true,
-      controlControllerLevels: true
-    }
+  const snapshot = await withOdysseyAccount(actionUser.id, async (tx) => {
+    const profile = await tx.studentProfile.upsert({
+      where: { userId: actionUser.id }, update: {},
+      select: { controlCredits: true, controlUnlocks: true, controlOdysseyProgress: true, controlControllerLevels: true },
+      create: { userId: actionUser.id, controlCredits: 0, controlUnlocks: defaultUnlocks(), controlOdysseyProgress: {}, controlControllerLevels: defaultControllerLevels() },
+    });
+    return {
+      credits: profile.controlCredits,
+      unlocks: normalizeUnlocks(profile.controlUnlocks),
+      tierProgress: normalizeTierProgress(profile.controlOdysseyProgress),
+      controllerLevels: normalizeControllerLevels(profile.controlControllerLevels, normalizeUnlocks(profile.controlUnlocks)),
+    };
   });
-
-  const unlocks = normalizeUnlocks(profile?.controlUnlocks);
-  const credits = profile?.controlCredits ?? 0;
-  const tierProgress = normalizeTierProgress(profile?.controlOdysseyProgress);
-  const controllerLevels = normalizeControllerLevels(profile?.controlControllerLevels, unlocks);
-  const bestScores = await buildBestScores(actionUser.id);
-
-  if (!profile) {
-    await prisma.studentProfile.create({
-      data: {
-        userId: actionUser.id,
-        controlCredits: credits,
-        controlUnlocks: unlocks,
-        controlOdysseyProgress: tierProgress,
-        controlControllerLevels: controllerLevels
-      }
-    });
-  } else if (!unlocks.includes('P')) {
-    await prisma.studentProfile.update({
-      where: { userId: actionUser.id },
-      data: { controlUnlocks: unlocks }
-    });
-  }
-
-  return { credits, unlocks, tierProgress, controllerLevels, bestScores };
+  return { ...snapshot, bestScores: await buildBestScores(actionUser.id) };
 }
 
 export async function purchaseController(controllerId: ControllerId): Promise<ControlProfileSnapshot | null> {
@@ -431,7 +404,7 @@ export async function purchaseController(controllerId: ControllerId): Promise<Co
     throw new Error('无效的控制器类型');
   }
 
-  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+  const result = await withOdysseyAccount(actionUser.id, async (tx) => {
     const profile = await tx.studentProfile.findUnique({
       where: { userId: actionUser.id },
       select: {
@@ -511,7 +484,7 @@ export async function upgradeController(controllerId: ControllerId): Promise<Con
     throw new Error('无效的升级类型');
   }
 
-  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+  const result = await withOdysseyAccount(actionUser.id, async (tx) => {
     const profile = await tx.studentProfile.findUnique({
       where: { userId: actionUser.id },
       select: {
@@ -578,7 +551,7 @@ export async function redeemControlAICredits(): Promise<number | null> {
     return null;
   }
 
-  const updatedCredits = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+  const updatedCredits = await withOdysseyAccount(actionUser.id, async (tx) => {
     const profile = await tx.studentProfile.findUnique({
       where: { userId: actionUser.id },
       select: {
@@ -616,55 +589,25 @@ export async function getLevelLeaderboard(levelId: string): Promise<LeaderboardE
   void session;
 
   try {
-    const logs = (await prisma.simulationLog.findMany({
-      where: {
-        score: {
-          not: null
-        },
-        OR: [
-          { missionId: levelId },
-          {
-            inputParams: {
-              path: ['levelId'],
-              equals: levelId
-            }
-          }
-        ]
-      },
-      orderBy: {
-        score: 'desc'
-      },
-      take: 200,
-      include: {
-        user: {
-          select: {
-            name: true,
-            image: true,
-            email: true
-          }
-        }
-      }
-    })) as ControlLeaderboardLog[];
-
-    const seenUsers = new Set<string>();
-    const uniqueLogs = logs.filter((log) => {
-      if (seenUsers.has(log.userId)) return false;
-      seenUsers.add(log.userId);
-      return true;
-    }).slice(0, 50);
-
-    return uniqueLogs.map((log, index) => {
-      const tier = (log.inputParams as { tier?: LevelTier } | null)?.tier;
-      return ({
-      rank: index + 1,
-      userName: log.user.name || log.user.email?.split('@')[0] || 'Unknown Captain',
-      userImage: log.user.image,
-      score: log.score || 0,
-      metrics: log.metrics,
-      tier,
-      createdAt: log.createdAt
-      });
-    });
+    const logs = await prisma.$queryRaw<{
+      userId: string; name: string | null; image: string | null; email: string | null;
+      score: number; metrics: unknown; tier: string | null; createdAt: Date;
+    }[]>(Prisma.sql`
+      WITH best AS (
+        SELECT DISTINCT ON ("userId") "userId", score, metrics, "inputParams"->>'tier' AS tier, "createdAt", id
+        FROM "SimulationLog"
+        WHERE "controlMode" = 'GAME' AND score IS NOT NULL
+          AND ("missionId" = ${levelId} OR "inputParams"->>'levelId' = ${levelId})
+        ORDER BY "userId", score DESC, "createdAt" ASC, id ASC
+      )
+      SELECT best.*, u.name, u.image, u.email FROM best JOIN "User" u ON u.id = best."userId"
+      ORDER BY best.score DESC, best."createdAt" ASC, best."userId" ASC LIMIT 50
+    `);
+    return logs.map((log, index) => ({
+      rank: index + 1, userName: log.name || log.email?.split('@')[0] || 'Unknown Captain',
+      userImage: log.image, score: log.score, metrics: log.metrics,
+      tier: isLevelTier(log.tier) ? log.tier : undefined, createdAt: log.createdAt,
+    }));
   } catch (error) {
     console.error('Failed to fetch leaderboard:', error);
     return [];
@@ -692,6 +635,7 @@ export async function submitGameScore(
     arenaTaskId?: string;
     arenaAssigned?: boolean;
     publicationId?: string;
+    inputTrace?: OdysseyInputTrace;
   }
 ) {
   const session = await getServerSession(authOptions);
@@ -778,6 +722,7 @@ export async function submitGameScore(
         const persistedLevelId = typeof persistedInput.levelId === 'string' ? persistedInput.levelId : levelId;
         if (
           existingLog.odysseyCompletedAt
+          && isRecord(existingLog.inputParams) && Boolean(existingLog.inputParams.inputTrace)
           && !isPersistedArenaAssignedRun(existingLog.inputParams)
         ) {
           await persistOrdinaryOdysseyTaskEvidence({
@@ -810,22 +755,57 @@ export async function submitGameScore(
       }
     }
 
-    const profile = await prisma.studentProfile.findUnique({
-      where: { userId: actionUser.id },
-      select: {
-        controlCredits: true,
-        controlUnlocks: true,
-        controlOdysseyProgress: true,
-        controlControllerLevels: true
-      }
+    if (!runId || typeof runId !== 'string' || runId.length > 128) {
+      return scoreSubmissionFailure('ODYSSEY_INPUT_REQUIRED', '该运行缺少验证记录，请重新完成关卡。');
+    }
+    const permission = await withOdysseyAccount(actionUser.id, async (tx) => {
+      const profile = await tx.studentProfile.findUnique({ where: { userId: actionUser.id },
+        select: { controlUnlocks: true, controlOdysseyProgress: true, controlControllerLevels: true } });
+      return { profile, bestScores: existingLog ? {} : await buildBestScores(actionUser.id, tx) };
     });
+    const profile = permission.profile;
     const unlocks = normalizeUnlocks(profile?.controlUnlocks);
-    const credits = profile?.controlCredits ?? 0;
-    const tierProgress = normalizeTierProgress(profile?.controlOdysseyProgress);
     const controllerLevels = normalizeControllerLevels(profile?.controlControllerLevels, unlocks);
-    const replaySnapshot = runId && context
-      ? buildOdysseyReplaySnapshot(levelId, context, controllerLevels)
-      : { levelId };
+    const replaySnapshot = buildOdysseyReplaySnapshot(levelId, context!, controllerLevels);
+    if (!existingLog && !isPersistedArenaAssignedRun(replaySnapshot)) {
+      const progress = normalizeTierProgress(profile?.controlOdysseyProgress);
+      const hasProgress = (id: string) => Boolean(progress[id]) || (permission.bestScores[id]?.overall ?? 0) > 0;
+      const levelIndex = CONTROL_ODYSSEY_LEVELS.findIndex(level => level.id === levelId);
+      const unlocked = levelIndex === 0 || hasProgress(levelId) || (levelIndex > 0 && hasProgress(CONTROL_ODYSSEY_LEVELS[levelIndex - 1].id));
+      if (!unlocked || !isLevelTier(replaySnapshot.tier) || tierRank(replaySnapshot.tier) > tierRank(progress[levelId] ?? 'bronze')) {
+        return scoreSubmissionFailure('ODYSSEY_LEVEL_LOCKED', '该关卡或难度尚未解锁，请先完成前置训练。');
+      }
+    }
+    const persistedSnapshot = existingLog ? readOdysseyReplaySnapshot(existingLog.inputParams) : null;
+    const legacyArenaSnapshot = existingLog?.controlMode === 'GAME' ? readLegacyArenaRecoverySnapshot(existingLog.inputParams, runId) : null;
+    const verificationInput: Record<string, unknown> | null = existingLog ? persistedSnapshot : replaySnapshot;
+    if ((!isRecord(verificationInput) || !verificationInput.inputTrace) && !legacyArenaSnapshot) {
+      return scoreSubmissionFailure('ODYSSEY_INPUT_REQUIRED', '该运行缺少验证记录，请重新完成关卡。');
+    }
+    let verifiedRun: ReturnType<typeof replayOdysseyInput> | null = null;
+    if (legacyArenaSnapshot) {
+      // Recover only the old official side effect. Client retry fields never replace its snapshot or game result.
+      metrics = existingLog!.metrics;
+    } else {
+      try {
+        verifiedRun = replayOdysseyInput({
+          levelId: verificationInput!.levelId as string, tier: verificationInput!.tier as string,
+          controllerLevels: verificationInput!.controllerLevels as ControlControllerLevels,
+          inputTrace: verificationInput!.inputTrace,
+        });
+      } catch (error) {
+        return scoreSubmissionFailure('ODYSSEY_INPUT_INVALID', error instanceof Error ? error.message : '运行验证失败，请重新完成关卡。');
+      }
+      const verifiedTier = verificationInput!.tier as LevelTier;
+      const finalInput = verifiedRun.trace.changes[verifiedRun.trace.changes.length - 1].config;
+      score = calculateOdysseyScore(verifiedRun.metrics, verifiedTier, finalInput.difficultyScale);
+      metrics = { ...verifiedRun.metrics, gameTelemetrySource: 'server-rust-replay' };
+      if (!existingLog) Object.assign(replaySnapshot, finalInput, { inputTrace: verifiedRun.trace });
+      else {
+        await updateRunStage(existingLog.id, { score, metrics });
+        existingLog = { ...existingLog, score, metrics };
+      }
+    }
     ownsRunClaim = ownsRunClaim || !existingLog;
     let log = existingLog;
     if (!log) {
@@ -838,7 +818,7 @@ export async function submitGameScore(
             odysseyRunId: runId,
             odysseyLeaseToken: leaseToken,
             odysseyLeaseExpiresAt: runId ? leaseExpiresAt() : undefined,
-            inputParams: replaySnapshot,
+            inputParams: replaySnapshot as unknown as Prisma.InputJsonValue,
             metrics,
             score,
             isEthicalViolation: false,
@@ -864,12 +844,14 @@ export async function submitGameScore(
       if (!log.odysseyCompletedAt) {
         return { status: 'pending' as const, runId: runId as string, retryAfterMs: 1_000 };
       }
-      const expectedArenaTaskId = getArenaTaskForOdysseyLevel(levelId);
-      if (expectedArenaTaskId && context?.arenaTaskId === expectedArenaTaskId) {
+      const firstInput = isRecord(log.inputParams) ? log.inputParams : {};
+      const firstLevelId = typeof firstInput.levelId === 'string' ? firstInput.levelId : levelId;
+      const expectedArenaTaskId = getArenaTaskForOdysseyLevel(firstLevelId);
+      if (expectedArenaTaskId && firstInput.arenaTaskId === expectedArenaTaskId) {
         const submissions = await prismaArenaSubmissionStore.listSubmissions({
           taskId: expectedArenaTaskId,
           userId: actionUser.id,
-          publicationId: context.publicationId,
+          publicationId: typeof firstInput.publicationId === 'string' ? firstInput.publicationId : undefined,
         });
         const submission = submissions.find((candidate) =>
           (candidate.artifact.params as Record<string, unknown>).odysseyRunId === runId
@@ -887,46 +869,27 @@ export async function submitGameScore(
     const completedTier = isLevelTier(bridgeContext?.tier)
       ? bridgeContext.tier
       : undefined;
-    const nextTier = resolveTierUnlock(tierProgress[creditLevelId], completedTier);
-    const nextProgress = { ...tierProgress, [creditLevelId]: nextTier };
-    const nextUnlocks = unlocks.includes('P') ? unlocks : [...unlocks, 'P'];
-    const persistedScore = typeof log.score === 'number' && Number.isFinite(log.score) ? log.score : 0;
-    const creditsEarned = Math.floor(persistedScore / 100);
-
-    if (!isArenaAssignedRun && ownsRunClaim && !log.odysseyCreditAppliedAt) {
+    const creditsEarned = Math.floor(score / 100);
+    if (verifiedRun && !isArenaAssignedRun && ownsRunClaim && !log.odysseyCreditAppliedAt) {
       const creditAppliedAt = new Date();
       const claimedLogId = log.id;
-      await prisma.$transaction(async (tx) => {
+      await withOdysseyAccount(actionUser.id, async (tx) => {
+        const latest = await tx.studentProfile.findUnique({ where: { userId: actionUser.id },
+          select: { controlUnlocks: true, controlOdysseyProgress: true } });
+        const latestProgress = normalizeTierProgress(latest?.controlOdysseyProgress);
+        const nextProgress = { ...latestProgress, [creditLevelId]: resolveTierUnlock(latestProgress[creditLevelId], completedTier) };
+        const latestUnlocks = normalizeUnlocks(latest?.controlUnlocks);
+        // Claim the reward in the same transaction before changing the account.
+        assertOdysseyLeaseOwned(await tx.simulationLog.updateMany({
+          where: { id: claimedLogId, odysseyLeaseToken: leaseToken, odysseyCreditAppliedAt: null },
+          data: { odysseyCreditAppliedAt: creditAppliedAt, odysseyLeaseExpiresAt: leaseExpiresAt() },
+        }));
         await tx.studentProfile.upsert({
           where: { userId: actionUser.id },
-          update: {
-            controlCredits: { increment: creditsEarned },
-            controlUnlocks: nextUnlocks,
-            controlOdysseyProgress: nextProgress,
-            controlControllerLevels: controllerLevels
-          },
-          create: {
-            userId: actionUser.id,
-            controlCredits: credits + creditsEarned,
-            controlUnlocks: nextUnlocks,
-            controlOdysseyProgress: nextProgress,
-            controlControllerLevels: controllerLevels
-          }
+          update: { controlCredits: { increment: creditsEarned }, controlOdysseyProgress: nextProgress },
+          create: { userId: actionUser.id, controlCredits: creditsEarned, controlUnlocks: latestUnlocks,
+            controlOdysseyProgress: nextProgress, controlControllerLevels: defaultControllerLevels() },
         });
-        if (runId) {
-          assertOdysseyLeaseOwned(await tx.simulationLog.updateMany({
-            where: { id: claimedLogId, odysseyLeaseToken: leaseToken },
-            data: {
-              odysseyCreditAppliedAt: creditAppliedAt,
-              odysseyLeaseExpiresAt: leaseExpiresAt(),
-            },
-          }));
-        } else {
-          await tx.simulationLog.update({
-            where: { id: claimedLogId },
-            data: { odysseyCreditAppliedAt: creditAppliedAt },
-          });
-        }
       });
       log = { ...log, odysseyCreditAppliedAt: creditAppliedAt };
     }
@@ -962,19 +925,21 @@ export async function submitGameScore(
         ? log.odysseyOfficialMetrics
         : null;
       if (!officialMetrics) try {
-        officialMetrics = computeOfficialOdysseyTelemetry({
-          levelId: officialReplaySnapshot.levelId as string,
-          tier: bridgeContext?.tier,
-          controllerId: bridgeContext?.controllerId,
-          controlMode: bridgeContext?.controlMode,
-          pidParams: bridgeContext?.pidParams,
-          extraParams: bridgeContext?.extraParams,
-          enableSpeedFeedback: bridgeContext?.enableSpeedFeedback,
-          enableFeedforward: bridgeContext?.enableFeedforward,
-          enableSmithPredictor: bridgeContext?.enableSmithPredictor,
-          difficultyScale: bridgeContext?.difficultyScale,
-          controllerLevels: officialReplaySnapshot.controllerLevels as ControlControllerLevels,
-        });
+        if (verifiedRun) {
+          if (verifiedRun.trace.changes.some(change => change.config.controlMode !== 'AUTO' || change.command !== 0)) {
+            throw new Error('此运行包含手动操作，不能作为 Arena 官方成绩。');
+          }
+          officialMetrics = { ...verifiedRun.metrics, officialTelemetrySource: 'server-rust-simulation' };
+        } else {
+          officialMetrics = computeOfficialOdysseyTelemetry({
+            levelId: legacyArenaSnapshot!.levelId as string,
+            tier: bridgeContext?.tier, controllerId: bridgeContext?.controllerId, controlMode: bridgeContext?.controlMode,
+            pidParams: bridgeContext?.pidParams, extraParams: bridgeContext?.extraParams,
+            enableSpeedFeedback: bridgeContext?.enableSpeedFeedback, enableFeedforward: bridgeContext?.enableFeedforward,
+            enableSmithPredictor: bridgeContext?.enableSmithPredictor, difficultyScale: bridgeContext?.difficultyScale,
+            controllerLevels: legacyArenaSnapshot!.controllerLevels as ControlControllerLevels,
+          });
+        }
         await updateRunStage(log.id, {
             odysseyOfficialMetrics: officialMetrics as Prisma.InputJsonValue,
             odysseyLeaseExpiresAt: ownsRunClaim ? leaseExpiresAt() : undefined,
@@ -1090,7 +1055,7 @@ export async function submitGameScore(
           odysseyLeaseExpiresAt: null,
         },
       }));
-      if (!isArenaAssignedRun) {
+      if (verifiedRun && !isArenaAssignedRun) {
         await persistOrdinaryOdysseyTaskEvidence({
           userId: actionUser.id,
           role: actionUser.role,
@@ -1125,6 +1090,7 @@ export async function getTopControlConfigs(levelId: string): Promise<ControlConf
   const logs = (await prisma.simulationLog.findMany({
     where: {
       userId: actionUser.id,
+      controlMode: 'GAME',
       score: {
         not: null
       },

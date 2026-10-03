@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useGameStore } from '../store/game-store';
 import { VIEWPORT_HEIGHT } from '../engine/level-generator';
-import { appendTelemetry, clearTelemetry, getTelemetryHistory } from '../engine/telemetry-history';
+import { clearTelemetry, getTelemetryHistory, subscribeTelemetry } from '../engine/telemetry-history';
 
 interface TelemetryScopeProps {
   height?: number;
@@ -14,28 +14,7 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
   
   const historyRef = useRef(getTelemetryHistory());
 
-  // 订阅高频变化
-  const shipY = useGameStore(state => state.shipY);
-  const shipU = useGameStore(state => state.shipU);
-  const shipR = useGameStore(state => state.shipR); // 期望值 (暂时没在 store 里充分利用，先预留)
-  const gameState = useGameStore(state => state.gameState);
-  const distance = useGameStore(state => state.distance);
   const maxDistance = useGameStore(state => state.maxDistance);
-
-  useEffect(() => {
-    if (gameState !== 'RUNNING') return;
-
-    // 推入新数据
-    const displayU = -shipU;
-    appendTelemetry({ r: shipR, y: shipY, u: displayU, distance });
-  }, [shipY, shipU, shipR, distance, gameState]);
-
-  // 监听重置，清空曲线
-  useEffect(() => {
-    if (gameState === 'IDLE') {
-      clearTelemetry();
-    }
-  }, [gameState]);
 
   // 渲染循环
   useEffect(() => {
@@ -52,7 +31,7 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       canvas.height = height;
     }
 
-    let animationId: number;
+    let animationId: number | null = null;
 
     const render = () => {
       const w = canvas.width;
@@ -81,7 +60,6 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       ctx.stroke();
 
       if (historyRef.current.length < 2) {
-        animationId = requestAnimationFrame(render);
         return;
       }
 
@@ -168,12 +146,27 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       ctx.lineTo(w, uZero);
       ctx.stroke();
 
-      animationId = requestAnimationFrame(render);
+
     };
 
+    const schedule = () => {
+      if (animationId !== null) return;
+      animationId = requestAnimationFrame(() => { animationId = null; render(); });
+    };
+    const resize = () => {
+      canvas.width = parent?.clientWidth ?? canvas.width;
+      canvas.height = height;
+      schedule();
+    };
+    const observer = new ResizeObserver(resize);
+    if (parent) observer.observe(parent);
+    const unsubscribe = subscribeTelemetry(schedule);
     render();
-
-    return () => cancelAnimationFrame(animationId);
+    return () => {
+      unsubscribe();
+      observer.disconnect();
+      if (animationId !== null) cancelAnimationFrame(animationId);
+    };
   }, [height, maxDistance]);
 
   // 暴露一个方法供外部清空

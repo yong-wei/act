@@ -68,6 +68,16 @@ export function computeControlOdysseyServerStep(request: RustSimulationRequest):
   return parseWasmJson<RustSimulationResult>('compute_simulation_step', request, 'computeSimulationStep');
 }
 
+/** Seal the package once for one synchronous, bounded Odyssey replay. */
+export function createControlOdysseyReplayStep(): (request: RustSimulationRequest) => RustSimulationResult {
+  readGeneratedPackageIdentity();
+  return (request) => {
+    const result = JSON.parse(invokeServerWasm('compute_simulation_step', JSON.stringify(request))) as RustSimulationResult;
+    assertFiniteTree(result, 'computeSimulationStep');
+    return result;
+  };
+}
+
 export function computeVirtualSimulationServerStep<TResult>(request: unknown): TResult {
   return parseWasmJson<TResult>('compute_virtual_simulation_step', request, 'computeVirtualSimulationStep');
 }

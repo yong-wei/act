@@ -12,6 +12,11 @@ test('control odyssey loads Rust runtime and keeps the game loop interactive', a
     consoleErrors.push(text);
   });
 
+  // 匿名仿真验收不包含需要登录的全局 AI 会话列表。
+  await page.route('**/api/ai/sessions', (route) => route.fulfill({
+    json: { conversations: [] },
+  }));
+
   await page.goto('/interactive-learning/control-odyssey', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('button', { name: '进入星域选择' })).toBeVisible({ timeout: 20_000 });
   await page.getByRole('button', { name: '进入星域选择' }).click();
@@ -22,7 +27,7 @@ test('control odyssey loads Rust runtime and keeps the game loop interactive', a
   await expect(shopShipPaths.first()).toBeVisible();
 
   await page.getByRole('button', { name: 'Close' }).click();
-  await page.getByRole('button', { name: '配置并开始' }).first().click();
+  await page.getByRole('button', { name: '配置并开始', exact: true }).first().click();
   await page.getByText('PID 辅助 (PID Assist)').click();
   await expect(page.getByText('自动模式')).toBeVisible();
 

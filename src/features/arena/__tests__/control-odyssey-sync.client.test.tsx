@@ -58,7 +58,7 @@ vi.mock('@/resources/interactive-learning/control-odyssey/store/game-store', () 
     enableSpeedFeedback: false, enableFeedforward: false, enableSmithPredictor: false,
     difficultyScale: 1, setDifficultyScale: vi.fn(), autoOffset: 0, controlCredits: 0, setControlCredits: vi.fn(), runId: 'run-ui',
   };
-  return { useGameStore: () => store };
+  return { useGameStore: Object.assign(() => store, { getState: () => ({ ...store, inputTrace: undefined }) }) };
 });
 
 import { ControlOdysseyGame } from '@/resources/interactive-learning/control-odyssey';

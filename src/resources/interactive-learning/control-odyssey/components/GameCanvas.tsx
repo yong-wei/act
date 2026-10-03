@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useGameStore } from '../store/game-store';
-import { PhysicsEngine } from '../engine/physics';
-import { isBrowserControlEngineReady as isControlOdysseyRuntimeReady, preloadBrowserControlEngine as preloadControlOdysseyRuntime } from '@/lib/control-engine/client';
-import { LevelGenerator, LevelSegment, SEGMENT_WIDTH, SHIP_X_OFFSET, VIEWPORT_HEIGHT, VIEWPORT_WIDTH, computeReferenceY } from '../engine/level-generator';
-import { buildRuntimeTierConfig, getLevelConfigById, getTierConfig, getTransferFunctionModel } from '../level-data';
+import { OdysseyExecution } from '../engine/run-execution';
+import { type OdysseyRunConfig } from '../engine/input-trace';
+import { appendTelemetry } from '../engine/telemetry-history';
+import { useShallow } from 'zustand/react/shallow';
+import { isBrowserControlEngineReady as isControlOdysseyRuntimeReady, preloadBrowserControlEngine as preloadControlOdysseyRuntime, computeSimulationStepBrowserSync } from '@/lib/control-engine/client';
+import { type LevelSegment, SEGMENT_WIDTH, SHIP_X_OFFSET, VIEWPORT_HEIGHT, computeReferenceY } from '../engine/level-generator';
+import { getTierConfig } from '../level-data';
 import { ShipAvatar } from './ShipAvatar';
 import { SimulationClock } from '@/lib/simulation';
 
@@ -15,23 +18,6 @@ interface GameCanvasProps {
   lockSetpointInput?: boolean;
 }
 
-type StepInfo = { at: number; amplitude: number; target: number };
-const SETTLING_DWELL_SECONDS = 0.5;
-
-const buildStepTimeline = (reference: { type: string; base?: number; events: { at: number; amplitude: number }[] }) => {
-  const base = reference.base ?? VIEWPORT_HEIGHT / 2;
-  if (!['step', 'sequence', 'custom'].includes(reference.type)) {
-    return { base, steps: [] as StepInfo[] };
-  }
-  const sorted = [...reference.events].sort((a, b) => a.at - b.at);
-  let cumulative = 0;
-  const steps = sorted.map((event) => {
-    cumulative += event.amplitude;
-    return { at: event.at, amplitude: event.amplitude, target: base + cumulative };
-  });
-  return { base, steps };
-};
-
 export const GameCanvas: React.FC<GameCanvasProps> = ({ 
   width = 800, 
   height = 400,
@@ -40,56 +26,17 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   // 游戏引擎实例 (使用 Ref 保持跨渲染周期持久化)
-  const physicsRef = useRef(new PhysicsEngine());
-  const levelGenRef = useRef(new LevelGenerator());
+  const executionRef = useRef<OdysseyExecution | null>(null);
   const segmentsRef = useRef<LevelSegment[]>([]);
   const tierConfigRef = useRef<ReturnType<typeof getTierConfig> | null>(null);
-  const tierKeyRef = useRef<string>('');
   const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
   const autoOffsetRef = useRef(0);
-  const disturbanceRef = useRef(0);
   const scrollXRef = useRef(0);
   const lastTimeRef = useRef(0);
   const shipLayerRef = useRef<HTMLDivElement>(null);
   
   // 输入状态 Ref
   const inputRef = useRef({ up: false, down: false });
-  
-  // 内部性能统计变量
-  const metricsRef = useRef({
-    maxOvershoot: 0,
-    avgRelativeErrorSum: 0,
-    avgRelativeErrorTime: 0,
-    steadySumY: 0,
-    steadySumR: 0,
-    steadyTime: 0,
-    elapsedTime: 0,
-    controlEnergySum: 0,
-    controlVariationSum: 0,
-    previousControlU: 0,
-    settlingCandidateAt: null as number | null,
-    settlingTime: null as number | null
-  });
-
-  const stepRef = useRef<{
-    base: number;
-    steps: StepInfo[];
-    currentIndex: number;
-    currentAmplitude: number;
-    currentTarget: number;
-    currentStartTime: number | null;
-    direction: number;
-    peak: number | null;
-  }>({
-    base: VIEWPORT_HEIGHT / 2,
-    steps: [],
-    currentIndex: -1,
-    currentAmplitude: 0,
-    currentTarget: VIEWPORT_HEIGHT / 2,
-    currentStartTime: null,
-    direction: 0,
-    peak: null
-  });
   
   // 从 Store 获取状态
   const {
@@ -110,8 +57,13 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     resetToken,
     difficultyScale,
     setAutoOffset
-  } = useGameStore();
-  const levelConfig = getLevelConfigById(currentLevelId);
+  } = useGameStore(useShallow(state => ({
+    gameState: state.gameState, setGameState: state.setGameState, updateMetrics: state.updateMetrics,
+    maxDistance: state.maxDistance, controlMode: state.controlMode, pidParams: state.pidParams, extraParams: state.extraParams,
+    enableSpeedFeedback: state.enableSpeedFeedback, enableFeedforward: state.enableFeedforward, enableSmithPredictor: state.enableSmithPredictor,
+    currentLevelId: state.currentLevelId, currentTier: state.currentTier, controllerId: state.controllerId, controllerLevels: state.controllerLevels,
+    resetToken: state.resetToken, difficultyScale: state.difficultyScale, setAutoOffset: state.setAutoOffset,
+  })));
 
   // 键盘事件监听
   useEffect(() => {
@@ -139,150 +91,20 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     };
   }, [gameState, setGameState]);
 
-  const finalizeStepOvershoot = useCallback(() => {
-    const step = stepRef.current;
-    const amplitude = Math.abs(step.currentAmplitude);
-    if (!amplitude || step.peak === null) return;
-    let overshootRatio = 0;
-    if (step.direction > 0) {
-      overshootRatio = (step.peak - step.currentTarget) / amplitude;
-    } else if (step.direction < 0) {
-      overshootRatio = (step.currentTarget - step.peak) / amplitude;
-    }
-    if (overshootRatio > 0) {
-      metricsRef.current.maxOvershoot = Math.max(metricsRef.current.maxOvershoot, overshootRatio * 100);
-    }
-  }, []);
-
-  const updateStepSettling = useCallback((error: number) => {
-    const step = stepRef.current;
-    const amplitude = Math.abs(step.currentAmplitude);
-    if (!amplitude || step.currentStartTime === null) return;
-
-    const tolerance = Math.max(4, amplitude * 0.05);
-    const metrics = metricsRef.current;
-    if (error <= tolerance) {
-      metrics.settlingCandidateAt ??= metrics.elapsedTime;
-      if (metrics.elapsedTime - metrics.settlingCandidateAt >= SETTLING_DWELL_SECONDS) {
-        metrics.settlingTime = Math.max(0, metrics.settlingCandidateAt - step.currentStartTime);
-      }
-      return;
-    }
-
-    metrics.settlingCandidateAt = null;
-    metrics.settlingTime = null;
-  }, []);
-
-  const readStepSettlingTime = useCallback(() => {
-    const metrics = metricsRef.current;
-    const step = stepRef.current;
-    if (metrics.settlingTime !== null) return metrics.settlingTime;
-    if (step.currentStartTime !== null) {
-      return Math.max(0, metrics.elapsedTime - step.currentStartTime);
-    }
-    return metrics.elapsedTime;
-  }, []);
-
-  const getMetricsSnapshot = useCallback(() => {
-    const {
-      maxOvershoot,
-      avgRelativeErrorSum,
-      avgRelativeErrorTime,
-      steadySumY,
-      steadySumR,
-      steadyTime,
-      elapsedTime,
-      controlEnergySum,
-      controlVariationSum
-    } = metricsRef.current;
-    const avgRelativeError = avgRelativeErrorTime > 0
-      ? (avgRelativeErrorSum / avgRelativeErrorTime) * 100
-      : 0;
-    const steadyAvgR = steadyTime > 0 ? steadySumR / steadyTime : 0;
-    const steadyAvgY = steadyTime > 0 ? steadySumY / steadyTime : 0;
-    const steadyError = steadyTime > 0 && Math.abs(steadyAvgR) > 0.001
-      ? (Math.abs(steadyAvgY - steadyAvgR) / Math.abs(steadyAvgR)) * 100
-      : 0;
-    const normalizedTime = Math.max(elapsedTime, 1);
-    return {
-      maxOvershoot,
-      avgRelativeError,
-      steadyError,
-      settlingTime: readStepSettlingTime(),
-      controlEnergy: controlEnergySum / normalizedTime,
-      controlSmoothness: controlVariationSum / normalizedTime
-    };
-  }, [readStepSettlingTime]);
-
-  // 重置游戏逻辑
-  const handleReset = useCallback(() => {
-    physicsRef.current.reset(VIEWPORT_HEIGHT / 2);
-    levelGenRef.current.reset();
+  useEffect(() => {
+    const state = useGameStore.getState();
+    const runtime = new OdysseyExecution(currentLevelId, currentTier, state.controllerLevels);
+    runtime.prepareTerrain(state.difficultyScale);
+    executionRef.current = runtime;
+    tierConfigRef.current = runtime.tierConfig;
+    segmentsRef.current = runtime.segments;
     scrollXRef.current = 0;
+    autoOffsetRef.current = 0;
     lastTimeRef.current = 0;
     clockRef.current.reset();
-    autoOffsetRef.current = 0;
-    disturbanceRef.current = 0;
-    const tierKey = `${currentLevelId}-${currentTier}`;
-    let runtimeTier = tierConfigRef.current;
-    if (!runtimeTier || tierKeyRef.current !== tierKey) {
-      runtimeTier = buildRuntimeTierConfig(getTierConfig(currentLevelId, currentTier));
-      tierConfigRef.current = runtimeTier;
-      tierKeyRef.current = tierKey;
-    }
-    // 重置统计
-    metricsRef.current = {
-      maxOvershoot: 0,
-      avgRelativeErrorSum: 0,
-      avgRelativeErrorTime: 0,
-      steadySumY: 0,
-      steadySumR: 0,
-      steadyTime: 0,
-      elapsedTime: 0,
-      controlEnergySum: 0,
-      controlVariationSum: 0,
-      previousControlU: 0,
-      settlingCandidateAt: null,
-      settlingTime: null
-    };
-    const { base, steps } = buildStepTimeline(runtimeTier.reference);
-    stepRef.current = {
-      base,
-      steps,
-      currentIndex: -1,
-      currentAmplitude: 0,
-      currentTarget: base,
-      currentStartTime: null,
-      direction: 0,
-      peak: null
-    };
-    // 初始生成一段
-    const scaledEnvelope = {
-      ...runtimeTier.envelope,
-      margin: Math.max(20, runtimeTier.envelope.margin * difficultyScale)
-    };
-    segmentsRef.current = levelGenRef.current.generateSegments(
-      VIEWPORT_WIDTH + 200,
-      runtimeTier.distance,
-      runtimeTier.reference,
-      scaledEnvelope,
-      runtimeTier.disturbance
-    );
     inputRef.current = { up: false, down: false };
-    // 不重置 Store 的 maxDistance
-    // resetGame() 已经在外部或 Store 内部处理了
-  }, [currentLevelId, currentTier, difficultyScale]); // 依赖关卡与等级
-
-  useEffect(() => {
-    autoOffsetRef.current = 0;
-    disturbanceRef.current = 0;
-    setAutoOffset(0);
-  }, [controlMode, currentLevelId, currentTier, resetToken, setAutoOffset]);
-
-  // 监听重置指令
-  useEffect(() => {
-    handleReset();
-  }, [resetToken, handleReset]);
+    useGameStore.setState({ inputTrace: null, autoOffset: 0 });
+  }, [resetToken, currentLevelId, currentTier]);
 
   // 游戏主循环
   useEffect(() => {
@@ -311,223 +133,36 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       const frameDt = Math.min((time - lastTimeRef.current) / 1000, 0.1); // 限制最大步长防止跳帧
       lastTimeRef.current = time;
 
-      const simulateStep = (dt: number) => {
-        if (!isControlOdysseyRuntimeReady()) {
-          return;
-        }
-        // 计算输入
-        let controlInput = 0;
-        const allowSetpointInput = !(lockSetpointInput && controlMode === 'AUTO');
-        if (allowSetpointInput && inputRef.current.up) controlInput -= 1;   // 向上是负 Y (在 MANUAL 是 dU, AUTO 是 dR)
-        if (allowSetpointInput && inputRef.current.down) controlInput += 1; // 向下是正 Y
-
-        const tierKey = `${currentLevelId}-${currentTier}`;
-        if (!tierConfigRef.current || tierKeyRef.current !== tierKey) {
-          tierConfigRef.current = buildRuntimeTierConfig(getTierConfig(currentLevelId, currentTier));
-          tierKeyRef.current = tierKey;
-        }
-        const activeTier = tierConfigRef.current;
-        const maxDistanceLocal = activeTier.distance;
-        const plantModel = getTransferFunctionModel(levelConfig.model);
-        const hasI = controllerId === 'PI' || controllerId === 'PID';
-        const hasD = controllerId === 'PD' || controllerId === 'PID';
-        const filteredPid = {
-          kp: pidParams.kp,
-          ki: hasI ? pidParams.ki : 0,
-          kd: hasD ? pidParams.kd : 0
+      const simulateStep = () => {
+        const runtime = executionRef.current;
+        const store = useGameStore.getState();
+        if (!runtime || store.gameState !== 'RUNNING' || runtime.terminal) return false;
+        if (!isControlOdysseyRuntimeReady()) return false;
+        const allowInput = !(lockSetpointInput && store.controlMode === 'AUTO');
+        const command = allowInput ? Number(inputRef.current.down) - Number(inputRef.current.up) : 0;
+        const config: OdysseyRunConfig = {
+          controlMode: store.controlMode, controllerId: store.controllerId, pidParams: store.pidParams, extraParams: store.extraParams,
+          enableSpeedFeedback: store.enableSpeedFeedback, enableFeedforward: store.enableFeedforward,
+          enableSmithPredictor: store.enableSmithPredictor, difficultyScale: store.difficultyScale, outputLevels: store.controllerLevels,
         };
-        const pLevelLimit = Math.max(1, controllerLevels.P ?? 1);
-        const iLevelLimit = Math.max(0, controllerLevels.PI ?? 0);
-        const dLevelLimit = Math.max(0, controllerLevels.PD ?? 0);
-        const vfbLevelLimit = Math.max(0, controllerLevels.VFB ?? 0);
-        const ffLevelLimit = Math.max(0, controllerLevels.FF ?? 0);
-        const outputLimits = {
-          manual: pLevelLimit,
-          p: controlMode === 'AUTO' ? pLevelLimit : 0,
-          i: controlMode === 'AUTO' && hasI ? iLevelLimit : 0,
-          d: controlMode === 'AUTO' && hasD ? dLevelLimit : 0,
-          vfb: controlMode === 'AUTO' && enableSpeedFeedback ? vfbLevelLimit : 0,
-          ff: controlMode === 'AUTO' && enableFeedforward ? ffLevelLimit : 0
-        };
-
-        const currentScrollX = scrollXRef.current;
-        const scrollSpeed = 150; // 像素/秒
-        const nextScrollX = currentScrollX + scrollSpeed * dt;
-        scrollXRef.current = nextScrollX;
-        const shipWorldX = nextScrollX + SHIP_X_OFFSET;
-
-        const rawDisturbance = activeTier.disturbance.type === 'output-step'
-          ? activeTier.disturbance.events.reduce((sum, event) => {
-            const duration = event.duration ?? 160;
-            return shipWorldX >= event.at && shipWorldX <= event.at + duration ? sum + event.amplitude : sum;
-          }, 0)
-          : 0;
-        const disturbanceTau = Math.max(levelConfig.disturbanceTau ?? 0.6, 0.2);
-        const alpha = disturbanceTau > 0 ? Math.min(dt / (disturbanceTau + dt), 1) : 1;
-        disturbanceRef.current += (rawDisturbance - disturbanceRef.current) * alpha;
-        const disturbance = disturbanceRef.current;
-
-        const setpointRate = 120;
-        const clampValue = (value: number, min: number, max: number) =>
-          Math.min(max, Math.max(min, value));
-        if (controlMode === 'AUTO') {
-          autoOffsetRef.current = clampValue(
-            autoOffsetRef.current + controlInput * setpointRate * dt,
-            -160,
-            160
-          );
-          setAutoOffset(autoOffsetRef.current);
-          const referenceY = computeReferenceY(activeTier.reference, shipWorldX);
-          physicsRef.current.setAutoSetpoint(clampValue(referenceY + autoOffsetRef.current, 0, VIEWPORT_HEIGHT));
+        const continuing = runtime.advance(config, command, computeSimulationStepBrowserSync);
+        scrollXRef.current = runtime.scrollX;
+        segmentsRef.current = runtime.segments;
+        autoOffsetRef.current = runtime.autoOffset;
+        appendTelemetry({ r: runtime.displayR, y: runtime.state.y, u: -runtime.state.u, distance: runtime.scrollX });
+        // Ten UI updates per simulation second, plus an unconditional terminal flush.
+        if (runtime.trace.totalSteps % 6 === 0 || !continuing) {
+          store.updateMetrics(runtime.state.y, runtime.state.u, runtime.displayR,
+            runtime.terminal === 'VICTORY' ? runtime.tierConfig.distance : runtime.scrollX, runtime.getMetrics());
+          store.setAutoOffset(runtime.autoOffset);
         }
-
-        const appliedInput = controlMode === 'AUTO' ? 0 : controlInput;
-
-        // 物理步进
-        const shipState = physicsRef.current.update(dt, appliedInput, {
-          plantModel,
-          mode: controlMode,
-          pid: filteredPid,
-          speedFeedback: {
-            enabled: enableSpeedFeedback,
-            tau: extraParams.speedFeedbackTau
-          },
-          feedforward: {
-            enabled: enableFeedforward,
-            gain: extraParams.feedforwardGain,
-            base: VIEWPORT_HEIGHT / 2
-          },
-          smithPredictor: {
-            enabled: enableSmithPredictor,
-            delay: extraParams.smithDelay
-          },
-          outputLimits
-        }, disturbance);
-        metricsRef.current.elapsedTime += dt;
-        metricsRef.current.controlEnergySum += shipState.u * shipState.u * dt;
-        metricsRef.current.controlVariationSum += Math.abs(shipState.u - metricsRef.current.previousControlU);
-        metricsRef.current.previousControlU = shipState.u;
-
-        // 限制飞船不跑出屏幕垂直范围 (可选，或者作为碰撞)
-        if (shipState.y < 0) shipState.y = 0;
-        if (shipState.y > VIEWPORT_HEIGHT) shipState.y = VIEWPORT_HEIGHT;
-
-        const scrollX = scrollXRef.current;
-        const referenceY = computeReferenceY(activeTier.reference, shipWorldX);
-
-        const stepMeta = stepRef.current;
-        if (stepMeta.steps.length) {
-          while (
-            stepMeta.currentIndex + 1 < stepMeta.steps.length
-            && shipWorldX >= stepMeta.steps[stepMeta.currentIndex + 1].at
-          ) {
-            finalizeStepOvershoot();
-            stepMeta.currentIndex += 1;
-            const currentStep = stepMeta.steps[stepMeta.currentIndex];
-            stepMeta.currentAmplitude = currentStep.amplitude;
-            stepMeta.currentTarget = currentStep.target;
-            stepMeta.currentStartTime = metricsRef.current.elapsedTime;
-            stepMeta.direction = Math.sign(currentStep.amplitude);
-            stepMeta.peak = shipState.y;
-            metricsRef.current.settlingCandidateAt = null;
-            metricsRef.current.settlingTime = null;
-          }
-
-          if (stepMeta.currentAmplitude !== 0 && stepMeta.peak !== null) {
-            if (stepMeta.direction > 0) {
-              stepMeta.peak = Math.max(stepMeta.peak, shipState.y);
-            } else if (stepMeta.direction < 0) {
-              stepMeta.peak = Math.min(stepMeta.peak, shipState.y);
-            }
-          }
+        if (!continuing) {
+          useGameStore.setState({ inputTrace: runtime.getInputTrace(), gameState: runtime.terminal! });
         }
-
-        const error = Math.abs(shipState.y - referenceY);
-        const stepAmplitude = Math.abs(stepMeta.currentAmplitude);
-        const referenceDelta = stepAmplitude > 0 ? stepAmplitude : Math.abs(referenceY - stepMeta.base);
-        if (referenceDelta > 0.001) {
-          metricsRef.current.avgRelativeErrorSum += (error / referenceDelta) * dt;
-          metricsRef.current.avgRelativeErrorTime += dt;
-        }
-        updateStepSettling(error);
-        if (shipWorldX >= maxDistanceLocal - 500) {
-          metricsRef.current.steadySumY += shipState.y * dt;
-          metricsRef.current.steadySumR += referenceY * dt;
-          metricsRef.current.steadyTime += dt;
-        }
-
-        // 胜利检测
-        if (shipWorldX >= maxDistanceLocal) {
-          scrollXRef.current = Math.max(maxDistanceLocal - SHIP_X_OFFSET, 0);
-          const displayR = controlMode === 'AUTO' ? shipState.r : VIEWPORT_HEIGHT / 2;
-          finalizeStepOvershoot();
-          const snapshot = getMetricsSnapshot();
-          updateMetrics(shipState.y, shipState.u, displayR, maxDistanceLocal, {
-            maxOvershoot: snapshot.maxOvershoot,
-            avgRelativeError: snapshot.avgRelativeError,
-            steadyError: snapshot.steadyError,
-            settlingTime: snapshot.settlingTime,
-            controlEnergy: snapshot.controlEnergy,
-            controlSmoothness: snapshot.controlSmoothness
-          });
-          setGameState('VICTORY');
-          // 立即停止循环，不进行后续更新
-          return;
-        }
-
-        // 生成新地形 / 清理旧地形
-        const rightEdge = scrollX + VIEWPORT_WIDTH;
-        const scaledEnvelope = {
-          ...activeTier.envelope,
-          margin: Math.max(20, activeTier.envelope.margin * difficultyScale)
-        };
-        const newSegments = levelGenRef.current.generateSegments(
-          rightEdge,
-          maxDistanceLocal,
-          activeTier.reference,
-          scaledEnvelope,
-          activeTier.disturbance
-        );
-        segmentsRef.current = [...segmentsRef.current, ...newSegments];
-        
-        // 移除屏幕左侧不可见的
-        segmentsRef.current = segmentsRef.current.filter(seg => seg.x + SEGMENT_WIDTH > scrollX - 100);
-
-        // 碰撞检测与数据提取
-        const currentSeg = segmentsRef.current.find(
-          s => s.x <= shipWorldX && s.x + SEGMENT_WIDTH > shipWorldX
-        );
-
-        let currentR = VIEWPORT_HEIGHT / 2;
-
-        if (currentSeg) {
-          currentR = currentSeg.gapCenter;
-          
-          // 简单的矩形/点碰撞
-          const shipTop = shipState.y - 8; // 飞船半径 8
-          const shipBottom = shipState.y + 8;
-          
-          if (shipTop < currentSeg.topY || shipBottom > currentSeg.bottomY) {
-            setGameState('GAME_OVER');
-          }
-        }
-        
-        // 如果是自动模式，用 shipState.r 作为参考；如果是手动模式，用 gapCenter 作为参考显示
-        const displayR = controlMode === 'AUTO' ? shipState.r : currentR;
-
-        // 同步低频状态到 UI Store
-        const snapshot = getMetricsSnapshot();
-        updateMetrics(shipState.y, shipState.u, displayR, scrollX, {
-          maxOvershoot: snapshot.maxOvershoot,
-          avgRelativeError: snapshot.avgRelativeError,
-          steadyError: snapshot.steadyError,
-          settlingTime: snapshot.settlingTime,
-          controlEnergy: snapshot.controlEnergy,
-          controlSmoothness: snapshot.controlSmoothness
-        });
+        return continuing;
       };
 
-      if (gameState === 'RUNNING') {
+      if (useGameStore.getState().gameState === 'RUNNING') {
         clockRef.current.advance(frameDt, simulateStep);
       }
 
@@ -638,7 +273,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       }
 
       // 绘制飞船
-      const { y } = physicsRef.current.getState();
+      const y = executionRef.current?.state.y ?? VIEWPORT_HEIGHT / 2;
       updateShipLayer(y);
 
       // HUD 信息
@@ -696,7 +331,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     controlMode,
     pidParams,
     controllerId,
-    levelConfig,
     extraParams,
     enableSpeedFeedback,
     enableFeedforward,
@@ -709,9 +343,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     controllerLevels.VFB,
     controllerLevels.FF,
     setAutoOffset,
-    finalizeStepOvershoot,
-    getMetricsSnapshot,
-    updateStepSettling
   ]); // 更新依赖
 
   return (

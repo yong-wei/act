@@ -1,5 +1,6 @@
 'use client';
 
+import { useShallow } from 'zustand/react/shallow';
 import React, { useEffect } from 'react';
 import { Lock, Settings2 } from 'lucide-react';
 import { useGameStore } from '../store/game-store';
@@ -46,7 +47,25 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
     setSpeedFeedbackEnabled,
     setFeedforwardEnabled,
     setSmithPredictorEnabled
-  } = useGameStore();
+  } = useGameStore(useShallow(state => ({
+    controlMode: state.controlMode,
+    pidParams: state.pidParams,
+    setPidParams: state.setPidParams,
+    extraParams: state.extraParams,
+    setExtraParams: state.setExtraParams,
+    controllerId: state.controllerId,
+    setControllerId: state.setControllerId,
+    unlockedControllers: state.unlockedControllers,
+    controllerLevels: state.controllerLevels,
+    currentLevelId: state.currentLevelId,
+    currentTier: state.currentTier,
+    enableSpeedFeedback: state.enableSpeedFeedback,
+    enableFeedforward: state.enableFeedforward,
+    enableSmithPredictor: state.enableSmithPredictor,
+    setSpeedFeedbackEnabled: state.setSpeedFeedbackEnabled,
+    setFeedforwardEnabled: state.setFeedforwardEnabled,
+    setSmithPredictorEnabled: state.setSmithPredictorEnabled
+  })));
 
   const isAuto = controlMode === 'AUTO';
   const baseController = CONTROL_BASE_CONTROLLERS.includes(controllerId)
