@@ -1,10 +1,10 @@
 import { randomBytes } from 'node:crypto';
 
-import type { Prisma } from '@prisma/client';
+import type { IlabExperimentRun, Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 
-import { emptyAiLedger, isAiUsageLedger, type AiUsageLedger } from './ai-data';
+import { emptyAiLedger, isAiUsageLedger, recordAiCall, type AiUsageLedger } from './ai-data';
 import { ilabAiScenario, reviewIlabStep } from './ai-review';
 import { exchangeIlabTicket, uploadIlabReport, uploadIlabScore } from './ilab-client';
 import { buildIlabUploadBody, experimentScore, type IlabUploadBody, type StoredIlabStep } from './payload';
@@ -14,21 +14,46 @@ import { ILAB_EXPERIMENT_TITLE, ILAB_STEP_BY_SEQ } from './steps';
 import { ILAB_VESSELS, isIlabVesselId, type IlabVesselId } from './vessels';
 
 export class IlabServiceError extends Error {
-  constructor(message: string, readonly status: number) {
+  constructor(message: string, readonly status: number, readonly retryReport = false) {
     super(message);
     this.name = 'IlabServiceError';
   }
 }
 
-export function toIlabHttpError(error: unknown): { status: number; message: string } {
-  if (error instanceof IlabServiceError) return { status: error.status, message: error.message };
+export function toIlabHttpError(error: unknown): { status: number; message: string; retryReport: boolean } {
+  if (error instanceof IlabServiceError) {
+    return { status: error.status, message: error.message, retryReport: error.retryReport };
+  }
   const code = error && typeof error === 'object' && 'code' in error
     ? String((error as { code?: unknown }).code)
     : '';
   if (code === 'P2021' || code === 'P2022') {
-    return { status: 503, message: '实验记录表尚未迁移，暂时不能开始实验。' };
+    return { status: 503, message: '实验记录表尚未迁移，暂时不能开始实验。', retryReport: false };
   }
-  return { status: 500, message: '实验服务暂时不可用。' };
+  return { status: 500, message: '实验服务暂时不可用。', retryReport: false };
+}
+
+export function assertIlabRunOpen(run: { status: number; uploadStatus: string }): void {
+  if (run.status !== 1) return;
+  if (run.uploadStatus === 'score-uploaded') {
+    throw new IlabServiceError('实验成绩已回传，请重试实验报告。', 409, true);
+  }
+  throw new IlabServiceError('实验已完成，不能再修改步骤。', 409);
+}
+
+export async function withIlabRunLock<T>(
+  originId: string,
+  action: (run: IlabExperimentRun, tx: Prisma.TransactionClient) => Promise<T>,
+): Promise<T> {
+  return prisma.$transaction(async (tx) => {
+    const locked = await tx.$queryRaw<Array<{ id: string }>>`
+      SELECT "id" FROM "IlabExperimentRun" WHERE "originId" = ${originId} FOR UPDATE
+    `;
+    if (locked.length === 0) throw new IlabServiceError('实验记录不存在。', 404);
+    const run = await tx.ilabExperimentRun.findUnique({ where: { originId } });
+    if (!run) throw new IlabServiceError('实验记录不存在。', 404);
+    return action(run, tx);
+  });
 }
 
 export interface IlabSessionView {
@@ -166,53 +191,55 @@ export async function submitIlabStep(originId: string, input: {
   payload: Record<string, unknown>;
   startedAtMs: number;
 }): Promise<IlabSessionView> {
-  const run = await findRun(originId);
-  if (run.status === 1) throw new IlabServiceError('实验已完成，不能再修改步骤。', 409);
   const definition = ILAB_STEP_BY_SEQ.get(input.seq);
   if (!definition) throw new IlabServiceError('实验步骤不存在。', 400);
-  const vesselId = isIlabVesselId(run.vesselId) ? run.vesselId : null;
+  const preview = await findRun(originId);
+  const vesselId = isIlabVesselId(preview.vesselId) ? preview.vesselId : null;
   const scored = scoreIlabStep(input.seq === 1 ? null : vesselId, input.seq, input.payload);
   if (!scored.ok) throw new IlabServiceError(scored.message, 422);
-
-  const steps = readSteps(run.steps);
-  const previous = steps.find((step) => step.seq === input.seq);
-  const window = stepWindow(input.startedAtMs, Date.now());
-  let ledger = readLedger(run.aiLedger);
-  let remarks = scored.score.remarks;
-  if (ilabAiScenario(input.seq)) {
-    const review = await reviewIlabStep({
-      ledger,
+  const review = ilabAiScenario(input.seq)
+    ? await reviewIlabStep({
+      ledger: emptyAiLedger(),
       seq: input.seq,
       summary: `${definition.title}：${JSON.stringify(input.payload).slice(0, 800)}`,
+    })
+    : null;
+  const window = stepWindow(input.startedAtMs, Date.now());
+  const saved = await withIlabRunLock(originId, async (run, tx) => {
+    assertIlabRunOpen(run);
+    const steps = readSteps(run.steps);
+    const previous = steps.find((step) => step.seq === input.seq);
+    const freshLedger = readLedger(run.aiLedger);
+    const ledger = review?.call
+      ? recordAiCall(freshLedger, review.call)
+      : freshLedger;
+    const remarks = review
+      ? `${scored.score.remarks} 模型建议：${review.note}`
+      : ilabAiScenario(input.seq)
+        ? `${scored.score.remarks} 模型服务未配置或调用失败，本次没有计入 ai_data。`
+        : scored.score.remarks;
+    const stored: StoredIlabStep = {
+      ...scored.score,
+      remarks,
+      startTime: window.startTime,
+      endTime: window.endTime,
+      timeUsed: window.timeUsed,
+      expectTime: ilabExpectTime(input.seq),
+      repeatCount: (previous?.repeatCount ?? 0) + 1,
+    };
+    const nextSteps = [...steps.filter((step) => step.seq !== input.seq), stored];
+    const nextVessel: IlabVesselId | '' = input.seq === 1 && isIlabVesselId(String(input.payload.vesselId))
+      ? input.payload.vesselId as IlabVesselId
+      : isIlabVesselId(run.vesselId) ? run.vesselId : '';
+    return tx.ilabExperimentRun.update({
+      where: { originId },
+      data: {
+        steps: nextSteps as unknown as Prisma.InputJsonValue,
+        aiLedger: ledger as unknown as Prisma.InputJsonValue,
+        vesselId: nextVessel,
+        score: experimentScore(nextSteps),
+      },
     });
-    if (review) {
-      ledger = review.ledger;
-      remarks = `${remarks} 模型建议：${review.note}`;
-    } else {
-      remarks = `${remarks} 模型服务未配置或调用失败，本次没有计入 ai_data。`;
-    }
-  }
-  const stored: StoredIlabStep = {
-    ...scored.score,
-    remarks,
-    startTime: window.startTime,
-    endTime: window.endTime,
-    timeUsed: window.timeUsed,
-    expectTime: ilabExpectTime(input.seq),
-    repeatCount: (previous?.repeatCount ?? 0) + 1,
-  };
-  const nextSteps = [...steps.filter((step) => step.seq !== input.seq), stored];
-  const nextVessel: IlabVesselId | '' = input.seq === 1 && isIlabVesselId(String(input.payload.vesselId))
-    ? input.payload.vesselId as IlabVesselId
-    : isIlabVesselId(run.vesselId) ? run.vesselId : '';
-  const saved = await prisma.ilabExperimentRun.update({
-    where: { originId },
-    data: {
-      steps: nextSteps as unknown as Prisma.InputJsonValue,
-      aiLedger: ledger as unknown as Prisma.InputJsonValue,
-      vesselId: nextVessel,
-      score: experimentScore(nextSteps),
-    },
   });
   return viewOf(saved);
 }
@@ -299,6 +326,10 @@ export async function completeIlabSession(originId: string, reflection: string, 
       });
       throw new IlabServiceError(scoreResult.message || `成绩回传失败（code ${scoreResult.code}）。`, 502);
     }
+    await prisma.ilabExperimentRun.update({
+      where: { originId },
+      data: { reportHtml, uploadStatus: 'score-uploaded', uploadResult: { code: scoreCode } },
+    });
   }
 
   const reportResult = await uploadIlabReport({
@@ -310,6 +341,21 @@ export async function completeIlabSession(originId: string, reflection: string, 
     title: `${ILAB_EXPERIMENT_TITLE}实验报告`,
     html: reportHtml,
   });
+  if (reportResult.code !== 0) {
+    await prisma.ilabExperimentRun.update({
+      where: { originId },
+      data: {
+        score: upload.score,
+        endTimeMs: BigInt(upload.endTime),
+        timeUsedSeconds: upload.timeUsed,
+        reportHtml,
+        uploadStatus: 'score-uploaded',
+        uploadResult: { code: scoreCode },
+        attachmentResult: reportResult.body as Prisma.InputJsonValue,
+      },
+    });
+    throw new IlabServiceError(reportResult.message || `实验报告回传失败（code ${reportResult.code}）。成绩已回传，可再次提交以重试报告。`, 502);
+  }
   const saved = await prisma.ilabExperimentRun.update({
     where: { originId },
     data: {
@@ -318,13 +364,10 @@ export async function completeIlabSession(originId: string, reflection: string, 
       endTimeMs: BigInt(upload.endTime),
       timeUsedSeconds: upload.timeUsed,
       reportHtml,
-      uploadStatus: reportResult.code === 0 ? 'uploaded' : 'score-uploaded',
+      uploadStatus: 'uploaded',
       uploadResult: { code: scoreCode },
       attachmentResult: reportResult.body as Prisma.InputJsonValue,
     },
   });
-  if (reportResult.code !== 0) {
-    throw new IlabServiceError(reportResult.message || `实验报告回传失败（code ${reportResult.code}）。成绩已回传，可再次提交以重试报告。`, 502);
-  }
   return { session: viewOf(saved), upload, remote: { scoreCode, reportCode: reportResult.code, message: '成绩和实验报告已回传。' } };
 }

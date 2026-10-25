@@ -31,6 +31,9 @@ export async function POST(request: Request, props: { params: Promise<{ originId
     return NextResponse.json(session);
   } catch (error) {
     const httpError = toIlabHttpError(error);
-    return NextResponse.json({ error: httpError.message }, { status: httpError.status });
+    return NextResponse.json(
+      { error: httpError.message, ...(httpError.retryReport ? { retryReport: true } : {}) },
+      { status: httpError.status },
+    );
   }
 }

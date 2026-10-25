@@ -19,7 +19,7 @@ import { findVesselExperiment, VESSEL_EXPERIMENTS } from '@/resources/simulation
 import { emptyAiLedger, isAiUsageLedger, type AiUsageLedger } from './ai-data';
 import { exchangeIlabTicket, uploadIlabReport, uploadIlabScore } from './ilab-client';
 import { buildIlabUploadBody, type IlabUploadBody, type StoredIlabStep } from './payload';
-import { IlabServiceError, toIlabHttpError } from './session-service';
+import { assertIlabRunOpen, IlabServiceError, toIlabHttpError, withIlabRunLock } from './session-service';
 
 export { toIlabHttpError };
 
@@ -188,6 +188,11 @@ export async function openVesselSession(ticket: string, experimentKey: string): 
   return viewOf(experiment, run);
 }
 
+export async function readVesselSession(originId: string): Promise<VesselSessionView> {
+  const { experiment, run } = await findRun(originId);
+  return viewOf(experiment, run);
+}
+
 export async function submitVesselStep(originId: string, input: {
   experimentKey: string;
   seq: number;
@@ -195,21 +200,13 @@ export async function submitVesselStep(originId: string, input: {
   samples: VesselSample[];
   startedAtMs: number;
 }): Promise<VesselSessionView> {
-  const { experiment, run } = await findRun(originId);
+  const experiment = experimentFromOrigin(originId);
   if (input.experimentKey !== experiment.key) throw new IlabServiceError('实验记录和当前实验对不上。', 400);
-  if (run.status === 1) throw new IlabServiceError('实验已完成，不能再修改步骤。', 409);
-  const steps = readSteps(run.steps);
-  const order = assertVesselStepOrder(experiment.steps, steps.map((step) => step.seq), input.seq);
-  if (order) throw new IlabServiceError(order, 422);
   const definition = experiment.steps.find((step) => step.seq === input.seq);
   if (!definition) throw new IlabServiceError('实验步骤不存在。', 400);
   const samples = thinVesselSamples(readVesselSamples(input.samples));
   const scored = experiment.score(definition, samples, input.readings);
   if (!scored.ok) throw new IlabServiceError(scored.message, 422);
-  const existing = steps.find((step) => step.seq === input.seq);
-  if (existing && chooseBetterVesselAttempt({ earnedPoints: existing.earnedPoints }, { earnedPoints: scored.earnedPoints }).keptPrevious) {
-    return viewOf(experiment, run);
-  }
   const window = stepWindow(input.startedAtMs, Date.now());
   const stored: StoredVesselStep = {
     seq: definition.seq,
@@ -227,13 +224,24 @@ export async function submitVesselStep(originId: string, input: {
     samples,
     readings: input.readings,
   };
-  const nextSteps = [...steps.filter((step) => step.seq !== input.seq), stored];
-  const saved = await prisma.ilabExperimentRun.update({
-    where: { originId },
-    data: {
-      steps: nextSteps as unknown as Prisma.InputJsonValue,
-      score: Math.round(nextSteps.reduce((sum, step) => sum + step.earnedPoints, 0) / vesselMaxPoints(experiment.steps) * 100),
-    },
+  const saved = await withIlabRunLock(originId, async (run, tx) => {
+    if (run.vesselId !== experiment.vesselId) throw new IlabServiceError('实验记录不存在。', 404);
+    assertIlabRunOpen(run);
+    const steps = readSteps(run.steps);
+    const order = assertVesselStepOrder(experiment.steps, steps.map((step) => step.seq), input.seq);
+    if (order) throw new IlabServiceError(order, 422);
+    const existing = steps.find((step) => step.seq === input.seq);
+    if (existing && chooseBetterVesselAttempt({ earnedPoints: existing.earnedPoints }, { earnedPoints: scored.earnedPoints }).keptPrevious) {
+      return run;
+    }
+    const nextSteps = [...steps.filter((step) => step.seq !== input.seq), stored];
+    return tx.ilabExperimentRun.update({
+      where: { originId },
+      data: {
+        steps: nextSteps as unknown as Prisma.InputJsonValue,
+        score: Math.round(nextSteps.reduce((sum, step) => sum + step.earnedPoints, 0) / vesselMaxPoints(experiment.steps) * 100),
+      },
+    });
   });
   return viewOf(experiment, saved);
 }
@@ -284,17 +292,33 @@ export async function completeVesselSession(originId: string): Promise<{
     });
     return { session: viewOf(experiment, saved), upload, remote: { message: '本地演示没有回传实验空间。报告已生成。' } };
   }
-  const scoreResult = await uploadIlabScore({
-    baseUrl: config.baseUrl,
-    accessToken: run.accessToken,
-    payload: upload,
-  });
-  if (scoreResult.code !== 0) {
+  const scoreAlreadySent = run.uploadStatus === 'score-uploaded' || run.uploadStatus === 'uploaded';
+  let scoreCode = 0;
+  if (!scoreAlreadySent) {
+    const scoreResult = await uploadIlabScore({
+      baseUrl: config.baseUrl,
+      accessToken: run.accessToken,
+      payload: upload,
+    });
+    if (scoreResult.code !== 0) {
+      await prisma.ilabExperimentRun.update({
+        where: { originId },
+        data: { reportHtml, uploadStatus: 'failed', uploadResult: scoreResult.body as Prisma.InputJsonValue },
+      });
+      throw new IlabServiceError(scoreResult.message || `成绩回传失败（code ${scoreResult.code}）。`, 502);
+    }
+    scoreCode = scoreResult.code;
     await prisma.ilabExperimentRun.update({
       where: { originId },
-      data: { reportHtml, uploadStatus: 'failed', uploadResult: scoreResult.body as Prisma.InputJsonValue },
+      data: {
+        score: upload.score,
+        endTimeMs: BigInt(upload.endTime),
+        timeUsedSeconds: upload.timeUsed,
+        reportHtml,
+        uploadStatus: 'score-uploaded',
+        uploadResult: { code: scoreCode },
+      },
     });
-    throw new IlabServiceError(scoreResult.message || `成绩回传失败（code ${scoreResult.code}）。`, 502);
   }
   const reportResult = await uploadIlabReport({
     baseUrl: config.baseUrl,
@@ -305,6 +329,17 @@ export async function completeVesselSession(originId: string): Promise<{
     title: `${experiment.title}实验报告`,
     html: reportHtml,
   });
+  if (reportResult.code !== 0) {
+    await prisma.ilabExperimentRun.update({
+      where: { originId },
+      data: {
+        reportHtml,
+        uploadStatus: 'score-uploaded',
+        attachmentResult: reportResult.body as Prisma.InputJsonValue,
+      },
+    });
+    throw new IlabServiceError(reportResult.message || `实验报告回传失败（code ${reportResult.code}）。成绩已回传，可再次提交以重试报告。`, 502);
+  }
   const saved = await prisma.ilabExperimentRun.update({
     where: { originId },
     data: {
@@ -313,13 +348,10 @@ export async function completeVesselSession(originId: string): Promise<{
       endTimeMs: BigInt(upload.endTime),
       timeUsedSeconds: upload.timeUsed,
       reportHtml,
-      uploadStatus: reportResult.code === 0 ? 'uploaded' : 'score-uploaded',
-      uploadResult: { code: scoreResult.code },
+      uploadStatus: 'uploaded',
+      uploadResult: { code: scoreCode },
       attachmentResult: reportResult.body as Prisma.InputJsonValue,
     },
   });
-  if (reportResult.code !== 0) {
-    throw new IlabServiceError(reportResult.message || `实验报告回传失败（code ${reportResult.code}）。`, 502);
-  }
   return { session: viewOf(experiment, saved), upload, remote: { message: '成绩和实验报告已回传。' } };
 }

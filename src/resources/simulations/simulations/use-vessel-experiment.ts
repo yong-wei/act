@@ -81,23 +81,55 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
   }, [activeSeq]);
 
   useEffect(() => {
-    if (!ticket) return;
+    const storageKey = `act-vessel-origin:${experiment.key}`;
     let cancelled = false;
     void (async () => {
-      const response = await fetch('/api/ilab/vessel/session', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ticket, experimentKey: experiment.key }),
-      });
-      const body = await response.json() as { originId?: string; displayName?: string; error?: string };
-      if (cancelled) return;
-      if (!response.ok || !body.originId) {
-        setMessage(body.error || '票据校验失败，本次只在本机记录。');
+      if (ticket) {
+        const response = await fetch('/api/ilab/vessel/session', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ ticket, experimentKey: experiment.key }),
+        });
+        const body = await response.json() as { originId?: string; displayName?: string; error?: string };
+        if (cancelled) return;
+        if (!response.ok || !body.originId) {
+          setMessage(body.error || '票据校验失败，本次只在本机记录。');
+          return;
+        }
+        window.sessionStorage.setItem(storageKey, body.originId);
+        setOriginId(body.originId);
+        window.history.replaceState(null, '', experiment.route);
+        setMessage(`已进入实验，学生 ${body.displayName ?? ''}。`);
         return;
       }
+      const stored = window.sessionStorage.getItem(storageKey);
+      if (!stored) return;
+      const response = await fetch(`/api/ilab/vessel/session/${stored}`);
+      if (!response.ok) {
+        window.sessionStorage.removeItem(storageKey);
+        return;
+      }
+      const body = await response.json() as {
+        originId?: string;
+        currentSeq?: number;
+        steps?: Array<{
+          seq: number;
+          title: string;
+          earnedPoints: number;
+          maxPoints: number;
+          evaluation: string;
+          remarks: string;
+          readings: VesselReadings;
+          samples: VesselSample[];
+        }>;
+      };
+      if (cancelled || !body.originId || !body.steps) return;
       setOriginId(body.originId);
-      window.history.replaceState(null, '', experiment.route);
-      setMessage(`已进入实验，学生 ${body.displayName ?? ''}。`);
+      setRecords(body.steps);
+      const nextSeq = body.currentSeq && body.currentSeq > 0 ? body.currentSeq : 1;
+      setActiveSeq(nextSeq);
+      setViewSeq(nextSeq);
+      setMessage('已恢复这次实验已保存的步骤。');
     })();
     return () => {
       cancelled = true;
@@ -216,12 +248,43 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
             startedAtMs: stepStartedAt.current,
           }),
         });
-        const body = await response.json() as { error?: string };
+        const body = await response.json() as {
+          error?: string;
+          retryReport?: boolean;
+          steps?: Array<{
+            seq: number;
+            title: string;
+            earnedPoints: number;
+            maxPoints: number;
+            evaluation: string;
+            remarks: string;
+            readings: VesselReadings;
+            samples: VesselSample[];
+          }>;
+        };
         if (!response.ok && response.status !== 409) {
           setMessage(body.error || '本步回传失败。');
           return;
         }
-        if (response.status === 409) {
+        if (response.ok && body.steps) {
+          nextRecords.splice(0, nextRecords.length, ...body.steps);
+        }
+        if (response.status === 409 && body.retryReport) {
+          const done = await fetch(`/api/ilab/vessel/session/${originId}/complete`, { method: 'POST' });
+          const doneBody = await done.json() as { error?: string; remote?: { message?: string } };
+          if (!done.ok) {
+            setMessage(doneBody.error || '实验报告回传失败。');
+            return;
+          }
+          const html = buildVesselReportHtml(experiment, {
+            displayName: session?.user?.name || '本次实验',
+            steps: nextRecords,
+          });
+          setReportHtml(html);
+          const saved = await saveAccountReport(html, nextRecords);
+          const remoteMessage = doneBody.remote?.message || '实验报告已生成。';
+          setMessage(saved ? `${remoteMessage}报告已保存到账号。` : remoteMessage);
+        } else if (response.status === 409) {
           if (step.seq === lastSeq) {
             const html = buildVesselReportHtml(experiment, {
               displayName: session?.user?.name || '本次实验',

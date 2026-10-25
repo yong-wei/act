@@ -22,7 +22,7 @@ export async function reviewIlabStep(input: {
   summary: string;
   fetcher?: typeof fetch;
   env?: NodeJS.ProcessEnv;
-}): Promise<{ ledger: AiUsageLedger; note: string } | null> {
+}): Promise<{ ledger: AiUsageLedger; note: string; call: Parameters<typeof recordAiCall>[1] } | null> {
   const scenario = ilabAiScenario(input.seq);
   if (!scenario) return null;
   const env = input.env ?? process.env;
@@ -59,17 +59,19 @@ export async function reviewIlabStep(input: {
     const note = body.choices?.[0]?.message?.content?.replace(/\s+/g, ' ').trim() ?? '';
     if (!note) return null;
     const usageMissing = typeof body.usage?.prompt_tokens !== 'number' || typeof body.usage?.completion_tokens !== 'number';
+    const call = {
+      scenario,
+      model,
+      provider: provider === 'siliconflow' ? 'SiliconFlow' : provider,
+      deployment: deploymentFor(baseUrl),
+      inputTokens: usageMissing ? 0 : body.usage?.prompt_tokens ?? 0,
+      outputTokens: usageMissing ? 0 : body.usage?.completion_tokens ?? 0,
+      usageMissing,
+    };
     return {
       note: note.slice(0, 120),
-      ledger: recordAiCall(input.ledger, {
-        scenario,
-        model,
-        provider: provider === 'siliconflow' ? 'SiliconFlow' : provider,
-        deployment: deploymentFor(baseUrl),
-        inputTokens: usageMissing ? 0 : body.usage?.prompt_tokens ?? 0,
-        outputTokens: usageMissing ? 0 : body.usage?.completion_tokens ?? 0,
-        usageMissing,
-      }),
+      call,
+      ledger: recordAiCall(input.ledger, call),
     };
   } catch {
     return null;
