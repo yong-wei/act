@@ -28,7 +28,7 @@
 
 ## 近期已落地的关键事实
 
-- 2026-10-26 目录六船实验改为全屏步骤壳：液化气船靠泊、集装箱船航速与准点、邮轮舒适性、钻井平台动力定位、破冰船吊舱与冰区、挖泥船工况切换。055 仍是十步航向实验。登录后报告记在账号，同一步只保留更好成绩。有实验空间票据时按该实验十步回传。申报入口 `/ilab/deep-sea-control` 仍是 24 步，access_token 只留服务端。正式密钥未配置，不能称为已经接通实验空间。
+- 2026-10-26 生产应用为 `v0.7.38-5f95f49`（`origin/main` `5f95f494709800f1ce744fd1050ba5703bf222b1`，镜像 `localhost/act-obe-platform:0.7.38-5f95f49`）。目录六船实验改为全屏步骤壳：液化气船靠泊、集装箱船航速与准点、邮轮舒适性、钻井平台动力定位、破冰船吊舱与冰区、挖泥船工况切换。055 仍是十步航向实验。登录后报告记在账号，同一步只保留更好成绩。有实验空间票据时按该实验十步回传。申报入口 `/ilab/deep-sea-control` 仍是 24 步，access_token 只留服务端。正式密钥未配置，不能称为已经接通实验空间。未执行 Runtime 发布；权威仍为 LEGACY。回滚镜像为 `0.7.37-4e2e0c4`。
 
 - `1-1` 不再应记为旧的 `unit-1-1-laplace-transfer-function`。当前课程定位是“看见系统全貌”，固定路由段是 `unit-1-1-see-the-full-picture`，运行态内容位于 `course-content/runtime/lessons/1-1`。
 - `src/lib/unit-1-1-course.ts`、`src/lib/lesson-1-1-ai-contexts.ts`、`src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx` 和 `src/features/interactive/unit-1-1-see-the-full-picture/*` 是当前 1-1 实现入口。

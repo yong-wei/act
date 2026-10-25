@@ -2,7 +2,7 @@
 
 状态: active
 最后更新: 2026-10-26
-摘要: 目录六船实验已改为全屏步骤壳。生产应用仍以已发布镜像为准。Runtime 仍为 `runtime-b24b84a4…`，图谱权威仍为 LEGACY。不要 archive OpenSpec，不要关 #1033。
+摘要: 目录六船实验已改为全屏步骤壳，生产应用为 `v0.7.38-5f95f49`。Runtime 仍为 `runtime-b24b84a4…`，图谱权威仍为 LEGACY。不要 archive OpenSpec，不要关 #1033。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -16,6 +16,7 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-10-26 生产应用 `v0.7.38-5f95f49` 已 `deploy:app --skip-build`：冻结 `origin/main` `5f95f494709800f1ce744fd1050ba5703bf222b1`，镜像 `localhost/act-obe-platform:0.7.38-5f95f49`（id `6a50d0fce7d69c10ad605cce948a6e5fb205cd4ede90a724fd521c9ea210c31b`，约 3961297904 字节），增量包 SHA256 `3725f2730a46522c31c8287a172569cea7b7f465951a8ce08ecd1f860b3f9031`。目录六船改为全屏步骤壳；055 仍是十步航向实验。登录后报告记在账号，同一步只保留更好成绩；有票据时按该实验十步回传。申报入口 `/ilab/deep-sea-control` 仍是 24 步。已补齐 `IlabExperimentRun` 与 `VirtualSimulationReport` 两张表。正式实验空间密钥未配置，不能称为已经接通。公网 `/`、`/api/auth/session`、`/api/readyz` 通过；Redis `noeviction`。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`。资源绑定库存 7804 项，权威仍为 LEGACY，`cutoverReady` 为 false。直接回滚镜像为 `localhost/act-obe-platform:0.7.37-4e2e0c4`。不要 archive OpenSpec，不要关 #1033。
 - 2026-10-26 目录六船实验改为全屏步骤壳，步骤和提交在仿真侧栏完成：液化气船靠泊、集装箱船航速与准点、邮轮舒适性、钻井平台动力定位、破冰船吊舱与冰区、挖泥船工况切换。055 仍是十步航向实验。登录后报告记在账号，同一步只保留更好成绩；有实验空间票据时按该实验十步回传。申报入口 `/ilab/deep-sea-control` 仍是 24 步。正式实验空间密钥未配置，不能称为已经接通。
 - 2026-10-03 生产应用 `v0.7.36-a50f6ac` 已 `deploy:app --skip-build`：冻结 `origin/main` `a50f6ac0528a99f104fefe66249fc92e7d8d3911`，镜像 `localhost/act-obe-platform:0.7.36-a50f6ac`，tar SHA256 `37f0624c871230a59b6058c267bfba261178b72c76e423c01163715c9ea6d0d3`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.36。控制奥德赛新运行先记录可验证输入，服务端确认通关并重算分数后再发放积分和推进关卡；账户扣费与奖励原子更新；终局停止同帧后续仿真步。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime.ready 均为 true）通过；Redis `noeviction`。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`。资源绑定库存 7804 项，权威仍为 LEGACY，`cutoverReady` 为 false。直接回滚镜像为 `localhost/act-obe-platform:0.7.35-63f81b7`。装载前移除了未使用的 `0.7.33-eff1c0a` 与 `0.7.34-d2d8ee7` 镜像，对应远端 tar 仍在。不要 archive OpenSpec，不要关 #1033。
 - 2026-10-01 生产应用 `v0.7.31-bf815b5` 已 `deploy:app --skip-build`：冻结 `origin/main` `bf815b58b8196f2ca4c0769c2db3f071baa34056`，镜像 `localhost/act-obe-platform:0.7.31-bf815b5`，tar SHA256 `878d42b7c791de6de4d1d11e875a8fb248e053472b058af73418ce8c4e8a3092`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.31。生产海面去掉驱逐舰与钻井平台的船体排除框；远海补面与近场同高，近场内丢弃远海片元以保留负浪高；图形后端按稳定标志识别。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime.ready 均为 true）通过；Redis `noeviction`。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`。装载前删除了远端已有本地副本的 `act-obe-0.7.28-370b068.tar`。不要 archive OpenSpec，不要关 #1033。
