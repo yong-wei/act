@@ -34,11 +34,12 @@ export function toIlabHttpError(error: unknown): { status: number; message: stri
 }
 
 export function assertIlabRunOpen(run: { status: number; uploadStatus: string }): void {
-  if (run.status !== 1) return;
   if (run.uploadStatus === 'score-uploaded') {
     throw new IlabServiceError('实验成绩已回传，请重试实验报告。', 409, true);
   }
-  throw new IlabServiceError('实验已完成，不能再修改步骤。', 409);
+  if (run.status === 1) {
+    throw new IlabServiceError('实验已完成，不能再修改步骤。', 409);
+  }
 }
 
 export async function withIlabRunLock<T>(

@@ -6,6 +6,7 @@ import { ilabSignature, ilabTokenUrl } from '@/features/ilab/ilab-client';
 import { buildIlabUploadBody, IlabPayloadError, type StoredIlabStep } from '@/features/ilab/payload';
 import { buildIlabReportHtml } from '@/features/ilab/report';
 import { scoreIlabStep } from '@/features/ilab/scoring';
+import { assertIlabRunOpen, IlabServiceError } from '@/features/ilab/session-service';
 import { ILAB_MAX_POINTS, ILAB_STEPS } from '@/features/ilab/steps';
 
 const headingSamples = [0, 2, 4, 6, 8, 10.8, 10.4, 10.1, 10, 10, 10, 10];
@@ -169,5 +170,23 @@ describe('ilab experiment contract', () => {
       ai_input_token_count: 0,
       ai_output_token_count: 0,
     });
+  });
+
+  it('freezes steps after the score upload even while the report is still pending', () => {
+    expect(() => assertIlabRunOpen({ status: 2, uploadStatus: 'pending' })).not.toThrow();
+    expect(() => assertIlabRunOpen({ status: 2, uploadStatus: 'failed' })).not.toThrow();
+    expect(() => assertIlabRunOpen({ status: 2, uploadStatus: 'score-uploaded' })).toThrow(IlabServiceError);
+    try {
+      assertIlabRunOpen({ status: 2, uploadStatus: 'score-uploaded' });
+    } catch (error) {
+      expect(error).toBeInstanceOf(IlabServiceError);
+      expect((error as IlabServiceError).status).toBe(409);
+      expect((error as IlabServiceError).retryReport).toBe(true);
+    }
+    try {
+      assertIlabRunOpen({ status: 1, uploadStatus: 'uploaded' });
+    } catch (error) {
+      expect((error as IlabServiceError).retryReport).toBe(false);
+    }
   });
 });

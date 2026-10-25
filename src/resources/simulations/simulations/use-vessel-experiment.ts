@@ -105,8 +105,12 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
       const stored = window.sessionStorage.getItem(storageKey);
       if (!stored) return;
       const response = await fetch(`/api/ilab/vessel/session/${stored}`);
-      if (!response.ok) {
+      if (response.status === 404 || response.status === 400) {
         window.sessionStorage.removeItem(storageKey);
+        return;
+      }
+      if (!response.ok) {
+        if (!cancelled) setMessage('暂时无法恢复这次实验，请稍后刷新。');
         return;
       }
       const body = await response.json() as {
@@ -271,19 +275,27 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
         }
         if (response.status === 409 && body.retryReport) {
           const done = await fetch(`/api/ilab/vessel/session/${originId}/complete`, { method: 'POST' });
-          const doneBody = await done.json() as { error?: string; remote?: { message?: string } };
+          const doneBody = await done.json() as {
+            error?: string;
+            remote?: { message?: string };
+            session?: { steps?: typeof records };
+          };
           if (!done.ok) {
             setMessage(doneBody.error || '实验报告回传失败。');
             return;
           }
+          const frozenSteps = doneBody.session?.steps ?? records;
           const html = buildVesselReportHtml(experiment, {
             displayName: session?.user?.name || '本次实验',
-            steps: nextRecords,
+            steps: frozenSteps,
           });
           setReportHtml(html);
-          const saved = await saveAccountReport(html, nextRecords);
+          const saved = await saveAccountReport(html, frozenSteps);
           const remoteMessage = doneBody.remote?.message || '实验报告已生成。';
           setMessage(saved ? `${remoteMessage}报告已保存到账号。` : remoteMessage);
+          setRecords(frozenSteps);
+          setReadings({});
+          return;
         } else if (response.status === 409) {
           if (step.seq === lastSeq) {
             const html = buildVesselReportHtml(experiment, {
