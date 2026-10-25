@@ -7,37 +7,37 @@ test.describe.configure({ mode: 'serial' });
 const pages = [
   {
     path: '/simulations/dredger',
-    title: '天鲸号挖泥船动力定位仿真',
+    title: '挖泥船工况切换实验',
     startName: /开始/,
     runningText: '运行中',
   },
   {
     path: '/simulations/drilling',
-    title: '海洋石油981 深水钻井平台',
+    title: '钻井平台动力定位实验',
     startName: /开始/,
     runningText: '运行中',
   },
   {
     path: '/simulations/icebreaker',
-    title: '雪龙2号极地科考破冰船仿真',
+    title: '破冰船吊舱与冰区实验',
     startName: /运行/,
     runningText: '暂停',
   },
   {
     path: '/simulations/container',
-    title: 'MSC Tessa 超大型集装箱船',
+    title: '集装箱船航速与准点实验',
     startName: /开始仿真/,
     runningText: '暂停',
   },
   {
     path: '/simulations/lng',
-    title: '长恒系列 LNG 运输船',
+    title: '液化气船大惯性操纵实验',
     startName: /开始/,
     runningText: '暂停',
   },
   {
     path: '/simulations/cruise',
-    title: '邮轮仿真',
+    title: '邮轮舒适性操纵实验',
     startName: /开始仿真/,
     runningText: '暂停',
   },
@@ -76,7 +76,7 @@ test('/simulations/cruise keeps a nonblank 3D canvas on mobile', async ({ page }
   await page.setViewportSize({ width: 390, height: 844 });
 
   await page.goto('/simulations/cruise', { waitUntil: 'networkidle' });
-  await expect(page.getByRole('heading', { name: '邮轮仿真' })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole('heading', { name: '邮轮舒适性操纵实验' })).toBeVisible({ timeout: 30000 });
   await expect(page.locator('canvas')).toHaveCount(1, { timeout: 30000 });
   await expectRenderedCanvas(page);
 

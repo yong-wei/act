@@ -83,17 +83,22 @@ export function SimulationDock({
   tabs,
   defaultTab,
   className,
+  fitContent = false,
 }: {
   side: 'left' | 'right';
   title: string;
   tabs: SimulationDockTab[];
   defaultTab?: string;
   className?: string;
+  fitContent?: boolean;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const singleTab = tabs.length <= 1;
   const activeDefaultTab = defaultTab ?? tabs[0]?.id;
-  const dockPosition = side === 'left' ? simulationUi.statusPanelPosition : simulationUi.controlPanelPosition;
+  const fixedWidth = side === 'left' ? simulationUi.statusPanelPosition : simulationUi.controlPanelPosition;
+  const dockPosition = fitContent
+    ? fixedWidth.replace(/lg:w-\[[^\]]+\]/, 'lg:w-max lg:max-w-[calc(100vw-2rem)]')
+    : fixedWidth;
   const dockTheme = side === 'left' ? simulationUi.statusDockTheme : simulationUi.controlDockTheme;
   const collapsedPosition =
     side === 'left'
@@ -150,14 +155,14 @@ export function SimulationDock({
         <div className={simulationUi.dockBody}>{tabs[0]?.content}</div>
       ) : (
         <Tabs defaultValue={activeDefaultTab}>
-          <TabsList className={cn('mb-3 grid w-full', simulationUi.tabsList)} style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
+          <TabsList className={cn(fitContent ? 'mb-3 flex w-max max-w-full' : 'mb-3 grid w-full', simulationUi.tabsList)} style={fitContent ? undefined : { gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
             {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id} className={simulationUi.tabsTrigger}>
+              <TabsTrigger key={tab.id} value={tab.id} className={cn(simulationUi.tabsTrigger, fitContent && 'whitespace-nowrap')}>
                 {tab.label}
               </TabsTrigger>
             ))}
           </TabsList>
-          <div className={simulationUi.dockBody}>
+          <div className={fitContent ? 'max-h-[calc(100vh-11.5rem)] overflow-y-auto' : simulationUi.dockBody}>
             {tabs.map((tab) => (
               <TabsContent key={tab.id} value={tab.id} className="mt-0">
                 {tab.content}

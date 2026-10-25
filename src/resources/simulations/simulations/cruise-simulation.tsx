@@ -27,7 +27,7 @@ import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, SimulationDock, simulationUi } from '../components/simulation-ui';
+import { SimulationTopBar, simulationUi } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
@@ -63,15 +63,15 @@ import type {
   Vector2,
   ComfortMetrics,
 } from '../core/types';
-import { cruiseAdoraProfile } from '../profiles/cruise-adora';
-import {
-  CruiseShipEngine,
-  createSimulationEngine,
-} from '../physics/engine-factory';
 import {
   preloadVirtualSimulationRuntime,
   isVirtualSimulationRuntimeReady,
 } from '../physics/simulation-engine-facade';
+import { createCruiseDrive } from './vessel-drives';
+import { cruiseExperiment } from './vessel-experiments';
+import { takeVesselSubstep, vesselSampleMark } from './vessel-experiment';
+import { VesselExperimentDocks } from './vessel-experiment-panels';
+import { useVesselExperiment } from './use-vessel-experiment';
 import { toDegrees, toRadians, CRUISE_ADORA_PARAMS, CRUISE_COMFORT_THRESHOLDS, CRUISE_DEFAULT_PID } from '../core/constants';
 import {
   CRUISE_COURSE_MODE,
@@ -179,11 +179,6 @@ const CRUISE_EVALUATION_DURATION_SEC = 300;
 
 function createCruiseTraceRunId(): string {
   return `cruise-${Date.now().toString(36)}`;
-}
-
-function getCruiseMissionTargetHeading(position: Vector2): number {
-  const traveled = Math.hypot(position.x - CRUISE_ROUTE_START.x, position.z - CRUISE_ROUTE_START.z);
-  return traveled < CRUISE_ROUTE_STRAIGHT_DISTANCE ? 0 : CRUISE_ROUTE_TURN_HEADING;
 }
 
 function buildCruiseDesiredRoute(): Vector2[] {
@@ -449,12 +444,14 @@ function FinStabilizerPanel({
   starboardAngle,
   power,
   onToggle,
+  disabled = false,
 }: {
   enabled: boolean;
   portAngle: number;
   starboardAngle: number;
   power: number;
   onToggle: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="rounded-lg bg-platform-canvas-muted p-3">
@@ -462,6 +459,7 @@ function FinStabilizerPanel({
         <span className="text-xs font-semibold text-platform-fg-muted">减摇鳍</span>
         <button type="button"
           onClick={onToggle}
+          disabled={disabled}
           className={`rounded px-2 py-0.5 text-xs ${
             enabled ? 'bg-[hsl(var(--platform-brand-success))]' : 'bg-platform-canvas-muted'
           }`}
@@ -516,9 +514,11 @@ function FinStabilizerPanel({
 function NotchFilterPanel({
   enabled,
   onToggle,
+  disabled = false,
 }: {
   enabled: boolean;
   onToggle: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="rounded-lg bg-platform-canvas-muted p-3">
@@ -526,6 +526,7 @@ function NotchFilterPanel({
         <span className="text-xs font-semibold text-platform-fg-muted">陷波滤波器</span>
         <button type="button"
           onClick={onToggle}
+          disabled={disabled}
           className={`rounded px-2 py-0.5 text-xs ${
             enabled ? 'bg-[hsl(var(--platform-brand-success))]' : 'bg-platform-canvas-muted'
           }`}
@@ -568,6 +569,7 @@ function ControllerPanel({
   state,
   isCourseMode,
   virtualModeEnabled,
+  inputsEnabled = true,
   onPidGainsChange,
   onControlModeChange,
   onManualRudderChange,
@@ -583,6 +585,7 @@ function ControllerPanel({
   state: CruiseSimulationState;
   isCourseMode: boolean;
   virtualModeEnabled: boolean;
+  inputsEnabled?: boolean;
   onPidGainsChange: (key: keyof CruiseControllerParams, value: number) => void;
   onControlModeChange: (mode: ControlMode) => void;
   onManualRudderChange: (value: number) => void;
@@ -595,10 +598,10 @@ function ControllerPanel({
   onPause: () => void;
   onReset: () => void;
 }) {
-  const pidEditable = state.controlMode !== 'manual';
+  const pidEditable = inputsEnabled && state.controlMode !== 'manual';
   const kpEditable = pidEditable;
-  const kiEditable = state.controlMode === 'pid';
-  const kdEditable = state.controlMode === 'pd' || state.controlMode === 'pid';
+  const kiEditable = inputsEnabled && state.controlMode === 'pid';
+  const kdEditable = inputsEnabled && (state.controlMode === 'pd' || state.controlMode === 'pid');
   const modeHint =
     state.controlMode === 'manual'
       ? '手动模式不启用控制器参数。'
@@ -617,6 +620,7 @@ function ControllerPanel({
             <button
               type="button"
               onClick={onVirtualModeToggle}
+              disabled={!inputsEnabled}
               className={`rounded border px-2 py-1 ${virtualModeEnabled ? simulationUi.buttonPrimary : simulationUi.buttonOutline}`}
             >
               {virtualModeEnabled ? '已开启' : '已关闭'}
@@ -654,9 +658,11 @@ function ControllerPanel({
         </button>
       </div>
 
-      <div className="rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1 text-xs text-platform-fg-secondary">
-        单次校验时长: {state.runDurationSec}s（到时自动结束并生成评估数据）
-      </div>
+      {inputsEnabled ? (
+        <div className="rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1 text-xs text-platform-fg-secondary">
+          单次校验时长: {state.runDurationSec}s（到时自动结束并生成评估数据）
+        </div>
+      ) : null}
 
       {/* 任务航向 */}
       <div>
@@ -680,6 +686,7 @@ function ControllerPanel({
           max="7"
           value={state.seaState}
           onChange={(e) => onSeaStateChange(Number(e.target.value))}
+          disabled={!inputsEnabled}
           className={simulationUi.nativeRange}
         />
       </div>
@@ -698,6 +705,7 @@ function ControllerPanel({
           max="360"
           value={state.waveDirection}
           onChange={(e) => onWaveDirectionChange(Number(e.target.value))}
+          disabled={!inputsEnabled}
           className={simulationUi.nativeRange}
         />
       </div>
@@ -710,6 +718,7 @@ function ControllerPanel({
             <button type="button"
               key={mode}
               onClick={() => onControlModeChange(mode)}
+              disabled={!inputsEnabled}
               className={`rounded border px-2 py-1 text-xs ${
                 state.controlMode === mode
                   ? simulationUi.buttonPrimary
@@ -733,6 +742,7 @@ function ControllerPanel({
             max={CRUISE_ADORA_PARAMS.MAX_RUDDER_ANGLE}
             value={state.manualRudder}
             onChange={(event) => onManualRudderChange(Number(event.target.value))}
+            disabled={!inputsEnabled}
             className={simulationUi.nativeRange}
           />
         </div>
@@ -802,12 +812,14 @@ function ControllerPanel({
         starboardAngle={state.starboardFinAngle}
         power={state.finPower}
         onToggle={onFinStabilizerToggle}
+        disabled={!inputsEnabled}
       />
 
       {/* 陷波滤波器面板 */}
       <NotchFilterPanel
         enabled={state.notchFilterEnabled}
         onToggle={onNotchFilterToggle}
+        disabled={!inputsEnabled}
       />
     </div>
   );
@@ -1547,7 +1559,12 @@ function TelemetryBridge({
 
 // ============ 主仿真组件 ============
 
-export default function CruiseSimulation() {
+export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
+  const session = useVesselExperiment(cruiseExperiment, ticket);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+  const driveRef = useRef<ReturnType<typeof createCruiseDrive> | null>(null);
+  const markRef = useRef(-1);
   const timeRef = useRef(0);
   const searchParams = useSearchParams();
   const isCourseMode = true;
@@ -1557,7 +1574,6 @@ export default function CruiseSimulation() {
   const courseStep = searchParams.get('step') || 'engineering-target';
   const isEmbedded = searchParams.get('embed') === '1';
 
-  const engineRef = useRef<CruiseShipEngine | null>(null);
   const trajectoryRef = useRef<Vector2[]>([]);
   const lastTrajectoryTime = useRef(0);
   const animationRef = useRef<number | null>(null);
@@ -1587,7 +1603,7 @@ export default function CruiseSimulation() {
     pidGains: { ...CRUISE_DEFAULT_PID } as CruiseSimulationState['pidGains'],
     runDurationSec: CRUISE_EVALUATION_DURATION_SEC,
   });
-  const speedScaleRef = useRef(1);
+  const speedScaleRef = useRef(8);
   const virtualModeRef = useRef(true);
   const lastHudUpdateRef = useRef(0);
   const bindingRef = useRef<BindingTelemetrySource>({
@@ -1602,7 +1618,7 @@ export default function CruiseSimulation() {
   const [showGrid, setShowGrid] = useState(true);
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
-  const [speedScale, setSpeedScale] = useState(1);
+  const [speedScale, setSpeedScale] = useState(8);
   const [virtualModeEnabled, setVirtualModeEnabled] = useState(true);
   const sceneTheme = useSimulationSceneTheme();
 
@@ -1659,24 +1675,74 @@ export default function CruiseSimulation() {
   const settlingTimeRef = useRef<number | null>(null);
   const maxLateralAccelRef = useRef(0);
 
-  // 初始化引擎
-  useEffect(() => {
-    preloadVirtualSimulationRuntime().catch(console.error);
-
-    const engine = createSimulationEngine(cruiseAdoraProfile) as CruiseShipEngine;
-    engine.initialize(-3000, 0, 0);
-    engineRef.current = engine;
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+  const resetPose = useCallback((clearCurve: boolean) => {
+    const drive = driveRef.current;
+    if (!drive) return;
+    const command = cruiseExperiment.command(sessionRef.current.step, 0);
+    drive.reset(command);
+    const view = drive.view();
+    markRef.current = -1;
+    timeRef.current = 0;
+    lastHudUpdateRef.current = 0;
+    lastTrajectoryTime.current = 0;
+    trajectoryRef.current = [];
+    attainmentRef.current = createAttainmentState(command.targetHeading);
+    bindingRef.current = {
+      rudderDeg: view.rudder,
+      speedMps: view.speed,
+      attainedCount: 0,
+      advancing: false,
     };
+    turnStartTimeRef.current = null;
+    maxHeadingAfterTurnRef.current = CRUISE_ROUTE_TURN_HEADING;
+    settleWindowStartRef.current = null;
+    settlingTimeRef.current = null;
+    maxLateralAccelRef.current = 0;
+    if (clearCurve) sessionRef.current.clearSamples();
+    lastTimeRef.current = 0;
+    clockRef.current.reset();
+    setState((prev) => ({
+      ...prev,
+      isRunning: false,
+      isPaused: false,
+      isCompleted: false,
+      time: 0,
+      position: view.position,
+      heading: view.heading,
+      yawRate: view.yawRate,
+      rudder: view.rudder,
+      speed: view.speed,
+      rollAngle: view.rollRad,
+      targetHeading: command.targetHeading,
+      controlMode: command.mode,
+      seaState: command.seaState,
+      finStabilizerEnabled: command.fin,
+      notchFilterEnabled: true,
+      comfort: { ...prev.comfort, msi: view.msi },
+      finPower: view.finPower,
+    }));
+    setResetCount((previous) => previous + 1);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    preloadVirtualSimulationRuntime().catch(console.error);
+    driveRef.current = createCruiseDrive();
+    if (!cancelled) resetPose(false);
+    return () => {
+      cancelled = true;
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [resetPose]);
+
+  useEffect(() => {
+    resetPose(false);
+  }, [session.activeSeq, resetPose]);
 
   // 仿真循环
   const simulate = useCallback((timestamp: number) => {
-    if (!engineRef.current || controlRef.current.isPaused || !isVirtualSimulationRuntimeReady()) {
+    const drive = driveRef.current;
+    if (!drive || controlRef.current.isPaused || !isVirtualSimulationRuntimeReady()) {
       lastTimeRef.current = timestamp;
       animationRef.current = requestAnimationFrame(simulate);
       return;
@@ -1685,129 +1751,72 @@ export default function CruiseSimulation() {
     const frameDt = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScaleRef.current);
     lastTimeRef.current = timestamp;
 
-    const engine = engineRef.current;
-    if (!engine) {
-      animationRef.current = requestAnimationFrame(simulate);
-      return;
-    }
-
     const control = controlRef.current;
     let nextTime = timeRef.current;
-    let simState = engine.getState(nextTime);
-    let comfort = engine.getComfortMetrics();
-    let finMetrics = engine.getFinStabilizerMetrics();
-    let internalState = engine.getInternalState();
-    const runLimit = control.runDurationSec;
+    let view = drive.view();
+    let command = cruiseExperiment.command(sessionRef.current.step, nextTime);
 
     clockRef.current.advance(frameDt, (dt) => {
-      if (nextTime >= runLimit) {
-        return;
-      }
-      const time = Math.min(nextTime + dt, runLimit);
-      const stepDt = time - nextTime;
-      if (stepDt <= 0) {
-        return;
-      }
-      nextTime = time;
-
-      engine.setSeaState(virtualModeRef.current ? control.seaState : 1, control.waveDirection);
-      engine.setFinStabilizerEnabled(control.finStabilizerEnabled);
-      engine.setNotchFilterEnabled(control.notchFilterEnabled);
-      engine.setPIDGains(control.pidGains);
-
-      const missionTargetHeading = getCruiseMissionTargetHeading(simState.position);
-      engine.step(
-        missionTargetHeading,
-        null,
-        control.controlMode,
-        control.controlMode === 'manual' ? control.manualRudder : 0,
-        control.speed,
-        stepDt,
-        time
+      const moved = takeVesselSubstep(
+        sessionRef.current.step,
+        (time) => cruiseExperiment.command(sessionRef.current.step, time),
+        (nextCommand, stepDt, time) => drive.step(nextCommand, stepDt, time),
+        nextTime,
+        dt,
       );
-
-      simState = engine.getState(time);
-      comfort = engine.getComfortMetrics();
-      finMetrics = engine.getFinStabilizerMetrics();
-      internalState = engine.getInternalState();
-
-      const headingError = absoluteHeadingErrorDeg(simState.heading, missionTargetHeading);
+      nextTime = moved.time;
+      command = moved.command;
+      if (!moved.sample) return;
+      view = drive.view();
+      const mark = vesselSampleMark(moved.sample.time);
+      if (mark > markRef.current) {
+        markRef.current = mark;
+        sessionRef.current.observe(moved.sample);
+      }
+      const headingError = absoluteHeadingErrorDeg(view.heading, command.targetHeading);
       let attainedCount = bindingRef.current.attainedCount;
-      if (advanceAttainment(attainmentRef.current, missionTargetHeading, headingError, 5, stepDt)) {
+      if (advanceAttainment(attainmentRef.current, command.targetHeading, headingError, 5, dt)) {
         attainedCount += 1;
       }
       bindingRef.current = {
-        rudderDeg: simState.rudder,
-        speedMps: simState.speed,
+        rudderDeg: view.rudder,
+        speedMps: view.speed,
         attainedCount,
         advancing: control.isRunning && !control.isPaused,
       };
-
-      const centripetalAccelG = Math.abs((simState.speed * toRadians(simState.yawRate)) / 9.81);
-      const rollInducedAccelG = Math.abs(Math.sin(simState.waveRoll)) * 1.2;
-      const lateralAccelG = centripetalAccelG + rollInducedAccelG;
-      maxLateralAccelRef.current = Math.max(maxLateralAccelRef.current, lateralAccelG);
-      if (missionTargetHeading >= CRUISE_ROUTE_TURN_HEADING - 0.1) {
-        if (turnStartTimeRef.current === null) {
-          turnStartTimeRef.current = time;
-          maxHeadingAfterTurnRef.current = simState.heading;
-          settleWindowStartRef.current = null;
-          settlingTimeRef.current = null;
-        }
-        maxHeadingAfterTurnRef.current = Math.max(maxHeadingAfterTurnRef.current, simState.heading);
-        const turnError = Math.abs(simState.heading - CRUISE_ROUTE_TURN_HEADING);
-        if (turnError <= 2) {
-          if (settleWindowStartRef.current === null) {
-            settleWindowStartRef.current = time;
-          } else if (time - settleWindowStartRef.current >= 8 && settlingTimeRef.current === null && turnStartTimeRef.current !== null) {
-            settlingTimeRef.current = settleWindowStartRef.current - turnStartTimeRef.current;
-          }
-        } else {
-          settleWindowStartRef.current = null;
-        }
-      }
     });
 
     timeRef.current = nextTime;
-    if (simState && comfort && finMetrics && internalState) {
-      if (nextTime - lastTrajectoryTime.current > 0.5) {
-        trajectoryRef.current.push({ ...simState.position });
-        if (trajectoryRef.current.length > 2000) {
-          trajectoryRef.current.shift();
-        }
-        lastTrajectoryTime.current = nextTime;
-      }
-
-      // HUD setState 0.1s 节流（对齐 destroyer 口径）；完成边界帧强制
-      // 更新，避免节流跳过完成标志导致 UI 停留在运行态。
-      const completed = nextTime >= runLimit - 1e-6;
-      if (nextTime - lastHudUpdateRef.current > 0.1 || completed) {
-        lastHudUpdateRef.current = nextTime;
-        setState((prev) => ({
-          ...prev,
-          time: nextTime,
-          position: simState.position,
-          heading: simState.heading,
-          yawRate: simState.yawRate,
-          rudder: simState.rudder,
-          speed: simState.speed,
-          rollAngle: simState.waveRoll,
-          targetHeading: getCruiseMissionTargetHeading(simState.position),
-          comfort,
-          finPower: finMetrics.powerKW,
-          portFinAngle: internalState.fin.portFinAngleDeg,
-          starboardFinAngle: internalState.fin.starboardFinAngleDeg,
-          isCompleted: completed ? true : prev.isCompleted,
-          isRunning: completed ? false : prev.isRunning,
-          isPaused: completed ? true : prev.isPaused,
-        }));
-      }
+    if (nextTime - lastTrajectoryTime.current > 0.5) {
+      trajectoryRef.current.push({ ...view.position });
+      if (trajectoryRef.current.length > 2000) trajectoryRef.current.shift();
+      lastTrajectoryTime.current = nextTime;
+    }
+    if (nextTime - lastHudUpdateRef.current > 0.1) {
+      lastHudUpdateRef.current = nextTime;
+      const simState = { waveRoll: view.rollRad };
+      setState((prev) => ({
+        ...prev,
+        time: nextTime,
+        position: view.position,
+        heading: view.heading,
+        yawRate: view.yawRate,
+        rudder: view.rudder,
+        speed: view.speed,
+        rollAngle: simState.waveRoll,
+        targetHeading: command.targetHeading,
+        controlMode: command.mode,
+        seaState: command.seaState,
+        finStabilizerEnabled: command.fin,
+        notchFilterEnabled: true,
+        comfort: { ...prev.comfort, msi: view.msi },
+        finPower: view.finPower,
+      }));
     }
 
-    if (nextTime >= runLimit - 1e-6) {
-      return;
+    if (control.isRunning && !control.isPaused) {
+      animationRef.current = requestAnimationFrame(simulate);
     }
-    animationRef.current = requestAnimationFrame(simulate);
   }, []);
 
   // 控制量同步到 ref：低频、由 UI 事件驱动，rAF 循环每帧读取最新值。
@@ -1868,64 +1877,10 @@ export default function CruiseSimulation() {
 
   // 重置
   const handleReset = useCallback(() => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-    engineRef.current?.initialize(-3000, 0, 0);
-    trajectoryRef.current = [];
-    lastTrajectoryTime.current = 0;
-    lastTimeRef.current = 0;
-    timeRef.current = 0;
-    lastHudUpdateRef.current = 0;
-    attainmentRef.current = createAttainmentState(0);
-    bindingRef.current = {
-      rudderDeg: 0,
-      speedMps: CRUISE_ADORA_PARAMS.CRUISE_SPEED,
-      attainedCount: 0,
-      advancing: false,
-    };
-    turnStartTimeRef.current = null;
-    maxHeadingAfterTurnRef.current = CRUISE_ROUTE_TURN_HEADING;
-    settleWindowStartRef.current = null;
-    settlingTimeRef.current = null;
-    maxLateralAccelRef.current = 0;
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
     telemetryRunIdRef.current = createCruiseTraceRunId();
     telemetryStartedAtRef.current = new Date().toISOString();
-    clockRef.current.reset();
-    setState({
-      isRunning: false,
-      isPaused: false,
-      isCompleted: false,
-      time: 0,
-      position: { x: -3000, z: 0 },
-      heading: 0,
-      yawRate: 0,
-      rudder: 0,
-      speed: CRUISE_ADORA_PARAMS.CRUISE_SPEED,
-      rollAngle: 0,
-      targetHeading: 0,
-      controlMode: 'pid',
-      manualRudder: 0,
-      seaState: 3,
-      waveDirection: 90,
-      finStabilizerEnabled: false,
-      notchFilterEnabled: false,
-      comfort: {
-        msi: 0,
-        rollRms: 0,
-        rollPeak: 0,
-        comfortRating: 'excellent',
-        vdv: 0,
-        frequencyWeightedAccel: 0,
-      },
-      finPower: 0,
-      portFinAngle: 0,
-      starboardFinAngle: 0,
-      pidGains: { ...CRUISE_DEFAULT_PID },
-      targetForm: { ...DEFAULT_TARGET_FORM },
-      prompt: { ...DEFAULT_PROMPT },
-      runDurationSec: CRUISE_EVALUATION_DURATION_SEC,
-    });
+    resetPose(true);
     setConsistencyComment('等待生成一致性评语。');
     setConsistencyCommentLoading(false);
     setStructuredPromptFeedback('在「AI伴学」标签下填写结构化提示词后，点击发送获取即时反馈。');
@@ -1935,8 +1890,7 @@ export default function CruiseSimulation() {
       steadyError: !isCourseMode || courseRole === 'teacher',
       maxLateralAccel: !isCourseMode || courseRole === 'teacher',
     });
-    setResetCount((previous) => previous + 1);
-  }, [courseRole, isCourseMode]);
+  }, [courseRole, isCourseMode, resetPose]);
 
   // 处理器
   const handleControlModeChange = useCallback((mode: ControlMode) => {
@@ -2308,76 +2262,56 @@ export default function CruiseSimulation() {
         className={simulationUi.cameraSwitcherPosition}
       />
 
-      <SimulationDock
-        side="left"
-        title="状态监控"
-        tabs={[
-          { id: 'status', label: '总览', content: <HUD state={state} /> },
-        ]}
-      />
-
-      <SimulationDock
-        side="right"
-        title="控制与探究"
-        tabs={[
-          {
-            id: 'control',
-            label: '控制',
-            content: (
-              <ControllerPanel
-                state={state}
-                isCourseMode={isCourseMode}
-                virtualModeEnabled={virtualModeEnabled}
-                onPidGainsChange={handlePidGainsChange}
-                onControlModeChange={handleControlModeChange}
-                onManualRudderChange={handleManualRudderChange}
-                onSeaStateChange={handleSeaStateChange}
-                onWaveDirectionChange={handleWaveDirectionChange}
-                onVirtualModeToggle={() => setVirtualModeEnabled((prev) => !prev)}
-                onFinStabilizerToggle={handleFinStabilizerToggle}
-                onNotchFilterToggle={handleNotchFilterToggle}
-                onStart={handleStart}
-                onPause={handlePause}
-                onReset={handleReset}
-              />
-            ),
-          },
-          {
-            id: 'evaluate',
-            label: '评估',
-            content: (
-              <CruiseTradeoffPanel
-                state={state}
-                isCourseMode={isCourseMode}
-                courseRole={courseRole}
-                targetFormTouched={targetFormTouched}
-                performance={runtimePerformance}
-                consistencyScore={consistencyScore}
-                consistencyComment={consistencyComment}
-                consistencyLoading={consistencyCommentLoading}
-                hasRuntimeData={hasRuntimeData}
-                runtimeHint={runtimeHint}
-                debrief={debrief}
-                onTargetFormTouch={handleTargetFormTouch}
-                onTargetFormChange={handleTargetFormChange}
-                onGenerateConsistencyComment={() => void generateConsistencyComment()}
-              />
-            ),
-          },
-          {
-            id: 'ai',
-            label: 'AI伴学',
-            content: (
-              <CruiseAIPanel
-                state={state}
-                isCourseMode={isCourseMode}
-                feedback={structuredPromptFeedback}
-                onPromptChange={handlePromptChange}
-                onApplyPrompt={applyPromptToController}
-              />
-            ),
-          },
-        ]}
+      <VesselExperimentDocks
+        experiment={cruiseExperiment}
+        session={session}
+        status={<HUD state={state} />}
+        controls={(
+          <ControllerPanel
+            state={state}
+            isCourseMode={isCourseMode}
+            virtualModeEnabled={virtualModeEnabled}
+            inputsEnabled={false}
+            onPidGainsChange={handlePidGainsChange}
+            onControlModeChange={handleControlModeChange}
+            onManualRudderChange={handleManualRudderChange}
+            onSeaStateChange={handleSeaStateChange}
+            onWaveDirectionChange={handleWaveDirectionChange}
+            onVirtualModeToggle={() => setVirtualModeEnabled((prev) => !prev)}
+            onFinStabilizerToggle={handleFinStabilizerToggle}
+            onNotchFilterToggle={handleNotchFilterToggle}
+            onStart={handleStart}
+            onPause={handlePause}
+            onReset={handleReset}
+          />
+        )}
+        assessment={(
+          <>
+            <CruiseTradeoffPanel
+              state={state}
+              isCourseMode={isCourseMode}
+              courseRole={courseRole}
+              targetFormTouched={targetFormTouched}
+              performance={runtimePerformance}
+              consistencyScore={consistencyScore}
+              consistencyComment={consistencyComment}
+              consistencyLoading={consistencyCommentLoading}
+              hasRuntimeData={hasRuntimeData}
+              runtimeHint={runtimeHint}
+              debrief={debrief}
+              onTargetFormTouch={handleTargetFormTouch}
+              onTargetFormChange={handleTargetFormChange}
+              onGenerateConsistencyComment={() => void generateConsistencyComment()}
+            />
+            <CruiseAIPanel
+              state={state}
+              isCourseMode={isCourseMode}
+              feedback={structuredPromptFeedback}
+              onPromptChange={handlePromptChange}
+              onApplyPrompt={applyPromptToController}
+            />
+          </>
+        )}
       />
 
       {!isEmbedded ? (

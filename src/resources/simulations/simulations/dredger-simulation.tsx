@@ -25,7 +25,12 @@ import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { SimulationTopBar, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { createDredgerDrive } from './vessel-drives';
+import { dredgerExperiment } from './vessel-experiments';
+import { takeVesselSubstep, vesselSampleMark, vesselValue } from './vessel-experiment';
+import { VesselExperimentDocks } from './vessel-experiment-panels';
+import { useVesselExperiment } from './use-vessel-experiment';
 import { useSimulationSceneTheme, simulationScenePalette } from '../components/simulation-theme';
 import {
   EnvironmentScene,
@@ -81,28 +86,15 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { dredgerTianjingProfile, getDredgerDefaultConfig } from '../profiles/dredger-tianjing';
+import { getDredgerDefaultConfig } from '../profiles/dredger-tianjing';
 import {
   createMMG3DOFState,
-  mmg3dofStep,
-  type MmgThrusterCommand,
-  computeEnvironmentLoad,
-  mmgToSimulationState,
-  dpControl,
-  dpControlWithFeedforward,
-  createDPState,
-  HIGH_PRECISION_DP_GAINS,
-  DredgingImpactModel,
   preloadVirtualSimulationRuntime,
   isVirtualSimulationRuntimeReady,
   type MMG3DOFState,
-  type DPState,
-  type DPTarget,
-  type DPCurrentState,
-  type DPErrorMetrics,
 } from '../physics/simulation-engine-facade';
-import type { ControlMode, Vector2, DisturbanceVector } from '../core/types';
-import { toRadians, toDegrees, clamp, TIANJING_DREDGER_PARAMS } from '../core/constants';
+import type { ControlMode, Vector2 } from '../core/types';
+import { toRadians, toDegrees, TIANJING_DREDGER_PARAMS } from '../core/constants';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
   SIMULATION_MAX_SUB_STEPS,
@@ -140,8 +132,6 @@ interface SimulationMetrics {
 const POSITION_ALARM_THRESHOLD_M = 0.1;
 const POSITION_ALARM_CLEAR_M = 0.05;
 const POSITION_ALARM_HOLD_SECONDS = 10;
-/** DP 三通道功率份额（kW，对齐钻井平台 P=maxPower×(F/Fmax)^1.5 口径）。 */
-const DP_CHANNEL_MAX_POWER_KW = { surge: 8000, sway: 6000, yaw: 6000 } as const;
 
 
 // ============ 着色器材质 ============
@@ -309,6 +299,7 @@ function ControlPanel({
   onPause,
   onReset,
   isRunning,
+  inputsEnabled = true,
 }: {
   config: SimulationConfig;
   onConfigChange: (config: Partial<SimulationConfig>) => void;
@@ -316,6 +307,7 @@ function ControlPanel({
   onPause: () => void;
   onReset: () => void;
   isRunning: boolean;
+  inputsEnabled?: boolean;
 }) {
   return (
     <Card className={`${simulationUi.panel}`}>
@@ -354,6 +346,7 @@ function ControlPanel({
             <div className="space-y-2">
               <Label className="text-xs">目标 X (m)</Label>
               <Slider
+                disabled={!inputsEnabled}
                 className={simulationUi.slider}
                 value={[config.targetPosition.x]}
                 min={-500}
@@ -371,6 +364,7 @@ function ControlPanel({
             <div className="space-y-2">
               <Label className="text-xs">目标 Z (m)</Label>
               <Slider
+                disabled={!inputsEnabled}
                 className={simulationUi.slider}
                 value={[config.targetPosition.z]}
                 min={-500}
@@ -388,6 +382,7 @@ function ControlPanel({
             <div className="space-y-2">
               <Label className="text-xs">目标航向 (°)</Label>
               <Slider
+                disabled={!inputsEnabled}
                 className={simulationUi.slider}
                 value={[config.targetHeading]}
                 min={-180}
@@ -408,6 +403,7 @@ function ControlPanel({
               <Button
                 variant={config.dredgingEnabled ? 'default' : 'outline'}
                 size="sm"
+                disabled={!inputsEnabled}
                 className={config.dredgingEnabled ? simulationUi.buttonPrimary : simulationUi.buttonOutline}
                 onClick={() => onConfigChange({ dredgingEnabled: !config.dredgingEnabled })}
               >
@@ -422,6 +418,7 @@ function ControlPanel({
                 海流速度 (m/s)
               </Label>
               <Slider
+                disabled={!inputsEnabled}
                 className={simulationUi.slider}
                 value={[config.currentSpeed]}
                 min={0}
@@ -441,6 +438,7 @@ function ControlPanel({
                 风速 (m/s)
               </Label>
               <Slider
+                disabled={!inputsEnabled}
                 className={simulationUi.slider}
                 value={[config.windSpeed]}
                 min={0}
@@ -464,6 +462,7 @@ function ControlPanel({
                     key={mode}
                     variant={config.controlMode === mode ? 'default' : 'outline'}
                     size="sm"
+                    disabled={!inputsEnabled}
                     className={config.controlMode === mode ? simulationUi.buttonPrimary : simulationUi.buttonOutline}
                     onClick={() => onConfigChange({ controlMode: mode })}
                   >
@@ -553,7 +552,12 @@ function TeachingAnnotationsGate({
 
 // ============ 主组件 ============
 
-export function DredgerSimulation() {
+export function DredgerSimulation({ ticket = '' }: { ticket?: string }) {
+  const session = useVesselExperiment(dredgerExperiment, ticket);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+  const driveRef = useRef<ReturnType<typeof createDredgerDrive> | null>(null);
+  const markRef = useRef(-1);
   const timeRef = useRef(0);
   // 配置状态
   const defaultConfig = getDredgerDefaultConfig();
@@ -586,8 +590,6 @@ export function DredgerSimulation() {
 
   // 引用
   const mmgStateRef = useRef<MMG3DOFState>(createMMG3DOFState(0, 0, 0, 0));
-  const dpStateRef = useRef<DPState>(createDPState());
-  const dredgingModelRef = useRef<DredgingImpactModel>(new DredgingImpactModel());
   const animationFrameRef = useRef<number | undefined>(undefined);
   const lastUpdateRef = useRef(performance.now());
   const clockRef = useRef(
@@ -599,7 +601,7 @@ export function DredgerSimulation() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
-  const [speedScale, setSpeedScale] = useState(1);
+  const [speedScale, setSpeedScale] = useState(8);
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
@@ -612,12 +614,83 @@ export function DredgerSimulation() {
   });
   const stationKeepRef = useRef({ dwell: 0, armed: true });
 
-  // 船舶配置
-  const profile = dredgerTianjingProfile;
+  const resetPose = useCallback((clearCurve: boolean) => {
+    const drive = driveRef.current;
+    if (!drive) return;
+    const command = dredgerExperiment.command(sessionRef.current.step, 0);
+    drive.reset(command);
+    const mmg = drive.mmg();
+    mmgStateRef.current = mmg;
+    markRef.current = -1;
+    timeRef.current = 0;
+    if (clearCurve) sessionRef.current.clearSamples();
+    lastUpdateRef.current = performance.now();
+    clockRef.current.reset();
+    setIsRunning(false);
+    setTrajectory([]);
+    positionAlarmRef.current = { since: null, active: false };
+    setPositionAlarm(null);
+    stationKeepRef.current = { dwell: 0, armed: true };
+    const speed = Math.hypot(mmg.u, mmg.v);
+    const drift = Math.hypot(mmg.x - command.targetX, mmg.y - command.targetZ);
+    bindingRef.current = {
+      rudderDeg: toDegrees(mmg.rudderAngle),
+      speedMps: speed,
+      attainedCount: 0,
+      advancing: false,
+      cutterRpm: 0,
+    };
+    setMetrics({
+      positionError: drift,
+      headingError: Math.abs(toDegrees(mmg.psi) - command.targetHeading),
+      surgeError: 0,
+      swayError: 0,
+      speed,
+      rudderAngle: toDegrees(mmg.rudderAngle),
+      time: 0,
+      totalPowerKW: 0,
+    });
+    setConfig((prev) => {
+      const next: SimulationConfig = {
+        ...prev,
+        controlMode: command.dp ? 'dp' : 'manual',
+        dredgingEnabled: command.dredging,
+        targetPosition: { x: command.targetX, z: command.targetZ },
+        targetHeading: command.targetHeading,
+        currentSpeed: 0.5,
+        currentDirection: 45,
+        windSpeed: 8,
+        windDirection: 45,
+      };
+      if (
+        prev.controlMode === next.controlMode
+        && prev.dredgingEnabled === next.dredgingEnabled
+        && prev.targetHeading === next.targetHeading
+        && prev.targetPosition.x === next.targetPosition.x
+        && prev.targetPosition.z === next.targetPosition.z
+        && prev.currentSpeed === next.currentSpeed
+        && prev.currentDirection === next.currentDirection
+        && prev.windSpeed === next.windSpeed
+        && prev.windDirection === next.windDirection
+      ) return prev;
+      return next;
+    });
+    setResetCount((previous) => previous + 1);
+  }, []);
 
   useEffect(() => {
+    let cancelled = false;
     preloadVirtualSimulationRuntime().catch(console.error);
-  }, []);
+    driveRef.current = createDredgerDrive();
+    if (!cancelled) resetPose(false);
+    return () => {
+      cancelled = true;
+    };
+  }, [resetPose]);
+
+  useEffect(() => {
+    resetPose(false);
+  }, [session.activeSeq, resetPose]);
 
   // 仿真主循环
   const simulate = useCallback(() => {
@@ -634,82 +707,30 @@ export function DredgerSimulation() {
     lastUpdateRef.current = now;
 
     const stepSimulation = (dt: number) => {
-      timeRef.current += dt;
-
-      // 扰动 = 挖掘冲击 + 风流定常环境载荷（Rust 统一契约 issue 1944，含方向分解）
-      const dredging = config.dredgingEnabled
-        ? dredgingModelRef.current.compute(timeRef.current)
-        : { forceX: 0, forceY: 0, momentN: 0 };
-      const environmentLoad = computeEnvironmentLoad({
-        currentSpeed: config.currentSpeed,
-        currentDirection: config.currentDirection,
-        windSpeed: config.windSpeed,
-        windDirection: config.windDirection,
-        shipLength: profile.dimensions.length,
-        shipDraft: profile.dimensions.draft,
-      });
-      const disturbance: DisturbanceVector = {
-        forceX: dredging.forceX + environmentLoad.forceX,
-        forceY: dredging.forceY + environmentLoad.forceY,
-        momentN: dredging.momentN + environmentLoad.momentN,
-      };
-
-      // 控制计算
-      const target: DPTarget = {
-        x: config.targetPosition.x,
-        y: config.targetPosition.z,
-        psi: toRadians(config.targetHeading),
-      };
-
-      const current: DPCurrentState = {
-        x: mmgStateRef.current.x,
-        y: mmgStateRef.current.y,
-        psi: mmgStateRef.current.psi,
-        u: mmgStateRef.current.u,
-        v: mmgStateRef.current.v,
-        r: mmgStateRef.current.r,
-      };
-
-      let rudderCommand = 0;
-      let dpMetrics: DPErrorMetrics = {
-        positionError: 0,
-        headingError: 0,
-        surgeError: 0,
-        swayError: 0,
-      };
-      let thruster: MmgThrusterCommand | undefined;
-      let totalPowerKW = 0;
-
-      if (config.controlMode === 'dp') {
-        const dpResult = dpControlWithFeedforward(
-          current,
-          target,
-          dpStateRef.current,
-          disturbance,
-          HIGH_PRECISION_DP_GAINS,
-          dt
-        );
-        dpStateRef.current = dpResult.newState;
-        rudderCommand = dpResult.output.rudderCommand;
-        dpMetrics = dpResult.metrics;
-        // 四通道执行（issue 1944）：DP 推力经 mmg3dof 可选入口直接驱动被控对象
-        //（含倒车/反向推力），rpm 路径置零避免螺旋桨推力重复计入。
-        thruster = {
-          surgeKN: dpResult.output.surgeThrust / 1000,
-          swayKN: dpResult.output.swayThrust / 1000,
-          yawMomentKNm: dpResult.output.yawMoment / 1000,
-        };
-        totalPowerKW =
-          DP_CHANNEL_MAX_POWER_KW.surge
-            * (Math.abs(dpResult.output.surgeThrust) / 2_000_000) ** 1.5
-          + DP_CHANNEL_MAX_POWER_KW.sway
-            * (Math.abs(dpResult.output.swayThrust) / 1_500_000) ** 1.5
-          + DP_CHANNEL_MAX_POWER_KW.yaw
-            * (Math.abs(dpResult.output.yawMoment) / 5e8) ** 1.5;
-
-        // 定位精度告警滞回：持续超限 10s 触发一次，恢复到 0.05m 内解除
+      const drive = driveRef.current;
+      if (!drive) return;
+      const moved = takeVesselSubstep(
+        sessionRef.current.step,
+        (time) => dredgerExperiment.command(sessionRef.current.step, time),
+        (command, stepDt, time) => drive.step(command, stepDt, time),
+        timeRef.current,
+        dt,
+      );
+      timeRef.current = moved.time;
+      if (!moved.sample) return;
+      const mmg = drive.mmg();
+      mmgStateRef.current = mmg;
+      const mark = vesselSampleMark(moved.sample.time);
+      if (mark > markRef.current) {
+        markRef.current = mark;
+        sessionRef.current.observe(moved.sample);
+      }
+      const positionError = vesselValue(moved.sample, 'position');
+      const headingError = vesselValue(moved.sample, 'headingError');
+      const speed = vesselValue(moved.sample, 'speed');
+      if (moved.command.dp) {
         const alarm = positionAlarmRef.current;
-        if (dpMetrics.positionError > POSITION_ALARM_THRESHOLD_M) {
+        if (positionError > POSITION_ALARM_THRESHOLD_M) {
           alarm.since ??= timeRef.current;
           if (!alarm.active && timeRef.current - alarm.since >= POSITION_ALARM_HOLD_SECONDS) {
             alarm.active = true;
@@ -717,73 +738,46 @@ export function DredgerSimulation() {
               `定位误差持续超过 ${POSITION_ALARM_THRESHOLD_M} m 阈值达 ${POSITION_ALARM_HOLD_SECONDS} 秒，请检查扰动设置与控制模式`
             );
           }
-        } else if (!alarm.active || dpMetrics.positionError < POSITION_ALARM_CLEAR_M) {
-          // 未激活时回到阈值内即重置连续计时（防止两段短超限拼接提前触发，
-          // review issue 1944）；已激活时保留 0.05m 清除滞回。
+        } else if (!alarm.active || positionError < POSITION_ALARM_CLEAR_M) {
           alarm.since = null;
-          if (alarm.active && dpMetrics.positionError < POSITION_ALARM_CLEAR_M) {
+          if (alarm.active && positionError < POSITION_ALARM_CLEAR_M) {
             alarm.active = false;
             setPositionAlarm(null);
           }
         }
       } else {
-        // 切离 DP 模式（review issue 1944）：告警仅对 DP 定位语义有效，离开即复位
         const alarm = positionAlarmRef.current;
         if (alarm.since !== null || alarm.active) {
           positionAlarmRef.current = { since: null, active: false };
           setPositionAlarm(null);
         }
       }
-
-      // MMG 步进（DP 模式走四通道推力入口；非 DP 模式无推力自由漂浮）
-      const mmgParams = profile.dynamics.mmg!;
-      mmgStateRef.current = mmg3dofStep(
-        mmgStateRef.current,
-        rudderCommand,
-        0,
-        dt,
-        mmgParams,
-        profile.dimensions.length,
-        profile.dimensions.draft,
-        disturbance,
-        thruster,
-        // 扰动按世界系表达传入（挖掘+风流），由 Rust 契约旋入船体系（review issue 1944）
-        true
-      );
-
-      // 更新指标
-      const speed = Math.sqrt(
-        mmgStateRef.current.u ** 2 + mmgStateRef.current.v ** 2
-      );
       const insideDeadzone =
-        dpMetrics.positionError <= POSITION_ALARM_THRESHOLD_M
-        && dpMetrics.headingError <= 5;
+        positionError <= POSITION_ALARM_THRESHOLD_M
+        && headingError <= 5;
       let attainedCount = bindingRef.current.attainedCount;
       if (advanceStationKeepAttainment(stationKeepRef.current, insideDeadzone, dt)) {
         attainedCount += 1;
       }
       bindingRef.current = {
-        rudderDeg: toDegrees(mmgStateRef.current.rudderAngle),
+        rudderDeg: toDegrees(mmg.rudderAngle),
         speedMps: speed,
         attainedCount,
         advancing: true,
-        cutterRpm: config.dredgingEnabled ? 36 : 0,
+        cutterRpm: moved.command.dredging ? 36 : 0,
       };
-
       setMetrics({
-        positionError: dpMetrics.positionError,
-        headingError: dpMetrics.headingError,
-        surgeError: dpMetrics.surgeError,
-        swayError: dpMetrics.swayError,
+        positionError,
+        headingError,
+        surgeError: 0,
+        swayError: 0,
         speed,
-        rudderAngle: toDegrees(mmgStateRef.current.rudderAngle),
-        time: timeRef.current,
-        totalPowerKW,
+        rudderAngle: toDegrees(mmg.rudderAngle),
+        time: moved.sample.time,
+        totalPowerKW: 0,
       });
-
-      // 记录轨迹
       setTrajectory((prev) => {
-        const newPoint = { x: mmgStateRef.current.x, z: mmgStateRef.current.y };
+        const newPoint = { x: mmg.x, z: mmg.y };
         if (prev.length === 0) return [newPoint];
         const last = prev[prev.length - 1];
         const dist = Math.sqrt(
@@ -799,7 +793,7 @@ export function DredgerSimulation() {
     clockRef.current.advance(frameDt, stepSimulation);
 
     animationFrameRef.current = requestAnimationFrame(simulate);
-  }, [isRunning, config, profile, speedScale]);
+  }, [isRunning, speedScale]);
 
   // 启动/停止仿真
   useEffect(() => {
@@ -822,44 +816,13 @@ export function DredgerSimulation() {
     setIsRunning(false);
   };
   const handleReset = () => {
-    setIsRunning(false);
-    // DP 定位从静止开始（issue 1944）：不再带 2 m/s 前进初速
-    mmgStateRef.current = createMMG3DOFState(0, 0, 0, 0);
-    dpStateRef.current = createDPState();
-    dredgingModelRef.current.reset();
-    timeRef.current = 0;
-    lastUpdateRef.current = performance.now();
-    clockRef.current.reset();
-    setTrajectory([]);
-    positionAlarmRef.current = { since: null, active: false };
-    setPositionAlarm(null);
-    stationKeepRef.current = { dwell: 0, armed: true };
-    bindingRef.current = {
-      rudderDeg: 0,
-      speedMps: 0,
-      attainedCount: 0,
-      advancing: false,
-      cutterRpm: 0,
-    };
-    setMetrics({
-      positionError: 0,
-      headingError: 0,
-      surgeError: 0,
-      swayError: 0,
-      speed: 0,
-      rudderAngle: 0,
-      time: 0,
-      totalPowerKW: 0,
-    });
-    setResetCount((previous) => previous + 1);
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    bindingRef.current = { ...bindingRef.current, advancing: false, cutterRpm: 0 };
+    resetPose(true);
   };
 
   const handleConfigChange = (updates: Partial<SimulationConfig>) => {
     setConfig((prev) => ({ ...prev, ...updates }));
-    if ('dredgingEnabled' in updates) {
-      dredgingModelRef.current.setEnabled(updates.dredgingEnabled ?? true);
-    }
-    // 告警只对 DP 定位语义有效：模式切换即时复位（含暂停状态，review issue 1944）
     if (updates.controlMode && updates.controlMode !== 'dp') {
       positionAlarmRef.current = { since: null, active: false };
       setPositionAlarm(null);
@@ -969,52 +932,32 @@ export function DredgerSimulation() {
         className={simulationUi.cameraSwitcherPosition}
       />
 
-      <SimulationDock
-        side="left"
-        title="状态监控"
-        tabs={[
-          {
-            id: 'status',
-            label: '总览',
-            content: <HUD metrics={metrics} positionAlarm={positionAlarm} isRunning={isRunning} />,
-          },
-        ]}
-      />
-
-      <SimulationDock
-        side="right"
-        title="控制与探究"
-        tabs={[
-          {
-            id: 'control',
-            label: '控制',
-            content: (
-              <ControlPanel
-                config={config}
-                onConfigChange={handleConfigChange}
-                onStart={handleStart}
-                onPause={handlePause}
-                onReset={handleReset}
-                isRunning={isRunning}
-              />
-            ),
-          },
-          {
-            id: 'evaluate',
-            label: '评估',
-            content: (
-              <SimulationAssessmentPanel
-                title="定位精度评估"
-                metrics={[
-                  { id: 'position', label: '位置误差', value: metrics.positionError, max: 2, better: 'lower', unit: 'm', precision: 3 },
-                  { id: 'heading', label: '航向误差', value: metrics.headingError, max: 20, better: 'lower', unit: '°', precision: 2 },
-                  { id: 'speed', label: '航速稳定', value: metrics.speed, max: 4, better: 'lower', unit: 'm/s', precision: 2 },
-                  { id: 'rudder', label: '舵角幅值', value: Math.abs(metrics.rudderAngle), max: 35, better: 'lower', unit: '°', precision: 1 },
-                ]}
-              />
-            ),
-          },
-        ]}
+      <VesselExperimentDocks
+        experiment={dredgerExperiment}
+        session={session}
+        status={<HUD metrics={metrics} positionAlarm={positionAlarm} isRunning={isRunning} />}
+        controls={(
+          <ControlPanel
+            config={config}
+            onConfigChange={handleConfigChange}
+            onStart={handleStart}
+            onPause={handlePause}
+            onReset={handleReset}
+            isRunning={isRunning}
+            inputsEnabled={false}
+          />
+        )}
+        assessment={(
+          <SimulationAssessmentPanel
+            title="定位精度评估"
+            metrics={[
+              { id: 'position', label: '位置误差', value: metrics.positionError, max: 2, better: 'lower', unit: 'm', precision: 3 },
+              { id: 'heading', label: '航向误差', value: metrics.headingError, max: 20, better: 'lower', unit: '°', precision: 2 },
+              { id: 'speed', label: '航速稳定', value: metrics.speed, max: 4, better: 'lower', unit: 'm/s', precision: 2 },
+              { id: 'rudder', label: '舵角幅值', value: Math.abs(metrics.rudderAngle), max: 35, better: 'lower', unit: '°', precision: 1 },
+            ]}
+          />
+        )}
       />
 
       <SimulationTopBar

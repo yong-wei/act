@@ -7,6 +7,7 @@ import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-l
  */
 
 import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useSession } from 'next-auth/react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -39,24 +40,15 @@ import {
   Pause,
   RotateCcw,
   Settings,
-  ChevronLeft,
-  ChevronRight,
-  Target,
   Compass,
-  Gauge,
-  Timer,
   Video,
   Orbit,
   ArrowDownFromLine,
 } from 'lucide-react';
-import { Chart, registerables } from 'chart.js';
-
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
 
 import { destroyer055Profile } from '../profiles/destroyer-055';
 import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
@@ -118,6 +110,24 @@ import { platformHeadingToSceneRad } from '../scene/heading';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
+import {
+  DESTROYER_CURVE_SERIES,
+  DESTROYER_EXPERIMENT_STEPS,
+  DESTROYER_EXPERIMENT_TITLE,
+  assertDestroyerStepOrder,
+  chooseBetterDestroyerAttempt,
+  buildDestroyerReportHtml,
+  destroyerKonlingBrief,
+  destroyerSceneMotion,
+  scoreDestroyerStep,
+  signedHeading,
+  thinDestroyerSamples,
+  type DestroyerReadings,
+  type DestroyerSample,
+  type DestroyerSeriesId,
+} from './destroyer-experiment';
+import { DestroyerReportHistory, DestroyerStatusPanel, DestroyerStepForm, DestroyerStepList } from './destroyer-experiment-panels';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
@@ -135,22 +145,10 @@ import {
   preloadVirtualSimulationRuntime,
 } from '../physics/simulation-engine-facade';
 
-Chart.register(...registerables);
-
 export type { AttainmentState };
 export { advanceAttainment, createAttainmentState };
 
 // ============ 类型定义 ============
-
-type TaskScenario = 'turn90' | 'obstacle' | 'circle';
-
-interface TaskDef {
-  id: string;
-  title: string;
-  scenario: TaskScenario;
-  duration: number;
-  description: string;
-}
 
 interface HudState {
   heading: number;
@@ -161,14 +159,6 @@ interface HudState {
   avgError: number;
   currentError: number;
   time: number;
-}
-
-interface ChartData {
-  time: number[];
-  desiredHeading: number[];
-  actualHeading: number[];
-  speed: number[];
-  rudder: number[];
 }
 
 interface HeadingPoint {
@@ -219,31 +209,6 @@ const CAMERA_SHOT_VIEWS = [
 
 const REF_SPEED = nomotoParams.speedMps;
 
-const tasks: TaskDef[] = [
-  {
-    id: 'turn-90',
-    title: '直角转向任务',
-    scenario: 'turn90',
-    duration: 180,
-    description: '60秒后执行90度右转阶跃信号。',
-  },
-  {
-    id: 'obstacle',
-    title: '复杂避障任务',
-    scenario: 'obstacle',
-    duration: 180,
-    description: '依次执行 0° → 45° → 0° → -45° → 0° 变向。',
-  },
-  {
-    id: 'circle',
-    title: '定常回转任务',
-    scenario: 'circle',
-    duration: 360,
-    description: '切入圆形航迹并执行定常回转。',
-  },
-];
-
-
 // ============ 工具函数 ============
 
 const normalizeHeading = (heading: number) => ((heading % 360) + 360) % 360;
@@ -256,36 +221,6 @@ const normalizeSignedHeading = (heading: number) => {
 type ScenarioLogic = {
   getDesiredHeading: (t: number) => number;
   startPos: { x: number; z: number; headingDeg: number };
-};
-
-const getScenarioLogic = (scenario: TaskScenario): ScenarioLogic => {
-  switch (scenario) {
-    case 'turn90':
-      return {
-        startPos: { x: -6000, z: 0, headingDeg: 0 },
-        getDesiredHeading: (t: number) => (t < 60 ? 0 : 90),
-      };
-    case 'obstacle':
-      return {
-        startPos: { x: -2000, z: 0, headingDeg: 0 },
-        getDesiredHeading: (t: number) => {
-          if (t < 60) return 0;
-          if (t < 90) return 45;
-          if (t < 120) return 0;
-          if (t < 150) return -45;
-          return 0;
-        },
-      };
-    case 'circle':
-      const radius = 1350;
-      const circumference = 2 * Math.PI * radius;
-      const turnTime = circumference / REF_SPEED;
-      const degPerSec = 360 / turnTime;
-      return {
-        startPos: { x: 0, z: -(radius + 900), headingDeg: 0 },
-        getDesiredHeading: (t: number) => (t < 60 ? 0 : -90 + degPerSec * (t - 60)),
-      };
-  }
 };
 
 const generateGuidePath = (logic: ScenarioLogic, duration: number) => {
@@ -744,6 +679,7 @@ function SimulationEngine({
   speedScale,
   maxErrorDeg,
   maxSettlingTimeSec,
+  disturbanceEnabled,
   onHudUpdate,
   onChartDataUpdate,
 }: {
@@ -762,8 +698,9 @@ function SimulationEngine({
   maxErrorDeg: number;
   /** 当前任务 successCriteria.maxSettlingTime（s）：机动收敛时限，超时达标不计数。 */
   maxSettlingTimeSec?: number;
+  disturbanceEnabled: boolean;
   onHudUpdate: (state: HudState) => void;
-  onChartDataUpdate: (time: number, desired: number, actual: number, speed: number, rudder: number) => void;
+  onChartDataUpdate: (sample: DestroyerSample) => void;
 }) {
   const marineFrame = useMarineFrameRunner();
   const lastFrameTimeRef = useRef(0);
@@ -883,7 +820,7 @@ function SimulationEngine({
           controlMode: controlMode === 'manual' || controlMode === 'p' || controlMode === 'pd' ? controlMode : 'pid',
           pid: pidGains,
           manualRudderDeg: sim.manualRudderDeg,
-          disturbanceEnabled: false,
+          disturbanceEnabled,
           state: requestState,
         })
       );
@@ -936,7 +873,16 @@ function SimulationEngine({
         lastChartSampleRef.current = simTime;
         const headingDeg = normalizeSignedHeading(toDegrees(sim.headingRad));
         const targetHeadingSigned = normalizeSignedHeading(targetHeading);
-        onChartDataUpdate(simTime, targetHeadingSigned, headingDeg, sim.speedMps, sim.rudderDeg);
+        onChartDataUpdate({
+          time: simTime,
+          desiredHeading: targetHeadingSigned,
+          actualHeading: headingDeg,
+          yawRate: toDegrees(sim.yawRateRad),
+          rudder: sim.rudderDeg,
+          manualRudder: sim.manualRudderDeg,
+          speed: sim.speedMps,
+          crossTrackError: currentError,
+        });
       }
     };
 
@@ -969,106 +915,39 @@ function SimulationEngine({
 
 // ============ UI 组件 ============
 
-/** HUD 显示 */
-function HUD({
-  state,
-  isRunning,
-  controlMode,
-}: {
-  state: HudState;
-  isRunning: boolean;
-  controlMode: ControlMode;
-}) {
-  return (
-    <div className="space-y-2">
-      <Card className={`${simulationUi.panel} w-56`}>
-        <CardHeader className="py-2 px-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Compass className="w-4 h-4 text-platform-action-primary" />
-            导航状态
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="py-2 px-3 space-y-1 text-xs">
-          <div className="flex justify-between">
-            <span className="text-platform-fg-muted">航向</span>
-            <span className="text-platform-action-primary font-mono">{state.heading.toFixed(1)}°</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-platform-fg-muted">转艏速率</span>
-            <span className="text-platform-action-primary font-mono">{state.yawRate.toFixed(2)}°/s</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-platform-fg-muted">舵角</span>
-            <span className="text-platform-action-primary font-mono">{state.rudder.toFixed(1)}°</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-platform-fg-muted">航速</span>
-            <span className="text-platform-action-primary font-mono">{state.speed.toFixed(1)} m/s</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className={`${simulationUi.panel} w-56`}>
-        <CardHeader className="py-2 px-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Target className="w-4 h-4 text-[hsl(var(--platform-brand-success))]" />
-            航迹误差
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="py-2 px-3 space-y-1 text-xs">
-          <div className="flex justify-between">
-            <span className="text-platform-fg-muted">当前误差</span>
-            <span className="text-[hsl(var(--platform-brand-success))] font-mono">{state.currentError.toFixed(1)} m</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-platform-fg-muted">平均误差</span>
-            <span className="text-[hsl(var(--platform-brand-success))] font-mono">{state.avgError.toFixed(1)} m</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-platform-fg-muted">仿真时间</span>
-            <span className="text-[hsl(var(--platform-brand-success))] font-mono">{state.time.toFixed(1)} s</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex items-center gap-2 text-xs">
-        <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-[hsl(var(--platform-brand-success))] animate-pulse' : 'bg-platform-canvas-muted'}`} />
-        <span className="text-platform-fg-muted">{isRunning ? '运行中' : '已暂停'}</span>
-        <span className="text-platform-fg-muted">|</span>
-        <span className="text-platform-action-primary uppercase">{controlMode}</span>
-      </div>
-    </div>
-  );
-}
-
-/** 控制面板 */
 function ControlPanel({
   isRunning,
   controlMode,
   pidGains,
-  selectedTask,
+  stepTitle,
+  allowedModes,
+  allowedGains,
+  controlsEnabled,
+  manualRudder,
   onStart,
   onPause,
   onReset,
   onControlModeChange,
   onPidGainsChange,
-  onTaskChange,
-  onShowChart,
+  onManualRudderChange,
 }: {
   isRunning: boolean;
   controlMode: ControlMode;
   pidGains: PIDGains;
-  selectedTask: number;
+  stepTitle: string;
+  allowedModes: ControlMode[];
+  allowedGains: Array<'kp' | 'ki' | 'kd'>;
+  controlsEnabled: boolean;
+  manualRudder: number;
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
   onControlModeChange: (mode: ControlMode) => void;
   onPidGainsChange: (gains: PIDGains) => void;
-  onTaskChange: (index: number) => void;
-  onShowChart: () => void;
+  onManualRudderChange: (value: number) => void;
 }) {
   return (
-    <div>
+    <div className="w-max max-w-[calc(100vw-2rem)]">
       <Card className={simulationUi.panel}>
         <CardHeader className="py-3 px-4">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -1077,31 +956,9 @@ function ControlPanel({
           </CardTitle>
         </CardHeader>
         <CardContent className="py-3 px-4 space-y-4">
-          {/* 任务选择 */}
-          <div className="space-y-2">
-            <Label className="text-xs text-platform-fg-muted">任务选择</Label>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className={`h-7 w-7 ${simulationUi.buttonOutline}`}
-                onClick={() => onTaskChange(Math.max(0, selectedTask - 1))}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <div className="flex-1 text-center">
-                <p className="text-sm font-medium">{tasks[selectedTask].title}</p>
-                <p className="text-xs text-platform-fg-muted">{tasks[selectedTask].description}</p>
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                className={`h-7 w-7 ${simulationUi.buttonOutline}`}
-                onClick={() => onTaskChange(Math.min(tasks.length - 1, selectedTask + 1))}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-platform-fg-muted">当前步骤</Label>
+            <p className="text-sm font-medium">{stepTitle}</p>
           </div>
 
           {/* 控制模式 */}
@@ -1113,6 +970,7 @@ function ControlPanel({
                   key={mode}
                   variant={controlMode === mode ? 'default' : 'outline'}
                   size="sm"
+                  disabled={!controlsEnabled || !allowedModes.includes(mode)}
                   className={`h-7 text-xs uppercase ${
                     controlMode === mode ? simulationUi.buttonPrimary : simulationUi.buttonOutline
                   }`}
@@ -1125,48 +983,75 @@ function ControlPanel({
           </div>
 
           {/* PID 增益 */}
-          {controlMode !== 'manual' && (
+          {controlMode === 'manual' && (
+            <div className="space-y-2">
+              <Label className="text-xs text-platform-fg-muted">手操舵角</Label>
+              <div className="flex items-center gap-2" data-destroyer-rudder-slider>
+                <Slider
+                  value={[manualRudder]}
+                  min={-nomotoParams.maxRudderDeg}
+                  max={nomotoParams.maxRudderDeg}
+                  step={1}
+                  disabled={!controlsEnabled}
+                  onValueChange={([value]) => onManualRudderChange(value)}
+                  aria-label="手操舵角"
+                  className={`flex-1 ${simulationUi.slider}`}
+                />
+                <span className="w-max text-right text-xs font-mono">{manualRudder.toFixed(0)}°</span>
+              </div>
+            </div>
+          )}
+
+          {controlMode !== 'manual' && allowedGains.length > 0 && (
             <div className="space-y-3">
               <Label className="text-xs text-platform-fg-muted">PID 增益</Label>
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-8 text-xs text-platform-action-primary">Kp</span>
-                  <Slider
-                    value={[pidGains.kp]}
-                    min={0}
-                    max={5}
-                    step={0.1}
-                    onValueChange={([v]) => onPidGainsChange({ ...pidGains, kp: v })}
-                    className={`flex-1 ${simulationUi.slider}`}
-                  />
-                  <span className="w-10 text-right text-xs font-mono">{pidGains.kp.toFixed(1)}</span>
-                </div>
-                {(controlMode === 'pid' || controlMode === 'pd') && (
+                {allowedGains.includes('kp') && (
                   <div className="flex items-center gap-2">
-                    <span className="w-8 text-xs text-platform-action-primary">Kd</span>
+                    <span className="w-max text-xs text-platform-action-primary">Kp</span>
+                    <Slider
+                      value={[pidGains.kp]}
+                      min={0}
+                      max={5}
+                      step={0.1}
+                      disabled={!controlsEnabled}
+                      onValueChange={([v]) => onPidGainsChange({ ...pidGains, kp: v })}
+                      aria-label="Kp"
+                      className={`flex-1 ${simulationUi.slider}`}
+                    />
+                    <span className="w-max text-right text-xs font-mono">{pidGains.kp.toFixed(1)}</span>
+                  </div>
+                )}
+                {allowedGains.includes('kd') && (
+                  <div className="flex items-center gap-2">
+                    <span className="w-max text-xs text-platform-action-primary">Kd</span>
                     <Slider
                       value={[pidGains.kd]}
                       min={0}
                       max={50}
                       step={1}
+                      disabled={!controlsEnabled}
                       onValueChange={([v]) => onPidGainsChange({ ...pidGains, kd: v })}
+                      aria-label="Kd"
                       className={`flex-1 ${simulationUi.slider}`}
                     />
-                    <span className="w-10 text-right text-xs font-mono">{pidGains.kd.toFixed(0)}</span>
+                    <span className="w-max text-right text-xs font-mono">{pidGains.kd.toFixed(0)}</span>
                   </div>
                 )}
-                {controlMode === 'pid' && (
+                {allowedGains.includes('ki') && (
                   <div className="flex items-center gap-2">
-                    <span className="w-8 text-xs text-platform-action-primary">Ki</span>
+                    <span className="w-max text-xs text-platform-action-primary">Ki</span>
                     <Slider
                       value={[pidGains.ki]}
                       min={0}
                       max={0.1}
                       step={0.001}
+                      disabled={!controlsEnabled}
                       onValueChange={([v]) => onPidGainsChange({ ...pidGains, ki: v })}
+                      aria-label="Ki"
                       className={`flex-1 ${simulationUi.slider}`}
                     />
-                    <span className="w-10 text-right text-xs font-mono">{pidGains.ki.toFixed(3)}</span>
+                    <span className="w-max text-right text-xs font-mono">{pidGains.ki.toFixed(3)}</span>
                   </div>
                 )}
               </div>
@@ -1176,21 +1061,18 @@ function ControlPanel({
           {/* 控制按钮 */}
           <div className="flex gap-2">
             {isRunning ? (
-              <Button variant="outline" className={`flex-1 ${simulationUi.buttonSecondary}`} onClick={onPause}>
+              <Button variant="outline" disabled={!controlsEnabled} className={`flex-1 ${simulationUi.buttonSecondary}`} onClick={onPause}>
                 <Pause className="w-4 h-4 mr-2" />
                 暂停
               </Button>
             ) : (
-              <Button variant="default" data-sound-start className={`flex-1 ${simulationUi.buttonPrimary}`} onClick={onStart}>
+              <Button variant="default" data-sound-start disabled={!controlsEnabled} className={`flex-1 ${simulationUi.buttonPrimary}`} onClick={onStart}>
                 <Play className="w-4 h-4 mr-2" />
                 开始
               </Button>
             )}
-            <Button variant="outline" onClick={onReset} className={simulationUi.buttonOutline}>
+            <Button variant="outline" disabled={!controlsEnabled} onClick={onReset} className={simulationUi.buttonOutline}>
               <RotateCcw className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" onClick={onShowChart} className={simulationUi.buttonOutline}>
-              <Gauge className="w-4 h-4" />
             </Button>
           </div>
         </CardContent>
@@ -1199,160 +1081,24 @@ function ControlPanel({
   );
 }
 
-/** 仿真曲线图表 */
-function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void }) {
-  const chartRef = useRef<HTMLCanvasElement>(null);
-  const chartInstanceRef = useRef<Chart | null>(null);
-
-  useEffect(() => {
-    if (!chartRef.current) return;
-    if (chartInstanceRef.current) {
-      chartInstanceRef.current.destroy();
-    }
-
-    chartInstanceRef.current = new Chart(chartRef.current, {
-      type: 'line',
-      data: {
-        labels: data.time.map((t) => t.toFixed(1)),
-        datasets: [
-          {
-            label: '期望航向',
-            data: data.desiredHeading,
-            borderColor: simulationScenePalette.danger,
-            backgroundColor: simulationScenePalette.dangerSurface,
-            yAxisID: 'y-heading',
-            fill: false,
-            borderWidth: 2,
-            pointRadius: 0,
-          },
-          {
-            label: '实际航向',
-            data: data.actualHeading,
-            borderColor: simulationScenePalette.success,
-            backgroundColor: simulationScenePalette.successSurface,
-            yAxisID: 'y-heading',
-            fill: false,
-            borderWidth: 2,
-            pointRadius: 0,
-          },
-          {
-            label: '航速',
-            data: data.speed,
-            borderColor: simulationScenePalette.headingPrimary,
-            backgroundColor: simulationScenePalette.headingSurface,
-            yAxisID: 'y-speed',
-            fill: false,
-            borderWidth: 2,
-            pointRadius: 0,
-          },
-          {
-            label: '舵角',
-            data: data.rudder,
-            borderColor: simulationScenePalette.dredgerPrimary,
-            backgroundColor: simulationScenePalette.warningSurface,
-            yAxisID: 'y-rudder',
-            fill: false,
-            borderWidth: 2,
-            pointRadius: 0,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            position: 'top',
-            labels: { color: simulationScenePalette.chartTitle },
-          },
-          tooltip: {
-            backgroundColor: simulationScenePalette.chartSurface,
-            titleColor: simulationScenePalette.chartTitle,
-            bodyColor: simulationScenePalette.chartText,
-            borderColor: simulationScenePalette.chartBorder,
-            borderWidth: 1,
-          },
-        },
-        scales: {
-          x: {
-            title: { display: true, text: '时间 (秒)', color: simulationScenePalette.chartText },
-            ticks: { color: simulationScenePalette.chartTick, maxTicksLimit: 15 },
-            grid: { color: simulationScenePalette.chartGridFaint },
-          },
-          'y-heading': {
-            type: 'linear',
-            position: 'left',
-            title: { display: true, text: '航向角 (°)', color: simulationScenePalette.chartText },
-            min: -180,
-            max: 180,
-            ticks: { color: simulationScenePalette.chartTick, stepSize: 45 },
-            grid: { color: simulationScenePalette.chartGrid },
-          },
-          'y-speed': {
-            type: 'linear',
-            position: 'right',
-            title: { display: true, text: '航速 (m/s)', color: simulationScenePalette.chartText },
-            ticks: { color: simulationScenePalette.chartTick },
-            grid: { drawOnChartArea: false },
-          },
-          'y-rudder': {
-            type: 'linear',
-            position: 'right',
-            offset: true,
-            title: { display: true, text: '舵角 (°)', color: simulationScenePalette.chartText },
-            min: -nomotoParams.maxRudderDeg,
-            max: nomotoParams.maxRudderDeg,
-            ticks: { color: simulationScenePalette.chartTick, stepSize: 10 },
-            grid: { drawOnChartArea: false },
-          },
-        },
-      },
-    });
-
-    return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-        chartInstanceRef.current = null;
-      }
-    };
-  }, [data]);
-
-  return (
-    <div className="flex h-full w-full flex-col bg-platform-canvas p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-platform-fg-primary">仿真曲线</h2>
-        <Button onClick={onBack} variant="default" size="lg">
-          返回场景
-        </Button>
-      </div>
-      <div className="flex-1 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-4">
-        <canvas ref={chartRef} />
-      </div>
-    </div>
-  );
-}
-
 // ============ 主组件 ============
 
-export default function DestroyerSimulation() {
-  // 状态
+export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }) {
+  const ai = useOptionalGlobalAI();
+  const { data: session, status: sessionStatus } = useSession();
   const [isRunning, setIsRunning] = useState(false);
   const [controlMode, setControlMode] = useState<ControlMode>('pid');
   const [pidGains, setPidGains] = useState<PIDGains>(DEFAULT_PID_GAINS);
   const [cameraMode, setCameraMode] = useState<string>('chase');
   const [viewResetCount, setViewResetCount] = useState(0);
   const [showGrid, setShowGrid] = useState(true);
-  const [speedScale, setSpeedScale] = useState(1);
+  const [speedScale, setSpeedScale] = useState(8);
   const sceneTheme = useSimulationSceneTheme();
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  const [selectedTask, setSelectedTask] = useState(0);
+  const [activeSeq, setActiveSeq] = useState(1);
+  const [viewSeq, setViewSeq] = useState(1);
+  const [manualRudder, setManualRudder] = useState(0);
   const [resetToken, setResetToken] = useState(0);
-  const [showChart, setShowChart] = useState(false);
   const [hudState, setHudState] = useState<HudState>({
     heading: 0,
     yawRate: 0,
@@ -1363,13 +1109,30 @@ export default function DestroyerSimulation() {
     currentError: 0,
     time: 0,
   });
-  const [chartData, setChartData] = useState<ChartData>({
-    time: [],
-    desiredHeading: [],
-    actualHeading: [],
-    speed: [],
-    rudder: [],
-  });
+  const [samples, setSamples] = useState<DestroyerSample[]>([]);
+  const [records, setRecords] = useState<Array<{
+    seq: number;
+    title: string;
+    earnedPoints: number;
+    maxPoints: number;
+    evaluation: string;
+    remarks: string;
+    samples: DestroyerSample[];
+    readings: DestroyerReadings;
+  }>>([]);
+  const [readings, setReadings] = useState<DestroyerReadings>({});
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [originId, setOriginId] = useState('');
+  const [reportHtml, setReportHtml] = useState('');
+  const [pastReports, setPastReports] = useState<Array<{ id: string; score: number; maxScore: number; createdAt: string }> | null>(null);
+  const [reportRevision, setReportRevision] = useState(0);
+  const [seriesVisible, setSeriesVisible] = useState<Record<DestroyerSeriesId, boolean>>(
+    () => Object.fromEntries(DESTROYER_CURVE_SERIES.map((series) => [series.id, series.id !== 'crossTrackError'])) as Record<DestroyerSeriesId, boolean>,
+  );
+  const stepStartedAt = useRef(Date.now());
+  const hudRef = useRef(hudState);
+  hudRef.current = hudState;
 
   // Refs
   const simRef = useRef<SimulationState>({
@@ -1393,24 +1156,31 @@ export default function DestroyerSimulation() {
   // 数值仿真时间（#2097 提升）：引擎逐 fixed-step 写入，帧快照 simulationTime 只读消费。
   const simTimeRef = useRef(0);
 
-  // 计算场景逻辑
-  const task = tasks[selectedTask];
-  const scenarioLogic = useMemo(() => getScenarioLogic(task.scenario), [task.scenario]);
-  const guidePath = useMemo(() => generateGuidePath(scenarioLogic, task.duration), [scenarioLogic, task.duration]);
+  const step = DESTROYER_EXPERIMENT_STEPS[activeSeq - 1] ?? DESTROYER_EXPERIMENT_STEPS[0];
+  const viewed = DESTROYER_EXPERIMENT_STEPS[viewSeq - 1] ?? step;
+  const motion = useMemo(() => destroyerSceneMotion(step, REF_SPEED), [step]);
+  const scenarioLogic = useMemo<ScenarioLogic>(() => ({
+    startPos: motion.start,
+    getDesiredHeading: motion.desiredHeading,
+  }), [motion]);
+  const guidePath = useMemo(() => generateGuidePath(scenarioLogic, motion.duration), [scenarioLogic, motion.duration]);
   const headingPoints = useMemo(() => {
     const points: HeadingPoint[] = [];
-    const step = task.duration / 10;
-    for (let t = 0; t <= task.duration; t += step) {
-      points.push({ time: t, heading: normalizeSignedHeading(scenarioLogic.getDesiredHeading(t)) });
+    const mark = 1;
+    for (let time = 0; time <= motion.duration; time += mark) {
+      points.push({ time, heading: normalizeSignedHeading(scenarioLogic.getDesiredHeading(time)) });
     }
     return points;
-  }, [scenarioLogic, task.duration]);
+  }, [scenarioLogic, motion.duration]);
+  const doneSeqs = records.map((record) => record.seq);
+  const viewedRecord = records.find((record) => record.seq === viewSeq);
+  const shownSamples = viewSeq === activeSeq ? samples : viewedRecord?.samples ?? [];
 
-  // 重置仿真
   const handleReset = useCallback(() => {
     setIsRunning(false);
     setResetToken((prev) => prev + 1);
-    setChartData({ time: [], desiredHeading: [], actualHeading: [], speed: [], rudder: [] });
+    setSamples([]);
+    setManualRudder(0);
 
     const start = scenarioLogic.startPos;
     simRef.current = {
@@ -1443,27 +1213,245 @@ export default function DestroyerSimulation() {
     });
   }, [scenarioLogic]);
 
-  // 任务切换时重置
   useEffect(() => {
     handleReset();
-  }, [selectedTask, handleReset]);
+    setControlMode(step.defaultMode);
+    setReadings({});
+    stepStartedAt.current = Date.now();
+  }, [activeSeq, handleReset, step.defaultMode]);
 
-  // 图表数据更新
-  const handleChartDataUpdate = useCallback(
-    (time: number, desired: number, actual: number, speed: number, rudder: number) => {
-      setChartData((prev) => ({
-        time: [...prev.time, time],
-        desiredHeading: [...prev.desiredHeading, desired],
-        actualHeading: [...prev.actualHeading, actual],
-        speed: [...prev.speed, speed],
-        rudder: [...prev.rudder, rudder],
-      }));
-    },
-    []
-  );
+  useEffect(() => {
+    simRef.current.manualRudderDeg = manualRudder;
+  }, [manualRudder, resetToken]);
 
-  if (showChart) {
-    return <SimulationChart data={chartData} onBack={() => setShowChart(false)} />;
+  useEffect(() => {
+    if (!ticket) return;
+    let cancelled = false;
+    void (async () => {
+      const response = await fetch('/api/ilab/destroyer/session', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ ticket }),
+      });
+      const body = await response.json() as { originId?: string; displayName?: string; error?: string };
+      if (cancelled) return;
+      if (!response.ok || !body.originId) {
+        setMessage(body.error || '票据校验失败，本次只在本机记录。');
+        return;
+      }
+      setOriginId(body.originId);
+      window.history.replaceState(null, '', '/simulations/destroyer');
+      setMessage(`已进入实验，学生 ${body.displayName ?? ''}。`);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ticket]);
+
+  useEffect(() => {
+    if (sessionStatus !== 'authenticated') {
+      setPastReports(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const response = await fetch('/api/simulations/destroyer/reports');
+      if (!response.ok) return;
+      const body = await response.json() as { reports?: Array<{ id: string; score: number; maxScore: number; createdAt: string }> };
+      if (!cancelled) setPastReports(body.reports ?? []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionStatus, reportRevision]);
+
+  const updatePageContext = ai?.updatePageContext;
+  const clearDynamicPageContext = ai?.clearDynamicPageContext;
+  const hudBucket = Math.floor(hudState.time / 5);
+  useEffect(() => {
+    if (!updatePageContext) return;
+    const hud = hudRef.current;
+    updatePageContext({
+      courseId: 'destroyer-heading-experiment',
+      courseTitle: DESTROYER_EXPERIMENT_TITLE,
+      pageType: 'practice',
+      stepId: `destroyer-step-${step.seq}`,
+      topic: step.title,
+      learningObjectives: [step.goal],
+      knowledgeType: 'X',
+      simulationId: 'destroyer',
+      routeProvenance: 'simulation-route',
+      systemPromptExtension: destroyerKonlingBrief(step, {
+        heading: hud.heading,
+        yawRate: hud.yawRate,
+        rudder: hud.rudder,
+        manualRudder,
+        speed: hud.speed,
+        time: hud.time,
+        mode: controlMode,
+      }),
+      quickQuestions: [{
+        label: '这一步怎么做',
+        question: `我在做驱逐舰航向控制实验第 ${step.seq} 步「${step.title}」。请给出操作建议，不要替我填写读数，也不要打分。`,
+      }],
+    });
+  }, [updatePageContext, step, hudBucket, controlMode, manualRudder]);
+
+  useEffect(() => () => {
+    clearDynamicPageContext?.();
+  }, [clearDynamicPageContext]);
+
+  const handleChartDataUpdate = useCallback((sample: DestroyerSample) => {
+    setSamples((prev) => {
+      const next = [...prev, sample];
+      return next.length > 2000 ? next.slice(next.length - 2000) : next;
+    });
+  }, []);
+
+  async function submitStep() {
+    const order = assertDestroyerStepOrder(doneSeqs, step.seq);
+    if (order) {
+      setMessage(order);
+      return;
+    }
+    const storedSamples = thinDestroyerSamples(samples);
+    const scored = scoreDestroyerStep(step.seq, storedSamples, readings);
+    if (!scored.ok) {
+      setMessage(scored.message);
+      return;
+    }
+    const record = {
+      seq: step.seq,
+      title: step.title,
+      earnedPoints: scored.earnedPoints,
+      maxPoints: scored.maxPoints,
+      evaluation: scored.evaluation,
+      remarks: scored.remarks,
+      samples: storedSamples,
+      readings,
+    };
+    const previous = records.find((item) => item.seq === step.seq);
+    const chosen = chooseBetterDestroyerAttempt(previous, record);
+    if (chosen.keptPrevious) {
+      setMessage('这次没有超过已保存的成绩，仍保留较好的一次。');
+      return;
+    }
+    const nextRecords = [...records.filter((item) => item.seq !== step.seq), chosen.record];
+    const redoing = doneSeqs.includes(step.seq);
+    if (originId) {
+      setBusy(true);
+      try {
+        const response = await fetch(`/api/ilab/destroyer/session/${originId}/steps`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            seq: step.seq,
+            readings,
+            samples: storedSamples,
+            startedAtMs: stepStartedAt.current,
+          }),
+        });
+        const body = await response.json() as { error?: string };
+        if (!response.ok && response.status !== 409) {
+          setMessage(body.error || '本步回传失败。');
+          return;
+        }
+        if (response.status === 409) {
+          if (step.seq === 10) {
+            const html = buildDestroyerReportHtml({
+              displayName: session?.user?.name || '本次实验',
+              steps: nextRecords,
+            });
+            setReportHtml(html);
+            const saved = await saveAccountReport(html, nextRecords);
+            setMessage(saved ? '实验空间已经交卷。新的报告已保存到账号。' : '实验空间已经交卷，这次成绩只留在本机。');
+          } else {
+            setMessage('实验空间已经交卷，这次成绩只留在本机。');
+          }
+        } else if (step.seq === 10) {
+          const done = await fetch(`/api/ilab/destroyer/session/${originId}/complete`, { method: 'POST' });
+          const doneBody = await done.json() as { error?: string; remote?: { message?: string } };
+          if (!done.ok) {
+            setMessage(doneBody.error || '实验报告回传失败。');
+            return;
+          }
+          const reportResponse = await fetch(`/api/ilab/session/${originId}?report=1`);
+          const html = reportResponse.ok
+            ? await reportResponse.text()
+            : buildDestroyerReportHtml({ displayName: session?.user?.name || '本次实验', steps: nextRecords });
+          setReportHtml(html);
+          const saved = await saveAccountReport(html, nextRecords);
+          const remoteMessage = doneBody.remote?.message || '实验报告已生成。';
+          setMessage(saved ? `${remoteMessage}报告已保存到账号。` : remoteMessage);
+        } else {
+          setMessage('本步已回传。');
+        }
+      } finally {
+        setBusy(false);
+      }
+    } else if (step.seq === 10) {
+      const html = buildDestroyerReportHtml({
+        displayName: session?.user?.name || '本次实验',
+        steps: nextRecords,
+      });
+      setReportHtml(html);
+      const saved = await saveAccountReport(html, nextRecords);
+      setMessage(saved
+        ? '报告已保存到账号。没有实验空间票据，尚未回传。'
+        : '报告已在本机生成。没有实验空间票据，尚未回传。登录后可以保存到账号。');
+    } else {
+      setMessage('本步已记录。没有实验空间票据，尚未回传。');
+    }
+    setRecords(nextRecords);
+    setReadings({});
+    if (!redoing && step.seq < 10) {
+      setActiveSeq(step.seq + 1);
+      setViewSeq(step.seq + 1);
+    }
+  }
+
+  async function saveAccountReport(html: string, stored: typeof records): Promise<boolean> {
+    if (sessionStatus !== 'authenticated') return false;
+    const response = await fetch('/api/simulations/destroyer/reports', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        reportHtml: html,
+        steps: stored.map((item) => ({
+          seq: item.seq,
+          title: item.title,
+          earnedPoints: item.earnedPoints,
+          maxPoints: item.maxPoints,
+          evaluation: item.evaluation,
+          remarks: item.remarks,
+        })),
+      }),
+    });
+    if (!response.ok) return false;
+    setReportRevision((value) => value + 1);
+    return true;
+  }
+
+  async function openStoredReport(id: string) {
+    const response = await fetch(`/api/simulations/destroyer/reports/${id}`);
+    const body = await response.json() as { reportHtml?: string; error?: string };
+    if (!response.ok || !body.reportHtml) {
+      setMessage(body.error || '打不开这份报告。');
+      return;
+    }
+    const blob = new Blob([body.reportHtml], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, 'destroyer-experiment-report', 'popup,width=960,height=720');
+  }
+
+  function openReport() {
+    const html = reportHtml || buildDestroyerReportHtml({
+      displayName: '本次实验',
+      steps: records,
+    });
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, 'destroyer-experiment-report', 'popup,width=960,height=720');
   }
 
   return (
@@ -1531,18 +1519,13 @@ export default function DestroyerSimulation() {
           controlMode={controlMode}
           pidGains={pidGains}
           headingPoints={headingPoints}
-          duration={task.duration}
+          duration={motion.duration}
           guidePath={guidePath}
           resetToken={resetToken}
           speedScale={speedScale}
-          maxErrorDeg={
-            destroyer055Profile.scenarios.find((scenario) => scenario.id === task.scenario)
-              ?.successCriteria?.maxError ?? 5
-          }
-          maxSettlingTimeSec={
-            destroyer055Profile.scenarios.find((scenario) => scenario.id === task.scenario)
-              ?.successCriteria?.maxSettlingTime
-          }
+          maxErrorDeg={5}
+          maxSettlingTimeSec={60}
+          disturbanceEnabled={motion.disturbance}
           onHudUpdate={setHudState}
           onChartDataUpdate={handleChartDataUpdate}
         />
@@ -1552,12 +1535,46 @@ export default function DestroyerSimulation() {
 
       <SimulationDock
         side="left"
-        title="状态监控"
+        title="实验状态"
+        fitContent
+        defaultTab="status"
         tabs={[
           {
+            id: 'steps',
+            label: '实验步骤',
+            content: (
+              <DestroyerStepList
+                activeSeq={activeSeq}
+                viewSeq={viewSeq}
+                doneSeqs={doneSeqs}
+                suggestion={viewed.suggestion}
+                onOpen={(seq) => {
+                  setViewSeq(seq);
+                  setActiveSeq(seq);
+                }}
+              />
+            ),
+          },
+          {
             id: 'status',
-            label: '总览',
-            content: <HUD state={hudState} isRunning={isRunning} controlMode={controlMode} />,
+            label: '状态',
+            content: (
+              <DestroyerStatusPanel
+                heading={signedHeading(hudState.heading)}
+                yawRate={hudState.yawRate}
+                rudder={hudState.rudder}
+                manualRudder={manualRudder}
+                speed={hudState.speed}
+                currentError={hudState.currentError}
+                avgError={hudState.avgError}
+                time={hudState.time}
+                running={isRunning}
+                mode={controlMode}
+                samples={shownSamples}
+                visible={seriesVisible}
+                onToggle={(id) => setSeriesVisible((prev) => ({ ...prev, [id]: !prev[id] }))}
+              />
+            ),
           },
         ]}
       />
@@ -1565,39 +1582,63 @@ export default function DestroyerSimulation() {
       <SimulationDock
         side="right"
         title="控制与探究"
+        fitContent
         tabs={[
           {
             id: 'control',
             label: '控制',
             content: (
-              <ControlPanel
-                isRunning={isRunning}
-                controlMode={controlMode}
-                pidGains={pidGains}
-                selectedTask={selectedTask}
-                onStart={() => setIsRunning(true)}
-                onPause={() => setIsRunning(false)}
-                onReset={handleReset}
-                onControlModeChange={setControlMode}
-                onPidGainsChange={setPidGains}
-                onTaskChange={setSelectedTask}
-                onShowChart={() => setShowChart(true)}
-              />
+              <div className="space-y-3">
+                <ControlPanel
+                  isRunning={isRunning}
+                  controlMode={controlMode}
+                  pidGains={pidGains}
+                  stepTitle={`${step.seq}. ${step.title}`}
+                  allowedModes={step.modes}
+                  allowedGains={step.gains}
+                  controlsEnabled={step.scene !== 'review'}
+                  manualRudder={manualRudder}
+                  onStart={() => setIsRunning(true)}
+                  onPause={() => setIsRunning(false)}
+                  onReset={handleReset}
+                  onControlModeChange={setControlMode}
+                  onPidGainsChange={setPidGains}
+                  onManualRudderChange={setManualRudder}
+                />
+                <DestroyerStepForm
+                  step={step}
+                  readings={readings}
+                  message={message}
+                  busy={busy}
+                  reportEnabled={records.some((record) => record.seq === 10) || Boolean(reportHtml)}
+                  onChange={(key, value) => setReadings((prev) => ({ ...prev, [key]: value }))}
+                  onSubmit={() => { void submitStep(); }}
+                  onReport={openReport}
+                  onAsk={() => ai?.openSidebar()}
+                />
+              </div>
             ),
           },
           {
             id: 'evaluate',
             label: '评估',
             content: (
-              <SimulationAssessmentPanel
-                title="机动任务评估"
-                metrics={[
-                  { id: 'current-error', label: '当前误差', value: hudState.currentError, max: 200, better: 'lower', unit: 'm' },
-                  { id: 'avg-error', label: '平均误差', value: hudState.avgError, max: 200, better: 'lower', unit: 'm' },
-                  { id: 'yaw', label: '转艏速率', value: Math.abs(hudState.yawRate), max: 8, better: 'lower', unit: '°/s' },
-                  { id: 'rudder', label: '舵角幅值', value: Math.abs(hudState.rudder), max: 35, better: 'lower', unit: '°' },
-                ]}
-              />
+              <div className="w-max max-w-[calc(100vw-2rem)] space-y-3">
+                <DestroyerReportHistory
+                  signedIn={sessionStatus === 'authenticated'}
+                  reports={pastReports ?? []}
+                  onOpen={(id) => { void openStoredReport(id); }}
+                />
+                <SimulationAssessmentPanel
+                  title="机动任务评估"
+                  metrics={[
+                    { id: 'current-error', label: '当前误差', value: hudState.currentError, max: 200, better: 'lower', unit: 'm' },
+                    { id: 'avg-error', label: '平均误差', value: hudState.avgError, max: 200, better: 'lower', unit: 'm' },
+                    { id: 'yaw', label: '转艏速率', value: Math.abs(hudState.yawRate), max: 8, better: 'lower', unit: '°/s' },
+                    { id: 'rudder', label: '舵角幅值', value: Math.abs(hudState.rudder), max: 35, better: 'lower', unit: '°' },
+                  ]}
+                />
+              </div>
             ),
           },
         ]}
@@ -1619,7 +1660,7 @@ export default function DestroyerSimulation() {
 
       <SimulationTopBar
         title="055型驱逐舰战术机动仿真"
-        subtitle="高保真航向控制 · 任务场景切换"
+        subtitle="高保真航向控制"
         badge="Destroyer / OBE"
       />
     </div>

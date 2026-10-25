@@ -26,7 +26,7 @@ import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { SimulationTopBar, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
@@ -63,15 +63,15 @@ import type {
   Vector2,
   PIDGains,
 } from '../core/types';
-import { lngChanghengProfile, getLNGDefaultConfig } from '../profiles/lng-changheng';
-import {
-  LNGCarrierEngine,
-  createSimulationEngine,
-} from '../physics/engine-factory';
 import {
   preloadVirtualSimulationRuntime,
   isVirtualSimulationRuntimeReady,
 } from '../physics/simulation-engine-facade';
+import { createLngDrive } from './vessel-drives';
+import { lngExperiment } from './vessel-experiments';
+import { takeVesselSubstep, vesselSampleMark } from './vessel-experiment';
+import { VesselExperimentDocks } from './vessel-experiment-panels';
+import { useVesselExperiment } from './use-vessel-experiment';
 import { toDegrees, toRadians, LNG_CHANGHENG_PARAMS } from '../core/constants';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
@@ -340,6 +340,7 @@ function StatusPanel({
 
 function ControlPanel({
   state,
+  inputsEnabled = true,
   onControlModeChange,
   onTargetHeadingChange,
   onSmithToggle,
@@ -347,6 +348,7 @@ function ControlPanel({
   onReset,
 }: {
   state: LNGSimulationState;
+  inputsEnabled?: boolean;
   onControlModeChange: (mode: ControlMode) => void;
   onTargetHeadingChange: (heading: number) => void;
   onSmithToggle: () => void;
@@ -359,8 +361,9 @@ function ControlPanel({
         <label htmlFor="lng-simulation-control-1" className="mb-1 block text-sm text-platform-fg-secondary">控制模式</label>
         <select id="lng-simulation-control-1"
           value={state.controlMode}
+          disabled={!inputsEnabled}
           onChange={(e) => onControlModeChange(e.target.value as ControlMode)}
-          className="w-full rounded border border-platform-border bg-platform-surface-overlay/86 p-2 text-platform-fg-primary"
+          className="w-full rounded border border-platform-border bg-platform-surface-overlay/86 p-2 text-platform-fg-primary disabled:cursor-not-allowed disabled:opacity-60"
         >
           <option value="manual">手动</option>
           <option value="p">P 控制</option>
@@ -379,6 +382,7 @@ function ControlPanel({
           min="-180"
           max="180"
           value={state.targetHeading}
+          disabled={!inputsEnabled}
           onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
           className={simulationUi.nativeRange}
         />
@@ -389,6 +393,7 @@ function ControlPanel({
           <input
             type="checkbox"
             checked={state.smithEnabled}
+            disabled={!inputsEnabled}
             onChange={onSmithToggle}
             className="h-4 w-4 accent-[hsl(var(--platform-action-primary))]"
           />
@@ -526,9 +531,13 @@ function Scene({
 
 // ============ 主组件 ============
 
-export function LNGSimulation() {
+export function LNGSimulation({ ticket = '' }: { ticket?: string }) {
+  const session = useVesselExperiment(lngExperiment, ticket);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
   const timeRef = useRef(0);
-  const engineRef = useRef<LNGCarrierEngine | null>(null);
+  const driveRef = useRef<ReturnType<typeof createLngDrive> | null>(null);
+  const markRef = useRef(-1);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
   const clockRef = useRef(
@@ -546,7 +555,7 @@ export function LNGSimulation() {
     targetHeading: 0,
     controlMode: 'pid' as LNGSimulationState['controlMode'],
   });
-  const speedScaleRef = useRef(1);
+  const speedScaleRef = useRef(8);
   const lastHudUpdateRef = useRef(0);
   const lastTrajectoryTimeRef = useRef(0);
   const bindingRef = useRef<BindingTelemetrySource>({
@@ -559,7 +568,7 @@ export function LNGSimulation() {
 
   const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
-  const [speedScale, setSpeedScale] = useState(1);
+  const [speedScale, setSpeedScale] = useState(8);
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
@@ -567,7 +576,7 @@ export function LNGSimulation() {
     isRunning: false,
     isPaused: false,
     time: 0,
-    position: { x: -3000, z: 0 },
+    position: { x: -800, z: 0 },
     heading: 0,
     yawRate: 0,
     rudder: 0,
@@ -581,19 +590,63 @@ export function LNGSimulation() {
 
   const [trajectory, setTrajectory] = useState<Vector2[]>([]);
 
-  // 初始化引擎
-  useEffect(() => {
-    preloadVirtualSimulationRuntime().catch(console.error);
-
-    const engine = createSimulationEngine(lngChanghengProfile) as LNGCarrierEngine;
-    engine.initialize(-3000, 0, 0);
-    engineRef.current = engine;
+  const resetPose = useCallback((clearCurve: boolean) => {
+    const drive = driveRef.current;
+    if (!drive) return;
+    const command = lngExperiment.command(sessionRef.current.step, 0);
+    drive.reset(command);
+    const view = drive.view();
+    markRef.current = -1;
+    timeRef.current = 0;
+    lastHudUpdateRef.current = 0;
+    lastTrajectoryTimeRef.current = 0;
+    attainmentRef.current = createAttainmentState(command.targetHeading);
+    bindingRef.current = {
+      rudderDeg: view.rudder,
+      speedMps: view.speed,
+      attainedCount: 0,
+      advancing: false,
+    };
+    if (clearCurve) sessionRef.current.clearSamples();
+    setState({
+      isRunning: false,
+      isPaused: false,
+      time: 0,
+      position: view.position,
+      heading: view.heading,
+      yawRate: view.yawRate,
+      rudder: view.rudder,
+      speed: view.speed,
+      sloshingAngle: view.sloshingAngle,
+      tankPressure: view.tankPressure,
+      targetHeading: command.targetHeading,
+      controlMode: command.mode,
+      smithEnabled: command.smith,
+    });
+    lastTimeRef.current = 0;
+    clockRef.current.reset();
+    setTrajectory([]);
+    setResetCount((previous) => previous + 1);
   }, []);
 
-  // 仿真循环
+  useEffect(() => {
+    let cancelled = false;
+    preloadVirtualSimulationRuntime().catch(console.error);
+    const drive = createLngDrive();
+    driveRef.current = drive;
+    if (!cancelled) resetPose(false);
+    return () => {
+      cancelled = true;
+    };
+  }, [resetPose]);
+
+  useEffect(() => {
+    resetPose(false);
+  }, [session.activeSeq, resetPose]);
+
   const simulationStep = useCallback((timestamp: number) => {
-    const engine = engineRef.current;
-    if (!engine) return;
+    const drive = driveRef.current;
+    if (!drive) return;
     const control = controlRef.current;
     if (!isVirtualSimulationRuntimeReady()) {
       lastTimeRef.current = timestamp;
@@ -605,31 +658,34 @@ export function LNGSimulation() {
     lastTimeRef.current = timestamp;
 
     let nextTime = timeRef.current;
-    let engineState = engine.getState(nextTime);
-    let sloshingMetrics = engine.getSloshingMetrics();
+    let view = drive.view();
+    let command = lngExperiment.command(sessionRef.current.step, nextTime);
 
     clockRef.current.advance(frameDt, (dt) => {
-      const time = nextTime + dt;
-      nextTime = time;
-      engine.step(
-        control.targetHeading,
-        null,
-        control.controlMode,
-        0,
-        LNG_CHANGHENG_PARAMS.CRUISE_SPEED,
+      const moved = takeVesselSubstep(
+        sessionRef.current.step,
+        (time) => lngExperiment.command(sessionRef.current.step, time),
+        (nextCommand, stepDt, time) => drive.step(nextCommand, stepDt, time),
+        nextTime,
         dt,
-        time
       );
-      engineState = engine.getState(time);
-      sloshingMetrics = engine.getSloshingMetrics();
-      const headingError = absoluteHeadingErrorDeg(engineState.heading, control.targetHeading);
+      nextTime = moved.time;
+      command = moved.command;
+      if (!moved.sample) return;
+      view = drive.view();
+      const mark = vesselSampleMark(moved.sample.time);
+      if (mark > markRef.current) {
+        markRef.current = mark;
+        sessionRef.current.observe(moved.sample);
+      }
+      const headingError = absoluteHeadingErrorDeg(view.heading, command.targetHeading);
       let attainedCount = bindingRef.current.attainedCount;
-      if (advanceAttainment(attainmentRef.current, control.targetHeading, headingError, 5, dt)) {
+      if (advanceAttainment(attainmentRef.current, command.targetHeading, headingError, 5, dt)) {
         attainedCount += 1;
       }
       bindingRef.current = {
-        rudderDeg: engineState.rudder,
-        speedMps: engineState.speed,
+        rudderDeg: view.rudder,
+        speedMps: view.speed,
         attainedCount,
         advancing: control.isRunning && !control.isPaused,
       };
@@ -643,19 +699,22 @@ export function LNGSimulation() {
       setState((prev) => ({
         ...prev,
         time: nextTime,
-        position: engineState.position,
-        heading: engineState.heading,
-        yawRate: engineState.yawRate,
-        rudder: engineState.rudder,
-        speed: engineState.speed,
-        sloshingAngle: sloshingMetrics.angleDeg,
-        tankPressure: sloshingMetrics.pressure,
+        position: view.position,
+        heading: view.heading,
+        yawRate: view.yawRate,
+        rudder: view.rudder,
+        speed: view.speed,
+        sloshingAngle: view.sloshingAngle,
+        tankPressure: view.tankPressure,
+        targetHeading: command.targetHeading,
+        controlMode: command.mode,
+        smithEnabled: command.smith,
       }));
     }
 
     if (nextTime - lastTrajectoryTimeRef.current > 0.5) {
       lastTrajectoryTimeRef.current = nextTime;
-      const newPoint = { ...engineState.position };
+      const newPoint = { ...view.position };
       setTrajectory((prev) => {
         const newTraj = [...prev, newPoint];
         return newTraj.length > 500 ? newTraj.slice(-500) : newTraj;
@@ -707,45 +766,9 @@ export function LNGSimulation() {
   }, []);
 
   const handleReset = useCallback(() => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-
-    if (engineRef.current) {
-      engineRef.current.initialize(-3000, 0, 0);
-    }
-
-    lastHudUpdateRef.current = 0;
-    lastTrajectoryTimeRef.current = 0;
-    attainmentRef.current = createAttainmentState(0);
-    bindingRef.current = {
-      rudderDeg: 0,
-      speedMps: LNG_CHANGHENG_PARAMS.CRUISE_SPEED,
-      attainedCount: 0,
-      advancing: false,
-    };
-
-    setState({
-      isRunning: false,
-      isPaused: false,
-      time: 0,
-      position: { x: -3000, z: 0 },
-      heading: 0,
-      yawRate: 0,
-      rudder: 0,
-      speed: LNG_CHANGHENG_PARAMS.CRUISE_SPEED,
-      sloshingAngle: 0,
-      tankPressure: 100,
-      targetHeading: 0,
-      controlMode: 'pid',
-      smithEnabled: false,
-    });
-    lastTimeRef.current = 0;
-    timeRef.current = 0;
-    clockRef.current.reset();
-    setTrajectory([]);
-    setResetCount((previous) => previous + 1);
-  }, []);
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    resetPose(true);
+  }, [resetPose]);
 
   const handleControlModeChange = useCallback((mode: ControlMode) => {
     setState((prev) => ({ ...prev, controlMode: mode }));
@@ -756,13 +779,7 @@ export function LNGSimulation() {
   }, []);
 
   const handleSmithToggle = useCallback(() => {
-    setState((prev) => {
-      const newSmithEnabled = !prev.smithEnabled;
-      if (engineRef.current) {
-        engineRef.current.setSmithPredictorEnabled(newSmithEnabled);
-      }
-      return { ...prev, smithEnabled: newSmithEnabled };
-    });
+    setState((prev) => ({ ...prev, smithEnabled: !prev.smithEnabled }));
   }, []);
 
   return (
@@ -787,52 +804,32 @@ export function LNGSimulation() {
         />
       </MarineCanvas>
 
-      <SimulationDock
-        side="left"
-        title="状态监控"
-        tabs={[
-          {
-            id: 'status',
-            label: '总览',
-            content: <StatusPanel state={state} />,
-          },
-        ]}
-      />
-
-      <SimulationDock
-        side="right"
-        title="控制与探究"
-        tabs={[
-          {
-            id: 'control',
-            label: '控制',
-            content: (
-              <ControlPanel
-                state={state}
-                onControlModeChange={handleControlModeChange}
-                onTargetHeadingChange={handleTargetHeadingChange}
-                onSmithToggle={handleSmithToggle}
-                onStartPause={handleStartPause}
-                onReset={handleReset}
-              />
-            ),
-          },
-          {
-            id: 'evaluate',
-            label: '评估',
-            content: (
-              <SimulationAssessmentPanel
-                title="运行质量评估"
-                metrics={[
-                  { id: 'heading-error', label: '航向误差', value: Math.abs(state.heading - state.targetHeading), max: 30, better: 'lower', unit: '°', precision: 1 },
-                  { id: 'rudder', label: '舵角幅值', value: Math.abs(state.rudder), max: 35, better: 'lower', unit: '°', precision: 1 },
-                  { id: 'sloshing', label: '液货晃荡', value: state.sloshingAngle, max: 12, better: 'lower', unit: '°', precision: 2 },
-                  { id: 'pressure', label: '舱压稳定', value: state.tankPressure, max: 200, better: 'lower', unit: 'kPa', precision: 0 },
-                ]}
-              />
-            ),
-          },
-        ]}
+      <VesselExperimentDocks
+        experiment={lngExperiment}
+        session={session}
+        status={<StatusPanel state={state} />}
+        controls={(
+          <ControlPanel
+            state={state}
+            inputsEnabled={false}
+            onControlModeChange={handleControlModeChange}
+            onTargetHeadingChange={handleTargetHeadingChange}
+            onSmithToggle={handleSmithToggle}
+            onStartPause={handleStartPause}
+            onReset={handleReset}
+          />
+        )}
+        assessment={(
+          <SimulationAssessmentPanel
+            title="运行质量评估"
+            metrics={[
+              { id: 'heading-error', label: '航向误差', value: Math.abs(state.heading - state.targetHeading), max: 30, better: 'lower', unit: '°', precision: 1 },
+              { id: 'rudder', label: '舵角幅值', value: Math.abs(state.rudder), max: 35, better: 'lower', unit: '°', precision: 1 },
+              { id: 'sloshing', label: '液货晃荡', value: state.sloshingAngle, max: 12, better: 'lower', unit: '°', precision: 2 },
+              { id: 'pressure', label: '舱压稳定', value: state.tankPressure, max: 200, better: 'lower', unit: 'kPa', precision: 0 },
+            ]}
+          />
+        )}
       />
 
       <SimulationTopBar

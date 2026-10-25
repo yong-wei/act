@@ -25,7 +25,12 @@ import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, SimulationDock, simulationUi } from '../components/simulation-ui';
+import { SimulationTopBar, simulationUi } from '../components/simulation-ui';
+import { createIceDrive } from './vessel-drives';
+import { iceExperiment } from './vessel-experiments';
+import { takeVesselSubstep, vesselSampleMark } from './vessel-experiment';
+import { VesselExperimentDocks } from './vessel-experiment-panels';
+import { useVesselExperiment } from './use-vessel-experiment';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
@@ -84,25 +89,13 @@ import {
 } from '../profiles/icebreaker-xuelong';
 import {
   createAzipod3DOFState,
-  azipod3dofStepRK4,
-  azipodToSimulationState,
-  DEFAULT_AZIPOD_3DOF_PARAMS,
   createIceBreakingState,
-  iceBreakingStep,
   getIceBreakingSummary,
   getIceZoneSafetyLevel,
-  DEFAULT_ICE_BREAKING_PARAMS,
-  createAzipodCourseKeeperState,
-  azipodCourseKeeperControl,
-  azipodCourseKeeperControlIceMode,
-  getAzipodControllerDiagnostics,
-  DEFAULT_AZIPOD_COURSE_KEEPER_CONFIG,
   preloadVirtualSimulationRuntime,
   isVirtualSimulationRuntimeReady,
   type Azipod3DOFInternalState,
-  type Azipod3DOFParams,
   type IceBreakingState,
-  type AzipodCourseKeeperState,
 } from '../physics/simulation-engine-facade';
 import type { ControlMode, EthicalViolation, Vector2, PIDGains } from '../core/types';
 import {
@@ -590,6 +583,7 @@ function ControlPanel({
   isRunning,
   onToggleRun,
   metrics,
+  inputsEnabled = true,
 }: {
   config: SimulationConfig;
   onConfigChange: (config: Partial<SimulationConfig>) => void;
@@ -597,6 +591,7 @@ function ControlPanel({
   isRunning: boolean;
   onToggleRun: () => void;
   metrics: SimulationMetrics;
+  inputsEnabled?: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -632,6 +627,7 @@ function ControlPanel({
               variant={config.controlMode === mode ? 'default' : 'outline'}
               size="sm"
               className={config.controlMode === mode ? simulationUi.buttonPrimary : simulationUi.buttonOutline}
+              disabled={!inputsEnabled}
               onClick={() =>
                 onConfigChange({ controlMode: mode as ControlMode })
               }
@@ -649,6 +645,7 @@ function ControlPanel({
           <span className="text-sm font-mono">{config.targetHeading}°</span>
         </div>
         <Slider
+          disabled={!inputsEnabled}
           className={simulationUi.slider}
           value={[config.targetHeading]}
           onValueChange={([v]) => onConfigChange({ targetHeading: v })}
@@ -665,6 +662,7 @@ function ControlPanel({
           <span className="text-sm font-mono">{config.speed.toFixed(1)} m/s</span>
         </div>
         <Slider
+          disabled={!inputsEnabled}
           className={simulationUi.slider}
           value={[config.speed]}
           onValueChange={([v]) => onConfigChange({ speed: v })}
@@ -683,6 +681,7 @@ function ControlPanel({
           </Label>
           <Switch
             checked={config.iceModeEnabled}
+            disabled={!inputsEnabled}
             onCheckedChange={(checked) =>
               onConfigChange({ iceModeEnabled: checked })
             }
@@ -698,6 +697,7 @@ function ControlPanel({
               </span>
             </div>
             <Slider
+              disabled={!inputsEnabled}
               className={simulationUi.slider}
               value={[config.iceThickness]}
               onValueChange={([v]) => onConfigChange({ iceThickness: v })}
@@ -890,7 +890,12 @@ function RobustAssessmentPanel() {
 
 // ============ 主组件 ============
 
-export default function IcebreakerSimulation() {
+export default function IcebreakerSimulation({ ticket = '' }: { ticket?: string }) {
+  const session = useVesselExperiment(iceExperiment, ticket);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+  const driveRef = useRef<ReturnType<typeof createIceDrive> | null>(null);
+  const markRef = useRef(-1);
   // 仿真状态
   const [isRunning, setIsRunning] = useState(false);
   const [simTime, setSimTime] = useState(0);
@@ -917,9 +922,6 @@ export default function IcebreakerSimulation() {
     createAzipod3DOFState(0, 0, 0)
   );
   const iceStateRef = useRef<IceBreakingState>(createIceBreakingState());
-  const controllerStateRef = useRef<AzipodCourseKeeperState>(
-    createAzipodCourseKeeperState()
-  );
 
   // 指标
   const [metrics, setMetrics] = useState<SimulationMetrics>({
@@ -942,7 +944,7 @@ export default function IcebreakerSimulation() {
   const [showGrid, setShowGrid] = useState(true);
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
-  const [speedScale, setSpeedScale] = useState(1);
+  const [speedScale, setSpeedScale] = useState(8);
   const sceneTheme = useSimulationSceneTheme();
   const bindingRef = useRef<BindingTelemetrySource>({
     rudderDeg: 0,
@@ -952,94 +954,111 @@ export default function IcebreakerSimulation() {
   });
   const attainmentRef = useRef(createAttainmentState(0));
 
-  // Azipod 参数 (使用预定义的默认参数)
-  const azipodParams: Azipod3DOFParams = DEFAULT_AZIPOD_3DOF_PARAMS;
+  const resetPose = useCallback((clearCurve: boolean) => {
+    const drive = driveRef.current;
+    if (!drive) return;
+    const command = iceExperiment.command(sessionRef.current.step, 0);
+    drive.reset(command);
+    const view = drive.view();
+    physicsStateRef.current = drive.physics();
+    iceStateRef.current = drive.iceState();
+    markRef.current = -1;
+    simTimeRef.current = 0;
+    lastTimeRef.current = 0;
+    clockRef.current.reset();
+    attainmentRef.current = createAttainmentState(command.targetHeading);
+    bindingRef.current = { rudderDeg: 0, speedMps: 0, attainedCount: 0, advancing: false };
+    if (clearCurve) sessionRef.current.clearSamples();
+    setIsRunning(false);
+    setSimTime(0);
+    setPosition({ x: view.x, z: view.y });
+    setHeading(view.psi);
+    setTrail([]);
+    setViolations([]);
+    setConfig((prev) => ({
+      ...prev,
+      controlMode: command.mode,
+      targetHeading: command.targetHeading,
+      iceModeEnabled: command.ice,
+      iceThickness: command.iceThickness,
+    }));
+    setMetrics({
+      headingError: 0,
+      speed: view.speed,
+      azimuth1Deg: view.azimuthDeg,
+      azimuth2Deg: toDegrees(drive.physics().azipod2.azimuth),
+      thrust1KN: drive.physics().azipod1.thrust / 1000,
+      thrust2KN: drive.physics().azipod2.thrust / 1000,
+      iceResistanceKN: view.iceForce,
+      perturbedK: 1,
+      perturbedT: 1,
+      phase: 'none',
+      time: 0,
+    });
+    setResetCount((previous) => previous + 1);
+  }, []);
 
   useEffect(() => {
+    let cancelled = false;
     preloadVirtualSimulationRuntime().catch(console.error);
-  }, []);
+    driveRef.current = createIceDrive();
+    if (!cancelled) resetPose(false);
+    return () => {
+      cancelled = true;
+    };
+  }, [resetPose]);
+
+  useEffect(() => {
+    resetPose(false);
+  }, [session.activeSeq, resetPose]);
 
   // 仿真步进
   const simulationStep = useCallback(
     (dt: number) => {
-      const currentTime = simTimeRef.current;
-      const state = physicsStateRef.current;
-      const iceState = iceStateRef.current;
-      const controllerState = controllerStateRef.current;
-
-      const currentHeading = toDegrees(state.psi);
-      const currentYawRate = toDegrees(state.r);
-      const speed = Math.sqrt(state.u ** 2 + state.v ** 2);
-
-      // 冰阻力计算
-      let iceResistance = 0;
-      let perturbedK = 1.0;
-
-      if (config.iceModeEnabled && config.iceThickness > 0) {
-        const iceParams = {
-          ...DEFAULT_ICE_BREAKING_PARAMS,
-          enabled: true,
-          iceThickness: config.iceThickness,
-        };
-        iceStateRef.current = iceBreakingStep(iceState, iceParams, speed, dt);
-        iceResistance = iceStateRef.current.resistanceForce;
-        perturbedK = iceStateRef.current.currentK;
-      }
-
-      // 航向控制
-      if (config.controlMode !== 'manual') {
-        if (config.iceModeEnabled) {
-          // 冰区模式控制器
-          controllerStateRef.current = azipodCourseKeeperControlIceMode(
-            controllerState,
-            currentHeading,
-            config.targetHeading,
-            currentYawRate,
-            speed,
-            config.controlMode as 'manual' | 'p' | 'pd' | 'pid',
-            perturbedK,
-            dt,
-            currentTime
-          );
-        } else {
-          // 开阔水域控制器
-          controllerStateRef.current = azipodCourseKeeperControl(
-            controllerState,
-            currentHeading,
-            config.targetHeading,
-            currentYawRate,
-            speed,
-            config.controlMode as 'manual' | 'p' | 'pd' | 'pid',
-            DEFAULT_AZIPOD_COURSE_KEEPER_CONFIG,
-            1.0,
-            dt,
-            currentTime
-          );
-        }
-
-        // 应用控制命令到状态
-        state.azipod1.azimuthCmd = controllerStateRef.current.azimuth1Cmd;
-        state.azipod2.azimuthCmd = controllerStateRef.current.azimuth2Cmd;
-        state.azipod1.thrustCmd = controllerStateRef.current.thrust1Cmd;
-        state.azipod2.thrustCmd = controllerStateRef.current.thrust2Cmd;
-      }
-
-      // 物理步进
-      physicsStateRef.current = azipod3dofStepRK4(
-        state,
-        azipodParams,
-        iceResistance,
-        dt
+      const drive = driveRef.current;
+      if (!drive) return;
+      const moved = takeVesselSubstep(
+        sessionRef.current.step,
+        (time) => iceExperiment.command(sessionRef.current.step, time),
+        (command, stepDt, time) => drive.step(command, stepDt, time),
+        simTimeRef.current,
+        dt,
       );
-
-      // 更新显示状态
-      const newState = physicsStateRef.current;
-      const newIceState = iceStateRef.current;
-      const newTime = currentTime + dt;
+      if (!moved.sample) return;
+      const view = drive.view();
+      const physics = drive.physics();
+      const iceNow = drive.iceState();
+      physicsStateRef.current = physics;
+      iceStateRef.current = iceNow;
+      const mark = vesselSampleMark(moved.sample.time);
+      if (mark > markRef.current) {
+        markRef.current = mark;
+        sessionRef.current.observe(moved.sample);
+      }
+      const currentHeading = toDegrees(view.psi);
+      const speed = view.speed;
+      const iceResistance = view.iceForce * 1000;
+      const newState = physics;
+      const newIceState = iceNow;
+      const newTime = moved.sample.time;
       simTimeRef.current = newTime;
-      const headingError = absoluteHeadingErrorDeg(currentHeading, config.targetHeading);
+      const headingError = absoluteHeadingErrorDeg(currentHeading, moved.command.targetHeading);
+      setConfig((prev) => (
+        prev.iceModeEnabled === moved.command.ice
+        && prev.iceThickness === moved.command.iceThickness
+        && prev.targetHeading === moved.command.targetHeading
+        && prev.controlMode === moved.command.mode
+          ? prev
+          : {
+            ...prev,
+            iceModeEnabled: moved.command.ice,
+            iceThickness: moved.command.iceThickness,
+            targetHeading: moved.command.targetHeading,
+            controlMode: moved.command.mode,
+          }
+      ));
       let attainedCount = bindingRef.current.attainedCount;
-      if (advanceAttainment(attainmentRef.current, config.targetHeading, headingError, 5, dt)) {
+      if (advanceAttainment(attainmentRef.current, moved.command.targetHeading, headingError, 5, dt)) {
         attainedCount += 1;
       }
       const maxThrustN = XUELONG_AZIPOD_PARAMS.MAX_SINGLE_THRUST * 1000;
@@ -1072,7 +1091,7 @@ export default function IcebreakerSimulation() {
 
       // 更新指标
       setMetrics({
-        headingError: Math.abs(currentHeading - config.targetHeading),
+        headingError: Math.abs(currentHeading - moved.command.targetHeading),
         speed,
         azimuth1Deg: toDegrees(newState.azipod1.azimuth),
         azimuth2Deg: toDegrees(newState.azipod2.azimuth),
@@ -1086,7 +1105,7 @@ export default function IcebreakerSimulation() {
       });
 
       // 违规检测
-      if (config.iceModeEnabled && config.iceThickness > XUELONG_ICE_PARAMS.MAX_ICE_THICKNESS) {
+      if (moved.command.ice && moved.command.iceThickness > XUELONG_ICE_PARAMS.MAX_ICE_THICKNESS) {
         setViolations((prev) => {
           if (prev.length === 0 || prev[prev.length - 1].timestamp < newTime - 5) {
             return [
@@ -1094,9 +1113,9 @@ export default function IcebreakerSimulation() {
               {
                 type: 'ICE_THICKNESS_EXCEEDED',
                 thresholdValue: XUELONG_ICE_PARAMS.MAX_ICE_THICKNESS,
-                actualValue: config.iceThickness,
+                actualValue: moved.command.iceThickness,
                 timestamp: newTime,
-                description: `冰厚 ${config.iceThickness.toFixed(2)}m 超过破冰能力`,
+                description: `冰厚 ${moved.command.iceThickness.toFixed(2)}m 超过破冰能力`,
                 severity: 'critical',
               },
             ];
@@ -1105,7 +1124,7 @@ export default function IcebreakerSimulation() {
         });
       }
     },
-    [config, azipodParams]
+    []
   );
 
   // 仿真循环
@@ -1138,42 +1157,8 @@ export default function IcebreakerSimulation() {
 
   // 重置
   const handleReset = useCallback(() => {
-    setIsRunning(false);
-    setSimTime(0);
-    simTimeRef.current = 0;
-    lastTimeRef.current = 0;
-    clockRef.current.reset();
-    setPosition({ x: 0, z: 0 });
-    setHeading(0);
-    setTrail([]);
-    setViolations([]);
-
-    physicsStateRef.current = createAzipod3DOFState(0, 0, 0);
-    iceStateRef.current = createIceBreakingState();
-    controllerStateRef.current = createAzipodCourseKeeperState();
-    attainmentRef.current = createAttainmentState(config.targetHeading);
-    bindingRef.current = {
-      rudderDeg: 0,
-      speedMps: 0,
-      attainedCount: 0,
-      advancing: false,
-    };
-
-    setMetrics({
-      headingError: 0,
-      speed: config.speed,
-      azimuth1Deg: 0,
-      azimuth2Deg: 0,
-      thrust1KN: 0,
-      thrust2KN: 0,
-      iceResistanceKN: 0,
-      perturbedK: 1,
-      perturbedT: 1,
-      phase: 'none',
-      time: 0,
-    });
-    setResetCount((previous) => previous + 1);
-  }, [config.speed, config.targetHeading]);
+    resetPose(true);
+  }, [resetPose]);
 
   const handleConfigChange = useCallback((updates: Partial<SimulationConfig>) => {
     setConfig((prev) => ({ ...prev, ...updates }));
@@ -1208,75 +1193,47 @@ export default function IcebreakerSimulation() {
         />
       </MarineCanvas>
 
-      <SimulationDock
-        side="left"
-        title="状态监控"
-        tabs={[
-          {
-            id: 'overview',
-            label: '总览',
-            content: (
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                <span className="text-platform-fg-secondary">航向</span>
-                <span className="font-mono">{toDegrees(heading).toFixed(1)}°</span>
-                <span className="text-platform-fg-secondary">位置</span>
-                <span className="font-mono">
-                  ({position.x.toFixed(0)}, {position.z.toFixed(0)})
-                </span>
-                <span className="text-platform-fg-secondary">时间</span>
-                <span className="font-mono">{metrics.time.toFixed(1)} s</span>
-              </div>
-            ),
-          },
-          {
-            id: 'ice',
-            label: '冰区',
-            content: <IceStatusPanel iceState={iceStateRef.current} iceThickness={config.iceThickness} />,
-          },
-          {
-            id: 'azipod',
-            label: '推进',
-            content: (
-              <AzipodStatusPanel
-                azimuth1={metrics.azimuth1Deg}
-                azimuth2={metrics.azimuth2Deg}
-                thrust1={metrics.thrust1KN}
-                thrust2={metrics.thrust2KN}
-              />
-            ),
-          },
-        ]}
-      />
-
-      <SimulationDock
-        side="right"
-        title="控制与探究"
-        tabs={[
-          {
-            id: 'control',
-            label: '控制',
-            content: (
-              <ControlPanel
-                config={config}
-                onConfigChange={handleConfigChange}
-                onReset={handleReset}
-                isRunning={isRunning}
-                onToggleRun={() => setIsRunning((r) => !r)}
-                metrics={metrics}
-              />
-            ),
-          },
-          {
-            id: 'alerts',
-            label: '警报',
-            content: <ViolationsPanel violations={violations} />,
-          },
-          {
-            id: 'robust',
-            label: '评估',
-            content: <RobustAssessmentPanel />,
-          },
-        ]}
+      <VesselExperimentDocks
+        experiment={iceExperiment}
+        session={session}
+        status={(
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+              <span className="text-platform-fg-secondary">航向</span>
+              <span className="font-mono">{toDegrees(heading).toFixed(1)}°</span>
+              <span className="text-platform-fg-secondary">位置</span>
+              <span className="font-mono">
+                ({position.x.toFixed(0)}, {position.z.toFixed(0)})
+              </span>
+              <span className="text-platform-fg-secondary">时间</span>
+              <span className="font-mono">{metrics.time.toFixed(1)} s</span>
+            </div>
+            <IceStatusPanel iceState={iceStateRef.current} iceThickness={config.iceThickness} />
+            <AzipodStatusPanel
+              azimuth1={metrics.azimuth1Deg}
+              azimuth2={metrics.azimuth2Deg}
+              thrust1={metrics.thrust1KN}
+              thrust2={metrics.thrust2KN}
+            />
+          </div>
+        )}
+        controls={(
+          <ControlPanel
+            config={config}
+            onConfigChange={handleConfigChange}
+            onReset={handleReset}
+            isRunning={isRunning}
+            onToggleRun={() => setIsRunning((running) => !running)}
+            metrics={metrics}
+            inputsEnabled={false}
+          />
+        )}
+        assessment={(
+          <div className="space-y-3">
+            <ViolationsPanel violations={violations} />
+            <RobustAssessmentPanel />
+          </div>
+        )}
       />
 
       <CameraViewSwitcher

@@ -23,6 +23,7 @@ type CruiseSimulationPageProps = {
     arenaTask?: string | string[];
     mode?: string | string[];
     publicationId?: string | string[];
+    ticket?: string | string[];
   }>;
 };
 
@@ -108,7 +109,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
 
   return (
     <SimulationShell
-      title="邮轮仿真"
+      title="邮轮舒适性操纵实验"
       subtitle="舒适性导向控制 · 减摇稳定与黑箱识别任务"
       activeHref="/simulations/cruise"
       returnHref={returnHref}
@@ -148,7 +149,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
         </div>
       ) : null}
     >
-      <CruiseSimulation />
+      <CruiseSimulation ticket={getSingleSearchParam(searchParams?.ticket) ?? ''} />
       <section className="sr-only" data-simulation-local-note="scene-controls">
         相机、视角和场景工具为任务局部控制。
       </section>

@@ -28,6 +28,8 @@
 
 ## 近期已落地的关键事实
 
+- 2026-10-26 目录六船实验改为全屏步骤壳：液化气船靠泊、集装箱船航速与准点、邮轮舒适性、钻井平台动力定位、破冰船吊舱与冰区、挖泥船工况切换。055 仍是十步航向实验。登录后报告记在账号，同一步只保留更好成绩。有实验空间票据时按该实验十步回传。申报入口 `/ilab/deep-sea-control` 仍是 24 步，access_token 只留服务端。正式密钥未配置，不能称为已经接通实验空间。
+
 - `1-1` 不再应记为旧的 `unit-1-1-laplace-transfer-function`。当前课程定位是“看见系统全貌”，固定路由段是 `unit-1-1-see-the-full-picture`，运行态内容位于 `course-content/runtime/lessons/1-1`。
 - `src/lib/unit-1-1-course.ts`、`src/lib/lesson-1-1-ai-contexts.ts`、`src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx` 和 `src/features/interactive/unit-1-1-see-the-full-picture/*` 是当前 1-1 实现入口。
 - `course-content/scripts/sync_runtime_knowledge.py --check` 当前会报告全局知识冲突以及旧式 `concepts/*.mdx` 缺失。对 `1-1` 来说，这不是作者态或 manifest 就绪失败，而是知识同步脚本仍含 legacy concept 路径预期。

@@ -574,6 +574,7 @@ model User {
   llmSessions               LlmSession[]
   progress                  UserProgress[]
   simulationLogs            SimulationLog[]
+  virtualSimulationReports  VirtualSimulationReport[]
   ethicalLogs               EthicalLog[]
   controlOdysseyAiHistories ControlOdysseyAiHistory[]
 
@@ -5181,6 +5182,50 @@ model PlatformSetting {
   value     Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// 实验空间申报实验。accessToken 只留在服务端，接口响应不得返回。
+model IlabExperimentRun {
+  id               String    @id @default(cuid())
+  originId         String    @unique
+  appId            String
+  ilabUsername     String
+  displayName      String    @default("")
+  accessToken      String
+  tokenExpiresAt   DateTime?
+  status           Int       @default(2)
+  score            Int       @default(0)
+  startTimeMs      BigInt
+  endTimeMs        BigInt?
+  timeUsedSeconds  Int       @default(0)
+  vesselId         String    @default("")
+  steps            Json
+  aiLedger         Json
+  reportHtml       String?   @db.Text
+  uploadStatus     String    @default("pending")
+  uploadResult     Json?
+  attachmentResult Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([ilabUsername, createdAt])
+}
+
+// 登录用户在某个虚拟仿真实验中保存的报告。只保留该用户自己的成绩和报告正文。
+model VirtualSimulationReport {
+  id            String   @id @default(cuid())
+  userId        String
+  experimentKey String
+  title         String
+  score         Int
+  maxScore      Int
+  reportHtml    String   @db.Text
+  stepScores    Json
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, experimentKey, createdAt])
 }
 
 // ========== 控灵AI助手会话模型 ==========

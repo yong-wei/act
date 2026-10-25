@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export default async function DestroyerSimulationPage({
   searchParams,
 }: {
-  searchParams?: Promise<FeedbackTaskQuery & { mission?: string | string[] }>;
+  searchParams?: Promise<FeedbackTaskQuery & { mission?: string | string[]; ticket?: string | string[] }>;
 }) {
   const params = await searchParams;
   const session = await getServerAuthSession();
@@ -27,6 +27,7 @@ export default async function DestroyerSimulationPage({
   });
   const feedbackContext = buildFeedbackTaskContext(params ?? {}, { verifiedTeacherInterventionId });
   const missionId = firstQueryValue(params?.mission);
+  const ticket = firstQueryValue(params?.ticket);
   const simulationTaskContext = missionId || feedbackContext
     ? buildDestroyerTaskContext({ missionId, feedbackContext })
     : null;
@@ -42,7 +43,7 @@ export default async function DestroyerSimulationPage({
       taskContext={simulationTaskContext}
     >
       <StudentFeedbackTaskPanel context={feedbackContext} surface="simulation-destroyer" className="mb-4" />
-      <DestroyerSimulation />
+      <DestroyerSimulation ticket={ticket} />
     </SimulationShell>
   );
 }
