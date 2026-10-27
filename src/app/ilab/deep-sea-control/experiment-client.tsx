@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState, type PointerEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { ILAB_RESOURCE_LINKS } from '@/features/ilab/lab-resources';
 import type { IlabSessionView } from '@/features/ilab/session-service';
 import { ILAB_EXPERIMENT_TITLE, ILAB_STEPS, type IlabStepDefinition, type IlabStepField } from '@/features/ilab/steps';
 import { ILAB_VESSELS, isIlabVesselId, type IlabVessel } from '@/features/ilab/vessels';
+import { SketchPad } from '@/resources/simulations/simulations/sketch-pad';
 
+import { IlabDockSteps } from './ilab-dock-steps';
 import { ShipStage } from './ship-stage';
 
 const STORAGE_KEY = 'ilab-deep-sea-origin';
@@ -86,6 +88,7 @@ export function DeepSeaControlExperiment({ initialTicket }: { initialTicket: str
   const [values, setValues] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState<string[]>([]);
   const [samplesText, setSamplesText] = useState('');
+  const [sketchImage, setSketchImage] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [openedAt, setOpenedAt] = useState(() => Date.now());
@@ -121,6 +124,7 @@ export function DeepSeaControlExperiment({ initialTicket }: { initialTicket: str
 
   useEffect(() => {
     setOpenedAt(Date.now());
+    setSketchImage('');
   }, [seq]);
 
   async function loadSession(originId: string) {
@@ -203,6 +207,13 @@ export function DeepSeaControlExperiment({ initialTicket }: { initialTicket: str
       payload.samples = samples;
       payload.sampleDtS = 1;
     }
+    if (step.seq === 10 || step.seq === 11) {
+      if (!sketchImage.startsWith('data:image/')) {
+        setMessage('请先在画布上画出曲线。');
+        return;
+      }
+      payload.sketchImage = sketchImage;
+    }
     setBusy(true);
     try {
       const response = await fetch(`/api/ilab/session/${session.originId}/steps`, {
@@ -271,27 +282,7 @@ export function DeepSeaControlExperiment({ initialTicket }: { initialTicket: str
             ))}
           </ul>
         </details>
-      <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)_300px]">
-        <aside className="max-h-[860px] overflow-auto rounded-md border border-slate-800 bg-slate-900 p-3">
-          <ol className="space-y-1">
-            {ILAB_STEPS.map((item) => {
-              const record = session?.steps.find((stepRecord) => stepRecord.seq === item.seq);
-              return (
-                <li key={item.seq}>
-                  <button
-                    type="button"
-                    onClick={() => setSeq(item.seq)}
-                    className={`flex w-full items-center justify-between rounded px-2 py-1 text-left text-sm ${item.seq === seq ? 'bg-amber-200 text-slate-950' : 'hover:bg-slate-800'}`}
-                  >
-                    <span>{item.seq}. {item.title}</span>
-                    <span className="text-xs">{record ? `${record.earnedPoints}/${record.maxPoints}` : item.maxPoints}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </aside>
-
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
         <section className="space-y-3">
           <div className="rounded-md border border-slate-800 bg-slate-900 p-4">
           <p className="text-sm text-amber-200">阶段 {step.stage} · {step.stageName} · 建议 {step.minutes} 分钟 · {step.scoringModel}</p>
@@ -311,7 +302,18 @@ export function DeepSeaControlExperiment({ initialTicket }: { initialTicket: str
           ) : null}
           {saved ? <p className="mt-4 rounded bg-slate-800 p-3 text-sm">{saved.evaluation} {saved.remarks}</p> : null}
           </div>
-          <ShipStage vesselId={vessel?.id ?? null} seq={step.seq} />
+          <ShipStage
+            vesselId={vessel?.id ?? null}
+            seq={step.seq}
+            hostStepTitle={`${step.seq}. ${step.title}`}
+            stepNav={(
+              <IlabDockSteps
+                seq={step.seq}
+                records={session?.steps}
+                onOpen={setSeq}
+              />
+            )}
+          />
         </section>
 
         <aside className="space-y-4 rounded-md border border-slate-800 bg-slate-900 p-4">
@@ -376,7 +378,12 @@ export function DeepSeaControlExperiment({ initialTicket }: { initialTicket: str
             </label>
           ) : null}
           {(step.seq === 10 || step.seq === 11) ? (
-            <CurveSketch onDescribe={step.seq === 10 ? (text) => setField('note', values.note || text) : undefined} />
+            <SketchPad
+              key={step.seq}
+              label="手绘曲线"
+              hint={step.seq === 10 ? '请手绘奈奎斯特图。' : '请手绘伯德图。'}
+              onChange={setSketchImage}
+            />
           ) : null}
           {step.simulation !== 'none' && vessel?.nomoto ? (
             <button type="button" disabled={busy} onClick={() => void simulate()} className="w-full rounded bg-slate-700 px-3 py-2 text-sm disabled:opacity-50">写入航向采样</button>
@@ -396,38 +403,3 @@ export function DeepSeaControlExperiment({ initialTicket }: { initialTicket: str
   );
 }
 
-function CurveSketch({ onDescribe }: { onDescribe?: (text: string) => void }) {
-  function draw(event: PointerEvent<HTMLCanvasElement>) {
-    const canvas = event.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const context = canvas.getContext('2d');
-    if (!context) return;
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    context.strokeStyle = '#fcd34d';
-    context.lineWidth = 2;
-    context.lineTo((event.clientX - rect.left) * scaleX, (event.clientY - rect.top) * scaleY);
-    context.stroke();
-  }
-  return (
-    <div>
-      <p className="text-sm text-slate-300">手绘曲线</p>
-      <canvas
-        width={280}
-        height={120}
-        className="mt-1 w-full rounded border border-slate-700 bg-slate-950"
-        onPointerDown={(event) => {
-          const canvas = event.currentTarget;
-          const context = canvas.getContext('2d');
-          const rect = canvas.getBoundingClientRect();
-          context?.beginPath();
-          context?.moveTo((event.clientX - rect.left) * canvas.width / rect.width, (event.clientY - rect.top) * canvas.height / rect.height);
-        }}
-        onPointerMove={(event) => { if (event.buttons === 1) draw(event); }}
-      />
-      {onDescribe ? (
-        <button type="button" className="mt-2 text-sm text-amber-200" onClick={() => onDescribe('已在实验页手绘曲线，判断见上。')}>把手绘记入说明</button>
-      ) : null}
-    </div>
-  );
-}

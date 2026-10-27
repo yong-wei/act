@@ -340,6 +340,9 @@ export default function SimulationsPage() {
               <p className="mt-2 text-sm leading-6 text-subtle">
                 目录只呈现学生需要的学习任务、控制主题、难度和继续行动；模型库与部署状态不作为开放状态真源。
               </p>
+              <Link href="/simulations/network-check" className="mt-3 inline-flex text-sm text-primary" data-network-check-entry>
+                进入实验前检查网络带宽和在线名额
+              </Link>
             </div>
             <Link
               href="/simulations/drilling"

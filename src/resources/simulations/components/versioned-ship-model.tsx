@@ -19,6 +19,19 @@ type Props = {
 const failedPreparations = new Set<string>();
 class ParsedShipLodError extends Error {}
 
+/** 完整船体出现后通知页面。代理网格仍算加载中，录屏和截图可以等这个标记。 */
+export function ShipVisualMarker({ mode }: { mode: 'full' | 'loading' }) {
+  const gl = useThree((state) => state.gl);
+  useEffect(() => {
+    const canvas = gl.domElement;
+    if (!canvas || typeof canvas.closest !== 'function') return;
+    const root = canvas.closest('[data-sim-ui]');
+    if (!(root instanceof Element)) return;
+    root.setAttribute('data-ship-visual', mode);
+  }, [gl, mode]);
+  return null;
+}
+
 function DisplayedLod({ url, onReady, renderScene }: {
   url: string; onReady: (url: string) => void; renderScene: Props['renderScene'];
 }) {
@@ -112,7 +125,9 @@ function ProgressiveShipModel({ descriptor, tier, legacyCandidates, renderScene 
     return () => { active = false; };
   }, [descriptor, tier, displayedReady, displayedIsDesired, showingProxy, requestKey]);
   const visibleCandidates = Array.from(new Set([displayedUrl, previousUrl.current, ...initial]));
+  const visualMode = displayedReady && !showingProxy ? 'full' : 'loading';
   return <>
+    <ShipVisualMarker mode={visualMode} />
     <FallbackGltfModel candidates={visibleCandidates}
       onCandidateError={url => failedPreparations.add(url)}
       render={url => <DisplayedLod url={url} onReady={ready} renderScene={renderScene} />} />

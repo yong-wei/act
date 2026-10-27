@@ -14,6 +14,7 @@ export async function POST(request: Request, props: { params: Promise<{ originId
       readings?: unknown;
       samples?: unknown;
       startedAtMs?: unknown;
+      sketchImage?: unknown;
     };
     const readings: VesselReadings = {};
     if (body.readings && typeof body.readings === 'object' && !Array.isArray(body.readings)) {
@@ -27,6 +28,7 @@ export async function POST(request: Request, props: { params: Promise<{ originId
       readings,
       samples: readVesselSamples(body.samples),
       startedAtMs: typeof body.startedAtMs === 'number' ? body.startedAtMs : Date.now(),
+      sketchImage: typeof body.sketchImage === 'string' ? body.sketchImage : undefined,
     });
     return NextResponse.json(session);
   } catch (error) {

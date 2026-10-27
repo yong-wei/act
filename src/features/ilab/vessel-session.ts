@@ -16,7 +16,8 @@ import {
 } from '@/resources/simulations/simulations/vessel-experiment';
 import { findVesselExperiment, VESSEL_EXPERIMENTS } from '@/resources/simulations/simulations/vessel-experiments';
 
-import { emptyAiLedger, isAiUsageLedger, type AiUsageLedger } from './ai-data';
+import { emptyAiLedger, isAiUsageLedger, recordAiCall, type AiUsageLedger } from './ai-data';
+import { recognizeSketch } from './sketch-recognition';
 import { exchangeIlabTicket, uploadIlabReport, uploadIlabScore } from './ilab-client';
 import { buildIlabUploadBody, type IlabUploadBody, type StoredIlabStep } from './payload';
 import { assertIlabRunOpen, IlabServiceError, toIlabHttpError, withIlabRunLock } from './session-service';
@@ -199,13 +200,21 @@ export async function submitVesselStep(originId: string, input: {
   readings: VesselReadings;
   samples: VesselSample[];
   startedAtMs: number;
+  sketchImage?: string;
 }): Promise<VesselSessionView> {
   const experiment = experimentFromOrigin(originId);
   if (input.experimentKey !== experiment.key) throw new IlabServiceError('实验记录和当前实验对不上。', 400);
   const definition = experiment.steps.find((step) => step.seq === input.seq);
   if (!definition) throw new IlabServiceError('实验步骤不存在。', 400);
   const samples = thinVesselSamples(readVesselSamples(input.samples));
-  const scored = experiment.score(definition, samples, input.readings);
+  const readings = { ...input.readings };
+  delete readings.sketchImage;
+  const recognition = definition.fields.some((field) => field.kind === 'sketch')
+    ? await recognizeSketch({ image: input.sketchImage ?? '' })
+    : null;
+  if (recognition && !recognition.ok) throw new IlabServiceError(recognition.message, 422);
+  if (recognition?.ok) Object.assign(readings, recognition.fields);
+  const scored = experiment.score(definition, samples, readings);
   if (!scored.ok) throw new IlabServiceError(scored.message, 422);
   const window = stepWindow(input.startedAtMs, Date.now());
   const stored: StoredVesselStep = {
@@ -222,7 +231,7 @@ export async function submitVesselStep(originId: string, input: {
     scoringModel: '对照曲线读数',
     remarks: clip(scored.remarks),
     samples,
-    readings: input.readings,
+    readings,
   };
   const saved = await withIlabRunLock(originId, async (run, tx) => {
     if (run.vesselId !== experiment.vesselId) throw new IlabServiceError('实验记录不存在。', 404);
@@ -235,10 +244,12 @@ export async function submitVesselStep(originId: string, input: {
       return run;
     }
     const nextSteps = [...steps.filter((step) => step.seq !== input.seq), stored];
+    const ledger = recognition?.ok ? recordAiCall(readLedger(run.aiLedger), recognition.call) : readLedger(run.aiLedger);
     return tx.ilabExperimentRun.update({
       where: { originId },
       data: {
         steps: nextSteps as unknown as Prisma.InputJsonValue,
+        aiLedger: ledger as unknown as Prisma.InputJsonValue,
         score: Math.round(nextSteps.reduce((sum, step) => sum + step.earnedPoints, 0) / vesselMaxPoints(experiment.steps) * 100),
       },
     });

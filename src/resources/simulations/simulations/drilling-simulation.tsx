@@ -6,7 +6,7 @@ import { MarineGrid as Grid } from '../scene/lines/marine-grid';
  * 使用 3DOF 耦合模型 + 解耦控制 + 8台推进器推力分配
  */
 
-import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type RefObject } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type ReactNode, type RefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -746,7 +746,7 @@ function TeachingAnnotationsGate({
 
 // ============ 主组件 ============
 
-export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
+export function DrillingSimulation({ ticket = '', stepNav }: { ticket?: string; stepNav?: ReactNode }) {
   const session = useVesselExperiment(drillingExperiment, ticket);
   const sessionRef = useRef(session);
   sessionRef.current = session;
@@ -1147,6 +1147,7 @@ export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
             inputsEnabled={false}
           />
         )}
+        stepNav={stepNav}
         assessment={(
           <SimulationAssessmentPanel
             title="DP定位评估"

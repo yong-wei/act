@@ -139,7 +139,7 @@ export const ILAB_STEPS: IlabStepDefinition[] = [
       { key: 'gainHigh', label: '增益上界', kind: 'number', min: 0 },
     ]),
   step(10, 2, 'Nyquist图绘制与评估', '判断奈奎斯特曲线是否包围负一实点', 15, 5, 'AI评估+达成度赋分',
-    '按当前船型的默认校正，闭环应稳定，曲线不包围 -1。用至少 8 个字说明判断。配置了模型服务时，本步会计入一次手绘曲线评估。',
+    '按当前船型的默认校正，闭环应稳定，曲线不包围 -1。用至少 8 个字说明判断，并在手绘区画出奈奎斯特图。空白、画成其他图，或图像识别失败时，这一步不能通过。',
     [
       { key: 'nyquist', label: '曲线与 -1 的关系', kind: 'select', options: [
         { value: 'does-not-encircle', label: '不包围负一实点' },
@@ -148,7 +148,7 @@ export const ILAB_STEPS: IlabStepDefinition[] = [
       { key: 'note', label: '判断说明', kind: 'text' },
     ]),
   step(11, 2, 'Bode图与裕度计算', '计算相位裕度与幅值裕度', 10, 5, 'AI评估+达成度赋分',
-    '相位裕度填写 30° 到 80°，幅值裕度填写 6 dB 到 40 dB，视为达到本实验指标。',
+    '相位裕度填写 30° 到 80°，幅值裕度填写 6 dB 到 40 dB，视为达到本实验指标。同时在手绘区画出伯德图。空白、画成其他图，或图像识别失败时，这一步不能通过。',
     [
       { key: 'phaseMarginDeg', label: '相位裕度', kind: 'number', unit: '°' },
       { key: 'gainMarginDb', label: '幅值裕度', kind: 'number', unit: 'dB' },

@@ -17,7 +17,8 @@ import {
   type DestroyerSample,
 } from '@/resources/simulations/simulations/destroyer-experiment';
 
-import { emptyAiLedger, isAiUsageLedger, type AiUsageLedger } from './ai-data';
+import { emptyAiLedger, isAiUsageLedger, recordAiCall, type AiUsageLedger } from './ai-data';
+import { recognizeSketch } from './sketch-recognition';
 import { exchangeIlabTicket, uploadIlabReport, uploadIlabScore } from './ilab-client';
 import { buildIlabUploadBody, type IlabUploadBody, type StoredIlabStep } from './payload';
 import { assertIlabRunOpen, IlabServiceError, toIlabHttpError, withIlabRunLock } from './session-service';
@@ -187,6 +188,7 @@ export async function submitDestroyerStep(originId: string, input: {
   readings: DestroyerReadings;
   samples: DestroyerSample[];
   startedAtMs: number;
+  sketchImage?: string;
 }): Promise<DestroyerSessionView> {
   if (!/^dds_[A-Za-z0-9_]{1,48}$/.test(originId)) {
     throw new IlabServiceError('实验记录编号无效。', 400);
@@ -194,7 +196,14 @@ export async function submitDestroyerStep(originId: string, input: {
   const definition = DESTROYER_STEP_BY_SEQ.get(input.seq);
   if (!definition) throw new IlabServiceError('实验步骤不存在。', 400);
   const samples = thinDestroyerSamples(readDestroyerSamples(input.samples));
-  const scored = scoreDestroyerStep(input.seq, samples, input.readings);
+  const readings = { ...input.readings };
+  delete readings.sketchImage;
+  const recognition = definition.fields.some((field) => field.kind === 'sketch')
+    ? await recognizeSketch({ image: input.sketchImage ?? '' })
+    : null;
+  if (recognition && !recognition.ok) throw new IlabServiceError(recognition.message, 422);
+  if (recognition?.ok) Object.assign(readings, recognition.fields);
+  const scored = scoreDestroyerStep(input.seq, samples, readings);
   if (!scored.ok) throw new IlabServiceError(scored.message, 422);
   const window = stepWindow(input.startedAtMs, Date.now());
   const stored: StoredDestroyerStep = {
@@ -211,7 +220,7 @@ export async function submitDestroyerStep(originId: string, input: {
     scoringModel: '对照曲线读数',
     remarks: scored.remarks,
     samples,
-    readings: input.readings,
+    readings,
   };
   const saved = await withIlabRunLock(originId, async (run, tx) => {
     if (!run.originId.startsWith('dds_')) throw new IlabServiceError('实验记录不存在。', 404);
@@ -224,10 +233,12 @@ export async function submitDestroyerStep(originId: string, input: {
       return run;
     }
     const nextSteps = [...steps.filter((step) => step.seq !== input.seq), stored];
+    const ledger = recognition?.ok ? recordAiCall(readLedger(run.aiLedger), recognition.call) : readLedger(run.aiLedger);
     return tx.ilabExperimentRun.update({
       where: { originId },
       data: {
         steps: nextSteps as unknown as Prisma.InputJsonValue,
+        aiLedger: ledger as unknown as Prisma.InputJsonValue,
         score: Math.round(nextSteps.reduce((sum, step) => sum + step.earnedPoints, 0) / DESTROYER_MAX_POINTS * 100),
       },
     });

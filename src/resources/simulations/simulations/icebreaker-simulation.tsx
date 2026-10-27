@@ -7,7 +7,7 @@ import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-l
  * 使用 Azipod 3-DOF 模型和冰阻力 Stick-Slip 模型
  */
 
-import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -890,7 +890,7 @@ function RobustAssessmentPanel() {
 
 // ============ 主组件 ============
 
-export default function IcebreakerSimulation({ ticket = '' }: { ticket?: string }) {
+export default function IcebreakerSimulation({ ticket = '', stepNav }: { ticket?: string; stepNav?: ReactNode }) {
   const session = useVesselExperiment(iceExperiment, ticket);
   const sessionRef = useRef(session);
   sessionRef.current = session;
@@ -1196,6 +1196,7 @@ export default function IcebreakerSimulation({ ticket = '' }: { ticket?: string 
       <VesselExperimentDocks
         experiment={iceExperiment}
         session={session}
+        stepNav={stepNav}
         status={(
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">

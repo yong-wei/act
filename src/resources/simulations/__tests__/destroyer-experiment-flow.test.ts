@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { sketchIdForLabel } from '@/features/ilab/sketch-plots';
 import { DEFAULT_PID_GAINS } from '@/resources/simulations/core/constants';
 import { computeVirtualSimulationServerStep } from '@/lib/control-engine/server';
 import {
@@ -17,6 +18,7 @@ import {
   destroyerSceneMotion,
   validateDestroyerReportDraft,
   scoreDestroyerStep,
+  scriptedManualRudder,
   signedHeading,
   type DestroyerExperimentStep,
   type DestroyerReadings,
@@ -43,7 +45,8 @@ function studentSamples(step: DestroyerExperimentStep): DestroyerSample[] {
   let nextSample = 0;
   const dt = 0.2;
   for (let time = 0; time <= until; time += dt) {
-    const manualRudder = step.seq === 2 ? 15 : step.seq === 3 ? (time < 90 ? 15 : 0) : 0;
+    const scripted = scriptedManualRudder(step, time);
+    const manualRudder = scripted ?? (step.seq === 2 ? 15 : step.seq === 3 ? (time < 90 ? 15 : 0) : 0);
     const result = computeVirtualSimulationServerStep<DestroyerHifiStepResult>(buildDestroyerHifiStepRequest({
       dtS: dt,
       targetHeadingDeg: motion.desiredHeading(time),
@@ -71,8 +74,31 @@ function studentSamples(step: DestroyerExperimentStep): DestroyerSample[] {
   return samples;
 }
 
+const DESTROYER_CHOICES: Record<number, string> = {
+  12: '留在零附近',
+  13: '航速还在',
+  15: '向左转了',
+  17: '船向右转',
+};
+
 function studentReadings(step: DestroyerExperimentStep, samples: DestroyerSample[]): DestroyerReadings {
   const last = samples[samples.length - 1];
+  if (step.seq >= 10 && step.seq <= 19) {
+    const readings: DestroyerReadings = {};
+    for (const field of step.fields) {
+      if (field.kind === 'choice' && field.key === 'plotKind') readings.plotKind = '奈奎斯特图';
+      else if (field.kind === 'choice') readings.choice = DESTROYER_CHOICES[step.seq] ?? '';
+      else if (field.kind === 'sketch') {
+        readings.sketchKind = sketchIdForLabel(readings.plotKind ?? '') ?? '';
+        readings.sketchBlank = '0';
+        readings.sketchEvaluation = '曲线形状和所选图种一致。';
+      } else if (field.kind === 'number') {
+        const value = field.key === 'yawRate' ? last.yawRate : field.key === 'rudder' ? last.rudder : field.key === 'speed' ? last.speed : last.actualHeading;
+        readings[field.key] = value.toFixed(field.key === 'yawRate' ? 2 : 1);
+      }
+    }
+    return readings;
+  }
   if (step.seq === 1) return { heading: last.actualHeading.toFixed(1), speed: last.speed.toFixed(1) };
   if (step.seq === 2) return { rudder: last.manualRudder.toFixed(0), yawRate: last.yawRate.toFixed(2) };
   if (step.seq === 3) return { yawRate: last.yawRate.toFixed(2) };
@@ -118,7 +144,7 @@ describe('驱逐舰实验步骤', () => {
     expect(scored.ok).toBe(false);
   });
 
-  it('一般学生按曲线读数可以走完十步并生成报告', () => {
+  it('一般学生按曲线读数可以走完二十步并生成报告', () => {
     const done: number[] = [];
     const stored: Array<{ seq: number; title: string; earnedPoints: number; maxPoints: number; evaluation: string; remarks: string }> = [];
     for (const step of DESTROYER_EXPERIMENT_STEPS) {
@@ -142,7 +168,7 @@ describe('驱逐舰实验步骤', () => {
       if (step.seq < 9) expect(assertDestroyerStepOrder(done, step.seq + 2)).not.toBeNull();
       expect(maneuverCompleted(step, samples), step.title).toBe(true);
     }
-    expect(done).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(done).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
     expect(stored.reduce((sum, step) => sum + step.earnedPoints, 0)).toBe(DESTROYER_MAX_POINTS);
     const html = buildDestroyerReportHtml({ displayName: '学生', steps: stored });
     for (const step of DESTROYER_EXPERIMENT_STEPS) {
@@ -153,7 +179,7 @@ describe('驱逐舰实验步骤', () => {
       reportHtml: html,
       steps: stored.map((step) => ({ ...step, evaluation: step.evaluation, remarks: step.remarks })),
     }).ok).toBe(true);
-  }, 120000);
+  }, 180000);
 });
 
 function maneuverCompleted(step: DestroyerExperimentStep, samples: DestroyerSample[]): boolean {
@@ -172,5 +198,9 @@ function maneuverCompleted(step: DestroyerExperimentStep, samples: DestroyerSamp
     const deviation = samples.reduce((best, sample) => Math.max(best, Math.abs(sample.actualHeading)), 0);
     return deviation > 5 && samples.some((sample) => sample.time > 120 && Math.abs(sample.actualHeading) < 2);
   }
+  if (step.seq === 14 || step.seq === 17) return last.yawRate > 0.05;
+  if (step.seq === 15) return last.yawRate < -0.05;
+  if (step.seq === 16) return Math.abs(last.manualRudder) < 0.1 && samples.some((sample) => Math.abs(sample.manualRudder) >= 8);
+  if (step.seq >= 10 && step.seq <= 19) return Math.abs(last.actualHeading) < 8 && last.speed > 8;
   return Math.abs(last.actualHeading) < 2;
 }

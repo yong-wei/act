@@ -19,6 +19,7 @@ import {
   type VesselScore,
   type VesselStep,
 } from './vessel-experiment';
+import { inquiryCommand, inquiryScore, shipSteps } from './vessel-inquiry';
 
 const LNG_SPEED = LNG_CHANGHENG_PARAMS.CRUISE_SPEED;
 const CONTAINER_SPEED = CONTAINER_MSC_PARAMS.CRUISE_SPEED;
@@ -52,11 +53,11 @@ function makeStep(
     goal,
     watch,
     suggestion,
-    scene: seq === 10 ? 'review' : 'script',
+    scene: 'script',
     duration,
     minRunS: minRun,
     maxPoints: points,
-    expectTime: seq === 10 ? 60 : duration,
+    expectTime: duration,
     fields,
   };
 }
@@ -73,7 +74,7 @@ function read(step: VesselStep, samples: VesselSample[], readings: VesselReading
   return nearReading(step, readings, key, end(samples, key), tolerance, label);
 }
 
-const lngSteps: VesselStep[] = [
+const lngSteps = shipSteps([
   makeStep(1, '直航读数', 8, 60, 30, '看大惯性船在零航向指令下能不能稳住。', '实际航向和航速的终点。', '按下开始，等曲线走完这一步，再按终点填写航向和航速。', [field('heading', '实际航向', '°'), field('speed', '航速', 'm/s')]),
   makeStep(2, '手操打舵', 10, 110, 90, '手操固定舵角，看船会不会慢慢转起来。', '指令舵角、舵角和转艏速率。', '舵角由这一步自动打到固定值。等曲线走完，读终点的转艏速率。', [field('yaw', '转艏速率', '°/s'), field('rudder', '舵角', '°')]),
   makeStep(3, '舵回中', 10, 450, 420, '舵回到零之后，看转艏会不会慢慢停下来。', '回中以后的转艏速率终点。', '前一段会打舵，之后舵回到零。请等到曲线后段再提交。', [field('yaw', '转艏速率', '°/s')]),
@@ -84,9 +85,11 @@ const lngSteps: VesselStep[] = [
   makeStep(8, '液货晃荡', 8, 60, 30, '看这次直航里液货晃荡大不大。', '晃荡角曲线的终点。', '读晃荡角的最后一个点，不要把舱压当成晃荡角。', [field('slosh', '晃荡角', '°')]),
   makeStep(9, '安全距离', 12, 40, 25, '判断减速后离泊位是否还留有余量。', '剩余距离和航速的终点。', '把终点的距离和航速合在一起看，再做选择。', [choice('当前距离', ['距离还够', '距离不够了'])]),
   makeStep(10, '确认记录', 10, 1, 0, '用一句话记下这次看到的现象。', '前面各步的曲线终点。', '写出航向、航速或距离里你实际看到的变化。', [noteField]),
-];
+], 'lng');
 
 function lngCommand(step: VesselStep, time: number): VesselCommand {
+  const inquiry = inquiryCommand('lng', step, time);
+  if (inquiry) return inquiry;
   const common = { startX: -800, manualSpeed: LNG_SPEED };
   if (step.seq === 2) return baseCommand({ ...common, mode: 'manual', manualRudder: 12 });
   if (step.seq === 3) return baseCommand({ ...common, mode: 'manual', manualRudder: time < 90 ? 12 : 0 });
@@ -98,6 +101,8 @@ function lngCommand(step: VesselStep, time: number): VesselCommand {
 }
 
 function scoreLng(step: VesselStep, samples: VesselSample[], readings: VesselReadings): VesselScore {
+  const inquiry = inquiryScore('lng', step, samples, readings);
+  if (inquiry) return inquiry;
   const heading = end(samples, 'heading');
   const yaw = end(samples, 'yaw');
   const speed = end(samples, 'speed');
@@ -173,7 +178,7 @@ export const lngExperiment: VesselExperiment = {
   score: scoreLng,
 };
 
-const containerSteps: VesselStep[] = [
+const containerSteps = shipSteps([
   makeStep(1, '高速读数', 8, 40, 20, '看高速指令下航速停在哪里。', '航速终点。', '等曲线走完，按终点填写航速。', [field('speed', '航速', 'm/s')]),
   makeStep(2, '经济航速', 10, 40, 20, '看经济航速指令下航速停在哪里。', '航速终点。', '等曲线走完，按终点填写航速。', [field('speed', '航速', 'm/s')]),
   makeStep(3, '油耗对比', 12, 80, 70, '比较高速和经济航速哪一段更费油。', '航速和油耗指数。', '先看前半段和后半段的油耗指数，再做选择。', [choice('哪一段更省', ['低速更省', '高速更省'])]),
@@ -184,9 +189,11 @@ const containerSteps: VesselStep[] = [
   makeStep(8, '舵有没有顶满', 10, 520, 480, '看自动舵在转向时舵角有没有顶到上限。', '舵角曲线的峰值。', '看整段舵角有没有贴住上限，再做选择。', [choice('舵角上限', ['顶满了', '没有顶满'])]),
   makeStep(9, '后半段加速', 8, 80, 70, '判断后半段提高航速后，哪一段更快。', '前后两段航速。', '比较切换点前后的航速终点和前段，再做选择。', [choice('哪一段更快', ['后半段更快', '前半段更快'])]),
   makeStep(10, '确认记录', 10, 1, 0, '用一句话记下航速、油耗或偏航里看到的现象。', '前面各步曲线。', '写出你在曲线上看到的差别。', [noteField]),
-];
+], 'container');
 
 function containerCommand(step: VesselStep, time: number): VesselCommand {
+  const inquiry = inquiryCommand('container', step, time);
+  if (inquiry) return inquiry;
   if (step.seq === 1) return baseCommand({ mode: 'manual', manualSpeed: 12 });
   if (step.seq === 2) return baseCommand({ mode: 'manual', manualSpeed: 7 });
   if (step.seq === 3) return baseCommand({ mode: 'manual', manualSpeed: time < 40 ? 12 : 7 });
@@ -200,6 +207,8 @@ function containerCommand(step: VesselStep, time: number): VesselCommand {
 }
 
 function scoreContainer(step: VesselStep, samples: VesselSample[], readings: VesselReadings): VesselScore {
+  const inquiry = inquiryScore('container', step, samples, readings);
+  if (inquiry) return inquiry;
   const speed = end(samples, 'speed');
   const heading = end(samples, 'heading');
   if (step.seq === 1) {
@@ -266,7 +275,7 @@ export const containerExperiment: VesselExperiment = {
   score: scoreContainer,
 };
 
-const cruiseSteps: VesselStep[] = [
+const cruiseSteps = shipSteps([
   makeStep(1, '减摇开启直航', 10, 180, 150, '减摇鳍打开时，看直航横摇和不适指数。', '横摇和不适指数。', '等直航曲线走完，读终点的不适指数。', [field('msi', '不适指数'), field('roll', '横摇', '°')]),
   makeStep(2, '关掉减摇鳍', 12, 180, 150, '关掉减摇鳍后，看横摇有没有变大。', '横摇峰值和不适指数峰值。', '和上一步对比横摇曲线，再做选择。', [choice('横摇变化', ['横摇变大', '横摇没变化'])]),
   makeStep(3, '再打开减摇鳍', 10, 180, 150, '重新打开减摇鳍，看不适指数能不能小下来。', '不适指数终点。', '等这一步自己的曲线走完再判断，不要沿用上一步的终点。', [choice('再次打开以后', ['横摇小下来', '横摇仍然很大'])]),
@@ -277,9 +286,11 @@ const cruiseSteps: VesselStep[] = [
   makeStep(8, '终点横摇', 8, 180, 150, '读减摇鳍打开后直航结束时的横摇。', '横摇终点。', '读横摇最后一个点。', [field('roll', '横摇', '°')]),
   makeStep(9, '海况读数', 8, 30, 10, '确认这一组舒适性实验使用的海况。', '海况读数。', '填写曲线上的海况。', [field('sea', '海况')]),
   makeStep(10, '确认记录', 12, 1, 0, '用一句话记下减摇鳍打开和关闭时的差别。', '横摇和不适指数。', '写出你看到的横摇变化。', [noteField]),
-];
+], 'cruise');
 
 function cruiseCommand(step: VesselStep, time: number): VesselCommand {
+  const inquiry = inquiryCommand('cruise', step, time);
+  if (inquiry) return inquiry;
   const finOff = step.seq === 2 || step.seq === 5;
   return baseCommand({
     manualSpeed: CRUISE_SPEED,
@@ -290,6 +301,8 @@ function cruiseCommand(step: VesselStep, time: number): VesselCommand {
 }
 
 function scoreCruise(step: VesselStep, samples: VesselSample[], readings: VesselReadings): VesselScore {
+  const inquiry = inquiryScore('cruise', step, samples, readings);
+  if (inquiry) return inquiry;
   const roll = end(samples, 'roll');
   const msi = end(samples, 'msi');
   if (step.seq === 1) {
@@ -351,7 +364,7 @@ export const cruiseExperiment: VesselExperiment = {
   score: scoreCruise,
 };
 
-const drillingSteps: VesselStep[] = [
+const drillingSteps = shipSteps([
   makeStep(1, '定点读数', 10, 70, 55, '看动力定位能不能把平台留在目标附近。', '位置偏差终点。', '等曲线走完，读位置偏差的最后一个点。', [field('position', '位置偏差', 'm')]),
   makeStep(2, '航向读数', 8, 70, 55, '读定点时的航向偏差。', '航向偏差终点。', '读航向偏差的最后一个点。', [field('headingError', '航向偏差', '°')]),
   makeStep(3, '总功率', 12, 70, 55, '看功率曲线有没有超过平台限额。', '总功率的峰值和终点。', '看整段功率有没有顶过限额，再填写终点功率。', [choice('总功率', ['超过了', '还在限额内']), field('power', '总功率', 'kW')]),
@@ -362,14 +375,18 @@ const drillingSteps: VesselStep[] = [
   makeStep(8, '功率读数', 8, 70, 55, '读定点时的总功率。', '总功率终点。', '按终点填写总功率。', [field('power', '总功率', 'kW')]),
   makeStep(9, '解耦对比', 8, 110, 95, '同一步里先开解耦再关掉，看位置能不能守住。', '前段和后段的位置偏差。', '比较切换点前后的位置偏差，再做选择。', [choice('怎样才能守住', ['开解耦才能守住', '关掉也一样'])]),
   makeStep(10, '确认记录', 10, 1, 0, '用一句话记下解耦打开和关闭时的差别。', '位置偏差和功率。', '写出你看到的位置变化。', [noteField]),
-];
+], 'drilling');
 
 function drillingCommand(step: VesselStep, time: number): VesselCommand {
+  const inquiry = inquiryCommand('drilling', step, time);
+  if (inquiry) return inquiry;
   const decoupling = step.seq === 5 ? false : step.seq === 9 ? time < 40 : true;
   return baseCommand({ mode: 'dp', decoupling, seaState: 3, dp: true });
 }
 
 function scoreDrilling(step: VesselStep, samples: VesselSample[], readings: VesselReadings): VesselScore {
+  const inquiry = inquiryScore('drilling', step, samples, readings);
+  if (inquiry) return inquiry;
   const position = end(samples, 'position');
   const power = end(samples, 'power');
   if (step.seq === 1) {
@@ -429,7 +446,7 @@ export const drillingExperiment: VesselExperiment = {
   score: scoreDrilling,
 };
 
-const iceSteps: VesselStep[] = [
+const iceSteps = shipSteps([
   makeStep(1, '吊舱角度', 12, 180, 150, '十度航向指令下，看吊舱角度停在哪里。', '吊舱角度终点。', '等曲线走完，读吊舱角度的最后一个点。', [field('azimuth', '吊舱角度', '°')]),
   makeStep(2, '航向有没有跟上', 10, 180, 150, '吊舱转出去以后，看船的航向有没有跟着到十度。', '实际航向终点。', '对照航向曲线的终点再做选择。', [choice('实际航向', ['航向仍在零附近', '已经转到十度附近'])]),
   makeStep(3, '转艏速率', 10, 180, 150, '看这次转向里转艏速率有没有抬起来。', '转艏速率终点。', '读转艏速率的最后一个点。', [field('yaw', '转艏速率', '°/s')]),
@@ -440,9 +457,11 @@ const iceSteps: VesselStep[] = [
   makeStep(8, '冰区航向', 10, 160, 130, '冰区里看航向离开零没有。', '实际航向终点。', '看航向终点再做选择。', [choice('冰区航向', ['几乎没转到', '已经转到十度附近'])]),
   makeStep(9, '冰区里的航速', 10, 160, 130, '吊舱已经转出角度时，看冰区航速有没有一起升高。', '航速和吊舱角度。', '把这一步的航速和吊舱角度放在一起看。', [choice('冰区航速', ['冰把航速压住了', '航速和吊舱一起升高'])]),
   makeStep(10, '确认记录', 10, 1, 0, '用一句话记下吊舱、航向和冰区航速。', '吊舱角度、航向和航速。', '写出你在曲线上看到的差别。', [noteField]),
-];
+], 'ice');
 
 function iceCommand(step: VesselStep, time: number): VesselCommand {
+  const inquiry = inquiryCommand('ice', step, time);
+  if (inquiry) return inquiry;
   const turning = step.seq === 1 || step.seq === 2 || step.seq === 3 || step.seq === 7 || step.seq === 8 || step.seq === 9;
   const inIce = step.seq === 5 || step.seq === 6 || step.seq === 7 || step.seq === 8 || step.seq === 9;
   return baseCommand({
@@ -453,6 +472,8 @@ function iceCommand(step: VesselStep, time: number): VesselCommand {
 }
 
 function scoreIce(step: VesselStep, samples: VesselSample[], readings: VesselReadings): VesselScore {
+  const inquiry = inquiryScore('ice', step, samples, readings);
+  if (inquiry) return inquiry;
   const heading = end(samples, 'heading');
   const speed = end(samples, 'speed');
   if (step.seq === 1 || step.seq === 7) {
@@ -507,7 +528,7 @@ export const iceExperiment: VesselExperiment = {
   score: scoreIce,
 };
 
-const dredgerSteps: VesselStep[] = [
+const dredgerSteps = shipSteps([
   makeStep(1, '定点读数', 12, 70, 40, '定位打开、疏浚关闭时，看船能不能守在原点。', '位置偏差终点。', '等曲线走完，读位置偏差。', [field('position', '位置偏差', 'm')]),
   makeStep(2, '疏浚中守点', 12, 70, 40, '疏浚打开时，看定位还能不能守住原点。', '位置偏差终点。', '等曲线走完再读位置偏差。', [field('position', '位置偏差', 'm')]),
   makeStep(3, '退出定位', 12, 80, 60, '退出定位后，看船被流带出多远。', '离开原点的距离。', '读漂离距离的终点。', [field('drift', '漂离距离', 'm')]),
@@ -518,9 +539,11 @@ const dredgerSteps: VesselStep[] = [
   makeStep(8, '航向读数', 8, 70, 40, '读守在原点时的航向偏差。', '航向偏差终点。', '读航向偏差的最后一个点。', [field('headingError', '航向偏差', '°')]),
   makeStep(9, '工况结论', 8, 80, 60, '判断是不是离开定位以后才会漂走。', '漂离距离终点。', '看这一步退出定位后的距离再做选择。', [choice('什么时候会漂', ['离开定位才会漂', '开着定位也会漂'])]),
   makeStep(10, '确认记录', 10, 1, 0, '用一句话记下定位打开和退出时的差别。', '位置和漂离距离。', '写出你看到的船位变化。', [noteField]),
-];
+], 'dredger');
 
-function dredgerCommand(step: VesselStep, _time: number): VesselCommand {
+function dredgerCommand(step: VesselStep, time: number): VesselCommand {
+  const inquiry = inquiryCommand('dredger', step, time);
+  if (inquiry) return inquiry;
   const dpOff = step.seq === 3 || step.seq === 6 || step.seq === 9;
   const digging = step.seq === 2 || step.seq === 5;
   const offset = step.seq === 4;
@@ -535,6 +558,8 @@ function dredgerCommand(step: VesselStep, _time: number): VesselCommand {
 }
 
 function scoreDredger(step: VesselStep, samples: VesselSample[], readings: VesselReadings): VesselScore {
+  const inquiry = inquiryScore('dredger', step, samples, readings);
+  if (inquiry) return inquiry;
   const position = end(samples, 'position');
   const drift = end(samples, 'drift');
   if (step.seq === 1 || step.seq === 2) {

@@ -84,6 +84,21 @@ describe('progressive versioned ship loading', () => {
   const withProxy = { ...descriptor, roles: { ...descriptor.roles, 'ship-proxy': {
     role: 'ship-proxy' as const, file: 'models/ship-proxy.glb', url: proxyUrl, sha256: 'proxy', bytes: 40000,
   } } };
+  it('keeps the page marked loading until the requested hull replaces the proxy', async () => {
+    const host = document.createElement('div');
+    host.setAttribute('data-sim-ui', '');
+    const canvas = document.createElement('canvas');
+    host.append(canvas);
+    document.body.append(host);
+    state.canvas = { gl: { domElement: canvas }, scene: new Scene(), camera: new PerspectiveCamera() };
+    resource(proxyUrl);
+    const low = resource(descriptor.roles['ship-lod2'].url, true);
+    await mount('high', withProxy);
+    expect(host.getAttribute('data-ship-visual')).toBe('loading');
+    await act(async () => low.ready());
+    expect(host.getAttribute('data-ship-visual')).toBe('full');
+    host.remove();
+  });
   it('shows an independent proxy while the low LOD downloads, then prepares only the required target', async () => {
     resource(proxyUrl);
     const low = resource(descriptor.roles['ship-lod2'].url, true);

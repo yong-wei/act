@@ -14,6 +14,7 @@ import {
   type VesselSample,
   type VesselStep,
 } from './vessel-experiment';
+import { SketchPad } from './sketch-pad';
 import type { VesselExperimentController } from './use-vessel-experiment';
 
 Chart.register(...registerables);
@@ -226,6 +227,9 @@ export function VesselStepForm({
               ))}
             </span>
           ) : null}
+          {field.kind === 'sketch' ? (
+            <SketchPad label={field.label} hint="画出奈奎斯特图、伯德图、根轨迹图或时域响应图。" onChange={(dataUrl) => onChange('sketchImage', dataUrl)} />
+          ) : null}
         </label>
       ))}
       <div className="flex flex-wrap gap-2">
@@ -275,12 +279,14 @@ export function VesselExperimentDocks({
   status,
   controls,
   assessment,
+  stepNav,
 }: {
   experiment: VesselExperiment;
   session: VesselExperimentController;
   status?: ReactNode;
   controls: ReactNode;
   assessment?: ReactNode;
+  stepNav?: ReactNode;
 }) {
   const last = session.shownSamples[session.shownSamples.length - 1];
   return (
@@ -294,7 +300,7 @@ export function VesselExperimentDocks({
           {
             id: 'steps',
             label: '实验步骤',
-            content: (
+            content: stepNav ?? (
               <VesselStepList
                 experiment={experiment}
                 activeSeq={session.activeSeq}
@@ -342,18 +348,20 @@ export function VesselExperimentDocks({
             content: (
               <div className="w-max max-w-[calc(100vw-2rem)] space-y-3">
                 {controls}
-                <VesselStepForm
-                  step={session.step}
-                  readings={session.readings}
-                  message={session.message}
-                  busy={session.busy}
-                  reportEnabled={session.reportEnabled}
-                  showReport={session.step.seq === experiment.steps.length}
-                  onChange={session.setReading}
-                  onSubmit={() => { void session.submitStep(); }}
-                  onReport={session.openReport}
-                  onAsk={session.ask}
-                />
+                {stepNav ? null : (
+                  <VesselStepForm
+                    step={session.step}
+                    readings={session.readings}
+                    message={session.message}
+                    busy={session.busy}
+                    reportEnabled={session.reportEnabled}
+                    showReport={session.step.seq === experiment.steps.length}
+                    onChange={session.setReading}
+                    onSubmit={() => { void session.submitStep(); }}
+                    onReport={session.openReport}
+                    onAsk={session.ask}
+                  />
+                )}
               </div>
             ),
           },

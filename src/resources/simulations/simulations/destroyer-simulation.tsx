@@ -6,7 +6,7 @@ import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-l
  * 模块化重构版本 - 使用统一物理引擎和控制器
  */
 
-import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/drei';
@@ -23,7 +23,7 @@ import {
 import { resolveRegisteredSimulationModel, resolveVersionedDefault } from '@/lib/browser-delivery/client';
 import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
 import { HeroModelBasis } from '@/resources/simulations/components/hero-model-basis';
-import { VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
+import { ShipVisualMarker, VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
 import { cloneSkinnedScene, skinnedBindingsIntact } from '@/resources/simulations/model-packages/clone-skinned-scene';
 import {
   TYPE055_V2_BASIS_YAW_RAD,
@@ -111,6 +111,7 @@ import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
+import { applyLocalSketchVerdict } from '@/features/ilab/sketch-client';
 import {
   DESTROYER_CURVE_SERIES,
   DESTROYER_EXPERIMENT_STEPS,
@@ -121,6 +122,7 @@ import {
   destroyerKonlingBrief,
   destroyerSceneMotion,
   scoreDestroyerStep,
+  scriptedManualRudder,
   signedHeading,
   thinDestroyerSamples,
   type DestroyerReadings,
@@ -494,7 +496,7 @@ function DestroyerModel({
     return (
       <FallbackGltfModel
         candidates={MODEL.candidates}
-        render={(url) => <DestroyerModelScene url={url} simRef={simRef} />}
+        render={(url) => <DestroyerModelScene url={url} simRef={simRef} markReady />}
       />
     );
   }
@@ -529,6 +531,7 @@ function DestroyerModelScene({
   basisYawRad = 0,
   descriptor = null,
   resetToken = 0,
+  markReady = false,
 }: {
   url: string;
   simRef: React.MutableRefObject<SimulationState>;
@@ -538,6 +541,7 @@ function DestroyerModelScene({
   descriptor?: VersionedModelPackageDescriptor | null;
   /** 实验重置令牌：透传给彩蛋装配，触发状态随实验生命周期复位。 */
   resetToken?: number;
+  markReady?: boolean;
 }) {
   const { camera } = useThree();
   const { scene, animations } = useGLTF(url, true, true);
@@ -641,6 +645,7 @@ function DestroyerModelScene({
 
   return (
     <group ref={groupRef} name="fleet-ship-root" userData={{ modelUrl: url, modelScale: scale, mountMatrix: descriptor?.modelToSceneMatrix ?? null }}>
+      {markReady ? <ShipVisualMarker mode="full" /> : null}
       <group rotation-y={basisYawRad}>
         <HeroModelBasis matrix={descriptor?.modelToSceneMatrix}>
           <primitive object={model} scale={scale} />
@@ -680,6 +685,7 @@ function SimulationEngine({
   maxErrorDeg,
   maxSettlingTimeSec,
   disturbanceEnabled,
+  manualRudderAt,
   onHudUpdate,
   onChartDataUpdate,
 }: {
@@ -699,6 +705,7 @@ function SimulationEngine({
   /** 当前任务 successCriteria.maxSettlingTime（s）：机动收敛时限，超时达标不计数。 */
   maxSettlingTimeSec?: number;
   disturbanceEnabled: boolean;
+  manualRudderAt: (time: number) => number | null;
   onHudUpdate: (state: HudState) => void;
   onChartDataUpdate: (sample: DestroyerSample) => void;
 }) {
@@ -813,13 +820,15 @@ function SimulationEngine({
           prevErrorDeg: sim.prevErrorDeg,
         });
 
+      const scriptedRudder = manualRudderAt(simTime);
+      const rudderCommand = scriptedRudder ?? sim.manualRudderDeg;
       const stepResult = computeDestroyerHifiStep(
         buildDestroyerHifiStepRequest({
           dtS: dt,
           targetHeadingDeg: targetHeading,
           controlMode: controlMode === 'manual' || controlMode === 'p' || controlMode === 'pd' ? controlMode : 'pid',
           pid: pidGains,
-          manualRudderDeg: sim.manualRudderDeg,
+          manualRudderDeg: rudderCommand,
           disturbanceEnabled,
           state: requestState,
         })
@@ -879,7 +888,7 @@ function SimulationEngine({
           actualHeading: headingDeg,
           yawRate: toDegrees(sim.yawRateRad),
           rudder: sim.rudderDeg,
-          manualRudder: sim.manualRudderDeg,
+          manualRudder: rudderCommand,
           speed: sim.speedMps,
           crossTrackError: currentError,
         });
@@ -923,6 +932,7 @@ function ControlPanel({
   allowedModes,
   allowedGains,
   controlsEnabled,
+  rudderLocked,
   manualRudder,
   onStart,
   onPause,
@@ -938,6 +948,7 @@ function ControlPanel({
   allowedModes: ControlMode[];
   allowedGains: Array<'kp' | 'ki' | 'kd'>;
   controlsEnabled: boolean;
+  rudderLocked: boolean;
   manualRudder: number;
   onStart: () => void;
   onPause: () => void;
@@ -992,7 +1003,7 @@ function ControlPanel({
                   min={-nomotoParams.maxRudderDeg}
                   max={nomotoParams.maxRudderDeg}
                   step={1}
-                  disabled={!controlsEnabled}
+                  disabled={!controlsEnabled || rudderLocked}
                   onValueChange={([value]) => onManualRudderChange(value)}
                   aria-label="手操舵角"
                   className={`flex-1 ${simulationUi.slider}`}
@@ -1083,7 +1094,7 @@ function ControlPanel({
 
 // ============ 主组件 ============
 
-export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }) {
+export default function DestroyerSimulation({ ticket = '', stepNav, hostStepTitle }: { ticket?: string; stepNav?: ReactNode; hostStepTitle?: string }) {
   const ai = useOptionalGlobalAI();
   const { data: session, status: sessionStatus } = useSession();
   const [isRunning, setIsRunning] = useState(false);
@@ -1350,13 +1361,19 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       setMessage(order);
       return;
     }
+    const hasSketch = step.fields.some((field) => field.kind === 'sketch');
+    const prepared = await applyLocalSketchVerdict(readings, hasSketch, Boolean(originId));
+    if (!prepared.ok) {
+      setMessage(prepared.message);
+      return;
+    }
     const storedSamples = thinDestroyerSamples(samples);
-    const scored = scoreDestroyerStep(step.seq, storedSamples, readings);
-    if (!scored.ok) {
+    const scored = prepared.skipLocalScore ? null : scoreDestroyerStep(step.seq, storedSamples, prepared.readings);
+    if (scored && !scored.ok) {
       setMessage(scored.message);
       return;
     }
-    const record = {
+    const record = scored ? {
       seq: step.seq,
       title: step.title,
       earnedPoints: scored.earnedPoints,
@@ -1364,15 +1381,17 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       evaluation: scored.evaluation,
       remarks: scored.remarks,
       samples: storedSamples,
-      readings,
-    };
+      readings: prepared.readings,
+    } : null;
     const previous = records.find((item) => item.seq === step.seq);
-    const chosen = chooseBetterDestroyerAttempt(previous, record);
-    if (chosen.keptPrevious) {
+    const chosen = record ? chooseBetterDestroyerAttempt(previous, record) : null;
+    if (chosen?.keptPrevious) {
       setMessage('这次没有超过已保存的成绩，仍保留较好的一次。');
       return;
     }
-    const nextRecords = [...records.filter((item) => item.seq !== step.seq), chosen.record];
+    const nextRecords = chosen
+      ? [...records.filter((item) => item.seq !== step.seq), chosen.record]
+      : records;
     const redoing = doneSeqs.includes(step.seq);
     if (originId) {
       setBusy(true);
@@ -1382,7 +1401,8 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
             seq: step.seq,
-            readings,
+            readings: prepared.readings,
+            sketchImage: prepared.sketchImage,
             samples: storedSamples,
             startedAtMs: stepStartedAt.current,
           }),
@@ -1432,7 +1452,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           setReadings({});
           return;
         } else if (response.status === 409) {
-          if (step.seq === 10) {
+          if (step.scene === 'review') {
             const html = buildDestroyerReportHtml({
               displayName: session?.user?.name || '本次实验',
               steps: nextRecords,
@@ -1443,7 +1463,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           } else {
             setMessage('实验空间已经交卷，这次成绩只留在本机。');
           }
-        } else if (step.seq === 10) {
+        } else if (step.scene === 'review') {
           const done = await fetch(`/api/ilab/destroyer/session/${originId}/complete`, { method: 'POST' });
           const doneBody = await done.json() as { error?: string; remote?: { message?: string } };
           if (!done.ok) {
@@ -1464,7 +1484,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       } finally {
         setBusy(false);
       }
-    } else if (step.seq === 10) {
+    } else if (step.scene === 'review') {
       const html = buildDestroyerReportHtml({
         displayName: session?.user?.name || '本次实验',
         steps: nextRecords,
@@ -1479,7 +1499,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
     }
     setRecords(nextRecords);
     setReadings({});
-    if (!redoing && step.seq < 10) {
+    if (!redoing && step.scene !== 'review') {
       setActiveSeq(step.seq + 1);
       setViewSeq(step.seq + 1);
     }
@@ -1601,6 +1621,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           maxErrorDeg={5}
           maxSettlingTimeSec={60}
           disturbanceEnabled={motion.disturbance}
+          manualRudderAt={motion.manualRudder}
           onHudUpdate={setHudState}
           onChartDataUpdate={handleChartDataUpdate}
         />
@@ -1617,7 +1638,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           {
             id: 'steps',
             label: '实验步骤',
-            content: (
+            content: stepNav ?? (
               <DestroyerStepList
                 activeSeq={activeSeq}
                 viewSeq={viewSeq}
@@ -1668,10 +1689,11 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                   isRunning={isRunning}
                   controlMode={controlMode}
                   pidGains={pidGains}
-                  stepTitle={`${step.seq}. ${step.title}`}
+                  stepTitle={hostStepTitle ?? `${step.seq}. ${step.title}`}
                   allowedModes={step.modes}
                   allowedGains={step.gains}
                   controlsEnabled={step.scene !== 'review'}
+                  rudderLocked={scriptedManualRudder(step, 0) !== null}
                   manualRudder={manualRudder}
                   onStart={() => setIsRunning(true)}
                   onPause={() => setIsRunning(false)}
@@ -1680,17 +1702,19 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                   onPidGainsChange={setPidGains}
                   onManualRudderChange={setManualRudder}
                 />
-                <DestroyerStepForm
-                  step={step}
-                  readings={readings}
-                  message={message}
-                  busy={busy}
-                  reportEnabled={records.some((record) => record.seq === 10) || Boolean(reportHtml)}
-                  onChange={(key, value) => setReadings((prev) => ({ ...prev, [key]: value }))}
-                  onSubmit={() => { void submitStep(); }}
-                  onReport={openReport}
-                  onAsk={() => ai?.openSidebar()}
-                />
+                {stepNav ? null : (
+                  <DestroyerStepForm
+                    step={step}
+                    readings={readings}
+                    message={message}
+                    busy={busy}
+                    reportEnabled={records.some((record) => record.seq === DESTROYER_EXPERIMENT_STEPS.length) || Boolean(reportHtml)}
+                    onChange={(key, value) => setReadings((prev) => ({ ...prev, [key]: value }))}
+                    onSubmit={() => { void submitStep(); }}
+                    onReport={openReport}
+                    onAsk={() => ai?.openSidebar()}
+                  />
+                )}
               </div>
             ),
           },

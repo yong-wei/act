@@ -13,6 +13,7 @@ import type { CompetencyDimension } from '@/lib/data-governance/competency-model
 import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 
 const mocks = vi.hoisted(() => ({
+  readAuthorityKnowledgeNode: vi.fn(),
   readLearnerState: vi.fn(),
   readPathPlannerLearnerStateForSubject: vi.fn(),
   getLearningGoalAssessmentCoverageForPlanner: vi.fn(),
@@ -35,6 +36,10 @@ vi.mock('@/lib/math-calc', async () => {
     runMathCalculate: mocks.runMathCalculate,
   };
 });
+
+vi.mock('@/lib/konling-knowledge-authority-node', () => ({
+  readAuthorityKnowledgeNode: mocks.readAuthorityKnowledgeNode,
+}));
 
 vi.mock('@/features/personalization/learner-state/public-api', async () => {
   const actual = await vi.importActual<typeof import('@/features/personalization/learner-state/public-api')>(
@@ -760,6 +765,7 @@ describe('konling agent runtime', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.readAuthorityKnowledgeNode.mockReturnValue(null);
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
     mocks.loadAllTextbookStructureRuntimeCatalogEntries.mockResolvedValue(textbookRuntimeCatalogFixture());
     mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue(textbookStructureUnitFixture());
@@ -4344,6 +4350,7 @@ describe('konling agent runtime', () => {
     });
 
     expect(db.knowledgeNode.findMany).not.toHaveBeenCalled();
+    expect(mocks.readAuthorityKnowledgeNode).not.toHaveBeenCalled();
     expect(runtime.knowledgeWorkspace).toMatchObject({
       source: 'server-owned',
       route: '/knowledge',
@@ -4354,6 +4361,85 @@ describe('konling agent runtime', () => {
       },
       missing_context: ['knowledge-workspace-selected-node-unresolved'],
     });
+  });
+
+  it('resolves an active authority canonical id when Prisma has no matching knowledge node', async () => {
+    mocks.readAuthorityKnowledgeNode.mockReturnValue({
+      id: 'ctkg:nyquist-stability',
+      name: '奈奎斯特稳定判据',
+      nodeType: '判据',
+      description: '根据开环频率特性曲线是否包围负一实点判断闭环稳定性。',
+      tags: ['奈奎斯特'],
+      knowledgeDim: 'criterion',
+    });
+    const db = {
+      knowledgeNode: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const runtime = await buildKonlingRuntimeContext(db, {
+      authenticatedUserId: 'student-1',
+      role: 'STUDENT',
+      pageId: '/knowledge',
+      knowledgeWorkspaceHint: {
+        status: 'selected-node',
+        selectedNodeId: 'ctkg:nyquist-stability',
+      },
+      trustedContentContext: true,
+    });
+
+    expect(mocks.readAuthorityKnowledgeNode).toHaveBeenCalledWith('ctkg:nyquist-stability');
+    expect(runtime.knowledgeWorkspace).toMatchObject({
+      source: 'server-owned',
+      status: 'selected-node',
+      selected_node: {
+        id: 'ctkg:nyquist-stability',
+        name: '奈奎斯特稳定判据',
+        node_type: '判据',
+        knowledge_dim: 'criterion',
+      },
+      missing_context: [],
+    });
+
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: runtime,
+    });
+    expect(prompt).toContain('奈奎斯特稳定判据');
+    expect(prompt).toContain('ctkg:nyquist-stability');
+  });
+
+  it('keeps an unknown authority id unresolved instead of trusting the client label', async () => {
+    mocks.readAuthorityKnowledgeNode.mockReturnValue(null);
+    const db = {
+      knowledgeNode: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const runtime = await buildKonlingRuntimeContext(db, {
+      authenticatedUserId: 'student-1',
+      role: 'STUDENT',
+      pageId: '/knowledge',
+      knowledgeWorkspaceHint: {
+        status: 'selected-node',
+        selectedNodeId: 'ctkg:missing-node',
+      },
+    });
+
+    expect(runtime.knowledgeWorkspace).toMatchObject({
+      status: 'degraded',
+      selected_node: null,
+      missing_context: ['knowledge-workspace-selected-node-unresolved'],
+    });
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: runtime,
+    });
+    expect(prompt).not.toContain('当前选中节点');
   });
 
   it('builds citation requirements from server path context and evidence cache', async () => {

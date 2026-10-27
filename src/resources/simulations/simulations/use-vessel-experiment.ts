@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
+import { applyLocalSketchVerdict } from '@/features/ilab/sketch-client';
 import {
   assertVesselStepOrder,
   buildVesselReportHtml,
@@ -213,13 +214,19 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
       setMessage(order);
       return;
     }
+    const hasSketch = step.fields.some((field) => field.kind === 'sketch');
+    const prepared = await applyLocalSketchVerdict(readings, hasSketch, Boolean(originId));
+    if (!prepared.ok) {
+      setMessage(prepared.message);
+      return;
+    }
     const storedSamples = thinVesselSamples(samples);
-    const scored = experiment.score(step, storedSamples, readings);
-    if (!scored.ok) {
+    const scored = prepared.skipLocalScore ? null : experiment.score(step, storedSamples, prepared.readings);
+    if (scored && !scored.ok) {
       setMessage(scored.message);
       return;
     }
-    const record = {
+    const record = scored ? {
       seq: step.seq,
       title: step.title,
       earnedPoints: scored.earnedPoints,
@@ -227,15 +234,17 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
       evaluation: scored.evaluation,
       remarks: scored.remarks,
       samples: storedSamples,
-      readings,
-    };
+      readings: prepared.readings,
+    } : null;
     const previous = records.find((item) => item.seq === step.seq);
-    const chosen = chooseBetterVesselAttempt(previous, record);
-    if (chosen.keptPrevious) {
+    const chosen = record ? chooseBetterVesselAttempt(previous, record) : null;
+    if (chosen?.keptPrevious) {
       setMessage('这次没有超过已保存的成绩，仍保留较好的一次。');
       return;
     }
-    const nextRecords = [...records.filter((item) => item.seq !== step.seq), chosen.record];
+    const nextRecords = chosen
+      ? [...records.filter((item) => item.seq !== step.seq), chosen.record]
+      : records;
     const redoing = doneSeqs.includes(step.seq);
     const lastSeq = experiment.steps.length;
     if (originId) {
@@ -247,7 +256,8 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
           body: JSON.stringify({
             experimentKey: experiment.key,
             seq: step.seq,
-            readings,
+            readings: prepared.readings,
+            sketchImage: prepared.sketchImage,
             samples: storedSamples,
             startedAtMs: stepStartedAt.current,
           }),

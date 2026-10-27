@@ -4,7 +4,7 @@ export interface VesselField {
   key: string;
   label: string;
   unit?: string;
-  kind: 'number' | 'choice' | 'text';
+  kind: 'number' | 'choice' | 'text' | 'sketch';
   choices?: string[];
 }
 

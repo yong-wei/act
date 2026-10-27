@@ -1,3 +1,5 @@
+import { sketchLabelForId, sketchReadingError, SKETCH_PLOTS } from '@/features/ilab/sketch-plots';
+
 import type { ControlMode } from '../core/types';
 
 export const DESTROYER_EXPERIMENT_TITLE = '驱逐舰航向控制实验';
@@ -20,7 +22,7 @@ export interface DestroyerField {
   key: string;
   label: string;
   unit?: string;
-  kind: 'number' | 'choice' | 'text';
+  kind: 'number' | 'choice' | 'text' | 'sketch';
   choices?: string[];
 }
 
@@ -71,6 +73,7 @@ export interface DestroyerSceneMotion {
   disturbance: boolean;
   start: { x: number; z: number; headingDeg: number };
   desiredHeading: (time: number) => number;
+  manualRudder: (time: number) => number | null;
 }
 
 export const DESTROYER_CURVE_SERIES = [
@@ -87,7 +90,7 @@ export type DestroyerSeriesId = (typeof DESTROYER_CURVE_SERIES)[number]['id'];
 
 const numberField = (key: string, label: string, unit: string): DestroyerField => ({ key, label, unit, kind: 'number' });
 
-export const DESTROYER_EXPERIMENT_STEPS: DestroyerExperimentStep[] = [
+const DESTROYER_BASE_STEPS: DestroyerExperimentStep[] = [
   {
     seq: 1,
     title: '直航读数',
@@ -260,9 +263,69 @@ export const DESTROYER_EXPERIMENT_STEPS: DestroyerExperimentStep[] = [
   },
 ];
 
+function destroyerInquiry(
+  seq: number,
+  title: string,
+  scene: DestroyerExperimentStep['scene'],
+  duration: number,
+  minRun: number,
+  mode: ControlMode,
+  goal: string,
+  watch: string,
+  suggestion: string,
+  fields: DestroyerField[],
+): DestroyerExperimentStep {
+  return {
+    seq,
+    title,
+    goal,
+    watch,
+    suggestion,
+    scene,
+    duration,
+    minRunS: minRun,
+    modes: [mode],
+    defaultMode: mode,
+    gains: [],
+    disturbance: false,
+    maxPoints: 2,
+    expectTime: duration,
+    fields,
+  };
+}
+
+const DESTROYER_INQUIRY_STEPS: DestroyerExperimentStep[] = [
+  destroyerInquiry(10, '直航转艏', 'straight', 25, 12, 'pid', '直线指令下读转艏速率。', '转艏速率终点。', '按开始。等曲线走完，读终点转艏速率。', [numberField('yawRate', '转艏速率', '°/s')]),
+  destroyerInquiry(11, '直航舵角', 'straight', 25, 12, 'pid', '直线指令下读自动舵的舵角。', '舵角终点。', '等曲线走完，读终点舵角。', [numberField('rudder', '舵角', '°')]),
+  destroyerInquiry(12, '航向是否离开零', 'straight', 25, 12, 'pid', '判断直线指令下航向有没有离开零。', '实际航向终点。', '看航向曲线的终点再做选择。', [{ key: 'choice', label: '实际航向', kind: 'choice', choices: ['留在零附近', '已经离开零'] }]),
+  destroyerInquiry(13, '航速是否保持', 'straight', 25, 12, 'pid', '判断直航航速还在不在。', '航速终点。', '看航速曲线的终点再做选择。', [{ key: 'choice', label: '航速', kind: 'choice', choices: ['航速还在', '航速掉下去了'] }]),
+  destroyerInquiry(14, '右舵转艏', 'manual', 40, 20, 'manual', '固定右舵，读转艏速率。', '转艏速率终点。', '舵角由这一步自动打到右舷并保持。等曲线走完，读终点转艏速率。', [numberField('yawRate', '转艏速率', '°/s')]),
+  destroyerInquiry(15, '左舵方向', 'manual', 40, 20, 'manual', '换成左舵，判断船往哪边转。', '转艏速率的符号。', '看转艏速率离开零的方向，再做选择。', [{ key: 'choice', label: '转向', kind: 'choice', choices: ['向左转了', '向右转了'] }]),
+  destroyerInquiry(16, '短时回中', 'manual', 36, 20, 'manual', '先打右舵，再把舵收回零，读回中后的转艏速率。', '回中以后的转艏速率。', '前一段会打舵，之后舵回到零。请等到曲线后段再读转艏速率。', [numberField('yawRate', '回中后转艏速率', '°/s')]),
+  destroyerInquiry(17, '右舵航向', 'manual', 40, 20, 'manual', '右舵保持时，判断船有没有向右转。', '转艏速率和航向。', '看转艏速率的方向再做选择。', [{ key: 'choice', label: '转向', kind: 'choice', choices: ['船向右转', '船向左转'] }]),
+  destroyerInquiry(18, '直航航速', 'straight', 20, 10, 'pid', '直线指令下读航速。', '航速终点。', '等曲线走完，读终点航速。', [numberField('speed', '航速', 'm/s')]),
+  destroyerInquiry(19, '手绘图识别', 'straight', 12, 8, 'pid', '手绘奈奎斯特图、伯德图、根轨迹图或时域响应图，并交给识别核对。', '所选图种和手绘形状是否一致。', '先选择你要画的图，再在画布上画出对应曲线。识别结果要和你的选择一致。', [
+    { key: 'plotKind', label: '手绘图种类', kind: 'choice', choices: SKETCH_PLOTS.map((plot) => plot.label) },
+    { key: 'sketch', label: '手绘曲线', kind: 'sketch' },
+  ]),
+];
+
+export const DESTROYER_EXPERIMENT_STEPS: DestroyerExperimentStep[] = [
+  ...DESTROYER_BASE_STEPS.filter((step) => step.seq < 10).map((step) => ({ ...step, maxPoints: step.maxPoints - 2 })),
+  ...DESTROYER_INQUIRY_STEPS,
+  ...DESTROYER_BASE_STEPS.filter((step) => step.seq === 10).map((step) => ({ ...step, seq: 20, maxPoints: step.maxPoints - 2 })),
+];
+
 export const DESTROYER_MAX_POINTS = DESTROYER_EXPERIMENT_STEPS.reduce((sum, step) => sum + step.maxPoints, 0);
 
 export const DESTROYER_STEP_BY_SEQ = new Map(DESTROYER_EXPERIMENT_STEPS.map((step) => [step.seq, step]));
+
+export function scriptedManualRudder(step: DestroyerExperimentStep, time: number): number | null {
+  if (step.seq === 14 || step.seq === 17) return 12;
+  if (step.seq === 15) return -12;
+  if (step.seq === 16) return time < 12 ? 12 : 0;
+  return null;
+}
 
 export function destroyerSceneMotion(step: DestroyerExperimentStep, speedMps: number): DestroyerSceneMotion {
   const speed = speedMps > 0 ? speedMps : 15;
@@ -277,6 +340,7 @@ export function destroyerSceneMotion(step: DestroyerExperimentStep, speedMps: nu
       disturbance: false,
       start: { x: 0, z: -(radius + 500), headingDeg: 0 },
       desiredHeading: (time) => (time < 40 ? 0 : yawRateDegS * (time - 40)),
+      manualRudder: (time) => scriptedManualRudder(step, time),
     };
   }
   const desiredHeading = (time: number) => {
@@ -301,6 +365,7 @@ export function destroyerSceneMotion(step: DestroyerExperimentStep, speedMps: nu
     disturbance: step.disturbance,
     start,
     desiredHeading,
+    manualRudder: (time) => scriptedManualRudder(step, time),
   };
 }
 
@@ -397,6 +462,7 @@ export function scoreDestroyerStep(seq: number, samples: DestroyerSample[], read
     if (note.length < 8) return fail(step, '请用至少一句话写下这次操船记录。');
     return pass(step, '操作记录已收入实验报告。', note);
   }
+  if (step.seq >= 10 && step.seq <= 19) return scoreDestroyerInquiry(step, samples, readings);
   const blocked = requireRun(step, samples);
   if (blocked) return blocked;
   const sceneMessage = sceneReady(step, samples);
@@ -473,11 +539,79 @@ export function scoreDestroyerStep(seq: number, samples: DestroyerSample[], read
     return pass(step, '定常回转末段读数与曲线一致。', `转艏速率 ${enteredYaw} °/s，舵角 ${enteredRudder}°。`);
   }
 
-  const deviation = samples.reduce((best, sample) => Math.max(best, Math.abs(sample.actualHeading)), 0);
-  const entered = numberReading(readings, 'maxHeadingDev');
-  if (entered === null) return fail(step, '请按曲线填写最大航向偏离。');
-  if (!near(entered, deviation, 4)) return fail(step, '填写的最大偏离和曲线对不上。');
-  return pass(step, `最大航向偏离 ${entered}°。`, `偏离 ${entered}°。`);
+  if (step.seq === 9) {
+    const deviation = samples.reduce((best, sample) => Math.max(best, Math.abs(sample.actualHeading)), 0);
+    const entered = numberReading(readings, 'maxHeadingDev');
+    if (entered === null) return fail(step, '请按曲线填写最大航向偏离。');
+    if (!near(entered, deviation, 4)) return fail(step, '填写的最大偏离和曲线对不上。');
+    return pass(step, `最大航向偏离 ${entered}°。`, `偏离 ${entered}°。`);
+  }
+  return fail(step, '实验步骤不存在。');
+}
+
+function scoreDestroyerInquiry(step: DestroyerExperimentStep, samples: DestroyerSample[], readings: DestroyerReadings): DestroyerScore {
+  const blocked = requireRun(step, samples);
+  if (blocked) return blocked;
+  const sceneMessage = sceneReady(step, samples);
+  if (sceneMessage) return fail(step, sceneMessage);
+  const last = samples[samples.length - 1];
+  if (!last) return fail(step, '请先运行仿真，让曲线留下数据。');
+  if (step.seq === 19) {
+    const error = sketchReadingError(readings);
+    if (error) return fail(step, error);
+    const label = sketchLabelForId(readings.sketchKind ?? '');
+    const note = readings.sketchEvaluation?.trim() || '手绘图与所选种类一致。';
+    return pass(step, `手绘图识别为${label}。${note}`, note);
+  }
+  const choice = (expected: string, evaluation: string) => {
+    if ((readings.choice ?? '').trim() !== expected) return fail(step, '这个判断和曲线不一致，请再看终点和过程。');
+    return pass(step, evaluation, expected);
+  };
+  if (step.seq === 10) {
+    if (Math.abs(last.yawRate) > 0.35 || Math.abs(last.actualHeading) > 8) return fail(step, '直线指令下转艏还没有留在较小范围。');
+    const entered = numberReading(readings, 'yawRate');
+    if (entered === null || !near(entered, last.yawRate, 0.4)) return fail(step, '填写的转艏速率和曲线终点对不上。');
+    return pass(step, '直线指令下转艏速率不大。', `转艏速率 ${entered} °/s。`);
+  }
+  if (step.seq === 11) {
+    if (Math.abs(last.rudder) > 8) return fail(step, '直线指令下舵角还没有留在较小范围。');
+    const entered = numberReading(readings, 'rudder');
+    if (entered === null || !near(entered, last.rudder, 2)) return fail(step, '填写的舵角和曲线终点对不上。');
+    return pass(step, '直线指令下可以读到舵角。', `舵角 ${entered}°。`);
+  }
+  if (step.seq === 12) {
+    if (Math.abs(last.actualHeading) > 5) return fail(step, '航向已经离开零附近。');
+    return choice('留在零附近', '直线指令下航向留在零附近。');
+  }
+  if (step.seq === 13) {
+    if (last.speed < 8) return fail(step, '直航航速还没有保持住。');
+    return choice('航速还在', '直航航速还在。');
+  }
+  if (step.seq === 14) {
+    if (last.yawRate <= 0.05 || Math.abs(last.manualRudder) < 8) return fail(step, '右舵下转艏还没有起来。');
+    const entered = numberReading(readings, 'yawRate');
+    if (entered === null || !near(entered, last.yawRate, 0.4)) return fail(step, '填写的转艏速率和曲线终点对不上。');
+    return pass(step, '右舵把转艏速率带了起来。', `转艏速率 ${entered} °/s。`);
+  }
+  if (step.seq === 15) {
+    if (last.yawRate >= -0.05 || Math.abs(last.manualRudder) < 8) return fail(step, '左舵下还看不出向左转。');
+    return choice('向左转了', '左舵让船向左转。');
+  }
+  if (step.seq === 16) {
+    const steered = samples.some((sample) => Math.abs(sample.manualRudder) >= 8);
+    if (!steered || Math.abs(last.manualRudder) > 1) return fail(step, '请先打舵，再把舵收回零。');
+    const entered = numberReading(readings, 'yawRate');
+    if (entered === null || !near(entered, last.yawRate, 0.4)) return fail(step, '填写的转艏速率和曲线终点对不上。');
+    return pass(step, '舵已回中，转艏速率已按曲线记录。', `回中后转艏速率 ${entered} °/s。`);
+  }
+  if (step.seq === 17) {
+    if (last.yawRate <= 0.05 && last.actualHeading <= 1) return fail(step, '右舵下还看不出向右转。');
+    return choice('船向右转', '右舵让船向右转。');
+  }
+  if (last.speed < 8) return fail(step, '直航航速还没有保持住。');
+  const entered = numberReading(readings, 'speed');
+  if (entered === null || !near(entered, last.speed, 1.5)) return fail(step, '填写的航速和曲线终点对不上。');
+  return pass(step, '直线指令下可以读到航速。', `航速 ${entered} m/s。`);
 }
 
 export function destroyerFrontierSeq(doneSeqs: number[]): number {

@@ -17,6 +17,7 @@ import {
   type DestroyerSample,
   type DestroyerSeriesId,
 } from './destroyer-experiment';
+import { SketchPad } from './sketch-pad';
 
 Chart.register(...registerables);
 
@@ -330,6 +331,9 @@ export function DestroyerStepForm({
               ))}
             </span>
           ) : null}
+          {field.kind === 'sketch' ? (
+            <SketchPad label={field.label} hint="画出奈奎斯特图、伯德图、根轨迹图或时域响应图。" onChange={(dataUrl) => onChange('sketchImage', dataUrl)} />
+          ) : null}
         </label>
       ))}
       <div className="flex flex-wrap gap-2">
@@ -339,7 +343,7 @@ export function DestroyerStepForm({
         <Button type="button" size="sm" variant="outline" onClick={onAsk} className={simulationUi.buttonOutline}>
           问控灵这一步
         </Button>
-        {step.seq === 10 ? (
+        {step.scene === 'review' ? (
           <Button type="button" size="sm" variant="outline" disabled={!reportEnabled} onClick={onReport} data-destroyer-report className={simulationUi.buttonOutline}>
             查看实验报告
           </Button>

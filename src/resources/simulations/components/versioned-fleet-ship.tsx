@@ -17,7 +17,7 @@ import {
 } from '@/lib/browser-delivery/client';
 import { FallbackGltfModel } from './fallback-gltf-model';
 import { HeroModelBasis } from './hero-model-basis';
-import { VersionedShipModel } from './versioned-ship-model';
+import { ShipVisualMarker, VersionedShipModel } from './versioned-ship-model';
 import { MarinePropulsorsRig, SemanticBindingsRig, type BindingTelemetrySource } from './semantic-bindings-rig';
 import { cloneSkinnedScene } from '../model-packages/clone-skinned-scene';
 import { matchActivatedFleetPackage } from '../model-packages/fleet-packages';
@@ -68,6 +68,7 @@ export function VersionedFleetShip({
           <FleetModelScene
             url={url}
             descriptor={null}
+            markReady
             simRef={simRef}
             position={position}
             headingRad={headingRad}
@@ -144,6 +145,7 @@ function FleetModelScene({
   verticalOffsetMeters,
   legacyOverlay,
   onMountedUrl,
+  markReady = false,
 }: {
   url: string;
   descriptor: VersionedModelPackageDescriptor | null;
@@ -163,6 +165,7 @@ function FleetModelScene({
   verticalOffsetMeters: number;
   legacyOverlay?: (scale: number) => React.ReactNode;
   onMountedUrl?: (url: string) => void;
+  markReady?: boolean;
 }) {
   const { scene, animations } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
@@ -217,6 +220,7 @@ function FleetModelScene({
 
   return (
     <group ref={groupRef} name="fleet-ship-root" userData={{ modelUrl: url, modelScale: scale, mountMatrix: modelToSceneMatrix ?? null }}>
+      {markReady ? <ShipVisualMarker mode="full" /> : null}
       <group rotation-y={basisYawRad}>
         <HeroModelBasis matrix={modelToSceneMatrix}>
           <primitive object={model} scale={scale} />

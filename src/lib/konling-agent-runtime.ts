@@ -60,6 +60,7 @@ import {
 import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
 import { buildIndexedCandidateResourceRecords, buildSerializablePathOptions } from '@/features/personalization/path-planning/public-api';
 import { promoteIndexedObjectKeyReads } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
+import { readAuthorityKnowledgeNode } from '@/lib/konling-knowledge-authority-node';
 import { createBoundRuntimeObjectKeyVerifier } from '@/lib/runtime-bound-object-read';
 import {
   projectGovernedCopilotProfile,
@@ -10771,7 +10772,32 @@ async function buildKnowledgeWorkspaceContext(
     take: 1,
   }) ?? [];
   const selectedNode = nodes[0] ?? null;
-  if (!selectedNode) {
+  if (selectedNode) {
+    return {
+      source: 'server-owned',
+      route: '/knowledge',
+      status: 'selected-node',
+      selected_node: {
+        id: getString(selectedNode, 'id'),
+        name: getString(selectedNode, 'name'),
+        node_type: getString(selectedNode, 'nodeType'),
+        chapter: resolveKnowledgeWorkspaceChapter(selectedNode),
+        knowledge_dim: getString(selectedNode, 'knowledgeDim') || null,
+        description: summarizeText(getString(selectedNode, 'description'), 220),
+        tags: arrayOfStrings(getValue(selectedNode, 'tags')),
+        capability_target_refs: readKnowledgeWorkspaceCapabilityTargetRefs(selectedNode),
+      },
+      relation_summary: relationSummary,
+      available_learning_actions: ['open-knowledge-card', 'search-related-resources', 'continue-learning-path'],
+      hover_policy: 'preview-only-not-durable-context',
+      missing_context: [],
+    };
+  }
+
+  // 活跃知识图谱的选中 id 是权威分片 canonical id。数据库没有同号行时，
+  // 再用服务端分片解析；分片也不存在则维持未解析，不能改用客户端标题。
+  const authorityNode = readAuthorityKnowledgeNode(contextNodeId);
+  if (!authorityNode) {
     return {
       source: 'server-owned',
       route: '/knowledge',
@@ -10789,14 +10815,14 @@ async function buildKnowledgeWorkspaceContext(
     route: '/knowledge',
     status: 'selected-node',
     selected_node: {
-      id: getString(selectedNode, 'id'),
-      name: getString(selectedNode, 'name'),
-      node_type: getString(selectedNode, 'nodeType'),
-      chapter: resolveKnowledgeWorkspaceChapter(selectedNode),
-      knowledge_dim: getString(selectedNode, 'knowledgeDim') || null,
-      description: summarizeText(getString(selectedNode, 'description'), 220),
-      tags: arrayOfStrings(getValue(selectedNode, 'tags')),
-      capability_target_refs: readKnowledgeWorkspaceCapabilityTargetRefs(selectedNode),
+      id: authorityNode.id,
+      name: authorityNode.name,
+      node_type: authorityNode.nodeType,
+      chapter: null,
+      knowledge_dim: authorityNode.knowledgeDim,
+      description: summarizeText(authorityNode.description, 220),
+      tags: authorityNode.tags,
+      capability_target_refs: [],
     },
     relation_summary: relationSummary,
     available_learning_actions: ['open-knowledge-card', 'search-related-resources', 'continue-learning-path'],

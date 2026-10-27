@@ -17,6 +17,7 @@ import {
   type VesselSample,
   type VesselStep,
 } from '@/resources/simulations/simulations/vessel-experiment';
+import { sketchIdForLabel } from '@/features/ilab/sketch-plots';
 import { VESSEL_EXPERIMENTS } from '@/resources/simulations/simulations/vessel-experiments';
 import {
   createContainerDrive,
@@ -64,6 +65,32 @@ const CHOICES: Record<string, string> = {
   'dredger-mode:6': '被流带离',
   'dredger-mode:7': '定位',
   'dredger-mode:9': '离开定位才会漂',
+  'lng-berthing:12': '向左转了',
+  'lng-berthing:14': '比靠泊快',
+  'lng-berthing:16': '航向留在零附近',
+  'lng-berthing:18': '已经改用低速',
+  'lng-berthing:19': '奈奎斯特图',
+  'container-voyage:12': '后段更快',
+  'container-voyage:19': '伯德图',
+  'cruise-comfort:13': '减摇鳍没有出力',
+  'cruise-comfort:14': '航向留在零附近',
+  'cruise-comfort:17': '这是四级海况',
+  'cruise-comfort:18': '航速在巡航附近',
+  'cruise-comfort:19': '根轨迹图',
+  'drilling-dp:13': '偏差变大了',
+  'drilling-dp:14': '没有停机',
+  'drilling-dp:16': '位置收得回来',
+  'drilling-dp:18': '功率已经出现',
+  'drilling-dp:19': '时域响应图',
+  'icebreaker-ice:12': '冰阻力上来了',
+  'icebreaker-ice:13': '航向留在零附近',
+  'icebreaker-ice:15': '冰把航速压住了',
+  'icebreaker-ice:18': '几乎没有冰阻力',
+  'icebreaker-ice:19': '奈奎斯特图',
+  'dredger-mode:12': '正在定位',
+  'dredger-mode:15': '被流带离',
+  'dredger-mode:18': '还离原点很远',
+  'dredger-mode:19': '伯德图',
 };
 
 function readingsFor(experiment: VesselExperiment, step: VesselStep, samples: VesselSample[]): VesselReadings {
@@ -76,6 +103,12 @@ function readingsFor(experiment: VesselExperiment, step: VesselStep, samples: Ve
       const choice = CHOICES[`${experiment.key}:${step.seq}`];
       if (!choice) throw new Error(`missing fixed choice ${experiment.key}:${step.seq}`);
       readings[field.key] = choice;
+    } else if (field.kind === 'sketch') {
+      const kind = sketchIdForLabel(readings.plotKind ?? '');
+      if (!kind) throw new Error(`missing sketch choice ${experiment.key}:${step.seq}`);
+      readings.sketchKind = kind;
+      readings.sketchBlank = '0';
+      readings.sketchEvaluation = '曲线形状和所选图种一致。';
     } else {
       const digits = experiment.series.find((series) => series.id === field.key)?.digits ?? 1;
       readings[field.key] = vesselValue(last, field.key).toFixed(digits);
@@ -103,7 +136,10 @@ describe('vessel experiment acceptance', () => {
     expect(tie.record.id).toBe('newer');
     for (const experiment of VESSEL_EXPERIMENTS) {
       expect(vesselMaxPoints(experiment.steps)).toBe(100);
-      expect(experiment.steps).toHaveLength(10);
+      expect(experiment.steps).toHaveLength(20);
+      expect(experiment.steps.some((step) => step.fields.some((field) => field.kind === 'sketch'))).toBe(true);
+      const plots = experiment.steps.flatMap((step) => step.fields.find((field) => field.key === 'plotKind')?.choices ?? []);
+      expect(plots).toEqual(['奈奎斯特图', '伯德图', '根轨迹图', '时域响应图']);
     }
   });
 

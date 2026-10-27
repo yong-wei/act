@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 
 import { emptyAiLedger, isAiUsageLedger, recordAiCall, type AiUsageLedger } from './ai-data';
 import { ilabAiScenario, reviewIlabStep } from './ai-review';
+import { recognizeSketch, type SketchRecognition } from './sketch-recognition';
 import { exchangeIlabTicket, uploadIlabReport, uploadIlabScore } from './ilab-client';
 import { buildIlabUploadBody, experimentScore, type IlabUploadBody, type StoredIlabStep } from './payload';
 import { buildIlabReportHtml } from './report';
@@ -194,31 +195,51 @@ export async function submitIlabStep(originId: string, input: {
 }): Promise<IlabSessionView> {
   const definition = ILAB_STEP_BY_SEQ.get(input.seq);
   if (!definition) throw new IlabServiceError('实验步骤不存在。', 400);
+  const payload = { ...input.payload };
+  const sketchImage = typeof payload.sketchImage === 'string' ? payload.sketchImage : '';
+  delete payload.sketchImage;
+  let vision: Extract<SketchRecognition, { ok: true }> | null = null;
+  if (input.seq === 10 || input.seq === 11) {
+    const recognized = await recognizeSketch({ image: sketchImage });
+    if (!recognized.ok) throw new IlabServiceError(recognized.message, 422);
+    const expected = input.seq === 10 ? 'nyquist' : 'bode';
+    if (recognized.verdict.blank || recognized.verdict.plotKind === 'other') {
+      throw new IlabServiceError('画布是空的或看不出是哪一种图，请按本步要求重画。', 422);
+    }
+    if (recognized.verdict.plotKind !== expected) {
+      throw new IlabServiceError(input.seq === 10 ? '这张图不像奈奎斯特图，请重画。' : '这张图不像伯德图，请重画。', 422);
+    }
+    vision = recognized;
+  }
   const preview = await findRun(originId);
   const vesselId = isIlabVesselId(preview.vesselId) ? preview.vesselId : null;
-  const scored = scoreIlabStep(input.seq === 1 ? null : vesselId, input.seq, input.payload);
+  const scored = scoreIlabStep(input.seq === 1 ? null : vesselId, input.seq, payload);
   if (!scored.ok) throw new IlabServiceError(scored.message, 422);
-  const review = ilabAiScenario(input.seq)
-    ? await reviewIlabStep({
+  const review = vision || !ilabAiScenario(input.seq)
+    ? null
+    : await reviewIlabStep({
       ledger: emptyAiLedger(),
       seq: input.seq,
-      summary: `${definition.title}：${JSON.stringify(input.payload).slice(0, 800)}`,
-    })
-    : null;
+      summary: `${definition.title}：${JSON.stringify(payload).slice(0, 800)}`,
+    });
   const window = stepWindow(input.startedAtMs, Date.now());
   const saved = await withIlabRunLock(originId, async (run, tx) => {
     assertIlabRunOpen(run);
     const steps = readSteps(run.steps);
     const previous = steps.find((step) => step.seq === input.seq);
     const freshLedger = readLedger(run.aiLedger);
-    const ledger = review?.call
-      ? recordAiCall(freshLedger, review.call)
-      : freshLedger;
-    const remarks = review
-      ? `${scored.score.remarks} 模型建议：${review.note}`
-      : ilabAiScenario(input.seq)
-        ? `${scored.score.remarks} 模型服务未配置或调用失败，本次没有计入 ai_data。`
-        : scored.score.remarks;
+    const ledger = vision
+      ? recordAiCall(freshLedger, vision.call)
+      : review?.call
+        ? recordAiCall(freshLedger, review.call)
+        : freshLedger;
+    const remarks = vision
+      ? `${scored.score.remarks} 手绘评价：${vision.verdict.evaluation || '图种与本步要求一致。'}`
+      : review
+        ? `${scored.score.remarks} 模型建议：${review.note}`
+        : ilabAiScenario(input.seq)
+          ? `${scored.score.remarks} 模型服务未配置或调用失败，本次没有计入 ai_data。`
+          : scored.score.remarks;
     const stored: StoredIlabStep = {
       ...scored.score,
       remarks,
