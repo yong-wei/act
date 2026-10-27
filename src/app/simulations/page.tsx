@@ -48,7 +48,7 @@ interface SimulationInfo {
 const simulations: SimulationInfo[] = [
   {
     id: 'destroyer',
-    title: '052D驱逐舰',
+    title: '055 型驱逐舰航向控制',
     subtitle: 'Nomoto 船舶运动模型',
     description: '经典航向控制仿真，学习PID参数整定与船舶操纵性能分析。',
     href: '/simulations/destroyer',
@@ -58,7 +58,7 @@ const simulations: SimulationInfo[] = [
     tags: ['Nomoto模型', 'PID控制', '航向保持'],
     controlFocus: ['航向控制', '舵角响应', '转向特性'],
     courseDesign: {
-      overview: '通过052D驱逐舰仿真，掌握船舶运动的基本数学模型和PID控制器设计方法。',
+      overview: '通过055 型驱逐舰航向控制，掌握船舶运动的基本数学模型和PID控制器设计方法。',
       objectives: [
         '理解Nomoto一阶船舶运动模型的物理意义',
         '掌握PID参数（Kp, Ki, Kd）对控制性能的影响',
@@ -74,7 +74,7 @@ const simulations: SimulationInfo[] = [
   },
   {
     id: 'lng',
-    title: 'LNG运输船',
+    title: '长恒号 LNG 大惯性操纵',
     subtitle: '大型船舶操纵仿真',
     description: '模拟大型LNG运输船的操纵特性，体验惯性大、响应慢的控制挑战。',
     href: '/simulations/lng',
@@ -100,7 +100,7 @@ const simulations: SimulationInfo[] = [
   },
   {
     id: 'container',
-    title: '集装箱货轮',
+    title: 'MSC 集装箱船航速与准点',
     subtitle: '高速航线运输仿真',
     description: '高速集装箱船的航线规划与经济航速控制，平衡效率与安全。',
     href: '/simulations/container',
@@ -126,7 +126,7 @@ const simulations: SimulationInfo[] = [
   },
   {
     id: 'cruise',
-    title: '邮轮',
+    title: '爱达·魔都号邮轮横摇控制',
     subtitle: '舒适性导向控制',
     description: '邮轮仿真着重乘客舒适度，学习减摇控制和平稳操纵策略。',
     href: '/simulations/cruise',
@@ -152,7 +152,7 @@ const simulations: SimulationInfo[] = [
   },
   {
     id: 'drilling',
-    title: '海洋石油981钻井平台',
+    title: '海洋石油981动力定位',
     subtitle: '动力定位 DP 系统',
     description: '深水钻井平台DP系统仿真，学习8推进器解耦控制和位置保持。',
     href: '/simulations/drilling',
@@ -178,7 +178,7 @@ const simulations: SimulationInfo[] = [
   },
   {
     id: 'icebreaker',
-    title: '雪龙2号极地科考破冰船',
+    title: '雪龙号吊舱与冰区控制',
     subtitle: 'Azipod 推进与冰阻力',
     description: '极地破冰船仿真，体验Azipod吊舱推进和冰区Stick-Slip阻力。',
     href: '/simulations/icebreaker',
@@ -188,7 +188,7 @@ const simulations: SimulationInfo[] = [
     tags: ['Azipod推进', '冰阻力', '参数摄动'],
     controlFocus: ['推进角度', '破冰策略', '鲁棒控制'],
     courseDesign: {
-      overview: '雪龙2号采用先进的Azipod推进系统，在冰区航行时船舶参数会显著变化。',
+      overview: '雪龙号采用先进的Azipod推进系统，在冰区航行时船舶参数会显著变化。',
       objectives: [
         '理解Azipod吊舱推进器的工作原理',
         '学习冰阻力的Stick-Slip模型',
@@ -204,7 +204,7 @@ const simulations: SimulationInfo[] = [
   },
   {
     id: 'dredger',
-    title: '天鲸号自航绞吸挖泥船',
+    title: '天鲸号挖泥船动力定位',
     subtitle: '多工况自适应控制',
     description: '挖泥船在疏浚、航行、定位等多工况间切换，学习模式切换控制。',
     href: '/simulations/dredger',
@@ -340,9 +340,14 @@ export default function SimulationsPage() {
               <p className="mt-2 text-sm leading-6 text-subtle">
                 目录只呈现学生需要的学习任务、控制主题、难度和继续行动；模型库与部署状态不作为开放状态真源。
               </p>
-              <Link href="/simulations/network-check" className="mt-3 inline-flex text-sm text-primary" data-network-check-entry>
-                进入实验前检查网络带宽和在线名额
-              </Link>
+              <div className="mt-3 flex flex-wrap gap-4">
+                <Link href="/simulations/network-check" className="inline-flex text-sm text-primary" data-network-check-entry>
+                  进入实验前检查网络带宽和在线名额
+                </Link>
+                <Link href="/simulations/supporting" className="inline-flex text-sm text-primary" data-supporting-entry>
+                  支撑材料
+                </Link>
+              </div>
             </div>
             <Link
               href="/simulations/drilling"
@@ -352,7 +357,7 @@ export default function SimulationsPage() {
               data-simulation-state-role="official"
             >
               <Play className="mr-2 h-4 w-4" />
-              继续动力定位实验
+              继续海洋石油981动力定位
             </Link>
           </div>
         </section>

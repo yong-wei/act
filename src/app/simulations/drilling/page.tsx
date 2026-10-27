@@ -11,7 +11,7 @@ export default async function DrillingSimulationPage({
   const ticket = firstQueryValue((await searchParams)?.ticket);
   return (
     <SimulationShell
-      title="钻井平台动力定位实验"
+      title="海洋石油981动力定位"
       subtitle="动力定位 DP 系统 · 多推进器解耦控制"
       activeHref="/simulations/drilling"
       localToolTemplate="dp-positioning"

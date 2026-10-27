@@ -961,7 +961,7 @@ export function DredgerSimulation({ ticket = '' }: { ticket?: string }) {
       />
 
       <SimulationTopBar
-        title="天鲸号挖泥船动力定位仿真"
+        title="天鲸号挖泥船动力定位"
         subtitle="MMG 3-DOF 高保真模型 · 定位精度 < 0.1m"
         badge="Dredger / OBE"
       />

@@ -25,7 +25,7 @@ import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { SimulationTopBar, SimulationAssessmentPanel, simulationUi, type ExperimentHostBrief } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette } from '../components/simulation-theme';
 import {
   EnvironmentScene,
@@ -746,7 +746,7 @@ function TeachingAnnotationsGate({
 
 // ============ 主组件 ============
 
-export function DrillingSimulation({ ticket = '', stepNav }: { ticket?: string; stepNav?: ReactNode }) {
+export function DrillingSimulation({ ticket = '', stepNav, hostBrief, hostSubmission }: { ticket?: string; stepNav?: ReactNode; hostBrief?: ExperimentHostBrief; hostSubmission?: ReactNode }) {
   const session = useVesselExperiment(drillingExperiment, ticket);
   const sessionRef = useRef(session);
   sessionRef.current = session;
@@ -1148,6 +1148,8 @@ export function DrillingSimulation({ ticket = '', stepNav }: { ticket?: string; 
           />
         )}
         stepNav={stepNav}
+        hostBrief={hostBrief}
+        hostSubmission={hostSubmission}
         assessment={(
           <SimulationAssessmentPanel
             title="DP定位评估"
@@ -1161,7 +1163,7 @@ export function DrillingSimulation({ ticket = '', stepNav }: { ticket?: string; 
       />
 
       <SimulationTopBar
-        title="海洋石油981 深水钻井平台"
+        title="海洋石油981动力定位"
         subtitle="DP 解耦控制 · 推力分配 · 风浪流扰动"
         badge="Drilling / OBE"
       />

@@ -92,7 +92,7 @@ describe('buildSystemUsageData', () => {
     });
     expect(result.interactionByType.length).toBeGreaterThan(0);
     expect(result.simulationVisits.map((item) => item.simulation)).toEqual(
-      expect.arrayContaining(['052D驱逐舰仿真', '豪华邮轮仿真'])
+      expect.arrayContaining(['055 型驱逐舰航向控制', '爱达·魔都号邮轮横摇控制'])
     );
     expect(result.moduleVisitShare.some((item) => item.module === '知识图谱')).toBe(true);
     expect(result.monthlyTrend.at(-1)?.month).toBe('2026-03');

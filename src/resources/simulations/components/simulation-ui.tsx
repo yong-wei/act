@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { PanelLeft, PanelRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,8 +18,8 @@ export const simulationUi = {
   badge:
     'rounded-md border border-platform-border bg-platform-surface-overlay/86 px-2.5 py-1 text-[11px] font-medium text-platform-fg-secondary shadow-sm backdrop-blur',
   panel: 'simulation-light-panel',
-  controlPanelPosition: 'absolute inset-x-4 bottom-20 z-20 max-h-[46vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:right-4 lg:top-4 lg:bottom-auto lg:w-[22rem] lg:max-h-[calc(100%-5.25rem)]',
-  statusPanelPosition: 'absolute inset-x-4 top-4 z-20 max-h-[30vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:left-4 lg:top-4 lg:bottom-auto lg:w-[20rem] lg:max-h-[calc(100%-5.25rem)]',
+  controlPanelPosition: 'absolute inset-x-4 bottom-20 z-20 h-[46vh] max-h-[46vh] overflow-hidden pointer-events-auto lg:inset-auto lg:right-4 lg:top-4 lg:bottom-auto lg:h-[calc(100%-5.25rem)] lg:max-h-[calc(100%-5.25rem)] lg:w-[24rem]',
+  statusPanelPosition: 'absolute inset-x-4 top-4 z-20 h-[30vh] max-h-[30vh] overflow-hidden pointer-events-auto lg:inset-auto lg:left-4 lg:top-4 lg:bottom-auto lg:h-[calc(100%-5.25rem)] lg:max-h-[calc(100%-5.25rem)] lg:w-[22rem]',
   cameraSwitcherPosition:
     'absolute bottom-4 left-4 right-4 z-40 max-w-[calc(100vw-2rem)] justify-center lg:left-1/2 lg:right-auto lg:max-w-none lg:-translate-x-1/2',
   sectionTitle: 'text-xs font-semibold tracking-wide text-platform-fg-primary',
@@ -32,7 +32,7 @@ export const simulationUi = {
   tabsList: 'border border-platform-border bg-platform-canvas-muted',
   tabsTrigger:
     'text-platform-fg-secondary data-[state=active]:bg-platform-fg-primary data-[state=active]:text-platform-fg-inverse data-[state=active]:shadow-sm',
-  dockBody: 'max-h-[calc(100vh-11.5rem)] overflow-y-auto [&>*]:w-full',
+  dockBody: 'min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [&>*]:min-w-0 [&>*]:w-full',
   dockHeader: 'mb-3 flex items-center justify-between border-b border-platform-border pb-2',
   dockTitle: 'text-sm font-semibold text-platform-fg-primary',
   dockToggle:
@@ -95,10 +95,7 @@ export function SimulationDock({
   const [collapsed, setCollapsed] = useState(false);
   const singleTab = tabs.length <= 1;
   const activeDefaultTab = defaultTab ?? tabs[0]?.id;
-  const fixedWidth = side === 'left' ? simulationUi.statusPanelPosition : simulationUi.controlPanelPosition;
-  const dockPosition = fitContent
-    ? fixedWidth.replace(/lg:w-\[[^\]]+\]/, 'lg:w-max lg:max-w-[calc(100vw-2rem)]')
-    : fixedWidth;
+  const dockPosition = side === 'left' ? simulationUi.statusPanelPosition : simulationUi.controlPanelPosition;
   const dockTheme = side === 'left' ? simulationUi.statusDockTheme : simulationUi.controlDockTheme;
   const collapsedPosition =
     side === 'left'
@@ -130,7 +127,7 @@ export function SimulationDock({
 
   return (
     <div
-      className={cn(simulationUi.panel, dockPosition, dockTheme, 'p-3 text-sm', className)}
+      className={cn(simulationUi.panel, dockPosition, dockTheme, 'flex flex-col overflow-hidden p-3 text-sm', className)}
       data-simulation-local-panel={side}
       data-simulation-panel-collapsible="true"
       data-command-deck-panel-anchor="top-command-area"
@@ -152,17 +149,17 @@ export function SimulationDock({
       </div>
 
       {singleTab ? (
-        <div className={simulationUi.dockBody}>{tabs[0]?.content}</div>
+        <div className={simulationUi.dockBody} data-dock-scroll>{tabs[0]?.content}</div>
       ) : (
-        <Tabs defaultValue={activeDefaultTab}>
-          <TabsList className={cn(fitContent ? 'mb-3 flex w-max max-w-full' : 'mb-3 grid w-full', simulationUi.tabsList)} style={fitContent ? undefined : { gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
+        <Tabs defaultValue={activeDefaultTab} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <TabsList className={cn('mb-3 shrink-0', fitContent ? 'flex w-full' : 'grid w-full', simulationUi.tabsList)} style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
             {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id} className={cn(simulationUi.tabsTrigger, fitContent && 'whitespace-nowrap')}>
+              <TabsTrigger key={tab.id} value={tab.id} className={simulationUi.tabsTrigger}>
                 {tab.label}
               </TabsTrigger>
             ))}
           </TabsList>
-          <div className={fitContent ? 'max-h-[calc(100vh-11.5rem)] overflow-y-auto' : simulationUi.dockBody}>
+          <div className={simulationUi.dockBody} data-dock-scroll>
             {tabs.map((tab) => (
               <TabsContent key={tab.id} value={tab.id} className="mt-0">
                 {tab.content}
@@ -171,6 +168,56 @@ export function SimulationDock({
           </div>
         </Tabs>
       )}
+    </div>
+  );
+}
+
+export interface ExperimentHostBrief {
+  seq: number;
+  title: string;
+  goal: string;
+  watch?: string;
+  hint?: string;
+}
+
+export function ExperimentStepAreas({
+  seq,
+  title,
+  goal,
+  watch,
+  hint,
+  hintAttribute,
+  controls,
+  submission,
+}: {
+  seq: number;
+  title: string;
+  goal: string;
+  watch?: string;
+  hint?: string;
+  hintAttribute?: string;
+  controls: ReactNode;
+  submission?: ReactNode;
+}) {
+  return (
+    <div className="space-y-3">
+      <section className="rounded-md border border-platform-border bg-platform-surface-overlay/86 p-3" data-step-brief>
+        <p className="text-xs font-semibold text-platform-fg-primary">说明</p>
+        <p className="mt-1 text-sm font-medium text-platform-fg-primary">第 {seq} 步 · {title}</p>
+        <p className="mt-1 text-xs leading-5 text-platform-fg-primary" data-step-goal>本步目标：{goal}</p>
+        {watch ? <p className="mt-1 text-xs leading-5 text-platform-fg-primary">本步要看：{watch}</p> : null}
+        {hint ? <p className="mt-1 text-xs leading-5 text-platform-fg-secondary" data-step-hint {...(hintAttribute ? { [hintAttribute]: '' } : {})}>{hint}</p> : null}
+      </section>
+      <section className="space-y-2" data-step-controls>
+        <p className="text-xs font-semibold text-platform-fg-primary">控制</p>
+        {controls}
+      </section>
+      {submission ? (
+        <section className="space-y-2 border-t border-platform-border pt-3" data-step-submit>
+          <p className="text-xs font-semibold text-platform-fg-primary">填写与提交</p>
+          {submission}
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -106,7 +106,7 @@ export function scoreIlabStep(
   if (!definition) return invalid('实验步骤不存在。');
   if (seq === 1) {
     const selected = text(payload.vesselId);
-    if (!isIlabVesselId(selected)) return invalid('请选择 055型驱逐舰、雪龙2号或海洋石油981。');
+    if (!isIlabVesselId(selected)) return invalid('请选择 055 型驱逐舰、雪龙号或海洋石油981。');
     const vessel = ILAB_VESSELS[selected];
     const nomoto = vessel.nomoto
       ? `K=${vessel.nomoto.K}，T=${vessel.nomoto.T} 秒，参考航速 ${vessel.nomoto.speedMps} 米/秒。`

@@ -393,7 +393,7 @@ test('simulations hub remains reachable without opening 3D runtimes', async ({ p
   await expect(page.getByText('7 个仿真场景')).toBeVisible();
   await expect(page.getByText('任务状态')).toHaveCount(0);
   await expect(page.getByText('任务链开放')).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: '052D驱逐舰' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '055 型驱逐舰航向控制' })).toBeVisible();
 });
 
 test('virtual lab compatibility route redirects to canonical simulations catalog', async ({ page }) => {
@@ -422,7 +422,7 @@ test('simulation detail pages render through mission workspace shell', async ({ 
   await expect(page.getByRole('group', { name: '仿真局部工具' })).toBeVisible();
   await expect(page.getByLabel('Breadcrumb').getByRole('link', { name: '虚拟仿真' })).toHaveAttribute('href', '/simulations');
   await expect(page.getByRole('link', { name: '个人中心' })).toHaveAttribute('href', '/profile');
-  await expect(page.getByRole('heading', { name: '军用驱逐舰战术机动仿真' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '055 型驱逐舰航向控制' })).toBeVisible();
 });
 
 test('simulation local tools preserve structured Cruise slots without fake actions', async ({ page }) => {

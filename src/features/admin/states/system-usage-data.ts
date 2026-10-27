@@ -92,13 +92,13 @@ const FACT_LABELS: Record<string, string> = {
 };
 
 const SIMULATION_LABELS: Record<string, string> = {
-  destroyer: '052D驱逐舰仿真',
-  cruise: '豪华邮轮仿真',
-  container: '集装箱船仿真',
-  lng: 'LNG运输船仿真',
-  drilling: '钻井平台仿真',
-  dredger: '挖泥船仿真',
-  icebreaker: '破冰船仿真',
+  destroyer: '055 型驱逐舰航向控制',
+  cruise: '爱达·魔都号邮轮横摇控制',
+  container: 'MSC 集装箱船航速与准点',
+  lng: '长恒号 LNG 大惯性操纵',
+  drilling: '海洋石油981动力定位',
+  dredger: '天鲸号挖泥船动力定位',
+  icebreaker: '雪龙号吊舱与冰区控制',
 };
 
 function startOfMonth(date: Date) {

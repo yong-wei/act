@@ -11,7 +11,7 @@ export default async function LNGSimulationPage({
   const ticket = firstQueryValue((await searchParams)?.ticket);
   return (
     <SimulationShell
-      title="液化气船大惯性操纵实验"
+      title="长恒号 LNG 大惯性操纵"
       subtitle="大型船舶操纵仿真 · 大惯性系统控制"
       activeHref="/simulations/lng"
       localToolTemplate="heading-control"

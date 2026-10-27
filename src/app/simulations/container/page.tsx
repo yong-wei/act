@@ -11,7 +11,7 @@ export default async function ContainerSimulationPage({
   const ticket = firstQueryValue((await searchParams)?.ticket);
   return (
     <SimulationShell
-      title="集装箱船航速与准点实验"
+      title="MSC 集装箱船航速与准点"
       subtitle="变质量 Nomoto · 风载荷与增益调度"
       activeHref="/simulations/container"
       localToolTemplate="heading-control"

@@ -8,7 +8,7 @@ test('学生可以走完驱逐舰航向控制的十个步骤', async ({ page }) 
   page.on('pageerror', (error) => pageErrors.push(error.message));
 
   await page.goto('/simulations/destroyer', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: '军用驱逐舰战术机动仿真' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '055 型驱逐舰航向控制' })).toBeVisible();
   await expect(page.locator('[data-sim-ui] canvas').first()).toBeVisible({ timeout: 30000 });
 
   const result = await page.evaluate(async () => {

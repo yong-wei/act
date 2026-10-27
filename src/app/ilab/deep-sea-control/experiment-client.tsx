@@ -258,18 +258,29 @@ export function DeepSeaControlExperiment({ initialTicket }: { initialTicket: str
   }
 
   const earned = session?.steps.reduce((sum, item) => sum + item.earnedPoints, 0) ?? 0;
+  const vesselSpec = vessel
+    ? `船型 ${vessel.name}，船长 ${vessel.lengthM} 米，排水量 ${vessel.displacementT} 吨。${vessel.nomoto ? `参考读数 K ${vessel.nomoto.K}，T ${vessel.nomoto.T} 秒。` : '这艘平台用动力定位。'}`
+    : '';
+  const hostBrief = {
+    seq: step.seq,
+    title: step.title,
+    goal: step.goal,
+    watch: `${step.stageName}，建议 ${step.minutes} 分钟。`,
+    hint: vesselSpec ? `${step.guidance} ${vesselSpec}` : step.guidance,
+  };
+  const fieldClass = 'mt-1 w-full rounded-md border border-platform-border bg-platform-surface px-2 py-1 text-sm text-platform-fg-primary';
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto max-w-[1600px] px-4 py-4">
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+    <main className="h-screen overflow-hidden bg-slate-950 text-slate-100">
+      <div className="mx-auto flex h-full max-w-[1600px] flex-col px-4 py-3">
+        <div className="mb-3 flex shrink-0 flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs tracking-wide text-amber-200">实验空间 · 船舶嵌入 · 24 步</p>
             <h1 className="text-xl font-semibold">{ILAB_EXPERIMENT_TITLE}</h1>
           </div>
           <p className="text-sm text-slate-300">{session ? `${session.displayName} · 操作分 ${earned}` : '等待票据'}</p>
         </div>
-        <details className="mb-3 rounded-md border border-slate-800 bg-slate-900 px-3 py-2">
+        <details className="mb-3 shrink-0 rounded-md border border-slate-800 bg-slate-900 px-3 py-2">
           <summary className="cursor-pointer text-sm text-amber-200">实验资源</summary>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {ILAB_RESOURCE_LINKS.map((link) => (
@@ -282,30 +293,11 @@ export function DeepSeaControlExperiment({ initialTicket }: { initialTicket: str
             ))}
           </ul>
         </details>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <section className="space-y-3">
-          <div className="rounded-md border border-slate-800 bg-slate-900 p-4">
-          <p className="text-sm text-amber-200">阶段 {step.stage} · {step.stageName} · 建议 {step.minutes} 分钟 · {step.scoringModel}</p>
-          <h2 className="mt-2 text-2xl font-semibold">{step.seq}. {step.title}</h2>
-          <p className="mt-3 text-slate-300">{step.goal}</p>
-          <p className="mt-3 leading-7 text-slate-200">{step.guidance}</p>
-          {vessel ? (
-            <dl className="mt-5 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <div><dt className="text-slate-400">船型</dt><dd>{vessel.name}</dd></div>
-              <div><dt className="text-slate-400">船长</dt><dd>{vessel.lengthM} 米</dd></div>
-              <div><dt className="text-slate-400">排水量</dt><dd>{vessel.displacementT} 吨</dd></div>
-              <div><dt className="text-slate-400">模型</dt><dd>{vessel.nomoto ? `K ${vessel.nomoto.K} / T ${vessel.nomoto.T} 秒` : '动力定位'}</dd></div>
-            </dl>
-          ) : null}
-          {samplesText ? (
-            <p className="mt-4 text-sm text-slate-400">已记录 {samplesText.split(',').filter(Boolean).length} 个采样点。</p>
-          ) : null}
-          {saved ? <p className="mt-4 rounded bg-slate-800 p-3 text-sm">{saved.evaluation} {saved.remarks}</p> : null}
-          </div>
+        <div className="min-h-0 flex-1">
           <ShipStage
             vesselId={vessel?.id ?? null}
             seq={step.seq}
-            hostStepTitle={`${step.seq}. ${step.title}`}
+            hostBrief={hostBrief}
             stepNav={(
               <IlabDockSteps
                 seq={step.seq}
@@ -313,91 +305,94 @@ export function DeepSeaControlExperiment({ initialTicket }: { initialTicket: str
                 onOpen={setSeq}
               />
             )}
-          />
-        </section>
-
-        <aside className="space-y-4 rounded-md border border-slate-800 bg-slate-900 p-4">
-          <div>
-            <p className="text-sm text-slate-400">当前记录</p>
-            <p className="text-lg">{session ? `${session.displayName} · ${earned} 分` : '等待票据'}</p>
-            <p className="mt-2 text-sm text-slate-300">{message || '从实验空间打开时地址里会带有 ticket。本地演示需把 ILAB_DEV_BYPASS 设为 1，并使用票据 dev-bypass。'}</p>
-          </div>
-          {fields.map((field) => (
-            <label key={field.key} className="block text-sm">
-              <span className="text-slate-300">{field.label}{field.unit ? `（${field.unit}）` : ''}</span>
-              {field.kind === 'select' ? (
-                <select
-                  className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-2"
-                  value={values[field.key] ?? ''}
-                  onChange={(event) => setField(field.key, event.target.value)}
-                >
-                  <option value="">请选择</option>
-                  {field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </select>
-              ) : null}
-              {field.kind === 'checks' ? (
-                <div className="mt-2 space-y-1">
-                  {field.options?.map((option) => (
-                    <label key={option.value} className="flex items-center gap-2">
+            hostSubmission={(
+              <div className="space-y-3 text-xs text-platform-fg-secondary">
+                <p>{session ? `${session.displayName} · 操作分 ${earned}` : '等待票据'}</p>
+                <p>{message || '从实验空间打开后，地址里会带有票据。'}</p>
+                {saved ? <p className="text-platform-fg-primary">{saved.evaluation} {saved.remarks}</p> : null}
+                {fields.map((field) => (
+                  <label key={field.key} className="block space-y-1">
+                    <span>{field.label}{field.unit ? `（${field.unit}）` : ''}</span>
+                    {field.kind === 'select' ? (
+                      <select
+                        className={fieldClass}
+                        value={values[field.key] ?? ''}
+                        onChange={(event) => setField(field.key, event.target.value)}
+                      >
+                        <option value="">请选择</option>
+                        {field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                      </select>
+                    ) : null}
+                    {field.kind === 'checks' ? (
+                      <span className="mt-1 block space-y-1">
+                        {field.options?.map((option) => (
+                          <label key={option.value} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={checked.includes(option.value)}
+                              onChange={(event) => {
+                                setChecked((current) => event.target.checked ? [...current, option.value] : current.filter((item) => item !== option.value));
+                              }}
+                            />
+                            {option.label}
+                          </label>
+                        ))}
+                      </span>
+                    ) : null}
+                    {field.kind === 'number' ? (
                       <input
-                        type="checkbox"
-                        checked={checked.includes(option.value)}
-                        onChange={(event) => {
-                          setChecked((current) => event.target.checked ? [...current, option.value] : current.filter((item) => item !== option.value));
-                        }}
+                        type="number"
+                        min={field.min}
+                        max={field.max}
+                        step={field.step ?? 'any'}
+                        aria-label={field.label}
+                        className={fieldClass}
+                        value={values[field.key] ?? ''}
+                        onChange={(event) => setField(field.key, event.target.value)}
                       />
-                      {option.label}
-                    </label>
-                  ))}
+                    ) : null}
+                    {field.kind === 'text' ? (
+                      <textarea
+                        aria-label={field.label}
+                        className={`${fieldClass} min-h-24`}
+                        value={values[field.key] ?? ''}
+                        onChange={(event) => setField(field.key, event.target.value)}
+                      />
+                    ) : null}
+                  </label>
+                ))}
+                {(step.seq === 7 || step.seq === 14) ? (
+                  <label className="block space-y-1">
+                    <span>采样点，用逗号分隔</span>
+                    <textarea className={`${fieldClass} min-h-20`} value={samplesText} onChange={(event) => setSamplesText(event.target.value)} />
+                  </label>
+                ) : null}
+                {(step.seq === 10 || step.seq === 11) ? (
+                  <SketchPad
+                    key={step.seq}
+                    label="手绘曲线"
+                    hint={step.seq === 10 ? '请手绘奈奎斯特图。' : '请手绘伯德图。'}
+                    onChange={setSketchImage}
+                  />
+                ) : null}
+                {samplesText ? <p>已记录 {samplesText.split(',').filter(Boolean).length} 个采样点。</p> : null}
+                {step.simulation !== 'none' && vessel?.nomoto ? (
+                  <button type="button" disabled={busy} onClick={() => void simulate()} className="w-full rounded-md border border-platform-border px-3 py-2 text-sm disabled:opacity-50">写入航向采样</button>
+                ) : null}
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" disabled={busy || !session || session.status === 1} onClick={() => void submitStep()} className="rounded-md bg-platform-action-primary px-3 py-2 text-sm font-medium text-platform-fg-inverse disabled:opacity-50">提交本步</button>
+                  <button type="button" onClick={openSidebar} className="rounded-md border border-platform-border px-3 py-2 text-sm">问控灵这一步</button>
+                  {step.seq === 24 ? (
+                    <button type="button" disabled={busy || !session} onClick={() => void finish()} className="rounded-md border border-platform-border px-3 py-2 text-sm disabled:opacity-50">生成报告并回传</button>
+                  ) : null}
                 </div>
-              ) : null}
-              {field.kind === 'number' ? (
-                <input
-                  type="number"
-                  min={field.min}
-                  max={field.max}
-                  step={field.step ?? 'any'}
-                  className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-2"
-                  value={values[field.key] ?? ''}
-                  onChange={(event) => setField(field.key, event.target.value)}
-                />
-              ) : null}
-              {field.kind === 'text' ? (
-                <textarea
-                  className="mt-1 min-h-24 w-full rounded border border-slate-700 bg-slate-950 px-2 py-2"
-                  value={values[field.key] ?? ''}
-                  onChange={(event) => setField(field.key, event.target.value)}
-                />
-              ) : null}
-            </label>
-          ))}
-          {(step.seq === 7 || step.seq === 14) ? (
-            <label className="block text-sm">
-              <span className="text-slate-300">采样点，用逗号分隔</span>
-              <textarea className="mt-1 min-h-20 w-full rounded border border-slate-700 bg-slate-950 px-2 py-2" value={samplesText} onChange={(event) => setSamplesText(event.target.value)} />
-            </label>
-          ) : null}
-          {(step.seq === 10 || step.seq === 11) ? (
-            <SketchPad
-              key={step.seq}
-              label="手绘曲线"
-              hint={step.seq === 10 ? '请手绘奈奎斯特图。' : '请手绘伯德图。'}
-              onChange={setSketchImage}
-            />
-          ) : null}
-          {step.simulation !== 'none' && vessel?.nomoto ? (
-            <button type="button" disabled={busy} onClick={() => void simulate()} className="w-full rounded bg-slate-700 px-3 py-2 text-sm disabled:opacity-50">写入航向采样</button>
-          ) : null}
-          <button type="button" onClick={openSidebar} className="w-full rounded border border-slate-600 px-3 py-2 text-sm">问控灵这一步</button>
-          <button type="button" disabled={busy || !session || session.status === 1} onClick={() => void submitStep()} className="w-full rounded bg-amber-200 px-3 py-2 font-medium text-slate-950 disabled:opacity-50">提交本步</button>
-          {step.seq === 24 ? (
-            <button type="button" disabled={busy || !session} onClick={() => void finish()} className="w-full rounded border border-amber-200 px-3 py-2 text-sm disabled:opacity-50">生成报告并回传</button>
-          ) : null}
-          {session?.reportReady ? (
-            <a className="block text-center text-sm text-amber-200" href={`/api/ilab/session/${session.originId}?report=1`}>查看实验报告</a>
-          ) : null}
-        </aside>
-      </div>
+                {session?.reportReady ? (
+                  <a className="block text-platform-action-primary" href={`/api/ilab/session/${session.originId}?report=1`}>查看实验报告</a>
+                ) : null}
+              </div>
+            )}
+          />
+        </div>
       </div>
     </main>
   );

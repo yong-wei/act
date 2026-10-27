@@ -109,7 +109,7 @@ import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { ExperimentStepAreas, SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi, type ExperimentHostBrief } from '../components/simulation-ui';
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
 import { applyLocalSketchVerdict } from '@/features/ilab/sketch-client';
 import {
@@ -928,7 +928,6 @@ function ControlPanel({
   isRunning,
   controlMode,
   pidGains,
-  stepTitle,
   allowedModes,
   allowedGains,
   controlsEnabled,
@@ -944,7 +943,6 @@ function ControlPanel({
   isRunning: boolean;
   controlMode: ControlMode;
   pidGains: PIDGains;
-  stepTitle: string;
   allowedModes: ControlMode[];
   allowedGains: Array<'kp' | 'ki' | 'kd'>;
   controlsEnabled: boolean;
@@ -958,7 +956,7 @@ function ControlPanel({
   onManualRudderChange: (value: number) => void;
 }) {
   return (
-    <div className="w-max max-w-[calc(100vw-2rem)]">
+    <div className="min-w-0">
       <Card className={simulationUi.panel}>
         <CardHeader className="py-3 px-4">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -967,11 +965,6 @@ function ControlPanel({
           </CardTitle>
         </CardHeader>
         <CardContent className="py-3 px-4 space-y-4">
-          <div className="space-y-1">
-            <Label className="text-xs text-platform-fg-muted">当前步骤</Label>
-            <p className="text-sm font-medium">{stepTitle}</p>
-          </div>
-
           {/* 控制模式 */}
           <div className="space-y-2">
             <Label className="text-xs text-platform-fg-muted">控制模式</Label>
@@ -1094,7 +1087,7 @@ function ControlPanel({
 
 // ============ 主组件 ============
 
-export default function DestroyerSimulation({ ticket = '', stepNav, hostStepTitle }: { ticket?: string; stepNav?: ReactNode; hostStepTitle?: string }) {
+export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, hostSubmission }: { ticket?: string; stepNav?: ReactNode; hostBrief?: ExperimentHostBrief; hostSubmission?: ReactNode }) {
   const ai = useOptionalGlobalAI();
   const { data: session, status: sessionStatus } = useSession();
   const [isRunning, setIsRunning] = useState(false);
@@ -1339,7 +1332,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostStepTitl
       }),
       quickQuestions: [{
         label: '这一步怎么做',
-        question: `我在做驱逐舰航向控制实验第 ${step.seq} 步「${step.title}」。请给出操作建议，不要替我填写读数，也不要打分。`,
+        question: `我在做${DESTROYER_EXPERIMENT_TITLE}第 ${step.seq} 步「${step.title}」。请给出操作建议，不要替我填写读数，也不要打分。`,
       }],
     });
   }, [updatePageContext, step, hudBucket, controlMode, manualRudder]);
@@ -1643,7 +1636,6 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostStepTitl
                 activeSeq={activeSeq}
                 viewSeq={viewSeq}
                 doneSeqs={doneSeqs}
-                suggestion={viewed.suggestion}
                 onOpen={(seq) => {
                   setViewSeq(seq);
                   setActiveSeq(seq);
@@ -1684,25 +1676,32 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostStepTitl
             id: 'control',
             label: '控制',
             content: (
-              <div className="space-y-3">
-                <ControlPanel
-                  isRunning={isRunning}
-                  controlMode={controlMode}
-                  pidGains={pidGains}
-                  stepTitle={hostStepTitle ?? `${step.seq}. ${step.title}`}
-                  allowedModes={step.modes}
-                  allowedGains={step.gains}
-                  controlsEnabled={step.scene !== 'review'}
-                  rudderLocked={scriptedManualRudder(step, 0) !== null}
-                  manualRudder={manualRudder}
-                  onStart={() => setIsRunning(true)}
-                  onPause={() => setIsRunning(false)}
-                  onReset={handleReset}
-                  onControlModeChange={setControlMode}
-                  onPidGainsChange={setPidGains}
-                  onManualRudderChange={setManualRudder}
-                />
-                {stepNav ? null : (
+              <ExperimentStepAreas
+                seq={hostBrief?.seq ?? step.seq}
+                title={hostBrief?.title ?? step.title}
+                goal={hostBrief?.goal ?? step.goal}
+                watch={hostBrief ? hostBrief.watch : step.watch}
+                hint={hostBrief ? hostBrief.hint : step.suggestion}
+                hintAttribute="data-destroyer-suggestion"
+                controls={(
+                  <ControlPanel
+                    isRunning={isRunning}
+                    controlMode={controlMode}
+                    pidGains={pidGains}
+                    allowedModes={step.modes}
+                    allowedGains={step.gains}
+                    controlsEnabled={step.scene !== 'review'}
+                    rudderLocked={scriptedManualRudder(step, 0) !== null}
+                    manualRudder={manualRudder}
+                    onStart={() => setIsRunning(true)}
+                    onPause={() => setIsRunning(false)}
+                    onReset={handleReset}
+                    onControlModeChange={setControlMode}
+                    onPidGainsChange={setPidGains}
+                    onManualRudderChange={setManualRudder}
+                  />
+                )}
+                submission={hostSubmission ?? (stepNav ? undefined : (
                   <DestroyerStepForm
                     step={step}
                     readings={readings}
@@ -1714,8 +1713,8 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostStepTitl
                     onReport={openReport}
                     onAsk={() => ai?.openSidebar()}
                   />
-                )}
-              </div>
+                ))}
+              />
             ),
           },
           {
@@ -1758,7 +1757,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostStepTitl
       />
 
       <SimulationTopBar
-        title="055型驱逐舰战术机动仿真"
+        title="055 型驱逐舰航向控制"
         subtitle="高保真航向控制"
         badge="Destroyer / OBE"
       />

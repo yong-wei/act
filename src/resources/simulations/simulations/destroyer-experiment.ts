@@ -2,7 +2,7 @@ import { sketchLabelForId, sketchReadingError, SKETCH_PLOTS } from '@/features/i
 
 import type { ControlMode } from '../core/types';
 
-export const DESTROYER_EXPERIMENT_TITLE = '驱逐舰航向控制实验';
+export const DESTROYER_EXPERIMENT_TITLE = '055 型驱逐舰航向控制';
 
 export type DestroyerScene =
   | 'straight'
@@ -650,7 +650,7 @@ export function destroyerKonlingBrief(step: DestroyerExperimentStep, live: {
     ? `当前画面：仿真 ${live.time.toFixed(0)} 秒，模式 ${live.mode}，航向 ${live.heading.toFixed(1)}°，转艏速率 ${live.yawRate.toFixed(2)} °/s，舵角 ${live.rudder.toFixed(1)}°，手操舵角 ${live.manualRudder.toFixed(1)}°，航速 ${live.speed.toFixed(1)} m/s。`
     : '仿真尚未给出读数。';
   return [
-    `学生正在做驱逐舰航向控制实验第 ${step.seq} 步「${step.title}」。`,
+    `学生正在做${DESTROYER_EXPERIMENT_TITLE}第 ${step.seq} 步「${step.title}」。`,
     `目标：${step.goal}`,
     `建议观察：${step.watch}`,
     `操作建议：${step.suggestion}`,

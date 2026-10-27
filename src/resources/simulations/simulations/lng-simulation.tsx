@@ -833,7 +833,7 @@ export function LNGSimulation({ ticket = '' }: { ticket?: string }) {
       />
 
       <SimulationTopBar
-        title="长恒系列 LNG 运输船"
+        title="长恒号 LNG 大惯性操纵"
         subtitle="时滞补偿控制 · 液货晃荡耦合"
         badge="LNG / OBE"
       />

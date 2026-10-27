@@ -25,7 +25,7 @@ import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, simulationUi } from '../components/simulation-ui';
+import { SimulationTopBar, simulationUi, type ExperimentHostBrief } from '../components/simulation-ui';
 import { createIceDrive } from './vessel-drives';
 import { iceExperiment } from './vessel-experiments';
 import { takeVesselSubstep, vesselSampleMark } from './vessel-experiment';
@@ -890,7 +890,7 @@ function RobustAssessmentPanel() {
 
 // ============ 主组件 ============
 
-export default function IcebreakerSimulation({ ticket = '', stepNav }: { ticket?: string; stepNav?: ReactNode }) {
+export default function IcebreakerSimulation({ ticket = '', stepNav, hostBrief, hostSubmission }: { ticket?: string; stepNav?: ReactNode; hostBrief?: ExperimentHostBrief; hostSubmission?: ReactNode }) {
   const session = useVesselExperiment(iceExperiment, ticket);
   const sessionRef = useRef(session);
   sessionRef.current = session;
@@ -1197,6 +1197,8 @@ export default function IcebreakerSimulation({ ticket = '', stepNav }: { ticket?
         experiment={iceExperiment}
         session={session}
         stepNav={stepNav}
+        hostBrief={hostBrief}
+        hostSubmission={hostSubmission}
         status={(
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
@@ -1251,7 +1253,7 @@ export default function IcebreakerSimulation({ ticket = '', stepNav }: { ticket?
       />
 
       <SimulationTopBar
-        title="雪龙2号极地科考破冰船仿真"
+        title="雪龙号吊舱与冰区控制"
         subtitle="Azipod 推进 · 冰阻力 Stick-Slip 模型 · 参数摄动"
         badge={icebreakerXuelongProfile.name}
       />

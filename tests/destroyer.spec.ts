@@ -16,7 +16,7 @@ test('destroyer simulation loads without runtime errors', async ({ page }) => {
   });
 
   await page.goto('/simulations/destroyer', { waitUntil: 'networkidle' });
-  await expect(page.getByRole('heading', { name: '军用驱逐舰战术机动仿真' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '055 型驱逐舰航向控制' })).toBeVisible();
   await expect(page.locator('canvas').first()).toBeVisible({ timeout: 30000 });
   await expectRenderedCanvas(page);
 

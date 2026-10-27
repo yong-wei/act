@@ -38,7 +38,7 @@ export interface IlabVessel {
 export const ILAB_VESSELS: Record<IlabVesselId, IlabVessel> = {
   'destroyer-055': {
     id: 'destroyer-055',
-    name: '055型驱逐舰',
+    name: '055 型驱逐舰',
     scene: '智能船舶自动舵',
     lengthM: 180,
     beamM: 20,
@@ -54,7 +54,7 @@ export const ILAB_VESSELS: Record<IlabVesselId, IlabVessel> = {
   },
   xuelong: {
     id: 'xuelong',
-    name: '雪龙2号',
+    name: '雪龙号',
     scene: '极地科考高海况',
     lengthM: 122.5,
     beamM: 22,

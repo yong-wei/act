@@ -35,18 +35,16 @@ export function DestroyerStepList({
   activeSeq,
   viewSeq,
   doneSeqs,
-  suggestion,
   onOpen,
 }: {
   activeSeq: number;
   viewSeq: number;
   doneSeqs: number[];
-  suggestion: string;
   onOpen: (seq: number) => void;
 }) {
   const frontier = destroyerFrontierSeq(doneSeqs);
   return (
-    <div className="w-max max-w-[calc(100vw-2rem)] space-y-2" data-destroyer-step-nav>
+    <div className="w-full space-y-2" data-destroyer-step-nav>
       <p className="text-xs text-platform-fg-secondary">当前进行第 {activeSeq} 步。已完成的步骤可以回去重做，只保留更好的成绩。还没完成的后续步骤不能打开。</p>
       <ol className="space-y-1">
         {DESTROYER_EXPERIMENT_STEPS.map((step) => {
@@ -61,7 +59,7 @@ export function DestroyerStepList({
                 onClick={() => onOpen(step.seq)}
                 data-destroyer-step={step.seq}
                 data-destroyer-step-state={done ? 'done' : locked ? 'locked' : 'current'}
-                className={`block w-max max-w-full rounded-md border px-2 py-1.5 text-left text-xs ${viewing ? 'border-platform-action-primary bg-platform-action-subtle' : 'border-platform-border bg-platform-surface-overlay/86'} disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`block w-full rounded-md border px-2 py-1.5 text-left text-xs ${viewing ? 'border-platform-action-primary bg-platform-action-subtle' : 'border-platform-border bg-platform-surface-overlay/86'} disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 <span className="font-medium">{step.seq}. {step.title}</span>
                 <span className="mt-0.5 block text-platform-fg-secondary">{done ? '已完成，可重做' : locked ? '未解锁' : '进行中'} · {step.goal}</span>
@@ -70,7 +68,6 @@ export function DestroyerStepList({
           );
         })}
       </ol>
-      <p className="text-xs leading-5 text-platform-fg-primary" data-destroyer-suggestion>{suggestion}</p>
     </div>
   );
 }
@@ -292,8 +289,7 @@ export function DestroyerStepForm({
   onAsk: () => void;
 }) {
   return (
-    <div className="space-y-2 border-t border-platform-border pt-3">
-      <p className="text-xs leading-5 text-platform-fg-secondary">{step.suggestion}</p>
+    <div className="space-y-2">
       {step.fields.map((field) => (
         <label key={field.key} className="block space-y-1 text-xs text-platform-fg-secondary">
           <span>{field.label}{field.unit ? `（${field.unit}）` : ''}</span>

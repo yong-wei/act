@@ -26,7 +26,7 @@ export const SIMULATION_AI_CONTEXTS: Record<string, AIContextConfig> = {
   destroyer: {
     enabled: true,
     courseId: SIMULATION_COURSE_META.courseId,
-    courseTitle: '军用驱逐舰战术机动仿真',
+    courseTitle: '055 型驱逐舰航向控制',
     pageType: 'workspace',
     stepId: 'destroyer',
     topic: '055型驱逐舰航向控制',
@@ -51,7 +51,7 @@ export const SIMULATION_AI_CONTEXTS: Record<string, AIContextConfig> = {
   container: {
     enabled: true,
     courseId: SIMULATION_COURSE_META.courseId,
-    courseTitle: '集装箱船航线保持仿真',
+    courseTitle: 'MSC 集装箱船航速与准点',
     pageType: 'workspace',
     stepId: 'container',
     topic: '集装箱船航线保持控制',
@@ -75,7 +75,7 @@ export const SIMULATION_AI_CONTEXTS: Record<string, AIContextConfig> = {
   cruise: {
     enabled: true,
     courseId: SIMULATION_COURSE_META.courseId,
-    courseTitle: '豪华邮轮舒适度控制仿真',
+    courseTitle: '爱达·魔都号邮轮横摇控制',
     pageType: 'workspace',
     stepId: 'cruise',
     topic: '邮轮舒适度约束控制',
@@ -99,7 +99,7 @@ export const SIMULATION_AI_CONTEXTS: Record<string, AIContextConfig> = {
   dredger: {
     enabled: true,
     courseId: SIMULATION_COURSE_META.courseId,
-    courseTitle: '挖泥船作业定位仿真',
+    courseTitle: '天鲸号挖泥船动力定位',
     pageType: 'workspace',
     stepId: 'dredger',
     topic: '挖泥船动力定位控制',
@@ -123,7 +123,7 @@ export const SIMULATION_AI_CONTEXTS: Record<string, AIContextConfig> = {
   drilling: {
     enabled: true,
     courseId: SIMULATION_COURSE_META.courseId,
-    courseTitle: '海上钻井平台位置保持仿真',
+    courseTitle: '海洋石油981动力定位',
     pageType: 'workspace',
     stepId: 'drilling',
     topic: '钻井平台位置保持控制',
@@ -147,7 +147,7 @@ export const SIMULATION_AI_CONTEXTS: Record<string, AIContextConfig> = {
   icebreaker: {
     enabled: true,
     courseId: SIMULATION_COURSE_META.courseId,
-    courseTitle: '破冰船冰区操纵仿真',
+    courseTitle: '雪龙号吊舱与冰区控制',
     pageType: 'workspace',
     stepId: 'icebreaker',
     topic: '破冰船冰区操纵控制',
@@ -171,7 +171,7 @@ export const SIMULATION_AI_CONTEXTS: Record<string, AIContextConfig> = {
   lng: {
     enabled: true,
     courseId: SIMULATION_COURSE_META.courseId,
-    courseTitle: 'LNG运输船安全航线仿真',
+    courseTitle: '长恒号 LNG 大惯性操纵',
     pageType: 'workspace',
     stepId: 'lng',
     topic: 'LNG运输船安全控制',

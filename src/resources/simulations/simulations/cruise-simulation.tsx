@@ -2316,7 +2316,7 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
 
       {!isEmbedded ? (
         <SimulationTopBar
-          title={isCourseMode ? '柔性之海：豪华邮轮舒适度控制' : '爱达·魔都号豪华邮轮'}
+          title={isCourseMode ? '柔性之海：豪华邮轮舒适度控制' : '爱达·魔都号邮轮横摇控制'}
           subtitle={isCourseMode ? `课程模式 · 当前环节 ${courseStep}` : '舒适度控制 · 减摇鳍 · 陷波滤波'}
           badge={isCourseMode ? `Cruise / ${courseRole}` : 'Cruise / OBE'}
         />

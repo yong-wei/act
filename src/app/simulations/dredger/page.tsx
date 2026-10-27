@@ -11,7 +11,7 @@ export default async function DredgerSimulationPage({
   const ticket = firstQueryValue((await searchParams)?.ticket);
   return (
     <SimulationShell
-      title="挖泥船工况切换实验"
+      title="天鲸号挖泥船动力定位"
       subtitle="MMG 三自由度 · 动力定位与前馈扰动补偿"
       activeHref="/simulations/dredger"
       localToolTemplate="dp-positioning"
@@ -27,6 +27,6 @@ function firstQueryValue(value: string | string[] | null | undefined): string | 
 }
 
 export const metadata = {
-  title: '天鲸号挖泥船动力定位仿真 - 智控深蓝',
+  title: '天鲸号挖泥船动力定位 - 智控深蓝',
   description: '使用MMG三自由度高保真模型的挖泥船动力定位仿真，体验精确定位控制技术',
 };

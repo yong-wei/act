@@ -91,7 +91,7 @@ export const ILAB_STEPS: IlabStepDefinition[] = [
       { value: 'disturbance', label: '环境扰动' },
     ] }]),
   step(4, 1, '舵机环节配置', '配置舵机伺服环节与舵角、舵速饱和', 10, 4, '达成度自动赋分',
-    '055 的舵角上限是 35°、舵速上限是 5°/s。雪龙2号没有传统舵，回转速率按吊舱 12°/s 读取。海洋石油981没有舵，方位角速度按 15°/s 读取。',
+    '055 型驱逐舰的舵角上限是 35°、舵速上限是 5°/s。雪龙号没有传统舵，回转速率按吊舱 12°/s 读取。海洋石油981没有舵，方位角速度按 15°/s 读取。',
     [
       { key: 'actuator', label: '执行器', kind: 'select', options: [
         { value: 'rudder', label: '传统舵' },

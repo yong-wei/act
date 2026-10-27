@@ -990,7 +990,7 @@ export default function ContainerSimulation({ ticket = '' }: { ticket?: string }
       />
 
       <SimulationTopBar
-        title="MSC Tessa 超大型集装箱船"
+        title="MSC 集装箱船航速与准点"
         subtitle="变质量模型 · 风载荷耦合 · 增益调度"
         badge="Container / OBE"
       />

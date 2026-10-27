@@ -5,7 +5,7 @@ import { Chart, registerables } from 'chart.js';
 
 import { Button } from '@/components/ui/button';
 import { simulationScenePalette } from '../components/simulation-theme';
-import { SimulationDock, simulationUi } from '../components/simulation-ui';
+import { ExperimentStepAreas, SimulationDock, simulationUi, type ExperimentHostBrief } from '../components/simulation-ui';
 import {
   vesselFrontierSeq,
   vesselValue,
@@ -35,19 +35,17 @@ export function VesselStepList({
   activeSeq,
   viewSeq,
   doneSeqs,
-  suggestion,
   onOpen,
 }: {
   experiment: VesselExperiment;
   activeSeq: number;
   viewSeq: number;
   doneSeqs: number[];
-  suggestion: string;
   onOpen: (seq: number) => void;
 }) {
   const frontier = vesselFrontierSeq(experiment.steps, doneSeqs);
   return (
-    <div className="w-max max-w-[calc(100vw-2rem)] space-y-2" data-vessel-experiment={experiment.key} data-vessel-step-nav={experiment.key}>
+    <div className="w-full space-y-2" data-vessel-experiment={experiment.key} data-vessel-step-nav={experiment.key}>
       <p className="text-xs text-platform-fg-secondary">当前进行第 {activeSeq} 步。已完成的步骤可以回去重做，只保留更好的成绩。还没完成的后续步骤不能打开。</p>
       <ol className="space-y-1">
         {experiment.steps.map((step) => {
@@ -62,7 +60,7 @@ export function VesselStepList({
                 onClick={() => onOpen(step.seq)}
                 data-vessel-step={step.seq}
                 data-vessel-step-state={done ? 'done' : locked ? 'locked' : 'current'}
-                className={`block w-max max-w-full rounded-md border px-2 py-1.5 text-left text-xs ${viewing ? 'border-platform-action-primary bg-platform-action-subtle' : 'border-platform-border bg-platform-surface-overlay/86'} disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`block w-full rounded-md border px-2 py-1.5 text-left text-xs ${viewing ? 'border-platform-action-primary bg-platform-action-subtle' : 'border-platform-border bg-platform-surface-overlay/86'} disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 <span className="font-medium">{step.seq}. {step.title}</span>
                 <span className="mt-0.5 block text-platform-fg-secondary">{done ? '已完成，可重做' : locked ? '未解锁' : '进行中'} · {step.goal}</span>
@@ -71,7 +69,6 @@ export function VesselStepList({
           );
         })}
       </ol>
-      <p className="text-xs leading-5 text-platform-fg-primary" data-vessel-suggestion>{suggestion}</p>
     </div>
   );
 }
@@ -207,8 +204,7 @@ export function VesselStepForm({
   onAsk: () => void;
 }) {
   return (
-    <div className="w-max max-w-[calc(100vw-2rem)] space-y-2 border-t border-platform-border pt-3">
-      <p className="text-xs leading-5 text-platform-fg-secondary">{step.suggestion}</p>
+    <div className="w-full space-y-2">
       {step.fields.map((field) => (
         <label key={field.key} className="block space-y-1 text-xs text-platform-fg-secondary">
           <span>{field.label}{field.unit ? `（${field.unit}）` : ''}</span>
@@ -280,6 +276,8 @@ export function VesselExperimentDocks({
   controls,
   assessment,
   stepNav,
+  hostBrief,
+  hostSubmission,
 }: {
   experiment: VesselExperiment;
   session: VesselExperimentController;
@@ -287,6 +285,8 @@ export function VesselExperimentDocks({
   controls: ReactNode;
   assessment?: ReactNode;
   stepNav?: ReactNode;
+  hostBrief?: ExperimentHostBrief;
+  hostSubmission?: ReactNode;
 }) {
   const last = session.shownSamples[session.shownSamples.length - 1];
   return (
@@ -306,7 +306,6 @@ export function VesselExperimentDocks({
                 activeSeq={session.activeSeq}
                 viewSeq={session.viewSeq}
                 doneSeqs={session.doneSeqs}
-                suggestion={session.viewed.suggestion}
                 onOpen={session.openStep}
               />
             ),
@@ -346,9 +345,14 @@ export function VesselExperimentDocks({
             id: 'control',
             label: '控制',
             content: (
-              <div className="w-max max-w-[calc(100vw-2rem)] space-y-3">
-                {controls}
-                {stepNav ? null : (
+              <ExperimentStepAreas
+                seq={hostBrief?.seq ?? session.step.seq}
+                title={hostBrief?.title ?? session.step.title}
+                goal={hostBrief?.goal ?? session.step.goal}
+                watch={hostBrief ? hostBrief.watch : session.step.watch}
+                hint={hostBrief ? hostBrief.hint : session.step.suggestion}
+                controls={controls}
+                submission={hostSubmission ?? (stepNav ? undefined : (
                   <VesselStepForm
                     step={session.step}
                     readings={session.readings}
@@ -361,8 +365,8 @@ export function VesselExperimentDocks({
                     onReport={session.openReport}
                     onAsk={session.ask}
                   />
-                )}
-              </div>
+                ))}
+              />
             ),
           },
           {
