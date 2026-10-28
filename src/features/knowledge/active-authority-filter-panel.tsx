@@ -9,7 +9,12 @@ import { PUBLISHED_RESOURCE_LABELS } from '@/lib/published-resource-reference';
 import type { EngineeringRelationFamily } from '@/lib/authority-domain-shards/contracts';
 import { ENGINEERING_RELATION_FAMILIES } from '@/lib/authority-domain-shards/contracts';
 import type { AdmittedLocale } from '@/lib/authority-locale-readiness/contracts';
-import { ACTIVE_RELATION_STYLES, ACTIVE_TONE_COLORS } from './graph/active-renderer/active-authority-visual';
+import { ACTIVE_RELATION_STYLES } from './graph/active-renderer/active-authority-visual';
+import {
+  useActiveCanvasPalette,
+  type ActiveCanvasPalette,
+  type ActiveToneKey,
+} from './graph/active-renderer/active-authority-palette';
 import { familyLabel, graphCopy, nodeTypeLabel } from './active-authority-graph-i18n';
 
 export interface ActiveFilterNodeType {
@@ -27,7 +32,7 @@ interface ActiveAuthorityFilterPanelProps {
   onToggleNodeType: (canonicalType: string) => void;
   enabledFamilies: readonly EngineeringRelationFamily[];
   onToggleFamily: (family: EngineeringRelationFamily) => void;
-  familyFailures: Readonly<Partial<Record<EngineeringRelationFamily, { message: string; retryable: boolean }>>>;
+  familyFailures: Readonly<Partial<Record<EngineeringRelationFamily, ActiveFamilyFailure>>>;
   onRetryFamily: (family: EngineeringRelationFamily) => void;
   /** 教学关系覆盖状态（不可用/未发布等）；null 表示无说明。 */
   teachingCoverageNote: string | null;
@@ -40,10 +45,17 @@ interface ActiveAuthorityFilterPanelProps {
   inFlow?: boolean;
 }
 
-// 样本描边与画布 nodeStroke 共用同一 tone 色板，面板样本与画布从不矛盾。
+/** `absent`: the family is not published for this domain (neutral note, no retry). */
+export interface ActiveFamilyFailure {
+  kind?: 'absent' | 'error';
+  message: string;
+  retryable: boolean;
+}
 
-function NodeTypeShapeSample({ shape, tone }: { shape: string; tone: string }) {
-  const color = ACTIVE_TONE_COLORS[tone] ?? ACTIVE_TONE_COLORS.muted;
+// 样本描边与画布共用同一主题调色板，面板样本与画布从不矛盾。
+
+function NodeTypeShapeSample({ shape, tone, palette }: { shape: string; tone: string; palette: ActiveCanvasPalette }) {
+  const color = palette.tone[tone as ActiveToneKey] ?? palette.tone.muted;
   const common = { fill: 'none', stroke: color, strokeWidth: 2 } as const;
   return (
     <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 overflow-visible" data-active-authority-type-sample={shape}>
@@ -65,8 +77,9 @@ function NodeTypeShapeSample({ shape, tone }: { shape: string; tone: string }) {
 }
 
 /** 样本即图例；先后修来源仍保留在关系载荷中。 */
-function RelationLineSample({ family }: { family: 'teaching' | EngineeringRelationFamily }) {
-  const style = ACTIVE_RELATION_STYLES[family === 'teaching' ? 'prerequisite-order' : family];
+function RelationLineSample({ family, palette }: { family: 'teaching' | EngineeringRelationFamily; palette: ActiveCanvasPalette }) {
+  const key = family === 'teaching' ? 'prerequisite-order' : family;
+  const style = { ...ACTIVE_RELATION_STYLES[key], color: palette.relation[key] };
   return (
     <svg viewBox="0 0 28 8" aria-hidden="true" className="h-2 w-7 shrink-0 overflow-visible" data-active-authority-family-sample={family}>
       <path
@@ -94,6 +107,46 @@ const RESOURCE_GROUPS = TEACHING_RESOURCE_TYPES.reduce<Array<{ type: TeachingRes
   return groups;
 }, []);
 
+function FamilyFailureNote({
+  locale,
+  family,
+  failure,
+  onRetry,
+}: {
+  locale: AdmittedLocale;
+  family: EngineeringRelationFamily;
+  failure: ActiveFamilyFailure | undefined;
+  onRetry: (family: EngineeringRelationFamily) => void;
+}) {
+  if (!failure) return null;
+  if (failure.kind === 'absent') {
+    return (
+      <span role="status" data-authority-family-absent={family} className="max-w-44 text-[11px] text-platform-fg-muted">
+        {failure.message}
+      </span>
+    );
+  }
+  return (
+    <span
+      role="alert"
+      aria-live="polite"
+      data-authority-family-failure={family}
+      className="max-w-44 text-[11px] text-platform-evidence-unsupported"
+    >
+      {failure.message}
+      {failure.retryable ? (
+        <button
+          type="button"
+          onClick={() => onRetry(family)}
+          aria-label={`${graphCopy(locale, 'filter.family.retry')}${familyLabel(locale, family)}`}
+          data-authority-family-retry={family}
+          className="ml-1 font-medium underline underline-offset-2"
+        >{graphCopy(locale, 'filter.family.retry')}</button>
+      ) : null}
+    </span>
+  );
+}
+
 export function ActiveAuthorityFilterPanel({
   locale,
   materializedTypes,
@@ -111,6 +164,7 @@ export function ActiveAuthorityFilterPanel({
   avoidExpandedKonling = false,
   inFlow = false,
 }: ActiveAuthorityFilterPanelProps) {
+  const palette = useActiveCanvasPalette();
   const [menuOpen, setMenuOpen] = useState<'types' | 'resources' | null>(null);
   const typesOpen = menuOpen === 'types';
   const resourcesOpen = menuOpen === 'resources';
@@ -182,7 +236,7 @@ export function ActiveAuthorityFilterPanel({
                 onClick={() => onToggleNodeType(type.canonicalType)} className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-platform-fg-primary hover:bg-platform-action-subtle"
                 data-active-authority-type-filter={type.canonicalType} data-active-authority-type-visible={visible ? 'true' : 'false'}>
                 <span aria-hidden="true" className="w-4">{visible ? '✓' : ''}</span>
-                <NodeTypeShapeSample shape={type.shape} tone={type.tone} />
+                <NodeTypeShapeSample shape={type.shape} tone={type.tone} palette={palette} />
                 <span>{nodeTypeLabel(locale, type.canonicalType, type.fallbackLabel)}</span>
               </button>;
             }) : <>
@@ -219,30 +273,18 @@ export function ActiveAuthorityFilterPanel({
           role="checkbox"
           aria-checked={teachingRelationsVisible ? 'true' : 'false'}
           onClick={onToggleTeachingRelations}
-          className={`inline-flex min-w-0 items-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary ${teachingRelationsVisible
-            ? 'border-sky-300/50 bg-sky-400/10 text-sky-100'
-            : 'border-platform-border text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'}`}
+          className={toggleClassName(teachingRelationsVisible)}
           title={teachingCoverageNote ?? undefined}
           data-authority-relation-family="prerequisite-order"
           data-authority-family-enabled={teachingRelationsVisible ? 'true' : 'false'}
         >
-          <RelationLineSample family="teaching" />
+          <RelationLineSample family="teaching" palette={palette} />
           {graphCopy(locale, 'filter.family.prerequisite-order')}
           {teachingCoverageNote ? (
             <span data-authority-teaching-coverage="true" className="sr-only">{teachingCoverageNote}</span>
           ) : null}
         </button>
-        {familyFailures['prerequisite-order'] ? (
-          <span role="alert" data-authority-family-failure="prerequisite-order" className="max-w-44 text-[11px] text-red-200">
-            {familyFailures['prerequisite-order'].message}
-            {familyFailures['prerequisite-order'].retryable ? (
-              <button type="button" onClick={() => onRetryFamily('prerequisite-order')}
-                data-authority-family-retry="prerequisite-order" className="ml-1 underline underline-offset-2">
-                {graphCopy(locale, 'filter.family.retry')}
-              </button>
-            ) : null}
-          </span>
-        ) : null}
+        <FamilyFailureNote locale={locale} family="prerequisite-order" failure={familyFailures['prerequisite-order']} onRetry={onRetryFamily} />
         {ENGINEERING_RELATION_FAMILIES.filter((family) => family !== 'prerequisite-order').map((family) => {
           const enabled = enabledFamilies.includes(family);
           const failure = familyFailures[family];
@@ -252,34 +294,16 @@ export function ActiveAuthorityFilterPanel({
                 type="button"
                 role="checkbox"
                 aria-checked={enabled ? 'true' : 'false'}
-                aria-label={failure ? `${familyLabel(locale, family)}${graphCopy(locale, 'filter.family.loadFailed')}` : undefined}
+                aria-label={failure && failure.kind !== 'absent' ? `${familyLabel(locale, family)}${graphCopy(locale, 'filter.family.loadFailed')}` : undefined}
                 onClick={() => onToggleFamily(family)}
                 className={toggleClassName(enabled)}
                 data-authority-relation-family={family}
                 data-authority-family-enabled={enabled ? 'true' : 'false'}
               >
-                <RelationLineSample family={family} />
+                <RelationLineSample family={family} palette={palette} />
                 <span>{familyLabel(locale, family)}</span>
               </button>
-              {failure ? (
-                <span
-                  role="alert"
-                  aria-live="polite"
-                  data-authority-family-failure={family}
-                  className="max-w-44 text-[11px] text-red-200"
-                >
-                  {failure.message}
-                  {failure.retryable ? (
-                    <button
-                      type="button"
-                      onClick={() => onRetryFamily(family)}
-                      aria-label={`${graphCopy(locale, 'filter.family.retry')}${familyLabel(locale, family)}`}
-                      data-authority-family-retry={family}
-                      className="ml-1 underline underline-offset-2"
-                    >{graphCopy(locale, 'filter.family.retry')}</button>
-                  ) : null}
-                </span>
-              ) : null}
+              <FamilyFailureNote locale={locale} family={family} failure={failure} onRetry={onRetryFamily} />
             </span>
           );
         })}

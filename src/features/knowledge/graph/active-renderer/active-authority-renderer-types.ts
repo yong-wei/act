@@ -9,6 +9,13 @@ import type {
   ActiveAuthorityLayoutNode,
   ActiveAuthorityLayoutSessions,
 } from './active-authority-geometry';
+import type { ActiveMasteryState } from './active-authority-palette';
+
+/** Paint-only learner overlay; never part of the layout structure signature. */
+export interface ActiveNodeMasteryMark {
+  state: ActiveMasteryState;
+  score: number | null;
+}
 
 export interface ActiveAuthorityCameraPose {
   viewport?: { width: number; height: number };
@@ -43,6 +50,8 @@ export interface ActiveAuthorityRendererProps {
   onCameraPoseChange: (scopeKey: string, pose: ActiveAuthorityCameraPose) => void;
   canvasAriaLabel: string;
   onEngineSettled?: () => void;
+  masteryByNodeId?: ReadonlyMap<string, ActiveNodeMasteryMark>;
+  rootCaptions?: ReadonlyMap<string, string>;
 }
 
 export interface ActiveAuthorityGraphProps {
@@ -72,4 +81,5 @@ export interface ActiveAuthorityGraphProps {
   labels: readonly ActiveAuthorityLabelDescriptor[];
   width: number;
   height: number;
+  masteryByNodeId?: ReadonlyMap<string, ActiveNodeMasteryMark>;
 }

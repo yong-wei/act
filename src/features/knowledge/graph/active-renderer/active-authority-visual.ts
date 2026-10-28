@@ -3,15 +3,17 @@ import type { Object3D } from 'three';
 import type { KnowledgeLinkData, KnowledgeNodeData } from '../../knowledge-graph-system';
 import type { ActiveAuthorityCameraPose } from './active-authority-renderer-types';
 import type { ActiveAuthorityLayoutNode } from './active-authority-geometry';
+import {
+  fallbackActiveCanvasPalette,
+  type ActiveCanvasPalette,
+  type ActiveRelationFamilyKey,
+  type ActiveToneKey,
+} from './active-authority-palette';
 
-export const ACTIVE_TONE_COLORS: Record<string, string> = {
-  cyan: '#5b9eb0',
-  blue: '#6488b3',
-  amber: '#b48b56',
-  emerald: '#5b9b8c',
-  violet: '#8a77a8',
-  muted: '#7f8b9a',
-};
+const DEFAULT_PALETTE = fallbackActiveCanvasPalette('dark');
+
+/** Dark-theme defaults; live renderers pass the theme palette explicitly. */
+export const ACTIVE_TONE_COLORS: Record<string, string> = { ...DEFAULT_PALETTE.tone };
 
 export type ActiveAuthorityNodeShape = 'circle' | 'square' | 'hexagon' | 'triangle' | 'diamond' | 'pentagon';
 
@@ -54,8 +56,11 @@ export function activeNodeTone(node: Pick<KnowledgeNodeData, 'id' | 'nodeType' |
   }
 }
 
-export function activeNodeColor(node: Pick<KnowledgeNodeData, 'id' | 'nodeType' | 'conceptKind' | 'metadata'>): string {
-  return ACTIVE_TONE_COLORS[activeNodeTone(node)] ?? ACTIVE_TONE_COLORS.muted;
+export function activeNodeColor(
+  node: Pick<KnowledgeNodeData, 'id' | 'nodeType' | 'conceptKind' | 'metadata'>,
+  palette: ActiveCanvasPalette = DEFAULT_PALETTE,
+): string {
+  return palette.tone[activeNodeTone(node) as ActiveToneKey] ?? palette.tone.muted;
 }
 
 export function activeRelationType(link: Pick<KnowledgeLinkData, 'relation' | 'relationType'>): string {
@@ -63,26 +68,35 @@ export function activeRelationType(link: Pick<KnowledgeLinkData, 'relation' | 'r
 }
 
 export const ACTIVE_RELATION_STYLES = {
-  'prerequisite-order': { color: '#d99b60', dash: null, directed: true },
-  structure: { color: '#77acd2', dash: [9, 5], directed: true },
-  'derivation-and-representation': { color: '#b29bd5', dash: [2, 5], directed: true },
-  'application-and-analysis': { color: '#78baa6', dash: [14, 5], directed: true },
-  association: { color: '#a1a9b5', dash: [5, 7], directed: false },
+  'prerequisite-order': { color: DEFAULT_PALETTE.relation['prerequisite-order'], dash: null, directed: true },
+  structure: { color: DEFAULT_PALETTE.relation.structure, dash: [9, 5], directed: true },
+  'derivation-and-representation': { color: DEFAULT_PALETTE.relation['derivation-and-representation'], dash: [2, 5], directed: true },
+  'application-and-analysis': { color: DEFAULT_PALETTE.relation['application-and-analysis'], dash: [14, 5], directed: true },
+  association: { color: DEFAULT_PALETTE.relation.association, dash: [5, 7], directed: false },
 } as const;
 
-export function activeRelationStyle(link: Pick<KnowledgeLinkData, 'relation' | 'relationType' | 'relationFamily'>) {
+export function activeRelationFamilyKey(
+  link: Pick<KnowledgeLinkData, 'relation' | 'relationType' | 'relationFamily'>,
+): ActiveRelationFamilyKey {
   const family = link.relationFamily;
-  if (family && family in ACTIVE_RELATION_STYLES) return ACTIVE_RELATION_STYLES[family as keyof typeof ACTIVE_RELATION_STYLES];
+  if (family && family in ACTIVE_RELATION_STYLES) return family as ActiveRelationFamilyKey;
   const relation = activeRelationType(link).toLowerCase();
-  if (relation.includes('prerequisite') || family === 'teaching-prerequisite') return ACTIVE_RELATION_STYLES['prerequisite-order'];
-  if (relation === 'contains' || family === 'teaching-containment') return ACTIVE_RELATION_STYLES.structure;
-  if (['derives', 'derived_from', 'represented_by', 'visualized_by'].includes(relation)) return ACTIVE_RELATION_STYLES['derivation-and-representation'];
-  if (['applies_to', 'quantified_by'].includes(relation)) return ACTIVE_RELATION_STYLES['application-and-analysis'];
-  return ACTIVE_RELATION_STYLES.association;
+  if (relation.includes('prerequisite') || family === 'teaching-prerequisite') return 'prerequisite-order';
+  if (relation === 'contains' || family === 'teaching-containment') return 'structure';
+  if (['derives', 'derived_from', 'represented_by', 'visualized_by'].includes(relation)) return 'derivation-and-representation';
+  if (['applies_to', 'quantified_by'].includes(relation)) return 'application-and-analysis';
+  return 'association';
 }
 
-export function activeRelationColor(link: Pick<KnowledgeLinkData, 'relation' | 'relationType' | 'relationFamily'>): string {
-  return activeRelationStyle(link).color;
+export function activeRelationStyle(link: Pick<KnowledgeLinkData, 'relation' | 'relationType' | 'relationFamily'>) {
+  return ACTIVE_RELATION_STYLES[activeRelationFamilyKey(link)];
+}
+
+export function activeRelationColor(
+  link: Pick<KnowledgeLinkData, 'relation' | 'relationType' | 'relationFamily'>,
+  palette: ActiveCanvasPalette = DEFAULT_PALETTE,
+): string {
+  return palette.relation[activeRelationFamilyKey(link)];
 }
 
 export function activeRelationIsDirected(link: Pick<KnowledgeLinkData, 'relation' | 'relationType' | 'relationFamily' | 'directed'>): boolean {
@@ -198,10 +212,7 @@ export function activeNodePointerRadius(
   globalScale = 1,
 ): number {
   const base = activeNodeRadius(node);
-  if (isActiveRootNode(node)) {
-    const presentation = metadataFor(node).presentationRadius;
-    const labelRadius = typeof presentation === 'number' && Number.isFinite(presentation) ? presentation : 42;
-    return Math.max(base, labelRadius);
-  }
+  // Root names are painted inside the bubble, so the bubble itself is the whole hit area.
+  if (isActiveRootNode(node)) return base;
   return base + 18 / Math.max(0.2, globalScale);
 }

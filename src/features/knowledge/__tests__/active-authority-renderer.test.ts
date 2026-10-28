@@ -73,7 +73,27 @@ describe('active authority renderer geometry', () => {
     }
   });
 
-  it.each(['2d', '3d'] as const)('places isolated nodes around a central connected group in %s', (dimension) => {
+  it('places 2D isolated nodes in a compact band below the connected group without overlaps', () => {
+    const core = Array.from({ length: 24 }, (_, index) => node('core-' + index, '关联概念' + index));
+    const isolated = Array.from({ length: 96 }, (_, index) => node('isolated-' + index, '其他概念' + index));
+    const layout = deriveActiveAuthorityLayout({ nodes: [...core, ...isolated],
+      links: core.slice(1).map((entry, index) => link('core-link-' + index, core[index].id, entry.id)), dimension: '2d' });
+    const centerNodes = layout.filter((entry) => entry.id.startsWith('core-'));
+    const band = layout.filter((entry) => entry.id.startsWith('isolated-'));
+    const coreBottom = Math.max(...centerNodes.map((entry) => entry.y + entry.renderRadius));
+    expect(band.every((entry) => entry.y - entry.renderRadius > coreBottom)).toBe(true);
+    const coreBounds = getActiveAuthorityWorldBounds(centerNodes);
+    const bandBounds = getActiveAuthorityWorldBounds(band);
+    expect(Math.abs(bandBounds.center.x - coreBounds.center.x)).toBeLessThan(1);
+    expect(bandBounds.width / Math.max(1, bandBounds.height)).toBeGreaterThan(0.8);
+    for (const [index, left] of layout.entries()) {
+      for (const right of layout.slice(index + 1)) {
+        expect(Math.hypot(left.x - right.x, left.y - right.y)).toBeGreaterThanOrEqual(left.renderRadius + right.renderRadius);
+      }
+    }
+  });
+
+  it.each(['3d'] as const)('places isolated nodes around a central connected group in %s', (dimension) => {
     const core = Array.from({ length: 24 }, (_, index) => node('core-' + index, '关联概念' + index));
     const isolated = Array.from({ length: 96 }, (_, index) => node('isolated-' + index, '其他概念' + index));
     const layout = deriveActiveAuthorityLayout({ nodes: [...core, ...isolated],

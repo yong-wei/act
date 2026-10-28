@@ -115,6 +115,8 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 Active 图谱的本地修复已加入固定 2D/3D 坐标与相机、选中邻域聚焦、向上展开的对象与节点资源类型多选，以及控灵选中状态同步和跨页面拖动位置。课程先修作者决策覆盖模块 1—5 的 143 个知识项，其中 133 项映射到现有 Authority，10 项保留明确缺口；候选关系保留既有资源资格，共 466 个核心节点、571 条关系。完整资源候选与生产激活仍在验证，不能据此认定已上线或全课程覆盖完成。
 
+Active 图谱工作区 UI 精修（OpenSpec `refine-active-knowledge-workspace-ui`）：画布、关系与图例颜色改为运行时读取 `--platform-*` token，深浅主题切换即时重绘；根视图改为按知识点数量定尺寸的确定性仪表盘气泡（名称与“N 个知识点”内嵌、零重叠）；领域视图标签与布局按屏幕尺寸避让（深链左→右、高簇横向拉伸、孤立概念行带、fit 安全区），选中邻居标签多锚位零重叠；inspector 不再遮挡工具栏，关系族未发布显示中性说明而非错误。新增 `GET /api/knowledge/shards/active/mastery` 自身掌握度叠加：只读 CANONICAL 事实与运行态已审核 Legacy→Canonical 对照表解析的历史事实，教师/管理员 not-applicable；本地当前无可映射事实，学生端显示“暂无掌握度数据”，数据到位后自动着色。
+
 统一 UI 治理已经覆盖二级导航、知识图谱壳层和角色可见性。知识图谱近期又完成根节点气泡布局、边界几何和 inspector 持久化治理；React Doctor 系列中的 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect 已归档到 specs。
 
 ## 课程内容与 runtime

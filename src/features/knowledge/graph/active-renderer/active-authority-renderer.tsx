@@ -41,6 +41,8 @@ export function ActiveAuthorityRenderer({
   onCameraPoseChange,
   canvasAriaLabel,
   onEngineSettled,
+  masteryByNodeId,
+  rootCaptions,
 }: ActiveAuthorityRendererProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const labelLayerRef = useRef<ActiveAuthorityLabelLayerHandle | null>(null);
@@ -70,8 +72,9 @@ export function ActiveAuthorityRenderer({
       kind,
       selectedNodeId,
       hoveredNodeId,
+      captions: rootCaptions,
     }),
-    [hoveredNodeId, kind, layoutNodes, links, selectedNodeId],
+    [hoveredNodeId, kind, layoutNodes, links, rootCaptions, selectedNodeId],
   );
   const worldBounds = useMemo(() => getActiveAuthorityWorldBounds(layoutNodes), [layoutNodes]);
 
@@ -146,6 +149,7 @@ export function ActiveAuthorityRenderer({
             labels={labels}
             width={size.width}
             height={size.height}
+            masteryByNodeId={masteryByNodeId}
           />
         ) : (
           <ActiveAuthorityGraph3D

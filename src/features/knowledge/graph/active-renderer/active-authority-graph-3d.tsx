@@ -25,6 +25,12 @@ import {
   type ActiveAuthorityNodeShape,
 } from './active-authority-visual';
 import type { ActiveAuthorityLayoutLink, ActiveAuthorityLayoutNode } from './active-authority-geometry';
+import {
+  fallbackActiveCanvasPalette,
+  useActiveCanvasPalette,
+  withAlpha,
+  type ActiveCanvasPalette,
+} from './active-authority-palette';
 
 type ActiveGraph3DMethods = ForceGraphMethods<ActiveAuthorityLayoutNode, ActiveAuthorityLayoutLink>;
 
@@ -45,12 +51,12 @@ function makeGeometry(shape: ActiveAuthorityNodeShape, radius: number): THREE.Bu
   }
 }
 
-function createNodeObject(node: ActiveAuthorityLayoutNode): THREE.Group {
+function createNodeObject(node: ActiveAuthorityLayoutNode, palette: ActiveCanvasPalette): THREE.Group {
   const group = new THREE.Group();
   const radius = activeNodeRadius(node);
   const body = new THREE.Mesh(
     makeGeometry(activeNodeShape(node), radius),
-    new THREE.MeshLambertMaterial({ color: activeNodeColor(node), transparent: true, opacity: 0.94 }),
+    new THREE.MeshLambertMaterial({ color: activeNodeColor(node, palette), transparent: true, opacity: 0.94 }),
   );
   body.userData.activeAuthorityBody = true;
   group.add(body);
@@ -59,7 +65,7 @@ function createNodeObject(node: ActiveAuthorityLayoutNode): THREE.Group {
   if (familyCount > 0 || decoration.decoration?.hasCardStar) {
     const badge = new THREE.Mesh(
       new THREE.SphereGeometry(Math.max(1.5, radius * 0.16), 8, 6),
-      new THREE.MeshBasicMaterial({ color: decoration.decoration?.hasCardStar ? '#e1b96b' : '#a3ced3' }),
+      new THREE.MeshBasicMaterial({ color: decoration.decoration?.hasCardStar ? palette.tone.amber : palette.fgSecondary }),
     );
     badge.position.set(radius * 0.62, radius * 0.62, radius * 0.18);
     badge.userData.activeAuthorityResourceBadge = true;
@@ -69,13 +75,13 @@ function createNodeObject(node: ActiveAuthorityLayoutNode): THREE.Group {
   return group;
 }
 
-function setNodeFocus(group: THREE.Group, node: ActiveAuthorityLayoutNode, selectedNodeId: string | null, hoveredNodeId: string | null, focusedNodeIds: ReadonlySet<string>): void {
+function setNodeFocus(group: THREE.Group, node: ActiveAuthorityLayoutNode, selectedNodeId: string | null, hoveredNodeId: string | null, focusedNodeIds: ReadonlySet<string>, palette: ActiveCanvasPalette = fallbackActiveCanvasPalette()): void {
   const selected = node.id === selectedNodeId;
   const focused = selected || (!selectedNodeId && node.id === hoveredNodeId);
   const body = group.children.find((child) => child.userData.activeAuthorityBody) as THREE.Mesh | undefined;
   if (!body) return;
   const material = body.material as THREE.MeshLambertMaterial;
-  material.color.set(activeNodeColor(node));
+  material.color.set(activeNodeColor(node, palette));
   material.opacity = activeNodeOpacity(node.id, selectedNodeId, hoveredNodeId, focusedNodeIds);
   material.depthWrite = material.opacity > 0.5;
   for (const child of group.children) {
@@ -92,14 +98,6 @@ function focusedLink(link: ActiveAuthorityLayoutLink, selectedNodeId: string | n
     || (!selectedNodeId && (link.sourceId === hoveredNodeId || link.targetId === hoveredNodeId));
 }
 
-function withAlpha(hex: string, alpha: number): string {
-  const value = hex.replace('#', '');
-  if (value.length !== 6) return hex;
-  const red = Number.parseInt(value.slice(0, 2), 16);
-  const green = Number.parseInt(value.slice(2, 4), 16);
-  const blue = Number.parseInt(value.slice(4, 6), 16);
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
 
 export function ActiveAuthorityGraph3D({
   kind,
@@ -127,6 +125,9 @@ export function ActiveAuthorityGraph3D({
   width,
   height,
 }: ActiveAuthorityGraphProps) {
+  const palette = useActiveCanvasPalette();
+  const paletteRef = useRef(palette);
+  paletteRef.current = palette;
   const graphHostRef = useRef<HTMLDivElement | null>(null);
   const graphRef = useRef<ActiveGraph3DMethods | undefined>(undefined);
   const nodeObjectCacheRef = useRef(new Map<string, THREE.Group>());
@@ -386,30 +387,32 @@ export function ActiveAuthorityGraph3D({
     for (const node of graphData.nodes) {
       const object = nodeObjectCacheRef.current.get(node.id);
       if (!object) continue;
-      setNodeFocus(object, node, selectedNodeId, hoveredNodeId, focusedNodeIds);
+      setNodeFocus(object, node, selectedNodeId, hoveredNodeId, focusedNodeIds, palette);
     }
-  }, [focusedNodeIds, graphData.nodes, hoveredNodeId, selectedNodeId]);
+  }, [focusedNodeIds, graphData.nodes, hoveredNodeId, palette, selectedNodeId]);
 
   const nodeObject = useCallback((node: ActiveAuthorityLayoutNode): THREE.Group => {
     // ForceGraph owns object reuse and clears custom groups when rebuilding.
     // Retain references for focus updates, never return a disposed old group.
-    const created = createNodeObject(node);
+    const created = createNodeObject(node, paletteRef.current);
     setNodeFocus(
       created,
       node,
       selectedNodeIdRef.current,
       hoveredNodeIdRef.current,
       focusedNodeIdsRef.current,
+      paletteRef.current,
     );
     nodeObjectCacheRef.current.set(node.id, created);
     return created;
   }, []);
   const linkObject = useCallback((link: ActiveAuthorityLayoutLink) => {
     const style = activeRelationStyle(link);
+    const color = activeRelationColor(link, paletteRef.current);
     const opacity = activeLinkOpacity(link, selectedNodeIdRef.current, hoveredNodeIdRef.current);
     const material = style.dash
-      ? new THREE.LineDashedMaterial({ color: style.color, transparent: true, opacity, dashSize: style.dash[0], gapSize: style.dash[1] })
-      : new THREE.LineBasicMaterial({ color: style.color, transparent: true, opacity });
+      ? new THREE.LineDashedMaterial({ color, transparent: true, opacity, dashSize: style.dash[0], gapSize: style.dash[1] })
+      : new THREE.LineBasicMaterial({ color, transparent: true, opacity });
     material.depthWrite = false;
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
@@ -436,13 +439,13 @@ export function ActiveAuthorityGraph3D({
       const material = linkObjectCacheRef.current.get(link.id)?.material as THREE.LineBasicMaterial | undefined;
       if (!material) continue;
       material.opacity = activeLinkOpacity(link, selectedNodeId, hoveredNodeId);
-      material.color.set(activeRelationColor(link));
+      material.color.set(activeRelationColor(link, palette));
     }
-  }, [graphData.links, hoveredNodeId, selectedNodeId]);
+  }, [graphData.links, hoveredNodeId, palette, selectedNodeId]);
   const linkColor = useCallback((link: ActiveAuthorityLayoutLink) => {
-    const color = activeRelationColor(link);
+    const color = activeRelationColor(link, palette);
     return withAlpha(color, activeLinkOpacity(link, selectedNodeId, hoveredNodeId));
-  }, [hoveredNodeId, selectedNodeId]);
+  }, [hoveredNodeId, palette, selectedNodeId]);
   const linkWidth = useCallback((link: ActiveAuthorityLayoutLink) => (
     focusedLink(link, selectedNodeId, hoveredNodeId) ? 2.3 : 0.9
   ), [hoveredNodeId, selectedNodeId]);

@@ -6,17 +6,17 @@ import {
 } from '../graph/active-renderer/active-authority-visual';
 
 describe('active node pointer radius', () => {
-  it('covers the root label bubble, not only the painted glyph', () => {
+  it('uses the painted root bubble as the hit area because the name sits inside it', () => {
     const node = {
       id: 'root-entry-01',
-      renderRadius: 40,
+      renderRadius: 88,
       metadata: {
         presentationKind: 'active-root-navigation',
-        presentationRadius: 96,
+        presentationRadius: 120,
       },
     };
-    expect(activeNodeRadius(node)).toBe(40);
-    expect(activeNodePointerRadius(node)).toBe(96);
+    expect(activeNodeRadius(node)).toBe(88);
+    expect(activeNodePointerRadius(node)).toBe(88);
   });
 
   it('extends domain-concept hits past the glyph so the name is clickable', () => {

@@ -11,6 +11,7 @@ import {
 } from 'react';
 
 import { GovernedRichText } from '@/components/shared/governed-rich-text';
+import { KNOWLEDGE_NODE_LABEL_POLICY } from '../node-label-layout';
 import { GovernedFormulaLabel } from '../semantic-label-layer';
 import type {
   ActiveAuthorityLabelDescriptor,
@@ -97,8 +98,16 @@ function ActiveLabelContent({
   return (
     <span data-active-authority-label-fallback="true">
       {label.fallbackLines.map((line, index) => (
-        <span key={`${label.id}:${index}`} className="block">{line}</span>
+        <span key={`${label.id}:${index}`} className="block whitespace-nowrap">{line}</span>
       ))}
+      {label.caption ? (
+        <span
+          className="mt-0.5 block whitespace-nowrap text-[0.72em] font-medium tabular-nums text-platform-fg-secondary"
+          data-active-authority-label-caption="true"
+        >
+          {label.caption}
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -151,6 +160,7 @@ export const ActiveAuthorityLabelLayer = forwardRef<
           width: label.width,
           minHeight: label.height,
           fontSize: label.fontSize,
+          fontFamily: KNOWLEDGE_NODE_LABEL_POLICY.fontFamily,
           lineHeight: 1.2,
           transform: 'translate(-50%, -50%)',
         };
@@ -166,7 +176,9 @@ export const ActiveAuthorityLabelLayer = forwardRef<
             data-active-authority-label-visible="false"
             data-active-authority-label-accessible-name={label.accessibleName}
             hidden
-            className="pointer-events-auto absolute cursor-pointer rounded bg-platform-canvas/85 px-1.5 py-0.5 text-center font-medium text-platform-fg-primary"
+            className={label.isRoot
+              ? 'pointer-events-auto absolute cursor-pointer px-1 text-center font-semibold leading-tight text-platform-fg-primary [text-shadow:0_1px_2px_hsl(var(--platform-canvas)/0.55)]'
+              : 'pointer-events-auto absolute cursor-pointer rounded bg-platform-canvas/80 px-1.5 py-0.5 text-center font-semibold text-platform-fg-primary shadow-sm ring-1 ring-platform-border/60'}
             style={style}
             onClick={(event) => {
               event.stopPropagation();

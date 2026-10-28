@@ -12,6 +12,19 @@ import type { KnowledgeLinkData, KnowledgeNodeData } from '../../knowledge-graph
 import type { GraphDimension } from '../../graph-runtime-session';
 import type { KnowledgeGraphLayoutState } from '../layout-state';
 import { computeKnowledgeForceStructureSignature } from '../force-lifecycle';
+import {
+  deriveKnowledgeNodeCanvasName,
+  getKnowledgeRootLabelBounds,
+  layoutKnowledgeNodeLabel,
+} from '../node-label-layout';
+
+/** Root bubble size grows with the domain's knowledge-point count; the name and caption always fit inside. */
+export const ACTIVE_ROOT_BUBBLE = {
+  baseRadius: 48,
+  radiusPerSqrtMember: 2,
+  captionHeight: 18,
+  packingGap: 18,
+} as const;
 
 export const ACTIVE_AUTHORITY_LABEL_DOM_BUDGET = 192;
 export const ACTIVE_AUTHORITY_LABEL_SCREEN_BUDGET = 144;
@@ -55,6 +68,10 @@ export interface ActiveAuthorityLabelDescriptor {
   fontSize: number;
   priority: number;
   isRoot: boolean;
+  /** World-space glyph radius the label is anchored to. */
+  anchorRadius: number;
+  /** Secondary line shown inside root bubbles (knowledge-point count, mastery). */
+  caption?: string;
 }
 
 export interface ActiveAuthorityLabelPlacement extends ActiveAuthorityLabelDescriptor {
@@ -72,6 +89,7 @@ interface MutableLayoutNode extends ActiveAuthorityLayoutNode {
   __clusterY: number;
   __levelY: number;
   __clusterZ: number;
+  __flowHorizontal?: boolean;
 }
 
 interface ComponentBucket {
@@ -82,6 +100,8 @@ interface ComponentBucket {
 interface ActiveAuthorityNodeMetadata {
   presentationKind?: unknown;
   presentationRadius?: unknown;
+  memberCount?: unknown;
+  nodeCount?: unknown;
   decoration?: { glyphRadius?: unknown };
 }
 
@@ -101,15 +121,27 @@ function finite(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
+export function activeRootBubbleRadius(node: Pick<KnowledgeNodeData, 'name' | 'metadata'>): number {
+  const metadata = (node.metadata ?? {}) as ActiveAuthorityNodeMetadata;
+  const members = Math.max(0, finite(metadata.memberCount, finite(metadata.nodeCount, 16)));
+  const label = getKnowledgeRootLabelBounds({ name: node.name });
+  const fitRadius = Math.hypot(label.halfWidth, label.halfHeight + ACTIVE_ROOT_BUBBLE.captionHeight / 2);
+  const sizedRadius = ACTIVE_ROOT_BUBBLE.baseRadius + ACTIVE_ROOT_BUBBLE.radiusPerSqrtMember * Math.sqrt(members);
+  return Math.ceil(Math.max(fitRadius, sizedRadius));
+}
+
 function nodeRadius(node: KnowledgeNodeData): number {
   const metadata = metadataFor(node);
-  if (isRootNode(node)) {
-    const presentationRadius = finite(metadata.presentationRadius, 42);
-    return Math.max(34, Math.min(54, presentationRadius * 0.52));
-  }
+  if (isRootNode(node)) return activeRootBubbleRadius(node);
   const glyphRadius = finite(metadata.decoration?.glyphRadius, 12);
   const importance = finite(node.graphImportanceScore ?? node.importance, 0.5);
   return Math.max(9, Math.min(17, glyphRadius * 0.45 + importance * 2));
+}
+
+/** World-space spacing a domain node needs so its glyph and external label stay clear of neighbours. */
+function domainCollisionRadius(node: MutableLayoutNode): number {
+  const label = layoutKnowledgeNodeLabel(deriveKnowledgeNodeCanvasName(node.name));
+  return Math.max(node.renderRadius, label.width * 0.5 * 0.62, (label.height + node.renderRadius * 2) * 0.5) + 10;
 }
 
 function stableHash(input: string): number {
@@ -238,6 +270,45 @@ function applyStoredPositions(
   return hasStoredPosition;
 }
 
+/**
+ * Deterministic compact cluster: largest bubbles settle near the centre, the rest follow a
+ * golden-angle spiral (stretched to a 16:10 canvas) and take the first collision-free slot.
+ */
+function packRootBubbles(nodes: MutableLayoutNode[]): void {
+  const aspectX = Math.sqrt(1.6);
+  const aspectY = 1 / aspectX;
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+  const bySize = [...nodes].sort((left, right) => right.renderRadius - left.renderRadius || left.id.localeCompare(right.id));
+  const averageRadius = bySize.reduce((sum, node) => sum + node.renderRadius, 0) / Math.max(1, bySize.length);
+  const step = Math.max(6, averageRadius * 0.18);
+  const placed: MutableLayoutNode[] = [];
+  bySize.forEach((node, order) => {
+    if (order === 0) {
+      node.x = 0;
+      node.y = 0;
+      placed.push(node);
+      return;
+    }
+    const phase = stableUnit(`root-pack:${node.id}`) * Math.PI * 2;
+    for (let attempt = 1; attempt <= 40000; attempt += 1) {
+      const distance = step * Math.sqrt(attempt) * 2.2;
+      const angle = phase + attempt * goldenAngle;
+      const x = Math.cos(angle) * distance * aspectX;
+      const y = Math.sin(angle) * distance * aspectY;
+      const clear = placed.every((other) => Math.hypot(x - other.x, y - other.y)
+        >= node.renderRadius + other.renderRadius + ACTIVE_ROOT_BUBBLE.packingGap);
+      if (!clear) continue;
+      node.x = x;
+      node.y = y;
+      placed.push(node);
+      return;
+    }
+    node.x = (order % 2 === 0 ? 1 : -1) * order * averageRadius * 2.4;
+    node.y = 0;
+    placed.push(node);
+  });
+}
+
 function makeRootLayout(
   nodes: MutableLayoutNode[],
   layoutState: KnowledgeGraphLayoutState | undefined,
@@ -245,11 +316,8 @@ function makeRootLayout(
 ): void {
   const ordered = [...nodes].sort((left, right) => left.id.localeCompare(right.id));
   const count = ordered.length;
-  const ringRadius = count <= 1 ? 0 : Math.max(240, count * 38);
+  packRootBubbles(ordered);
   ordered.forEach((node, index) => {
-    const angle = -Math.PI / 2 + (Math.PI * 2 * index) / Math.max(1, count);
-    node.x = ringRadius * Math.cos(angle);
-    node.y = ringRadius * Math.sin(angle);
     node.z = 0;
     node.layoutLevel = 0;
     node.layoutComponent = index;
@@ -271,6 +339,64 @@ function volumePoint(index: number, count: number, radius: number, surface = fal
   const r = surface ? radius : radius * Math.cbrt(0.25 + stableUnit(`volume:${index}`) * 0.75);
   const horizontal = Math.sqrt(1 - vertical * vertical);
   return { x: r * horizontal * Math.cos(angle), y: r * vertical, z: r * horizontal * Math.sin(angle) };
+}
+
+/**
+ * Labels are screen-fixed and wider than tall, so a tall cluster on a wide
+ * canvas hides most names at fit zoom. Stretch x toward the canvas aspect.
+ */
+const DOMAIN_CLUSTER_TARGET_ASPECT = 1.6;
+const DOMAIN_CLUSTER_MAX_STRETCH = 2.2;
+
+function widenConnectedCluster(connectedNodes: readonly MutableLayoutNode[]): void {
+  if (connectedNodes.length < 3) return;
+  const xs = connectedNodes.map((node) => node.x);
+  const ys = connectedNodes.map((node) => node.y);
+  const width = Math.max(...xs) - Math.min(...xs);
+  const height = Math.max(...ys) - Math.min(...ys);
+  if (width <= 0 || width >= height * DOMAIN_CLUSTER_TARGET_ASPECT) return;
+  const stretch = Math.min(DOMAIN_CLUSTER_MAX_STRETCH, (height * DOMAIN_CLUSTER_TARGET_ASPECT) / width);
+  const centerX = (Math.max(...xs) + Math.min(...xs)) / 2;
+  connectedNodes.forEach((node) => {
+    node.x = centerX + (node.x - centerX) * stretch;
+  });
+}
+
+/** Concepts without visible relations sit in tidy rows directly below the connected cluster. */
+function placeIsolateBand(
+  isolates: MutableLayoutNode[],
+  connectedNodes: readonly MutableLayoutNode[],
+  collisionById: ReadonlyMap<string, number>,
+  componentOffset: number,
+  layoutState: KnowledgeGraphLayoutState | undefined,
+): void {
+  if (isolates.length === 0) return;
+  const cell = Math.max(...isolates.map((node) => collisionById.get(node.id) ?? node.renderRadius)) * 2;
+  const clusterWidth = connectedNodes.length > 0
+    ? Math.max(...connectedNodes.map((node) => node.x)) - Math.min(...connectedNodes.map((node) => node.x))
+    : 0;
+  const columns = Math.max(
+    1,
+    Math.min(isolates.length, Math.max(Math.ceil(Math.sqrt(isolates.length * 2.4)), Math.floor(clusterWidth / cell) + 1)),
+  );
+  const rows = Math.ceil(isolates.length / columns);
+  const centerX = connectedNodes.length > 0
+    ? (Math.max(...connectedNodes.map((node) => node.x)) + Math.min(...connectedNodes.map((node) => node.x))) / 2
+    : 0;
+  const top = connectedNodes.length > 0
+    ? Math.max(...connectedNodes.map((node) => node.y + (collisionById.get(node.id) ?? node.renderRadius))) + cell * 0.9
+    : -((rows - 1) * cell) / 2;
+  isolates.forEach((node, index) => {
+    node.layoutLevel = 0;
+    node.layoutComponent = componentOffset + index;
+    if (layoutState?.positionsByNodeId[node.id]) return;
+    const row = Math.floor(index / columns);
+    const inRow = row === rows - 1 ? isolates.length - row * columns : columns;
+    const column = index - row * columns;
+    node.x = centerX + (column - (inRow - 1) / 2) * cell;
+    node.y = top + row * cell;
+    node.z = 0;
+  });
 }
 
 function makeDomainSeeds(
@@ -297,9 +423,11 @@ function makeDomainSeeds(
     }))
     .sort((left, right) => right.members.length - left.members.length || left.key.localeCompare(right.key));
   const connected = buckets.filter((bucket) => bucket.members.length > 1);
-  const anchorRadius = connected.length <= 1 ? 0 : Math.max(150, Math.sqrt(connected.length) * 108);
-  const nodeGapX = 122;
-  const nodeGapY = 118;
+  const collisionById = new Map(nodes.map((node) => [node.id, domainCollisionRadius(node)]));
+  const widestCollision = Math.max(40, ...collisionById.values());
+  const anchorRadius = connected.length <= 1 ? 0 : Math.max(150, Math.sqrt(connected.length) * widestCollision * 2.2);
+  const nodeGapX = Math.max(122, widestCollision * 2.05);
+  const nodeGapY = Math.max(118, widestCollision * 1.7);
 
   connected.forEach((bucket, bucketIndex) => {
     const angle = -Math.PI / 2 + (Math.PI * 2 * bucketIndex) / Math.max(1, connected.length);
@@ -313,20 +441,29 @@ function makeDomainSeeds(
       levelNodes.push(node);
       byLevel.set(level, levelNodes);
     });
+    // Deep, narrow prerequisite chains flow left-to-right in 2D so the cluster
+    // uses the wide canvas instead of stacking labels in a tall column.
+    const widestLevel = Math.max(...[...byLevel.values()].map((levelNodes) => levelNodes.length));
+    const horizontal = dimension === '2d' && maxLevel + 1 > widestLevel * 1.25;
+    const siblingGap = horizontal ? Math.max(72, widestCollision * 1.15) : nodeGapX;
+    const levelGap = horizontal ? nodeGapX : nodeGapY;
     bucket.members.forEach((node) => {
       const level = levels.get(node.id) ?? 0;
       const levelNodes = byLevel.get(level) ?? [node];
       const index = levelNodes.findIndex((candidate) => candidate.id === node.id);
       const xJitter = (stableUnit(`${layoutSalt}:${node.id}:x`) - 0.5) * 18;
       const yJitter = (stableUnit(`${layoutSalt}:${node.id}:y`) - 0.5) * 14;
-      node.x = clusterX + (index - (levelNodes.length - 1) / 2) * nodeGapX + xJitter;
-      node.y = clusterY + (level - maxLevel / 2) * nodeGapY + yJitter;
+      const sibling = (index - (levelNodes.length - 1) / 2) * siblingGap;
+      const depth = (level - maxLevel / 2) * levelGap;
+      node.x = clusterX + (horizontal ? depth : sibling) + xJitter;
+      node.y = clusterY + (horizontal ? sibling : depth) + yJitter;
+      node.__flowHorizontal = horizontal;
       node.z = (level - maxLevel / 2) * 76 + (stableUnit(`${layoutSalt}:${node.id}:z`) - 0.5) * 24;
       node.layoutLevel = level;
       node.layoutComponent = bucketIndex;
-      node.__clusterX = clusterX;
+      node.__clusterX = horizontal ? clusterX + depth : clusterX;
       node.__clusterY = clusterY;
-      node.__levelY = clusterY + (level - maxLevel / 2) * nodeGapY;
+      node.__levelY = horizontal ? clusterY : clusterY + depth;
       if (dimension === '3d') {
         const point = volumePoint(bucket.members.indexOf(node), bucket.members.length, Math.cbrt(bucket.members.length) * 90);
         node.x = clusterX + point.x;
@@ -362,9 +499,9 @@ function makeDomainSeeds(
         .distance((link) => isPrerequisite(link) ? 138 : 112)
         .strength(0.32))
       .force('charge', forceManyBody<MutableLayoutNode>().strength(-115))
-      .force('collide', forceCollide<MutableLayoutNode>((node) => node.renderRadius + 28).strength(0.86))
-      .force('cluster-x', forceX<MutableLayoutNode>((node) => node.__clusterX).strength(0.11))
-      .force('hierarchy-y', forceY<MutableLayoutNode>((node) => node.__levelY).strength(0.18))
+      .force('collide', forceCollide<MutableLayoutNode>((node) => collisionById.get(node.id) ?? node.renderRadius + 28).strength(0.9).iterations(2))
+      .force('cluster-x', forceX<MutableLayoutNode>((node) => node.__clusterX).strength((node) => (node.__flowHorizontal ? 0.18 : 0.11)))
+      .force('hierarchy-y', forceY<MutableLayoutNode>((node) => node.__levelY).strength((node) => (node.__flowHorizontal ? 0.11 : 0.18)))
       .stop();
     if (dimension === '3d') {
       simulation.force('depth-z', forceZ<MutableLayoutNode>((node) => node.__clusterZ).strength(0.18));
@@ -372,6 +509,7 @@ function makeDomainSeeds(
     for (let tick = 0; tick < 72; tick += 1) simulation.tick();
   }
   if (!hasStoredPosition && connectedNodes.length > 0) centerNodes(connectedNodes, dimension === '3d');
+  if (!hasStoredPosition && dimension === '2d') widenConnectedCluster(connectedNodes);
   const center = connectedNodes.length > 0 ? {
     x: (Math.min(...connectedNodes.map((node) => node.x)) + Math.max(...connectedNodes.map((node) => node.x))) / 2,
     y: (Math.min(...connectedNodes.map((node) => node.y)) + Math.max(...connectedNodes.map((node) => node.y))) / 2,
@@ -384,6 +522,15 @@ function makeDomainSeeds(
     ? Math.cbrt(inner ** 3 + Math.max(1, isolates.length) * 100 ** 3)
     : Math.sqrt(inner ** 2 + Math.max(1, isolates.length) * 105 ** 2);
   const rotation = stableUnit(layoutSalt) * Math.PI * 2;
+  if (dimension === '2d') {
+    placeIsolateBand(isolates, connectedNodes, collisionById, connected.length, layoutState);
+    nodes.forEach((node) => {
+      node.x = finite(node.x, 0);
+      node.y = finite(node.y, 0);
+      node.z = 0;
+    });
+    return;
+  }
   isolates.forEach((node, index) => {
     node.layoutLevel = 0;
     node.layoutComponent = connected.length + index;
@@ -432,6 +579,7 @@ export function deriveActiveAuthorityLayout(input: {
       __clusterY: 0,
       __levelY: 0,
       __clusterZ: 0,
+      __flowHorizontal: false,
     } satisfies MutableLayoutNode));
   const links = validLinks(nodes, input.links);
   if (nodes.every(isRootNode)) makeRootLayout(nodes, input.layoutState, input.dimension);
@@ -453,7 +601,7 @@ export function deriveActiveAuthorityLayout(input: {
       node.positionZ = node.z;
     });
   }
-  return nodes.map(({ __clusterX: _clusterX, __clusterY: _clusterY, __levelY: _levelY, __clusterZ: _clusterZ, ...node }) => ({
+  return nodes.map(({ __clusterX: _clusterX, __clusterY: _clusterY, __levelY: _levelY, __clusterZ: _clusterZ, __flowHorizontal: _flowHorizontal, ...node }) => ({
     ...node, fx: node.x, fy: node.y, fz: node.z,
   }));
 }

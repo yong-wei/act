@@ -66,6 +66,7 @@ export function toActiveRootRuntimeNodes(
     const metadata = {
       ...(node.metadata ?? {}),
       sourceMode: 'active',
+      rootEntryKind: node.metadata?.presentationKind === 'aggregate' ? 'aggregate' : 'domain',
       presentationKind: ACTIVE_ROOT_PRESENTATION_KIND,
       canonicalObjectId: null,
     };

@@ -111,7 +111,7 @@ export const ACTIVE_GRAPH_SUPPORT = {
 } as const;
 
 export type ActiveAuthorization =
-  | { ok: true; role: KnowledgeRole }
+  | { ok: true; role: KnowledgeRole; userId?: string }
   | { ok: false; response: NextResponse };
 
 function roleForSession(role: string | null | undefined): KnowledgeRole | null {
@@ -160,7 +160,7 @@ export async function authorizeActiveGraph(): Promise<ActiveAuthorization> {
       ),
     };
   }
-  return { ok: true, role };
+  return { ok: true, role, userId: session.user.id };
 }
 
 export function activeAuthorityStorePaths(): AuthorityStorePaths {

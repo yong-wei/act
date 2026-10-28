@@ -84,6 +84,7 @@ export function toActiveAuthorityRootPackingNodes(
         visualRole: domain.visualRole,
         unavailable,
         canonicalObjectId: null,
+        memberCount: unavailable ? 0 : domain.memberCount,
         nodeCount: unavailable ? 16 : Math.max(16, domain.memberCount),
         presentationRadius: getActiveAuthorityRootLabelBounds(name, summary).collisionRadius,
       },

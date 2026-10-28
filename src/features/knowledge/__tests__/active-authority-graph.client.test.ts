@@ -848,7 +848,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).not.toContain('知识数据尚未发布完成');
   });
 
-  it('projects a relation-family shard-absent failure as a retryable family error', async () => {
+  it('projects an unpublished relation family as a neutral note without error or retry', async () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
@@ -869,11 +869,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => familyButton!.click());
     await act(async () => Promise.resolve());
 
-    const failure = container.querySelector('[data-authority-family-failure="association"]');
-    expect(failure).not.toBeNull();
-    expect(failure!.textContent).toContain('暂时无法加载');
-    expect(failure!.textContent).not.toContain('知识数据尚未发布完成');
-    expect(container.querySelector('[data-authority-family-retry="association"]')).not.toBeNull();
+    const absent = container.querySelector('[data-authority-family-absent="association"]');
+    expect(absent).not.toBeNull();
+    expect(absent!.getAttribute('role')).toBe('status');
+    expect(absent!.textContent).toBe('本领域暂无该类关系');
+    expect(container.querySelector('[data-authority-family-failure="association"]')).toBeNull();
+    expect(container.querySelector('[data-authority-family-retry="association"]')).toBeNull();
   });
 
   it('keeps the retry guidance for transient root failures without a failure code', async () => {
@@ -1698,12 +1699,22 @@ describe('active Authority knowledge workspace client boundary', () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(expandedRoot);
+      if (url.endsWith('/api/knowledge/shards/active/mastery')) {
+        return mockResponse({
+          contract: 'active-authority-mastery-overlay.v1',
+          status: 'empty',
+          domains: [],
+          objects: [],
+          coverage: { mappedFactCount: 0, unresolvedFactCount: 0 },
+        });
+      }
       throw new Error(`unexpected product request ${url}`);
     });
 
     await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
+    await act(async () => Promise.resolve());
     await act(async () => Promise.resolve());
 
     const rootCanvas = container.querySelector('[data-authority-root-canvas="true"]');
@@ -1718,8 +1729,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     const modelingButton = container.querySelector('[data-authority-domain-entry="modeling"]');
     expect(modelingButton?.getAttribute('aria-label')).toBe('系统建模');
     expect(container.querySelector('[data-authority-domain-entry="state-space"]')?.getAttribute('aria-label')).toBe('该领域暂不可用');
+    expect(container.querySelector('[data-active-mastery-empty="true"]')?.textContent).toBe('暂无掌握度数据');
+    expect(container.querySelector('[data-active-mastery-legend="true"]')).toBeNull();
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
-    expect(requested).toEqual(['/api/knowledge/shards/active']);
+    expect(requested).toEqual(['/api/knowledge/shards/active', '/api/knowledge/shards/active/mastery']);
   });
 
   it('renders the aggregate entry and keeps secondary objects behind explicit disclosure', async () => {
@@ -2375,10 +2388,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     await act(async () => Promise.resolve());
     const detail = container.querySelector('[data-active-node-detail="node-concept"]');
-    expect(detail?.textContent).toContain('关联关系');
-    expect(detail?.textContent).toContain('关联关系 · 特征方程');
-    expect(detail?.textContent).not.toContain('出向 · 由前者指向后者 · 特征方程');
-    expect(detail?.textContent).not.toContain('入向 · 由前者指向后者 · 特征方程');
+    const row = Array.from(detail?.querySelectorAll('[data-active-inspector-neighbor]') ?? [])
+      .find((element) => element.textContent?.includes('特征方程'));
+    expect(row?.getAttribute('aria-label')).toContain('关联关系 · 特征方程');
+    expect(row?.querySelector('[data-active-inspector-direction]')?.getAttribute('data-active-inspector-direction')).toBe('undirected');
+    expect(row?.getAttribute('aria-label')).not.toMatch(/出向|入向/u);
+    expect(detail?.textContent).not.toContain('由前者指向后者');
   });
 
   it('emphasizes only real incident edges for the selected node', async () => {

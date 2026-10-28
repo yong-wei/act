@@ -66,6 +66,12 @@ import {
 import { ActiveAuthorityRuntimeView } from './active-authority-runtime-view';
 import { crossDomainNodeId } from './graph/cross-domain-cluster';
 import { ActiveAuthorityFilterPanel } from './active-authority-filter-panel';
+import {
+  ActiveMasteryLegend,
+  activeRootCaptions,
+  useActiveAuthorityMastery,
+  useActiveMasteryMarks,
+} from './active-authority-mastery';
 import { GovernedFormulaLabel } from './graph/semantic-label-layer';
 import { KnowledgeWorkspaceChromePortal } from './graph/knowledge-workspace-chrome';
 import { activeFocusNodeIds } from './graph/active-renderer/active-authority-visual';
@@ -135,8 +141,9 @@ type WorkspaceLoadState =
   | { status: 'ready'; workspace: AuthorityShardWorkspaceState }
   | { status: 'error'; message: string; unauthenticated?: boolean; contentNotReady?: boolean };
 
-/** 次级分片失败条目：内容未就绪类失败不提供重试（重试必然复现同一缺失）。 */
+/** 次级分片失败条目：内容未就绪与「本领域未发布该关系族」都不提供重试（重试必然复现同一缺失）。 */
 interface ShardFailureEntry {
+  kind?: 'absent' | 'error';
   message: string;
   retryable: boolean;
 }
@@ -189,6 +196,13 @@ function isUnauthenticatedError(error: unknown): boolean {
 // 不再把 ABSENT 说成「尚未发布完成」。
 const CONTENT_NOT_READY_CODE = /NOT_READY/u;
 
+const SHARD_ABSENT_CODE = 'ACTIVE_SHARD_SHARD_ABSENT';
+
+/** The domain simply has no published shard for this family; not a load failure. */
+export function isShardAbsentFailure(error: unknown): boolean {
+  return error instanceof AuthorityShardFetchError && error.status === 404 && error.code === SHARD_ABSENT_CODE;
+}
+
 export function isContentNotReadyFailure(error: unknown): boolean {
   return error instanceof AuthorityShardFetchError
     && error.code !== null
@@ -218,8 +232,12 @@ function shardFailureEntry(
   locale: AdmittedLocale,
   fallbackKey: 'error.familyShard' | 'error.neighborhoodShard',
 ): ShardFailureEntry {
+  if (fallbackKey === 'error.familyShard' && isShardAbsentFailure(error)) {
+    return { kind: 'absent', message: graphCopy(locale, 'filter.family.absent'), retryable: false };
+  }
   const contentNotReady = isContentNotReadyFailure(error);
   return {
+    kind: 'error',
     message: contentNotReady
       ? graphCopy(locale, 'error.contentNotReady')
       : error instanceof Error ? error.message : graphCopy(locale, fallbackKey),
@@ -929,7 +947,7 @@ function ActiveNodeDetail({
       onKeyDown={compact ? (event) => trapInspectorFocus(event, panelRef.current) : undefined}
       className={compact
         ? 'absolute inset-x-3 bottom-3 z-[60] max-h-[70%] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'
-        : 'absolute inset-y-3 right-3 z-[60] w-[min(27rem,calc(100%-1.5rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'}
+        : 'absolute bottom-3 right-3 top-16 z-[60] w-[min(27rem,calc(100%-1.5rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'}
       aria-label={graphCopy(locale, 'inspector.label')}
       data-active-node-detail={nodeKey}
       data-active-inspector-surface={compact ? 'mobile-drawer' : 'desktop-overlay'}
@@ -1012,7 +1030,7 @@ function ActiveNodeDetail({
             {graphCopy(locale, 'loading.detail')}
           </div>
         ) : failure ? (
-          <div className="rounded-lg border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100" role="alert">
+          <div className="rounded-lg border border-platform-evidence-unsupported/40 bg-platform-evidence-unsupported/10 p-3 text-sm text-platform-fg-primary" role="alert">
             {failure}
           </div>
         ) : null}
@@ -1088,9 +1106,9 @@ function ActiveNodeDetail({
                                   <span className="rounded bg-platform-surface px-1 text-[11px] text-platform-fg-secondary">{item.anchorLabel}</span>
                                 ) : null}
                                 {item.appearance === 'first' ? (
-                                  <span className="rounded bg-emerald-500/15 px-1 text-[11px] text-emerald-700 dark:text-emerald-300">首次</span>
+                                  <span className="rounded bg-platform-evidence-eligible/15 px-1 text-[11px] text-platform-evidence-eligible">首次</span>
                                 ) : item.appearance === 'revisit' ? (
-                                  <span className="rounded bg-amber-500/15 px-1 text-[11px] text-amber-700 dark:text-amber-300">复现</span>
+                                  <span className="rounded bg-platform-evidence-context/15 px-1 text-[11px] text-platform-evidence-context">复现</span>
                                 ) : null}
                                 <span className="text-platform-fg-muted">{item.bindingRole}</span>
                               </span>
@@ -1143,14 +1161,16 @@ function ActiveNodeDetail({
                 type="button"
                 data-active-inspector-neighbor={relation.neighborKey}
                 onClick={() => onActivateNeighbor(relation.neighborKey)}
-                className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-left text-xs hover:bg-platform-action-subtle"
+                aria-label={relation.kind === 'undirected'
+                  ? `${relation.relationLabel} · ${graphCopy(locale, 'inspector.undirected')} · ${relation.neighborLabel}`
+                  : `${relation.relationLabel} · ${graphCopy(locale, relation.traversal === 'outgoing' ? 'inspector.outgoing' : 'inspector.incoming')} · ${relation.neighborLabel}`}
+                className="flex w-full items-center gap-2 rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-left text-xs transition hover:border-platform-border-strong hover:bg-platform-action-subtle"
               >
-                <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
-                <span className="ml-2 text-platform-fg-muted">
-                  {relation.kind === 'undirected'
-                    ? `${graphCopy(locale, 'inspector.undirected')} · ${relation.neighborLabel}`
-                    : `${graphCopy(locale, relation.traversal === 'outgoing' ? 'inspector.outgoing' : 'inspector.incoming')} · ${relation.directionLabel} · ${relation.neighborLabel}`}
+                <span className="shrink-0 rounded bg-platform-surface px-1.5 py-0.5 font-medium text-platform-fg-secondary">{relation.relationLabel}</span>
+                <span aria-hidden="true" className="shrink-0 font-semibold text-platform-fg-muted" data-active-inspector-direction={relation.kind === 'undirected' ? 'undirected' : relation.traversal}>
+                  {relation.kind === 'undirected' ? '↔' : relation.traversal === 'outgoing' ? '→' : '←'}
                 </span>
+                <span className="min-w-0 truncate font-medium text-platform-fg-primary">{relation.neighborLabel}</span>
               </button>
             ))}
             {node && node.adjacency.length > summaries.length ? <p className="text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.hiddenRelations')}</p> : null}
@@ -1239,7 +1259,7 @@ function SearchResults({
       <p
         role="alert"
         data-active-search-failed="true"
-        className="mt-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100"
+        className="mt-2 rounded-md border border-platform-evidence-unsupported/40 bg-platform-evidence-unsupported/10 px-3 py-2 text-xs text-platform-fg-primary"
       >
         {graphCopy(locale, 'search.failed')}
       </p>
@@ -1300,7 +1320,7 @@ function defaultHiddenActiveTypes(): ReadonlySet<string> {
 }
 
 export function ActiveAuthorityGraph({
-  viewerRole: _viewerRole,
+  viewerRole,
   dimension: dimensionProp,
   onActiveDomainChange,
   onShowLegacy,
@@ -1342,6 +1362,13 @@ export function ActiveAuthorityGraph({
   },
   (nextLocale) => setLocale(nextLocale),
 );
+  const masteryState = useActiveAuthorityMastery(viewerRole === 'student' && state.status === 'ready');
+  const masteryMarks = useActiveMasteryMarks(masteryState);
+  const rootDomains = workspace.root?.domains;
+  const rootCaptionByVisualRole = useMemo(
+    () => (rootDomains ? activeRootCaptions({ locale, domains: rootDomains, mastery: masteryMarks.byVisualRole }) : undefined),
+    [locale, masteryMarks.byVisualRole, rootDomains],
+  );
   const graphScopeKey = `${workspace.envelope?.authorityCatalogVersion ?? 'loading'}:${workspace.activeDomainId ?? 'root'}`;
   const runtimeLayout = useKnowledgeGraphRuntimeLayout({ dimension, scopeKey: graphScopeKey, fixedLayout: true });
   const runtimeCamera = useKnowledgeGraphRuntimeCamera();
@@ -2023,7 +2050,7 @@ export function ActiveAuthorityGraph({
             <p
               role="alert"
               data-locale-refresh-failed="true"
-              className="max-w-56 text-[11px] text-red-100"
+              className="max-w-56 text-[11px] text-platform-fg-primary"
             >
               {localeRefreshFailure}
             </p>
@@ -2097,17 +2124,17 @@ export function ActiveAuthorityGraph({
         </div>
       ) : state.status === 'error' ? (
         <div className="flex flex-1 items-center justify-center p-6">
-          <div className="max-w-md rounded-xl border border-red-400/35 bg-red-400/10 p-5 text-center" role="alert">
-            <AlertTriangle className="mx-auto h-6 w-6 text-red-200" aria-hidden="true" />
-            <p className="mt-3 text-sm text-red-50">{state.message}</p>
+          <div className="max-w-md rounded-xl border border-platform-evidence-unsupported/40 bg-platform-evidence-unsupported/10 p-5 text-center" role="alert">
+            <AlertTriangle className="mx-auto h-6 w-6 text-platform-evidence-unsupported" aria-hidden="true" />
+            <p className="mt-3 text-sm text-platform-fg-primary">{state.message}</p>
             {state.contentNotReady ? (
               onShowLegacy ? (
-                <button type="button" onClick={onShowLegacy} data-error-action="legacy" className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10">{graphCopy(locale, 'error.viewLegacy')}</button>
+                <button type="button" onClick={onShowLegacy} data-error-action="legacy" className="mt-4 inline-flex items-center gap-2 rounded-md border border-platform-evidence-unsupported/50 px-3 py-2 text-sm text-platform-fg-primary hover:bg-platform-evidence-unsupported/10">{graphCopy(locale, 'error.viewLegacy')}</button>
               ) : null
             ) : (
               <>
-                <p className="mt-2 text-xs text-red-100/75">{graphCopy(locale, 'error.noOtherGraph')}</p>
-                <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10"><RotateCcw className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'error.retryGraph')}</button>
+                <p className="mt-2 text-xs text-platform-fg-secondary">{graphCopy(locale, 'error.noOtherGraph')}</p>
+                <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-platform-evidence-unsupported/50 px-3 py-2 text-sm text-platform-fg-primary hover:bg-platform-evidence-unsupported/10"><RotateCcw className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'error.retryGraph')}</button>
               </>
             )}
           </div>
@@ -2130,7 +2157,10 @@ export function ActiveAuthorityGraph({
             layoutSessions={layoutSessionsRef.current}
             camera={runtimeCamera}
             sessionKey={graphScopeKey}
+            rootCaptionByVisualRole={rootCaptionByVisualRole}
+            masteryByVisualRole={masteryMarks.byVisualRole}
           />
+          <ActiveMasteryLegend state={masteryState} locale={locale} className="pointer-events-none absolute bottom-3 left-3 z-20" />
           {workspace.activeVisualRole ? (
             <div
               className="absolute inset-0 z-10 flex items-center justify-center bg-platform-surface/85"
@@ -2149,7 +2179,7 @@ export function ActiveAuthorityGraph({
         <div className="relative min-h-0 flex-1">
           <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
             {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
-              <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="absolute left-3 right-3 top-14 z-20 mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
+              <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="absolute left-3 right-3 top-14 z-20 mb-2 flex items-center justify-between gap-2 rounded-md border border-platform-evidence-unsupported/40 bg-platform-evidence-unsupported/10 px-3 py-2 text-xs text-platform-fg-primary">
                 <span>{neighborhoodFailures[selectedNodeKey].message}</span>
                 {neighborhoodFailures[selectedNodeKey].retryable ? (
                   <button
@@ -2186,6 +2216,7 @@ export function ActiveAuthorityGraph({
                   onEngineSettled={handleDomainEngineSettled}
                   crossDomainClusters={crossDomainClusters}
                   onCrossDomainNodeClick={followBoundary}
+                  masteryByNodeId={masteryMarks.byNodeId}
                 />
                 {materializedNodeTypes.length > 0 ? (
                   <ActiveAuthorityFilterPanel
@@ -2208,6 +2239,7 @@ export function ActiveAuthorityGraph({
             ) : null}
             <div className="pointer-events-none absolute bottom-12 left-3 z-30 flex flex-wrap items-center justify-start gap-x-4 gap-y-1 text-xs text-platform-fg-muted" data-active-authority-coverage>
               <span>{visibleCoverageCopy(locale, (authorityView?.nodes.length ?? scopedGraph.nodes.length) + crossDomainClusters.reduce((count, cluster) => count + cluster.nodes.length, 0), (authorityView?.edges.length ?? 0) + crossDomainClusters.reduce((count, cluster) => count + cluster.links.length, 0))}</span>
+              <ActiveMasteryLegend state={masteryState} locale={locale} />
               <span>{totalCoverageCopy(locale, model.totalNodeCount + crossDomainClusters.reduce((count, cluster) => count + cluster.nodes.length, 0), model.totalRelationCount + crossDomainClusters.reduce((count, cluster) => count + cluster.links.length, 0))}</span>
             </div>
             {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none absolute inset-x-3 top-1/2 z-20 -translate-y-1/2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}

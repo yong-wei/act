@@ -56,6 +56,7 @@ describe('active Authority root packing adapter', () => {
     expect([...keys].sort()).toEqual([
       'canonicalObjectId',
       'isCollapsedRoot',
+      'memberCount',
       'nodeCount',
       'presentationKind',
       'presentationRadius',

@@ -29,6 +29,7 @@ import { runtimeNodeTypeFor } from './graph/authority-runtime-adapter';
 import { KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES } from './graph/label-policy';
 import type { GovernedFormulaProjection } from '@/lib/governed-math/types';
 import type { ActiveAuthorityLayoutSessions } from './graph/active-renderer/active-authority-geometry';
+import type { ActiveNodeMasteryMark } from './graph/active-renderer/active-authority-renderer-types';
 
 /**
  * ForceGraph 2D/3D touches browser globals while its module is evaluated.
@@ -89,6 +90,11 @@ interface ActiveAuthorityRuntimeViewProps {
   }>;
   /** #2052：点击跨领域概念节点时携带其 canonicalId 进入目标领域。 */
   onCrossDomainNodeClick?: (canonicalId: string) => void;
+  /** Root bubble secondary line keyed by domain visual role. */
+  rootCaptionByVisualRole?: ReadonlyMap<string, string>;
+  /** Paint-only learner mastery; never feeds layout. */
+  masteryByVisualRole?: ReadonlyMap<string, ActiveNodeMasteryMark>;
+  masteryByNodeId?: ReadonlyMap<string, ActiveNodeMasteryMark>;
 }
 
 export function ActiveAuthorityRuntimeView({
@@ -113,6 +119,9 @@ export function ActiveAuthorityRuntimeView({
   onEngineSettled,
   crossDomainClusters,
   onCrossDomainNodeClick,
+  rootCaptionByVisualRole,
+  masteryByVisualRole,
+  masteryByNodeId,
 }: ActiveAuthorityRuntimeViewProps) {
   const {
     layoutState,
@@ -186,6 +195,27 @@ export function ActiveAuthorityRuntimeView({
     ? []
     : [...domainLinks, ...crossLinks], [kind, domainLinks, crossLinks]);
   const focusedNodes = useMemo(() => activeFocusNodeIds(links, selectedNodeId), [links, selectedNodeId]);
+  const rootCaptions = useMemo(() => {
+    if (kind !== 'root' || !rootCaptionByVisualRole) return undefined;
+    const captions = new Map<string, string>();
+    for (const node of rootNodes) {
+      const role = activeRootEntryVisualRole(node);
+      const caption = role ? rootCaptionByVisualRole.get(role) : undefined;
+      if (caption) captions.set(node.id, caption);
+    }
+    return captions;
+  }, [kind, rootCaptionByVisualRole, rootNodes]);
+  const masteryMarks = useMemo(() => {
+    if (kind === 'domain') return masteryByNodeId;
+    if (!masteryByVisualRole) return undefined;
+    const marks = new Map<string, ActiveNodeMasteryMark>();
+    for (const node of rootNodes) {
+      const role = activeRootEntryVisualRole(node);
+      const mark = role ? masteryByVisualRole.get(role) : undefined;
+      if (mark) marks.set(node.id, mark);
+    }
+    return marks;
+  }, [kind, masteryByNodeId, masteryByVisualRole, rootNodes]);
   const cameraScopeKey = `${sessionKey}:${dimension}`;
   const rootEntries = catalog
     ? packActiveAuthorityRootEntries(catalog, { viewportWidth: 960, viewportHeight: 640 })
@@ -244,7 +274,12 @@ export function ActiveAuthorityRuntimeView({
           onNodeClick={handleNodeClick}
           onBackgroundClick={onClearSelection}
           onNodeHover={(node) => {
-            if (kind === 'root' || !node || isActiveRootNavigationNode(node) || (selectedNodeId && !focusedNodes.has(node.id))) {
+            if (kind === 'root') {
+              setHoveredId(node && !activeRootEntryUnavailable(node) ? node.id : null);
+              onHoverNode(null);
+              return;
+            }
+            if (!node || isActiveRootNavigationNode(node) || (selectedNodeId && !focusedNodes.has(node.id))) {
               setHoveredId(null);
               onHoverNode(null);
               return;
@@ -268,6 +303,8 @@ export function ActiveAuthorityRuntimeView({
           onCameraPoseChange={handleCameraPoseChange}
           canvasAriaLabel={canvasAriaLabel}
           onEngineSettled={onEngineSettled}
+          rootCaptions={rootCaptions}
+          masteryByNodeId={masteryMarks}
         />
         {entryGateActive ? (
           <div
