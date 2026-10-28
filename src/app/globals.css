@@ -986,6 +986,270 @@
     background: linear-gradient(0deg, hsl(var(--platform-canvas) / 0.82), transparent 55%);
   }
 
+  .sim-panel-section {
+    --sim-tone: var(--platform-fg-primary);
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    border-radius: 0.625rem;
+    border: 1px solid hsl(var(--platform-fg-primary) / 0.1);
+    background: linear-gradient(180deg, hsl(var(--platform-fg-primary) / 0.05), hsl(var(--platform-fg-primary) / 0.015));
+    padding: 0.75rem;
+  }
+
+  .sim-panel-section[data-sim-tone='accent'] { --sim-tone: var(--platform-action-primary); }
+  .sim-panel-section[data-sim-tone='success'] { --sim-tone: var(--platform-brand-success); }
+  .sim-panel-section[data-sim-tone='warning'] { --sim-tone: var(--platform-brand-evidence); }
+  .sim-panel-section[data-sim-tone='danger'] { --sim-tone: var(--platform-brand-danger); }
+
+  .sim-panel-section:not([data-sim-tone='neutral']) {
+    border-color: hsl(var(--sim-tone) / 0.45);
+    background: linear-gradient(180deg, hsl(var(--sim-tone) / 0.14), hsl(var(--sim-tone) / 0.04));
+  }
+
+  .sim-panel-icon {
+    display: inline-flex;
+    height: 1.5rem;
+    width: 1.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    border: 1px solid hsl(var(--platform-action-primary) / 0.32);
+    background: hsl(var(--platform-action-primary) / 0.12);
+    color: hsl(var(--platform-action-primary));
+  }
+
+  .sim-panel-section:not([data-sim-tone='neutral']) .sim-panel-icon {
+    border-color: hsl(var(--sim-tone) / 0.4);
+    background: hsl(var(--sim-tone) / 0.14);
+    color: hsl(var(--sim-tone));
+  }
+
+  .sim-panel-readout,
+  .sim-panel-strip,
+  .sim-segmented {
+    border-radius: 0.5rem;
+    border: 1px solid hsl(var(--platform-fg-primary) / 0.08);
+    background: hsl(var(--platform-canvas) / 0.5);
+  }
+
+  .sim-panel-readout {
+    padding: 0.375rem 0.625rem;
+  }
+
+  .sim-status-dot {
+    height: 0.5rem;
+    width: 0.5rem;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: hsl(var(--platform-fg-muted));
+  }
+
+  .sim-status-dot[data-state='running'] {
+    background: hsl(var(--platform-brand-success));
+    box-shadow: 0 0 0 3px hsl(var(--platform-brand-success) / 0.2), 0 0 10px hsl(var(--platform-brand-success) / 0.8);
+  }
+
+  .sim-status-dot[data-state='paused'] {
+    background: hsl(var(--platform-brand-evidence));
+    box-shadow: 0 0 0 3px hsl(var(--platform-brand-evidence) / 0.18);
+  }
+
+  .sim-chip {
+    --sim-tone: var(--platform-fg-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+    border-radius: 0.375rem;
+    border: 1px solid hsl(var(--sim-tone) / 0.35);
+    background: hsl(var(--sim-tone) / 0.1);
+    padding: 0.0625rem 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1rem;
+    color: hsl(var(--sim-tone));
+  }
+
+  .sim-chip[data-sim-tone='accent'] { --sim-tone: var(--platform-action-primary); }
+  .sim-chip[data-sim-tone='success'] { --sim-tone: var(--platform-brand-success); }
+  .sim-chip[data-sim-tone='warning'] { --sim-tone: var(--platform-brand-evidence); }
+  .sim-chip[data-sim-tone='danger'] { --sim-tone: var(--platform-brand-danger); }
+
+  .sim-meter {
+    height: 0.375rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: hsl(var(--platform-fg-primary) / 0.12);
+  }
+
+  .sim-meter > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 300ms ease-out;
+  }
+
+  .sim-panel-notice {
+    --sim-tone: var(--platform-brand-evidence);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid hsl(var(--sim-tone) / 0.45);
+    background: hsl(var(--sim-tone) / 0.12);
+    padding: 0.5rem 0.625rem;
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+    color: hsl(var(--platform-fg-primary));
+  }
+
+  .sim-panel-notice > svg { color: hsl(var(--sim-tone)); }
+  .sim-panel-notice[data-sim-tone='danger'] { --sim-tone: var(--platform-brand-danger); }
+  .sim-panel-notice[data-sim-tone='accent'] { --sim-tone: var(--platform-action-primary); }
+  .sim-panel-notice[data-sim-tone='success'] { --sim-tone: var(--platform-brand-success); }
+
+  .sim-segmented {
+    display: grid;
+    gap: 0.1875rem;
+    padding: 0.1875rem;
+  }
+
+  .sim-segment {
+    min-width: 0;
+    border-radius: 0.375rem;
+    padding: 0.3125rem 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: hsl(var(--platform-fg-secondary));
+    transition: background-color 150ms, color 150ms, box-shadow 150ms;
+  }
+
+  .sim-segment:hover:not(:disabled) {
+    background: hsl(var(--platform-fg-primary) / 0.07);
+    color: hsl(var(--platform-fg-primary));
+  }
+
+  .sim-segment:focus-visible {
+    outline: 2px solid hsl(var(--platform-action-primary));
+    outline-offset: 1px;
+  }
+
+  .sim-segment[aria-pressed='true'] {
+    background: hsl(var(--platform-action-primary));
+    color: hsl(var(--platform-fg-inverse));
+    box-shadow: 0 0 16px -4px hsl(var(--platform-action-primary) / 0.9);
+  }
+
+  .sim-segment:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .sim-segment[aria-pressed='true']:disabled {
+    opacity: 0.9;
+  }
+
+  .sim-switch {
+    position: relative;
+    height: 1.25rem;
+    width: 2.25rem;
+    flex-shrink: 0;
+    appearance: none;
+    cursor: pointer;
+    border-radius: 999px;
+    background: hsl(var(--platform-fg-primary) / 0.2);
+    transition: background-color 150ms;
+  }
+
+  .sim-switch::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    height: 1rem;
+    width: 1rem;
+    border-radius: 999px;
+    background: hsl(var(--platform-surface));
+    box-shadow: 0 1px 3px rgb(2 8 23 / 0.4);
+    transition: transform 150ms;
+  }
+
+  .sim-switch:checked {
+    background: hsl(var(--platform-action-primary));
+  }
+
+  .sim-switch:checked::before {
+    transform: translateX(1rem);
+  }
+
+  .sim-switch:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .sim-switch:focus-visible {
+    outline: 2px solid hsl(var(--platform-action-primary));
+    outline-offset: 2px;
+  }
+
+  .light .simulation-command-topbar,
+  .light .simulation-command-restore-handle,
+  .light .simulation-light-panel,
+  .light .sim-hud-surface {
+    --hud-line: hsl(var(--platform-action-primary) / 0.32);
+    --hud-hairline: hsl(var(--platform-fg-primary) / 0.12);
+    background:
+      linear-gradient(180deg, hsl(var(--platform-action-primary) / 0.06), transparent 18%),
+      linear-gradient(160deg, hsl(var(--platform-surface-overlay) / 0.94), hsl(var(--platform-canvas) / 0.92));
+    box-shadow:
+      0 24px 52px -30px rgb(15 42 72 / 0.5),
+      0 0 0 1px rgb(15 42 72 / 0.06),
+      inset 0 1px 0 hsl(0 0% 100% / 0.8);
+  }
+
+  .light :is(.sim-hud-actionbar, .sim-hud-tracker, .sim-hud-hint) {
+    box-shadow: 0 16px 36px -22px rgb(15 42 72 / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.8);
+  }
+
+  .light :is(.sim-hud-actionbar, .sim-hud-tracker) {
+    background: linear-gradient(180deg, hsl(var(--platform-surface-overlay) / 0.94), hsl(var(--platform-canvas) / 0.92));
+  }
+
+  .light .sim-hud-hint {
+    background:
+      linear-gradient(90deg, hsl(var(--platform-brand-evidence) / 0.14), transparent 42%),
+      hsl(var(--platform-surface-overlay) / 0.94);
+  }
+
+  .light :is(.sim-panel-readout, .sim-panel-strip, .sim-segmented, .sim-hud-input) {
+    border-color: hsl(var(--platform-fg-primary) / 0.12);
+    background: hsl(var(--platform-surface) / 0.8);
+  }
+
+  .light .sim-panel-section[data-sim-tone='neutral'],
+  .light .sim-hud-tile {
+    border-color: hsl(var(--platform-fg-primary) / 0.12);
+    background: linear-gradient(180deg, hsl(var(--platform-surface) / 0.7), hsl(var(--platform-canvas-muted) / 0.55));
+  }
+
+  .light :is(.sim-hud-value, .sim-hud-section-title)::before,
+  .light .sim-hud-value {
+    text-shadow: none;
+    box-shadow: none;
+  }
+
+  .light .sim-hud-led {
+    box-shadow: none;
+  }
+
+  .light .sim-segment[aria-pressed='true'] {
+    box-shadow: 0 2px 8px -2px hsl(var(--platform-action-primary) / 0.6);
+  }
+
   @keyframes sim-hud-ping {
     0% { transform: scale(0.9); opacity: 0.9; }
     80%, 100% { transform: scale(2.2); opacity: 0; }

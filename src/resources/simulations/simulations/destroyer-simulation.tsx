@@ -35,20 +35,16 @@ import {
 import { MarinePropulsorsRig, SemanticBindingsRig } from '@/resources/simulations/components/semantic-bindings-rig';
 import { isShipProxyUrl } from '@/resources/simulations/model-packages/types';
 import { boxProjectsInsideNdc } from '@/resources/simulations/scene/camera';
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  Settings,
-  Compass,
-  Video,
-  Orbit,
-  ArrowDownFromLine,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowDownFromLine, Compass, Navigation, Orbit, Settings, SlidersHorizontal, Video } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  SimField,
+  SimLockedChip,
+  SimPanelSection,
+  SimPanelStack,
+  SimRunControls,
+  SimSegmented,
+} from '../components/simulation-panels';
 
 import { destroyer055Profile } from '../profiles/destroyer-055';
 import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
@@ -955,133 +951,77 @@ function ControlPanel({
   onPidGainsChange: (gains: PIDGains) => void;
   onManualRudderChange: (value: number) => void;
 }) {
+  const gainSliders = [
+    { id: 'kp' as const, label: 'Kp', max: 5, step: 0.1, digits: 1 },
+    { id: 'kd' as const, label: 'Kd', max: 50, step: 1, digits: 0 },
+    { id: 'ki' as const, label: 'Ki', max: 0.1, step: 0.001, digits: 3 },
+  ].filter((gain) => allowedGains.includes(gain.id));
+
   return (
-    <div className="min-w-0">
-      <Card className={simulationUi.panel}>
-        <CardHeader className="py-3 px-4">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            控制面板
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="py-3 px-4 space-y-4">
-          {/* 控制模式 */}
-          <div className="space-y-2">
-            <Label className="text-xs text-platform-fg-muted">控制模式</Label>
-            <div className="grid grid-cols-4 gap-1">
-              {(['manual', 'p', 'pd', 'pid'] as ControlMode[]).map((mode) => (
-                <Button
-                  key={mode}
-                  variant={controlMode === mode ? 'default' : 'outline'}
-                  size="sm"
-                  disabled={!controlsEnabled || !allowedModes.includes(mode)}
-                  className={`h-7 text-xs uppercase ${
-                    controlMode === mode ? simulationUi.buttonPrimary : simulationUi.buttonOutline
-                  }`}
-                  onClick={() => onControlModeChange(mode)}
-                >
-                  {mode}
-                </Button>
-              ))}
-            </div>
-          </div>
+    <SimPanelStack>
+      <SimRunControls
+        running={isRunning}
+        primaryLabel={isRunning ? '暂停' : '开始'}
+        onPrimary={isRunning ? onPause : onStart}
+        primarySoundStart={!isRunning}
+        onReset={onReset}
+        disabled={!controlsEnabled}
+      />
 
-          {/* PID 增益 */}
-          {controlMode === 'manual' && (
-            <div className="space-y-2">
-              <Label className="text-xs text-platform-fg-muted">手操舵角</Label>
-              <div className="flex items-center gap-2" data-destroyer-rudder-slider>
+      <SimPanelSection title="控制模式" icon={Settings} aside={<SimLockedChip locked={!controlsEnabled} />}>
+        <SimSegmented
+          ariaLabel="控制模式"
+          value={controlMode}
+          disabled={!controlsEnabled}
+          onChange={onControlModeChange}
+          options={(['manual', 'p', 'pd', 'pid'] as ControlMode[]).map((mode) => ({
+            value: mode,
+            label: mode,
+            disabled: !allowedModes.includes(mode),
+          }))}
+        />
+      </SimPanelSection>
+
+      {controlMode === 'manual' ? (
+        <SimPanelSection title="手操舵" icon={Navigation} aside={rudderLocked ? <SimLockedChip locked>舵角锁定</SimLockedChip> : null}>
+          <SimField label="手操舵角" value={`${manualRudder.toFixed(0)}°`}>
+            <div data-destroyer-rudder-slider>
+              <Slider
+                value={[manualRudder]}
+                min={-nomotoParams.maxRudderDeg}
+                max={nomotoParams.maxRudderDeg}
+                step={1}
+                disabled={!controlsEnabled || rudderLocked}
+                onValueChange={([value]) => onManualRudderChange(value)}
+                aria-label="手操舵角"
+                className={simulationUi.slider}
+              />
+            </div>
+          </SimField>
+        </SimPanelSection>
+      ) : null}
+
+      {controlMode !== 'manual' && gainSliders.length > 0 ? (
+        <SimPanelSection title="PID 增益" icon={SlidersHorizontal}>
+          <div className="space-y-3">
+            {gainSliders.map((gain) => (
+              <SimField key={gain.id} label={gain.label} value={pidGains[gain.id].toFixed(gain.digits)}>
                 <Slider
-                  value={[manualRudder]}
-                  min={-nomotoParams.maxRudderDeg}
-                  max={nomotoParams.maxRudderDeg}
-                  step={1}
-                  disabled={!controlsEnabled || rudderLocked}
-                  onValueChange={([value]) => onManualRudderChange(value)}
-                  aria-label="手操舵角"
-                  className={`flex-1 ${simulationUi.slider}`}
+                  value={[pidGains[gain.id]]}
+                  min={0}
+                  max={gain.max}
+                  step={gain.step}
+                  disabled={!controlsEnabled}
+                  onValueChange={([v]) => onPidGainsChange({ ...pidGains, [gain.id]: v })}
+                  aria-label={gain.label}
+                  className={simulationUi.slider}
                 />
-                <span className="w-max text-right text-xs font-mono">{manualRudder.toFixed(0)}°</span>
-              </div>
-            </div>
-          )}
-
-          {controlMode !== 'manual' && allowedGains.length > 0 && (
-            <div className="space-y-3">
-              <Label className="text-xs text-platform-fg-muted">PID 增益</Label>
-              <div className="space-y-2">
-                {allowedGains.includes('kp') && (
-                  <div className="flex items-center gap-2">
-                    <span className="w-max text-xs text-platform-action-primary">Kp</span>
-                    <Slider
-                      value={[pidGains.kp]}
-                      min={0}
-                      max={5}
-                      step={0.1}
-                      disabled={!controlsEnabled}
-                      onValueChange={([v]) => onPidGainsChange({ ...pidGains, kp: v })}
-                      aria-label="Kp"
-                      className={`flex-1 ${simulationUi.slider}`}
-                    />
-                    <span className="w-max text-right text-xs font-mono">{pidGains.kp.toFixed(1)}</span>
-                  </div>
-                )}
-                {allowedGains.includes('kd') && (
-                  <div className="flex items-center gap-2">
-                    <span className="w-max text-xs text-platform-action-primary">Kd</span>
-                    <Slider
-                      value={[pidGains.kd]}
-                      min={0}
-                      max={50}
-                      step={1}
-                      disabled={!controlsEnabled}
-                      onValueChange={([v]) => onPidGainsChange({ ...pidGains, kd: v })}
-                      aria-label="Kd"
-                      className={`flex-1 ${simulationUi.slider}`}
-                    />
-                    <span className="w-max text-right text-xs font-mono">{pidGains.kd.toFixed(0)}</span>
-                  </div>
-                )}
-                {allowedGains.includes('ki') && (
-                  <div className="flex items-center gap-2">
-                    <span className="w-max text-xs text-platform-action-primary">Ki</span>
-                    <Slider
-                      value={[pidGains.ki]}
-                      min={0}
-                      max={0.1}
-                      step={0.001}
-                      disabled={!controlsEnabled}
-                      onValueChange={([v]) => onPidGainsChange({ ...pidGains, ki: v })}
-                      aria-label="Ki"
-                      className={`flex-1 ${simulationUi.slider}`}
-                    />
-                    <span className="w-max text-right text-xs font-mono">{pidGains.ki.toFixed(3)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 控制按钮 */}
-          <div className="flex gap-2">
-            {isRunning ? (
-              <Button variant="outline" disabled={!controlsEnabled} className={`flex-1 ${simulationUi.buttonSecondary}`} onClick={onPause}>
-                <Pause className="w-4 h-4 mr-2" />
-                暂停
-              </Button>
-            ) : (
-              <Button variant="default" data-sound-start disabled={!controlsEnabled} className={`flex-1 ${simulationUi.buttonPrimary}`} onClick={onStart}>
-                <Play className="w-4 h-4 mr-2" />
-                开始
-              </Button>
-            )}
-            <Button variant="outline" disabled={!controlsEnabled} onClick={onReset} className={simulationUi.buttonOutline}>
-              <RotateCcw className="w-4 h-4" />
-            </Button>
+              </SimField>
+            ))}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </SimPanelSection>
+      ) : null}
+    </SimPanelStack>
   );
 }
 

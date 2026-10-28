@@ -16,7 +16,7 @@ import {
   } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
+import { Compass, Video, Orbit, ArrowDownFromLine, Droplets, SlidersHorizontal, Timer } from 'lucide-react';
 import { MarineCanvas } from '../scene/marine-canvas';
 import { MarineWater } from '../scene/water/marine-water';
 import { SimulationClock } from '@/lib/simulation';
@@ -27,6 +27,21 @@ import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import {
+  SimField,
+  SimLockedChip,
+  SimNotice,
+  SimPanelSection,
+  SimPanelStack,
+  SimReadout,
+  SimReadoutGrid,
+  SimRunControls,
+  SimStatusStrip,
+  SimSwitchInput,
+  SimToggleRow,
+  simToneForMagnitude,
+  type SimRunState,
+} from '../components/simulation-panels';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
@@ -285,57 +300,35 @@ function StatusPanel({
 }: {
   state: LNGSimulationState;
 }) {
+  const headingError = state.heading - state.targetHeading;
+  const cargoAlarm = state.sloshingAngle > 5 || state.tankPressure > 150;
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-        <span className="text-platform-fg-secondary">时间:</span>
-        <span>{state.time.toFixed(1)}s</span>
-
-        <span className="text-platform-fg-secondary">航向:</span>
-        <span>{state.heading.toFixed(1)}°</span>
-
-        <span className="text-platform-fg-secondary">目标航向:</span>
-        <span className="text-[hsl(var(--platform-brand-success))]">{state.targetHeading.toFixed(1)}°</span>
-
-        <span className="text-platform-fg-secondary">航向误差:</span>
-        <span className={Math.abs(state.heading - state.targetHeading) > 5 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-[hsl(var(--platform-brand-success))]'}>
-          {(state.heading - state.targetHeading).toFixed(1)}°
-        </span>
-
-        <span className="text-platform-fg-secondary">转艏率:</span>
-        <span>{state.yawRate.toFixed(2)}°/s</span>
-
-        <span className="text-platform-fg-secondary">舵角:</span>
-        <span>{state.rudder.toFixed(1)}°</span>
-
-        <span className="text-platform-fg-secondary">航速:</span>
-        <span>{(state.speed * 1.944).toFixed(1)} kn</span>
-      </div>
-
-      <div className="border-t border-platform-border"></div>
-
-      <div className="text-sm">
-        <div className="mb-1 flex items-center justify-between">
-          <span className="text-platform-fg-secondary">液货晃荡:</span>
-          <span className={state.sloshingAngle > 5 ? 'text-[hsl(var(--platform-brand-danger))]' : 'text-platform-action-primary'}>
-            {state.sloshingAngle.toFixed(2)}°
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-platform-fg-secondary">货舱压力:</span>
-          <span className={state.tankPressure > 150 ? 'text-[hsl(var(--platform-brand-danger))]' : 'text-platform-action-primary'}>
-            {state.tankPressure.toFixed(0)} kPa
-          </span>
-        </div>
-      </div>
-
-      <div className="border-t border-platform-border"></div>
-
-      <div className="rounded border border-[hsl(var(--platform-brand-evidence)/0.35)] bg-[hsl(var(--platform-brand-evidence)/0.14)] p-2 text-xs text-[hsl(var(--platform-brand-evidence))]">
-        ⚠️ 时滞: 25秒 | 晃荡周期: ~12s
-      </div>
-    </div>
+    <SimPanelStack>
+      <SimStatusStrip state={runStateOf(state)} time={`${state.time.toFixed(1)} s`} />
+      <SimPanelSection title="航向状态" icon={Compass}>
+        <SimReadoutGrid>
+          <SimReadout label="航向" value={state.heading.toFixed(1)} unit="°" size="lg" />
+          <SimReadout label="目标航向" value={state.targetHeading.toFixed(1)} unit="°" size="lg" tone="accent" />
+          <SimReadout label="航向误差" value={headingError.toFixed(1)} unit="°" tone={simToneForMagnitude(headingError, 5)} />
+          <SimReadout label="转艏率" value={state.yawRate.toFixed(2)} unit="°/s" />
+          <SimReadout label="舵角" value={state.rudder.toFixed(1)} unit="°" />
+          <SimReadout label="航速" value={(state.speed * 1.944).toFixed(1)} unit="kn" />
+        </SimReadoutGrid>
+      </SimPanelSection>
+      <SimPanelSection title="液货舱" icon={Droplets} tone={cargoAlarm ? 'danger' : 'neutral'}>
+        <SimReadoutGrid>
+          <SimReadout label="液货晃荡" value={state.sloshingAngle.toFixed(2)} unit="°" tone={state.sloshingAngle > 5 ? 'danger' : 'accent'} />
+          <SimReadout label="货舱压力" value={state.tankPressure.toFixed(0)} unit="kPa" tone={state.tankPressure > 150 ? 'danger' : 'accent'} />
+        </SimReadoutGrid>
+      </SimPanelSection>
+      <SimNotice icon={Timer}>大惯性提示：时滞约 25 秒，晃荡周期约 12 秒。</SimNotice>
+    </SimPanelStack>
   );
+}
+
+function runStateOf(state: { isRunning: boolean; isPaused: boolean }): SimRunState {
+  if (!state.isRunning) return 'idle';
+  return state.isPaused ? 'paused' : 'running';
 }
 
 function ControlPanel({
@@ -355,73 +348,55 @@ function ControlPanel({
   onStartPause: () => void;
   onReset: () => void;
 }) {
+  const running = state.isRunning && !state.isPaused;
   return (
-    <div className="space-y-3">
-      <div>
-        <label htmlFor="lng-simulation-control-1" className="mb-1 block text-sm text-platform-fg-secondary">控制模式</label>
-        <select id="lng-simulation-control-1"
-          value={state.controlMode}
-          disabled={!inputsEnabled}
-          onChange={(e) => onControlModeChange(e.target.value as ControlMode)}
-          className="w-full rounded border border-platform-border bg-platform-surface-overlay/86 p-2 text-platform-fg-primary disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <option value="manual">手动</option>
-          <option value="p">P 控制</option>
-          <option value="pd">PD 控制</option>
-          <option value="pid">PID 控制</option>
-          <option value="autopilot">自动舵</option>
-        </select>
-      </div>
-
-      <div>
-        <label className="mb-1 block text-sm text-platform-fg-secondary">
-          目标航向: {state.targetHeading}°
-        </label>
-        <input aria-label="LNG 船仿真参数"
-          type="range"
-          min="-180"
-          max="180"
-          value={state.targetHeading}
-          disabled={!inputsEnabled}
-          onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
-          className={simulationUi.nativeRange}
+    <SimPanelStack>
+      <SimRunControls running={running} primaryLabel={running ? '暂停' : '开始'} onPrimary={onStartPause} onReset={onReset} />
+      <SimPanelSection title="控制器" icon={SlidersHorizontal} aside={<SimLockedChip locked={!inputsEnabled} />}>
+        <div className="space-y-3">
+          <SimField label="控制模式" htmlFor="lng-simulation-control-1">
+            <select id="lng-simulation-control-1"
+              value={state.controlMode}
+              disabled={!inputsEnabled}
+              onChange={(e) => onControlModeChange(e.target.value as ControlMode)}
+              className="sim-hud-input disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <option value="manual">手动</option>
+              <option value="p">P 控制</option>
+              <option value="pd">PD 控制</option>
+              <option value="pid">PID 控制</option>
+              <option value="autopilot">自动舵</option>
+            </select>
+          </SimField>
+          <SimField label="目标航向" value={`${state.targetHeading}°`}>
+            <input aria-label="LNG 船仿真参数"
+              type="range"
+              min="-180"
+              max="180"
+              value={state.targetHeading}
+              disabled={!inputsEnabled}
+              onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
+              className={simulationUi.nativeRange}
+            />
+          </SimField>
+        </div>
+      </SimPanelSection>
+      <SimPanelSection title="时滞补偿" icon={Timer}>
+        <SimToggleRow
+          label="启用 Smith 预估器"
+          description="消除25秒时滞影响"
+          htmlFor="lng-smith-predictor"
+          control={(
+            <SimSwitchInput
+              id="lng-smith-predictor"
+              checked={state.smithEnabled}
+              disabled={!inputsEnabled}
+              onChange={onSmithToggle}
+            />
+          )}
         />
-      </div>
-
-      <div>
-        <label className="flex cursor-pointer items-center gap-2">
-          <input
-            type="checkbox"
-            checked={state.smithEnabled}
-            disabled={!inputsEnabled}
-            onChange={onSmithToggle}
-            className="h-4 w-4 accent-[hsl(var(--platform-action-primary))]"
-          />
-          <span className="text-sm">启用 Smith 预估器</span>
-        </label>
-        <p className="mt-1 text-xs text-platform-fg-secondary">消除25秒时滞影响</p>
-      </div>
-
-      <div className="flex gap-2">
-        <button type="button"
-          onClick={onStartPause}
-          className={`flex-1 rounded border px-4 py-2 ${
-            state.isRunning && !state.isPaused
-              ? simulationUi.buttonSecondary
-              : simulationUi.buttonPrimary
-          }`}
-          data-sound-start
-        >
-          {state.isRunning && !state.isPaused ? '暂停' : '开始'}
-        </button>
-        <button type="button"
-          onClick={onReset}
-          className={`flex-1 rounded border px-4 py-2 ${simulationUi.buttonOutline}`}
-        >
-          重置
-        </button>
-      </div>
-    </div>
+      </SimPanelSection>
+    </SimPanelStack>
   );
 }
 

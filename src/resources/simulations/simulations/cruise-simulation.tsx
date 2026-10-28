@@ -16,7 +16,7 @@ import {
 import { useSearchParams } from 'next/navigation';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
+import { ArrowDownFromLine, AudioWaveform, Compass, Eye, Navigation, Orbit, Settings2, SlidersHorizontal, Smile, Timer, Video, Waves } from 'lucide-react';
 import { MarineCanvas } from '../scene/marine-canvas';
 import { MarineWater } from '../scene/water/marine-water';
 import { SimulationClock } from '@/lib/simulation';
@@ -28,6 +28,21 @@ import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, simulationUi } from '../components/simulation-ui';
+import {
+  SimChip,
+  SimField,
+  SimLockedChip,
+  SimMeter,
+  SimNotice,
+  SimPanelSection,
+  SimPanelStack,
+  SimReadout,
+  SimReadoutGrid,
+  SimRunControls,
+  SimSegmented,
+  SimStatusStrip,
+  type SimTone,
+} from '../components/simulation-panels';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   EnvironmentScene,
@@ -387,8 +402,7 @@ function ComfortGauge({ comfort }: { comfort: ComfortMetrics }) {
   const angle = Math.min(comfort.msi / 50, 1) * 180;
 
   return (
-    <div className="rounded-lg bg-platform-canvas-muted p-3">
-      <div className="mb-2 text-xs font-semibold text-platform-fg-muted">舒适度评估</div>
+    <SimPanelSection title="舒适度评估" icon={Smile}>
       <div className="relative mx-auto h-24 w-40">
         {/* 仪表背景 */}
         <svg viewBox="0 0 100 60" className="h-full w-full">
@@ -420,19 +434,13 @@ function ComfortGauge({ comfort }: { comfort: ComfortMetrics }) {
       </div>
       <div className="mt-1 text-center">
         <span className="text-xl font-bold" style={{ color: getColor() }}>{getLabel()}</span>
-        <div className="text-xs text-platform-fg-muted">MSI: {comfort.msi.toFixed(1)}%</div>
+        <div className="text-xs text-platform-fg-secondary">晕船指数 MSI：{comfort.msi.toFixed(1)}%</div>
       </div>
-      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-        <div>
-          <span className="text-platform-fg-muted">横摇RMS</span>
-          <span className="ml-1 text-platform-fg-inverse">{comfort.rollRms.toFixed(2)}°</span>
-        </div>
-        <div>
-          <span className="text-platform-fg-muted">横摇峰值</span>
-          <span className="ml-1 text-platform-fg-inverse">{comfort.rollPeak.toFixed(2)}°</span>
-        </div>
-      </div>
-    </div>
+      <SimReadoutGrid className="mt-2.5">
+        <SimReadout label="横摇均方根" value={comfort.rollRms.toFixed(2)} unit="°" />
+        <SimReadout label="横摇峰值" value={comfort.rollPeak.toFixed(2)} unit="°" />
+      </SimReadoutGrid>
+    </SimPanelSection>
   );
 }
 
@@ -454,58 +462,39 @@ function FinStabilizerPanel({
   disabled?: boolean;
 }) {
   return (
-    <div className="rounded-lg bg-platform-canvas-muted p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold text-platform-fg-muted">减摇鳍</span>
-        <button type="button"
-          onClick={onToggle}
-          disabled={disabled}
-          className={`rounded px-2 py-0.5 text-xs ${
-            enabled ? 'bg-[hsl(var(--platform-brand-success))]' : 'bg-platform-canvas-muted'
-          }`}
-        >
+    <SimPanelSection
+      title="减摇鳍"
+      icon={Waves}
+      aside={(
+        <button type="button" onClick={onToggle} disabled={disabled} className="sim-chip disabled:cursor-not-allowed" data-sim-tone={enabled ? 'success' : 'neutral'}>
           {enabled ? '已启用' : '已禁用'}
         </button>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {/* 左舷鳍 */}
-        <div className="text-center">
-          <div className="relative mx-auto h-12 w-4 rounded bg-platform-canvas-muted">
-            <div
-              className="absolute bottom-1/2 left-0 h-0.5 w-full origin-left bg-[hsl(var(--platform-chart-5))]"
-              style={{ transform: `rotate(${-portAngle}deg)` }}
-            />
+      )}
+    >
+      <div className="grid grid-cols-2 gap-1.5">
+        {([['左舷', portAngle], ['右舷', starboardAngle]] as const).map(([side, angle]) => (
+          <div key={side} className="sim-panel-readout flex items-center gap-2.5">
+            <div className="relative h-10 w-3 shrink-0 rounded-sm bg-platform-fg-primary/10">
+              <div
+                className="absolute bottom-1/2 left-0 h-0.5 w-full origin-left bg-platform-action-primary"
+                style={{ transform: `rotate(${-angle}deg)` }}
+              />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[11px] text-platform-fg-secondary">{side}</div>
+              <div className="font-mono text-sm font-semibold tabular-nums text-platform-fg-primary">{angle.toFixed(1)}°</div>
+            </div>
           </div>
-          <div className="mt-1 text-xs text-platform-fg-muted">左舷</div>
-          <div className="text-xs text-platform-fg-inverse">{portAngle.toFixed(1)}°</div>
-        </div>
-        {/* 右舷鳍 */}
-        <div className="text-center">
-          <div className="relative mx-auto h-12 w-4 rounded bg-platform-canvas-muted">
-            <div
-              className="absolute bottom-1/2 left-0 h-0.5 w-full origin-left bg-[hsl(var(--platform-chart-5))]"
-              style={{ transform: `rotate(${-starboardAngle}deg)` }}
-            />
-          </div>
-          <div className="mt-1 text-xs text-platform-fg-muted">右舷</div>
-          <div className="text-xs text-platform-fg-inverse">{starboardAngle.toFixed(1)}°</div>
-        </div>
+        ))}
       </div>
-      <div className="mt-2">
-        <div className="flex justify-between text-xs">
-          <span className="text-platform-fg-muted">功率</span>
-          <span className={power > 400 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-platform-fg-inverse'}>
-            {power.toFixed(0)} kW
-          </span>
-        </div>
-        <div className="mt-1 h-1.5 rounded-full bg-platform-canvas-muted">
-          <div
-            className={`h-full rounded-full ${power > 400 ? 'bg-[hsl(var(--platform-brand-evidence))]' : 'bg-[hsl(var(--platform-chart-5))]'}`}
-            style={{ width: `${Math.min((power / 500) * 100, 100)}%` }}
-          />
-        </div>
-      </div>
-    </div>
+      <SimMeter
+        className="mt-2.5"
+        label="鳍功率"
+        valueLabel={`${power.toFixed(0)} kW`}
+        value={power / 500}
+        tone={power > 400 ? 'warning' : 'accent'}
+      />
+    </SimPanelSection>
   );
 }
 
@@ -521,26 +510,22 @@ function NotchFilterPanel({
   disabled?: boolean;
 }) {
   return (
-    <div className="rounded-lg bg-platform-canvas-muted p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold text-platform-fg-muted">陷波滤波器</span>
-        <button type="button"
-          onClick={onToggle}
-          disabled={disabled}
-          className={`rounded px-2 py-0.5 text-xs ${
-            enabled ? 'bg-[hsl(var(--platform-brand-success))]' : 'bg-platform-canvas-muted'
-          }`}
-        >
+    <SimPanelSection
+      title="陷波滤波器"
+      icon={AudioWaveform}
+      aside={(
+        <button type="button" onClick={onToggle} disabled={disabled} className="sim-chip disabled:cursor-not-allowed" data-sim-tone={enabled ? 'success' : 'neutral'}>
           {enabled ? '已启用' : '已禁用'}
         </button>
-      </div>
-      <div className="text-xs text-platform-fg-muted">
-        <div className="mb-1">中心频率: 0.16 Hz</div>
-        <div className="mb-1">带宽: 0.15 Hz</div>
-        <div>陷波深度: -30 dB</div>
-      </div>
+      )}
+    >
+      <SimReadoutGrid columns={3}>
+        <SimReadout label="中心频率" value="0.16" unit="Hz" />
+        <SimReadout label="带宽" value="0.15" unit="Hz" />
+        <SimReadout label="陷波深度" value="-30" unit="dB" />
+      </SimReadoutGrid>
       {/* 简化 Bode 图 */}
-      <div className="mt-2 h-12 rounded bg-platform-canvas-muted p-1">
+      <div className="sim-panel-readout mt-2 h-14 p-1">
         <svg viewBox="0 0 100 30" className="h-full w-full">
           {/* 频率轴 */}
           <line x1="10" y1="25" x2="95" y2="25" stroke={simulationScenePalette.mutedStroke} strokeWidth="0.5" />
@@ -559,7 +544,7 @@ function NotchFilterPanel({
           <text x="50" y="3" fontSize="3" fill={simulationScenePalette.danger} textAnchor="middle">0.1-0.3Hz</text>
         </svg>
       </div>
-    </div>
+    </SimPanelSection>
   );
 }
 
@@ -611,146 +596,108 @@ function ControllerPanel({
           ? 'PD 控制：Kp、Kd 可调，Ki 锁定为 0。'
           : 'PID 控制：Kp、Ki、Kd 全部可调。';
 
+  const waveLabel = state.waveDirection === 90 || state.waveDirection === 270
+    ? '横浪'
+    : state.waveDirection === 0 || state.waveDirection === 180 ? '纵浪' : '斜浪';
   return (
-    <div className="space-y-3 p-1 text-sm">
+    <SimPanelStack>
       {isCourseMode ? (
-        <div className="space-y-2 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2.5 text-xs">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-platform-fg-primary">虚拟仿真观察</span>
+        <SimPanelSection
+          title="虚拟仿真观察"
+          icon={Eye}
+          aside={(
             <button
               type="button"
               onClick={onVirtualModeToggle}
               disabled={!inputsEnabled}
-              className={`rounded border px-2 py-1 ${virtualModeEnabled ? simulationUi.buttonPrimary : simulationUi.buttonOutline}`}
+              className="sim-chip disabled:cursor-not-allowed"
+              data-sim-tone={virtualModeEnabled ? 'accent' : 'neutral'}
             >
               {virtualModeEnabled ? '已开启' : '已关闭'}
             </button>
-          </div>
-          <p className="text-platform-fg-secondary">
+          )}
+        >
+          <p className="text-xs leading-5 text-platform-fg-secondary">
             开启后采用真实扰动模型；关闭时使用理想化环境。请对比两者结果差异，并可结合加速仿真节约时间。
           </p>
-        </div>
+        </SimPanelSection>
       ) : null}
 
-      {/* 仿真控制 */}
-      <div className="flex gap-2">
-        {!state.isRunning ? (
-          <button type="button"
-            data-sound-start
-            onClick={onStart}
-            className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
-          >
-            开始仿真
-          </button>
-        ) : (
-          <button type="button"
-            onClick={onPause}
-            className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonSecondary}`}
-          >
-            {state.isPaused ? '继续' : '暂停'}
-          </button>
-        )}
-        <button type="button"
-          onClick={onReset}
-          className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonOutline}`}
-        >
-          重置
-        </button>
-      </div>
+      <SimRunControls
+        running={state.isRunning && !state.isPaused}
+        primaryLabel={!state.isRunning ? '开始仿真' : state.isPaused ? '继续' : '暂停'}
+        onPrimary={state.isRunning ? onPause : onStart}
+        primarySoundStart={!state.isRunning}
+        onReset={onReset}
+      />
 
       {inputsEnabled ? (
-        <div className="rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1 text-xs text-platform-fg-secondary">
+        <SimNotice tone="accent" icon={Timer}>
           单次校验时长: {state.runDurationSec}s（到时自动结束并生成评估数据）
-        </div>
+        </SimNotice>
       ) : null}
 
-      {/* 任务航向 */}
-      <div>
-        <label className="mb-1 block text-xs text-platform-fg-muted">任务目标航向: {state.targetHeading.toFixed(0)}°</label>
-        <div className="rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1 text-xs text-platform-fg-secondary">
-          航线规则：先直航 {CRUISE_ROUTE_STRAIGHT_DISTANCE}m，再右转 {CRUISE_ROUTE_TURN_HEADING}° 并保持航向。
-        </div>
-      </div>
-
-      {/* 海况等级 */}
-      <div>
-        <label className="mb-1 block text-xs text-platform-fg-muted">
-          海况等级: {state.seaState}级
-          <span className="ml-2 text-[hsl(var(--platform-chart-5))]">
-            ({state.seaState <= 2 ? '轻浪' : state.seaState <= 4 ? '中浪' : '大浪'})
-          </span>
-        </label>
-        <input aria-label="巡航舒适性参数一"
-          type="range"
-          min="1"
-          max="7"
-          value={state.seaState}
-          onChange={(e) => onSeaStateChange(Number(e.target.value))}
-          disabled={!inputsEnabled}
-          className={simulationUi.nativeRange}
-        />
-      </div>
-
-      {/* 波向 */}
-      <div>
-        <label className="mb-1 block text-xs text-platform-fg-muted">
-          相对波向: {state.waveDirection}°
-          <span className="ml-2 text-[hsl(var(--platform-chart-5))]">
-            ({state.waveDirection === 90 || state.waveDirection === 270 ? '横浪' : state.waveDirection === 0 || state.waveDirection === 180 ? '纵浪' : '斜浪'})
-          </span>
-        </label>
-        <input aria-label="巡航舒适性参数二"
-          type="range"
-          min="0"
-          max="360"
-          value={state.waveDirection}
-          onChange={(e) => onWaveDirectionChange(Number(e.target.value))}
-          disabled={!inputsEnabled}
-          className={simulationUi.nativeRange}
-        />
-      </div>
-
-      {/* 控制模式 */}
-      <div>
-        <p className="mb-1 block text-xs text-platform-fg-muted">控制模式</p>
-        <div className="flex flex-wrap gap-1">
-          {(['manual', 'p', 'pd', 'pid'] as ControlMode[]).map((mode) => (
-            <button type="button"
-              key={mode}
-              onClick={() => onControlModeChange(mode)}
-              disabled={!inputsEnabled}
-              className={`rounded border px-2 py-1 text-xs ${
-                state.controlMode === mode
-                  ? simulationUi.buttonPrimary
-                  : simulationUi.buttonOutline
-              }`}
-            >
-              {mode.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {state.controlMode === 'manual' ? (
-        <div>
-          <label className="mb-1 block text-xs text-platform-fg-muted">
-            手动舵角: {state.manualRudder.toFixed(0)}°
-          </label>
-          <input aria-label="巡航舒适性参数三"
-            type="range"
-            min={-CRUISE_ADORA_PARAMS.MAX_RUDDER_ANGLE}
-            max={CRUISE_ADORA_PARAMS.MAX_RUDDER_ANGLE}
-            value={state.manualRudder}
-            onChange={(event) => onManualRudderChange(Number(event.target.value))}
-            disabled={!inputsEnabled}
-            className={simulationUi.nativeRange}
+      <SimPanelSection title="航线与海况" icon={Navigation} aside={<SimLockedChip locked={!inputsEnabled} />}>
+        <div className="space-y-3">
+          <SimField
+            label="任务目标航向"
+            value={`${state.targetHeading.toFixed(0)}°`}
+            hint={`航线规则：先直航 ${CRUISE_ROUTE_STRAIGHT_DISTANCE}m，再右转 ${CRUISE_ROUTE_TURN_HEADING}° 并保持航向。`}
           />
+          <SimField label="海况等级" value={`${state.seaState}级（${state.seaState <= 2 ? '轻浪' : state.seaState <= 4 ? '中浪' : '大浪'}）`}>
+            <input aria-label="巡航舒适性参数一"
+              type="range"
+              min="1"
+              max="7"
+              value={state.seaState}
+              onChange={(e) => onSeaStateChange(Number(e.target.value))}
+              disabled={!inputsEnabled}
+              className={simulationUi.nativeRange}
+            />
+          </SimField>
+          <SimField label="相对波向" value={`${state.waveDirection}°（${waveLabel}）`}>
+            <input aria-label="巡航舒适性参数二"
+              type="range"
+              min="0"
+              max="360"
+              value={state.waveDirection}
+              onChange={(e) => onWaveDirectionChange(Number(e.target.value))}
+              disabled={!inputsEnabled}
+              className={simulationUi.nativeRange}
+            />
+          </SimField>
         </div>
-      ) : null}
+      </SimPanelSection>
+
+      <SimPanelSection title="控制器" icon={SlidersHorizontal}>
+        <div className="space-y-3">
+          <SimField label="控制模式">
+            <SimSegmented
+              ariaLabel="控制模式"
+              value={state.controlMode}
+              disabled={!inputsEnabled}
+              onChange={onControlModeChange}
+              options={(['manual', 'p', 'pd', 'pid'] as ControlMode[]).map((mode) => ({ value: mode, label: mode.toUpperCase() }))}
+            />
+          </SimField>
+          {state.controlMode === 'manual' ? (
+            <SimField label="手动舵角" value={`${state.manualRudder.toFixed(0)}°`}>
+              <input aria-label="巡航舒适性参数三"
+                type="range"
+                min={-CRUISE_ADORA_PARAMS.MAX_RUDDER_ANGLE}
+                max={CRUISE_ADORA_PARAMS.MAX_RUDDER_ANGLE}
+                value={state.manualRudder}
+                onChange={(event) => onManualRudderChange(Number(event.target.value))}
+                disabled={!inputsEnabled}
+                className={simulationUi.nativeRange}
+              />
+            </SimField>
+          ) : null}
+        </div>
+      </SimPanelSection>
 
       {isCourseMode ? (
-        <div className="space-y-2 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2.5">
-          <div className="text-xs font-semibold text-platform-fg-primary">控制器参数</div>
+        <SimPanelSection title="控制器参数" icon={Settings2}>
           <div className="grid grid-cols-3 gap-2">
             <label className="text-[11px] text-platform-fg-secondary">
               Kp
@@ -761,11 +708,7 @@ function ControllerPanel({
                 value={state.pidGains.kp}
                 disabled={!kpEditable}
                 onChange={(event) => onPidGainsChange('kp', Number(event.target.value))}
-                className={`mt-1 w-full rounded border px-2 py-1 text-xs ${
-                  kpEditable
-                    ? 'border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary'
-                    : 'cursor-not-allowed border-platform-border bg-platform-canvas-muted text-platform-fg-muted'
-                }`}
+                className="sim-hud-input mt-1 w-full px-2 py-1 font-mono text-xs disabled:cursor-not-allowed disabled:opacity-50"
               />
             </label>
             <label className="text-[11px] text-platform-fg-secondary">
@@ -777,11 +720,7 @@ function ControllerPanel({
                 value={state.pidGains.ki}
                 disabled={!kiEditable}
                 onChange={(event) => onPidGainsChange('ki', Number(event.target.value))}
-                className={`mt-1 w-full rounded border px-2 py-1 text-xs ${
-                  kiEditable
-                    ? 'border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary'
-                    : 'cursor-not-allowed border-platform-border bg-platform-canvas-muted text-platform-fg-muted'
-                }`}
+                className="sim-hud-input mt-1 w-full px-2 py-1 font-mono text-xs disabled:cursor-not-allowed disabled:opacity-50"
               />
             </label>
             <label className="text-[11px] text-platform-fg-secondary">
@@ -793,16 +732,12 @@ function ControllerPanel({
                 value={state.pidGains.kd}
                 disabled={!kdEditable}
                 onChange={(event) => onPidGainsChange('kd', Number(event.target.value))}
-                className={`mt-1 w-full rounded border px-2 py-1 text-xs ${
-                  kdEditable
-                    ? 'border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary'
-                    : 'cursor-not-allowed border-platform-border bg-platform-canvas-muted text-platform-fg-muted'
-                }`}
+                className="sim-hud-input mt-1 w-full px-2 py-1 font-mono text-xs disabled:cursor-not-allowed disabled:opacity-50"
               />
             </label>
           </div>
-          <div className="text-[11px] text-platform-fg-secondary">{modeHint}</div>
-        </div>
+          <div className="mt-2 text-[11px] text-platform-fg-secondary">{modeHint}</div>
+        </SimPanelSection>
       ) : null}
 
       {/* 减摇鳍面板 */}
@@ -821,7 +756,7 @@ function ControllerPanel({
         onToggle={onNotchFilterToggle}
         disabled={!inputsEnabled}
       />
-    </div>
+    </SimPanelStack>
   );
 }
 
@@ -833,71 +768,33 @@ function HUD({ state }: { state: CruiseSimulationState }) {
   const rollDeg = toDegrees(state.rollAngle);
   const remaining = Math.max(0, state.runDurationSec - state.time);
 
+  const rollTone: SimTone = Math.abs(rollDeg) > 4 ? 'danger' : Math.abs(rollDeg) > 2 ? 'warning' : 'success';
+
   return (
-    <div className="space-y-3 p-1 text-sm">
+    <SimPanelStack>
+      <SimStatusStrip state={state.isRunning ? (state.isPaused ? 'paused' : 'running') : 'idle'} time={`${state.time.toFixed(1)}s`}>
+        <SimChip tone={remaining <= 15 ? 'warning' : 'neutral'} icon={Timer}>剩余 {remaining.toFixed(1)}s</SimChip>
+      </SimStatusStrip>
 
-      {/* 时间 */}
-      <div className="flex justify-between border-b border-platform-border pb-2">
-        <span className="text-platform-fg-muted">仿真时间</span>
-        <span className="font-mono text-[hsl(var(--platform-chart-5))]">{state.time.toFixed(1)}s</span>
-      </div>
-      <div className="flex justify-between border-b border-platform-border pb-2">
-        <span className="text-platform-fg-muted">剩余时长</span>
-        <span className={`font-mono ${remaining <= 15 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-platform-fg-primary'}`}>
-          {remaining.toFixed(1)}s
-        </span>
-      </div>
+      <SimPanelSection title="航向状态" icon={Compass}>
+        <SimReadoutGrid>
+          <SimReadout label="当前航向" value={state.heading.toFixed(1)} unit="°" size="lg" />
+          <SimReadout label="航向误差" value={normalizedError.toFixed(1)} unit="°" size="lg" tone={Math.abs(normalizedError) > 3 ? 'danger' : 'success'} />
+          <SimReadout label="转艏角速度" value={state.yawRate.toFixed(2)} unit="°/s" />
+          <SimReadout label="舵角" value={state.rudder.toFixed(1)} unit="°" />
+        </SimReadoutGrid>
+      </SimPanelSection>
 
-      {/* 航向信息 */}
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <div className="text-xs text-platform-fg-muted">当前航向</div>
-          <div className="font-mono text-lg text-platform-fg-inverse">{state.heading.toFixed(1)}°</div>
-        </div>
-        <div>
-          <div className="text-xs text-platform-fg-muted">航向误差</div>
-          <div className={`font-mono text-lg ${Math.abs(normalizedError) > 3 ? 'text-[hsl(var(--platform-brand-danger))]' : 'text-[hsl(var(--platform-brand-success))]'}`}>
-            {normalizedError.toFixed(1)}°
-          </div>
-        </div>
-        <div>
-          <div className="text-xs text-platform-fg-muted">转艏角速度</div>
-          <div className="font-mono text-platform-fg-inverse">{state.yawRate.toFixed(2)}°/s</div>
-        </div>
-        <div>
-          <div className="text-xs text-platform-fg-muted">舵角</div>
-          <div className="font-mono text-platform-fg-inverse">{state.rudder.toFixed(1)}°</div>
-        </div>
-      </div>
+      <SimPanelSection title="横摇" icon={Waves} tone={rollTone === 'danger' ? 'danger' : 'neutral'}>
+        <SimMeter label="横摇角" valueLabel={`${rollDeg.toFixed(2)}°`} value={Math.abs(rollDeg) / 6} tone={rollTone} />
+      </SimPanelSection>
 
-      {/* 横摇信息 */}
-      <div className="rounded bg-platform-canvas-muted p-2">
-        <div className="mb-1 flex items-center justify-between">
-          <span className="text-xs text-platform-fg-muted">横摇角</span>
-          <span className={`font-mono ${Math.abs(rollDeg) > 4 ? 'text-[hsl(var(--platform-brand-danger))]' : Math.abs(rollDeg) > 2 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-[hsl(var(--platform-brand-success))]'}`}>
-            {rollDeg.toFixed(2)}°
-          </span>
-        </div>
-        <div className="h-1.5 rounded-full bg-platform-canvas-muted">
-          <div
-            className={`h-full rounded-full transition-all ${
-              Math.abs(rollDeg) > 4 ? 'bg-[hsl(var(--platform-brand-danger))]' : Math.abs(rollDeg) > 2 ? 'bg-[hsl(var(--platform-brand-evidence))]' : 'bg-[hsl(var(--platform-brand-success))]'
-            }`}
-            style={{ width: `${Math.min(Math.abs(rollDeg) / 6 * 100, 100)}%` }}
-          />
-        </div>
-      </div>
-
-      {/* 舒适度仪表盘 */}
       <ComfortGauge comfort={state.comfort} />
 
-      {/* 横摇警告 */}
-      {Math.abs(rollDeg) > CRUISE_COMFORT_THRESHOLDS.MODERATE_ROLL && (
-        <div className="rounded bg-[hsl(var(--platform-brand-danger)/0.18)] p-2 text-center text-xs text-[hsl(var(--platform-brand-danger))]">
-          ⚠️ 横摇角过大，乘客可能不适
-        </div>
-      )}
-    </div>
+      {Math.abs(rollDeg) > CRUISE_COMFORT_THRESHOLDS.MODERATE_ROLL ? (
+        <SimNotice tone="danger">横摇角过大，乘客可能不适</SimNotice>
+      ) : null}
+    </SimPanelStack>
   );
 }
 

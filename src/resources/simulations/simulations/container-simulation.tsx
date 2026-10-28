@@ -16,7 +16,23 @@ import {
   } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
+import { Compass, Video, Orbit, ArrowDownFromLine, Gauge, Navigation, SlidersHorizontal, Wind } from 'lucide-react';
+import {
+  SimChip,
+  SimField,
+  SimLockedChip,
+  SimNotice,
+  SimPanelSection,
+  SimPanelStack,
+  SimReadout,
+  SimReadoutGrid,
+  SimRunControls,
+  SimSegmented,
+  SimStatusStrip,
+  SimSwitchInput,
+  SimToggleRow,
+  simToneForMagnitude,
+} from '../components/simulation-panels';
 import { MarineCanvas } from '../scene/marine-canvas';
 import { MarineWater } from '../scene/water/marine-water';
 import { SimulationClock } from '@/lib/simulation';
@@ -277,137 +293,103 @@ function ControlPanel({
   onPause: () => void;
   onReset: () => void;
 }) {
+  const loadLabel = state.loadRatio < 0.3 ? '空载' : state.loadRatio < 0.7 ? '半载' : '满载';
   return (
-    <div className="space-y-3 text-sm">
-
-      {/* 仿真控制 */}
-      <div className="mb-4 flex gap-2">
-        {!state.isRunning ? (
-          <button type="button"
-            data-sound-start
-            onClick={onStart}
-            className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
-          >
-            开始仿真
-          </button>
-        ) : (
-          <button type="button"
-            onClick={onPause}
-            className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonSecondary}`}
-          >
-            {state.isPaused ? '继续' : '暂停'}
-          </button>
-        )}
-        <button type="button"
-          onClick={onReset}
-          className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonOutline}`}
-        >
-          重置
-        </button>
-      </div>
-
-      {/* 目标航向 */}
-      <div className="mb-3">
-        <label className={`mb-1 block ${simulationUi.mutedText}`}>目标航向: {state.targetHeading.toFixed(0)}°</label>
-        <input aria-label="集装箱船仿真参数一"
-          type="range"
-          min="-180"
-          max="180"
-          value={state.targetHeading}
-          disabled={!inputsEnabled}
-          onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
-          className={simulationUi.nativeRange}
-        />
-      </div>
-
-      {/* 装载率 */}
-      <div className="mb-3">
-        <label className={`mb-1 block ${simulationUi.mutedText}`}>
-          装载率: {(state.loadRatio * 100).toFixed(0)}%
-          <span className="ml-2 text-platform-fg-secondary">
-            ({state.loadRatio < 0.3 ? '空载' : state.loadRatio < 0.7 ? '半载' : '满载'})
-          </span>
-        </label>
-        <input aria-label="集装箱船仿真参数二"
-          type="range"
-          min="0"
-          max="100"
-          value={state.loadRatio * 100}
-          disabled={!inputsEnabled}
-          onChange={(e) => onLoadRatioChange(Number(e.target.value) / 100)}
-          className={simulationUi.nativeRange}
-        />
-        <div className="mt-1 flex justify-between text-xs text-platform-fg-secondary">
-          <span>K={state.currentK.toFixed(3)}</span>
-          <span>T={state.currentT.toFixed(0)}s</span>
-        </div>
-      </div>
-
-      {/* 风速 */}
-      <div className="mb-3">
-        <label className={`mb-1 block ${simulationUi.mutedText}`}>风速: {state.windSpeed.toFixed(1)} m/s</label>
-        <input aria-label="集装箱船仿真参数三"
-          type="range"
-          min="0"
-          max="25"
-          step="0.5"
-          value={state.windSpeed}
-          disabled={!inputsEnabled}
-          onChange={(e) => onWindSpeedChange(Number(e.target.value))}
-          className={simulationUi.nativeRange}
-        />
-      </div>
-
-      {/* 风向 */}
-      <div className="mb-3">
-        <label className={`mb-1 block ${simulationUi.mutedText}`}>风向: {state.windDirection.toFixed(0)}°</label>
-        <input aria-label="集装箱船仿真参数四"
-          type="range"
-          min="0"
-          max="360"
-          value={state.windDirection}
-          disabled={!inputsEnabled}
-          onChange={(e) => onWindDirectionChange(Number(e.target.value))}
-          className={simulationUi.nativeRange}
-        />
-      </div>
-
-      {/* 控制模式 */}
-      <div className="mb-3">
-        <p className={`mb-1 block ${simulationUi.mutedText}`}>控制模式</p>
-        <div className="flex flex-wrap gap-1">
-          {(['manual', 'p', 'pd', 'pid', 'pid_scheduled'] as ControlMode[]).map((mode) => (
-            <button type="button"
-              key={mode}
+    <SimPanelStack>
+      <SimRunControls
+        running={state.isRunning && !state.isPaused}
+        primaryLabel={!state.isRunning ? '开始仿真' : state.isPaused ? '继续' : '暂停'}
+        onPrimary={state.isRunning ? onPause : onStart}
+        primarySoundStart={!state.isRunning}
+        onReset={onReset}
+      />
+      <SimPanelSection title="航线与装载" icon={Navigation} aside={<SimLockedChip locked={!inputsEnabled} />}>
+        <div className="space-y-3">
+          <SimField label="目标航向" value={`${state.targetHeading.toFixed(0)}°`}>
+            <input aria-label="集装箱船仿真参数一"
+              type="range"
+              min="-180"
+              max="180"
+              value={state.targetHeading}
               disabled={!inputsEnabled}
-              onClick={() => onControlModeChange(mode)}
-              className={`rounded border px-2 py-1 text-xs ${
-                state.controlMode === mode
-                  ? simulationUi.buttonPrimary
-                  : simulationUi.buttonOutline
-              }`}
-            >
-              {mode === 'pid_scheduled' ? '增益调度' : mode.toUpperCase()}
-            </button>
-          ))}
+              onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
+              className={simulationUi.nativeRange}
+            />
+          </SimField>
+          <SimField
+            label="装载率"
+            value={`${(state.loadRatio * 100).toFixed(0)}%（${loadLabel}）`}
+            hint={`当前模型参数 K=${state.currentK.toFixed(3)}，T=${state.currentT.toFixed(0)}s`}
+          >
+            <input aria-label="集装箱船仿真参数二"
+              type="range"
+              min="0"
+              max="100"
+              value={state.loadRatio * 100}
+              disabled={!inputsEnabled}
+              onChange={(e) => onLoadRatioChange(Number(e.target.value) / 100)}
+              className={simulationUi.nativeRange}
+            />
+          </SimField>
         </div>
-      </div>
-
-      {/* 增益调度开关 */}
-      <div className="mb-3 flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="gainScheduling"
-          checked={state.gainSchedulingEnabled}
-          disabled={!inputsEnabled}
-          onChange={onGainSchedulingToggle}
-          className="accent-[hsl(var(--platform-action-primary))]"
-        />
-        <label htmlFor="gainScheduling" className={simulationUi.mutedText}>
-          启用增益调度 (自动调整 PID)
-        </label>
-      </div>
-    </div>
+      </SimPanelSection>
+      <SimPanelSection title="风载荷" icon={Wind}>
+        <div className="space-y-3">
+          <SimField label="风速" value={`${state.windSpeed.toFixed(1)} m/s`}>
+            <input aria-label="集装箱船仿真参数三"
+              type="range"
+              min="0"
+              max="25"
+              step="0.5"
+              value={state.windSpeed}
+              disabled={!inputsEnabled}
+              onChange={(e) => onWindSpeedChange(Number(e.target.value))}
+              className={simulationUi.nativeRange}
+            />
+          </SimField>
+          <SimField label="风向" value={`${state.windDirection.toFixed(0)}°`}>
+            <input aria-label="集装箱船仿真参数四"
+              type="range"
+              min="0"
+              max="360"
+              value={state.windDirection}
+              disabled={!inputsEnabled}
+              onChange={(e) => onWindDirectionChange(Number(e.target.value))}
+              className={simulationUi.nativeRange}
+            />
+          </SimField>
+        </div>
+      </SimPanelSection>
+      <SimPanelSection title="控制器" icon={SlidersHorizontal}>
+        <div className="space-y-3">
+          <SimField label="控制模式">
+            <SimSegmented
+              ariaLabel="控制模式"
+              value={state.controlMode}
+              disabled={!inputsEnabled}
+              onChange={onControlModeChange}
+              options={(['manual', 'p', 'pd', 'pid', 'pid_scheduled'] as ControlMode[]).map((mode) => ({
+                value: mode,
+                label: mode === 'pid_scheduled' ? '增益调度' : mode.toUpperCase(),
+              }))}
+            />
+          </SimField>
+          <SimToggleRow
+            label="启用增益调度"
+            description="随装载与航速自动调整 PID"
+            htmlFor="gainScheduling"
+            control={(
+              <SimSwitchInput
+                id="gainScheduling"
+                checked={state.gainSchedulingEnabled}
+                disabled={!inputsEnabled}
+                onChange={onGainSchedulingToggle}
+              />
+            )}
+          />
+        </div>
+      </SimPanelSection>
+    </SimPanelStack>
   );
 }
 
@@ -417,68 +399,46 @@ function HUD({ state }: { state: ContainerSimulationState }) {
   const headingError = state.targetHeading - state.heading;
   const normalizedError = headingError > 180 ? headingError - 360 : headingError < -180 ? headingError + 360 : headingError;
 
+  const rollDeg = toDegrees(state.rollAngle);
+  const windTone = state.windSpeed > 20 ? 'danger' : state.windSpeed > 15 ? 'warning' : 'success';
   return (
-    <div className="space-y-3 p-1 text-sm">
-
-      {/* 时间 */}
-      <div className="mb-2 flex justify-between border-b border-platform-border pb-2">
-        <span className="text-platform-fg-secondary">仿真时间</span>
-        <span className="font-mono text-platform-fg-primary">{state.time.toFixed(1)}s</span>
-      </div>
-
-      {/* 航向信息 */}
-      <div className="mb-3 grid grid-cols-2 gap-2">
-        <div>
-          <div className="text-xs text-platform-fg-secondary">当前航向</div>
-          <div className="font-mono text-lg text-platform-fg-primary">{state.heading.toFixed(1)}°</div>
-        </div>
-        <div>
-          <div className="text-xs text-platform-fg-secondary">航向误差</div>
-          <div className={`font-mono text-lg ${Math.abs(normalizedError) > 5 ? 'text-[hsl(var(--platform-brand-danger))]' : 'text-[hsl(var(--platform-brand-success))]'}`}>
-            {normalizedError.toFixed(1)}°
-          </div>
-        </div>
-        <div>
-          <div className="text-xs text-platform-fg-secondary">转艏角速度</div>
-          <div className="font-mono text-platform-fg-primary">{state.yawRate.toFixed(2)}°/s</div>
-        </div>
-        <div>
-          <div className="text-xs text-platform-fg-secondary">舵角</div>
-          <div className="font-mono text-platform-fg-primary">{state.rudder.toFixed(1)}°</div>
-        </div>
-      </div>
-
-      {/* 横摇警告 */}
-      {Math.abs(toDegrees(state.rollAngle)) > 8 && (
-        <div className="mb-3 rounded bg-[hsl(var(--platform-brand-danger)/0.18)] p-2 text-center text-[hsl(var(--platform-brand-danger))]">
-          ⚠️ 横摇角过大: {toDegrees(state.rollAngle).toFixed(1)}° - 落箱风险!
-        </div>
-      )}
-
-      {/* 系统参数 */}
-      <div className="mb-3 rounded border border-platform-border bg-platform-surface-overlay/86 p-2">
-        <div className="mb-1 text-xs font-semibold text-platform-fg-secondary">当前系统参数</div>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div>K = {state.currentK.toFixed(3)}</div>
-          <div>T = {state.currentT.toFixed(0)}s</div>
-          <div>装载 = {(state.loadRatio * 100).toFixed(0)}%</div>
-          <div>航速 = {state.speed.toFixed(1)} m/s</div>
-        </div>
-      </div>
-
-      {/* 风载荷 */}
-      <div className="rounded border border-platform-border bg-platform-surface-overlay/86 p-2">
-        <div className="mb-1 text-xs font-semibold text-platform-fg-secondary">风载荷</div>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div>风速 = {state.windSpeed.toFixed(1)} m/s</div>
-          <div>风向 = {state.windDirection.toFixed(0)}°</div>
-          <div>横摇 = {toDegrees(state.rollAngle).toFixed(1)}°</div>
-          <div className={state.windSpeed > 15 ? 'text-[hsl(var(--platform-brand-evidence))]' : ''}>
-            {state.windSpeed > 20 ? '⚠️ 风速超限' : state.windSpeed > 15 ? '注意大风' : '正常'}
-          </div>
-        </div>
-      </div>
-    </div>
+    <SimPanelStack>
+      <SimStatusStrip
+        state={!state.isRunning ? 'idle' : state.isPaused ? 'paused' : 'running'}
+        time={`${state.time.toFixed(1)} s`}
+      />
+      <SimPanelSection title="航向状态" icon={Compass}>
+        <SimReadoutGrid>
+          <SimReadout label="当前航向" value={state.heading.toFixed(1)} unit="°" size="lg" />
+          <SimReadout label="航向误差" value={normalizedError.toFixed(1)} unit="°" size="lg" tone={simToneForMagnitude(normalizedError, 5, 5)} />
+          <SimReadout label="转艏角速度" value={state.yawRate.toFixed(2)} unit="°/s" />
+          <SimReadout label="舵角" value={state.rudder.toFixed(1)} unit="°" />
+        </SimReadoutGrid>
+      </SimPanelSection>
+      {Math.abs(rollDeg) > 8 ? (
+        <SimNotice tone="danger" title={`横摇角过大：${rollDeg.toFixed(1)}°`}>有落箱风险，请减小舵角或降低航速。</SimNotice>
+      ) : null}
+      <SimPanelSection title="当前系统参数" icon={Gauge}>
+        <SimReadoutGrid>
+          <SimReadout label="增益 K" value={state.currentK.toFixed(3)} />
+          <SimReadout label="时间常数 T" value={state.currentT.toFixed(0)} unit="s" />
+          <SimReadout label="装载" value={(state.loadRatio * 100).toFixed(0)} unit="%" />
+          <SimReadout label="航速" value={state.speed.toFixed(1)} unit="m/s" />
+        </SimReadoutGrid>
+      </SimPanelSection>
+      <SimPanelSection
+        title="风载荷"
+        icon={Wind}
+        tone={windTone === 'success' ? 'neutral' : windTone}
+        aside={<SimChip tone={windTone}>{state.windSpeed > 20 ? '风速超限' : state.windSpeed > 15 ? '注意大风' : '正常'}</SimChip>}
+      >
+        <SimReadoutGrid columns={3}>
+          <SimReadout label="风速" value={state.windSpeed.toFixed(1)} unit="m/s" />
+          <SimReadout label="风向" value={state.windDirection.toFixed(0)} unit="°" />
+          <SimReadout label="横摇" value={rollDeg.toFixed(1)} unit="°" tone={simToneForMagnitude(rollDeg, 5, 8, 'neutral')} />
+        </SimReadoutGrid>
+      </SimPanelSection>
+    </SimPanelStack>
   );
 }
 

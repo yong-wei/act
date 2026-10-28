@@ -62,29 +62,22 @@ import { dredgerTianjingSceneVisual } from '../profiles/dredger-tianjing-scene';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { WaterHuggingLine } from '../scene/lines';
 import { advanceStationKeepAttainment } from '../lib/heading-attainment';
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  Settings,
-  AlertTriangle,
-  Anchor,
-  Navigation,
-  Crosshair,
-  Wind,
-  Waves,
-  Compass,
-  Video,
-  Orbit,
-  ArrowDownFromLine,
-} from 'lucide-react';
+import { Anchor, ArrowDownFromLine, Compass, Crosshair, Navigation, Orbit, Settings, Video, Waves, type LucideIcon } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  SimField,
+  SimLockedChip,
+  SimNotice,
+  SimPanelSection,
+  SimPanelStack,
+  SimReadout,
+  SimReadoutGrid,
+  SimRunControls,
+  SimSegmented,
+  SimStatusStrip,
+  SimToggleRow,
+} from '../components/simulation-panels';
 
 import { getDredgerDefaultConfig } from '../profiles/dredger-tianjing';
 import {
@@ -222,74 +215,40 @@ function HUD({
   isRunning: boolean;
 }) {
   return (
-    <div className="space-y-2">
-      {/* 状态指示 */}
-      <div className="flex items-center gap-2">
-        <Badge variant={isRunning ? 'default' : 'secondary'}>
-          {isRunning ? '运行中' : '已暂停'}
-        </Badge>
-        <Badge variant="outline">
-          时间: {metrics.time.toFixed(1)}s
-        </Badge>
-      </div>
+    <SimPanelStack>
+      <SimStatusStrip state={isRunning ? 'running' : metrics.time > 0 ? 'paused' : 'idle'} time={`${metrics.time.toFixed(1)}s`} />
 
-      {/* 定位精度 */}
-      <Card className="sim-hud-tile w-full bg-transparent shadow-none">
-        <CardHeader className="py-2">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Crosshair className="h-4 w-4" />
-            定位状态
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1 py-2 text-xs">
-          <div className="flex justify-between">
-            <span>位置误差:</span>
-            <span className={metrics.positionError > 0.1 ? 'text-[hsl(var(--platform-brand-danger))]' : 'text-[hsl(var(--platform-brand-success))]'}>
-              {metrics.positionError.toFixed(3)} m
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>航向误差:</span>
-            <span className={metrics.headingError > 1 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-[hsl(var(--platform-brand-success))]'}>
-              {metrics.headingError.toFixed(2)}°
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>航速:</span>
-            <span>{metrics.speed.toFixed(2)} m/s</span>
-          </div>
-          <div className="flex justify-between">
-            <span>舵角:</span>
-            <span>{metrics.rudderAngle.toFixed(1)}°</span>
-          </div>
-          <div className="flex justify-between">
-            <span>总功率:</span>
-            <span className={metrics.totalPowerKW > 14000 ? 'text-[hsl(var(--platform-brand-evidence))]' : ''}>
-              {(metrics.totalPowerKW / 1000).toFixed(1)} MW
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+      <SimPanelSection title="定位状态" icon={Crosshair} tone={positionAlarm ? 'warning' : 'neutral'}>
+        <SimReadoutGrid>
+          <SimReadout
+            label="位置误差"
+            value={metrics.positionError.toFixed(3)}
+            unit="m"
+            size="lg"
+            tone={metrics.positionError > POSITION_ALARM_THRESHOLD_M ? 'danger' : 'success'}
+          />
+          <SimReadout label="航向误差" value={metrics.headingError.toFixed(2)} unit="°" size="lg" tone={metrics.headingError > 1 ? 'warning' : 'success'} />
+          <SimReadout label="航速" value={metrics.speed.toFixed(2)} unit="m/s" />
+          <SimReadout label="舵角" value={metrics.rudderAngle.toFixed(1)} unit="°" />
+          <SimReadout
+            label="总功率"
+            value={(metrics.totalPowerKW / 1000).toFixed(1)}
+            unit="MW"
+            span
+            tone={metrics.totalPowerKW > 14000 ? 'warning' : 'neutral'}
+          />
+        </SimReadoutGrid>
+      </SimPanelSection>
 
       {/* 定位精度告警（与伦理红线解耦，issue 1944） */}
-      {positionAlarm && (
-        <Card className="sim-hud-tile w-full border-[hsl(var(--platform-brand-evidence)/0.35)] bg-[hsl(var(--platform-brand-evidence)/0.12)] shadow-none">
-          <CardHeader className="py-2">
-            <CardTitle className="flex items-center gap-2 text-sm text-[hsl(var(--platform-brand-evidence))]">
-              <AlertTriangle className="h-4 w-4" />
-              定位精度告警
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="py-2">
-            <div className="text-xs text-[hsl(var(--platform-brand-evidence))]">
-              {positionAlarm}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+      {positionAlarm ? (
+        <SimNotice tone="warning" title="定位精度告警">{positionAlarm}</SimNotice>
+      ) : null}
+    </SimPanelStack>
   );
 }
+
+const DREDGER_MODE_ICON: Partial<Record<ControlMode, LucideIcon>> = { dp: Anchor, pid: Navigation };
 
 /** 控制面板 */
 function ControlPanel({
@@ -310,173 +269,124 @@ function ControlPanel({
   inputsEnabled?: boolean;
 }) {
   return (
-    <Card className="sim-hud-tile bg-transparent shadow-none">
-      <CardHeader className="py-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Settings className="h-4 w-4" />
-          控制面板
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* 播放控制 */}
-        <div className="flex gap-2">
-          <Button data-sound-start
-            variant={isRunning ? 'secondary' : 'default'}
-            size="sm"
-            onClick={isRunning ? onPause : onStart}
-            className={`flex-1 ${isRunning ? simulationUi.buttonSecondary : simulationUi.buttonPrimary}`}
-          >
-            {isRunning ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-            {isRunning ? '暂停' : '开始'}
-          </Button>
-          <Button variant="outline" size="sm" onClick={onReset} className={simulationUi.buttonOutline}>
-            <RotateCcw className="h-4 w-4" />
-          </Button>
+    <SimPanelStack>
+      <SimRunControls
+        running={isRunning}
+        primaryLabel={isRunning ? '暂停' : '开始'}
+        onPrimary={isRunning ? onPause : onStart}
+        onReset={onReset}
+      />
+
+      <SimPanelSection title="控制模式" icon={Settings} aside={<SimLockedChip locked={!inputsEnabled} />}>
+        <SimSegmented
+          ariaLabel="控制模式"
+          value={config.controlMode}
+          disabled={!inputsEnabled}
+          onChange={(mode) => onConfigChange({ controlMode: mode })}
+          options={(['dp', 'pid', 'manual'] as ControlMode[]).map((mode) => {
+            const Icon = DREDGER_MODE_ICON[mode];
+            return {
+              value: mode,
+              label: (
+                <span className="inline-flex items-center justify-center gap-1">
+                  {Icon ? <Icon className="h-3 w-3" aria-hidden="true" /> : null}
+                  {mode.toUpperCase()}
+                </span>
+              ),
+            };
+          })}
+        />
+      </SimPanelSection>
+
+      <SimPanelSection title="定位目标" icon={Crosshair}>
+        <div className="space-y-3">
+          <SimField label="目标 X" value={`${config.targetPosition.x} m`}>
+            <Slider
+              aria-label="目标 X"
+              disabled={!inputsEnabled}
+              className={simulationUi.slider}
+              value={[config.targetPosition.x]}
+              min={-500}
+              max={500}
+              step={10}
+              onValueChange={([v]) =>
+                onConfigChange({ targetPosition: { ...config.targetPosition, x: v } })
+              }
+            />
+          </SimField>
+          <SimField label="目标 Z" value={`${config.targetPosition.z} m`}>
+            <Slider
+              aria-label="目标 Z"
+              disabled={!inputsEnabled}
+              className={simulationUi.slider}
+              value={[config.targetPosition.z]}
+              min={-500}
+              max={500}
+              step={10}
+              onValueChange={([v]) =>
+                onConfigChange({ targetPosition: { ...config.targetPosition, z: v } })
+              }
+            />
+          </SimField>
+          <SimField label="目标航向" value={`${config.targetHeading}°`}>
+            <Slider
+              aria-label="目标航向"
+              disabled={!inputsEnabled}
+              className={simulationUi.slider}
+              value={[config.targetHeading]}
+              min={-180}
+              max={180}
+              step={5}
+              onValueChange={([v]) => onConfigChange({ targetHeading: v })}
+            />
+          </SimField>
         </div>
+      </SimPanelSection>
 
-        <Tabs defaultValue="target">
-          <TabsList className={`grid w-full grid-cols-3 ${simulationUi.tabsList}`}>
-            <TabsTrigger value="target" className={simulationUi.tabsTrigger}>目标</TabsTrigger>
-            <TabsTrigger value="disturbance" className={simulationUi.tabsTrigger}>扰动</TabsTrigger>
-            <TabsTrigger value="control" className={simulationUi.tabsTrigger}>控制</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="target" className="space-y-3">
-            {/* 目标位置 */}
-            <div className="space-y-2">
-              <Label className="text-xs">目标 X (m)</Label>
-              <Slider
+      <SimPanelSection title="作业扰动" icon={Waves}>
+        <div className="space-y-3">
+          <SimToggleRow
+            label="挖掘扰动"
+            description="绞刀切削产生的周期性横向力"
+            control={(
+              <button
+                type="button"
                 disabled={!inputsEnabled}
-                className={simulationUi.slider}
-                value={[config.targetPosition.x]}
-                min={-500}
-                max={500}
-                step={10}
-                onValueChange={([v]) =>
-                  onConfigChange({ targetPosition: { ...config.targetPosition, x: v } })
-                }
-              />
-              <div className="text-right text-xs text-platform-fg-muted">
-                {config.targetPosition.x} m
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs">目标 Z (m)</Label>
-              <Slider
-                disabled={!inputsEnabled}
-                className={simulationUi.slider}
-                value={[config.targetPosition.z]}
-                min={-500}
-                max={500}
-                step={10}
-                onValueChange={([v]) =>
-                  onConfigChange({ targetPosition: { ...config.targetPosition, z: v } })
-                }
-              />
-              <div className="text-right text-xs text-platform-fg-muted">
-                {config.targetPosition.z} m
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs">目标航向 (°)</Label>
-              <Slider
-                disabled={!inputsEnabled}
-                className={simulationUi.slider}
-                value={[config.targetHeading]}
-                min={-180}
-                max={180}
-                step={5}
-                onValueChange={([v]) => onConfigChange({ targetHeading: v })}
-              />
-              <div className="text-right text-xs text-platform-fg-muted">
-                {config.targetHeading}°
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="disturbance" className="space-y-3">
-            {/* 挖掘扰动 */}
-            <div className="flex items-center justify-between">
-              <Label className="text-xs">挖掘扰动</Label>
-              <Button
-                variant={config.dredgingEnabled ? 'default' : 'outline'}
-                size="sm"
-                disabled={!inputsEnabled}
-                className={config.dredgingEnabled ? simulationUi.buttonPrimary : simulationUi.buttonOutline}
+                className="sim-chip disabled:cursor-not-allowed"
+                data-sim-tone={config.dredgingEnabled ? 'success' : 'neutral'}
                 onClick={() => onConfigChange({ dredgingEnabled: !config.dredgingEnabled })}
               >
                 {config.dredgingEnabled ? '已启用' : '已禁用'}
-              </Button>
-            </div>
-
-            {/* 海流 */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1 text-xs">
-                <Waves className="h-3 w-3" />
-                海流速度 (m/s)
-              </Label>
-              <Slider
-                disabled={!inputsEnabled}
-                className={simulationUi.slider}
-                value={[config.currentSpeed]}
-                min={0}
-                max={2}
-                step={0.1}
-                onValueChange={([v]) => onConfigChange({ currentSpeed: v })}
-              />
-              <div className="text-right text-xs text-platform-fg-muted">
-                {config.currentSpeed.toFixed(1)} m/s
-              </div>
-            </div>
-
-            {/* 风 */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1 text-xs">
-                <Wind className="h-3 w-3" />
-                风速 (m/s)
-              </Label>
-              <Slider
-                disabled={!inputsEnabled}
-                className={simulationUi.slider}
-                value={[config.windSpeed]}
-                min={0}
-                max={20}
-                step={1}
-                onValueChange={([v]) => onConfigChange({ windSpeed: v })}
-              />
-              <div className="text-right text-xs text-platform-fg-muted">
-                {config.windSpeed} m/s
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="control" className="space-y-3">
-            {/* 控制模式 */}
-            <div className="space-y-2">
-              <Label className="text-xs">控制模式</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {(['dp', 'pid', 'manual'] as ControlMode[]).map((mode) => (
-                  <Button
-                    key={mode}
-                    variant={config.controlMode === mode ? 'default' : 'outline'}
-                    size="sm"
-                    disabled={!inputsEnabled}
-                    className={config.controlMode === mode ? simulationUi.buttonPrimary : simulationUi.buttonOutline}
-                    onClick={() => onConfigChange({ controlMode: mode })}
-                  >
-                    {mode === 'dp' && <Anchor className="mr-1 h-3 w-3" />}
-                    {mode === 'pid' && <Navigation className="mr-1 h-3 w-3" />}
-                    {mode.toUpperCase()}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+              </button>
+            )}
+          />
+          <SimField label="海流速度" value={`${config.currentSpeed.toFixed(1)} m/s`}>
+            <Slider
+              aria-label="海流速度"
+              disabled={!inputsEnabled}
+              className={simulationUi.slider}
+              value={[config.currentSpeed]}
+              min={0}
+              max={2}
+              step={0.1}
+              onValueChange={([v]) => onConfigChange({ currentSpeed: v })}
+            />
+          </SimField>
+          <SimField label="风速" value={`${config.windSpeed} m/s`}>
+            <Slider
+              aria-label="风速"
+              disabled={!inputsEnabled}
+              className={simulationUi.slider}
+              value={[config.windSpeed]}
+              min={0}
+              max={20}
+              step={1}
+              onValueChange={([v]) => onConfigChange({ windSpeed: v })}
+            />
+          </SimField>
+        </div>
+      </SimPanelSection>
+    </SimPanelStack>
   );
 }
 

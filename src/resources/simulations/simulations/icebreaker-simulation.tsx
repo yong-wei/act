@@ -58,30 +58,27 @@ import { ScenePostEffects } from '../scene/post';
 import { icebreakerXuelongSceneVisual } from '../profiles/icebreaker-xuelong-scene';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { WaterHuggingLine } from '../scene/lines';
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  Settings,
-  AlertTriangle,
-  Navigation,
-  Snowflake,
-  Gauge,
-  Activity,
-  ThermometerSnowflake,
-  Compass,
-  Video,
-  Orbit,
-  ArrowDownFromLine,
-} from 'lucide-react';
+import { Activity, ArrowDownFromLine, Compass, Gauge, Navigation, Orbit, Settings, Snowflake, ThermometerSnowflake, Video } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Progress } from '@/components/ui/progress';
+import {
+  SimChip,
+  SimField,
+  SimLockedChip,
+  SimMeter,
+  SimNotice,
+  SimPanelSection,
+  SimPanelStack,
+  SimReadout,
+  SimReadoutGrid,
+  SimRunControls,
+  SimSegmented,
+  SimStatusStrip,
+  SimSwitchInput,
+  SimToggleRow,
+  simToneForMagnitude,
+  type SimTone,
+} from '../components/simulation-panels';
 
 import {
   icebreakerXuelongProfile,
@@ -429,6 +426,9 @@ function Scene({
 // ============ UI 组件 ============
 
 /** 冰区状态面板 */
+const ICE_SAFETY_TONE = { safe: 'success', caution: 'warning', danger: 'danger' } as const satisfies Record<string, SimTone>;
+const ICE_SAFETY_LABEL = { safe: '安全', caution: '注意', danger: '危险' } as const;
+
 function IceStatusPanel({
   iceState,
   iceThickness,
@@ -437,67 +437,36 @@ function IceStatusPanel({
   iceThickness: number;
 }) {
   const summary = getIceBreakingSummary(iceState);
-  const safetyLevel = getIceZoneSafetyLevel(iceThickness);
-
-  const safetyColors: Record<string, string> = {
-    safe: 'bg-[hsl(var(--platform-brand-success))]',
-    caution: 'bg-[hsl(var(--platform-brand-evidence))]',
-    danger: 'bg-[hsl(var(--platform-brand-danger))]',
-  };
+  const safetyLevel = getIceZoneSafetyLevel(iceThickness) as keyof typeof ICE_SAFETY_TONE;
+  const safetyTone = ICE_SAFETY_TONE[safetyLevel] ?? 'neutral';
 
   return (
-    <Card className="w-full border border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Snowflake className="w-4 h-4" />
-          冰区状态
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-platform-fg-muted">冰厚</span>
-          <div className="flex items-center gap-2">
-            <span className="font-mono">{iceThickness.toFixed(2)} m</span>
-            <div className={`w-3 h-3 rounded-full ${safetyColors[safetyLevel]}`} />
-          </div>
+    <SimPanelSection
+      title="冰区状态"
+      icon={Snowflake}
+      tone={safetyTone === 'danger' ? 'danger' : 'neutral'}
+      aside={<SimChip tone={safetyTone}>{ICE_SAFETY_LABEL[safetyLevel] ?? '未知'}</SimChip>}
+    >
+      <SimReadoutGrid>
+        <SimReadout label="冰厚" value={iceThickness.toFixed(2)} unit="m" tone={safetyTone} />
+        <SimReadout
+          label="破冰相位"
+          value={iceState.inContact ? summary.phase : '未接触'}
+          tone={iceState.inContact ? (iceState.stickPhase ? 'danger' : 'accent') : 'neutral'}
+        />
+      </SimReadoutGrid>
+
+      {iceState.inContact ? (
+        <div className="mt-2.5 space-y-2.5">
+          <SimMeter label="相位进度" valueLabel={`${(summary.phaseProgress * 100).toFixed(0)}%`} value={summary.phaseProgress} />
+          <SimReadoutGrid columns={3}>
+            <SimReadout label="K 摄动" value={summary.kPerturbation} />
+            <SimReadout label="T 摄动" value={summary.tPerturbation} />
+            <SimReadout label="冰阻力" value={summary.resistanceKN.toFixed(0)} unit="kN" />
+          </SimReadoutGrid>
         </div>
-
-        {iceState.inContact && (
-          <>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-platform-fg-muted">相位</span>
-              <Badge variant={iceState.stickPhase ? 'destructive' : 'default'}>
-                {summary.phase}
-              </Badge>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-platform-fg-muted">相位进度</span>
-                <span>{(summary.phaseProgress * 100).toFixed(0)}%</span>
-              </div>
-              <Progress value={summary.phaseProgress * 100} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <span className="text-platform-fg-muted">K 摄动</span>
-                <div className="font-mono text-lg">{summary.kPerturbation}</div>
-              </div>
-              <div>
-                <span className="text-platform-fg-muted">T 摄动</span>
-                <div className="font-mono text-lg">{summary.tPerturbation}</div>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-platform-fg-muted">冰阻力</span>
-              <span className="font-mono">{summary.resistanceKN.toFixed(0)} kN</span>
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+      ) : null}
+    </SimPanelSection>
   );
 }
 
@@ -514,64 +483,40 @@ function AzipodStatusPanel({
   thrust2: number;
 }) {
   const maxThrust = XUELONG_AZIPOD_PARAMS.MAX_SINGLE_THRUST;
+  const pods = [
+    { key: 'P1', side: '左舷', azimuth: azimuth1, thrust: thrust1 },
+    { key: 'P2', side: '右舷', azimuth: azimuth2, thrust: thrust2 },
+  ];
 
   return (
-    <Card className="w-full border border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Gauge className="w-4 h-4" />
-          Azipod 推进器
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Azipod 1 (左舷) */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">左舷 (P1)</span>
-            <span className="font-mono text-sm">{azimuth1.toFixed(1)}°</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Progress value={(thrust1 / maxThrust) * 100} className="flex-1" />
-            <span className="text-xs font-mono w-16 text-right">
-              {thrust1.toFixed(0)} kN
-            </span>
-          </div>
-        </div>
-
-        {/* Azipod 2 (右舷) */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">右舷 (P2)</span>
-            <span className="font-mono text-sm">{azimuth2.toFixed(1)}°</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Progress value={(thrust2 / maxThrust) * 100} className="flex-1" />
-            <span className="text-xs font-mono w-16 text-right">
-              {thrust2.toFixed(0)} kN
-            </span>
-          </div>
-        </div>
-
-        {/* 可视化 */}
-        <div className="relative h-24 rounded-lg border border-platform-border bg-platform-canvas-muted">
-          <div className="absolute inset-0 flex items-center justify-center">
-            {/* 船体简化表示 */}
-            <div className="relative h-32 w-16 rounded-t-full bg-platform-canvas-muted">
-              {/* Azipod 1 */}
-              <div
-                className="absolute -left-4 bottom-4 w-8 h-2 bg-[hsl(var(--platform-brand-success))] origin-right"
-                style={{ transform: `rotate(${-azimuth1}deg)` }}
-              />
-              {/* Azipod 2 */}
-              <div
-                className="absolute -right-4 bottom-4 w-8 h-2 bg-[hsl(var(--platform-brand-success))] origin-left"
-                style={{ transform: `rotate(${azimuth2}deg)` }}
-              />
+    <SimPanelSection title="Azipod 推进器" icon={Gauge}>
+      <div className="grid grid-cols-[minmax(0,1fr)_4.5rem] gap-2.5">
+        <div className="space-y-2.5">
+          {pods.map((pod) => (
+            <div key={pod.key} className="space-y-1">
+              <div className="flex items-baseline justify-between text-[11px]">
+                <span className="text-platform-fg-secondary">{pod.side}（{pod.key}）</span>
+                <span className="font-mono font-semibold tabular-nums text-platform-fg-primary">{pod.azimuth.toFixed(1)}°</span>
+              </div>
+              <SimMeter value={pod.thrust / maxThrust} valueLabel={`${pod.thrust.toFixed(0)} kN`} label="推力" />
             </div>
+          ))}
+        </div>
+        {/* 俯视示意 */}
+        <div className="sim-panel-readout relative flex items-end justify-center overflow-hidden p-0" aria-hidden="true">
+          <div className="relative mb-2 h-16 w-6 rounded-t-full border border-platform-border bg-platform-fg-primary/10">
+            <div
+              className="absolute -left-3 bottom-2 h-1.5 w-4 origin-right rounded-full bg-platform-action-primary"
+              style={{ transform: `rotate(${-azimuth1}deg)` }}
+            />
+            <div
+              className="absolute -right-3 bottom-2 h-1.5 w-4 origin-left rounded-full bg-platform-action-primary"
+              style={{ transform: `rotate(${azimuth2}deg)` }}
+            />
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </SimPanelSection>
   );
 }
 
@@ -594,153 +539,88 @@ function ControlPanel({
   inputsEnabled?: boolean;
 }) {
   return (
-    <div className="space-y-4">
-      {/* 运行控制 */}
-      <div className="flex gap-2">
-        <Button data-sound-start
-          variant={isRunning ? 'destructive' : 'default'}
-          onClick={onToggleRun}
-          className={`flex-1 ${isRunning ? simulationUi.buttonSecondary : simulationUi.buttonPrimary}`}
-        >
-          {isRunning ? (
-            <>
-              <Pause className="w-4 h-4 mr-2" /> 暂停
-            </>
-          ) : (
-            <>
-              <Play className="w-4 h-4 mr-2" /> 运行
-            </>
-          )}
-        </Button>
-        <Button variant="outline" onClick={onReset} className={simulationUi.buttonOutline}>
-          <RotateCcw className="w-4 h-4" />
-        </Button>
-      </div>
+    <SimPanelStack>
+      <SimRunControls running={isRunning} primaryLabel={isRunning ? '暂停' : '运行'} onPrimary={onToggleRun} onReset={onReset} />
 
-      {/* 控制模式 */}
-      <div className="space-y-2">
-        <Label>控制模式</Label>
-        <div className="grid grid-cols-4 gap-1">
-          {['manual', 'p', 'pd', 'pid'].map((mode) => (
-            <Button
-              key={mode}
-              variant={config.controlMode === mode ? 'default' : 'outline'}
-              size="sm"
-              className={config.controlMode === mode ? simulationUi.buttonPrimary : simulationUi.buttonOutline}
+      <SimPanelSection title="航向控制" icon={Settings} aside={<SimLockedChip locked={!inputsEnabled} />}>
+        <div className="space-y-3">
+          <SimField label="控制模式">
+            <SimSegmented
+              ariaLabel="控制模式"
+              value={config.controlMode}
               disabled={!inputsEnabled}
-              onClick={() =>
-                onConfigChange({ controlMode: mode as ControlMode })
-              }
-            >
-              {mode.toUpperCase()}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* 目标航向 */}
-      <div className="space-y-2">
-        <div className="flex justify-between">
-          <Label>目标航向</Label>
-          <span className="text-sm font-mono">{config.targetHeading}°</span>
-        </div>
-        <Slider
-          disabled={!inputsEnabled}
-          className={simulationUi.slider}
-          value={[config.targetHeading]}
-          onValueChange={([v]) => onConfigChange({ targetHeading: v })}
-          min={0}
-          max={360}
-          step={1}
-        />
-      </div>
-
-      {/* 航速 */}
-      <div className="space-y-2">
-        <div className="flex justify-between">
-          <Label>航速</Label>
-          <span className="text-sm font-mono">{config.speed.toFixed(1)} m/s</span>
-        </div>
-        <Slider
-          disabled={!inputsEnabled}
-          className={simulationUi.slider}
-          value={[config.speed]}
-          onValueChange={([v]) => onConfigChange({ speed: v })}
-          min={0}
-          max={XUELONG_ICEBREAKER_PARAMS.MAX_SPEED}
-          step={0.1}
-        />
-      </div>
-
-      {/* 冰区模式 */}
-      <div className="space-y-3 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-3">
-        <div className="flex items-center justify-between">
-          <Label className="flex items-center gap-2">
-            <ThermometerSnowflake className="w-4 h-4" />
-            冰区模式
-          </Label>
-          <Switch
-            checked={config.iceModeEnabled}
-            disabled={!inputsEnabled}
-            onCheckedChange={(checked) =>
-              onConfigChange({ iceModeEnabled: checked })
-            }
-          />
-        </div>
-
-        {config.iceModeEnabled && (
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label>冰厚</Label>
-              <span className="text-sm font-mono">
-                {config.iceThickness.toFixed(2)} m
-              </span>
-            </div>
+              onChange={(mode) => onConfigChange({ controlMode: mode })}
+              options={(['manual', 'p', 'pd', 'pid'] as ControlMode[]).map((mode) => ({ value: mode, label: mode.toUpperCase() }))}
+            />
+          </SimField>
+          <SimField label="目标航向" value={`${config.targetHeading}°`}>
             <Slider
+              aria-label="目标航向"
               disabled={!inputsEnabled}
               className={simulationUi.slider}
-              value={[config.iceThickness]}
-              onValueChange={([v]) => onConfigChange({ iceThickness: v })}
+              value={[config.targetHeading]}
+              onValueChange={([v]) => onConfigChange({ targetHeading: v })}
               min={0}
-              max={XUELONG_ICE_PARAMS.MAX_ICE_THICKNESS * 1.2}
-              step={0.05}
+              max={360}
+              step={1}
             />
-          </div>
-        )}
-      </div>
+          </SimField>
+          <SimField label="航速" value={`${config.speed.toFixed(1)} m/s`}>
+            <Slider
+              aria-label="航速"
+              disabled={!inputsEnabled}
+              className={simulationUi.slider}
+              value={[config.speed]}
+              onValueChange={([v]) => onConfigChange({ speed: v })}
+              min={0}
+              max={XUELONG_ICEBREAKER_PARAMS.MAX_SPEED}
+              step={0.1}
+            />
+          </SimField>
+        </div>
+      </SimPanelSection>
 
-      {/* 实时指标 */}
-      <Card className="border border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Activity className="w-4 h-4" />
-            实时状态
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <span className="text-muted-foreground">航向误差</span>
-            <div className="font-mono text-lg">
-              {metrics.headingError.toFixed(1)}°
-            </div>
-          </div>
-          <div>
-            <span className="text-muted-foreground">航速</span>
-            <div className="font-mono text-lg">{metrics.speed.toFixed(1)} m/s</div>
-          </div>
-          <div>
-            <span className="text-muted-foreground">仿真时间</span>
-            <div className="font-mono text-lg">{metrics.time.toFixed(1)} s</div>
-          </div>
-          <div>
-            <span className="text-muted-foreground">冰阻力</span>
-            <div className="font-mono text-lg">
-              {metrics.iceResistanceKN.toFixed(0)} kN
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+      <SimPanelSection title="冰区环境" icon={ThermometerSnowflake}>
+        <div className="space-y-3">
+          <SimToggleRow
+            label="冰区模式"
+            description="开启后按冰厚加入冰阻与冰载摄动"
+            htmlFor="icebreaker-ice-mode"
+            control={(
+              <SimSwitchInput
+                id="icebreaker-ice-mode"
+                checked={config.iceModeEnabled}
+                disabled={!inputsEnabled}
+                onChange={(event) => onConfigChange({ iceModeEnabled: event.target.checked })}
+              />
+            )}
+          />
+          {config.iceModeEnabled ? (
+            <SimField label="冰厚" value={`${config.iceThickness.toFixed(2)} m`}>
+              <Slider
+                aria-label="冰厚"
+                disabled={!inputsEnabled}
+                className={simulationUi.slider}
+                value={[config.iceThickness]}
+                onValueChange={([v]) => onConfigChange({ iceThickness: v })}
+                min={0}
+                max={XUELONG_ICE_PARAMS.MAX_ICE_THICKNESS * 1.2}
+                step={0.05}
+              />
+            </SimField>
+          ) : null}
+        </div>
+      </SimPanelSection>
+
+      <SimPanelSection title="实时状态" icon={Activity}>
+        <SimReadoutGrid>
+          <SimReadout label="航向误差" value={metrics.headingError.toFixed(1)} unit="°" tone={simToneForMagnitude(metrics.headingError, 5)} />
+          <SimReadout label="航速" value={metrics.speed.toFixed(1)} unit="m/s" />
+          <SimReadout label="仿真时间" value={metrics.time.toFixed(1)} unit="s" />
+          <SimReadout label="冰阻力" value={metrics.iceResistanceKN.toFixed(0)} unit="kN" />
+        </SimReadoutGrid>
+      </SimPanelSection>
+    </SimPanelStack>
   );
 }
 
@@ -748,30 +628,16 @@ function ControlPanel({
 function ViolationsPanel({ violations }: { violations: EthicalViolation[] }) {
   if (violations.length === 0) {
     return (
-      <div className="text-center text-muted-foreground py-4">
-        <Navigation className="w-8 h-8 mx-auto mb-2 opacity-50" />
-        <p>暂无警报</p>
-      </div>
+      <SimNotice tone="success" icon={Navigation}>暂无警报</SimNotice>
     );
   }
 
   return (
-    <div className="space-y-2 max-h-60 overflow-y-auto">
+    <div className="max-h-60 space-y-1.5 overflow-y-auto">
       {violations.slice(-10).reverse().map((v, i) => (
-        <div
-          key={i}
-          className={`p-2 rounded text-sm flex items-start gap-2 ${
-            v.severity === 'critical'
-              ? 'bg-[hsl(var(--platform-brand-danger)/0.12)] text-[hsl(var(--platform-brand-danger))] dark:bg-[hsl(var(--platform-brand-danger)/0.18)] dark:text-[hsl(var(--platform-brand-danger))]'
-              : 'bg-[hsl(var(--platform-brand-evidence)/0.14)] dark:bg-[hsl(var(--platform-brand-evidence)/0.18)] text-[hsl(var(--platform-brand-evidence))] dark:text-[hsl(var(--platform-brand-evidence))]'
-          }`}
-        >
-          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <div>
-            <div className="font-medium">{v.description}</div>
-            <div className="text-xs opacity-70">t = {v.timestamp.toFixed(1)}s</div>
-          </div>
-        </div>
+        <SimNotice key={i} tone={v.severity === 'critical' ? 'danger' : 'warning'} title={v.description}>
+          t = {v.timestamp.toFixed(1)}s
+        </SimNotice>
       ))}
     </div>
   );
@@ -1200,17 +1066,14 @@ export default function IcebreakerSimulation({ ticket = '', stepNav, hostBrief, 
         hostBrief={hostBrief}
         hostSubmission={hostSubmission}
         status={(
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-              <span className="text-platform-fg-secondary">航向</span>
-              <span className="font-mono">{toDegrees(heading).toFixed(1)}°</span>
-              <span className="text-platform-fg-secondary">位置</span>
-              <span className="font-mono">
-                ({position.x.toFixed(0)}, {position.z.toFixed(0)})
-              </span>
-              <span className="text-platform-fg-secondary">时间</span>
-              <span className="font-mono">{metrics.time.toFixed(1)} s</span>
-            </div>
+          <SimPanelStack>
+            <SimStatusStrip state={isRunning ? 'running' : metrics.time > 0 ? 'paused' : 'idle'} time={`${metrics.time.toFixed(1)}s`} />
+            <SimPanelSection title="航行状态" icon={Compass}>
+              <SimReadoutGrid>
+                <SimReadout label="航向" value={toDegrees(heading).toFixed(1)} unit="°" size="lg" />
+                <SimReadout label="位置" value={`${position.x.toFixed(0)}, ${position.z.toFixed(0)}`} unit="m" size="lg" />
+              </SimReadoutGrid>
+            </SimPanelSection>
             <IceStatusPanel iceState={iceStateRef.current} iceThickness={config.iceThickness} />
             <AzipodStatusPanel
               azimuth1={metrics.azimuth1Deg}
@@ -1218,7 +1081,7 @@ export default function IcebreakerSimulation({ ticket = '', stepNav, hostBrief, 
               thrust1={metrics.thrust1KN}
               thrust2={metrics.thrust2KN}
             />
-          </div>
+          </SimPanelStack>
         )}
         controls={(
           <ControlPanel

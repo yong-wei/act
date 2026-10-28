@@ -17,6 +17,14 @@ import {
   type DestroyerSample,
   type DestroyerSeriesId,
 } from './destroyer-experiment';
+import {
+  SimChip,
+  SimPanelSection,
+  SimPanelStack,
+  SimReadout,
+  SimReadoutGrid,
+  SimStatusStrip,
+} from '../components/simulation-panels';
 import { SketchPad } from './sketch-pad';
 import { StepNode } from './vessel-experiment-panels';
 
@@ -126,53 +134,32 @@ export function DestroyerStatusPanel({
   visible: Record<DestroyerSeriesId, boolean>;
   onToggle: (id: DestroyerSeriesId) => void;
 }) {
+  const readout = (name: string) => ({ 'data-destroyer-readout': name });
   return (
-    <div className="w-full min-w-0 space-y-4">
-      <div className="sim-hud-tile flex items-center justify-between gap-3 px-2.5 py-2 text-xs">
-        <span className="flex items-center gap-2">
-          <span
-            className={cn(
-              'h-2 w-2 rounded-full',
-              running ? 'animate-pulse bg-[hsl(var(--platform-brand-success))] shadow-[0_0_8px_hsl(var(--platform-brand-success))]' : 'bg-platform-fg-primary/25',
-            )}
-          />
-          <span className="font-medium text-platform-fg-primary">{running ? '运行中' : '已暂停'}</span>
-        </span>
-        <span className="rounded border border-platform-action-primary/30 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-platform-action-primary">{mode}</span>
-        <span className="text-platform-fg-muted">仿真时间 <span className="sim-hud-value" data-destroyer-readout="time">{`${time.toFixed(1)} s`}</span></span>
-      </div>
-      <div className="space-y-2">
-        <p className={simulationUi.sectionTitle}>
-          <span className="flex items-center gap-1.5"><Compass className="h-3 w-3" aria-hidden="true" />导航状态</span>
-        </p>
-        <div className="grid grid-cols-2 gap-1.5">
-          <StatusTile label="航向" value={`${heading.toFixed(1)}°`} readout="heading" />
-          <StatusTile label="转艏速率" value={`${yawRate.toFixed(2)}°/s`} readout="yaw" />
-          <StatusTile label="舵角" value={`${rudder.toFixed(1)}°`} readout="rudder" />
-          <StatusTile label="手操舵角" value={`${manualRudder.toFixed(1)}°`} readout="manual-rudder" />
-          <StatusTile label="航速" value={`${speed.toFixed(1)} m/s`} readout="speed" />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <p className={simulationUi.sectionTitle}>
-          <span className="flex items-center gap-1.5"><Target className="h-3 w-3" aria-hidden="true" />航迹误差</span>
-        </p>
-        <div className="grid grid-cols-2 gap-1.5">
-          <StatusTile label="当前误差" value={`${currentError.toFixed(1)} m`} />
-          <StatusTile label="平均误差" value={`${avgError.toFixed(1)} m`} />
-        </div>
-      </div>
+    <SimPanelStack>
+      <SimStatusStrip
+        state={running ? 'running' : time > 0 ? 'paused' : 'idle'}
+        time={<span {...readout('time')}>{`${time.toFixed(1)} s`}</span>}
+      >
+        <SimChip tone="accent" className="font-mono uppercase">{mode}</SimChip>
+      </SimStatusStrip>
+      <SimPanelSection title="导航状态" icon={Compass}>
+        <SimReadoutGrid>
+          <SimReadout label="航向" value={heading.toFixed(1)} unit="°" size="lg" valueProps={readout('heading')} />
+          <SimReadout label="转艏速率" value={yawRate.toFixed(2)} unit="°/s" size="lg" valueProps={readout('yaw')} />
+          <SimReadout label="舵角" value={rudder.toFixed(1)} unit="°" valueProps={readout('rudder')} />
+          <SimReadout label="手操舵角" value={manualRudder.toFixed(1)} unit="°" valueProps={readout('manual-rudder')} />
+          <SimReadout label="航速" value={speed.toFixed(1)} unit="m/s" span valueProps={readout('speed')} />
+        </SimReadoutGrid>
+      </SimPanelSection>
+      <SimPanelSection title="航迹误差" icon={Target}>
+        <SimReadoutGrid>
+          <SimReadout label="当前误差" value={currentError.toFixed(1)} unit="m" />
+          <SimReadout label="平均误差" value={avgError.toFixed(1)} unit="m" />
+        </SimReadoutGrid>
+      </SimPanelSection>
       <DestroyerCurve samples={samples} visible={visible} onToggle={onToggle} />
-    </div>
-  );
-}
-
-function StatusTile({ label, value, readout }: { label: string; value: string; readout?: string }) {
-  return (
-    <div className="sim-hud-tile min-w-0 px-2.5 py-2">
-      <span className="block truncate text-[10px] tracking-wide text-platform-fg-muted">{label}</span>
-      <span className="sim-hud-value mt-0.5 block truncate text-base font-semibold leading-5" data-destroyer-readout={readout}>{value}</span>
-    </div>
+    </SimPanelStack>
   );
 }
 

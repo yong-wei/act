@@ -19,7 +19,7 @@ function SimulationBootScreen({ title, detail }: { title: string; detail: string
           <span className="absolute inset-[38%] rounded-full bg-platform-action-primary shadow-[0_0_40px_hsl(var(--platform-action-primary))]" />
         </div>
         <p className="mt-6 text-[11px] font-semibold tracking-[0.4em] text-platform-action-primary">虚拟仿真实验</p>
-        <h2 className="mt-2 text-2xl font-bold tracking-wide">正在加载{title}...</h2>
+        <p className="mt-2 text-2xl font-bold tracking-wide">正在加载{title}...</p>
         <p className="mt-2 text-sm opacity-70">{detail}</p>
         <div className="mt-6 h-px w-64 overflow-hidden bg-platform-action-primary/20">
           <div className="sim-boot-bar h-full w-full" />

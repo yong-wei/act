@@ -54,33 +54,25 @@ import { ScenePostEffects } from '../scene/post';
 import { drillingHysy981SceneVisual } from '../profiles/drilling-hysy981-scene';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { WaterHuggingLine } from '../scene/lines';
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  Settings,
-  AlertTriangle,
-  Anchor,
-  Waves,
-  Wind,
-  ToggleLeft,
-  ToggleRight,
-  Gauge,
-  Target,
-  AlertCircle,
-  Compass,
-  Video,
-  Orbit,
-  ArrowDownFromLine,
-} from 'lucide-react';
+import { Anchor, ArrowDownFromLine, Compass, Gauge, Orbit, Settings, Target, Video, Waves } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
+import {
+  SimChip,
+  SimField,
+  SimLockedChip,
+  SimMeter,
+  SimNotice,
+  SimPanelSection,
+  SimPanelStack,
+  SimReadout,
+  SimReadoutGrid,
+  SimRunControls,
+  SimStatusStrip,
+  SimSwitchInput,
+  SimToggleRow,
+  simToneText,
+} from '../components/simulation-panels';
 
 import {
   getDrillingDefaultConfig,
@@ -287,60 +279,62 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
     { id: 2, row: 3, col: 0 },
     { id: 6, row: 3, col: 2 },
   ];
+  const failedCount = thrusters.filter((t) => t.failed).length;
 
   return (
-    <Card className="sim-hud-tile w-full bg-transparent shadow-none">
-      <CardHeader className="py-2">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <Gauge className="h-4 w-4" />
-          推进器状态
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="py-2">
-        <div className="grid grid-cols-3 gap-1">
-          {layout.map(({ id, row, col }) => {
-            const thruster = thrusters.find(t => t.id === id);
-            if (!thruster) return null;
+    <SimPanelSection
+      title="推进器状态"
+      icon={Gauge}
+      tone={failedCount > 0 ? 'danger' : 'neutral'}
+      aside={failedCount > 0 ? <SimChip tone="danger">{failedCount} 台故障</SimChip> : <SimChip tone="success">全部在线</SimChip>}
+    >
+      <div className="grid grid-cols-3 gap-1.5">
+        {layout.map(({ id, row, col }) => {
+          const thruster = thrusters.find(t => t.id === id);
+          if (!thruster) return null;
 
-            const powerPercent = (thruster.power / 4500) * 100;
-            const isFailed = thruster.failed;
+          const powerPercent = (thruster.power / 4500) * 100;
+          const isFailed = thruster.failed;
+          const tone = isFailed ? 'danger' : powerPercent > 80 ? 'warning' : 'neutral';
 
-            return (
-              <div
-                key={id}
-                className={`
-                  flex flex-col items-center justify-center rounded p-1 text-xs
-                  ${row === 1 || row === 2 ? 'col-start-1' : ''}
-                  ${col === 2 ? 'col-start-3' : ''}
-                  ${isFailed ? 'bg-[hsl(var(--platform-brand-danger)/0.12)] text-[hsl(var(--platform-brand-danger))]' : powerPercent > 80 ? 'bg-[hsl(var(--platform-brand-evidence)/0.14)] text-[hsl(var(--platform-brand-evidence))]' : 'bg-platform-canvas-muted text-platform-fg-primary'}
-                `}
-                style={{
-                  gridRow: row + 1,
-                  gridColumn: col + 1,
-                }}
-              >
-                <span className="font-bold">T{id}</span>
-                <span className={isFailed ? 'text-[hsl(var(--platform-brand-danger))]' : ''}>
-                  {isFailed ? 'FAIL' : `${powerPercent.toFixed(0)}%`}
+          return (
+            <div
+              key={id}
+              data-sim-tone={tone}
+              className="sim-panel-readout flex flex-col items-center justify-center gap-1 px-1.5 py-1 text-xs"
+              style={{ gridRow: row + 1, gridColumn: col + 1 }}
+            >
+              <div className="flex w-full items-baseline justify-between gap-1">
+                <span className="font-semibold text-platform-fg-secondary">T{id}</span>
+                <span className={`font-mono font-semibold tabular-nums ${simToneText[tone]}`}>
+                  {isFailed ? '故障' : `${powerPercent.toFixed(0)}%`}
                 </span>
               </div>
-            );
-          })}
-          {/* 中心平台指示 */}
-          <div
-            className="flex items-center justify-center rounded bg-platform-canvas-muted text-xs text-platform-fg-secondary"
-            style={{ gridRow: '2 / 4', gridColumn: 2 }}
-          >
-            ▣
-          </div>
+              <div className="sim-meter w-full">
+                <span
+                  className={isFailed ? 'bg-[hsl(var(--platform-brand-danger))]' : powerPercent > 80 ? 'bg-[hsl(var(--platform-brand-evidence))]' : 'bg-platform-action-primary'}
+                  style={{ width: `${isFailed ? 100 : Math.min(100, powerPercent)}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+        {/* 中心平台指示 */}
+        <div
+          className="sim-panel-readout flex flex-col items-center justify-center text-[11px] text-platform-fg-secondary"
+          style={{ gridRow: '2 / 4', gridColumn: 2 }}
+        >
+          <Anchor className="h-4 w-4 text-platform-action-primary" aria-hidden="true" />
+          <span className="mt-1">平台</span>
         </div>
-        <div className="mt-2 text-center text-xs text-platform-fg-secondary">
-          前 (Fore) ↑
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="mt-2 text-center text-[11px] text-platform-fg-muted">船艏方向 ↑</div>
+    </SimPanelSection>
   );
 }
+
+const DRILLING_ALERT_TONE = { green: 'success', yellow: 'warning', red: 'danger', emergency: 'danger' } as const;
+const DRILLING_ALERT_LABEL = { green: '定位正常', yellow: '黄色警报', red: '红色警报', emergency: '紧急解脱' } as const;
 
 /** HUD 显示 */
 function HUD({
@@ -364,119 +358,55 @@ function HUD({
     : metrics.positionError > DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION
     ? 'yellow'
     : 'green';
+  const alertTone = DRILLING_ALERT_TONE[alertLevel];
 
   return (
-    <div className="space-y-2">
-      {/* 状态指示 */}
-      <div className="flex items-center gap-2">
-        <Badge variant={isRunning ? 'default' : 'secondary'}>
-          {isRunning ? '运行中' : '已暂停'}
-        </Badge>
-        <Badge variant="outline">
-          时间: {metrics.time.toFixed(1)}s
-        </Badge>
-        <Badge variant={decouplingEnabled ? 'default' : 'outline'}>
-          {decouplingEnabled ? '解耦控制' : '标准PID'}
-        </Badge>
-      </div>
+    <SimPanelStack>
+      <SimStatusStrip state={isRunning ? 'running' : metrics.time > 0 ? 'paused' : 'idle'} time={`${metrics.time.toFixed(1)}s`}>
+        <SimChip tone={decouplingEnabled ? 'accent' : 'neutral'}>{decouplingEnabled ? '解耦控制' : '标准PID'}</SimChip>
+      </SimStatusStrip>
 
-      {/* DP 状态 */}
-      <Card className={`sim-hud-tile w-full shadow-none ${
-        alertLevel === 'emergency' ? 'border-[hsl(var(--platform-brand-danger)/0.45)] bg-[hsl(var(--platform-brand-danger)/0.12)]' :
-        alertLevel === 'red' ? 'border-[hsl(var(--platform-brand-danger)/0.35)] bg-[hsl(var(--platform-brand-danger)/0.12)]' :
-        alertLevel === 'yellow' ? 'border-[hsl(var(--platform-brand-evidence)/0.42)] bg-[hsl(var(--platform-brand-evidence)/0.14)]' :
-        'bg-transparent'
-      }`}>
-        <CardHeader className="py-2">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Target className="h-4 w-4" />
-            DP 定位状态
-            {alertLevel === 'emergency' && (
-              <Badge variant="destructive" className="ml-auto animate-pulse">
-                紧急解脱
-              </Badge>
-            )}
-            {alertLevel === 'red' && (
-              <Badge variant="destructive" className="ml-auto">
-                红色警报
-              </Badge>
-            )}
-            {alertLevel === 'yellow' && (
-              <Badge className="ml-auto bg-[hsl(var(--platform-brand-evidence))]">
-                黄色警报
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1 py-2 text-xs">
-          <div className="flex justify-between">
-            <span>位置误差:</span>
-            <span className={
-              alertLevel === 'green' ? 'text-[hsl(var(--platform-brand-success))]' :
-              alertLevel === 'yellow' ? 'text-[hsl(var(--platform-brand-evidence))]' :
-              'text-[hsl(var(--platform-brand-danger))]'
-            }>
-              {metrics.positionError.toFixed(2)} m
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>航向误差:</span>
-            <span className={metrics.headingError > 10 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-[hsl(var(--platform-brand-success))]'}>
-              {metrics.headingError.toFixed(1)}°
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>总功率:</span>
-            <span className={metrics.totalPower > 28000 ? 'text-[hsl(var(--platform-brand-evidence))]' : ''}>
-              {(metrics.totalPower / 1000).toFixed(1)} MW
-            </span>
-          </div>
-          {/* 位置误差进度条 */}
-          <div className="mt-2">
-            <div className="h-2 w-full rounded bg-platform-canvas-muted">
-              <div
-                className={`h-full rounded transition-all ${
-                  alertLevel === 'green' ? 'bg-[hsl(var(--platform-brand-success))]' :
-                  alertLevel === 'yellow' ? 'bg-[hsl(var(--platform-brand-evidence))]' :
-                  'bg-[hsl(var(--platform-brand-danger))]'
-                }`}
-                style={{
-                  width: `${Math.min(100, (metrics.positionError / DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT) * 100)}%`
-                }}
-              />
-            </div>
-            <div className="mt-1 flex justify-between text-xs text-platform-fg-secondary">
-              <span>0m</span>
-              <span>{DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION}m</span>
-              <span>{DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION}m</span>
-              <span>{DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT}m</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <SimPanelSection
+        title="DP 定位状态"
+        icon={Target}
+        tone={alertLevel === 'green' ? 'neutral' : alertTone}
+        aside={(
+          <SimChip tone={alertTone} className={alertLevel === 'emergency' ? 'animate-pulse' : undefined}>
+            {DRILLING_ALERT_LABEL[alertLevel]}
+          </SimChip>
+        )}
+      >
+        <SimReadoutGrid columns={3}>
+          <SimReadout label="位置误差" value={metrics.positionError.toFixed(2)} unit="m" tone={alertTone} />
+          <SimReadout label="航向误差" value={metrics.headingError.toFixed(1)} unit="°" tone={metrics.headingError > 10 ? 'warning' : 'success'} />
+          <SimReadout label="总功率" value={(metrics.totalPower / 1000).toFixed(1)} unit="MW" tone={metrics.totalPower > 28000 ? 'warning' : 'neutral'} />
+        </SimReadoutGrid>
+        <SimMeter
+          className="mt-2.5"
+          label="位置误差相对紧急解脱阈值"
+          value={metrics.positionError / DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT}
+          tone={alertTone}
+          scale={[
+            '0m',
+            `${DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION}m`,
+            `${DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION}m`,
+            `${DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT}m`,
+          ]}
+        />
+      </SimPanelSection>
 
-      {/* 推进器面板 */}
       <ThrusterPanel thrusters={thrusters} />
 
-      {/* 违规警告 */}
-      {violations.length > 0 && (
-        <Card className="sim-hud-tile w-full border-[hsl(var(--platform-brand-danger)/0.35)] bg-[hsl(var(--platform-brand-danger)/0.12)] shadow-none">
-          <CardHeader className="py-2">
-            <CardTitle className="flex items-center gap-2 text-sm text-[hsl(var(--platform-brand-danger))]">
-              <AlertTriangle className="h-4 w-4" />
-              伦理违规 ({violations.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="py-2 max-h-32 overflow-y-auto">
+      {violations.length > 0 ? (
+        <SimNotice tone="danger" title={`伦理违规 (${violations.length})`}>
+          <div className="max-h-32 space-y-0.5 overflow-y-auto">
             {violations.slice(-5).map((v, i) => (
-              <div key={i} className="py-0.5 text-xs text-[hsl(var(--platform-brand-danger))]">
-                [{v.timestamp.toFixed(1)}s] {v.description}
-              </div>
+              <div key={i}>[{v.timestamp.toFixed(1)}s] {v.description}</div>
             ))}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </div>
+        </SimNotice>
+      ) : null}
+    </SimPanelStack>
   );
 }
 
@@ -498,166 +428,100 @@ function ControlPanel({
   isRunning: boolean;
   inputsEnabled?: boolean;
 }) {
+  const env = getTypicalEnvironment(config.seaStateLevel);
   return (
-    <Card className="sim-hud-tile bg-transparent shadow-none">
-      <CardHeader className="py-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Settings className="h-4 w-4" />
-          控制面板
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* 播放控制 */}
-        <div className="flex gap-2">
-          <Button data-sound-start
-            variant={isRunning ? 'secondary' : 'default'}
-            size="sm"
-            onClick={isRunning ? onPause : onStart}
-            className={`flex-1 ${isRunning ? simulationUi.buttonSecondary : simulationUi.buttonPrimary}`}
-          >
-            {isRunning ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-            {isRunning ? '暂停' : '开始'}
-          </Button>
-          <Button variant="outline" size="sm" onClick={onReset} className={simulationUi.buttonOutline}>
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-        </div>
+    <SimPanelStack>
+      <SimRunControls
+        running={isRunning}
+        primaryLabel={isRunning ? '暂停' : '开始'}
+        onPrimary={isRunning ? onPause : onStart}
+        onReset={onReset}
+      />
 
-        {/* 解耦控制开关 */}
-        <div className="flex items-center justify-between rounded bg-platform-canvas-muted p-2">
-          <Label className="flex items-center gap-2 text-sm">
-            {config.decouplingEnabled ? (
-              <ToggleRight className="h-4 w-4 text-[hsl(var(--platform-brand-success))]" />
-            ) : (
-              <ToggleLeft className="h-4 w-4 text-platform-fg-muted" />
-            )}
-            解耦控制
-          </Label>
-          <Switch
-            checked={config.decouplingEnabled}
+      <SimPanelSection title="控制策略" icon={Settings} aside={<SimLockedChip locked={!inputsEnabled} />}>
+        <SimToggleRow
+          label="解耦控制"
+          description="消除纵荡、横荡与艏摇之间的耦合"
+          htmlFor="drilling-decoupling"
+          control={(
+            <SimSwitchInput
+              id="drilling-decoupling"
+              checked={config.decouplingEnabled}
+              disabled={!inputsEnabled}
+              onChange={(event) => onConfigChange({ decouplingEnabled: event.target.checked })}
+            />
+          )}
+        />
+      </SimPanelSection>
+
+      <SimPanelSection title="定位目标" icon={Target}>
+        <div className="space-y-3">
+          <SimField label="目标 X" value={`${config.targetPosition.x} m`}>
+            <Slider
+              aria-label="目标 X"
+              disabled={!inputsEnabled}
+              className={simulationUi.slider}
+              value={[config.targetPosition.x]}
+              min={-100}
+              max={100}
+              step={1}
+              onValueChange={([v]) =>
+                onConfigChange({ targetPosition: { ...config.targetPosition, x: v } })
+              }
+            />
+          </SimField>
+          <SimField label="目标 Z" value={`${config.targetPosition.z} m`}>
+            <Slider
+              aria-label="目标 Z"
+              disabled={!inputsEnabled}
+              className={simulationUi.slider}
+              value={[config.targetPosition.z]}
+              min={-100}
+              max={100}
+              step={1}
+              onValueChange={([v]) =>
+                onConfigChange({ targetPosition: { ...config.targetPosition, z: v } })
+              }
+            />
+          </SimField>
+          <SimField label="目标航向" value={`${config.targetHeading}°`}>
+            <Slider
+              aria-label="目标航向"
+              disabled={!inputsEnabled}
+              className={simulationUi.slider}
+              value={[config.targetHeading]}
+              min={-180}
+              max={180}
+              step={5}
+              onValueChange={([v]) => onConfigChange({ targetHeading: v })}
+            />
+          </SimField>
+        </div>
+      </SimPanelSection>
+
+      <SimPanelSection title="海况环境" icon={Waves}>
+        <SimField
+          label="海况等级"
+          value={`等级 ${config.seaStateLevel} · ${config.seaStateLevel <= 2 ? '平静' : config.seaStateLevel <= 4 ? '中等' : '恶劣'}`}
+        >
+          <Slider
+            aria-label="海况等级"
             disabled={!inputsEnabled}
-            onCheckedChange={(checked) => onConfigChange({ decouplingEnabled: checked })}
+            className={simulationUi.slider}
+            value={[config.seaStateLevel]}
+            min={1}
+            max={6}
+            step={1}
+            onValueChange={([v]) => onConfigChange({ seaStateLevel: v })}
           />
-        </div>
-
-        <Tabs defaultValue="target">
-          <TabsList className={`grid w-full grid-cols-2 ${simulationUi.tabsList}`}>
-            <TabsTrigger value="target" className={simulationUi.tabsTrigger}>目标</TabsTrigger>
-            <TabsTrigger value="environment" className={simulationUi.tabsTrigger}>环境</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="target" className="space-y-3">
-            {/* 目标位置 */}
-            <div className="space-y-2">
-              <Label className="text-xs">目标 X (m)</Label>
-              <Slider
-                disabled={!inputsEnabled}
-                className={simulationUi.slider}
-                value={[config.targetPosition.x]}
-                min={-100}
-                max={100}
-                step={1}
-                onValueChange={([v]) =>
-                  onConfigChange({ targetPosition: { ...config.targetPosition, x: v } })
-                }
-              />
-              <div className="text-right text-xs text-platform-fg-muted">
-                {config.targetPosition.x} m
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs">目标 Z (m)</Label>
-              <Slider
-                disabled={!inputsEnabled}
-                className={simulationUi.slider}
-                value={[config.targetPosition.z]}
-                min={-100}
-                max={100}
-                step={1}
-                onValueChange={([v]) =>
-                  onConfigChange({ targetPosition: { ...config.targetPosition, z: v } })
-                }
-              />
-              <div className="text-right text-xs text-platform-fg-muted">
-                {config.targetPosition.z} m
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs">目标航向 (°)</Label>
-              <Slider
-                disabled={!inputsEnabled}
-                className={simulationUi.slider}
-                value={[config.targetHeading]}
-                min={-180}
-                max={180}
-                step={5}
-                onValueChange={([v]) => onConfigChange({ targetHeading: v })}
-              />
-              <div className="text-right text-xs text-platform-fg-muted">
-                {config.targetHeading}°
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="environment" className="space-y-3">
-            {/* 海况等级 */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1 text-xs">
-                <Waves className="h-3 w-3" />
-                海况等级
-              </Label>
-              <Slider
-                disabled={!inputsEnabled}
-                className={simulationUi.slider}
-                value={[config.seaStateLevel]}
-                min={1}
-                max={6}
-                step={1}
-                onValueChange={([v]) => onConfigChange({ seaStateLevel: v })}
-              />
-              <div className="flex justify-between text-xs text-platform-fg-muted">
-                <span>等级 {config.seaStateLevel}</span>
-                <span>
-                  {config.seaStateLevel <= 2 ? '平静' :
-                   config.seaStateLevel <= 4 ? '中等' : '恶劣'}
-                </span>
-              </div>
-            </div>
-
-            {/* 海况信息 */}
-            <div className="rounded bg-platform-canvas-muted p-2 text-xs">
-              {(() => {
-                const env = getTypicalEnvironment(config.seaStateLevel);
-                return (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="flex items-center gap-1">
-                        <Waves className="h-3 w-3" />
-                        有效波高:
-                      </span>
-                      <span>{env.waveHeight.toFixed(1)} m</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="flex items-center gap-1">
-                        <Wind className="h-3 w-3" />
-                        风速:
-                      </span>
-                      <span>{env.windSpeed} m/s</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>流速:</span>
-                      <span>{env.currentSpeed.toFixed(1)} m/s</span>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+        </SimField>
+        <SimReadoutGrid columns={3} className="mt-2.5">
+          <SimReadout label="有效波高" value={env.waveHeight.toFixed(1)} unit="m" />
+          <SimReadout label="风速" value={env.windSpeed} unit="m/s" />
+          <SimReadout label="流速" value={env.currentSpeed.toFixed(1)} unit="m/s" />
+        </SimReadoutGrid>
+      </SimPanelSection>
+    </SimPanelStack>
   );
 }
 
