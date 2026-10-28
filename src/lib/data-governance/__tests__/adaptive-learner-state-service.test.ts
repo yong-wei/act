@@ -392,8 +392,8 @@ function acceptedArenaWritebackOutboxRow(submissionId = 'arena-submission-1') {
         sourceRef: { kind: 'ArenaSubmission', id: submissionId },
         attemptStatus: 'effective',
         visibilityState: 'materialized',
-        targetLabel: '控制校正 Arena 官方迁移验证',
-        summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+        targetLabel: '控制校正竞技场官方迁移验证',
+        summary: '官方竞技场结果已写入学生证据时间线，并可作为终端验证证据。',
         recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
         limitationCodes: [],
         overlayCount: 1,
@@ -2891,8 +2891,8 @@ describe('adaptive learner state service', () => {
     expect(arenaCapability?.observedEvidence.eventReferences).toEqual([{
       sourceScope: 'arena-official-result',
       occurredAt: '2026-05-19T01:00:00.000Z',
-      summary: 'Arena 官方评测结果参与了该项能力判断。',
-      nextAction: { href: '/arena', label: '查看 Arena 结果' },
+      summary: '竞技场官方评测结果参与了该项能力判断。',
+      nextAction: { href: '/arena', label: '查看竞技场结果' },
     }]);
   });
 
@@ -2953,7 +2953,7 @@ describe('adaptive learner state service', () => {
                 sourceRef: { kind: 'ArenaSubmission', id: 'arena-submission-blocked' },
                 attemptStatus: 'duplicate-only',
                 visibilityState: 'diagnostic-only',
-                targetLabel: '控制校正 Arena 官方迁移验证',
+                targetLabel: '控制校正竞技场官方迁移验证',
                 summary: '重复官方提交只保留诊断证据，不写入终端掌握判定。',
                 recoveryAction: '提交新的有效官方结果。',
                 limitationCodes: ['attempt-not-effective:duplicate-only'],

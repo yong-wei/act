@@ -202,7 +202,7 @@ export function SarDiagnosticsPanel({
             <div>
               <span className="admin-console-kicker">SAR live evaluation</span>
               <h3 className="admin-console-title mt-2 text-base font-semibold">
-                {liveEvaluation.metrics.queryCount.toLocaleString()} 个代表查询 · Arena {liveEvaluation.arenaOfficialAuthority.status}
+                {liveEvaluation.metrics.queryCount.toLocaleString()} 个代表查询 · 竞技场 {liveEvaluation.arenaOfficialAuthority.status}
               </h3>
             </div>
             <span className="admin-console-chip">

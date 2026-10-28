@@ -129,7 +129,7 @@ describe('control workbench design flow shell', () => {
 
     expect(html).toContain('设计证据说明');
     expect(html).toContain('时域响应证据');
-    expect(html).toContain('官方评价以提交后的 Arena 评测为准');
+    expect(html).toContain('官方评价以提交后的竞技场评测为准');
   });
 
   it('keeps the Personal Center target aligned with the caller account context', () => {

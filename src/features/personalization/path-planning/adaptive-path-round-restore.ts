@@ -117,7 +117,7 @@ function restoreArenaPathTargets(
         readiness: {
           ...readiness,
           state: 'locked',
-          message: 'Arena 任务目标无法验证，请重新生成学习路径。',
+          message: '竞技场任务目标无法验证，请重新生成学习路径。',
           unlockMessage: '重新生成路径或使用明确的恢复操作。',
           reasonCodes: [integrity.reason],
           fallbackNodeIds: getStringArray(readiness.fallbackNodeIds),

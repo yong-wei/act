@@ -573,7 +573,7 @@ function buildBeginnerRecommendations(): ArenaNextChallengeRecommendation[] {
       stage: task.training.stage,
       stageLabel: ARENA_TRAINING_STAGE_LABELS[task.training.stage],
       capabilityLabels: capabilityLabels(task.training.capabilityTags),
-      reason: '暂无官方 Arena 提交证据，先从基础阶段建立可评价的第一条记录。',
+      reason: '暂无官方竞技场提交证据，先从基础阶段建立可评价的第一条记录。',
       evidenceLevel: 'beginner-safe',
       href: `/arena/challenges/${task.id}`,
     }));

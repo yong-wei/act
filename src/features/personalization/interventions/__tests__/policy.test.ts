@@ -9,7 +9,7 @@ import {
 
 function stateWithAttempts(attemptHistory: StudentState['attemptHistory']): StudentState {
   return {
-    currentTask: 'Arena 练习',
+    currentTask: '竞技场练习',
     currentAttempt: attemptHistory.length + 1,
     attemptHistory,
   };

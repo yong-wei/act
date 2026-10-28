@@ -139,7 +139,7 @@ export const PATH_NODE_SEMANTICS: Record<GovernedPathNodeType, ResourceNodePathS
   },
   arena_task: {
     type: 'arena_task',
-    displayName: 'Arena 挑战',
+    displayName: '竞技场挑战',
     iconKey: 'arena',
     shapeHint: 'challenge',
     evidenceBehavior: 'judged_submission',

@@ -155,7 +155,7 @@ export function computeArenaVirtualPreviewBrowserSync(
     throw new ControlEngineFailure({
       state: 'unavailable',
       category: 'wasm-not-ready',
-      message: 'Arena 预览数值内核尚未加载完成。',
+      message: '竞技场预览数值内核尚未加载完成。',
       retryable: true,
     });
   }

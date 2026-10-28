@@ -122,7 +122,7 @@ function disabledOption(
 
 function officialBoundary(session: WorkbenchSessionContext): string {
   if (session.submissionPolicy.officialEvaluationEnabled) {
-    return '工作台解释只说明预览或诊断证据，官方评价以提交后的 Arena 评测为准。';
+    return '工作台解释只说明预览或诊断证据，官方评价以提交后的竞技场评测为准。';
   }
   return session.submissionPolicy.disabledReason ?? '当前会话不进入官方评价和榜单。';
 }

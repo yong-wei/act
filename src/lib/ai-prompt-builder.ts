@@ -435,7 +435,7 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     }
   }
   if (runtime.citationContext?.required) {
-    lines.push('- 引用协议: 概念解释、个性化建议、仿真/Arena 失败分析、路径纠偏和报告解释必须至少使用 1 个内容引用；有学习者、路径、仿真、Arena 或干预证据时还必须使用 1 个证据引用。');
+    lines.push('- 引用协议: 概念解释、个性化建议、仿真/竞技场失败分析、路径纠偏和报告解释必须至少使用 1 个内容引用；有学习者、路径、仿真、竞技场或干预证据时还必须使用 1 个证据引用。');
     lines.push('- 回答正文只能使用服务器已分配的 `[n]` 引用编号。不得输出原始 citation ID、`[content: ...]`、`[证据: ...]`、内部路径、脚注链接或自行创建 URL。');
     if (runtime.citationContext.contentCitations?.length) {
       lines.push(`- 可用内容引用: ${runtime.citationContext.contentCitations.slice(0, 3).map(formatCitationHint).join('；')}`);

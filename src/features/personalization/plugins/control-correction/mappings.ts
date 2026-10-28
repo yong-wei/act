@@ -29,5 +29,5 @@ export const CONTROL_CORRECTION_ARENA_OFFICIAL_TARGET = {
   learningGoalId: CONTROL_CORRECTION_GOAL_ID,
   objectiveId: 'capability:autocontrol:transfer-to-ship-ocean-mission',
   graphNodeId: 'cap:autocontrol:transfer-to-ship-ocean-mission',
-  targetLabel: '控制校正 Arena 官方迁移验证',
+  targetLabel: '控制校正竞技场官方迁移验证',
 } as const;

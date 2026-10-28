@@ -129,7 +129,7 @@ describe('buildAdaptivePathUnlockChain', () => {
     const chain = buildAdaptivePathUnlockChain(node({
       readiness: {
         state: 'locked',
-        unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+        unlockMessage: '竞技场暂未解锁，完成仿真验证后会自动进入。',
       },
     }));
 

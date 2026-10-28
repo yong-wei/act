@@ -1812,7 +1812,7 @@ describe('platform UI contracts', () => {
   it('derives AppShell archetype, return target, and dock behavior from the route ledger', () => {
     const shellProps: Parameters<typeof AppShell>[0] = {
       viewerRole: 'student',
-      title: 'Arena 任务',
+      title: '竞技场任务',
       activeHref: '/arena/challenges/demo-task',
       children: null,
       dockControls: [
@@ -1830,7 +1830,7 @@ describe('platform UI contracts', () => {
     expect(shellMarkup).toContain('data-app-shell-navigation-state="collapsed"');
     expect(shellMarkup).toContain('href="/arena"');
     expect(shellMarkup).toContain('竞技场');
-    expect(shellMarkup).toContain('Arena 任务');
+    expect(shellMarkup).toContain('竞技场任务');
     expect(shellMarkup).not.toContain('Return to');
     expect(shellMarkup).toContain('href="/arena"');
     expect(shellMarkup).toContain('aria-controls="app-shell-mobile-navigation"');

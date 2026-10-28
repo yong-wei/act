@@ -30,7 +30,7 @@ describe('ArenaPublicationReportPage permission recovery', () => {
     expect(element.props).toMatchObject({
       kind: 'permission-boundary',
       sourceRoute: '/teacher/arena/publications/[publicationId]',
-      targetLabel: 'Arena 发布报告',
+      targetLabel: '竞技场发布报告',
       displayReference: 'publication-a',
       primaryHref: `/login?callbackUrl=${encodeURIComponent('/teacher/arena/publications/publication-a')}`,
       primaryLabel: '去登录',

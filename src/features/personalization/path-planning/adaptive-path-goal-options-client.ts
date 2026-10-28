@@ -14,16 +14,16 @@ const GOAL_OPTIONS: ReadonlyArray<Omit<AdaptivePracticeGoalOptionClient, 'hrefs'
   {
     id: 'control-correction',
     label: '控制系统校正设计',
-    detail: '把时域目标、根轨迹或频域校正、仿真验证和 Arena 迁移组织为一条可执行设计路径。',
+    detail: '把时域目标、根轨迹或频域校正、仿真验证和竞技场迁移组织为一条可执行设计路径。',
     intentType: 'controller-design',
-    terminalValidationSummary: '以仿真回放、官方 Arena 评测或教师确认的检查点作为路径终点，验证校正方案是否满足目标。',
+    terminalValidationSummary: '以仿真回放、官方竞技场评测或教师确认的检查点作为路径终点，验证校正方案是否满足目标。',
   },
   {
     id: 'frequency-response-foundations',
     label: '频率响应基础',
     detail: '建立 Bode、Nyquist、频域响应和稳定裕度的基础判读能力。',
     intentType: 'analysis',
-    terminalValidationSummary: '以短测、仿真观察或检查点确认频域判读，不强制 Arena 终点。',
+    terminalValidationSummary: '以短测、仿真观察或检查点确认频域判读，不强制竞技场终点。',
   },
   {
     id: 'feedback-loop-concept-foundations',
@@ -72,7 +72,7 @@ const GOAL_OPTIONS: ReadonlyArray<Omit<AdaptivePracticeGoalOptionClient, 'hrefs'
     label: '船海场景迁移应用',
     detail: '把自动控制方法迁移到船舶、MASS 或跨模型任务，并识别失配风险。',
     intentType: 'transfer-application',
-    terminalValidationSummary: '以跨模型任务、Arena 或仿真迁移验证作为路径终点。',
+    terminalValidationSummary: '以跨模型任务、竞技场或仿真迁移验证作为路径终点。',
   },
   { id: 'discrete-control-foundations', label: '离散控制基础', detail: '理解采样保持、脉冲传递函数与单位圆稳定性，能完成基本模型和判据计算。', intentType: 'analysis', terminalValidationSummary: '以计算与条件说明核验理解；阅读不替代测评。' },
   { id: 'state-space-analysis-foundations', label: '状态空间分析基础', detail: '理解可控性与可观测性，能用矩阵秩区分输入作用范围和输出信息范围。', intentType: 'analysis', terminalValidationSummary: '以计算与条件说明核验理解；阅读不替代测评。' },

@@ -63,7 +63,7 @@ export function evaluateOdysseySubmission({
     ...result,
     explanation: [
       ...result.explanation,
-      'Arena 官方评分来自奥德赛通关遥测；游戏积分、解锁和成长进度保持独立。',
+      '竞技场官方评分来自奥德赛通关遥测；游戏积分、解锁和成长进度保持独立。',
     ],
     metadata: {
       ...(result.metadata ?? {}),

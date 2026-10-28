@@ -59,9 +59,9 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
       <EmbeddedArenaRouteRecovery
         kind="permission-boundary"
         sourceRoute="/teacher/arena/publications/[publicationId]"
-        targetLabel="Arena 发布报告"
+        targetLabel="竞技场发布报告"
         displayReference={params.publicationId}
-        message="请使用教师或管理员账号打开该 Arena 发布报告。"
+        message="请使用教师或管理员账号打开该竞技场发布报告。"
         recoveryAction="登录教师/管理员账号或返回工作台"
         primaryHref={session?.user?.id ? '/dashboard' : buildLoginRedirectForPath(reportPath)}
         primaryLabel={session?.user?.id ? '返回工作台' : '去登录'}
@@ -343,10 +343,10 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
             </div>
           ) : null}
           <div className="sr-only" data-task-workspace-zone="floating-dock-safe-area">
-            Arena 发布报告交付动作避让全局浮动控件，并保留移动端底部安全区。
+            竞技场发布报告交付动作避让全局浮动控件，并保留移动端底部安全区。
           </div>
           <div className="sr-only" data-arena-evidence-writeback-mobile-action="reachable">
-            Arena 发布报告在移动端保留证据回流状态、限制代码和教师恢复动作。
+            竞技场发布报告在移动端保留证据回流状态、限制代码和教师恢复动作。
           </div>
         </section>
       </main>
@@ -357,11 +357,11 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
         <EmbeddedArenaRouteRecovery
           kind="missing-object"
           sourceRoute="/teacher/arena/publications/[publicationId]"
-          targetLabel="Arena 发布报告"
-          message="Arena 发布报告不存在或当前账号不可见。"
-          recoveryAction="返回 Arena 配置页并从可见发布列表重新进入"
+          targetLabel="竞技场发布报告"
+          message="竞技场发布报告不存在或当前账号不可见。"
+          recoveryAction="返回竞技场配置页并从可见发布列表重新进入"
           primaryHref="/teacher/arena"
-          primaryLabel="返回 Arena 配置"
+          primaryLabel="返回竞技场配置"
           surface="teacher-publication-report"
         />
       );

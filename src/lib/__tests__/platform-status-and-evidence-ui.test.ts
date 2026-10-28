@@ -43,7 +43,7 @@ function textFrom(element: unknown): string {
 describe('platform status and evidence UI contracts', () => {
   const payload: PlatformStatusPayload = {
     id: 'arena-preview',
-    label: 'Arena 预览评分',
+    label: '竞技场预览评分',
     categories: {
       confidence: 'low',
       sourceCoverage: 'partial',

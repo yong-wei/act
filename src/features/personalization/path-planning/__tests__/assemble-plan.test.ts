@@ -463,7 +463,7 @@ describe('policy bundle core diversity fixture', () => {
       arenaTasks: [
         {
           id: 'task-second-order-lead-pid',
-          title: '校正 Arena',
+          title: '校正竞技场',
           launchTarget: '/arena/challenges/task-second-order-lead-pid',
           knowledgeNodeIds: [
             'control-correction:simulation-validation',
@@ -486,7 +486,7 @@ describe('policy bundle core diversity fixture', () => {
               minimumEvidenceCount: 0,
               requiredCompletedNodeIds: ['registry:correction-precheck'],
               requiredOutcomeRefs: [],
-              unlockMessage: '完成前测后进入 Arena',
+              unlockMessage: '完成前测后进入竞技场',
               fallbackNodeIds: ['registry:correction-precheck'],
             },
           },
@@ -542,7 +542,7 @@ describe('policy bundle core diversity fixture', () => {
       arenaTasks: [
         {
           id: 'task-second-order-lead-pid',
-          title: '校正 Arena',
+          title: '校正竞技场',
           launchTarget: '/arena/challenges/task-second-order-lead-pid',
           knowledgeNodeIds: [
             'control-correction:simulation-validation',
@@ -565,7 +565,7 @@ describe('policy bundle core diversity fixture', () => {
               minimumEvidenceCount: 0,
               requiredCompletedNodeIds: ['registry:correction-precheck'],
               requiredOutcomeRefs: [],
-              unlockMessage: '完成前测后进入 Arena',
+              unlockMessage: '完成前测后进入竞技场',
               fallbackNodeIds: ['registry:correction-precheck'],
             },
           },
@@ -1047,7 +1047,7 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
     arenaTasks: [
       {
         id: 'task-second-order-lead-pid',
-        title: '横摇控制 Arena',
+        title: '横摇控制竞技场',
         launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: ['kn-cruise'],
         prerequisiteNodeIds: ['simulation:cruise'],
@@ -1058,7 +1058,7 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
             minimumEvidenceCount: 0,
             requiredCompletedNodeIds: ['simulation:cruise'],
             requiredOutcomeRefs: [],
-            unlockMessage: '完成邮轮舒适度仿真后解锁 Arena。',
+            unlockMessage: '完成邮轮舒适度仿真后解锁竞技场。',
             fallbackNodeIds: ['simulation:cruise'],
           },
         },
@@ -1409,7 +1409,7 @@ function policyFixtureInput(overrides: Partial<AdaptiveLearningPathPlannerInput>
     arenaTasks: [
       {
         id: 'task-ship-roll-comfort',
-        title: '策略 Arena',
+        title: '策略竞技场',
         launchTarget: '/arena/challenges/task-ship-roll-comfort',
         knowledgeNodeIds: ['kn-c'],
         prerequisiteNodeIds: ['simulation:sim'],
@@ -4568,8 +4568,8 @@ describe('adaptive learning path planner', () => {
                 eventReferences: [{
                   sourceScope: 'arena-official-result',
                   occurredAt: '2026-05-19T01:00:00.000Z',
-                  summary: 'Arena 官方评测结果参与了该项能力判断。',
-                  nextAction: { href: '/arena', label: '查看 Arena 结果' },
+                  summary: '竞技场官方评测结果参与了该项能力判断。',
+                  nextAction: { href: '/arena', label: '查看竞技场结果' },
                 }],
                 source: 'adaptive-learner-state',
                 recommendationBias: 'targeted-practice',
@@ -4617,8 +4617,8 @@ describe('adaptive learning path planner', () => {
               eventReferences: [{
                 sourceScope: 'arena-official-result',
                 occurredAt: '2026-05-19T01:00:00.000Z',
-                summary: 'Arena 官方评测结果直接参与了该项掌握状态判断。',
-                nextAction: { href: '/arena', label: '查看 Arena 结果' },
+                summary: '竞技场官方评测结果直接参与了该项掌握状态判断。',
+                nextAction: { href: '/arena', label: '查看竞技场结果' },
               }],
             },
           },

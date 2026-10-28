@@ -378,7 +378,7 @@ function formatAdjustmentResources(values: string[]): string {
     knowledge_card: '知识卡',
     adaptive_quiz: '练习',
     simulation: '仿真',
-    arena: 'Arena',
+    arena: '竞技场',
     external: '站外资源',
   };
   return values.length ? values.map((value) => labels[value] ?? value).join('、') : '未指定';
@@ -795,10 +795,10 @@ const DEMO_UNLOCK_CHAIN_PATH_NODES = [
   },
   {
     nodeId: 'demo-prerequisite-target',
-    title: '进入闭环校正 Arena 终测',
+    title: '进入闭环校正竞技场终测',
     type: 'arena_task',
     pathNodeType: 'challenge',
-    displayName: 'Arena',
+    displayName: '竞技场',
     iconKey: 'arena-task',
     shapeHint: 'rounded',
     evidenceBehavior: 'judged-submission',
@@ -819,7 +819,7 @@ const DEMO_UNLOCK_CHAIN_PATH_NODES = [
     status: 'locked',
     readiness: {
       state: 'locked',
-      message: '完成当前检查题后会解锁 Arena。',
+      message: '完成当前检查题后会解锁竞技场。',
       unlockMessage: null,
       reasonCodes: ['readiness-fallback'],
       fallbackNodeIds: ['demo-current-quiz'],
@@ -867,10 +867,10 @@ const DEMO_UNLOCK_CHAIN_PATH_NODES = [
   },
   {
     nodeId: 'demo-unlock-message-fallback',
-    title: '等待 Arena 终测开放',
+    title: '等待竞技场终测开放',
     type: 'arena_task',
     pathNodeType: 'challenge',
-    displayName: 'Arena',
+    displayName: '竞技场',
     iconKey: 'arena-task',
     shapeHint: 'rounded',
     evidenceBehavior: 'judged-submission',
@@ -891,8 +891,8 @@ const DEMO_UNLOCK_CHAIN_PATH_NODES = [
     status: 'locked',
     readiness: {
       state: 'locked',
-      message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
-      unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+      message: '竞技场暂未解锁，完成仿真验证后会自动进入。',
+      unlockMessage: '竞技场暂未解锁，完成仿真验证后会自动进入。',
       reasonCodes: ['readiness-metadata-missing'],
       fallbackNodeIds: [],
       missingCompetencies: [],
@@ -1227,10 +1227,10 @@ const DEMO_LOCKED_NODE_PATH_ROUND = {
 const DEMO_ARENA_JOURNEY_NODE = {
   ...DEMO_CONTROL_CORRECTION_PATH_NODES[1],
   nodeId: 'arena-task:task-second-order-lead-pid',
-  title: '完成二阶系统校正 Arena 挑战',
+  title: '完成二阶系统校正竞技场挑战',
   type: 'arena_task',
   pathNodeType: 'challenge',
-  displayName: 'Arena',
+  displayName: '竞技场',
   iconKey: 'arena-task',
   evidenceBehavior: 'judged-submission',
   sourceKind: 'arena_task',
@@ -1255,7 +1255,7 @@ const DEMO_ARENA_JOURNEY_PATH_PLAN = {
 const DEMO_ARENA_JOURNEY_PATH_ROUND = {
   ...DEMO_CONTROL_CORRECTION_PATH_ROUND,
   id: 'path-arena-e2e',
-  title: 'Arena 连续学习路径',
+  title: '竞技场连续学习路径',
   currentNodeId: DEMO_ARENA_JOURNEY_NODE.nodeId,
   lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
   executions: [],
@@ -1331,8 +1331,8 @@ function recommendationConfidenceLabel(confidence: 'low' | 'medium' | 'high'): s
 
 function evidenceSourceLabel(sourceScope: EvidenceTimelineLearnerRecordSourceScope): string {
   if (sourceScope === 'interactive-lesson-submission') return '互动课程作答';
-  if (sourceScope === 'arena-official-result') return 'Arena 官方评测';
-  if (sourceScope === 'arena-preview-result') return 'Arena 预览';
+  if (sourceScope === 'arena-official-result') return '竞技场官方评测';
+  if (sourceScope === 'arena-preview-result') return '竞技场预览';
   if (sourceScope === 'simulation-workbench-completion') return '控制工作台';
   return '自适应练习';
 }
@@ -3071,7 +3071,7 @@ function getPathActivityTimeline(nodes: PathExecutionNodeView[], round: Learning
 }
 
 function buildEvidenceSourceSummary(nodes: PathExecutionNodeView[]): Array<{ label: string; count: number }> {
-  const labels = ['互动课程', '知识卡', '自适应练习', '控制工作台', '虚拟仿真', 'Arena', '外部资源', '控灵建议'];
+  const labels = ['互动课程', '知识卡', '自适应练习', '控制工作台', '虚拟仿真', '竞技场', '外部资源', '控灵建议'];
   const counts = new Map(labels.map((label) => [label, 0]));
   for (const node of nodes) if (counts.has(node.resourceLabel)) counts.set(node.resourceLabel, (counts.get(node.resourceLabel) ?? 0) + 1);
   return labels.map((label) => ({ label, count: counts.get(label) ?? 0 }));

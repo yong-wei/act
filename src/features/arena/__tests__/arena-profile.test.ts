@@ -535,7 +535,7 @@ describe('arena student portfolio', () => {
     });
     expect(portfolio.growth.nextChallenges.length).toBeGreaterThan(0);
     expect(portfolio.growth.nextChallenges.every((item) => item.evidenceLevel === 'beginner-safe')).toBe(true);
-    expect(portfolio.growth.nextChallenges[0].reason).toContain('暂无官方 Arena 提交证据');
+    expect(portfolio.growth.nextChallenges[0].reason).toContain('暂无官方竞技场提交证据');
     expect(portfolio.trainingSummary).toMatchObject({
       total: 0,
       previewCount: 0,

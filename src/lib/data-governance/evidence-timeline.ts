@@ -129,15 +129,15 @@ export function projectStudentSafeEvidenceSource(input: {
   if (sourceScope === 'arena-preview-result') {
     return {
       sourceScope,
-      summary: 'Arena 预览结果参与了该项能力判断。',
+      summary: '竞技场预览结果参与了该项能力判断。',
       nextAction: { href: '/arena', label: '提交官方评测' },
     };
   }
   if (sourceScope === 'arena-official-result') {
     return {
       sourceScope,
-      summary: 'Arena 官方评测结果参与了该项能力判断。',
-      nextAction: { href: '/arena', label: '查看 Arena 结果' },
+      summary: '竞技场官方评测结果参与了该项能力判断。',
+      nextAction: { href: '/arena', label: '查看竞技场结果' },
     };
   }
   if (sourceScope === 'simulation-workbench-completion') {

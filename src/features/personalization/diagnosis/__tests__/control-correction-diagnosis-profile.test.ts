@@ -221,7 +221,7 @@ describe('control-correction diagnosis profile', () => {
           confidence: 'high',
           updatedAt: now.toISOString(),
           provenance: { sourceModel: 'LearningFact', official: false, classId: 'class-1', materializerVersion: CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION },
-          evidenceRef: { chunkId: 'chunk-preview-arena', sourceType: 'arena-summary', title: '预览 Arena 摘要' },
+          evidenceRef: { chunkId: 'chunk-preview-arena', sourceType: 'arena-summary', title: '预览竞技场摘要' },
         },
         {
           id: 'conflict-high',

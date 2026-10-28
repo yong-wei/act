@@ -465,7 +465,7 @@ function sourceTypeLabel(sourceType: string) {
     case 'simulation':
       return '仿真记录';
     case 'arena':
-      return 'Arena';
+      return '竞技场';
     case 'intervention':
       return '干预记录';
     case 'memory':

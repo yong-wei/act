@@ -6678,7 +6678,7 @@ describe('learning path round API routes', () => {
 
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({
-      error: 'Arena 路径节点身份已修复，请使用规范节点重试',
+      error: '竞技场路径节点身份已修复，请使用规范节点重试',
       canonicalNodeId: 'arena-task:task-second-order-lead-pid',
     });
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
@@ -6875,7 +6875,7 @@ describe('learning path round API routes', () => {
 
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({
-      error: 'Arena 路径节点身份已修复，请使用规范节点重试',
+      error: '竞技场路径节点身份已修复，请使用规范节点重试',
       canonicalNodeId: `arena-task:${taskId}`,
     });
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
@@ -6949,7 +6949,7 @@ describe('learning path round API routes', () => {
 
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({
-      error: 'Arena 路径目标不可执行',
+      error: '竞技场路径目标不可执行',
       reason,
     });
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();

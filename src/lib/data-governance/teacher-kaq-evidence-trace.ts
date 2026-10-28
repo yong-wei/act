@@ -193,8 +193,8 @@ export function teacherKaqMissingCoverageLabel(type: GraphCenterResourceCoverage
     'verified-citation-resource': '缺少已校验引用',
     'assessment-resource': '缺少测评资源',
     'simulation-resource': '缺少仿真资源',
-    'arena-preview-resource': '缺少 Arena 预览',
-    'arena-official-resource': '缺少 Arena 官方验证',
+    'arena-preview-resource': '缺少竞技场预览',
+    'arena-official-resource': '缺少竞技场官方验证',
     'terminal-validation-capable-resource': '缺少终端验证能力',
   };
   return labels[type];

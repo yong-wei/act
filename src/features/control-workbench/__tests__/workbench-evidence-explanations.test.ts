@@ -40,7 +40,7 @@ describe('workbench evidence explanations', () => {
     expect(text).toContain('参考输入');
     expect(text).toContain('未校正输出');
     expect(text).toContain('校正后输出');
-    expect(text).toContain('官方评价以提交后的 Arena 评测为准');
+    expect(text).toContain('官方评价以提交后的竞技场评测为准');
     expect(text).not.toContain('官方榜单结果已确定');
   });
 
@@ -59,7 +59,7 @@ describe('workbench evidence explanations', () => {
     expect(text).toContain('实验预算');
     expect(text).toContain('学生名义模型');
     expect(text).toContain('不展示官方隐藏对象');
-    expect(text).toContain('官方评价以提交后的 Arena 评测为准');
+    expect(text).toContain('官方评价以提交后的竞技场评测为准');
     expect(text).not.toMatch(/transferFunction|numerator|denominator|hiddenScenario|target trajectory|scenario order/);
     expect(text).not.toMatch(/隐藏对象参数|目标轨迹|场景顺序|官方隐藏对象结构/);
   });

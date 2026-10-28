@@ -21,7 +21,7 @@ export const generationResourceOptions: Array<{ id: AdaptivePathResourceKind; la
   { id: 'adaptive_quiz', label: '练习' },
   { id: 'control_workbench', label: '控制工作台' },
   { id: 'simulation', label: '仿真' },
-  { id: 'arena_task', label: 'Arena' },
+  { id: 'arena_task', label: '竞技场' },
   { id: 'external_resource', label: '外部资源' },
   { id: 'konling', label: '控灵辅导' },
 ];

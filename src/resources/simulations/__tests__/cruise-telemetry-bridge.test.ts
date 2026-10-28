@@ -89,7 +89,7 @@ describe('cruise telemetry bridge', () => {
 
     expect(summary.modelRelation.arenaObjectId).toBe(CRUISE_ARENA_OBJECT_ID);
     expect(summary.modelRelation.relation.relation).toBe('simplified');
-    expect(summary.evidenceContext.boundary).toContain('Arena 官方隐藏评测指标');
+    expect(summary.evidenceContext.boundary).toContain('竞技场官方隐藏评测指标');
   });
 
   it('computes deterministic checksums from normalized summary fields', () => {

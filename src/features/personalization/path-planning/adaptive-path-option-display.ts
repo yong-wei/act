@@ -106,7 +106,7 @@ const resourceLabels: Record<string, { kind: AdaptivePathResourceKind; label: st
   quiz: { kind: 'adaptive_quiz', label: '自适应练习' },
   control_workbench: { kind: 'control_workbench', label: '控制工作台' },
   simulation: { kind: 'simulation', label: '虚拟仿真' },
-  arena_task: { kind: 'arena_task', label: 'Arena' },
+  arena_task: { kind: 'arena_task', label: '竞技场' },
   external_resource: { kind: 'external_resource', label: '外部资源' },
   reflection: { kind: 'reflection', label: '反思复盘' },
   checkpoint: { kind: 'checkpoint', label: '检查点' },
@@ -140,7 +140,7 @@ export const adaptiveStarterPathOptions: AdaptivePathOptionDisplay[] = [
     resources: [
       { kind: 'control_workbench', label: '控制工作台' },
       { kind: 'simulation', label: '虚拟仿真' },
-      { kind: 'arena_task', label: 'Arena' },
+      { kind: 'arena_task', label: '竞技场' },
       { kind: 'konling', label: '控灵辅导' },
     ],
     checkpoints: '2 个任务检查',

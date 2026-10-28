@@ -1114,7 +1114,7 @@ function candidatesFromTeacherReport(input: TeacherPrepPackInput): TeacherPrepPa
     items.push(candidate({
       input,
       itemType: 'arena-task',
-      title: 'Arena 有效提交复盘任务',
+      title: '竞技场有效提交复盘任务',
       rationale: `${arenaMetric.label} 偏低，安排一个可控范围内的提交复盘。`,
       affectedGroup: affectedGroupFromMetric(arenaMetric),
       evidenceBasis: [evidenceFromMetric(arenaMetric)],

@@ -757,7 +757,7 @@ const registry: Record<string, ResourceComponentConfig> = {
     },
     'arena-challenge-workbench': {
         id: 'arena-challenge-workbench',
-        label: 'Arena 挑战工作台课程资源',
+        label: '竞技场挑战工作台课程资源',
         type: 'SIMULATION_APP',
         defaultConfig: {
             resourceKind: 'arena-workbench',
@@ -770,7 +770,7 @@ const registry: Record<string, ResourceComponentConfig> = {
     },
     'arena-cruise-blackbox-workbench': {
         id: 'arena-cruise-blackbox-workbench',
-        label: '邮轮黑箱辨识 Arena 课程资源',
+        label: '邮轮黑箱辨识竞技场课程资源',
         type: 'SIMULATION_APP',
         defaultConfig: {
             resourceKind: 'arena-workbench',

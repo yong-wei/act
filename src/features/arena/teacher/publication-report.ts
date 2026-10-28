@@ -229,7 +229,7 @@ function buildEvidenceWritebackSummary(
     blockedCount: writebacks.filter((writeback) => writeback.status === 'blocked').length,
     terminalValidationAcceptedCount: writebacks.filter((writeback) => writeback.terminalValidationAccepted).length,
     latestLimitationCodes,
-    studentVisibleRule: '学生侧显示官方 ArenaSubmission 证据回流状态；迟交、零分和无效尝试只保留诊断证据。',
+    studentVisibleRule: '学生侧显示竞技场官方提交的证据回流状态；迟交、零分和无效尝试只保留诊断证据。',
     teacherRecoveryRule: '教师报告保留限制代码；可要求学生重新提交有效官方结果，或由管理员补充 KAQ 目标绑定后重试。',
   };
 }
@@ -242,9 +242,9 @@ function formatDateLabel(value: string): string {
 }
 
 function buildPublicationContext(publication: ArenaPublicationReportPublication): ArenaPublicationReport['publicationContext'] {
-  const taskTitle = getArenaChallengeTask(publication.taskId)?.title ?? '未命名 Arena 任务';
+  const taskTitle = getArenaChallengeTask(publication.taskId)?.title ?? '未命名竞技场任务';
   const assignmentTitle = publication.context?.assignmentTitle ?? (
-    publication.visibility === 'class' ? '班级 Arena 发布' : '课程 Arena 发布'
+    publication.visibility === 'class' ? '班级竞技场发布' : '课程竞技场发布'
   );
   const classTitle = publication.context?.classTitle ?? (
     publication.visibility === 'public'
@@ -255,7 +255,7 @@ function buildPublicationContext(publication: ArenaPublicationReportPublication)
   );
   const teacherLabel = publication.context?.teacherName ?? '教师发布';
   const sourceLabel = publication.context?.sourceLabel ?? (
-    publication.visibility === 'public' ? '公开 Arena' : '课堂发布'
+    publication.visibility === 'public' ? '公开竞技场' : '课堂发布'
   );
 
   return {
@@ -299,7 +299,7 @@ function buildLifecycle(
       state: 'active',
       tone: 'success',
       primaryLabel: '进行中',
-      detail: '学生仍可在截止前提交官方 Arena 结果。',
+      detail: '学生仍可在截止前提交官方竞技场结果。',
       actionLabel: '查看挑战',
     };
   }
@@ -330,7 +330,7 @@ function buildLeaderboardBoundary(
       sourceLabel: '公开全局榜单',
       rankingSource: 'ArenaSubmission',
       attemptPolicy: 'best-effective-attempt',
-      explanation: '公开榜单只使用服务端 ArenaSubmission 官方记录；LearningFact 仅作辅助学习证据。',
+      explanation: '公开榜单只使用服务端记录的竞技场官方提交；学习记录仅作辅助学习证据。',
     };
   }
   if (publication.visibility === 'course') {
@@ -339,7 +339,7 @@ function buildLeaderboardBoundary(
       sourceLabel: '课程任务榜单',
       rankingSource: 'ArenaSubmission',
       attemptPolicy: 'best-effective-attempt',
-      explanation: '课程任务榜单按本发布的 ArenaSubmission 聚合，迟交、零分和无效尝试遵循提交口径说明。',
+      explanation: '课程任务榜单按本发布的竞技场官方提交聚合，迟交、零分和无效尝试遵循提交口径说明。',
     };
   }
   return {
@@ -347,7 +347,7 @@ function buildLeaderboardBoundary(
     sourceLabel: '班级发布榜单',
     rankingSource: 'ArenaSubmission',
     attemptPolicy: 'best-effective-attempt',
-    explanation: '班级榜单限定本发布与本班级的 ArenaSubmission；LearningFact Arena 上下文不能生成正式排名。',
+    explanation: '班级榜单限定本发布与本班级的竞技场官方提交；学习记录中的竞技场上下文不能生成正式排名。',
   };
 }
 

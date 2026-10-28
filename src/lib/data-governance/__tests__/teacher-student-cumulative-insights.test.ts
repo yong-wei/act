@@ -96,7 +96,7 @@ function cumulativePortrait() {
                   displayGroup: 'Arena',
                   completedTaskCount: 1,
                   relatedTaskCount: 1,
-                  tasks: [{ taskKey: 'arena-1', displayName: 'Arena 任务', completed: true }],
+                  tasks: [{ taskKey: 'arena-1', displayName: '竞技场任务', completed: true }],
                 }, {
                   source: 'simulation',
                   displayGroup: '虚拟仿真',

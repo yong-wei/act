@@ -8720,7 +8720,7 @@ export async function createGovernedKonlingIntervention(
   input: KonlingInterventionInput,
 ): Promise<KonlingInterventionRecord> {
   if (input.arenaContext || isClientAuthoredArenaCompanionScope(input.scope)) {
-    throw new Error('Arena 受治理干预不能由客户端尝试状态创建');
+    throw new Error('竞技场受治理干预不能由客户端尝试状态创建');
   }
   const now = input.now ?? new Date();
   const interventionSessionId = buildKonlingInterventionSessionId(input.scope, input.arenaContext);
@@ -10081,7 +10081,7 @@ function buildSimulationArenaCitations(simulationArena: Record<string, unknown>)
     return {
       id: `${source}:${getString(ref, 'factId') || getString(ref, 'traceReference')}`,
       sourceType: source,
-      displayTitle: source === 'arena' ? 'Arena 迁移证据' : '仿真运行证据',
+      displayTitle: source === 'arena' ? '竞技场迁移证据' : '仿真运行证据',
       href: null,
       confidence: readRecord(getValue(allTime, 'replayConfidence')).lowConfidenceCount ? 'low' : 'medium',
       evidenceBasis: getString(ref, 'traceReference') || 'StudentEvidenceFeatureCache',
@@ -10089,7 +10089,7 @@ function buildSimulationArenaCitations(simulationArena: Record<string, unknown>)
       citationChip: buildKonlingCitationChip({
         id: `${source}:${getString(ref, 'factId') || getString(ref, 'traceReference')}`,
         sourceType: source,
-        displayTitle: source === 'arena' ? 'Arena 迁移证据' : '仿真运行证据',
+        displayTitle: source === 'arena' ? '竞技场迁移证据' : '仿真运行证据',
         href: null,
         confidence: readRecord(getValue(allTime, 'replayConfidence')).lowConfidenceCount ? 'low' : 'medium',
       }),
@@ -10524,7 +10524,7 @@ const CITATION_MISSING_CLASS_LABELS: Record<string, string> = {
   'path-execution': '学习路径',
   evidence: '学习证据',
   simulation: '仿真记录',
-  arena: 'Arena',
+  arena: '竞技场',
   intervention: '干预记录',
   memory: '记忆摘要',
 };

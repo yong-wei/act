@@ -259,7 +259,7 @@ describe('arena student entry UI boundaries', () => {
         sourceLabel: '课堂发布',
         deadlineLabel: '2026年6月1日 16:00',
         lifecycleLabel: '进行中',
-        leaderboardBoundary: '班级榜单只统计本发布的 ArenaSubmission 官方提交。',
+        leaderboardBoundary: '班级榜单只统计本发布的竞技场官方提交。',
       },
     }));
 
@@ -268,17 +268,17 @@ describe('arena student entry UI boundaries', () => {
     expect(html).toContain('自动控制 2026 级 1 班');
     expect(html).toContain('张老师');
     expect(html).toContain('截止 2026年6月1日 16:00');
-    expect(html).toContain('班级榜单只统计本发布的 ArenaSubmission 官方提交。');
+    expect(html).toContain('班级榜单只统计本发布的竞技场官方提交。');
   });
 
   it('keeps student publication leaderboard source wording aligned with public visibility', () => {
     const pageSource = readRepoFile('src/app/arena/challenges/[taskId]/page.tsx');
 
     expect(pageSource).toContain("publication.studentVisibility === 'public'");
-    expect(pageSource).toContain("publicationContext.visibility === 'public' ? '公开 Arena 挑战'");
+    expect(pageSource).toContain("publicationContext.visibility === 'public' ? '公开竞技场挑战'");
     expect(pageSource).toContain("? '公开挑战'");
-    expect(pageSource).toContain("publicationContext.visibility === 'public' ? '公开 Arena'");
-    expect(pageSource).toContain('公开榜单只统计服务端 ArenaSubmission 官方提交');
+    expect(pageSource).toContain("publicationContext.visibility === 'public' ? '公开竞技场'");
+    expect(pageSource).toContain('公开榜单只统计服务端记录的竞技场官方提交');
   });
 
   it('renders the Arena hall as a capability training map with existing filters', () => {

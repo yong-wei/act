@@ -31,7 +31,7 @@ function SubmissionHarness() {
 
 function pendingJourney() {
   return {
-    path: { id: 'path-arena', title: 'Arena 校正路径' },
+    path: { id: 'path-arena', title: '竞技场校正路径' },
     goal: { id: 'control-correction' },
     context: {
       pathId: 'path-arena',
@@ -40,7 +40,7 @@ function pendingJourney() {
     },
     current: {
       nodeId: 'arena-task:task-second-order-lead-pid',
-      title: '完成 Arena 挑战',
+      title: '完成竞技场挑战',
       type: 'arena_task',
     },
     progress: { completed: 1, total: 2 },
@@ -52,7 +52,7 @@ function pendingJourney() {
     nextAction: {
       state: 'pending-result',
       nodeId: 'arena-task:task-second-order-lead-pid',
-      title: '完成 Arena 挑战',
+      title: '完成竞技场挑战',
       type: 'arena_task',
       href: null,
       reason: '结果正在同步，完成绑定后即可继续。',
@@ -86,7 +86,7 @@ describe('Arena path completion client', () => {
     const journeyUpdated = vi.fn();
     window.addEventListener('adaptive-path:journey-updated', journeyUpdated);
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
-      error: 'Arena 结果尚未满足路径完成条件',
+      error: '竞技场结果尚未满足路径完成条件',
       state: 'pending-result',
       journey: pendingJourney(),
     }), { status: 409, headers: { 'Content-Type': 'application/json' } })));

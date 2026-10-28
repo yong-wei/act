@@ -354,11 +354,11 @@ export function ChallengeDetail({
             <section className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="support-drawer">
               <h2 className="text-lg font-semibold text-foreground">支持与说明</h2>
               <p className="mt-2 text-sm leading-6 text-subtle">
-                任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的专业工作区层级。
+                任务上下文、榜单状态和工作台入口来自竞技场域数据；页面只组织挑战详情的专业工作区层级。
               </p>
             </section>
             <div className="sr-only" data-task-workspace-zone="floating-dock-safe-area">
-              Arena 挑战入口避让全局浮动控件、榜单筛选和主工作台 CTA。
+              竞技场挑战入口避让全局浮动控件、榜单筛选和主工作台 CTA。
             </div>
           </aside>
         </div>

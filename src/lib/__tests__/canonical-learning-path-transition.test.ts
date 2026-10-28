@@ -713,7 +713,7 @@ describe('canonical learning path transition — mutation fail-closed', () => {
         },
         {
           nodeId: 'arena-task:task-second-order-lead-pid',
-          title: '二阶对象超前校正 Arena',
+          title: '二阶对象超前校正竞技场',
           type: 'arena_task',
           ...pathNodeSemantics('arena_task'),
           sourceKind: 'arena_task',

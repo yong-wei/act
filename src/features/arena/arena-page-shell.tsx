@@ -39,7 +39,7 @@ export function ArenaPageShell({
   breadcrumbs,
   activePath,
   title = '竞技场',
-  subtitle = 'Arena workspace',
+  subtitle = '竞技场工作区',
   actions,
   children,
 }: ArenaPageShellProps) {

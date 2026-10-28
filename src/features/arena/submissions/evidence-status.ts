@@ -9,7 +9,7 @@ import {
   type PersonalizationArenaOfficialTarget,
 } from '@/features/personalization/plugins/public-api';
 
-export const GENERIC_ARENA_OFFICIAL_TARGET_LABEL = 'Arena 官方提交';
+export const GENERIC_ARENA_OFFICIAL_TARGET_LABEL = '竞技场官方提交';
 
 export function resolveArenaOfficialTarget(
   taskId: string,

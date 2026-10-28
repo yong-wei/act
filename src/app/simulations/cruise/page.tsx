@@ -134,7 +134,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
         <details className="text-xs leading-5 text-platform-fg-secondary" data-commercial-workspace-zone="support-drawer">
           <summary className="cursor-pointer font-semibold text-platform-fg-primary">支持与证据状态</summary>
           <p className="mt-2">
-            仿真模型、回放、Arena 预览和官方评价边界由场景与 Arena 域提供；当前无可回放记录时以预览或不可用状态呈现。
+            仿真模型、回放、竞技场预览和官方评价边界由场景与竞技场域提供；当前无可回放记录时以预览或不可用状态呈现。
           </p>
         </details>
       )}

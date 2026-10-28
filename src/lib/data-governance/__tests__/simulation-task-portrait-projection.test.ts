@@ -23,7 +23,7 @@ const catalog: SimulationTaskCatalogEntry[] = [
       kind: 'arena-accepted-submission',
       predicateId: 'predicate-a',
     },
-    displayGroup: 'Arena 挑战',
+    displayGroup: '竞技场挑战',
   },
   {
     taskKey: 'odyssey:level-a',

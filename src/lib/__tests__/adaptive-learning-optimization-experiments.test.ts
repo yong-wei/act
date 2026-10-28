@@ -299,7 +299,7 @@ describe('adaptive learning optimization experiments', () => {
       status: 'locked',
       readiness: expect.objectContaining({
         state: 'locked',
-        unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+        unlockMessage: '竞技场暂未解锁，完成仿真验证后会自动进入。',
       }),
     });
     expect(plan.policyBundle?.paths[0]).toMatchObject({
@@ -311,13 +311,13 @@ describe('adaptive learning optimization experiments', () => {
       readinessSummary: expect.arrayContaining([
         expect.objectContaining({
           nodeId: 'arena-task:task-second-order-lead-pid',
-          message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+          message: '竞技场暂未解锁，完成仿真验证后会自动进入。',
         }),
       ]),
       unlockMessages: expect.arrayContaining([
         expect.objectContaining({
           nodeId: 'arena-task:task-second-order-lead-pid',
-          message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+          message: '竞技场暂未解锁，完成仿真验证后会自动进入。',
         }),
       ]),
     });

@@ -107,7 +107,7 @@ const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
     },
     'arena-challenge-workbench': {
         id: 'arena-challenge-workbench',
-        label: 'Arena 挑战工作台课程资源',
+        label: '竞技场挑战工作台课程资源',
         type: 'SIMULATION_APP',
         launchTarget: '/arena/challenges/task-second-order-lead-pid',
         defaultConfig: {
@@ -123,7 +123,7 @@ const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
     },
     'arena-cruise-blackbox-workbench': {
         id: 'arena-cruise-blackbox-workbench',
-        label: '邮轮黑箱辨识 Arena 课程资源',
+        label: '邮轮黑箱辨识竞技场课程资源',
         type: 'SIMULATION_APP',
         launchTarget: '/arena/challenges/task-cruise-roll-blackbox-identification',
         defaultConfig: {
@@ -1854,7 +1854,7 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             pathDisposition: {
                 kind: 'path-plannable',
                 reviewStatus: 'human-confirmed',
-                rationale: '已核验二阶超前校正 Arena 的规范任务身份、启动路由、证据契约与终端校验职责。',
+                rationale: '已核验二阶超前校正竞技场的规范任务身份、启动路由、证据契约与终端校验职责。',
                 sourceFamily: 'arena_task',
                 stableSourceRef: 'task-second-order-lead-pid',
                 sourceVersionRef: 'arena-path-target-integrity.v1',
@@ -1868,7 +1868,7 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
                 minimumEvidenceCount: 2,
                 requiredCompletedNodeIds: ['registry:lesson09-summary-card'],
                 requiredOutcomeRefs: ['simulation_run:lesson09-time-domain-synthesis'],
-                unlockMessage: '先完成至少一次可复核的仿真验证，再进入 Arena 终点校验。',
+                unlockMessage: '先完成至少一次可复核的仿真验证，再进入竞技场终点校验。',
                 fallbackNodeIds: ['registry:lesson09-summary-card']
             },
             abilityImpact: { crossDomainTransfer: 0.3, engineeringDecision: 0.24, parameterDesign: 0.18 }
@@ -1885,7 +1885,7 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             pathDisposition: {
                 kind: 'path-plannable',
                 reviewStatus: 'human-confirmed',
-                rationale: '已核验邮轮黑箱 Arena 的规范任务身份、启动路由、证据契约与有界补救入口。',
+                rationale: '已核验邮轮黑箱竞技场的规范任务身份、启动路由、证据契约与有界补救入口。',
                 sourceFamily: 'arena_task',
                 stableSourceRef: 'task-cruise-roll-blackbox-identification',
                 sourceVersionRef: 'arena-path-target-integrity.v1',
@@ -1899,7 +1899,7 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
                 minimumEvidenceCount: 2,
                 requiredCompletedNodeIds: [],
                 requiredOutcomeRefs: [],
-                unlockMessage: '先完成串联校正预检并补充对象建模与仿真证据，再进入邮轮黑箱 Arena 终点校验。',
+                unlockMessage: '先完成串联校正预检并补充对象建模与仿真证据，再进入邮轮黑箱竞技场终点校验。',
                 fallbackNodeIds: ['registry:lesson15-series-precheck']
             },
             abilityImpact: { crossDomainTransfer: 0.32, engineeringDecision: 0.24, controlModeling: 0.18 }

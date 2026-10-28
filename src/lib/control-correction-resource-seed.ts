@@ -141,7 +141,7 @@ export function buildControlCorrectionResourceSeedInput(
     arenaTasks: [
       {
         id: 'task-second-order-lead-pid',
-        title: '二阶对象超前校正 Arena',
+        title: '二阶对象超前校正竞技场',
         launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: [
           CONTROL_CORRECTION_KNOWLEDGE.arena,
@@ -163,7 +163,7 @@ export function buildControlCorrectionResourceSeedInput(
             minimumEvidenceCount: 3,
             requiredCompletedNodeIds: ['simulation:control-correction-step-response-lab'],
             requiredOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
-            unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+            unlockMessage: '竞技场暂未解锁，完成仿真验证后会自动进入。',
             fallbackNodeIds: [
               'simulation:control-correction-step-response-lab',
               'registry:lesson09-correction-precheck',

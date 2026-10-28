@@ -33,12 +33,12 @@ function formatPublicationDeadline(value: string): string {
 
 function buildStudentLeaderboardBoundary(publication: ArenaResolvedSubmissionContext): string {
   if (publication.visibility === 'public' || publication.studentVisibility === 'public') {
-    return '公开榜单只统计服务端 ArenaSubmission 官方提交；LearningFact 仅作为学习证据。';
+    return '公开榜单只统计服务端记录的竞技场官方提交；学习记录仅作为学习证据。';
   }
   if (publication.visibility === 'course') {
-    return '课程任务榜单只统计本发布的 ArenaSubmission 官方提交，迟交、零分和无效尝试按提交口径处理。';
+    return '课程任务榜单只统计本发布的竞技场官方提交，迟交、零分和无效尝试按提交口径处理。';
   }
-  return '班级榜单只统计本发布的 ArenaSubmission 官方提交。';
+  return '班级榜单只统计本发布的竞技场官方提交。';
 }
 
 export default async function ArenaChallengePage(
@@ -55,12 +55,12 @@ export default async function ArenaChallengePage(
       <ArenaRouteRecovery
         kind="invalid-object-route"
         sourceRoute="/arena/challenges/[taskId]"
-        targetLabel="Arena 挑战"
+        targetLabel="竞技场挑战"
         displayReference={params.taskId}
-        message="Arena 挑战链接无法识别。"
-        recoveryAction="返回 Arena 挑战列表并重新选择任务"
+        message="竞技场挑战链接无法识别。"
+        recoveryAction="返回竞技场挑战列表并重新选择任务"
         primaryHref="/arena"
-        primaryLabel="返回 Arena"
+        primaryLabel="返回竞技场"
         surface="challenge-task"
       />
     );
@@ -81,12 +81,12 @@ export default async function ArenaChallengePage(
       <ArenaRouteRecovery
         kind="missing-object"
         sourceRoute="/arena/challenges/[taskId]"
-        targetLabel="Arena 挑战配置"
+        targetLabel="竞技场挑战配置"
         displayReference={params.taskId}
-        message="Arena 挑战配置缺少对象、指标或榜单策略。"
-        recoveryAction="返回 Arena 挑战列表并选择其他任务"
+        message="竞技场挑战配置缺少对象、指标或榜单策略。"
+        recoveryAction="返回竞技场挑战列表并选择其他任务"
         primaryHref="/arena"
-        primaryLabel="返回 Arena"
+        primaryLabel="返回竞技场"
         surface="challenge-config"
       />
     );
@@ -104,10 +104,10 @@ export default async function ArenaChallengePage(
         <ArenaRouteRecovery
           kind="permission-boundary"
           sourceRoute="/arena/challenges/[taskId]?publicationId"
-          targetLabel="Arena 发布挑战"
+          targetLabel="竞技场发布挑战"
           displayReference={publicationId}
-          message="请使用有权限的学生账号打开该 Arena 发布挑战。"
-          recoveryAction="登录学生账号或返回 Arena 挑战列表"
+          message="请使用有权限的学生账号打开该竞技场发布挑战。"
+          recoveryAction="登录学生账号或返回竞技场挑战列表"
           primaryHref={session?.user?.id ? '/dashboard' : buildLoginRedirectForPath(publicationPath)}
           primaryLabel={session?.user?.id ? '返回工作台' : '去登录'}
           surface="student-publication-permission"
@@ -129,7 +129,7 @@ export default async function ArenaChallengePage(
             leaderboardPolicyId: task.leaderboardPolicyId,
             gradingPolicy: { hideFullLeaderboardBeforeDeadline: false },
             displayContext: {
-              assignmentTitle: '路径 Arena 验收发布',
+              assignmentTitle: '路径竞技场验收发布',
               classTitle: '路径验收班级',
               teacherName: '验收教师',
               sourceLabel: '受控 Playwright fixture',
@@ -148,11 +148,11 @@ export default async function ArenaChallengePage(
           <ArenaRouteRecovery
             kind="missing-object"
             sourceRoute="/arena/challenges/[taskId]?publicationId"
-            targetLabel="Arena 发布挑战"
-            message="Arena 发布挑战不存在或当前账号不可见。"
-            recoveryAction="返回 Arena 挑战列表并从可见发布入口重新进入"
+            targetLabel="竞技场发布挑战"
+            message="竞技场发布挑战不存在或当前账号不可见。"
+            recoveryAction="返回竞技场挑战列表并从可见发布入口重新进入"
             primaryHref="/arena"
-            primaryLabel="返回 Arena"
+            primaryLabel="返回竞技场"
             surface="student-publication-access"
           />
         );
@@ -210,7 +210,7 @@ export default async function ArenaChallengePage(
       pathContext={pathContext ?? undefined}
       publicationContext={publicationContext ? {
         assignmentTitle: publicationContext.displayContext?.assignmentTitle ?? (
-          publicationContext.visibility === 'public' ? '公开 Arena 挑战' : 'Arena 发布挑战'
+          publicationContext.visibility === 'public' ? '公开竞技场挑战' : '竞技场发布挑战'
         ),
         classTitle: publicationContext.displayContext?.classTitle ?? (
           publicationContext.visibility === 'public'
@@ -221,7 +221,7 @@ export default async function ArenaChallengePage(
         ),
         teacherLabel: publicationContext.displayContext?.teacherName ?? '教师发布',
         sourceLabel: publicationContext.displayContext?.sourceLabel ?? (
-          publicationContext.visibility === 'public' ? '公开 Arena' : '课堂发布'
+          publicationContext.visibility === 'public' ? '公开竞技场' : '课堂发布'
         ),
         deadlineLabel: formatPublicationDeadline(publicationContext.deadline),
         lifecycleLabel: publicationContext.isLate ? '已截止' : '进行中',

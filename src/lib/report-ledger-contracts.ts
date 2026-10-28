@@ -39,7 +39,7 @@ export const REPORT_LEDGER_ARCHETYPE_RULES: ReportLedgerArchetypeRule[] = [
   },
   {
     category: 'arena',
-    title: 'Arena 结果报告',
+    title: '竞技场结果报告',
     watermark: 'low-contrast-brand',
     privacyScope: 'teacher-review',
     requiredLabels: REPORT_LEDGER_REQUIRED_LABELS,

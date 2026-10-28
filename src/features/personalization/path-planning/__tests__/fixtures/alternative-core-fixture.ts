@@ -155,7 +155,7 @@ export function buildAlternativeCoreFixtureRegistry(): ResourceNodeRegistry {
     arenaTasks: [
       {
         id: 'task-second-order-lead-pid',
-        title: '校正 Arena',
+        title: '校正竞技场',
         launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: [
           'control-correction:simulation-validation',
@@ -178,7 +178,7 @@ export function buildAlternativeCoreFixtureRegistry(): ResourceNodeRegistry {
             minimumEvidenceCount: 0,
             requiredCompletedNodeIds: ['registry:correction-precheck'],
             requiredOutcomeRefs: [],
-            unlockMessage: '完成前测后进入 Arena',
+            unlockMessage: '完成前测后进入竞技场',
             fallbackNodeIds: ['registry:correction-precheck'],
           },
         },

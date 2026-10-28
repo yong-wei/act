@@ -91,8 +91,8 @@ function acceptedTeacherWriteback(record: ArenaSubmissionRecord): NonNullable<Ar
     sourceRef: { kind: 'ArenaSubmission', id: record.id },
     attemptStatus: 'effective',
     visibilityState: 'materialized',
-    targetLabel: '控制校正 Arena 官方迁移验证',
-    summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+    targetLabel: '控制校正竞技场官方迁移验证',
+    summary: '官方竞技场结果已写入学生证据时间线，并可作为终端验证证据。',
     recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
     limitationCodes: [],
     overlayCount: 1,
@@ -976,7 +976,7 @@ describe('arena publication report route', () => {
     expect(pageSource).toContain('<EmbeddedArenaRouteRecovery');
     expect(pageSource).toContain('surface="teacher-publication-report"');
     expect(pageSource).toContain("sourceRoute=\"/teacher/arena/publications/[publicationId]\"");
-    expect(pageSource).toContain('Arena 发布报告不存在或当前账号不可见。');
+    expect(pageSource).toContain('竞技场发布报告不存在或当前账号不可见。');
     const reportRecoverySource = pageSource.slice(pageSource.indexOf('error instanceof ArenaPublicationPermissionError'));
     expect(reportRecoverySource).not.toContain('displayReference={params.publicationId}');
     expect(pageSource).not.toContain('notFound()');

@@ -915,7 +915,7 @@ export async function submitGameScore(
           actionError: {
             code: 'ODYSSEY_REPLAY_SNAPSHOT_INCOMPLETE',
             status: 409,
-            message: '该历史运行缺少完整的官方重放快照，无法恢复 Arena 提交。',
+            message: '该历史运行缺少完整的官方重放快照，无法恢复竞技场提交。',
           },
         };
       }
@@ -927,7 +927,7 @@ export async function submitGameScore(
       if (!officialMetrics) try {
         if (verifiedRun) {
           if (verifiedRun.trace.changes.some(change => change.config.controlMode !== 'AUTO' || change.command !== 0)) {
-            throw new Error('此运行包含手动操作，不能作为 Arena 官方成绩。');
+            throw new Error('此运行包含手动操作，不能作为竞技场官方成绩。');
           }
           officialMetrics = { ...verifiedRun.metrics, officialTelemetrySource: 'server-rust-simulation' };
         } else {

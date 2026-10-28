@@ -643,7 +643,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(displays[0].writeOption).toBe(options[0]);
     expect(displays[1].writeOption).toBe(options[1]);
     expect(displays[0].id).toBe('rules-plus-graph-search-route');
-    expect(displays[0].resources.map((resource) => resource.label)).toEqual(['知识卡', 'Arena']);
+    expect(displays[0].resources.map((resource) => resource.label)).toEqual(['知识卡', '竞技场']);
     expect(displays[0].recommendationProvenance).toBe(options[0].recommendationProvenance);
     expect(displays[1].recommendationProvenance).toBeUndefined();
     expect(displays[1].readiness).toBe('包含后续解锁节点');
@@ -672,7 +672,7 @@ describe('adaptive learning center UI contracts', () => {
       },
       {
         optionId: 'path-option-2',
-        label: '仿真与 Arena 冲刺',
+        label: '仿真与竞技场冲刺',
         lockedNodeIds: [],
         readinessSummary: [],
         targetDeficits: [],
@@ -706,7 +706,7 @@ describe('adaptive learning center UI contracts', () => {
     ]);
     expect(displays.map((display) => display.title)).toEqual([
       '基础补救',
-      '仿真与 Arena 冲刺',
+      '仿真与竞技场冲刺',
       '偏好匹配路线',
     ]);
   });
@@ -817,7 +817,7 @@ describe('adaptive learning center UI contracts', () => {
           { nodeId: 'quiz:locked', title: '相位裕度练习', pathNodeType: 'adaptive_quiz', estimatedTimeMinutes: 12, status: 'locked' },
           { nodeId: 'simulation:unique', title: '校正仿真', pathNodeType: 'simulation', estimatedTimeMinutes: 18, status: 'next' },
           { nodeId: 'checkpoint:review', title: '阶段检查', pathNodeType: 'checkpoint', estimatedTimeMinutes: 6, status: 'next' },
-          { nodeId: 'arena:final', title: 'Arena 验证', pathNodeType: 'arena_task', estimatedTimeMinutes: 25, status: 'next' },
+          { nodeId: 'arena:final', title: '竞技场验证', pathNodeType: 'arena_task', estimatedTimeMinutes: 25, status: 'next' },
           { nodeId: 'textbook:unique', title: '相位裕度教材节', pathNodeType: 'textbook_section', estimatedTimeMinutes: 10, status: 'next' },
         ],
         lockedNodeIds: ['quiz:locked'],
@@ -828,7 +828,7 @@ describe('adaptive learning center UI contracts', () => {
         effort: { estimatedMinutes: 69, relative: 'medium' },
         expectedTargetLift: 1.2,
         terminalValidationNodeIds: ['arena:final'],
-        terminalValidationStrategy: { summary: 'Arena 验证' },
+        terminalValidationStrategy: { summary: '竞技场验证' },
         limitations: [],
       },
       {
@@ -863,7 +863,7 @@ describe('adaptive learning center UI contracts', () => {
       '相位裕度练习',
       '校正仿真',
       '阶段检查',
-      'Arena 验证',
+      '竞技场验证',
       '相位裕度教材节',
     ]);
     expect(foundationNodes?.[0]).toMatchObject({ comparisonLabel: '所有方案均包含', statusLabel: '建议从这里开始' });
@@ -964,7 +964,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('返回成长中心');
     expect(source).toContain('缺失来源');
     expect(source).toContain('formatLearnerRecordMissingSource');
-    expect(source).toContain('缺少官方 Arena 结果');
+    expect(source).toContain('缺少官方竞技场结果');
     expect(source).toContain('受限详情已隐藏');
     expect(legacyTeacherEvidence).toContain('/teacher/classes');
     expect(legacyTeacherEvidence).toContain('/students/');
@@ -1349,7 +1349,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(timelineSource).toContain('自适应练习');
     expect(timelineSource).toContain('控制工作台');
     expect(timelineSource).toContain('虚拟仿真');
-    expect(timelineSource).toContain('Arena');
+    expect(timelineSource).toContain('竞技场');
     expect(timelineSource).toContain('外部资源');
     expect(timelineSource).toContain('控灵建议');
     expect(timelineSource).toContain('知识卡');
@@ -1561,7 +1561,7 @@ describe('adaptive learning center UI contracts', () => {
         {
           ...baseNode,
           nodeId: 'arena-task:task-second-order-lead-pid',
-          title: '二阶对象超前校正 Arena',
+          title: '二阶对象超前校正竞技场',
           type: 'arena_task',
           ...pathNodeSemantics('arena_task'),
           sourceKind: 'arena_task',
@@ -1573,8 +1573,8 @@ describe('adaptive learning center UI contracts', () => {
           status: 'locked',
           readiness: {
             state: 'locked',
-            message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
-            unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+            message: '竞技场暂未解锁，完成仿真验证后会自动进入。',
+            unlockMessage: '竞技场暂未解锁，完成仿真验证后会自动进入。',
             reasonCodes: ['readiness-minimum-competency'],
             fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
             missingCompetencies: ['controlModeling'],
@@ -1590,7 +1590,7 @@ describe('adaptive learning center UI contracts', () => {
       nodeId: 'arena-task:task-second-order-lead-pid',
       state: 'locked',
       statusLabel: '稍后解锁',
-      unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+      unlockMessage: '竞技场暂未解锁，完成仿真验证后会自动进入。',
     });
     expect(nodes[1].action).toBeUndefined();
   });
@@ -1728,7 +1728,7 @@ describe('adaptive learning center UI contracts', () => {
       {
         ...mainPathNode,
         nodeId: 'arena-task:terminal',
-        title: '终端 Arena',
+        title: '终端竞技场',
         prerequisiteNodeIds: ['knowledge-card:targets'],
         status: 'locked',
         readiness: {
@@ -1807,9 +1807,9 @@ describe('adaptive learning center UI contracts', () => {
                 },
                 {
                   nodeId: 'arena-task:terminal',
-                  title: '终端 Arena',
+                  title: '终端竞技场',
                   pathNodeType: 'arena_task',
-                  displayName: 'Arena 挑战',
+                  displayName: '竞技场挑战',
                   iconKey: 'arena',
                   shapeHint: 'challenge',
                   evidenceBehavior: 'judged_submission',

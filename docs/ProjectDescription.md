@@ -98,6 +98,8 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 
 平台 UI 正在从分散页面改为以 `AppShell`、角色导航、证据状态组件和页面族治理为主的统一壳层。核心文件包括 `src/components/platform/app-shell.tsx`、`src/components/platform/platform-ui-contracts.ts`、`src/components/platform/status-and-evidence.tsx`、`src/components/platform/visual-world-assets.ts` 和 `src/lib/platform-role-navigation.ts`。
 
+控制竞技场在学生、教师、管理员中文文案中统一称为“竞技场”，`src/lib/__tests__/arena-display-name.test.ts` 守卫产品源码中不再出现含中文的 Arena 字样；路由、模型名与标识符不变，按内容哈希冻结审核的检查点与终结验证题干暂保留原文，待重新审核后再改。
+
 统一壳层当前覆盖教师/管理员数据中心、教师治理工作台、任务空间、Arena/控制工作台入口和若干课程入口。`AppShell` 在测试中会被纯函数调用，因此顶层不能直接引入会依赖运行时 hook 的逻辑；需要运行态上下文时，应放到子组件或可选上下文边界内。
 
 AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收起态为 72px 图标栏，收起链接使用注册图标并保留 aria/title 标签，不显示首字截断文本。`artifacts/commercial-ui/app-shell-collapsed-navigation-413/` 保存 `/arena` 与 `/interactive-learning/control-workbench` 的 light/dark、展开/收起/移动证据，`appShellNavigationContract: collapsed-icon-rail` 由商业 UI 治理门禁校验。

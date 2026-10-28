@@ -82,10 +82,10 @@ export function SimulationCourseResource(props: SimulationCourseResourceProps) {
     return () => channel.close();
   }, [completionChannelId, config.resourceKind, config.sceneId]);
   const title = config.resourceKind === 'arena-workbench'
-    ? 'Arena 挑战工作台'
+    ? '竞技场挑战工作台'
     : config.scene?.label ?? '虚拟仿真资源';
   const description = config.resourceKind === 'arena-workbench'
-    ? '从课程环节进入 Arena 挑战，保留课堂、班级与发布上下文。'
+    ? '从课程环节进入竞技场挑战，保留课堂、班级与发布上下文。'
     : '从课程环节进入虚拟仿真场景，保留课堂、班级与资源上下文。';
 
   const recordLaunch = () => {

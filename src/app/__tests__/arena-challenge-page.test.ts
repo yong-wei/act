@@ -112,7 +112,7 @@ describe('ArenaChallengePage publication context', () => {
     expect(element.props).toMatchObject({
       kind: 'permission-boundary',
       sourceRoute: '/arena/challenges/[taskId]?publicationId',
-      targetLabel: 'Arena 发布挑战',
+      targetLabel: '竞技场发布挑战',
       displayReference: 'publication-1',
       primaryHref: `/login?callbackUrl=${encodeURIComponent(`/arena/challenges/${taskId}?publicationId=publication-1`)}`,
       surface: 'student-publication-permission',
@@ -129,7 +129,7 @@ describe('ArenaChallengePage publication context', () => {
     expect(element.props).toMatchObject({
       kind: 'invalid-object-route',
       sourceRoute: '/arena/challenges/[taskId]',
-      targetLabel: 'Arena 挑战',
+      targetLabel: '竞技场挑战',
       displayReference: 'not-a-real-task',
       surface: 'challenge-task',
     });
@@ -149,7 +149,7 @@ describe('ArenaChallengePage publication context', () => {
     expect(element.props).toMatchObject({
       kind: 'missing-object',
       sourceRoute: '/arena/challenges/[taskId]?publicationId',
-      targetLabel: 'Arena 发布挑战',
+      targetLabel: '竞技场发布挑战',
       surface: 'student-publication-access',
     });
     expect(element.props).not.toHaveProperty('displayReference');
@@ -172,7 +172,7 @@ describe('ArenaChallengePage publication context', () => {
 
       expect(element.props).toMatchObject({
         kind: 'missing-object',
-        message: 'Arena 发布挑战不存在或当前账号不可见。',
+        message: '竞技场发布挑战不存在或当前账号不可见。',
         surface: 'student-publication-access',
       });
       expect(element.props).not.toHaveProperty('displayReference');

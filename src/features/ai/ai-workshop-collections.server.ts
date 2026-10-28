@@ -465,18 +465,18 @@ async function readExperimentCollection(
         mergeIntoRepresentative(identity, {
           official: submission.valid,
           score: submission.valid && Number.isFinite(submission.score) ? submission.score : null,
-          sourceLabel: 'Arena 竞技场',
+          sourceLabel: '竞技场',
           navigation: arenaNavigation,
         });
         continue;
       }
       claim(identity, {
         id: `arena:${submission.id}`,
-        title: `Arena 提交（${submission.method}）`,
+        title: `竞技场提交（${submission.method}）`,
         type: 'ARENA_SUBMISSION',
         score: submission.valid && Number.isFinite(submission.score) ? submission.score : null,
         createdAt: submission.submittedAt.toISOString(),
-        sourceLabel: 'Arena 竞技场',
+        sourceLabel: '竞技场',
         resultAuthority: submission.valid ? 'official' : 'preview',
         sourceKind: 'arena',
         navigation: arenaNavigation,

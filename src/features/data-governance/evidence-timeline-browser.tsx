@@ -440,8 +440,8 @@ function formatQuality(quality: string): string {
 
 function formatLearnerRecordSourceScope(scope: string): string {
   if (scope === 'interactive-lesson-submission') return '互动课提交';
-  if (scope === 'arena-official-result') return 'Arena 官方结果';
-  if (scope === 'arena-preview-result') return 'Arena 预览结果';
+  if (scope === 'arena-official-result') return '竞技场官方结果';
+  if (scope === 'arena-preview-result') return '竞技场预览结果';
   if (scope === 'simulation-workbench-completion') return '仿真/工作台完成';
   if (scope === 'adaptive-practice-submission') return '自适应练习提交';
   return presentStudentVisibleText(scope, '学习记录');
@@ -463,7 +463,7 @@ function formatLearnerRecordConfidence(confidence: string): string {
 
 function formatLearnerRecordMissingSource(state: string): string {
   if (state === 'complete') return '来源完整';
-  if (state === 'official-arena-missing') return '缺少官方 Arena 结果';
+  if (state === 'official-arena-missing') return '缺少官方竞技场结果';
   if (state === 'low-confidence') return '证据置信度低';
   if (state === 'partial') return '来源不完整';
   if (state === 'restricted') return '受限详情已隐藏';

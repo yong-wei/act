@@ -1041,7 +1041,7 @@ describe('submitGameScore Arena publication bridge', () => {
         metrics: expect.objectContaining({
           arenaBridge: expect.objectContaining({
             ok: false,
-            reason: '此运行包含手动操作，不能作为 Arena 官方成绩。',
+            reason: '此运行包含手动操作，不能作为竞技场官方成绩。',
             gameScorePreserved: true,
           }),
         }),

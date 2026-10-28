@@ -123,7 +123,7 @@ const RESOURCE_VISUALS: Record<string, AdaptivePathResourceVisual> = {
     surfaceClass: 'bg-platform-evidence-eligible/5',
   },
   arena_task: {
-    label: 'Arena',
+    label: '竞技场',
     Icon: Swords,
     markerClass: 'border-platform-action-primary/40 text-platform-action-primary',
     accentClass: 'border-l-platform-action-primary/55',

@@ -942,7 +942,7 @@ function fixturePathPayload(entryNodeId: string, terminalNodeId: string, complet
       title: '二阶对象快速稳定挑战',
       type: 'arena_task',
       pathNodeType: 'arena_task',
-      displayName: 'Arena 挑战',
+      displayName: '竞技场挑战',
       iconKey: 'arena',
       shapeHint: 'challenge',
       evidenceBehavior: 'judged_submission',

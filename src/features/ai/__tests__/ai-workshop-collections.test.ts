@@ -307,7 +307,7 @@ describe('experiment archive lineage (Issue #1912)', () => {
     // 被归并来源的完整已验证链路保留（Codex R2 review）：奥德赛日志与 Arena 挑战入口可达。
     expect(item.bridgedSources).toEqual([
       { sourceLabel: '控制奥德赛', navigation: { href: '/interactive-learning/control-odyssey', label: '回到控制奥德赛' } },
-      { sourceLabel: 'Arena 竞技场', navigation: { href: '/arena/challenges/task-od', label: '查看挑战详情' } },
+      { sourceLabel: '竞技场', navigation: { href: '/arena/challenges/task-od', label: '查看挑战详情' } },
     ]);
   });
 
@@ -401,7 +401,7 @@ describe('experiment archive lineage (Issue #1912)', () => {
       resultAuthority: 'official',
       score: 95,
       bridgedSources: [
-        { sourceLabel: 'Arena 竞技场', navigation: { href: '/arena/challenges/task-legacy', label: '查看挑战详情' } },
+        { sourceLabel: '竞技场', navigation: { href: '/arena/challenges/task-legacy', label: '查看挑战详情' } },
       ],
     });
     expect(collections.experiments.total).toBe(1);

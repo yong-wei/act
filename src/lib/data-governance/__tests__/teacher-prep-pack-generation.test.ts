@@ -173,7 +173,7 @@ function teacherReport(): ControlCorrectionTeacherReport {
     generatedAt: now.toISOString(),
     metrics: {
       simulationPassRate: metric('simulationPassRate', '仿真通过率', 0.45),
-      arenaValidSubmissionRate: metric('arenaValidSubmissionRate', 'Arena 有效提交率', 0.52),
+      arenaValidSubmissionRate: metric('arenaValidSubmissionRate', '竞技场有效提交率', 0.52),
     } as ControlCorrectionTeacherReport['metrics'],
     correctionOutcomeSummary: {
       total: 0,

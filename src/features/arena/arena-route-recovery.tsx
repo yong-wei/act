@@ -42,7 +42,7 @@ function ArenaRouteRecoveryContent({
       <div className="w-full max-w-2xl rounded-xl border border-border bg-card/75 p-6 shadow-sm">
         <div className="mb-5 flex items-center gap-3 text-sm font-medium text-subtle">
           <ShieldAlert className="h-5 w-5 text-primary" />
-          Arena 恢复状态
+          竞技场恢复状态
         </div>
         <ActionStatusPanel
           state={state}

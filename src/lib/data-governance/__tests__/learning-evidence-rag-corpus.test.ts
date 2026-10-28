@@ -203,8 +203,8 @@ const corpus: LearningEvidenceCorpusChunk[] = [
     sourceType: 'teacher-report',
     sourceRef: { id: 'report-1', ownerUserId: null, classId: 'class-1', goalId: 'control-correction' },
     spanRef: { kind: 'summary', locator: 'cohort.metrics' },
-    display: { title: '班级控制校正报告', href: '/teacher/classes/class-1/reports/control-correction', capsule: '班级 Arena 有效提交率偏低。' },
-    content: { text: 'teacher report internal detail', redactedSummary: '班级 Arena 有效提交率偏低。', hash: 'hash-report-1' },
+    display: { title: '班级控制校正报告', href: '/teacher/classes/class-1/reports/control-correction', capsule: '班级竞技场有效提交率偏低。' },
+    content: { text: 'teacher report internal detail', redactedSummary: '班级竞技场有效提交率偏低。', hash: 'hash-report-1' },
     privacyClass: 'teacher-visible',
     confidence: 'medium',
     authority: {

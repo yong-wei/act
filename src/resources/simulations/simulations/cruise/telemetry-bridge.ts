@@ -19,9 +19,9 @@ export const CRUISE_ARENA_OBJECT_ID = 'plant-cruise-roll-blackbox';
 export const CRUISE_SCENE_TO_ARENA_MODEL_RELATION: ModelRelation = {
   relation: 'simplified',
   teachingSemantics:
-    'Cruise 场景用于课程中的高保真舒适度与航向控制观察，Arena cruise-roll 对象用于简化黑箱辨识与控制训练。',
+    'Cruise 场景用于课程中的高保真舒适度与航向控制观察，竞技场 cruise-roll 对象用于简化黑箱辨识与控制训练。',
   evaluationBoundary:
-    'Cruise 场景 telemetry、预览指标和舒适度摘要不能被声明为 Arena 官方隐藏评测指标。',
+    'Cruise 场景 telemetry、预览指标和舒适度摘要不能被声明为竞技场官方隐藏评测指标。',
 };
 
 export interface CruiseTelemetryPerformance {

@@ -60,7 +60,7 @@ function buildLimitedWriteback(
     visibilityState: 'diagnostic-only',
     targetLabel: arenaOfficialTargetLabel(submission.taskId),
     summary: reason,
-    recoveryAction: '重新提交一次截止前、有效且非零分的官方 Arena 结果；若仍无法写回，请由教师在报告中复核证据绑定。',
+    recoveryAction: '重新提交一次截止前、有效且非零分的官方竞技场结果；若仍无法写回，请由教师在报告中复核证据绑定。',
     limitationCodes: exposeLimitationCodes ? limitationCodes : [],
     overlayCount: 0,
     terminalValidationAccepted: false,
@@ -103,7 +103,7 @@ export function buildArenaSubmissionEvidenceWriteback(
       attemptStatus,
       visibilityState: 'diagnostic-only',
       targetLabel: arenaOfficialTargetLabel(submission.taskId),
-      summary: '该 Arena 任务尚未绑定到 KAQ 目标，官方结果保留为诊断证据并继续参与排名。',
+      summary: '该竞技场任务尚未绑定到 KAQ 目标，官方结果保留为诊断证据并继续参与排名。',
       recoveryAction: '教师报告中保留官方提交记录；管理员需要为该任务补充 KAQ 目标绑定后再重试写回，以获得完整掌握证据。',
       limitationCodes: exposeLimitationCodes ? ['missing-target-binding'] : [],
       overlayCount: 0,
@@ -148,10 +148,10 @@ export function buildArenaSubmissionEvidenceWriteback(
   const projected = projectKaqEvidenceWritebackForConsumer(result, options.consumer ?? 'student');
   const terminalValidationAccepted = result.overlayUpdates.some((update) => update.terminalValidationAccepted);
   const summary = result.status === 'accepted'
-    ? '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。'
+    ? '官方竞技场结果已写入学生证据时间线，并可作为终端验证证据。'
     : result.status === 'degraded'
-      ? '官方 Arena 结果已形成受限证据；限制原因会在教师报告中保留。'
-      : '官方 Arena 结果未能写入学生证据时间线。';
+      ? '官方竞技场结果已形成受限证据；限制原因会在教师报告中保留。'
+      : '官方竞技场结果未能写入学生证据时间线。';
 
   return {
     status: result.status,

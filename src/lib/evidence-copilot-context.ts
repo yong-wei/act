@@ -43,7 +43,7 @@ const SOURCE_COVERAGE_LABELS: Record<string, string> = {
   LearningFact: '学习记录',
   StudentProfileSummary: '学习概况',
   AdaptiveMasteryUpdate: '掌握度更新',
-  ArenaSubmission: 'Arena 评测',
+  ArenaSubmission: '竞技场评测',
 };
 
 const DESCRIPTOR_PATTERN = /^[^\u0000-\u001f\u007f-\u009f\u2028\u2029]{1,160}$/;

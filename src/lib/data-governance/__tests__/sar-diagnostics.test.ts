@@ -756,7 +756,7 @@ describe('SAR diagnostics and evaluation report', () => {
           actorRole: 'teacher',
           task: '复核控制校正资源缺口',
           expectedEvidence: '看到 Source Pack 基线与 SAR 候选差异',
-          observedResult: 'SAR 候选补充了 Arena 验证链路',
+          observedResult: 'SAR 候选补充了竞技场验证链路',
           limitation: '需要继续观察更多正式班级',
         },
         {

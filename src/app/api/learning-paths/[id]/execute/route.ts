@@ -87,7 +87,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (missingIdempotencyKey) return missingIdempotencyKey;
     if (typeof body.nodeId === 'string' && canonicalPath.nodeIdReplacements.has(body.nodeId)) {
       return NextResponse.json({
-        error: 'Arena 路径节点身份已修复，请使用规范节点重试',
+        error: '竞技场路径节点身份已修复，请使用规范节点重试',
         canonicalNodeId: canonicalPath.nodeIdReplacements.get(body.nodeId),
       }, { status: 409 });
     }
@@ -128,7 +128,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       : null;
     if (arenaTargetIntegrity?.status === 'blocked') {
       return NextResponse.json(
-        { error: 'Arena 路径目标不可执行', reason: arenaTargetIntegrity.reason },
+        { error: '竞技场路径目标不可执行', reason: arenaTargetIntegrity.reason },
         { status: 409 },
       );
     }
@@ -1218,7 +1218,7 @@ async function resolveGovernedArenaOutcomeEvidence<T extends {
   if (!isArenaPathCompletionEvidenceAccepted(path, arenaRef)) {
     return {
       arenaCompletionRejection: {
-        error: 'Arena 结果尚未满足路径完成条件',
+        error: '竞技场结果尚未满足路径完成条件',
         state: 'pending-result',
       },
     };

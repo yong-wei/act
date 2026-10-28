@@ -16,7 +16,7 @@ const typeConfig = {
   PID_TUNING: { icon: Beaker, label: 'PID 调参', color: 'text-foreground', bg: 'bg-muted' },
   ETHICS_SANDBOX: { icon: Scale, label: '伦理沙盘', color: 'text-foreground', bg: 'bg-muted' },
   ANOMALY_EVENT: { icon: AlertTriangle, label: '异常事件', color: 'text-foreground', bg: 'bg-muted' },
-  ARENA_SUBMISSION: { icon: Trophy, label: 'Arena 提交', color: 'text-foreground', bg: 'bg-muted' },
+  ARENA_SUBMISSION: { icon: Trophy, label: '竞技场提交', color: 'text-foreground', bg: 'bg-muted' },
   SCENE_SIMULATION: { icon: Activity, label: '场景仿真', color: 'text-foreground', bg: 'bg-muted' },
   CONTROL_WORKBENCH: { icon: Wrench, label: '控制工作台', color: 'text-foreground', bg: 'bg-muted' },
   ODYSSEY_RUN: { icon: Compass, label: '控制奥德赛', color: 'text-foreground', bg: 'bg-muted' },

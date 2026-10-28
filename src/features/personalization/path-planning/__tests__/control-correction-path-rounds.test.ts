@@ -114,7 +114,7 @@ function samplePlan(): AdaptiveLearningPathPlan {
       },
       {
         nodeId: 'arena-task:task-second-order-lead-pid',
-        title: '二阶对象超前校正 Arena',
+        title: '二阶对象超前校正竞技场',
         type: 'arena_task',
         ...pathNodeSemantics('arena_task'),
         sourceKind: 'arena_task',
@@ -340,7 +340,7 @@ describe('control-correction path rounds', () => {
             },
             {
               nodeId: 'arena-task:task-second-order-lead-pid',
-              title: '二阶对象超前校正 Arena',
+              title: '二阶对象超前校正竞技场',
               ...pathNodeSemantics('arena_task'),
               estimatedTimeMinutes: 18,
               status: 'next',
@@ -992,8 +992,8 @@ describe('control-correction path rounds', () => {
       status: 'locked',
       readiness: {
         state: 'locked',
-        message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
-        unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+        message: '竞技场暂未解锁，完成仿真验证后会自动进入。',
+        unlockMessage: '竞技场暂未解锁，完成仿真验证后会自动进入。',
         reasonCodes: ['readiness-required-outcome'],
         fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
         missingCompetencies: [],
@@ -1955,8 +1955,8 @@ describe('control-correction path rounds', () => {
             status: 'locked',
             readiness: {
               state: 'locked',
-              message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
-              unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+              message: '竞技场暂未解锁，完成仿真验证后会自动进入。',
+              unlockMessage: '竞技场暂未解锁，完成仿真验证后会自动进入。',
               reasonCodes: ['readiness-required-outcome'],
               fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
               missingCompetencies: [],
@@ -2036,8 +2036,8 @@ describe('control-correction path rounds', () => {
             status: 'locked',
             readiness: {
               state: 'locked',
-              message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
-              unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+              message: '竞技场暂未解锁，完成仿真验证后会自动进入。',
+              unlockMessage: '竞技场暂未解锁，完成仿真验证后会自动进入。',
               reasonCodes: ['readiness-required-outcome'],
               fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
               missingCompetencies: [],
@@ -3215,7 +3215,7 @@ describe('control-correction path rounds', () => {
         id: 'exec-arena',
         resultSummary: expect.objectContaining({
           state: 'available',
-          label: 'Arena 结果',
+          label: '竞技场结果',
           evidenceSource: 'ArenaSubmission',
           primaryMetric: '得分 88',
         }),

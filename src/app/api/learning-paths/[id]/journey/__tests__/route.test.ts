@@ -55,7 +55,7 @@ function legacyArenaPathRecord(kind: 'registry' | 'yangfan') {
       mainPathNodeIds: [legacyNodeId],
       planNodes: [{
         nodeId: legacyNodeId,
-        title: isRegistry ? 'Arena 挑战工作台' : '杨帆根轨迹诊断',
+        title: isRegistry ? '竞技场挑战工作台' : '杨帆根轨迹诊断',
         type: 'arena_task',
         sourceKind: isRegistry ? 'resource_registry' : 'knowledge_graph',
         sourceRef: isRegistry ? 'arena-challenge-workbench' : legacyNodeId,

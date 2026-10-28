@@ -43,17 +43,17 @@ function nextNodeHref() {
 function journey(state: 'pending-result' | 'ready' | 'next-surface') {
   if (state === 'next-surface') {
     return {
-      path: { id: pathId, title: 'Arena 连续学习路径' },
+      path: { id: pathId, title: '竞技场连续学习路径' },
       goal: { id: 'control-correction' },
       context: { pathId, goalId: 'control-correction', requestedNodeId: nextNodeId },
-      current: { nodeId: nextNodeId, title: '复盘 Arena 评测证据', type: 'knowledge_card' },
+      current: { nodeId: nextNodeId, title: '复盘竞技场评测证据', type: 'knowledge_card' },
       progress: { completed: 1, total: 2 },
       return: { label: '返回学习路径', href: nextReturnHref },
       pathStatus: 'active',
       nextAction: {
         state: 'pending-result' as const,
         nodeId: nextNodeId,
-        title: '复盘 Arena 评测证据',
+        title: '复盘竞技场评测证据',
         type: 'knowledge_card',
         href: null,
         reason: '完成证据复盘后结束路径。',
@@ -62,7 +62,7 @@ function journey(state: 'pending-result' | 'ready' | 'next-surface') {
     };
   }
   return {
-    path: { id: pathId, title: 'Arena 连续学习路径' },
+    path: { id: pathId, title: '竞技场连续学习路径' },
     goal: { id: 'control-correction' },
     context: { pathId, goalId: 'control-correction', requestedNodeId: nodeId },
     current: { nodeId, title: '二阶系统校正挑战', type: 'arena_task' },
@@ -73,7 +73,7 @@ function journey(state: 'pending-result' | 'ready' | 'next-surface') {
       ? {
           state: 'ready',
           nodeId: nextNodeId,
-          title: '复盘 Arena 评测证据',
+          title: '复盘竞技场评测证据',
           type: 'knowledge_card',
           href: nextNodeHref(),
           reason: null,
@@ -183,7 +183,7 @@ test('Arena path node keeps context through challenge, workbench, submission, an
   const pathNode = page.locator(`[data-adaptive-path-node="${nodeId}"]`);
   await expect(pathNode).toHaveAttribute('data-adaptive-path-node-state', 'current');
   await expectAtMostOnePathReturn(page);
-  await expect(pathNode.locator('[data-adaptive-path-node-detail="inline"]')).toContainText('完成二阶系统校正 Arena 挑战');
+  await expect(pathNode.locator('[data-adaptive-path-node-detail="inline"]')).toContainText('完成二阶系统校正竞技场挑战');
   await pathNode.getByRole('button', { name: '开始学习' }).click();
   await expect(page).toHaveURL(new RegExp(`/arena/challenges/${taskId}`));
   expect(fixture.startRequests()).toBe(1);
@@ -236,9 +236,9 @@ test('Arena path node keeps context through challenge, workbench, submission, an
   await page.getByRole('button', { name: '提交官方评测' }).click();
   await expect(page.getByText(/官方评测完成/).first()).toBeVisible();
   const readyJourneyControl = page.locator('[data-adaptive-path-journey-control="ready"]');
-  await expect(readyJourneyControl).toContainText('复盘 Arena 评测证据');
+  await expect(readyJourneyControl).toContainText('复盘竞技场评测证据');
   expect(fixture.executeRequests()).toBe(1);
-  const nextLink = page.getByRole('link', { name: '复盘 Arena 评测证据' });
+  const nextLink = page.getByRole('link', { name: '复盘竞技场评测证据' });
   await expect(nextLink).toHaveAttribute('href', new RegExp(`/knowledge\\?`));
   await readyJourneyControl.scrollIntoViewIfNeeded();
   await captureEvidence(page, 'control-workbench-ready-next-desktop-1440');
@@ -256,7 +256,7 @@ test('Arena path node keeps context through challenge, workbench, submission, an
     returnHref: nextReturnHref,
     resourceType: 'knowledge_card',
   });
-  await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toContainText('复盘 Arena 评测证据');
+  await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toContainText('复盘竞技场评测证据');
   await expect(page.getByRole('main')).toContainText('知识');
   await expectAtMostOnePathReturn(page);
 });

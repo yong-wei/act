@@ -70,7 +70,7 @@ describe('platform recovery contract', () => {
     expect(buildPlatformRecoveryState({
       kind: 'stale-object',
       sourceRoute: '/arena/challenges/[taskId]',
-      targetLabel: 'Arena 发布挑战',
+      targetLabel: '竞技场发布挑战',
     })).toMatchObject({
       status: 'blocked',
       recoveryKind: 'stale-object',

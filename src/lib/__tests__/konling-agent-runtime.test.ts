@@ -12032,7 +12032,7 @@ describe('konling agent runtime', () => {
       timeBudgetMinutes: 90,
       difficultyRhythm: 'challenge',
       checkpointPreference: 'dense',
-      naturalLanguageIntent: '优先完成仿真和 Arena。',
+      naturalLanguageIntent: '优先完成仿真和竞技场。',
       rejectedStyleIds: ['foundation-remediation'],
       selectedStyleId: 'arena-simulation-sprint',
       sourceBatchId: 'source-batch-1',
@@ -12067,7 +12067,7 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         inputSummary: expect.objectContaining({
-          naturalLanguageIntent: `sha256:${createHash('sha256').update('优先完成仿真和 Arena。').digest('hex')}`,
+          naturalLanguageIntent: `sha256:${createHash('sha256').update('优先完成仿真和竞技场。').digest('hex')}`,
           sourceBatchId: 'source-batch-1',
           sourceCandidateId: 'source-candidate-1',
           sourceCandidateFingerprint,
@@ -12098,8 +12098,8 @@ describe('konling agent runtime', () => {
     }));
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
     expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('control-correction-path:choice');
-    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('优先完成仿真和 Arena');
-    expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('优先完成仿真和 Arena');
+    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('优先完成仿真和竞技场');
+    expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('优先完成仿真和竞技场');
 
     sourceSnapshot = ((derivedBatch as unknown as { candidates: Array<{ snapshot: Record<string, unknown> }> })
       .candidates[0]!.snapshot);
@@ -12114,7 +12114,7 @@ describe('konling agent runtime', () => {
       timeBudgetMinutes: 90,
       difficultyRhythm: 'challenge',
       checkpointPreference: 'dense',
-      naturalLanguageIntent: '优先完成仿真和 Arena。',
+      naturalLanguageIntent: '优先完成仿真和竞技场。',
       rejectedStyleIds: ['foundation-remediation'],
       selectedStyleId: 'arena-simulation-sprint',
       sourceBatchId: 'source-batch-1',
@@ -12186,7 +12186,7 @@ describe('konling agent runtime', () => {
     };
     const sourceCandidateFingerprint = fingerprintAdaptivePathCandidateSnapshot(sourceSnapshot);
     const alternateCandidateFingerprint = fingerprintAdaptivePathCandidateSnapshot(alternateSnapshot);
-    const naturalLanguageIntent = '优先完成仿真和 Arena。';
+    const naturalLanguageIntent = '优先完成仿真和竞技场。';
     const requestedAt = '2026-08-18T00:01:00.000Z';
     const successfulRun = {
       id: 'tool-run-revise-reused',
@@ -14015,7 +14015,7 @@ describe('konling agent runtime', () => {
       studentState: createStudentState(),
       arenaContext,
       now: new Date('2026-05-28T00:00:00Z'),
-    })).rejects.toThrow('Arena 受治理干预不能由客户端尝试状态创建');
+    })).rejects.toThrow('竞技场受治理干预不能由客户端尝试状态创建');
     expect(db.aIIntervention.findFirst).not.toHaveBeenCalled();
     expect(db.aIIntervention.create).not.toHaveBeenCalled();
     expect(db.konlingMemory.create).not.toHaveBeenCalled();
@@ -14042,7 +14042,7 @@ describe('konling agent runtime', () => {
       scope,
       studentState: createStudentState(),
       now: new Date('2026-05-28T00:00:00Z'),
-    })).rejects.toThrow('Arena 受治理干预不能由客户端尝试状态创建');
+    })).rejects.toThrow('竞技场受治理干预不能由客户端尝试状态创建');
     expect(db.aIIntervention.findFirst).not.toHaveBeenCalled();
     expect(db.aIIntervention.create).not.toHaveBeenCalled();
     expect(db.konlingMemory.create).not.toHaveBeenCalled();

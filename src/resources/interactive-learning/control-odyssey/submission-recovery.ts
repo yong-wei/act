@@ -99,7 +99,7 @@ export async function synchronizeOdysseySubmission<T>(input: {
       }
     } else if (input.arenaTaskId) {
       return {
-        state: { status: 'failed', message: 'Arena 提交尚未生成，请重试。' },
+        state: { status: 'failed', message: '竞技场提交尚未生成，请重试。' },
         result,
       };
     }

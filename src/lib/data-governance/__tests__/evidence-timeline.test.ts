@@ -470,8 +470,8 @@ describe('evidence timeline browser', () => {
                   sourceRef: { kind: 'ArenaSubmission', id: 'submission-a' },
                   attemptStatus: 'effective',
                   visibilityState: 'materialized',
-                  targetLabel: '控制校正 Arena 官方迁移验证',
-                  summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+                  targetLabel: '控制校正竞技场官方迁移验证',
+                  summary: '官方竞技场结果已写入学生证据时间线，并可作为终端验证证据。',
                   recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
                   limitationCodes: [],
                   overlayCount: 1,
@@ -543,7 +543,7 @@ describe('evidence timeline browser', () => {
     expect(page.items[2].learnerRecord).toMatchObject({
       confidence: 'high',
       missingSourceState: 'complete',
-      nextAction: { href: '/arena', label: '查看 Arena 结果' },
+      nextAction: { href: '/arena', label: '查看竞技场结果' },
     });
     expect(page.items[3].learnerRecord).toMatchObject({
       confidence: 'medium',

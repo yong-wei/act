@@ -1475,11 +1475,11 @@ function buildExecutionResultSummary(execution: any): PathExecutionResultSummary
   }
   if (resourceType === 'arena_task') {
     const ref = toRecord(execution.arenaRef);
-    if (!isTrustedArenaOutcomeRef(ref)) return pendingResultSummary('arena', 'Arena 结果');
+    if (!isTrustedArenaOutcomeRef(ref)) return pendingResultSummary('arena', '竞技场结果');
     return compactObject({
       state: 'available',
       kind: 'arena',
-      label: 'Arena 结果',
+      label: '竞技场结果',
       outcomeId: firstString(ref.id, ref.submissionId, ref.runId, ref.sourceId),
       evidenceSource: firstString(ref.kind, ref.sourceType) ?? 'ArenaSubmission',
       reviewState: 'ready',

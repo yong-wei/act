@@ -441,7 +441,7 @@ test('simulation local tools preserve structured Cruise slots without fake actio
   await expect(page.getByRole('group', { name: '仿真局部工具' })).toBeVisible();
   await expect(page.getByText('官方提交')).toHaveCount(0);
   await expect(page.getByText('榜单视图')).toHaveCount(0);
-  await expect(page.getByText('Arena 黑箱提交')).toHaveCount(0);
+  await expect(page.getByText('竞技场黑箱提交')).toHaveCount(0);
 });
 
 test('simulation local panels stack after the scene on mobile', async ({ page }) => {

@@ -179,7 +179,7 @@ async function collectSignals(page, item, screenshotPath) {
       metrics.visibleText.includes('提升对应能力准备度'),
     actionableTargetVisible: metrics.optionUnlockActionElementCount > 0,
     textOnlyActionVisible: metrics.visibleText.includes('完成「前置节点」后解锁'),
-    fallbackMessageVisible: metrics.visibleText.includes('Arena 暂未解锁，完成仿真验证后会自动进入。'),
+    fallbackMessageVisible: metrics.visibleText.includes('竞技场暂未解锁，完成仿真验证后会自动进入。'),
     unavailableVisible: metrics.visibleText.includes('暂时无法展示具体解锁条件'),
     forbiddenRawFields,
     noHorizontalOverflow: metrics.scrollWidth <= metrics.clientWidth + 1,

@@ -1219,7 +1219,7 @@ function defineLearningGoal(
 const CONTROL_CORRECTION_LEARNING_GOAL = defineLearningGoal({
   id: 'control-correction',
   title: '控制系统校正设计',
-  description: '把时域目标、根轨迹或频域校正、仿真验证和 Arena 迁移组织为一条可执行设计路径。',
+  description: '把时域目标、根轨迹或频域校正、仿真验证和竞技场迁移组织为一条可执行设计路径。',
   completionMeaning: '学生能够给出有指标依据、仿真证据和迁移边界的校正方案。',
   intentType: 'controller-design',
   recommendedPhase: 'practice',
@@ -1253,7 +1253,7 @@ const CONTROL_CORRECTION_LEARNING_GOAL = defineLearningGoal({
     true,
     ['simulation-run', 'arena-official-evaluation', 'question'],
     ['simulation', 'arena_task', 'checkpoint'],
-    '以仿真回放、官方 Arena 评测或教师确认的检查点作为路径终点，验证校正方案是否满足目标。',
+    '以仿真回放、官方竞技场评测或教师确认的检查点作为路径终点，验证校正方案是否满足目标。',
   ),
   pathPolicyFamily: 'simulation-driven',
   limitations: [QUALITY_EVIDENCE_LIMITATION],
@@ -1282,7 +1282,7 @@ const FREQUENCY_RESPONSE_FOUNDATIONS_LEARNING_GOAL = defineLearningGoal({
     false,
     ['question', 'simulation-run'],
     ['quiz', 'adaptive_quiz', 'simulation', 'checkpoint'],
-    '以短测、仿真观察或检查点确认频域判读，不强制 Arena 终点。',
+    '以短测、仿真观察或检查点确认频域判读，不强制竞技场终点。',
   ),
   pathPolicyFamily: 'foundation-remediation',
   limitations: [QUALITY_EVIDENCE_LIMITATION],
@@ -1448,7 +1448,7 @@ const SHIP_OCEAN_TRANSFER_LEARNING_GOAL = defineLearningGoal({
   goalSliceId: 'control-correction',
   resourceMix: packageResourceMix(['arena_task'], ['arena_task', 'simulation', 'reflection', 'ai_intervention']),
   evidencePolicy: packageEvidencePolicy(['arena-official-evaluation', 'simulation-run', 'reflection', 'agent-interaction']),
-  terminalValidationPolicy: terminalValidationPolicy(true, ['arena-official-evaluation', 'simulation-run'], ['arena_task', 'simulation'], '以跨模型任务、Arena 或仿真迁移验证作为路径终点。'),
+  terminalValidationPolicy: terminalValidationPolicy(true, ['arena-official-evaluation', 'simulation-run'], ['arena_task', 'simulation'], '以跨模型任务、竞技场或仿真迁移验证作为路径终点。'),
   pathPolicyFamily: 'simulation-driven',
   limitations: [QUALITY_EVIDENCE_LIMITATION],
 });
@@ -5166,7 +5166,7 @@ function differentiablePolicyModalityMix(
 
 const POLICY_FAMILY_STYLE: Record<AdaptiveLearningPathPolicyFamily, { id: AdaptiveLearningPathStyleId; label: string }> = {
   'foundation-remediation': { id: 'foundation-remediation', label: '基础补救' },
-  'simulation-driven': { id: 'arena-simulation-sprint', label: '仿真与 Arena 冲刺' },
+  'simulation-driven': { id: 'arena-simulation-sprint', label: '仿真与竞技场冲刺' },
   'preference-matched': { id: 'preference-matched-route', label: '偏好匹配路线' },
   'sprint-correction': { id: 'sprint-correction-route', label: '短程纠偏' },
   'teacher-assigned': { id: 'teacher-assigned-route', label: '教师指定路线' },
@@ -5949,7 +5949,7 @@ const RECOMMENDATION_TARGET_LABELS: Record<string, string> = {
   'control-correction:time-domain-targets': '时域性能目标',
   'control-correction:root-locus-design': '根轨迹校正设计',
   'control-correction:simulation-validation': '仿真验证',
-  'control-correction:arena-transfer': 'Arena 迁移应用',
+  'control-correction:arena-transfer': '竞技场迁移应用',
   'kn-bode': 'Bode 图基础',
 };
 

@@ -158,7 +158,7 @@ function sampleRegistry() {
     arenaTasks: [
       {
         id: 'task-second-order-lead-pid',
-        title: '横摇控制 Arena',
+        title: '横摇控制竞技场',
         launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: ['kn-bode'],
         prerequisiteNodeIds: ['simulation:cruise'],
@@ -169,7 +169,7 @@ function sampleRegistry() {
             minimumEvidenceCount: 1,
             requiredCompletedNodeIds: ['simulation:cruise'],
             requiredOutcomeRefs: ['simulation_run:cruise'],
-            unlockMessage: '完成邮轮仿真后解锁 Arena。',
+            unlockMessage: '完成邮轮仿真后解锁竞技场。',
             fallbackNodeIds: ['simulation:cruise'],
           },
         },
@@ -488,7 +488,7 @@ describe('resource node registry', () => {
         minimumEvidenceCount: expect.any(Number),
         requiredCompletedNodeIds: ['simulation:control-correction-step-response-lab'],
         requiredOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
-        unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+        unlockMessage: '竞技场暂未解锁，完成仿真验证后会自动进入。',
       });
   });
 
@@ -1304,7 +1304,7 @@ describe('resource node registry', () => {
       }],
       arenaTasks: [{
         id: 'task-second-order-lead-pid',
-        title: 'Arena 挑战',
+        title: '竞技场挑战',
         launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: ['kn-demo'],
       }],

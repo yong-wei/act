@@ -131,7 +131,7 @@ export function OdysseyArenaBridgeShell() {
             返回竞技场挑战详情
           </a>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/80">Arena 任务上下文</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/80">竞技场任务上下文</div>
             <h1 className="mt-1 text-xl font-semibold text-white">{arenaContext.task.title}</h1>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-slate-300">
@@ -140,14 +140,14 @@ export function OdysseyArenaBridgeShell() {
             <span className="rounded-full border border-slate-700 px-3 py-1">返回路径：挑战详情</span>
           </div>
           <p className="max-w-4xl text-xs leading-5 text-slate-400">
-            Odyssey 游戏积分保留在通关结算面板；Arena 官方评分只由通关遥测提交产生。{metricGoals}
+            Odyssey 游戏积分保留在通关结算面板；竞技场官方评分只由通关遥测提交产生。{metricGoals}
           </p>
         </div>
 
         <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-50">
           <div className="flex items-center gap-2 text-xs font-semibold text-cyan-200">
             <Trophy className="h-4 w-4" />
-            Arena 官方评分
+            竞技场官方评分
           </div>
           <div className="mt-1 text-2xl font-semibold">
             {submissions === null ? '加载中' : formatScore(bestSubmission?.evaluation?.score)}

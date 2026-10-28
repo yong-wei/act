@@ -81,7 +81,7 @@ function buildArenaEntries(): SimulationTaskCatalogEntry[] {
         kind: 'arena-accepted-submission' as const,
         predicateId: task.metricProfileId,
       },
-      displayGroup: 'Arena 挑战',
+      displayGroup: '竞技场挑战',
     }));
 }
 
