@@ -630,6 +630,7 @@ export function DredgerSimulation({ ticket = '' }: { ticket?: string }) {
       if (!moved.sample) return;
       const mmg = drive.mmg();
       mmgStateRef.current = mmg;
+      sessionRef.current.trackLatest(moved.sample);
       const mark = vesselSampleMark(moved.sample.time);
       if (mark > markRef.current) {
         markRef.current = mark;

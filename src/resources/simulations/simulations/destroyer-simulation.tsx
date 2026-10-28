@@ -125,6 +125,7 @@ import {
   type DestroyerSample,
   type DestroyerSeriesId,
 } from './destroyer-experiment';
+import { withLatestSample } from './vessel-experiment';
 import { DestroyerReportHistory, DestroyerStatusPanel, DestroyerStepForm, DestroyerStepList } from './destroyer-experiment-panels';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
@@ -684,6 +685,7 @@ function SimulationEngine({
   manualRudderAt,
   onHudUpdate,
   onChartDataUpdate,
+  latestSampleRef,
 }: {
   simRef: React.MutableRefObject<SimulationState>;
   shipRef: React.MutableRefObject<THREE.Group | null>;
@@ -704,6 +706,8 @@ function SimulationEngine({
   manualRudderAt: (time: number) => number | null;
   onHudUpdate: (state: HudState) => void;
   onChartDataUpdate: (sample: DestroyerSample) => void;
+  /** 每个子步的最新采样：曲线按 0.5 s 抽样，交卷时用它补上暂停时刻。 */
+  latestSampleRef: React.MutableRefObject<DestroyerSample | null>;
 }) {
   const marineFrame = useMarineFrameRunner();
   const lastFrameTimeRef = useRef(0);
@@ -742,13 +746,14 @@ function SimulationEngine({
     lastFrameTimeRef.current = 0;
     lastHudUpdateRef.current = 0;
     lastChartSampleRef.current = 0;
+    latestSampleRef.current = null;
     totalErrorRef.current = 0;
     errorSampleCountRef.current = 0;
     rustStateRef.current = null;
     attainmentRef.current = createAttainmentState();
     finishedRef.current = false;
     clockRef.current.reset();
-  }, [resetToken, simTimeRef]);
+  }, [resetToken, simTimeRef, latestSampleRef]);
 
   const interpolateHeading = useCallback(
     (t: number) => {
@@ -874,20 +879,20 @@ function SimulationEngine({
       }
 
       // 图表数据
+      const sample: DestroyerSample = {
+        time: simTime,
+        desiredHeading: normalizeSignedHeading(targetHeading),
+        actualHeading: normalizeSignedHeading(toDegrees(sim.headingRad)),
+        yawRate: toDegrees(sim.yawRateRad),
+        rudder: sim.rudderDeg,
+        manualRudder: rudderCommand,
+        speed: sim.speedMps,
+        crossTrackError: currentError,
+      };
+      latestSampleRef.current = sample;
       if (simTime - lastChartSampleRef.current > 0.5) {
         lastChartSampleRef.current = simTime;
-        const headingDeg = normalizeSignedHeading(toDegrees(sim.headingRad));
-        const targetHeadingSigned = normalizeSignedHeading(targetHeading);
-        onChartDataUpdate({
-          time: simTime,
-          desiredHeading: targetHeadingSigned,
-          actualHeading: headingDeg,
-          yawRate: toDegrees(sim.yawRateRad),
-          rudder: sim.rudderDeg,
-          manualRudder: rudderCommand,
-          speed: sim.speedMps,
-          crossTrackError: currentError,
-        });
+        onChartDataUpdate(sample);
       }
     };
 
@@ -1054,6 +1059,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
     time: 0,
   });
   const [samples, setSamples] = useState<DestroyerSample[]>([]);
+  const latestSampleRef = useRef<DestroyerSample | null>(null);
   const [records, setRecords] = useState<Array<{
     seq: number;
     title: string;
@@ -1300,7 +1306,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
       setMessage(prepared.message);
       return;
     }
-    const storedSamples = thinDestroyerSamples(samples);
+    const storedSamples = thinDestroyerSamples(withLatestSample(samples, latestSampleRef.current));
     const scored = prepared.skipLocalScore ? null : scoreDestroyerStep(step.seq, storedSamples, prepared.readings);
     if (scored && !scored.ok) {
       setMessage(scored.message);
@@ -1557,6 +1563,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
           manualRudderAt={motion.manualRudder}
           onHudUpdate={setHudState}
           onChartDataUpdate={handleChartDataUpdate}
+          latestSampleRef={latestSampleRef}
         />
         <ScenePostEffects />
         </MarineFrameRuntime>

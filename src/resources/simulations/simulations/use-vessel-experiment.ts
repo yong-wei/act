@@ -11,6 +11,7 @@ import {
   chooseBetterVesselAttempt,
   thinVesselSamples,
   vesselKonlingBrief,
+  withLatestSample,
   type VesselExperiment,
   type VesselReadings,
   type VesselSample,
@@ -51,6 +52,7 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
   );
   const stepStartedAt = useRef(Date.now());
   const liveRef = useRef<Record<string, number>>({});
+  const latestSampleRef = useRef<VesselSample | null>(null);
 
   const step = experiment.steps[activeSeq - 1] ?? experiment.steps[0];
   const viewed = experiment.steps[viewSeq - 1] ?? step;
@@ -61,8 +63,15 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
 
   const clearSamples = useCallback(() => {
     setSamples([]);
+    latestSampleRef.current = null;
     stepStartedAt.current = Date.now();
   }, []);
+
+  /** 每个子步调用；曲线按整秒抽样，交卷时用最新时刻补齐曲线终点。 */
+  const trackLatest = useCallback((sample: VesselSample) => {
+    if (sample.time > step.duration + 0.05) return;
+    latestSampleRef.current = sample;
+  }, [step.duration]);
 
   const observe = useCallback((sample: VesselSample) => {
     liveRef.current = { time: sample.time, ...sample.values };
@@ -78,6 +87,7 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
   useEffect(() => {
     setReadings({});
     setSamples([]);
+    latestSampleRef.current = null;
     stepStartedAt.current = Date.now();
   }, [activeSeq]);
 
@@ -220,7 +230,7 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
       setMessage(prepared.message);
       return;
     }
-    const storedSamples = thinVesselSamples(samples);
+    const storedSamples = thinVesselSamples(withLatestSample(samples, latestSampleRef.current));
     const scored = prepared.skipLocalScore ? null : experiment.score(step, storedSamples, prepared.readings);
     if (scored && !scored.ok) {
       setMessage(scored.message);
@@ -394,6 +404,7 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
     samples,
     shownSamples,
     observe,
+    trackLatest,
     clearSamples,
     readings,
     setReading: (key: string, value: string) => setReadings((prev) => ({ ...prev, [key]: value })),

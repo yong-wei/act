@@ -896,6 +896,7 @@ export default function IcebreakerSimulation({ ticket = '', stepNav, hostBrief, 
       const iceNow = drive.iceState();
       physicsStateRef.current = physics;
       iceStateRef.current = iceNow;
+      sessionRef.current.trackLatest(moved.sample);
       const mark = vesselSampleMark(moved.sample.time);
       if (mark > markRef.current) {
         markRef.current = mark;

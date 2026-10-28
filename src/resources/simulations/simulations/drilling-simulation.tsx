@@ -758,6 +758,7 @@ export function DrillingSimulation({ ticket = '', stepNav, hostBrief, hostSubmis
       if (!moved.sample) return;
       const view = drive.view();
       platformStateRef.current = view.state;
+      sessionRef.current.trackLatest(moved.sample);
       const mark = vesselSampleMark(moved.sample.time);
       if (mark > markRef.current) {
         markRef.current = mark;

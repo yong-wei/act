@@ -777,6 +777,7 @@ export default function ContainerSimulation({ ticket = '' }: { ticket?: string }
       command = moved.command;
       if (!moved.sample) return;
       view = drive.view();
+      sessionRef.current.trackLatest(moved.sample);
       const mark = vesselSampleMark(moved.sample.time);
       if (mark > markRef.current) {
         markRef.current = mark;

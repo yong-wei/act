@@ -34,7 +34,8 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'retain-on-failure',
-    channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
+    // 测试只在本机跑：默认用系统 Chrome 走 GPU 渲染；内置 headless shell 是软件渲染，3D 仿真慢约 30 倍。
+    channel: process.env.PLAYWRIGHT_CHANNEL || 'chrome',
   },
   webServer: process.env.PLAYWRIGHT_SKIP_WEB_SERVER
     ? undefined

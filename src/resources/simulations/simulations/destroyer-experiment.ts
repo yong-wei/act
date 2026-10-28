@@ -1,6 +1,7 @@
 import { sketchLabelForId, sketchReadingError, SKETCH_PLOTS } from '@/features/ilab/sketch-plots';
 
 import type { ControlMode } from '../core/types';
+import { runReachesMinimum } from './vessel-experiment';
 
 export const DESTROYER_EXPERIMENT_TITLE = '055 型驱逐舰航向控制';
 
@@ -428,7 +429,7 @@ function pass(step: DestroyerExperimentStep, evaluation: string, remarks: string
 function requireRun(step: DestroyerExperimentStep, samples: DestroyerSample[]): DestroyerScore | null {
   if (samples.length < 4) return fail(step, '请先运行仿真，让曲线留下数据。');
   const lastTime = samples[samples.length - 1]?.time ?? 0;
-  if (lastTime + 0.001 < step.minRunS) return fail(step, `请至少运行 ${step.minRunS} 秒，曲线还没有覆盖这一步的机动。`);
+  if (!runReachesMinimum(lastTime, step.minRunS)) return fail(step, `请至少运行 ${step.minRunS} 秒，曲线还没有覆盖这一步的机动。`);
   return null;
 }
 

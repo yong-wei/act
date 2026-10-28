@@ -131,8 +131,7 @@ test('学生完成驱逐舰第一步后解锁下一步', async ({ page }) => {
       invokeClick(scene.querySelector('[data-sound-start]'));
       await waitUntil(() => {
         watch?.();
-        // 读数按一位小数显示，19.96s 已显示为 20.0；与流程单测一样多跑 1s 余量。
-        return readout('time') >= seconds + 1;
+        return readout('time') >= seconds;
       }, `仿真没有跑到 ${seconds} 秒`);
       invokeClick(buttonByName('暂停', scene));
       await frame();

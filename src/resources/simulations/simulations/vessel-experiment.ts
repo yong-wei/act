@@ -185,11 +185,23 @@ export function passStep(step: VesselStep, evaluation: string, remarks: string):
   return { ok: true, message: evaluation, earnedPoints: step.maxPoints, maxPoints: step.maxPoints, evaluation, remarks };
 }
 
+/** 曲线按固定间隔抽样；交卷时补上最新时刻，让曲线终点与暂停时的读数一致。 */
+export function withLatestSample<T extends { time: number }>(samples: T[], latest: T | null): T[] {
+  const last = samples[samples.length - 1];
+  if (!last || !latest || latest.time <= last.time) return samples;
+  return [...samples, latest];
+}
+
+/** 运行时长按学生看到的仿真时间读数（保留一位小数）判定，读数显示已到即算到。 */
+export function runReachesMinimum(lastTime: number, minRunS: number): boolean {
+  return Number(lastTime.toFixed(1)) >= minRunS;
+}
+
 export function requireSamples(step: VesselStep, samples: VesselSample[]): VesselScore | null {
   if (step.fields.every((field) => field.kind === 'text')) return null;
   if (samples.length < 4) return failStep(step, '请先运行仿真，让曲线留下数据。');
   const lastTime = samples[samples.length - 1]?.time ?? 0;
-  if (lastTime + 0.001 < step.minRunS) return failStep(step, `请至少运行 ${step.minRunS} 秒，曲线还没有覆盖这一步的机动。`);
+  if (!runReachesMinimum(lastTime, step.minRunS)) return failStep(step, `请至少运行 ${step.minRunS} 秒，曲线还没有覆盖这一步的机动。`);
   return null;
 }
 
