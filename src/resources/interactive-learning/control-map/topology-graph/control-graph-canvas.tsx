@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect, useRef, type RefObject } from 'react';
 import {
   ReactFlow,
   Background,
@@ -30,7 +30,12 @@ interface ControlGraphCanvasProps {
   onNodeHover: (nodeId: string | null) => void;
   /** 变化时把画布移动到 `focusNodeId`。 */
   focusRequest?: { nodeId: string; sequence: number } | null;
+  /** 详情面板所在的右侧浮层列；选中节点时画布会避开这块区域。 */
+  detailAreaRef?: RefObject<HTMLElement | null>;
 }
+
+const REVEAL_MARGIN = 16;
+const FOCUS_ZOOM_RANGE = { min: 0.9, max: 1.2 } as const;
 
 // v12: nodeTypes 需要在组件外定义以保持引用稳定
 const nodeTypes: NodeTypes = {
@@ -45,9 +50,11 @@ export function ControlGraphCanvas({
   onNodeClick,
   onNodeHover,
   focusRequest,
+  detailAreaRef,
 }: ControlGraphCanvasProps) {
   const { selectedNode, hoveredNode } = viewState;
-  const { fitView } = useReactFlow();
+  const { getInternalNode, getViewport, setViewport, setCenter } = useReactFlow();
+  const containerRef = useRef<HTMLDivElement>(null);
   // React Flow 会在根节点写入 light/dark 类；必须与应用主题一致，否则平台 token 在画布内取到另一套值。
   const colorMode = useOptionalTheme()?.theme ?? 'light';
   const focusNodeId = hoveredNode ?? selectedNode;
@@ -113,16 +120,66 @@ export function ControlGraphCanvas({
     setEdges(initialEdges);
   }, [initialNodes, initialEdges, setNodes, setEdges]);
 
+  /** 画布宽度，以及详情面板左缘之前可见区域的右边界（均为相对画布的屏幕像素）。 */
+  const measureVisibleArea = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return null;
+    const bounds = container.getBoundingClientRect();
+    const detail = detailAreaRef?.current?.getBoundingClientRect();
+    const right =
+      detail && detail.left > bounds.left ? detail.left - bounds.left - REVEAL_MARGIN : bounds.width - REVEAL_MARGIN;
+    return { width: bounds.width, right };
+  }, [detailAreaRef]);
+
+  const measureNode = useCallback(
+    (nodeId: string) => {
+      const node = getInternalNode(nodeId);
+      if (!node) return null;
+      const { x, y } = node.internals.positionAbsolute;
+      return { x, y, width: node.measured.width ?? 0, height: node.measured.height ?? 0 };
+    },
+    [getInternalNode]
+  );
+
+  /** 把节点居中到详情面板左侧的可见区域。 */
+  const centerNode = useCallback(
+    (nodeId: string) => {
+      const node = measureNode(nodeId);
+      const area = measureVisibleArea();
+      if (!node || !area) return;
+      const zoom = Math.min(Math.max(getViewport().zoom, FOCUS_ZOOM_RANGE.min), FOCUS_ZOOM_RANGE.max);
+      const shift = (area.width - area.right) / 2 / zoom;
+      void setCenter(node.x + node.width / 2 + shift, node.y + node.height / 2, { zoom, duration: 400 });
+    },
+    [getViewport, measureNode, measureVisibleArea, setCenter]
+  );
+
+  /** 节点会被详情面板挡住时，只平移到恰好露出，不改变缩放。 */
+  const revealNode = useCallback(
+    (nodeId: string) => {
+      const node = measureNode(nodeId);
+      const area = measureVisibleArea();
+      if (!node || !area) return;
+      const viewport = getViewport();
+      const left = node.x * viewport.zoom + viewport.x;
+      const right = (node.x + node.width) * viewport.zoom + viewport.x;
+      const shift = Math.min(right - area.right, left - REVEAL_MARGIN);
+      if (shift <= 0) return;
+      void setViewport({ ...viewport, x: viewport.x - shift }, { duration: 300 });
+    },
+    [getViewport, measureNode, measureVisibleArea, setViewport]
+  );
+
   useEffect(() => {
-    if (!focusRequest) return;
-    void fitView({ nodes: [{ id: focusRequest.nodeId }], duration: 400, maxZoom: 1.2, padding: 0.8 });
-  }, [fitView, focusRequest]);
+    if (focusRequest) centerNode(focusRequest.nodeId);
+  }, [centerNode, focusRequest]);
 
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
       onNodeClick(node.id);
+      revealNode(node.id);
     },
-    [onNodeClick]
+    [onNodeClick, revealNode]
   );
 
   const handleNodeMouseEnter = useCallback(
@@ -145,7 +202,7 @@ export function ControlGraphCanvas({
   }, []);
 
   return (
-    <div className="h-full w-full">
+    <div ref={containerRef} className="h-full w-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}

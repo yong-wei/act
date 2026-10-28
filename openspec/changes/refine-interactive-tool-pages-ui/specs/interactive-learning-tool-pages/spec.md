@@ -89,3 +89,26 @@ The control map search SHALL report the number of matching concepts, SHALL state
 #### Scenario: Learner presses Escape
 - **WHEN** the detail panel is open and the learner presses Escape
 - **THEN** the detail panel SHALL close and the selection SHALL clear.
+
+### Requirement: Control map keeps the selected concept readable beside the detail panel
+The control map SHALL keep the selected concept and the detail content legible while the detail panel is open.
+
+#### Scenario: Learner clicks a concept the panel would cover
+- **WHEN** the learner clicks a concept whose card would sit under the opened detail panel
+- **THEN** the canvas SHALL pan without changing zoom until the card is fully left of the panel.
+
+#### Scenario: Learner locates a concept by search or related topic
+- **WHEN** a concept is located through search Enter or a related-topic link
+- **THEN** the canvas SHALL center it within the area left of the detail panel.
+
+#### Scenario: Panel content over concept cards
+- **WHEN** the toolbar, legend or detail panel overlaps concept cards
+- **THEN** the overlay SHALL use an opaque surface so card text does not show through
+- **AND** formulas separated by `\quad` SHALL stack into lines so they fit the panel width without horizontal scrolling.
+
+### Requirement: Tool page sliders expose their names on the slider control
+Shared sliders used by the tool pages SHALL place their accessible name on the element with role `slider`.
+
+#### Scenario: Assistive technology reads a gain slider
+- **WHEN** a slider is rendered with an `aria-label` or `aria-labelledby`
+- **THEN** the thumb with role `slider` SHALL carry that name and the slider root SHALL NOT duplicate it.

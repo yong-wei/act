@@ -31,3 +31,10 @@
 - [x] 5.2 typecheck、lint、相关 vitest、build；提交后运行 `npm run test`
 - [x] 5.3 浏览器在 1440×900 下按深浅主题验收三个页面，确认控制台无新增错误
 - [x] 5.4 更新 `docs/ProjectDescription.md`
+
+## 6. 验收后整改
+
+- [x] 6.1 外壳合同为 `/simulations/fft-ocean-comparison`（视觉验收面）与 `/ilab/deep-sea-control/**`（实验空间嵌入入口）登记治理豁免，恢复全页面覆盖测试
+- [x] 6.2 共享 Slider 把 `aria-label` / `aria-labelledby` 移到 `role="slider"` 的手柄
+- [x] 6.3 控制理论地图：点击被详情面板遮挡的节点时平移露出，搜索与相关主题定位时居中到面板左侧；地图浮层垫实底色；`\quad` 并列公式分行
+- [x] 6.4 单测与浏览器复验

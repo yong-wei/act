@@ -2362,6 +2362,11 @@
     color: hsl(var(--platform-fg-primary));
   }
 
+  /* 地图浮层下方是清晰的节点文字而非三维场景，半透明面板会串字，需垫实底色。 */
+  [data-control-map-workspace] .simulation-light-panel {
+    background-color: hsl(var(--platform-surface));
+  }
+
   .light .premium-lesson-muted {
     color: hsl(var(--premium-lesson-muted));
   }

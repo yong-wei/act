@@ -18,6 +18,7 @@ export function ControlMapSystem() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [focusRequest, setFocusRequest] = useState<{ nodeId: string; sequence: number } | null>(null);
   const focusSequence = useRef(0);
+  const detailAreaRef = useRef<HTMLDivElement>(null);
 
   const searchMatches = useMemo(() => findControlMapSearchMatches(controlTheoryNodes, viewState), [viewState]);
 
@@ -83,6 +84,7 @@ export function ControlMapSystem() {
             onNodeClick={handleNodeClick}
             onNodeHover={handleNodeHover}
             focusRequest={focusRequest}
+            detailAreaRef={detailAreaRef}
           />
         </div>
 
@@ -98,7 +100,9 @@ export function ControlMapSystem() {
           </ul>
         </div>
 
-        <div className="pointer-events-none absolute bottom-3 right-3 top-3 z-20 flex w-[22rem] max-w-[calc(100%-1.5rem)] flex-col items-stretch gap-3">
+        <div
+          ref={detailAreaRef}
+          className="pointer-events-none absolute bottom-3 right-3 top-3 z-20 flex w-[22rem] max-w-[calc(100%-1.5rem)] flex-col items-stretch gap-3">
           <div className={`${OVERLAY_CLASS} space-y-2.5 p-3`} data-control-map-toolbar="">
             <SearchBar
               value={viewState.searchQuery}

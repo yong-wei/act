@@ -8,6 +8,7 @@ import {
   toggleControlMapFilter,
 } from '@/resources/interactive-learning/control-map/control-map-filters';
 import { controlTheoryNodes } from '@/resources/interactive-learning/control-map/data/control-theory-nodes';
+import { stackFormulaParts } from '@/resources/interactive-learning/control-map/sidebar/formula-display';
 import { defaultViewState } from '@/resources/interactive-learning/control-map/types';
 import { assessPidResponse } from '@/resources/interactive-learning/pid-simulator/pid-response-assessment';
 
@@ -56,6 +57,23 @@ describe('PID simulator preview and record semantics', () => {
     expect(source).toContain('const canRecord = Boolean(onStateChange || onComplete);');
     expect(source).toMatch(/\{canRecord \? \(/);
     expect(source).not.toMatch(/步长|时间倍率/);
+  });
+});
+
+describe('shared slider accessible name', () => {
+  it('moves aria-label and aria-labelledby from the root onto the slider thumb', () => {
+    const source = readFileSync('src/components/ui/slider.tsx', 'utf8');
+    expect(source).toMatch(/"aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, \.\.\.props/);
+    expect(source).toMatch(/<SliderPrimitive\.Thumb\s+aria-label=\{ariaLabel\}\s+aria-labelledby=\{ariaLabelledBy\}/);
+  });
+});
+
+describe('control map formula layout', () => {
+  it('stacks \\quad-separated formulas into lines and leaves single formulas untouched', () => {
+    expect(stackFormulaParts('u = -Kx, \\quad \\det(sI - A + BK) = 0')).toBe(
+      '\\begin{gathered}u = -Kx \\\\ \\det(sI - A + BK) = 0\\end{gathered}',
+    );
+    expect(stackFormulaParts('J = \\int_0^{\\infty} x^2 dt')).toBe('J = \\int_0^{\\infty} x^2 dt');
   });
 });
 
