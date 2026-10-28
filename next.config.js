@@ -56,6 +56,9 @@ const nextConfig = {
     ...(buildFilesystemRoot ? { root: buildFilesystemRoot } : {}),
     resolveAlias: {
       three: './src/lib/three-runtime-compat.ts',
+      // 兼容层基于 three/src；WebGPU/TSL 入口必须同源，否则 three.core 构建会成为第二份 Three 实例。
+      'three/webgpu': 'three/src/Three.WebGPU.js',
+      'three/tsl': 'three/src/Three.TSL.js',
     },
   },
   images: {
@@ -99,6 +102,8 @@ const nextConfig = {
     config.resolve.alias = {
       ...(config.resolve.alias ?? {}),
       three$: path.resolve(__dirname, 'src/lib/three-runtime-compat.ts'),
+      'three/webgpu$': require.resolve('three/src/Three.WebGPU.js'),
+      'three/tsl$': require.resolve('three/src/Three.TSL.js'),
     };
     return config;
   },
