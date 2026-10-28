@@ -2328,6 +2328,40 @@
     box-shadow: 0 18px 42px rgba(196, 181, 253, 0.12);
   }
 
+  /* 控制工作台内嵌的分析区采用平台中性仪表表面；精品课与多表征联动独立页不受影响。 */
+  [data-commercial-workspace='control-workbench'] .premium-lesson-theme-scope,
+  .light [data-commercial-workspace='control-workbench'] .premium-lesson-theme-scope {
+    --premium-lesson-surface: var(--platform-surface);
+    --premium-lesson-surface-soft: var(--platform-surface);
+    --premium-lesson-surface-elevated: var(--platform-surface-raised);
+    --premium-lesson-surface-muted: var(--platform-surface);
+    --premium-lesson-foreground: var(--platform-fg-primary);
+    --premium-lesson-foreground-strong: var(--platform-fg-primary);
+    --premium-lesson-muted: var(--platform-fg-secondary);
+    --premium-lesson-kicker-color: var(--platform-action-primary);
+    --premium-lesson-border: var(--platform-border);
+    --premium-lesson-border-soft: var(--platform-border);
+    --premium-lesson-chip-bg: var(--platform-canvas-muted);
+    --premium-lesson-chip-border: var(--platform-border);
+    --premium-lesson-chip-text: var(--platform-fg-primary);
+    --premium-lesson-input-bg: var(--platform-canvas);
+    --premium-lesson-input-border: var(--platform-border);
+    --premium-lesson-shadow: none;
+  }
+
+  [data-commercial-workspace='control-workbench'] :is(.premium-lesson-panel, .premium-lesson-panel-soft) {
+    border-radius: 0.75rem;
+    background: hsl(var(--platform-surface));
+    box-shadow: none;
+  }
+
+  [data-commercial-workspace='control-workbench'] .premium-lesson-tone-block.premium-tone-cyan {
+    border-radius: 0.75rem;
+    border-color: hsl(var(--platform-border));
+    background: hsl(var(--platform-surface-raised));
+    color: hsl(var(--platform-fg-primary));
+  }
+
   .light .premium-lesson-muted {
     color: hsl(var(--premium-lesson-muted));
   }

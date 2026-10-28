@@ -507,7 +507,9 @@ function ResolvedControlWorkbenchShell({
       <section className="border-b border-border/70 bg-card/80 px-6 py-5" data-commercial-workspace-zone="context-strip">
         <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm text-primary">{modeLabel(session.mode)} · {workspaceLabel}</p>
+            <p className="text-sm text-primary">
+              {session.mode === 'explore' ? modeLabel(session.mode) : `${modeLabel(session.mode)} · ${workspaceLabel}`}
+            </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-normal">{taskTitle}</h1>
             <p className="mt-2 text-sm text-subtle">对象：{objectName}</p>
             <p className="mt-2 text-xs text-subtle">{launchDescription.label} · {launchDescription.summary}</p>
@@ -554,13 +556,9 @@ function ResolvedControlWorkbenchShell({
               </div>
             </div>
           </section>
-          {session.mode === 'explore' ? (
+          {session.mode === 'explore' ? null : (
             <p className="surface-card rounded-lg p-4 text-sm leading-6 text-subtle">
-              自由探索模式可用于本地建模和参数试验，但结果不进入官方评价和竞技场榜单。
-            </p>
-          ) : (
-            <p className="surface-card rounded-lg p-4 text-sm leading-6 text-subtle">
-              该页面已经解析竞技场任务、对象、指标、允许方法和提交策略。下方工作区按面板实例渲染。
+              已载入本次任务的对象、评价指标、允许方法和提交要求，可在下方各面板中完成设计与验证。
             </p>
           )}
           {showClassicPreset ? (
@@ -668,7 +666,7 @@ function ResolvedControlWorkbenchShell({
                 <dt className="text-subtle">提交状态</dt>
                 <dd className="mt-1 text-foreground">
                   {session.submissionPolicy.officialEvaluationEnabled
-                    ? '提交结果进入 Arena 官方评价；可用证据将回流到学习记录。'
+                    ? '提交结果进入竞技场官方评价；可用证据将回流到学习记录。'
                     : session.submissionPolicy.disabledReason}
                 </dd>
               </div>
@@ -688,7 +686,7 @@ function ResolvedControlWorkbenchShell({
           >
             <summary className="cursor-pointer text-base font-semibold text-foreground">支持与说明</summary>
             <p className="mt-2 text-sm leading-6 text-subtle">
-              面板可用性、官方评价、回放与缺失上下文由工作台会话和 Arena 域数据提供；商业工作区只负责呈现层级与稳定区域。
+              可用面板、能否提交官方评价由当前任务决定；面板布置与方案快照只保存在本次浏览器会话中，关闭页面后不会保留。
             </p>
           </details>
         </section>

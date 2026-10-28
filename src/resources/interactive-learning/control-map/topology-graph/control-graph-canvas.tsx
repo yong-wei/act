@@ -8,6 +8,7 @@ import {
   MiniMap,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   ConnectionLineType,
   type Node,
   type Edge,
@@ -17,14 +18,18 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { ControlNode, type ControlNodeData, type ControlNodeType } from './control-node';
+import { useOptionalTheme } from '@/components/providers/theme-provider';
+import { ControlNode, type ControlNodeType } from './control-node';
 import { controlTheoryNodes, controlTheoryEdges, getRelatedNodes } from '../data/control-theory-nodes';
+import { isControlNodeVisible } from '../control-map-filters';
 import { zoneConfigs, type ViewState } from '../types';
 
 interface ControlGraphCanvasProps {
   viewState: ViewState;
   onNodeClick: (nodeId: string) => void;
   onNodeHover: (nodeId: string | null) => void;
+  /** 变化时把画布移动到 `focusNodeId`。 */
+  focusRequest?: { nodeId: string; sequence: number } | null;
 }
 
 // v12: nodeTypes 需要在组件外定义以保持引用稳定
@@ -32,100 +37,86 @@ const nodeTypes: NodeTypes = {
   controlNode: ControlNode,
 };
 
+const EDGE_COLOR = 'hsl(var(--platform-border-strong))';
+const EDGE_HIGHLIGHT_COLOR = 'hsl(var(--platform-action-primary))';
+
 export function ControlGraphCanvas({
   viewState,
   onNodeClick,
   onNodeHover,
+  focusRequest,
 }: ControlGraphCanvasProps) {
-  const { selectedNode, hoveredNode, searchQuery, showTimeDomain, showFreqDomain, showContinuous, showDiscrete } = viewState;
+  const { selectedNode, hoveredNode } = viewState;
+  const { fitView } = useReactFlow();
+  // React Flow 会在根节点写入 light/dark 类；必须与应用主题一致，否则平台 token 在画布内取到另一套值。
+  const colorMode = useOptionalTheme()?.theme ?? 'light';
+  const focusNodeId = hoveredNode ?? selectedNode;
 
-  // 获取高亮的相关节点
-  const relatedNodeIds = useMemo(() => {
-    if (hoveredNode) return getRelatedNodes(hoveredNode);
-    if (selectedNode) return getRelatedNodes(selectedNode);
-    return [];
-  }, [hoveredNode, selectedNode]);
+  const relatedNodeIds = useMemo(() => (focusNodeId ? getRelatedNodes(focusNodeId) : []), [focusNodeId]);
 
-  // 构建节点
   const initialNodes: ControlNodeType[] = useMemo(() => {
-    return controlTheoryNodes.map((node) => {
-      // 检查是否应该显示
-      const matchesDomain =
-        (showTimeDomain && (node.domain === 'time' || node.domain === 'both')) ||
-        (showFreqDomain && (node.domain === 'frequency' || node.domain === 'both'));
+    return controlTheoryNodes.map((node) => ({
+      id: node.id,
+      type: 'controlNode',
+      position: node.position,
+      data: {
+        nameCn: node.nameCn,
+        name: node.name,
+        zone: node.zone,
+        importance: node.importance,
+        isSelected: selectedNode === node.id,
+        isHovered: hoveredNode === node.id,
+        isRelated: relatedNodeIds.includes(node.id),
+        isDimmed: !isControlNodeVisible(node, viewState),
+      },
+    }));
+  }, [selectedNode, hoveredNode, relatedNodeIds, viewState]);
 
-      const matchesTime =
-        (showContinuous && (node.timeType === 'continuous' || node.timeType === 'both')) ||
-        (showDiscrete && (node.timeType === 'discrete' || node.timeType === 'both'));
-
-      const matchesSearch = searchQuery
-        ? node.nameCn.includes(searchQuery) ||
-          node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          node.definition.includes(searchQuery)
-        : true;
-
-      const isVisible = matchesDomain && matchesTime && matchesSearch;
-      const isDimmed = !isVisible;
-
-      return {
-        id: node.id,
-        type: 'controlNode',
-        position: node.position,
-        data: {
-          nameCn: node.nameCn,
-          name: node.name,
-          zone: node.zone,
-          importance: node.importance,
-          isSelected: selectedNode === node.id,
-          isHovered: hoveredNode === node.id,
-          isRelated: relatedNodeIds.includes(node.id),
-          isDimmed,
-        },
-      };
-    });
-  }, [selectedNode, hoveredNode, relatedNodeIds, searchQuery, showTimeDomain, showFreqDomain, showContinuous, showDiscrete]);
-
-  // 构建边
   const initialEdges: Edge[] = useMemo(() => {
     return controlTheoryEdges.map((edge) => {
-      const isHighlighted =
-        edge.source === selectedNode ||
-        edge.target === selectedNode ||
-        edge.source === hoveredNode ||
-        edge.target === hoveredNode;
+      const isHighlighted = focusNodeId !== null && (edge.source === focusNodeId || edge.target === focusNodeId);
+      const isFaded = focusNodeId !== null && !isHighlighted;
 
       return {
         id: edge.id,
         source: edge.source,
         target: edge.target,
-        type: 'smoothstep',
+        type: 'default',
         animated: isHighlighted,
+        zIndex: isHighlighted ? 1 : 0,
         style: {
-          stroke: isHighlighted ? '#f59e0b' : '#475569',
-          strokeWidth: isHighlighted ? 2 : 1,
-          opacity: isHighlighted ? 1 : 0.5,
+          stroke: isHighlighted ? EDGE_HIGHLIGHT_COLOR : EDGE_COLOR,
+          strokeWidth: isHighlighted ? 2 : 1.25,
+          opacity: isHighlighted ? 1 : isFaded ? 0.18 : 0.55,
         },
         label: isHighlighted ? edge.relationCn : undefined,
         labelStyle: {
           fontSize: 10,
-          fill: '#f59e0b',
+          fontWeight: 600,
+          fill: EDGE_HIGHLIGHT_COLOR,
         },
         labelBgStyle: {
-          fill: '#1e293b',
-          fillOpacity: 0.9,
+          fill: 'hsl(var(--platform-surface))',
+          fillOpacity: 0.92,
         },
+        labelBgPadding: [4, 2] as [number, number],
+        labelBgBorderRadius: 4,
       };
     });
-  }, [selectedNode, hoveredNode]);
+  }, [focusNodeId]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  // 更新节点
   useEffect(() => {
     setNodes(initialNodes);
     setEdges(initialEdges);
   }, [initialNodes, initialEdges, setNodes, setEdges]);
+
+  useEffect(() => {
+    if (!focusRequest) return;
+    void fitView({ nodes: [{ id: focusRequest.nodeId }], duration: 400, maxZoom: 1.2, padding: 0.8 });
+  }, [fitView, focusRequest]);
 
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -149,7 +140,6 @@ export function ControlGraphCanvas({
     onNodeClick('');
   }, [onNodeClick]);
 
-  // MiniMap节点颜色
   const nodeColor = useCallback((node: ControlNodeType) => {
     return zoneConfigs[node.data.zone].color;
   }, []);
@@ -166,21 +156,29 @@ export function ControlGraphCanvas({
         onNodeMouseLeave={handleNodeMouseLeave}
         onPaneClick={handlePaneClick}
         nodeTypes={nodeTypes}
-        connectionLineType={ConnectionLineType.SmoothStep}
+        colorMode={colorMode}
+        connectionLineType={ConnectionLineType.Bezier}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding: 0.18 }}
         minZoom={0.3}
         maxZoom={2}
-        className="bg-slate-950"
+        className="bg-platform-canvas"
       >
-        <Background color="#334155" gap={20} size={1} />
+        <Background color="hsl(var(--platform-border-strong) / 0.55)" gap={22} size={1} />
         <Controls
-          className="!border-slate-700 !bg-slate-800/90 [&>button]:!border-slate-700 [&>button]:!bg-slate-800 [&>button]:!text-slate-300 [&>button:hover]:!bg-slate-700"
+          showInteractive={false}
+          className="!m-3 overflow-hidden !rounded-lg !border !border-platform-border !shadow-sm [&>button]:!border-platform-border [&>button]:!bg-platform-surface [&>button]:!fill-platform-fg-secondary [&>button:hover]:!bg-platform-action-subtle"
         />
         <MiniMap
+          position="bottom-left"
+          style={{ marginLeft: '3.75rem' }}
+          pannable
+          zoomable
           nodeColor={nodeColor}
-          maskColor="rgba(15, 23, 42, 0.8)"
-          className="!border-slate-700 !bg-slate-900/90"
+          nodeBorderRadius={3}
+          bgColor="hsl(var(--platform-surface))"
+          maskColor="hsl(var(--platform-canvas) / 0.72)"
+          className="!m-3 overflow-hidden !rounded-lg !border !border-platform-border !shadow-sm"
         />
       </ReactFlow>
     </div>

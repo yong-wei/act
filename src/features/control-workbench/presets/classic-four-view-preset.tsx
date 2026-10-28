@@ -101,7 +101,10 @@ export function ClassicFourViewPreset({
   const plantModel = buildClassicPlantModel(session);
 
   return (
-    <section className="overflow-hidden rounded-lg border border-white/10 bg-slate-950/30">
+    <section
+      className="overflow-hidden rounded-lg border border-platform-border bg-platform-canvas-muted/60"
+      data-control-workbench-instrument-area="classic"
+    >
       <MultiRepresentationLinkageClient
         key={plantModel?.objectId ?? plantModel?.id ?? 'classic-whitebox'}
         onPanelSelectedOptionsChange={onPanelSelectedOptionsChange}

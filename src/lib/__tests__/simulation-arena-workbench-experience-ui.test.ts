@@ -17,7 +17,7 @@ describe('simulation arena workbench experience UI contracts', () => {
   it.each([
     ['standalone', '独立探索', 'standalone'],
     ['course-launched', '课程内启动', 'course'],
-    ['arena-preview', 'Arena 预览', 'preview'],
+    ['arena-preview', '竞技场预览', 'preview'],
     ['official-evaluation', '官方评价', 'official'],
     ['teacher-review', '教师复核', 'review'],
     ['admin-review', '管理员复核', 'review'],

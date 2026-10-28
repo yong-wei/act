@@ -1,15 +1,29 @@
-
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
-import Chart from 'chart.js/auto';
-import { ArrowLeft, Play, RefreshCcw } from 'lucide-react';
+import { Activity, ClipboardCheck, Gauge, RotateCcw, Ship, SlidersHorizontal } from 'lucide-react';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { TransferFunctionModel } from '@/lib/simulation';
+import { cn } from '@/lib/utils';
+import { Slider } from '@/components/ui/slider';
+import {
+  SimChip,
+  SimField,
+  SimNotice,
+  SimPanelSection,
+  SimPanelStack,
+  SimReadout,
+  SimReadoutGrid,
+  SimSegmented,
+  type SimTone,
+} from '@/resources/simulations/components/simulation-panels';
+import { simulationUi } from '@/resources/simulations/components/simulation-ui';
 import {
   preloadInteractiveSimulationRuntime,
   runPidBatchSimulation,
+  type PidBatchSimulationResult,
 } from '@/resources/interactive-learning/rust/interactive-simulation-runtime';
+import { assessPidResponse } from '@/resources/interactive-learning/pid-simulator/pid-response-assessment';
 
 type ModelKey = 'motor' | 'ship' | 'usv' | 'dps' | 'dredger' | 'fin';
 
@@ -49,6 +63,8 @@ const MODEL_CONFIG: Record<
   },
 };
 
+const MODEL_KEYS = Object.keys(MODEL_CONFIG) as ModelKey[];
+
 const getPlantModel = (key: ModelKey): TransferFunctionModel => {
   switch (key) {
     case 'motor':
@@ -68,11 +84,67 @@ const getPlantModel = (key: ModelKey): TransferFunctionModel => {
   }
 };
 
+const SIMULATION_STEP_SECONDS = 0.02;
+const PREVIEW_DEBOUNCE_MS = 150;
+const MAX_CHART_POINTS = 800;
+
+type DurationOption = '10' | '20' | '40';
+const DURATION_OPTIONS = [
+  { value: '10', label: '10 秒' },
+  { value: '20', label: '20 秒' },
+  { value: '40', label: '40 秒' },
+] as const satisfies readonly { value: DurationOption; label: string }[];
+
+interface GainRange {
+  min: number;
+  max: number;
+  step: number;
+}
+
+const KP_RANGE: GainRange = { min: 0, max: 10, step: 0.05 };
+const KI_RANGE: GainRange = { min: 0, max: 2, step: 0.01 };
+const KD_RANGE: GainRange = { min: 0, max: 5, step: 0.05 };
+const REFERENCE_RANGE: GainRange = { min: 0.2, max: 2, step: 0.1 };
+
+/** 课程配置的初值超出默认上限时扩展上限，避免钳制教师设定的参数。 */
+function rangeFor(range: GainRange, initial: number): GainRange {
+  return Number.isFinite(initial) && initial > range.max ? { ...range, max: initial } : range;
+}
+
+function toModelKey(value: string | undefined): ModelKey {
+  return value && value in MODEL_CONFIG ? (value as ModelKey) : 'ship';
+}
+
+interface ChartPoint {
+  t: number;
+  response: number | null;
+  setpoint: number;
+}
+
+function buildChartPoints(result: PidBatchSimulationResult): ChartPoint[] {
+  const stride = Math.max(1, Math.ceil(result.times.length / MAX_CHART_POINTS));
+  const points: ChartPoint[] = [];
+  for (let index = 0; index < result.times.length; index += stride) {
+    const value = result.response[index];
+    points.push({
+      t: result.times[index],
+      response: Number.isFinite(value) ? value : null,
+      setpoint: result.setpoint[index],
+    });
+  }
+  return points;
+}
+
+function formatMetric(value: number, digits: number) {
+  return Number.isFinite(value) ? value.toFixed(digits) : '—';
+}
+
 interface PidSimulatorComponentProps {
   kp?: number;
   ki?: number;
   kd?: number;
   model?: string; // string type to allow dynamic input
+  /** 兼容旧调用；导航由外层外壳提供。 */
   showBackLink?: boolean;
   /** Embedded mode - hide navigation */
   embedded?: boolean;
@@ -87,342 +159,359 @@ interface PidSimulatorComponentProps {
   onComplete?: (result?: { success: boolean; score?: number; data?: Record<string, unknown> }) => void;
 }
 
+interface PidRun {
+  result: PidBatchSimulationResult;
+  params: { kp: number; ki: number; kd: number; model: ModelKey; reference: number };
+}
+
 export function PidSimulatorComponent({
   kp: initialKp = 1.2,
   ki: initialKi = 0.1,
   kd: initialKd = 0.25,
   model: initialModel = 'ship',
-  showBackLink = false,
   embedded = false,
   onStateChange,
   onComplete,
 }: PidSimulatorComponentProps) {
-  const chartRef = useRef<HTMLCanvasElement>(null);
-  const chartInstance = useRef<Chart | null>(null);
-
-  const [modelKey, setModelKey] = useState<ModelKey>((initialModel as ModelKey) || 'ship');
+  const initialModelKey = toModelKey(initialModel);
+  const [modelKey, setModelKey] = useState<ModelKey>(initialModelKey);
   const [kp, setKp] = useState(initialKp);
   const [ki, setKi] = useState(initialKi);
   const [kd, setKd] = useState(initialKd);
   const [reference, setReference] = useState(1);
-  const [stepSize, setStepSize] = useState(50);
-  const [timeScale, setTimeScale] = useState(1);
+  const [duration, setDuration] = useState<DurationOption>('20');
+  const [runtimeState, setRuntimeState] = useState<'loading' | 'ready' | 'failed'>('loading');
+  const [run, setRun] = useState<PidRun | null>(null);
+  const [recordedAt, setRecordedAt] = useState<number | null>(null);
+  const latestRun = useRef<PidRun | null>(null);
+  const hasPreviewed = useRef(false);
 
-  const modelInfo = useMemo(() => MODEL_CONFIG[modelKey] || MODEL_CONFIG['ship'], [modelKey]);
+  const kpRange = useMemo(() => rangeFor(KP_RANGE, initialKp), [initialKp]);
+  const kiRange = useMemo(() => rangeFor(KI_RANGE, initialKi), [initialKi]);
+  const kdRange = useMemo(() => rangeFor(KD_RANGE, initialKd), [initialKd]);
+  const modelInfo = MODEL_CONFIG[modelKey];
+  const canRecord = Boolean(onStateChange || onComplete);
 
   useEffect(() => {
-    void preloadInteractiveSimulationRuntime();
+    let cancelled = false;
+    preloadInteractiveSimulationRuntime()
+      .then(() => {
+        if (!cancelled) setRuntimeState('ready');
+      })
+      .catch(() => {
+        if (!cancelled) setRuntimeState('failed');
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    if (!chartRef.current) return;
-    const ctx = chartRef.current.getContext('2d');
-    if (!ctx) return;
+    if (runtimeState !== 'ready') return;
+    const simulate = () => {
+      try {
+        const params = { kp, ki, kd, model: modelKey, reference };
+        const result = runPidBatchSimulation({
+          model: getPlantModel(modelKey),
+          dt: SIMULATION_STEP_SECONDS,
+          duration: Number(duration),
+          reference,
+          kp,
+          ki,
+          kd,
+        });
+        const next = { result, params };
+        latestRun.current = next;
+        setRun(next);
+        setRecordedAt(null);
+      } catch {
+        setRuntimeState('failed');
+      }
+    };
+    if (!hasPreviewed.current) {
+      hasPreviewed.current = true;
+      simulate();
+      return;
+    }
+    const timer = window.setTimeout(simulate, PREVIEW_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [runtimeState, kp, ki, kd, modelKey, reference, duration]);
 
-    chartInstance.current?.destroy();
-    chartInstance.current = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: '系统响应',
-            data: [],
-            borderColor: '#38bdf8',
-            borderWidth: 2,
-            tension: 0.2,
-            pointRadius: 0,
-          },
-          {
-            label: '设定值',
-            data: [],
-            borderColor: '#f59e0b',
-            borderDash: [6, 6],
-            borderWidth: 2,
-            tension: 0.2,
-            pointRadius: 0,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        scales: {
-          x: {
-            title: { display: true, text: '时间 (s)' },
-            ticks: { color: '#94a3b8' },
-            grid: { color: 'rgba(148,163,184,0.15)' },
-          },
-          y: {
-            title: { display: true, text: '输出' },
-            ticks: { color: '#94a3b8' },
-            grid: { color: 'rgba(148,163,184,0.15)' },
-          },
-        },
-        plugins: {
-          legend: {
-            labels: {
-              color: '#e2e8f0',
-            },
-          },
-        },
-      },
-    });
-  }, []);
-
-  const runSimulation = useCallback(async () => {
-    if (!chartInstance.current) return;
-    await preloadInteractiveSimulationRuntime();
-
-    const dt = Math.max(stepSize, 20) / 1000;
-    const duration = 20 * timeScale;
-    const result = runPidBatchSimulation({
-      model: getPlantModel(modelKey),
-      dt,
-      duration,
-      reference,
-      kp,
-      ki,
-      kd,
-    });
-    const responseData = result.response;
-    const setpointData = result.setpoint;
-    const labels = result.times.map((time) => time.toFixed(2));
-
-    chartInstance.current.data.labels = labels;
-    chartInstance.current.data.datasets[0].data = responseData;
-    chartInstance.current.data.datasets[1].data = setpointData;
-    chartInstance.current.update();
-
-    // Calculate performance metrics
-    const finalValue = result.metrics.finalValue;
-    const steadyStateError = result.metrics.steadyStateError;
-    const overshootPercent = result.metrics.overshootPercent;
-
-    // Emit state change
+  const recordResult = useCallback(() => {
+    const current = latestRun.current;
+    if (!current) return;
+    const { finalValue, steadyStateError, overshootPercent } = current.result.metrics;
     onStateChange?.({
       phase: 'simulation-complete',
       progress: 100,
       data: {
-        kp,
-        ki,
-        kd,
-        model: modelKey,
-        reference,
+        ...current.params,
         finalValue,
         steadyStateError,
         overshootPercent: Math.max(0, overshootPercent),
       },
       timestamp: Date.now(),
     });
-
-    // Call onComplete if simulation ran successfully
     onComplete?.({
       success: true,
       score: steadyStateError < 0.05 && overshootPercent < 20 ? 100 : 70,
       data: { steadyStateError, overshootPercent },
     });
-  }, [kd, ki, kp, modelKey, reference, stepSize, timeScale, onStateChange, onComplete]);
+    setRecordedAt(Date.now());
+  }, [onComplete, onStateChange]);
 
   const handleReset = () => {
-    setModelKey((initialModel as ModelKey) || 'ship');
+    setModelKey(initialModelKey);
     setKp(initialKp);
     setKi(initialKi);
     setKd(initialKd);
     setReference(1);
-    setStepSize(50);
-    setTimeScale(1);
-    if (chartInstance.current) {
-      chartInstance.current.data.labels = [];
-      chartInstance.current.data.datasets[0].data = [];
-      chartInstance.current.data.datasets[1].data = [];
-      chartInstance.current.update();
-    }
+    setDuration('20');
   };
 
+  const assessment = useMemo(
+    () => (run ? assessPidResponse(run.result.response, run.params.reference) : null),
+    [run],
+  );
+  const chartPoints = useMemo(() => (run ? buildChartPoints(run.result) : []), [run]);
+  const diverged = assessment?.diverged ?? false;
+  const clampChart = assessment?.clampChart ?? false;
+  const yDomain: [number | string, number | string] = clampChart && run
+    ? [-2 * Math.abs(run.params.reference), 3 * Math.abs(run.params.reference)]
+    : ['auto', 'auto'];
+
+  const metrics = run?.result.metrics;
+  const overshoot = metrics ? Math.max(0, metrics.overshootPercent) : Number.NaN;
+  const steadyStateError = metrics ? Math.abs(metrics.steadyStateError) : Number.NaN;
+  const overshootTone: SimTone = diverged ? 'danger' : overshoot > 20 ? 'warning' : 'success';
+  const errorTone: SimTone = diverged ? 'danger' : steadyStateError > 0.05 ? 'warning' : 'success';
+
+  const actionButtons = (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={handleReset}
+        className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs', simulationUi.buttonOutline)}
+      >
+        <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+        重置
+      </button>
+      {canRecord ? (
+        <button
+          type="button"
+          onClick={recordResult}
+          disabled={!run || diverged}
+          className={cn(
+            'inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs disabled:cursor-not-allowed disabled:opacity-50',
+            simulationUi.buttonPrimary,
+          )}
+        >
+          <ClipboardCheck className="h-3.5 w-3.5" aria-hidden="true" />
+          {recordedAt ? '已记录' : '记录本次结果'}
+        </button>
+      ) : null}
+    </div>
+  );
+
   return (
-    <div className="h-full w-full bg-slate-950 text-slate-100 flex flex-col">
-      {/* Header - hidden in embedded mode */}
-      {!embedded && (
-        <header className="border-b border-slate-800 flex-none">
-          <div className="container mx-auto flex items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-4">
-              {showBackLink && (
-                  <Link
-                  href="/interactive-learning"
-                  className="flex items-center gap-2 text-slate-400 transition-colors hover:text-white"
-                  >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="text-sm">返回</span>
-                  </Link>
-              )}
-              {showBackLink && <div className="h-4 w-px bg-slate-700" />}
-              <div>
-                <h1 className="text-lg font-semibold text-white">PID 控制仿真器</h1>
-                <p className="text-xs text-slate-400">多对象动态响应与参数调参</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button type="button"
-                onClick={handleReset}
-                className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800"
-              >
-                <RefreshCcw className="h-4 w-4" />
-                重置
-              </button>
-              <button type="button"
-                 onClick={() => void runSimulation()}
-                className="flex items-center gap-2 rounded-lg border border-cyan-500/60 bg-cyan-500/10 px-3 py-1.5 text-sm text-cyan-100 transition hover:border-cyan-400"
-              >
-                <Play className="h-4 w-4" />
-                运行仿真
-              </button>
-            </div>
-          </div>
-        </header>
+    <div
+      className={cn(
+        'flex w-full min-w-0 flex-col text-platform-fg-primary',
+        embedded ? 'h-full bg-platform-canvas' : 'min-h-0',
       )}
-
-      {/* Embedded mode toolbar */}
-      {embedded && (
-        <div className="border-b border-slate-800 bg-slate-900/50 px-4 py-2 flex items-center justify-between">
-          <span className="text-sm text-slate-400">PID 控制仿真器</span>
-          <div className="flex items-center gap-2">
-            <button type="button"
-              onClick={handleReset}
-              className="rounded px-2 py-1 text-xs text-slate-400 hover:bg-slate-800"
-            >
-              <RefreshCcw className="h-3 w-3" />
-            </button>
-            <button type="button"
-               onClick={() => void runSimulation()}
-              className="flex items-center gap-1 rounded bg-cyan-500/20 px-2 py-1 text-xs text-cyan-300 hover:bg-cyan-500/30"
-            >
-              <Play className="h-3 w-3" />
-              运行
-            </button>
-          </div>
+      data-pid-simulator={embedded ? 'embedded' : 'standalone'}
+    >
+      {embedded ? (
+        <div className="flex flex-none items-center justify-between border-b border-platform-border px-4 py-2">
+          <span className="text-sm font-medium text-platform-fg-secondary">PID 控制仿真器</span>
+          {actionButtons}
         </div>
-      )}
+      ) : null}
 
-      <main className="container mx-auto grid gap-6 px-6 py-6 lg:grid-cols-[320px_1fr] flex-1 min-h-0 overflow-y-auto">
-        <aside className="space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-semibold text-white">对象模型</h2>
-                <p className="text-xs text-slate-400">选择模拟的控制对象</p>
+      <div
+        className={cn(
+          'grid min-h-0 flex-1 gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]',
+          embedded ? 'overflow-y-auto p-4' : 'w-full',
+        )}
+      >
+        <aside className="simulation-light-panel p-4">
+          <SimPanelStack>
+            <SimPanelSection title="对象模型" icon={Ship} aside={<SimChip tone="accent">{modelInfo.tag}</SimChip>}>
+              <div className="grid grid-cols-2 gap-1.5" role="group" aria-label="对象模型">
+                {MODEL_KEYS.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={key === modelKey}
+                    onClick={() => setModelKey(key)}
+                    className={cn(
+                      'min-h-9 rounded-md border px-2 py-1.5 text-left text-xs leading-4 transition',
+                      key === modelKey
+                        ? 'border-platform-action-primary/70 bg-platform-action-primary/12 font-semibold text-platform-action-primary'
+                        : 'border-platform-border bg-platform-canvas/40 text-platform-fg-secondary hover:border-platform-action-primary/40 hover:text-platform-fg-primary',
+                    )}
+                  >
+                    {MODEL_CONFIG[key].title}
+                  </button>
+                ))}
               </div>
-              <span className="rounded-full border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-xs text-cyan-200">
-                {modelInfo.tag}
-              </span>
-            </div>
-            <select
-              value={modelKey}
-              onChange={(event) => setModelKey(event.target.value as ModelKey)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
-            >
-              {Object.entries(MODEL_CONFIG).map(([key, value]) => (
-                <option key={key} value={key}>
-                  {value.title}
-                </option>
-              ))}
-            </select>
-            <p className="mt-3 text-xs text-slate-400">{modelInfo.description}</p>
-          </div>
+              <p className="mt-2.5 text-xs leading-5 text-platform-fg-secondary">{modelInfo.description}</p>
+            </SimPanelSection>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-            <h2 className="text-sm font-semibold text-white">PID 参数</h2>
-            <div className="mt-4 grid gap-3 text-sm">
-              <label className="flex items-center justify-between gap-2">
-                <span className="text-slate-400">Kp</span>
-                <input
-                  type="number"
-                  value={kp}
-                  step="0.1"
-                  onChange={(event) => setKp(Number(event.target.value))}
-                  className="w-24 rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-right text-slate-100 outline-none focus:border-cyan-400"
-                />
-              </label>
-              <label className="flex items-center justify-between gap-2">
-                <span className="text-slate-400">Ki</span>
-                <input
-                  type="number"
-                  value={ki}
-                  step="0.05"
-                  onChange={(event) => setKi(Number(event.target.value))}
-                  className="w-24 rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-right text-slate-100 outline-none focus:border-cyan-400"
-                />
-              </label>
-              <label className="flex items-center justify-between gap-2">
-                <span className="text-slate-400">Kd</span>
-                <input
-                  type="number"
-                  value={kd}
-                  step="0.05"
-                  onChange={(event) => setKd(Number(event.target.value))}
-                  className="w-24 rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-right text-slate-100 outline-none focus:border-cyan-400"
-                />
-              </label>
-              <label className="flex items-center justify-between gap-2">
-                <span className="text-slate-400">目标值</span>
-                <input
-                  type="number"
-                  value={reference}
-                  step="0.1"
-                  onChange={(event) => setReference(Number(event.target.value))}
-                  className="w-24 rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-right text-slate-100 outline-none focus:border-cyan-400"
-                />
-              </label>
-            </div>
-          </div>
+            <SimPanelSection title="PID 参数" icon={SlidersHorizontal}>
+              <div className="space-y-3">
+                <SimField label="比例增益 Kp" value={kp.toFixed(2)}>
+                  <Slider
+                    aria-label="比例增益 Kp"
+                    className={simulationUi.slider}
+                    value={[kp]}
+                    {...kpRange}
+                    onValueChange={([value]) => setKp(value)}
+                  />
+                </SimField>
+                <SimField label="积分增益 Ki" value={ki.toFixed(2)}>
+                  <Slider
+                    aria-label="积分增益 Ki"
+                    className={simulationUi.slider}
+                    value={[ki]}
+                    {...kiRange}
+                    onValueChange={([value]) => setKi(value)}
+                  />
+                </SimField>
+                <SimField label="微分增益 Kd" value={kd.toFixed(2)}>
+                  <Slider
+                    aria-label="微分增益 Kd"
+                    className={simulationUi.slider}
+                    value={[kd]}
+                    {...kdRange}
+                    onValueChange={([value]) => setKd(value)}
+                  />
+                </SimField>
+                <SimField label="目标值" value={reference.toFixed(1)}>
+                  <Slider
+                    aria-label="目标值"
+                    className={simulationUi.slider}
+                    value={[reference]}
+                    {...REFERENCE_RANGE}
+                    onValueChange={([value]) => setReference(value)}
+                  />
+                </SimField>
+              </div>
+            </SimPanelSection>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-            <h2 className="text-sm font-semibold text-white">仿真配置</h2>
-            <div className="mt-4 grid gap-3 text-sm">
-              <label className="flex items-center justify-between gap-2">
-                <span className="text-slate-400">步长 (ms)</span>
-                <input
-                  type="number"
-                  value={stepSize}
-                  step="10"
-                  min={20}
-                  onChange={(event) => setStepSize(Number(event.target.value))}
-                  className="w-24 rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-right text-slate-100 outline-none focus:border-cyan-400"
-                />
-              </label>
-              <label className="flex items-center justify-between gap-2">
-                <span className="text-slate-400">时间倍率</span>
-                <input
-                  type="number"
-                  value={timeScale}
-                  step="0.5"
-                  min={0.5}
-                  onChange={(event) => setTimeScale(Number(event.target.value))}
-                  className="w-24 rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-right text-slate-100 outline-none focus:border-cyan-400"
-                />
-              </label>
-            </div>
-          </div>
+            <SimPanelSection title="仿真时长" icon={Gauge}>
+              <SimSegmented
+                ariaLabel="仿真时长"
+                options={DURATION_OPTIONS}
+                value={duration}
+                onChange={setDuration}
+              />
+            </SimPanelSection>
+          </SimPanelStack>
         </aside>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5 flex flex-col min-h-0">
-          <div className="flex items-center justify-between flex-none">
-            <div>
-              <h2 className="text-lg font-semibold text-white">响应曲线</h2>
-              <p className="text-xs text-slate-400">
-                观察系统输出与设定值的动态变化
+        <section className="simulation-light-panel flex min-h-[30rem] min-w-0 flex-col p-4">
+          <header className="mb-3 flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-platform-fg-primary">阶跃响应</h2>
+              <p className="mt-0.5 text-xs text-platform-fg-secondary">
+                {modelInfo.title} · 调整参数后曲线自动刷新
               </p>
             </div>
-            <div className="text-xs text-slate-500">
-              当前模型：{modelInfo.title}
-            </div>
+            {embedded ? null : actionButtons}
+          </header>
+
+          <SimReadoutGrid columns={3} className="mb-3">
+            <SimReadout label="超调量" value={formatMetric(overshoot, 1)} unit="%" tone={run ? overshootTone : 'neutral'} size="lg" />
+            <SimReadout label="稳态误差" value={formatMetric(steadyStateError, 3)} tone={run ? errorTone : 'neutral'} size="lg" />
+            <SimReadout label="终值" value={formatMetric(metrics?.finalValue ?? Number.NaN, 3)} size="lg" />
+          </SimReadoutGrid>
+
+          {runtimeState === 'failed' ? (
+            <SimNotice tone="danger" title="仿真暂不可用" className="mb-3">请刷新页面后重试。</SimNotice>
+          ) : diverged ? (
+            <SimNotice tone="danger" title="当前参数使闭环发散" className="mb-3">
+              减小 Kp 或 Ki，或适当增大 Kd 后再观察响应。
+            </SimNotice>
+          ) : null}
+
+          <div className="relative min-h-[18rem] flex-1" data-pid-response-chart="">
+            {run ? (
+              <div className="absolute inset-0">
+                <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 640, height: 320 }}>
+                  <LineChart data={chartPoints} margin={{ top: 8, right: 16, bottom: 20, left: 0 }}>
+                    <CartesianGrid stroke="hsl(var(--platform-border))" strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="t"
+                      type="number"
+                      domain={[0, 'dataMax']}
+                      tickCount={6}
+                      tick={{ fill: 'hsl(var(--platform-fg-secondary))', fontSize: 11 }}
+                      stroke="hsl(var(--platform-border-strong))"
+                      label={{ value: '时间 (s)', position: 'insideBottom', offset: -12, fill: 'hsl(var(--platform-fg-secondary))', fontSize: 11 }}
+                    />
+                    <YAxis
+                      domain={yDomain}
+                      allowDataOverflow={clampChart}
+                      width={48}
+                      tickFormatter={(value: number) => value.toFixed(2)}
+                      tick={{ fill: 'hsl(var(--platform-fg-secondary))', fontSize: 11 }}
+                      stroke="hsl(var(--platform-border-strong))"
+                    />
+                    <Tooltip
+                      formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : String(value ?? '—'), name]}
+                      labelFormatter={(label) => `t = ${Number(label).toFixed(2)} s`}
+                      contentStyle={{
+                        background: 'hsl(var(--platform-surface-overlay))',
+                        border: '1px solid hsl(var(--platform-border))',
+                        borderRadius: 8,
+                        color: 'hsl(var(--platform-fg-primary))',
+                        fontSize: 12,
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="setpoint"
+                      name="设定值"
+                      stroke="hsl(var(--platform-chart-4))"
+                      strokeWidth={1.5}
+                      strokeDasharray="6 4"
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="response"
+                      name="系统输出"
+                      stroke="hsl(var(--platform-chart-1))"
+                      strokeWidth={2}
+                      dot={false}
+                      connectNulls={false}
+                      isAnimationActive={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : runtimeState === 'loading' ? (
+              <div className="absolute inset-0 flex items-center justify-center gap-2 text-xs text-platform-fg-secondary">
+                <Activity className="h-4 w-4 animate-pulse" aria-hidden="true" />
+                正在准备仿真…
+              </div>
+            ) : null}
           </div>
-          <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/60 p-3 flex-1 min-h-0 relative">
-            <canvas ref={chartRef} className="absolute inset-0 w-full h-full" />
+
+          <div className="mt-2 flex flex-wrap items-center gap-4 text-[11px] text-platform-fg-secondary" aria-hidden="true">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-0.5 w-5 rounded-full bg-[hsl(var(--platform-chart-1))]" />
+              系统输出
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-0 w-5 border-t-2 border-dashed border-[hsl(var(--platform-chart-4))]" />
+              设定值
+            </span>
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 }

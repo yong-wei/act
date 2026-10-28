@@ -49,9 +49,14 @@ export interface ZoneConfig {
   id: ZoneType;
   name: string;
   nameCn: string;
-  color: string;               // 主色调
+  color: string;               // 主色调（CSS 颜色表达式）
   bgColor: string;             // 背景色（带透明度）
   borderColor: string;         // 边框色
+}
+
+/** 区域色取自平台语义色 token，深浅主题各自取值。 */
+function zoneColor(token: string, alpha?: number) {
+  return alpha === undefined ? `hsl(var(${token}))` : `hsl(var(${token}) / ${alpha})`;
 }
 
 export const zoneConfigs: Record<ZoneType, ZoneConfig> = {
@@ -59,41 +64,41 @@ export const zoneConfigs: Record<ZoneType, ZoneConfig> = {
     id: 'modeling',
     name: 'Modeling & Simulation',
     nameCn: '建模与仿真',
-    color: '#ef4444',
-    bgColor: 'rgba(239, 68, 68, 0.15)',
-    borderColor: 'rgba(239, 68, 68, 0.5)',
+    color: zoneColor('--platform-brand-danger'),
+    bgColor: zoneColor('--platform-brand-danger', 0.14),
+    borderColor: zoneColor('--platform-brand-danger', 0.55),
   },
   analysis: {
     id: 'analysis',
     name: 'System Analysis',
     nameCn: '系统分析',
-    color: '#22c55e',
-    bgColor: 'rgba(34, 197, 94, 0.15)',
-    borderColor: 'rgba(34, 197, 94, 0.5)',
+    color: zoneColor('--platform-chart-3'),
+    bgColor: zoneColor('--platform-chart-3', 0.14),
+    borderColor: zoneColor('--platform-chart-3', 0.55),
   },
   classic: {
     id: 'classic',
     name: 'Classic Control',
     nameCn: '经典控制',
-    color: '#3b82f6',
-    bgColor: 'rgba(59, 130, 246, 0.15)',
-    borderColor: 'rgba(59, 130, 246, 0.5)',
+    color: zoneColor('--platform-chart-1'),
+    bgColor: zoneColor('--platform-chart-1', 0.14),
+    borderColor: zoneColor('--platform-chart-1', 0.55),
   },
   modern: {
     id: 'modern',
     name: 'Modern & Optimal Control',
     nameCn: '现代与最优控制',
-    color: '#a855f7',
-    bgColor: 'rgba(168, 85, 247, 0.15)',
-    borderColor: 'rgba(168, 85, 247, 0.5)',
+    color: zoneColor('--platform-chart-5'),
+    bgColor: zoneColor('--platform-chart-5', 0.14),
+    borderColor: zoneColor('--platform-chart-5', 0.55),
   },
   nonlinear: {
     id: 'nonlinear',
     name: 'Nonlinear & Intelligent',
     nameCn: '非线性与智能控制',
-    color: '#f59e0b',
-    bgColor: 'rgba(245, 158, 11, 0.15)',
-    borderColor: 'rgba(245, 158, 11, 0.5)',
+    color: zoneColor('--platform-chart-6'),
+    bgColor: zoneColor('--platform-chart-6', 0.14),
+    borderColor: zoneColor('--platform-chart-6', 0.55),
   },
 };
 

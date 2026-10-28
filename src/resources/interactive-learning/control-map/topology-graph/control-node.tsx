@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
+import { cn } from '@/lib/utils';
 import { zoneConfigs, type ZoneType } from '../types';
 
 export interface ControlNodeData extends Record<string, unknown> {
@@ -18,64 +19,51 @@ export interface ControlNodeData extends Record<string, unknown> {
 /** v12 类型：完整的节点类型定义 */
 export type ControlNodeType = Node<ControlNodeData, 'controlNode'>;
 
+const HANDLE_CLASS = '!h-1.5 !w-1.5 !min-h-0 !min-w-0 !border-0 !bg-platform-border-strong';
+
 function ControlNodeComponent({ data }: NodeProps<ControlNodeType>) {
   const { nameCn, name, zone, importance, isSelected, isHovered, isRelated, isDimmed } = data;
   const zoneConfig = zoneConfigs[zone];
 
-  // 根据重要性确定尺寸
   const sizeClass = importance === 'core'
-    ? 'min-w-[140px] py-3'
+    ? 'min-w-[140px] py-2.5'
     : importance === 'advanced'
-    ? 'min-w-[120px] py-2.5'
-    : 'min-w-[100px] py-2';
+    ? 'min-w-[120px] py-2'
+    : 'min-w-[104px] py-1.5';
 
-  // 确定样式
-  const isHighlighted = isSelected || isHovered || isRelated;
-  const opacity = isDimmed ? 'opacity-30' : 'opacity-100';
+  const emphasized = isSelected || isHovered || isRelated;
 
   return (
     <>
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="!h-2 !w-2 !border-2 !border-slate-900 !bg-slate-600"
-      />
+      <Handle type="target" position={Position.Top} className={HANDLE_CLASS} />
 
       <div
-        className={`
-          rounded-xl border-2 px-4 text-center transition-all duration-200
-          ${sizeClass} ${opacity}
-          ${isSelected
-            ? 'scale-110 shadow-lg shadow-amber-500/30'
-            : isHovered
-            ? 'scale-105'
-            : isRelated
-            ? 'scale-102'
-            : ''
-          }
-        `}
+        data-control-map-node={zone}
+        data-selected={isSelected ? 'true' : undefined}
+        className={cn(
+          'relative overflow-hidden rounded-lg border bg-platform-surface pl-4 pr-3 text-left shadow-sm transition-all duration-200',
+          sizeClass,
+          isDimmed ? 'opacity-25' : 'opacity-100',
+          isSelected ? 'scale-105' : isHovered ? 'scale-[1.03]' : '',
+        )}
         style={{
-          backgroundColor: isHighlighted ? zoneConfig.bgColor : 'rgba(30, 41, 59, 0.8)',
-          borderColor: isHighlighted ? zoneConfig.color : 'rgba(71, 85, 105, 0.5)',
-          boxShadow: isSelected ? `0 0 20px ${zoneConfig.color}40` : undefined,
+          borderColor: emphasized ? zoneConfig.color : 'hsl(var(--platform-border))',
+          backgroundImage: emphasized ? `linear-gradient(90deg, ${zoneConfig.bgColor}, transparent 70%)` : undefined,
+          boxShadow: isSelected ? `0 0 0 3px ${zoneConfig.bgColor}, 0 10px 24px -12px ${zoneConfig.borderColor}` : undefined,
         }}
       >
-        <div
-          className="text-sm font-medium"
-          style={{ color: isHighlighted ? zoneConfig.color : '#e2e8f0' }}
-        >
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-0 left-0 w-1.5"
+          style={{ backgroundColor: zoneConfig.color }}
+        />
+        <div className={cn('font-semibold text-platform-fg-primary', importance === 'core' ? 'text-sm' : 'text-[13px]')}>
           {nameCn}
         </div>
-        <div className="mt-0.5 text-[10px] text-slate-500">
-          {name}
-        </div>
+        <div className="mt-0.5 truncate text-[10px] leading-3 text-platform-fg-muted">{name}</div>
       </div>
 
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="!h-2 !w-2 !border-2 !border-slate-900 !bg-slate-600"
-      />
+      <Handle type="source" position={Position.Bottom} className={HANDLE_CLASS} />
     </>
   );
 }

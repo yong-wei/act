@@ -31,6 +31,16 @@ const INTERACTIVE_LEARNING_BREADCRUMBS: Record<string, readonly AppBreadcrumbIte
     { label: '跨域探索', href: '/interactive-learning/cross-domain-exploration' },
     { label: '多表征联动' },
   ],
+  '/interactive-learning/pid-simulator': [
+    { label: '首页', href: '/' },
+    { label: '互动学习', href: '/interactive-learning' },
+    { label: 'PID 控制仿真器' },
+  ],
+  '/interactive-learning/control-map': [
+    { label: '首页', href: '/' },
+    { label: '互动学习', href: '/interactive-learning' },
+    { label: '控制理论地图' },
+  ],
 };
 
 export function InteractiveLearningShell({
@@ -39,6 +49,7 @@ export function InteractiveLearningShell({
   subtitle,
   breadcrumbs,
   actions,
+  fillViewport = false,
   children,
 }: {
   activeHref: string;
@@ -46,6 +57,8 @@ export function InteractiveLearningShell({
   subtitle: string;
   breadcrumbs?: readonly AppBreadcrumbItem[];
   actions?: ReactNode;
+  /** 全高画布页面（如控制理论地图）占满外壳内容区，不随页面滚动。 */
+  fillViewport?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -58,9 +71,13 @@ export function InteractiveLearningShell({
       activeHref={activeHref}
       sidebarMode="collapsible"
       journeyControl={<AdaptivePathJourneyControlFromRoute />}
+      fillViewport={fillViewport}
       className="surface-page"
     >
-      <div data-platform-learning-atlas-shell="student-secondary-route">
+      <div
+        data-platform-learning-atlas-shell="student-secondary-route"
+        className={fillViewport ? 'flex min-h-0 flex-1 flex-col' : undefined}
+      >
         {children}
       </div>
     </AppShell>

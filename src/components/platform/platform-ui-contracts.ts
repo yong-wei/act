@@ -1126,15 +1126,15 @@ const EXPERIENCE_LAUNCH_DESCRIPTIONS = {
   standalone: {
     label: '独立探索',
     visualBoundary: 'standalone',
-    summary: '该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。',
+    summary: '该体验由独立入口启动，不携带课程或竞技场官方评价上下文。',
   },
   'course-launched': {
     label: '课程内启动',
     visualBoundary: 'course',
-    summary: '该体验由 DB BOPPPS 课程资源启动，保留课堂、课次和资源上下文。',
+    summary: '该体验由课程资源启动，保留课堂、课次和资源上下文。',
   },
   'arena-preview': {
-    label: 'Arena 预览',
+    label: '竞技场预览',
     visualBoundary: 'preview',
     summary: '该体验用于公开预览或虚拟试运行，不作为官方榜单证据。',
   },

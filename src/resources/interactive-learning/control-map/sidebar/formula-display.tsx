@@ -34,7 +34,7 @@ export function FormulaDisplay({ formula, displayMode = true }: FormulaDisplayPr
   return (
     <div
       ref={containerRef}
-      className="overflow-x-auto rounded-lg bg-slate-800/50 p-3 text-slate-200"
+      className="overflow-x-auto rounded-lg border border-platform-border bg-platform-canvas/60 p-3 text-platform-fg-primary"
     />
   );
 }
