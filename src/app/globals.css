@@ -679,16 +679,334 @@
     @apply border-primary/35 bg-accent/65;
   }
 
-  .simulation-command-topbar {
-    @apply rounded-lg border border-platform-border-strong bg-platform-surface-overlay/86 text-platform-fg-primary shadow-2xl shadow-slate-950/25 backdrop-blur-md;
+  .simulation-command-topbar,
+  .simulation-command-restore-handle,
+  .simulation-light-panel,
+  .sim-hud-surface {
+    --hud-accent: hsl(var(--platform-action-primary));
+    --hud-accent-soft: hsl(var(--platform-action-primary) / 0.14);
+    --hud-line: hsl(var(--platform-action-primary) / 0.26);
+    --hud-hairline: hsl(var(--platform-fg-primary) / 0.08);
+    position: relative;
+    border: 1px solid var(--hud-line);
+    border-radius: 0.75rem;
+    color: hsl(var(--platform-fg-primary));
+    background:
+      linear-gradient(180deg, hsl(var(--platform-action-primary) / 0.08), transparent 18%),
+      linear-gradient(160deg, hsl(var(--platform-surface-overlay) / 0.8), hsl(var(--platform-canvas) / 0.84));
+    box-shadow:
+      0 28px 64px -28px rgb(2 8 23 / 0.7),
+      0 0 0 1px rgb(2 8 23 / 0.18),
+      inset 0 1px 0 hsl(0 0% 100% / 0.07);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
   }
 
-  .simulation-command-restore-handle {
-    @apply rounded-lg border border-platform-border-strong bg-platform-surface-overlay/86 text-platform-fg-primary shadow-2xl shadow-slate-950/25 backdrop-blur-md;
+  .simulation-light-panel::before,
+  .simulation-command-restore-handle::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      linear-gradient(var(--hud-accent), var(--hud-accent)) top left / 16px 2px no-repeat,
+      linear-gradient(var(--hud-accent), var(--hud-accent)) top left / 2px 16px no-repeat,
+      linear-gradient(var(--hud-accent), var(--hud-accent)) bottom right / 16px 2px no-repeat,
+      linear-gradient(var(--hud-accent), var(--hud-accent)) bottom right / 2px 16px no-repeat;
+    opacity: 0.9;
   }
 
-  .simulation-light-panel {
-    @apply rounded-lg border border-platform-border-strong bg-platform-surface-overlay/86 text-platform-fg-primary shadow-2xl shadow-slate-950/25 backdrop-blur-md;
+  .simulation-light-panel::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 1.5rem;
+    right: 1.5rem;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, var(--hud-accent), transparent);
+    opacity: 0.75;
+  }
+
+  .simulation-light-panel :is(input[type='checkbox'], input[type='radio']) {
+    accent-color: var(--hud-accent);
+  }
+
+  .simulation-light-panel select {
+    border-color: var(--hud-line);
+    background-color: hsl(var(--platform-canvas) / 0.55);
+  }
+
+  .simulation-light-panel input[type='range'] {
+    appearance: none;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, hsl(var(--platform-action-primary) / 0.65), hsl(var(--platform-fg-primary) / 0.14));
+  }
+
+  .simulation-light-panel input[type='range']::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 2px solid hsl(var(--platform-canvas));
+    background: var(--hud-accent);
+    box-shadow: 0 0 0 3px hsl(var(--platform-action-primary) / 0.25), 0 0 14px hsl(var(--platform-action-primary) / 0.8);
+  }
+
+  .simulation-light-panel input[type='range']::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    border: 2px solid hsl(var(--platform-canvas));
+    background: var(--hud-accent);
+    box-shadow: 0 0 14px hsl(var(--platform-action-primary) / 0.8);
+  }
+
+  .simulation-light-panel [role='slider'] {
+    box-shadow: 0 0 0 3px hsl(var(--platform-action-primary) / 0.22), 0 0 14px hsl(var(--platform-action-primary) / 0.7);
+  }
+
+  .simulation-light-panel [data-dock-scroll] {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--platform-action-primary) / 0.45) transparent;
+  }
+
+  .sim-hud-led {
+    position: relative;
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: hsl(var(--platform-brand-success));
+    box-shadow: 0 0 10px hsl(var(--platform-brand-success) / 0.9);
+  }
+
+  .sim-hud-led::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    border: 1px solid hsl(var(--platform-brand-success) / 0.6);
+    animation: sim-hud-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .sim-hud-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: hsl(var(--platform-fg-secondary));
+  }
+
+  .sim-hud-section-title::before {
+    content: '';
+    width: 0.25rem;
+    height: 0.75rem;
+    border-radius: 1px;
+    background: var(--hud-accent, hsl(var(--platform-action-primary)));
+    box-shadow: 0 0 8px hsl(var(--platform-action-primary) / 0.8);
+  }
+
+  .sim-hud-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, hsl(var(--platform-fg-primary) / 0.16), transparent);
+  }
+
+  .sim-hud-brief {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.625rem;
+    border: 1px solid hsl(var(--platform-action-primary) / 0.32);
+    background:
+      radial-gradient(120% 90% at 100% 0%, hsl(var(--platform-action-primary) / 0.16), transparent 60%),
+      hsl(var(--platform-canvas) / 0.42);
+  }
+
+  .sim-hud-brief::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--hud-accent, hsl(var(--platform-action-primary))), transparent);
+  }
+
+  .sim-hud-tile {
+    border-radius: 0.5rem;
+    border: 1px solid var(--hud-hairline, hsl(var(--platform-fg-primary) / 0.08));
+    background: linear-gradient(180deg, hsl(var(--platform-fg-primary) / 0.05), hsl(var(--platform-fg-primary) / 0.015));
+  }
+
+  .sim-hud-value {
+    font-family: var(--font-mono, ui-monospace), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--platform-action-primary));
+    text-shadow: 0 0 12px hsl(var(--platform-action-primary) / 0.45);
+  }
+
+  .sim-hud-input {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid hsl(var(--platform-action-primary) / 0.24);
+    background: hsl(var(--platform-canvas) / 0.55);
+    padding: 0.375rem 0.625rem;
+    font-size: 0.875rem;
+    color: hsl(var(--platform-fg-primary));
+    transition: border-color 150ms, box-shadow 150ms;
+  }
+
+  .sim-hud-input:focus {
+    outline: none;
+    border-color: hsl(var(--platform-action-primary) / 0.8);
+    box-shadow: 0 0 0 3px hsl(var(--platform-action-primary) / 0.18), 0 0 18px -4px hsl(var(--platform-action-primary) / 0.7);
+  }
+
+  .sim-hud-actionbar {
+    border-radius: 0.875rem;
+    border: 1px solid hsl(var(--platform-action-primary) / 0.24);
+    background: linear-gradient(180deg, hsl(var(--platform-surface-overlay) / 0.78), hsl(var(--platform-canvas) / 0.86));
+    box-shadow: 0 18px 44px -18px rgb(2 8 23 / 0.75), inset 0 1px 0 hsl(0 0% 100% / 0.07);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+  }
+
+  .sim-hud-tracker {
+    border-radius: 0.75rem;
+    border: 1px solid hsl(var(--platform-action-primary) / 0.3);
+    background:
+      linear-gradient(90deg, transparent, hsl(var(--platform-action-primary) / 0.1), transparent),
+      hsl(var(--platform-canvas) / 0.72);
+    box-shadow: 0 16px 40px -20px rgb(2 8 23 / 0.8), inset 0 1px 0 hsl(0 0% 100% / 0.06);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+  }
+
+  .sim-hud-hint {
+    border: 1px solid hsl(var(--platform-brand-evidence) / 0.34);
+    background:
+      linear-gradient(90deg, hsl(var(--platform-brand-evidence) / 0.16), transparent 42%),
+      hsl(var(--platform-canvas) / 0.78);
+    box-shadow: 0 16px 40px -20px rgb(2 8 23 / 0.8);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .sim-scene-cinematic {
+    background:
+      radial-gradient(ellipse 85% 75% at 50% 50%, transparent 58%, rgb(2 8 20 / 0.5) 100%),
+      linear-gradient(180deg, rgb(2 8 20 / 0.32), transparent 16%, transparent 80%, rgb(2 8 20 / 0.45));
+  }
+
+  .light .sim-scene-cinematic {
+    background:
+      radial-gradient(ellipse 85% 75% at 50% 50%, transparent 62%, rgb(2 8 20 / 0.28) 100%),
+      linear-gradient(180deg, rgb(2 8 20 / 0.14), transparent 14%, transparent 84%, rgb(2 8 20 / 0.22));
+  }
+
+  .sim-scene-cinematic::before {
+    content: '';
+    position: absolute;
+    inset: 0.75rem;
+    --sim-frame: hsl(var(--platform-action-primary) / 0.55);
+    background:
+      linear-gradient(var(--sim-frame), var(--sim-frame)) top left / 28px 1px no-repeat,
+      linear-gradient(var(--sim-frame), var(--sim-frame)) top left / 1px 28px no-repeat,
+      linear-gradient(var(--sim-frame), var(--sim-frame)) top right / 28px 1px no-repeat,
+      linear-gradient(var(--sim-frame), var(--sim-frame)) top right / 1px 28px no-repeat,
+      linear-gradient(var(--sim-frame), var(--sim-frame)) bottom left / 28px 1px no-repeat,
+      linear-gradient(var(--sim-frame), var(--sim-frame)) bottom left / 1px 28px no-repeat,
+      linear-gradient(var(--sim-frame), var(--sim-frame)) bottom right / 28px 1px no-repeat,
+      linear-gradient(var(--sim-frame), var(--sim-frame)) bottom right / 1px 28px no-repeat;
+  }
+
+  .sim-scene-cinematic::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, rgb(255 255 255 / 0.018) 0 1px, transparent 1px 3px);
+    mix-blend-mode: overlay;
+  }
+
+  .sim-boot-screen {
+    background:
+      radial-gradient(60% 50% at 50% 42%, hsl(var(--platform-action-primary) / 0.18), transparent 70%),
+      radial-gradient(120% 80% at 50% 120%, hsl(var(--platform-action-primary) / 0.12), transparent 60%),
+      linear-gradient(180deg, rgb(3 10 22), rgb(2 6 14));
+    color: rgb(226 240 252);
+  }
+
+  .sim-boot-screen .sim-boot-grid {
+    background-image:
+      linear-gradient(hsl(var(--platform-action-primary) / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--platform-action-primary) / 0.08) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 60% 55% at 50% 45%, black, transparent);
+  }
+
+  .sim-boot-ring {
+    border: 1px solid hsl(var(--platform-action-primary) / 0.5);
+    animation: sim-boot-sonar 2.8s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+  }
+
+  .sim-boot-bar {
+    background: linear-gradient(90deg, transparent, hsl(var(--platform-action-primary)), transparent);
+    animation: sim-boot-sweep 1.6s ease-in-out infinite;
+  }
+
+  .sim-catalog-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid hsl(var(--platform-action-primary) / 0.28);
+    background: hsl(var(--platform-canvas));
+  }
+
+  .sim-catalog-hero-shade {
+    background:
+      linear-gradient(90deg, hsl(var(--platform-canvas) / 0.96) 0%, hsl(var(--platform-canvas) / 0.82) 42%, hsl(var(--platform-canvas) / 0.2) 100%),
+      linear-gradient(0deg, hsl(var(--platform-canvas) / 0.9), transparent 45%);
+  }
+
+  .sim-catalog-card {
+    transition: transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 260ms, border-color 260ms;
+  }
+
+  .sim-catalog-card:hover {
+    transform: translateY(-3px);
+    border-color: hsl(var(--platform-action-primary) / 0.5);
+    box-shadow: 0 24px 50px -26px hsl(var(--platform-action-primary) / 0.55);
+  }
+
+  .sim-catalog-preview-shade {
+    background: linear-gradient(0deg, hsl(var(--platform-canvas) / 0.82), transparent 55%);
+  }
+
+  @keyframes sim-hud-ping {
+    0% { transform: scale(0.9); opacity: 0.9; }
+    80%, 100% { transform: scale(2.2); opacity: 0; }
+  }
+
+  @keyframes sim-boot-sonar {
+    0% { transform: scale(0.35); opacity: 0.9; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  @keyframes sim-boot-sweep {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sim-hud-led::after,
+    .sim-boot-ring,
+    .sim-boot-bar {
+      animation: none;
+    }
   }
 
   .dark .simulation-command-topbar,

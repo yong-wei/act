@@ -21,6 +21,9 @@ export interface SimulationSceneTheme {
   labelSurface: string;
   hudOverlay: string;
   emphasis: string;
+  chartTick: string;
+  chartGrid: string;
+  chartGridFaint: string;
 }
 
 export const SIMULATION_SCENE_THEMES: Record<SimulationThemeMode, SimulationSceneTheme> = {
@@ -40,6 +43,9 @@ export const SIMULATION_SCENE_THEMES: Record<SimulationThemeMode, SimulationScen
     labelSurface: 'rgba(248, 252, 255, 0.86)',
     hudOverlay: 'rgba(255, 255, 255, 0.76)',
     emphasis: '#0ea5e9',
+    chartTick: 'rgba(30, 58, 82, 0.75)',
+    chartGrid: 'rgba(30, 58, 82, 0.14)',
+    chartGridFaint: 'rgba(30, 58, 82, 0.07)',
   },
   dark: {
     mode: 'dark',
@@ -57,6 +63,9 @@ export const SIMULATION_SCENE_THEMES: Record<SimulationThemeMode, SimulationScen
     labelSurface: 'rgba(5, 18, 28, 0.78)',
     hudOverlay: 'rgba(4, 18, 29, 0.74)',
     emphasis: '#67e8f9',
+    chartTick: 'rgba(186, 214, 236, 0.7)',
+    chartGrid: 'rgba(103, 232, 249, 0.12)',
+    chartGridFaint: 'rgba(103, 232, 249, 0.05)',
   },
 };
 

@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from 'react';
 
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, Lightbulb, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -128,25 +128,36 @@ export function SimulationLocalToolWorkspace({
           data-command-deck-scene-primacy="true"
         >
           {children}
+          <div
+            aria-hidden="true"
+            className="sim-scene-cinematic pointer-events-none absolute inset-0 z-[5]"
+            data-simulation-scene-cinematic-frame
+          />
           {hintVisible ? (
             <div
-              className="absolute inset-x-3 bottom-[4.75rem] z-30 rounded-lg border border-platform-border-strong bg-platform-action-subtle/90 px-4 py-3 text-xs leading-5 text-platform-fg-primary shadow-lg backdrop-blur lg:inset-x-[min(24rem,26vw)]"
+              className="sim-hud-hint absolute inset-x-3 bottom-[4.75rem] z-30 flex items-start gap-3 rounded-xl py-2.5 pl-3 pr-9 text-xs leading-5 text-platform-fg-primary lg:inset-x-[min(25rem,27vw)]"
               data-simulation-local-hint-strip
               data-simulation-dock-offset-anchor="hint-strip"
               data-simulation-state-role="hint"
               data-command-deck-hint-placement="above-bottom-toolbar"
             >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--platform-brand-evidence)/0.45)] bg-[hsl(var(--platform-brand-evidence)/0.14)] text-[hsl(var(--platform-brand-evidence))]">
+                <Lightbulb className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold tracking-[0.2em] text-[hsl(var(--platform-brand-evidence))]">{template.family} · 操作提示</p>
+                {template.hints.map((hint) => (
+                  <p key={hint}>{hint}</p>
+                ))}
+              </div>
               <button
                 type="button"
                 aria-label="关闭提示"
                 onClick={() => setHintVisible(false)}
-                className="absolute right-1.5 top-1.5 inline-flex h-5 w-5 items-center justify-center rounded text-platform-fg-muted transition hover:text-platform-fg-primary"
+                className="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-platform-fg-muted transition hover:bg-platform-fg-primary/10 hover:text-platform-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
-              {template.hints.map((hint) => (
-                <p key={hint}>{hint}</p>
-              ))}
             </div>
           ) : null}
         </section>

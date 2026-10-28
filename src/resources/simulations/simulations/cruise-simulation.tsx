@@ -2323,14 +2323,11 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
       ) : null}
 
       {/* 说明 */}
-      <div className={`${simulationUi.panel} absolute bottom-4 left-4 p-2 text-xs`}>
-        <div>拖拽旋转视角 | 滚轮缩放 | 右键平移</div>
-        <div className="mt-1">
-          浅蓝箭头：期望航线 | 深蓝箭头与轨迹：实际航向与航迹
-        </div>
-        <div className="mt-1 text-platform-fg-secondary">
-          知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)
-        </div>
+      <div
+        className={`${simulationUi.panel} absolute bottom-4 left-4 z-10 hidden max-w-[calc(50%-12rem)] truncate px-3 py-2 text-[11px] text-platform-fg-secondary xl:block`}
+        title="拖拽旋转视角，滚轮缩放，右键平移。浅蓝箭头是期望航线，深蓝箭头与轨迹是实际航向与航迹。知识点：频率响应（第5章）、陷波滤波器（第6章）。"
+      >
+        拖拽旋转 · 滚轮缩放 · 右键平移 · 浅蓝箭头为期望航线，深蓝为实际航迹 · 知识点：频率响应、陷波滤波器
       </div>
     </SceneShell>
     </SceneQualityProvider>

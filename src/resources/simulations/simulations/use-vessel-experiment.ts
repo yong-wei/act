@@ -407,6 +407,8 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
     seriesVisible,
     toggleSeries: (id: string) => setSeriesVisible((prev) => ({ ...prev, [id]: prev[id] === false })),
     doneSeqs,
+    earnedPoints: records.reduce((sum, record) => sum + record.earnedPoints, 0),
+    maxPoints: experiment.steps.reduce((sum, item) => sum + item.maxPoints, 0),
     reportEnabled,
     command,
     liveRef,

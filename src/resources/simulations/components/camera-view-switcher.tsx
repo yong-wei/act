@@ -139,7 +139,7 @@ export function CameraViewSwitcher({
   };
 
   return (
-    <div className={cn('flex items-center gap-1 max-[360px]:gap-0', className)} data-simulation-local-bottom-tool-strip="camera-controls">
+    <div className={cn('sim-hud-actionbar flex items-center gap-1 p-1 max-[360px]:gap-0', className)} data-simulation-local-bottom-tool-strip="camera-controls">
       {/* 视图弹出按钮（底部 chrome 家族；网格开关在弹出层内） */}
       <div data-simulation-local-bottom-toolbar data-simulation-local-bottom-tool-segment="view-switcher" data-command-deck-bottom-tools="edge-adjacent">
         <ChromePopoverButton
@@ -183,11 +183,11 @@ export function CameraViewSwitcher({
             ariaLabel="速率"
             tail={(
               <div className="flex items-center gap-1 px-2 py-1.5">
-                <button type="button" aria-label="减速" onClick={handleDecrease} className="rounded-md border border-platform-border px-2 py-1 text-xs text-platform-fg-muted hover:text-platform-fg-primary">
+                <button type="button" aria-label="减速" onClick={handleDecrease} className="rounded-md border border-platform-fg-primary/15 px-2 py-1 text-xs text-platform-fg-muted transition hover:border-platform-action-primary/50 hover:text-platform-action-primary">
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className={cn('min-w-11 text-center text-xs font-semibold', commandValueClass)}>{speedScale.toFixed(1)}x</span>
-                <button type="button" aria-label="加速" onClick={handleIncrease} className="rounded-md border border-platform-border px-2 py-1 text-xs text-platform-fg-muted hover:text-platform-fg-primary">
+                <span className={cn('sim-hud-value min-w-11 text-center text-xs font-semibold', commandValueClass)}>{speedScale.toFixed(1)}x</span>
+                <button type="button" aria-label="加速" onClick={handleIncrease} className="rounded-md border border-platform-fg-primary/15 px-2 py-1 text-xs text-platform-fg-muted transition hover:border-platform-action-primary/50 hover:text-platform-action-primary">
                   <Plus className="h-4 w-4" />
                 </button>
               </div>

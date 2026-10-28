@@ -234,7 +234,7 @@ function HUD({
       </div>
 
       {/* 定位精度 */}
-      <Card className={`w-64 ${simulationUi.panel}`}>
+      <Card className="sim-hud-tile w-full bg-transparent shadow-none">
         <CardHeader className="py-2">
           <CardTitle className="flex items-center gap-2 text-sm">
             <Crosshair className="h-4 w-4" />
@@ -273,7 +273,7 @@ function HUD({
 
       {/* 定位精度告警（与伦理红线解耦，issue 1944） */}
       {positionAlarm && (
-        <Card className={`w-64 border-[hsl(var(--platform-brand-evidence)/0.35)] bg-[hsl(var(--platform-brand-evidence)/0.12)] ${simulationUi.panel}`}>
+        <Card className="sim-hud-tile w-full border-[hsl(var(--platform-brand-evidence)/0.35)] bg-[hsl(var(--platform-brand-evidence)/0.12)] shadow-none">
           <CardHeader className="py-2">
             <CardTitle className="flex items-center gap-2 text-sm text-[hsl(var(--platform-brand-evidence))]">
               <AlertTriangle className="h-4 w-4" />
@@ -310,7 +310,7 @@ function ControlPanel({
   inputsEnabled?: boolean;
 }) {
   return (
-    <Card className={`${simulationUi.panel}`}>
+    <Card className="sim-hud-tile bg-transparent shadow-none">
       <CardHeader className="py-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Settings className="h-4 w-4" />

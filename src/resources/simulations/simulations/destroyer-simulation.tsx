@@ -109,7 +109,7 @@ import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { ExperimentStepAreas, SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi, type ExperimentHostBrief } from '../components/simulation-ui';
+import { ExperimentStepAreas, SimulationTopBar, SimulationDock, SimulationAssessmentPanel, SimulationMissionTracker, simulationUi, type ExperimentHostBrief } from '../components/simulation-ui';
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
 import { applyLocalSketchVerdict } from '@/features/ilab/sketch-client';
 import {
@@ -1622,6 +1622,16 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
         </MarineFrameRuntime>
       </MarineCanvas>
 
+      {stepNav ? null : (
+        <SimulationMissionTracker
+          seq={activeSeq}
+          total={DESTROYER_EXPERIMENT_STEPS.length}
+          title={step.title}
+          doneSeqs={doneSeqs}
+          earnedPoints={records.reduce((sum, record) => sum + record.earnedPoints, 0)}
+          maxPoints={DESTROYER_EXPERIMENT_STEPS.reduce((sum, item) => sum + item.maxPoints, 0)}
+        />
+      )}
       <SimulationDock
         side="left"
         title="实验状态"
@@ -1721,7 +1731,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
             id: 'evaluate',
             label: '评估',
             content: (
-              <div className="w-max max-w-[calc(100vw-2rem)] space-y-3">
+              <div className="w-full min-w-0 space-y-4">
                 <DestroyerReportHistory
                   signedIn={sessionStatus === 'authenticated'}
                   reports={pastReports ?? []}

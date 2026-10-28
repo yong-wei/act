@@ -289,7 +289,7 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
   ];
 
   return (
-    <Card className={`${simulationUi.panel} w-48`}>
+    <Card className="sim-hud-tile w-full bg-transparent shadow-none">
       <CardHeader className="py-2">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Gauge className="h-4 w-4" />
@@ -381,11 +381,11 @@ function HUD({
       </div>
 
       {/* DP 状态 */}
-      <Card className={`w-64 ${simulationUi.panel} ${
+      <Card className={`sim-hud-tile w-full shadow-none ${
         alertLevel === 'emergency' ? 'border-[hsl(var(--platform-brand-danger)/0.45)] bg-[hsl(var(--platform-brand-danger)/0.12)]' :
         alertLevel === 'red' ? 'border-[hsl(var(--platform-brand-danger)/0.35)] bg-[hsl(var(--platform-brand-danger)/0.12)]' :
         alertLevel === 'yellow' ? 'border-[hsl(var(--platform-brand-evidence)/0.42)] bg-[hsl(var(--platform-brand-evidence)/0.14)]' :
-        'border-platform-border bg-platform-surface-overlay/86'
+        'bg-transparent'
       }`}>
         <CardHeader className="py-2">
           <CardTitle className="flex items-center gap-2 text-sm">
@@ -460,7 +460,7 @@ function HUD({
 
       {/* 违规警告 */}
       {violations.length > 0 && (
-        <Card className={`w-64 border-[hsl(var(--platform-brand-danger)/0.35)] bg-[hsl(var(--platform-brand-danger)/0.12)] ${simulationUi.panel}`}>
+        <Card className="sim-hud-tile w-full border-[hsl(var(--platform-brand-danger)/0.35)] bg-[hsl(var(--platform-brand-danger)/0.12)] shadow-none">
           <CardHeader className="py-2">
             <CardTitle className="flex items-center gap-2 text-sm text-[hsl(var(--platform-brand-danger))]">
               <AlertTriangle className="h-4 w-4" />
@@ -499,7 +499,7 @@ function ControlPanel({
   inputsEnabled?: boolean;
 }) {
   return (
-    <Card className={`${simulationUi.panel}`}>
+    <Card className="sim-hud-tile bg-transparent shadow-none">
       <CardHeader className="py-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Settings className="h-4 w-4" />

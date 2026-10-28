@@ -27,7 +27,7 @@ export function SceneTooltip({
           <Tooltip.Content
             side={side}
             sideOffset={6}
-            className="z-50 max-w-56 rounded-md border border-platform-border bg-platform-canvas/95 px-2 py-1 text-xs leading-4 text-platform-fg-primary shadow-lg backdrop-blur"
+            className="z-50 max-w-56 rounded-md border border-platform-action-primary/30 bg-platform-canvas/95 px-2.5 py-1.5 text-xs leading-4 text-platform-fg-primary shadow-[0_12px_30px_-12px_rgb(2_8_23/0.8)] backdrop-blur"
           >
             {content}
           </Tooltip.Content>
@@ -98,18 +98,22 @@ export function ChromePopoverButton<T extends string>({
           aria-expanded={open}
           data-chrome-popover-trigger={dataHook}
           onClick={() => setOpen((previous) => !previous)}
-          className="flex items-center gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur transition hover:text-platform-fg-primary"
+          className={
+            open
+              ? 'flex h-8 items-center gap-1.5 rounded-lg border border-platform-action-primary/60 bg-platform-action-primary/15 px-2.5 text-xs text-platform-action-primary shadow-[0_0_16px_-6px_hsl(var(--platform-action-primary))] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary'
+              : 'flex h-8 items-center gap-1.5 rounded-lg border border-transparent px-2.5 text-xs text-platform-fg-muted transition hover:border-platform-fg-primary/15 hover:bg-platform-fg-primary/5 hover:text-platform-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary'
+          }
         >
           {icon}
           <span className="max-[480px]:hidden">{label}</span>
-          <span className="text-platform-fg-primary max-[480px]:hidden">{currentLabel}</span>
+          <span className="font-semibold text-platform-fg-primary max-[480px]:hidden">{currentLabel}</span>
         </button>
       </SceneTooltip>
       {open ? (
         <div
           role="menu"
           data-chrome-popover-panel={dataHook}
-          className="absolute bottom-full left-1/2 z-40 mb-2 -translate-x-1/2 rounded-lg border border-platform-border bg-platform-canvas/95 p-1 shadow-lg backdrop-blur"
+          className="sim-hud-actionbar absolute bottom-full left-1/2 z-40 mb-2.5 min-w-32 -translate-x-1/2 p-1"
         >
           {options.map((option) => (
             <button
@@ -126,8 +130,8 @@ export function ChromePopoverButton<T extends string>({
               }}
               className={
                 option.id === currentId
-                  ? 'block w-full whitespace-nowrap rounded-md border border-platform-border bg-platform-action-subtle px-3 py-1.5 text-left text-xs font-medium text-platform-fg-primary'
-                  : 'block w-full whitespace-nowrap rounded-md border border-transparent px-3 py-1.5 text-left text-xs text-platform-fg-muted hover:text-platform-fg-primary'
+                  ? 'block w-full whitespace-nowrap rounded-md border border-platform-action-primary/45 bg-platform-action-primary/15 px-3 py-1.5 text-left text-xs font-semibold text-platform-action-primary shadow-[inset_2px_0_0_hsl(var(--platform-action-primary))]'
+                  : 'block w-full whitespace-nowrap rounded-md border border-transparent px-3 py-1.5 text-left text-xs text-platform-fg-secondary transition hover:bg-platform-fg-primary/5 hover:text-platform-fg-primary'
               }
             >
               {option.label}

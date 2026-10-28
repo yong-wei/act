@@ -272,7 +272,7 @@ export default function SimulationsPage() {
   const [query, setQuery] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<'all' | SimulationInfo['difficulty']>('all');
   const [mode, setMode] = useState<CatalogMode>('all');
-  const [viewMode, setViewMode] = useState<CatalogViewMode>('list');
+  const [viewMode, setViewMode] = useState<CatalogViewMode>('cards');
   const resetSimulationFilters = () => {
     setQuery('');
     setDifficultyFilter('all');
@@ -327,38 +327,67 @@ export default function SimulationsPage() {
           </section>
         ) : null}
 
-        <section className="surface-card rounded-lg p-5" data-entry-current-context="simulation-hub">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div className="max-w-3xl">
+        <section className="sim-catalog-hero rounded-2xl" data-entry-current-context="simulation-hub">
+          <Image
+            src="/assets/drilling-rig.png"
+            alt=""
+            fill
+            priority
+            className="-z-10 object-cover object-right opacity-90"
+            sizes="100vw"
+          />
+          <div className="sim-catalog-hero-shade absolute inset-0 -z-10" aria-hidden="true" />
+          <div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end lg:p-8">
+            <div className="max-w-2xl">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="border-platform-action-primary/45 text-platform-action-primary">
+                <Badge variant="outline" className="border-platform-action-primary/45 bg-platform-canvas/60 text-platform-action-primary backdrop-blur">
                   统一仿真目录
                 </Badge>
-                <span className="text-xs text-subtle">{simulations.length} 个仿真对象 · 课程任务与自由探索共用入口</span>
+                <span className="text-xs text-subtle">课程任务与自由探索共用入口</span>
               </div>
-              <h2 className="mt-4 text-2xl font-semibold text-foreground">从任务、对象和控制主题进入仿真</h2>
-              <p className="mt-2 text-sm leading-6 text-subtle">
-                目录只呈现学生需要的学习任务、控制主题、难度和继续行动；模型库与部署状态不作为开放状态真源。
+              <p className="mt-5 text-[11px] font-semibold tracking-[0.4em] text-platform-action-primary">船舶运动控制 · 三维海域实验</p>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground lg:text-4xl">虚拟仿真实验室</h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-foreground/80">
+                七型真实船舶、可切换的海况与分步实验任务。从航向保持、减摇到动力定位，在三维海域里亲手调参、观察响应、提交读数并生成实验报告。
               </p>
-              <div className="mt-3 flex flex-wrap gap-4">
-                <Link href="/simulations/network-check" className="inline-flex text-sm text-primary" data-network-check-entry>
+              <dl className="mt-5 flex flex-wrap gap-2 text-xs">
+                <div className="rounded-lg border border-platform-action-primary/25 bg-platform-canvas/60 px-3 py-2 backdrop-blur">
+                  <dt className="text-subtle">场景</dt>
+                  <dd className="mt-0.5 font-semibold text-foreground">{simulations.length} 个仿真场景</dd>
+                </div>
+                {(['beginner', 'intermediate', 'advanced'] as const).map((level) => (
+                  <div key={level} className="rounded-lg border border-platform-action-primary/25 bg-platform-canvas/60 px-3 py-2 backdrop-blur">
+                    <dt className="text-subtle">{difficultyLabels[level]}</dt>
+                    <dd className="mt-0.5 font-semibold text-foreground">
+                      {simulations.filter((simulation) => simulation.difficulty === level).length} 个
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="mt-5 flex flex-wrap gap-4">
+                <Link href="/simulations/network-check" className="inline-flex text-sm text-primary hover:underline" data-network-check-entry>
                   进入实验前检查网络带宽和在线名额
                 </Link>
-                <Link href="/simulations/supporting" className="inline-flex text-sm text-primary" data-supporting-entry>
+                <Link href="/simulations/supporting" className="inline-flex text-sm text-primary hover:underline" data-supporting-entry>
                   支撑材料
                 </Link>
               </div>
             </div>
-            <Link
-              href="/simulations/drilling"
-              prefetch={false}
-              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-              data-entry-primary-action="recommended-experiment"
-              data-simulation-state-role="official"
-            >
-              <Play className="mr-2 h-4 w-4" />
-              继续海洋石油981动力定位
-            </Link>
+            <div className="rounded-xl border border-platform-action-primary/30 bg-platform-canvas/70 p-4 backdrop-blur-md">
+              <p className="text-[11px] font-semibold tracking-[0.3em] text-platform-action-primary">推荐继续</p>
+              <p className="mt-2 text-lg font-semibold text-foreground">海洋石油981动力定位</p>
+              <p className="mt-1 text-xs leading-5 text-subtle">深水钻井平台在风浪流中保持站位，练习推力分配与前馈补偿。</p>
+              <Link
+                href="/simulations/drilling"
+                prefetch={false}
+                className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-[0_0_24px_-6px_hsl(var(--primary))] transition hover:opacity-90"
+                data-entry-primary-action="recommended-experiment"
+                data-simulation-state-role="official"
+              >
+                <Play className="mr-2 h-4 w-4" />
+                继续海洋石油981动力定位
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -574,6 +603,21 @@ export default function SimulationsPage() {
 
 // ============ 仿真目录组件 ============
 
+const difficultyLevel = { beginner: 1, intermediate: 2, advanced: 3 } as const;
+
+function DifficultyPips({ difficulty }: { difficulty: SimulationInfo['difficulty'] }) {
+  return (
+    <span className="mr-1.5 inline-flex gap-0.5" aria-hidden="true">
+      {[1, 2, 3].map((level) => (
+        <span
+          key={level}
+          className={`h-2.5 w-1 rounded-sm ${level <= difficultyLevel[difficulty] ? 'bg-current' : 'bg-current opacity-25'}`}
+        />
+      ))}
+    </span>
+  );
+}
+
 function SimulationPreview({
   simulation,
   className,
@@ -589,12 +633,12 @@ function SimulationPreview({
         src={simulation.previewImage}
         alt={`${simulation.title} 仿真预览`}
         fill
-        className="object-cover"
-        sizes="(min-width: 1280px) 180px, (min-width: 768px) 33vw, 100vw"
+        className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        sizes="(min-width: 1280px) 420px, (min-width: 768px) 50vw, 100vw"
         priority={simulation.id === 'destroyer'}
       />
-      <div className="absolute inset-0 bg-platform-canvas/20" />
-      <div className="absolute left-2 bottom-2 inline-flex items-center gap-1 rounded-md border border-border/70 bg-background/80 px-2 py-1 text-[11px] font-medium text-foreground backdrop-blur">
+      <div className="sim-catalog-preview-shade absolute inset-0" />
+      <div className="absolute left-2 bottom-2 inline-flex items-center gap-1 rounded-md border border-platform-action-primary/30 bg-background/75 px-2 py-1 text-[11px] font-medium text-foreground backdrop-blur">
         <Icon className="h-3.5 w-3.5 text-primary" />
         场景预览
       </div>
@@ -666,17 +710,20 @@ function SimulationCatalogCard({
   onLearnMore: () => void;
 }) {
   return (
-    <article className="surface-card group rounded-lg transition hover:border-primary/45 hover:bg-card/90" data-simulation-scenario-card={simulation.id}>
-      <SimulationPreview simulation={simulation} className="h-40 w-full rounded-b-none border-x-0 border-t-0" />
-      <div className="space-y-4 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">{simulation.title}</h3>
-            <p className="text-sm text-subtle">{simulation.subtitle}</p>
-          </div>
+    <article className="surface-card sim-catalog-card group overflow-hidden rounded-xl" data-simulation-scenario-card={simulation.id}>
+      <div className="relative">
+        <SimulationPreview simulation={simulation} className="h-48 w-full rounded-none border-x-0 border-t-0" />
+        <span className="absolute right-3 top-3 rounded-md bg-platform-canvas/85 backdrop-blur">
           <Badge className={`${difficultyColors[simulation.difficulty]} border`}>
+            <DifficultyPips difficulty={simulation.difficulty} />
             {difficultyLabels[simulation.difficulty]}
           </Badge>
+        </span>
+      </div>
+      <div className="space-y-4 p-4">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">{simulation.title}</h3>
+          <p className="text-sm text-subtle">{simulation.subtitle}</p>
         </div>
         <p className="line-clamp-2 text-sm leading-6 text-subtle">{simulation.description}</p>
         <dl className="grid gap-2 text-xs text-subtle sm:grid-cols-2" data-simulation-scenario-fit={simulation.id}>
