@@ -215,7 +215,7 @@ async function measurementRound(browser, route) {
           webgpuAvailable: 'gpu' in navigator,
           resolution: rt.reference().resolution,
           pointQueryMs: rt.measurePointQueryMs(60),
-          pointQueryKind: 'main-thread-point-query',
+          pointQueryKind: rt.pointQueryKind,
         };
       })
     : null;

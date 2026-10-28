@@ -140,14 +140,15 @@ describe('chrome family polish', () => {
     expect(source).toContain('data-wake-toggle');
   });
 
-  it('gates every experiment wake rig on the wake toggle', () => {
+  it('gates every experiment wake on the wake toggle', () => {
+    // 尾流由共享海面统一发射；waterYSampler 只承担船体水线，不再代表局部尾流粒子。
+    const water = read(path.join(ROOT, 'src/resources/simulations/scene/water/marine-water.tsx'));
+    expect(water).toContain('surface.current.setSources(wakeVisible, true);');
+
     const dir = path.join(ROOT, 'src/resources/simulations/simulations');
     for (const file of walkTsx(dir)) {
       const source = read(file);
-      if (!source.includes('wakeVisible') && !source.includes('WakeParticles') && !source.includes('waterYSampler')) {
-        continue;
-      }
-      expect(source, `${file} missing wakeVisible gate`).toContain('wakeVisible');
+      if (!source.includes('WakeParticles')) continue;
       expect(source, `${file} missing wakeVisible early return`).toContain('if (!wakeVisible) return null;');
     }
   });

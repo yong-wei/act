@@ -16,6 +16,7 @@ import { fftOceanStaticSpectrum, fftOceanFieldAt, fftOceanSnapshot, significantW
 import { gerstnerAmplitudeScale } from '@/resources/simulations/scene/water/gerstner-water';
 import { MarinePlanarReflection } from '@/resources/simulations/scene/environment/planar-reflection';
 import { useMarineVisualTime } from '@/resources/simulations/scene/frame/marine-frame-provider';
+import { MAIN_THREAD_POINT_QUERY_KIND } from '../quality/stage-performance';
 import type { MarineShoreSegment } from '../environment/scene-layouts';
 import type { HullExclusionBox } from './hull-exclusion';
 import type { SurfaceHistoryPose, MarineFoamEmitter } from './comparison-surface-history';
@@ -52,6 +53,7 @@ export interface ComparisonOceanProbe {
   features(): { optics: 'neutral' | 'shared'; ibl: boolean; planar: boolean; foam: boolean; shallow: boolean };
   validate(): Promise<{ ok: boolean; relativeL2: number; maxAbsError: number; displacementMaxAbsError: number }>;
   reference(): { hs: number; resolution: number };
+  readonly pointQueryKind: typeof MAIN_THREAD_POINT_QUERY_KIND;
   measurePointQueryMs(samples?: number): number;
   validateCurrentField(): Promise<{ maxAbsError: number; resolution: number; samples: number }>;
   sampleSurface(points: readonly (readonly [number, number])[]): Promise<{ x: number; z: number; height: number; slopeX: number; slopeZ: number; time?: number }[]>;
@@ -325,6 +327,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
         hs: significantWaveHeight(fftOceanSnapshot(spectrum, config.spectrum.domainMeters, 0).heights),
         resolution,
       }),
+      pointQueryKind: MAIN_THREAD_POINT_QUERY_KIND,
       measurePointQueryMs: (samples = 60) => {
         const start = performance.now();
         for (let i = 0; i < samples; i += 1) {

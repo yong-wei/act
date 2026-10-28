@@ -4816,7 +4816,10 @@ describe('commercial UI governance', () => {
     const forbiddenPalette = /#[0-9a-fA-F]{3,8}\b|\brgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,|\b(?:bg|text|border|shadow|ring|from|via|to)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|black|white)(?:-\d{2,3})?(?:\/\d{1,3})?\b/;
 
     for (const file of migratedFiles) {
-      const source = readFileSync(join(process.cwd(), file), 'utf8');
+      // 注释中的 issue 编号（如 #2117）不是色值。
+      const source = readFileSync(join(process.cwd(), file), 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
       expect(source, file).not.toMatch(forbiddenPalette);
     }
 

@@ -46,10 +46,12 @@ describe('仿真引擎推进门控接线', () => {
   });
 
   it('尾迹发射航速经 advancing 门控（停止即零速，活跃度归零不再发射）', () => {
-    const gated = SIMULATION_SOURCE.match(
-      /worldSpeedSampler=\{\(\) => \(simRef\.current\.advancing \? simRef\.current\.speedMps : 0\)\}/g,
-    ) ?? [];
-    expect(gated.length).toBeGreaterThanOrEqual(2);
+    const samplers = SIMULATION_SOURCE.match(/worldSpeedSampler=\{[^}]*\}/g) ?? [];
+    const gated = samplers.filter((sampler) => (
+      /^worldSpeedSampler=\{\(\) => \(?simRef\.current\.advancing \? simRef\.current\.speedMps : 0\)?\}$/.test(sampler)
+    ));
+    expect(samplers.length).toBeGreaterThanOrEqual(1);
+    expect(gated).toEqual(samplers);
   });
 });
 

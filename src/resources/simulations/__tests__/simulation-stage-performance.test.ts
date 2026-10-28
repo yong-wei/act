@@ -803,19 +803,21 @@ describe('local paired sample (#2135)', () => {
     expect(measurement).not.toContain('recordVideo');
 
     const client = readFileSync(path.join(ROOT, 'src/app/simulations/fft-ocean-comparison/comparison-client.tsx'), 'utf8');
-    expect(client).toContain('assembleWorkerQueryReport({');
-    expect(client).toContain('queryKind: report.kind');
-    expect(client).toContain("queryKind: 'main-thread-fallback'");
+    // unify-ocean-comparison-rendering：对照页接触查询改为 GPU 表面读回，WebGPU 入口复用同一客户端。
+    expect(client).toContain("queryKind: 'gpu-surface'");
+    expect(client).not.toContain('assembleWorkerQueryReport(');
     expect(client).toContain('<MarineStagePerformanceProbe />');
     expect(quality).toContain('window.__marineStageAdvance');
     expect(collector).toContain('webgpu:fft');
     expect(collector).toContain('api=webgpu');
     const webgpuClient = readFileSync(path.join(ROOT, 'src/app/simulations/fft-ocean-comparison/webgpu-comparison-client.tsx'), 'utf8');
-    expect(webgpuClient).toContain('<MarineStagePerformanceProbe />');
-    expect(webgpuClient).toContain('flushSync(() =>');
-    expect(webgpuClient).toContain('previous?.dispose()');
+    expect(webgpuClient).toContain('<FFTOceanComparisonClient {...props} api="webgpu" />');
+    expect(client).toContain('<Canvas key={`${api}-${backend}-${scene}-${resolution}`} gl={async (props) => {');
+    const marineRenderer = readFileSync(path.join(ROOT, 'src/resources/simulations/scene/marine-renderer.ts'), 'utf8');
+    expect(marineRenderer).toContain('if (disposed) return;');
+    expect(marineRenderer).toContain('device?.destroy();');
     const fftSurface = readFileSync(path.join(ROOT, 'src/resources/simulations/scene/water/fft-ocean-surface.tsx'), 'utf8');
     expect(fftSurface).toContain('window.__marineStageAdvance');
-    expect(fftSurface).toContain('pipeline.run(timeSeconds)');
+    expect(fftSurface).toMatch(/__marineStageAdvance = \(timeSeconds: number\) => \{[\s\S]*?(\w+)\?\.ready\) \1\.run\(timeSeconds\)/);
   });
 });

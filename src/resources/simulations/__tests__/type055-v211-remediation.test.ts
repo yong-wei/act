@@ -345,7 +345,7 @@ describe('F7: L0 clip-loop bindings mount inside useEffect (StrictMode-safe)', (
       path.join(process.cwd(), 'src/resources/simulations/components/semantic-bindings-rig.tsx'),
       'utf-8',
     );
-    const effectMatch = source.match(/useEffect\(\(\) => \{[\s\S]*?drive !== 'clip-loop'[\s\S]*?\}, \[mixer, animations, descriptor\]\)/);
+    const effectMatch = source.match(/useEffect\(\(\) => \{[\s\S]*?drive !== 'clip-loop'[\s\S]*?\}, \[mixer,[^\]]*\banimations\b[^\]]*\bdescriptor\b[^\]]*\]\)/);
     expect(effectMatch).not.toBeNull();
     expect(effectMatch![0]).toContain('mixer.stopAllAction()');
     // useMemo 块内不得再有 clipAction/play 副作用
@@ -357,7 +357,7 @@ describe('F7: L0 clip-loop bindings mount inside useEffect (StrictMode-safe)', (
 });
 
 describe('F8: current package flag clip has no spurious mirrored scale channel', () => {
-  const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.2.1');
+  const PACKAGE_DIR = path.join(process.cwd(), 'public', TYPE055_NANCHANG_101_V2.baseUrl);
 
   function glbJsonOf(file: string) {
     const bytes = readFileSync(path.join(PACKAGE_DIR, file));
@@ -472,7 +472,7 @@ describe('F9: shader phase uses immutable original coordinates (CPU/GPU same fie
 });
 
 describe('F10: current package prop spin clips rotate continuously without a hold tail', () => {
-  const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.2.1');
+  const PACKAGE_DIR = path.join(process.cwd(), 'public', TYPE055_NANCHANG_101_V2.baseUrl);
 
   function glbJsonOf(file: string) {
     const bytes = readFileSync(path.join(PACKAGE_DIR, file));
