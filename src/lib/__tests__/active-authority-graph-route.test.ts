@@ -11,9 +11,13 @@ const mocks = vi.hoisted(() => ({
   readActiveDetailInfograph: vi.fn(),
   activeShardResponse: vi.fn(),
   activePublishedDetailResponse: vi.fn(),
+  publicTeachingMediaUrlForBuffer: vi.fn(),
 }));
 
 vi.mock('@/app/api/knowledge/_active-authority', () => mocks);
+vi.mock('@/lib/public-teaching-media', () => ({
+  publicTeachingMediaUrlForBuffer: mocks.publicTeachingMediaUrlForBuffer,
+}));
 
 import { NextResponse } from 'next/server';
 import { GET as getCanvas } from '@/app/api/knowledge/graph/active/route';
@@ -31,6 +35,7 @@ beforeEach(() => {
   mocks.readActiveNode.mockReturnValue(available);
   mocks.readActiveDetailShard.mockReturnValue({ shardClass: 'node-detail' });
   mocks.readActiveDetailInfograph.mockReturnValue(Buffer.from([1, 2, 3]));
+  mocks.publicTeachingMediaUrlForBuffer.mockResolvedValue(null);
   mocks.activeShardResponse.mockImplementation((read, role) => {
     read();
     return NextResponse.json({ role });
@@ -123,14 +128,14 @@ describe('active Authority graph routes', () => {
     expect(mocks.activePublishedDetailResponse).toHaveBeenCalledWith(expect.any(Function), 'STUDENT', expect.any(Request));
   });
 
-  it('serves only the selected authorized infograph without exposing a source locator', async () => {
+  it('serves only the selected public infograph without exposing a source locator', async () => {
     const response = await getShardInfograph(
       new Request('http://localhost/api/knowledge/shards/active/nodes/node-1/infograph'),
       { params: Promise.resolve({ id: 'node-1' }) },
     );
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toBe('image/png');
-    expect(response.headers.get('cache-control')).toBe('private, max-age=300');
+    expect(response.headers.get('cache-control')).toBe('public, max-age=300');
     expect(mocks.readActiveDetailInfograph).toHaveBeenCalledWith('node-1');
   });
 

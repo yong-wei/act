@@ -63,6 +63,8 @@ import { loadActiveShardContext, loadDomainDefaultShard } from '@/lib/authority-
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
 import { shardRelativePaths } from '@/lib/authority-domain-shards/store';
 
+const ACTIVE_PRODUCTION_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.48';
+
 const PRODUCTION_SELECTORS = [
   'course-content/runtime/knowledge/authority-domain-shards/current.json',
   'course-content/runtime/knowledge/authority-domain-catalog/current.json',
@@ -509,7 +511,7 @@ describe('locale request gate', () => {
   it('keeps sealed domain-default shards for registered peers of the active successor catalog', () => {
     const identity = resolveActiveShardIdentity();
     expect(identity.envelope.authority.releaseId).toBe(
-      'ctr:release:control-theory-engineering-v0.37',
+      ACTIVE_PRODUCTION_RELEASE_ID,
     );
     expect(identity.catalog.domains).toHaveLength(15);
     const context = loadActiveShardContext({ identity });
@@ -546,11 +548,11 @@ describe('production selector byte identity', () => {
       expect(createHash('sha256').update(actual).digest('hex')).toHaveLength(64);
     }
     const shards = JSON.parse(readFileSync(PRODUCTION_SELECTORS[0]!, 'utf8')) as { releaseId: string };
-    expect(shards.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
+    expect(shards.releaseId).toBe(ACTIVE_PRODUCTION_RELEASE_ID);
     const gitAuthority = JSON.parse(
       readFileSync(path.join(process.cwd(), PRODUCTION_SELECTORS[5]!), 'utf8'),
     ) as { releaseId: string };
-    expect(gitAuthority.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
+    expect(gitAuthority.releaseId).toBe(ACTIVE_PRODUCTION_RELEASE_ID);
     expect(FUTURE_RELEASE_BOUNDARY).toBe(FUTURE_TRANSLATION_RELEASE_REQUIRES_EXACT_OPENSPEC);
   });
 });
