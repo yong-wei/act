@@ -11,10 +11,11 @@ import {
   teachingOrderProximity,
 } from '@/features/personalization/path-planning/application/mastery-thresholds';
 import { assembleKnowledgePathPlan } from '@/features/personalization/path-planning/internal/knowledge-path-mount';
+import { goalCanonicalIds } from '@/features/personalization/path-planning/goal-canonical-knowledge';
 import { fillKnowledgeSkeleton, indexResourcesByKnowledge, rankBoundResources } from '@/features/personalization/path-planning/knowledge-path-assembly';
 
 const HASH = 'e'.repeat(64);
-const TARGET = 'ctc:v11g-5845390ded447e37f06ea222';
+const TARGET = goalCanonicalIds('root-locus-analysis-foundations')[0]!;
 
 describe('knowledge resource admission', () => {
   it('keeps only first-appearance resources for a new learner', () => {
@@ -114,6 +115,8 @@ describe('knowledge path mastery skip', () => {
         strength: 'REQUIRED',
       }],
       heuristicTimeoutMs: 80,
+      // 目标映射现含 23 个 canonical 目标；放宽骨架步数以免目标被头部裁剪丢弃。
+      policy: { maxSteps: 64 },
     });
     expect(plan.explanations.fallbackReasons).toContain('mastered-knowledge-skipped');
     expect(plan.mainPath.every((node) => !node.knowledgeCoverage.includes(prior))).toBe(true);

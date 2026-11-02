@@ -5081,7 +5081,9 @@ async function buildAdaptivePathToolOutput(
       normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any),
     ),
   });
-  const hasPersistablePath = plan.mainPath.length > 0;
+  // spec adaptive-learning-path-planning：预算低于最低可执行时长时必须结构化阻断，
+  // 不得静默裁剪掉必需验证后照常持久化。
+  const hasPersistablePath = plan.mainPath.length > 0 && !timeBudget.insufficient;
   const differenceSummary = adjustmentSource && hasPersistablePath
     ? buildAdaptivePathCandidateDifferenceSummary(adjustmentSource.candidate, plan)
     : null;
@@ -5239,6 +5241,7 @@ async function buildAdaptivePathToolOutput(
     ...plan.explanations.fallbackReasons,
     ...(plan.policyBundle?.fallbackReasons ?? []),
     ...(diversityFailed ? ['insufficient-candidate-diversity'] : []),
+    ...(timeBudget.insufficient ? ['time-budget-insufficient'] : []),
   ]);
   const singleOptionDiversityUnavailable = pathOptions.length === 1
     && fallbackReasons.includes('policy-option-diversity-unavailable');

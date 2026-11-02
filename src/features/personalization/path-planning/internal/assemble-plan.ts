@@ -3599,7 +3599,7 @@ function buildPlannerPreferenceContext(input: AdaptiveLearningPathPlannerInput):
   };
 }
 
-function buildConfigurationFulfillment(
+export function buildConfigurationFulfillment(
   input: AdaptiveLearningPathPlannerInput,
   mainPath: AdaptiveLearningPathPlanNode[],
   fallbackReasons: readonly string[],

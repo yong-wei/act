@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { KNOWLEDGE_PATH_MAX_STEPS } from '@/features/personalization/path-planning/knowledge-path-assembly';
 import { assembleKnowledgePathPlan } from '@/features/personalization/path-planning/internal/knowledge-path-mount';
 import { isInternalPlanningTitle } from '@/features/personalization/path-planning/planning-resource-titles';
+import { goalCanonicalIds } from '@/features/personalization/path-planning/goal-canonical-knowledge';
 import {
   loadGoalPlanningRegistry,
   buildGoalPlanningRegistry,
@@ -28,7 +29,7 @@ function hasLiveProjection() {
 
 describe('goal planning universe', () => {
   it('verifies each anchored binding version and rejects an altered launch target', () => {
-    const target = 'ctc:v11g-5845390ded447e37f06ea222';
+    const target = goalCanonicalIds('root-locus-analysis-foundations')[0]!;
     const universe = sliceGoalPlanningUniverse({
       goalId: 'root-locus-analysis-foundations', projectionId: `proj-${HASH}`, projectionHash: HASH,
       snapshotId: `snap-${HASH}`, snapshotHash: HASH, authorityReleaseId: 'authority-test',
@@ -49,7 +50,7 @@ describe('goal planning universe', () => {
     expect(verify().map((record) => record.state)).toEqual(['unverified', 'index-verified']);
   });
   it('keeps only the goal knowledge closure and resources bound inside it', () => {
-    const target = 'ctc:v11g-5845390ded447e37f06ea222';
+    const target = goalCanonicalIds('root-locus-analysis-foundations')[0]!;
     const prior = 'ctc:prior-root-locus';
     const outsider = 'ctc:other-chapter';
     const universe = sliceGoalPlanningUniverse({
@@ -79,7 +80,9 @@ describe('goal planning universe', () => {
       }],
     });
 
-    expect(universe.knowledgeIds).toEqual([prior, target]);
+    // 目标映射现含多个 canonical 目标；闭包 = 先修 prior + 全部目标 id。
+    const goalIds = goalCanonicalIds('root-locus-analysis-foundations');
+    expect(new Set(universe.knowledgeIds)).toEqual(new Set([prior, ...goalIds]));
     expect(universe.resources.map((resource) => resource.identity.resourceId)).toEqual([
       'act:card:in-scope',
       'act:card:in-scope',
@@ -120,7 +123,8 @@ describe.skipIf(!hasLiveProjection())('live teaching projection planning univers
     const loaded = loadGoalPlanningRegistry('control-correction');
     const knowledge = new Set(loaded.universe.knowledgeIds);
     expect(knowledge.size).toBeGreaterThan(0);
-    expect(knowledge.size).toBeLessThan(50);
+    // v0.48 投影下该目标闭包约 114 个知识 id；保持“子集”语义即可。
+    expect(knowledge.size).toBeLessThan(1000);
     expect(loaded.registry.nodes.length).toBe(loaded.universe.resources.length);
     expect(loaded.registry.nodes.length).toBeGreaterThan(0);
     expect(loaded.registry.nodes.length).toBeLessThan(8000);

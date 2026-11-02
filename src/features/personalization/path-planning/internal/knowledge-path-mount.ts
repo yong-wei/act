@@ -3,6 +3,7 @@ import { resolvePublishedGoalCanonicalIds } from '@/lib/published-resource-plann
 
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
+  buildConfigurationFulfillment,
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
@@ -101,6 +102,11 @@ export function assembleKnowledgePathPlan(
   });
   if (authority.status !== 'ready') {
     return failClosedKnowledgePathPlan(input, now, targets, ['authority-release-unavailable']);
+  }
+  // spec adaptive-learning-path-planning：评估题目覆盖不完整时按策略阻断，
+  // 不得在无已审核覆盖的情况下照常产出个性化路径。
+  if (input.graphContext?.assessmentCoverage?.coverageState === 'limited') {
+    return failClosedKnowledgePathPlan(input, now, targets, ['learning-goal-assessment-coverage-incomplete']);
   }
   const edges = options.prerequisiteEdges
     ?? input.planningScope?.edges
@@ -268,7 +274,7 @@ export function assembleKnowledgePathPlan(
       ],
       rejectedAlternatives: [],
       fallbackReasons,
-      configurationFulfillment: [],
+      configurationFulfillment: buildConfigurationFulfillment(input, mainPath, fallbackReasons),
     },
     executionStatus: {
       adopted: false,
@@ -383,7 +389,7 @@ function failClosedKnowledgePathPlan(
       selectedReasons: ['goal-knowledge-path'],
       rejectedAlternatives: [],
       fallbackReasons,
-      configurationFulfillment: [],
+      configurationFulfillment: buildConfigurationFulfillment(input, [], fallbackReasons),
     },
     executionStatus: {
       adopted: false,
