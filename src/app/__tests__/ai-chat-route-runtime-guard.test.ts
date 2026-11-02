@@ -107,6 +107,16 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('systemPrompt = buildContextAwarePrompt(SYSTEM_PROMPT, lessonContext)');
   });
 
+  it('keeps the courseId-less knowledge workspace page eligible for the Konling runtime', () => {
+    // 知识图谱工作区无课程归属；若运行时门只认 courseId+pageId，
+    // knowledgeWorkspaceHint 会整体进不了服务端上下文，模型无法识别选中节点。
+    expect(chatRouteSource).toContain('knowledgeWorkspacePageRequest');
+    expect(chatRouteSource).toContain(") === 'knowledge'");
+    expect(chatRouteSource).toContain('((courseId || pageContext?.courseId) && (pageId || pageContext?.stepId))');
+    expect(chatRouteSource.indexOf('|| knowledgeWorkspacePageRequest,'))
+      .toBeGreaterThan(chatRouteSource.indexOf('const hasRuntimeContext = Boolean'));
+  });
+
   it('keeps the scoped get_simulation_status tool contract compatible with legacy tools', () => {
     expect(chatRouteSource).toContain('const toolRuntime = buildKonlingToolRuntime');
     expect(chatRouteSource).toContain('tools = buildScopedKonlingAiTools(toolRuntime)');

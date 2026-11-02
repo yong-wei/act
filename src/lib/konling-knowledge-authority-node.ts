@@ -34,7 +34,13 @@ export function readAuthorityKnowledgeNode(nodeId: string): AuthorityKnowledgeNo
       knowledgeDim: typeof conceptKind === 'string' && conceptKind.trim() ? conceptKind.trim() : null,
     };
   } catch (error) {
-    if (error instanceof AuthorityShardStoreError) return null;
+    // 分片缺文件（shard-absent）是正常的未命中；其余存储/身份错误若静默吞掉，
+    // 生产上会表现为"节点未解析"且日志无迹可循。
+    if (error instanceof AuthorityShardStoreError && error.code !== 'shard-absent') {
+      console.warn(`[konling-knowledge-authority-node] node ${nodeId} resolution failed: ${error.code}`);
+    } else if (!(error instanceof AuthorityShardStoreError)) {
+      console.warn(`[konling-knowledge-authority-node] node ${nodeId} resolution threw:`, error);
+    }
     return null;
   }
 }

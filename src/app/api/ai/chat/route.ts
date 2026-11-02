@@ -437,9 +437,14 @@ export async function POST(request: Request) {
     }
     let ownedTurnIds = messages.filter((message) => message.role === 'user').map((message) => message.id).filter(Boolean).slice(-50);
 
+    // 知识图谱工作区是无课程归属的平台页，控灵运行时按 pageId 单独建立服务端上下文；
+    // 若按 courseId+pageId 双条件设门，选中节点与 workspace hint 会整体进不了运行时。
+    const knowledgeWorkspacePageRequest = [pageId, pageContext?.stepId].some(
+      (value) => typeof value === 'string' && value.replace(/^\/+/, '') === 'knowledge',
+    );
     const hasRuntimeContext = Boolean(
-      (courseId || pageContext?.courseId) &&
-      (pageId || pageContext?.stepId),
+      ((courseId || pageContext?.courseId) && (pageId || pageContext?.stepId))
+      || knowledgeWorkspacePageRequest,
     ) || Boolean(conversation);
     if (teachingAssistantModeId && !hasRuntimeContext) {
       return new Response(JSON.stringify({
