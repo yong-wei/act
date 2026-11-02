@@ -51,6 +51,7 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/interactive-learning/control-workbench`：综合仿真工作台，承载经典四视图、复合校正、预测控制、黑箱辨识等控制设计流程。嵌入分析区在工作台范围内把精品课主题变量映射为平台 token，学生可见文案不出现内部工作区用语。
 - `/interactive-learning/pid-simulator` 与 `/interactive-learning/control-map`：已迁入 `InteractiveLearningShell`（不再登记为遗留演示豁免）。PID 仿真器在参数变化后自动预览阶跃响应，展示超调量、稳态误差与终值；末段振幅仍在增长或峰值越界时提示闭环发散。仅当宿主传入回调时显示“记录本次结果”，预览本身不写学习证据。控制理论地图按知识区域着色，每个筛选组至少保留一项，搜索给出命中数，回车定位首个命中，Esc 关闭详情；画布 `colorMode` 跟随应用主题。
 - `/classroom/student/[sessionId]` 与课程私有 student 路由：真实课堂学生页，承载教师同步进度、学生提交、答案揭示、知识卡抽屉和 AI 上下文。
+- `/simulations` 与 `/simulations/supporting`：虚拟仿真目录与支撑材料页。产业对接证明材料（上海外高桥造船有限公司出具并盖章）已挂在支撑材料页，PDF 存于 `public/supporting/`。
 - `/arena` 与 `/arena/challenges/[taskId]`：控制竞技场大厅、挑战详情、官方评测与榜单。
 - `/assessment/adaptive-practice`：自适应题库与诊断入口。
 - `/assessment/document-feedback`：文档作业反馈入口，服务 rubric 批改、教师审核和学生反馈链路。
