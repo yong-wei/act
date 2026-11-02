@@ -14,6 +14,7 @@ export default async function IcebreakerSimulationPage({
       title="雪龙号吊舱与冰区控制"
       subtitle="Azipod 推进与冰阻力 · 参数摄动与鲁棒控制"
       activeHref="/simulations/icebreaker"
+      guideHref="/supporting/guide-06-icebreaker.pdf"
       localToolTemplate="ice-propulsion"
     >
       <IcebreakerSimulation ticket={ticket} />

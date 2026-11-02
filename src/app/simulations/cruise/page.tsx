@@ -112,6 +112,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
       title="爱达·魔都号邮轮横摇控制"
       subtitle="舒适性导向控制 · 减摇稳定与黑箱识别任务"
       activeHref="/simulations/cruise"
+      guideHref="/supporting/guide-04-cruise.pdf"
       returnHref={returnHref}
       returnLabel={blackBoxTask ? '竞技场' : '虚拟仿真'}
       launchProvenance={launchKind}

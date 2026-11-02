@@ -18,6 +18,8 @@ export interface SimulationShellProps {
   returnLabel?: string;
   taskContext?: SimulationTaskContext | null;
   launchProvenance?: string;
+  /** 本实验单独指导书（支撑材料 PDF）的地址。 */
+  guideHref?: string;
   children: ReactNode;
   contextStrip?: ReactNode;
   evidenceRail?: ReactNode;
@@ -47,6 +49,7 @@ export function SimulationShell({
   returnLabel = '虚拟仿真',
   taskContext,
   launchProvenance = 'standalone',
+  guideHref,
   children,
   contextStrip,
   evidenceRail,
@@ -82,6 +85,22 @@ export function SimulationShell({
       >
         {children}
       </SimulationSceneFrame>
+      {guideHref ? (
+        <div className="mt-3 flex items-center justify-between rounded-lg border border-platform-border bg-platform-surface px-4 py-2.5" data-simulation-guide-entry="supporting-material">
+          <p className="text-xs text-platform-fg-secondary">
+            首次进入建议先阅读本实验指导书：实验目的、操作步骤与读数方法都以指导书为准。
+          </p>
+          <a
+            href={guideHref}
+            target="_blank"
+            rel="noopener"
+            className="ml-4 inline-flex h-8 shrink-0 items-center rounded-md border border-platform-border px-3 text-xs font-medium text-platform-fg-primary transition hover:border-primary/50"
+            data-simulation-guide-open="supporting-material"
+          >
+            查看本实验指导书
+          </a>
+        </div>
+      ) : null}
       {taskContext ? (
         <SimulationTaskContextPanel context={taskContext} />
       ) : null}

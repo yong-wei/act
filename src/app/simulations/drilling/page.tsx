@@ -14,6 +14,7 @@ export default async function DrillingSimulationPage({
       title="海洋石油981动力定位"
       subtitle="动力定位 DP 系统 · 多推进器解耦控制"
       activeHref="/simulations/drilling"
+      guideHref="/supporting/guide-05-drilling-platform.pdf"
       localToolTemplate="dp-positioning"
     >
       <DrillingSimulation ticket={ticket} />

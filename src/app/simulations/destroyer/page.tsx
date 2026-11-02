@@ -37,6 +37,7 @@ export default async function DestroyerSimulationPage({
       title="055 型驱逐舰航向控制"
       subtitle="Nomoto 船舶运动模型 · 航向保持与战术机动"
       activeHref="/simulations/destroyer"
+      guideHref="/supporting/guide-01-destroyer.pdf"
       localToolTemplate="heading-control"
       returnHref={simulationTaskContext?.returnHref}
       returnLabel={simulationTaskContext?.returnLabel}

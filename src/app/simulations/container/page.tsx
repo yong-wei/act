@@ -14,6 +14,7 @@ export default async function ContainerSimulationPage({
       title="MSC 集装箱船航速与准点"
       subtitle="变质量 Nomoto · 风载荷与增益调度"
       activeHref="/simulations/container"
+      guideHref="/supporting/guide-03-container.pdf"
       localToolTemplate="heading-control"
     >
       <ContainerSimulation ticket={ticket} />
