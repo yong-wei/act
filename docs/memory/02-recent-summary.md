@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-10-27
-摘要: 生产应用为 `v0.7.39-516374726c`。目录六船和驱逐舰是二十步，进入仿真前可测带宽，超过 120 人排队。Runtime 仍为 `runtime-b24b84a4…`，图谱权威仍为 LEGACY。不要 archive OpenSpec，不要关 #1033。
+最后更新: 2026-11-02
+摘要: 生产应用为 `v0.7.40-5935279`，支撑材料页已挂载产业对接证明材料 PDF。目录六船和驱逐舰是二十步，进入仿真前可测带宽，超过 120 人排队。Runtime 仍为 `runtime-b24b84a4…`，图谱权威仍为 LEGACY。不要 archive OpenSpec，不要关 #1033。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -16,6 +16,7 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-11-02 生产应用 `v0.7.40-5935279` 已 `deploy:app` 全量构建部署：冻结 `origin/main` `59352793dd07b470a1cea9a06cee2474a16230d9`，远端增量包 SHA256 `6da33a399dfdd466e513b991745093a843de67d2748db5b4a6dc000d92fe7f0e`，远端在运行系统镜像上重组装为 `localhost/act-obe-platform:20260301-amd64`（app/worker 已重启）。`/simulations/supporting` 支撑材料页挂载《产业对接证明材料》PDF（上海外高桥造船有限公司出具并盖章，佐证产教融合；`public/supporting/industry-partnership-certificates.pdf`，1,226,930 字节，SHA256 `b8aa842a…`，按仓库惯例对被 `*.pdf` ignore 的文件强制入库）。公网 PDF 200、`application/pdf` 且哈希与原件一致；支撑材料页含"查看材料"入口，其余两条仍为占位。同版合入：跨域探索页直接进入控制理论地图与 PID 仿真器（面包屑同步）。公网 `/`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime.ready 均为 true）通过。未执行 `runtime:publish` / `runtime:activate`；现网 Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`，权威仍为 LEGACY。直接回滚镜像为 `localhost/act-obe-platform:0.7.39-516374726c`。main push CI 前两轮失败均为 Actions git exit 128 环境问题（非代码），本轮运行中。不要 archive OpenSpec，不要关 #1033。
 - 2026-10-27 生产应用 `v0.7.39-516374726c` 已 `deploy:app --skip-build`：冻结 `origin/main` `516374726cb6cf8b82529a0facaae8ce32750664`，镜像 `localhost/act-obe-platform:0.7.39-516374726c`，增量包 SHA256 `d8c26224e9fcabbc5848f880ea8ca7f31915e8db77381973dbfe092ca3825be8`。目录六船和 055 驱逐舰是二十步，满分 100。第 19 步手绘四种控制曲线。仿真目录 `/simulations/network-check` 可测客户端到服务器带宽；同时在线名额 120，超额排队并提示按班级错峰。公网 `/`、`/api/auth/session`、`/api/readyz` 通过；带宽样本接口返回 2097152 字节。Redis `noeviction`。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`。资源绑定库存 7804 项，权威仍为 LEGACY，`cutoverReady` 为 false。直接回滚镜像为 `localhost/act-obe-platform:0.7.38-5f95f49`。不要 archive OpenSpec，不要关 #1033。
 - 2026-10-26 本地工作树（未提交、未部署）把目录六船和 055 航向实验从十步扩到二十步，满分仍是 100。原记录步改到第 20 步。第 10–18 步是短时探究，第 19 步手绘奈奎斯特图、伯德图、根轨迹图或时域响应图。深海实验仍是 24 步；第 10 步必须手绘奈奎斯特图，第 11 步必须手绘伯德图。识别使用硅基流动视觉模型 `Qwen/Qwen3-VL-30B-A3B-Instruct`，不读取文本模型。识别失败或图种不符不计分，也不记入 `ai_data`。六船 1/60 验收、驱逐舰二十步流程和类型检查已通过。本地开发服务上，液化气船和驱逐舰都列出二十步且后续步骤锁定；深海第 10、11 步可以手绘并清空，原来的固定说明按钮已去掉。该改动已随 2026-10-27 的 `v0.7.39` 上线。
 - 2026-10-26 生产应用 `v0.7.38-5f95f49` 已 `deploy:app --skip-build`：冻结 `origin/main` `5f95f494709800f1ce744fd1050ba5703bf222b1`，镜像 `localhost/act-obe-platform:0.7.38-5f95f49`（id `6a50d0fce7d69c10ad605cce948a6e5fb205cd4ede90a724fd521c9ea210c31b`，约 3961297904 字节），增量包 SHA256 `3725f2730a46522c31c8287a172569cea7b7f465951a8ce08ecd1f860b3f9031`。目录六船改为全屏步骤壳；055 仍是十步航向实验。登录后报告记在账号，同一步只保留更好成绩；有票据时按该实验十步回传。申报入口 `/ilab/deep-sea-control` 仍是 24 步。已补齐 `IlabExperimentRun` 与 `VirtualSimulationReport` 两张表。正式实验空间密钥未配置，不能称为已经接通。公网 `/`、`/api/auth/session`、`/api/readyz` 通过；Redis `noeviction`。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 仍为 `runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752`。资源绑定库存 7804 项，权威仍为 LEGACY，`cutoverReady` 为 false。直接回滚镜像为 `localhost/act-obe-platform:0.7.37-4e2e0c4`。不要 archive OpenSpec，不要关 #1033。
