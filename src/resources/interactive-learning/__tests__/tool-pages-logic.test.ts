@@ -44,6 +44,16 @@ describe('assessPidResponse', () => {
   });
 });
 
+describe('cross-domain exploration entries', () => {
+  const source = readFileSync('src/app/interactive-learning/cross-domain-exploration/page.tsx', 'utf8');
+
+  it('lists the control map and PID simulator inside the cross-domain section', () => {
+    expect(source).toContain("href: '/interactive-learning/control-map'");
+    expect(source).toContain("href: '/interactive-learning/pid-simulator'");
+    expect(source.indexOf('TOOL_ENTRIES')).toBeLessThan(source.indexOf('entries.map'));
+  });
+});
+
 describe('PID simulator preview and record semantics', () => {
   const source = readFileSync('src/resources/interactive-learning/pid-simulator/pid-simulator-component.tsx', 'utf8');
 

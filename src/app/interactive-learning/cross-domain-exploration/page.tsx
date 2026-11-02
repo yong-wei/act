@@ -8,6 +8,23 @@ import { InteractiveLearningShell } from '@/features/interactive/interactive-lea
 import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
 import type { InteractiveResource } from '@/features/interactive/learning-catalog';
 
+const TOOL_ENTRIES = [
+  {
+    key: 'control-map',
+    title: '控制理论地图',
+    description: '按知识区域查看概念、关系与核心公式，搜索后可定位到对应概念。',
+    href: '/interactive-learning/control-map',
+    tag: '知识地图',
+  },
+  {
+    key: 'pid-simulator',
+    title: 'PID 控制仿真器',
+    description: '选择对象并调整参数，立即查看阶跃响应、超调量和稳态误差。',
+    href: '/interactive-learning/pid-simulator',
+    tag: '参数调参',
+  },
+] as const;
+
 export default function CrossDomainExplorationPage() {
   const [resources, setResources] = useState<InteractiveResource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,15 +92,37 @@ export default function CrossDomainExplorationPage() {
       >
         <header className="mb-8 border-b border-border/60 pb-6">
           <h1 className="text-3xl font-semibold">跨域探索</h1>
-          <p className="mt-2 text-sm text-subtle">聚焦跨表征联动与跨域问题拆解，按资源目录动态展示趣味探索组件。</p>
+          <p className="mt-2 text-sm text-subtle">
+            聚焦跨表征联动与跨域问题拆解。可直接打开控制理论地图和 PID 仿真器，其余趣味探索组件按资源目录展示。
+          </p>
         </header>
 
+        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" data-cross-domain-tools="">
+          {TOOL_ENTRIES.map((entry) => (
+            <Link
+              key={entry.key}
+              href={entry.href}
+              className="surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-primary/40"
+            >
+              <div className="flex items-center justify-between text-xs">
+                <span className="rounded-full border border-border bg-muted px-3 py-1 text-subtle">{entry.tag}</span>
+              </div>
+              <h2 className="mt-4 text-lg font-semibold text-foreground">{entry.title}</h2>
+              <p className="mt-2 text-sm text-subtle">{entry.description}</p>
+              <div className="mt-4 inline-flex items-center text-xs text-primary">
+                打开工具
+                <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </Link>
+          ))}
+        </section>
+
         {isLoading ? (
-          <div className="surface-card rounded-2xl border-dashed px-6 py-12 text-center text-sm text-subtle">
+          <div className="surface-card mt-4 rounded-2xl border-dashed px-6 py-12 text-center text-sm text-subtle">
             正在加载跨域探索组件...
           </div>
         ) : entries.length > 0 ? (
-          <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <section className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {entries.map((entry, index) => (
               <Link
                 key={entry.key}

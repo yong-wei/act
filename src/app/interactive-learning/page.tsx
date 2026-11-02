@@ -7,7 +7,7 @@ const ENTRY_ROUTES = [
   {
     title: '跨域探索',
     description:
-      '跨域问题驱动探索：根轨迹、Bode、Nyquist 与时域响应联动，聚焦“结构可见”能力。',
+      '跨域问题驱动探索：根轨迹、Bode、Nyquist 与时域响应联动，并进入控制理论地图和 PID 仿真器。',
     href: '/interactive-learning/cross-domain-exploration',
     badge: 'Cross-Domain',
     accent: 'border-border bg-muted text-subtle',
