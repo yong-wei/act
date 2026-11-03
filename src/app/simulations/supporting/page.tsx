@@ -27,6 +27,12 @@ const materials: SupportingMaterial[] = [
     href: '/supporting/industry-partnership-certificates.pdf',
     fileLabel: 'PDF · 1.2 MB',
   },
+  {
+    title: '软件著作权申请表',
+    note: '本虚拟仿真实验平台的软件著作权登记申请表，个人证件信息已隐去。',
+    href: '/supporting/software-copyright-application.pdf',
+    fileLabel: 'PDF · 1.5 MB',
+  },
 ];
 
 const experimentGuides: Array<{ name: string; description: string; href: string }> = [
