@@ -1,3 +1,4 @@
+- 2026-11-06 旧 24 步综合申报实验退役（#2155，OpenSpec change `retire-legacy-deep-sea-control-course`）：`/ilab/deep-sea-control` 改为退役说明页（链接七船目录）；旧创建/提交/complete API 恒定 410 `LEGACY_EXPERIMENT_RETIRED`；`GET /api/ilab/session/[originId]` 保留鉴权只读（`legacy-read.ts`，不加载旧评分器）；`features/ilab` 旧课程实现（steps/vessels/scoring/quizzes/lab-resources/report/session-service/ai-review）删除，共享锁/错误件抽取到 `run-lock.ts`；共享仿真组件的 `stepNav/hostBrief/hostSubmission` 宿主分支删除。生产库 `dsc_` 前缀记录 0 条。`payload.ts` 内联上传协议默认标题/总分（106）保持外部回传兼容。旧 24 步描述在本文档更早条目中为历史记录。
 # 当前状态
 
 状态: active

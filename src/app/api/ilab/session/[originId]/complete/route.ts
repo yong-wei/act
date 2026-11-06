@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server';
 
-import { completeIlabSession, toIlabHttpError } from '@/features/ilab/session-service';
-
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: Request, props: { params: Promise<{ originId: string }> }) {
-  try {
-    const { originId } = await props.params;
-    const body = await request.json() as { reflection?: unknown; pretestNote?: unknown; paperNote?: unknown };
-    const reflection = typeof body.reflection === 'string' ? body.reflection : '';
-    const result = await completeIlabSession(originId, reflection, {
-      pretestNote: typeof body.pretestNote === 'string' ? body.pretestNote : '',
-      paperNote: typeof body.paperNote === 'string' ? body.paperNote : '',
-    });
-    return NextResponse.json(result);
-  } catch (error) {
-    const httpError = toIlabHttpError(error);
-    return NextResponse.json({ error: httpError.message }, { status: httpError.status });
-  }
+/**
+ * 旧 24 步综合实验已退役（2026-11）。该写接口恒定返回 410，
+ * 不再创建会话、评分或消耗外部 ticket。
+ */
+export async function POST() {
+  return NextResponse.json(
+    {
+      error: {
+        code: 'LEGACY_EXPERIMENT_RETIRED',
+        message: '旧综合实验已退役，请使用七个独立实验。',
+      },
+    },
+    { status: 410 },
+  );
 }

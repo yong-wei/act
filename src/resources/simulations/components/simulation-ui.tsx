@@ -201,14 +201,6 @@ export function SimulationDock({
   );
 }
 
-export interface ExperimentHostBrief {
-  seq: number;
-  title: string;
-  goal: string;
-  watch?: string;
-  hint?: string;
-}
-
 export function ExperimentStepAreas({
   seq,
   title,

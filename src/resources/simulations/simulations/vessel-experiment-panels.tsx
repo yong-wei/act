@@ -14,7 +14,6 @@ import {
   formatAxisTick,
   simulationUi,
   useSimulationChartTheme,
-  type ExperimentHostBrief,
 } from '../components/simulation-ui';
 import {
   vesselFrontierSeq,
@@ -360,32 +359,24 @@ export function VesselExperimentDocks({
   status,
   controls,
   assessment,
-  stepNav,
-  hostBrief,
-  hostSubmission,
 }: {
   experiment: VesselExperiment;
   session: VesselExperimentController;
   status?: ReactNode;
   controls: ReactNode;
   assessment?: ReactNode;
-  stepNav?: ReactNode;
-  hostBrief?: ExperimentHostBrief;
-  hostSubmission?: ReactNode;
 }) {
   const last = session.shownSamples[session.shownSamples.length - 1];
   return (
     <>
-      {stepNav ? null : (
-        <SimulationMissionTracker
+      <SimulationMissionTracker
           seq={session.activeSeq}
           total={experiment.steps.length}
           title={session.step.title}
           doneSeqs={session.doneSeqs}
           earnedPoints={session.earnedPoints}
           maxPoints={session.maxPoints}
-        />
-      )}
+      />
       <SimulationDock
         side="left"
         title="实验状态"
@@ -395,7 +386,7 @@ export function VesselExperimentDocks({
           {
             id: 'steps',
             label: '实验步骤',
-            content: stepNav ?? (
+            content: (
               <VesselStepList
                 experiment={experiment}
                 activeSeq={session.activeSeq}
@@ -444,13 +435,13 @@ export function VesselExperimentDocks({
             label: '控制',
             content: (
               <ExperimentStepAreas
-                seq={hostBrief?.seq ?? session.step.seq}
-                title={hostBrief?.title ?? session.step.title}
-                goal={hostBrief?.goal ?? session.step.goal}
-                watch={hostBrief ? hostBrief.watch : session.step.watch}
-                hint={hostBrief ? hostBrief.hint : session.step.suggestion}
+                seq={session.step.seq}
+                title={session.step.title}
+                goal={session.step.goal}
+                watch={session.step.watch}
+                hint={session.step.suggestion}
                 controls={controls}
-                submission={hostSubmission ?? (stepNav ? undefined : (
+                submission={(
                   <VesselStepForm
                     step={session.step}
                     readings={session.readings}
@@ -463,7 +454,7 @@ export function VesselExperimentDocks({
                     onReport={session.openReport}
                     onAsk={session.ask}
                   />
-                ))}
+                )}
               />
             ),
           },

@@ -25,7 +25,7 @@ import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, simulationUi, type ExperimentHostBrief } from '../components/simulation-ui';
+import { SimulationTopBar, simulationUi } from '../components/simulation-ui';
 import { createIceDrive } from './vessel-drives';
 import { iceExperiment } from './vessel-experiments';
 import { takeVesselSubstep, vesselSampleMark } from './vessel-experiment';
@@ -756,7 +756,7 @@ function RobustAssessmentPanel() {
 
 // ============ 主组件 ============
 
-export default function IcebreakerSimulation({ ticket = '', stepNav, hostBrief, hostSubmission }: { ticket?: string; stepNav?: ReactNode; hostBrief?: ExperimentHostBrief; hostSubmission?: ReactNode }) {
+export default function IcebreakerSimulation({ ticket = '' }: { ticket?: string }) {
   const session = useVesselExperiment(iceExperiment, ticket);
   const sessionRef = useRef(session);
   sessionRef.current = session;
@@ -1063,9 +1063,6 @@ export default function IcebreakerSimulation({ ticket = '', stepNav, hostBrief, 
       <VesselExperimentDocks
         experiment={iceExperiment}
         session={session}
-        stepNav={stepNav}
-        hostBrief={hostBrief}
-        hostSubmission={hostSubmission}
         status={(
           <SimPanelStack>
             <SimStatusStrip state={isRunning ? 'running' : metrics.time > 0 ? 'paused' : 'idle'} time={`${metrics.time.toFixed(1)}s`} />

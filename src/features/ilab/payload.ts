@@ -1,5 +1,11 @@
 import { assertAiDataKeys, buildAiData, type AiUsageLedger, type IlabAiData } from './ai-data';
-import { ILAB_EXPERIMENT_TITLE, ILAB_MAX_POINTS } from './steps';
+
+/**
+ * 上传包默认标题与总分：历史上来自旧 24 步综合课程定义，
+ * 七船上传时通过入参覆盖标题与 pointTotal；保留原值以兼容既有记录。
+ */
+const ILAB_EXPERIMENT_TITLE = '船舶智能航行与动力定位控制';
+const ILAB_MAX_POINTS = 106;
 
 export interface StoredIlabStep {
   seq: number;
