@@ -314,3 +314,75 @@ fn dynamics_step_current_acceleration_enters_relative_acceleration() {
     // "相对流减速"来自黏性 hull 项（hull_mmg 模块），不在此无黏性算例断言。
     assert!(out.nu_dot[1] > 0.0);
 }
+
+// ---------- A1.6 integrator ----------
+
+use control_engine::sixdof::{
+    advance_nominal_step, contact_substep_count, rk4_step, ContactStiffness,
+    IntegrationError, NOMINAL_DT,
+};
+
+#[test]
+fn rk4_integrates_harmonic_oscillator_with_high_order_accuracy() {
+    // y'' = -ω²y ↔ y=[x, v]；RK4 全局误差 O(dt⁴)。50 步 @ dt=0.01。
+    let omega = 2.0f64;
+    let mut y = [1.0, 0.0];
+    let dt = 0.01;
+    let mut t = 0.0;
+    for _ in 0..50 {
+        rk4_step(t, &mut y, dt, |_t, state, d| {
+            d[0] = state[1];
+            d[1] = -omega * omega * state[0];
+        }).unwrap();
+        t += dt;
+    }
+    let (sin, cos) = (omega * t).sin_cos();
+    assert!((y[0] - cos).abs() < 1e-8, "RK4 位置误差应为 1e-8 量级（四阶精度）");
+    assert!((y[1] + omega * sin).abs() < 1e-8);
+}
+
+#[test]
+fn contact_substeps_follow_stiffness_budget() {
+    assert_eq!(contact_substep_count(None).unwrap(), 1);
+    // 软接触：required = 0.1/√(k/m) ≥ 标称 → 1 子步。
+    let soft = ContactStiffness { stiffness_n_per_m: 1.0e4, effective_mass_kg: 1.0e6 };
+    let required = 0.1 / (soft.stiffness_n_per_m / soft.effective_mass_kg).sqrt();
+    assert!(required >= NOMINAL_DT);
+    assert_eq!(contact_substep_count(Some(soft)).unwrap(), 1);
+    // 中等刚度：required ≈ 0.00316 → dt 需 ≤0.00316 → 3 子步（0.00278）。
+    let medium = ContactStiffness { stiffness_n_per_m: 1.0e7, effective_mass_kg: 1.0e6 };
+    let n = contact_substep_count(Some(medium)).unwrap();
+    assert!(NOMINAL_DT / n as f64 <= 0.1 / (1.0e7f64 / 1.0e6).sqrt());
+    assert!(NOMINAL_DT / (n - 1) as f64 > 0.1 / (1.0e7f64 / 1.0e6).sqrt());
+}
+
+#[test]
+fn excessive_contact_stiffness_reports_budget_error() {
+    // required = 0.1/√(1e12/1e6)=1e-4 s < MIN_DT → 显式报错，不裁剪。
+    let extreme = ContactStiffness { stiffness_n_per_m: 1.0e12, effective_mass_kg: 1.0e6 };
+    match contact_substep_count(Some(extreme)) {
+        Err(IntegrationError::ContactStiffnessBudgetExceeded { required_dt }) => {
+            assert!(required_dt < 1.0 / 960.0);
+        }
+        other => panic!("预期预算超限错误，得到 {:?}", other),
+    }
+}
+
+#[test]
+fn non_finite_derivative_surfaces_as_error() {
+    let mut y = [1.0];
+    let result = rk4_step(0.0, &mut y, 0.01, |_t, _s, d| { d[0] = f64::NAN; });
+    assert!(matches!(result, Err(IntegrationError::NonFiniteState { stage: "k1", .. })));
+}
+
+#[test]
+fn advance_nominal_step_advances_exact_nominal_dt() {
+    let mut y = [0.0];
+    let medium = ContactStiffness { stiffness_n_per_m: 1.0e7, effective_mass_kg: 1.0e6 };
+    let t_end = advance_nominal_step(0.0, &mut y, Some(medium), |_t, s, d| {
+        d[0] = 1.0;
+        let _ = s;
+    }).unwrap();
+    assert!((t_end - NOMINAL_DT).abs() < 1e-15);
+    assert!((y[0] - NOMINAL_DT).abs() < 1e-12);
+}

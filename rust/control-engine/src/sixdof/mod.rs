@@ -9,8 +9,13 @@
 //! 坐标合同：FRD 体坐标（x 艏、y 右舷、z 向下），NED 世界坐标。
 
 pub mod dynamics;
+pub mod integrator;
 pub mod state;
 
+pub use integrator::{
+    advance_nominal_step, contact_substep_count, rk4_step, ContactStiffness,
+    IntegrationError, MIN_DT, NOMINAL_DT,
+};
 pub use dynamics::{
     AddedMassParams, CurrentFieldBody, DynamicsOutput, ExternalForces, ForceBreakdown,
     RigidBodyParams, RestoringParams, coriolis_added_mass, coriolis_centripetal_rb,
