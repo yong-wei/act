@@ -18,6 +18,17 @@ const PLATFORM_ACCOUNT_PROVIDER = 'platform';
 
 export const isPlatformOidcEnabled = platformOidcEnabled;
 
+type LocalIdentity = { id: string; role: UserRole; email: string | null; name: string | null };
+
+/** 把本地身份（含 DB 角色）写入认证用户对象——jwt 回调据此生成 token。 */
+function applyLocalIdentity(user: unknown, id: string, local: LocalIdentity): void {
+  const target = user as { id?: string; role?: string; email?: string | null; name?: string | null };
+  target.id = id;
+  target.role = local.role;
+  target.email = local.email ?? undefined;
+  target.name = local.name ?? undefined;
+}
+
 import { sessionProfileCache, sessionRequestDeduplicator } from '@/lib/lru-cache';
 import { isDatabaseConnectivityError } from '@/lib/service-availability';
 
@@ -119,7 +130,14 @@ export const authOptions: NextAuthOptions = {
         select: { userId: true },
       });
       if (existing) {
-        (user as { id?: string }).id = existing.userId;
+        const local = await prisma.user.findUnique({
+          where: { id: existing.userId },
+          select: { role: true, email: true, name: true },
+        });
+        if (!local) {
+          return false; // 映射指向已删除用户：拒绝（不自动改绑）。
+        }
+        applyLocalIdentity(user, existing.userId, { id: existing.userId, role: local.role, email: local.email, name: local.name });
         return true;
       }
 
@@ -128,19 +146,29 @@ export const authOptions: NextAuthOptions = {
       const username = typeof (profile as { preferred_username?: unknown }).preferred_username === 'string'
         ? String((profile as { preferred_username?: string }).preferred_username).trim()
         : '';
-      const matched = await prisma.user.findFirst({
-        where: email
-          ? { email } 
-          : username
-            ? {
-                OR: [
-                  { employeeNumber: { equals: username, mode: 'insensitive' } },
-                  { profile: { is: { studentNumber: { equals: username, mode: 'insensitive' } } } },
-                ],
-              }
-            : { id: '__never__' },
-        select: { id: true, role: true, email: true, name: true },
-      });
+      // email 优先；未命中继续学号/工号（本地账号可能无邮箱或邮箱与 IdP 不同）。
+      const byIdentifier = async () => {
+        if (email) {
+          const byEmail = await prisma.user.findFirst({
+            where: { email },
+            select: { id: true, role: true, email: true, name: true },
+          });
+          if (byEmail) return byEmail;
+        }
+        if (username) {
+          return prisma.user.findFirst({
+            where: {
+              OR: [
+                { employeeNumber: { equals: username, mode: 'insensitive' } },
+                { profile: { is: { studentNumber: { equals: username, mode: 'insensitive' } } } },
+              ],
+            },
+            select: { id: true, role: true, email: true, name: true },
+          });
+        }
+        return null;
+      };
+      const matched = await byIdentifier();
       if (!matched) {
         // 未知身份拒绝：不自动建号（账号由管理员预建或按学号匹配）。
         return false;
@@ -153,7 +181,7 @@ export const authOptions: NextAuthOptions = {
           providerAccountId: personId,
         },
       });
-      (user as { id?: string }).id = matched.id;
+      applyLocalIdentity(user, matched.id, matched as LocalIdentity);
       return true;
     },
     async jwt({ token, user }) {

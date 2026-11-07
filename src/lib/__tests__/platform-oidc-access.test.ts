@@ -10,6 +10,7 @@ const accountFindFirst = vi.fn();
 const accountCreate = vi.fn();
 const accountCount = vi.fn();
 const userFindFirst = vi.fn();
+const userFindUnique = vi.fn();
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -20,6 +21,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     user: {
       findFirst: (...args: unknown[]) => userFindFirst(...args),
+      findUnique: (...args: unknown[]) => userFindUnique(...args),
     },
     $connect: prismaMock,
   },
@@ -76,10 +78,11 @@ describe('provider 受控启用', () => {
 });
 
 describe('person_id 映射（signIn 回调）', () => {
-  it('既有映射直登且改写会话用户为本地 User', async () => {
+  it('既有映射直登且改写会话用户为本地 User（角色回填）', async () => {
     const { authOptions } = await loadAuth(OIDC_ENV);
     accountFindFirst.mockResolvedValue({ userId: 'local-user-1' });
-    const user = { id: 'oidc-temp' } as { id: string };
+    userFindUnique.mockResolvedValue({ role: 'TEACHER', email: 't@x.c', name: 'T' });
+    const user = { id: 'oidc-temp' } as { id?: string; role?: string };
     const result = await authOptions.callbacks?.signIn?.({
       user,
       account: { provider: 'keycloak' },
@@ -87,7 +90,20 @@ describe('person_id 映射（signIn 回调）', () => {
     });
     expect(result).toBe(true);
     expect(user.id).toBe('local-user-1');
+    expect(user.role).toBe('TEACHER', '本地 DB 角色必须写入会话用户');
     expect(accountCreate).not.toHaveBeenCalled();
+  });
+
+  it('映射指向已删除用户时拒绝（不自动改绑）', async () => {
+    const { authOptions } = await loadAuth(OIDC_ENV);
+    accountFindFirst.mockResolvedValue({ userId: 'deleted-user' });
+    userFindUnique.mockResolvedValue(null);
+    const result = await authOptions.callbacks?.signIn?.({
+      user: {} as { id: string },
+      account: { provider: 'keycloak' },
+      profile: { sub: 'person-42' },
+    });
+    expect(result).toBe(false);
   });
 
   it('无映射时按 email 匹配并建立关联', async () => {
@@ -112,6 +128,24 @@ describe('person_id 映射（signIn 回调）', () => {
         }),
       }),
     );
+  });
+
+  it('email 未命中时继续学号/工号匹配（P2 回归）', async () => {
+    const { authOptions } = await loadAuth(OIDC_ENV);
+    accountFindFirst.mockResolvedValue(null);
+    userFindFirst
+      .mockResolvedValueOnce(null) // email 未命中
+      .mockResolvedValueOnce({ id: 'local-user-3', role: 'STUDENT', email: null, name: 'S' });
+    accountCreate.mockResolvedValue({});
+    const user = { id: 'oidc-temp' } as { id?: string };
+    const result = await authOptions.callbacks?.signIn?.({
+      user,
+      account: { provider: 'keycloak' },
+      profile: { sub: 'person-9', email: 'different@idp.cn', preferred_username: '20230101' },
+    });
+    expect(result).toBe(true);
+    expect(user.id).toBe('local-user-3');
+    expect(userFindFirst).toHaveBeenCalledTimes(2, 'email 失配后必须续查学号/工号');
   });
 
   it('声明匹配不到任何用户时拒绝且不自动建号', async () => {
