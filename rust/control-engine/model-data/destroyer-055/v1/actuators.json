@@ -1,0 +1,25 @@
+{
+  "propeller": {
+    "diameter_m": 2.64,
+    "kt_coefficients": [0.3441, -0.0034, 0.0],
+    "kq_coefficients": [0.0843, -0.0069, 0.0],
+    "note": "设计点阻力平衡反推（T级）；四象限结构（n→0/Va→0 连续），图谱精化归阶段B Wageningen B4-70 转录"
+  },
+  "shaft": {
+    "inertia_kg_m2": 24000.0,
+    "max_motor_torque_nm": 2400000.0,
+    "max_shaft_speed_rad_s": 30.0,
+    "max_torque_rate_nm_s": 6000000.0,
+    "coulomb_friction_nm": 5000.0,
+    "viscous_friction_nm_s_per_rad": 400.0
+  },
+  "rudder": {
+    "area_m2": 17.82,
+    "area_basis": "c·Lpp·T, c=0.015（#2153 A2.1 量纲修正）",
+    "max_angle_deg": 35.0,
+    "max_rate_deg_s": 5.0,
+    "normal_factor": 1.24,
+    "lateral_factor": 0.66,
+    "longitudinal_position_m": -86.0
+  }
+}

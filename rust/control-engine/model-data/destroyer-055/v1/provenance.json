@@ -1,0 +1,13 @@
+{
+  "schema": "act.model-pack.provenance.v1",
+  "entries": [
+    {"param": "geometry.loa_m", "level": "P", "source": "公开原型资料（055 型驱逐舰公开外形报道汇总）", "uncertainty": "±2 m", "note": "P级=公开原型主尺度事实；Lpp 另记"},
+    {"param": "geometry.lpp_m", "level": "T", "source": "LOA-8m 惯例估计", "uncertainty": "±4 m"},
+    {"param": "geometry.displacement_mass_kg", "level": "T", "source": "hifi 迁移 13000 t 满载排水（教学标称）", "uncertainty": "±15%", "note": "与体积 m=ρV 闭合（校验门禁）"},
+    {"param": "geometry.inertia_about_cg_kg_m2", "level": "T", "source": "k_x=0.5B、k_y=0.26Lpp、k_z=0.25Lpp 回转半径（A2.1 审查修正：hifi 旧值 k_z=0.5L 约大4倍）", "uncertainty": "±30%"},
+    {"param": "maneuvering.hull.*", "level": "T", "source": "destroyer_hifi 无量纲导数设计点换算（#2153 A2.2，负号全保留）", "uncertainty": "量级 ±50%", "note": "B级 KVLCC2 转录校核为阶段B"},
+    {"param": "maneuvering.low_speed.*", "level": "T", "source": "cross-flow 条带模型 T 级标称（Cd≈0.8 折算）", "uncertainty": "Cd 0.6–1.4 待校准"},
+    {"param": "actuators.propeller.kt/kq", "level": "T", "source": "巡航阻力平衡反推 + η0=0.65 效率折算", "uncertainty": "±20%", "note": "B级 Wageningen B4-70 全阶转录为阶段B"},
+    {"param": "actuators.rudder.area_m2", "level": "T", "source": "c·Lpp·T c=0.015 教科书经验式（含吃水，#2153 A2.1 量纲修正）", "uncertainty": "±25%"}
+  ]
+}
