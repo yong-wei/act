@@ -369,6 +369,33 @@ impl DestroyerSixDofPlant {
         Ok(())
     }
 
+    // ---------- 运行时状态恢复（WASM 入口用） ----------
+
+    /// 整体恢复真值状态（sixdof_runtime 从 JSON 往返状态重建 plant）。
+    /// 辐射状态长度不符时按速度场预载；执行器槽位为空时保留构造初值
+    /// （旧标量兼容重建没有执行器信息）。
+    pub fn restore_state(&mut self, mut state: TruthState) {
+        if state.radiation_states.len() != self.radiation.state_len() {
+            state.radiation_states = self.radiation.steady_state(state.body_velocity);
+        }
+        if state.actuator_states.control_surface_angles_rad.is_empty() {
+            state.actuator_states.control_surface_angles_rad =
+                self.state.actuator_states.control_surface_angles_rad.clone();
+        }
+        if state.actuator_states.propeller_shaft_speed_rad_s.is_empty() {
+            state.actuator_states.propeller_shaft_speed_rad_s =
+                self.state.actuator_states.propeller_shaft_speed_rad_s.clone();
+        }
+        self.state = state;
+    }
+
+    /// 运行时兼容入口：直接写实际舵角（旧标量状态重建时用）。
+    pub fn set_rudder_actual_for_runtime(&mut self, rudder_rad: f64) {
+        if let Some(slot) = self.state.actuator_states.control_surface_angles_rad.first_mut() {
+            *slot = rudder_rad;
+        }
+    }
+
     // ---------- 校核/测试访问器（仅供独立算例与诊断，运行路径不使用） ----------
 
     /// 直接写入体速度（校核初值设置）。
