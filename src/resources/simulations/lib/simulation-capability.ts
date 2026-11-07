@@ -51,27 +51,30 @@ let cachedGraphics: GraphicsCapability | null = null;
  * 在离屏 canvas 上真实创建渲染上下文探测图形能力（webgpu 失败则回退 webgl）。
  * 结果缓存；探测本身不抛出。
  */
-export async function probeGraphicsCapability(): Promise<GraphicsCapability> {
+export async function probeGraphicsCapability(explicit?: 'webgpu' | 'webgl' | null): Promise<GraphicsCapability> {
   if (cachedGraphics) return cachedGraphics;
   const canvas = document.createElement('canvas');
-  try {
-    const renderer = await createMarineRenderer(canvas, 'webgpu');
-    renderer.dispose();
-    cachedGraphics = { ok: true, backend: 'webgpu' };
-    return cachedGraphics;
-  } catch {
-    // 继续 webgl 回退探测。
+  if (!explicit) {
+    try {
+      const renderer = await createMarineRenderer(canvas, 'webgpu');
+      renderer.dispose();
+      cachedGraphics = { ok: true, backend: 'webgpu' };
+      return cachedGraphics;
+    } catch {
+      // 继续 webgl 回退探测。
+    }
   }
+  const backend = explicit ?? 'webgl';
   try {
-    const renderer = await createMarineRenderer(canvas, 'webgl');
+    const renderer = await createMarineRenderer(canvas, backend);
     renderer.dispose();
-    cachedGraphics = { ok: true, backend: 'webgl' };
+    cachedGraphics = { ok: true, backend };
     return cachedGraphics;
-  } catch (webglError) {
+  } catch (probeError) {
     cachedGraphics = {
       ok: false,
       backend: null,
-      detail: webglError instanceof Error ? webglError.message : String(webglError),
+      detail: probeError instanceof Error ? probeError.message : String(probeError),
     };
     return cachedGraphics;
   }

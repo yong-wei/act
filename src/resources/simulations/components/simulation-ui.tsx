@@ -280,12 +280,24 @@ export function ExperimentStepAreas({
       <section
         className="space-y-2.5"
         data-step-controls
-        aria-disabled={readiness === 'unavailable' ? true : undefined}
-        {...(readiness === 'unavailable' ? { 'data-controls-locked': '' } : {})}
+        aria-disabled={readiness === 'runnable' ? undefined : true}
+        {...(readiness === 'runnable' ? {} : { 'data-controls-locked': '' })}
+        onKeyDownCapture={readiness === 'runnable' ? undefined : (event) => {
+          // 就绪门前拦截键盘激活（pointer-events 挡不住 Enter/Space）。
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }}
       >
         <p className={simulationUi.sectionTitle}>控制</p>
         <SimulationReadinessGate status={readiness} />
-        <div className={readiness === 'unavailable' ? 'pointer-events-none opacity-60' : undefined}>{controls}</div>
+        <div
+          className={readiness === 'runnable' ? undefined : 'pointer-events-none opacity-60'}
+          aria-hidden={readiness === 'runnable' ? undefined : true}
+        >
+          {controls}
+        </div>
       </section>
       {submission ? (
         <section className="space-y-2.5" data-step-submit>

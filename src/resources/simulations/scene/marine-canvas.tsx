@@ -8,6 +8,7 @@ import {
   probeModelCapability,
   type GraphicsFailureKind,
 } from '../lib/simulation-capability';
+import { publishMarineCanvasStatus } from '../lib/marine-status-store';
 
 class RendererBoundary extends Component<{ children: ReactNode; onFailure: (error: Error) => void }, { failed: boolean }> {
   state = { failed: false };
@@ -23,9 +24,9 @@ const FAILURE_COPY: Record<GraphicsFailureKind, { title: string; cause: string; 
     advice: '请在支持 WebGL2 的桌面浏览器（Chrome/Edge/Firefox 近年版本）中打开本实验，并确认浏览器开启了硬件加速；机房设备可联系教师确认环境。',
   },
   'device-lost': {
-    title: '三维画面连接中断，实验进度已保留',
+    title: '三维画面连接中断',
     cause: '显卡驱动或浏览器释放了图形资源，画面连接被中断。',
-    advice: '刷新页面即可重新连接画面；已完成步骤与草稿都已保留，不会丢失。若频繁中断，请更换一台设备继续。',
+    advice: '已提交的步骤成绩仍保留在你的账号记录中。当前步骤尚未提交的填写内容不会自动保存：如需保留，请在恢复画面后完成本步提交；刷新会需要重新填写当前步骤。若频繁中断，请更换一台设备继续。',
   },
   'init-defect': {
     title: '三维画面初始化出现异常',
@@ -109,6 +110,10 @@ export function MarineCanvas({ children, ...props }: Omit<CanvasProps, 'gl'>) {
     if (!api) return 'preparing-graphics' as const;
     return 'runnable' as const;
   }, [failure, modelReady, api]);
+
+  useEffect(() => {
+    publishMarineCanvasStatus(status);
+  }, [status]);
 
   if (failure) {
     return (
