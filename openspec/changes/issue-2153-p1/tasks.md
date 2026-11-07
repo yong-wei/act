@@ -8,7 +8,7 @@
 - [x] A1.2 `dynamics.rs`：Fossen 六自由度方程组装（含 `ν̇_current_body` 项、统一 `r×F` 载荷力矩）
 - [ ] A1.3 `hull_mmg.rs`：MMG 三次项 + 低速 cross-flow/四象限连续过渡（1–3 m/s smoothstep，力基准无重复）
 - [ ] A1.4 `actuators.rs`：桨轴动力学（J_s·ω̇/限幅/四象限）、舵/鳍/吊舱伺服、功率=Q·ω
-- [ ] A1.5 `radiation.rs`：被动稳定状态空间 + 精确离散化
+- [x] A1.5 `radiation.rs`：被动稳定状态空间 + 精确离散化
 - [x] A1.6 `integrator.rs`：RK4 1/120 + 接触细分（≤1/960，超预算显式报错）
 
 ## A2. 055 升级与公共修正

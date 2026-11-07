@@ -10,8 +10,10 @@
 
 pub mod dynamics;
 pub mod integrator;
+pub mod radiation;
 pub mod state;
 
+pub use radiation::{RadiationMode, RadiationModel, RadiationModelError};
 pub use integrator::{
     advance_nominal_step, contact_substep_count, rk4_step, ContactStiffness,
     IntegrationError, MIN_DT, NOMINAL_DT,

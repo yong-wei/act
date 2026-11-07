@@ -386,3 +386,67 @@ fn advance_nominal_step_advances_exact_nominal_dt() {
     assert!((t_end - NOMINAL_DT).abs() < 1e-15);
     assert!((y[0] - NOMINAL_DT).abs() < 1e-12);
 }
+
+// ---------- A1.5 radiation ----------
+
+use control_engine::sixdof::{RadiationMode, RadiationModel, RadiationModelError};
+
+fn sample_radiation() -> RadiationModel {
+    RadiationModel {
+        modes: vec![
+            RadiationMode { a: -0.35, input_gain: 8.0e4, output_gain: 6.0e3, channel: 0 },
+            RadiationMode { a: -0.9, input_gain: -1.4e5, output_gain: -2.2e4, channel: 1 },
+            RadiationMode { a: -1.4, input_gain: 9.0e5, output_gain: 5.0e5, channel: 2 },
+        ],
+    }
+}
+
+#[test]
+fn radiation_validates_passivity_and_rejects_bad_modes() {
+    sample_radiation().validate().unwrap();
+    let mut unstable = sample_radiation();
+    unstable.modes[0].a = 0.4;
+    assert!(matches!(unstable.validate(), Err(RadiationModelError::UnstableMode { index: 0, .. })));
+    // 正实条件 (-A)·B·C ≥ 0 破坏 → 非被动。
+    let mut not_passive = sample_radiation();
+    not_passive.modes[1].output_gain = 2.2e4; // 翻转 C 破坏 B·C 同号（正实）
+    assert!(matches!(not_passive.validate(), Err(RadiationModelError::NotPassive { index: 1, .. })));
+    let mut bad_channel = sample_radiation();
+    bad_channel.modes[2].channel = 9;
+    assert!(matches!(bad_channel.validate(), Err(RadiationModelError::InvalidChannel { .. })));
+}
+
+#[test]
+fn radiation_zoh_matches_analytic_constant_input_response() {
+    // 单环节 x' = a·x + b·u，常输入 u₀ 从 0 起：x(t) = (b·u₀/a)(e^{at} − 1)。
+    let model = RadiationModel {
+        modes: vec![RadiationMode { a: -0.5, input_gain: 3.0, output_gain: 1.0, channel: 0 }],
+    };
+    let (x, tau) = model.step(&[0.0], [2.0, 0.0, 0.0, 0.0, 0.0, 0.0], 0.4);
+    let analytic = (3.0 * 2.0 / -0.5) * ((-0.5f64 * 0.4).exp() - 1.0);
+    assert!((x[0] - analytic).abs() < 1e-12);
+    assert!((tau[0] - x[0]).abs() < 1e-12);
+}
+
+#[test]
+fn radiation_impulse_response_decays_and_channel_maps() {
+    let model = sample_radiation();
+    let mut x = vec![1.0, 1.0, 1.0];
+    let dt = 1.0 / 120.0;
+    let mut last = [0.0f64; 6];
+    for _ in 0..600 {
+        let (next, tau) = model.step(&x, [0.0; 6], dt);
+        x = next;
+        last = tau;
+    }
+    // 5 s 后各通道记忆力 < 25% 初值（最慢 a=-0.35 → e^{-1.75}≈17.4%）。
+    for mode in model.modes.iter() {
+        let decay = (-mode.a * 5.0f64).exp();
+        let bound = 1.05 * decay * mode.output_gain.abs();
+        assert!(
+            last[mode.channel].abs() <= bound,
+            "通道 {} 应按 e^{{-a·t}} 衰减（≈{}），得到 {:?}",
+            mode.channel, decay, last
+        );
+    }
+}
