@@ -8,11 +8,16 @@
 //! 单位合同：角度 rad、质量 kg、力 N、力矩 N·m、功率 W、时间 s；
 //! 坐标合同：FRD 体坐标（x 艏、y 右舷、z 向下），NED 世界坐标。
 
+pub mod actuators;
 pub mod dynamics;
 pub mod integrator;
 pub mod radiation;
 pub mod state;
 
+pub use actuators::{
+    PropellerModel, PropellerShaft, ServoModel, clamp_motor_torque, clamp_shaft_speed,
+    propeller_loads, servo_step, shaft_acceleration, shaft_friction, shaft_power,
+};
 pub use radiation::{RadiationMode, RadiationModel, RadiationModelError};
 pub use integrator::{
     advance_nominal_step, contact_substep_count, rk4_step, ContactStiffness,

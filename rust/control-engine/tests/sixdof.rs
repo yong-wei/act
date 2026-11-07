@@ -450,3 +450,114 @@ fn radiation_impulse_response_decays_and_channel_maps() {
         );
     }
 }
+
+// ---------- A1.4 actuators ----------
+
+use control_engine::sixdof::{
+    clamp_motor_torque, clamp_shaft_speed, propeller_loads, servo_step, shaft_acceleration,
+    shaft_friction, shaft_power, PropellerModel, PropellerShaft, ServoModel,
+};
+
+fn sample_propeller() -> PropellerModel {
+    PropellerModel {
+        diameter_m: 4.9,
+        water_density: 1025.0,
+        kt_coefficients: [0.45, -0.32, -0.05],
+        kq_coefficients: [0.048, -0.026, -0.006],
+    }
+}
+
+fn sample_shaft() -> PropellerShaft {
+    PropellerShaft {
+        shaft_inertia: 2.6e3,
+        max_motor_torque_nm: 4.6e5,
+        max_shaft_speed_rad_s: 22.0,
+        max_torque_rate_nm_s: 8.0e5,
+        coulomb_friction_nm: 3.0e3,
+        viscous_friction_nm_s_per_rad: 65.0,
+    }
+}
+
+#[test]
+fn propeller_loads_continuous_at_zero_speed_and_advance() {
+    let prop = sample_propeller();
+    let (t0, q0) = propeller_loads(&prop, 0.0, 0.0);
+    assert!(t0.abs() < 1e-9 && q0.abs() < 1e-9, "n=0、Va=0 必须连续（零力）");
+    // n→0⁺ 与 n→0⁻ 值连续归零（推力是 n 的奇函数，两侧反号属正确行为）。
+    let (t_pos, _) = propeller_loads(&prop, 0.1, 1e-6);
+    let (t_neg, _) = propeller_loads(&prop, 0.1, -1e-6);
+    assert!(t_pos.abs() < 1e-5 && t_neg.abs() < 1e-5);
+    assert!((t_pos - t_neg).abs() < 2e-5);
+}
+
+#[test]
+fn propeller_loads_sign_follows_quadrant() {
+    let prop = sample_propeller();
+    // 前进：正转速 → 正推力；倒转：负推力。
+    let (t_fwd, _) = propeller_loads(&prop, 3.0, 12.0);
+    assert!(t_fwd > 0.0);
+    let (t_rev, _) = propeller_loads(&prop, 3.0, -12.0);
+    assert!(t_rev < 0.0);
+    // 大进速比下推力下降（J 增大 kt 下降）。
+    let (t_light, _) = propeller_loads(&prop, 45.0, 12.0);
+    assert!(t_light < t_fwd);
+}
+
+#[test]
+fn shaft_friction_opposes_rotation() {
+    let shaft = sample_shaft();
+    assert!(shaft_friction(&shaft, 10.0) > 0.0);
+    assert!(shaft_friction(&shaft, -10.0) < 0.0);
+    // 低速区线性无跳变（库仑项平滑处理）。
+    let f_pos = shaft_friction(&shaft, 1e-5);
+    let f_neg = shaft_friction(&shaft, -1e-5);
+    assert!((f_pos - f_neg).abs() < 2.0 * shaft.coulomb_friction_nm + 1e-6);
+}
+
+#[test]
+fn shaft_acceleration_balances_torques() {
+    let shaft = sample_shaft();
+    let prop = sample_propeller();
+    let n = 12.0f64;
+    let va = 4.0f64;
+    let q_motor = 2.0e5f64;
+    let (_, q_prop) = propeller_loads(&prop, va, n);
+    let expected = (q_motor - q_prop - shaft_friction(&shaft, n)) / shaft.shaft_inertia;
+    assert!((shaft_acceleration(&shaft, &prop, n, va, q_motor) - expected).abs() < 1e-9);
+}
+
+#[test]
+fn motor_torque_respects_amplitude_and_rate_limits() {
+    let shaft = sample_shaft();
+    // 幅值限幅（dt 足够大、幅值主导时不可超上限）。
+    let clamped = clamp_motor_torque(&shaft, 9.9e5, 0.0, 10.0);
+    assert!((clamped - shaft.max_motor_torque_nm).abs() < 1e-9);
+    // dt=0.5 时变化率限幅先生效（4e5 < 4.6e5）——限幅链条的次序行为。
+    let rate_limited = clamp_motor_torque(&shaft, 9.9e5, 0.0, 0.5);
+    assert!((rate_limited - 4.0e5).abs() < 1e-6);
+    // 变化率限幅（dt 小时不超过 rate·dt）。
+    let rated = clamp_motor_torque(&shaft, 4.0e5, 0.0, 1.0 / 120.0);
+    assert!(rated <= shaft.max_torque_rate_nm_s / 120.0 + 1e-6);
+}
+
+#[test]
+fn shaft_power_is_torque_times_speed() {
+    assert!((shaft_power(2.0e5, 15.0) - 3.0e6).abs() < 1e-6);
+    assert!((shaft_power(2.0e5, 0.0)).abs() < 1e-9);
+    assert_eq!(clamp_shaft_speed(&sample_shaft(), 99.0), sample_shaft().max_shaft_speed_rad_s);
+}
+
+#[test]
+fn servo_step_respects_rate_and_amplitude_limits() {
+    let servo = ServoModel {
+        max_angle_rad: 0.611, // ~35°
+        max_rate_rad_s: 0.087, // ~5°/s
+        time_constant_s: 0.2,
+    };
+    // 命令超幅值。
+    let actual = servo_step(&servo, 0.0, 2.0, 1.0 / 120.0);
+    assert!(actual <= servo.max_angle_rad + 1e-12);
+    // 一步最多 rate·dt。
+    let stepped = servo_step(&servo, 0.0, 0.5, 1.0 / 120.0);
+    assert!(stepped <= servo.max_rate_rad_s / 120.0 + 1e-9);
+}
