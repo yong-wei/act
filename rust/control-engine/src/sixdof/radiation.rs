@@ -1,7 +1,9 @@
 //! 辐射记忆状态空间（issue-2153-p1 A1.5）。
 //!
-//! Cummins 辐射记忆以一阶标量环节组实现（每模态 `ẋ = A·x + B·u`，
-//! 输出记忆力 `τ_memory = Σ C·x`）。合同（issue §2/§2.1）：
+//! Cummins 辐射记忆以带零点一阶环节组实现（每模态状态 `ẋ = A·x + B·u`，
+//! 输出记忆力 `τ_memory = Σ C·(B·u + A·x)`，即 `H(s) = C·B·s/(s+|A|)`）。
+//! 恒定速度下稳态记忆为零（Cummins 合同：记忆由速度变化激励），
+//! 高频极限为等效阻尼 `D = C·B`。合同（issue §2/§2.1）：
 //! - 被动、稳定：A < 0，且一阶环节正实（无源）条件 `(-A)·B·C ≥ 0`；
 //! - **不含 D 直通项**：`A_inf` 已在质量阵左端（dynamics），此处再放 D
 //!   即重复计入（载荷不重复合同）；
@@ -52,7 +54,8 @@ impl RadiationModel {
     }
 
     /// ZOH 精确离散一步（`u` 为本步恒定的相对速度输入；`x_next` 由调用方
-    /// 提供缓冲，长度须等于 `state_len()`）。返回 6 通道辐射记忆力。
+    /// 提供缓冲，长度须等于 `state_len()`）。返回 6 通道辐射记忆力
+    /// `τ = C·(B·u + A·x⁺)`（恒速稳态为零、高频阻尼 C·B）。
     pub fn step_into(&self, x: &[f64], x_next: &mut [f64], u: [f64; 6], dt: f64) -> [f64; 6] {
         let mut tau = [0.0f64; 6];
         for (index, mode) in self.modes.iter().enumerate() {
@@ -64,9 +67,19 @@ impl RadiationModel {
             if let Some(slot) = x_next.get_mut(index) {
                 *slot = next;
             }
-            tau[mode.channel] += mode.output_gain * next;
+            // 输出带零点：τ = C·(B·u + A·x⁺)；恒 u 稳态 x→B·u/(−A) ⇒ τ→0。
+            tau[mode.channel] += mode.output_gain * (mode.input_gain * u_k + mode.a * next);
         }
         tau
+    }
+
+    /// 与给定速度场一致的稳态记忆（初值预热：从巡航初速直接开始的
+    /// 运行必须预载，否则瞬态表现为虚假冲击力）。
+    pub fn steady_state(&self, u: [f64; 6]) -> Vec<f64> {
+        self.modes
+            .iter()
+            .map(|mode| mode.input_gain * u[mode.channel] / (-mode.a))
+            .collect()
     }
 
     /// 便利形式：返回新状态向量。

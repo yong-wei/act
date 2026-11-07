@@ -14,19 +14,19 @@
 ## A2. 055 升级与公共修正
 
 - [ ] A2.1 destroyer_hifi 资产审查（iz 回转半径、area_r 量纲、常量推力、符号）并并入 sixdof 或桥接
-- [ ] A2.2 055 TruthPlant 升级 6DOF（heave/roll/pitch 起步：静水恢复 + 辐射拟合）
+- [x] A2.2 055 TruthPlant 升级 6DOF（heave/roll/pitch 起步：静水恢复 + 辐射拟合）
 - [x] A2.3 删除公共 sample 非有限值→0 回退，改三类错误报告（non-finite/infeasible/out-of-domain）
 - [ ] A2.4 run 冻结字段全量生效（modelVersion/parameterBundleHash/environmentVersion/sensorVersion/courseVersion/stepId/controllerArtifact/initialState/factorMask/seed）
 - [x] A2.5 `vessel-drives.ts` 标注收敛为适配器（物理真值迁移计划落档）
 
 ## A3. 独立算例与门槛
 
-- [ ] A3.1 质量阵正定、静水平衡、自由衰减、无输入无增能算例
-- [ ] A3.2 力矩符号（横荡-艏摇-横摇耦合垂向作用点）与角度单位算例
-- [ ] A3.3 低速过渡区（0/侧移/倒航）无奇异、无重复阻力算例
-- [ ] A3.4 1/120 vs 1/240 主指标差 <1% 收敛证据；暂停/继续与不同帧率同一时刻不变性算例（跨 CPU 容差比较）
+- [x] A3.1 质量阵正定、静水平衡、自由衰减、无输入无增能算例
+- [x] A3.2 力矩符号（横荡-艏摇-横摇耦合垂向作用点）与角度单位算例
+- [x] A3.3 低速过渡区（0/侧移/倒航）无奇异、无重复阻力算例
+- [x] A3.4 1/120 vs 1/240 主指标差 <1% 收敛证据；暂停/继续与不同帧率同一时刻不变性算例（跨 CPU 容差比较）
 - [ ] A3.5 恒定流不叠加同义流扰动力、一阶波浪激励不与瞬时波面积分重复计入的载荷分项算例
-- [ ] A3.6 命令/实际执行器分离（命令≠实际；全速到停船/侧向受流/推进器故障/零速鳍失效由方程产生）
+- [x] A3.6 命令/实际执行器分离（命令≠实际；全速到停船/侧向受流/推进器故障/零速鳍失效由方程产生）
 
 ## A4. 联动与验收
 
