@@ -269,3 +269,21 @@ fn wave_excitation_peaks_at_declared_period_quarter() {
         "T/2（sin 过零）激励应接近零：half={at_half} quarter={at_quarter}"
     );
 }
+
+#[test]
+fn parameter_pack_hash_change_resets_run_identity() {
+    // P1-2：旧 run 的 parameterBundleHash 与当前包不一致时必须换身份。
+    let first = compute_destroyer_sixdof_step_json(&base_request(&legacy_state())).unwrap();
+    let v1: serde_json::Value = serde_json::from_str(&first).unwrap();
+    // 伪造「旧包哈希」的状态回传：manifest 其余字段一致、哈希不同。
+    let mut stale = v1["runManifest"].clone();
+    stale["parameterBundleHash"] = serde_json::json!("old-pack@fnv1a-deadbeef");
+    let state_stale = format!(
+        r#"{{"timeS": {}, "headingDeg": {}, "speedMps": {}, "sixdofState": {}, "runManifest": {} }}"#,
+        v1["timeS"], v1["headingDeg"], v1["speedMps"], v1["sixdofState"], stale,
+    );
+    let second = compute_destroyer_sixdof_step_json(&base_request(&state_stale)).unwrap();
+    let v2: serde_json::Value = serde_json::from_str(&second).unwrap();
+    assert_eq!(v2["manifestReset"], true, "参数包哈希不匹配必须重置 run");
+    assert_ne!(v2["runManifest"]["manifestId"], v1["runManifest"]["manifestId"]);
+}
