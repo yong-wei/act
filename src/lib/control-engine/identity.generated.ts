@@ -1,7 +1,7 @@
 import { IDENTITY_SCHEMA, type ControlEngineWasmExport } from './types';
 
 export const CONTROL_ENGINE_IDENTITY_SCHEMA = IDENTITY_SCHEMA;
-export const CONTROL_ENGINE_BUILD_HASH = '4d7223dcbc451003129fc4fe538e0342bd2c92f69be4dddd4c2871bb6054457e';
+export const CONTROL_ENGINE_BUILD_HASH = '4fd717e983733dfa41d5a39ed5022e30771c73314ffe27fb2ac1e0ca3bdba1f5';
 export const CONTROL_ENGINE_EXPORTS: readonly ControlEngineWasmExport[] = [
   'compute_analysis',
   'compute_nonlinear_analysis',
@@ -12,6 +12,6 @@ export const CONTROL_ENGINE_EXPORTS: readonly ControlEngineWasmExport[] = [
 export const CONTROL_ENGINE_FILE_HASHES = {
   'index.js': 'f034d1b247fc4aac06748c041144f1f7aa40c4e06efe4384bacebf229e3c7bfe',
   'index.d.ts': '8760847ef56477d823a4038d166252c79267f4cec9d87f17fb7c7c83ccf6e84f',
-  'index_bg.wasm': '52daf68946d48a447ff5b9f426d25e163bc7b6494cd9718bf66198252757bc2e',
+  'index_bg.wasm': '1abe5e564939fbdd358ca7aa574bb6953ead83500acb7e808cd6815ee0a72f5c',
   'index_bg.wasm.d.ts': '53fbffe06bcff31b3c038bc9750fc9bf8b0dda579b294499e4687023e376ca09',
 } as const;

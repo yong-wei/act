@@ -18,6 +18,7 @@ pub mod practice_cruise_live;
 pub mod practice_live;
 pub mod practice_live_platform;
 pub mod sixdof;
+pub mod sixdof_runtime;
 pub mod virtual_simulation_runtime;
 
 use crate::analysis::{

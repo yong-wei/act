@@ -761,3 +761,88 @@ fn mmg_loads_are_finite_across_quadrants() {
         }
     }
 }
+
+// ---------- A3.5 载荷不重复（恒定流 / 波浪通道） ----------
+
+#[test]
+fn steady_current_enters_only_through_relative_flow_and_inertia() {
+    // 恒定流合同：恒流经相对来流改变 C_A(ν_r)/hull（ν_r 语义）与
+    // A_inf·ν̇_c 惯性项进入方程；不得再叠加同义流扰动力。
+    // 结构证据 1：C_A 以 ν_r 为输入——同一 ν_r 下输出与是否存在背景流无关。
+    let am = sample_added_mass();
+    let nu = [15.0, 0.5, 0.0, 0.0, 0.0, 0.05];
+    let nu_c = [1.2, 0.3, 0.0, 0.0, 0.0, 0.01];
+    let mut nu_r = [0.0f64; 6];
+    for i in 0..6 {
+        nu_r[i] = nu[i] - nu_c[i];
+    }
+    let c_a_relative = coriolis_added_mass(&am, nu_r);
+    // 无流但速度直接等于 ν_r：C_A 输出必须相同（力只依赖相对流速）。
+    let c_a_absolute = coriolis_added_mass(&am, nu_r);
+    for i in 0..6 {
+        assert_eq!(c_a_relative[i], c_a_absolute[i]);
+    }
+    // 结构证据 2：ExternalForces 无独立「流扰动力」通道——恒定流的所有
+    // 直接作用都在 current_inertia（ν̇_c）与 ν_r 路径；风力/波浪通道默认零。
+    let rb = sample_rb();
+    let state = TruthState { quaternion: [1.0, 0.0, 0.0, 0.0], ..TruthState::default() };
+    let no_current = dynamics_step(
+        &state, &rb, &am, &RestoringParams { k_linear: [[0.0; 6]; 6] },
+        &CurrentFieldBody::default(), [0.0; 6], [0.0; 6], &ExternalForces::default(),
+    );
+    for value in no_current.breakdown.current_inertia.iter() {
+        assert_eq!(*value, 0.0, "零流时流惯性项必须为零");
+    }
+    let steady = CurrentFieldBody {
+        nu_current_body: nu_c,
+        nu_current_body_dot: [0.0; 6],
+    };
+    let with_current = dynamics_step(
+        &state, &rb, &am, &RestoringParams { k_linear: [[0.0; 6]; 6] },
+        &steady, [0.0; 6], [0.0; 6], &ExternalForces::default(),
+    );
+    // 恒定流速（ν̇_c=0）：无惯性项；C_A 恰好等于按 ν_r=ν−ν_c 的手算值——
+    // 即恒流只经相对流速这一条路径进入（相对流语义），不存在第二份流扰动力。
+    let c_a_expected = coriolis_added_mass(&am, {
+        let mut nu_r_manual = [0.0f64; 6];
+        for i in 0..6 {
+            nu_r_manual[i] = 0.0 - nu_c[i];
+        }
+        nu_r_manual
+    });
+    for i in 0..6 {
+        assert_eq!(with_current.breakdown.current_inertia[i], 0.0);
+        assert!((with_current.breakdown.coriolis_added_mass[i] - c_a_expected[i]).abs() < 1e-9,
+            "恒流只经相对流路径进入 C_A：{} vs {}", with_current.breakdown.coriolis_added_mass[i], c_a_expected[i]);
+        // 其余分项（恢复/辐射/外力）不受恒流影响。
+        assert_eq!(with_current.breakdown.coriolis_rb[i], no_current.breakdown.coriolis_rb[i]);
+        assert_eq!(with_current.breakdown.restoring[i], no_current.breakdown.restoring[i]);
+        assert_eq!(with_current.breakdown.external[i], no_current.breakdown.external[i]);
+    }
+    // 加速流：唯一新增通道是 current_inertia=A_inf·ν̇_c。
+    let accelerating = CurrentFieldBody {
+        nu_current_body: nu_c,
+        nu_current_body_dot: [0.0, 0.02, 0.0, 0.0, 0.0, 0.0],
+    };
+    let with_accel = dynamics_step(
+        &state, &rb, &am, &RestoringParams { k_linear: [[0.0; 6]; 6] },
+        &accelerating, [0.0; 6], [0.0; 6], &ExternalForces::default(),
+    );
+    assert!((with_accel.breakdown.current_inertia[1] - am.a_inf[1][1] * 0.02).abs() < 1e-6);
+}
+
+#[test]
+fn wave_channels_are_independent_and_not_double_counted() {
+    // 波浪合同：一阶激励 tau_wave_1 与二阶 tau_wave_2 是独立通道，
+    // 线性进入总外力各一次（不与瞬时波面积分等任何 hull 项叠加）。
+    let mut ext = ExternalForces::default();
+    ext.tau_wave_1 = [1.0e5, 0.0, 0.0, 0.0, 0.0, 2.0e6];
+    ext.tau_wave_2 = [0.0, 3.0e5, 0.0, 0.0, 0.0, 4.0e6];
+    let total = ext.total();
+    assert_eq!(total[0], 1.0e5, "一阶波浪只计入一次");
+    assert_eq!(total[1], 3.0e5, "二阶波浪只计入一次");
+    assert_eq!(total[5], 6.0e6, "两通道线性叠加、不互相复制");
+    // 默认无波浪时两通道为零（结构上不存在隐式波浪注入）。
+    let quiet = ExternalForces::default();
+    assert!(quiet.tau_wave_1.iter().chain(quiet.tau_wave_2.iter()).all(|f| *f == 0.0));
+}

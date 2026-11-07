@@ -173,7 +173,8 @@ fn half_step_converges_within_one_percent() {
     for _ in 0..(60.0 * 120.0) as usize {
         coarse.step(cmds).unwrap();
     }
-    for _ in 0..(60.0 * 120.0) as usize {
+    // 语义：step_with_dt(dt) 推进 dt 本身——细步侧每秒 240 次调用。
+    for _ in 0..(60.0 * 240.0) as usize {
         fine.step_with_dt(1.0 / 240.0, cmds).unwrap();
     }
     let yaw_c = coarse.yaw_for_test();
