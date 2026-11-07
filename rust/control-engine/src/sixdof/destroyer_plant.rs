@@ -312,7 +312,6 @@ impl DestroyerSixDofPlant {
             } else {
                 EnvironmentField::default()
             };
-            let wave_phase_origin = time;
 
             let derivs = |t_sub: f64, y_slice: &[f64], dy: &mut [f64]| {
                 let position = [y_slice[0], y_slice[1], y_slice[2]];
@@ -350,7 +349,7 @@ impl DestroyerSixDofPlant {
                     let _ = env_hull;
                     // 波浪一阶力矩（正弦慢漂，T 级幅值）。
                     let wave = environment.wave_moment_amplitude_nm
-                        * (2.0 * std::f64::consts::PI * (wave_phase_origin + t_sub) / environment.wave_period_s).sin();
+                        * (2.0 * std::f64::consts::PI * t_sub / environment.wave_period_s).sin();
                     external.tau_wave_1 = [0.0, 0.0, 0.0, 0.15 * wave, 0.0, wave];
                 }
 

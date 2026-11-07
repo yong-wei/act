@@ -239,3 +239,33 @@ fn wave_phase_advances_with_physical_clock() {
         "波浪激励必须随时间累积出横摇：rough={roll_rough} calm={roll_calm}"
     );
 }
+
+#[test]
+fn wave_excitation_peaks_at_declared_period_quarter() {
+    // 相位用 RK4 绝对时间：T/4=2 s 附近激励应达峰值（修复前 origin+t_sub
+    // 重复叠加使周期减半、2 s 处近零）。
+    let step_at = |time_s: f64| -> f64 {
+        let state = format!(
+            "{{\"timeS\": {time_s}, \"headingDeg\": 0.0, \"yawRateDegS\": 0.0, \"speedMps\": 15.0}}"
+        );
+        let mut request = base_request(&state)
+            .replace("\"dtS\": 0.5", "\"dtS\": 0.05")
+            .replace("\"disturbanceEnabled\": false", "\"disturbanceEnabled\": true");
+        request = request.replace("\"controlMode\": \"manual\"", "\"controlMode\": \"p\", \"pid\": {\"kp\": 0.0, \"ki\": 0.0, \"kd\": 0.0}");
+        let out = compute_destroyer_sixdof_step_json(&request).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        v["sixdofState"]["bodyVelocity"][3].as_f64().unwrap().abs()
+    };
+    let at_quarter = step_at(1.95);
+    let at_half = step_at(3.95);
+    let at_zero = step_at(0.05);
+    // 2 s（T/4，sin 峰值）处横摇激励显著大于 0 与 4 s（sin 过零）。
+    assert!(
+        at_quarter > at_zero * 10.0 + 1e-9,
+        "T/4 激励应显著：quarter={at_quarter} zero={at_zero}"
+    );
+    assert!(
+        at_half < at_quarter / 5.0,
+        "T/2（sin 过零）激励应接近零：half={at_half} quarter={at_quarter}"
+    );
+}
