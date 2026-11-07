@@ -25,7 +25,7 @@ import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, SimulationAssessmentPanel, simulationUi, type ExperimentHostBrief } from '../components/simulation-ui';
+import { SimulationTopBar, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette } from '../components/simulation-theme';
 import {
   EnvironmentScene,
@@ -610,7 +610,7 @@ function TeachingAnnotationsGate({
 
 // ============ 主组件 ============
 
-export function DrillingSimulation({ ticket = '', stepNav, hostBrief, hostSubmission }: { ticket?: string; stepNav?: ReactNode; hostBrief?: ExperimentHostBrief; hostSubmission?: ReactNode }) {
+export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
   const session = useVesselExperiment(drillingExperiment, ticket);
   const sessionRef = useRef(session);
   sessionRef.current = session;
@@ -1012,9 +1012,6 @@ export function DrillingSimulation({ ticket = '', stepNav, hostBrief, hostSubmis
             inputsEnabled={false}
           />
         )}
-        stepNav={stepNav}
-        hostBrief={hostBrief}
-        hostSubmission={hostSubmission}
         assessment={(
           <SimulationAssessmentPanel
             title="DP定位评估"

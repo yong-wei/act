@@ -105,7 +105,7 @@ import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { ExperimentStepAreas, SimulationTopBar, SimulationDock, SimulationAssessmentPanel, SimulationMissionTracker, simulationUi, type ExperimentHostBrief } from '../components/simulation-ui';
+import { ExperimentStepAreas, SimulationTopBar, SimulationDock, SimulationAssessmentPanel, SimulationMissionTracker, simulationUi } from '../components/simulation-ui';
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
 import { applyLocalSketchVerdict } from '@/features/ilab/sketch-client';
 import {
@@ -1032,7 +1032,7 @@ function ControlPanel({
 
 // ============ 主组件 ============
 
-export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, hostSubmission }: { ticket?: string; stepNav?: ReactNode; hostBrief?: ExperimentHostBrief; hostSubmission?: ReactNode }) {
+export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }) {
   const ai = useOptionalGlobalAI();
   const { data: session, status: sessionStatus } = useSession();
   const [isRunning, setIsRunning] = useState(false);
@@ -1569,16 +1569,14 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
         </MarineFrameRuntime>
       </MarineCanvas>
 
-      {stepNav ? null : (
-        <SimulationMissionTracker
+      <SimulationMissionTracker
           seq={activeSeq}
           total={DESTROYER_EXPERIMENT_STEPS.length}
           title={step.title}
           doneSeqs={doneSeqs}
           earnedPoints={records.reduce((sum, record) => sum + record.earnedPoints, 0)}
           maxPoints={DESTROYER_EXPERIMENT_STEPS.reduce((sum, item) => sum + item.maxPoints, 0)}
-        />
-      )}
+      />
       <SimulationDock
         side="left"
         title="实验状态"
@@ -1588,7 +1586,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
           {
             id: 'steps',
             label: '实验步骤',
-            content: stepNav ?? (
+            content: (
               <DestroyerStepList
                 activeSeq={activeSeq}
                 viewSeq={viewSeq}
@@ -1634,11 +1632,11 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
             label: '控制',
             content: (
               <ExperimentStepAreas
-                seq={hostBrief?.seq ?? step.seq}
-                title={hostBrief?.title ?? step.title}
-                goal={hostBrief?.goal ?? step.goal}
-                watch={hostBrief ? hostBrief.watch : step.watch}
-                hint={hostBrief ? hostBrief.hint : step.suggestion}
+                seq={step.seq}
+                title={step.title}
+                goal={step.goal}
+                watch={step.watch}
+                hint={step.suggestion}
                 hintAttribute="data-destroyer-suggestion"
                 controls={(
                   <ControlPanel
@@ -1658,7 +1656,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
                     onManualRudderChange={setManualRudder}
                   />
                 )}
-                submission={hostSubmission ?? (stepNav ? undefined : (
+                submission={(
                   <DestroyerStepForm
                     step={step}
                     readings={readings}
@@ -1670,7 +1668,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
                     onReport={openReport}
                     onAsk={() => ai?.openSidebar()}
                   />
-                ))}
+                )}
               />
             ),
           },

@@ -21,7 +21,7 @@ import { emptyAiLedger, isAiUsageLedger, recordAiCall, type AiUsageLedger } from
 import { recognizeSketch } from './sketch-recognition';
 import { exchangeIlabTicket, uploadIlabReport, uploadIlabScore } from './ilab-client';
 import { buildIlabUploadBody, type IlabUploadBody, type StoredIlabStep } from './payload';
-import { assertIlabRunOpen, IlabServiceError, toIlabHttpError, withIlabRunLock } from './session-service';
+import { assertIlabRunOpen, IlabServiceError, toIlabHttpError, withIlabRunLock } from './run-lock';
 
 export { toIlabHttpError };
 
