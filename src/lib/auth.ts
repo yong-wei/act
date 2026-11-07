@@ -2,6 +2,21 @@ import { UserRole } from '@prisma/client';
 import { compare } from 'bcryptjs';
 import { getServerSession, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import KeycloakProvider from 'next-auth/providers/keycloak';
+
+/**
+ * 统一身份（platform Keycloak）受控接入（issue-2164 阶段 A）：
+ * issuer/client id/secret 三者齐备才启用；未配置时认证行为与现状一致。
+ * 正式授权地址 https://auth.adapt-learn.online（DNS 切换前生产保持未配置）。
+ */
+const platformIssuer = process.env.PLATFORM_OIDC_ISSUER?.trim() ?? '';
+const platformClientId = process.env.PLATFORM_OIDC_CLIENT_ID?.trim() ?? '';
+const platformClientSecret = process.env.PLATFORM_OIDC_CLIENT_SECRET?.trim() ?? '';
+const platformOidcEnabled = Boolean(platformIssuer && platformClientId && platformClientSecret);
+const platformOidcEnforced = process.env.PLATFORM_OIDC_ENFORCED === 'true';
+const PLATFORM_ACCOUNT_PROVIDER = 'platform';
+
+export const isPlatformOidcEnabled = platformOidcEnabled;
 
 import { sessionProfileCache, sessionRequestDeduplicator } from '@/lib/lru-cache';
 import { isDatabaseConnectivityError } from '@/lib/service-availability';
@@ -21,6 +36,16 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
   },
   providers: [
+    ...(platformOidcEnabled
+      ? [
+          KeycloakProvider({
+            clientId: platformClientId,
+            clientSecret: platformClientSecret,
+            issuer: platformIssuer,
+            idToken: true,
+          }),
+        ]
+      : []),
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -60,6 +85,17 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // issue-2164：收紧模式下已迁移统一身份的用户不再接受本地密码
+        // （与密码错误不可区分，不泄露存在性）。
+        if (platformOidcEnforced) {
+          const mapped = await prisma.account.count({
+            where: { userId: user.id, provider: PLATFORM_ACCOUNT_PROVIDER },
+          });
+          if (mapped > 0) {
+            return null;
+          }
+        }
+
         return {
           id: user.id,
           email: user.email,
@@ -70,6 +106,56 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider !== 'keycloak' || !profile?.sub) {
+        return true; // 本地凭据路径维持现状。
+      }
+      const personId = String(profile.sub);
+      const prisma = await getPrismaClient();
+
+      // 1) 既有映射直登。
+      const existing = await prisma.account.findFirst({
+        where: { provider: PLATFORM_ACCOUNT_PROVIDER, providerAccountId: personId },
+        select: { userId: true },
+      });
+      if (existing) {
+        (user as { id?: string }).id = existing.userId;
+        return true;
+      }
+
+      // 2) 声明匹配（email / preferred_username 学号工号）→ 建立关联。
+      const email = typeof profile.email === 'string' ? profile.email.trim().toLowerCase() : '';
+      const username = typeof (profile as { preferred_username?: unknown }).preferred_username === 'string'
+        ? String((profile as { preferred_username?: string }).preferred_username).trim()
+        : '';
+      const matched = await prisma.user.findFirst({
+        where: email
+          ? { email } 
+          : username
+            ? {
+                OR: [
+                  { employeeNumber: { equals: username, mode: 'insensitive' } },
+                  { profile: { is: { studentNumber: { equals: username, mode: 'insensitive' } } } },
+                ],
+              }
+            : { id: '__never__' },
+        select: { id: true, role: true, email: true, name: true },
+      });
+      if (!matched) {
+        // 未知身份拒绝：不自动建号（账号由管理员预建或按学号匹配）。
+        return false;
+      }
+      await prisma.account.create({
+        data: {
+          userId: matched.id,
+          type: 'oauth',
+          provider: PLATFORM_ACCOUNT_PROVIDER,
+          providerAccountId: personId,
+        },
+      });
+      (user as { id?: string }).id = matched.id;
+      return true;
+    },
     async jwt({ token, user }) {
       // 首次登录时，user 对象存在
       if (user) {
