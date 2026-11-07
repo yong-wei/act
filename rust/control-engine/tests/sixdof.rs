@@ -163,3 +163,154 @@ fn mass_matrix_definiteness_checks_reject_bad_matrices() {
     six[0][0] = f64::NAN;
     assert!(!symmetric_positive_definite_6(&six));
 }
+
+// ---------- A1.2 dynamics ----------
+
+use control_engine::sixdof::{
+    coriolis_added_mass, coriolis_centripetal_rb, dynamics_step, mass_matrix,
+    restoring_force, solve_linear_6, AddedMassParams, CurrentFieldBody, ExternalForces,
+    RigidBodyParams, RestoringParams, TruthState,
+};
+
+fn sample_rb() -> RigidBodyParams {
+    RigidBodyParams {
+        mass_kg: 6.0e6,
+        inertia_about_cg: [
+            [2.4e9, 0.0, 0.0],
+            [0.0, 1.4e10, 0.0],
+            [0.0, 0.0, 1.5e10],
+        ],
+    }
+}
+
+fn sample_added_mass() -> AddedMassParams {
+    let mut a = [[0.0f64; 6]; 6];
+    for (i, value) in [6.0e5, 1.1e6, 6.6e6, 4.0e8, 3.9e9, 3.9e9].into_iter().enumerate() {
+        a[i][i] = value;
+    }
+    // 非对角（横荡—艏摇耦合），保持对称。
+    a[1][5] = -3.0e6;
+    a[5][1] = -3.0e6;
+    AddedMassParams { a_inf: a }
+}
+
+#[test]
+fn mass_matrix_is_symmetric_and_positive_definite() {
+    let m = mass_matrix(&sample_rb(), &sample_added_mass());
+    for i in 0..6 {
+        for j in 0..i {
+            assert!((m[i][j] - m[j][i]).abs() < 1e-6);
+        }
+    }
+    assert!(symmetric_positive_definite_6(&m));
+}
+
+#[test]
+fn coriolis_rb_satisfies_energy_property() {
+    let rb = sample_rb();
+    let nu = [6.2, 0.4, 0.0, 0.0, 0.0, 0.08];
+    let c = coriolis_centripetal_rb(&rb, nu);
+    let power: f64 = nu.iter().zip(c.iter()).map(|(a, b)| a * b).sum();
+    assert!(power.abs() < 1e-6 * nu.iter().map(|v| v.abs()).sum::<f64>().max(1.0));
+}
+
+#[test]
+fn coriolis_added_mass_satisfies_energy_property() {
+    let am = sample_added_mass();
+    for nu_r in [
+        [6.0, 0.5, 0.0, 0.01, 0.02, 0.09],
+        [-1.2, 0.8, 0.1, 0.05, -0.03, 0.0],
+        [0.0, 0.0, 0.0, 0.1, 0.1, 0.1],
+    ] {
+        let c = coriolis_added_mass(&am, nu_r);
+        let power: f64 = nu_r.iter().zip(c.iter()).map(|(a, b)| a * b).sum();
+        assert!(power.abs() < 1e-6);
+    }
+}
+
+#[test]
+fn restoring_force_opposes_positive_roll() {
+    let mut k = [[0.0f64; 6]; 6];
+    k[3][3] = 4.5e8; // 横摇恢复
+    let rp = RestoringParams { k_linear: k };
+    let g = restoring_force(&rp, [0.0, 0.0, 0.0, 0.1, 0.0, 0.0]);
+    // g(η) 为方程左端项（Mν̇ + Cν + g = τ）：正横倾 g_roll>0，
+    // 移项到右端为 −g<0，即恢复力矩反向——合同语义在 dynamics_step 内保证。
+    assert!(g[3] > 0.0, "左端恢复项须为正，右端恢复力矩才反向");
+}
+
+#[test]
+fn linear_solver_matches_known_solution() {
+    let mut m = [[0.0f64; 6]; 6];
+    for (i, value) in [2.0, 3.0, 5.0, 7.0, 11.0, 13.0].into_iter().enumerate() {
+        m[i][i] = value;
+    }
+    let expected = [1.0, -2.0, 3.0, -4.0, 5.0, -6.0];
+    let mut rhs = [0.0f64; 6];
+    for i in 0..6 {
+        for j in 0..6 {
+            rhs[i] += m[i][j] * expected[j];
+        }
+    }
+    let x = solve_linear_6(&mut m, rhs);
+    for i in 0..6 {
+        assert!((x[i] - expected[i]).abs() < 1e-12);
+    }
+}
+
+#[test]
+fn dynamics_step_assembles_current_inertia_and_zero_env_drift() {
+    // 静水平衡校核：零外力、零流、零辐射、零偏差 → ν̇ = 0（无凭空增能）。
+    let state = TruthState {
+        quaternion: [1.0, 0.0, 0.0, 0.0],
+        ..TruthState::default()
+    };
+    let out = dynamics_step(
+        &state,
+        &sample_rb(),
+        &sample_added_mass(),
+        &RestoringParams { k_linear: [[0.0; 6]; 6] },
+        &CurrentFieldBody::default(),
+        [0.0; 6],
+        [0.0; 6],
+        &ExternalForces::default(),
+    );
+    for value in out.nu_dot {
+        assert!(value.abs() < 1e-9);
+    }
+    for value in out.position_dot_ned {
+        assert!(value.abs() < 1e-9);
+    }
+    for value in out.quaternion_dot {
+        assert!(value.abs() < 1e-15);
+    }
+}
+
+#[test]
+fn dynamics_step_current_acceleration_enters_relative_acceleration() {
+    // 恒定加速横流 ν̇_c=[0, a, 0]：A_inf·ν̇_c 进入右端，ν̇ 方向与流加速度相反（相对加速度语义）。
+    let state = TruthState {
+        quaternion: [1.0, 0.0, 0.0, 0.0],
+        ..TruthState::default()
+    };
+    let am = sample_added_mass();
+    let current = CurrentFieldBody {
+        nu_current_body: [0.0; 6],
+        nu_current_body_dot: [0.0, 0.02, 0.0, 0.0, 0.0, 0.0],
+    };
+    let out = dynamics_step(
+        &state,
+        &sample_rb(),
+        &am,
+        &RestoringParams { k_linear: [[0.0; 6]; 6] },
+        &current,
+        [0.0; 6],
+        [0.0; 6],
+        &ExternalForces::default(),
+    );
+    // rhs[i] = A[i][1]*0.02 → ν̇ 由质量阵反解；验证分项与 rhs 一致性。
+    assert!((out.breakdown.current_inertia[1] - am.a_inf[1][1] * 0.02).abs() < 1e-6);
+    // 势流附加质量语义：无黏性外力时 A·ν̇_r 平衡 → ν̇ 与 ν̇_c 同向（船随流加速）；
+    // "相对流减速"来自黏性 hull 项（hull_mmg 模块），不在此无黏性算例断言。
+    assert!(out.nu_dot[1] > 0.0);
+}

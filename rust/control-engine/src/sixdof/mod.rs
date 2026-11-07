@@ -8,8 +8,14 @@
 //! 单位合同：角度 rad、质量 kg、力 N、力矩 N·m、功率 W、时间 s；
 //! 坐标合同：FRD 体坐标（x 艏、y 右舷、z 向下），NED 世界坐标。
 
+pub mod dynamics;
 pub mod state;
 
+pub use dynamics::{
+    AddedMassParams, CurrentFieldBody, DynamicsOutput, ExternalForces, ForceBreakdown,
+    RigidBodyParams, RestoringParams, coriolis_added_mass, coriolis_centripetal_rb,
+    dynamics_step, mass_matrix, restoring_force, solve_linear_6,
+};
 pub use state::{
     ActuatorStates, Euler, TruthState, euler_from_quaternion, euler_rate_transform_inverse,
     jacobian_eta, moment_from_force, normalize_quaternion, quaternion_rate, rotation_matrix,
