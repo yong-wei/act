@@ -260,32 +260,6 @@ impl DestroyerSixDofPlant {
 
     /// 变步长推进：仅供数值收敛校核（A3.4）使用；运行路径固定 1/120。
     pub fn step_with_dt(&mut self, dt: f64, commands: DestroyerCommands) -> Result<(), IntegrationError> {
-
-        // 1) 电机扭矩命令限幅（命令通道；舵/桨动态并入 RK4 状态向量，
-        //    与船体同阶积分，保证步长收敛一致性 A3.4）。
-        self.motor_torque_actual_nm = clamp_motor_torque(
-            &self.shaft,
-            commands.motor_torque_command_nm,
-            self.motor_torque_actual_nm,
-            dt,
-        );
-
-        // 2) 载荷在 RK4 各子阶段按子状态统一重算（见 derivs）；
-        //    此处只推进辐射记忆（ZOH，用当前相对速度）。
-
-        // 3) 辐射记忆（ZOH，相对速度输入）。
-        let mut nu_r = self.state.body_velocity;
-        nu_r[1] -= 0.0; // 首版零流场（factorMask 环境项随 #2156 接入）
-        let mut radiation_x_next = self.state.radiation_states.clone();
-        let tau_radiation = self.radiation.step_into(
-            &self.state.radiation_states,
-            &mut radiation_x_next,
-            nu_r,
-            dt,
-        );
-
-        // 4) 六自由度一步：RK4 作用在 [pos(3), quat(4), nu(6)] 上，
-        //    力项在子阶段重算（执行器/辐射按步进值冻结，误差 O(dt²)）。
         let radiation_len = self.radiation.state_len();
         let mut y = Vec::with_capacity(13 + radiation_len + 2);
         y.extend_from_slice(&self.state.position_ned);
@@ -295,114 +269,82 @@ impl DestroyerSixDofPlant {
         y.push(self.state.actuator_states.control_surface_angles_rad[0]);
         y.push(self.state.actuator_states.propeller_shaft_speed_rad_s[0]);
 
-        let rb = self.rb;
-        let am = self.am;
-        let rp = self.rp;
-        let mmg = self.mmg;
-        let low = self.low;
-        let prop = self.prop;
-        let config = self.config;
-        let radiation_frozen = tau_radiation;
-        let rudder_command_frozen = commands.rudder_command_rad;
-        let motor_torque_frozen = self.motor_torque_actual_nm;
-        let servo = self.servo;
-        let shaft = self.shaft;
-
-        let derivs = |t: f64, y_slice: &[f64], dy: &mut [f64]| {
-            let _ = t;
-            let position = [y_slice[0], y_slice[1], y_slice[2]];
-            let quat = normalize_quaternion([y_slice[3], y_slice[4], y_slice[5], y_slice[6]]);
-            let nu = [
-                y_slice[7], y_slice[8], y_slice[9], y_slice[10], y_slice[11], y_slice[12],
-            ];
-            let rudder_state = y_slice[13 + radiation_len];
-            let omega_state = y_slice[14 + radiation_len];
-            // 执行器导数（命令冻结，动态与船体同阶积分）。
-            let rudder_target = rudder_command_frozen.clamp(-servo.max_angle_rad, servo.max_angle_rad);
-            let rudder_rate = ((rudder_target - rudder_state) / DT_SCALAR)
-                .clamp(-servo.max_rate_rad_s, servo.max_rate_rad_s);
-            let omega_rate = shaft_acceleration(
-                &shaft, &prop, omega_state, nu[0], motor_torque_frozen,
-            );
-            let state = TruthState {
-                position_ned: position,
-                quaternion: quat,
-                body_velocity: nu,
-                radiation_states: Vec::new(),
-                actuator_states: Default::default(),
-                specialist_states: Vec::new(),
-            };
-            let loads = blended_hull_loads(&mmg, &low, nu[0], nu[1], nu[5]);
-            let (thrust_k, _) = propeller_loads(&prop, nu[0], omega_state);
-            let arm = mmg_center_of(&config);
-            let v_rudder = nu[1] + arm * nu[5];
-            let flow_k = (nu[0] * nu[0] + v_rudder * v_rudder).sqrt().max(0.1);
-            let alpha_k = rudder_state - v_rudder.atan2(nu[0]);
-            let lift_k = 0.5 * SEA_WATER_DENSITY
-                * (0.015 * config.length_m * config.draft_m)
-                * flow_k * flow_k * (2.0 * std::f64::consts::PI * alpha_k.sin());
-            let normal_k = 1.24 * lift_k;
-            let fx_r = -normal_k * rudder_state.sin();
-            let fy_r = -0.66 * normal_k * rudder_state.cos();
-            let mz_r = -((mmg_center_of(&config) + 0.06 * config.length_m)
-                * normal_k * rudder_state.cos());
-            let k_roll_r = super::state::moment_from_force(
-                [0.0, 0.0, -0.5 * config.draft_m],
-                [fx_r, fy_r, 0.0],
-            )[0];
-
-
-            let external = ExternalForces {
-                tau_hull_viscous: [loads[0], loads[1], 0.0, loads[3], loads[4], loads[5]],
-                tau_actuator: [
-                    thrust_k + fx_r,
-                    fy_r,
-                    0.0,
-                    k_roll_r,
-                    // 推力作用在螺旋桨（水线下半吃水）：低头/抬头力矩
-                    // z_p·T（FRD z<0 → 正纵倾=抬头），形成均衡航行纵倾。
-                    (-0.5 * config.draft_m) * thrust_k,
-                    mz_r,
-                ],
-                ..ExternalForces::default()
-            };
-            // 静水平衡偏差（零静水姿态基准；Δz、roll、pitch 进恢复）。
-            let euler_k = super::state::euler_from_quaternion(quat);
-            let delta_eta = [0.0, 0.0, position[2], euler_k.roll_rad, euler_k.pitch_rad, euler_k.yaw_rad];
-            let out = dynamics_step(
-                &state,
-                &rb,
-                &am,
-                &rp,
-                &CurrentFieldBody::default(),
-                radiation_frozen,
-                delta_eta,
-                &external,
-            );
-            dy[0] = out.position_dot_ned[0];
-            dy[1] = out.position_dot_ned[1];
-            dy[2] = out.position_dot_ned[2];
-            dy[3] = out.quaternion_dot[0];
-            dy[4] = out.quaternion_dot[1];
-            dy[5] = out.quaternion_dot[2];
-            dy[6] = out.quaternion_dot[3];
-            dy[7..13].copy_from_slice(&out.nu_dot);
-            // 辐射状态 ZOH 导数（首版在步外推进，RK 内恒零）。
-            for slot in dy.iter_mut().skip(13).take(radiation_len) {
-                *slot = 0.0;
-            }
-            dy[13 + radiation_len] = rudder_rate;
-            dy[14 + radiation_len] = omega_rate;
-        };
-
-        let t0 = self.sim_time_s;
         let substeps = (NOMINAL_DT / dt).round().max(1.0) as usize;
-        let mut time = t0;
+        let mut time = self.sim_time_s;
         for _ in 0..substeps {
-            super::integrator::rk4_step(time, &mut y, dt, &derivs)?;
+            // 电机扭矩限幅随每个实际子步推进（P2：与仿真时长一致）。
+            self.motor_torque_actual_nm = clamp_motor_torque(
+                &self.shaft,
+                commands.motor_torque_command_nm,
+                self.motor_torque_actual_nm,
+                dt,
+            );
+            let rb = self.rb;
+            let am = self.am;
+            let rp = self.rp;
+            let mmg = self.mmg;
+            let low = self.low;
+            let prop = self.prop;
+            let config = self.config;
+            let servo = self.servo;
+            let shaft = self.shaft;
+            let radiation_model = &self.radiation;
+            let rudder_command_frozen = commands.rudder_command_rad;
+            let motor_torque_frozen = self.motor_torque_actual_nm;
+
+            let derivs = |_t: f64, y_slice: &[f64], dy: &mut [f64]| {
+                let position = [y_slice[0], y_slice[1], y_slice[2]];
+                let quat = normalize_quaternion([y_slice[3], y_slice[4], y_slice[5], y_slice[6]]);
+                let nu = [
+                    y_slice[7], y_slice[8], y_slice[9], y_slice[10], y_slice[11], y_slice[12],
+                ];
+                let x_rad: Vec<f64> = y_slice[13..13 + radiation_len].to_vec();
+                let rudder_state = y_slice[13 + radiation_len];
+                let omega_state = y_slice[14 + radiation_len];
+
+                let rudder_target =
+                    rudder_command_frozen.clamp(-servo.max_angle_rad, servo.max_angle_rad);
+                let rudder_rate = ((rudder_target - rudder_state) / DT_SCALAR)
+                    .clamp(-servo.max_rate_rad_s, servo.max_rate_rad_s);
+                let omega_rate =
+                    shaft_acceleration(&shaft, &prop, omega_state, nu[0], motor_torque_frozen);
+
+                let (external, tau_radiation, delta_eta) = assemble_forces(
+                    &mmg, &low, &prop, radiation_model, &config, &nu, &x_rad, rudder_state, omega_state, &quat, &position,
+                );
+
+                let state = TruthState {
+                    position_ned: position,
+                    quaternion: quat,
+                    body_velocity: nu,
+                    radiation_states: Vec::new(),
+                    actuator_states: Default::default(),
+                    specialist_states: Vec::new(),
+                };
+                let out = dynamics_step(
+                    &state, &rb, &am, &rp,
+                    &CurrentFieldBody::default(),
+                    tau_radiation, delta_eta, &external,
+                );
+                dy[0] = out.position_dot_ned[0];
+                dy[1] = out.position_dot_ned[1];
+                dy[2] = out.position_dot_ned[2];
+                dy[3] = out.quaternion_dot[0];
+                dy[4] = out.quaternion_dot[1];
+                dy[5] = out.quaternion_dot[2];
+                dy[6] = out.quaternion_dot[3];
+                dy[7..13].copy_from_slice(&out.nu_dot);
+                for (i, mode) in radiation_model.modes.iter().enumerate() {
+                    dy[13 + i] = mode.a * x_rad[i] + mode.input_gain * nu[mode.channel];
+                }
+                dy[13 + radiation_len] = rudder_rate;
+                dy[14 + radiation_len] = omega_rate;
+            };
+
+            super::integrator::rk4_step(time, &mut y, dt, derivs)?;
             time += dt;
         }
-        self.sim_time_s = t0 + NOMINAL_DT;
+        self.sim_time_s = time;
 
         self.state.position_ned = [y[0], y[1], y[2]];
         self.state.quaternion = normalize_quaternion([y[3], y[4], y[5], y[6]]);
@@ -412,6 +354,18 @@ impl DestroyerSixDofPlant {
         self.state.actuator_states.propeller_shaft_speed_rad_s[0] =
             clamp_shaft_speed(&self.shaft, y[14 + radiation_len]);
 
+        let final_state = self.state.clone();
+        let (external, tau_rad, delta_eta) = assemble_forces(
+            &self.mmg, &self.low, &self.prop, &self.radiation, &self.config,
+            &final_state.body_velocity, &final_state.radiation_states,
+            final_state.actuator_states.control_surface_angles_rad[0],
+            final_state.actuator_states.propeller_shaft_speed_rad_s[0],
+            &final_state.quaternion, &final_state.position_ned,
+        );
+        self.last_output = Some(dynamics_step(
+            &final_state, &self.rb, &self.am, &self.rp,
+            &CurrentFieldBody::default(), tau_rad, delta_eta, &external,
+        ));
         Ok(())
     }
 
@@ -452,6 +406,65 @@ impl DestroyerSixDofPlant {
 }
 
 const DT_SCALAR: f64 = 1.0 / 120.0;
+
+/// 子阶段力组装：船体、桨、舵（真实局部流速，无下限截断）、
+/// 辐射记忆（连续形式 τ=C·(B·u+A·x)）与恢复偏差。
+#[allow(clippy::too_many_arguments)]
+fn assemble_forces(
+    mmg: &HullMmgParams,
+    low: &LowSpeedParams,
+    prop: &PropellerModel,
+    radiation_model: &RadiationModel,
+    config: &DestroyerSixDofConfig,
+    nu: &[f64; 6],
+    x_rad: &[f64],
+    rudder_state: f64,
+    omega_state: f64,
+    quat: &[f64; 4],
+    position: &[f64; 3],
+) -> (ExternalForces, [f64; 6], [f64; 6]) {
+    let loads = blended_hull_loads(mmg, low, nu[0], nu[1], nu[5]);
+    let (thrust_k, _) = propeller_loads(prop, nu[0], omega_state);
+    let arm = mmg_center_of(config);
+    let v_rudder = nu[1] + arm * nu[5];
+    // 真实局部流速：零速+零推进时舵动压为零（合同：禁止速度下限截断）。
+    let flow_k = (nu[0] * nu[0] + v_rudder * v_rudder).sqrt();
+    let alpha_k = rudder_state - v_rudder.atan2(nu[0]);
+    let area_r = 0.015 * config.length_m * config.draft_m;
+    let lift_k = 0.5 * SEA_WATER_DENSITY * area_r * flow_k * flow_k
+        * (2.0 * std::f64::consts::PI * alpha_k.sin());
+    let normal_k = 1.24 * lift_k;
+    let fx_r = -normal_k * rudder_state.sin();
+    let fy_r = -0.66 * normal_k * rudder_state.cos();
+    let mz_r = -((arm + 0.06 * config.length_m) * normal_k * rudder_state.cos());
+    let k_roll_r = super::state::moment_from_force(
+        [0.0, 0.0, -0.5 * config.draft_m],
+        [fx_r, fy_r, 0.0],
+    )[0];
+
+    let mut tau_radiation = [0.0f64; 6];
+    for (i, mode) in radiation_model.modes.iter().enumerate() {
+        let x_i = x_rad.get(i).copied().unwrap_or(0.0);
+        tau_radiation[mode.channel] +=
+            mode.output_gain * (mode.input_gain * nu[mode.channel] + mode.a * x_i);
+    }
+
+    let external = ExternalForces {
+        tau_hull_viscous: [loads[0], loads[1], 0.0, loads[3], loads[4], loads[5]],
+        tau_actuator: [
+            thrust_k + fx_r,
+            fy_r,
+            0.0,
+            k_roll_r,
+            (-0.5 * config.draft_m) * thrust_k,
+            mz_r,
+        ],
+        ..ExternalForces::default()
+    };
+    let euler = super::state::euler_from_quaternion(*quat);
+    let delta_eta = [0.0, 0.0, position[2], euler.roll_rad, euler.pitch_rad, euler.yaw_rad];
+    (external, tau_radiation, delta_eta)
+}
 
 fn mmg_center_of(config: &DestroyerSixDofConfig) -> f64 {
     // 舵/合力的纵向作用点（hifi xr=-0.5L 迁移）。

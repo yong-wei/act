@@ -199,3 +199,54 @@ fn thrust_cutoff_decelerates_from_cruise() {
     assert!(u_end < u_start * 0.75, "撤推后 300 s 应显著减速：{u_start}→{u_end}");
     assert!(u_end >= -0.5, "无倒推不应大幅倒航：{u_end}");
 }
+
+// ---------- PR #2169 review 修复回归 ----------
+
+#[test]
+fn radiation_memory_decays_after_thrust_cutoff() {
+    // P1：辐射记忆必须随速度历史衰减——零扭矩长程运行不得被冻结的
+    // 巡航记忆持续推动（修复前 2010 s 仍 ~10.7 m/s）。
+    let mut plant = DestroyerSixDofPlant::new(DestroyerSixDofConfig::default());
+    let zero = DestroyerCommands::default();
+    run(&mut plant, zero, 900.0);
+    let u = plant.state().body_velocity[0];
+    assert!(u < 8.0, "撤推 900 s 后应降至 8 m/s 以下（记忆衰减），得到 {u}");
+    run(&mut plant, zero, 1110.0);
+    let u_long = plant.state().body_velocity[0];
+    assert!(u_long < u, "减速必须单调持续");
+}
+
+#[test]
+fn still_ship_with_rudder_generates_no_motion() {
+    // P3：零船速、零轴速、零来流下打舵不得产生任何运动（无速度下限截断）。
+    let mut plant = DestroyerSixDofPlant::new(DestroyerSixDofConfig::default());
+    plant.state_mut_for_test()[0] = 0.0;
+    plant.prewarm_radiation_for_test();
+    plant.set_shaft_speed_for_test(0.0);
+    let cmds = DestroyerCommands {
+        rudder_command_rad: 0.35,
+        motor_torque_command_nm: 0.0,
+    };
+    run(&mut plant, cmds, 60.0);
+    for (i, value) in plant.state().body_velocity.iter().enumerate() {
+        assert!(value.abs() < 1e-9, "通道 {i} 静水零来流不得被舵激励：{value}");
+    }
+}
+
+#[test]
+fn last_dynamics_provides_finite_breakdown() {
+    // P4：成功步进后力/力矩分项可对账（非 None、全有限）。
+    let mut plant = DestroyerSixDofPlant::new(DestroyerSixDofConfig::default());
+    assert!(plant.last_dynamics().is_none(), "初始无分项");
+    run(&mut plant, cruise_commands(), 10.0);
+    let out = plant.last_dynamics().expect("步进后应提供分项");
+    for value in out.nu_dot.iter() {
+        assert!(value.is_finite());
+    }
+    let b = &out.breakdown;
+    for series in [&b.external, &b.coriolis_rb, &b.coriolis_added_mass, &b.radiation, &b.restoring] {
+        for value in series.iter() {
+            assert!(value.is_finite());
+        }
+    }
+}
