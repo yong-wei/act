@@ -3,8 +3,8 @@
 use control_engine::sixdof::{PackError, embedded_destroyer_055, load_model_pack};
 
 const MANIFEST: &str = r#"{ "schema": "act.model-pack.manifest.v1", "vessel": "test", "model_version": "v1", "model_fidelity": "research-nominal", "basis": "x" }"#;
-const MANEUVERING: &str = r#"{ "hull": {} }"#;
-const ACTUATORS: &str = r#"{ "propeller": {} }"#;
+const MANEUVERING: &str = r#"{ "hull": { "x_uu": -10960.0, "x_u": -1200.0, "y_v": -2603000.0, "y_vv": -54803.0, "y_vr": 2046000.0, "y_r": 1069000000.0, "y_rr": 947000000.0, "n_v": -172700000.0, "n_vv": -3385000.0, "n_vr": -290000000.0, "n_r": -11510000000.0, "n_rr": -1420000000000.0, "z_h_m": -3.3 }, "low_speed": { "crossflow_y": 584600000.0, "surge_drag": 10960.0, "yaw_arm_m": 90.0 } }"#;
+const ACTUATORS: &str = r#"{ "propeller": { "diameter_m": 2.64, "kt_coefficients": [0.3441, -0.0034, 0.0], "kq_coefficients": [0.0843, -0.0069, 0.0] }, "shaft": { "inertia_kg_m2": 24000.0, "max_motor_torque_nm": 2400000.0, "max_shaft_speed_rad_s": 30.0, "max_torque_rate_nm_s": 6000000.0, "coulomb_friction_nm": 5000.0, "viscous_friction_nm_s_per_rad": 400.0 }, "rudder": { "max_angle_deg": 35.0, "max_rate_deg_s": 5.0, "normal_factor": 1.24, "lateral_factor": 0.66, "longitudinal_position_m": -86.0 } }"#;
 const PROVENANCE: &str = r#"{ "entries": [] }"#;
 
 fn geometry_json(mass_kg: f64, ixx: f64, iyy: f64, izz: f64) -> String {
@@ -103,4 +103,37 @@ fn embedded_pack_matches_plant_defaults() {
     let kz = (g.inertia_about_cg_kg_m2.izz / m).sqrt();
     assert!((kx - 0.5 * g.beam_m).abs() < 1e-9);
     assert!((kz - 0.25 * g.loa_m).abs() < 1e-9, "A2.1 修正（k_z=0.25L）入包固化");
+}
+
+// ---------- PR #2172 review 修复回归 ----------
+
+use control_engine::sixdof::DestroyerSixDofPlant;
+
+#[test]
+fn pack_actually_drives_plant_physics() {
+    // P1-1：参数包变化必须改变物理——包舵速率 5→1 时同舵令实际舵角变小。
+    let pack = embedded_destroyer_055().unwrap();
+    let mut plant = DestroyerSixDofPlant::from_model_pack(&pack, Default::default());
+    use control_engine::sixdof::DestroyerCommands;
+    let cmds = DestroyerCommands { rudder_command_rad: 30.0_f64.to_radians(), motor_torque_command_nm: 0.0 };
+    for _ in 0..120 {
+        plant.step(cmds).unwrap(); // 1 s
+    }
+    let full_rate = plant.state().actuator_states.control_surface_angles_rad[0];
+
+    // 改包（舵速率 5→1 deg/s）后同命令：1 s 实际舵角应约 1°。
+    let slow_json = r#"{ "propeller": { "diameter_m": 2.64, "kt_coefficients": [0.3441, -0.0034, 0.0], "kq_coefficients": [0.0843, -0.0069, 0.0] }, "shaft": { "inertia_kg_m2": 24000.0, "max_motor_torque_nm": 2400000.0, "max_shaft_speed_rad_s": 30.0, "max_torque_rate_nm_s": 6000000.0, "coulomb_friction_nm": 5000.0, "viscous_friction_nm_s_per_rad": 400.0 }, "rudder": { "max_angle_deg": 35.0, "max_rate_deg_s": 1.0, "normal_factor": 1.24, "lateral_factor": 0.66, "longitudinal_position_m": -86.0 } }"#;
+    let manifest_json = std::include_str!("../model-data/destroyer-055/v1/manifest.json");
+    let geometry_json = std::include_str!("../model-data/destroyer-055/v1/geometry.json");
+    let maneuvering_json = std::include_str!("../model-data/destroyer-055/v1/maneuvering.json");
+    let provenance_json = std::include_str!("../model-data/destroyer-055/v1/provenance.json");
+    let slow_pack = load_model_pack(manifest_json, geometry_json, maneuvering_json, slow_json, provenance_json).unwrap();
+    let mut slow_plant = DestroyerSixDofPlant::from_model_pack(&slow_pack, Default::default());
+    for _ in 0..120 {
+        slow_plant.step(cmds).unwrap();
+    }
+    let slow_rate = slow_plant.state().actuator_states.control_surface_angles_rad[0];
+    assert!(full_rate > slow_rate * 2.0, "包舵速率必须实际驱动物理：{full_rate} vs {slow_rate}");
+    // 哈希也随包变化。
+    assert_ne!(pack.content_hash, slow_pack.content_hash);
 }

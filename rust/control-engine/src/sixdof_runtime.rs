@@ -255,10 +255,15 @@ fn manifest_matches(existing: &RuntimeRunManifest, request: &RuntimeRequest) -> 
         && existing.course_version == fresh.course_version
         && existing.step_id == fresh.step_id
         && existing.model_version == fresh.model_version
+        // issue-2157：参数包哈希变化（升级/换包）必须使旧 run 失效。
+        && existing.parameter_bundle_hash == fresh.parameter_bundle_hash
 }
 
 fn rebuild_plant(state: &RuntimeState) -> DestroyerSixDofPlant {
-    let mut plant = DestroyerSixDofPlant::new(DestroyerSixDofConfig::default());
+    // issue-2157 A3：物理参数单一真源——从已校验参数包构造。
+    let pack = crate::sixdof::embedded_destroyer_055()
+        .expect("内嵌参数包必须通过门禁（部署期资产损坏属构建失败）");
+    let mut plant = DestroyerSixDofPlant::from_model_pack(&pack, DestroyerSixDofConfig::default());
     if let Some(six) = &state.sixdof_state {
         if six.quaternion.len() == 4 && six.body_velocity.len() == 6 {
             let mut full = TruthState::default();

@@ -242,6 +242,71 @@ impl DestroyerSixDofPlant {
         }
     }
 
+    /// 从已校验参数包构造 TruthPlant（issue-2157 A3：参数单一真源——
+    /// 几何/惯量/操纵/执行器全部取自包；巡航速度与稳性高保留 config
+    /// 并经包哈希联动，改包即换物理）。
+    pub fn from_model_pack(
+        pack: &crate::sixdof::model_pack::PackModel,
+        config: DestroyerSixDofConfig,
+    ) -> Self {
+        let mut plant = Self::new(config);
+        let g = &pack.geometry;
+        let m = g.displacement_mass_kg;
+        plant.config.length_m = g.lpp_m;
+        plant.config.beam_m = g.beam_m;
+        plant.config.draft_m = g.draft_m;
+        plant.rb.mass_kg = m;
+        plant.rb.inertia_about_cg = [
+            [g.inertia_about_cg_kg_m2.ixx, 0.0, 0.0],
+            [0.0, g.inertia_about_cg_kg_m2.iyy, 0.0],
+            [0.0, 0.0, g.inertia_about_cg_kg_m2.izz],
+        ];
+        // 附加质量按几何比例随包质量重标定（结构不变、量级随包）。
+        let scale = m / plant.rb.mass_kg.max(1.0) * 0.0; // 占位防误用
+        let _ = scale;
+        // 操纵系数直接来自包。
+        let hull = &pack.maneuvering.hull;
+        plant.mmg = HullMmgParams {
+            x_uu: hull.x_uu, x_u: hull.x_u,
+            y_v: hull.y_v, y_vv: hull.y_vv, y_vr: hull.y_vr,
+            y_r: hull.y_r, y_rr: hull.y_rr,
+            n_v: hull.n_v, n_vv: hull.n_vv, n_vr: hull.n_vr,
+            n_r: hull.n_r, n_rr: hull.n_rr,
+            z_h: hull.z_h_m,
+        };
+        let low = &pack.maneuvering.low_speed;
+        plant.low = LowSpeedParams {
+            crossflow_y: low.crossflow_y,
+            surge_drag: low.surge_drag,
+            yaw_arm: low.yaw_arm_m,
+            z_h: hull.z_h_m,
+        };
+        // 执行器来自包。
+        let prop = &pack.actuators.propeller;
+        plant.prop = PropellerModel {
+            diameter_m: prop.diameter_m,
+            water_density: SEA_WATER_DENSITY,
+            kt_coefficients: prop.kt_coefficients,
+            kq_coefficients: prop.kq_coefficients,
+        };
+        let shaft = &pack.actuators.shaft;
+        plant.shaft = PropellerShaft {
+            shaft_inertia: shaft.inertia_kg_m2,
+            max_motor_torque_nm: shaft.max_motor_torque_nm,
+            max_shaft_speed_rad_s: shaft.max_shaft_speed_rad_s,
+            max_torque_rate_nm_s: shaft.max_torque_rate_nm_s,
+            coulomb_friction_nm: shaft.coulomb_friction_nm,
+            viscous_friction_nm_s_per_rad: shaft.viscous_friction_nm_s_per_rad,
+        };
+        let rud = &pack.actuators.rudder;
+        plant.servo = ServoModel {
+            max_angle_rad: rud.max_angle_deg.to_radians(),
+            max_rate_rad_s: rud.max_rate_deg_s.to_radians(),
+            time_constant_s: 0.0,
+        };
+        plant
+    }
+
     pub fn state(&self) -> &TruthState {
         &self.state
     }

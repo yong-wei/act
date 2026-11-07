@@ -58,9 +58,81 @@ pub struct InertiaEntry {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub struct PackManeuveringHull {
+    pub x_uu: f64,
+    pub x_u: f64,
+    pub y_v: f64,
+    pub y_vv: f64,
+    pub y_vr: f64,
+    pub y_r: f64,
+    pub y_rr: f64,
+    pub n_v: f64,
+    pub n_vv: f64,
+    pub n_vr: f64,
+    pub n_r: f64,
+    pub n_rr: f64,
+    pub z_h_m: f64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PackManeuvering {
+    pub hull: PackManeuveringHull,
+    pub low_speed: PackLowSpeed,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PackLowSpeed {
+    pub crossflow_y: f64,
+    pub surge_drag: f64,
+    pub yaw_arm_m: f64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PackActuators {
+    pub propeller: PackPropeller,
+    pub shaft: PackShaft,
+    pub rudder: PackRudder,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PackPropeller {
+    pub diameter_m: f64,
+    pub kt_coefficients: [f64; 3],
+    pub kq_coefficients: [f64; 3],
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PackShaft {
+    pub inertia_kg_m2: f64,
+    pub max_motor_torque_nm: f64,
+    pub max_shaft_speed_rad_s: f64,
+    pub max_torque_rate_nm_s: f64,
+    pub coulomb_friction_nm: f64,
+    pub viscous_friction_nm_s_per_rad: f64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PackRudder {
+    pub max_angle_deg: f64,
+    pub max_rate_deg_s: f64,
+    pub normal_factor: f64,
+    pub lateral_factor: f64,
+    pub longitudinal_position_m: f64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct PackModel {
     pub manifest: PackManifest,
     pub geometry: PackGeometry,
+    pub maneuvering: PackManeuvering,
+    pub actuators: PackActuators,
     /// 规范化内容哈希（FNV-1a，key 排序紧凑 JSON）。
     pub content_hash: String,
 }
@@ -129,6 +201,10 @@ pub fn load_model_pack(
     }
     let geometry: PackGeometry = serde_json::from_str(geometry_json)
         .map_err(|_| PackError::SchemaMismatch { expect: "geometry", got: String::new() })?;
+    let maneuvering: PackManeuvering = serde_json::from_str(maneuvering_json)
+        .map_err(|_| PackError::SchemaMismatch { expect: "maneuvering", got: String::new() })?;
+    let actuators: PackActuators = serde_json::from_str(actuators_json)
+        .map_err(|_| PackError::SchemaMismatch { expect: "actuators", got: String::new() })?;
 
     // 门禁 1：Lpp ≤ LOA（分立字段禁混用）。
     if geometry.lpp_m > geometry.loa_m + 1e-9 {
@@ -178,6 +254,8 @@ pub fn load_model_pack(
     Ok(PackModel {
         manifest,
         geometry,
+        maneuvering,
+        actuators,
         content_hash: format!("fnv1a-{:016x}", fnv1a(chain_input.as_bytes())),
     })
 }
