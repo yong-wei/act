@@ -561,3 +561,99 @@ fn servo_step_respects_rate_and_amplitude_limits() {
     let stepped = servo_step(&servo, 0.0, 0.5, 1.0 / 120.0);
     assert!(stepped <= servo.max_rate_rad_s / 120.0 + 1e-9);
 }
+
+// ---------- A1.3 hull_mmg ----------
+
+use control_engine::sixdof::{
+    blended_hull_loads, low_speed_loads, mmg_hull_loads, transition_weight,
+    HullMmgParams, LowSpeedParams,
+};
+
+fn sample_mmg() -> HullMmgParams {
+    HullMmgParams {
+        x_uu: -2.0e3, x_u: -1.2e3,
+        y_v: -3.4e5, y_vv: -2.2e6, y_vr: -4.0e5,
+        y_r: -1.1e6, y_rr: -8.0e5,
+        n_v: -1.6e7, n_vv: -4.0e7, n_vr: -9.0e6,
+        n_r: -3.2e8, n_rr: -1.4e8,
+        z_h: -3.5,
+    }
+}
+
+fn sample_low() -> LowSpeedParams {
+    LowSpeedParams { crossflow_y: 8.0e5, surge_drag: 2.0e3, yaw_arm: 45.0, z_h: -3.5 }
+}
+
+#[test]
+fn transition_weight_is_monotone_with_plateaus() {
+    assert_eq!(transition_weight(0.0), 0.0);
+    assert_eq!(transition_weight(1.0), 0.0);
+    assert_eq!(transition_weight(3.0), 1.0);
+    assert_eq!(transition_weight(9.0), 1.0);
+    assert!(transition_weight(1.5) < transition_weight(2.0));
+    assert!(transition_weight(2.0) < transition_weight(2.5));
+}
+
+#[test]
+fn low_speed_model_has_no_velocity_floor_and_is_quadratic() {
+    let low = sample_low();
+    // 零速零力（无奇异）。
+    let zero = low_speed_loads(&low, 0.0, 0.0, 0.0);
+    assert!(zero.iter().all(|f| f.abs() < 1e-9));
+    // 侧移力反向且二次。
+    let f_pos = low_speed_loads(&low, 0.0, 0.8, 0.0);
+    let f_neg = low_speed_loads(&low, 0.0, -0.8, 0.0);
+    assert!(f_pos[1] < 0.0 && f_neg[1] > 0.0);
+    assert!((f_pos[1] + f_neg[1]).abs() < 1e-9);
+    // 倒航纵向阻力同式（四象限）。
+    let rev = low_speed_loads(&low, -1.2, 0.0, 0.0);
+    assert!(rev[0] > 0.0, "倒航阻力应指向船艏（正向）");
+}
+
+#[test]
+fn blending_is_weighted_average_not_superposition() {
+    let mmg = sample_mmg();
+    let low = sample_low();
+    let (u, v, r) = (2.0f64, 0.5f64, 0.02f64);
+    let w = transition_weight(u.abs());
+    let a = mmg_hull_loads(&mmg, u, v, r);
+    let b = low_speed_loads(&low, u, v, r);
+    let blended = blended_hull_loads(&mmg, &low, u, v, r);
+    let expect_fx = w * a[0] + (1.0 - w) * b[0];
+    assert!((blended[0] - expect_fx).abs() < 1e-6, "过渡区必须是加权平均（无叠加）");
+    // 高/低速端各自退化为单一模型。
+    let high = blended_hull_loads(&mmg, &low, 5.0, v, r);
+    let pure_high = mmg_hull_loads(&mmg, 5.0, v, r);
+    assert!((high[0] - pure_high[0]).abs() < 1e-6);
+    let stopped = blended_hull_loads(&mmg, &low, 0.4, v, r);
+    let pure_low = low_speed_loads(&low, 0.4, v, r);
+    assert!((stopped[1] - pure_low[1]).abs() < 1e-6);
+}
+
+#[test]
+fn sway_force_at_depth_produces_coupled_roll_moment() {
+    let mmg = sample_mmg();
+    let low = sample_low();
+    // 纯侧移（低速模型主导）：F_y<0（向左）作用在 z_h=-3.5 → 横摇力矩
+    // K = z·F_y > 0（右舷下压），验证耦合方向随 z_h 符号翻转。
+    let out = blended_hull_loads(&mmg, &low, 0.5, 1.0, 0.0);
+    assert!(out[1] < 0.0);
+    assert!(out[3] > 0.0);
+    let mut shallow = mmg;
+    shallow.z_h = -0.1;
+    let out2 = blended_hull_loads(&shallow, &low, 0.5, 1.0, 0.0);
+    assert!(out2[3] > 0.0 && out2[3].abs() < out[3].abs(), "作用点越浅耦合力矩越小");
+}
+
+#[test]
+fn mmg_loads_are_finite_across_quadrants() {
+    let mmg = sample_mmg();
+    for u in [-8.0, -0.01, 0.0, 0.01, 3.0, 12.0] {
+        for v in [-2.0, 0.0, 2.0] {
+            for r in [-0.1, 0.0, 0.1] {
+                let loads = mmg_hull_loads(&mmg, u, v, r);
+                assert!(loads.iter().all(|f| f.is_finite()));
+            }
+        }
+    }
+}

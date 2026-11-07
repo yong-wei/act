@@ -6,7 +6,7 @@
 
 - [x] A1.1 `state.rs`：TruthState（NED/单位四元数/6DOF 体速度/辐射/执行器/专属）、`J(eta)` 运动学、四元数归一化
 - [x] A1.2 `dynamics.rs`：Fossen 六自由度方程组装（含 `ν̇_current_body` 项、统一 `r×F` 载荷力矩）
-- [ ] A1.3 `hull_mmg.rs`：MMG 三次项 + 低速 cross-flow/四象限连续过渡（1–3 m/s smoothstep，力基准无重复）
+- [x] A1.3 `hull_mmg.rs`：MMG 三次项 + 低速 cross-flow/四象限连续过渡（1–3 m/s smoothstep，力基准无重复）
 - [x] A1.4 `actuators.rs`：桨轴动力学（J_s·ω̇/限幅/四象限）、舵/鳍/吊舱伺服、功率=Q·ω
 - [x] A1.5 `radiation.rs`：被动稳定状态空间 + 精确离散化
 - [x] A1.6 `integrator.rs`：RK4 1/120 + 接触细分（≤1/960，超预算显式报错）
