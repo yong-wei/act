@@ -70,22 +70,25 @@ fn wave_first_order_loads_share_phase_with_surface() {
     let t1 = 3.0;
     let loads = field.first_order_loads(t1, coeffs);
     // eta=0 时刻激励不为负向峰值（同相正弦族；此断言校验共用同一 arg）。
-    let mut best_t = 0.0;
-    let mut best_abs = f64::MAX;
+    // 同源线性：Fz = c·η 逐点同号（相关=+1，无整流直流偏置）。
+    let mut same_sign = 0usize;
+    let mut samples = 0usize;
+    let mut min_load = f64::INFINITY;
+    let mut max_load = f64::NEG_INFINITY;
     for i in 0..20000 {
         let t = i as f64 * 0.01;
-        let abs = field.elevation(t, 0.0, 0.0).abs();
-        if abs < best_abs {
-            best_abs = abs;
-            best_t = t;
+        let eta = field.elevation(t, 0.0, 0.0);
+        let l = field.first_order_loads(t, coeffs);
+        samples += 1;
+        if eta * l[2] >= 0.0 {
+            same_sign += 1;
         }
+        min_load = min_load.min(l[2]);
+        max_load = max_load.max(l[2]);
     }
-    let loads_at_zero = field.first_order_loads(best_t, coeffs);
-    assert!(loads[0].abs() > 0.0);
-    assert!(
-        loads_at_zero[0].abs() < 0.5 * loads[0].abs().max(1.0),
-        "波面过零点处一阶激励应显著低于峰值（同源相位）"
-    );
+    assert!(same_sign == samples, "Fz 与 η 必须逐点同号（线性同相）");
+    assert!(min_load < 0.0 && max_load > 0.0, "带符号载荷必须换向（无整流直流）");
+    assert!((max_load + min_load).abs() / (max_load - min_load) < 0.2, "均值漂移应近零");
 }
 
 // ---------- A2 风 ----------
@@ -259,4 +262,84 @@ fn sensor_streams_are_independent_and_noise_level_scales() {
         s2 > s1 * 1.5 && s2 < s1 * 2.8,
         "N2 误差带宽应约 2×N1：N1={s1} N2={s2}"
     );
+}
+
+
+// ---------- PR #2171 review 修复回归 ----------
+
+#[test]
+fn crosswind_sign_reverses_lateral_load_and_moments_use_rx_f() {
+    let geo = WindHullGeometry {
+        frontal_area_m2: 380.0, lateral_area_m2: 1200.0, length_m: 180.0,
+        pressure_center_body: [4.0, 0.0, -6.0],
+    };
+    // 左右舷横风：横向力必须反号（保留舷侧信息）。
+    let loads_r = fujiwara_loads([0.0, -8.0], &geo);
+    let (fx_r, fy_r, k_r, n_r) = (loads_r[0], loads_r[1], loads_r[2], loads_r[3]);
+    let loads_l = fujiwara_loads([0.0, 8.0], &geo);
+    let (fx_l, fy_l, _k_l, _n_l) = (loads_l[0], loads_l[1], loads_l[2], loads_l[3]);
+    assert!(fy_r > 0.0 && fy_l < 0.0, "右舷/左舷来风横向力反号：{fy_r} vs {fy_l}");
+    // r×F 叉乘顺序：K = −r_z·Fy、N = r_x·Fy − r_y·Fx（Fz=0）。
+    let r = geo.pressure_center_body;
+    let expected_k = -r[2] * fy_r;
+    let expected_n = r[0] * fy_r - r[1] * fx_r;
+    assert!((k_r - expected_k).abs() < 1e-6, "K 应为 r×F 的 x 分量：{k_r} vs {expected_k}");
+    assert!((n_r - expected_n).abs() < 1e-6, "N 应为 r×F 的 z 分量：{n_r} vs {expected_n}");
+    // 顺风（rel_x>0，风从艉来）→ 推力性（cx 正端）；迎风 → 阻力。
+    let fx_tail = fujiwara_loads([8.0, 0.0], &geo)[0];
+    let fx_head = fujiwara_loads([-8.0, 0.0], &geo)[0];
+    assert!(fx_head < fx_tail, "迎风阻力应大于顺风：head={fx_head} tail={fx_tail}");
+}
+
+#[test]
+fn gust_advance_is_incremental_and_reproducible() {
+    let mut direct = GustProcess::new(SEED_TRAINING, 1.0, 10.0);
+    direct.advance_to(1.0);
+    let mut split = GustProcess::new(SEED_TRAINING, 1.0, 10.0);
+    split.advance_to(0.5);
+    split.advance_to(1.0);
+    assert_eq!(direct.components(), split.components(), "分帧推进必须与直进一致");
+    let frozen = direct.components();
+    direct.advance_to(1.0);
+    assert_eq!(direct.components(), frozen, "重复同 t 不得消耗随机流");
+}
+
+#[test]
+fn shallow_water_orbital_velocity_respects_seabed() {
+    let field = WaveField::new(SEED_TRAINING, WaveCondition::dredger_site());
+    let t = 3.0;
+    // 海床 z=-h：垂向分量=0（不穿透）、水平分量非零。
+    let bed = field.orbital_velocity(t, 0.0, 0.0, -20.0);
+    assert!(bed[2].abs() < 1e-9, "海床处垂向轨道速度为零：{}", bed[2]);
+    assert!(bed[0].abs() > 0.0 || bed[1].abs() > 0.0, "海床处水平分量最大");
+    // 表面 z=0：垂向分量非零（波面运动）。
+    let surface = field.orbital_velocity(t, 0.0, 0.0, 0.0);
+    assert!(surface[2].abs() > 0.0);
+}
+
+#[test]
+fn wind_direction_quality_only_applies_to_wind_channel() {
+    // 非风通道（航向陀螺 N0）辅助值 0 不触发 Undefined。
+    let mut ch = SensorChannel::new("heading_gyro", channel_seed(SEED_TRAINING, 0), NoiseLevel::N0).unwrap();
+    let mut good = 0usize;
+    for frame in 0..(50 * 240) {
+        let t = frame as f64 / 240.0;
+        if let Some(m) = ch.advance(t, |_| (10.0, 0.0)) {
+            assert_eq!(m.quality, Quality::Good);
+            good += 1;
+        }
+    }
+    assert!(good > 400, "航向通道应正常出数：{good}");
+    // 风通道低风速 → Undefined。
+    let mut wind_ch = SensorChannel::new("wind", channel_seed(SEED_TRAINING, 7), NoiseLevel::N0).unwrap();
+    let mut undefined_seen = false;
+    for frame in 0..(50 * 240) {
+        let t = frame as f64 / 240.0;
+        if let Some(m) = wind_ch.advance(t, |_| (5.0, 0.3)) {
+            if m.quality == Quality::Undefined {
+                undefined_seen = true;
+            }
+        }
+    }
+    assert!(undefined_seen, "风速 0.3 < 1.0 时风向应 Undefined");
 }

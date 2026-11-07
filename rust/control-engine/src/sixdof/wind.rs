@@ -18,6 +18,8 @@ pub struct GustProcess {
     v_n: f64,
     v_e: f64,
     rng_state: u64,
+    /// 已执行的物理网格步数（连续调用只推进新增步；分帧可复现）。
+    executed_steps: i64,
 }
 
 impl GustProcess {
@@ -30,6 +32,7 @@ impl GustProcess {
             v_n: 0.0,
             v_e: 0.0,
             rng_state: seed.wrapping_mul(0xD1B54A32D192ED03).wrapping_add(0xABCDEF1234567890),
+            executed_steps: 0,
         }
     }
 
@@ -45,12 +48,13 @@ impl GustProcess {
         }
     }
 
-    /// 推进到物理时间 t（内部按 20Hz 网格步进；倍速/帧率无关）。
+    /// 推进到物理时间 t（内部按 20Hz 网格步进；倍速/帧率无关；
+    /// 连续调用只推进新增网格步，重复同 t 不消耗随机流）。
     pub fn advance_to(&mut self, t: f64) {
         let dt = 1.0 / self.step_hz;
         let target_steps = (t * self.step_hz).round() as i64;
-        // 从上次位置步进（本实现从 0 计步）。
-        let steps = target_steps.max(0);
+        let steps = (target_steps - self.executed_steps).max(0);
+        self.executed_steps += steps;
         let decay = (-dt / self.tau_s).exp();
         let drive = self.sigma_mps * (1.0 - decay * decay).sqrt();
         for _ in 0..steps {
@@ -126,21 +130,20 @@ pub fn relative_wind_body(
 /// 返回 [Fx, Fy, K, N]（N / N·m；力矩经压力中心 r×F）。
 pub fn fujiwara_loads(rel_body: [f64; 2], geo: &WindHullGeometry) -> [f64; 4] {
     let speed = (rel_body[0] * rel_body[0] + rel_body[1] * rel_body[1]).sqrt().max(1e-6);
-    // 相对风舷角（0=迎风，90°=正横，180°=顺风）。
-    let psi = ((-rel_body[1]).atan2(-rel_body[0])).abs();
+    // 保留左右舷：rel_y>0 → 风自右舷来（ψ_signed<0）；rel_y<0 → 左舷。
+    let psi_signed = (-rel_body[1]).atan2(-rel_body[0]);
+    let psi = psi_signed.abs();
+    let side = psi_signed.signum();
     let q = 0.5 * RHO_AIR * speed * speed;
-    // CX(ψ)：迎风负（阻力），顺风小；CY：正弦型；CN：偏航力矩系数。
+    // CX(ψ)：迎风负（阻力），顺风趋零；CY：正弦型 × 舷侧符号。
     let cx = -0.50 + 0.28 * (psi / std::f64::consts::PI);
-    let cy = 0.80 * psi.sin() + 0.12 * (2.0 * psi).sin();
-    let cn = 0.06 * psi.sin() * psi.cos();
+    let cy = (0.80 * psi.sin() + 0.12 * (2.0 * psi).sin()) * side;
     let fx = q * (geo.frontal_area_m2 * cx + geo.lateral_area_m2 * 0.04 * psi.cos());
     let fy = q * geo.lateral_area_m2 * cy;
-    // 压力中心偏置已并入下方 r×F；cn 贡献横向力沿长的分布修正。
-    let _ = cn;
-    // 压力中心力矩（统一 r×F；横摇 K=y 向力 × z 臂，艏摇 N=y 向力 × x 臂）。
+    // 压力中心力矩：统一 r×F（FRD，Fz=0）——K=−r_z·F_y、N=r_x·F_y−r_y·F_x。
     let r = geo.pressure_center_body;
-    let k_roll = r[2] * fy;
-    let n_yaw = -r[0] * fy + r[1] * fx;
+    let k_roll = -r[2] * fy;
+    let n_yaw = r[0] * fy - r[1] * fx;
     [fx, fy, k_roll, n_yaw]
 }
 

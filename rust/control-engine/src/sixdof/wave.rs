@@ -174,28 +174,29 @@ impl WaveField {
         for c in &self.components {
             let arg = c.omega * t - c.k * (x_n * c.direction.cos() + y_e * c.direction.sin()) + c.phase;
             let (sin_arg, cos_arg) = arg.sin_cos();
-            let sh = (c.k * (depth + z_up_from_surface)).sinh();
-            let ch = (c.k * depth).cosh().max(1e-9);
-            let horizontal = c.amplitude * c.omega * (sh / ch);
+            // Airy 有限水深：u = aω·cosh(k(h+z))/sinh(kh)、
+            // w = aω·sinh(k(h+z))/sinh(kh)；海床 z=-h 处水平分量最大、
+            // 垂向为零（不穿透海床）。
+            let sh_bottom = (c.k * depth).sinh().max(1e-12);
+            let ch_z = (c.k * (depth + z_up_from_surface)).cosh();
+            let sh_z = (c.k * (depth + z_up_from_surface)).sinh();
+            let horizontal = c.amplitude * c.omega * (ch_z / sh_bottom);
             vel[0] += horizontal * c.direction.cos() * cos_arg;
             vel[1] += horizontal * c.direction.sin() * cos_arg;
-            vel[2] += c.amplitude * c.omega * (c.k * (depth + z_up_from_surface)).cosh() / ch * sin_arg;
+            vel[2] += c.amplitude * c.omega * (sh_z / sh_bottom) * sin_arg;
         }
         vel
     }
 
     /// 一阶激励载荷（同相位共用波场；系数由船参数包提供，缺省单位）。
     /// 返回 [Fx, Fy, Fz, K, M, N]（N / N·m）。
+    /// 带符号线性合成（Fx↔u_x、Fy↔u_y、Fz↔η）：不取范数，保持正负
+    /// 相位（不整流、不产生伪造的平均漂移分量）。
     pub fn first_order_loads(&self, t: f64, coefficients: [f64; 6]) -> [f64; 6] {
-        // 激励取重心处轨道速度与波面（同 arg → 同相）。
         let eta = self.elevation(t, 0.0, 0.0);
         let vel = self.orbital_velocity(t, 0.0, 0.0, 0.0);
-        let magnitude = (eta * eta + vel[0] * vel[0] + vel[1] * vel[1]).sqrt();
-        let mut loads = [0.0f64; 6];
-        for i in 0..6 {
-            loads[i] = coefficients[i] * magnitude;
-        }
-        loads
+        [coefficients[0] * vel[0], coefficients[1] * vel[1], coefficients[2] * eta,
+         coefficients[3] * eta, coefficients[4] * vel[0], coefficients[5] * vel[1]]
     }
 
     /// QTF 二阶未就绪（阶段 B；未验证不开放、不伪造慢漂）。

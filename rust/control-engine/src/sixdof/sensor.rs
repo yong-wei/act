@@ -75,8 +75,9 @@ pub struct SensorChannel {
     last_sample_t: f64,
     queue: VecDeque<Measurement>,
     fault: Option<FaultKind>,
-    /// 风传感器辅助：低于该风速方向无定义（m/s）。
+    /// 风向通道辅助：低于该风速方向无定义（m/s）；仅 wind 通道启用。
     wind_undefined_below_mps: f64,
+    wind_direction_channel: bool,
     /// 通道值单位为角度系（deg）时参与 F1。
     heading_channel: bool,
     gnss_channel: bool,
@@ -105,7 +106,8 @@ impl SensorChannel {
             last_sample_t: f64::NEG_INFINITY,
             queue: VecDeque::new(),
             fault: None,
-            wind_undefined_below_mps: 1.0,
+            wind_undefined_below_mps: if name == "wind" { 1.0 } else { 0.0 },
+            wind_direction_channel: name == "wind",
             heading_channel: name == "heading_gyro",
             gnss_channel: name == "gnss_ne",
         })
@@ -170,8 +172,10 @@ impl SensorChannel {
                     _ => {}
                 }
             }
-            // 风方向低风速未定义。
-            if self.wind_undefined_below_mps > 0.0 && aux_wind_speed < self.wind_undefined_below_mps {
+            // 风向低风速未定义（仅风向通道；其他通道不受影响）。
+            if self.wind_direction_channel
+                && aux_wind_speed < self.wind_undefined_below_mps
+            {
                 quality = Quality::Undefined;
             }
             let noisy = value + self.bias + self.spec.white_sigma * self.unit_normal();
