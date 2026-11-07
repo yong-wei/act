@@ -14,6 +14,9 @@ pub mod dynamics;
 pub mod hull_mmg;
 pub mod integrator;
 pub mod radiation;
+pub mod sensor;
+pub mod wave;
+pub mod wind;
 pub mod state;
 
 pub use destroyer_plant::{DestroyerCommands, DestroyerSixDofConfig, DestroyerSixDofPlant};
@@ -21,6 +24,9 @@ pub use actuators::{
     PropellerModel, PropellerShaft, ServoModel, clamp_motor_torque, clamp_shaft_speed,
     propeller_loads, servo_step, shaft_acceleration, shaft_friction, shaft_power,
 };
+pub use sensor::{FaultKind, Measurement, NoiseLevel, Quality, SensorChannel, SEEDS_VALIDATION, SEED_TRAINING, channel_seed};
+pub use wave::{WaveCondition, WaveField};
+pub use wind::{GustProcess, TrueWind, WindEnvironment, WindHullGeometry, fujiwara_loads, relative_wind_body};
 pub use radiation::{RadiationMode, RadiationModel, RadiationModelError};
 pub use hull_mmg::{
     HullMmgParams, LowSpeedParams, blended_hull_loads, low_speed_loads, mmg_hull_loads,

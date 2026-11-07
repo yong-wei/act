@@ -17,7 +17,6 @@ use serde::{Deserialize, Serialize};
 use crate::sixdof::destroyer_plant::{
     DestroyerCommands, DestroyerSixDofConfig, DestroyerSixDofPlant,
 };
-use crate::sixdof::integrator::NOMINAL_DT;
 use crate::sixdof::state::TruthState;
 
 const DEG: f64 = std::f64::consts::PI / 180.0;

@@ -591,6 +591,11 @@ impl Default for EnvironmentField {
 impl EnvironmentField {
     /// 教学等效扰动：恒定横流 1.2 m/s + 波浪力矩幅值 3e6 N·m / 8 s
     /// （量级对齐 destroyer_hifi 扰动直航教学场景）。
+    ///
+    /// issue-2156-p1 阶段 A 边界：真实 JONSWAP 波场（wave.rs）、分量风载
+    /// 与阵风（wind.rs）、传感器链（sensor.rs）已作为独立模块交付并通过
+    /// 算例；本字段在 plant 内的直接替换与 #2147 全船接线同批落地，此间
+    /// 在线扰动通道维持等效场以保持行为连续。
     pub fn disturbance_equivalent() -> Self {
         Self {
             enabled: true,
