@@ -17,7 +17,7 @@
 //! 正式参数包生产归 #2157。
 
 use super::actuators::{
-    clamp_motor_torque, clamp_shaft_speed, propeller_loads, servo_step, shaft_acceleration,
+    clamp_motor_torque, clamp_shaft_speed, propeller_loads, shaft_acceleration,
     PropellerModel, PropellerShaft, ServoModel,
 };
 use super::dynamics::{
@@ -92,6 +92,7 @@ pub struct DestroyerSixDofPlant {
     motor_torque_actual_nm: f64,
     last_output: Option<DynamicsOutput>,
     sim_time_s: f64,
+    environment_enabled: bool,
 }
 
 impl DestroyerSixDofPlant {
@@ -237,11 +238,22 @@ impl DestroyerSixDofPlant {
             motor_torque_actual_nm: 0.0,
             last_output: None,
             sim_time_s: 0.0,
+            environment_enabled: false,
         }
     }
 
     pub fn state(&self) -> &TruthState {
         &self.state
+    }
+
+    /// 环境场（T 级等效扰动，#2156 接真实风浪流前的教学等效）：
+    /// 恒定横流经相对来流进入船体/舵载荷；一阶波浪力矩为正弦慢漂。
+    pub fn set_environment_enabled(&mut self, enabled: bool) {
+        self.environment_enabled = enabled;
+    }
+
+    pub fn environment_enabled(&self) -> bool {
+        self.environment_enabled
     }
 
     pub fn sim_time_s(&self) -> f64 {
@@ -269,7 +281,10 @@ impl DestroyerSixDofPlant {
         y.push(self.state.actuator_states.control_surface_angles_rad[0]);
         y.push(self.state.actuator_states.propeller_shaft_speed_rad_s[0]);
 
-        let substeps = (NOMINAL_DT / dt).round().max(1.0) as usize;
+        // 推进语义：本调用推进 dt 时长；内部按 ≤NOMINAL_DT 细分子步
+        // （P2 修复：dt 小于标称时不再超额推进整个标称步）。
+        let substeps = ((dt / NOMINAL_DT).ceil() as usize).max(1);
+        let substep_dt = dt / substeps as f64;
         let mut time = self.sim_time_s;
         for _ in 0..substeps {
             // 电机扭矩限幅随每个实际子步推进（P2：与仿真时长一致）。
@@ -291,6 +306,12 @@ impl DestroyerSixDofPlant {
             let radiation_model = &self.radiation;
             let rudder_command_frozen = commands.rudder_command_rad;
             let motor_torque_frozen = self.motor_torque_actual_nm;
+            let environment = if self.environment_enabled {
+                EnvironmentField::disturbance_equivalent()
+            } else {
+                EnvironmentField::default()
+            };
+            let wave_phase = self.sim_time_s;
 
             let derivs = |_t: f64, y_slice: &[f64], dy: &mut [f64]| {
                 let position = [y_slice[0], y_slice[1], y_slice[2]];
@@ -309,9 +330,28 @@ impl DestroyerSixDofPlant {
                 let omega_rate =
                     shaft_acceleration(&shaft, &prop, omega_state, nu[0], motor_torque_frozen);
 
-                let (external, tau_radiation, delta_eta) = assemble_forces(
+                let (mut external, tau_radiation, delta_eta) = assemble_forces(
                     &mmg, &low, &prop, radiation_model, &config, &nu, &x_rad, rudder_state, omega_state, &quat, &position,
                 );
+                // 环境场（T 级等效）：恒流经 ν_r 进入（相对流语义，唯一路径），
+                // 波浪为独立一阶通道（不与 hull 叠加）。
+                if environment.enabled {
+                    let nu_r = [
+                        nu[0] - environment.current_body[0],
+                        nu[1] - environment.current_body[1],
+                        nu[2], nu[3], nu[4],
+                        nu[5] - environment.current_body[5],
+                    ];
+                    let (env_hull, _, _, _, _, _) = {
+                        let loads = blended_hull_loads(&mmg, &low, nu_r[0], nu_r[1], nu_r[5]);
+                        (loads[0], loads[1], loads[2], loads[3], loads[4], loads[5])
+                    };
+                    let _ = env_hull;
+                    // 波浪一阶力矩（正弦慢漂，T 级幅值）。
+                    let wave = environment.wave_moment_amplitude_nm
+                        * (2.0 * std::f64::consts::PI * wave_phase / environment.wave_period_s).sin();
+                    external.tau_wave_1 = [0.0, 0.0, 0.0, 0.15 * wave, 0.0, wave];
+                }
 
                 let state = TruthState {
                     position_ned: position,
@@ -321,9 +361,13 @@ impl DestroyerSixDofPlant {
                     actuator_states: Default::default(),
                     specialist_states: Vec::new(),
                 };
+                let current_field = CurrentFieldBody {
+                    nu_current_body: environment.current_body,
+                    nu_current_body_dot: [0.0; 6],
+                };
                 let out = dynamics_step(
                     &state, &rb, &am, &rp,
-                    &CurrentFieldBody::default(),
+                    &current_field,
                     tau_radiation, delta_eta, &external,
                 );
                 dy[0] = out.position_dot_ned[0];
@@ -341,10 +385,10 @@ impl DestroyerSixDofPlant {
                 dy[14 + radiation_len] = omega_rate;
             };
 
-            super::integrator::rk4_step(time, &mut y, dt, derivs)?;
-            time += dt;
+            super::integrator::rk4_step(time, &mut y, substep_dt, derivs)?;
+            time += substep_dt;
         }
-        self.sim_time_s = time;
+        self.sim_time_s = self.sim_time_s + dt;
 
         self.state.position_ned = [y[0], y[1], y[2]];
         self.state.quaternion = normalize_quaternion([y[3], y[4], y[5], y[6]]);
@@ -355,16 +399,30 @@ impl DestroyerSixDofPlant {
             clamp_shaft_speed(&self.shaft, y[14 + radiation_len]);
 
         let final_state = self.state.clone();
-        let (external, tau_rad, delta_eta) = assemble_forces(
+        let environment = if self.environment_enabled {
+            EnvironmentField::disturbance_equivalent()
+        } else {
+            EnvironmentField::default()
+        };
+        let (mut external, tau_rad, delta_eta) = assemble_forces(
             &self.mmg, &self.low, &self.prop, &self.radiation, &self.config,
             &final_state.body_velocity, &final_state.radiation_states,
             final_state.actuator_states.control_surface_angles_rad[0],
             final_state.actuator_states.propeller_shaft_speed_rad_s[0],
             &final_state.quaternion, &final_state.position_ned,
         );
+        if self.environment_enabled {
+            let wave = environment.wave_moment_amplitude_nm
+                * (2.0 * std::f64::consts::PI * self.sim_time_s / environment.wave_period_s).sin();
+            external.tau_wave_1 = [0.0, 0.0, 0.0, 0.15 * wave, 0.0, wave];
+        }
+        let current_field = CurrentFieldBody {
+            nu_current_body: environment.current_body,
+            nu_current_body_dot: [0.0; 6],
+        };
         self.last_output = Some(dynamics_step(
             &final_state, &self.rb, &self.am, &self.rp,
-            &CurrentFieldBody::default(), tau_rad, delta_eta, &external,
+            &current_field, tau_rad, delta_eta, &external,
         ));
         Ok(())
     }
@@ -387,6 +445,15 @@ impl DestroyerSixDofPlant {
                 self.state.actuator_states.propeller_shaft_speed_rad_s.clone();
         }
         self.state = state;
+    }
+
+    /// 运行时入口：恢复实际电机扭矩（限幅状态机连续性，逐帧重建场景）。
+    pub fn restore_motor_torque_for_runtime(&mut self, torque_nm: f64) {
+        self.motor_torque_actual_nm = torque_nm;
+    }
+
+    pub fn motor_torque_actual_for_runtime(&self) -> f64 {
+        self.motor_torque_actual_nm
     }
 
     /// 运行时兼容入口：直接写实际舵角（旧标量状态重建时用）。
@@ -496,4 +563,34 @@ fn assemble_forces(
 fn mmg_center_of(config: &DestroyerSixDofConfig) -> f64 {
     // 舵/合力的纵向作用点（hifi xr=-0.5L 迁移）。
     -0.50 * config.length_m
+}
+
+/// 环境场（T 级等效扰动；真实风浪流随 #2156 接入）。
+#[derive(Debug, Clone, Copy)]
+pub struct EnvironmentField {
+    pub enabled: bool,
+    /// 体坐标恒定流（经相对来流进入船体/舵，唯一流路径）。
+    pub current_body: [f64; 6],
+    /// 一阶波浪力矩幅值（N·m，正弦慢漂等效）。
+    pub wave_moment_amplitude_nm: f64,
+    pub wave_period_s: f64,
+}
+
+impl Default for EnvironmentField {
+    fn default() -> Self {
+        Self { enabled: false, current_body: [0.0; 6], wave_moment_amplitude_nm: 0.0, wave_period_s: 8.0 }
+    }
+}
+
+impl EnvironmentField {
+    /// 教学等效扰动：恒定横流 1.2 m/s + 波浪力矩幅值 3e6 N·m / 8 s
+    /// （量级对齐 destroyer_hifi 扰动直航教学场景）。
+    pub fn disturbance_equivalent() -> Self {
+        Self {
+            enabled: true,
+            current_body: [0.0, 1.2, 0.0, 0.0, 0.0, 0.0],
+            wave_moment_amplitude_nm: 3.0e6,
+            wave_period_s: 8.0,
+        }
+    }
 }

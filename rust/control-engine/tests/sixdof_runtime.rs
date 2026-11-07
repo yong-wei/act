@@ -93,3 +93,110 @@ fn invalid_frame_duration_is_rejected() {
         assert!(compute_destroyer_sixdof_step_json(&request).is_err(), "dt 应被拒绝: {bad}");
     }
 }
+
+// ---------- PR #2170 review 修复回归 ----------
+
+fn state_from(v: &serde_json::Value) -> String {
+    format!(
+        r#"{{"timeS": {}, "headingDeg": {}, "yawRateDegS": {}, "positionXM": {}, "positionYM": {},
+            "rudderDeg": {}, "speedMps": {}, "sixdofState": {}, "runManifest": {} }}"#,
+        v["timeS"], v["headingDeg"], v["yawRateDegS"], v["positionXM"], v["positionYM"],
+        v["rudderDeg"], v["speedMps"], v["sixdofState"], v["runManifest"],
+    )
+}
+
+fn run_frames(dt_s: f64, seconds: f64, disturbance: bool) -> serde_json::Value {
+    let mut state = legacy_state();
+    let frames = (seconds / dt_s) as usize;
+    let mut last = serde_json::Value::Null;
+    for _ in 0..frames {
+        let mut request = base_request(&state).replace(
+            "\"disturbanceEnabled\": false",
+            &format!("\"disturbanceEnabled\": {disturbance}"),
+        );
+        request = request.replace(&format!("\"dtS\": 0.5"), &format!("\"dtS\": {dt_s}"));
+        let out = compute_destroyer_sixdof_step_json(&request).unwrap();
+        last = serde_json::from_str(&out).unwrap();
+        state = state_from(&last);
+    }
+    last
+}
+
+#[test]
+fn frame_rate_independence_after_torque_roundtrip() {
+    // P1-1：扭矩随状态往返——1/60 与 0.5 s 分帧的同一物理过程收敛一致。
+    let fast = run_frames(1.0 / 60.0, 10.0, false);
+    let slow = run_frames(0.5, 10.0, false);
+    let omega_fast = fast["sixdofState"]["shaftSpeedRadS"].as_f64().unwrap();
+    let omega_slow = slow["sixdofState"]["shaftSpeedRadS"].as_f64().unwrap();
+    assert!(
+        (omega_fast - omega_slow).abs() < 1.0,
+        "分帧不应改变物理：1/60 帧 {omega_fast} vs 0.5 帧 {omega_slow}"
+    );
+    let u_fast = fast["sixdofState"]["bodyVelocity"][0].as_f64().unwrap();
+    let u_slow = slow["sixdofState"]["bodyVelocity"][0].as_f64().unwrap();
+    assert!((u_fast - u_slow).abs() < 0.5, "巡航航速分帧一致：{u_fast} vs {u_slow}");
+}
+
+#[test]
+fn disturbance_produces_observable_heading_deviation() {
+    // P1-2：扰动开启产生可观察的航向/横荡现象（第 9 步教学语义保留）。
+    let calm = run_frames(1.0 / 60.0, 60.0, false);
+    let rough = run_frames(1.0 / 60.0, 60.0, true);
+    let heading_calm = calm["headingDeg"].as_f64().unwrap().abs();
+    let heading_rough = rough["headingDeg"].as_f64().unwrap().abs();
+    let sway_rough = rough["sixdofState"]["bodyVelocity"][1].as_f64().unwrap().abs();
+    assert!(
+        heading_rough > heading_calm + 0.05,
+        "扰动直航必须产生航向偏离：calm={heading_calm} rough={heading_rough}"
+    );
+    assert!(sway_rough > 0.05, "横流应产生横荡：{sway_rough}");
+}
+
+#[test]
+fn heading_error_wraps_shortest_arc() {
+    // P2-3：跨 ±180° 边界误差取最短圆周角（179 vs -179 → -2 而非 358）。
+    let state = r#"{
+      "timeS": 0.0, "headingDeg": -179.0, "yawRateDegS": 0.0,
+      "positionXM": 0.0, "positionYM": 0.0, "rudderDeg": 0.0, "speedMps": 15.0
+    }"#;
+    let request = base_request(state)
+        .replace("\"targetHeadingDeg\": 0.0", "\"targetHeadingDeg\": 179.0")
+        .replace("\"controlMode\": \"manual\"", "\"controlMode\": \"p\", \"pid\": {\"kp\": 1.0, \"ki\": 0.0, \"kd\": 0.0}");
+    let out = compute_destroyer_sixdof_step_json(&request).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+    let prev_error = v["prevErrorDeg"].as_f64().unwrap();
+    assert!((prev_error + 2.0).abs() < 0.5, "最短圆周角误差应为 -2°，得到 {prev_error}");
+}
+
+#[test]
+fn short_frame_advances_exactly_its_duration() {
+    // P2-4：dtS=0.01 只推进 0.01 s（位置增量 ≈ 15×0.01，而非整个标称步）。
+    let out = run_frames(0.01, 0.01, false);
+    let x = out["positionXM"].as_f64().unwrap();
+    assert!(
+        (x - 15.0 * 0.01).abs() < 0.05,
+        "0.01 s 帧位置增量应约 0.15 m，得到 {x}"
+    );
+    assert_eq!(out["timeS"].as_f64().unwrap(), 0.01);
+}
+
+#[test]
+fn factor_mask_changes_run_identity() {
+    // P2-5：相同初态、不同因素掩码 → 不同 manifestId（初态摘要纳入身份）。
+    let calm_first = compute_destroyer_sixdof_step_json(&base_request(&legacy_state())).unwrap();
+    let v1: serde_json::Value = serde_json::from_str(&calm_first).unwrap();
+    let rough_request = base_request(&legacy_state())
+        .replace("\"disturbanceEnabled\": false", "\"disturbanceEnabled\": true");
+    let rough_first = compute_destroyer_sixdof_step_json(&rough_request).unwrap();
+    let v2: serde_json::Value = serde_json::from_str(&rough_first).unwrap();
+    assert_ne!(
+        v1["runManifest"]["manifestId"], v2["runManifest"]["manifestId"],
+        "不同因素掩码必须生成不同 run 身份"
+    );
+    let calm2 = compute_destroyer_sixdof_step_json(&base_request(&state_from(&v1))).unwrap();
+    let v3: serde_json::Value = serde_json::from_str(&calm2).unwrap();
+    assert_eq!(v3["runManifest"]["manifestId"], v1["runManifest"]["manifestId"], "同参同态不得换身份");
+    // manifest 携带冻结初态摘要。
+    assert!(v1["runManifest"]["initialState"].as_str().unwrap().starts_with("fnv1a-"));
+}

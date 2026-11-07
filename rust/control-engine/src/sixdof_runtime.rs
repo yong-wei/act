@@ -54,6 +54,9 @@ struct RuntimeSixDofState {
     radiation_states: Vec<f64>,
     rudder_actual_rad: f64,
     shaft_speed_rad_s: f64,
+    /// 实际电机扭矩（限幅状态机连续性，P1：逐帧重建必须恢复）。
+    #[serde(default)]
+    motor_torque_actual_nm: f64,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -68,6 +71,8 @@ struct RuntimeRunManifest {
     step_id: String,
     controller_artifact: String,
     factor_mask: Vec<String>,
+    /// 冻结初态摘要（P2：不同初态必须不同 run 身份）。
+    initial_state: String,
     seed: u64,
 }
 
@@ -144,6 +149,18 @@ struct RuntimeResult {
     manifest_reset: bool,
 }
 
+/// 最短圆周角归一化（P2：跨 ±180° 边界的小误差不得放大成 360°）。
+fn wrap_180(deg: f64) -> f64 {
+    let mut value = deg;
+    while value > 180.0 {
+        value -= 360.0;
+    }
+    while value < -180.0 {
+        value += 360.0;
+    }
+    value
+}
+
 fn fnv_u64(bytes: &[u8]) -> u64 {
     let mut hash: u64 = 0xcbf29ce484222325;
     for byte in bytes {
@@ -179,6 +196,23 @@ fn factor_mask(disturbance_enabled: bool) -> Vec<String> {
     }
 }
 
+fn initial_state_digest(state: &RuntimeState) -> String {
+    let raw = if let Some(six) = &state.sixdof_state {
+        format!(
+            "six|{:.4}|{:.4}|{:.4}",
+            six.quaternion.first().copied().unwrap_or(1.0),
+            six.quaternion.get(3).copied().unwrap_or(0.0),
+            six.body_velocity.first().copied().unwrap_or(0.0),
+        )
+    } else {
+        format!(
+            "legacy|{:.4}|{:.4}",
+            state.heading_deg, state.speed_mps,
+        )
+    };
+    format!("fnv1a-{:016x}", fnv_u64(raw.as_bytes()))
+}
+
 fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
     let controller = controller_artifact(
         &request.control_mode,
@@ -186,9 +220,10 @@ fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
         request.manual_rudder_deg,
     );
     let mask = factor_mask(request.disturbance_enabled);
+    let initial_state = initial_state_digest(&request.state);
     let seed = 0u64;
     let identity = format!(
-        "{}|{}|{}|{}|{}|{}|{:?}|{}|{}",
+        "{}|{}|{}|{}|{}|{}|{:?}|{}|{}|{}",
         SIX_DOF_MODEL_VERSION,
         parameter_bundle_hash(&DestroyerSixDofConfig::default()),
         SIX_DOF_ENVIRONMENT_VERSION,
@@ -196,7 +231,8 @@ fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
         request.course_version,
         request.step_id,
         controller,
-        request.state.time_s,
+        initial_state,
+        mask.join(","),
         seed,
     );
     RuntimeRunManifest {
@@ -209,6 +245,7 @@ fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
         step_id: request.step_id.clone(),
         controller_artifact: controller,
         factor_mask: mask,
+        initial_state,
         seed,
     }
 }
@@ -244,6 +281,7 @@ fn rebuild_plant(state: &RuntimeState) -> DestroyerSixDofPlant {
             full.actuator_states.propeller_shaft_speed_rad_s = vec![six.shaft_speed_rad_s];
             full.actuator_states.control_surface_angles_rad = vec![six.rudder_actual_rad];
             plant.restore_state(full);
+            plant.restore_motor_torque_for_runtime(six.motor_torque_actual_nm);
         }
         plant
     } else {
@@ -280,7 +318,7 @@ fn command_rudder_deg(
     match request.control_mode {
         RuntimeControlMode::Manual => (request.manual_rudder_deg, 0.0, 0.0),
         RuntimeControlMode::P | RuntimeControlMode::Pd | RuntimeControlMode::Pid => {
-            let error_deg = request.target_heading_deg - request.state.heading_deg;
+            let error_deg = wrap_180(request.target_heading_deg - request.state.heading_deg);
             let integral = if matches!(request.control_mode, RuntimeControlMode::Pid) {
                 (integral_in + error_deg * dt_s).clamp(-80.0, 80.0)
             } else {
@@ -337,12 +375,11 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
     };
 
     // 固定 1/120 子步推进帧时长（合同：内核步长恒定）。
-    let mut remaining = request.dt_s;
-    while remaining > 1e-12 {
-        let step = remaining.min(NOMINAL_DT);
-        plant.step_with_dt(step, commands).map_err(|e| format!("sixdof 推进失败: {e:?}"))?;
-        remaining -= step;
-    }
+    // P1-2：扰动开关透传物理（T 级等效环境场）。
+    plant.set_environment_enabled(request.disturbance_enabled);
+    plant
+        .step_with_dt(request.dt_s, commands)
+        .map_err(|e| format!("sixdof 推进失败: {e:?}"))?;
 
     let state = plant.state();
     let euler = crate::sixdof::state::euler_from_quaternion(state.quaternion);
@@ -368,6 +405,7 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
             radiation_states: state.radiation_states.clone(),
             rudder_actual_rad: state.actuator_states.control_surface_angles_rad[0],
             shaft_speed_rad_s: state.actuator_states.propeller_shaft_speed_rad_s[0],
+            motor_torque_actual_nm: plant.motor_torque_actual_for_runtime(),
         },
         run_manifest: manifest,
         manifest_reset,
