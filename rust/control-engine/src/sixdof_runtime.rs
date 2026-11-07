@@ -375,8 +375,10 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
     };
 
     // 固定 1/120 子步推进帧时长（合同：内核步长恒定）。
-    // P1-2：扰动开关透传物理（T 级等效环境场）。
+    // P1-2：扰动开关透传物理（T 级等效环境场）；恢复物理时间
+    // （波浪相位随真实仿真时钟推进，不逐帧归零）。
     plant.set_environment_enabled(request.disturbance_enabled);
+    plant.restore_time_for_runtime(request.state.time_s);
     plant
         .step_with_dt(request.dt_s, commands)
         .map_err(|e| format!("sixdof 推进失败: {e:?}"))?;

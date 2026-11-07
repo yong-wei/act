@@ -200,3 +200,42 @@ fn factor_mask_changes_run_identity() {
     // manifest 携带冻结初态摘要。
     assert!(v1["runManifest"]["initialState"].as_str().unwrap().starts_with("fnv1a-"));
 }
+
+#[test]
+fn startup_transient_is_frame_rate_independent() {
+    // P1（新）：限速器按子步时长——0.1 s 单请求与 12×1/120 的启动
+    // 瞬态一致（扭矩/轴速在 0.1 s 时刻相等，而非仅终值稳态比较）。
+    let single = run_frames(0.1, 0.1, false);
+    // 12 × 1/120 s 分帧推进同一物理时长。
+    let mut st = legacy_state();
+    let mut final_v = serde_json::Value::Null;
+    for _ in 0..12 {
+        let request = base_request(&st).replace("\"dtS\": 0.5", "\"dtS\": 0.008333333333333333");
+        let out = compute_destroyer_sixdof_step_json(&request).unwrap();
+        final_v = serde_json::from_str(&out).unwrap();
+        st = state_from(&final_v);
+    }
+    let torque_single = single["sixdofState"]["motorTorqueActualNm"].as_f64().unwrap();
+    let torque_multi = final_v["sixdofState"]["motorTorqueActualNm"].as_f64().unwrap();
+    let omega_single = single["sixdofState"]["shaftSpeedRadS"].as_f64().unwrap();
+    let omega_multi = final_v["sixdofState"]["shaftSpeedRadS"].as_f64().unwrap();
+    assert!(
+        (torque_single - torque_multi).abs() / torque_multi.abs().max(1.0) < 0.05,
+        "启动瞬态扭矩分帧一致：single={torque_single} multi={torque_multi}"
+    );
+    assert!((omega_single - omega_multi).abs() < 0.5, "轴速瞬态一致：{omega_single} vs {omega_multi}");
+}
+
+#[test]
+fn wave_phase_advances_with_physical_clock() {
+    // P1（新）：波浪相位随仿真时钟——连续帧下扰动运行出现非零横摇
+    // （8 s 周期激励累积），且相位不逐帧归零。
+    let rough = run_frames(1.0 / 60.0, 40.0, true);
+    let calm = run_frames(1.0 / 60.0, 40.0, false);
+    let roll_rough = rough["sixdofState"]["quaternion"][1].as_f64().unwrap().abs();
+    let roll_calm = calm["sixdofState"]["quaternion"][1].as_f64().unwrap().abs();
+    assert!(
+        roll_rough > roll_calm + 1e-4,
+        "波浪激励必须随时间累积出横摇：rough={roll_rough} calm={roll_calm}"
+    );
+}

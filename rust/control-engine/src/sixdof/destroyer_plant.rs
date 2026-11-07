@@ -287,12 +287,13 @@ impl DestroyerSixDofPlant {
         let substep_dt = dt / substeps as f64;
         let mut time = self.sim_time_s;
         for _ in 0..substeps {
-            // 电机扭矩限幅随每个实际子步推进（P2：与仿真时长一致）。
+            // 电机扭矩限幅按实际子步时长推进（P1：整帧 dt 会把变化率
+            // 上限放大 substeps 倍，破坏分帧一致性）。
             self.motor_torque_actual_nm = clamp_motor_torque(
                 &self.shaft,
                 commands.motor_torque_command_nm,
                 self.motor_torque_actual_nm,
-                dt,
+                substep_dt,
             );
             let rb = self.rb;
             let am = self.am;
@@ -311,9 +312,9 @@ impl DestroyerSixDofPlant {
             } else {
                 EnvironmentField::default()
             };
-            let wave_phase = self.sim_time_s;
+            let wave_phase_origin = time;
 
-            let derivs = |_t: f64, y_slice: &[f64], dy: &mut [f64]| {
+            let derivs = |t_sub: f64, y_slice: &[f64], dy: &mut [f64]| {
                 let position = [y_slice[0], y_slice[1], y_slice[2]];
                 let quat = normalize_quaternion([y_slice[3], y_slice[4], y_slice[5], y_slice[6]]);
                 let nu = [
@@ -349,7 +350,7 @@ impl DestroyerSixDofPlant {
                     let _ = env_hull;
                     // 波浪一阶力矩（正弦慢漂，T 级幅值）。
                     let wave = environment.wave_moment_amplitude_nm
-                        * (2.0 * std::f64::consts::PI * wave_phase / environment.wave_period_s).sin();
+                        * (2.0 * std::f64::consts::PI * (wave_phase_origin + t_sub) / environment.wave_period_s).sin();
                     external.tau_wave_1 = [0.0, 0.0, 0.0, 0.15 * wave, 0.0, wave];
                 }
 
@@ -445,6 +446,12 @@ impl DestroyerSixDofPlant {
                 self.state.actuator_states.propeller_shaft_speed_rad_s.clone();
         }
         self.state = state;
+    }
+
+    /// 运行时入口：恢复物理时间（逐帧重建时从请求 timeS 继续，
+    /// 波浪等时变环境据此推进相位）。
+    pub fn restore_time_for_runtime(&mut self, time_s: f64) {
+        self.sim_time_s = time_s;
     }
 
     /// 运行时入口：恢复实际电机扭矩（限幅状态机连续性，逐帧重建场景）。
