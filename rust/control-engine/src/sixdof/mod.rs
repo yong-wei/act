@@ -9,12 +9,14 @@
 //! 坐标合同：FRD 体坐标（x 艏、y 右舷、z 向下），NED 世界坐标。
 
 pub mod actuators;
+pub mod destroyer_plant;
 pub mod dynamics;
 pub mod hull_mmg;
 pub mod integrator;
 pub mod radiation;
 pub mod state;
 
+pub use destroyer_plant::{DestroyerCommands, DestroyerSixDofConfig, DestroyerSixDofPlant};
 pub use actuators::{
     PropellerModel, PropellerShaft, ServoModel, clamp_motor_torque, clamp_shaft_speed,
     propeller_loads, servo_step, shaft_acceleration, shaft_friction, shaft_power,

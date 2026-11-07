@@ -514,7 +514,19 @@ fn radiation_zoh_matches_analytic_constant_input_response() {
     let (x, tau) = model.step(&[0.0], [2.0, 0.0, 0.0, 0.0, 0.0, 0.0], 0.4);
     let analytic = (3.0 * 2.0 / -0.5) * ((-0.5f64 * 0.4).exp() - 1.0);
     assert!((x[0] - analytic).abs() < 1e-12);
-    assert!((tau[0] - x[0]).abs() < 1e-12);
+    // 输出带零点：τ = C·(B·u + A·x⁺)，与状态解析一致。
+    let tau_analytic = 1.0 * (3.0 * 2.0 + (-0.5) * analytic);
+    assert!((tau[0] - tau_analytic).abs() < 1e-12);
+    // 恒速稳态记忆为零（Cummins 合同）：x→B·u/|A| ⇒ τ→0。
+    let mut state = vec![0.0];
+    let mut last_tau = [0.0f64; 6];
+    for _ in 0..2400 {
+        let (next, tau_step) = model.step(&state, [2.0, 0.0, 0.0, 0.0, 0.0, 0.0], 1.0 / 120.0);
+        state = next;
+        last_tau = tau_step;
+    }
+    // 20 s ≈ 10 个时间常数后，稳态记忆趋零（容差收敛残差）。
+    assert!(last_tau[0].abs() < 1e-3, "恒速稳态辐射记忆应趋零，得到 {}", last_tau[0]);
 }
 
 #[test]
