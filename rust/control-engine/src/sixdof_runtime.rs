@@ -169,14 +169,13 @@ fn fnv_u64(bytes: &[u8]) -> u64 {
     hash
 }
 
-fn parameter_bundle_hash(config: &DestroyerSixDofConfig) -> String {
-    let raw = format!(
-        "{:.3}|{:.3}|{:.3}|{:.1}|{:.2}|{:.0}|{:.0}|{:.2}|{:.3}",
-        config.length_m, config.beam_m, config.draft_m, config.displacement_t,
-        config.cruise_speed_mps, config.max_rudder_deg, config.max_rudder_rate_deg_s,
-        config.gm_transverse_m, config.gm_longitudinal_m,
-    );
-    format!("fnv1a-{:016x}", fnv_u64(raw.as_bytes()))
+fn parameter_bundle_hash(_config: &DestroyerSixDofConfig) -> String {
+    // issue-2157：哈希源切换为结构化参数包（含模型版本）；改包即换 run。
+    match crate::sixdof::embedded_destroyer_055() {
+        Ok(pack) => format!("{}@{}", pack.manifest.model_version, pack.content_hash),
+        // 包损坏属部署缺陷：退回配置哈希并显式标记未验证来源。
+        Err(_) => format!("unverified-fallback:{:016x}", 0),
+    }
 }
 
 fn controller_artifact(mode: &RuntimeControlMode, pid: &RuntimePidGains, manual: f64) -> String {
