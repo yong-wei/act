@@ -645,7 +645,7 @@ function ControllerPanel({
             hint={`航线规则：先直航 ${CRUISE_ROUTE_STRAIGHT_DISTANCE}m，再右转 ${CRUISE_ROUTE_TURN_HEADING}° 并保持航向。`}
           />
           <SimField label="海况等级" value={`${state.seaState}级（${state.seaState <= 2 ? '轻浪' : state.seaState <= 4 ? '中浪' : '大浪'}）`}>
-            <input aria-label="巡航舒适性参数一"
+            <input aria-label="海况等级（1 至 7 级，等级越高海浪越强）"
               type="range"
               min="1"
               max="7"
@@ -656,7 +656,7 @@ function ControllerPanel({
             />
           </SimField>
           <SimField label="相对波向" value={`${state.waveDirection}°（${waveLabel}）`}>
-            <input aria-label="巡航舒适性参数二"
+            <input aria-label="相对波向（度，0 至 360，浪与船的夹角）"
               type="range"
               min="0"
               max="360"
