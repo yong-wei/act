@@ -15,9 +15,9 @@
 
 - [ ] A2.1 destroyer_hifi 资产审查（iz 回转半径、area_r 量纲、常量推力、符号）并并入 sixdof 或桥接
 - [ ] A2.2 055 TruthPlant 升级 6DOF（heave/roll/pitch 起步：静水恢复 + 辐射拟合）
-- [ ] A2.3 删除公共 sample 非有限值→0 回退，改三类错误报告（non-finite/infeasible/out-of-domain）
+- [x] A2.3 删除公共 sample 非有限值→0 回退，改三类错误报告（non-finite/infeasible/out-of-domain）
 - [ ] A2.4 run 冻结字段全量生效（modelVersion/parameterBundleHash/environmentVersion/sensorVersion/courseVersion/stepId/controllerArtifact/initialState/factorMask/seed）
-- [ ] A2.5 `vessel-drives.ts` 标注收敛为适配器（物理真值迁移计划落档）
+- [x] A2.5 `vessel-drives.ts` 标注收敛为适配器（物理真值迁移计划落档）
 
 ## A3. 独立算例与门槛
 
