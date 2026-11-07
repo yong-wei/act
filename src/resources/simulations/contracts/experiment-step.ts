@@ -107,6 +107,13 @@ export const EXPERIMENT_TOTAL_SCORE = 100;
 export const MID_STEP_RATIOS = { prediction: 0.3, operation: 0.4, interpretation: 0.3 } as const;
 export const FINAL_STEP_BREAKDOWN = { modelAssumptions: 3, ownEvidence: 3, comparison: 2, boundary: 2 } as const;
 
+/** 冻结基线（合同文本 §5 的字面值；漂移=改合同，必须走显式修订）。 */
+export const FROZEN_SCORE_DISTRIBUTION: readonly number[] = [
+  3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 10,
+];
+export const FROZEN_MID_STEP_RATIOS = { prediction: 0.3, operation: 0.4, interpretation: 0.3 } as const;
+export const FROZEN_FINAL_STEP_BREAKDOWN = { modelAssumptions: 3, ownEvidence: 3, comparison: 2, boundary: 2 } as const;
+
 /** 校验单步合同（fail-fast；返回空数组=通过）。 */
 export function validateStep(step: ExperimentStep): StepValidationError[] {
   const errors: StepValidationError[] = [];
@@ -120,6 +127,21 @@ export function validateStep(step: ExperimentStep): StepValidationError[] {
   }
   if (!COGNITIVE_LEVELS.includes(step.cognitiveLevel)) {
     push('cognitiveLevel', `非法认知层级：${step.cognitiveLevel as string}`);
+  }
+  if (step.stepKind !== 'run' && step.stepKind !== 'analysis') {
+    push('stepKind', `非法步骤形态：${step.stepKind as string}`);
+  }
+  if (!['training', 'validation', 'none'].includes(step.trainValidationRole)) {
+    push('trainValidationRole', `非法训练验证角色：${step.trainValidationRole as string}`);
+  }
+  if (!['free', 'limited', 'once'].includes(step.retryPolicy)) {
+    push('retryPolicy', `非法重试策略：${step.retryPolicy as string}`);
+  }
+  if (step.initialCondition === undefined || step.initialCondition === null) {
+    push('initialCondition', '必填字段缺失');
+  }
+  if (step.observationWindowS === undefined || !Array.isArray(step.observationWindowS) || step.observationWindowS.length !== 2) {
+    push('observationWindowS', '必须为 [起点, 终点] 二元组');
   }
   if (step.factorMask.length === 0) {
     push('factorMask', '至少引用一个现实因素等级（P0 等关态也是显式声明）');
@@ -140,11 +162,20 @@ export function validateStep(step: ExperimentStep): StepValidationError[] {
       push('studentControls', `可控变量 ${control.key} 缺单位`);
     }
   }
-  if (step.stepKind === 'run') {
-    if (step.measurementSignals.length === 0) {
+  if (step.measurementSignals === undefined || !Array.isArray(step.measurementSignals)) {
+    push('measurementSignals', '必填字段缺失（容器损坏）');
+  }
+  if (step.studentControls === undefined || !Array.isArray(step.studentControls)) {
+    push('studentControls', '必填字段缺失（容器损坏）');
+  }
+  const kind = (['run', 'analysis'] as const).includes(step.stepKind as 'run' | 'analysis')
+    ? (step.stepKind as 'run' | 'analysis')
+    : undefined;
+  if (kind === 'run') {
+    if (!step.measurementSignals || step.measurementSignals.length === 0) {
       push('measurementSignals', '运行步骤必须声明测量信号');
     }
-    if (step.eventTimeline.length === 0) {
+    if (!step.eventTimeline || step.eventTimeline.length === 0) {
       push('eventTimeline', '运行步骤必须有事件时间线');
     }
   }
@@ -172,28 +203,45 @@ export function validateExperiment(steps: readonly ExperimentStep[]): StepValida
   return errors;
 }
 
-/** 评分合同校验：分值分布与总分冻结（issue §5）。 */
-export function validateScoring(): readonly string[] {
+/** 评分合同校验（issue §5）：逐项比对冻结基线（保持总和不变的漂移也检出）。
+ * 无参调用=常量自检（编译期常量漂移在源头即报）；传入实际分值/权重=
+ * 运行时合同校验。 */
+export function validateScoring(
+  actualDistribution?: readonly number[],
+  actualRatios?: { prediction: number; operation: number; interpretation: number },
+  actualFinal?: { modelAssumptions: number; ownEvidence: number; comparison: number; boundary: number },
+): readonly string[] {
   const problems: string[] = [];
-  if (STEP_SCORE_DISTRIBUTION.length !== 20) {
-    problems.push(`分值分布必须 20 项，得到 ${STEP_SCORE_DISTRIBUTION.length}`);
+  const distribution = actualDistribution ?? STEP_SCORE_DISTRIBUTION;
+  const ratios = actualRatios ?? MID_STEP_RATIOS;
+  const final = actualFinal ?? FINAL_STEP_BREAKDOWN;
+
+  if (distribution.length !== FROZEN_SCORE_DISTRIBUTION.length) {
+    problems.push(`分值分布必须 ${FROZEN_SCORE_DISTRIBUTION.length} 项，得到 ${distribution.length}`);
+  } else {
+    for (let i = 0; i < distribution.length; i += 1) {
+      if (distribution[i] !== FROZEN_SCORE_DISTRIBUTION[i]) {
+        problems.push(`第 ${i + 1} 步分值 ${distribution[i]} ≠ 冻结值 ${FROZEN_SCORE_DISTRIBUTION[i]}`);
+      }
+    }
   }
-  const total = STEP_SCORE_DISTRIBUTION.reduce((sum, value) => sum + value, 0);
+  const total = distribution.reduce((sum, value) => sum + value, 0);
   if (total !== EXPERIMENT_TOTAL_SCORE) {
     problems.push(`步骤原始分合计 ${total} ≠ 总分 ${EXPERIMENT_TOTAL_SCORE}`);
   }
-  const ratioSum =
-    MID_STEP_RATIOS.prediction + MID_STEP_RATIOS.operation + MID_STEP_RATIOS.interpretation;
+  for (const key of ['prediction', 'operation', 'interpretation'] as const) {
+    if (Math.abs(ratios[key] - FROZEN_MID_STEP_RATIOS[key]) > 1e-9) {
+      problems.push(`三段占比 ${key}=${ratios[key]} ≠ 冻结值 ${FROZEN_MID_STEP_RATIOS[key]}`);
+    }
+  }
+  const ratioSum = ratios.prediction + ratios.operation + ratios.interpretation;
   if (Math.abs(ratioSum - 1) > 1e-9) {
     problems.push(`三段占比合计 ${ratioSum} ≠ 1`);
   }
-  const finalSum =
-    FINAL_STEP_BREAKDOWN.modelAssumptions +
-    FINAL_STEP_BREAKDOWN.ownEvidence +
-    FINAL_STEP_BREAKDOWN.comparison +
-    FINAL_STEP_BREAKDOWN.boundary;
-  if (finalSum !== STEP_SCORE_DISTRIBUTION[19]) {
-    problems.push(`第 20 步四分合计 ${finalSum} ≠ ${STEP_SCORE_DISTRIBUTION[19]}`);
+  for (const key of ['modelAssumptions', 'ownEvidence', 'comparison', 'boundary'] as const) {
+    if (final[key] !== FROZEN_FINAL_STEP_BREAKDOWN[key]) {
+      problems.push(`第 20 步 ${key}=${final[key]} ≠ 冻结值 ${FROZEN_FINAL_STEP_BREAKDOWN[key]}`);
+    }
   }
   return problems;
 }

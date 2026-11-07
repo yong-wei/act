@@ -89,4 +89,32 @@ describe('冻结评分合同', () => {
     expect(validateScoring()).toEqual([]);
     expect(EXPERIMENT_TOTAL_SCORE).toBe(100);
   });
+
+  it('保持总和不变的漂移逐项检出（PR review 回归）', () => {
+    // 交换第 1/5 步分值（3↔4，总和不变）。
+    const dist = [3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 10];
+    dist[0] = 4; dist[4] = 3;
+    const problems = validateScoring(dist);
+    expect(problems.some((p) => p.includes('第 1 步分值 4'))).toBe(true);
+    expect(problems.some((p) => p.includes('第 5 步分值 3'))).toBe(true);
+    // 占比 40/30 互换（合计仍 1）。
+    const ratioDrift = validateScoring(undefined, { prediction: 0.4, operation: 0.3, interpretation: 0.3 });
+    expect(ratioDrift.some((p) => p.includes('prediction=0.4'))).toBe(true);
+    // 末步前两项 4/2（合计仍 10）。
+    const finalDrift = validateScoring(undefined, undefined, { modelAssumptions: 4, ownEvidence: 2, comparison: 2, boundary: 2 });
+    expect(finalDrift.some((p) => p.includes('modelAssumptions=4'))).toBe(true);
+  });
+
+  it('缺字段与非法枚举拒绝（PR review 回归）', () => {
+    const missing = validStep({ initialCondition: undefined as unknown as Record<string, number> });
+    expect(validateStep(missing).some((e) => e.field === 'initialCondition')).toBe(true);
+    const badKind = validStep({ stepKind: 'animation' as ExperimentStep['stepKind'], measurementSignals: [] });
+    expect(validateStep(badKind).some((e) => e.field === 'stepKind')).toBe(true);
+    const badRole = validStep({ trainValidationRole: 'exam' as ExperimentStep['trainValidationRole'] });
+    expect(validateStep(badRole).some((e) => e.field === 'trainValidationRole')).toBe(true);
+    const badRetry = validStep({ retryPolicy: 'unlimited' as ExperimentStep['retryPolicy'] });
+    expect(validateStep(badRetry).some((e) => e.field === 'retryPolicy')).toBe(true);
+    const noSignals = validStep({ measurementSignals: undefined as unknown as string[] });
+    expect(validateStep(noSignals).some((e) => e.field === 'measurementSignals')).toBe(true);
+  });
 });
