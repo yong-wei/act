@@ -12,9 +12,10 @@
 //!
 //! Coriolis/向心力采用性质可证形式：
 //! - `C_RB(ν)ν = [ m·(ω×ν_lin); ω×(I_g·ω) ]`（r_g=0），满足 `νᵀ·C_RB·ν = 0`
-//! - `C_A(ν_r)ν_r = [ S(a)·ω_r ; S(a)·ν_r,lin + S(b)·ω_r ]`，
+//! - `C_A(ν_r)ν_r = [ ω_r×a ; ω_r×b + ν_r,lin×a ]`，
 //!   `a = A₁₁ν_r,lin + A₁₂ω_r`、`b = A₂₁ν_r,lin + A₂₂ω_r`，
-//!   满足 `νᵀ·C_A·ν = 0`（S 反对称 + 混合积性质）。
+//!   与 C_RB 同向（左端惯性耦合叠加而非抵消），且满足 `νᵀ·C_A·ν = 0`
+//!   （混合积轮换性质）。
 
 use super::state::{
     euler_from_quaternion, euler_rate_transform_inverse, quaternion_rate, rotation_matrix,
@@ -81,10 +82,6 @@ fn cross(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
     ]
 }
 
-fn skew_mul(s_vector: [f64; 3], v: [f64; 3]) -> [f64; 3] {
-    cross(s_vector, v)
-}
-
 /// 质量矩阵 `M = M_RB + A_inf`（6×6，对称；正定性由参数校核保障）。
 pub fn mass_matrix(rb: &RigidBodyParams, am: &AddedMassParams) -> [[f64; 6]; 6] {
     let mut m = am.a_inf;
@@ -136,9 +133,9 @@ pub fn coriolis_added_mass(am: &AddedMassParams, nu_r: [f64; 6]) -> [f64; 6] {
             b_vec[i] += am.a_inf[3 + i][3 + j] * omega_r[j];
         }
     }
-    let force = skew_mul(a_vec, omega_r);
-    let torque_lin = skew_mul(a_vec, nu_r_lin);
-    let torque_omega = skew_mul(b_vec, omega_r);
+    let force = cross(omega_r, a_vec);
+    let torque_lin = cross(nu_r_lin, a_vec);
+    let torque_omega = cross(omega_r, b_vec);
     [
         force[0], force[1], force[2],
         torque_lin[0] + torque_omega[0],

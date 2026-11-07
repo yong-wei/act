@@ -102,6 +102,37 @@ fn pure_yaw_angular_velocity_maps_to_yaw_rate() {
 }
 
 #[test]
+fn euler_rates_agree_with_quaternion_derivative_finite_difference() {
+    // 非零横摇姿态 + 纯纵摇角速度：两运动学通路必须给出同一姿态演化。
+    let roll = 0.5f64;
+    let q = {
+        let h = (roll / 2.0);
+        [(h).cos(), (h).sin(), 0.0, 0.0]
+    };
+    let omega = [0.0, 1.0, 0.0];
+    let dt = 1e-6;
+    let qd = quaternion_rate(q, omega);
+    let q_next = normalize_quaternion([
+        q[0] + dt * qd[0], q[1] + dt * qd[1], q[2] + dt * qd[2], q[3] + dt * qd[3],
+    ]);
+    let e0 = euler_from_quaternion(q);
+    let e1 = euler_from_quaternion(q_next);
+    let fd_rates = [
+        (e1.roll_rad - e0.roll_rad) / dt,
+        (e1.pitch_rad - e0.pitch_rad) / dt,
+        (e1.yaw_rad - e0.yaw_rad) / dt,
+    ];
+    let analytic = euler_rate_transform_inverse(e0, omega);
+    for i in 0..3 {
+        assert!(
+            (analytic[i] - fd_rates[i]).abs() < 1e-6,
+            "欧拉速率通路 {} 与四元数导数不一致：{} vs {}",
+            i, analytic[i], fd_rates[i]
+        );
+    }
+}
+
+#[test]
 fn jacobian_blocks_are_structurally_correct() {
     let q = normalize_quaternion([1.0, 0.2, -0.3, 0.4]);
     let euler = euler_from_quaternion(q);
@@ -132,6 +163,27 @@ fn moment_helper_is_the_cross_product() {
     assert!(close(m[0], 0.0, 1e-9));
     assert!(close(m[1], -3000.0, 1e-9));
     assert!(close(m[2], 0.0, 1e-9));
+}
+
+#[test]
+fn definiteness_handles_coupled_matrices_correctly() {
+    // det = 0.25·1 − 0.36 < 0：非正定必须拒绝。
+    let indefinite = [[0.25, 0.6, 0.0], [0.6, 1.0, 0.0], [0.0, 0.0, 1.0]];
+    assert!(!symmetric_positive_definite_3(&indefinite));
+    // det = 4 − 2.25 > 0 且顺序主子式全正：有效正定必须放行。
+    let valid = [[4.0, 1.5, 0.0], [1.5, 1.0, 0.0], [0.0, 0.0, 1.0]];
+    assert!(symmetric_positive_definite_3(&valid));
+    // 6×6 含横荡—艏摇耦合的质量阵仍判正定（此前误拒的形态）。
+    let mut six = [[0.0f64; 6]; 6];
+    for (i, v) in [1.2e7, 2.4e7, 2.6e7, 5.6e9, 1.35e10, 6.1e10].into_iter().enumerate() {
+        six[i][i] = v;
+    }
+    six[1][5] = -3.0e8;
+    six[5][1] = -3.0e8;
+    assert!(symmetric_positive_definite_6(&six));
+    six[1][5] = -2.0e9; // 耦合超过 √(2.4e7×6.1e10)≈1.21e9，破坏顺序主子式
+    six[5][1] = -2.0e9;
+    assert!(!symmetric_positive_definite_6(&six));
 }
 
 #[test]
@@ -212,6 +264,23 @@ fn coriolis_rb_satisfies_energy_property() {
     let c = coriolis_centripetal_rb(&rb, nu);
     let power: f64 = nu.iter().zip(c.iter()).map(|(a, b)| a * b).sum();
     assert!(power.abs() < 1e-6 * nu.iter().map(|v| v.abs()).sum::<f64>().max(1.0));
+}
+
+#[test]
+fn coriolis_added_mass_aligns_with_rigidbody_direction() {
+    // A=2I、ν=[1,0,0,0,0,1]：附加质量与刚体科氏力必须同号（左端叠加）。
+    let mut a = [[0.0f64; 6]; 6];
+    for i in 0..6 {
+        a[i][i] = 2.0;
+    }
+    let am = AddedMassParams { a_inf: a };
+    let rb = RigidBodyParams { mass_kg: 2.0, inertia_about_cg: [[2.0,0.0,0.0],[0.0,2.0,0.0],[0.0,0.0,2.0]] };
+    let nu = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0];
+    let c_a = coriolis_added_mass(&am, nu);
+    let c_rb = coriolis_centripetal_rb(&rb, nu);
+    for i in 0..6 {
+        assert!((c_a[i] - c_rb[i]).abs() < 1e-12, "通道 {i}：C_A={} C_RB={}", c_a[i], c_rb[i]);
+    }
 }
 
 #[test]
@@ -354,6 +423,26 @@ fn contact_substeps_follow_stiffness_budget() {
     let n = contact_substep_count(Some(medium)).unwrap();
     assert!(NOMINAL_DT / n as f64 <= 0.1 / (1.0e7f64 / 1.0e6).sqrt());
     assert!(NOMINAL_DT / (n - 1) as f64 > 0.1 / (1.0e7f64 / 1.0e6).sqrt());
+}
+
+#[test]
+fn contact_budget_below_min_dt_errors_even_if_ninth_substep_would_fit() {
+    // required = 0.1/√(1e4/1) = 0.001 s < MIN_DT ≈ 0.001042 s：
+    // 旧实现会静默接受 9 子步（dt=1/1080 < MIN_DT），必须显式报错。
+    let sneaky = ContactStiffness { stiffness_n_per_m: 1.0e4, effective_mass_kg: 1.0 };
+    assert!(matches!(
+        contact_substep_count(Some(sneaky)),
+        Err(IntegrationError::ContactStiffnessBudgetExceeded { .. })
+    ));
+    // 8 子步上限内（required ≥ NOMINAL/8）仍正常细分。
+    let edge = ContactStiffness {
+        stiffness_n_per_m: 1.0e6,
+        effective_mass_kg: 1.0,
+    }; // required = 1e-4·√(1/1e6)?? 计算：0.1/√(1e6)=1e-4 < MIN → 也超
+    let _ = edge;
+    let okay = ContactStiffness { stiffness_n_per_m: 4.0e6, effective_mass_kg: 1.0e6 };
+    // required = 0.1/2 = 0.05 ≥ NOMINAL → 1 子步
+    assert_eq!(contact_substep_count(Some(okay)).unwrap(), 1);
 }
 
 #[test]
@@ -638,11 +727,14 @@ fn sway_force_at_depth_produces_coupled_roll_moment() {
     // K = z·F_y > 0（右舷下压），验证耦合方向随 z_h 符号翻转。
     let out = blended_hull_loads(&mmg, &low, 0.5, 1.0, 0.0);
     assert!(out[1] < 0.0);
-    assert!(out[3] > 0.0);
+    // 统一 r×F 合同：M = (−z·Fy, +z·Fx, 0)。
+    let expected = moment_from_force([0.0, 0.0, mmg.z_h], [out[0], out[1], 0.0]);
+    assert!((out[3] - expected[0]).abs() < 1e-6, "横摇耦合须等于 r×F 的 x 分量");
+    assert!((out[4] - expected[1]).abs() < 1e-6, "纵摇耦合须等于 r×F 的 y 分量");
     let mut shallow = mmg;
     shallow.z_h = -0.1;
     let out2 = blended_hull_loads(&shallow, &low, 0.5, 1.0, 0.0);
-    assert!(out2[3] > 0.0 && out2[3].abs() < out[3].abs(), "作用点越浅耦合力矩越小");
+    assert!(out2[3].abs() < out[3].abs(), "作用点越浅耦合力矩越小");
 }
 
 #[test]

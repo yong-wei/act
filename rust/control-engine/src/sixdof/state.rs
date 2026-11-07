@@ -105,9 +105,9 @@ pub fn euler_rate_transform_inverse(euler: Euler, omega_body: [f64; 3]) -> [f64;
     }
     let tan_pitch = sin_pitch / cos_pitch;
     [
-        p - r * cos_roll * tan_pitch + q * sin_roll * tan_pitch,
-        q * cos_roll + r * sin_roll,
-        (-q * sin_roll + r * cos_roll) / cos_pitch,
+        p + q * sin_roll * tan_pitch + r * cos_roll * tan_pitch,
+        q * cos_roll - r * sin_roll,
+        (q * sin_roll + r * cos_roll) / cos_pitch,
     ]
 }
 
@@ -125,8 +125,8 @@ pub fn jacobian_eta(q: [f64; 4], euler: Euler) -> [[f64; 6]; 6] {
         let tan_pitch = sin_pitch * sec_pitch;
         [
             [1.0, sin_roll * tan_pitch, cos_roll * tan_pitch],
-            [0.0, cos_roll, sin_roll],
-            [0.0, -sin_roll * sec_pitch, cos_roll * sec_pitch],
+            [0.0, cos_roll, -sin_roll],
+            [0.0, sin_roll * sec_pitch, cos_roll * sec_pitch],
         ]
     };
     let mut j = [[0.0f64; 6]; 6];
@@ -164,11 +164,14 @@ pub fn symmetric_positive_definite_3(m: &[[f64; 3]; 3]) -> bool {
             return false;
         }
         let d = a[k][k].sqrt();
+        for j in (k + 1)..3 {
+            a[k][j] /= d; // 行归一 L[k][j]
+        }
         for i in (k + 1)..3 {
             let f = a[i][k] / d;
             a[i][k] = f;
             for j in (k + 1)..3 {
-                a[i][j] -= f * a[k][j];
+                a[i][j] -= f * a[k][j]; // Schur：L[i][k]·L[j][k]
             }
         }
     }
@@ -190,11 +193,14 @@ pub fn symmetric_positive_definite_6(m: &[[f64; 6]; 6]) -> bool {
             return false;
         }
         let d = a[k][k].sqrt();
+        for j in (k + 1)..6 {
+            a[k][j] /= d; // 行归一 L[k][j]
+        }
         for i in (k + 1)..6 {
             let f = a[i][k] / d;
             a[i][k] = f;
             for j in (k + 1)..6 {
-                a[i][j] -= f * a[k][j];
+                a[i][j] -= f * a[k][j]; // Schur：L[i][k]·L[j][k]
             }
         }
     }

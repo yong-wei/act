@@ -34,14 +34,14 @@ pub fn contact_substep_count(contact: Option<ContactStiffness>) -> Result<usize,
     if !required.is_finite() {
         return Err(IntegrationError::ContactStiffnessBudgetExceeded { required_dt: required });
     }
+    // 上限 8 子步（NOMINAL_DT / MIN_DT = 8）：所需步长低于下限即报错，
+    // 不得以更小子步静默通过（合同：超预算显式报告）。
+    let max_substeps = (NOMINAL_DT / MIN_DT).round() as usize;
     let mut substeps = 1usize;
     while (NOMINAL_DT / substeps as f64) > required {
         substeps += 1;
-        if (NOMINAL_DT / substeps as f64) < MIN_DT {
-            // 已到下限仍不满足：显式报错（合同：不得裁剪状态伪装稳定）。
-            if (NOMINAL_DT / substeps as f64) > required {
-                return Err(IntegrationError::ContactStiffnessBudgetExceeded { required_dt: required });
-            }
+        if substeps > max_substeps {
+            return Err(IntegrationError::ContactStiffnessBudgetExceeded { required_dt: required });
         }
     }
     Ok(substeps)

@@ -102,7 +102,8 @@ pub fn blended_hull_loads(
     let nz = w * a[2] + (1.0 - w) * b[2];
     // 横摇耦合：横荡/艏摇合力作用在 z_h（r×F 语义，绕 y 的力矩由
     // surge 分量产生、绕 x 的力矩由 sway 分量产生）。
-    let k_roll = fy * mmg.z_h; // M_x ≈ z·F_y（FRD：z<0 水下，F_y>0 右舷）
-    let k_pitch = -fx * mmg.z_h; // M_y ≈ −z·F_x
+    // 统一 r×F 合同：r=[0,0,z_h] → M = (−z_h·Fy, z_h·Fx, 0)。
+    let k_roll = -mmg.z_h * fy;
+    let k_pitch = mmg.z_h * fx;
     [fx, fy, 0.0, k_roll, k_pitch, nz]
 }
