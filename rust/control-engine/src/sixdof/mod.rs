@@ -21,6 +21,7 @@ pub mod sensor;
 pub mod wave;
 pub mod wind;
 pub mod state;
+pub mod student_model;
 pub mod vessel_runtime;
 
 pub use destroyer_plant::{DestroyerCommands, DestroyerSixDofConfig, DestroyerSixDofPlant};
@@ -29,6 +30,11 @@ pub use actuators::{
     propeller_loads, servo_step, shaft_acceleration, shaft_friction, shaft_power,
 };
 pub use environment_state::{EnvironmentState, EnvironmentSwitches};
+pub use student_model::{
+    ComparisonMode, EvaluationMetrics, ModelStructure, StudentModel, angle_error,
+    evaluate, identify_fopdt, identify_nomoto1, overshoot_percent, predict, settling_time,
+    wrap_angle, COMPARISON_LABELS,
+};
 pub use vessel_runtime::compute_vessel_sixdof_step_json;
 pub use observer::{LowFrequencyObserver, ObservationChain};
 pub use sensor::{FaultKind, Measurement, NoiseLevel, Quality, SensorChannel, SEEDS_VALIDATION, SEED_TRAINING, channel_seed};
