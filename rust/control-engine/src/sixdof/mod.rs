@@ -37,8 +37,9 @@ pub use actuators::{
 pub use environment_state::{EnvironmentState, EnvironmentSwitches};
 pub use student_model::{
     ComparisonMode, EvaluationMetrics, ModelStructure, StudentModel, angle_error,
-    evaluate, evaluate_with_input, identify_fopdt, identify_nomoto1, identify_nomoto2,
-    identify_roll_oscillator, overshoot_percent, predict, settling_time,
+    evaluate, evaluate_with_input, identify_dp_low_freq, identify_dredge_channel,
+    identify_fopdt, identify_nomoto1, identify_nomoto2, identify_roll_oscillator,
+    overshoot_percent, predict, predict_dp, settling_time,
     wrap_angle, COMPARISON_LABELS,
 };
 pub use vessel_runtime::compute_vessel_sixdof_step_json;
