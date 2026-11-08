@@ -41,7 +41,7 @@
 - [x] B1.1 observer.rs：非线性被动观测器（Fossen & Strand 1999 形式）——低频位置/航向估计 + 波频分离
 - [x] B1.2 估计器输入接传感器链 N1（真值→传感器→估计器→控制器合同闭环）
 - [x] B1.3 单测：无偏收敛（估计误差→0）、波频抑制（低频输出不含波频分量）、与真值分离恒等
-- [ ] B1.4 plant/runtime 集成：EnvironmentState 在线接线（wave 驱动真实波浪激励、current 经相对流、wind 分量载）
+- [x] B1.4 plant/runtime 集成：EnvironmentState 在线接线（wave 驱动真实波浪激励、current 经相对流、wind 分量载）
 
 ## B2. 阶段 B 后续（分机制独立 PR）
 
