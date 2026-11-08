@@ -3,12 +3,13 @@
 use control_engine::sixdof::student_model::*;
 
 /// 用已知 Nomoto 一阶系统生成数据 → 辨识 → 验证精度。
+/// 采样约定与 identify 一致：output[k] 为施加 input[k] 之前的状态采样。
 #[test]
 fn nomoto1_identification_recovers_known_system() {
     let dt = 0.1f64;
     let k_true = 0.08f64;
     let t_true = 25.0f64;
-    // 生成：阶跃激励 + ZOH 一阶推进。
+    // 生成：阶跃激励 + ZOH 一阶推进（先记录 y[k]，再施加 u[k]）。
     let n = 500;
     let input: Vec<f64> = (0..n).map(|i| if i < 50 { 0.0 } else { 10.0 }).collect();
     let a = (-dt / t_true).exp();
@@ -16,8 +17,8 @@ fn nomoto1_identification_recovers_known_system() {
     let mut output = Vec::with_capacity(n);
     let mut y = 0.0;
     for &u in &input {
-        y = a * y + b * u;
         output.push(y);
+        y = a * y + b * u;
     }
 
     let result = identify_nomoto1(&input, &output, dt);
@@ -55,16 +56,16 @@ fn fopdt_identification_recovers_delay() {
     let delay_true = 3.0f64; // 6 步
     let n = 300;
     let input: Vec<f64> = (0..n).map(|i| if i < 20 { 0.0 } else { 1.0 }).collect();
-    // 生成 FOPDT 响应。
+    // 生成 FOPDT 响应（先记录 y[k]，再施加延迟输入）。
     let a = (-dt / t_true).exp();
     let b = k_true * (1.0 - a);
     let delay_steps = (delay_true / dt) as usize;
     let mut output = Vec::with_capacity(n);
     let mut y = 0.0;
     for (i, _) in input.iter().enumerate() {
+        output.push(y);
         let u = if i >= delay_steps { input[i - delay_steps] } else { 0.0 };
         y = a * y + b * u;
-        output.push(y);
     }
 
     let result = identify_fopdt(&input, &output, dt);
@@ -149,8 +150,8 @@ fn predict_nomoto1_matches_identified() {
     let mut train_out = Vec::new();
     let mut y = 0.0;
     for &u in &train_in {
-        y = a * y + b * u;
         train_out.push(y);
+        y = a * y + b * u;
     }
     let result = identify_nomoto1(&train_in, &train_out, dt);
     assert!(result.identified_ok);
@@ -159,18 +160,53 @@ fn predict_nomoto1_matches_identified() {
         let test_in: Vec<f64> = (0..200).map(|i| 5.0 * (i as f64 * 0.05).sin()).collect();
         let predicted = predict(&ModelStructure::Nomoto1 { k: ik, t_s: it }, &test_in, train_out[299], dt);
         // predict 时序：predicted[0]=y0，predicted[k+1] 为 input[k] 作用后的响应。
-        // 真值同约定生成 → 对齐 predicted[1..] 与 truth。
+        // 真值同约定生成（先记录 y[k] 再施加 u[k]）→ 逐点对齐。
         let mut truth = Vec::new();
         let mut y2 = train_out[299];
         let a2 = (-dt / t).exp();
         let b2 = k * (1.0 - a2);
         for &u in &test_in {
-            y2 = a2 * y2 + b2 * u;
             truth.push(y2);
+            y2 = a2 * y2 + b2 * u;
         }
         assert_eq!(predicted.len(), truth.len() + 1, "predict 应返回 y0+响应");
-        assert!((predicted[0] - train_out[299]).abs() < 1e-12, "首元素=初始值");
-        let metrics = evaluate(&predicted[1..], &truth).unwrap();
+        assert!((predicted[0] - truth[0]).abs() < 1e-12, "首元素=初始值");
+        let metrics = evaluate(&predicted[..truth.len()], &truth).unwrap();
         assert!(metrics.rmse < 0.01, "冻结模型预测残差应小：{metrics:?}");
+    }
+}
+
+/// 快系统 + 变号激励：采样约定差一拍会破坏回归（review 场景）。
+/// 约定正确时即使 T=0.5s、dt=0.1s、交替激励也应精确恢复参数。
+#[test]
+fn fast_alternating_excitation_recovers_parameters() {
+    let dt = 0.1f64;
+    let k_true = 0.8f64;
+    let t_true = 0.5f64;
+    let n = 400;
+    // 变号激励：±1 交替 + 阶跃段，避免慢系统近似掩盖时序错位。
+    let input: Vec<f64> = (0..n)
+        .map(|i| match i / 50 {
+            0 | 2 | 4 => 1.0,
+            1 | 3 => -1.0,
+            _ => 0.6,
+        })
+        .collect();
+    let a = (-dt / t_true).exp();
+    let b = k_true * (1.0 - a);
+    let mut output = Vec::with_capacity(n);
+    let mut y = 0.0;
+    for &u in &input {
+        output.push(y);
+        y = a * y + b * u;
+    }
+
+    let result = identify_nomoto1(&input, &output, dt);
+    assert!(result.identified_ok, "快系统变号激励应辨识成功：{:?}", result.failure_reason);
+    if let Some(ModelStructure::Nomoto1 { k, t_s }) = result.structure {
+        assert!((k - k_true).abs() / k_true < 0.02, "K 精度：{k} vs {k_true}");
+        assert!((t_s - t_true).abs() / t_true < 0.02, "T 精度：{t_s} vs {t_true}");
+    } else {
+        panic!("结构应为 Nomoto1");
     }
 }

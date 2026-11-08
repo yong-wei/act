@@ -170,6 +170,10 @@ pub fn settling_time(
 
 /// 辨识 Nomoto 一阶：K/(Ts+1)。输入激励+响应，输出 K/T。
 /// 输出误差最小二乘 + ZOH 离散化推进。
+///
+/// 采样约定（与 predict 一致）：output[k] 为施加 input[k] **之前**的状态采样，
+/// 即回归方程 output[k+1] = a·output[k] + b·input[k]。上游采集必须遵循同一约定，
+/// 否则快系统/快变激励下差一拍会破坏辨识。
 pub fn identify_nomoto1(
     input: &[f64],
     output: &[f64],
