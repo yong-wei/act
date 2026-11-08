@@ -219,7 +219,7 @@ fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
     );
     let mask = factor_mask(request.disturbance_enabled);
     let initial_state = initial_state_digest(&request.state);
-    let seed = 0u64;
+    let seed = 20261106u64; // 训练种子（验证 run 由参数覆盖）
     let identity = format!(
         "{}|{}|{}|{}|{}|{}|{:?}|{}|{}|{}",
         SIX_DOF_MODEL_VERSION,
@@ -387,10 +387,18 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
         length_m: 180.0,
         pressure_center_body: [4.0, 0.0, -6.0],
     };
+    // P1：种子从 manifest 冻结值统一读取（首帧=20261106 训练种子，
+    // 后续帧与 manifest 一致——不同分帧/不同帧长下环境演化一致）。
+    let frozen_seed = request
+        .state
+        .run_manifest
+        .as_ref()
+        .map(|m| m.seed)
+        .unwrap_or(20261106);
     let environment = if request.disturbance_enabled {
-        crate::sixdof::EnvironmentState::e1(request.state.run_manifest.as_ref().map_or(0, |_| 20261106))
+        crate::sixdof::EnvironmentState::e1(frozen_seed)
     } else {
-        crate::sixdof::EnvironmentState::calm(20261106)
+        crate::sixdof::EnvironmentState::calm(frozen_seed)
     };
     plant.set_environment_state(environment, wind_geo);
     plant.restore_time_for_runtime(request.state.time_s);
