@@ -11,6 +11,7 @@
 pub mod actuators;
 pub mod destroyer_plant;
 pub mod dynamics;
+pub mod environment_state;
 pub mod observer;
 pub mod hull_mmg;
 pub mod integrator;
@@ -26,6 +27,7 @@ pub use actuators::{
     PropellerModel, PropellerShaft, ServoModel, clamp_motor_torque, clamp_shaft_speed,
     propeller_loads, servo_step, shaft_acceleration, shaft_friction, shaft_power,
 };
+pub use environment_state::{EnvironmentState, EnvironmentSwitches};
 pub use observer::{LowFrequencyObserver, ObservationChain};
 pub use sensor::{FaultKind, Measurement, NoiseLevel, Quality, SensorChannel, SEEDS_VALIDATION, SEED_TRAINING, channel_seed};
 pub use wave::{WaveCondition, WaveField};
