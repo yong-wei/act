@@ -210,3 +210,218 @@ fn fast_alternating_excitation_recovers_parameters() {
         panic!("结构应为 Nomoto1");
     }
 }
+
+// ---------- 阶段 B1：Nomoto 二阶 + 横摇振子 ----------
+
+/// RK4 推进二阶系统 ÿ = (K·u − y − (T1+T2)·ẏ)/(T1·T2)，细子步保证生成精度。
+fn simulate_second_order(
+    k: f64,
+    t1: f64,
+    t2: f64,
+    input: &[f64],
+    y0: f64,
+    dt: f64,
+) -> Vec<f64> {
+    let mut out = Vec::with_capacity(input.len());
+    let (mut y, mut yd) = (y0, 0.0);
+    out.push(y);
+    for &u in input {
+        let accel = |yy: f64, yyd: f64| (k * u - yy - (t1 + t2) * yyd) / (t1 * t2);
+        let (h, steps) = (dt / 10.0, 10);
+        for _ in 0..steps {
+            let k1y = yd;
+            let k1v = accel(y, yd);
+            let k2y = yd + 0.5 * h * k1v;
+            let k2v = accel(y + 0.5 * h * k1y, yd + 0.5 * h * k1v);
+            let k3y = yd + 0.5 * h * k2v;
+            let k3v = accel(y + 0.5 * h * k2y, yd + 0.5 * h * k2v);
+            let k4y = yd + h * k3v;
+            let k4v = accel(y + h * k3y, yd + h * k3v);
+            y += h / 6.0 * (k1y + 2.0 * k2y + 2.0 * k3y + k4y);
+            yd += h / 6.0 * (k1v + 2.0 * k2v + 2.0 * k3v + k4v);
+        }
+        out.push(y);
+    }
+    out
+}
+
+
+/// RK4 推进横摇振子 φ̈ = −ωn²·φ − 2ζωn·φ̇ + G·u（细子步）。
+fn simulate_oscillator(
+    wn: f64,
+    z: f64,
+    g: f64,
+    input: &[f64],
+    phi0: f64,
+    dt: f64,
+) -> Vec<f64> {
+    let mut out = Vec::with_capacity(input.len());
+    let (mut phi, mut phi_d) = (phi0, 0.0);
+    out.push(phi);
+    for &u in input {
+        let accel = |p: f64, pd: f64| -wn * wn * p - 2.0 * z * wn * pd + g * u;
+        let (h, steps) = (dt / 10.0, 10);
+        for _ in 0..steps {
+            let k1y = phi_d;
+            let k1v = accel(phi, phi_d);
+            let k2y = phi_d + 0.5 * h * k1v;
+            let k2v = accel(phi + 0.5 * h * k1y, phi_d + 0.5 * h * k1v);
+            let k3y = phi_d + 0.5 * h * k2v;
+            let k3v = accel(phi + 0.5 * h * k2y, phi_d + 0.5 * h * k2v);
+            let k4y = phi_d + h * k3v;
+            let k4v = accel(phi + h * k3y, phi_d + h * k3v);
+            phi += h / 6.0 * (k1y + 2.0 * k2y + 2.0 * k3y + k4y);
+            phi_d += h / 6.0 * (k1v + 2.0 * k2v + 2.0 * k3v + k4v);
+        }
+        out.push(phi);
+    }
+    out
+}
+
+#[test]
+fn nomoto2_identification_recovers_known_system() {
+    let dt = 0.1f64;
+    let k_true = 0.05f64;
+    let t1_true = 8.0f64;
+    let t2_true = 1.5f64;
+    // 多段阶跃激励保证二阶参数可辨识。
+    let n = 800;
+    let input: Vec<f64> = (0..n)
+        .map(|i| match i / 100 {
+            0 | 2 => 5.0,
+            1 | 3 => 0.0,
+            _ => 10.0,
+        })
+        .collect();
+    let output = simulate_second_order(k_true, t1_true, t2_true, &input, 0.0, dt);
+    // 生成器含 y0，比 input 多一个元素——对齐到回归约定。
+    let output = &output[..n];
+
+    let result = identify_nomoto2(&input, output, dt);
+    assert!(result.identified_ok, "辨识应成功：{:?}", result.failure_reason);
+    if let Some(ModelStructure::Nomoto2 { k, t1_s, t2_s }) = result.structure {
+        assert!((k - k_true).abs() / k_true < 0.05, "K：{k} vs {k_true}");
+        assert!((t1_s - t1_true).abs() / t1_true < 0.08, "T1：{t1_s} vs {t1_true}");
+        assert!((t2_s - t2_true).abs() / t2_true < 0.08, "T2：{t2_s} vs {t2_true}");
+    } else {
+        panic!("结构应为 Nomoto2");
+    }
+}
+
+#[test]
+fn nomoto2_predict_matches_identified() {
+    let dt = 0.1f64;
+    let (k_true, t1_true, t2_true) = (0.05f64, 8.0f64, 1.5f64);
+    let train_in: Vec<f64> = (0..600)
+        .map(|i| match i / 120 {
+            0 => 8.0,
+            1 => 0.0,
+            2 => 12.0,
+            _ => 4.0,
+        })
+        .collect();
+    let train_out_full = simulate_second_order(k_true, t1_true, t2_true, &train_in, 0.0, dt);
+    let train_out = &train_out_full[..train_in.len()];
+    let result = identify_nomoto2(&train_in, train_out, dt);
+    assert!(result.identified_ok);
+
+    // 新激励预测（正弦 + 阶跃）。
+    let test_in: Vec<f64> = (0..300)
+        .map(|i| 6.0 + 4.0 * (i as f64 * 0.03).sin())
+        .collect();
+    let y0 = train_out_full[train_in.len()];
+    let predicted = predict(
+        &ModelStructure::Nomoto2 {
+            k: match result.structure {
+                Some(ModelStructure::Nomoto2 { k, .. }) => k,
+                _ => unreachable!(),
+            },
+            t1_s: match result.structure {
+                Some(ModelStructure::Nomoto2 { t1_s, .. }) => t1_s,
+                _ => unreachable!(),
+            },
+            t2_s: match result.structure {
+                Some(ModelStructure::Nomoto2 { t2_s, .. }) => t2_s,
+                _ => unreachable!(),
+            },
+        },
+        &test_in,
+        y0,
+        dt,
+    );
+    let truth_full = simulate_second_order(k_true, t1_true, t2_true, &test_in, y0, dt);
+    let truth = &truth_full[..test_in.len()];
+    let metrics = evaluate(&predicted[..truth.len()], truth).unwrap();
+    assert!(metrics.rmse < 0.05, "冻结模型预测残差应小：{metrics:?}");
+}
+
+#[test]
+fn roll_oscillator_identification_recovers_frequency_and_damping() {
+    let dt = 0.1f64;
+    let wn_true = 0.6f64; // ≈10.5 s 周期。
+    let z_true = 0.12f64;
+    let g_true = 0.02f64;
+    // 自由衰减：φ0=8°、零输入。
+    let n = 1200; // 120 s ≈ 11 个周期。
+    let zero_in = vec![0.0; n];
+    let free_full = simulate_oscillator(wn_true, z_true, 0.0, &zero_in, 8.0, dt);
+    let free = &free_full[..n];
+    // 小激励段：正弦鳍激励 u=5·sin(0.5t)。
+    let n2 = 600;
+    let e_in: Vec<f64> = (0..n2).map(|i| 5.0 * (i as f64 * dt * 0.5).sin()).collect();
+    let e_out_full = simulate_oscillator(wn_true, z_true, g_true, &e_in, 0.0, dt);
+    let e_out = &e_out_full[..n2];
+
+    let result = identify_roll_oscillator(free, dt, Some((&e_in, e_out)));
+    assert!(result.identified_ok, "辨识应成功：{:?}", result.failure_reason);
+    if let Some(ModelStructure::RollOscillator { natural_freq_rad_s: wn, damping: z, control_gain: g }) =
+        result.structure
+    {
+        assert!((wn - wn_true).abs() / wn_true < 0.05, "ωn：{wn} vs {wn_true}");
+        assert!((z - z_true).abs() / z_true < 0.15, "ζ：{z} vs {z_true}");
+        assert!((g - g_true).abs() / g_true < 0.25, "G：{g} vs {g_true}");
+    } else {
+        panic!("结构应为 RollOscillator");
+    }
+}
+
+#[test]
+fn roll_oscillator_predict_matches_free_decay() {
+    let dt = 0.1f64;
+    let (wn_true, z_true, g_true) = (0.6f64, 0.12f64, 0.02f64);
+    // 用真值结构预测正弦激励响应，与真值生成对比。
+    let n = 400;
+    let input: Vec<f64> = (0..n).map(|i| 5.0 * (i as f64 * dt * 0.45).sin()).collect();
+    let predicted = predict(
+        &ModelStructure::RollOscillator {
+            natural_freq_rad_s: wn_true,
+            damping: z_true,
+            control_gain: g_true,
+        },
+        &input,
+        0.0,
+        dt,
+    );
+    let truth_full = simulate_oscillator(wn_true, z_true, g_true, &input, 0.0, dt);
+    let truth = &truth_full[..n];
+    assert_eq!(predicted.len(), truth.len() + 1);
+    let metrics = evaluate(&predicted[..truth.len()], truth).unwrap();
+    assert!(metrics.rmse < 0.15, "振子预测残差应小：{metrics:?}");
+}
+
+#[test]
+fn roll_identification_fails_on_flat_data() {
+    let flat = vec![3.0; 200];
+    let result = identify_roll_oscillator(&flat, 0.1, None);
+    assert!(!result.identified_ok, "平直数据无振荡结构");
+    assert!(result.failure_reason.is_some());
+}
+
+#[test]
+fn nomoto2_fails_on_no_excitation() {
+    let input = vec![5.0; 100];
+    let output = vec![1.0; 100];
+    let result = identify_nomoto2(&input, &output, 0.1);
+    assert!(!result.identified_ok);
+    assert!(result.failure_reason.is_some());
+}
