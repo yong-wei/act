@@ -362,8 +362,9 @@ impl DestroyerSixDofPlant {
         y.push(self.state.actuator_states.control_surface_angles_rad[0]);
         y.push(self.state.actuator_states.propeller_shaft_speed_rad_s[0]);
 
+        // 真实环境场临时取出（B1.4 后半段；子步循环共享）。
+        let mut env_state = self.environment_state.take();
         // 推进语义：本调用推进 dt 时长；内部按 ≤NOMINAL_DT 细分子步
-        // （P2 修复：dt 小于标称时不再超额推进整个标称步）。
         let substeps = ((dt / NOMINAL_DT).ceil() as usize).max(1);
         let substep_dt = dt / substeps as f64;
         let mut time = self.sim_time_s;
@@ -388,16 +389,17 @@ impl DestroyerSixDofPlant {
             let radiation_model = &self.radiation;
             let rudder_command_frozen = commands.rudder_command_rad;
             let motor_torque_frozen = self.motor_torque_actual_nm;
-            // 真实环境场优先（B1.4 后半段）；物理时钟推进阵风/波场。
-            if let Some(env) = self.environment_state.as_mut() {
-                env.advance_to(self.sim_time_s);
+            // 真实环境场物理时钟推进（P2-2：按子步时间；先释放可变借用）。
+            if let Some(env) = env_state.as_mut() {
+                env.advance_to(time);
             }
+            // 真实环境场优先（B1.4 后半段；env_state 在循环外）。
             let environment = if self.environment_enabled {
                 EnvironmentField::disturbance_equivalent()
             } else {
                 EnvironmentField::default()
             };
-            let real_env = self.environment_state.as_ref();
+            let real_env = env_state.as_ref();
             let wind_geo = self.wind_geometry.as_ref();
 
             let derivs = |t_sub: f64, y_slice: &[f64], dy: &mut [f64]| {
@@ -424,6 +426,7 @@ impl DestroyerSixDofPlant {
                 // 环境场：真实 EnvironmentState 优先（B1.4 后半段）；
                 // 未设置时回退 T 级等效。
                 let yaw_k = crate::sixdof::state::euler_from_quaternion(quat).yaw_rad;
+                let mut hull_nu = nu;
                 if let (Some(env), Some(geo)) = (real_env, wind_geo) {
                     // 体坐标流（NED→FRD，恒定均匀流零导数）。
                     let cur = env.current_body(yaw_k);
@@ -436,6 +439,8 @@ impl DestroyerSixDofPlant {
                         nu_current_body: [cur[0], cur[1], 0.0, 0.0, 0.0, 0.0],
                         nu_current_body_dot: [0.0; 6],
                     };
+                    // 相对流：hull 载荷用 ν−ν_c（恒定均匀流经相对流速唯一路径）。
+                    hull_nu = [nu[0] - cur[0], nu[1] - cur[1], nu[2], nu[3], nu[4], nu[5]];
                 } else if environment.enabled {
                     let wave = environment.wave_moment_amplitude_nm
                         * (2.0 * std::f64::consts::PI * t_sub / environment.wave_period_s).sin();
@@ -482,6 +487,7 @@ impl DestroyerSixDofPlant {
             time += substep_dt;
         }
         self.sim_time_s = self.sim_time_s + dt;
+        self.environment_state = env_state;
 
         self.state.position_ned = [y[0], y[1], y[2]];
         self.state.quaternion = normalize_quaternion([y[3], y[4], y[5], y[6]]);
