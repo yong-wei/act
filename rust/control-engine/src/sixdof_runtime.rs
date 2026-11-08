@@ -219,7 +219,7 @@ fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
     );
     let mask = factor_mask(request.disturbance_enabled);
     let initial_state = initial_state_digest(&request.state);
-    let seed = 0u64;
+    let seed = 20261106u64; // 训练种子（验证 run 由参数覆盖）
     let identity = format!(
         "{}|{}|{}|{}|{}|{}|{:?}|{}|{}|{}",
         SIX_DOF_MODEL_VERSION,
@@ -378,9 +378,29 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
     };
 
     // 固定 1/120 子步推进帧时长（合同：内核步长恒定）。
-    // P1-2：扰动开关透传物理（T 级等效环境场）；恢复物理时间
-    // （波浪相位随真实仿真时钟推进，不逐帧归零）。
-    plant.set_environment_enabled(request.disturbance_enabled);
+    // issue-2147 运行接线：在线 disturbance→E1 真实环境场（种子 JONSWAP
+    // 波浪 + Fujiwara 风载 + 恒定均匀流），替换旧 T 级等效开关。
+    // 风载几何（T 级 055 水上投影；参数包化后随 manifest 携带）。
+    let wind_geo = crate::sixdof::WindHullGeometry {
+        frontal_area_m2: 380.0,
+        lateral_area_m2: 1200.0,
+        length_m: 180.0,
+        pressure_center_body: [4.0, 0.0, -6.0],
+    };
+    // P1：种子从 manifest 冻结值统一读取（首帧=20261106 训练种子，
+    // 后续帧与 manifest 一致——不同分帧/不同帧长下环境演化一致）。
+    let frozen_seed = request
+        .state
+        .run_manifest
+        .as_ref()
+        .map(|m| m.seed)
+        .unwrap_or(20261106);
+    let environment = if request.disturbance_enabled {
+        crate::sixdof::EnvironmentState::e1(frozen_seed)
+    } else {
+        crate::sixdof::EnvironmentState::calm(frozen_seed)
+    };
+    plant.set_environment_state(environment, wind_geo);
     plant.restore_time_for_runtime(request.state.time_s);
     plant
         .step_with_dt(request.dt_s, commands)
