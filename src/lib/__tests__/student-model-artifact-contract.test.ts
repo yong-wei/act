@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  appliedRunEnvelopeSchema,
   comparisonSaveSchema,
   modelStructureSchema,
   studentModelSaveSchema,
@@ -184,5 +185,51 @@ describe('服务端规范序哈希', () => {
       lineageKey: 'heading@cruise15',
     } as Parameters<typeof studentModelContentHash>[0]);
     expect(h2).toBe(h1);
+  });
+});
+
+describe('appliedRunEnvelopeSchema（阶段 2a）', () => {
+  const base = {
+    experimentKey: 'exp-lng-berthing',
+    runRef: 'vessel-run-2026-0001',
+    stepKey: 'step-05',
+    courseVersion: 'lng-v1',
+    modelId: 'sixdof_lng',
+    modelVersion: 'sixdof-vessel-v1',
+    initialState: { u: 4, headingDeg: 0 },
+    appliedFactorMask: ['wave_v1', 'wind_w1'],
+    simulationStartMs: 0,
+  };
+
+  it('接受开启载荷（无结束字段）', () => {
+    const parsed = appliedRunEnvelopeSchema.safeParse(base);
+    expect(parsed.success).toBe(true);
+  });
+
+  it('接受收口载荷（结束/原因/质量/回执）', () => {
+    const parsed = appliedRunEnvelopeSchema.safeParse({
+      ...base,
+      simulationEndMs: 1180_000,
+      terminationReason: 'bow_crossed_stop_line',
+      quality: { channelCompleteness: 1 },
+      firstSampleReceipt: 'sha256:abc',
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('拒绝非法 seed（非十进制/超长）与负毫秒', () => {
+    expect(appliedRunEnvelopeSchema.safeParse({ ...base, seed: '12x3' }).success).toBe(false);
+    expect(appliedRunEnvelopeSchema.safeParse({ ...base, seed: '-5' }).success).toBe(false);
+    expect(appliedRunEnvelopeSchema.safeParse({ ...base, simulationStartMs: -1 }).success).toBe(false);
+  });
+
+  it('拒绝结束早于开始与非整数毫秒', () => {
+    expect(appliedRunEnvelopeSchema.safeParse({ ...base, simulationEndMs: -5 }).success).toBe(false);
+    expect(appliedRunEnvelopeSchema.safeParse({ ...base, simulationStartMs: 1.5 }).success).toBe(false);
+  });
+
+  it('种子接受合法十进制串', () => {
+    const parsed = appliedRunEnvelopeSchema.safeParse({ ...base, seed: '20261106', substreamIds: ['wave', 'wind'] });
+    expect(parsed.success).toBe(true);
   });
 });

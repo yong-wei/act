@@ -13,6 +13,16 @@
 内存——刷新即失，无法支撑「先冻结模型再看验证结果」「保留较差尝试」的
 教学真实性要求。
 
+## What Changes（阶段 2a：生效运行信封）
+
+5. **Prisma 模型 `AppliedRunEnvelope`**：PhysicalRun 必存字段的生效态
+   信封（experimentKey/stepKey/courseVersion/modelId/modelVersion/
+   parameterBundleHash/environmentVersion/sensorVersion/seed+substreamIds/
+   initialState/appliedFactorMask/controllerArtifactHash/simulationStart/
+   End/terminationReason/quality + firstSampleReceipt 首采样回执哈希）；
+   runRef 唯一、upsert 开启/收口语义。编辑态参数不等于生效配置——
+   信封由首采样回执绑定实际运行。
+
 ## What Changes（阶段 1）
 
 1. **Prisma 模型** `StudentModelArtifact` + `ComparisonArtifact`
@@ -38,7 +48,8 @@
 
 ## Non-Goals（后续阶段）
 
-- PhysicalRun 信封字段扩展与 20Hz 主通道分块（阶段 2）。
+- 20Hz 主通道采样分块与高频安全指标窗口（阶段 2b；信封先行）。
+- 客户端运行时接线（随 per-vessel WASM 迁移接入，本阶段交付服务端契约）。
 - Attempt/StepSubmission 与首/最近/最佳/选定尝试（阶段 3）。
 - 最终报告六部分装配（阶段 4）；教师复核工作台（阶段 5）。
 - 曲线高频分块存储与采样语义标注（阶段 2）。

@@ -577,6 +577,7 @@ model User {
   virtualSimulationReports  VirtualSimulationReport[]
   studentModelArtifacts     StudentModelArtifact[]
   comparisonArtifacts       ComparisonArtifact[]
+  appliedRunEnvelopes       AppliedRunEnvelope[]
   ethicalLogs               EthicalLog[]
   controlOdysseyAiHistories ControlOdysseyAiHistory[]
 
@@ -5280,6 +5281,40 @@ model ComparisonArtifact {
 
   @@index([userId, experimentKey, createdAt])
   @@index([studentModelId])
+}
+
+// 生效运行信封（issue-2152 记录类型 A 的生效配置部分）：编辑态参数不
+// 等于生效配置——信封由 firstSampleReceipt（首采样回执哈希）绑定实际
+// 运行；runRef 唯一，开启/收口为 upsert 语义。
+model AppliedRunEnvelope {
+  id                     String   @id @default(cuid())
+  userId                 String
+  experimentKey          String
+  runRef                 String   @unique
+  stepKey                String?
+  courseVersion          String
+  modelId                String
+  modelVersion           String
+  parameterBundleHash    String?
+  environmentVersion     String?
+  sensorVersion          String?
+  // 种子按 1-20 位十进制字符串存储（u64 全域无损；BIGINT 上限 2^63-1 不够）。
+  seed                   String?
+  substreamIds           Json?
+  initialState           Json
+  appliedFactorMask      Json // 实际生效因素开关（回执确认后的）
+  controllerArtifactHash String?
+  simulationStartMs      BigInt
+  simulationEndMs        BigInt?
+  terminationReason      String?
+  quality                Json
+  firstSampleReceipt     String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, experimentKey, createdAt])
 }
 
 // ========== 控灵AI助手会话模型 ==========
