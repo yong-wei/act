@@ -1771,6 +1771,9 @@ pub fn compute_virtual_simulation_step_json(request_json: &str) -> Result<String
         .unwrap_or_default()
     {
         // issue-2153-p1 A2.1：055 分发改派六自由度 TruthPlant（hifi 3DOF 路径退役）。
+        "sixdof_vessel" => {
+            crate::sixdof::vessel_runtime::compute_vessel_sixdof_step_json(request_json)
+        }
         "destroyer_hifi" => {
             crate::sixdof_runtime::compute_destroyer_sixdof_step_json(request_json)
         }
