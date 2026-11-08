@@ -91,7 +91,7 @@ impl EnvironmentState {
                     from_deg: wind_from_deg,
                     gust_ned: [0.0, 0.0],
                 },
-                wind_force_enabled: switches.wind_force_enabled,
+                wind_force_enabled: true, // 开关由 EnvironmentSwitches 统一控制
             },
             gust: GustProcess::new(seed, gust_sigma_mps, 10.0),
             current_ned: [
@@ -121,8 +121,12 @@ impl EnvironmentState {
         self.wave.first_order_loads(t, coefficients)
     }
 
-    /// 风载（消融开关语义已在 WindEnvironment 内部处理）。
+    /// 风载：以统一 EnvironmentSwitches 为准（调用方改 switches 即时生效，
+    /// 不依赖 WindEnvironment 内部副本——消融开关单一真源）。
     pub fn wind_loads(&self, yaw_rad: f64, nu_body: [f64; 6], geo: &WindHullGeometry) -> [f64; 6] {
+        if !self.switches.wind_force_enabled {
+            return [0.0; 6];
+        }
         self.wind.loads(yaw_rad, nu_body, geo)
     }
 

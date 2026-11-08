@@ -128,3 +128,21 @@ fn custom_condition_construction() {
     assert!((env.current_ned[1] - 0.5).abs() < 1e-9);
     assert_eq!(env.wave.condition().hs_m, 1.5);
 }
+
+// ---------- PR #2177 review 修复回归 ----------
+
+#[test]
+fn unified_switch_controls_wind_without_touching_inner_copy() {
+    // P2：调用方只改 switches.wind_force_enabled，风载立即归零
+    // （不依赖 WindEnvironment 内部副本）。
+    let mut env = EnvironmentState::e1(SEED_TRAINING);
+    env.advance_to(10.0);
+    let before = env.wind_loads(0.0, [0.0; 6], &geo());
+    assert!(before[1].abs() > 1.0e3, "开启时风载显著：{}", before[1]);
+    env.switches.wind_force_enabled = false;
+    let after = env.wind_loads(0.0, [0.0; 6], &geo());
+    assert_eq!(after, [0.0; 6], "统一开关关闭=严格零（不改内部副本）");
+    env.switches.wind_force_enabled = true;
+    let restored = env.wind_loads(0.0, [0.0; 6], &geo());
+    assert!(restored[1].abs() > 1.0e3, "重开恢复");
+}
