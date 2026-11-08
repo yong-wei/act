@@ -661,8 +661,11 @@ pub fn predict_dp(
 /// 内的输入→横移响应；跨模式混合数据不是单一 LTI——「跨模式单一 LTI
 /// 不适用」是合法教学结论，由调用层呈现，不在此强行拟合。
 ///
-/// 策略：一阶（Nomoto1）与二阶（Nomoto2）候选都拟合，取残差 RMS 较小
-/// 者；两者都失败时返回合并失败原因。
+/// 策略：一阶（Nomoto1）与二阶（Nomoto2）候选都拟合，再以**同一口径**
+/// 重算两者残差——同初值（output[0]）、同时间窗、同自由推进（predict，
+/// 不读实测历史）的独立预测 RMSE——取较小者；两者都失败时返回合并
+/// 失败原因。不用各辨识器内部残差直接比较（一阶为自由推进残差、二阶
+/// 为 ARX 一步预测残差，口径不同会误选）。
 pub fn identify_dredge_channel(
     input: &[f64],
     output: &[f64],
@@ -683,10 +686,29 @@ pub fn identify_dredge_channel(
         (true, false) => first,
         (false, true) => second,
         (true, true) => {
-            if second.residual_rms < first.residual_rms {
-                second
-            } else {
-                first
+            // 统一口径：同初值自由推进的独立预测 RMSE。
+            let free_run_rmse = |s: &ModelStructure| -> Option<f64> {
+                let predicted = predict(s, input, output[0], dt);
+                evaluate(&predicted[..output.len()], output).map(|m| m.rmse)
+            };
+            let rmse1 = first
+                .structure
+                .as_ref()
+                .and_then(free_run_rmse);
+            let rmse2 = second
+                .structure
+                .as_ref()
+                .and_then(free_run_rmse);
+            match (rmse1, rmse2) {
+                (Some(r1), Some(r2)) => {
+                    if r2 < r1 {
+                        IdentificationResult { residual_rms: r2, ..second }
+                    } else {
+                        IdentificationResult { residual_rms: r1, ..first }
+                    }
+                }
+                // 自由推进失败（数值异常）时保守退回一阶。
+                _ => first,
             }
         }
     }

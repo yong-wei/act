@@ -649,3 +649,45 @@ fn dredge_channel_picks_lower_residual_structure() {
     assert!(!result3.identified_ok);
     assert!(result3.failure_reason.is_some());
 }
+
+#[test]
+fn dredge_channel_selection_uses_unified_free_run_residual() {
+    // Review 场景：二阶真值（T2 在边界 0.2s）叠加 0.02·sin(0.1k) 扰动。
+    // 二阶辨识参数被扰动带偏（T2≈1.3 vs 0.2），其自由推进 RMS 反而高于
+    // 一阶最优拟合——旧口径按不可比的内部残差误选二阶；统一自由推进
+    // 口径应诚实选出一阶（评审探针：一阶 0.01785 < 二阶 0.02890）。
+    let dt = 0.1f64;
+    let (k_true, t1_true, t2_true) = (0.08f64, 5.0f64, 0.2f64);
+    let n = 800;
+    let input: Vec<f64> = (0..n)
+        .map(|i| match i / 80 {
+            0 | 2 => 6.0,
+            1 | 3 => 0.0,
+            _ => 9.0,
+        })
+        .collect();
+    let clean = simulate_second_order(k_true, t1_true, t2_true, &input, 0.0, dt);
+    let output: Vec<f64> = clean[..n]
+        .iter()
+        .enumerate()
+        .map(|(k, v)| v + 0.02 * (0.1 * k as f64).sin())
+        .collect();
+
+    let result = identify_dredge_channel(&input, &output, dt);
+    assert!(result.identified_ok);
+    assert!(
+        matches!(result.structure, Some(ModelStructure::Nomoto1 { .. })),
+        "扰动下二阶辨识失配，自由推进口径应诚实选一阶"
+    );
+    // 报告残差=自由推进口径（与选择判据一致）。
+    if let Some(s) = &result.structure {
+        let predicted = predict(s, &input, output[0], dt);
+        let m = evaluate(&predicted[..n], &output).unwrap();
+        assert!(
+            (result.residual_rms - m.rmse).abs() < 1e-12,
+            "残差应为自由推进 RMSE：{} vs {}",
+            result.residual_rms,
+            m.rmse
+        );
+    }
+}
