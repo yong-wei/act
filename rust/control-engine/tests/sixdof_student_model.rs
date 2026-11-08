@@ -379,7 +379,7 @@ fn roll_oscillator_identification_recovers_frequency_and_damping() {
     {
         assert!((wn - wn_true).abs() / wn_true < 0.05, "ωn：{wn} vs {wn_true}");
         assert!((z - z_true).abs() / z_true < 0.15, "ζ：{z} vs {z_true}");
-        assert!((g - g_true).abs() / g_true < 0.25, "G：{g} vs {g_true}");
+        assert!((g - g_true).abs() / g_true < 0.10, "G：{g} vs {g_true}");
     } else {
         panic!("结构应为 RollOscillator");
     }
@@ -424,4 +424,65 @@ fn nomoto2_fails_on_no_excitation() {
     let result = identify_nomoto2(&input, &output, 0.1);
     assert!(!result.identified_ok);
     assert!(result.failure_reason.is_some());
+}
+
+#[test]
+fn roll_gain_fit_survives_alternating_input() {
+    // Review 场景：逐点交替 0/5 激励下中心差分差一拍会低估 G≈50%；
+    // 叠加拟合按 ZOH 时序应精确恢复。
+    let dt = 0.1f64;
+    let (wn_true, z_true, g_true) = (0.6f64, 0.12f64, 0.02f64);
+    let n2 = 600;
+    let e_in: Vec<f64> = (0..n2).map(|i| if i % 2 == 0 { 5.0 } else { 0.0 }).collect();
+    let e_out_full = simulate_oscillator(wn_true, z_true, g_true, &e_in, 0.0, dt);
+    let e_out = &e_out_full[..n2];
+    // 自由衰减段。
+    let zero_in = vec![0.0; 1200];
+    let free_full = simulate_oscillator(wn_true, z_true, 0.0, &zero_in, 8.0, dt);
+    let free = &free_full[..1200];
+
+    let result = identify_roll_oscillator(free, dt, Some((&e_in, e_out)));
+    assert!(result.identified_ok, "交替激励应辨识成功：{:?}", result.failure_reason);
+    if let Some(ModelStructure::RollOscillator { control_gain: g, .. }) = result.structure {
+        assert!(
+            (g - g_true).abs() / g_true < 0.05,
+            "交替输入下 G 应精确恢复：{g} vs {g_true}"
+        );
+    }
+}
+
+#[test]
+fn roll_identification_rejects_unusable_excited_segment() {
+    let dt = 0.1f64;
+    let (wn_true, z_true) = (0.6f64, 0.12f64);
+    let zero_in = vec![0.0; 1200];
+    let free_full = simulate_oscillator(wn_true, z_true, 0.0, &zero_in, 8.0, dt);
+    let free = &free_full[..1200];
+
+    // 全零激励输入。
+    let flat_in = vec![3.0; 200];
+    let flat_out = vec![0.0; 200];
+    let r = identify_roll_oscillator(free, dt, Some((&flat_in, &flat_out)));
+    assert!(!r.identified_ok, "恒定激励输入应显式失败");
+    assert!(r.failure_reason.is_some());
+
+    // 含 NaN 激励段。
+    let mut nan_in = vec![0.0; 200];
+    nan_in[10] = f64::NAN;
+    let nan_out = vec![0.0; 200];
+    let r = identify_roll_oscillator(free, dt, Some((&nan_in, &nan_out)));
+    assert!(!r.identified_ok, "NaN 激励段应显式失败");
+
+    // 长度不匹配。
+    let short_in = vec![1.0; 50];
+    let long_out = vec![0.0; 60];
+    let r = identify_roll_oscillator(free, dt, Some((&short_in, &long_out)));
+    assert!(!r.identified_ok, "长度不匹配应显式失败");
+
+    // None（有意省略）仍成功，G=0。
+    let r = identify_roll_oscillator(free, dt, None);
+    assert!(r.identified_ok, "省略激励段应保留自由衰减结构");
+    if let Some(ModelStructure::RollOscillator { control_gain: g, .. }) = r.structure {
+        assert_eq!(g, 0.0);
+    }
 }

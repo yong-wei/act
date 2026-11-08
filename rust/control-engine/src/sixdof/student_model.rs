@@ -388,6 +388,39 @@ pub fn identify_nomoto2(
     }
 }
 
+/// 横摇振子响应仿真（RK4 dt/8 子步；采样约定：out[k] 先于 input[k] 施用
+/// 记录，out[0]=φ0）。identify 控制增益叠加拟合与 predict 共用同一动力学。
+fn roll_oscillator_response(
+    wn: f64,
+    z: f64,
+    g: f64,
+    input: &[f64],
+    phi0: f64,
+    dt: f64,
+) -> Vec<f64> {
+    let mut out = Vec::with_capacity(input.len());
+    let (mut phi, mut phi_d) = (phi0, 0.0);
+    out.push(phi);
+    for &u in input {
+        let accel = |p: f64, pd: f64| -wn * wn * p - 2.0 * z * wn * pd + g * u;
+        let (h, steps) = (dt / 8.0, 8);
+        for _ in 0..steps {
+            let k1y = phi_d;
+            let k1v = accel(phi, phi_d);
+            let k2y = phi_d + 0.5 * h * k1v;
+            let k2v = accel(phi + 0.5 * h * k1y, phi_d + 0.5 * h * k1v);
+            let k3y = phi_d + 0.5 * h * k2v;
+            let k3v = accel(phi + 0.5 * h * k2y, phi_d + 0.5 * h * k2v);
+            let k4y = phi_d + h * k3v;
+            let k4v = accel(phi + h * k3y, phi_d + h * k3v);
+            phi += h / 6.0 * (k1y + 2.0 * k2y + 2.0 * k3y + k4y);
+            phi_d += h / 6.0 * (k1v + 2.0 * k2v + 2.0 * k3v + k4v);
+        }
+        out.push(phi);
+    }
+    out
+}
+
 /// 4×4 线性方程组求解（部分主元高斯消去）；奇异返回 None。
 fn solve_linear_4(a: &[[f64; 4]; 4], b: &[f64; 4]) -> Option<[f64; 4]> {
     let mut m = *a;
@@ -503,30 +536,53 @@ pub fn identify_roll_oscillator(
         return fail(&format!("阻尼比越界：{damping}"));
     }
 
-    // 3) 控制增益：φ̈ + ωn²φ + 2ζωn·φ̇ = G·u → 单参数最小二乘。
-    // 未提供激励段或激励退化时 G 保持 0（自由衰减结构仍有效）。
-    let mut control_gain = 0.0f64;
-    if let Some((e_in, e_out)) = excited {
-        if e_in.len() == e_out.len() && e_in.len() > 10 {
-            let n = e_out.len();
-            let d1 = |k: usize| (e_out[k + 1] - e_out[k - 1]) / (2.0 * dt);
-            let d2 = |k: usize| (e_out[k + 1] - 2.0 * e_out[k] + e_out[k - 1]) / (dt * dt);
+    // 3) 控制增益 G：线性 ODE 叠加原理 + ZOH 时序仿真拟合。
+    // φ_G = φ(G=0) + G·φ(G=1)（输入通道线性可叠加），对实测响应做
+    // 单参数最小二乘 → G 精确反映先记录输出、再施加输入的保持时序，
+    // 不受中心差分跨保持区间的错位影响（review 修订）。
+    // 未提供激励段（None）时 G=0（自由衰减结构仍有效）；提供了但
+    // 不可辨识的数据（长度不匹配/非有限/样本不足/输入零激励）显式失败。
+    let control_gain = match excited {
+        None => 0.0,
+        Some((e_in, e_out)) => {
+            if e_in.len() != e_out.len() {
+                return fail("激励段输入/响应长度不匹配");
+            }
+            if e_in.len() <= 10 {
+                return fail("激励段样本不足（需>10）");
+            }
+            if e_in.iter().chain(e_out.iter()).any(|v| !v.is_finite()) {
+                return fail("激励段含非有限数值");
+            }
+            let input_mean: f64 = e_in.iter().sum::<f64>() / e_in.len() as f64;
+            let input_var: f64 = e_in
+                .iter()
+                .map(|x| (x - input_mean).powi(2))
+                .sum::<f64>()
+                / e_in.len() as f64;
+            if input_var < 1e-12 {
+                return fail("激励段输入激励不足（方差≈0）");
+            }
+            // 仿真基线：G=0 与 G=1（同一采样约定：先记录 φ[k] 再施加 u[k]）。
+            let phi0 = roll_oscillator_response(natural_freq, damping, 0.0, e_in, e_out[0], dt);
+            let phi1 = roll_oscillator_response(natural_freq, damping, 1.0, e_in, e_out[0], dt);
             let mut num = 0.0;
             let mut den = 0.0;
-            for k in 1..n - 1 {
-                let lhs = d2(k) + natural_freq * natural_freq * e_out[k]
-                    + 2.0 * damping * natural_freq * d1(k);
-                num += lhs * e_in[k];
-                den += e_in[k] * e_in[k];
+            for k in 0..e_out.len() {
+                num += (e_out[k] - phi0[k]) * phi1[k];
+                den += phi1[k] * phi1[k];
             }
-            if den > 1e-12 {
-                let g = num / den;
-                if g.is_finite() {
-                    control_gain = g;
-                }
+            // φ1 全零 = 输入通道未激起任何响应（激励与振子解耦）。
+            if den < 1e-12 {
+                return fail("激励段未能激起横摇响应（增益不可辨识）");
             }
+            let g = num / den;
+            if !g.is_finite() {
+                return fail("控制增益非有限");
+            }
+            g
         }
-    }
+    };
 
     IdentificationResult {
         structure: Some(ModelStructure::RollOscillator {
@@ -661,27 +717,8 @@ pub fn predict(structure: &ModelStructure, input: &[f64], y0: f64, dt: f64) -> V
             }
         }
         ModelStructure::RollOscillator { natural_freq_rad_s: wn, damping: z, control_gain: g } => {
-            // φ̈ = −ωn²·φ − 2ζωn·φ̇ + G·u；RK4 子步推进（dt/8）。
-            out.push(y0);
-            let (mut phi, mut phi_d) = (y0, 0.0);
-            for &u in input {
-                let accel =
-                    |p: f64, pd: f64| -wn * wn * p - 2.0 * z * wn * pd + g * u;
-                let (h, steps) = (dt / 8.0, 8);
-                for _ in 0..steps {
-                    let k1y = phi_d;
-                    let k1v = accel(phi, phi_d);
-                    let k2y = phi_d + 0.5 * h * k1v;
-                    let k2v = accel(phi + 0.5 * h * k1y, phi_d + 0.5 * h * k1v);
-                    let k3y = phi_d + 0.5 * h * k2v;
-                    let k3v = accel(phi + 0.5 * h * k2y, phi_d + 0.5 * h * k2v);
-                    let k4y = phi_d + h * k3v;
-                    let k4v = accel(phi + h * k3y, phi_d + h * k3v);
-                    phi += h / 6.0 * (k1y + 2.0 * k2y + 2.0 * k3y + k4y);
-                    phi_d += h / 6.0 * (k1v + 2.0 * k2v + 2.0 * k3v + k4v);
-                }
-                out.push(phi);
-            }
+            // φ̈ = −ωn²·φ − 2ζωn·φ̇ + G·u；与辨识增益拟合共用仿真。
+            return roll_oscillator_response(*wn, *z, *g, input, y0, dt);
         }
     }
     out
