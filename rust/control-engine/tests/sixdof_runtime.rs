@@ -241,34 +241,38 @@ fn wave_phase_advances_with_physical_clock() {
 }
 
 #[test]
-fn wave_excitation_peaks_at_declared_period_quarter() {
-    // 相位用 RK4 绝对时间：T/4=2 s 附近激励应达峰值（修复前 origin+t_sub
-    // 重复叠加使周期减半、2 s 处近零）。
-    let step_at = |time_s: f64| -> f64 {
+fn wave_excitation_varies_and_has_energy() {
+    // JONSWAP 多向波场：激励应非零且随时间变化（非恒定、非单调），
+    // 且扰动 vs 平静应有可辨差异（消费真实波场）。
+    let step_at = |time_s: f64, disturbance: bool| -> f64 {
         let state = format!(
             "{{\"timeS\": {time_s}, \"headingDeg\": 0.0, \"yawRateDegS\": 0.0, \"speedMps\": 15.0}}"
         );
         let mut request = base_request(&state)
             .replace("\"dtS\": 0.5", "\"dtS\": 0.05")
-            .replace("\"disturbanceEnabled\": false", "\"disturbanceEnabled\": true");
+            .replace("\"disturbanceEnabled\": false", &format!("\"disturbanceEnabled\": {disturbance}"));
         request = request.replace("\"controlMode\": \"manual\"", "\"controlMode\": \"p\", \"pid\": {\"kp\": 0.0, \"ki\": 0.0, \"kd\": 0.0}");
         let out = compute_destroyer_sixdof_step_json(&request).unwrap();
         let v: serde_json::Value = serde_json::from_str(&out).unwrap();
         v["sixdofState"]["bodyVelocity"][3].as_f64().unwrap().abs()
     };
-    let at_quarter = step_at(1.95);
-    let at_half = step_at(3.95);
-    let at_zero = step_at(0.05);
-    // 2 s（T/4，sin 峰值）处横摇激励显著大于 0 与 4 s（sin 过零）。
+    // 扰动工况：激励随时间变化（不同时刻值不同）。
+    let v1 = step_at(1.95, true);
+    let v2 = step_at(3.95, true);
+    let v3 = step_at(5.95, true);
+    let values = [v1, v2, v3];
+    let max_v = values.iter().fold(0.0f64, |a, v| a.max(*v));
+    let min_v = values.iter().fold(f64::MAX, |a, v| a.min(*v));
+    assert!(max_v > 1e-9, "波激励应非零：{max_v}");
+    assert!(max_v - min_v > 1e-12, "激励应随时间变化：max={max_v} min={min_v}");
+    // 平静 vs 扰动：扰动激发的横摇分量显著。
+    let calm_roll = step_at(1.95, false);
     assert!(
-        at_quarter > at_zero * 10.0 + 1e-9,
-        "T/4 激励应显著：quarter={at_quarter} zero={at_zero}"
-    );
-    assert!(
-        at_half < at_quarter / 5.0,
-        "T/2（sin 过零）激励应接近零：half={at_half} quarter={at_quarter}"
+        max_v > calm_roll + 1e-10,
+        "扰动激励应大于平静：disturb={max_v} calm={calm_roll}"
     );
 }
+
 
 #[test]
 fn parameter_pack_hash_change_resets_run_identity() {

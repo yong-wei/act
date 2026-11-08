@@ -378,9 +378,21 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
     };
 
     // 固定 1/120 子步推进帧时长（合同：内核步长恒定）。
-    // P1-2：扰动开关透传物理（T 级等效环境场）；恢复物理时间
-    // （波浪相位随真实仿真时钟推进，不逐帧归零）。
-    plant.set_environment_enabled(request.disturbance_enabled);
+    // issue-2147 运行接线：在线 disturbance→E1 真实环境场（种子 JONSWAP
+    // 波浪 + Fujiwara 风载 + 恒定均匀流），替换旧 T 级等效开关。
+    // 风载几何（T 级 055 水上投影；参数包化后随 manifest 携带）。
+    let wind_geo = crate::sixdof::WindHullGeometry {
+        frontal_area_m2: 380.0,
+        lateral_area_m2: 1200.0,
+        length_m: 180.0,
+        pressure_center_body: [4.0, 0.0, -6.0],
+    };
+    let environment = if request.disturbance_enabled {
+        crate::sixdof::EnvironmentState::e1(request.state.run_manifest.as_ref().map_or(0, |_| 20261106))
+    } else {
+        crate::sixdof::EnvironmentState::calm(20261106)
+    };
+    plant.set_environment_state(environment, wind_geo);
     plant.restore_time_for_runtime(request.state.time_s);
     plant
         .step_with_dt(request.dt_s, commands)
