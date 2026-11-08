@@ -93,6 +93,9 @@ pub struct DestroyerSixDofPlant {
     last_output: Option<DynamicsOutput>,
     sim_time_s: f64,
     environment_enabled: bool,
+    /// 真实环境场（B1.4 后半段：Some 时 derivs 消费真实波/风/流）。
+    environment_state: Option<crate::sixdof::environment_state::EnvironmentState>,
+    wind_geometry: Option<crate::sixdof::wind::WindHullGeometry>,
 }
 
 impl DestroyerSixDofPlant {
@@ -239,6 +242,8 @@ impl DestroyerSixDofPlant {
             last_output: None,
             sim_time_s: 0.0,
             environment_enabled: false,
+            environment_state: None,
+            wind_geometry: None,
         }
     }
 
@@ -317,6 +322,17 @@ impl DestroyerSixDofPlant {
         self.environment_enabled = enabled;
     }
 
+    /// 接入真实环境场（B1.4 后半段）。设置后 derivs 消费真实波/风/流
+    /// （种子 JONSWAP + Fujiwara 分量 + 恒定均匀流），替换 T 级等效。
+    pub fn set_environment_state(
+        &mut self,
+        env: crate::sixdof::environment_state::EnvironmentState,
+        wind_geometry: crate::sixdof::WindHullGeometry,
+    ) {
+        self.environment_state = Some(env);
+        self.wind_geometry = Some(wind_geometry);
+    }
+
     pub fn environment_enabled(&self) -> bool {
         self.environment_enabled
     }
@@ -372,11 +388,17 @@ impl DestroyerSixDofPlant {
             let radiation_model = &self.radiation;
             let rudder_command_frozen = commands.rudder_command_rad;
             let motor_torque_frozen = self.motor_torque_actual_nm;
+            // 真实环境场优先（B1.4 后半段）；物理时钟推进阵风/波场。
+            if let Some(env) = self.environment_state.as_mut() {
+                env.advance_to(self.sim_time_s);
+            }
             let environment = if self.environment_enabled {
                 EnvironmentField::disturbance_equivalent()
             } else {
                 EnvironmentField::default()
             };
+            let real_env = self.environment_state.as_ref();
+            let wind_geo = self.wind_geometry.as_ref();
 
             let derivs = |t_sub: f64, y_slice: &[f64], dy: &mut [f64]| {
                 let position = [y_slice[0], y_slice[1], y_slice[2]];
@@ -398,24 +420,30 @@ impl DestroyerSixDofPlant {
                 let (mut external, tau_radiation, delta_eta) = assemble_forces(
                     &mmg, &low, &prop, radiation_model, &config, &nu, &x_rad, rudder_state, omega_state, &quat, &position,
                 );
-                // 环境场（T 级等效）：恒流经 ν_r 进入（相对流语义，唯一路径），
-                // 波浪为独立一阶通道（不与 hull 叠加）。
-                if environment.enabled {
-                    let nu_r = [
-                        nu[0] - environment.current_body[0],
-                        nu[1] - environment.current_body[1],
-                        nu[2], nu[3], nu[4],
-                        nu[5] - environment.current_body[5],
-                    ];
-                    let (env_hull, _, _, _, _, _) = {
-                        let loads = blended_hull_loads(&mmg, &low, nu_r[0], nu_r[1], nu_r[5]);
-                        (loads[0], loads[1], loads[2], loads[3], loads[4], loads[5])
+                let mut current_field_local = CurrentFieldBody::default();
+                // 环境场：真实 EnvironmentState 优先（B1.4 后半段）；
+                // 未设置时回退 T 级等效。
+                let yaw_k = crate::sixdof::state::euler_from_quaternion(quat).yaw_rad;
+                if let (Some(env), Some(geo)) = (real_env, wind_geo) {
+                    // 体坐标流（NED→FRD，恒定均匀流零导数）。
+                    let cur = env.current_body(yaw_k);
+                    // 真实波浪一阶激励（种子 JONSWAP，同相位）。
+                    let wave_coeffs = [5.0e3, 2.0e3, 1.0e4, 5.0e7, 1.0e8, 2.0e7];
+                    external.tau_wave_1 = env.wave_loads(t_sub, wave_coeffs);
+                    // 真实风载（Fujiwara 分量，消融开关语义在 EnvironmentState）。
+                    external.tau_wind = env.wind_loads(yaw_k, nu, geo);
+                    current_field_local = CurrentFieldBody {
+                        nu_current_body: [cur[0], cur[1], 0.0, 0.0, 0.0, 0.0],
+                        nu_current_body_dot: [0.0; 6],
                     };
-                    let _ = env_hull;
-                    // 波浪一阶力矩（正弦慢漂，T 级幅值）。
+                } else if environment.enabled {
                     let wave = environment.wave_moment_amplitude_nm
                         * (2.0 * std::f64::consts::PI * t_sub / environment.wave_period_s).sin();
                     external.tau_wave_1 = [0.0, 0.0, 0.0, 0.15 * wave, 0.0, wave];
+                    current_field_local = CurrentFieldBody {
+                        nu_current_body: environment.current_body,
+                        nu_current_body_dot: [0.0; 6],
+                    };
                 }
 
                 let state = TruthState {
