@@ -132,3 +132,38 @@ export const comparisonSaveSchema = z.object({
 });
 
 export type ComparisonSaveInput = z.infer<typeof comparisonSaveSchema>;
+
+/** 种子：非负十进制数字符串（JSON 不携带 bigint）。 */
+const seedString = z
+  .string()
+  .regex(/^\d{1,20}$/, { message: '种子需为 1-20 位十进制数字' });
+
+/** 生效运行信封载荷（issue-2152 阶段 2a：开启或收口）。 */
+export const appliedRunEnvelopeSchema = z.object({
+  experimentKey: z.string().min(1).max(120),
+  runRef: z.string().min(1).max(200),
+  stepKey: z.string().min(1).max(160).nullable().optional(),
+  courseVersion: z.string().min(1).max(80),
+  modelId: z.string().min(1).max(120),
+  modelVersion: z.string().min(1).max(80),
+  parameterBundleHash: z.string().max(200).nullable().optional(),
+  environmentVersion: z.string().max(80).nullable().optional(),
+  sensorVersion: z.string().max(80).nullable().optional(),
+  seed: seedString.nullable().optional(),
+  substreamIds: z.array(z.string().min(1).max(80)).max(32).nullable().optional(),
+  initialState: z.record(z.union([finiteNumber, z.string(), z.boolean()])),
+  appliedFactorMask: z.array(z.string().min(1).max(60)).max(32),
+  controllerArtifactHash: z.string().length(64).nullable().optional(),
+  simulationStartMs: z.number().int().nonnegative(),
+  // 收口字段：结束毫秒、终止原因、质量、首采样回执（开启时可缺省）。
+  simulationEndMs: z.number().int().nonnegative().nullable().optional(),
+  terminationReason: z.string().max(200).nullable().optional(),
+  quality: z.record(z.union([finiteNumber, z.string(), z.boolean(), z.null()])).optional(),
+  firstSampleReceipt: z.string().max(200).nullable().optional(),
+}).refine(
+  (e) => e.simulationEndMs === undefined || e.simulationEndMs === null || e.simulationEndMs >= e.simulationStartMs,
+  { message: '结束时刻不得早于开始时刻', path: ['simulationEndMs'] },
+);
+
+export type AppliedRunEnvelopeInput = z.infer<typeof appliedRunEnvelopeSchema>;
+
