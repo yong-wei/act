@@ -11,7 +11,7 @@ CREATE TABLE "AppliedRunEnvelope" (
     "parameterBundleHash" TEXT,
     "environmentVersion" TEXT,
     "sensorVersion" TEXT,
-    "seed" BIGINT,
+    "seed" TEXT,
     "substreamIds" JSONB,
     "initialState" JSONB NOT NULL,
     "appliedFactorMask" JSONB NOT NULL,
