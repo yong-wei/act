@@ -17,6 +17,9 @@ use serde::{Deserialize, Serialize};
 use crate::sixdof::destroyer_plant::{
     DestroyerCommands, DestroyerSixDofConfig, DestroyerSixDofPlant,
 };
+use crate::sixdof::control_law::{
+    DEFAULT_RUDDER_LIMIT_DEG, HeadingControlMode, HeadingPidGains, command_rudder_deg,
+};
 use crate::sixdof::state::TruthState;
 
 const DEG: f64 = std::f64::consts::PI / 180.0;
@@ -24,25 +27,9 @@ pub const SIX_DOF_MODEL_VERSION: &str = "sixdof-destroyer-v1";
 pub const SIX_DOF_ENVIRONMENT_VERSION: &str = "calm-v0";
 pub const SIX_DOF_SENSOR_VERSION: &str = "truth-v0";
 
-#[derive(Clone, Copy, Debug, Default, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct RuntimePidGains {
-    #[serde(default)]
-    kp: f64,
-    #[serde(default)]
-    ki: f64,
-    #[serde(default)]
-    kd: f64,
-}
-
-#[derive(Clone, Copy, Debug, Deserialize)]
-#[serde(rename_all = "lowercase")]
-enum RuntimeControlMode {
-    Manual,
-    P,
-    Pd,
-    Pid,
-}
+/// PID 增益与控制模式直接复用共享控制律类型（serde 契约不变）。
+type RuntimePidGains = HeadingPidGains;
+type RuntimeControlMode = HeadingControlMode;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -146,18 +133,6 @@ struct RuntimeResult {
     sixdof_state: RuntimeSixDofState,
     run_manifest: RuntimeRunManifest,
     manifest_reset: bool,
-}
-
-/// 最短圆周角归一化（P2：跨 ±180° 边界的小误差不得放大成 360°）。
-fn wrap_180(deg: f64) -> f64 {
-    let mut value = deg;
-    while value > 180.0 {
-        value -= 360.0;
-    }
-    while value < -180.0 {
-        value += 360.0;
-    }
-    value
 }
 
 fn fnv_u64(bytes: &[u8]) -> u64 {
@@ -311,45 +286,22 @@ fn rebuild_plant(state: &RuntimeState) -> DestroyerSixDofPlant {
     }
 }
 
-/// PID/PD/P 舵令（deg，含积分/微分状态推进），复刻 hifi 控制律语义。
-fn command_rudder_deg(
+/// PID/PD/P 舵令（deg，含积分/微分状态推进）——共享控制律
+/// （sixdof/control_law，与 sixdof_vessel 同一实现）。
+fn command_rudder_for_request(
     request: &RuntimeRequest,
-    dt_s: f64,
-    integral_in: f64,
-    prev_error_in: f64,
-) -> (f64, f64, f64) {
-    match request.control_mode {
-        RuntimeControlMode::Manual => (request.manual_rudder_deg, 0.0, 0.0),
-        RuntimeControlMode::P | RuntimeControlMode::Pd | RuntimeControlMode::Pid => {
-            let error_deg = wrap_180(request.target_heading_deg - request.state.heading_deg);
-            let integral = if matches!(request.control_mode, RuntimeControlMode::Pid) {
-                (integral_in + error_deg * dt_s).clamp(-80.0, 80.0)
-            } else {
-                0.0
-            };
-            let derivative = if dt_s > 1e-9 {
-                (error_deg - prev_error_in) / dt_s
-            } else {
-                0.0
-            };
-            let ki = if matches!(request.control_mode, RuntimeControlMode::Pid) {
-                request.pid.ki
-            } else {
-                0.0
-            };
-            let kd = if matches!(
-                request.control_mode,
-                RuntimeControlMode::Pd | RuntimeControlMode::Pid
-            ) {
-                request.pid.kd
-            } else {
-                0.0
-            };
-            let rudder = (request.pid.kp * error_deg + ki * integral + kd * derivative)
-                .clamp(-35.0, 35.0);
-            (rudder, integral, error_deg)
-        }
-    }
+) -> crate::sixdof::control_law::HeadingControlOutput {
+    command_rudder_deg(
+        request.control_mode,
+        &request.pid,
+        request.target_heading_deg,
+        request.state.heading_deg,
+        request.manual_rudder_deg,
+        request.dt_s,
+        request.state.integral_deg_s,
+        request.state.prev_error_deg,
+        DEFAULT_RUDDER_LIMIT_DEG,
+    )
 }
 
 pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, String> {
@@ -365,12 +317,9 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
     };
 
     let mut plant = rebuild_plant(&request.state);
-    let (rudder_command_deg, integral, prev_error) = command_rudder_deg(
-        &request,
-        request.dt_s,
-        request.state.integral_deg_s,
-        request.state.prev_error_deg,
-    );
+    let control = command_rudder_for_request(&request);
+    let (rudder_command_deg, integral, prev_error) =
+        (control.rudder_deg, control.integral_deg_s, control.error_deg);
     let commands = DestroyerCommands {
         rudder_command_rad: rudder_command_deg * DEG,
         // 首版巡航平衡扭矩（参数包化后由 manifest 携带）。

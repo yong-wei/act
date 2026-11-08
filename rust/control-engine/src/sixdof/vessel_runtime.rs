@@ -9,6 +9,9 @@
 
 use serde::Deserialize;
 
+use crate::sixdof::control_law::{
+    HeadingControlMode, HeadingPidGains, command_rudder_deg,
+};
 use crate::sixdof::destroyer_plant::{
     DestroyerCommands, DestroyerSixDofConfig, DestroyerSixDofPlant,
 };
@@ -54,6 +57,9 @@ struct VesselState {
     time_s: f64,
     heading_deg: f64,
     speed_mps: f64,
+    /// 控制律往返状态（PID 积分 / 前值误差）。
+    integral_deg_s: f64,
+    prev_error_deg: f64,
     sixdof_state: Option<serde_json::Value>,
 }
 
@@ -64,7 +70,10 @@ struct VesselRequest {
     dt_s: f64,
     #[serde(default)]
     target_heading_deg: f64,
-    control_mode: String,
+    /// 控制模式（serde 小写：manual/p/pd/pid；与 destroyer_hifi 同一合同）。
+    control_mode: HeadingControlMode,
+    #[serde(default)]
+    pid: HeadingPidGains,
     #[serde(default)]
     manual_rudder_deg: f64,
     #[serde(default)]
@@ -87,6 +96,9 @@ struct VesselResult {
     speed_mps: f64,
     surge_mps: f64,
     sway_mps: f64,
+    /// 控制律状态往返（下帧作为 state.integralDegS/prevErrorDeg 传入）。
+    integral_deg_s: f64,
+    prev_error_deg: f64,
     sixdof_state: serde_json::Value,
     model_version: String,
 }
@@ -185,13 +197,20 @@ pub fn compute_vessel_sixdof_step_json(request_json: &str) -> Result<String, Str
         plant.restore_motor_torque_for_runtime(torque);
     }
 
-    // 控制律：manual 直通 / P-PD-PID 航向反馈。
-    let rudder_cmd = if request.control_mode == "manual" {
-        request.manual_rudder_deg
-    } else {
-        let error = request.target_heading_deg - request.state.heading_deg;
-        (error.clamp(-10.0, 10.0)).clamp(-35.0, 35.0)
-    };
+    // 控制律：与 destroyer_hifi 共享（control_law）——P/PD/PID 完整增益、
+    // wrap_180 最短圆周角、积分限幅与状态往返；舵限取 per-vessel 参数。
+    let control = command_rudder_deg(
+        request.control_mode,
+        &request.pid,
+        request.target_heading_deg,
+        request.state.heading_deg,
+        request.manual_rudder_deg,
+        request.dt_s,
+        request.state.integral_deg_s,
+        request.state.prev_error_deg,
+        config.max_rudder_deg,
+    );
+    let rudder_cmd = control.rudder_deg;
 
     let commands = DestroyerCommands {
         rudder_command_rad: rudder_cmd.to_radians(),
@@ -231,6 +250,8 @@ pub fn compute_vessel_sixdof_step_json(request_json: &str) -> Result<String, Str
         surge_mps: u,
         sway_mps: v,
         sixdof_state,
+        integral_deg_s: control.integral_deg_s,
+        prev_error_deg: control.error_deg,
         model_version: VESSEL_MODEL_VERSION.to_string(),
     };
 
