@@ -23,6 +23,14 @@
    runRef 唯一、upsert 开启/收口语义。编辑态参数不等于生效配置——
    信封由首采样回执绑定实际运行。
 
+## What Changes（阶段 3：步骤提交尝试）
+
+6. **Prisma 模型 `StepSubmissionAttempt`**：每步尝试只增不删
+   （attemptSeq 步内递增唯一；status 区分已交/已评/无效运行/模型
+   失配/未达目标）；关联 runRefs/studentModelIds/comparisonIds/
+   sketchRefs；selectedFinalAt 标记最终选定——计分选取不删除其他
+   尝试，保留较差记录即保留学习过程。
+
 ## What Changes（阶段 1）
 
 1. **Prisma 模型** `StudentModelArtifact` + `ComparisonArtifact`

@@ -167,3 +167,32 @@ export const appliedRunEnvelopeSchema = z.object({
 
 export type AppliedRunEnvelopeInput = z.infer<typeof appliedRunEnvelopeSchema>;
 
+/** 步骤提交尝试状态（issue-2152 §2.D：四类反馈分别记录，不全部叫失败）。 */
+export const attemptStatusSchema = z.enum([
+  'submitted',
+  'scored',
+  'invalid_run',
+  'model_mismatch',
+  'below_target',
+]);
+
+/** 步骤提交尝试载荷（阶段 3；只增不删）。 */
+export const stepSubmissionAttemptSchema = z.object({
+  experimentKey: z.string().min(1).max(120),
+  stepKey: z.string().min(1).max(160),
+  status: attemptStatusSchema,
+  runRefs: z.array(z.string().min(1).max(200)).min(1).max(32),
+  studentModelIds: z.array(z.string().min(1).max(64)).max(32).nullable().optional(),
+  comparisonIds: z.array(z.string().min(1).max(64)).max(32).nullable().optional(),
+  sketchRefs: z.array(z.string().min(1).max(200)).max(32).nullable().optional(),
+  explanation: z.string().max(8000).nullable().optional(),
+  scoringVersion: z.string().min(1).max(80),
+  scoreResult: z
+    .record(z.union([finiteNumber, z.string(), z.boolean(), z.null()]))
+    .nullable()
+    .optional(),
+});
+
+export type StepSubmissionAttemptInput = z.infer<typeof stepSubmissionAttemptSchema>;
+
+
