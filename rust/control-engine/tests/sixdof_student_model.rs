@@ -158,7 +158,8 @@ fn predict_nomoto1_matches_identified() {
         // 冻结模型，新激励（正弦）。
         let test_in: Vec<f64> = (0..200).map(|i| 5.0 * (i as f64 * 0.05).sin()).collect();
         let predicted = predict(&ModelStructure::Nomoto1 { k: ik, t_s: it }, &test_in, train_out[299], dt);
-        // 同一真值生成。
+        // predict 时序：predicted[0]=y0，predicted[k+1] 为 input[k] 作用后的响应。
+        // 真值同约定生成 → 对齐 predicted[1..] 与 truth。
         let mut truth = Vec::new();
         let mut y2 = train_out[299];
         let a2 = (-dt / t).exp();
@@ -167,7 +168,9 @@ fn predict_nomoto1_matches_identified() {
             y2 = a2 * y2 + b2 * u;
             truth.push(y2);
         }
-        let metrics = evaluate(&predicted, &truth).unwrap();
+        assert_eq!(predicted.len(), truth.len() + 1, "predict 应返回 y0+响应");
+        assert!((predicted[0] - train_out[299]).abs() < 1e-12, "首元素=初始值");
+        let metrics = evaluate(&predicted[1..], &truth).unwrap();
         assert!(metrics.rmse < 0.01, "冻结模型预测残差应小：{metrics:?}");
     }
 }

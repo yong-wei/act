@@ -74,6 +74,7 @@ pub struct EvaluationMetrics {
 
 impl EvaluationMetrics {
     /// FIT = 100*(1 − ‖y−ŷ‖/‖y−ȳ‖)。分母近零 → None（不适用，非 100）。
+    /// 残差与输入相关性（P2：真实计算，非固定零）。
     fn compute(predicted: &[f64], measured: &[f64]) -> Option<Self> {
         if predicted.len() != measured.len() || predicted.is_empty() {
             return None;
@@ -106,18 +107,25 @@ impl EvaluationMetrics {
             fit_percent: fit,
             residual_mean,
             residual_rms,
-            residual_input_correlation: 0.0,
+            residual_input_correlation: 0.0, // 由 evaluate_with_input 填充。
         })
     }
 }
 
 /// 阶跃超调（相对 Δy = yref − y0，支持负阶跃/非零初值；零幅值→None）。
+/// 有向判断：正向阶跃只算越过 yref 之上，负向只算低于 yref。
+/// 未越过目标（纯欠调）→ 0%（非误报为超调）。
 pub fn overshoot_percent(y_ref: f64, y0: f64, y_peak: f64) -> Option<f64> {
     let delta = y_ref - y0;
     if delta.abs() < f64::EPSILON {
         return None;
     }
-    let overshoot = (y_peak - y_ref).abs();
+    // 有向超出量：正阶跃 → max(peak − ref, 0)；负阶跃 → max(ref − peak, 0)。
+    let overshoot = if delta > 0.0 {
+        (y_peak - y_ref).max(0.0)
+    } else {
+        (y_ref - y_peak).max(0.0)
+    };
     Some(100.0 * overshoot / delta.abs())
 }
 
@@ -175,6 +183,15 @@ pub fn identify_nomoto1(
             failure_reason: Some("数据不足（需≥10 个样本）".into()),
         };
     }
+    // P2：非有限数值检查——NaN/Inf 输入或响应导致无效模型。
+    if input.iter().chain(output.iter()).any(|v| !v.is_finite()) {
+        return IdentificationResult {
+            structure: None,
+            residual_rms: f64::NAN,
+            identified_ok: false,
+            failure_reason: Some("输入/响应含非有限数值".into()),
+        };
+    }
     // 激励检查：输入方差为零 → 失败。
     let input_mean: f64 = input.iter().sum::<f64>() / input.len() as f64;
     let input_var: f64 =
@@ -188,27 +205,12 @@ pub fn identify_nomoto1(
         };
     }
 
-    // ARX(1) 手算参考：r[k+1] = a·r[k] + b·d[k] + c
-    // 最小二乘解（normal equations 3×3）。
+    // ARX(1)：r[k+1] = a·r[k] + b·d[k] + c，中心化回归消去 c。
     let n = input.len();
     let m = n - 1;
-    let mut s_rr = 0.0; let mut s_rd = 0.0; let mut s_r = 0.0;
-    let mut s_dr = 0.0; let mut s_dd = 0.0; let mut s_d = 0.0;
-    let mut s_rn = 0.0; let mut s_dn = 0.0; let mut s_1 = m as f64;
-
-    for k in 0..m {
-        let r = output[k];
-        let d = input[k];
-        let rn = output[k + 1];
-        s_rr += r * r;  s_rd += r * d;  s_r += r;
-        s_dr += d * r;   s_dd += d * d;  s_d += d;
-        s_rn += r * rn;  s_dn += d * rn;
-    }
-
-    // Normal equations: [s_rr s_rd s_r; s_dr s_dd s_d; s_r s_d s_1] [a;b;c] = [s_rn;s_dn;s_rn]
-    // For simplicity use centered regression (removes c).
-    let r_bar = s_r / s_1;
-    let d_bar = s_d / s_1;
+    let m_f = m as f64;
+    let r_bar: f64 = (0..m).map(|k| output[k]).sum::<f64>() / m_f;
+    let d_bar: f64 = (0..m).map(|k| input[k]).sum::<f64>() / m_f;
     let mut c_rr = 0.0; let mut c_rd = 0.0; let mut c_dr = 0.0; let mut c_dd = 0.0;
     let mut c_rrn = 0.0; let mut c_ddn = 0.0;
     for k in 0..m {
@@ -231,6 +233,15 @@ pub fn identify_nomoto1(
     let a = (c_rrn * c_dd - c_ddn * c_rd) / det;
     let b = (c_rr * c_ddn - c_rrn * c_dr) / det;
 
+    // P2：系数有限性检查。
+    if !a.is_finite() || !b.is_finite() {
+        return IdentificationResult {
+            structure: None,
+            residual_rms: f64::NAN,
+            identified_ok: false,
+            failure_reason: Some("辨识系数非有限".into()),
+        };
+    }
     // 约束检查：0 < a < 1（稳定一阶）。
     if a <= 0.0 || a >= 1.0 {
         return IdentificationResult {
@@ -244,7 +255,7 @@ pub fn identify_nomoto1(
     let k = b / (1.0 - a);
 
     // 约束边界检查。
-    if t_s < 0.2 || t_s > 2000.0 {
+    if !(0.2..=2000.0).contains(&t_s) {
         return IdentificationResult {
             structure: None,
             residual_rms: f64::NAN,
@@ -292,21 +303,19 @@ pub fn identify_fopdt(
         let shifted_out = &output[d..];
 
         let result = identify_nomoto1(shifted_in, shifted_out, dt);
-        if let Some(structure) = result.structure {
-            if let ModelStructure::Nomoto1 { k, t_s } = structure {
-                let delay = d as f64 * dt;
-                let candidate = (
-                    result.residual_rms,
-                    ModelStructure::Fopdt {
-                        k,
-                        t_s,
-                        delay_s: delay,
-                    },
-                    result.residual_rms,
-                );
-                if best.is_none() || candidate.0 < best.as_ref().unwrap().0 {
-                    best = Some(candidate);
-                }
+        if let Some(ModelStructure::Nomoto1 { k, t_s }) = result.structure {
+            let delay = d as f64 * dt;
+            let candidate = (
+                result.residual_rms,
+                ModelStructure::Fopdt {
+                    k,
+                    t_s,
+                    delay_s: delay,
+                },
+                result.residual_rms,
+            );
+            if best.is_none() || candidate.0 < best.as_ref().unwrap().0 {
+                best = Some(candidate);
             }
         }
     }
@@ -333,8 +342,11 @@ pub fn predict(structure: &ModelStructure, input: &[f64], y0: f64, dt: f64) -> V
     let mut out = Vec::with_capacity(input.len());
     match structure {
         ModelStructure::Nomoto1 { k, t_s } => {
+            // 与 identify 相同时序约定：y[k+1] = a·y[k] + b·u[k]。
+            // out[0] = y0（初始值），out[k+1] 由 input[k] 推进。
             let a = (-dt / t_s).exp();
             let b = k * (1.0 - a);
+            out.push(y0);
             let mut y = y0;
             for &u in input {
                 y = a * y + b * u;
@@ -345,8 +357,9 @@ pub fn predict(structure: &ModelStructure, input: &[f64], y0: f64, dt: f64) -> V
             let a = (-dt / t_s).exp();
             let b = k * (1.0 - a);
             let delay_steps = (*delay_s / dt).round() as usize;
+            out.push(y0);
             let mut y = y0;
-            for (i, &u) in input.iter().enumerate() {
+            for (i, _) in input.iter().enumerate() {
                 let u_delayed = if i >= delay_steps { input[i - delay_steps] } else { 0.0 };
                 y = a * y + b * u_delayed;
                 out.push(y);
@@ -365,6 +378,42 @@ pub fn predict(structure: &ModelStructure, input: &[f64], y0: f64, dt: f64) -> V
 /// 评价（预测 vs 测量）。
 pub fn evaluate(predicted: &[f64], measured: &[f64]) -> Option<EvaluationMetrics> {
     EvaluationMetrics::compute(predicted, measured)
+}
+
+/// 评价（含输入信号——计算残差与输入的皮尔逊相关）。
+pub fn evaluate_with_input(
+    predicted: &[f64],
+    measured: &[f64],
+    input: &[f64],
+) -> Option<EvaluationMetrics> {
+    let mut m = EvaluationMetrics::compute(predicted, measured)?;
+    if input.len() == measured.len() && input.len() > 1 {
+        let residual: Vec<f64> =
+            predicted.iter().zip(measured.iter()).map(|(p, y)| p - y).collect();
+        m.residual_input_correlation = pearson_correlation(&residual, input);
+    }
+    Some(m)
+}
+
+fn pearson_correlation(x: &[f64], y: &[f64]) -> f64 {
+    let n = x.len() as f64;
+    if n < 2.0 {
+        return 0.0;
+    }
+    let x_bar: f64 = x.iter().sum::<f64>() / n;
+    let y_bar: f64 = y.iter().sum::<f64>() / n;
+    let mut cov = 0.0;
+    let mut var_x = 0.0;
+    let mut var_y = 0.0;
+    for (xi, yi) in x.iter().zip(y.iter()) {
+        cov += (xi - x_bar) * (yi - y_bar);
+        var_x += (xi - x_bar).powi(2);
+        var_y += (yi - y_bar).powi(2);
+    }
+    if var_x < f64::EPSILON || var_y < f64::EPSILON {
+        return 0.0;
+    }
+    cov / (var_x * var_y).sqrt()
 }
 
 // ---------- 比较模式（§2 固定三种） ----------
