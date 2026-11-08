@@ -164,4 +164,25 @@ describe('服务端规范序哈希', () => {
     expect(h1).not.toBe(h2);
     expect(canonicalJson(-0)).toBe(canonicalJson(0));
   });
+
+  it('非内容字段不参与哈希（experimentKey/lineageKey 等附加属性）', () => {
+    const content = {
+      structure: { kind: 'nomoto1', k: 0.08, t_s: 25 },
+      ioContract: { input: 'rudder' },
+      operatingPoint: { speed: 15 },
+      identification: { ok: true },
+      trainingRuns: [],
+      validationRuns: [],
+      sampleDt: 0.2,
+    };
+    const h1 = studentModelContentHash(content);
+    // 模拟调用方传入完整保存载荷（附加 experimentKey/lineageKey）：
+    // 哈希必须与纯内容输入一致——内容身份不因归属字段改变。
+    const h2 = studentModelContentHash({
+      ...content,
+      experimentKey: 'exp-a',
+      lineageKey: 'heading@cruise15',
+    } as Parameters<typeof studentModelContentHash>[0]);
+    expect(h2).toBe(h1);
+  });
 });
