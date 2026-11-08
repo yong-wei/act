@@ -36,6 +36,10 @@ pub enum ModelStructure {
     Nomoto2 { k: f64, t1_s: f64, t2_s: f64 },
     Fopdt { k: f64, t_s: f64, delay_s: f64 },
     RollOscillator { natural_freq_rad_s: f64, damping: f64, control_gain: f64 },
+    /// DP 低频 3×3 模型（surge/sway/yaw 平面）：x[k+1]=A·x[k]+B·u[k]，
+    /// x=(x, y, ψ)、u=(Fx, Fy, N)（工作点附近线性化；ψ 需先 unwrap）。
+    /// a/b 为 3×3 行主序（dt 与辨识采样周期一致，见 StudentModel 工件）。
+    DpLowFreq3 { a: Vec<f64>, b: Vec<f64> },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -335,10 +339,16 @@ pub fn identify_nomoto2(
             atb[i] += phi[i] * target;
         }
     }
-    let Some(theta) = solve_linear_4(&ata, &atb) else {
+    let mut ata_flat = [0.0f64; 16];
+    for i in 0..4 {
+        for j in 0..4 {
+            ata_flat[i * 4 + j] = ata[i][j];
+        }
+    }
+    let Some(theta) = solve_linear_n(4, &ata_flat, &atb) else {
         return fail("正规方程病态（输入/状态共线）");
     };
-    let [a1, a2, b1, b2] = theta;
+    let [a1, a2, b1, b2] = [theta[0], theta[1], theta[2], theta[3]];
     if ![a1, a2, b1, b2].iter().all(|v| v.is_finite()) {
         return fail("辨识系数非有限");
     }
@@ -421,40 +431,287 @@ fn roll_oscillator_response(
     out
 }
 
-/// 4×4 线性方程组求解（部分主元高斯消去）；奇异返回 None。
-fn solve_linear_4(a: &[[f64; 4]; 4], b: &[f64; 4]) -> Option<[f64; 4]> {
-    let mut m = *a;
-    let mut rhs = *b;
-    for col in 0..4 {
-        // 部分主元。
+/// n×n 线性方程组求解（部分主元高斯消去）；奇异返回 None。
+/// DP 3×3 行回归（6 未知数）等复用。
+fn solve_linear_n(n: usize, a: &[f64], b: &[f64]) -> Option<Vec<f64>> {
+    let mut m = vec![0.0f64; n * n];
+    m.copy_from_slice(a);
+    let mut rhs = b.to_vec();
+    for col in 0..n {
         let mut pivot = col;
-        for row in col + 1..4 {
-            if m[row][col].abs() > m[pivot][col].abs() {
+        for row in col + 1..n {
+            if m[row * n + col].abs() > m[pivot * n + col].abs() {
                 pivot = row;
             }
         }
-        if m[pivot][col].abs() < 1e-12 {
+        if m[pivot * n + col].abs() < 1e-12 {
             return None;
         }
-        m.swap(col, pivot);
+        for j in 0..n {
+            m.swap(col * n + j, pivot * n + j);
+        }
         rhs.swap(col, pivot);
-        for row in col + 1..4 {
-            let factor = m[row][col] / m[col][col];
-            for j in col..4 {
-                m[row][j] -= factor * m[col][j];
+        for row in col + 1..n {
+            let factor = m[row * n + col] / m[col * n + col];
+            for j in col..n {
+                m[row * n + j] -= factor * m[col * n + j];
             }
             rhs[row] -= factor * rhs[col];
         }
     }
-    let mut x = [0.0f64; 4];
-    for row in (0..4).rev() {
+    let mut x = vec![0.0f64; n];
+    for row in (0..n).rev() {
         let mut acc = rhs[row];
-        for j in row + 1..4 {
-            acc -= m[row][j] * x[j];
+        for j in row + 1..n {
+            acc -= m[row * n + j] * x[j];
         }
-        x[row] = acc / m[row][row];
+        x[row] = acc / m[row * n + row];
     }
     Some(x)
+}
+
+// ---------- 辨识：DP 低频 3×3（§3 #981） ----------
+
+/// 辨识 DP 低频水平面模型：x[k+1] = A·x[k] + B·u[k]，
+/// x=(x, y, ψ)、u=(Fx, Fy, N)。逐行 6 参数最小二乘（含横向交叉项
+/// a12/a21 等）；三通道输入必须充分激励。
+///
+/// 采样约定同前：pos/heading[k] 先于 input[k] 施加记录；ψ 需 unwrap 到
+/// 工作点邻域（线性模型假设）。全 6DOF 波频动态不进入本模型（真实后台
+/// 差异，见 issue 合同——不拿一个 T 代替三个通道）。
+pub fn identify_dp_low_freq(
+    input_x: &[f64],
+    input_y: &[f64],
+    input_n: &[f64],
+    pos_x: &[f64],
+    pos_y: &[f64],
+    heading: &[f64],
+    dt: f64,
+) -> IdentificationResult {
+    // 离散模型结构本身无时间量纲：dt 由工件采样周期字段承载，此处仅守卫。
+    if !dt.is_finite() || dt <= 0.0 {
+        return IdentificationResult {
+            structure: None,
+            residual_rms: f64::NAN,
+            identified_ok: false,
+            failure_reason: Some(format!("非法采样周期 dt={dt}")),
+        };
+    }
+    let fail = |reason: &str| IdentificationResult {
+        structure: None,
+        residual_rms: f64::NAN,
+        identified_ok: false,
+        failure_reason: Some(reason.to_string()),
+    };
+    let n = pos_x.len();
+    if n < 20 {
+        return fail("数据不足（需≥20 个样本）");
+    }
+    if pos_x.len() != pos_y.len()
+        || pos_x.len() != heading.len()
+        || input_x.len() != n
+        || input_y.len() != n
+        || input_n.len() != n
+    {
+        return fail("通道长度不匹配");
+    }
+    let channels = [input_x, input_y, input_n, pos_x, pos_y, heading];
+    if channels
+        .iter()
+        .any(|c| c.iter().any(|v| !v.is_finite()))
+    {
+        return fail("输入/响应含非有限数值");
+    }
+    // 逐输入通道激励检查（三通道必须都动——DP 分配依赖全方向激励）。
+    for (idx, ch) in [input_x, input_y, input_n].iter().enumerate() {
+        let mean: f64 = ch.iter().sum::<f64>() / n as f64;
+        let var: f64 = ch.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / n as f64;
+        if var < 1e-12 {
+            return fail(&format!("输入通道 {idx} 激励不足（方差≈0）"));
+        }
+    }
+
+    // 逐输出行回归：x_i[k+1] ~ [x1[k], x2[k], x3[k], u1[k], u2[k], u3[k]]。
+    let outputs = [pos_x, pos_y, heading];
+    let inputs = [input_x, input_y, input_n];
+    let mut a_mat = vec![0.0f64; 9];
+    let mut b_mat = vec![0.0f64; 9];
+    let mut residual_sum = 0.0f64;
+    for (row, out) in outputs.iter().enumerate() {
+        // 中心化 + 列归一化预处理：各通道均值（位置漂移）造成近常数列
+        // 共线，且状态（~10/0.02）与输入（~10³）尺度悬殊——直接组建
+        // 正规方程会平方级放大条件数。先去均值再按列 RMS 归一，斜率不变。
+        let phi_at = |k: usize| [
+            pos_x[k], pos_y[k], heading[k],
+            inputs[0][k], inputs[1][k], inputs[2][k],
+        ];
+        let m_pairs = n - 1;
+        let mut means = [0.0f64; 6];
+        for k in 0..m_pairs {
+            let phi = phi_at(k);
+            for (j, v) in phi.iter().enumerate() {
+                means[j] += v;
+            }
+        }
+        for mean in means.iter_mut() {
+            *mean /= m_pairs as f64;
+        }
+        let mut scales = [1.0f64; 6];
+        for (j, scale) in scales.iter_mut().enumerate() {
+            let energy: f64 = (0..m_pairs)
+                .map(|k| {
+                    let d = phi_at(k)[j] - means[j];
+                    d * d
+                })
+                .sum();
+            *scale = energy.sqrt().max(1e-12);
+        }
+        let mut ata = [0.0f64; 36];
+        let mut atb = [0.0f64; 6];
+        for k in 0..m_pairs {
+            let phi_raw = phi_at(k);
+            let phi = [
+                (phi_raw[0] - means[0]) / scales[0],
+                (phi_raw[1] - means[1]) / scales[1],
+                (phi_raw[2] - means[2]) / scales[2],
+                (phi_raw[3] - means[3]) / scales[3],
+                (phi_raw[4] - means[4]) / scales[4],
+                (phi_raw[5] - means[5]) / scales[5],
+            ];
+            let target = out[k + 1];
+            for i in 0..6 {
+                for j in 0..6 {
+                    ata[i * 6 + j] += phi[i] * phi[j];
+                }
+                atb[i] += phi[i] * target;
+            }
+        }
+        let Some(theta_scaled) = solve_linear_n(6, &ata, &atb) else {
+            return fail(&format!("第 {row} 行正规方程病态"));
+        };
+        let theta: Vec<f64> = theta_scaled
+            .iter()
+            .zip(scales.iter())
+            .map(|(t, s)| t / s)
+            .collect();
+        if theta.iter().any(|v| !v.is_finite()) {
+            return fail(&format!("第 {row} 行系数非有限"));
+        }
+        for j in 0..3 {
+            a_mat[row * 3 + j] = theta[j];
+            b_mat[row * 3 + j] = theta[3 + j];
+        }
+        // 一步预测残差。
+        for k in 0..n - 1 {
+            let pred = theta[0] * pos_x[k]
+                + theta[1] * pos_y[k]
+                + theta[2] * heading[k]
+                + theta[3] * inputs[0][k]
+                + theta[4] * inputs[1][k]
+                + theta[5] * inputs[2][k];
+            residual_sum += (pred - out[k + 1]).powi(2);
+        }
+    }
+    let rms = (residual_sum / (3.0 * (n - 1) as f64)).sqrt();
+
+    IdentificationResult {
+        structure: Some(ModelStructure::DpLowFreq3 { a: a_mat, b: b_mat }),
+        residual_rms: rms,
+        identified_ok: true,
+        failure_reason: None,
+    }
+}
+
+/// DP 3×3 预测：x[k+1]=A·x[k]+B·u[k]，返回与输入等长的状态序列
+/// （states[k] 为施加 input[k] 之前的状态，states[0]=x0）。
+pub fn predict_dp(
+    structure: &ModelStructure,
+    input_x: &[f64],
+    input_y: &[f64],
+    input_n: &[f64],
+    x0: [f64; 3],
+) -> Option<Vec<[f64; 3]>> {
+    let ModelStructure::DpLowFreq3 { a, b } = structure else {
+        return None;
+    };
+    if input_x.len() != input_y.len() || input_x.len() != input_n.len() || a.len() != 9 || b.len() != 9 {
+        return None;
+    }
+    let mut states = Vec::with_capacity(input_x.len());
+    let mut x = x0;
+    states.push(x);
+    for k in 0..input_x.len() {
+        let u = [input_x[k], input_y[k], input_n[k]];
+        // 整步更新：先算新状态再写回，避免后续行混用已更新分量。
+        let mut x_next = [0.0f64; 3];
+        for i in 0..3 {
+            x_next[i] = a[i * 3] * x[0] + a[i * 3 + 1] * x[1] + a[i * 3 + 2] * x[2]
+                + b[i * 3] * u[0] + b[i * 3 + 1] * u[1] + b[i * 3 + 2] * u[2];
+        }
+        x = x_next;
+        states.push(x);
+    }
+    states.pop(); // 与输入等长：末尾多推的一步不属于本窗（下一帧携带）。
+    Some(states)
+}
+
+// ---------- 辨识：挖泥横移通道（§3 天鲸，固定模式内） ----------
+
+/// 挖泥横移通道辨识：**仅限单一固定模式段**（SpudHold 或 CutSwing 之一）
+/// 内的输入→横移响应；跨模式混合数据不是单一 LTI——「跨模式单一 LTI
+/// 不适用」是合法教学结论，由调用层呈现，不在此强行拟合。
+///
+/// 策略：一阶（Nomoto1）与二阶（Nomoto2）候选都拟合，再以**同一口径**
+/// 重算两者残差——同初值（output[0]）、同时间窗、同自由推进（predict，
+/// 不读实测历史）的独立预测 RMSE——取较小者；两者都失败时返回合并
+/// 失败原因。不用各辨识器内部残差直接比较（一阶为自由推进残差、二阶
+/// 为 ARX 一步预测残差，口径不同会误选）。
+pub fn identify_dredge_channel(
+    input: &[f64],
+    output: &[f64],
+    dt: f64,
+) -> IdentificationResult {
+    let first = identify_nomoto1(input, output, dt);
+    let second = identify_nomoto2(input, output, dt);
+    match (first.identified_ok, second.identified_ok) {
+        (false, false) => IdentificationResult {
+            structure: None,
+            residual_rms: f64::NAN,
+            identified_ok: false,
+            failure_reason: Some(format!(
+                "一阶/二阶候选均失败：{:?}；{:?}",
+                first.failure_reason, second.failure_reason
+            )),
+        },
+        (true, false) => first,
+        (false, true) => second,
+        (true, true) => {
+            // 统一口径：同初值自由推进的独立预测 RMSE。
+            let free_run_rmse = |s: &ModelStructure| -> Option<f64> {
+                let predicted = predict(s, input, output[0], dt);
+                evaluate(&predicted[..output.len()], output).map(|m| m.rmse)
+            };
+            let rmse1 = first
+                .structure
+                .as_ref()
+                .and_then(free_run_rmse);
+            let rmse2 = second
+                .structure
+                .as_ref()
+                .and_then(free_run_rmse);
+            match (rmse1, rmse2) {
+                (Some(r1), Some(r2)) => {
+                    if r2 < r1 {
+                        IdentificationResult { residual_rms: r2, ..second }
+                    } else {
+                        IdentificationResult { residual_rms: r1, ..first }
+                    }
+                }
+                // 自由推进失败（数值异常）时保守退回一阶。
+                _ => first,
+            }
+        }
+    }
 }
 
 // ---------- 辨识：横摇二阶振子（§3 自由衰减 + 小激励） ----------
@@ -719,6 +976,13 @@ pub fn predict(structure: &ModelStructure, input: &[f64], y0: f64, dt: f64) -> V
         ModelStructure::RollOscillator { natural_freq_rad_s: wn, damping: z, control_gain: g } => {
             // φ̈ = −ωn²·φ − 2ζωn·φ̇ + G·u；与辨识增益拟合共用仿真。
             return roll_oscillator_response(*wn, *z, *g, input, y0, dt);
+        }
+        ModelStructure::DpLowFreq3 { .. } => {
+            // 多通道结构不适用单通道 predict 契约 → 恒 y0。
+            // 调用方应使用 predict_dp（三输入通道 + [f64;3] 状态）。
+            for _ in input {
+                out.push(y0);
+            }
         }
     }
     out

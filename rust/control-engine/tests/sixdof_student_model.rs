@@ -486,3 +486,208 @@ fn roll_identification_rejects_unusable_excited_segment() {
         assert_eq!(g, 0.0);
     }
 }
+
+// ---------- 阶段 B2：DP 低频 3×3 + 挖泥横移通道 ----------
+
+#[test]
+fn dp_low_freq_recovers_known_3x3() {
+    // 已知稳定离散系统 x[k+1]=A·x[k]+B·u[k]（含横向交叉项 a12/a21）。
+    let a_true: [f64; 9] = [
+        0.98, 0.02, 0.00,
+        0.05, 0.96, 0.01,
+        0.00, 0.03, 0.97,
+    ];
+    let b_true: [f64; 9] = [
+        0.010, 0.000, 0.000,
+        0.001, 0.008, 0.000,
+        0.000, 0.002, 0.006,
+    ];
+    let n = 600;
+    let dt = 0.1f64;
+    let _ = dt;
+    // 三通道独立伪随机激励（可复现 LCG）。
+    let mut seed = 12345u64;
+    let mut rnd = || {
+        seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        ((seed >> 33) as f64 / (u32::MAX as f64)) - 0.5
+    };
+    let (mut ix, mut iy, mut in_n) = (Vec::new(), Vec::new(), Vec::new());
+    for k in 0..n {
+        let hold = if k % 40 == 0 { rnd() } else { 0.0 };
+        ix.push(2000.0 * hold + 100.0 * rnd());
+        let hold2 = if k % 30 == 0 { rnd() } else { 0.0 };
+        iy.push(1500.0 * hold2 + 80.0 * rnd());
+        let hold3 = if k % 50 == 0 { rnd() } else { 0.0 };
+        in_n.push(500.0 * hold3 + 40.0 * rnd());
+    }
+    // 生成状态序列（先记录 x[k] 再施加 u[k]）。
+    let (mut px, mut py, mut ph) = (Vec::new(), Vec::new(), Vec::new());
+    let mut x = [10.0, -5.0, 0.02];
+    for k in 0..n {
+        px.push(x[0]);
+        py.push(x[1]);
+        ph.push(x[2]);
+        let u = [ix[k], iy[k], in_n[k]];
+        // 先整体计算新状态再写回（就地更新会让后续行混用新旧行分量）。
+        let mut x_next = [0.0f64; 3];
+        for i in 0..3 {
+            x_next[i] = a_true[i * 3] * x[0] + a_true[i * 3 + 1] * x[1] + a_true[i * 3 + 2] * x[2]
+                + b_true[i * 3] * u[0] + b_true[i * 3 + 1] * u[1] + b_true[i * 3 + 2] * u[2];
+        }
+        x = x_next;
+    }
+
+    let result = identify_dp_low_freq(&ix, &iy, &in_n, &px, &py, &ph, 0.1);
+    assert!(result.identified_ok, "辨识应成功：{:?}", result.failure_reason);
+    if let Some(ModelStructure::DpLowFreq3 { a, b }) = result.structure {
+        for (idx, (got, want)) in a.iter().zip(a_true.iter()).enumerate() {
+            assert!(
+                (got - want).abs() < 1e-6,
+                "A[{idx}]：{got} vs {want}"
+            );
+        }
+        for (idx, (got, want)) in b.iter().zip(b_true.iter()).enumerate() {
+            assert!(
+                (got - want).abs() < 1e-6,
+                "B[{idx}]：{got} vs {want}"
+            );
+        }
+    } else {
+        panic!("结构应为 DpLowFreq3");
+    }
+    assert!(result.residual_rms < 1e-9, "无噪数据残差应≈0：{}", result.residual_rms);
+}
+
+#[test]
+fn dp_low_freq_predict_round_trip() {
+    let a: [f64; 9] = [0.98, 0.02, 0.0, 0.05, 0.96, 0.01, 0.0, 0.03, 0.97];
+    let b: [f64; 9] = [0.01, 0.0, 0.0, 0.001, 0.008, 0.0, 0.0, 0.002, 0.006];
+    let structure = ModelStructure::DpLowFreq3 { a: a.to_vec(), b: b.to_vec() };
+    let n = 200;
+    let ix: Vec<f64> = (0..n).map(|k| if k % 20 == 0 { 1500.0 } else { 50.0 }).collect();
+    let iy: Vec<f64> = (0..n).map(|k| if k % 25 == 0 { -800.0 } else { 30.0 }).collect();
+    let in_n: Vec<f64> = (0..n).map(|k| if k % 30 == 0 { 400.0 } else { 10.0 }).collect();
+    let states = predict_dp(&structure, &ix, &iy, &in_n, [0.0; 3]).unwrap();
+    assert_eq!(states.len(), n);
+    // 手工对照前 3 步。
+    let mut x = [0.0f64; 3];
+    for k in 0..3 {
+        assert_eq!(states[k], x, "states[k]=施加输入前的状态");
+        let mut x_next = [0.0f64; 3];
+        for i in 0..3 {
+            x_next[i] = a[i * 3] * x[0] + a[i * 3 + 1] * x[1] + a[i * 3 + 2] * x[2]
+                + b[i * 3] * ix[k] + b[i * 3 + 1] * iy[k] + b[i * 3 + 2] * in_n[k];
+        }
+        x = x_next;
+    }
+    // 单通道 predict 对多通道结构 → 恒 y0（显式契约）。
+    let flat = predict(&structure, &ix, 7.0, 0.1);
+    assert!(flat.iter().all(|&v| v == 7.0));
+}
+
+#[test]
+fn dp_low_freq_fails_on_unexcited_channel() {
+    let n = 100;
+    let ix = vec![1000.0 + (n as f64) * 0.0; 100];
+    let ix: Vec<f64> = (0..n).map(|k| 100.0 * ((k % 17) as f64).sin()).collect();
+    let iy = vec![0.0; n]; // 零激励通道。
+    let in_n: Vec<f64> = (0..n).map(|k| 30.0 * ((k % 23) as f64).cos()).collect();
+    let px: Vec<f64> = (0..n).map(|i| i as f64 * 0.1).collect();
+    let py: Vec<f64> = (0..n).map(|i| (i as f64 * 0.05).sin()).collect();
+    let ph: Vec<f64> = (0..n).map(|i| 0.01 * (i as f64 * 0.02).sin()).collect();
+    let result = identify_dp_low_freq(&ix, &iy, &in_n, &px, &py, &ph, 0.1);
+    assert!(!result.identified_ok, "y 通道零激励应失败");
+    assert!(result.failure_reason.is_some());
+}
+
+#[test]
+fn dredge_channel_picks_lower_residual_structure() {
+    let dt = 0.1f64;
+    // 二阶真值数据：二阶候选残差更低 → 应选 Nomoto2。
+    let (k_true, t1_true, t2_true) = (0.05f64, 8.0f64, 1.5f64);
+    let n = 800;
+    let input: Vec<f64> = (0..n)
+        .map(|i| match i / 100 {
+            0 | 2 => 5.0,
+            1 | 3 => 0.0,
+            _ => 10.0,
+        })
+        .collect();
+    let output_full = simulate_second_order(k_true, t1_true, t2_true, &input, 0.0, dt);
+    let output = &output_full[..n];
+    let result = identify_dredge_channel(&input, output, dt);
+    assert!(result.identified_ok, "应成功：{:?}", result.failure_reason);
+    assert!(
+        matches!(result.structure, Some(ModelStructure::Nomoto2 { .. })),
+        "二阶数据应选 Nomoto2"
+    );
+
+    // 一阶真值数据：应选 Nomoto1 且恢复参数。
+    let (k1, t1) = (0.08f64, 20.0f64);
+    let input2: Vec<f64> = (0..400).map(|i| if i < 40 { 0.0 } else { 10.0 }).collect();
+    let a = (-dt / t1).exp();
+    let b = k1 * (1.0 - a);
+    let mut output2 = Vec::new();
+    let mut y = 0.0;
+    for &u in &input2 {
+        output2.push(y);
+        y = a * y + b * u;
+    }
+    let result2 = identify_dredge_channel(&input2, &output2, dt);
+    assert!(result2.identified_ok);
+    if let Some(ModelStructure::Nomoto1 { k, t_s }) = result2.structure {
+        assert!((k - k1).abs() / k1 < 0.05);
+        assert!((t_s - t1).abs() / t1 < 0.05);
+    } else {
+        panic!("一阶数据应选 Nomoto1");
+    }
+
+    // 两侧都失败（恒定输入）→ 合并失败原因。
+    let flat_in = vec![5.0; 100];
+    let flat_out = vec![1.0; 100];
+    let result3 = identify_dredge_channel(&flat_in, &flat_out, dt);
+    assert!(!result3.identified_ok);
+    assert!(result3.failure_reason.is_some());
+}
+
+#[test]
+fn dredge_channel_selection_uses_unified_free_run_residual() {
+    // Review 场景：二阶真值（T2 在边界 0.2s）叠加 0.02·sin(0.1k) 扰动。
+    // 二阶辨识参数被扰动带偏（T2≈1.3 vs 0.2），其自由推进 RMS 反而高于
+    // 一阶最优拟合——旧口径按不可比的内部残差误选二阶；统一自由推进
+    // 口径应诚实选出一阶（评审探针：一阶 0.01785 < 二阶 0.02890）。
+    let dt = 0.1f64;
+    let (k_true, t1_true, t2_true) = (0.08f64, 5.0f64, 0.2f64);
+    let n = 800;
+    let input: Vec<f64> = (0..n)
+        .map(|i| match i / 80 {
+            0 | 2 => 6.0,
+            1 | 3 => 0.0,
+            _ => 9.0,
+        })
+        .collect();
+    let clean = simulate_second_order(k_true, t1_true, t2_true, &input, 0.0, dt);
+    let output: Vec<f64> = clean[..n]
+        .iter()
+        .enumerate()
+        .map(|(k, v)| v + 0.02 * (0.1 * k as f64).sin())
+        .collect();
+
+    let result = identify_dredge_channel(&input, &output, dt);
+    assert!(result.identified_ok);
+    assert!(
+        matches!(result.structure, Some(ModelStructure::Nomoto1 { .. })),
+        "扰动下二阶辨识失配，自由推进口径应诚实选一阶"
+    );
+    // 报告残差=自由推进口径（与选择判据一致）。
+    if let Some(s) = &result.structure {
+        let predicted = predict(s, &input, output[0], dt);
+        let m = evaluate(&predicted[..n], &output).unwrap();
+        assert!(
+            (result.residual_rms - m.rmse).abs() < 1e-12,
+            "残差应为自由推进 RMSE：{} vs {}",
+            result.residual_rms,
+            m.rmse
+        );
+    }
+}
