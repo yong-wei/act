@@ -10,6 +10,7 @@ import {
   appliedRunEnvelopeSchema,
   comparisonSaveSchema,
   modelStructureSchema,
+  stepSubmissionAttemptSchema,
   studentModelSaveSchema,
 } from '@/lib/student-model-artifact-contract';
 import {
@@ -231,5 +232,44 @@ describe('appliedRunEnvelopeSchema（阶段 2a）', () => {
   it('种子接受合法十进制串', () => {
     const parsed = appliedRunEnvelopeSchema.safeParse({ ...base, seed: '20261106', substreamIds: ['wave', 'wind'] });
     expect(parsed.success).toBe(true);
+  });
+});
+
+describe('stepSubmissionAttemptSchema（阶段 3）', () => {
+  const base = {
+    experimentKey: 'exp-lng-berthing',
+    stepKey: 'step-09',
+    status: 'scored',
+    runRefs: ['vessel-run-2026-0001'],
+    scoringVersion: 'lng-v1-frozen-1',
+    scoreResult: { earned: 4, max: 5 },
+  };
+
+  it('接受合法尝试（含可选项）', () => {
+    const parsed = stepSubmissionAttemptSchema.safeParse({
+      ...base,
+      studentModelIds: ['ckm1'],
+      comparisonIds: ['ckc1'],
+      sketchRefs: ['sketch://hand-drawn-1'],
+      explanation: '减速点前移 200m，因辨识 T_u 偏大。',
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('拒绝非法状态与空 runRefs', () => {
+    expect(stepSubmissionAttemptSchema.safeParse({ ...base, status: 'oops' }).success).toBe(false);
+    expect(stepSubmissionAttemptSchema.safeParse({ ...base, runRefs: [] }).success).toBe(false);
+  });
+
+  it('拒绝超长解释', () => {
+    expect(
+      stepSubmissionAttemptSchema.safeParse({ ...base, explanation: 'x'.repeat(8001) }).success,
+    ).toBe(false);
+  });
+
+  it('五类状态全部合法（无效运行/模型失配/未达标分别记录）', () => {
+    for (const status of ['submitted', 'scored', 'invalid_run', 'model_mismatch', 'below_target'] as const) {
+      expect(stepSubmissionAttemptSchema.safeParse({ ...base, status }).success).toBe(true);
+    }
   });
 });

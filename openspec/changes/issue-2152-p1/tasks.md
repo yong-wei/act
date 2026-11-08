@@ -14,3 +14,11 @@
 - [x] T9 API /api/ilab/applied-run-envelopes（upsert 开启/收口 + 本人读取）
 - [x] T10 Vitest 契约测试
 - [x] T11 typecheck + strict validate
+
+# 阶段 3（步骤提交尝试）
+
+- [x] T12 Prisma 模型 StepSubmissionAttempt + 迁移 + generate
+- [x] T13 zod 尝试契约（status 枚举/引用数组界限/explanation 长度）
+- [x] T14 API /api/ilab/step-submission-attempts（追加 + 列表；attemptSeq 事务递增）
+- [x] T15 Vitest 契约测试
+- [x] T16 typecheck + strict validate

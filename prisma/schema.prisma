@@ -578,6 +578,7 @@ model User {
   studentModelArtifacts     StudentModelArtifact[]
   comparisonArtifacts       ComparisonArtifact[]
   appliedRunEnvelopes       AppliedRunEnvelope[]
+  stepSubmissionAttempts    StepSubmissionAttempt[]
   ethicalLogs               EthicalLog[]
   controlOdysseyAiHistories ControlOdysseyAiHistory[]
 
@@ -5315,6 +5316,33 @@ model AppliedRunEnvelope {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, experimentKey, createdAt])
+}
+
+// 步骤提交尝试（issue-2152 记录类型 D）：每步区分首次/最近/最佳/最终
+// 选定尝试（由 attemptSeq 与 selectedFinalAt 派生查询）；计分选取不
+// 删除其他尝试——保留较差与未达目标的记录即保留学习过程。
+model StepSubmissionAttempt {
+  id              String    @id @default(cuid())
+  userId          String
+  experimentKey   String
+  stepKey         String
+  attemptSeq      Int // 步内递增（首次=1）
+  status          String // submitted | scored | invalid_run | model_mismatch | below_target
+  runRefs         Json // AppliedRunEnvelope.runRef 数组
+  studentModelIds Json?
+  comparisonIds   Json?
+  sketchRefs      Json? // 手绘原图引用
+  explanation     String?   @db.Text
+  scoringVersion  String
+  scoreResult     Json?
+  selectedFinalAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, experimentKey, stepKey, attemptSeq])
+  @@index([userId, experimentKey, stepKey, createdAt])
 }
 
 // ========== 控灵AI助手会话模型 ==========
