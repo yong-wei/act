@@ -1,0 +1,8 @@
+{
+  "schema": "act.model-pack.manifest.v1",
+  "vessel": "destroyer-055",
+  "model_version": "research-nominal-v1",
+  "model_fidelity": "research-nominal",
+  "basis": "原型主尺度（公开资料）+ 教学标称假设；非实船校准数字孪生",
+  "files": ["geometry.json", "maneuvering.json", "actuators.json", "provenance.json"]
+}

@@ -14,6 +14,7 @@ pub mod dynamics;
 pub mod observer;
 pub mod hull_mmg;
 pub mod integrator;
+pub mod model_pack;
 pub mod radiation;
 pub mod sensor;
 pub mod wave;
@@ -34,6 +35,7 @@ pub use hull_mmg::{
     HullMmgParams, LowSpeedParams, blended_hull_loads, low_speed_loads, mmg_hull_loads,
     transition_weight,
 };
+pub use model_pack::{PackError, PackModel, embedded_destroyer_055, load_model_pack};
 pub use integrator::{
     advance_nominal_step, contact_substep_count, rk4_step, ContactStiffness,
     IntegrationError, MIN_DT, NOMINAL_DT,

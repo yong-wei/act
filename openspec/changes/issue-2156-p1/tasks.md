@@ -34,6 +34,7 @@
 
 - [x] A5.1 cargo 全量绿 + typecheck + wasm 构建
 - [x] A5.2 `openspec validate issue-2156-p1 --strict`
+<<<<<<< HEAD
 
 ## B1. Fossen–Strand 低频观测器（阶段 B 第一子机制）
 
@@ -47,3 +48,5 @@
 - [ ] B2.1 QTF 差频二阶（NEMOH 离线求解 + Newman 近似适用域）
 - [ ] B2.2 Smogeli 通气/出水子模型
 - [ ] B2.3 可适用空间剪切流（连续性/涡量验证）
+=======
+>>>>>>> origin/integration
