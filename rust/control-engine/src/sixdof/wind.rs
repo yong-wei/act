@@ -130,12 +130,14 @@ pub fn relative_wind_body(
 /// 返回 [Fx, Fy, K, N]（N / N·m；力矩经压力中心 r×F）。
 pub fn fujiwara_loads(rel_body: [f64; 2], geo: &WindHullGeometry) -> [f64; 4] {
     let speed = (rel_body[0] * rel_body[0] + rel_body[1] * rel_body[1]).sqrt().max(1e-6);
-    // 保留左右舷：rel_y>0 → 风自右舷来（ψ_signed<0）；rel_y<0 → 左舷。
+    // 相对气流来向角：rel 是气流速度矢量（风吹向船体的方向）。
+    // ψ=0 表示气流向艏（顺风/风从艉来）；ψ=π/2 气流向右舷。
     let psi_signed = (-rel_body[1]).atan2(-rel_body[0]);
     let psi = psi_signed.abs();
-    let side = psi_signed.signum();
+    // 横向力与气流方向一致：rel_y>0 → 气流向右舷 → Fy>0。
+    let side = (-psi_signed).signum();
     let q = 0.5 * RHO_AIR * speed * speed;
-    // CX(ψ)：迎风负（阻力），顺风趋零；CY：正弦型 × 舷侧符号。
+    // CX(ψ)：ψ=0（正顺风，气流向艏）Fx 为推力性（负较小）；ψ=π（迎风）阻力最大。
     let cx = -0.50 + 0.28 * (psi / std::f64::consts::PI);
     let cy = (0.80 * psi.sin() + 0.12 * (2.0 * psi).sin()) * side;
     let fx = q * (geo.frontal_area_m2 * cx + geo.lateral_area_m2 * 0.04 * psi.cos());
