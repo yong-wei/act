@@ -119,15 +119,22 @@ pub fn compute_vessel_sixdof_step_json(request_json: &str) -> Result<String, Str
     plant.set_environment_state(environment, wind_geo);
     plant.restore_time_for_runtime(request.state.time_s);
 
-    // 状态恢复。
-    if request.state.sixdof_state.is_some() {
-        let six = request.state.sixdof_state.as_ref().unwrap();
-        if let (Some(quat), Some(vel)) = (
-            six.get("quaternion").and_then(|v| v.as_array()),
-            six.get("bodyVelocity").and_then(|v| v.as_array()),
-        ) {
+    // 状态恢复：完整 sixdofState 往返（P1）或标量字段重建（P2）。
+    let mut motor_torque_restore: Option<f64> = None;
+    if let Some(six) = request.state.sixdof_state.as_ref() {
+        // P1：完整 sixdofState——恢复位置/四元数/速度/辐射/执行器。
+        let pos = six.get("positionNed").and_then(|v| v.as_array());
+        let quat = six.get("quaternion").and_then(|v| v.as_array());
+        let vel = six.get("bodyVelocity").and_then(|v| v.as_array());
+        let rad = six.get("radiationStates").and_then(|v| v.as_array());
+        if let (Some(quat), Some(vel)) = (quat, vel) {
             if quat.len() == 4 && vel.len() == 6 {
                 let mut state = TruthState {
+                    position_ned: [
+                        pos.and_then(|p| p.first()).and_then(|v| v.as_f64()).unwrap_or(0.0),
+                        pos.and_then(|p| p.get(1)).and_then(|v| v.as_f64()).unwrap_or(0.0),
+                        pos.and_then(|p| p.get(2)).and_then(|v| v.as_f64()).unwrap_or(0.0),
+                    ],
                     quaternion: [
                         quat[0].as_f64().unwrap_or(1.0),
                         quat[1].as_f64().unwrap_or(0.0),
@@ -142,14 +149,40 @@ pub fn compute_vessel_sixdof_step_json(request_json: &str) -> Result<String, Str
                         vel[4].as_f64().unwrap_or(0.0),
                         vel[5].as_f64().unwrap_or(0.0),
                     ],
-                    ..Default::default()
+                    radiation_states: rad
+                        .map(|r| r.iter().filter_map(|v| v.as_f64()).collect())
+                        .unwrap_or_default(),
+                    actuator_states: Default::default(),
+                    specialist_states: vec![],
                 };
-                // 恢复辐射稳态。
-                state.radiation_states = Default::default();
+                // 执行器实际值恢复。
+                let rudder = six.get("rudderActualRad").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                let omega = six.get("shaftSpeedRadS").and_then(|v| v.as_f64()).unwrap_or(12.0);
+                state.actuator_states.control_surface_angles_rad = vec![rudder];
+                state.actuator_states.propeller_shaft_speed_rad_s = vec![omega];
+                motor_torque_restore = six.get("motorTorqueActualNm").and_then(|v| v.as_f64());
                 plant.restore_state(state);
-                plant.prewarm_radiation_for_test();
             }
         }
+    } else {
+        // P2：标量字段重建（destroyer_hifi 兼容）——航向→四元数、航速→u。
+        let yaw = request.state.heading_deg.to_radians();
+        let (sin_h, cos_h) = (yaw / 2.0).sin_cos();
+        let u = if request.state.speed_mps > 0.0 {
+            request.state.speed_mps
+        } else {
+            config.cruise_speed_mps
+        };
+        let state = TruthState {
+            quaternion: [cos_h, 0.0, 0.0, sin_h],
+            body_velocity: [u, 0.0, 0.0, 0.0, 0.0, 0.0],
+            ..Default::default()
+        };
+        plant.restore_state(state);
+        plant.prewarm_radiation_for_test();
+    }
+    if let Some(torque) = motor_torque_restore {
+        plant.restore_motor_torque_for_runtime(torque);
     }
 
     // 控制律：manual 直通 / P-PD-PID 航向反馈。
@@ -178,11 +211,13 @@ pub fn compute_vessel_sixdof_step_json(request_json: &str) -> Result<String, Str
     let u = state.body_velocity[0];
     let v = state.body_velocity[1];
     let sixdof_state = serde_json::json!({
+        "positionNed": state.position_ned,
         "quaternion": state.quaternion,
         "bodyVelocity": state.body_velocity,
         "radiationStates": state.radiation_states,
         "rudderActualRad": state.actuator_states.control_surface_angles_rad[0],
         "shaftSpeedRadS": state.actuator_states.propeller_shaft_speed_rad_s[0],
+        "motorTorqueActualNm": plant.motor_torque_actual_for_runtime(),
     });
 
     let result = VesselResult {
