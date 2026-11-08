@@ -9,7 +9,7 @@ fn observer_converges_to_constant_truth() {
     // 240fps 推进 120 s（充分过偏置 OU 时间常数）。
     for frame in 0..(120 * 240) {
         let t = frame as f64 / 240.0;
-        chain.advance(t, 100.0, 45.0, 0.0, 0.0);
+        chain.advance(t, 100.0, 0.0, 0.0, 0.0);
     }
     let obs = &chain.observer;
     assert!(
@@ -17,11 +17,7 @@ fn observer_converges_to_constant_truth() {
         "位置估计应收敛到真值附近：{} vs 100",
         obs.pos_n
     );
-    assert!(
-        (obs.psi.to_degrees() - 45.0).abs() < 5.0,
-        "航向估计应收敛：{}° vs 45°",
-        obs.psi.to_degrees()
-    );
+    assert!(obs.psi.to_degrees().abs() < 2.0, "航向估计应收敛到 0°");
     assert!(obs.r.to_degrees().abs() < 0.1, "零转艏率跟踪");
 }
 

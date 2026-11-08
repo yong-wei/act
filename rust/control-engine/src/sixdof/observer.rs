@@ -56,20 +56,28 @@ impl LowFrequencyObserver {
     /// Fossen–Strand 非线性被动观测器核心：饱和死区——大误差高增益快
     /// 收敛、小误差（<死区）零增益（波频/噪声不透传）。
     pub fn update_position(&mut self, gnss: Option<&Measurement>) {
-        let Some(g) = gnss else { return };
-        if g.quality != Quality::Good {
-            return;
-        }
         let dt = 0.2;
-        let eps_n = g.value - self.pos_n;
-        let eps_e = self.value_e(g) - self.pos_e;
-        let sat_n = Self::sat_nonlinear(eps_n, 1.5, 4.0);
-        let sat_e = Self::sat_nonlinear(eps_e, 1.5, 4.0);
-        // 模型预测 + 饱和新息校正。
-        self.pos_n += dt * (self.u + 2.0 * sat_n);
-        self.pos_e += dt * (self.v + 2.0 * sat_e);
-        self.u += dt * 0.5 * sat_n;
-        self.v += dt * 0.5 * sat_e;
+        // 模型预测始终推进（缺测时纯外推——不冻结位置）。
+        let (sin_psi, cos_psi) = self.psi.sin_cos();
+        let vn = self.u * cos_psi - self.v * sin_psi;
+        let ve = self.u * sin_psi + self.v * cos_psi;
+        // 仅在有合法测量时做新息校正。
+        if let Some(g) = gnss {
+            if g.quality == Quality::Good {
+                let eps_n = g.value - self.pos_n;
+                let eps_e = self.value_e(g) - self.pos_e;
+                let sat_n = Self::sat_nonlinear(eps_n, 1.5, 4.0);
+                let sat_e = Self::sat_nonlinear(eps_e, 1.5, 4.0);
+                self.pos_n += dt * (vn + 2.0 * sat_n);
+                self.pos_e += dt * (ve + 2.0 * sat_e);
+                self.u += dt * 0.5 * sat_n;
+                self.v += dt * 0.5 * sat_e;
+                return;
+            }
+        }
+        // 缺测/无测量：纯模型预测推进。
+        self.pos_n += dt * vn;
+        self.pos_e += dt * ve;
     }
 
     /// 航向/角速度观测更新（各自到达时调用；dt=各自采样间隔）。

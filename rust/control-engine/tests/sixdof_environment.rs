@@ -273,22 +273,24 @@ fn crosswind_sign_reverses_lateral_load_and_moments_use_rx_f() {
         frontal_area_m2: 380.0, lateral_area_m2: 1200.0, length_m: 180.0,
         pressure_center_body: [4.0, 0.0, -6.0],
     };
-    // 左右舷横风：横向力必须反号（保留舷侧信息）。
-    let loads_r = fujiwara_loads([0.0, -8.0], &geo);
+    // 左右舷横风：气流向右舷→Fy>0、向左舷→Fy<0（保留舷侧信息）。
+    let loads_r = fujiwara_loads([0.0, 8.0], &geo);
     let (fx_r, fy_r, k_r, n_r) = (loads_r[0], loads_r[1], loads_r[2], loads_r[3]);
-    let loads_l = fujiwara_loads([0.0, 8.0], &geo);
+    let loads_l = fujiwara_loads([0.0, -8.0], &geo);
     let (fx_l, fy_l, _k_l, _n_l) = (loads_l[0], loads_l[1], loads_l[2], loads_l[3]);
-    assert!(fy_r > 0.0 && fy_l < 0.0, "右舷/左舷来风横向力反号：{fy_r} vs {fy_l}");
+    assert!(fy_r > 0.0 && fy_l < 0.0, "气流向右舷 Fy>0 / 向左舷 Fy<0：{fy_r} vs {fy_l}");
     // r×F 叉乘顺序：K = −r_z·Fy、N = r_x·Fy − r_y·Fx（Fz=0）。
     let r = geo.pressure_center_body;
     let expected_k = -r[2] * fy_r;
     let expected_n = r[0] * fy_r - r[1] * fx_r;
     assert!((k_r - expected_k).abs() < 1e-6, "K 应为 r×F 的 x 分量：{k_r} vs {expected_k}");
     assert!((n_r - expected_n).abs() < 1e-6, "N 应为 r×F 的 z 分量：{n_r} vs {expected_n}");
-    // 顺风（rel_x>0，风从艉来）→ 推力性（cx 正端）；迎风 → 阻力。
+    // rel=[8,0] 气流向艏=顺风（风从艉吹向艏）→ Fx 应为推力性（负=推船前进）。
+    // rel=[-8,0] 气流向艉=迎风（风从艏吹向艉）→ Fx 为阻力（负但量级更大）。
     let fx_tail = fujiwara_loads([8.0, 0.0], &geo)[0];
     let fx_head = fujiwara_loads([-8.0, 0.0], &geo)[0];
-    assert!(fx_head < fx_tail, "迎风阻力应大于顺风：head={fx_head} tail={fx_tail}");
+    assert!(fx_tail > fx_head, "顺风推力应大于迎风阻力：tail={fx_tail} head={fx_head}");
+    assert!(fx_head < 0.0, "迎风阻力为负（阻碍前进）：{fx_head}");
 }
 
 #[test]
