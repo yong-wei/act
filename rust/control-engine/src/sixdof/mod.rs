@@ -15,6 +15,7 @@ pub mod dynamics;
 pub mod environment_state;
 pub mod observer;
 pub mod qtf;
+pub mod benchmark_b470;
 pub mod benchmark_s175;
 pub mod shear;
 pub mod hull_mmg;
