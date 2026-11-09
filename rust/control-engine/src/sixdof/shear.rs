@@ -92,9 +92,12 @@ impl ShearCurrentField {
         self.velocity_at(x_n, y_e)
     }
 
-    /// 剪切引起的差动艏摇力矩量级上界（N·m）：横向差动流速 ~ |S|·L/2
-    /// 作用于半船长 → M ~ ½·ρ·L·B·Cd·(|S|·L/2)²·L。供接线方验证受力
-    /// 模型时对账；不是力矩公式本身（接线随 per-vessel 专项）。
+    /// 剪切引起的差动艏摇力矩量级上界（N·m，review 修订含交叉项）。
+    ///
+    /// 二次阻力假设下沿船长积分 x·½ρCdB·|v|(v)（v = 局部横向流速）
+    /// 的包络：交叉项 |U|·|S|·L³/6（基础来流×剪切，弱剪切时主导）
+    /// + 自作用项 S²·L⁴/32。供接线方验证受力模型时对账；不是力矩
+    /// 公式本身（接线随 per-vessel 专项）。
     pub fn shear_yaw_moment_scale(
         &self,
         length_m: f64,
@@ -102,8 +105,10 @@ impl ShearCurrentField {
         drag_coefficient: f64,
     ) -> f64 {
         let rho = 1025.0;
-        let dv = self.shear_per_s.abs() * length_m / 2.0;
-        0.5 * rho * length_m * beam_m * drag_coefficient * dv * dv * length_m
+        let (s_abs, u_abs) = (self.shear_per_s.abs(), self.base_speed_mps.abs());
+        let cross = u_abs * s_abs * length_m.powi(3) / 6.0;
+        let self_term = s_abs * s_abs * length_m.powi(4) / 32.0;
+        0.5 * rho * beam_m * drag_coefficient * (cross + self_term)
     }
 }
 
@@ -232,5 +237,42 @@ mod tests {
         // S=0 → 0（无剪切无力矩项）。
         let uniform = ShearCurrentField { shear_per_s: 0.0, ..field };
         assert_eq!(uniform.shear_yaw_moment_scale(180.0, 25.0, 1.0), 0.0);
+    }
+}
+
+#[cfg(test)]
+mod review_tests {
+    use super::*;
+
+    /// 二次阻力差动力矩的数值积分（review 语义）：
+    /// M = ∫ x·½ρCdB·|v(x)|·v(x) dx，v(x) = U − S·x（θ=π/2、域心原点）。
+    #[test]
+    fn moment_scale_bounds_quadratic_drag_integral() {
+        let (u, s, l, b, cd) = (1.0f64, 1.0e-4, 100.0, 20.0, 1.0);
+        let rho = 1025.0;
+        let n = 2000usize;
+        let dx = l / n as f64;
+        let mut integral = 0.0;
+        for i in 0..n {
+            let x = -l / 2.0 + (i as f64 + 0.5) * dx;
+            let v = u - s * x;
+            integral += x * v.abs() * v * dx;
+        }
+        let m_numeric = 0.5 * rho * cd * b * integral.abs();
+        let field = ShearCurrentField {
+            base_speed_mps: u,
+            direction_rad: std::f64::consts::FRAC_PI_2,
+            shear_per_s: s,
+        };
+        let bound = field.shear_yaw_moment_scale(l, b, cd);
+        assert!(
+            bound >= m_numeric,
+            "上界应覆盖数值积分：bound={bound}, numeric={m_numeric}"
+        );
+        // 评审复现值量级（≈170,833）：上界不应过度保守（<2×数值）。
+        assert!(
+            bound < 2.0 * m_numeric,
+            "上界不应过度保守：bound={bound}, numeric={m_numeric}"
+        );
     }
 }
