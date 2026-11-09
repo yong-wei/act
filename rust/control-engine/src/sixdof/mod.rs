@@ -32,7 +32,8 @@ pub use control_law::{
 };
 pub use actuators::{
     PropellerModel, PropellerShaft, ServoModel, clamp_motor_torque, clamp_shaft_speed,
-    propeller_loads, servo_step, shaft_acceleration, shaft_friction, shaft_power,
+    propeller_loads, propeller_loads_with_ventilation, servo_step, shaft_acceleration,
+    shaft_friction, shaft_power, ventilation_loss_factors,
 };
 pub use environment_state::{EnvironmentState, EnvironmentSwitches};
 pub use student_model::{

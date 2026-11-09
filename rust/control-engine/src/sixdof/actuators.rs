@@ -71,6 +71,71 @@ pub fn propeller_loads(
     (sign * kt * load, sign * kq * load * d)
 }
 
+/// Smogeli 型通气/出水推力损失因子（issue-2156 阶段 B2.2）。
+///
+/// 合同（issue #2156）：通气/出水按经过验证的子模型；未校核的极端
+/// 工况不开放，不用硬乘固定推力折扣。首版为 **准静态 T 级实现**：
+/// 浸没比 h/R（轴心低于瞬时自由面的深度 / 桨半径）与负载水平（无量纲
+/// 推力 |k_T| 作为代理）驱动的光滑损失曲线——重载先通气（临界浸没
+/// 上移）、露出即无水动力推力、深浸没不受影响；适用域 h/R∈[0,3]，
+/// 超域钳位（≥3 视为全湿）。Smogeli 论文的迟滞/瞬态与图谱系数随
+/// #2157 参数包接入；迟滞未建模显式声明（适用域内准静态）。
+///
+/// 返回 [推力因子, 扭矩因子]（0..=1，作用于湿态载荷）。
+pub fn ventilation_loss_factors(
+    model: &PropellerModel,
+    immersion_m: f64,
+    kt_wetted: f64,
+) -> [f64; 2] {
+    let radius = model.diameter_m / 2.0;
+    if radius <= 0.0 || immersion_m <= 0.0 {
+        // 轴心在自由面以上：无水动力载荷（轴系惯性/摩擦仍由轴动力学
+        // 承载——断桨不停轴，见 #2147 失效语义）。
+        return [0.0, 0.0];
+    }
+    let h_over_r = immersion_m / radius;
+    if h_over_r >= 3.0 {
+        return [1.0, 1.0]; // 深浸没：全湿（适用域上界钳位）。
+    }
+    // 临界浸没（T 级系数）：重载（大 |k_T|）更早通气。
+    let loading = kt_wetted.abs().clamp(0.0, 1.0);
+    let h_c = 1.0 + 0.6 * loading; // h_c/R ∈ [1, 1.6]
+    // 光滑过渡（logistic，宽度 ~0.25R）；部分通气残余推力下限随负载
+    // 增大而降低（重载通气损失更严重）。
+    let floor = 0.35 - 0.15 * loading; // ∈ [0.2, 0.35]
+    let s = ((h_over_r - h_c) / 0.25).tanh(); // ∈ (−1, 1) 光滑
+    let thrust_factor = floor + (1.0 - floor) * (0.5 + 0.5 * s);
+    // 扭矩损失与推力损失同向但略缓（通气后转矩衰减弱于推力；
+    // T 级近似：扭矩因子 = 推力因子的 0.5 次幂插值）。
+    let torque_factor = thrust_factor.powf(0.75);
+    [thrust_factor.clamp(0.0, 1.0), torque_factor.clamp(0.0, 1.0)]
+}
+
+/// 含通气/出水的四象限桨载荷：先算湿态（全浸没）载荷，再按浸没比
+/// 与负载施加 Smogeli 型损失因子。`immersion_m` = 轴心低于瞬时自由
+/// 面的深度（m；由调用方组合波面高程/升沉/纵倾几何，per-vessel 接线）。
+pub fn propeller_loads_with_ventilation(
+    model: &PropellerModel,
+    va_mps: f64,
+    n_rad_s: f64,
+    immersion_m: Option<f64>,
+) -> (f64, f64) {
+    let (thrust, torque) = propeller_loads(model, va_mps, n_rad_s);
+    match immersion_m {
+        None => (thrust, torque),
+        Some(h) => {
+            // 负载代理：湿态无量纲推力（|k_T|；由同多项式重算，与
+            // propeller_loads 内部一致）。
+            let j = advance_ratio(va_mps, n_rad_s, model.diameter_m).clamp(-5.0, 5.0);
+            let kt = model.kt_coefficients[0]
+                + model.kt_coefficients[1] * j
+                + model.kt_coefficients[2] * j * j;
+            let [tf, qf] = ventilation_loss_factors(model, h, kt);
+            (thrust * tf, torque * qf)
+        }
+    }
+}
+
 /// 轴摩擦扭矩（反对称库仑 + 粘性）。
 pub fn shaft_friction(shaft: &PropellerShaft, n_rad_s: f64) -> f64 {
     let coulomb = if n_rad_s.abs() > 1e-4 {
