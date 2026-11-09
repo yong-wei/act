@@ -14,6 +14,7 @@ pub mod destroyer_plant;
 pub mod dynamics;
 pub mod environment_state;
 pub mod observer;
+pub mod qtf;
 pub mod hull_mmg;
 pub mod integrator;
 pub mod model_pack;
@@ -46,6 +47,7 @@ pub use vessel_runtime::compute_vessel_sixdof_step_json;
 pub use observer::{LowFrequencyObserver, ObservationChain};
 pub use sensor::{FaultKind, Measurement, NoiseLevel, Quality, SensorChannel, SEEDS_VALIDATION, SEED_TRAINING, channel_seed};
 pub use wave::{WaveCondition, WaveField};
+pub use qtf::{MeanDriftTable, TableProvenance, newman_difference_loads, newman_mean_loads};
 pub use wind::{GustProcess, TrueWind, WindEnvironment, WindHullGeometry, fujiwara_loads, relative_wind_body};
 pub use radiation::{RadiationMode, RadiationModel, RadiationModelError};
 pub use hull_mmg::{

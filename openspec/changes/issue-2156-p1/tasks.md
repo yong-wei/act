@@ -34,7 +34,6 @@
 
 - [x] A5.1 cargo 全量绿 + typecheck + wasm 构建
 - [x] A5.2 `openspec validate issue-2156-p1 --strict`
-<<<<<<< HEAD
 
 ## B1. Fossen–Strand 低频观测器（阶段 B 第一子机制）
 
@@ -45,8 +44,11 @@
 
 ## B2. 阶段 B 后续（分机制独立 PR）
 
-- [ ] B2.1 QTF 差频二阶（NEMOH 离线求解 + Newman 近似适用域）
+- [x] B2.1a QTF 差频二阶 **内核**：Newman 近似（O(N) 复数和恒等于双重和）、
+      T 级教学标称对角表（峰区集中）、NEMOH 表接入接口（TableProvenance
+      可追溯）、EnvironmentState 独立开关（关二阶不改波面/一阶序列）、
+      时间平均→对角和收敛 + 慢漂低频占比验证
+- [ ] B2.1b NEMOH v3 离线差频求解（零速半潜 #2161）替换 T 级表；巡航船
+      含航速 QTF 在有验证数据前保持 not_ready
 - [ ] B2.2 Smogeli 通气/出水子模型
 - [ ] B2.3 可适用空间剪切流（连续性/涡量验证）
-=======
->>>>>>> origin/integration
