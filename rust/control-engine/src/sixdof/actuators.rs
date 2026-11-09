@@ -104,10 +104,18 @@ pub fn ventilation_loss_factors(
     // 增大而降低（重载通气损失更严重）。
     let floor = 0.35 - 0.15 * loading; // ∈ [0.2, 0.35]
     let s = ((h_over_r - h_c) / 0.25).tanh(); // ∈ (−1, 1) 光滑
-    let thrust_factor = floor + (1.0 - floor) * (0.5 + 0.5 * s);
-    // 扭矩损失与推力损失同向但略缓（通气后转矩衰减弱于推力；
-    // T 级近似：扭矩因子 = 推力因子的 0.5 次幂插值）。
-    let torque_factor = thrust_factor.powf(0.75);
+    let mut thrust_factor = floor + (1.0 - floor) * (0.5 + 0.5 * s);
+    // 出水过渡（review 修订）：桨盘渐出水面时推力连续趋零——h/R∈(0,0.6]
+    // 乘 smoothstep 浸没分数（C¹ 连续，端点导数 0），消除 h→0⁺ 残余
+    // 下限的跳变（出水/再入水不瞬切 ~30% 湿态推力）。
+    let t_emerge = (h_over_r / 0.6).clamp(0.0, 1.0);
+    let emerge = t_emerge * t_emerge * (3.0 - 2.0 * t_emerge);
+    thrust_factor *= emerge;
+    // 扭矩损失与推力损失同向但略缓（通气后转矩衰减弱于推力）；
+    // T 级近似 0.75 次幂，并与出水过渡用同一 emerge 权重混合——
+    // t=0 时跟随推力（同趋零）、t=1 时过渡到纯 0.75 幂（边界连续）。
+    let torque_full = thrust_factor.powf(0.75);
+    let torque_factor = thrust_factor + (torque_full - thrust_factor) * emerge;
     [thrust_factor.clamp(0.0, 1.0), torque_factor.clamp(0.0, 1.0)]
 }
 

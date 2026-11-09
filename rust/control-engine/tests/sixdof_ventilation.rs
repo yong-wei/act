@@ -91,3 +91,27 @@ fn ventilation_reduces_but_keeps_sign_and_scale() {
     let (t_rev, _) = propeller_loads_with_ventilation(&m, -5.0, -8.0, Some(3.0));
     assert!(t_rev < 0.0, "倒车符号保持");
 }
+
+#[test]
+fn factor_is_continuous_across_zero_immersion() {
+    // Review 修复回归：浸没跨越零点（出水/再入水）因子连续趋零，
+    // 无 ~30% 湿态推力瞬切；小步进内变化有界。
+    let m = model();
+    let mut prev: Option<[f64; 2]> = None;
+    let mut i = -20i32;
+    while i <= 40 {
+        let h = i as f64 * 0.02; // −0.4 .. 0.8 m 步进 2cm。
+        let f = ventilation_loss_factors(&m, h, 0.4);
+        if let Some(p) = prev {
+            assert!(
+                (f[0] - p[0]).abs() < 0.05 && (f[1] - p[1]).abs() < 0.05,
+                "h={h} 跨零步进应平滑：{p:?} → {f:?}"
+            );
+        }
+        prev = Some(f);
+        i += 1;
+    }
+    // 逼近零时因子趋零。
+    let f = ventilation_loss_factors(&m, 1e-6, 0.4);
+    assert!(f[0] < 0.02, "h→0⁺ 因子应趋零：{f:?}");
+}
