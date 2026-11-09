@@ -42,6 +42,9 @@ pub struct EnvironmentState {
     pub observation: Option<ObservationChain>,
     /// 传感器开关（N0/N1/N2；None=阶段 A 兼容，不接观测链）。
     pub sensor_enabled: bool,
+    /// 差频二阶（QTF）系数表：None = 二阶未启用（不伪造慢漂）；
+    /// 挂表后经 `second_order_wave_loads` 读取，开关语义独立于一阶。
+    pub qtf_table: Option<crate::sixdof::qtf::MeanDriftTable>,
     seed: u64,
 }
 
@@ -100,6 +103,7 @@ impl EnvironmentState {
             ],
             observation: ObservationChain::n1(seed),
             sensor_enabled: true,
+            qtf_table: None,
             seed,
         }
     }
@@ -114,6 +118,21 @@ impl EnvironmentState {
     }
 
     /// 波浪一阶激励（同相位共用波场；系数由船参数包给）。
+    /// 差频二阶（QTF）慢漂载荷：挂表且 wave 开关开启时按 Newman 近似
+    /// 计算（与波面/一阶同源同相）；未挂表或关波 → 严格零（不伪造慢漂）。
+    /// 开关语义独立：关闭二阶（取表 None）不改一阶序列与波面。
+    pub fn second_order_wave_loads(&self, t: f64, x_n: f64, y_e: f64, yaw: f64) -> [f64; 6] {
+        if !self.switches.wave_enabled {
+            return [0.0; 6];
+        }
+        match &self.qtf_table {
+            Some(table) => crate::sixdof::qtf::newman_difference_loads(
+                &self.wave, t, x_n, y_e, yaw, table,
+            ),
+            None => [0.0; 6],
+        }
+    }
+
     pub fn wave_loads(&self, t: f64, coefficients: [f64; 6]) -> [f64; 6] {
         if !self.switches.wave_enabled {
             return [0.0; 6];

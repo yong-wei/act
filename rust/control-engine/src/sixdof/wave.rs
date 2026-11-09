@@ -91,13 +91,13 @@ fn wave_number(omega: f64, depth: f64) -> f64 {
 
 /// 离散分量（波数、幅值、方向、相位）。
 #[derive(Debug, Clone, Copy)]
-struct WaveComponent {
-    omega: f64,
-    k: f64,
-    amplitude: f64,
+pub(crate) struct WaveComponent {
+    pub(crate) omega: f64,
+    pub(crate) k: f64,
+    pub(crate) amplitude: f64,
     /// 传播方向（NED 弧度，x=北）。
-    direction: f64,
-    phase: f64,
+    pub(crate) direction: f64,
+    pub(crate) phase: f64,
 }
 
 /// 带种子波场。
@@ -199,7 +199,9 @@ impl WaveField {
          coefficients[3] * eta, coefficients[4] * vel[0], coefficients[5] * vel[1]]
     }
 
-    /// QTF 二阶未就绪（阶段 B；未验证不开放、不伪造慢漂）。
+    /// QTF 二阶是否就绪（阶段 B2.1：Newman 近似机制 + 系数表接入后，
+    /// 由 EnvironmentState 持表并开关；波场本身不持表——关闭二阶不改
+    /// 波面序列的合同由调用侧开关语义保证）。
     pub fn second_order_available(&self) -> bool {
         self.second_order_available
     }
@@ -210,6 +212,11 @@ impl WaveField {
 
     pub fn component_count(&self) -> usize {
         self.components.len()
+    }
+
+    /// 分量只读访问（crate 内 QTF 内核复用同一相位/幅值源）。
+    pub(crate) fn components(&self) -> &[WaveComponent] {
+        &self.components
     }
 
     /// 分量能量和 Σaᵢ²/2（谱归一化对账；应精确 = Hs²/16）。
