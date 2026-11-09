@@ -44,12 +44,12 @@ fn s175_rust_port_matches_octave_golden_channel_by_channel() {
             assert!((row[0] - step as f64 / 10.0).abs() < 1e-9);
             for ch in 0..10 {
                 let err = (x[ch] - row[1 + ch]).abs();
-                // 尺度相关容差：位置/角度 1e-4 m/rad，速度 1e-6，rpm 1e-6
-                //（Octave 与 Rust 双精度运算次序差异经 RK4 放大后的余量）。
+                // 夹具 %.17g 往返精确；移植与 Octave 双精度运算次序差异
+                // 经 RK4 放大后全通道实测 ≤5e-11——按声明上限断言
+                // （位置通道给 10 倍余量：千米级坐标的舍入累积）。
                 let tol = match ch {
-                    3 | 4 => 2.0e-4, // x/y 位置。
-                    5 => 1.0e-6,     // psi。
-                    _ => 2.0e-6,
+                    3 | 4 => 5.0e-10, // x/y 位置。
+                    _ => 5.0e-11,
                 };
                 assert!(
                     err < tol,
