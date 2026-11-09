@@ -18,6 +18,7 @@ pub mod qtf;
 pub mod benchmark_b470;
 pub mod benchmark_s175;
 pub mod shear;
+pub mod tank_sloshing;
 pub mod hull_mmg;
 pub mod integrator;
 pub mod model_pack;
@@ -53,6 +54,7 @@ pub use sensor::{FaultKind, Measurement, NoiseLevel, Quality, SensorChannel, SEE
 pub use wave::{WaveCondition, WaveField};
 pub use qtf::{MeanDriftTable, TableProvenance, newman_difference_loads, newman_mean_loads};
 pub use shear::ShearCurrentField;
+pub use tank_sloshing::{SloshingMode, TankSloshing};
 pub use wind::{GustProcess, TrueWind, WindEnvironment, WindHullGeometry, fujiwara_loads, relative_wind_body};
 pub use radiation::{RadiationMode, RadiationModel, RadiationModelError};
 pub use hull_mmg::{
