@@ -51,10 +51,11 @@ fn second_order_off_is_strictly_zero_and_elevation_unchanged() {
 
 #[test]
 fn mean_matches_diagonal_convention() {
-    // 表值约定：mean(F_c) = Σᵢ T_c(ωᵢ,μᵢ_rel)·aᵢ²（对角和）。
-    // 航向对齐波传播方向 → surge 通道主导（方向投影 cos²≈1）。
+    // 解析均值合同（review 修订）：对角和 + 同频异向分量的冻结交叉项。
+    // 航向对齐波传播方向 → surge 主导；验证种子 17（评审探针同种子）。
+    let seed = 17u64;
     let mut env = EnvironmentState::new(
-        SEED_TRAINING,
+        seed,
         control_engine::sixdof::EnvironmentSwitches::all_on(),
         WaveCondition::v1(),
         0.0, 0.0, 0.0,
@@ -63,20 +64,22 @@ fn mean_matches_diagonal_convention() {
     let table = MeanDriftTable::teaching_nominal_semi_sub();
     env.qtf_table = Some(table.clone());
     let yaw = WaveCondition::v1().direction_to_deg.to_radians();
-    let analytic = control_engine::sixdof::qtf::newman_mean_loads(&env.wave, yaw, &table);
-    assert!(analytic[0] > 1.0e2, "对角均值应达百牛量级：{:?}", analytic);
+    let (x, y) = (0.0, 0.0);
+    let analytic =
+        control_engine::sixdof::qtf::newman_mean_loads(&env.wave, x, y, yaw, &table);
+    assert!(analytic[0] > 1.0e2, "均值应达百牛量级：{:?}", analytic);
 
     let dt = 0.5_f64;
     let n = 7200usize; // 3600 s 长窗。
     let mut sum_fx = 0.0;
     for i in 0..n {
-        let loads = env.second_order_wave_loads(i as f64 * dt, 0.0, 0.0, yaw);
+        let loads = env.second_order_wave_loads(i as f64 * dt, x, y, yaw);
         sum_fx += loads[0];
     }
     let time_mean = sum_fx / n as f64;
     assert!(
-        (time_mean - analytic[0]).abs() / analytic[0] < 0.15,
-        "时间平均应收敛到对角和：mean={time_mean}, analytic={}",
+        (time_mean - analytic[0]).abs() / analytic[0] < 0.05,
+        "时间平均应收敛解析均值（含冻结交叉项）：mean={time_mean}, analytic={}",
         analytic[0]
     );
 }

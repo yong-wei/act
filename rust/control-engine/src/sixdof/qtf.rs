@@ -190,20 +190,59 @@ pub fn newman_difference_loads(
     loads
 }
 
-/// Newman 近似的解析均值（对角和）：mean(F_c) = Σᵢ T_c(ωᵢ,μᵢ_rel)·aᵢ²。
-/// 与 `newman_difference_loads` 同一表值约定；供时间平均收敛性对账。
+/// Newman 近似的解析时间均值（review 修订合同）：
+/// mean = Σᵢ Tᵢ·aᵢ²（对角） + Σ_{i<j, ωᵢ=ωⱼ} 2√(TᵢTⱼ)·aᵢaⱼ·cos(θᵢ−θⱼ)。
+///
+/// 同频不同方向分量的 θᵢ−θⱼ 在固定位置**不随时间变化**（Δω=0）——
+/// 离散多向场的冻结相干交叉项属于该实现的真实时间均值；跨种子平均
+/// 时这些项回归对角和（物理上真实海况同频异向分量不相干）。与
+/// `newman_difference_loads` 的瞬时载荷同一约定，供收敛性对账。
 pub fn newman_mean_loads(
     field: &crate::sixdof::wave::WaveField,
+    x_n: f64,
+    y_e: f64,
     yaw: f64,
     table: &MeanDriftTable,
 ) -> [f64; 6] {
+    let comps = field.components();
+    let t_of = |c: &crate::sixdof::wave::WaveComponent| -> [f64; 3] {
+        table.lookup(c.omega, wrap_pi(c.direction - yaw))
+    };
+    let channel_of = |ch: usize| if ch == 2 { 5usize } else { ch };
     let mut loads = [0.0f64; 6];
-    for c in field.components() {
-        let mu_rel = wrap_pi(c.direction - yaw);
-        let t123 = table.lookup(c.omega, mu_rel);
-        loads[0] += t123[0] * c.amplitude * c.amplitude;
-        loads[1] += t123[1] * c.amplitude * c.amplitude;
-        loads[5] += t123[2] * c.amplitude * c.amplitude;
+    // 对角项。
+    for c in comps {
+        let t = t_of(c);
+        loads[0] += t[0] * c.amplitude * c.amplitude;
+        loads[1] += t[1] * c.amplitude * c.amplitude;
+        loads[5] += t[2] * c.amplitude * c.amplitude;
+    }
+    // 同频（同一离散频段，f64 精确相等）方向对的冻结交叉项。
+    // 分量按构建顺序排列：频率外层、方向内层 → 同频分量连续成段。
+    let mut i = 0usize;
+    while i < comps.len() {
+        let mut j = i + 1;
+        while j < comps.len() && comps[j].omega == comps[i].omega {
+            j += 1;
+        }
+        // 段 [i, j) 内两两配对。
+        for p in i..j {
+            for q in (p + 1)..j {
+                let (ci, cj) = (comps[p], comps[q]);
+                // θᵢ−θⱼ = (φᵢ−φⱼ) − k·[x(cosμᵢ−cosμⱼ) + y(sinμᵢ−sinμⱼ)]
+                //（同频 → 同波数 k）。
+                let dtheta = (ci.phase - cj.phase)
+                    - ci.k * (x_n * (ci.direction.cos() - cj.direction.cos())
+                        + y_e * (ci.direction.sin() - cj.direction.sin()));
+                let cos_d = dtheta.cos();
+                let (ti, tj) = (t_of(&ci), t_of(&cj));
+                for ch in 0..3 {
+                    let v = (ti[ch] * tj[ch]).sqrt() * ci.amplitude * cj.amplitude * cos_d;
+                    loads[channel_of(ch)] += 2.0 * v;
+                }
+            }
+        }
+        i = j;
     }
     loads
 }
