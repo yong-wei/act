@@ -4,10 +4,10 @@
   "vessel": "cruise-adora",
   "parameter_version": "research-nominal-v1",
   "generator_sha256": "1ef00cbe9b7ac015b1071830d47b27211d664e612ab3fe2a7d70927b407cee5b",
-  "wasm_sha256": "0f28cd8807cddbf23c5a12c8086f8edad68fb4f55a383c8bf1c7bca05df1130b",
+  "wasm_sha256": "995570fa8bffa1333484db1c29f4b9f6f6d537088de0e09dd21e01b31bd941eb",
   "build_identity": {
     "schemaVersion": "act-control-engine-identity/v1",
-    "buildHash": "13324b1d39773f868c435d558d037a1dd42b0b2df294f9b1ea1999062958caa6",
+    "buildHash": "3cc26ab0d6ea849213f9c43bd9cbea89b5cce763746b8b182aca66dcfc777eb0",
     "wasmPack": "wasm-pack 0.15.0",
     "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
     "exports": [
@@ -21,7 +21,7 @@
     "files": {
       "index.js": "e51d5ee2a9af6d3e89f1555ca65f5030e5e449c52c8b51fe24aebc52bc7e0efa",
       "index.d.ts": "0b1eac114507da23593dd0f505949cc823e17b87c4b424acf65c460b59df55eb",
-      "index_bg.wasm": "0f28cd8807cddbf23c5a12c8086f8edad68fb4f55a383c8bf1c7bca05df1130b",
+      "index_bg.wasm": "995570fa8bffa1333484db1c29f4b9f6f6d537088de0e09dd21e01b31bd941eb",
       "index_bg.wasm.d.ts": "eaa832d510eac4c6714a51ef8ba3f6edc57a6629e8b4d6794ba6d60e814eb5fc"
     }
   },
@@ -55,8 +55,8 @@
   "timing": {
     "virtual_seconds": 5,
     "render_frames": 300,
-    "elapsed_ms": 107.182584,
-    "mean_frame_ms": 0.35727528000000003,
+    "elapsed_ms": 107.38170800000002,
+    "mean_frame_ms": 0.3579390266666667,
     "scope": "single Node WASM session, excludes browser rendering and network capacity"
   }
 }

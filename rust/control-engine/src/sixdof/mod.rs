@@ -19,6 +19,7 @@ pub mod passive_observer;
 pub mod instrumentation;
 pub mod session;
 pub mod qtf;
+pub mod full_qtf;
 pub mod benchmark_b470;
 pub mod benchmark_dtmb5415;
 pub mod benchmark_kvlcc2;

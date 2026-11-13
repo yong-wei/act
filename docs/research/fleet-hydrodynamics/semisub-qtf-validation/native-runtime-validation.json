@@ -1,0 +1,48 @@
+{
+  "data_bytes": 60634512,
+  "data_content_hash": "fnv1a-7747b12fd587b08e",
+  "elapsed_ms": 69.541666,
+  "evaluations": 120,
+  "load_ms": 61.465708,
+  "maximum_absolute_frd_si": [
+    17597.762083144524,
+    17171.394943634987,
+    10896.374261922498,
+    917370.8094091648,
+    284760.2799336312,
+    828979.5555132143
+  ],
+  "mean_evaluation_ms": 0.5795138833333334,
+  "mean_heading_rad": 0.1,
+  "model_fidelity": "research-nominal",
+  "platform": {
+    "architecture": "aarch64",
+    "os": "macos"
+  },
+  "prepare_ms": 63.875208,
+  "sample_only": false,
+  "schema": "act.full-qtf.native-validation.v1",
+  "scope": "native release kernel, fixed mean heading; excludes WASM, vessel integration, rendering and network capacity",
+  "seed": 20261106,
+  "source_declared_sha256": "2f1251e6c2ad163c4d6771ceec143edcc028445f7c77181ea8ff84b0fb17bb4b",
+  "source_frequency_count": 93,
+  "source_heading_count": 17,
+  "status": "passed",
+  "trace_file": "native-runtime-validation.trace.csv",
+  "wave_components": 896,
+  "wave_condition": {
+    "direction_to_deg": 90.0,
+    "hs_m": 1.5,
+    "tp_s": 8.0,
+    "water_depth_m": 200.0
+  },
+  "wave_file": "native-runtime-validation.wave.json",
+  "weighted_checksum": [
+    86482309.86790118,
+    119795134.14981622,
+    36251875.15906209,
+    -4849632156.810666,
+    -448058493.80928135,
+    -4809169677.503379
+  ]
+}

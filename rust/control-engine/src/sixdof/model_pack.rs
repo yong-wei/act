@@ -166,7 +166,7 @@ pub enum PackError {
     InvalidLiquidTank { reason: String },
 }
 
-fn fnv1a(bytes: &[u8]) -> u64 {
+pub(crate) fn fnv1a(bytes: &[u8]) -> u64 {
     let mut hash: u64 = 0xcbf29ce484222325;
     for byte in bytes {
         hash ^= *byte as u64;
@@ -176,7 +176,7 @@ fn fnv1a(bytes: &[u8]) -> u64 {
 }
 
 /// 规范化 JSON（key 排序、无空白）→ 十六进制哈希。
-fn normalized_hash(value: &serde_json::Value) -> String {
+pub(crate) fn normalized_hash(value: &serde_json::Value) -> String {
     let canonical = canonicalize(value);
     let compact = serde_json::to_string(&canonical).unwrap_or_default();
     format!("fnv1a-{:016x}", fnv1a(compact.as_bytes()))

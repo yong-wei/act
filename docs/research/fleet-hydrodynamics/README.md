@@ -20,6 +20,8 @@ rtk proxy /tmp/act-solvers/bin/python3 docs/research/nemoh-v3/run_case.py --sour
 
 981差频实际计算已完成7579314行，覆盖17×17波向对和93个基础频率的六通道下三角复数表。`semisub-qtf-validation/`保留冻结输入、原始样本和对称性残差，完整57.17MB受控数组另存并记录哈希。均频率Hermitian及共同180°旋转对照已计算，±30°七方向波场有几何覆盖，任意24×24方向对仍有98对缺失。当前范围为零速DUOK+HASBO，完整自由面贡献、含航速差频及在线完整复数表读取继续待完成。
 
+完整复数差频的Rust读取与合成已由`full-qtf-runtime.md`记录。实际读取60.63MB运行数组，896波分量、120次六通道载荷与SciPy完整有序双重和对照约3.3e−14至6.5e−14相对差。WASM对象、平均姿态/作用坐标和981页面的挂接继续实施。
+
 ## 055双轴与双舵参数包
 
 `build_destroyer_pack.py`生成 `rust/control-engine/model-data/destroyer-055/v3/`。主尺度、质量、GM_T、设备高度及硬件限制来自#2147、#2158的固定T级定义。源模型为已发布的v2.3.0 GLB，提取HULL_MAIN、HULL_FORE_PATCH并核对GLB、清单、解码器和坐标变换哈希。原组合表面存在开口，经过配对横剖面采样、独立闭合重建以及固定排水量归一化形成物理湿面。LOA=180m用于外形缩放，Lpp=171m用于操纵无量纲化。
