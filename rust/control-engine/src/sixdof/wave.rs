@@ -32,7 +32,7 @@ pub const DIRECTIONS: usize = 7;
 pub const GRAVITY: f64 = 9.81;
 
 /// 工况定义（issue §2 表；T 级课程标称）。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct WaveCondition {
     pub hs_m: f64,
     pub tp_s: f64,
@@ -90,7 +90,7 @@ fn wave_number(omega: f64, depth: f64) -> f64 {
 }
 
 /// 离散分量（波数、幅值、方向、相位）。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub(crate) struct WaveComponent {
     pub(crate) omega: f64,
     pub(crate) k: f64,
@@ -101,7 +101,7 @@ pub(crate) struct WaveComponent {
 }
 
 /// 带种子波场。
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct WaveField {
     components: Vec<WaveComponent>,
     condition: WaveCondition,

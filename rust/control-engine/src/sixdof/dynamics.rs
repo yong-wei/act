@@ -197,7 +197,7 @@ pub fn solve_linear_6(matrix: &mut [[f64; 6]; 6], mut rhs: [f64; 6]) -> [f64; 6]
 }
 
 /// 一次动力学右端组装的输出：ν̇、η̇ 与力/力矩分项（对账与教学输出）。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct DynamicsOutput {
     pub nu_dot: [f64; 6],
     pub position_dot_ned: [f64; 3],
@@ -208,7 +208,7 @@ pub struct DynamicsOutput {
     pub breakdown: ForceBreakdown,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
 pub struct ForceBreakdown {
     pub coriolis_rb: [f64; 6],
     pub coriolis_added_mass: [f64; 6],

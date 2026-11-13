@@ -205,7 +205,7 @@ fn sensor_channel_variance_bias_and_delay() {
         }
     }
     let max_err = errors0.iter().fold(0.0f64, |acc, e| acc.max(e.abs()));
-    assert!(max_err < 1.5e-3, "N0 仅量化残差：{max_err}");
+    assert!(max_err < 1e-12, "N0无观测误差：{max_err}");
 }
 
 #[test]
@@ -213,18 +213,18 @@ fn sensor_faults_have_physical_continuity() {
     // F1：航向偏置 1 s 斜坡升至 2°。
     let mut ch = SensorChannel::new("heading_gyro", channel_seed(SEED_TRAINING, 0), NoiseLevel::N0).unwrap();
     ch.set_fault(Some(FaultKind::HeadingBiasRamp { t_start: 180.0 }));
-    let read = |ch: &mut SensorChannel, t: f64| -> f64 {
-        ch.advance(t, |_| (10.0, 0.0)).map(|m| m.value).unwrap_or(f64::NAN)
-    };
-    // 连续帧驱动到 180.7：时延队列排空后读最新到达（t≈180.6）。
+    // N0按表采样且立即到达，故障斜坡按原采样时刻计算。
     let mut latest = 0.0;
+    let mut latest_sample_time = 0.0;
     for frame in 0..(1807 * 24) {
         let t = frame as f64 / 240.0;
         if let Some(m) = ch.advance(t, |_| (10.0, 0.0)) {
             latest = m.value;
+            latest_sample_time = m.t_sample_s;
         }
     }
-    assert!((latest - 11.0).abs() < 0.16, "斜坡段内（时延 0.1 s，t≈180.5）+1.0°：{latest}");
+    let expected = 10.0 + 2.0 * (latest_sample_time - 180.0_f64).clamp(0.0, 1.0);
+    assert!((latest - expected).abs() < 1e-12, "故障按采样时间生效：{latest}");
     let ch2 = &mut SensorChannel::new("heading_gyro", channel_seed(SEED_TRAINING, 0), NoiseLevel::N0).unwrap();
     ch2.set_fault(Some(FaultKind::HeadingBiasRamp { t_start: 180.0 }));
     let mut final_v = 0.0;

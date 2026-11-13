@@ -78,7 +78,7 @@ pub struct ActuatorSystem {
     pub surfaces: Vec<ControlSurface>,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
 pub struct ShaftCommand {
     pub speed_reference_rad_s: f64,
     pub motor_torque_override_nm: Option<f64>,
@@ -87,14 +87,14 @@ pub struct ShaftCommand {
     pub azimuth_jammed: bool,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
 pub struct SurfaceCommand {
     pub angle_rad: f64,
     pub jammed: bool,
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct ActuatorCommands {
     pub shafts: Vec<ShaftCommand>,
     pub surfaces: Vec<SurfaceCommand>,

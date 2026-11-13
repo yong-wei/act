@@ -85,6 +85,7 @@ struct RudderHydrodynamics {
 }
 
 /// 组装后的 055 TruthPlant。
+#[derive(Clone)]
 pub struct DestroyerSixDofPlant {
     config: DestroyerSixDofConfig,
     rb: RigidBodyParams,
@@ -109,6 +110,14 @@ pub struct DestroyerSixDofPlant {
     /// 真实环境场（B1.4 后半段：Some 时 derivs 消费真实波/风/流）。
     environment_state: Option<crate::sixdof::environment_state::EnvironmentState>,
     wind_geometry: Option<crate::sixdof::wind::WindHullGeometry>,
+}
+
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub struct PlantCheckpoint {
+    state: TruthState,
+    time_s: f64,
+    environment: Option<crate::sixdof::environment_state::EnvironmentState>,
+    last_output: Option<DynamicsOutput>,
 }
 
 impl DestroyerSixDofPlant {
@@ -376,6 +385,45 @@ impl DestroyerSixDofPlant {
 
     pub fn actuator_system(&self) -> Option<&ActuatorSystem> {
         self.actuator_system.as_ref()
+    }
+
+    pub fn physical_mass_matrix(&self) -> [[f64; 6]; 6] {
+        super::dynamics::mass_matrix(&self.rb, &self.am)
+    }
+
+    pub fn environment(&self) -> Option<&crate::sixdof::environment_state::EnvironmentState> {
+        self.environment_state.as_ref()
+    }
+
+    pub fn advance_environment_to_current_time(&mut self) {
+        if let Some(environment) = self.environment_state.as_mut() {
+            environment.advance_to(self.sim_time_s);
+        }
+    }
+
+    pub fn checkpoint(&self) -> PlantCheckpoint {
+        PlantCheckpoint { state: self.state.clone(), time_s: self.sim_time_s,
+            environment: self.environment_state.clone(), last_output: self.last_output }
+    }
+
+    pub fn restore_checkpoint(&mut self, checkpoint: PlantCheckpoint) -> Result<(), String> {
+        let state = &checkpoint.state;
+        let norm: f64 = state.quaternion.iter().map(|value| value * value).sum();
+        if !checkpoint.time_s.is_finite() || checkpoint.time_s < 0.0 || (norm - 1.0).abs() > 1e-8
+            || state.position_ned.iter().chain(&state.quaternion).chain(&state.body_velocity)
+                .chain(&state.radiation_states).chain(&state.specialist_states).any(|value| !value.is_finite())
+            || state.radiation_states.len() != self.radiation.state_len()
+        {
+            return Err("物理恢复点的时间、状态或辐射维度无效".into());
+        }
+        self.actuator_system.as_ref().ok_or("恢复点需要物理执行器组")?
+            .validate_state(&state.actuator_states)?;
+        self.state = checkpoint.state;
+        self.sim_time_s = checkpoint.time_s;
+        self.environment_state = checkpoint.environment;
+        self.last_output = checkpoint.last_output;
+        self.motor_torque_actual_nm = self.state.actuator_states.motor_torques_nm.first().copied().unwrap_or(0.0);
+        Ok(())
     }
 
     pub fn set_propeller_installation(

@@ -29,6 +29,7 @@ const wasmExports = [
   'compute_rl_training',
   'compute_simulation_step',
   'compute_virtual_simulation_step',
+  'VesselSimulationSession',
 ];
 
 function sha256File(filePath) {
@@ -171,6 +172,7 @@ function computeBuildHash() {
     path.join(repoRoot, 'rust/control-engine/Cargo.toml'),
     path.join(repoRoot, 'rust/control-engine/Cargo.lock'),
     ...collectFiles(path.join(repoRoot, 'rust/control-engine/src')),
+    ...collectFiles(path.join(repoRoot, 'rust/control-engine/model-data')),
   ].filter((filePath) => existsSync(filePath));
 
   for (const filePath of inputFiles) {

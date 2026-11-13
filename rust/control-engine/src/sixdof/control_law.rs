@@ -7,7 +7,7 @@
 use serde::Deserialize;
 
 /// PID 增益（deg 口径：误差 deg、积分 deg·s、微分 deg/s → 舵令 deg）。
-#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, serde::Serialize, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct HeadingPidGains {
     pub kp: f64,
@@ -18,7 +18,7 @@ pub struct HeadingPidGains {
 }
 
 /// 控制模式。serde 小写：manual / p / pd / pid。
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, serde::Serialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum HeadingControlMode {
     Manual,

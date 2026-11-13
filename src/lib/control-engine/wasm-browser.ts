@@ -4,6 +4,7 @@ import initControlEngine, {
   compute_rl_training,
   compute_simulation_step,
   compute_virtual_simulation_step,
+  VesselSimulationSession,
 } from '@/resources/control-system/wasm/control_engine/index.js';
 
 import { ControlEngineFailure } from './envelope';
@@ -45,6 +46,16 @@ export async function ensureBrowserControlEngine(): Promise<void> {
       retryable: true,
     });
   }
+}
+
+export function createBrowserVesselSessionBinding(configurationJson: string): VesselSimulationSession {
+  if (!ready) {
+    throw new ControlEngineFailure({
+      state: 'unavailable', category: 'wasm-not-ready',
+      message: '仿真尚未加载完成。', retryable: true,
+    });
+  }
+  return new VesselSimulationSession(configurationJson);
 }
 
 export function invokeBrowserWasm(exportName: 'compute_analysis' | 'compute_nonlinear_analysis' | 'compute_rl_training' | 'compute_simulation_step' | 'compute_virtual_simulation_step', requestJson: string): string {

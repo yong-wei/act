@@ -27,6 +27,11 @@ import {
 import { ensureBrowserControlEngine, invokeBrowserWasm, isBrowserControlEngineReady, preloadBrowserControlEngine } from './wasm-browser';
 
 export { isBrowserControlEngineReady, preloadBrowserControlEngine };
+export { createVesselSimulationSessionBrowser } from './vessel-session';
+export type {
+  VesselActuatorCommands, VesselObservedSample, VesselSession, VesselSessionConfiguration,
+  VesselSessionFrame, VesselSessionInput, VesselTruthState,
+} from './vessel-session';
 
 async function withTimeout<T>(work: Promise<T>, timeoutMs: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;

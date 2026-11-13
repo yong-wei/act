@@ -12,7 +12,7 @@ use super::wind::{GustProcess, TrueWind, WindEnvironment, WindHullGeometry};
 use super::observer::ObservationChain;
 
 /// 环境因素开关（独立消融；关任何因素不删其他机制）。
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
 pub struct EnvironmentSwitches {
     pub wind_force_enabled: bool,
     pub wave_enabled: bool,
@@ -29,7 +29,7 @@ impl EnvironmentSwitches {
 }
 
 /// 真实环境场（组合 wave + wind + current + 观测链）。
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct EnvironmentState {
     pub switches: EnvironmentSwitches,
     /// 种子化波场（JONSWAP 多向）。
@@ -186,5 +186,18 @@ impl EnvironmentState {
 
     pub fn seed(&self) -> u64 {
         self.seed
+    }
+
+    pub fn validate_checkpoint(&self, expected: &Self, time_s: f64) -> Result<(), String> {
+        self.gust.validate_checkpoint(&expected.gust, time_s, self.switches.wind_force_enabled)?;
+        if self.seed != expected.seed || self.current_ned != expected.current_ned
+            || self.wind.true_wind.speed_mps != expected.wind.true_wind.speed_mps
+            || self.wind.true_wind.from_deg != expected.wind.true_wind.from_deg
+            || self.wind.true_wind.gust_ned != self.gust.components()
+            || serde_json::to_string(&self.switches).ok() != serde_json::to_string(&expected.switches).ok()
+            || serde_json::to_string(&self.wave).ok() != serde_json::to_string(&expected.wave).ok()
+            || self.qtf_table.is_some() || self.observation.is_some() || self.sensor_enabled
+        { return Err("环境恢复点与冻结工况不一致".into()); }
+        Ok(())
     }
 }

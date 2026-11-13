@@ -71,3 +71,49 @@ pub fn compute_virtual_simulation_step(request_json: &str) -> Result<String, JsV
     virtual_simulation_runtime::compute_virtual_simulation_step_json(request_json)
         .map_err(|error| JsValue::from_str(&error))
 }
+
+#[wasm_bindgen]
+pub struct VesselSimulationSession {
+    inner: sixdof::session::FleetSimulation,
+}
+
+#[wasm_bindgen]
+impl VesselSimulationSession {
+    #[wasm_bindgen(constructor)]
+    pub fn new(configuration_json: &str) -> Result<VesselSimulationSession, JsValue> {
+        let configuration = serde_json::from_str(configuration_json)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?;
+        let inner = sixdof::session::FleetSimulation::new(configuration)
+            .map_err(|error| JsValue::from_str(&error))?;
+        Ok(Self { inner })
+    }
+
+    pub fn advance(&mut self, seconds: f64, input_json: &str) -> Result<String, JsValue> {
+        let input = if input_json.is_empty() { None } else {
+            Some(serde_json::from_str(input_json).map_err(|error| JsValue::from_str(&error.to_string()))?)
+        };
+        self.inner.advance(seconds, input).map_err(|error| JsValue::from_str(&error))?;
+        self.inner.frame_json().map_err(|error| JsValue::from_str(&error))
+    }
+
+    pub fn read(&self) -> Result<String, JsValue> {
+        self.inner.frame_json().map_err(|error| JsValue::from_str(&error))
+    }
+
+    pub fn snapshot(&self) -> Result<String, JsValue> {
+        self.inner.snapshot_json().map_err(|error| JsValue::from_str(&error))
+    }
+
+    pub fn restore(&mut self, snapshot: &str) -> Result<(), JsValue> {
+        self.inner = sixdof::session::FleetSimulation::from_snapshot_json(snapshot)
+            .map_err(|error| JsValue::from_str(&error))?;
+        Ok(())
+    }
+
+    #[wasm_bindgen(js_name = setPaused)]
+    pub fn set_paused(&mut self, paused: bool) { self.inner.set_paused(paused); }
+
+    pub fn reset(&mut self) -> Result<(), JsValue> {
+        self.inner.reset().map_err(|error| JsValue::from_str(&error))
+    }
+}

@@ -42,6 +42,7 @@ export const WASM_EXPORTS = [
   'compute_rl_training',
   'compute_simulation_step',
   'compute_virtual_simulation_step',
+  'VesselSimulationSession',
 ] as const;
 export type ControlEngineWasmExport = (typeof WASM_EXPORTS)[number];
 
