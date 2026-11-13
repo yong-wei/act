@@ -52,7 +52,9 @@ impl GustProcess {
     /// 连续调用只推进新增网格步，重复同 t 不消耗随机流）。
     pub fn advance_to(&mut self, t: f64) {
         let dt = 1.0 / self.step_hz;
-        let target_steps = (t * self.step_hz).round() as i64;
+        // 仅消费已经到达的采样点。固定步长累计误差在网格边界容许1e-9步，
+        // 避免重建状态与持续推进在同一物理时刻取得相邻随机样本。
+        let target_steps = (t * self.step_hz + 1e-9).floor() as i64;
         let steps = (target_steps - self.executed_steps).max(0);
         self.executed_steps += steps;
         let decay = (-dt / self.tau_s).exp();

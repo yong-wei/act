@@ -17,8 +17,9 @@
 //! 正式参数包生产归 #2157。
 
 use super::actuators::{
-    clamp_motor_torque, clamp_shaft_speed, propeller_loads, shaft_acceleration,
-    PropellerModel, PropellerShaft, ServoModel,
+    clamp_motor_torque, clamp_shaft_speed, propeller_loads,
+    propeller_loads_with_ventilation, shaft_friction,
+    PropellerInstallation, PropellerModel, PropellerShaft, ServoModel,
 };
 use super::dynamics::{
     dynamics_step, AddedMassParams, CurrentFieldBody, DynamicsOutput, ExternalForces,
@@ -91,6 +92,7 @@ pub struct DestroyerSixDofPlant {
     mmg: HullMmgParams,
     low: LowSpeedParams,
     prop: PropellerModel,
+    propeller_installation: Option<PropellerInstallation>,
     shaft: PropellerShaft,
     servo: ServoModel,
     rudder_hydrodynamics: RudderHydrodynamics,
@@ -242,6 +244,7 @@ impl DestroyerSixDofPlant {
             mmg,
             low,
             prop,
+            propeller_installation: None,
             shaft,
             servo,
             rudder_hydrodynamics: RudderHydrodynamics {
@@ -344,6 +347,15 @@ impl DestroyerSixDofPlant {
         &self.state
     }
 
+    pub fn set_propeller_installation(
+        &mut self,
+        installation: PropellerInstallation,
+    ) -> Result<(), String> {
+        installation.validate()?;
+        self.propeller_installation = Some(installation);
+        Ok(())
+    }
+
     /// 环境场（T 级等效扰动，#2156 接真实风浪流前的教学等效）：
     /// 恒定横流经相对来流进入船体/舵载荷；一阶波浪力矩为正弦慢漂。
     pub fn set_environment_enabled(&mut self, enabled: bool) {
@@ -411,6 +423,7 @@ impl DestroyerSixDofPlant {
             let mmg = self.mmg;
             let low = self.low;
             let prop = self.prop;
+            let propeller_installation = self.propeller_installation;
             let config = self.config;
             let servo = self.servo;
             let rudder_hydrodynamics = self.rudder_hydrodynamics;
@@ -445,14 +458,19 @@ impl DestroyerSixDofPlant {
                     rudder_command_frozen.clamp(-servo.max_angle_rad, servo.max_angle_rad);
                 let rudder_rate = ((rudder_target - rudder_state) / DT_SCALAR)
                     .clamp(-servo.max_rate_rad_s, servo.max_rate_rad_s);
-                let omega_rate =
-                    shaft_acceleration(&shaft, &prop, omega_state, nu[0], motor_torque_frozen);
-
                 let (hull_nu, current_field_local, tau_wave_1, tau_wind) =
                     resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo);
+                let (thrust, propeller_torque) = propeller_loads_at(
+                    &prop, propeller_installation.as_ref(), real_env,
+                    t_sub, position, quat, hull_nu, omega_state,
+                );
+                // 桨推力与桨轴负载使用同一局部来流和同一浸没损失。
+                let omega_rate = (motor_torque_frozen - propeller_torque
+                    - shaft_friction(&shaft, omega_state)) / shaft.shaft_inertia;
                 let (mut external, tau_radiation, delta_eta) = assemble_forces(
-                    &mmg, &low, &prop, radiation_model, &config, &rudder_hydrodynamics,
-                    &nu, &hull_nu, &x_rad, rudder_state, omega_state, &quat, &position,
+                    &mmg, &low, radiation_model, &config, &rudder_hydrodynamics,
+                    propeller_installation.as_ref(),
+                    &nu, &hull_nu, &x_rad, rudder_state, thrust, &quat, &position,
                 );
                 external.tau_wave_1 = tau_wave_1;
                 external.tau_wind = tau_wind;
@@ -513,11 +531,17 @@ impl DestroyerSixDofPlant {
             self.environment_state.as_ref(),
             self.wind_geometry.as_ref(),
         );
+        let (thrust, _) = propeller_loads_at(
+            &self.prop, self.propeller_installation.as_ref(), self.environment_state.as_ref(),
+            self.sim_time_s, final_state.position_ned, final_state.quaternion, final_hull_nu,
+            final_state.actuator_states.propeller_shaft_speed_rad_s[0],
+        );
         let (mut external, tau_rad, delta_eta) = assemble_forces(
-            &self.mmg, &self.low, &self.prop, &self.radiation, &self.config, &self.rudder_hydrodynamics,
+            &self.mmg, &self.low, &self.radiation, &self.config, &self.rudder_hydrodynamics,
+            self.propeller_installation.as_ref(),
             &final_state.body_velocity, &final_hull_nu, &final_state.radiation_states,
             final_state.actuator_states.control_surface_angles_rad[0],
-            final_state.actuator_states.propeller_shaft_speed_rad_s[0],
+            thrust,
             &final_state.quaternion, &final_state.position_ned,
         );
         external.tau_wave_1 = tau_wave_1;
@@ -653,26 +677,63 @@ fn resolve_env_loads(
     (hull_nu, current_field_local, tau_wave_1, tau_wind)
 }
 
+#[allow(clippy::too_many_arguments)]
+fn propeller_loads_at(
+    prop: &PropellerModel,
+    installation: Option<&PropellerInstallation>,
+    environment: Option<&crate::sixdof::EnvironmentState>,
+    time_s: f64,
+    position: [f64; 3],
+    quaternion: [f64; 4],
+    relative_velocity: [f64; 6],
+    shaft_speed_rad_s: f64,
+) -> (f64, f64) {
+    let Some(installation) = installation else {
+        return propeller_loads(prop, relative_velocity[0], shaft_speed_rad_s);
+    };
+    let rotation = super::state::rotation_matrix(quaternion);
+    let mut point = position;
+    for axis in 0..3 {
+        point[axis] += rotation[axis].iter().zip(installation.position_body_m)
+            .map(|(component, lever)| component * lever).sum::<f64>();
+    }
+    let active_wave = environment.filter(|env| env.switches.wave_enabled);
+    let elevation = active_wave
+        .map(|env| env.wave.elevation(time_s, point[0], point[1]))
+        .unwrap_or(0.0);
+    let immersion = installation.immersion_depth(position, quaternion, elevation);
+    let lever = installation.position_body_m;
+    let mut axial_velocity = relative_velocity[0]
+        + relative_velocity[4] * lever[2] - relative_velocity[5] * lever[1];
+    if let Some(env) = active_wave {
+        let orbital = env.wave.orbital_velocity(
+            time_s, point[0], point[1], -(immersion - elevation).max(0.0),
+        );
+        axial_velocity -= rotation[0][0] * orbital[0]
+            + rotation[1][0] * orbital[1] + rotation[2][0] * orbital[2];
+    }
+    propeller_loads_with_ventilation(prop, axial_velocity, shaft_speed_rad_s, Some(immersion))
+}
+
 /// 子阶段力组装：船体、桨、舵（真实局部流速，无下限截断）、
 /// 辐射记忆（连续形式 τ=C·(B·u+A·x)）与恢复偏差。
 #[allow(clippy::too_many_arguments)]
 fn assemble_forces(
     mmg: &HullMmgParams,
     low: &LowSpeedParams,
-    prop: &PropellerModel,
     radiation_model: &RadiationModel,
     config: &DestroyerSixDofConfig,
     rudder: &RudderHydrodynamics,
+    propeller_installation: Option<&PropellerInstallation>,
     nu: &[f64; 6],
     nu_rel: &[f64; 6],
     x_rad: &[f64],
     rudder_state: f64,
-    omega_state: f64,
+    thrust_k: f64,
     quat: &[f64; 4],
     position: &[f64; 3],
 ) -> (ExternalForces, [f64; 6], [f64; 6]) {
     let loads = blended_hull_loads(mmg, low, nu_rel[0], nu_rel[1], nu_rel[5]);
-    let (thrust_k, _) = propeller_loads(prop, nu_rel[0], omega_state);
     let arm = rudder.longitudinal_position_m;
     let v_rudder = nu_rel[1] + arm * nu_rel[5];
     // 真实局部流速：零速+零推进时舵动压为零（合同：禁止速度下限截断）。
@@ -690,6 +751,12 @@ fn assemble_forces(
         [0.0, 0.0, -0.5 * config.draft_m],
         [fx_r, fy_r, 0.0],
     )[0];
+    let propeller_lever = propeller_installation
+        .map(|installation| installation.position_body_m)
+        .unwrap_or([0.0, 0.0, -0.5 * config.draft_m]);
+    let propeller_moment = super::state::moment_from_force(
+        propeller_lever, [thrust_k, 0.0, 0.0],
+    );
 
     let mut tau_radiation = [0.0f64; 6];
     for (i, mode) in radiation_model.modes.iter().enumerate() {
@@ -704,9 +771,9 @@ fn assemble_forces(
             thrust_k + fx_r,
             fy_r,
             0.0,
-            k_roll_r,
-            (-0.5 * config.draft_m) * thrust_k,
-            mz_r,
+            k_roll_r + propeller_moment[0],
+            propeller_moment[1],
+            mz_r + propeller_moment[2],
         ],
         ..ExternalForces::default()
     };

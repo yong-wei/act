@@ -21,6 +21,7 @@ use crate::sixdof::control_law::{
     DEFAULT_RUDDER_LIMIT_DEG, HeadingControlMode, HeadingPidGains, command_rudder_deg,
 };
 use crate::sixdof::state::TruthState;
+use crate::sixdof::actuators::PropellerInstallation;
 
 const DEG: f64 = std::f64::consts::PI / 180.0;
 pub const SIX_DOF_MODEL_VERSION: &str = "sixdof-destroyer-v2";
@@ -60,6 +61,8 @@ struct RuntimeRunManifest {
     /// 冻结初态摘要（P2：不同初态必须不同 run 身份）。
     initial_state: String,
     seed: u64,
+    #[serde(default)]
+    propeller_installation: Option<PropellerInstallation>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -111,6 +114,8 @@ struct RuntimeRequest {
     course_version: String,
     #[serde(default)]
     step_id: String,
+    #[serde(default)]
+    propeller_installation: Option<PropellerInstallation>,
     #[serde(default)]
     state: RuntimeState,
 }
@@ -192,11 +197,16 @@ fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
         &request.pid,
         request.manual_rudder_deg,
     );
-    let mask = factor_mask(request.disturbance_enabled);
+    let mut mask = factor_mask(request.disturbance_enabled);
+    if request.propeller_installation.is_some() {
+        mask.push("ventilation".to_string());
+    }
+    let installation = serde_json::to_string(&request.propeller_installation)
+        .expect("validated propeller installation must serialize");
     let initial_state = initial_state_digest(&request.state);
     let seed = 20261106u64; // 训练种子（验证 run 由参数覆盖）
     let identity = format!(
-        "{}|{}|{}|{}|{}|{}|{:?}|{}|{}|{}",
+        "{}|{}|{}|{}|{}|{}|{:?}|{}|{}|{}|{}",
         SIX_DOF_MODEL_VERSION,
         parameter_bundle_hash(&DestroyerSixDofConfig::default()),
         SIX_DOF_ENVIRONMENT_VERSION,
@@ -207,6 +217,7 @@ fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
         initial_state,
         mask.join(","),
         seed,
+        installation,
     );
     RuntimeRunManifest {
         manifest_id: format!("fnv1a-{:016x}", fnv_u64(identity.as_bytes())),
@@ -220,6 +231,7 @@ fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
         factor_mask: mask,
         initial_state,
         seed,
+        propeller_installation: request.propeller_installation,
     }
 }
 
@@ -232,6 +244,7 @@ fn manifest_matches(existing: &RuntimeRunManifest, request: &RuntimeRequest) -> 
         && existing.model_version == fresh.model_version
         // issue-2157：参数包哈希变化（升级/换包）必须使旧 run 失效。
         && existing.parameter_bundle_hash == fresh.parameter_bundle_hash
+        && existing.propeller_installation == fresh.propeller_installation
 }
 
 fn rebuild_plant(state: &RuntimeState) -> DestroyerSixDofPlant {
@@ -310,6 +323,9 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
     if !(request.dt_s.is_finite()) || request.dt_s <= 0.0 || request.dt_s > 1.0 {
         return Err(format!("sixdof 拒绝非法帧时长 dt_s={}", request.dt_s));
     }
+    if let Some(installation) = &request.propeller_installation {
+        installation.validate()?;
+    }
 
     let (manifest, manifest_reset) = match &request.state.run_manifest {
         Some(existing) if manifest_matches(existing, &request) => (existing.clone(), false),
@@ -317,6 +333,9 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
     };
 
     let mut plant = rebuild_plant(&request.state);
+    if let Some(installation) = request.propeller_installation {
+        plant.set_propeller_installation(installation)?;
+    }
     let control = command_rudder_for_request(&request);
     let (rudder_command_deg, integral, prev_error) =
         (control.rudder_deg, control.integral_deg_s, control.error_deg);

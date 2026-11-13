@@ -112,6 +112,21 @@ fn gust_process_is_deterministic_and_bounded() {
 }
 
 #[test]
+fn gust_samples_never_arrive_before_their_physical_time() {
+    let mut process = GustProcess::new(SEED_TRAINING, 1.0, 10.0);
+    process.advance_to(0.049);
+    assert_eq!(process.components(), [0.0, 0.0]);
+    process.advance_to(0.05);
+    let first = process.components();
+    assert_ne!(first, [0.0, 0.0]);
+    process.advance_to(0.099);
+    assert_eq!(process.components(), first);
+    let mut restored = GustProcess::new(SEED_TRAINING, 1.0, 10.0);
+    restored.advance_to(0.05 - f64::EPSILON);
+    assert_eq!(restored.components(), first);
+}
+
+#[test]
 fn wind_from_semantics_and_relative_flow() {
     // FROM 60°：风矢量指向 240°（NED = -cos60, -sin60 方向）。
     let wind = TrueWind { speed_mps: 8.0, from_deg: 60.0, gust_ned: [0.0, 0.0] };

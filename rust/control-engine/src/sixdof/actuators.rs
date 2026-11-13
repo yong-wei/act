@@ -40,6 +40,41 @@ pub struct PropellerShaft {
     pub viscous_friction_nm_s_per_rad: f64,
 }
 
+/// 固定桨轴安装点及零姿态平衡浸深，随运行配置冻结。
+#[derive(Debug, Clone, Copy, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PropellerInstallation {
+    pub position_body_m: [f64; 3],
+    pub reference_immersion_m: f64,
+}
+
+impl PropellerInstallation {
+    pub fn validate(&self) -> Result<(), String> {
+        if !self.reference_immersion_m.is_finite()
+            || self.position_body_m.iter().any(|value| !value.is_finite())
+        {
+            return Err("桨轴安装几何必须为有限值".into());
+        }
+        Ok(())
+    }
+
+    /// 波面高程向上为正，船体位置和旋转采用NED/FRD。
+    pub fn immersion_depth(
+        &self,
+        position_ned: [f64; 3],
+        quaternion: [f64; 4],
+        surface_elevation_m: f64,
+    ) -> f64 {
+        let rotation = super::state::rotation_matrix(quaternion);
+        let vertical_offset: f64 = rotation[2].iter()
+            .zip(self.position_body_m)
+            .map(|(component, lever)| component * lever)
+            .sum();
+        self.reference_immersion_m + position_ned[2]
+            + vertical_offset - self.position_body_m[2] + surface_elevation_m
+    }
+}
+
 /// 四象限进速比：J = Va / (n·D)，n→0 时按有效标尺正则化保持连续。
 fn advance_ratio(va_mps: f64, n_rad_s: f64, diameter_m: f64) -> f64 {
     let n_eff = n_rad_s.abs().max(0.05);
