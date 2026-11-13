@@ -240,7 +240,9 @@ def main():
             high = power
     power = (low+high)/2
     full = closed_hull(power, grid, d)
-    baseline_draft = level_draft(full, d['baseline_mass'])
+    # 标称状态已由该精确水线校准，避免在裁切容差带中重复求同一个根。
+    baseline_draft = (d['draft'] if d['baseline_mass'] == d['calibration_mass']
+                      else level_draft(full, d['baseline_mass']))
     base_wet = submerged(full, baseline_draft)
     source_center_x = float(base_wet.center_mass[0])
     full.vertices[:, 0] -= source_center_x
@@ -283,6 +285,7 @@ def main():
     write_json(args.output/'geometry-provenance.json', {'grade':'T', 'model_fidelity':'research-nominal',
         'authority':[f'https://github.com/yong-wei/act/issues/{d["issue"]}','https://github.com/yong-wei/act/issues/2147'],
         'source_sha256':sha256(args.source_sections), 'generator_sha256':sha256(Path(__file__)),
+        'mesh_generator_sha256':sha256(Path(__file__).with_name('build_destroyer_pack.py')),
         'source_model_sha256':profile['source']['sourceSha256'], 'source_model_commit':profile['source']['sourceCommit'],
         'source_symmetry_relative_l2':profile['port_starboard_relative_l2'], 'loading':loading,
         'waterline_snap_tolerance_m':2e-8,

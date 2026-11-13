@@ -11,6 +11,7 @@ const option = (name, fallback) => {
   return index === -1 ? fallback : argumentsList[index + 1];
 };
 const version = option('--version', 'research-nominal-v4');
+const vessel = option('--vessel', 'destroyer-055');
 const outputPath = option('--output', null);
 const wasmDirectory = path.join(repository, 'src/resources/control-system/wasm/control_engine');
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -18,7 +19,7 @@ const wasmBytes = readFileSync(path.join(wasmDirectory, 'index_bg.wasm'));
 const binding = await import(pathToFileURL(path.join(wasmDirectory, 'index.js')).href);
 await binding.default({ module_or_path: wasmBytes });
 
-const configuration = JSON.stringify({ parameterVersion: version, noiseLevel: 'N0' });
+const configuration = JSON.stringify({ vessel, parameterVersion: version, noiseLevel: 'N0' });
 const original = new binding.VesselSimulationSession(configuration);
 const restored = new binding.VesselSimulationSession(configuration);
 try {
@@ -51,6 +52,7 @@ try {
   const report = {
     schema: 'act.native-session-validation.v1',
     status: 'passed',
+    vessel,
     parameter_version: version,
     generator_sha256: sha256(readFileSync(fileURLToPath(import.meta.url))),
     wasm_sha256: sha256(wasmBytes),

@@ -1,0 +1,20 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "cruise-adora",
+  "model_version": "research-nominal-v1",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "actuators.json": "a3caa15c038141045a23fe6b4987fb8c8d811e7807c1f08352bf074d065cedcf",
+    "full-hull.dat": "23997dae4deae42062ee20ed2b6c5274e4c616cdade3305399612007a87d2cbb",
+    "geometry-provenance.json": "adc12ebb2fe775b97c9e7051b230ccf1162bcdc6ee5f1daf372f393e4acad66e",
+    "geometry.json": "471d3dbca1541923cee325836aae81926a82cbdefd4a4a3bd58f719b2043b345",
+    "hull.dat": "d1f1b27cb8572fe4d486467705a019b1bc712e2e4280abccf7baa97e30e111c1",
+    "hydrostatic-hull.json": "73f38de4c9b2ffaffa59a25267348e57497ab89cd2684a6f2de42eb01b5427d6",
+    "lid.dat": "10ccd918c293ae8c9233a5fff0ce90a3ece7ec520a05a76f61fed7c9c23570e2",
+    "maneuvering.json": "d16dfec6dfd1f8fac816f3adc97e3eb33b865a8da80ff5b4c7e49dd3bbc57491",
+    "provenance.json": "e2feb5e1a412c404917bf9e88aefb2de26c1c3dcf2dba871a754cc4e3f317a99",
+    "source-sections.json": "b18445d42e74656669cf26bd7e20eb223a9566928017879141a93c584a204b83",
+    "static-validation.json": "a741f57d4f98f1cbcbf501b1553daa894b98895a40c9400aaca544934f82fb37",
+    "validation.json": "9fedacaabda0b32ea4ae984b36b680e963516b93f1690b6a7311fb6ce988bc6f"
+  }
+}

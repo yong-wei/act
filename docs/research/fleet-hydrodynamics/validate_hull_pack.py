@@ -52,6 +52,16 @@ def propeller_check(mesh, installation, diameter, kg, draft):
     center = Point(-position[1], kg - draft - position[2])
     radius = diameter / 2
     section = hull_section(mesh, position[0])
+    if section.is_empty:
+        gap = max(float(mesh.bounds[0, 0])-position[0], position[0]-float(mesh.bounds[1, 0]), 0.0)
+        if gap <= 0:
+            raise ValueError('桨盘所在纵向位置缺少可核验的船体剖面')
+        return {
+            'center_x_m': position[0], 'center_y_z_up_m': [center.x, center.y],
+            'diameter_m': diameter, 'clearance_m': gap,
+            'overlap_area_lower_bound_m2': 0.0, 'circumscribed_disk_clear': True,
+            'rotation_coverage': 'complete disk plane beyond closed hull longitudinal extent',
+        }
     clearance = section.distance(center) - radius
     if section.contains(center):
         clearance = -radius - section.boundary.distance(center)
@@ -64,6 +74,22 @@ def propeller_check(mesh, installation, diameter, kg, draft):
         'overlap_area_lower_bound_m2': float(section.intersection(disk).area),
         'circumscribed_disk_clear': not section.intersects(outer_disk),
         'rotation_coverage': 'entire physical disk, all shaft angles',
+    }
+
+
+def pod_check(mesh, installation, diameter, kg, draft):
+    position = installation['positionBodyM']
+    center = np.array([position[0], -position[1], kg-draft-position[2]])
+    closest, distances, _ = mesh.nearest.on_surface([center])
+    distance = float(distances[0])
+    inside = bool(mesh.contains([center])[0])
+    clearance = (-distance if inside else distance)-diameter/2
+    return {
+        'center_body_m': position, 'diameter_m': diameter,
+        'clearance_m': clearance, 'center_inside_hull': inside,
+        'nearest_hull_point_bem_m': closest[0].tolist(),
+        'all_angles_clear': clearance > 1e-8,
+        'rotation_coverage': 'sphere equal to union of every vertical propeller disk over full horizontal azimuth',
     }
 
 
@@ -82,10 +108,20 @@ def surface_check(mesh, surface, kg, draft):
     span = math.sqrt(surface['area_m2'] * surface['aspect_ratio'])
     radius = chord / 2
     limit = surface['servo']['max_angle_rad']
-    if limit >= math.pi / 2 or surface['normal_body'] != [0.0, 1.0, 0.0]:
-        raise ValueError('当前剖面包络证明仅适用于垂直舵和小于90度的完整偏角范围')
+    horizontal_fin = surface['normal_body'] == [0.0, 0.0, 1.0]
+    if limit >= math.pi / 2 or surface['normal_body'] not in [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]:
+        raise ValueError('当前包络证明适用于小于90度偏角范围的垂直舵/水平鳍')
     center_y, center_z = -position[1], kg - draft - position[2]
     first, last = position[0] - radius, position[0] + radius
+    longitudinal_gap = max(float(mesh.bounds[0, 0])-last, first-float(mesh.bounds[1, 0]), 0.0)
+    if longitudinal_gap > 1e-8:
+        return {
+            'center_body_m': position, 'chord_m': chord, 'span_m': span,
+            'angle_interval_rad': [-limit, limit], 'slabs': 0,
+            'conservative_clearance_lower_bound_m': longitudinal_gap,
+            'method': 'disjoint longitudinal bounds of complete swept surface and closed hull',
+            'all_angles_clear': True,
+        }
     stations = np.unique(np.r_[first, mesh.vertices[:, 0][
         (mesh.vertices[:, 0] > first) & (mesh.vertices[:, 0] < last)], last])
     clearances = []
@@ -95,13 +131,18 @@ def surface_check(mesh, surface, kg, draft):
         offsets.extend(value for value in [-critical, critical] if offsets[0] <= value <= offsets[1])
         half_width = max(min(abs(value) * math.tan(limit),
                              math.sqrt(max(0.0, radius**2 - value**2))) for value in offsets)
-        envelope = box(center_y - half_width, center_z - span / 2,
-                       center_y + half_width, center_z + span / 2)
+        envelope = (box(center_y-span/2, center_z-half_width, center_y+span/2, center_z+half_width)
+                    if horizontal_fin else
+                    box(center_y-half_width, center_z-span/2, center_y+half_width, center_z+span/2))
         hull_bound = slab_projection(mesh, left, right)
+        if hull_bound.is_empty:
+            continue
         clearance = float(hull_bound.distance(envelope))
         if clearance <= 1e-8:
-            raise ValueError(f'舵完整偏角包络未能证明净空 x=[{left}, {right}]')
+            raise ValueError(f'翼面完整偏角包络未能证明净空 x=[{left}, {right}]')
         clearances.append(clearance)
+    if not clearances:
+        raise ValueError('翼面所在纵向区间缺少可核验的船体剖面')
     return {
         'center_body_m': position, 'chord_m': chord, 'span_m': span,
         'angle_interval_rad': [-limit, limit], 'slabs': len(clearances),

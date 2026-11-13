@@ -159,7 +159,8 @@ impl DestroyerSixDofPlant {
         // 换算基准：c_lin = cd·S·speed_ref；c_quad = cq·S/speed_ref（v|v|）；
         // r 一次项 = cr·S·speed_ref·L；r|r| 项 = crr·S·L³/speed_ref。
         let s_ref = 0.5 * SEA_WATER_DENSITY * config.length_m * config.draft_m;
-        let u_ref = config.cruise_speed_mps;
+        // 停船初始化仍需要有限的旧式系数换算尺度。
+        let u_ref = config.cruise_speed_mps.max(1.0);
         let l = config.length_m;
         // 符号按 hifi 原导数（xuu=−0.018、yv=−0.285、yr=+0.065、
         // yvvv=−1.35、nv=−0.105、nr=−0.043 等）设计点换算，负号全部保留。

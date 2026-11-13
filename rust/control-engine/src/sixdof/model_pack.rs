@@ -355,3 +355,33 @@ pub fn embedded_destroyer_055_v4() -> Result<PackModel, PackError> {
         include_str!("../../model-data/destroyer-055/v4/provenance.json"),
     )
 }
+
+pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, PackError> {
+    match (vessel, version) {
+        ("destroyer-055", "research-nominal-v3") => embedded_destroyer_055_v3(),
+        ("destroyer-055", "research-nominal-v4") => embedded_destroyer_055_v4(),
+        ("cruise-adora", "research-nominal-v1") => load_model_pack(
+            include_str!("../../model-data/cruise-adora/v1/manifest.json"),
+            include_str!("../../model-data/cruise-adora/v1/geometry.json"),
+            include_str!("../../model-data/cruise-adora/v1/maneuvering.json"),
+            include_str!("../../model-data/cruise-adora/v1/actuators.json"),
+            include_str!("../../model-data/cruise-adora/v1/provenance.json"),
+        ),
+        ("icebreaker-xuelong2", "research-nominal-v1") => load_model_pack(
+            include_str!("../../model-data/icebreaker-xuelong2/v1/manifest.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v1/geometry.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v1/maneuvering.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v1/actuators.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v1/provenance.json"),
+        ),
+        ("dredger-tianjing", "research-nominal-v1") => load_model_pack(
+            include_str!("../../model-data/dredger-tianjing/v1/manifest.json"),
+            include_str!("../../model-data/dredger-tianjing/v1/geometry.json"),
+            include_str!("../../model-data/dredger-tianjing/v1/maneuvering.json"),
+            include_str!("../../model-data/dredger-tianjing/v1/actuators.json"),
+            include_str!("../../model-data/dredger-tianjing/v1/provenance.json"),
+        ),
+        _ => Err(PackError::SchemaMismatch { expect: "supported-embedded-vessel-version",
+            got: format!("{vessel}@{version}") }),
+    }
+}

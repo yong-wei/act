@@ -1,0 +1,20 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "dredger-tianjing",
+  "model_version": "research-nominal-v1",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "actuators.json": "155ee132e606103115e094b525a564b27155dfc548500ebfbb3ed7bf98c870d9",
+    "full-hull.dat": "47bd3a91846d25aa0730fdf7ea1eeada50efc554e6d3e09ae5696688d05337e9",
+    "geometry-provenance.json": "89974f6446a578a7da3ceb408389e3177e625382c642b8598e28c675617a978f",
+    "geometry.json": "d7c9533f30eac6fc5e3c81d33736acfd43acde6276c7e4729e1b9ba3a2d7e5a7",
+    "hull.dat": "d83308b04d59bad0c5ecd7d4ea0a5042287cf44562c1938ff8b1528fb1037d6c",
+    "hydrostatic-hull.json": "92a85f946d854355c587c243e0dc8f525a83f0fbafed76765230d02aac54f729",
+    "lid.dat": "d2ddc0b3c1207073ec1a9c04b4677b55114e0c9229c179b841c16971bde5d55b",
+    "maneuvering.json": "3c19f4598435f0f38c342165da636254d8d3d65af89876ab6da46b0968bbc216",
+    "provenance.json": "865efe6a8f453e4f355296b8d57ac7d283a3c6d665042edcdb528d4d6e1837c5",
+    "source-sections.json": "825f7ef23f566b247934a0d27c8ba21ad30215ceb1574e66ec85eb1384d62098",
+    "static-validation.json": "0c05b4f3caea0ad134b049b6a021eefd571d4404616ac82216ef3979fad6cabc",
+    "validation.json": "5f52cfe2945a7ddd4b1bf80e4cb65fb17049a774d7b10eac8ecc76dc025eb024"
+  }
+}

@@ -38,7 +38,7 @@ def write_nemoh(path, vertices, faces):
         stream.write('0 0 0 0\n')
 
 
-def parameter_entries(value, prefix, leaf=''):
+def parameter_entries(value, prefix, leaf='', authority_issue=2158):
     units = {
         'loa_m': 'm', 'lpp_m': 'm', 'beam_m': 'm', 'draft_m': 'm',
         'displacement_volume_m3': 'm^3', 'displacement_mass_kg': 'kg',
@@ -56,15 +56,17 @@ def parameter_entries(value, prefix, leaf=''):
         'time_constant_s': 's', 'wake_propulsor': '1', 'normal_factor': '1',
         'fullness_power': '1', 'source_scale_factors': '1', 'wetted_length_m': 'm', 'wetted_beam_m': 'm',
         'source_center_of_buoyancy_x_m': 'm', 'center_of_flotation_x_m': 'm',
+        'equilibrium_pitch_rad': 'rad', 'mean_chord_m': 'm', 'efficiency': '1', 'standby_w': 'W',
+        'forbidden_sectors_rad': 'rad',
         'propeller_shaft_speed_rad_s': 'rad/s', 'motor_torques_nm': 'N*m',
         'shaft_reference_speed_rad_s': 'rad/s', 'azimuth_angles_rad': 'rad', 'control_surface_angles_rad': 'rad',
     }
     if isinstance(value, dict):
         return [entry for key, child in value.items()
-                for entry in parameter_entries(child, f'{prefix}.{key}', key)]
+                for entry in parameter_entries(child, f'{prefix}.{key}', key, authority_issue)]
     if isinstance(value, list):
         return [entry for index, child in enumerate(value)
-                for entry in parameter_entries(child, f'{prefix}[{index}]', leaf)]
+                for entry in parameter_entries(child, f'{prefix}[{index}]', leaf, authority_issue)]
     if not isinstance(value, (int, float)):
         return []
     unit = units.get(leaf)
@@ -73,7 +75,7 @@ def parameter_entries(value, prefix, leaf=''):
         unit = [['N/m', 'N/rad'], ['N*m/m', 'N*m/rad']][row >= 3][column >= 3]
     if unit is None:
         raise ValueError(f'参数缺少单位 {prefix}')
-    source = 'https://github.com/yong-wei/act/issues/2158'
+    source = f'https://github.com/yong-wei/act/issues/{authority_issue}'
     formula = 'fixed teaching definition or geometric/force-equilibrium derivation in generator'
     if any(name in prefix for name in ['surge_coefficients', 'sway_coefficients', 'yaw_coefficients']):
         source = 'https://doi.org/10.1007/s00773-014-0293-y'
@@ -197,14 +199,13 @@ def b470_coefficients():
     return arrays, sha256(path)
 
 
-def b470_loads(omega, velocity, coefficients):
-    diameter = 5.0
+def b470_loads(omega, velocity, coefficients, diameter=5.0, immersion_m=3.5):
     beta = math.atan2(velocity, 0.35 * omega * diameter)
     at, bt, aq, bq = coefficients
     ct = sum(at[k] * math.cos(k * beta) + bt[k] * math.sin(k * beta) for k in range(21))
     cq = sum(aq[k] * math.cos(k * beta) + bq[k] * math.sin(k * beta) for k in range(21))
     scale = 0.5 * RHO * math.pi / 4 * (velocity**2 + (0.35 * omega * diameter)**2)
-    immersion_ratio = 3.5 / 2.5
+    immersion_ratio = immersion_m / (diameter/2)
     loading = min(abs(ct), 1.0)
     critical = 1.0 + 0.6 * loading
     floor = 0.35 - 0.15 * loading

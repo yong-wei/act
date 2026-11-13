@@ -8,7 +8,7 @@ use super::instrumentation::{
     ObservationTruth, ObservedSample, SensorInstallations, SensorSignal, SensorSuite,
 };
 use super::integrator::NOMINAL_DT;
-use super::model_pack::{embedded_destroyer_055_v3, embedded_destroyer_055_v4};
+use super::model_pack::embedded_vessel_pack;
 use super::passive_observer::{PassiveObserver, PassiveObserverParameters, wrap_pi};
 use super::sensor::NoiseLevel;
 use super::state::ActuatorStates;
@@ -131,9 +131,6 @@ pub struct FleetSimulation {
 
 impl FleetSimulation {
     pub fn new(configuration: SessionConfiguration) -> Result<Self, String> {
-        if configuration.vessel != "destroyer-055" {
-            return Err("该船型参数版本尚未接入常驻物理会话".into());
-        }
         if !configuration.initial_heading_deg.is_finite()
             || configuration
                 .initial_position_ned
@@ -142,11 +139,13 @@ impl FleetSimulation {
         {
             return Err("初始位置或航向无效".into());
         }
-        let pack = match configuration.parameter_version.as_str() {
-            "research-nominal-v3" => embedded_destroyer_055_v3(),
-            "research-nominal-v4" => embedded_destroyer_055_v4(),
-            _ => return Err("该船型参数版本尚未接入常驻物理会话".into()),
-        }.map_err(|error| format!("参数包无效 {error:?}"))?;
+        let pack = embedded_vessel_pack(&configuration.vessel, &configuration.parameter_version)
+            .map_err(|error| format!("参数包无效 {error:?}"))?;
+        if configuration.vessel != "destroyer-055"
+            && matches!(configuration.environment, EnvironmentPreset::W1 | EnvironmentPreset::W2)
+        {
+            return Err("该船型的风载投影仍在核验，当前工况未就绪".into());
+        }
         let cg_height = pack.geometry.center_of_mass_waterline_z_up_m
             .ok_or("参数包缺少重心高度")?[2];
         let installations =
@@ -318,6 +317,12 @@ impl FleetSimulation {
         self.integral_deg_s = control.integral_deg_s;
         self.previous_error_deg = control.error_deg;
         let system = self.plant.actuator_system().expect("会话已装配执行器组");
+        if system.propulsors.len() == 2 && system.propulsors.iter().all(|propeller| propeller.azimuth.is_some()) {
+            // 双艉吊舱采用对称同角初级分配，实际转向与纵向推力损失由轴系计算。
+            for command in &mut self.held_commands.shafts {
+                command.azimuth_rad = -control.rudder_deg.to_radians();
+            }
+        }
         for (command, surface) in self.held_commands.surfaces.iter_mut().zip(&system.surfaces) {
             if surface.normal_body == [0.0, 1.0, 0.0] {
                 command.angle_rad = control.rudder_deg.to_radians();

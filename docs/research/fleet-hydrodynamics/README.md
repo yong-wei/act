@@ -62,3 +62,17 @@ rtk proxy node docs/research/fleet-hydrodynamics/validate_native_session.mjs --v
 ```
 
 `build_ship_geometry.py`接续五个常规船型的同源水下/自由板轮廓、装载、最小压载和纵倾求解。源GLB的实例质量代理与原始包围体积均以T级记录，实际货载质量分布继续待核验。当前集装箱可见甲板货载候选在高载下静水不稳定，生成器保留not_ready证明并以非零退出码结束，相关正式步骤继续待完成。
+
+## 邮轮、雪龙2号与天鲸基础包
+
+`build_vessel_pack.py`由已闭合几何装配版本化T级多轴/多翼与非线性静水参数。三个v1包位于`rust/control-engine/model-data/`相应船型目录，源剖面内保留所选节点、坐标变换、缺口修补及来源哈希。粗/细几何均以相同质量和吃水归一化，细网格采用172个纵向、24个垂向区间。
+
+| 船型 | GLB版本 | 船体节点或采样范围 |
+| --- | --- | --- |
+| 爱达·魔都号 | adora-magic-city/v1.1.0 | STATIC_88_AMC_HULL_PORT、STATIC_89_AMC_HULL_STARBOARD、STATIC_117_MAT_HULL_RED_G02 |
+| 雪龙2号 | xue-long-2/v1.1.0 | XL2_BATCH_56、XL2_BATCH_41、XL2_BATCH_42，排除两个吊舱外壳连通分量 |
+| 天鲸号 | dredger-tianjing/v1.2.0 | TJ_BATCH_000、001、002、004，主甲板船体范围限制在原水线上3.2m |
+
+完整运动包络揭示原T级布局的碰撞。新包把邮轮鳍中心移至y=±21.75m、雪龙吊舱移至x=−53.5m、天鲸桨/舵分别移至x=−60.5/−62.5m，龙骨高度继续采用公共合同。修订前后配置、实际碰撞原因、粗细几何哈希和全角度证明保存在各包`validation.json`。全回转吊舱使用全部垂直桨盘并集对应的球体核验，翼面使用连续扫掠界。
+
+三个包已接入`VesselSimulationSession`的P0/C1/C2基础工况，双艉吊舱采用对称同角的初级航向分配，鳍单独接受实际角命令。风载投影、波浪域、冰接触和疏浚机构继续由OpenSpec剩余任务实施。`cruise-session-validation.json`、`icebreaker-session-validation.json`及`dredger-session-validation.json`记录同一WASM构建下的对象恢复、暂停和固定时钟验证。
