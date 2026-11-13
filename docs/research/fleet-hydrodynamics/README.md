@@ -22,6 +22,12 @@ rtk proxy /tmp/act-solvers/bin/python3 docs/research/nemoh-v3/run_case.py --sour
 
 完整复数差频的Rust读取与合成已由`full-qtf-runtime.md`记录。实际读取60.63MB运行数组，896波分量、120次六通道载荷与SciPy完整有序双重和对照约3.3e−14至6.5e−14相对差。WASM对象、平均姿态/作用坐标和981页面的挂接继续实施。
 
+## 981基础运行参数
+
+`build_semisub_pack.py`把同一工作湿面与八个下挂轴系装配为semisub-981/v1，源几何及NEMOH网格哈希与已计算差频表核对。基准质量53095吨、单一KG36.353925m，横/纵GM分别为2m/10.154440m。自由板立柱上沿选择龙骨以上40m，按T级生成器假设保存。八台D4.5m、4.6MW、180rpm轴系具有真实电机/转速/方位动态，完整球包络净空下界0.75m。
+
+构件低频阻力由六个冻结平均湿面矩形在三种投影方向分别采用21×21中点积分，速度包含相对平均流和作用点ω×r，完整六维载荷进入实际RK。九项直接回归及Rust全量379项通过，原始WASM对象证明位于semisub-session-validation.json。DP/分配、电力/射流运行限制、拟合辐射及在线波浪数据继续由参数包未完成清单和OpenSpec管理。
+
 ## 055双轴与双舵参数包
 
 `build_destroyer_pack.py`生成 `rust/control-engine/model-data/destroyer-055/v3/`。主尺度、质量、GM_T、设备高度及硬件限制来自#2147、#2158的固定T级定义。源模型为已发布的v2.3.0 GLB，提取HULL_MAIN、HULL_FORE_PATCH并核对GLB、清单、解码器和坐标变换哈希。原组合表面存在开口，经过配对横剖面采样、独立闭合重建以及固定排水量归一化形成物理湿面。LOA=180m用于外形缩放，Lpp=171m用于操纵无量纲化。

@@ -98,7 +98,7 @@ fn default_derivative_filter_tau_s() -> f64 {
 }
 
 impl SessionInput {
-    fn validate(&self) -> Result<(), String> {
+    fn validate(&self, vessel: &str) -> Result<(), String> {
         if [
             self.pid.kp,
             self.pid.ki,
@@ -109,6 +109,9 @@ impl SessionInput {
             || self.derivative_filter_tau_s <= 0.0
         {
             return Err("控制输入或微分滤波时间常数无效".into());
+        }
+        if vessel == "semisub-981" && self.control_mode != HeadingControlMode::Manual {
+            return Err("平台定位控制模板正在接线，当前可用手动推进器命令".into());
         }
         Ok(())
     }
@@ -532,7 +535,7 @@ impl FleetSimulation {
             return Err("帧推进量必须为0至1秒".into());
         }
         if let Some(input) = &input {
-            input.validate()?;
+            input.validate(&self.configuration.vessel)?;
             self.plant
                 .actuator_system()
                 .ok_or("缺少执行器组")?
@@ -613,7 +616,7 @@ impl FleetSimulation {
             return Err("恢复点的物理、控制或帧累计时钟不一致".into());
         }
         let system = simulation.plant.actuator_system().ok_or("缺少执行器组")?;
-        saved.input.validate()?;
+        saved.input.validate(&saved.configuration.vessel)?;
         if let Some(controller) = &saved.heading_controller {
             controller.validate_checkpoint(time_s)?;
         }

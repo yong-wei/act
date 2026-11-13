@@ -89,6 +89,7 @@ pub struct PackManeuveringHull {
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum PackManeuvering {
+    Components { component_drag: super::component_drag::ComponentDragDefinition },
     Mapped { mapped_mmg: super::hull_mmg::MappedMmgHull },
     Legacy { hull: PackManeuveringHull, low_speed: PackLowSpeed },
 }
@@ -227,6 +228,9 @@ pub fn load_model_pack(
         if !mapped_mmg.validate() {
             return Err(PackError::NonFiniteValue { field: "mapped-mmg" });
         }
+    }
+    if let PackManeuvering::Components { component_drag } = &maneuvering {
+        component_drag.compile().map_err(|_| PackError::NonFiniteValue { field: "component-drag" })?;
     }
     let actuators: PackActuators = serde_json::from_str(actuators_json)
         .map_err(|_| PackError::SchemaMismatch { expect: "actuators", got: String::new() })?;
@@ -377,6 +381,13 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
     match (vessel, version) {
         ("destroyer-055", "research-nominal-v3") => embedded_destroyer_055_v3(),
         ("destroyer-055", "research-nominal-v4") => embedded_destroyer_055_v4(),
+        ("semisub-981", "research-nominal-v1") => load_model_pack(
+            include_str!("../../model-data/semisub-981/v1/manifest.json"),
+            include_str!("../../model-data/semisub-981/v1/geometry.json"),
+            include_str!("../../model-data/semisub-981/v1/maneuvering.json"),
+            include_str!("../../model-data/semisub-981/v1/actuators.json"),
+            include_str!("../../model-data/semisub-981/v1/provenance.json"),
+        ),
         ("cruise-adora", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/cruise-adora/v1/manifest.json"),
             include_str!("../../model-data/cruise-adora/v1/geometry.json"),

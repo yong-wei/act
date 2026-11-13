@@ -96,6 +96,7 @@ pub struct DestroyerSixDofPlant {
     mmg: HullMmgParams,
     low: LowSpeedParams,
     mapped_hull: Option<MappedMmgHull>,
+    component_drag: Option<std::sync::Arc<super::component_drag::ComponentDrag>>,
     prop: PropellerModel,
     propeller_installation: Option<PropellerInstallation>,
     actuator_system: Option<ActuatorSystem>,
@@ -262,6 +263,7 @@ impl DestroyerSixDofPlant {
             mmg,
             low,
             mapped_hull: None,
+            component_drag: None,
             prop,
             propeller_installation: None,
             actuator_system: None,
@@ -336,6 +338,9 @@ impl DestroyerSixDofPlant {
         // 操纵系数直接来自包。
         if let super::model_pack::PackManeuvering::Mapped { mapped_mmg } = &pack.maneuvering {
             plant.mapped_hull = Some(mapped_mmg.clone());
+        }
+        if let super::model_pack::PackManeuvering::Components { component_drag } = &pack.maneuvering {
+            plant.component_drag = Some(std::sync::Arc::new(component_drag.compile().expect("构件阻力包已通过加载校验")));
         }
         if let super::model_pack::PackManeuvering::Legacy { hull, low_speed } = &pack.maneuvering {
             plant.mmg = HullMmgParams {
@@ -589,6 +594,7 @@ impl DestroyerSixDofPlant {
             let mmg = self.mmg;
             let low = self.low;
             let mapped_hull = self.mapped_hull.as_ref();
+            let component_drag = self.component_drag.as_deref();
             let prop = self.prop;
             let propeller_installation = self.propeller_installation;
             let config = self.config;
@@ -651,7 +657,7 @@ impl DestroyerSixDofPlant {
                 let (mut external, tau_radiation, delta_eta) = assemble_forces(
                     &mmg, &low, radiation_model, &config, &rudder_hydrodynamics,
                     propeller_installation.as_ref(),
-                    &nu, &hull_nu, &x_rad, rudder_state, thrust, &quat, &position, physical_loads, mapped_hull,
+                    &nu, &hull_nu, &x_rad, rudder_state, thrust, &quat, &position, physical_loads, mapped_hull, component_drag,
                 );
                 external.tau_wave_1 = tau_wave_1;
                 external.tau_wind = tau_wind;
@@ -755,7 +761,7 @@ impl DestroyerSixDofPlant {
             &final_state.body_velocity, &final_hull_nu, &final_state.radiation_states,
             final_state.actuator_states.control_surface_angles_rad.first().copied().unwrap_or(0.0),
             thrust,
-            &final_state.quaternion, &final_state.position_ned, physical_loads, self.mapped_hull.as_ref(),
+            &final_state.quaternion, &final_state.position_ned, physical_loads, self.mapped_hull.as_ref(), self.component_drag.as_deref(),
         );
         external.tau_wave_1 = tau_wave_1;
         external.tau_wind = tau_wind;
@@ -999,9 +1005,12 @@ fn assemble_forces(
     position: &[f64; 3],
     physical_loads: Option<[f64; 6]>,
     mapped_hull: Option<&MappedMmgHull>,
+    component_drag: Option<&super::component_drag::ComponentDrag>,
 ) -> (ExternalForces, [f64; 6], [f64; 6]) {
-    let loads = mapped_hull.map(|hull| hull.loads(nu_rel))
-        .unwrap_or_else(|| blended_hull_loads(mmg, low, nu_rel[0], nu_rel[1], nu_rel[5]));
+    let loads = component_drag.map(|model| model.loads(nu_rel)).unwrap_or_else(|| {
+        mapped_hull.map(|hull| hull.loads(nu_rel))
+            .unwrap_or_else(|| blended_hull_loads(mmg, low, nu_rel[0], nu_rel[1], nu_rel[5]))
+    });
     let arm = rudder.longitudinal_position_m;
     let v_rudder = nu_rel[1] + arm * nu_rel[5];
     // 真实局部流速：零速+零推进时舵动压为零（合同：禁止速度下限截断）。
@@ -1034,7 +1043,7 @@ fn assemble_forces(
     }
 
     let external = ExternalForces {
-        tau_hull_viscous: [loads[0], loads[1], 0.0, loads[3], loads[4], loads[5]],
+        tau_hull_viscous: loads,
         tau_actuator: physical_loads.unwrap_or([
             thrust_k + fx_r,
             fy_r,

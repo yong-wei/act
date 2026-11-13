@@ -58,6 +58,7 @@ def parameter_entries(value, prefix, leaf='', authority_issue=2158):
         'source_center_of_buoyancy_x_m': 'm', 'center_of_flotation_x_m': 'm',
         'equilibrium_pitch_rad': 'rad', 'mean_chord_m': 'm', 'efficiency': '1', 'standby_w': 'W',
         'forbidden_sectors_rad': 'rad',
+        'drag_coefficient': '1', 'stations_per_axis': '1', 'boxes_body_m': 'm',
         'propeller_shaft_speed_rad_s': 'rad/s', 'motor_torques_nm': 'N*m',
         'shaft_reference_speed_rad_s': 'rad/s', 'azimuth_angles_rad': 'rad', 'control_surface_angles_rad': 'rad',
     }

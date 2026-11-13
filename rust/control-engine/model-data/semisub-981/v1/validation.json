@@ -1,0 +1,14 @@
+{
+  "schema": "act.semisub-pack.validation.v1",
+  "status": "computed",
+  "mass_kg": 53095000.0,
+  "gm_transverse_m": 2.0,
+  "gm_longitudinal_m": 10.154440154440152,
+  "kg_keel_up_m": 36.353925353925355,
+  "closed_full_hull": true,
+  "full_triangles": 2368,
+  "all_azimuth_envelope_clearance_lower_bound_m": 0.75,
+  "initial_surge_force_residual_n": 0.0,
+  "propulsors": 8,
+  "native_verification": "pending"
+}

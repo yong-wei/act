@@ -50,19 +50,51 @@ try {
     throw new Error('物理或控制时钟未按120Hz/20Hz推进');
   }
   original.setPaused(false);
-  const feedbackCommand = JSON.stringify({ controlMode: 'pid', pid: { kp: .7, ki: .01, kd: .2 },
-    targetHeadingDeg: 10, feedback: 'measurement', actuators: initial.heldCommands });
-  for (let frame = 0; frame < 300; frame += 1) original.advance(1 / 60, feedbackCommand);
-  restored.restore(original.snapshot());
-  for (let frame = 0; frame < 60; frame += 1) {
-    original.advance(1 / 60, feedbackCommand);
-    restored.advance(1 / 60, feedbackCommand);
-  }
-  if (original.snapshot() !== restored.snapshot()) throw new Error('测量反馈控制恢复后的完整未来状态不同');
-  const feedback = JSON.parse(original.read());
-  if (feedback.modelVersion !== 'sixdof-session-v2' || !feedback.headingController.feedbackAvailable
-      || feedback.headingController.integralFrozen || feedback.headingController.integralOutputDeg === 0) {
-    throw new Error('新测量微分控制器未实际接入');
+  let controlVerification;
+  if (vessel === 'semisub-981') {
+    const saved = original.snapshot();
+    let rejected = false;
+    try {
+      original.advance(.1, JSON.stringify({ ...JSON.parse(command), controlMode: 'pid' }));
+    } catch (error) {
+      rejected = String(error).includes('定位控制模板');
+    }
+    if (!rejected || original.snapshot() !== saved) throw new Error('待接线的平台控制器状态没有正确报告');
+    const pulse = JSON.parse(command);
+    pulse.actuators.shafts[0].speed_reference_rad_s = 3;
+    const pulseCommand = JSON.stringify(pulse);
+    for (let frame = 0; frame < 300; frame += 1) original.advance(1 / 60, pulseCommand);
+    restored.restore(original.snapshot());
+    for (let frame = 0; frame < 60; frame += 1) {
+      original.advance(1 / 60, pulseCommand);
+      restored.advance(1 / 60, pulseCommand);
+    }
+    const response = JSON.parse(original.read());
+    if (original.snapshot() !== restored.snapshot() || response.truth.body_velocity[5] <= 1e-7) {
+      throw new Error('八推进器单台实际艏摇或恢复失败');
+    }
+    controlVerification = { manual_future_bitwise_identical: true,
+      unready_dp_controller_explicit: true, single_pod_positive_yaw_rate_rad_s: response.truth.body_velocity[5],
+      physical_propulsor_count: response.truth.actuator_states.propeller_shaft_speed_rad_s.length };
+  } else {
+    const feedbackCommand = JSON.stringify({ controlMode: 'pid', pid: { kp: .7, ki: .01, kd: .2 },
+      targetHeadingDeg: 10, feedback: 'measurement', actuators: initial.heldCommands });
+    for (let frame = 0; frame < 300; frame += 1) original.advance(1 / 60, feedbackCommand);
+    restored.restore(original.snapshot());
+    for (let frame = 0; frame < 60; frame += 1) {
+      original.advance(1 / 60, feedbackCommand);
+      restored.advance(1 / 60, feedbackCommand);
+    }
+    if (original.snapshot() !== restored.snapshot()) throw new Error('测量反馈控制恢复后的完整未来状态不同');
+    const feedback = JSON.parse(original.read());
+    if (feedback.modelVersion !== 'sixdof-session-v2' || !feedback.headingController.feedbackAvailable
+        || feedback.headingController.integralFrozen || feedback.headingController.integralOutputDeg === 0) {
+      throw new Error('新测量微分控制器未实际接入');
+    }
+    controlVerification = { feedback_future_bitwise_identical: true,
+      heading_controller_model_version: feedback.modelVersion,
+      derivative_filter_tau_s: feedback.input.derivativeFilterTauS,
+      heading_controller: feedback.headingController };
   }
   const report = {
     schema: 'act.native-session-validation.v1',
@@ -79,10 +111,7 @@ try {
       physics_ticks: final.physicsTicks,
       controller_ticks: final.controllerTicks,
       snapshot_bytes: Buffer.byteLength(snapshot),
-      feedback_future_bitwise_identical: true,
-      heading_controller_model_version: feedback.modelVersion,
-      derivative_filter_tau_s: feedback.input.derivativeFilterTauS,
-      heading_controller: feedback.headingController,
+      ...controlVerification,
     },
     timing: {
       virtual_seconds: 5,

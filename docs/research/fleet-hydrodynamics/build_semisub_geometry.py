@@ -18,10 +18,10 @@ BOXES += [((x - 10.0, x + 10.0), (y - 10.0, y + 10.0), (10.0, DRAFT_M))
           for x, y in itertools.product([-35.0, 35.0], [-31.0, 31.0])]
 
 
-def mesh_axes(max_edge_m):
+def mesh_axes(max_edge_m, boxes=BOXES):
     axes = []
     for axis in range(3):
-        limits = sorted({value for box in BOXES for value in box[axis]})
+        limits = sorted({value for box in boxes for value in box[axis]})
         points = []
         for low, high in zip(limits[:-1], limits[1:]):
             count = int(np.ceil((high - low) / max_edge_m))
@@ -30,15 +30,15 @@ def mesh_axes(max_edge_m):
     return axes
 
 
-def surface_mesh(max_edge_m):
-    axes = mesh_axes(max_edge_m)
+def surface_mesh(max_edge_m, boxes=BOXES):
+    axes = mesh_axes(max_edge_m, boxes)
     centers = [(axis[:-1] + axis[1:]) / 2 for axis in axes]
     shape = tuple(len(axis) for axis in centers)
     occupied = np.zeros(shape, dtype=bool)
     for cell in np.ndindex(shape):
         point = [centers[axis][cell[axis]] for axis in range(3)]
         occupied[cell] = any(all(box[axis][0] <= point[axis] <= box[axis][1]
-                                 for axis in range(3)) for box in BOXES)
+                                 for axis in range(3)) for box in boxes)
     vertices, node_ids, wet_faces, lid_faces = [], {}, [], []
     for cell in np.ndindex(shape):
         if not occupied[cell]:
