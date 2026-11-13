@@ -18,7 +18,7 @@ rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/prepare
 rtk proxy /tmp/act-solvers/bin/python3 docs/research/nemoh-v3/run_case.py --source-dir /tmp/nemoh-v3 --build-dir /tmp/nemoh-build --case-dir /tmp/semisub-input --output /tmp/semisub-qtf-result
 ```
 
-当前981差频输入覆盖17个波向和93个基础频率，采用零速DUOK+HASBO，完整自由面贡献和含航速差频处于待完成范围。双波同时旋转180°的角域扩展需通过同一几何的一阶对称性对照后使用。
+981差频实际计算已完成7579314行，覆盖17×17波向对和93个基础频率的六通道下三角复数表。`semisub-qtf-validation/`保留冻结输入、原始样本和对称性残差，完整57.17MB受控数组另存并记录哈希。均频率Hermitian及共同180°旋转对照已计算，±30°七方向波场有几何覆盖，任意24×24方向对仍有98对缺失。当前范围为零速DUOK+HASBO，完整自由面贡献、含航速差频及在线完整复数表读取继续待完成。
 
 ## 055双轴与双舵参数包
 
