@@ -1,0 +1,23 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5ee9640..7c17247 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -80 +80,3 @@ include(CTest)
+-add_subdirectory(TestCases)
++if(BUILD_TESTING)
++    add_subdirectory(TestCases)
++endif()
+diff --git a/QTF/Solver/MQSolver.f90 b/QTF/Solver/MQSolver.f90
+index bb1a03a..a18aced 100644
+--- a/QTF/Solver/MQSolver.f90
++++ b/QTF/Solver/MQSolver.f90
+@@ -1034,2 +1034,2 @@ CONTAINS
+-          abs_delk=SQRT(k1**2+k2**2-2*k1*k2*cos(beta1-beta2))
+-          abs_sumk=SQRT(k1**2+k2**2+2*k1*k2*cos(beta1-beta2))
++          abs_delk=NORM2([k1*cos(beta1)-k2*cos(beta2),k1*sin(beta1)-k2*sin(beta2)])
++          abs_sumk=NORM2([k1*cos(beta1)+k2*cos(beta2),k1*sin(beta1)+k2*sin(beta2)])
+@@ -1062,2 +1062,2 @@ CONTAINS
+-          abs_delk=SQRT(k1**2+k2**2-2*k1*k2*cos(beta1-beta2))
+-          abs_sumk=SQRT(k1**2+k2**2+2*k1*k2*cos(beta1-beta2))
++          abs_delk=NORM2([k1*cos(beta1)-k2*cos(beta2),k1*sin(beta1)-k2*sin(beta2)])
++          abs_sumk=NORM2([k1*cos(beta1)+k2*cos(beta2),k1*sin(beta1)+k2*sin(beta2)])

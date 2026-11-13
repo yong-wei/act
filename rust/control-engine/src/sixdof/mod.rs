@@ -16,6 +16,8 @@ pub mod environment_state;
 pub mod observer;
 pub mod qtf;
 pub mod benchmark_b470;
+pub mod benchmark_dtmb5415;
+pub mod benchmark_kvlcc2;
 pub mod benchmark_s175;
 pub mod shear;
 pub mod hull_mmg;
@@ -27,6 +29,7 @@ pub mod wave;
 pub mod wind;
 pub mod state;
 pub mod student_model;
+pub mod tank_sloshing;
 pub mod vessel_runtime;
 
 pub use destroyer_plant::{DestroyerCommands, DestroyerSixDofConfig, DestroyerSixDofPlant};
