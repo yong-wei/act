@@ -1,0 +1,305 @@
+{
+  "schema": "act.offline-hydrodynamics.oc4-benchmark.v1",
+  "fidelity": "research-nominal",
+  "generator_sha256": "dd29c2214cb451920d7087ac79ca787ae69d50eddf7fd77978b02b3237d0cb19",
+  "qtf_scope": "zero-speed DUOK+HASBO, including bidirectional headings 0 and 30 degrees",
+  "results": {
+    "980": {
+      "execution_sha256": "fb8aaa7aa50488f5acc36ae5b6b262c63b13f765fcab95d97f89a869e591ce6e",
+      "radiation_sha256": "a24041bb1c2fe62362ff01f04de01889719291bae18b09930d4c07c29d55aae5",
+      "qtf_sha256": "258b80294fcb1cc108927d8e16e479ac1cbaa347de312abdca4e97a9bac445a6",
+      "all_finite": true,
+      "qtf_rows": 51480,
+      "first_order": {
+        "AddedMass_11.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.02769862846476832,
+          "relative_l2_magnitude": 0.02769862846476832,
+          "max_absolute_error_si": 681271.0
+        },
+        "Damping_11.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.1076883806054656,
+          "relative_l2_magnitude": 0.10757739462328465,
+          "max_absolute_error_si": 571692.15
+        },
+        "AddedMass_22.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.027575341591907596,
+          "relative_l2_magnitude": 0.027575341591907596,
+          "max_absolute_error_si": 677828.0
+        },
+        "Damping_22.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.10271702489846465,
+          "relative_l2_magnitude": 0.10264724699609185,
+          "max_absolute_error_si": 577339.6
+        },
+        "AddedMass_33.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.01967144094844469,
+          "relative_l2_magnitude": 0.01967144094844469,
+          "max_absolute_error_si": 330880.0
+        },
+        "Damping_33.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.11311202599375188,
+          "relative_l2_magnitude": 0.11306261429089359,
+          "max_absolute_error_si": 90126.5
+        },
+        "AddedMass_44.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.012301472027310452,
+          "relative_l2_magnitude": 0.012301472027310452,
+          "max_absolute_error_si": 118261000.0
+        },
+        "Damping_44.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.05033002592458905,
+          "relative_l2_magnitude": 0.049442186879056854,
+          "max_absolute_error_si": 34654100.0
+        },
+        "AddedMass_55.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.012123038627791441,
+          "relative_l2_magnitude": 0.012123038627791441,
+          "max_absolute_error_si": 120331000.0
+        },
+        "Damping_55.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.052294819353282784,
+          "relative_l2_magnitude": 0.05140549350776807,
+          "max_absolute_error_si": 37676646.4797771
+        },
+        "AddedMass_66.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.02497602172523402,
+          "relative_l2_magnitude": 0.02497602172523402,
+          "max_absolute_error_si": 293546000.0
+        },
+        "Damping_66.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.08429399056864216,
+          "relative_l2_magnitude": 0.08413243565132342,
+          "max_absolute_error_si": 361578740.0
+        }
+      },
+      "qtf": {
+        "1": {
+          "samples": 8580,
+          "relative_l2_complex": 0.81552167626541,
+          "relative_l2_magnitude": 0.410056767167853,
+          "max_absolute_error_si": 1343508.504050549
+        },
+        "2": {
+          "samples": 8580,
+          "relative_l2_complex": 1.0270196812934875,
+          "relative_l2_magnitude": 0.6046285308571824,
+          "max_absolute_error_si": 569446.4702814308
+        },
+        "3": {
+          "samples": 8580,
+          "relative_l2_complex": 0.7078586023358808,
+          "relative_l2_magnitude": 0.3684685417948346,
+          "max_absolute_error_si": 317568.62245545845
+        },
+        "4": {
+          "samples": 8580,
+          "relative_l2_complex": 0.890233135244642,
+          "relative_l2_magnitude": 0.4543738421408744,
+          "max_absolute_error_si": 4802139.742774156
+        },
+        "5": {
+          "samples": 8580,
+          "relative_l2_complex": 0.7277742811540718,
+          "relative_l2_magnitude": 0.3089719080584816,
+          "max_absolute_error_si": 8081221.69952527
+        },
+        "6": {
+          "samples": 8580,
+          "relative_l2_complex": 0.9162895781119607,
+          "relative_l2_magnitude": 0.5166698898695794,
+          "max_absolute_error_si": 21934068.56486342
+        }
+      }
+    },
+    "2200": {
+      "execution_sha256": "63d521fa35e7920020e3a8a7203a27abd5412a1c52e139fbc8b17d119d7b85df",
+      "radiation_sha256": "db727aa708d8df164bb5e2c2dce51b7d1aa9aefe67559218ddaea7289ac4733b",
+      "qtf_sha256": "dd6a4f23543fda3adba9bc26a1c5da9e110a7e2448bf36424be9b1abd6d7d22f",
+      "all_finite": true,
+      "qtf_rows": 51480,
+      "first_order": {
+        "AddedMass_11.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.009594495264457215,
+          "relative_l2_magnitude": 0.009594495264457215,
+          "max_absolute_error_si": 329298.0
+        },
+        "Damping_11.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.08654720357771713,
+          "relative_l2_magnitude": 0.08646633896465385,
+          "max_absolute_error_si": 561362.15
+        },
+        "AddedMass_22.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.009455759990656738,
+          "relative_l2_magnitude": 0.009455759990656738,
+          "max_absolute_error_si": 325140.0
+        },
+        "Damping_22.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.08315598552407065,
+          "relative_l2_magnitude": 0.08304076988421363,
+          "max_absolute_error_si": 541559.0
+        },
+        "AddedMass_33.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.002256614194570272,
+          "relative_l2_magnitude": 0.002256614194570272,
+          "max_absolute_error_si": 50580.0
+        },
+        "Damping_33.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.06145182287618638,
+          "relative_l2_magnitude": 0.06141277344346476,
+          "max_absolute_error_si": 77451.09999999998
+        },
+        "AddedMass_44.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.0013922062059651468,
+          "relative_l2_magnitude": 0.0013922062059651468,
+          "max_absolute_error_si": 18084000.0
+        },
+        "Damping_44.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.025306471047008526,
+          "relative_l2_magnitude": 0.02453512247103589,
+          "max_absolute_error_si": 18005000.0
+        },
+        "AddedMass_55.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.0014565563483571085,
+          "relative_l2_magnitude": 0.0014565563483571085,
+          "max_absolute_error_si": 18443000.0
+        },
+        "Damping_55.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.025978493995403237,
+          "relative_l2_magnitude": 0.02516932886454832,
+          "max_absolute_error_si": 18288100.0
+        },
+        "AddedMass_66.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.007476932516723743,
+          "relative_l2_magnitude": 0.007476932516723743,
+          "max_absolute_error_si": 122981000.0
+        },
+        "Damping_66.dat": {
+          "samples": 100,
+          "relative_l2_complex": 0.0690104862753459,
+          "relative_l2_magnitude": 0.0687491080591561,
+          "max_absolute_error_si": 336934240.0
+        }
+      },
+      "qtf": {
+        "1": {
+          "samples": 8580,
+          "relative_l2_complex": 0.8320414233294061,
+          "relative_l2_magnitude": 0.42266186527677846,
+          "max_absolute_error_si": 1037983.432278862
+        },
+        "2": {
+          "samples": 8580,
+          "relative_l2_complex": 1.0686356836420685,
+          "relative_l2_magnitude": 0.6275375156392797,
+          "max_absolute_error_si": 557817.244998126
+        },
+        "3": {
+          "samples": 8580,
+          "relative_l2_complex": 0.7225643276045622,
+          "relative_l2_magnitude": 0.3427050128525996,
+          "max_absolute_error_si": 329029.2059904143
+        },
+        "4": {
+          "samples": 8580,
+          "relative_l2_complex": 0.9367162478424818,
+          "relative_l2_magnitude": 0.46489696287712895,
+          "max_absolute_error_si": 4849299.602238186
+        },
+        "5": {
+          "samples": 8580,
+          "relative_l2_complex": 0.7529861351706939,
+          "relative_l2_magnitude": 0.30521834045972834,
+          "max_absolute_error_si": 8358190.934243599
+        },
+        "6": {
+          "samples": 8580,
+          "relative_l2_complex": 0.9451782990306488,
+          "relative_l2_magnitude": 0.5259362425480678,
+          "max_absolute_error_si": 20622041.55600945
+        }
+      }
+    }
+  },
+  "reference_sha256": {
+    "MQTFFx.rao": "e06ab781dc749ae95e809300a474ce7230c61dc5871dfcc105a4bb8ddfda1a21",
+    "MQTFFy.rao": "421c50fda9edf9ff82f1305057b90f71cf5b02cc41264286886f0227a844a4cf",
+    "MQTFFz.rao": "b5eac0f9fa8bf1858fcdb16d76cc4ae110550c3f0625dfcc5ab9bb6a14f19271",
+    "MQTFMx.rao": "aba37189239161013b6f77454c6042aad2d648ae634524a38d5dae47ff4cb3f1",
+    "MQTFMy.rao": "bce9f18013cc18fed7df781f2f2cf973c137c218a5efb39f8dff91a60e8e7dec",
+    "MQTFMz.rao": "fa2038913c0b0fcde97f8b911b34fa81069ae7e836d99c092b5db7b38db391a7",
+    "AddedMass_11.dat": "17ca75053d9e7d6849e78fe8a1db41b41af0590a79c16eeb9d07d78b8ed53da8",
+    "Damping_11.dat": "fdc283ebd73b80f4790202650169d15b254ff8e653b6f8f7d3e5ab4a7c85a94a",
+    "AddedMass_22.dat": "e5faa42aeb0900d746d26d4984b7614f37871e3b829fb6ad84ea446b0ca6c41f",
+    "Damping_22.dat": "fd43f0c7bd01bb0f742a552e4f0bbe5ff057d5874f435f78f03fa72e1132c4ce",
+    "AddedMass_33.dat": "dc40ecedf80b83714fc7dd24c17800a40348497970be7023cdd73702d1efbf06",
+    "Damping_33.dat": "a71ee8a37db25b098b604f108ae5b1d28ce19157910365da2ca5f301fb82abcf",
+    "AddedMass_44.dat": "089f7eec8ec4441c630fca4f83fe0f5cd00f372b576ab641ea993672fdc2472d",
+    "Damping_44.dat": "995675daaadb9dc3260f279e5917fecec47bed56e4900b7a809286491e82f90b",
+    "AddedMass_55.dat": "60d60254b339c3727f17f6caf3899edb61a35feb981fe136b63c406f98e78d67",
+    "Damping_55.dat": "96085af3e690efd5a124ba9c14098e0ca167be9fb0fd8dd2658285c3ad4afd8f",
+    "AddedMass_66.dat": "f178bbf4a12556c92f4afa65833c6a700b319cd6cbb40054d7bed7691d96f31f",
+    "Damping_66.dat": "e732c20f40c98fd41d618b246ca28169fe1c4f892afdf9fccbf353c3647ef53a"
+  },
+  "mesh_convergence": {
+    "1": {
+      "samples": 8580,
+      "relative_l2_complex": 0.26815095439388786,
+      "relative_l2_magnitude": 0.2103131974772543,
+      "max_absolute_error_si": 442851.7846598509
+    },
+    "2": {
+      "samples": 8580,
+      "relative_l2_complex": 0.3108093726828086,
+      "relative_l2_magnitude": 0.2250618923726788,
+      "max_absolute_error_si": 271824.2844231178
+    },
+    "3": {
+      "samples": 8580,
+      "relative_l2_complex": 0.22113668339485512,
+      "relative_l2_magnitude": 0.2007677119779793,
+      "max_absolute_error_si": 103381.5120217604
+    },
+    "4": {
+      "samples": 8580,
+      "relative_l2_complex": 0.1477905943013715,
+      "relative_l2_magnitude": 0.12341245251275114,
+      "max_absolute_error_si": 640434.6807082559
+    },
+    "5": {
+      "samples": 8580,
+      "relative_l2_complex": 0.14437853518964458,
+      "relative_l2_magnitude": 0.12520821154253625,
+      "max_absolute_error_si": 1306988.3750266763
+    },
+    "6": {
+      "samples": 8580,
+      "relative_l2_complex": 0.25440696412165337,
+      "relative_l2_magnitude": 0.19380602150943754,
+      "max_absolute_error_si": 7984930.7287238855
+    }
+  },
+  "comparison_arrays_sha256": "f4e7caff94c3cd90e81c053e6a82a5c2fb82b1e7bf68e0a95d376cdcc4f97ade"
+}

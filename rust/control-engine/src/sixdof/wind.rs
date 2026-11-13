@@ -11,6 +11,7 @@ use super::wave::seed_to_unit;
 pub const RHO_AIR: f64 = 1.225;
 
 /// 阵风 OU 过程（二维水平分量，物理时钟 20Hz 步进）。
+#[derive(Clone)]
 pub struct GustProcess {
     tau_s: f64,
     sigma_mps: f64,
@@ -152,6 +153,7 @@ pub fn fujiwara_loads(rel_body: [f64; 2], geo: &WindHullGeometry) -> [f64; 4] {
 }
 
 /// 风载荷状态机：消融开关语义入口。
+#[derive(Clone)]
 pub struct WindEnvironment {
     pub true_wind: TrueWind,
     pub wind_force_enabled: bool,

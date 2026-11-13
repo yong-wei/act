@@ -23,15 +23,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-dir", type=Path, required=True)
     parser.add_argument("--build-dir", type=Path, required=True)
-    parser.add_argument("--case", required=True)
+    cases = parser.add_mutually_exclusive_group(required=True)
+    cases.add_argument("--case")
+    cases.add_argument("--case-dir", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--frequency-count", type=int)
     parser.add_argument("--qtf-frequency-count", type=int)
     parser.add_argument("--first-order-only", action="store_true")
     args = parser.parse_args()
     source = args.source_dir.resolve()
-    case = (source / "TestCases" / args.case).resolve()
-    if not case.is_relative_to(source / "TestCases"):
+    case = (args.case_dir if args.case_dir is not None
+            else source / "TestCases" / args.case).resolve()
+    if args.case is not None and not case.is_relative_to(source / "TestCases"):
         parser.error("基准必须来自指定求解器的TestCases目录")
     if args.output.exists():
         parser.error("输出目录已存在，请为本次计算指定新目录")
@@ -61,13 +64,18 @@ def main():
         "source_url": "https://gitlab.com/lheea/Nemoh",
         "build_patch_sha256": hashlib.sha256(patch).hexdigest(),
         "generator_sha256": sha256(Path(__file__)),
-        "case": args.case,
+        "case": args.case or case.name,
         "configuration_sha256": sha256(configuration),
         "input_sha256": {str(p.relative_to(output)): sha256(p)
                           for p in sorted(output.rglob("*")) if p.is_file()},
         "stages": [], "status": "running",
     }
     stages = [STAGES[0], STAGES[2], STAGES[3]] if args.first_order_only else STAGES
+    provided_mechanics = any((case / "Mechanics" / name).is_file()
+                             for name in ["Inertia.dat", "Kh.dat"])
+    if provided_mechanics:
+        stages = [stage for stage in stages if stage != "Mesh/hydrosCal"]
+    report["mechanics_source"] = "provided" if provided_mechanics else "mesh-derived"
     try:
         for stage in stages:
             executable = (args.build_dir / stage).resolve()

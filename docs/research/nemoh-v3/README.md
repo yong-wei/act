@@ -10,6 +10,14 @@ NEMOH固定v3.0.3，源码提交09853686f6f3ed78823d9dbec0d1d711c015cb3b。Capyt
 
 cylinder-validation/validation.json保存来源、工具、计算阶段、原始文件哈希和误差。comparison-arrays.npz保存完整差频输出与对照数组，可独立复算上述指标。
 
+官方OC4半潜平台的980、2200面元案例也已完成全部六阶段求解。每个案例有51480行有限的双向差频数据。对照HydroSTAR的2200面元参考，一阶对角附加质量L2误差约0.14%至0.96%，阻尼约2.53%至8.65%。差频六通道幅值误差约30.52%至62.75%，复数与网格变化率同时保存在 `oc4-validation/`，继续保持research-nominal并核验组成与有效频段。
+
+```bash
+rtk proxy /tmp/act-solvers/bin/python3 docs/research/nemoh-v3/validate_oc4_benchmark.py --source-dir /tmp/nemoh-v3 --coarse-results /tmp/oc4-980-result --fine-results /tmp/oc4-2200-result --output /tmp/oc4-validation
+```
+
+波向索引按原始输入恢复。求解器中间文本将弧度保留三位，后处理再转为度，显示误差上界约0.029°。验证器以0.03°核对输入波向，并保留原始数值。
+
 ## 数值修正
 
 原版NEMOH在本机GNU Fortran 15.2的Release构建下，差频结果出现204行非有限系数，全部位于相同频率对。原因是sqrt(k1²+k2²−2k1k2cosΔβ)在相同波向、相同频率时产生消减误差。numerical-stability.patch用等价二维波数向量的范数计算和频/差频模长。重新运行完整基准后差频全表有限。

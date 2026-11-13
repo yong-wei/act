@@ -29,6 +29,7 @@ impl EnvironmentSwitches {
 }
 
 /// 真实环境场（组合 wave + wind + current + 观测链）。
+#[derive(Clone)]
 pub struct EnvironmentState {
     pub switches: EnvironmentSwitches,
     /// 种子化波场（JONSWAP 多向）。

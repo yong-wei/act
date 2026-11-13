@@ -67,6 +67,7 @@ const SPECS: &[(&str, ChannelSpec)] = &[
 ];
 
 /// 单传感器通道：采样、误差链与时延队列。
+#[derive(Clone)]
 pub struct SensorChannel {
     spec: ChannelSpec,
     level: NoiseLevel,

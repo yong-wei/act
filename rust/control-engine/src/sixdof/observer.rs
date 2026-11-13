@@ -139,6 +139,7 @@ impl Default for LowFrequencyObserver {
 }
 
 /// 组合观测链：传感器通道 + 低频观测器（真值→传感器→估计器→控制器）。
+#[derive(Clone)]
 pub struct ObservationChain {
     pub gnss: SensorChannel,
     pub heading: SensorChannel,

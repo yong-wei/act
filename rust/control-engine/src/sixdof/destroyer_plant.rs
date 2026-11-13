@@ -21,11 +21,12 @@ use super::actuators::{
     propeller_loads_with_ventilation, shaft_friction,
     PropellerInstallation, PropellerModel, PropellerShaft, ServoModel,
 };
+use super::actuator_system::{ActuatorCommands, ActuatorSystem, LocalWater, ShaftCommand, SurfaceCommand};
 use super::dynamics::{
     dynamics_step, AddedMassParams, CurrentFieldBody, DynamicsOutput, ExternalForces,
     RigidBodyParams, RestoringParams,
 };
-use super::hull_mmg::{blended_hull_loads, HullMmgParams, LowSpeedParams};
+use super::hull_mmg::{blended_hull_loads, HullMmgParams, LowSpeedParams, MappedMmgHull};
 use super::integrator::{IntegrationError, NOMINAL_DT};
 use super::radiation::{RadiationModel, RadiationMode};
 use super::state::{normalize_quaternion, TruthState};
@@ -91,8 +92,10 @@ pub struct DestroyerSixDofPlant {
     rp: RestoringParams,
     mmg: HullMmgParams,
     low: LowSpeedParams,
+    mapped_hull: Option<MappedMmgHull>,
     prop: PropellerModel,
     propeller_installation: Option<PropellerInstallation>,
+    actuator_system: Option<ActuatorSystem>,
     shaft: PropellerShaft,
     servo: ServoModel,
     rudder_hydrodynamics: RudderHydrodynamics,
@@ -230,6 +233,7 @@ impl DestroyerSixDofPlant {
                 propeller_shaft_speed_rad_s: vec![n_design],
                 control_surface_angles_rad: vec![0.0],
                 azimuth_angles_rad: vec![],
+                ..Default::default()
             },
             specialist_states: vec![],
         };
@@ -243,8 +247,10 @@ impl DestroyerSixDofPlant {
             rp: RestoringParams { k_linear },
             mmg,
             low,
+            mapped_hull: None,
             prop,
             propeller_installation: None,
+            actuator_system: None,
             shaft,
             servo,
             rudder_hydrodynamics: RudderHydrodynamics {
@@ -272,13 +278,22 @@ impl DestroyerSixDofPlant {
     ) -> Self {
         let g = &pack.geometry;
         let m = g.displacement_mass_kg;
+        let (max_rudder_deg, max_rudder_rate_deg_s) = match &pack.actuators {
+            super::model_pack::PackActuators::Legacy { rudder, .. } =>
+                (rudder.max_angle_deg, rudder.max_rate_deg_s),
+            super::model_pack::PackActuators::Physical { system, .. } =>
+                system.surfaces.iter().find(|surface| surface.normal_body == [0.0, 1.0, 0.0])
+                    .map(|surface| (surface.servo.max_angle_rad.to_degrees(), surface.servo.max_rate_rad_s.to_degrees()))
+                    .unwrap_or((35.0, 5.0)),
+        };
         let config = DestroyerSixDofConfig {
             length_m: g.lpp_m,
             beam_m: g.beam_m,
             draft_m: g.draft_m,
             displacement_t: m / 1000.0,
-            max_rudder_deg: pack.actuators.rudder.max_angle_deg,
-            max_rudder_rate_deg_s: pack.actuators.rudder.max_rate_deg_s,
+            cruise_speed_mps: g.cruise_speed_mps.unwrap_or(config.cruise_speed_mps),
+            max_rudder_deg,
+            max_rudder_rate_deg_s,
             ..config
         };
         // 先应用包几何，再组装依赖质量/尺度的附加质量和静水恢复矩阵。
@@ -295,32 +310,45 @@ impl DestroyerSixDofPlant {
         if g.waterline_area_m2 > 0.0 {
             plant.rp.k_linear[2][2] = SEA_WATER_DENSITY * GRAVITY * g.waterline_area_m2;
         }
+        if let Some(stiffness) = g.hydrostatic_stiffness_si {
+            plant.rp.k_linear = stiffness;
+        }
         // 操纵系数直接来自包。
-        let hull = &pack.maneuvering.hull;
-        plant.mmg = HullMmgParams {
-            x_uu: hull.x_uu, x_u: hull.x_u,
-            y_v: hull.y_v, y_vv: hull.y_vv, y_vr: hull.y_vr,
-            y_r: hull.y_r, y_rr: hull.y_rr,
-            n_v: hull.n_v, n_vv: hull.n_vv, n_vr: hull.n_vr,
-            n_r: hull.n_r, n_rr: hull.n_rr,
-            z_h: hull.z_h_m,
-        };
-        let low = &pack.maneuvering.low_speed;
-        plant.low = LowSpeedParams {
-            crossflow_y: low.crossflow_y,
-            surge_drag: low.surge_drag,
-            yaw_arm: low.yaw_arm_m,
-            z_h: hull.z_h_m,
-        };
+        if let super::model_pack::PackManeuvering::Mapped { mapped_mmg } = &pack.maneuvering {
+            plant.mapped_hull = Some(mapped_mmg.clone());
+        }
+        if let super::model_pack::PackManeuvering::Legacy { hull, low_speed } = &pack.maneuvering {
+            plant.mmg = HullMmgParams {
+                x_uu: hull.x_uu, x_u: hull.x_u,
+                y_v: hull.y_v, y_vv: hull.y_vv, y_vr: hull.y_vr,
+                y_r: hull.y_r, y_rr: hull.y_rr,
+                n_v: hull.n_v, n_vv: hull.n_vv, n_vr: hull.n_vr,
+                n_r: hull.n_r, n_rr: hull.n_rr,
+                z_h: hull.z_h_m,
+            };
+            plant.low = LowSpeedParams {
+                crossflow_y: low_speed.crossflow_y,
+                surge_drag: low_speed.surge_drag,
+                yaw_arm: low_speed.yaw_arm_m,
+                z_h: hull.z_h_m,
+            };
+        }
         // 执行器来自包。
-        let prop = &pack.actuators.propeller;
+        let (prop, shaft, rud) = match &pack.actuators {
+            super::model_pack::PackActuators::Physical { system, initial_state } => {
+                plant.configure_actuators(system.clone(), initial_state.clone())
+                    .expect("参数包执行器已通过加载门禁");
+                return plant;
+            },
+            super::model_pack::PackActuators::Legacy { propeller, shaft, rudder } =>
+                (propeller, shaft, rudder),
+        };
         plant.prop = PropellerModel {
             diameter_m: prop.diameter_m,
             water_density: SEA_WATER_DENSITY,
             kt_coefficients: prop.kt_coefficients,
             kq_coefficients: prop.kq_coefficients,
         };
-        let shaft = &pack.actuators.shaft;
         plant.shaft = PropellerShaft {
             shaft_inertia: shaft.inertia_kg_m2,
             max_motor_torque_nm: shaft.max_motor_torque_nm,
@@ -329,7 +357,6 @@ impl DestroyerSixDofPlant {
             coulomb_friction_nm: shaft.coulomb_friction_nm,
             viscous_friction_nm_s_per_rad: shaft.viscous_friction_nm_s_per_rad,
         };
-        let rud = &pack.actuators.rudder;
         plant.servo = ServoModel {
             max_angle_rad: rud.max_angle_deg.to_radians(),
             max_rate_rad_s: rud.max_rate_deg_s.to_radians(),
@@ -347,12 +374,31 @@ impl DestroyerSixDofPlant {
         &self.state
     }
 
+    pub fn actuator_system(&self) -> Option<&ActuatorSystem> {
+        self.actuator_system.as_ref()
+    }
+
     pub fn set_propeller_installation(
         &mut self,
         installation: PropellerInstallation,
     ) -> Result<(), String> {
+        if self.actuator_system.is_some() {
+            return Err("物理执行器组的安装几何由参数包确定".into());
+        }
         installation.validate()?;
         self.propeller_installation = Some(installation);
+        Ok(())
+    }
+
+    pub fn configure_actuators(
+        &mut self,
+        system: ActuatorSystem,
+        initial: super::state::ActuatorStates,
+    ) -> Result<(), String> {
+        system.validate()?;
+        system.validate_state(&initial)?;
+        self.state.actuator_states = system.decode_state(&system.encode_state(&initial));
+        self.actuator_system = Some(system);
         Ok(())
     }
 
@@ -393,17 +439,55 @@ impl DestroyerSixDofPlant {
 
     /// 变步长推进：仅供数值收敛校核（A3.4）使用；运行路径固定 1/120。
     pub fn step_with_dt(&mut self, dt: f64, commands: DestroyerCommands) -> Result<(), IntegrationError> {
+        let physical_commands = self.actuator_system.as_ref().map(|system| ActuatorCommands {
+            shafts: system.propulsors.iter().map(|_| ShaftCommand {
+                motor_torque_override_nm: Some(commands.motor_torque_command_nm),
+                ..Default::default()
+            }).collect(),
+            surfaces: system.surfaces.iter().map(|_| SurfaceCommand {
+                angle_rad: commands.rudder_command_rad, enabled: true, ..Default::default()
+            }).collect(),
+        });
+        self.advance(dt, commands, physical_commands.as_ref())
+    }
+
+    pub fn step_with_actuators(
+        &mut self,
+        dt: f64,
+        commands: &ActuatorCommands,
+    ) -> Result<(), IntegrationError> {
+        let system = self.actuator_system.as_ref().ok_or_else(|| {
+            IntegrationError::InvalidActuatorCommand("该模型尚未配置执行器组".into())
+        })?;
+        system.validate_commands(commands).map_err(IntegrationError::InvalidActuatorCommand)?;
+        self.advance(dt, Default::default(), Some(commands))
+    }
+
+    fn advance(
+        &mut self,
+        dt: f64,
+        commands: DestroyerCommands,
+        physical_commands: Option<&ActuatorCommands>,
+    ) -> Result<(), IntegrationError> {
+        if !dt.is_finite() || dt <= 0.0 {
+            return Err(IntegrationError::InvalidTimeStep { dt_s: dt });
+        }
         let radiation_len = self.radiation.state_len();
         let mut y = Vec::with_capacity(13 + radiation_len + 2);
         y.extend_from_slice(&self.state.position_ned);
         y.extend_from_slice(&self.state.quaternion);
         y.extend_from_slice(&self.state.body_velocity);
         y.extend_from_slice(&self.state.radiation_states);
-        y.push(self.state.actuator_states.control_surface_angles_rad[0]);
-        y.push(self.state.actuator_states.propeller_shaft_speed_rad_s[0]);
+        if let Some(system) = &self.actuator_system {
+            y.extend(system.encode_state(&self.state.actuator_states));
+        } else {
+            y.push(self.state.actuator_states.control_surface_angles_rad[0]);
+            y.push(self.state.actuator_states.propeller_shaft_speed_rad_s[0]);
+        }
 
-        // 真实环境场临时取出（B1.4 后半段；子步循环共享）。
-        let mut env_state = self.environment_state.take();
+        // 环境过程与积分状态在本次推进成功后一起写入。
+        let mut env_state = self.environment_state.clone();
+        let mut motor_torque_actual_nm = self.motor_torque_actual_nm;
         // 推进语义：本调用推进 dt 时长；内部按 ≤NOMINAL_DT 细分子步
         let substeps = ((dt / NOMINAL_DT).ceil() as usize).max(1);
         let substep_dt = dt / substeps as f64;
@@ -411,10 +495,10 @@ impl DestroyerSixDofPlant {
         for _ in 0..substeps {
             // 电机扭矩限幅按实际子步时长推进（P1：整帧 dt 会把变化率
             // 上限放大 substeps 倍，破坏分帧一致性）。
-            self.motor_torque_actual_nm = clamp_motor_torque(
+            motor_torque_actual_nm = clamp_motor_torque(
                 &self.shaft,
                 commands.motor_torque_command_nm,
-                self.motor_torque_actual_nm,
+                motor_torque_actual_nm,
                 substep_dt,
             );
             let rb = self.rb;
@@ -422,6 +506,7 @@ impl DestroyerSixDofPlant {
             let rp = self.rp;
             let mmg = self.mmg;
             let low = self.low;
+            let mapped_hull = self.mapped_hull.as_ref();
             let prop = self.prop;
             let propeller_installation = self.propeller_installation;
             let config = self.config;
@@ -430,7 +515,11 @@ impl DestroyerSixDofPlant {
             let shaft = self.shaft;
             let radiation_model = &self.radiation;
             let rudder_command_frozen = commands.rudder_command_rad;
-            let motor_torque_frozen = self.motor_torque_actual_nm;
+            let motor_torque_frozen = motor_torque_actual_nm;
+            let actuator_system = self.actuator_system.as_ref();
+            let reference_rates = actuator_system.zip(physical_commands).map(|(system, command)| {
+                system.reference_rates(&y[13 + radiation_len..], command, substep_dt)
+            });
             // 真实环境场物理时钟推进（P2-2：按子步时间；先释放可变借用）。
             if let Some(env) = env_state.as_mut() {
                 env.advance_to(time);
@@ -451,26 +540,36 @@ impl DestroyerSixDofPlant {
                     y_slice[7], y_slice[8], y_slice[9], y_slice[10], y_slice[11], y_slice[12],
                 ];
                 let x_rad: Vec<f64> = y_slice[13..13 + radiation_len].to_vec();
-                let rudder_state = y_slice[13 + radiation_len];
-                let omega_state = y_slice[14 + radiation_len];
-
-                let rudder_target =
-                    rudder_command_frozen.clamp(-servo.max_angle_rad, servo.max_angle_rad);
-                let rudder_rate = ((rudder_target - rudder_state) / DT_SCALAR)
-                    .clamp(-servo.max_rate_rad_s, servo.max_rate_rad_s);
                 let (hull_nu, current_field_local, tau_wave_1, tau_wind) =
                     resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo);
-                let (thrust, propeller_torque) = propeller_loads_at(
-                    &prop, propeller_installation.as_ref(), real_env,
-                    t_sub, position, quat, hull_nu, omega_state,
-                );
-                // 桨推力与桨轴负载使用同一局部来流和同一浸没损失。
-                let omega_rate = (motor_torque_frozen - propeller_torque
-                    - shaft_friction(&shaft, omega_state)) / shaft.shaft_inertia;
+                let (rudder_state, thrust, physical_loads) = if let (Some(system), Some(command)) =
+                    (actuator_system, physical_commands)
+                {
+                    let evaluation = system.derivatives(
+                        &y_slice[13 + radiation_len..], &mut dy[13 + radiation_len..], command,
+                        reference_rates.as_ref().expect("执行器组参考速率已初始化"),
+                        &LocalWater { time_s: t_sub, position_ned: position, quaternion: quat,
+                            relative_velocity: hull_nu, environment: real_env },
+                    );
+                    (0.0, 0.0, Some(evaluation.loads))
+                } else {
+                    let rudder_state = y_slice[13 + radiation_len];
+                    let omega_state = y_slice[14 + radiation_len];
+                    let rudder_target = rudder_command_frozen.clamp(-servo.max_angle_rad, servo.max_angle_rad);
+                    dy[13 + radiation_len] = ((rudder_target - rudder_state) / DT_SCALAR)
+                        .clamp(-servo.max_rate_rad_s, servo.max_rate_rad_s);
+                    let (thrust, propeller_torque) = propeller_loads_at(
+                        &prop, propeller_installation.as_ref(), real_env,
+                        t_sub, position, quat, hull_nu, omega_state,
+                    );
+                    dy[14 + radiation_len] = (motor_torque_frozen - propeller_torque
+                        - shaft_friction(&shaft, omega_state)) / shaft.shaft_inertia;
+                    (rudder_state, thrust, None)
+                };
                 let (mut external, tau_radiation, delta_eta) = assemble_forces(
                     &mmg, &low, radiation_model, &config, &rudder_hydrodynamics,
                     propeller_installation.as_ref(),
-                    &nu, &hull_nu, &x_rad, rudder_state, thrust, &quat, &position,
+                    &nu, &hull_nu, &x_rad, rudder_state, thrust, &quat, &position, physical_loads, mapped_hull,
                 );
                 external.tau_wave_1 = tau_wave_1;
                 external.tau_wind = tau_wind;
@@ -499,23 +598,30 @@ impl DestroyerSixDofPlant {
                 for (i, mode) in radiation_model.modes.iter().enumerate() {
                     dy[13 + i] = mode.a * x_rad[i] + mode.input_gain * nu[mode.channel];
                 }
-                dy[13 + radiation_len] = rudder_rate;
-                dy[14 + radiation_len] = omega_rate;
             };
 
             super::integrator::rk4_step(time, &mut y, substep_dt, derivs)?;
+            if let Some(system) = &self.actuator_system {
+                system.enforce_motor_limits(&mut y[13 + radiation_len..])?;
+            }
             time += substep_dt;
         }
         self.sim_time_s = self.sim_time_s + dt;
         self.environment_state = env_state;
+        self.motor_torque_actual_nm = motor_torque_actual_nm;
 
         self.state.position_ned = [y[0], y[1], y[2]];
         self.state.quaternion = normalize_quaternion([y[3], y[4], y[5], y[6]]);
         self.state.body_velocity.copy_from_slice(&y[7..13]);
         self.state.radiation_states.copy_from_slice(&y[13..13 + radiation_len]);
-        self.state.actuator_states.control_surface_angles_rad[0] = y[13 + radiation_len];
-        self.state.actuator_states.propeller_shaft_speed_rad_s[0] =
-            clamp_shaft_speed(&self.shaft, y[14 + radiation_len]);
+        if let Some(system) = &self.actuator_system {
+            self.state.actuator_states = system.decode_state(&y[13 + radiation_len..]);
+            self.motor_torque_actual_nm = self.state.actuator_states.motor_torques_nm.first().copied().unwrap_or(0.0);
+        } else {
+            self.state.actuator_states.control_surface_angles_rad[0] = y[13 + radiation_len];
+            self.state.actuator_states.propeller_shaft_speed_rad_s[0] =
+                clamp_shaft_speed(&self.shaft, y[14 + radiation_len]);
+        }
 
         let final_state = self.state.clone();
         let environment = if self.environment_enabled {
@@ -534,15 +640,28 @@ impl DestroyerSixDofPlant {
         let (thrust, _) = propeller_loads_at(
             &self.prop, self.propeller_installation.as_ref(), self.environment_state.as_ref(),
             self.sim_time_s, final_state.position_ned, final_state.quaternion, final_hull_nu,
-            final_state.actuator_states.propeller_shaft_speed_rad_s[0],
+            final_state.actuator_states.propeller_shaft_speed_rad_s.first().copied().unwrap_or(0.0),
         );
+        let physical_evaluation = self.actuator_system.as_ref().zip(physical_commands).map(|(system, command)| {
+            let values = system.encode_state(&final_state.actuator_states);
+            let mut rates = vec![0.0; values.len()];
+            system.derivatives(&values, &mut rates, command, &vec![0.0; system.propulsors.len()],
+                &LocalWater { time_s: self.sim_time_s, position_ned: final_state.position_ned,
+                    quaternion: final_state.quaternion, relative_velocity: final_hull_nu,
+                    environment: self.environment_state.as_ref() })
+        });
+        let physical_loads = physical_evaluation.as_ref().map(|evaluation| evaluation.loads);
+        if let Some(evaluation) = physical_evaluation {
+            self.state.actuator_states.motor_torques_nm = evaluation.motor_torques_nm;
+            self.motor_torque_actual_nm = self.state.actuator_states.motor_torques_nm.first().copied().unwrap_or(0.0);
+        }
         let (mut external, tau_rad, delta_eta) = assemble_forces(
             &self.mmg, &self.low, &self.radiation, &self.config, &self.rudder_hydrodynamics,
             self.propeller_installation.as_ref(),
             &final_state.body_velocity, &final_hull_nu, &final_state.radiation_states,
-            final_state.actuator_states.control_surface_angles_rad[0],
+            final_state.actuator_states.control_surface_angles_rad.first().copied().unwrap_or(0.0),
             thrust,
-            &final_state.quaternion, &final_state.position_ned,
+            &final_state.quaternion, &final_state.position_ned, physical_loads, self.mapped_hull.as_ref(),
         );
         external.tau_wave_1 = tau_wave_1;
         external.tau_wind = tau_wind;
@@ -570,6 +689,19 @@ impl DestroyerSixDofPlant {
             state.actuator_states.propeller_shaft_speed_rad_s =
                 self.state.actuator_states.propeller_shaft_speed_rad_s.clone();
         }
+        if let Some(system) = &self.actuator_system {
+            if state.actuator_states.motor_torques_nm.is_empty() {
+                state.actuator_states.motor_torques_nm = self.state.actuator_states.motor_torques_nm.clone();
+            }
+            if state.actuator_states.shaft_reference_speed_rad_s.is_empty() {
+                state.actuator_states.shaft_reference_speed_rad_s =
+                    self.state.actuator_states.shaft_reference_speed_rad_s.clone();
+            }
+            if state.actuator_states.azimuth_angles_rad.is_empty() {
+                state.actuator_states.azimuth_angles_rad = self.state.actuator_states.azimuth_angles_rad.clone();
+            }
+            state.actuator_states = system.decode_state(&system.encode_state(&state.actuator_states));
+        }
         self.state = state;
     }
 
@@ -582,14 +714,29 @@ impl DestroyerSixDofPlant {
     /// 运行时入口：恢复实际电机扭矩（限幅状态机连续性，逐帧重建场景）。
     pub fn restore_motor_torque_for_runtime(&mut self, torque_nm: f64) {
         self.motor_torque_actual_nm = torque_nm;
+        for torque in &mut self.state.actuator_states.motor_torques_nm {
+            *torque = torque_nm;
+        }
+        for demand in &mut self.state.actuator_states.motor_torque_demand_nm {
+            *demand = torque_nm;
+        }
     }
 
     pub fn motor_torque_actual_for_runtime(&self) -> f64 {
-        self.motor_torque_actual_nm
+        self.state.actuator_states.motor_torques_nm.first().copied()
+            .unwrap_or(self.motor_torque_actual_nm)
     }
 
     /// 运行时兼容入口：直接写实际舵角（旧标量状态重建时用）。
     pub fn set_rudder_actual_for_runtime(&mut self, rudder_rad: f64) {
+        if let Some(system) = &self.actuator_system {
+            for (index, surface) in system.surfaces.iter().enumerate() {
+                if surface.normal_body == [0.0, 1.0, 0.0] {
+                    self.state.actuator_states.control_surface_angles_rad[index] = rudder_rad;
+                }
+            }
+            return;
+        }
         if let Some(slot) = self.state.actuator_states.control_surface_angles_rad.first_mut() {
             *slot = rudder_rad;
         }
@@ -732,8 +879,11 @@ fn assemble_forces(
     thrust_k: f64,
     quat: &[f64; 4],
     position: &[f64; 3],
+    physical_loads: Option<[f64; 6]>,
+    mapped_hull: Option<&MappedMmgHull>,
 ) -> (ExternalForces, [f64; 6], [f64; 6]) {
-    let loads = blended_hull_loads(mmg, low, nu_rel[0], nu_rel[1], nu_rel[5]);
+    let loads = mapped_hull.map(|hull| hull.loads(nu_rel))
+        .unwrap_or_else(|| blended_hull_loads(mmg, low, nu_rel[0], nu_rel[1], nu_rel[5]));
     let arm = rudder.longitudinal_position_m;
     let v_rudder = nu_rel[1] + arm * nu_rel[5];
     // 真实局部流速：零速+零推进时舵动压为零（合同：禁止速度下限截断）。
@@ -767,14 +917,14 @@ fn assemble_forces(
 
     let external = ExternalForces {
         tau_hull_viscous: [loads[0], loads[1], 0.0, loads[3], loads[4], loads[5]],
-        tau_actuator: [
+        tau_actuator: physical_loads.unwrap_or([
             thrust_k + fx_r,
             fy_r,
             0.0,
             k_roll_r + propeller_moment[0],
             propeller_moment[1],
             mz_r + propeller_moment[2],
-        ],
+        ]),
         ..ExternalForces::default()
     };
     let euler = super::state::euler_from_quaternion(*quat);

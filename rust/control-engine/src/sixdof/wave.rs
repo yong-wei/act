@@ -101,6 +101,7 @@ pub(crate) struct WaveComponent {
 }
 
 /// 带种子波场。
+#[derive(Clone)]
 pub struct WaveField {
     components: Vec<WaveComponent>,
     condition: WaveCondition,

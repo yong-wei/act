@@ -20,6 +20,23 @@ pub struct ActuatorStates {
     pub control_surface_angles_rad: Vec<f64>,
     /// 预留：推进器方位角（全回转吊舱/DP）rad。
     pub azimuth_angles_rad: Vec<f64>,
+    #[serde(default)]
+    pub motor_torques_nm: Vec<f64>,
+    /// 电机响应内部状态，实际扭矩还受电流、功率和轴速约束。
+    #[serde(default)]
+    pub motor_torque_demand_nm: Vec<f64>,
+    #[serde(default)]
+    pub shaft_reference_speed_rad_s: Vec<f64>,
+    #[serde(default)]
+    pub positive_motor_work_j: Vec<f64>,
+    #[serde(default)]
+    pub motor_work_j: Vec<f64>,
+    #[serde(default)]
+    pub propeller_work_j: Vec<f64>,
+    #[serde(default)]
+    pub shaft_friction_work_j: Vec<f64>,
+    #[serde(default)]
+    pub control_surface_work_j: Vec<f64>,
 }
 
 /// TruthPlant 完整状态。`quaternion` 恒为单位四元数（积分后须归一化）。

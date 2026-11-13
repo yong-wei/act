@@ -1,0 +1,43 @@
+{
+  "inertia_prior": "25000*(D/4)^5 kg*m^2",
+  "initial_speed_mps": 8.0,
+  "model_fidelity": "research-nominal",
+  "parameter_bundle_hash": "fnv1a-5e6a8eecb879e431",
+  "physical_dt_s": 0.008333333333333333,
+  "scenarios": [
+    {
+      "energy_relative_error": 4.6231343672300965e-10,
+      "friction_work_j": 365493.0031409474,
+      "inertia_kg_m2": 38146.97265625,
+      "inertia_multiplier": 0.5,
+      "kinetic_energy_change_j": -1882847.6472771177,
+      "motor_work_j": 2445828.708396383,
+      "propeller_work_j": 3963183.3534030193,
+      "shaft_speed_rad_s": 8.922464912131424,
+      "time_s": 2.999999999999992
+    },
+    {
+      "energy_relative_error": 1.2277226537516323e-10,
+      "friction_work_j": 389980.56300305243,
+      "inertia_kg_m2": 76293.9453125,
+      "inertia_multiplier": 1.0,
+      "kinetic_energy_change_j": -3515137.3608748727,
+      "motor_work_j": 2516647.676873614,
+      "propeller_work_j": 5641804.475176996,
+      "shaft_speed_rad_s": 9.283243291267375,
+      "time_s": 2.999999999999992
+    },
+    {
+      "energy_relative_error": 3.688707149925775e-11,
+      "friction_work_j": 421335.9239945217,
+      "inertia_kg_m2": 152587.890625,
+      "inertia_multiplier": 2.0,
+      "kinetic_energy_change_j": -5816367.979184387,
+      "motor_work_j": 2576572.7162586004,
+      "propeller_work_j": 7971604.771663015,
+      "shaft_speed_rad_s": 10.103936087536054,
+      "time_s": 2.999999999999992
+    }
+  ],
+  "schema": "act.shaft-inertia-sensitivity.v1"
+}

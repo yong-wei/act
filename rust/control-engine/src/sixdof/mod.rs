@@ -9,6 +9,7 @@
 //! 坐标合同：FRD 体坐标（x 艏、y 右舷、z 向下），NED 世界坐标。
 
 pub mod actuators;
+pub mod actuator_system;
 pub mod control_law;
 pub mod destroyer_plant;
 pub mod dynamics;

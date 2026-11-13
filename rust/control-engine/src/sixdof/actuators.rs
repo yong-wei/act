@@ -122,7 +122,15 @@ pub fn ventilation_loss_factors(
     immersion_m: f64,
     kt_wetted: f64,
 ) -> [f64; 2] {
-    let radius = model.diameter_m / 2.0;
+    ventilation_factors_for_diameter(model.diameter_m, immersion_m, kt_wetted)
+}
+
+pub fn ventilation_factors_for_diameter(
+    diameter_m: f64,
+    immersion_m: f64,
+    loading_coefficient: f64,
+) -> [f64; 2] {
+    let radius = diameter_m / 2.0;
     if radius <= 0.0 || immersion_m <= 0.0 {
         // 轴心在自由面以上：无水动力载荷（轴系惯性/摩擦仍由轴动力学
         // 承载——断桨不停轴，见 #2147 失效语义）。
@@ -133,7 +141,7 @@ pub fn ventilation_loss_factors(
         return [1.0, 1.0]; // 深浸没：全湿（适用域上界钳位）。
     }
     // 临界浸没（T 级系数）：重载（大 |k_T|）更早通气。
-    let loading = kt_wetted.abs().clamp(0.0, 1.0);
+    let loading = loading_coefficient.abs().clamp(0.0, 1.0);
     let h_c = 1.0 + 0.6 * loading; // h_c/R ∈ [1, 1.6]
     // 光滑过渡（logistic，宽度 ~0.25R）；部分通气残余推力下限随负载
     // 增大而降低（重载通气损失更严重）。
@@ -226,7 +234,7 @@ pub fn clamp_shaft_speed(shaft: &PropellerShaft, n_rad_s: f64) -> f64 {
 }
 
 /// 舵/鳍/吊舱一阶伺服：速率与幅值限幅后的实际角增量。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Deserialize)]
 pub struct ServoModel {
     pub max_angle_rad: f64,
     pub max_rate_rad_s: f64,

@@ -43,6 +43,10 @@ pub struct PackGeometry {
     pub waterline_area_m2: f64,
     #[serde(default)]
     pub inertia_about_cg_kg_m2: InertiaEntry,
+    #[serde(default)]
+    pub hydrostatic_stiffness_si: Option<[[f64; 6]; 6]>,
+    #[serde(default)]
+    pub cruise_speed_mps: Option<f64>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -75,10 +79,10 @@ pub struct PackManeuveringHull {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub struct PackManeuvering {
-    pub hull: PackManeuveringHull,
-    pub low_speed: PackLowSpeed,
+#[serde(untagged)]
+pub enum PackManeuvering {
+    Mapped { mapped_mmg: super::hull_mmg::MappedMmgHull },
+    Legacy { hull: PackManeuveringHull, low_speed: PackLowSpeed },
 }
 
 #[derive(Debug, Deserialize)]
@@ -90,11 +94,17 @@ pub struct PackLowSpeed {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub struct PackActuators {
-    pub propeller: PackPropeller,
-    pub shaft: PackShaft,
-    pub rudder: PackRudder,
+#[serde(untagged)]
+pub enum PackActuators {
+    Physical {
+        system: super::actuator_system::ActuatorSystem,
+        initial_state: super::state::ActuatorStates,
+    },
+    Legacy {
+        propeller: PackPropeller,
+        shaft: PackShaft,
+        rudder: PackRudder,
+    },
 }
 
 #[derive(Debug, Deserialize)]
@@ -203,8 +213,24 @@ pub fn load_model_pack(
         .map_err(|_| PackError::SchemaMismatch { expect: "geometry", got: String::new() })?;
     let maneuvering: PackManeuvering = serde_json::from_str(maneuvering_json)
         .map_err(|_| PackError::SchemaMismatch { expect: "maneuvering", got: String::new() })?;
+    if let PackManeuvering::Mapped { mapped_mmg } = &maneuvering {
+        if !mapped_mmg.validate() {
+            return Err(PackError::NonFiniteValue { field: "mapped-mmg" });
+        }
+    }
     let actuators: PackActuators = serde_json::from_str(actuators_json)
         .map_err(|_| PackError::SchemaMismatch { expect: "actuators", got: String::new() })?;
+    if let PackActuators::Physical { system, initial_state } = &actuators {
+        system.validate().map_err(|_| PackError::NonFiniteValue { field: "actuator-system" })?;
+        system.validate_state(initial_state).map_err(|_| PackError::NonFiniteValue { field: "initial-actuators" })?;
+    }
+    if let Some(stiffness) = geometry.hydrostatic_stiffness_si {
+        if stiffness.iter().flatten().any(|value| !value.is_finite())
+            || stiffness[2][2] <= 0.0 || stiffness[3][3] <= 0.0 || stiffness[4][4] <= 0.0
+        {
+            return Err(PackError::NonFiniteValue { field: "hydrostatic-stiffness" });
+        }
+    }
 
     // 门禁 1：Lpp ≤ LOA（分立字段禁混用）。
     if geometry.lpp_m > geometry.loa_m + 1e-9 {
@@ -268,5 +294,15 @@ pub fn embedded_destroyer_055() -> Result<PackModel, PackError> {
         include_str!("../../model-data/destroyer-055/v1/maneuvering.json"),
         include_str!("../../model-data/destroyer-055/v1/actuators.json"),
         include_str!("../../model-data/destroyer-055/v1/provenance.json"),
+    )
+}
+
+pub fn embedded_destroyer_055_v2() -> Result<PackModel, PackError> {
+    load_model_pack(
+        include_str!("../../model-data/destroyer-055/v2/manifest.json"),
+        include_str!("../../model-data/destroyer-055/v2/geometry.json"),
+        include_str!("../../model-data/destroyer-055/v2/maneuvering.json"),
+        include_str!("../../model-data/destroyer-055/v2/actuators.json"),
+        include_str!("../../model-data/destroyer-055/v2/provenance.json"),
     )
 }
