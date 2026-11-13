@@ -306,7 +306,7 @@ function ControlPanel({
       <SimPanelSection title="航线与装载" icon={Navigation} aside={<SimLockedChip locked={!inputsEnabled} />}>
         <div className="space-y-3">
           <SimField label="目标航向" value={`${state.targetHeading.toFixed(0)}°`}>
-            <input aria-label="集装箱船仿真参数一"
+            <input aria-label="目标航向（度，-180 至 180）"
               type="range"
               min="-180"
               max="180"
@@ -321,7 +321,7 @@ function ControlPanel({
             value={`${(state.loadRatio * 100).toFixed(0)}%（${loadLabel}）`}
             hint={`当前模型参数 K=${state.currentK.toFixed(3)}，T=${state.currentT.toFixed(0)}s`}
           >
-            <input aria-label="集装箱船仿真参数二"
+            <input aria-label="装载率（百分比，影响船舶质量与模型参数 K、T）"
               type="range"
               min="0"
               max="100"

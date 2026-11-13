@@ -1,0 +1,16 @@
+{
+  "loa_m": 180.0,
+  "lpp_m": 172.0,
+  "beam_m": 20.0,
+  "draft_m": 6.6,
+  "displacement_volume_m3": 12683.0,
+  "displacement_mass_kg": 13000000.0,
+  "mass_basis": "displacement_volume",
+  "waterline_area_m2": 2810.0,
+  "center_of_gravity_body_m": [0.0, 0.0, 0.0],
+  "inertia_about_cg_kg_m2": {
+    "ixx": 1300000000.0,
+    "iyy": 28473120000.0,
+    "izz": 26325000000.0
+  }
+}

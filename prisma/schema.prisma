@@ -575,6 +575,10 @@ model User {
   progress                  UserProgress[]
   simulationLogs            SimulationLog[]
   virtualSimulationReports  VirtualSimulationReport[]
+  studentModelArtifacts     StudentModelArtifact[]
+  comparisonArtifacts       ComparisonArtifact[]
+  appliedRunEnvelopes       AppliedRunEnvelope[]
+  stepSubmissionAttempts    StepSubmissionAttempt[]
   ethicalLogs               EthicalLog[]
   controlOdysseyAiHistories ControlOdysseyAiHistory[]
 
@@ -1679,14 +1683,14 @@ model AssignmentQuestion {
   contentHash          String
   createdAt            DateTime                       @default(now())
 
-  revision           AssignmentRevision                   @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
-  submissionAnswers  SubmissionAnswer[]
-  gradingBatches     GradingBatch[]
-  gradingRuns        GradingRun[]
-  teacherReviews     TeacherAssignmentReview[]
-  approvalSnapshots  TeacherAssignmentApprovalSnapshot[]
-  resubmissionGrants TeacherAssignmentResubmissionGrant[]
-  questionExemptions TeacherAssignmentQuestionExemption[]
+  revision             AssignmentRevision                   @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  submissionAnswers    SubmissionAnswer[]
+  gradingBatches       GradingBatch[]
+  gradingRuns          GradingRun[]
+  teacherReviews       TeacherAssignmentReview[]
+  approvalSnapshots    TeacherAssignmentApprovalSnapshot[]
+  resubmissionGrants   TeacherAssignmentResubmissionGrant[]
+  questionExemptions   TeacherAssignmentQuestionExemption[]
   gradingSnapshotItems AssignmentSubmissionSnapshotItem[]
 
   @@unique([assignmentRevisionId, stableQuestionId])
@@ -1719,7 +1723,7 @@ model AssignmentSubmission {
   teacherReviews     TeacherAssignmentReview[]
   approvalSnapshots  TeacherAssignmentApprovalSnapshot[]
   resubmissionGrants TeacherAssignmentResubmissionGrant[]
-  gradingSnapshots     AssignmentSubmissionSnapshot[]
+  gradingSnapshots   AssignmentSubmissionSnapshot[]
   questionExemptions TeacherAssignmentQuestionExemption[]
 
   @@unique([assignmentRevisionId, studentId])
@@ -1742,13 +1746,13 @@ model SubmissionAnswer {
   createdAt                 DateTime              @default(now())
   updatedAt                 DateTime              @updatedAt
 
-  submission         AssignmentSubmission                 @relation(fields: [submissionId], references: [id], onDelete: Restrict)
-  question           AssignmentQuestion                   @relation(fields: [assignmentQuestionId], references: [id], onDelete: Restrict)
-  attempts           SubmissionAttempt[]
-  assets             SubmissionAsset[]
-  teacherReviews     TeacherAssignmentReview[]
-  approvalSnapshots  TeacherAssignmentApprovalSnapshot[]
-  resubmissionGrants TeacherAssignmentResubmissionGrant[]
+  submission           AssignmentSubmission                 @relation(fields: [submissionId], references: [id], onDelete: Restrict)
+  question             AssignmentQuestion                   @relation(fields: [assignmentQuestionId], references: [id], onDelete: Restrict)
+  attempts             SubmissionAttempt[]
+  assets               SubmissionAsset[]
+  teacherReviews       TeacherAssignmentReview[]
+  approvalSnapshots    TeacherAssignmentApprovalSnapshot[]
+  resubmissionGrants   TeacherAssignmentResubmissionGrant[]
   gradingSnapshotItems AssignmentSubmissionSnapshotItem[]
 
   @@unique([submissionId, assignmentQuestionId])
@@ -2309,16 +2313,16 @@ model DocumentConversion {
   createdAt                         DateTime                @default(now())
   updatedAt                         DateTime                @updatedAt
 
-  asset           SubmissionAsset?           @relation(fields: [assetId], references: [id], onDelete: Restrict)
-  attempt         SubmissionAttempt?         @relation(fields: [attemptId], references: [id], onDelete: Restrict)
-  policy          GradingProviderPolicy?     @relation(fields: [policyId], references: [id], onDelete: Restrict)
-  visualPolicy    GradingProviderPolicy?     @relation("DocumentConversionVisualPolicy", fields: [visualPolicyId], references: [id], onDelete: Restrict)
-  lifecyclePolicy GradingLifecyclePolicy?    @relation("DocumentConversionLifecyclePolicy", fields: [lifecyclePolicyId], references: [id], onDelete: Restrict)
-  answerEvidence  AnswerEvidence?
-  visualEvidence  DocumentConversionVisualEvidence[]
-  warnings        GradingConversionWarning[]
-  batchItems      GradingBatchItem[]
-  jobs            GradingJob[]
+  asset                       SubmissionAsset?                       @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  attempt                     SubmissionAttempt?                     @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  policy                      GradingProviderPolicy?                 @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  visualPolicy                GradingProviderPolicy?                 @relation("DocumentConversionVisualPolicy", fields: [visualPolicyId], references: [id], onDelete: Restrict)
+  lifecyclePolicy             GradingLifecyclePolicy?                @relation("DocumentConversionLifecyclePolicy", fields: [lifecyclePolicyId], references: [id], onDelete: Restrict)
+  answerEvidence              AnswerEvidence?
+  visualEvidence              DocumentConversionVisualEvidence[]
+  warnings                    GradingConversionWarning[]
+  batchItems                  GradingBatchItem[]
+  jobs                        GradingJob[]
   teacherAiGradingDerivatives TeacherAiGradingEvaluationDerivative[]
 
   @@unique([assetId, version])
@@ -2395,19 +2399,19 @@ model GradingBatch {
   createdAt                         DateTime          @default(now())
   updatedAt                         DateTime          @updatedAt
 
-  revision         AssignmentRevision?     @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  revision                   AssignmentRevision?         @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
   assignmentGradingOperation AssignmentGradingOperation? @relation(fields: [assignmentGradingOperationId], references: [id], onDelete: Restrict)
-  question         AssignmentQuestion?     @relation(fields: [questionId], references: [id], onDelete: Restrict)
-  class            Class?                  @relation(fields: [classId], references: [id], onDelete: Restrict)
-  requester        User?                   @relation("GradingBatchRequester", fields: [requesterUserId], references: [id], onDelete: Restrict)
-  policy           GradingProviderPolicy?  @relation("GradingBatchGradingPolicy", fields: [policyId], references: [id], onDelete: Restrict)
-  conversionPolicy GradingProviderPolicy?  @relation("GradingBatchConversionPolicy", fields: [conversionPolicyId], references: [id], onDelete: Restrict)
-  visualPolicy     GradingProviderPolicy?  @relation("GradingBatchVisualPolicy", fields: [visualPolicyId], references: [id], onDelete: Restrict)
-  lifecyclePolicy  GradingLifecyclePolicy? @relation("GradingBatchLifecyclePolicy", fields: [lifecyclePolicyId], references: [id], onDelete: Restrict)
-  items            GradingBatchItem[]
-  runs             GradingRun[]
-  jobs             GradingJob[]
-  reruns           GradingRerun[]
+  question                   AssignmentQuestion?         @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  class                      Class?                      @relation(fields: [classId], references: [id], onDelete: Restrict)
+  requester                  User?                       @relation("GradingBatchRequester", fields: [requesterUserId], references: [id], onDelete: Restrict)
+  policy                     GradingProviderPolicy?      @relation("GradingBatchGradingPolicy", fields: [policyId], references: [id], onDelete: Restrict)
+  conversionPolicy           GradingProviderPolicy?      @relation("GradingBatchConversionPolicy", fields: [conversionPolicyId], references: [id], onDelete: Restrict)
+  visualPolicy               GradingProviderPolicy?      @relation("GradingBatchVisualPolicy", fields: [visualPolicyId], references: [id], onDelete: Restrict)
+  lifecyclePolicy            GradingLifecyclePolicy?     @relation("GradingBatchLifecyclePolicy", fields: [lifecyclePolicyId], references: [id], onDelete: Restrict)
+  items                      GradingBatchItem[]
+  runs                       GradingRun[]
+  jobs                       GradingJob[]
+  reruns                     GradingRerun[]
 
   @@unique([requesterUserId, idempotencyKey])
   @@index([questionId, classId, state])
@@ -2420,33 +2424,33 @@ model GradingBatch {
 }
 
 model DocumentConversionVisualEvidence {
-  id               String   @id
-  conversionId     String
-  attemptId        String
-  questionId       String?
-  sourceKind       String
-  sourceChecksum   String
-  imageChecksum    String
-  objectKey        String
-  mediaType        String
-  sizeBytes        Int
-  pageNumber       Int?
-  bbox             Json?
-  description      String?  @db.Text
-  confidence       Float?
-  processorVersion String
-  provider         String?
-  model            String?
-  policyVersion    String?
-  providerRequestId String?
+  id                     String    @id
+  conversionId           String
+  attemptId              String
+  questionId             String?
+  sourceKind             String
+  sourceChecksum         String
+  imageChecksum          String
+  objectKey              String
+  mediaType              String
+  sizeBytes              Int
+  pageNumber             Int?
+  bbox                   Json?
+  description            String?   @db.Text
+  confidence             Float?
+  processorVersion       String
+  provider               String?
+  model                  String?
+  policyVersion          String?
+  providerRequestId      String?
   providerDeletionHandle String?
-  providerRequestedAt DateTime?
-  providerProcessedAt DateTime?
-  limitations      String[] @default([])
-  readiness        String
-  contentHash      String
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  providerRequestedAt    DateTime?
+  providerProcessedAt    DateTime?
+  limitations            String[]  @default([])
+  readiness              String
+  contentHash            String
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   conversion DocumentConversion @relation(fields: [conversionId], references: [id], onDelete: Restrict)
 
@@ -2471,9 +2475,9 @@ model AssignmentGradingOperation {
   createdAt            DateTime                        @default(now())
   updatedAt            DateTime                        @updatedAt
 
-  assignment Assignment         @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
-  revision   AssignmentRevision @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
-  requester  User               @relation("AssignmentGradingOperationRequester", fields: [requesterUserId], references: [id], onDelete: Restrict)
+  assignment Assignment                     @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
+  revision   AssignmentRevision             @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  requester  User                           @relation("AssignmentGradingOperationRequester", fields: [requesterUserId], references: [id], onDelete: Restrict)
   snapshots  AssignmentSubmissionSnapshot[]
   batches    GradingBatch[]
 
@@ -2495,9 +2499,9 @@ model AssignmentSubmissionSnapshot {
   source                String   @default("AI")
   createdAt             DateTime @default(now())
 
-  operation  AssignmentGradingOperation @relation(fields: [operationId], references: [id], onDelete: Restrict)
-  submission AssignmentSubmission       @relation(fields: [submissionId], references: [id], onDelete: Restrict)
-  revision   AssignmentRevision         @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  operation  AssignmentGradingOperation         @relation(fields: [operationId], references: [id], onDelete: Restrict)
+  submission AssignmentSubmission               @relation(fields: [submissionId], references: [id], onDelete: Restrict)
+  revision   AssignmentRevision                 @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
   items      AssignmentSubmissionSnapshotItem[]
 
   @@unique([operationId, submissionId])
@@ -2681,10 +2685,10 @@ model TeacherAiGradingExperimentConfig {
   seed                 Int
   createdAt            DateTime @default(now())
 
-  batches           TeacherAiGradingExperimentBatch[]
-  executions        TeacherAiGradingExperimentExecution[]
-  hiddenAcceptances TeacherAiGradingHiddenAcceptance[]
-  reportSnapshots   TeacherAiGradingReportSnapshot[]
+  batches              TeacherAiGradingExperimentBatch[]
+  executions           TeacherAiGradingExperimentExecution[]
+  hiddenAcceptances    TeacherAiGradingHiddenAcceptance[]
+  reportSnapshots      TeacherAiGradingReportSnapshot[]
   visualBlindJudgments TeacherAiGradingVisualEvidenceBlindJudgment[]
 
   @@unique([datasetId, version])
@@ -2743,9 +2747,9 @@ model TeacherAiGradingExperimentExecution {
   createdAt          DateTime                                 @default(now())
   updatedAt          DateTime                                 @updatedAt
 
-  config                   TeacherAiGradingExperimentConfig          @relation(fields: [configId], references: [id], onDelete: Restrict)
-  batch                    TeacherAiGradingExperimentBatch           @relation(fields: [batchId], references: [id], onDelete: Restrict)
-  gradingRun               GradingRun                                @relation(fields: [gradingRunId], references: [id], onDelete: Restrict)
+  config                   TeacherAiGradingExperimentConfig              @relation(fields: [configId], references: [id], onDelete: Restrict)
+  batch                    TeacherAiGradingExperimentBatch               @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  gradingRun               GradingRun                                    @relation(fields: [gradingRunId], references: [id], onDelete: Restrict)
   annotationJudgments      TeacherAiGradingAnnotationJudgment[]
   structuredReviewVersions TeacherAiGradingStructuredReviewVersion[]
   providerCalls            TeacherAiGradingProviderCallAttempt[]
@@ -2826,9 +2830,9 @@ model TeacherAiGradingEvaluationDerivative {
   reviewVersions   TeacherAiGradingDerivativeReviewVersion[]
   pdfVerification  TeacherAiGradingPdfVerification?
 
+  @@unique([splitId, sampleId, semanticIdentity])
   @@index([splitId, sampleId])
   @@index([sourceConversionId])
-  @@unique([splitId, sampleId, semanticIdentity])
 }
 
 model TeacherAiGradingDerivativeReviewVersion {
@@ -2872,21 +2876,21 @@ model TeacherAiGradingPdfVerification {
 }
 
 model TeacherAiGradingConversionAttempt {
-  id                String   @id @default(cuid())
-  batchId           String
-  sampleId          String
-  questionId        String?
-  attemptOrdinal    Int
-  status            String
-  stage             String
-  errorCode         String?
-  durationMs        Int
-  conversionVersion String
-  sourceHash        String
-  visualEvidenceStatus String @default("NOT_APPLICABLE")
-  telemetryComplete Boolean
-  contentHash       String
-  createdAt         DateTime @default(now())
+  id                   String   @id @default(cuid())
+  batchId              String
+  sampleId             String
+  questionId           String?
+  attemptOrdinal       Int
+  status               String
+  stage                String
+  errorCode            String?
+  durationMs           Int
+  conversionVersion    String
+  sourceHash           String
+  visualEvidenceStatus String   @default("NOT_APPLICABLE")
+  telemetryComplete    Boolean
+  contentHash          String
+  createdAt            DateTime @default(now())
 
   batch TeacherAiGradingExperimentBatch @relation(fields: [batchId], references: [id], onDelete: Restrict)
 
@@ -2896,18 +2900,18 @@ model TeacherAiGradingConversionAttempt {
 }
 
 model TeacherAiGradingVisualEvidenceBlindJudgment {
-  id                  String   @id @default(cuid())
-  configId            String
-  executionId         String
-  visualEvidenceId    String
-  evidenceContentHash String
-  version             Int
-  faithful            Boolean
+  id                   String   @id @default(cuid())
+  configId             String
+  executionId          String
+  visualEvidenceId     String
+  evidenceContentHash  String
+  version              Int
+  faithful             Boolean
   sufficientForScoring Boolean
-  misattributed       Boolean
-  operatorUserId      String
-  contentHash         String
-  createdAt           DateTime @default(now())
+  misattributed        Boolean
+  operatorUserId       String
+  contentHash          String
+  createdAt            DateTime @default(now())
 
   config    TeacherAiGradingExperimentConfig    @relation(fields: [configId], references: [id], onDelete: Restrict)
   execution TeacherAiGradingExperimentExecution @relation(fields: [executionId], references: [id], onDelete: Restrict)
@@ -4342,23 +4346,23 @@ model SessionClosurePhase {
 }
 
 model ClassSessionReport {
-  id         String       @id @default(cuid())
-  sessionId  String
-  session    ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  lessonKey  String?
-  reportType String       @default("class-summary")
-  status     String       @default("READY")
-  summary    String?
-  reportData Json         @default("{}")
-  aiSummary  String?
+  id                          String       @id @default(cuid())
+  sessionId                   String
+  session                     ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  lessonKey                   String?
+  reportType                  String       @default("class-summary")
+  status                      String       @default("READY")
+  summary                     String?
+  reportData                  Json         @default("{}")
+  aiSummary                   String?
   // 闭包身份：报告生成绑定的闭课修订与提交水位；重算不得更改它们
-  closureRevision             Int     @default(0)
+  closureRevision             Int          @default(0)
   acceptedSubmissionWatermark BigInt?
   // 显式重算修订：仅授权操作命名新 revision 与输入水位后才能纳入 POST_SESSION_REVIEW 证据
   recomputeRevision           Int?
   recomputeInputWatermark     BigInt?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  createdAt                   DateTime     @default(now())
+  updatedAt                   DateTime     @updatedAt
 
   @@unique([sessionId, reportType])
   @@index([lessonKey])
@@ -4435,9 +4439,9 @@ model LearningPath {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  executions    LearningPathExecution[]
-  deviations    LearningPathDeviation[]
-  interventions LearningPathIntervention[]
+  executions          LearningPathExecution[]
+  deviations          LearningPathDeviation[]
+  interventions       LearningPathIntervention[]
   correctionDecisions LearningPathCorrectionDecision[]
 
   @@index([userId])
@@ -4776,7 +4780,7 @@ model WrongAnswerAttribution {
   nextAction         String
   createdAt          DateTime @default(now())
 
-  answer             AdaptiveAssessmentAnswer           @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  answer             AdaptiveAssessmentAnswer         @relation(fields: [answerId], references: [id], onDelete: Cascade)
   remediationResults RemediationOrchestrationResult[]
 
   @@unique([answerId, attributionVersion])
@@ -4796,7 +4800,7 @@ model RemediationOrchestrationResult {
   taskSnapshot             Json?
   createdAt                DateTime @default(now())
 
-  wrongAnswerAttribution WrongAnswerAttribution @relation(fields: [wrongAnswerAttributionId], references: [id], onDelete: Cascade)
+  wrongAnswerAttribution WrongAnswerAttribution     @relation(fields: [wrongAnswerAttributionId], references: [id], onDelete: Cascade)
   interventions          MicroInterventionOutcome[]
 
   @@unique([wrongAnswerAttributionId, orchestratorVersion])
@@ -4814,22 +4818,22 @@ model MicroInterventionOutcome {
   createdAt                        DateTime @default(now())
 
   remediationOrchestrationResult RemediationOrchestrationResult @relation(fields: [remediationOrchestrationResultId], references: [id], onDelete: Restrict)
-  events                          MicroInterventionEvent[]
-  validation                      MicroInterventionValidation?
+  events                         MicroInterventionEvent[]
+  validation                     MicroInterventionValidation?
 
   @@unique([remediationOrchestrationResultId, userId, learnerSessionId, startEventKey])
   @@index([userId, learnerSessionId, createdAt])
 }
 
 model MicroInterventionEvent {
-  id             String   @id @default(cuid())
-  interventionId String
-  eventKey       String
-  eventType      String
-  resourceId     String?
+  id              String   @id @default(cuid())
+  interventionId  String
+  eventKey        String
+  eventType       String
+  resourceId      String?
   durationSeconds Int?
-  occurredAt     DateTime
-  createdAt      DateTime @default(now())
+  occurredAt      DateTime
+  createdAt       DateTime @default(now())
 
   intervention MicroInterventionOutcome @relation(fields: [interventionId], references: [id], onDelete: Cascade)
 
@@ -4926,16 +4930,16 @@ model AdaptiveAssessmentGeneratedCandidate {
 }
 
 model AdaptiveAssessmentGeneratedCandidateRevision {
-  id                 String   @id
-  candidateId        String
-  parentRevisionId   String?
-  contentHash        String
+  id                  String   @id
+  candidateId         String
+  parentRevisionId    String?
+  contentHash         String
   envelopePublicJson  Json
   envelopePrivateJson Json     @default("{}")
   contentJson         Json
   promptHash          String?
   modelResponseHash   String?
-  createdAt          DateTime @default(now())
+  createdAt           DateTime @default(now())
 
   candidate AdaptiveAssessmentGeneratedCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
@@ -5154,9 +5158,9 @@ model PromptAssessment {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, sessionId, version])
   @@index([userId, createdAt])
   @@index([sessionId, version])
-  @@unique([userId, sessionId, version])
 }
 
 model DesignSession {
@@ -5228,6 +5232,119 @@ model VirtualSimulationReport {
   @@index([userId, experimentKey, createdAt])
 }
 
+// 学生辨识模型工件（issue-2152 记录类型 B）：有版本、只增不改。
+// 重新辨识生成同 lineage 的新 version 行；验证与预测引用工件 id+contentHash。
+model StudentModelArtifact {
+  id             String   @id @default(cuid())
+  userId         String
+  experimentKey  String
+  lineageKey     String // 同一通道/工作点的版本链标识（如 "heading@cruise15"）
+  version        Int
+  structure      Json // ModelStructure（kind 标签 + 参数，与 Rust serde snake_case 对齐）
+  ioContract     Json // 输入/输出通道、单位
+  operatingPoint Json // 航速/装载/冰厚/执行器等工作点
+  identification Json // 算法、设置、残差、是否成功、失败原因
+  trainingRuns   Json // [{runRef, startS, endS}]
+  validationRuns Json // 同结构；与训练窗口不重叠（API 层校验）
+  sampleDt       Float
+  contentHash    String // 服务端按规范序计算的 sha256
+  frozenAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comparisons ComparisonArtifact[]
+
+  @@unique([userId, experimentKey, lineageKey, version])
+  @@index([userId, experimentKey, frozenAt])
+}
+
+// 学生模型与物理后台的对照工件（issue-2152 记录类型 C / issue-2148 三模式）。
+model ComparisonArtifact {
+  id                     String   @id @default(cuid())
+  userId                 String
+  experimentKey          String
+  stepKey                String
+  mode                   String // hull_model | command_to_output | independent_closed_loop
+  studentModelId         String
+  physicalRunRef         String // SimulationRun.sourceRefId / originId 引用
+  controllerArtifactHash String?
+  inputSource            String // actuator_measurement | estimated_thrust | command
+  alignmentWindow        Json // {startS, endS}
+  factorFlags            Json // {physical: [...], student: [...], unmodeled: [...]}
+  metrics                Json // RMSE/FIT/峰值/残差相关等（issue-2148 §4）
+  curveRefs              Json // 曲线分块引用（阶段 2 落地前为内联数组）
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentModel StudentModelArtifact @relation(fields: [studentModelId], references: [id], onDelete: Cascade)
+
+  @@index([userId, experimentKey, createdAt])
+  @@index([studentModelId])
+}
+
+// 生效运行信封（issue-2152 记录类型 A 的生效配置部分）：编辑态参数不
+// 等于生效配置——信封由 firstSampleReceipt（首采样回执哈希）绑定实际
+// 运行；runRef 唯一，开启/收口为 upsert 语义。
+model AppliedRunEnvelope {
+  id                     String   @id @default(cuid())
+  userId                 String
+  experimentKey          String
+  runRef                 String   @unique
+  stepKey                String?
+  courseVersion          String
+  modelId                String
+  modelVersion           String
+  parameterBundleHash    String?
+  environmentVersion     String?
+  sensorVersion          String?
+  // 种子按 1-20 位十进制字符串存储（u64 全域无损；BIGINT 上限 2^63-1 不够）。
+  seed                   String?
+  substreamIds           Json?
+  initialState           Json
+  appliedFactorMask      Json // 实际生效因素开关（回执确认后的）
+  controllerArtifactHash String?
+  simulationStartMs      BigInt
+  simulationEndMs        BigInt?
+  terminationReason      String?
+  quality                Json
+  firstSampleReceipt     String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, experimentKey, createdAt])
+}
+
+// 步骤提交尝试（issue-2152 记录类型 D）：每步区分首次/最近/最佳/最终
+// 选定尝试（由 attemptSeq 与 selectedFinalAt 派生查询）；计分选取不
+// 删除其他尝试——保留较差与未达目标的记录即保留学习过程。
+model StepSubmissionAttempt {
+  id              String    @id @default(cuid())
+  userId          String
+  experimentKey   String
+  stepKey         String
+  attemptSeq      Int // 步内递增（首次=1）
+  status          String // submitted | scored | invalid_run | model_mismatch | below_target
+  runRefs         Json // AppliedRunEnvelope.runRef 数组
+  studentModelIds Json?
+  comparisonIds   Json?
+  sketchRefs      Json? // 手绘原图引用
+  explanation     String?   @db.Text
+  scoringVersion  String
+  scoreResult     Json?
+  selectedFinalAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, experimentKey, stepKey, attemptSeq])
+  @@index([userId, experimentKey, stepKey, createdAt])
+}
+
 // ========== 控灵AI助手会话模型 ==========
 
 model KonlingSession {
@@ -5246,8 +5363,8 @@ model KonlingSession {
 
   messages Json // 消息历史数组
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   expiresAt DateTime? // 治理到期时间；null 表示无产品级到期
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -5271,10 +5388,10 @@ model KonlingCompanionEvent {
   status      String // candidate | confirmed | delivered | suppressed | expired
   confirmedAt DateTime?
   expiresAt   DateTime
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  delivery     KonlingCompanionDelivery?
+  user     User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delivery KonlingCompanionDelivery?
 
   @@index([userId, status, createdAt])
   @@index([userId, eventType, createdAt])
@@ -5290,7 +5407,7 @@ model KonlingCompanionDelivery {
   createdAt DateTime @default(now())
 
   event KonlingCompanionEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
 }
@@ -5529,14 +5646,14 @@ model ArenaSubmission {
 }
 
 model ArenaOfficialSubmitReservation {
-  id           String    @id
+  id           String   @id
   userId       String
   taskId       String
-  classId      String    @default("")
+  classId      String   @default("")
   submittedAt  DateTime
   submissionId String?
   lockedUntil  DateTime
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime @default(now())
 
   @@unique([userId, taskId, classId, submittedAt])
   @@index([submissionId])
@@ -5755,29 +5872,29 @@ model LearnerFactTransitionSequence {
 // Immutable versioned learner state. NO_EVIDENCE rows are current tombstones,
 // not replacements or deletions of prior portrait snapshots.
 model LearnerPortraitStateVersion {
-  id                 String                   @id @default(cuid())
-  userId             String
-  calculationVersion String
-  generation         BigInt
-  queueGeneration    BigInt
-  stateWatermark     BigInt
-  taskInputDigest    String                   @default("")
-  trustedFactIds     Json                     @default("[]")
-  trustedFactPolicyVersion String              @default("")
-  trustedInputDigest String                    @default("")
-  stateKind          LearnerPortraitStateKind
-  snapshotId         String?
-  overallScore       Float?
-  dimensionCoverage  Json
-  evidenceAsOf       DateTime?
-  confidence         Float?
-  lastTrend          String?
-  lastRisk           Json?
-  availabilityReason String
-  generatedAt        DateTime
-  cutoverFence       BigInt
-  migrationRunId     String?
-  createdAt          DateTime                 @default(now())
+  id                       String                   @id @default(cuid())
+  userId                   String
+  calculationVersion       String
+  generation               BigInt
+  queueGeneration          BigInt
+  stateWatermark           BigInt
+  taskInputDigest          String                   @default("")
+  trustedFactIds           Json                     @default("[]")
+  trustedFactPolicyVersion String                   @default("")
+  trustedInputDigest       String                   @default("")
+  stateKind                LearnerPortraitStateKind
+  snapshotId               String?
+  overallScore             Float?
+  dimensionCoverage        Json
+  evidenceAsOf             DateTime?
+  confidence               Float?
+  lastTrend                String?
+  lastRisk                 Json?
+  availabilityReason       String
+  generatedAt              DateTime
+  cutoverFence             BigInt
+  migrationRunId           String?
+  createdAt                DateTime                 @default(now())
 
   snapshot       StudentPortraitV2Snapshot?      @relation(fields: [snapshotId], references: [id], onDelete: Restrict)
   migrationRun   CumulativePortraitMigrationRun? @relation(fields: [migrationRunId], references: [id], onDelete: Restrict)
@@ -6060,12 +6177,12 @@ model StudentRiskFlag {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, flagType])
-  @@index([userId, isResolved])
-  @@index([flagType, severity])
   @@unique([userId, flagType], map: "StudentRiskFlag_active_stagnation_user_key", where: { isResolved: false, flagType: "stagnation" })
   @@unique([userId, flagType], map: "StudentRiskFlag_active_constraint_user_key", where: { isResolved: false, flagType: "constraint" })
   @@unique([userId, flagType], map: "StudentRiskFlag_active_cross_domain_user_key", where: { isResolved: false, flagType: "cross_domain" })
+  @@index([userId, flagType])
+  @@index([userId, isResolved])
+  @@index([flagType, severity])
 }
 
 model DiagnosisReport {
@@ -6088,13 +6205,13 @@ model DiagnosisReport {
   generatedAt      DateTime @default(now())
   generationJobId  String?  @unique
 
-  class                   Class                    @relation(fields: [classId], references: [id], onDelete: Restrict)
-  creator                 User                     @relation("DiagnosisReportCreator", fields: [userId], references: [id], onDelete: Restrict)
-  target                  User?                    @relation("DiagnosisReportTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
-  generationJob           DiagnosisGenerationJob?  @relation("DiagnosisGenerationResult", fields: [generationJobId], references: [id], onDelete: Restrict)
-  previousReport          DiagnosisReport?         @relation("DiagnosisReportPredecessor", fields: [previousReportId], references: [id], onDelete: Restrict)
-  successorReports        DiagnosisReport[]        @relation("DiagnosisReportPredecessor")
-  successorGenerationJobs DiagnosisGenerationJob[] @relation("DiagnosisGenerationPredecessor")
+  class                   Class                             @relation(fields: [classId], references: [id], onDelete: Restrict)
+  creator                 User                              @relation("DiagnosisReportCreator", fields: [userId], references: [id], onDelete: Restrict)
+  target                  User?                             @relation("DiagnosisReportTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+  generationJob           DiagnosisGenerationJob?           @relation("DiagnosisGenerationResult", fields: [generationJobId], references: [id], onDelete: Restrict)
+  previousReport          DiagnosisReport?                  @relation("DiagnosisReportPredecessor", fields: [previousReportId], references: [id], onDelete: Restrict)
+  successorReports        DiagnosisReport[]                 @relation("DiagnosisReportPredecessor")
+  successorGenerationJobs DiagnosisGenerationJob[]          @relation("DiagnosisGenerationPredecessor")
   exportArtifacts         DiagnosisReportExportArtifact[]
   dispositionEvents       DiagnosisReportDispositionEvent[]
   metricSnapshot          DiagnosisMetricSnapshot?
@@ -6221,18 +6338,18 @@ model DiagnosisGenerationJob {
 }
 
 model DiagnosisGenerationAttempt {
-  id             String                             @id @default(cuid())
-  jobId          String
-  attemptNumber  Int
-  state          DiagnosisGenerationAttemptState   @default(RUNNING)
-  agentSessionId String?
+  id                 String                          @id @default(cuid())
+  jobId              String
+  attemptNumber      Int
+  state              DiagnosisGenerationAttemptState @default(RUNNING)
+  agentSessionId     String?
   providerResponseId String?
-  toolAudit      Json                               @default("[]")
-  errorCode      String?
-  errorMessage   String?
-  startedAt      DateTime                           @default(now())
-  completedAt    DateTime?
-  job            DiagnosisGenerationJob             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  toolAudit          Json                            @default("[]")
+  errorCode          String?
+  errorMessage       String?
+  startedAt          DateTime                        @default(now())
+  completedAt        DateTime?
+  job                DiagnosisGenerationJob          @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@unique([jobId, attemptNumber])
   @@index([state, startedAt])
@@ -6651,7 +6768,9 @@ model ActkgBundleReceipt {
   runtimeProjectionId      String
   runtimeProjectionProfile String
   runtimeProjectionDigest  String
-  /** Public Artifact count for this packaging receipt (not semantic ImportReceipt). */
+  /**
+   * Public Artifact count for this packaging receipt (not semantic ImportReceipt).
+   */
   artifactCount            Int
   statistics               Json
   importedAt               DateTime @default(now())
@@ -6922,7 +7041,9 @@ model ActkgReleaseSetDeltaReceipt {
   id String @id
 
   algorithmVersion   String
-  /** Trusted ACT delta implementation capture revision (Git HEAD). */
+  /**
+   * Trusted ACT delta implementation capture revision (Git HEAD).
+   */
   captureRevision    String
   classification     String
   authorizationState String

@@ -119,7 +119,7 @@ export default function NetworkCheckPage() {
         <section className="surface-card rounded-lg p-5" data-network-bandwidth>
           <h2 className="text-xl font-semibold">客户端到服务器带宽</h2>
           <p className="mt-2 text-sm leading-6 text-subtle">
-            三种船舶场景和船体运动都在学生浏览器本地计算，不把连续画面送到服务器渲染。服务器主要处理登录、学习记录和模型读取。请使用稳定的校园网或宽带，进入实验前确认这里的测试能够完成。
+            七个船舶实验场景和船体运动都在学生浏览器本地计算，不把连续画面送到服务器渲染。服务器主要处理登录、学习记录和模型读取。请使用稳定的校园网或宽带，进入实验前确认这里的测试能够完成。
           </p>
           <button type="button" className="mt-4 h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60" onClick={() => { void runBandwidth(); }} disabled={busy}>
             测试当前连接

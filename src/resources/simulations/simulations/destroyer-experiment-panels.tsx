@@ -304,20 +304,24 @@ export function DestroyerStepForm({
   message,
   busy,
   reportEnabled,
+  showRestart = false,
   onChange,
   onSubmit,
   onReport,
   onAsk,
+  onRestart,
 }: {
   step: DestroyerExperimentStep;
   readings: DestroyerReadings;
   message: string;
   busy: boolean;
   reportEnabled: boolean;
+  showRestart?: boolean;
   onChange: (key: string, value: string) => void;
   onSubmit: () => void;
   onReport: () => void;
   onAsk: () => void;
+  onRestart?: () => void;
 }) {
   const showReport = step.scene === 'review';
   return (
@@ -377,6 +381,11 @@ export function DestroyerStepForm({
         {showReport ? (
           <Button type="button" size="sm" variant="outline" disabled={!reportEnabled} onClick={onReport} data-destroyer-report className={simulationUi.buttonOutline}>
             查看实验报告
+          </Button>
+        ) : null}
+        {showRestart && onRestart ? (
+          <Button type="button" size="sm" variant="outline" disabled={busy} onClick={onRestart} data-destroyer-restart className={cn(simulationUi.buttonOutline, 'col-span-2')}>
+            开启新一轮实验
           </Button>
         ) : null}
       </div>

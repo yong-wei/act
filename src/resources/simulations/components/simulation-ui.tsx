@@ -1,5 +1,8 @@
 'use client';
 
+import { READINESS_LABEL } from '../lib/simulation-capability';
+import { useSimulationReadiness } from '../lib/use-simulation-readiness';
+
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Activity,
@@ -201,12 +204,21 @@ export function SimulationDock({
   );
 }
 
-export interface ExperimentHostBrief {
-  seq: number;
-  title: string;
-  goal: string;
-  watch?: string;
-  hint?: string;
+/**
+ * 运行前置就绪门（#2151）：模型/图形未就绪或图形不可用时禁用控制区并说明原因。
+ */
+function SimulationReadinessGate({ status }: { status: ReturnType<typeof useSimulationReadiness>['status'] }) {
+  if (status === 'runnable') return null;
+  return (
+    <div
+      data-simulation-readiness={status}
+      role="status"
+      className="pointer-events-none flex items-center gap-2 rounded-md border border-platform-action-primary/30 bg-platform-canvas/60 px-2.5 py-1.5 text-xs text-platform-fg-secondary"
+    >
+      <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-platform-action-primary/70" aria-hidden="true" />
+      {READINESS_LABEL[status]}
+    </div>
+  );
 }
 
 export function ExperimentStepAreas({
@@ -228,6 +240,7 @@ export function ExperimentStepAreas({
   controls: ReactNode;
   submission?: ReactNode;
 }) {
+  const { status: readiness } = useSimulationReadiness();
   return (
     <div className="space-y-4">
       <section className="sim-hud-brief p-3 pl-4" data-step-brief>
@@ -264,9 +277,27 @@ export function ExperimentStepAreas({
           ) : null}
         </div>
       </section>
-      <section className="space-y-2.5" data-step-controls>
+      <section
+        className="space-y-2.5"
+        data-step-controls
+        aria-disabled={readiness === 'runnable' ? undefined : true}
+        {...(readiness === 'runnable' ? {} : { 'data-controls-locked': '' })}
+        onKeyDownCapture={readiness === 'runnable' ? undefined : (event) => {
+          // 就绪门前拦截键盘激活（pointer-events 挡不住 Enter/Space）。
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }}
+      >
         <p className={simulationUi.sectionTitle}>控制</p>
-        {controls}
+        <SimulationReadinessGate status={readiness} />
+        <div
+          className={readiness === 'runnable' ? undefined : 'pointer-events-none opacity-60'}
+          aria-hidden={readiness === 'runnable' ? undefined : true}
+        >
+          {controls}
+        </div>
       </section>
       {submission ? (
         <section className="space-y-2.5" data-step-submit>

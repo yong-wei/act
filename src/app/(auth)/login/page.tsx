@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CredentialLoginForm } from '@/components/shared/credential-login-form';
+import { PlatformOidcLoginButton } from '@/components/shared/platform-oidc-login-button';
 import { appendLoginPageHashToRedirectPath } from '@/lib/auth-redirect';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
@@ -77,6 +78,9 @@ function LoginContent() {
                 appendLoginPageHashToRedirectPath(redirectPath, window.location.hash),
               )}
             />
+            <div className="mt-3">
+              <PlatformOidcLoginButton />
+            </div>
           </CardContent>
         </Card>
 

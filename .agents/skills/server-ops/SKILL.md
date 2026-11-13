@@ -38,6 +38,26 @@ description: 部署本项目，或执行必须访问远端服务器的诊断与�
 - 若发现远端源码残留，记录其路径和用途；仅在明确授权清理且已确认可恢复性后删除，不把只读调查自动扩展为清理。
 - 若需要更新部署逻辑，只能修改本地仓库中的运维脚本与文档，并通过既定的本机构建流程产出镜像，再按既定方式部署。
 
+## 校内双镜像（campus mirror）
+
+用户要求"部署"时，默认指双镜像同步：阿里云 `121.40.124.135` 与校内 `202.195.195.153`（`act.just.edu.cn`）承载同一份应用镜像与数据（2026-11 起）。
+
+- 校内网络事实（2026-11-04 实测）：出站 TCP 全禁（dnf 在线更新、ossfs、直读 OSS 均不可用）；阿里云→校内 22/443 同样被拦；校内 22/80/443 仅校园网内来源可达。镜像 tar、数据库 dump、runtime 物化包都只能"阿里云 → 本机 → 校内"两跳中转，且本机须先放行 Clash 直连该 IP。
+- 镜像策略：本机构建的 linux/amd64 应用镜像 tar 在两个目标都装载并核验完成前不得删除；校内用 `podman load` 装载同一份 tar，与阿里云字节一致。禁止在校内重新构建或使用另一份构建产物充当"同步"。
+- runtime：校内无法直读 OSS，课程内容依赖本地物化副本。只在 `runtime:publish` 产生新 Release 后才需要同步校内，日常 `deploy:app` 不重搬 runtime。同步优先保留 blob-store + view 的链接与选择器结构（rsync 不带 `-L`，复制后核对 current 指针与 active receipt），避免每次全量解引用打包；在生产 ECS 上仍禁止增量 rematerialize。
+- 数据库：按需从阿里云导出 dump 灌入校内，灌入前后校验行数与关键选择器表；两端的运行态差异（OSS 直读 vs 本地物化）必须体现在各自 `.env` 与只读挂载配置中。
+- 校内 HTTPS 由 nginx 终结（80→443 301），应用容器端口由校内 nginx 反代，不重复占用 80/443。证书用学校统一通配符 `*.just.edu.cn`（源文件 `~/Documents/Site/20251218 - 江苏科技大学star.just.edu.cn/Nginx/`，key 无密码，2026-12 到期需向学校换发）；Let's Encrypt 版保留 `/etc/nginx/ssl/` 作备用，续期钩子在 `~/Documents/Scripts/certbot-just/`。
+- 校内首次克隆（2026-11-04）允许一次性解引用快照；之后每次 runtime 发布的校内同步必须走增量结构复制。
+
+### 首次克隆踩坑记录（2026-11-04/05，复现过、已定案）
+
+- **校内部署模式必须是 `./deploy.sh --runtime-cutover-app-only`**（与 remote-deploy 调用生产同款）。`--app-only`/`--all` 会先跑一个"执行 Prisma 迁移"的 `podman run --rm --entrypoint ./docker-entrypoint.sh` 一次性容器，它**不挂载 runtime 目录**，entrypoint 序列读到 `/app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl` 时必然 ENOENT——该报错伪装成挂载/数据问题，极易误导向 bind mount 排查。用 `bash -x` 抓完整 podman run 命令即可定位此类"日志来自哪个容器"的迷惑。
+- **校内 runtime 内容源 = 本机 `course-content/runtime`**：发布工作树与生产 active Release 字节一致（首次克隆已用三对文件 md5 抽查验证：28M projections.jsonl、knowledge/projection/current.json、课程媒体）。直传用 `tar -C course-content/runtime -cf - knowledge resource-governance lessons resources | ssh 校内 "tar -xf - -C materialized-runtime/"`，校园网内 ~60MB/s（7.3G 约 2 分钟）。`hot-index/knowledge/projection` 在校内从树内 `cp -a` 重建；`act-runtime-active-receipt.json` 等状态 json 从生产按小文件补。
+- **OSS view 产物几乎都是符号链接**（指向 `.act-runtime-blobs/sha256/...`）：从 ECS blob-views 打包/复制必须解引用（`tar -h` / `cp -L` / `rsync -L`），否则传到校内是一堆断链且体积异常小（一次 105 文件的目录只传出 12K）。`.act-runtime-blobs` 是全量 CAS 历史池（>15G），物化/同步时必须 `--exclude` 它，只取目录树引用的实体。ossfs 挂载上避免整目录 `du`/`find`（遍历 OSS 会超时）。
+- **`deploy/images/act-obe.tar` 是 app-image-bundle.v1 两层格式**（app-rootfs.tar.gz + meta，需 `scripts/release/assemble-app-image.mjs` + runner-os tar 组装），**不能直接 `podman load`**。完整镜像的 docker-archive 导出层未压缩（~4G，`gzip -1` 后 ~1.4G）。自 2026-11 起校内镜像改为本机构建后双端 load 同一份 tar，此导出路径仅为历史参考。
+- **传输路径与带宽**：大文件一律"本机→校内"直传（校园网 ~60MB/s）；"阿里云→本机"单流仅 ~0.4-2.5MB/s 且长连接易被代理中断（Clash TUN 接管但 mihomo 规则 DIRECT 时绕节点），并发多流无增益（出口带宽瓶颈），只用于 KB-MB 级小文件。多任务并行 scp 会产生半截文件竞争同一路径，传输后必须三点 md5 校验。
+- **校内容器化后的固化事实**：act 应用占 `act.just.edu.cn` 根路径，原门户静态页归档 `/legacy/`，shiptalk 容器已停用（保留可恢复）；`SKIP_WOLFRAM_READY_CHECK=1` 是校内常态（出网禁，Wolfram/AI 外呼不可达）；`MATH_DOCUMENT_GRADING_WORKER_REQUIRED=false` 与生产一致。
+
 ## 发布分支流程
 
 - 按本次已授权发布范围选择 `origin/main` 提交；只有本次发布明确包含集成变更时，才在冻结前将该范围合入 `main`，不自动追入其他提交。
@@ -47,6 +67,7 @@ description: 部署本项目，或执行必须访问远端服务器的诊断与�
 ## When to Use
 
 - 用户明确要求将本项目发布或部署到服务器
+- 应用部署默认双镜像同步：阿里云 `121.40.124.135` 与校内 `202.195.195.153`（`act.just.edu.cn`，见「校内双镜像」一节）
 - 需要 SSH 到 `121.40.124.135` 调查线上问题
 - 需要核对 Podman 容器、systemd、Nginx、环境变量
 - 需要重新部署并验证 `app + postgres + redis + worker + scheduler`

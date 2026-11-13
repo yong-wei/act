@@ -272,16 +272,14 @@ const normalizeHeadingPoints = (points: HeadingPoint[]) => {
 
 const sanitizeHeadingPoints = (points: HeadingPoint[], duration: number) => {
   const safeDuration = Number.isFinite(duration) ? Math.max(0, duration) : 0;
+  // #2153 A2.3：先按原值丢弃非有限点再 clamp（旧序先归零后过滤，恒真），
+  // 缺失数据以空基线语义处理，不得伪造成 0 航迹。
   const sanitized = normalizeHeadingPoints(points)
-    .map((point) => {
-      const time = Number.isFinite(point.time) ? point.time : 0;
-      const heading = Number.isFinite(point.heading) ? point.heading : 0;
-      return {
-        time: clamp(time, 0, safeDuration),
-        heading: clampHeading(heading),
-      };
-    })
-    .filter((point) => Number.isFinite(point.time) && Number.isFinite(point.heading));
+    .filter((point) => Number.isFinite(point.time) && Number.isFinite(point.heading))
+    .map((point) => ({
+      time: clamp(point.time, 0, safeDuration),
+      heading: clampHeading(point.heading),
+    }));
 
   if (sanitized.length < 2 && safeDuration > 0) {
     return [
@@ -2187,13 +2185,15 @@ function SimulationLoop({
     const targetHeading = Number.isFinite(targetHeadingRaw) ? targetHeadingRaw : 0;
 
     if (!Number.isFinite(sim.headingRad)) {
-      sim.headingRad = 0;
-      sim.yawRateRad = 0;
-      sim.rudderDeg = 0;
-      sim.manualRudderDeg = 0;
-      sim.integral = 0;
-      sim.prevErrorRad = 0;
-      sim.position.set(scenarioLogic.startPos.x, 0, scenarioLogic.startPos.z);
+      // #2153 A2.3：非有限状态不得归零后伪装正常继续（旧实现清零六状态
+      // 并复位位置，产生假曲线）。保留原值供诊断、跳过本帧；评分链对
+      // 非有限输入不产生完成态（attainment 按大误差不达标处理）。
+      console.error('[sixdof] 学生仿真状态非有限，跳过本帧（保留诊断）', {
+        headingRad: sim.headingRad,
+        yawRateRad: sim.yawRateRad,
+        rudderDeg: sim.rudderDeg,
+      });
+      return;
     }
     
     // 更新 React State (用于 UI 显示，不频繁更新)

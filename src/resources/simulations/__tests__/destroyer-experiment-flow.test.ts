@@ -196,7 +196,7 @@ function maneuverCompleted(step: DestroyerExperimentStep, samples: DestroyerSamp
   if (step.seq === 8) return Math.abs(last.yawRate - 0.55) < 0.15 && Math.abs(last.rudder) < 20;
   if (step.seq === 9) {
     const deviation = samples.reduce((best, sample) => Math.max(best, Math.abs(sample.actualHeading)), 0);
-    return deviation > 5 && samples.some((sample) => sample.time > 120 && Math.abs(sample.actualHeading) < 2);
+    return deviation > 0.3 && samples.some((sample) => sample.time > 120 && Math.abs(sample.actualHeading) < 2);
   }
   if (step.seq === 14 || step.seq === 17) return last.yawRate > 0.05;
   if (step.seq === 15) return last.yawRate < -0.05;

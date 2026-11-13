@@ -1,6 +1,5 @@
 use serde_json::{Map, Value, json};
 
-use crate::destroyer_hifi_runtime;
 
 const RHO: f64 = 1025.0;
 
@@ -1771,8 +1770,12 @@ pub fn compute_virtual_simulation_step_json(request_json: &str) -> Result<String
         .and_then(Value::as_str)
         .unwrap_or_default()
     {
+        // issue-2153-p1 A2.1：055 分发改派六自由度 TruthPlant（hifi 3DOF 路径退役）。
+        "sixdof_vessel" => {
+            crate::sixdof::vessel_runtime::compute_vessel_sixdof_step_json(request_json)
+        }
         "destroyer_hifi" => {
-            destroyer_hifi_runtime::compute_virtual_simulation_step_json(request_json)
+            crate::sixdof_runtime::compute_destroyer_sixdof_step_json(request_json)
         }
         "linear_pid_batch" => compute_linear_pid_batch(&request),
         "transfer_function_response" => compute_transfer_function_response(&request),

@@ -14,7 +14,6 @@ import {
   formatAxisTick,
   simulationUi,
   useSimulationChartTheme,
-  type ExperimentHostBrief,
 } from '../components/simulation-ui';
 import {
   vesselFrontierSeq,
@@ -268,10 +267,12 @@ export function VesselStepForm({
   busy,
   reportEnabled,
   showReport,
+  showRestart = false,
   onChange,
   onSubmit,
   onReport,
   onAsk,
+  onRestart,
 }: {
   step: VesselStep;
   readings: VesselReadings;
@@ -279,10 +280,12 @@ export function VesselStepForm({
   busy: boolean;
   reportEnabled: boolean;
   showReport: boolean;
+  showRestart?: boolean;
   onChange: (key: string, value: string) => void;
   onSubmit: () => void;
   onReport: () => void;
   onAsk: () => void;
+  onRestart?: () => void;
 }) {
   return (
     <div className="w-full space-y-2.5">
@@ -317,6 +320,9 @@ export function VesselStepForm({
         <Button type="button" size="sm" variant="outline" onClick={onAsk} className={cn(simulationUi.buttonOutline, showReport ? '' : 'col-span-2')}>问控灵这一步</Button>
         {showReport ? (
           <Button type="button" size="sm" variant="outline" disabled={!reportEnabled} onClick={onReport} data-vessel-report className={simulationUi.buttonOutline}>查看实验报告</Button>
+        ) : null}
+        {showRestart && onRestart ? (
+          <Button type="button" size="sm" variant="outline" disabled={busy} onClick={onRestart} data-vessel-restart className={cn(simulationUi.buttonOutline, 'col-span-2')}>开启新一轮实验</Button>
         ) : null}
       </div>
       {message ? <p className="rounded-md border border-platform-action-primary/25 bg-platform-action-primary/10 px-2.5 py-2 text-xs leading-5 text-platform-fg-primary" data-vessel-message>{message}</p> : null}
@@ -360,32 +366,24 @@ export function VesselExperimentDocks({
   status,
   controls,
   assessment,
-  stepNav,
-  hostBrief,
-  hostSubmission,
 }: {
   experiment: VesselExperiment;
   session: VesselExperimentController;
   status?: ReactNode;
   controls: ReactNode;
   assessment?: ReactNode;
-  stepNav?: ReactNode;
-  hostBrief?: ExperimentHostBrief;
-  hostSubmission?: ReactNode;
 }) {
   const last = session.shownSamples[session.shownSamples.length - 1];
   return (
     <>
-      {stepNav ? null : (
-        <SimulationMissionTracker
+      <SimulationMissionTracker
           seq={session.activeSeq}
           total={experiment.steps.length}
           title={session.step.title}
           doneSeqs={session.doneSeqs}
           earnedPoints={session.earnedPoints}
           maxPoints={session.maxPoints}
-        />
-      )}
+      />
       <SimulationDock
         side="left"
         title="实验状态"
@@ -395,7 +393,7 @@ export function VesselExperimentDocks({
           {
             id: 'steps',
             label: '实验步骤',
-            content: stepNav ?? (
+            content: (
               <VesselStepList
                 experiment={experiment}
                 activeSeq={session.activeSeq}
@@ -444,13 +442,13 @@ export function VesselExperimentDocks({
             label: '控制',
             content: (
               <ExperimentStepAreas
-                seq={hostBrief?.seq ?? session.step.seq}
-                title={hostBrief?.title ?? session.step.title}
-                goal={hostBrief?.goal ?? session.step.goal}
-                watch={hostBrief ? hostBrief.watch : session.step.watch}
-                hint={hostBrief ? hostBrief.hint : session.step.suggestion}
+                seq={session.step.seq}
+                title={session.step.title}
+                goal={session.step.goal}
+                watch={session.step.watch}
+                hint={session.step.suggestion}
                 controls={controls}
-                submission={hostSubmission ?? (stepNav ? undefined : (
+                submission={(
                   <VesselStepForm
                     step={session.step}
                     readings={session.readings}
@@ -458,12 +456,14 @@ export function VesselExperimentDocks({
                     busy={session.busy}
                     reportEnabled={session.reportEnabled}
                     showReport={session.step.seq === experiment.steps.length}
+                    showRestart={session.sessionCompleted}
                     onChange={session.setReading}
                     onSubmit={() => { void session.submitStep(); }}
                     onReport={session.openReport}
                     onAsk={session.ask}
+                    onRestart={() => { void session.restartIlabSession(); }}
                   />
-                ))}
+                )}
               />
             ),
           },

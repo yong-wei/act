@@ -312,7 +312,7 @@ function StatusPanel({
           <SimReadout label="航向误差" value={headingError.toFixed(1)} unit="°" tone={simToneForMagnitude(headingError, 5)} />
           <SimReadout label="转艏率" value={state.yawRate.toFixed(2)} unit="°/s" />
           <SimReadout label="舵角" value={state.rudder.toFixed(1)} unit="°" />
-          <SimReadout label="航速" value={(state.speed * 1.944).toFixed(1)} unit="kn" />
+          <SimReadout label="航速" value={`${(state.speed * 1.944).toFixed(1)} · ${state.speed.toFixed(2)} m/s`} unit="kn" />
         </SimReadoutGrid>
       </SimPanelSection>
       <SimPanelSection title="液货舱" icon={Droplets} tone={cargoAlarm ? 'danger' : 'neutral'}>

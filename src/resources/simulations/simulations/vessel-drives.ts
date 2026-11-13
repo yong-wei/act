@@ -1,3 +1,11 @@
+/**
+ * 六船实验的配置与命令适配层（issue-2153-p1 A2.5 收敛声明）。
+ *
+ * 合同定位：本文件只做「实验步骤 → 物理引擎配置/命令」的映射，不维护
+ * 物理真值。六船 TruthPlant 将随 #2147（运行合同接线）逐船迁移至
+ * Rust/WASM sixdof 内核；迁移完成前现有引擎仍是过渡真值，迁移时本层
+ * 保留为纯适配器（配置/命令/权限映射），不新增第二组物理实现。
+ */
 import { DRILLING_DEFAULT_DP, toDegrees, toRadians } from '../core/constants';
 import {
   ContainerShipEngine,

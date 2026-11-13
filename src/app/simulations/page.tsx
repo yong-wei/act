@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { clearIlabOriginSessionStorage, stripIlabUrlParams } from '@/features/ilab/client-grant';
 import {
   Anchor,
   BookOpen,
@@ -268,11 +269,87 @@ function simulationTaskFit(simulation: SimulationInfo) {
 export default function SimulationsPage() {
   const searchParams = useSearchParams();
   const compatibilitySource = searchParams.get('compat');
+  const arrivalTicket = searchParams.get('ticket')?.trim() ?? '';
   const [selectedSimulation, setSelectedSimulation] = useState<SimulationInfo | null>(null);
   const [query, setQuery] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<'all' | SimulationInfo['difficulty']>('all');
   const [mode, setMode] = useState<CatalogMode>('all');
   const [viewMode, setViewMode] = useState<CatalogViewMode>('cards');
+  const [ilabStatus, setIlabStatus] = useState<'idle' | 'exchanging' | 'connected' | 'error'>('idle');
+  const [ilabStudentName, setIlabStudentName] = useState('');
+  const [ilabMessage, setIlabMessage] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      if (arrivalTicket) {
+        setIlabStatus('exchanging');
+        try {
+          const response = await fetch('/api/ilab/grant', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ ticket: arrivalTicket }),
+          });
+          const body = await response.json() as {
+            connected?: boolean;
+            displayName?: string;
+            error?: string;
+          };
+          if (cancelled) return;
+          window.history.replaceState(
+            null,
+            '',
+            stripIlabUrlParams('/simulations', window.location.search),
+          );
+          if (!response.ok || !body.connected) {
+            setIlabStatus('error');
+            setIlabMessage(body.error || '实验空间连接验证失败，当前将以本机练习模式运行。');
+            return;
+          }
+          clearIlabOriginSessionStorage();
+          setIlabStudentName(body.displayName || '');
+          setIlabStatus('connected');
+          setIlabMessage('');
+        } catch {
+          if (!cancelled) {
+            setIlabStatus('error');
+            setIlabMessage('无法连接实验空间服务，请稍后重试。');
+          }
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/ilab/grant');
+        if (!response.ok || cancelled) return;
+        const body = await response.json() as {
+          connected?: boolean;
+          displayName?: string;
+        };
+        if (cancelled) return;
+        if (body.connected) {
+          setIlabStudentName(body.displayName || '');
+          setIlabStatus('connected');
+        }
+      } catch {
+        // Ignore network errors while checking optional iLab grant status.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [arrivalTicket]);
+
+  async function handleDisconnectIlab() {
+    try {
+      await fetch('/api/ilab/grant', { method: 'DELETE' });
+    } finally {
+      clearIlabOriginSessionStorage();
+      setIlabStatus('idle');
+      setIlabStudentName('');
+      setIlabMessage('');
+    }
+  }
   const resetSimulationFilters = () => {
     setQuery('');
     setDifficultyFilter('all');
@@ -318,6 +395,40 @@ export default function SimulationsPage() {
         data-simulation-entry-map="scenario-fleet"
         data-simulation-catalog-source="canonical"
       >
+        {ilabStatus === 'exchanging' ? (
+          <section className="surface-card rounded-lg border-platform-action-primary/35 p-4 text-sm text-subtle">
+            正在确认实验空间身份信息，请稍候……
+          </section>
+        ) : null}
+
+        {ilabStatus === 'connected' ? (
+          <section
+            className="surface-card flex flex-wrap items-center justify-between gap-3 rounded-lg border-emerald-500/35 bg-emerald-500/5 p-4 text-sm"
+            data-ilab-grant-status="connected"
+          >
+            <div className="space-y-0.5">
+              <p className="font-medium text-platform-fg-primary">
+                已连接实验空间{ilabStudentName ? `（学生：${ilabStudentName}）` : ''}
+              </p>
+              <p className="text-xs text-subtle">
+                当前身份有效期内可自由进入下方任意 7 艘船舶仿真实验；完成全部 20 步后，成绩与实验报告将自动回传。
+              </p>
+            </div>
+            <Button type="button" size="sm" variant="outline" onClick={() => { void handleDisconnectIlab(); }}>
+              退出实验空间连接
+            </Button>
+          </section>
+        ) : null}
+
+        {ilabStatus === 'error' ? (
+          <section
+            className="surface-card rounded-lg border-amber-500/40 bg-amber-500/5 p-4 text-sm text-amber-800 dark:text-amber-200"
+            data-ilab-grant-status="error"
+          >
+            {ilabMessage || '实验空间连接未就绪，您仍可在本机自由练习 7 艘船舶仿真实验。'}
+          </section>
+        ) : null}
+
         {compatibilitySource === 'virtual-lab' ? (
           <section
             className="surface-card rounded-lg border-platform-action-primary/35 p-4 text-sm text-subtle"

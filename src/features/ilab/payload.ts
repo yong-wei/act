@@ -1,5 +1,12 @@
 import { assertAiDataKeys, buildAiData, type AiUsageLedger, type IlabAiData } from './ai-data';
-import { ILAB_EXPERIMENT_TITLE, ILAB_MAX_POINTS } from './steps';
+
+/**
+ * 上传包默认标题与总分：历史上来自旧 24 步综合课程定义，
+ * 七船上传时通过入参覆盖标题与 pointTotal；保留原值以兼容既有记录。
+ */
+export const ILAB_PROJECT_TITLE = '面向深远海作业的船舶智能航行与动力定位控制虚拟仿真实验';
+const ILAB_EXPERIMENT_TITLE = '船舶智能航行与动力定位控制';
+const ILAB_MAX_POINTS = 106;
 
 export interface StoredIlabStep {
   seq: number;
@@ -76,6 +83,7 @@ export function buildIlabUploadBody(input: {
   ledger: AiUsageLedger;
   title?: string;
   pointTotal?: number;
+  runStartTimeMs?: number;
 }): IlabUploadBody {
   if (!/^[A-Za-z0-9_]+$/.test(input.originId)) {
     throw new IlabPayloadError('originId 只能包含字母、数字和下划线。');
@@ -116,10 +124,44 @@ export function buildIlabUploadBody(input: {
     };
   });
 
-  const startTime = uploadSteps[0]?.startTime ?? Date.now();
-  const lastEnd = uploadSteps.reduce((max, step) => Math.max(max, step.endTime), startTime + 1000);
-  const timeUsed = Math.max(1, Math.ceil((lastEnd - startTime) / 1000));
-  const endTime = startTime + timeUsed * 1000;
+  let startTime: number;
+  let endTime: number;
+  let timeUsed: number;
+  if (uploadSteps.length > 0) {
+    const minStepStart = uploadSteps.reduce((min, step) => Math.min(min, step.startTime), uploadSteps[0].startTime);
+    const maxStepEnd = uploadSteps.reduce((max, step) => Math.max(max, step.endTime), uploadSteps[0].endTime);
+    const hasRunStart = typeof input.runStartTimeMs === 'number' && Number.isFinite(input.runStartTimeMs);
+    const runStart = hasRunStart ? Math.floor(input.runStartTimeMs!) : minStepStart;
+    const baseStart = Math.min(runStart, minStepStart);
+    const rawSpanMs = Math.max(1000, maxStepEnd - baseStart);
+    timeUsed = Math.max(1, Math.ceil(rawSpanMs / 1000));
+    const anchoredStart = maxStepEnd - timeUsed * 1000;
+    if (hasRunStart && anchoredStart < runStart) {
+      startTime = runStart;
+      endTime = startTime + timeUsed * 1000;
+    } else {
+      endTime = maxStepEnd;
+      startTime = anchoredStart;
+    }
+  } else {
+    startTime = typeof input.runStartTimeMs === 'number' && Number.isFinite(input.runStartTimeMs)
+      ? Math.floor(input.runStartTimeMs)
+      : Date.now() - 1000;
+    timeUsed = 1;
+    endTime = startTime + 1000;
+  }
+
+  for (const step of uploadSteps) {
+    if (
+      step.startTime < startTime
+      || step.endTime > endTime
+      || step.endTime - step.startTime !== step.timeUsed * 1000
+      || step.timeUsed < 1
+    ) {
+      throw new IlabPayloadError(`步骤 ${step.seq} 的起止时间未落在实验总起止时间窗口内。`);
+    }
+  }
+
   const aiData = buildAiData(input.ledger);
   assertAiDataKeys(aiData);
 

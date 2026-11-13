@@ -8,6 +8,7 @@ import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-l
 
 import { Suspense, useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
+import { clearIlabOriginSessionStorage, stripIlabUrlParams } from '@/features/ilab/client-grant';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -105,7 +106,7 @@ import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { ExperimentStepAreas, SimulationTopBar, SimulationDock, SimulationAssessmentPanel, SimulationMissionTracker, simulationUi, type ExperimentHostBrief } from '../components/simulation-ui';
+import { ExperimentStepAreas, SimulationTopBar, SimulationDock, SimulationAssessmentPanel, SimulationMissionTracker, simulationUi } from '../components/simulation-ui';
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
 import { applyLocalSketchVerdict } from '@/features/ilab/sketch-client';
 import {
@@ -1032,7 +1033,7 @@ function ControlPanel({
 
 // ============ 主组件 ============
 
-export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, hostSubmission }: { ticket?: string; stepNav?: ReactNode; hostBrief?: ExperimentHostBrief; hostSubmission?: ReactNode }) {
+export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }) {
   const ai = useOptionalGlobalAI();
   const { data: session, status: sessionStatus } = useSession();
   const [isRunning, setIsRunning] = useState(false);
@@ -1074,6 +1075,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [originId, setOriginId] = useState('');
+  const [sessionCompleted, setSessionCompleted] = useState(false);
   const [reportHtml, setReportHtml] = useState('');
   const [pastReports, setPastReports] = useState<Array<{ id: string; score: number; maxScore: number; createdAt: string }> | null>(null);
   const [reportRevision, setReportRevision] = useState(0);
@@ -1177,6 +1179,26 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
   useEffect(() => {
     const storageKey = 'act-destroyer-origin';
     let cancelled = false;
+    const openFromGrant = async () => {
+      const response = await fetch('/api/ilab/destroyer/session', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (!response.ok || cancelled) return;
+      const body = await response.json() as {
+        connected?: boolean;
+        originId?: string;
+        displayName?: string;
+        status?: number;
+      };
+      if (cancelled || !body.connected || !body.originId) return;
+      window.sessionStorage.setItem(storageKey, body.originId);
+      setOriginId(body.originId);
+      setSessionCompleted(body.status === 1);
+      setMessage(`已连接实验空间（学生 ${body.displayName ?? ''}），完成全部 20 步将自动回传。`);
+    };
+
     void (async () => {
       if (ticket) {
         const response = await fetch('/api/ilab/destroyer/session', {
@@ -1184,23 +1206,38 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ ticket }),
         });
-        const body = await response.json() as { originId?: string; displayName?: string; error?: string };
+        const body = await response.json() as {
+          originId?: string;
+          displayName?: string;
+          status?: number;
+          error?: string;
+        };
         if (cancelled) return;
+        window.history.replaceState(
+          null,
+          '',
+          stripIlabUrlParams('/simulations/destroyer', window.location.search),
+        );
         if (!response.ok || !body.originId) {
           setMessage(body.error || '票据校验失败，本次只在本机记录。');
           return;
         }
+        clearIlabOriginSessionStorage();
         window.sessionStorage.setItem(storageKey, body.originId);
         setOriginId(body.originId);
-        window.history.replaceState(null, '', '/simulations/destroyer');
-        setMessage(`已进入实验，学生 ${body.displayName ?? ''}。`);
+        setSessionCompleted(body.status === 1);
+        setMessage(`已连接实验空间（学生 ${body.displayName ?? ''}），完成全部 20 步将自动回传。`);
         return;
       }
       const stored = window.sessionStorage.getItem(storageKey);
-      if (!stored) return;
+      if (!stored) {
+        await openFromGrant();
+        return;
+      }
       const response = await fetch(`/api/ilab/destroyer/session/${stored}`);
       if (response.status === 404 || response.status === 400) {
         window.sessionStorage.removeItem(storageKey);
+        await openFromGrant();
         return;
       }
       if (!response.ok) {
@@ -1209,6 +1246,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
       }
       const body = await response.json() as {
         originId?: string;
+        status?: number;
         currentSeq?: number;
         steps?: Array<{
           seq: number;
@@ -1224,10 +1262,15 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
       if (cancelled || !body.originId || !body.steps) return;
       setOriginId(body.originId);
       setRecords(body.steps);
+      setSessionCompleted(body.status === 1);
       const nextSeq = body.currentSeq && body.currentSeq > 0 ? body.currentSeq : 1;
       setActiveSeq(nextSeq);
       setViewSeq(nextSeq);
-      setMessage('已恢复这次实验已保存的步骤。');
+      setMessage(
+        body.status === 1
+          ? '本次实验已交卷，如需再次测试可点击“开启新一轮实验”。'
+          : '已恢复这次实验已保存的步骤。',
+      );
     })();
     return () => {
       cancelled = true;
@@ -1391,6 +1434,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
           setReadings({});
           return;
         } else if (response.status === 409) {
+          setSessionCompleted(true);
           if (step.scene === 'review') {
             const html = buildDestroyerReportHtml({
               displayName: session?.user?.name || '本次实验',
@@ -1409,6 +1453,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
             setMessage(doneBody.error || '实验报告回传失败。');
             return;
           }
+          setSessionCompleted(true);
           const reportResponse = await fetch(`/api/ilab/session/${originId}?report=1`);
           const html = reportResponse.ok
             ? await reportResponse.text()
@@ -1441,6 +1486,44 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
     if (!redoing && step.scene !== 'review') {
       setActiveSeq(step.seq + 1);
       setViewSeq(step.seq + 1);
+    }
+  }
+
+  async function restartIlabSession() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      window.sessionStorage.removeItem('act-destroyer-origin');
+      setOriginId('');
+      setSessionCompleted(false);
+      setRecords([]);
+      setReadings({});
+      setReportHtml('');
+      setActiveSeq(1);
+      setViewSeq(1);
+      handleReset();
+      const response = await fetch('/api/ilab/destroyer/session', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const body = await response.json() as {
+        connected?: boolean;
+        originId?: string;
+        displayName?: string;
+        status?: number;
+        error?: string;
+      };
+      if (response.ok && body.connected && body.originId) {
+        window.sessionStorage.setItem('act-destroyer-origin', body.originId);
+        setOriginId(body.originId);
+        setSessionCompleted(body.status === 1);
+        setMessage(`已开启新一轮实验（学生 ${body.displayName ?? ''}），请从第 1 步开始。`);
+        return;
+      }
+      setMessage(body.error || '已重置本机实验记录，请从第 1 步开始。');
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -1569,16 +1652,14 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
         </MarineFrameRuntime>
       </MarineCanvas>
 
-      {stepNav ? null : (
-        <SimulationMissionTracker
+      <SimulationMissionTracker
           seq={activeSeq}
           total={DESTROYER_EXPERIMENT_STEPS.length}
           title={step.title}
           doneSeqs={doneSeqs}
           earnedPoints={records.reduce((sum, record) => sum + record.earnedPoints, 0)}
           maxPoints={DESTROYER_EXPERIMENT_STEPS.reduce((sum, item) => sum + item.maxPoints, 0)}
-        />
-      )}
+      />
       <SimulationDock
         side="left"
         title="实验状态"
@@ -1588,7 +1669,7 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
           {
             id: 'steps',
             label: '实验步骤',
-            content: stepNav ?? (
+            content: (
               <DestroyerStepList
                 activeSeq={activeSeq}
                 viewSeq={viewSeq}
@@ -1634,11 +1715,11 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
             label: '控制',
             content: (
               <ExperimentStepAreas
-                seq={hostBrief?.seq ?? step.seq}
-                title={hostBrief?.title ?? step.title}
-                goal={hostBrief?.goal ?? step.goal}
-                watch={hostBrief ? hostBrief.watch : step.watch}
-                hint={hostBrief ? hostBrief.hint : step.suggestion}
+                seq={step.seq}
+                title={step.title}
+                goal={step.goal}
+                watch={step.watch}
+                hint={step.suggestion}
                 hintAttribute="data-destroyer-suggestion"
                 controls={(
                   <ControlPanel
@@ -1658,19 +1739,21 @@ export default function DestroyerSimulation({ ticket = '', stepNav, hostBrief, h
                     onManualRudderChange={setManualRudder}
                   />
                 )}
-                submission={hostSubmission ?? (stepNav ? undefined : (
+                submission={(
                   <DestroyerStepForm
                     step={step}
                     readings={readings}
                     message={message}
                     busy={busy}
                     reportEnabled={records.some((record) => record.seq === DESTROYER_EXPERIMENT_STEPS.length) || Boolean(reportHtml)}
+                    showRestart={sessionCompleted}
                     onChange={(key, value) => setReadings((prev) => ({ ...prev, [key]: value }))}
                     onSubmit={() => { void submitStep(); }}
                     onReport={openReport}
                     onAsk={() => ai?.openSidebar()}
+                    onRestart={() => { void restartIlabSession(); }}
                   />
-                ))}
+                )}
               />
             ),
           },

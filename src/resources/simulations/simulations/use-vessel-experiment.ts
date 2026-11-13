@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
+import { clearIlabOriginSessionStorage, stripIlabUrlParams } from '@/features/ilab/client-grant';
 import { applyLocalSketchVerdict } from '@/features/ilab/sketch-client';
 import {
   assertVesselStepOrder,
@@ -44,6 +45,7 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [originId, setOriginId] = useState('');
+  const [sessionCompleted, setSessionCompleted] = useState(false);
   const [reportHtml, setReportHtml] = useState('');
   const [pastReports, setPastReports] = useState<VesselReportSummary[] | null>(null);
   const [reportRevision, setReportRevision] = useState(0);
@@ -94,6 +96,26 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
   useEffect(() => {
     const storageKey = `act-vessel-origin:${experiment.key}`;
     let cancelled = false;
+    const openFromGrant = async () => {
+      const response = await fetch('/api/ilab/vessel/session', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ experimentKey: experiment.key }),
+      });
+      if (!response.ok || cancelled) return;
+      const body = await response.json() as {
+        connected?: boolean;
+        originId?: string;
+        displayName?: string;
+        status?: number;
+      };
+      if (cancelled || !body.connected || !body.originId) return;
+      window.sessionStorage.setItem(storageKey, body.originId);
+      setOriginId(body.originId);
+      setSessionCompleted(body.status === 1);
+      setMessage(`已连接实验空间（学生 ${body.displayName ?? ''}），完成全部 20 步将自动回传。`);
+    };
+
     void (async () => {
       if (ticket) {
         const response = await fetch('/api/ilab/vessel/session', {
@@ -101,23 +123,38 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ ticket, experimentKey: experiment.key }),
         });
-        const body = await response.json() as { originId?: string; displayName?: string; error?: string };
+        const body = await response.json() as {
+          originId?: string;
+          displayName?: string;
+          status?: number;
+          error?: string;
+        };
         if (cancelled) return;
+        window.history.replaceState(
+          null,
+          '',
+          stripIlabUrlParams(experiment.route, window.location.search),
+        );
         if (!response.ok || !body.originId) {
           setMessage(body.error || '票据校验失败，本次只在本机记录。');
           return;
         }
+        clearIlabOriginSessionStorage();
         window.sessionStorage.setItem(storageKey, body.originId);
         setOriginId(body.originId);
-        window.history.replaceState(null, '', experiment.route);
-        setMessage(`已进入实验，学生 ${body.displayName ?? ''}。`);
+        setSessionCompleted(body.status === 1);
+        setMessage(`已连接实验空间（学生 ${body.displayName ?? ''}），完成全部 20 步将自动回传。`);
         return;
       }
       const stored = window.sessionStorage.getItem(storageKey);
-      if (!stored) return;
+      if (!stored) {
+        await openFromGrant();
+        return;
+      }
       const response = await fetch(`/api/ilab/vessel/session/${stored}`);
       if (response.status === 404 || response.status === 400) {
         window.sessionStorage.removeItem(storageKey);
+        await openFromGrant();
         return;
       }
       if (!response.ok) {
@@ -126,6 +163,7 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
       }
       const body = await response.json() as {
         originId?: string;
+        status?: number;
         currentSeq?: number;
         steps?: Array<{
           seq: number;
@@ -141,10 +179,15 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
       if (cancelled || !body.originId || !body.steps) return;
       setOriginId(body.originId);
       setRecords(body.steps);
+      setSessionCompleted(body.status === 1);
       const nextSeq = body.currentSeq && body.currentSeq > 0 ? body.currentSeq : 1;
       setActiveSeq(nextSeq);
       setViewSeq(nextSeq);
-      setMessage('已恢复这次实验已保存的步骤。');
+      setMessage(
+        body.status === 1
+          ? '本次实验已交卷，如需再次测试可点击“开启新一轮实验”。'
+          : '已恢复这次实验已保存的步骤。',
+      );
     })();
     return () => {
       cancelled = true;
@@ -317,6 +360,7 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
           setReadings({});
           return;
         } else if (response.status === 409) {
+          setSessionCompleted(true);
           if (step.seq === lastSeq) {
             const html = buildVesselReportHtml(experiment, {
               displayName: session?.user?.name || '本次实验',
@@ -335,6 +379,7 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
             setMessage(doneBody.error || '实验报告回传失败。');
             return;
           }
+          setSessionCompleted(true);
           const html = buildVesselReportHtml(experiment, {
             displayName: session?.user?.name || '本次实验',
             steps: nextRecords,
@@ -390,6 +435,44 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
     window.open(URL.createObjectURL(blob), `${experiment.originPrefix}-report`, 'popup,width=960,height=720');
   }
 
+  async function restartIlabSession() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      window.sessionStorage.removeItem(`act-vessel-origin:${experiment.key}`);
+      setOriginId('');
+      setSessionCompleted(false);
+      setRecords([]);
+      setReadings({});
+      setReportHtml('');
+      clearSamples();
+      setActiveSeq(1);
+      setViewSeq(1);
+      const response = await fetch('/api/ilab/vessel/session', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ experimentKey: experiment.key }),
+      });
+      const body = await response.json() as {
+        connected?: boolean;
+        originId?: string;
+        displayName?: string;
+        status?: number;
+        error?: string;
+      };
+      if (response.ok && body.connected && body.originId) {
+        window.sessionStorage.setItem(`act-vessel-origin:${experiment.key}`, body.originId);
+        setOriginId(body.originId);
+        setSessionCompleted(body.status === 1);
+        setMessage(`已开启新一轮实验（学生 ${body.displayName ?? ''}），请从第 1 步开始。`);
+        return;
+      }
+      setMessage(body.error || '已重置本机实验记录，请从第 1 步开始。');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const command = useMemo(() => experiment.command(step, 0), [experiment, step]);
 
   return {
@@ -410,9 +493,11 @@ export function useVesselExperiment(experiment: VesselExperiment, ticket = '') {
     setReading: (key: string, value: string) => setReadings((prev) => ({ ...prev, [key]: value })),
     message,
     busy,
+    sessionCompleted,
     submitStep,
     openReport,
     openStoredReport,
+    restartIlabSession,
     pastReports,
     sessionStatus,
     seriesVisible,
