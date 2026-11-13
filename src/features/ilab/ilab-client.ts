@@ -17,6 +17,7 @@ export interface IlabRemoteResult {
 }
 
 export function decodeIlabTicket(ticket: string): string {
+  if (!/%[0-9A-Fa-f]{2}/.test(ticket)) return ticket;
   try {
     return decodeURIComponent(ticket);
   } catch {
@@ -34,6 +35,59 @@ export function ilabTokenUrl(baseUrl: string, ticket: string, appId: string, sec
   const encodedTicket = encodeURIComponent(decodeIlabTicket(ticket));
   const root = baseUrl.replace(/\/+$/, '');
   return `${root}/open/api/v2/token?ticket=${encodedTicket}&appid=${encodeURIComponent(appId)}&signature=${signature}`;
+}
+
+export function ilabRefreshSignature(accessToken: string, appId: string, secret: string): string {
+  const text = `${decodeIlabTicket(accessToken)}${appId}${secret}`;
+  return createHash('md5').update(text, 'utf8').digest('hex').toUpperCase();
+}
+
+export function ilabRefreshUrl(baseUrl: string, accessToken: string, appId: string, secret: string): string {
+  const rawAccessToken = decodeIlabTicket(accessToken);
+  const signature = ilabRefreshSignature(rawAccessToken, appId, secret);
+  const root = baseUrl.replace(/\/+$/, '');
+  return `${root}/open/api/v2/token/refresh?access_token=${encodeURIComponent(rawAccessToken)}&appid=${encodeURIComponent(appId)}&signature=${signature}`;
+}
+
+export async function refreshIlabAccessToken(input: {
+  accessToken: string;
+  appId: string;
+  secret: string;
+  baseUrl: string;
+  devBypass: boolean;
+  fetcher?: typeof fetch;
+}): Promise<IlabTokenResult> {
+  if (input.devBypass && input.accessToken === 'dev-bypass-token') {
+    return {
+      accessToken: 'dev-bypass-token',
+      username: 'dev_student',
+      displayName: '本地演示',
+      expiresAtMs: null,
+      bypass: true,
+    };
+  }
+  if (!input.accessToken.trim()) {
+    throw new Error('缺少实验空间访问令牌，无法刷新。');
+  }
+  if (!input.appId || !input.secret || !input.baseUrl) {
+    throw new Error('实验空间 APPID、密钥或地址未配置。');
+  }
+  const fetcher = input.fetcher ?? fetch;
+  const response = await fetcher(ilabRefreshUrl(input.baseUrl, input.accessToken, input.appId, input.secret), {
+    method: 'GET',
+    signal: AbortSignal.timeout(15000),
+  });
+  const body = await response.json() as { code?: number; msg?: string; access_token?: string; un?: string; dis?: string; expires_time?: number };
+  if (body.code !== 0 || !body.access_token) {
+    throw new Error(body.msg ? `${body.msg}（code ${body.code ?? response.status}）` : `实验空间令牌刷新失败（code ${body.code ?? response.status}）。`);
+  }
+  return {
+    accessToken: body.access_token,
+    username: body.un || '',
+    displayName: body.dis || body.un || '',
+    expiresAtMs: typeof body.expires_time === 'number' ? body.expires_time : null,
+    bypass: false,
+  };
 }
 
 export async function exchangeIlabTicket(input: {

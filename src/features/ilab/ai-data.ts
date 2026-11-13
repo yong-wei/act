@@ -19,6 +19,7 @@ export interface AiUsageLedger {
   model: string | null;
   provider: string | null;
   deployment: IlabAiDeployment | null;
+  models?: AiDataModel[];
   remark: string;
 }
 
@@ -47,8 +48,25 @@ export function emptyAiLedger(): AiUsageLedger {
     model: null,
     provider: null,
     deployment: null,
+    models: [],
     remark: '本次实验尚未产生可核验的模型调用。',
   };
+}
+
+function normalizedLedgerModels(ledger: AiUsageLedger): AiDataModel[] {
+  const existing = Array.isArray(ledger.models)
+    ? ledger.models.filter((item): item is AiDataModel => Boolean(item?.model && item?.provider && item?.deployment))
+    : [];
+  if (existing.length > 0) return existing;
+  if (ledger.model && ledger.provider && ledger.deployment) {
+    return [{
+      model: ledger.model,
+      version: ledger.model,
+      deployment: ledger.deployment,
+      provider: ledger.provider,
+    }];
+  }
+  return [];
 }
 
 export function isAiUsageLedger(value: unknown): value is AiUsageLedger {
@@ -66,6 +84,17 @@ export function recordAiCall(
   call: { scenario: string; model: string; provider: string; deployment: IlabAiDeployment; inputTokens: number; outputTokens: number; usageMissing: boolean },
 ): AiUsageLedger {
   const scenarios = ledger.scenarios.includes(call.scenario) ? ledger.scenarios : [...ledger.scenarios, call.scenario];
+  const entry: AiDataModel = {
+    model: call.model,
+    version: call.model,
+    deployment: call.deployment,
+    provider: call.provider,
+  };
+  const previousModels = normalizedLedgerModels(ledger);
+  const alreadyRecorded = previousModels.some(
+    (item) => item.model === entry.model && item.provider === entry.provider && item.deployment === entry.deployment,
+  );
+  const models = alreadyRecorded ? previousModels : [...previousModels, entry];
   const remark = call.usageMissing
     ? '已发生模型调用，但服务商响应没有返回 token 用量，因此 token 计为 0，没有估算。'
     : 'token 用量来自模型服务商响应，没有估算。版本号使用模型标识，服务商未另给版本号。';
@@ -77,6 +106,7 @@ export function recordAiCall(
     model: call.model,
     provider: call.provider,
     deployment: call.deployment,
+    models,
     remark,
   };
 }
@@ -85,19 +115,13 @@ export function buildAiData(ledger: AiUsageLedger): IlabAiData {
   if (ledger.callCount < 0 || ledger.inputTokens < 0 || ledger.outputTokens < 0) {
     throw new Error('ai_data 用量不能为负。');
   }
-  if (ledger.callCount > 0 && (!ledger.model || !ledger.provider || !ledger.deployment || ledger.scenarios.length === 0)) {
+  const models = normalizedLedgerModels(ledger);
+  if (ledger.callCount > 0 && (models.length === 0 || ledger.scenarios.length === 0)) {
     throw new Error('存在模型调用时，ai_data 的模型和使用场景不能为空。');
   }
   return {
     ai_call_count: ledger.callCount,
-    ai_models_used: ledger.callCount > 0 && ledger.model && ledger.provider && ledger.deployment
-      ? [{
-        model: ledger.model,
-        version: ledger.model,
-        deployment: ledger.deployment,
-        provider: ledger.provider,
-      }]
-      : [],
+    ai_models_used: ledger.callCount > 0 ? models : [],
     ai_usage_scenarios: ledger.callCount > 0 ? ledger.scenarios : [],
     ai_input_token_count: ledger.inputTokens,
     ai_output_token_count: ledger.outputTokens,

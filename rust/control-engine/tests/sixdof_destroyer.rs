@@ -251,3 +251,23 @@ fn last_dynamics_provides_finite_breakdown() {
         }
     }
 }
+
+#[test]
+fn rudder_return_to_center_decays_yaw_rate() {
+    let mut plant = DestroyerSixDofPlant::new(DestroyerSixDofConfig::default());
+    let steer = DestroyerCommands {
+        rudder_command_rad: 15.0_f64.to_radians(),
+        motor_torque_command_nm: equilibrium_torque(),
+    };
+    run(&mut plant, steer, 90.0);
+    let yaw_rate_steered = plant.state().body_velocity[5].to_degrees();
+    assert!(yaw_rate_steered > 0.7, "15° 右舵 90 s 后应有明显正转艏速率，得到 {yaw_rate_steered}");
+
+    let center = cruise_commands();
+    run(&mut plant, center, 160.0);
+    let yaw_rate_centered = plant.state().body_velocity[5].to_degrees();
+    assert!(
+        yaw_rate_centered.abs() < 0.2,
+        "舵回中 160 s 后转艏速率应衰减回零（航向稳定），得到 {yaw_rate_centered}"
+    );
+}

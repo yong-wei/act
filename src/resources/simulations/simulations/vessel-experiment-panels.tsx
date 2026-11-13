@@ -267,10 +267,12 @@ export function VesselStepForm({
   busy,
   reportEnabled,
   showReport,
+  showRestart = false,
   onChange,
   onSubmit,
   onReport,
   onAsk,
+  onRestart,
 }: {
   step: VesselStep;
   readings: VesselReadings;
@@ -278,10 +280,12 @@ export function VesselStepForm({
   busy: boolean;
   reportEnabled: boolean;
   showReport: boolean;
+  showRestart?: boolean;
   onChange: (key: string, value: string) => void;
   onSubmit: () => void;
   onReport: () => void;
   onAsk: () => void;
+  onRestart?: () => void;
 }) {
   return (
     <div className="w-full space-y-2.5">
@@ -316,6 +320,9 @@ export function VesselStepForm({
         <Button type="button" size="sm" variant="outline" onClick={onAsk} className={cn(simulationUi.buttonOutline, showReport ? '' : 'col-span-2')}>问控灵这一步</Button>
         {showReport ? (
           <Button type="button" size="sm" variant="outline" disabled={!reportEnabled} onClick={onReport} data-vessel-report className={simulationUi.buttonOutline}>查看实验报告</Button>
+        ) : null}
+        {showRestart && onRestart ? (
+          <Button type="button" size="sm" variant="outline" disabled={busy} onClick={onRestart} data-vessel-restart className={cn(simulationUi.buttonOutline, 'col-span-2')}>开启新一轮实验</Button>
         ) : null}
       </div>
       {message ? <p className="rounded-md border border-platform-action-primary/25 bg-platform-action-primary/10 px-2.5 py-2 text-xs leading-5 text-platform-fg-primary" data-vessel-message>{message}</p> : null}
@@ -449,10 +456,12 @@ export function VesselExperimentDocks({
                     busy={session.busy}
                     reportEnabled={session.reportEnabled}
                     showReport={session.step.seq === experiment.steps.length}
+                    showRestart={session.sessionCompleted}
                     onChange={session.setReading}
                     onSubmit={() => { void session.submitStep(); }}
                     onReport={session.openReport}
                     onAsk={session.ask}
+                    onRestart={() => { void session.restartIlabSession(); }}
                   />
                 )}
               />

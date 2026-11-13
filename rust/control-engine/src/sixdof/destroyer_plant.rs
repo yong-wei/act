@@ -419,37 +419,13 @@ impl DestroyerSixDofPlant {
                 let omega_rate =
                     shaft_acceleration(&shaft, &prop, omega_state, nu[0], motor_torque_frozen);
 
+                let (hull_nu, current_field_local, tau_wave_1, tau_wind) =
+                    resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo);
                 let (mut external, tau_radiation, delta_eta) = assemble_forces(
-                    &mmg, &low, &prop, radiation_model, &config, &nu, &x_rad, rudder_state, omega_state, &quat, &position,
+                    &mmg, &low, &prop, radiation_model, &config, &nu, &hull_nu, &x_rad, rudder_state, omega_state, &quat, &position,
                 );
-                let mut current_field_local = CurrentFieldBody::default();
-                // 环境场：真实 EnvironmentState 优先（B1.4 后半段）；
-                // 未设置时回退 T 级等效。
-                let yaw_k = crate::sixdof::state::euler_from_quaternion(quat).yaw_rad;
-                let mut hull_nu = nu;
-                if let (Some(env), Some(geo)) = (real_env, wind_geo) {
-                    // 体坐标流（NED→FRD，恒定均匀流零导数）。
-                    let cur = env.current_body(yaw_k);
-                    // 真实波浪一阶激励（种子 JONSWAP，同相位）。
-                    let wave_coeffs = [5.0e3, 2.0e3, 1.0e4, 5.0e7, 1.0e8, 2.0e7];
-                    external.tau_wave_1 = env.wave_loads(t_sub, wave_coeffs);
-                    // 真实风载（Fujiwara 分量，消融开关语义在 EnvironmentState）。
-                    external.tau_wind = env.wind_loads(yaw_k, nu, geo);
-                    current_field_local = CurrentFieldBody {
-                        nu_current_body: [cur[0], cur[1], 0.0, 0.0, 0.0, 0.0],
-                        nu_current_body_dot: [0.0; 6],
-                    };
-                    // 相对流：hull 载荷用 ν−ν_c（恒定均匀流经相对流速唯一路径）。
-                    hull_nu = [nu[0] - cur[0], nu[1] - cur[1], nu[2], nu[3], nu[4], nu[5]];
-                } else if environment.enabled {
-                    let wave = environment.wave_moment_amplitude_nm
-                        * (2.0 * std::f64::consts::PI * t_sub / environment.wave_period_s).sin();
-                    external.tau_wave_1 = [0.0, 0.0, 0.0, 0.15 * wave, 0.0, wave];
-                    current_field_local = CurrentFieldBody {
-                        nu_current_body: environment.current_body,
-                        nu_current_body_dot: [0.0; 6],
-                    };
-                }
+                external.tau_wave_1 = tau_wave_1;
+                external.tau_wind = tau_wind;
 
                 let state = TruthState {
                     position_ned: position,
@@ -459,13 +435,9 @@ impl DestroyerSixDofPlant {
                     actuator_states: Default::default(),
                     specialist_states: Vec::new(),
                 };
-                let current_field = CurrentFieldBody {
-                    nu_current_body: environment.current_body,
-                    nu_current_body_dot: [0.0; 6],
-                };
                 let out = dynamics_step(
                     &state, &rb, &am, &rp,
-                    &current_field,
+                    &current_field_local,
                     tau_radiation, delta_eta, &external,
                 );
                 dy[0] = out.position_dot_ned[0];
@@ -503,22 +475,23 @@ impl DestroyerSixDofPlant {
         } else {
             EnvironmentField::default()
         };
+        let (final_hull_nu, current_field, tau_wave_1, tau_wind) = resolve_env_loads(
+            self.sim_time_s,
+            &final_state.body_velocity,
+            &final_state.quaternion,
+            &environment,
+            self.environment_state.as_ref(),
+            self.wind_geometry.as_ref(),
+        );
         let (mut external, tau_rad, delta_eta) = assemble_forces(
             &self.mmg, &self.low, &self.prop, &self.radiation, &self.config,
-            &final_state.body_velocity, &final_state.radiation_states,
+            &final_state.body_velocity, &final_hull_nu, &final_state.radiation_states,
             final_state.actuator_states.control_surface_angles_rad[0],
             final_state.actuator_states.propeller_shaft_speed_rad_s[0],
             &final_state.quaternion, &final_state.position_ned,
         );
-        if self.environment_enabled {
-            let wave = environment.wave_moment_amplitude_nm
-                * (2.0 * std::f64::consts::PI * self.sim_time_s / environment.wave_period_s).sin();
-            external.tau_wave_1 = [0.0, 0.0, 0.0, 0.15 * wave, 0.0, wave];
-        }
-        let current_field = CurrentFieldBody {
-            nu_current_body: environment.current_body,
-            nu_current_body_dot: [0.0; 6],
-        };
+        external.tau_wave_1 = tau_wave_1;
+        external.tau_wind = tau_wind;
         self.last_output = Some(dynamics_step(
             &final_state, &self.rb, &self.am, &self.rp,
             &current_field, tau_rad, delta_eta, &external,
@@ -606,6 +579,50 @@ impl DestroyerSixDofPlant {
 
 const DT_SCALAR: f64 = 1.0 / 120.0;
 
+/// 解析环境场相对流速与风浪激励（子步与末拍分项共用，避免重复实现）。
+fn resolve_env_loads(
+    t_s: f64,
+    nu: &[f64; 6],
+    quat: &[f64; 4],
+    environment: &EnvironmentField,
+    real_env: Option<&crate::sixdof::environment_state::EnvironmentState>,
+    wind_geo: Option<&crate::sixdof::wind::WindHullGeometry>,
+) -> ([f64; 6], CurrentFieldBody, [f64; 6], [f64; 6]) {
+    let mut current_field_local = CurrentFieldBody::default();
+    let mut hull_nu = *nu;
+    let mut tau_wave_1 = [0.0; 6];
+    let mut tau_wind = [0.0; 6];
+    let yaw_k = super::state::euler_from_quaternion(*quat).yaw_rad;
+    if let (Some(env), Some(geo)) = (real_env, wind_geo) {
+        let cur = env.current_body(yaw_k);
+        let wave_coeffs = [5.0e3, 2.0e3, 1.0e4, 5.0e7, 1.0e8, 2.0e7];
+        tau_wave_1 = env.wave_loads(t_s, wave_coeffs);
+        tau_wind = env.wind_loads(yaw_k, *nu, geo);
+        current_field_local = CurrentFieldBody {
+            nu_current_body: [cur[0], cur[1], 0.0, 0.0, 0.0, 0.0],
+            nu_current_body_dot: [0.0; 6],
+        };
+        hull_nu = [nu[0] - cur[0], nu[1] - cur[1], nu[2], nu[3], nu[4], nu[5]];
+    } else if environment.enabled {
+        let wave = environment.wave_moment_amplitude_nm
+            * (2.0 * std::f64::consts::PI * t_s / environment.wave_period_s).sin();
+        tau_wave_1 = [0.0, 0.0, 0.0, 0.15 * wave, 0.0, wave];
+        current_field_local = CurrentFieldBody {
+            nu_current_body: environment.current_body,
+            nu_current_body_dot: [0.0; 6],
+        };
+        hull_nu = [
+            nu[0] - environment.current_body[0],
+            nu[1] - environment.current_body[1],
+            nu[2],
+            nu[3],
+            nu[4],
+            nu[5] - environment.current_body[5],
+        ];
+    }
+    (hull_nu, current_field_local, tau_wave_1, tau_wind)
+}
+
 /// 子阶段力组装：船体、桨、舵（真实局部流速，无下限截断）、
 /// 辐射记忆（连续形式 τ=C·(B·u+A·x)）与恢复偏差。
 #[allow(clippy::too_many_arguments)]
@@ -616,19 +633,21 @@ fn assemble_forces(
     radiation_model: &RadiationModel,
     config: &DestroyerSixDofConfig,
     nu: &[f64; 6],
+    nu_rel: &[f64; 6],
     x_rad: &[f64],
     rudder_state: f64,
     omega_state: f64,
     quat: &[f64; 4],
     position: &[f64; 3],
 ) -> (ExternalForces, [f64; 6], [f64; 6]) {
-    let loads = blended_hull_loads(mmg, low, nu[0], nu[1], nu[5]);
-    let (thrust_k, _) = propeller_loads(prop, nu[0], omega_state);
+    let loads = blended_hull_loads(mmg, low, nu_rel[0], nu_rel[1], nu_rel[5]);
+    let (thrust_k, _) = propeller_loads(prop, nu_rel[0], omega_state);
     let arm = mmg_center_of(config);
-    let v_rudder = nu[1] + arm * nu[5];
+    let v_rudder = nu_rel[1] + arm * nu_rel[5];
     // 真实局部流速：零速+零推进时舵动压为零（合同：禁止速度下限截断）。
-    let flow_k = (nu[0] * nu[0] + v_rudder * v_rudder).sqrt();
-    let alpha_k = rudder_state - v_rudder.atan2(nu[0]);
+    let flow_k = (nu_rel[0] * nu_rel[0] + v_rudder * v_rudder).sqrt();
+    // 船艉向左摆（v_rudder < 0）时来流冲击直舵左舷产生右推恢复力矩（normal_k < 0），故与 rudder_state 同号相加。
+    let alpha_k = rudder_state + v_rudder.atan2(nu_rel[0]);
     let area_r = 0.015 * config.length_m * config.draft_m;
     let lift_k = 0.5 * SEA_WATER_DENSITY * area_r * flow_k * flow_k
         * (2.0 * std::f64::consts::PI * alpha_k.sin());
