@@ -230,6 +230,20 @@ pub fn dynamics_step(
     delta_eta: [f64; 6],
     external: &ExternalForces,
 ) -> DynamicsOutput {
+    dynamics_step_with_restoring(state, rb, am, current, tau_radiation,
+        restoring_force(rp, delta_eta), external)
+}
+
+/// 与线性校核入口共用动力学组装，恢复项可由当前姿态的排水积分提供。
+pub fn dynamics_step_with_restoring(
+    state: &TruthState,
+    rb: &RigidBodyParams,
+    am: &AddedMassParams,
+    current: &CurrentFieldBody,
+    tau_radiation: [f64; 6],
+    restoring_body: [f64; 6],
+    external: &ExternalForces,
+) -> DynamicsOutput {
     let nu = state.body_velocity;
     let mut nu_r = [0.0f64; 6];
     for i in 0..6 {
@@ -238,7 +252,7 @@ pub fn dynamics_step(
 
     let c_rb = coriolis_centripetal_rb(rb, nu);
     let c_a = coriolis_added_mass(am, nu_r);
-    let g = restoring_force(rp, delta_eta);
+    let g = restoring_body;
     let tau_ext = external.total();
 
     let mut current_inertia = [0.0f64; 6];

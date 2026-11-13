@@ -8,7 +8,7 @@ use super::instrumentation::{
     ObservationTruth, ObservedSample, SensorInstallations, SensorSignal, SensorSuite,
 };
 use super::integrator::NOMINAL_DT;
-use super::model_pack::embedded_destroyer_055_v3;
+use super::model_pack::{embedded_destroyer_055_v3, embedded_destroyer_055_v4};
 use super::passive_observer::{PassiveObserver, PassiveObserverParameters, wrap_pi};
 use super::sensor::NoiseLevel;
 use super::state::ActuatorStates;
@@ -131,9 +131,7 @@ pub struct FleetSimulation {
 
 impl FleetSimulation {
     pub fn new(configuration: SessionConfiguration) -> Result<Self, String> {
-        if configuration.vessel != "destroyer-055"
-            || configuration.parameter_version != "research-nominal-v3"
-        {
+        if configuration.vessel != "destroyer-055" {
             return Err("该船型参数版本尚未接入常驻物理会话".into());
         }
         if !configuration.initial_heading_deg.is_finite()
@@ -144,14 +142,13 @@ impl FleetSimulation {
         {
             return Err("初始位置或航向无效".into());
         }
-        let pack = embedded_destroyer_055_v3().map_err(|error| format!("参数包无效 {error:?}"))?;
-        let geometry: serde_json::Value = serde_json::from_str(include_str!(
-            "../../model-data/destroyer-055/v3/geometry.json"
-        ))
-        .map_err(|error| error.to_string())?;
-        let cg_height = geometry["center_of_mass_waterline_z_up_m"][2]
-            .as_f64()
-            .ok_or("参数包缺少重心高度")?;
+        let pack = match configuration.parameter_version.as_str() {
+            "research-nominal-v3" => embedded_destroyer_055_v3(),
+            "research-nominal-v4" => embedded_destroyer_055_v4(),
+            _ => return Err("该船型参数版本尚未接入常驻物理会话".into()),
+        }.map_err(|error| format!("参数包无效 {error:?}"))?;
+        let cg_height = pack.geometry.center_of_mass_waterline_z_up_m
+            .ok_or("参数包缺少重心高度")?[2];
         let installations =
             configuration
                 .sensor_installations
@@ -167,7 +164,11 @@ impl FleetSimulation {
         let yaw = wrap_pi(configuration.initial_heading_deg.to_radians());
         let mut state = plant.state().clone();
         state.position_ned = configuration.initial_position_ned;
-        state.quaternion = [(yaw / 2.0).cos(), 0.0, 0.0, (yaw / 2.0).sin()];
+        let half_pitch = pack.geometry.equilibrium_pitch_rad / 2.0;
+        state.quaternion = [(yaw / 2.0).cos() * half_pitch.cos(),
+            -(yaw / 2.0).sin() * half_pitch.sin(),
+            (yaw / 2.0).cos() * half_pitch.sin(),
+            (yaw / 2.0).sin() * half_pitch.cos()];
         plant.restore_state(state);
         let system = plant.actuator_system().ok_or("缺少物理执行器组")?;
         let actuators = ActuatorCommands {

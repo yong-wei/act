@@ -98,7 +98,7 @@ def source_grid(profile, nx, nz):
     return x * scales[0], z * scales[2], sampled * scales[1], scales
 
 
-def hull_mesh(fullness_power, x, z, half_breadths):
+def hull_mesh(fullness_power, x, z, half_breadths, beam_m=BEAM, close_top=False):
     vertices, faces, node_ids = [], [], {}
     grids = {}
     nx, nz = len(x) - 1, len(z) - 1
@@ -113,7 +113,7 @@ def hull_mesh(fullness_power, x, z, half_breadths):
         for ix in range(nx + 1):
             column = []
             for iz in range(nz + 1):
-                half_width = 0.5 * BEAM * (2 * half_breadths[ix, iz] / BEAM)**fullness_power
+                half_width = 0.5 * beam_m * (2 * half_breadths[ix, iz] / beam_m)**fullness_power
                 if half_width < 1e-5:
                     half_width = 0.0
                 point = (float(x[ix]), side * half_width, float(z[iz]))
@@ -134,6 +134,8 @@ def hull_mesh(fullness_power, x, z, half_breadths):
             add_quad([port[end][iz], starboard[end][iz], starboard[end][iz + 1], port[end][iz + 1]], reverse=end == nx)
     for ix in range(nx):
         add_quad([port[ix][0], port[ix + 1][0], starboard[ix + 1][0], starboard[ix][0]])
+        if close_top:
+            add_quad([starboard[ix][-1], starboard[ix + 1][-1], port[ix + 1][-1], port[ix][-1]])
     return cpt.Mesh(vertices=np.asarray(vertices), faces=np.asarray(faces), name='destroyer-055-wetted')
 
 

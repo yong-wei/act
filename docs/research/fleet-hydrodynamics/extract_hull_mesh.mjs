@@ -7,6 +7,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 
 const { values } = parseArgs({ options: {
   release: { type: 'string' }, node: { type: 'string', multiple: true }, output: { type: 'string' },
+  'instance-prefix': { type: 'string' },
 } });
 if (!values.release || !values.node?.length || !values.output) {
   throw new Error('需要--release、至少一个--node和--output');
@@ -68,6 +69,8 @@ function accessor(index) {
 const vertices = [];
 const triangles = [];
 const selections = [];
+const massProxy = { count: 0, volumeM3: 0, weightedCenterBemM: [0, 0, 0] };
+const modelToScene = new Matrix4().set(...manifest.modelToSceneMatrix);
 const names = new Set(values.node);
 function visit(index, parentMatrix) {
   const node = gltf.nodes[index];
@@ -77,6 +80,27 @@ function visit(index, parentMatrix) {
     new Vector3().fromArray(node.scale ?? [1, 1, 1]),
   );
   const world = new Matrix4().multiplyMatrices(parentMatrix, local);
+  if (values['instance-prefix'] && node.name?.startsWith(values['instance-prefix'])) {
+    const instances = node.extensions?.EXT_mesh_gpu_instancing?.attributes;
+    const primitives = gltf.meshes[node.mesh]?.primitives;
+    if (!instances?.TRANSLATION || primitives?.length !== 1) throw new Error('货载实例需要独立平移和单一原型');
+    const bounds = gltf.accessors[primitives[0].attributes.POSITION];
+    const center = bounds.min.map((value, axis) => (value + bounds.max[axis]) / 2);
+    if (center.some((value) => Math.abs(value) > 1e-6)) throw new Error('货载原型中心需要完整实例旋转变换');
+    const translations = accessor(instances.TRANSLATION);
+    const scales = instances.SCALE === undefined ? null : accessor(instances.SCALE);
+    if (scales && scales.length !== translations.length) throw new Error('货载缩放和位置实例数不一致');
+    const volume = bounds.min.reduce((value, minimum, axis) => value * (bounds.max[axis] - minimum), 1);
+    for (let point = 0; point < translations.length; point += 3) {
+      const coordinate = new Vector3(...translations.slice(point, point + 3)).applyMatrix4(world).applyMatrix4(modelToScene);
+      const scale = scales ? scales.slice(point, point + 3).reduce((value, component) => value * component, 1) : 1;
+      const weight = Math.abs(volume * scale * world.determinant());
+      const bem = [coordinate.z, coordinate.x, coordinate.y];
+      for (let axis = 0; axis < 3; axis += 1) massProxy.weightedCenterBemM[axis] += weight * bem[axis];
+      massProxy.volumeM3 += weight;
+      massProxy.count += 1;
+    }
+  }
   if (names.has(node.name)) {
     const mesh = gltf.meshes[node.mesh];
     if (!mesh) throw new Error(`所选节点缺少网格 ${node.name}`);
@@ -115,5 +139,11 @@ const proof = {
   vertices: vertices.length / 3, triangles: triangles.length / 3, selections,
   byteOrder: 'little-endian', outputSha256: { 'vertices.f64': digest(pointBytes), 'triangles.u32': digest(triangleBytes) },
 };
+if (values['instance-prefix']) {
+  if (massProxy.count === 0 || massProxy.volumeM3 <= 0) throw new Error('未找到有效货载实例');
+  massProxy.weightedCenterBemM = massProxy.weightedCenterBemM.map((value) => value / massProxy.volumeM3);
+  proof.instancedMassProxy = { ...massProxy, prefix: values['instance-prefix'], grade: 'T',
+    weighting: 'uniform cargo density times transformed container bounding-box volume' };
+}
 await writeFile(path.join(values.output, 'source.json'), JSON.stringify(proof, null, 2) + '\n');
 console.log(JSON.stringify({ vertices: proof.vertices, triangles: proof.triangles, sourceSha256: proof.sourceSha256 }));

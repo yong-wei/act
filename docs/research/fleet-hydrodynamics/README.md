@@ -44,3 +44,21 @@ rtk proxy cargo test --manifest-path rust/control-engine/Cargo.toml --test sixdo
 ```
 
 `destroyer-shaft-sensitivity.json`保存轴惯性先验0.5、1、2倍的三秒断电响应。转速随惯性增加保持单调关系，电机功、桨对水功、摩擦功与轴动能变化闭合。当前相对收支残差最大约4.7e-10。
+
+## 非线性静水与自由板
+
+`extend_destroyer_hull.py`在v3原始水线上承接源模型自由板，保持湿面和离线系数输入字节一致。v4的8178面三角船体在当前姿态下裁切平均水面，排水体积、浮心、重力/浮力与势能取自同一多面体积分。恢复载荷进入每个RK子阶段及输出分项，参数包加载时核验闭合、法向、体积及声明姿态的平衡。
+
+自由板沿用既有湿面的纵向范围，范围外的艏艉干悬伸进入水面仍列为未就绪。适用域限定为完整船体和甲板上浪之前的姿态。解析箱体、30°横倾、势能梯度、保守能量、完全出水/浸没、源模型小角度矩阵及常驻会话恢复共八项直接回归通过。
+
+`validate_native_session.mjs`实际调用生成WASM，验证原始快照恢复后的完整未来逐值一致、暂停和120Hz/20Hz时钟。当前记录保存在`destroyer-nonlinear-session-validation.json`，其中Node单对象时间的测量范围为数值调用，生产并发和网络容量由第6组另行实测。
+
+```bash
+rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/sample_hull_sections.py --source /tmp/055-source --include-freeboard --fill-profile-gaps --output /tmp/055-full-sections.json
+rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/extend_destroyer_hull.py --previous-pack rust/control-engine/model-data/destroyer-055/v3 --full-source-sections /tmp/055-full-sections.json --output /tmp/055-v4
+rtk proxy cargo test --manifest-path rust/control-engine/Cargo.toml --test sixdof_hydrostatics
+rtk npm run wasm:build:control-engine
+rtk proxy node docs/research/fleet-hydrodynamics/validate_native_session.mjs --version research-nominal-v4
+```
+
+`build_ship_geometry.py`接续五个常规船型的同源水下/自由板轮廓、装载、最小压载和纵倾求解。源GLB的实例质量代理与原始包围体积均以T级记录，实际货载质量分布继续待核验。当前集装箱可见甲板货载候选在高载下静水不稳定，生成器保留not_ready证明并以非零退出码结束，相关正式步骤继续待完成。

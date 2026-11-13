@@ -23,7 +23,7 @@ use super::actuators::{
 };
 use super::actuator_system::{ActuatorCommands, ActuatorSystem, LocalWater, ShaftCommand, SurfaceCommand};
 use super::dynamics::{
-    dynamics_step, AddedMassParams, CurrentFieldBody, DynamicsOutput, ExternalForces,
+    dynamics_step_with_restoring, restoring_force, AddedMassParams, CurrentFieldBody, DynamicsOutput, ExternalForces,
     RigidBodyParams, RestoringParams,
 };
 use super::hull_mmg::{blended_hull_loads, HullMmgParams, LowSpeedParams, MappedMmgHull};
@@ -91,6 +91,7 @@ pub struct DestroyerSixDofPlant {
     rb: RigidBodyParams,
     am: AddedMassParams,
     rp: RestoringParams,
+    hydrostatic_hull: Option<std::sync::Arc<super::hydrostatics::HydrostaticHull>>,
     mmg: HullMmgParams,
     low: LowSpeedParams,
     mapped_hull: Option<MappedMmgHull>,
@@ -254,6 +255,7 @@ impl DestroyerSixDofPlant {
             ] },
             am: AddedMassParams { a_inf },
             rp: RestoringParams { k_linear },
+            hydrostatic_hull: None,
             mmg,
             low,
             mapped_hull: None,
@@ -322,6 +324,9 @@ impl DestroyerSixDofPlant {
         if let Some(stiffness) = g.hydrostatic_stiffness_si {
             plant.rp.k_linear = stiffness;
         }
+        plant.hydrostatic_hull = g.nonlinear_hydrostatics.clone().map(std::sync::Arc::new);
+        let half_pitch = g.equilibrium_pitch_rad / 2.0;
+        plant.state.quaternion = [half_pitch.cos(), 0.0, half_pitch.sin(), 0.0];
         // 操纵系数直接来自包。
         if let super::model_pack::PackManeuvering::Mapped { mapped_mmg } = &pack.maneuvering {
             plant.mapped_hull = Some(mapped_mmg.clone());
@@ -552,6 +557,7 @@ impl DestroyerSixDofPlant {
             let rb = self.rb;
             let am = self.am;
             let rp = self.rp;
+            let hydrostatic_hull = self.hydrostatic_hull.as_deref();
             let mmg = self.mmg;
             let low = self.low;
             let mapped_hull = self.mapped_hull.as_ref();
@@ -630,10 +636,14 @@ impl DestroyerSixDofPlant {
                     actuator_states: Default::default(),
                     specialist_states: Vec::new(),
                 };
-                let out = dynamics_step(
-                    &state, &rb, &am, &rp,
+                let restoring = hydrostatic_hull.map_or_else(
+                    || restoring_force(&rp, delta_eta),
+                    |hull| hull.evaluate(&state, rb.mass_kg, SEA_WATER_DENSITY).restoring_body,
+                );
+                let out = dynamics_step_with_restoring(
+                    &state, &rb, &am,
                     &current_field_local,
-                    tau_radiation, delta_eta, &external,
+                    tau_radiation, restoring, &external,
                 );
                 dy[0] = out.position_dot_ned[0];
                 dy[1] = out.position_dot_ned[1];
@@ -713,9 +723,13 @@ impl DestroyerSixDofPlant {
         );
         external.tau_wave_1 = tau_wave_1;
         external.tau_wind = tau_wind;
-        self.last_output = Some(dynamics_step(
-            &final_state, &self.rb, &self.am, &self.rp,
-            &current_field, tau_rad, delta_eta, &external,
+        let restoring = self.hydrostatic_hull.as_deref().map_or_else(
+            || restoring_force(&self.rp, delta_eta),
+            |hull| hull.evaluate(&final_state, self.rb.mass_kg, SEA_WATER_DENSITY).restoring_body,
+        );
+        self.last_output = Some(dynamics_step_with_restoring(
+            &final_state, &self.rb, &self.am,
+            &current_field, tau_rad, restoring, &external,
         ));
         Ok(())
     }

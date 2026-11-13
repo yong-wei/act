@@ -25,7 +25,7 @@ use crate::sixdof::actuators::PropellerInstallation;
 use crate::sixdof::actuator_system::{ActuatorCommands, ShaftCommand, SurfaceCommand};
 use crate::sixdof::model_pack::{
     PackActuators, PackModel, embedded_destroyer_055, embedded_destroyer_055_v2,
-    embedded_destroyer_055_v3,
+    embedded_destroyer_055_v3, embedded_destroyer_055_v4,
 };
 use crate::sixdof::state::ActuatorStates;
 
@@ -163,6 +163,7 @@ fn fnv_u64(bytes: &[u8]) -> u64 {
 
 fn selected_pack(request: &RuntimeRequest) -> Result<PackModel, String> {
     match request.parameter_bundle_version.as_deref() {
+        Some("research-nominal-v4") => embedded_destroyer_055_v4(),
         Some("research-nominal-v3") => embedded_destroyer_055_v3(),
         Some("research-nominal-v2") => embedded_destroyer_055_v2(),
         None | Some("research-nominal-v1") => embedded_destroyer_055(),
@@ -175,7 +176,9 @@ fn parameter_bundle_hash(pack: &PackModel) -> String {
 }
 
 fn model_version(pack: &PackModel) -> &'static str {
-    if matches!(pack.actuators, PackActuators::Physical { .. }) {
+    if pack.geometry.nonlinear_hydrostatics.is_some() {
+        "sixdof-destroyer-v4"
+    } else if matches!(pack.actuators, PackActuators::Physical { .. }) {
         SIX_DOF_MODEL_VERSION
     } else {
         "sixdof-destroyer-v2"

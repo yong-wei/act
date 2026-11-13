@@ -47,6 +47,12 @@ pub struct PackGeometry {
     pub hydrostatic_stiffness_si: Option<[[f64; 6]; 6]>,
     #[serde(default)]
     pub cruise_speed_mps: Option<f64>,
+    #[serde(default)]
+    pub center_of_mass_waterline_z_up_m: Option<[f64; 3]>,
+    #[serde(default)]
+    pub equilibrium_pitch_rad: f64,
+    #[serde(default)]
+    pub nonlinear_hydrostatics: Option<super::hydrostatics::HydrostaticHull>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -154,6 +160,7 @@ pub enum PackError {
     MassVolumeMismatch { mass_kg: f64, rho_v_kg: f64 },
     GyrationRadiusOutOfBounds { axis: char, radius_m: f64, lpp: f64 },
     NonFiniteValue { field: &'static str },
+    InvalidHydrostaticHull { reason: String },
 }
 
 fn fnv1a(bytes: &[u8]) -> u64 {
@@ -229,6 +236,26 @@ pub fn load_model_pack(
             || stiffness[2][2] <= 0.0 || stiffness[3][3] <= 0.0 || stiffness[4][4] <= 0.0
         {
             return Err(PackError::NonFiniteValue { field: "hydrostatic-stiffness" });
+        }
+    }
+    if let Some(hull) = &geometry.nonlinear_hydrostatics {
+        hull.validate().map_err(|reason| PackError::InvalidHydrostaticHull { reason })?;
+        if !geometry.equilibrium_pitch_rad.is_finite() {
+            return Err(PackError::NonFiniteValue { field: "equilibrium-pitch" });
+        }
+        let half_pitch = geometry.equilibrium_pitch_rad / 2.0;
+        let state = super::state::TruthState {
+            quaternion: [half_pitch.cos(), 0.0, half_pitch.sin(), 0.0],
+            ..Default::default()
+        };
+        let equilibrium = hull.evaluate(&state, geometry.displacement_mass_kg, SEA_WATER_DENSITY);
+        let weight = geometry.displacement_mass_kg * 9.81;
+        let force_error = equilibrium.restoring_body[..3].iter().map(|value| value.abs()).fold(0.0, f64::max);
+        let moment_error = equilibrium.restoring_body[3..].iter().map(|value| value.abs()).fold(0.0, f64::max);
+        if !force_error.is_finite() || !moment_error.is_finite()
+            || force_error > weight * 1e-6 || moment_error > weight * geometry.lpp_m * 1e-6
+        {
+            return Err(PackError::InvalidHydrostaticHull { reason: "声明的初始姿态与排水/重心不平衡".into() });
         }
     }
 
@@ -315,5 +342,16 @@ pub fn embedded_destroyer_055_v3() -> Result<PackModel, PackError> {
         include_str!("../../model-data/destroyer-055/v3/maneuvering.json"),
         include_str!("../../model-data/destroyer-055/v3/actuators.json"),
         include_str!("../../model-data/destroyer-055/v3/provenance.json"),
+    )
+}
+
+/// 保留v3湿面并接入源几何自由板的非线性静水版本。
+pub fn embedded_destroyer_055_v4() -> Result<PackModel, PackError> {
+    load_model_pack(
+        include_str!("../../model-data/destroyer-055/v4/manifest.json"),
+        include_str!("../../model-data/destroyer-055/v4/geometry.json"),
+        include_str!("../../model-data/destroyer-055/v4/maneuvering.json"),
+        include_str!("../../model-data/destroyer-055/v4/actuators.json"),
+        include_str!("../../model-data/destroyer-055/v4/provenance.json"),
     )
 }

@@ -36,20 +36,6 @@ function sha256File(filePath) {
   return createHash('sha256').update(readFileSync(filePath)).digest('hex');
 }
 
-function readToolchainVersion(command) {
-  try {
-    return execFileSync(command, {
-      cwd: repoRoot,
-      env: process.env,
-      encoding: 'utf8',
-      shell: true,
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
-  } catch {
-    return 'unknown';
-  }
-}
-
 function writeIdentityArtifacts(buildHash) {
   const files = Object.fromEntries(
     wasmIdentityFiles
@@ -59,8 +45,8 @@ function writeIdentityArtifacts(buildHash) {
   const identity = {
     schemaVersion: 'act-control-engine-identity/v1',
     buildHash,
-    wasmPack: readToolchainVersion('wasm-pack --version'),
-    rustc: readToolchainVersion('rustc --version'),
+    wasmPack: readCommandVersion('wasm-pack --version'),
+    rustc: readCommandVersion('rustc --version'),
     exports: wasmExports,
     files,
   };
