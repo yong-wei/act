@@ -143,3 +143,9 @@ rtk npx vitest run src/features/ilab/__tests__/ilab-contract.test.ts src/lib/__t
 ```
 
 这些测试覆盖现有基础契约与流程计算，外部匿名身份隔离、各类刷新、多标签幂等、控灵步骤及负载上限仍待本变更新增验证。本轮生产证据来自只读SSH、HTTP和聚合查询，实施及压力测试状态见 `tasks.md`。
+
+### 2026-11-14 参数包实际物理装配检查点
+
+`from_model_pack` 已在组装附加质量和恢复矩阵之前应用包几何，并使用包内惯量、水线面积、舵互作用与作用点。新增三个回归在原实现上失败，修复后通过，另覆盖舵字段作用及模型版本切换。055运行模型升级为 `sixdof-destroyer-v2`，已有v1 manifest继续时产生新运行身份。
+
+验证包括Rust全量268项通过、`destroyer-experiment-flow`及`pid-turn-scenario-calibration`共8项通过、WASM构建通过。Rust命令使用本机现有stable工具链的bin加入进程PATH，源码和生成WASM属于同一检查点。后续继续第0组其余功能。

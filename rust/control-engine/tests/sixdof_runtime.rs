@@ -27,7 +27,7 @@ fn legacy_state() -> String {
 fn first_step_creates_manifest_and_legacy_state_rebuilds() {
     let out = compute_destroyer_sixdof_step_json(&base_request(&legacy_state())).unwrap();
     let v: serde_json::Value = serde_json::from_str(&out).unwrap();
-    assert_eq!(v["runManifest"]["modelVersion"], "sixdof-destroyer-v1");
+    assert_eq!(v["runManifest"]["modelVersion"], "sixdof-destroyer-v2");
     assert_eq!(v["manifestReset"], true, "首步必须生成新 run manifest");
     assert_eq!(v["timeS"], 0.5);
     // 兼容重建：初速 15 m/s 保持（六自由体速度首分量）。
@@ -290,4 +290,18 @@ fn parameter_pack_hash_change_resets_run_identity() {
     let v2: serde_json::Value = serde_json::from_str(&second).unwrap();
     assert_eq!(v2["manifestReset"], true, "参数包哈希不匹配必须重置 run");
     assert_ne!(v2["runManifest"]["manifestId"], v1["runManifest"]["manifestId"]);
+}
+
+#[test]
+fn prior_model_version_starts_a_new_manifest() {
+    let first = compute_destroyer_sixdof_step_json(&base_request(&legacy_state())).unwrap();
+    let mut state: serde_json::Value = serde_json::from_str(&first).unwrap();
+    state["runManifest"]["modelVersion"] = serde_json::json!("sixdof-destroyer-v1");
+    state["runManifest"]["manifestId"] = serde_json::json!("fnv1a-prior-model");
+
+    let resumed = compute_destroyer_sixdof_step_json(&base_request(&state.to_string())).unwrap();
+    let resumed: serde_json::Value = serde_json::from_str(&resumed).unwrap();
+    assert_eq!(resumed["manifestReset"], true);
+    assert_eq!(resumed["runManifest"]["modelVersion"], "sixdof-destroyer-v2");
+    assert_ne!(resumed["runManifest"]["manifestId"], "fnv1a-prior-model");
 }

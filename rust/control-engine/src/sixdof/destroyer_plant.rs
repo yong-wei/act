@@ -75,6 +75,13 @@ pub struct DestroyerCommands {
     pub motor_torque_command_nm: f64,
 }
 
+#[derive(Clone, Copy)]
+struct RudderHydrodynamics {
+    normal_factor: f64,
+    lateral_factor: f64,
+    longitudinal_position_m: f64,
+}
+
 /// 组装后的 055 TruthPlant。
 pub struct DestroyerSixDofPlant {
     config: DestroyerSixDofConfig,
@@ -86,6 +93,7 @@ pub struct DestroyerSixDofPlant {
     prop: PropellerModel,
     shaft: PropellerShaft,
     servo: ServoModel,
+    rudder_hydrodynamics: RudderHydrodynamics,
     radiation: RadiationModel,
     state: TruthState,
     /// 上一拍电机扭矩命令（限幅后实际值）。
@@ -236,6 +244,11 @@ impl DestroyerSixDofPlant {
             prop,
             shaft,
             servo,
+            rudder_hydrodynamics: RudderHydrodynamics {
+                normal_factor: 1.24,
+                lateral_factor: 0.66,
+                longitudinal_position_m: -0.5 * config.length_m,
+            },
             radiation,
             state,
             motor_torque_actual_nm: 0.0,
@@ -254,21 +267,31 @@ impl DestroyerSixDofPlant {
         pack: &crate::sixdof::model_pack::PackModel,
         config: DestroyerSixDofConfig,
     ) -> Self {
-        let mut plant = Self::new(config);
         let g = &pack.geometry;
         let m = g.displacement_mass_kg;
-        plant.config.length_m = g.lpp_m;
-        plant.config.beam_m = g.beam_m;
-        plant.config.draft_m = g.draft_m;
-        plant.rb.mass_kg = m;
+        let config = DestroyerSixDofConfig {
+            length_m: g.lpp_m,
+            beam_m: g.beam_m,
+            draft_m: g.draft_m,
+            displacement_t: m / 1000.0,
+            max_rudder_deg: pack.actuators.rudder.max_angle_deg,
+            max_rudder_rate_deg_s: pack.actuators.rudder.max_rate_deg_s,
+            ..config
+        };
+        // 先应用包几何，再组装依赖质量/尺度的附加质量和静水恢复矩阵。
+        let mut plant = Self::new(config);
         plant.rb.inertia_about_cg = [
             [g.inertia_about_cg_kg_m2.ixx, 0.0, 0.0],
             [0.0, g.inertia_about_cg_kg_m2.iyy, 0.0],
             [0.0, 0.0, g.inertia_about_cg_kg_m2.izz],
         ];
-        // 附加质量按几何比例随包质量重标定（结构不变、量级随包）。
-        let scale = m / plant.rb.mass_kg.max(1.0) * 0.0; // 占位防误用
-        let _ = scale;
+        // 旋转附加惯量采用包内惯量，保持当前T级附加惯量比例。
+        plant.am.a_inf[3][3] = 0.20 * g.inertia_about_cg_kg_m2.ixx;
+        plant.am.a_inf[4][4] = 0.90 * g.inertia_about_cg_kg_m2.iyy;
+        plant.am.a_inf[5][5] = 0.12 * g.inertia_about_cg_kg_m2.izz;
+        if g.waterline_area_m2 > 0.0 {
+            plant.rp.k_linear[2][2] = SEA_WATER_DENSITY * GRAVITY * g.waterline_area_m2;
+        }
         // 操纵系数直接来自包。
         let hull = &pack.maneuvering.hull;
         plant.mmg = HullMmgParams {
@@ -308,6 +331,11 @@ impl DestroyerSixDofPlant {
             max_angle_rad: rud.max_angle_deg.to_radians(),
             max_rate_rad_s: rud.max_rate_deg_s.to_radians(),
             time_constant_s: 0.0,
+        };
+        plant.rudder_hydrodynamics = RudderHydrodynamics {
+            normal_factor: rud.normal_factor,
+            lateral_factor: rud.lateral_factor,
+            longitudinal_position_m: rud.longitudinal_position_m,
         };
         plant
     }
@@ -385,6 +413,7 @@ impl DestroyerSixDofPlant {
             let prop = self.prop;
             let config = self.config;
             let servo = self.servo;
+            let rudder_hydrodynamics = self.rudder_hydrodynamics;
             let shaft = self.shaft;
             let radiation_model = &self.radiation;
             let rudder_command_frozen = commands.rudder_command_rad;
@@ -422,7 +451,8 @@ impl DestroyerSixDofPlant {
                 let (hull_nu, current_field_local, tau_wave_1, tau_wind) =
                     resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo);
                 let (mut external, tau_radiation, delta_eta) = assemble_forces(
-                    &mmg, &low, &prop, radiation_model, &config, &nu, &hull_nu, &x_rad, rudder_state, omega_state, &quat, &position,
+                    &mmg, &low, &prop, radiation_model, &config, &rudder_hydrodynamics,
+                    &nu, &hull_nu, &x_rad, rudder_state, omega_state, &quat, &position,
                 );
                 external.tau_wave_1 = tau_wave_1;
                 external.tau_wind = tau_wind;
@@ -484,7 +514,7 @@ impl DestroyerSixDofPlant {
             self.wind_geometry.as_ref(),
         );
         let (mut external, tau_rad, delta_eta) = assemble_forces(
-            &self.mmg, &self.low, &self.prop, &self.radiation, &self.config,
+            &self.mmg, &self.low, &self.prop, &self.radiation, &self.config, &self.rudder_hydrodynamics,
             &final_state.body_velocity, &final_hull_nu, &final_state.radiation_states,
             final_state.actuator_states.control_surface_angles_rad[0],
             final_state.actuator_states.propeller_shaft_speed_rad_s[0],
@@ -632,6 +662,7 @@ fn assemble_forces(
     prop: &PropellerModel,
     radiation_model: &RadiationModel,
     config: &DestroyerSixDofConfig,
+    rudder: &RudderHydrodynamics,
     nu: &[f64; 6],
     nu_rel: &[f64; 6],
     x_rad: &[f64],
@@ -642,7 +673,7 @@ fn assemble_forces(
 ) -> (ExternalForces, [f64; 6], [f64; 6]) {
     let loads = blended_hull_loads(mmg, low, nu_rel[0], nu_rel[1], nu_rel[5]);
     let (thrust_k, _) = propeller_loads(prop, nu_rel[0], omega_state);
-    let arm = mmg_center_of(config);
+    let arm = rudder.longitudinal_position_m;
     let v_rudder = nu_rel[1] + arm * nu_rel[5];
     // 真实局部流速：零速+零推进时舵动压为零（合同：禁止速度下限截断）。
     let flow_k = (nu_rel[0] * nu_rel[0] + v_rudder * v_rudder).sqrt();
@@ -651,9 +682,9 @@ fn assemble_forces(
     let area_r = 0.015 * config.length_m * config.draft_m;
     let lift_k = 0.5 * SEA_WATER_DENSITY * area_r * flow_k * flow_k
         * (2.0 * std::f64::consts::PI * alpha_k.sin());
-    let normal_k = 1.24 * lift_k;
+    let normal_k = rudder.normal_factor * lift_k;
     let fx_r = -normal_k * rudder_state.sin();
-    let fy_r = -0.66 * normal_k * rudder_state.cos();
+    let fy_r = -rudder.lateral_factor * normal_k * rudder_state.cos();
     let mz_r = -((arm + 0.06 * config.length_m) * normal_k * rudder_state.cos());
     let k_roll_r = super::state::moment_from_force(
         [0.0, 0.0, -0.5 * config.draft_m],
@@ -682,11 +713,6 @@ fn assemble_forces(
     let euler = super::state::euler_from_quaternion(*quat);
     let delta_eta = [0.0, 0.0, position[2], euler.roll_rad, euler.pitch_rad, euler.yaw_rad];
     (external, tau_radiation, delta_eta)
-}
-
-fn mmg_center_of(config: &DestroyerSixDofConfig) -> f64 {
-    // 舵/合力的纵向作用点（hifi xr=-0.5L 迁移）。
-    -0.50 * config.length_m
 }
 
 /// 环境场（T 级等效扰动；真实风浪流随 #2156 接入）。

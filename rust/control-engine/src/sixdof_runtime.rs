@@ -23,7 +23,7 @@ use crate::sixdof::control_law::{
 use crate::sixdof::state::TruthState;
 
 const DEG: f64 = std::f64::consts::PI / 180.0;
-pub const SIX_DOF_MODEL_VERSION: &str = "sixdof-destroyer-v1";
+pub const SIX_DOF_MODEL_VERSION: &str = "sixdof-destroyer-v2";
 pub const SIX_DOF_ENVIRONMENT_VERSION: &str = "calm-v0";
 pub const SIX_DOF_SENSOR_VERSION: &str = "truth-v0";
 
