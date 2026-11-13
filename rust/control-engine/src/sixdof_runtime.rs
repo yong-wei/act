@@ -23,7 +23,10 @@ use crate::sixdof::control_law::{
 use crate::sixdof::state::TruthState;
 use crate::sixdof::actuators::PropellerInstallation;
 use crate::sixdof::actuator_system::{ActuatorCommands, ShaftCommand, SurfaceCommand};
-use crate::sixdof::model_pack::{PackModel, embedded_destroyer_055, embedded_destroyer_055_v2};
+use crate::sixdof::model_pack::{
+    PackActuators, PackModel, embedded_destroyer_055, embedded_destroyer_055_v2,
+    embedded_destroyer_055_v3,
+};
 use crate::sixdof::state::ActuatorStates;
 
 const DEG: f64 = std::f64::consts::PI / 180.0;
@@ -160,6 +163,7 @@ fn fnv_u64(bytes: &[u8]) -> u64 {
 
 fn selected_pack(request: &RuntimeRequest) -> Result<PackModel, String> {
     match request.parameter_bundle_version.as_deref() {
+        Some("research-nominal-v3") => embedded_destroyer_055_v3(),
         Some("research-nominal-v2") => embedded_destroyer_055_v2(),
         None | Some("research-nominal-v1") => embedded_destroyer_055(),
         Some(version) => return Err(format!("未知参数包版本 {version}")),
@@ -171,7 +175,7 @@ fn parameter_bundle_hash(pack: &PackModel) -> String {
 }
 
 fn model_version(pack: &PackModel) -> &'static str {
-    if pack.manifest.model_version == "research-nominal-v2" {
+    if matches!(pack.actuators, PackActuators::Physical { .. }) {
         SIX_DOF_MODEL_VERSION
     } else {
         "sixdof-destroyer-v2"
@@ -218,7 +222,7 @@ fn build_manifest(request: &RuntimeRequest, pack: &PackModel) -> RuntimeRunManif
         request.manual_rudder_deg,
     );
     let mut mask = factor_mask(request.disturbance_enabled);
-    if request.propeller_installation.is_some() || pack.manifest.model_version == "research-nominal-v2" {
+    if request.propeller_installation.is_some() || matches!(pack.actuators, PackActuators::Physical { .. }) {
         mask.push("ventilation".to_string());
     }
     let installation = serde_json::to_string(&request.propeller_installation)
@@ -361,7 +365,7 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
             system.validate_state(actuators)?;
         }
     }
-    if pack.manifest.model_version == "research-nominal-v2" && request.propeller_installation.is_some() {
+    if matches!(pack.actuators, PackActuators::Physical { .. }) && request.propeller_installation.is_some() {
         return Err("当前参数包的双桨固定安装几何由模型版本确定".into());
     }
 

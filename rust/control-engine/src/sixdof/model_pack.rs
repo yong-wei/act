@@ -306,3 +306,14 @@ pub fn embedded_destroyer_055_v2() -> Result<PackModel, PackError> {
         include_str!("../../model-data/destroyer-055/v2/provenance.json"),
     )
 }
+
+/// 独立源剖面湿面及经包络核验的安装修订。
+pub fn embedded_destroyer_055_v3() -> Result<PackModel, PackError> {
+    load_model_pack(
+        include_str!("../../model-data/destroyer-055/v3/manifest.json"),
+        include_str!("../../model-data/destroyer-055/v3/geometry.json"),
+        include_str!("../../model-data/destroyer-055/v3/maneuvering.json"),
+        include_str!("../../model-data/destroyer-055/v3/actuators.json"),
+        include_str!("../../model-data/destroyer-055/v3/provenance.json"),
+    )
+}

@@ -1,0 +1,17 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "destroyer-055",
+  "model_version": "research-nominal-v3",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "geometry.json": "9f940257a722925fc1756a17ea99d62b1ee20f768bfe2ff0f3bde04dec459fe2",
+    "maneuvering.json": "401a8e8525352de58de20abef4f73ba85b0012a15d4986a6591bae4cdedd1a74",
+    "actuators.json": "ea66b3154b6a2035ac647aa8fe4805e551007816f7d5caf123c4c18ffa234c16",
+    "provenance.json": "8ece144c05836c80bdc6e98cdcf8801a458eb57aa3f5245c821c2c4c59eeea3c",
+    "hull.dat": "ee5c59d9518fcde20bb773dfb195d66ebb74785b3213ed77cf7d10d8e611e4c8",
+    "lid.dat": "06b668bc1d839d81c7cd10341ac19a35fecc9b0733902697e0540ed5a6b5fbaf",
+    "source-sections.json": "e1002fc3bb8b71f9892f54587ae297abe79a40132091ffcb19edac834bf4af5b",
+    "validation.json": "c0e2696df743b06a5a7ddfcc1acb632d61c49d98a75aeca81334981c15813f09",
+    "envelope-validation.json": "0d6f5c0a72f877d2d6ef63b4c3b17ea0853b42155dc3f452469356b590c83058"
+  }
+}

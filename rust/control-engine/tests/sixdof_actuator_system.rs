@@ -3,7 +3,9 @@ use control_engine::sixdof::actuator_system::{
     azimuth_path_error, finite_wing_coefficients,
 };
 use control_engine::sixdof::actuators::ServoModel;
-use control_engine::sixdof::model_pack::{PackActuators, embedded_destroyer_055_v2};
+use control_engine::sixdof::model_pack::{
+    PackActuators, embedded_destroyer_055_v2, embedded_destroyer_055_v3,
+};
 use control_engine::sixdof::{DestroyerSixDofPlant, TruthState};
 use control_engine::sixdof_runtime::compute_destroyer_sixdof_step_json;
 
@@ -36,6 +38,76 @@ fn versioned_pack_uses_fixed_dual_installations_and_single_kg() {
     let expected_ixx = 13e6 * (0.35_f64 * 20.0).powi(2);
     assert_eq!(pack.geometry.inertia_about_cg_kg_m2.ixx, expected_ixx);
     assert_eq!(pack.geometry.hydrostatic_stiffness_si.unwrap()[3][3], 13e6 * 9.81 * 1.5);
+}
+
+#[test]
+fn source_hull_revision_keeps_old_pack_and_freezes_clear_installation() {
+    let previous = embedded_destroyer_055_v2().unwrap();
+    let pack = embedded_destroyer_055_v3().unwrap();
+    assert_ne!(pack.content_hash, previous.content_hash);
+    assert_eq!(pack.manifest.model_version, "research-nominal-v3");
+    assert_eq!(pack.geometry.loa_m, 180.0);
+    assert_eq!(pack.geometry.lpp_m, 171.0);
+    let PackActuators::Physical { system, .. } = &pack.actuators else { panic!("需要物理执行器组") };
+    assert_eq!(system.propulsors[0].installation.position_body_m[0], -78.0);
+    assert_eq!(system.surfaces[0].installation.position_body_m[0], -82.08);
+    let stiffness = pack.geometry.hydrostatic_stiffness_si.unwrap();
+    assert!(stiffness[2][4] > 0.0);
+    assert_eq!(stiffness[2][4], stiffness[4][2]);
+    let condensed_pitch = stiffness[4][4] - stiffness[2][4].powi(2) / stiffness[2][2];
+    assert!(condensed_pitch > 0.0);
+    assert_eq!(stiffness[3][3], 13e6 * 9.81 * 1.5);
+    let proof: serde_json::Value = serde_json::from_str(include_str!(
+        "../model-data/destroyer-055/v3/envelope-validation.json")).unwrap();
+    assert_eq!(proof["status"], "passed");
+    for resolution in proof["resolutions"].as_array().unwrap() {
+        assert_eq!(resolution["static"]["watertight"], true);
+        for propeller in resolution["revised_propeller_installation"].as_array().unwrap() {
+            assert!(propeller["clearance_m"].as_f64().unwrap() > 0.04);
+            assert_eq!(propeller["circumscribed_disk_clear"], true);
+        }
+    }
+}
+
+#[test]
+fn source_hull_has_no_unforced_sixty_second_drift() {
+    let pack = embedded_destroyer_055_v3().unwrap();
+    let mut plant = DestroyerSixDofPlant::from_model_pack(&pack, Default::default());
+    let mut state = plant.state().clone();
+    state.body_velocity.fill(0.0);
+    state.radiation_states.fill(0.0);
+    state.actuator_states.propeller_shaft_speed_rad_s.fill(0.0);
+    state.actuator_states.shaft_reference_speed_rad_s.fill(0.0);
+    state.actuator_states.motor_torques_nm.fill(0.0);
+    state.actuator_states.motor_torque_demand_nm.fill(0.0);
+    plant.restore_state(state);
+    let commands = ActuatorCommands {
+        shafts: vec![ShaftCommand::default(); 2],
+        surfaces: vec![SurfaceCommand { enabled: true, ..Default::default() }; 2],
+    };
+    for _ in 0..120 { plant.step_with_actuators(0.5, &commands).unwrap(); }
+    assert!(plant.state().position_ned.iter().all(|value| value.abs() < 1e-10));
+    assert!(plant.state().body_velocity.iter().all(|value| value.abs() < 1e-10));
+}
+
+#[test]
+fn source_revision_round_trips_through_normal_numerical_entry() {
+    let mut state = serde_json::json!({"speedMps": 8.0});
+    let mut manifest = serde_json::Value::Null;
+    for frame in 0..2 {
+        let raw = compute_destroyer_sixdof_step_json(&serde_json::json!({
+            "parameterBundleVersion": "research-nominal-v3", "dtS": 0.5,
+            "controlMode": "manual", "state": state,
+        }).to_string()).unwrap();
+        state = serde_json::from_str(&raw).unwrap();
+        assert_eq!(state["runManifest"]["modelVersion"], "sixdof-destroyer-v3");
+        assert_eq!(state["manifestReset"], frame == 0);
+        if frame == 0 { manifest = state["runManifest"].clone(); }
+        assert_eq!(state["runManifest"], manifest);
+        assert!(state["runManifest"]["parameterBundleHash"].as_str().unwrap()
+            .starts_with("research-nominal-v3@"));
+        assert_eq!(state["sixdofState"]["actuatorStates"]["motor_torques_nm"].as_array().unwrap().len(), 2);
+    }
 }
 
 #[test]

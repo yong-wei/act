@@ -10,6 +10,8 @@
 
 688与2432面元均计算了零速129频率、24波向，互易/阻尼矩阵检查各有62和26项超出1%参考阈值。6896面元的七频率、三波向加密对照中，六通道离散响应峰值变化约0.14%至0.67%，部分阻尼互易检查仍超出阈值。完整频带的峰值、前进速度及在线表读取继续验证。机读记录和比较数组保存在 `semisub-validation/`。
 
+6896面元随后完成129频率、单个0°波向计算。15项阻尼矩阵检查未达参考目标，0.575至0.625rad/s互易误差约1.08%至1.26%，高频段存在负特征值。原始结果保留在同一机读对照中，相应频段的精度与在线使用继续待核验。
+
 ```bash
 rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/build_semisub_geometry.py --max-edge-m 5 --output /tmp/semisub-mesh
 rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/prepare_semisub_case.py --geometry-dir /tmp/semisub-mesh --output /tmp/semisub-input
@@ -20,18 +22,24 @@ rtk proxy /tmp/act-solvers/bin/python3 docs/research/nemoh-v3/run_case.py --sour
 
 ## 055双轴与双舵参数包
 
-`build_destroyer_pack.py`生成 `rust/control-engine/model-data/destroyer-055/v2/`。主尺度、质量、GM_T、设备高度及硬件限制来自#2147、#2158的固定T级定义。独立湿面采用参数化船形，固定Lpp、B、吃水后以纵向形状指数闭合排水体积。水线面积、浮心、水线惯性矩及同一KG共同决定恢复矩阵。
+`build_destroyer_pack.py`生成 `rust/control-engine/model-data/destroyer-055/v3/`。主尺度、质量、GM_T、设备高度及硬件限制来自#2147、#2158的固定T级定义。源模型为已发布的v2.3.0 GLB，提取HULL_MAIN、HULL_FORE_PATCH并核对GLB、清单、解码器和坐标变换哈希。原组合表面存在开口，经过配对横剖面采样、独立闭合重建以及固定排水量归一化形成物理湿面。LOA=180m用于外形缩放，Lpp=171m用于操纵无量纲化。
 
-当前4128个三角面元的湿面给出KG=5.869862m、GM_L=239.241208m。初速8m/s时，双轴平衡转速127.520058rpm，每轴电机机械功约5.3603MW。轴惯性采用规定的25000(D/4)^5先验。逐数值的单位、来源、转换和未量化不确定性保存在 `provenance.json`。
+4009个湿面三角面元给出KG=9.880288m、GM_L=475.829137m，15885面元的剖面采样对照给出9.863233m和474.470529m。两份几何分别归一化至相同质量，此对照记录采样敏感性。封闭多面体的体积、浮心与水线积分共同确定恢复矩阵，保留升沉—纵摇耦合。Capytaine面元静水恢复对照的离散误差单列在验证文件中。初速8m/s时，双轴平衡转速127.520058rpm，每轴电机机械功约5.3603MW。轴惯性采用规定的25000(D/4)^5先验。逐数值的单位、来源、转换和未量化不确定性保存在 `provenance.json`。
+
+原桨盘x=−76.95m在两份源剖面几何中分别与船体相交约0.2741m²和0.2764m²。按#2147的几何冲突修订规则，将新版本轴心移至x=−78m，完整桨盘净空分别约0.09392m和0.04676m。舵仍位于x=−82.08m，通过三角面元分段包络与解析扫掠弦长界核验完整±35°范围。`envelope-validation.json`保存输入哈希、修订前后结果、完整包络和封闭性证明。网格坐标使用17位有效数字保存。
 
 完整B4-70 Fourier系数来自锁定的公开基准模块，进速使用rps与rad/s的显式转换。两个桨轴保留独立转速、电机响应、方位和功积分。驱动扭矩响应、正机械功限制、参考变化率及实际转速约束共同作用。电流约束在固定物理步内限制主动加速，水驱动超速超出执行能力时返回不可行状态。
 
 舵和鳍使用统一有限翼失速曲线及六自由度安装点来流，力矩按实际作用点计算。双舵分别关联对应桨后流。当前黏性导数来自KVLCC2无量纲系数的B→T先验，低速和倒航采用21站点横流积分，纵向、横向、艏摇载荷及其重心力矩共用作用点速度。船型黏性校准、辐射拟合和波浪系数验证继续由#2157跟踪。
 
-`sixdof-destroyer-v3`通过运行请求的 `parameterBundleVersion=research-nominal-v2`选择该包，完整执行器状态随 `sixdofState.actuatorStates`往返。现有标量请求继续使用其原版本合同。页面20步与其他六船的迁移由OpenSpec第0组继续跟踪。
+`sixdof-destroyer-v3`通过运行请求的 `parameterBundleVersion=research-nominal-v3`选择源剖面包，完整执行器状态随 `sixdofState.actuatorStates`往返。v1和前一参数化v2仍按显式版本读取。页面20步与其他六船的迁移由OpenSpec第0组继续跟踪。
 
 ```bash
-rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/build_destroyer_pack.py --output rust/control-engine/model-data/destroyer-055/v2
+rtk proxy node docs/research/fleet-hydrodynamics/extract_hull_mesh.mjs --release public/assets/model-releases/type055-nanchang-101/v2.3.0 --node HULL_MAIN --node HULL_FORE_PATCH --output /tmp/055-source
+rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/sample_hull_sections.py --source /tmp/055-source --output rust/control-engine/model-data/destroyer-055/v3/source-sections.json
+rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/build_destroyer_pack.py --output rust/control-engine/model-data/destroyer-055/v3
+rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/build_destroyer_pack.py --longitudinal-panels 172 --vertical-panels 24 --output /tmp/055-fine
+rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/validate_hull_pack.py --pack rust/control-engine/model-data/destroyer-055/v3 --comparison-pack /tmp/055-fine
 rtk proxy cargo test --manifest-path rust/control-engine/Cargo.toml --test sixdof_actuator_system
 ```
 

@@ -5,11 +5,11 @@ import hashlib
 import json
 import math
 import re
+import shutil
 from pathlib import Path
 
 import capytaine as cpt
 import numpy as np
-from capytaine.io.mesh_writers import write_mesh
 
 RHO, GRAVITY = 1025.0, 9.81
 LENGTH, BEAM, DRAFT, MASS = 171.0, 20.0, 6.6, 13e6
@@ -25,6 +25,17 @@ def write_json(path, value):
 
 def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def write_nemoh(path, vertices, faces):
+    with path.open('w') as stream:
+        stream.write('2 0\n')
+        for index, point in enumerate(vertices, start=1):
+            stream.write(f'{index} ' + ' '.join(format(value, '.17g') for value in point) + '\n')
+        stream.write('0 0 0 0 0\n')
+        for face in faces:
+            stream.write(' '.join(str(index + 1) for index in face) + '\n')
+        stream.write('0 0 0 0\n')
 
 
 def parameter_entries(value, prefix, leaf=''):
@@ -43,6 +54,8 @@ def parameter_entries(value, prefix, leaf=''):
         'reference_slew_rad_s2': 'rad/s^2', 'speed_control_time_s': 's', 'area_m2': 'm^2',
         'aspect_ratio': '1', 'normal_body': '1', 'max_angle_rad': 'rad', 'max_rate_rad_s': 'rad/s',
         'time_constant_s': 's', 'wake_propulsor': '1', 'normal_factor': '1',
+        'fullness_power': '1', 'source_scale_factors': '1', 'wetted_length_m': 'm', 'wetted_beam_m': 'm',
+        'source_center_of_buoyancy_x_m': 'm', 'center_of_flotation_x_m': 'm',
         'propeller_shaft_speed_rad_s': 'rad/s', 'motor_torques_nm': 'N*m',
         'shaft_reference_speed_rad_s': 'rad/s', 'azimuth_angles_rad': 'rad', 'control_surface_angles_rad': 'rad',
     }
@@ -72,18 +85,38 @@ def parameter_entries(value, prefix, leaf=''):
     }]
 
 
-def hull_mesh(longitudinal_power, nx, nz):
+def source_grid(profile, nx, nz):
+    scales = np.asarray([180.0 / profile['source_full_length_m'],
+                         BEAM / profile['source_full_beam_m'], DRAFT / profile['source_draft_m']])
+    source_x = np.asarray(profile['x_m'])
+    source_z = np.asarray(profile['z_m'])
+    widths = np.asarray(profile['half_breadth_m'])
+    x = np.linspace(source_x[0], source_x[-1], nx + 1)
+    z = np.linspace(source_z[0], 0.0, nz + 1)
+    sampled = np.asarray([np.interp(z, source_z,
+        [np.interp(station, source_x, widths[:, iz]) for iz in range(len(source_z))]) for station in x])
+    return x * scales[0], z * scales[2], sampled * scales[1], scales
+
+
+def hull_mesh(fullness_power, x, z, half_breadths):
     vertices, faces, node_ids = [], [], {}
+    grids = {}
+    nx, nz = len(x) - 1, len(z) - 1
+    def add_quad(quad, reverse=False):
+        for triangle in [quad[:3], [quad[0], quad[2], quad[3]]]:
+            if reverse:
+                triangle.reverse()
+            if len(set(triangle)) == 3 and any(abs(vertices[index][1]) > 1e-12 for index in triangle):
+                faces.append([*triangle, triangle[-1]])
     for side in [-1, 1]:
         grid = []
         for ix in range(nx + 1):
-            x = LENGTH * (ix / nx - 0.5)
             column = []
             for iz in range(nz + 1):
-                height = DRAFT * iz / nz
-                half_width = 0.5 * BEAM * (1 - abs(2 * x / LENGTH)**longitudinal_power)
-                half_width *= 1 - (1 - height / DRAFT)**8
-                point = (x, side * half_width, height - DRAFT)
+                half_width = 0.5 * BEAM * (2 * half_breadths[ix, iz] / BEAM)**fullness_power
+                if half_width < 1e-5:
+                    half_width = 0.0
+                point = (float(x[ix]), side * half_width, float(z[iz]))
                 key = tuple(round(value, 11) for value in point)
                 if key not in node_ids:
                     node_ids[key] = len(vertices)
@@ -93,11 +126,14 @@ def hull_mesh(longitudinal_power, nx, nz):
         for ix in range(nx):
             for iz in range(nz):
                 quad = [grid[ix][iz], grid[ix + 1][iz], grid[ix + 1][iz + 1], grid[ix][iz + 1]]
-                for triangle in [quad[:3], [quad[0], quad[2], quad[3]]]:
-                    if side > 0:
-                        triangle.reverse()
-                    if len(set(triangle)) == 3:
-                        faces.append([*triangle, triangle[-1]])
+                add_quad(quad, reverse=side > 0)
+        grids[side] = grid
+    port, starboard = grids[1], grids[-1]
+    for end in [0, nx]:
+        for iz in range(nz):
+            add_quad([port[end][iz], starboard[end][iz], starboard[end][iz + 1], port[end][iz + 1]], reverse=end == nx)
+    for ix in range(nx):
+        add_quad([port[ix][0], port[ix + 1][0], starboard[ix + 1][0], starboard[ix][0]])
     return cpt.Mesh(vertices=np.asarray(vertices), faces=np.asarray(faces), name='destroyer-055-wetted')
 
 
@@ -109,16 +145,41 @@ def volume_and_buoyancy(mesh):
 
 
 def waterplane(mesh):
-    points = mesh.vertices[abs(mesh.vertices[:, 2]) < 1e-10, :2]
-    upper = points[points[:, 1] >= 0]
-    lower = points[points[:, 1] < 0]
-    polygon = np.vstack([upper[np.argsort(upper[:, 0])], lower[np.argsort(-lower[:, 0])]])
+    triangles = mesh.faces[:, :3]
+    edges = np.vstack([triangles[:, [0, 1]], triangles[:, [1, 2]], triangles[:, [2, 0]]])
+    unique, counts = np.unique(np.sort(edges, axis=1), axis=0, return_counts=True)
+    if (counts > 2).any():
+        raise ValueError('湿面存在非流形边')
+    boundary = unique[counts == 1]
+    if abs(mesh.vertices[np.unique(boundary), 2]).max() > 1e-10:
+        raise ValueError('湿面包含水线以外的开口')
+    neighbors = {}
+    for first, second in boundary:
+        neighbors.setdefault(int(first), []).append(int(second))
+        neighbors.setdefault(int(second), []).append(int(first))
+    if any(len(adjacent) != 2 for adjacent in neighbors.values()):
+        raise ValueError('水线边界含分叉或断点')
+    start = min(neighbors)
+    loop, previous, current = [start], None, start
+    while True:
+        following = next(index for index in neighbors[current] if index != previous)
+        if following == start:
+            break
+        if following in loop:
+            raise ValueError('水线边界自相交')
+        loop.append(following)
+        previous, current = current, following
+    if len(loop) != len(neighbors):
+        raise ValueError('湿面包含多个水线边界')
+    polygon = mesh.vertices[loop, :2]
     following = np.roll(polygon, -1, axis=0)
     cross = polygon[:, 0] * following[:, 1] - following[:, 0] * polygon[:, 1]
     area = cross.sum() / 2
     inertia_x = np.sum((polygon[:, 1]**2 + polygon[:, 1] * following[:, 1] + following[:, 1]**2) * cross) / 12
     inertia_y = np.sum((polygon[:, 0]**2 + polygon[:, 0] * following[:, 0] + following[:, 0]**2) * cross) / 12
-    return polygon, abs(area), abs(inertia_x), abs(inertia_y)
+    first_moment_x = np.sum((polygon[:, 0] + following[:, 0]) * cross) / 6
+    lid_polygon = polygon if area < 0 else polygon[::-1]
+    return lid_polygon, abs(area), abs(inertia_x), abs(inertia_y), first_moment_x / area
 
 
 def b470_coefficients():
@@ -154,41 +215,58 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--longitudinal-panels', type=int, default=86)
     parser.add_argument('--vertical-panels', type=int, default=12)
+    parser.add_argument('--source-sections', type=Path,
+        default=REPOSITORY / 'rust/control-engine/model-data/destroyer-055/v3/source-sections.json')
     args = parser.parse_args()
     if args.longitudinal_panels < 8 or args.longitudinal_panels % 2 or args.vertical_panels < 4:
         parser.error('纵向面元数须为至少8的偶数，垂向至少4')
-    low, high = 0.1, 80.0
+    profile = json.loads(args.source_sections.read_text())
+    x, z, widths, scales = source_grid(profile, args.longitudinal_panels, args.vertical_panels)
+    low, high = 0.1, 8.0
+    if not (volume_and_buoyancy(hull_mesh(low, x, z, widths))[0] >= MASS / RHO
+            >= volume_and_buoyancy(hull_mesh(high, x, z, widths))[0]):
+        raise ValueError('目标排水量超出当前剖面形状的归一化范围')
     for _ in range(70):
         power = (low + high) / 2
-        mesh = hull_mesh(power, args.longitudinal_panels, args.vertical_panels)
+        mesh = hull_mesh(power, x, z, widths)
         volume, center = volume_and_buoyancy(mesh)
-        if volume < MASS / RHO:
+        if volume > MASS / RHO:
             low = power
         else:
             high = power
     power = (low + high) / 2
-    mesh = hull_mesh(power, args.longitudinal_panels, args.vertical_panels)
+    mesh = hull_mesh(power, x, z, widths)
     volume, center = volume_and_buoyancy(mesh)
-    polygon, area, inertia_x, inertia_y = waterplane(mesh)
+    source_center_x = float(center[0])
+    mesh = cpt.Mesh(vertices=mesh.vertices - [source_center_x, float(center[1]), 0.0], faces=mesh.faces,
+                    name='destroyer-055-source-loft')
+    volume, center = volume_and_buoyancy(mesh)
+    polygon, area, inertia_x, inertia_y, flotation_x = waterplane(mesh)
     kb = float(center[2] + DRAFT)
     kg = kb + inertia_x / volume - 1.5
-    gm_l = kb + inertia_y / volume - kg
+    gm_l = kb + (inertia_y - area * flotation_x**2) / volume - kg
     if abs(volume - MASS / RHO) / volume > 1e-10 or min(kg, gm_l, area) <= 0:
         raise ValueError('几何/单一KG/质量/稳性未闭合')
-    stiffness = np.diag([0.0, 0.0, RHO * GRAVITY * area, MASS * GRAVITY * 1.5, MASS * GRAVITY * gm_l, 0.0])
+    stiffness = np.diag([0.0, 0.0, RHO * GRAVITY * area, MASS * GRAVITY * 1.5,
+                         RHO * GRAVITY * (inertia_y + volume * (kb - kg)), 0.0])
+    stiffness[2, 4] = stiffness[4, 2] = -RHO * GRAVITY * area * flotation_x
     geometry = {
         'loa_m': 180.0, 'lpp_m': LENGTH, 'beam_m': BEAM, 'draft_m': DRAFT,
         'displacement_volume_m3': volume, 'displacement_mass_kg': MASS,
         'mass_basis': 'displacement_volume', 'waterline_area_m2': area,
         'water_density_kg_m3': RHO, 'kb_keel_up_m': kb, 'kg_keel_up_m': kg,
         'gm_transverse_m': 1.5, 'gm_longitudinal_m': gm_l, 'cruise_speed_mps': 8.0,
+        'center_of_flotation_x_m': float(flotation_x),
+        'wetted_length_m': float(np.ptp(mesh.vertices[:, 0])),
+        'wetted_beam_m': float(np.ptp(mesh.vertices[:, 1])),
         'center_of_mass_waterline_z_up_m': [0.0, 0.0, kg - DRAFT],
         'inertia_about_cg_kg_m2': dict(zip(['ixx', 'iyy', 'izz'],
             [MASS * (0.35 * BEAM)**2, MASS * (0.25 * LENGTH)**2, MASS * (0.25 * LENGTH)**2])),
         'hydrostatic_stiffness_si': stiffness.tolist(),
         'wet_surface_definition': {
-            'grade': 'T', 'formula': 'y=+-B/2*(1-|2x/Lpp|^n)*(1-(1-h/T)^8)',
-            'longitudinal_power': power, 'vertical_power': 8,
+            'grade': 'T', 'formula': 'paired visual-hull sections, y=+-B/2*(2*y_source/B)^p',
+            'fullness_power': power, 'source_scale_factors': scales.tolist(),
+            'source_center_of_buoyancy_x_m': source_center_x,
             'longitudinal_panels': args.longitudinal_panels, 'vertical_panels': args.vertical_panels,
         },
     }
@@ -224,7 +302,7 @@ def main():
         raise ValueError('初始平衡点违反电机功率或扭矩约束')
     propulsors, surfaces = [], []
     for side in [-1, 1]:
-        installation = {'positionBodyM': [-0.45 * LENGTH, side * 0.18 * BEAM, kg - 3.1], 'referenceImmersionM': 3.5}
+        installation = {'positionBodyM': [-78.0, side * 0.18 * BEAM, kg - 3.1], 'referenceImmersionM': 3.5}
         propulsors.append({
             'installation': installation, 'diameter_m': 5.0, 'max_power_w': 15e6,
             'rated_speed_rad_s': rated, 'motor_time_constant_s': 0.5,
@@ -250,14 +328,26 @@ def main():
         'schema': 'act.model-pack.provenance.v2', 'model_fidelity': 'research-nominal',
         'geometry_grade': 'T', 'inertia_grade': 'T', 'maneuvering_grade': 'T', 'actuator_grade': 'T',
         'authority': ['https://github.com/yong-wei/act/issues/2147', 'https://github.com/yong-wei/act/issues/2158'],
-        'geometry_derivation': 'independent parametric teaching hull, volume calibrated to fixed mass at fixed dimensions',
+        'geometry_derivation': 'independent closed loft from verified visual-hull sections, normalized LOA/B/draft and fixed mass',
+        'source_sections_sha256': sha256(args.source_sections),
+        'source_model_sha256': profile['source']['sourceSha256'],
+        'source_model_commit': profile['source']['sourceCommit'],
+        'source_symmetry_relative_l2': profile['port_starboard_relative_l2'],
         'maneuvering_source': 'Yasukawa and Yoshimura 2015 Table 3, B-to-T nondimensional prior',
         'maneuvering_doi': '10.1007/s00773-014-0293-y',
         'propeller_source': 'Smogeli 2006 Table A.3, complete B4-70 Fourier map',
         'propeller_coefficients_sha256': coefficients_sha,
         'generator_sha256': sha256(Path(__file__)),
+        'installation_revision': {
+            'authority': 'https://github.com/yong-wei/act/issues/2147',
+            'previous_longitudinal_position_m': -0.45 * LENGTH,
+            'longitudinal_position_m': -78.0,
+            'reason': 'original propeller disks intersect the source-derived hull at both section resolutions',
+            'verification': 'envelope-validation.json',
+            'grade': 'T',
+        },
         'teaching_assumptions': {
-            'vertical_hull_power': 8.0, 'shaft_speed_control_time_s': 0.75,
+            'shaft_speed_control_time_s': 0.75,
             'rudder_propeller_wash': 'ahead actuator-disk exit flow, reverse local flow without aft jet augmentation',
         },
         'not_ready': ['vessel-calibrated viscous derivatives', 'fitted vessel radiation', 'wave coefficient validation'],
@@ -266,14 +356,16 @@ def main():
                     *parameter_entries(actuators, 'actuators')],
     }
     args.output.mkdir(parents=True, exist_ok=True)
+    if args.source_sections.resolve() != (args.output / 'source-sections.json').resolve():
+        shutil.copy2(args.source_sections, args.output / 'source-sections.json')
     for name, value in [('geometry.json', geometry), ('maneuvering.json', {'mapped_mmg': mapped}),
                         ('actuators.json', actuators), ('provenance.json', provenance)]:
         write_json(args.output / name, value)
-    write_mesh(str(args.output / 'hull.dat'), mesh.vertices, mesh.faces, file_format='nemoh')
+    write_nemoh(args.output / 'hull.dat', mesh.vertices, mesh.faces)
     lid_vertices = np.vstack([np.zeros(3), np.column_stack([polygon, np.zeros(len(polygon))])])
     lid_faces = [[0, index + 1, (index + 1) % len(polygon) + 1, (index + 1) % len(polygon) + 1]
                  for index in range(len(polygon))]
-    write_mesh(str(args.output / 'lid.dat'), lid_vertices, np.asarray(lid_faces), file_format='nemoh')
+    write_nemoh(args.output / 'lid.dat', lid_vertices, lid_faces)
     validation = {
         'volume_relative_error': abs(volume - MASS / RHO) / volume,
         'initial_force_residual_n': balance(omega), 'initial_shaft_speed_rpm': omega * 30 / math.pi,
@@ -282,10 +374,11 @@ def main():
         'convergence': 'pending', 'fidelity': 'research-nominal',
     }
     write_json(args.output / 'validation.json', validation)
-    files = ['geometry.json', 'maneuvering.json', 'actuators.json', 'provenance.json', 'hull.dat', 'lid.dat', 'validation.json']
+    files = ['geometry.json', 'maneuvering.json', 'actuators.json', 'provenance.json', 'hull.dat', 'lid.dat',
+             'source-sections.json', 'validation.json']
     write_json(args.output / 'manifest.json', {
         'schema': 'act.model-pack.manifest.v2', 'vessel': 'destroyer-055',
-        'model_version': 'research-nominal-v2', 'model_fidelity': 'research-nominal',
+        'model_version': 'research-nominal-v3', 'model_fidelity': 'research-nominal',
         'files_sha256': {name: sha256(args.output / name) for name in files},
     })
     print(json.dumps(validation))

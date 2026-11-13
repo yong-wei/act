@@ -83,7 +83,7 @@ def main():
             log = output / (executable.name + ".log")
             with log.open("wb") as stream:
                 result = subprocess.run([str(executable)], cwd=output, stdout=stream,
-                                        stderr=subprocess.STDOUT, timeout=3600)
+                                        stderr=subprocess.STDOUT)
             record = {"program": stage, "binary_sha256": sha256(executable),
                       "exit_code": result.returncode, "seconds": time.monotonic() - started,
                       "log_sha256": sha256(log)}
