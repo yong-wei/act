@@ -49,6 +49,7 @@ export interface VesselSessionInput {
   targetHeadingDeg: number;
   feedback: 'measurement' | 'estimate';
   actuators: VesselActuatorCommands;
+  derivativeFilterTauS?: number;
 }
 
 export interface VesselActuatorState {
@@ -91,7 +92,7 @@ export interface VesselObservedSample {
 
 export interface VesselSessionFrame {
   schema: 'act.vessel-session.v1';
-  modelVersion: 'sixdof-session-v1';
+  modelVersion: 'sixdof-session-v1' | 'sixdof-session-v2';
   parameterHash: string;
   timeS: number;
   physicsTicks: number;
@@ -109,6 +110,18 @@ export interface VesselSessionFrame {
   input: VesselSessionInput;
   heldCommands: VesselActuatorCommands;
   samples: VesselObservedSample[];
+  headingController: {
+    integralOutputDeg: number;
+    derivativeDegS: number;
+    previousMeasurementDeg: number | null;
+    previousMeasurementTimeS: number | null;
+    errorDeg: number;
+    unsaturatedDeg: number;
+    commandDeg: number;
+    integralRateDegS: number;
+    integralFrozen: boolean;
+    feedbackAvailable: boolean;
+  } | null;
 }
 
 export interface VesselSession {

@@ -49,6 +49,21 @@ try {
   if (final.physicsTicks !== 720 || final.controllerTicks !== 120) {
     throw new Error('物理或控制时钟未按120Hz/20Hz推进');
   }
+  original.setPaused(false);
+  const feedbackCommand = JSON.stringify({ controlMode: 'pid', pid: { kp: .7, ki: .01, kd: .2 },
+    targetHeadingDeg: 10, feedback: 'measurement', actuators: initial.heldCommands });
+  for (let frame = 0; frame < 300; frame += 1) original.advance(1 / 60, feedbackCommand);
+  restored.restore(original.snapshot());
+  for (let frame = 0; frame < 60; frame += 1) {
+    original.advance(1 / 60, feedbackCommand);
+    restored.advance(1 / 60, feedbackCommand);
+  }
+  if (original.snapshot() !== restored.snapshot()) throw new Error('测量反馈控制恢复后的完整未来状态不同');
+  const feedback = JSON.parse(original.read());
+  if (feedback.modelVersion !== 'sixdof-session-v2' || !feedback.headingController.feedbackAvailable
+      || feedback.headingController.integralFrozen || feedback.headingController.integralOutputDeg === 0) {
+    throw new Error('新测量微分控制器未实际接入');
+  }
   const report = {
     schema: 'act.native-session-validation.v1',
     status: 'passed',
@@ -64,6 +79,10 @@ try {
       physics_ticks: final.physicsTicks,
       controller_ticks: final.controllerTicks,
       snapshot_bytes: Buffer.byteLength(snapshot),
+      feedback_future_bitwise_identical: true,
+      heading_controller_model_version: feedback.modelVersion,
+      derivative_filter_tau_s: feedback.input.derivativeFilterTauS,
+      heading_controller: feedback.headingController,
     },
     timing: {
       virtual_seconds: 5,

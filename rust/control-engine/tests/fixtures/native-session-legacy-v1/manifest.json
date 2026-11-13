@@ -1,0 +1,63 @@
+{
+  "schema": "act.native-session.legacy-fixture.v1",
+  "source_revision": "ae293273fe",
+  "generator_sha256": "d140cc79b30c4d12f2f025ec1f1088bc1a003037318ec4916861a3cf3e1f159b",
+  "wasm_sha256": "a41bef345b00dca385a30527f1a191d63129b22ae09da5aef7a8e4e1b2e8a50e",
+  "configuration": {
+    "vessel": "destroyer-055",
+    "parameterVersion": "research-nominal-v4",
+    "environment": "W1",
+    "noiseLevel": "N1",
+    "seed": 20261106
+  },
+  "input": {
+    "controlMode": "pid",
+    "pid": {
+      "kp": 1,
+      "ki": 0.01,
+      "kd": 2
+    },
+    "targetHeadingDeg": 10,
+    "feedback": "estimate",
+    "actuators": {
+      "shafts": [
+        {
+          "azimuth_jammed": false,
+          "azimuth_rad": 0,
+          "drive_cut": false,
+          "motor_torque_override_nm": null,
+          "speed_reference_rad_s": 13.353869208502044
+        },
+        {
+          "azimuth_jammed": false,
+          "azimuth_rad": 0,
+          "drive_cut": false,
+          "motor_torque_override_nm": null,
+          "speed_reference_rad_s": 13.353869208502044
+        }
+      ],
+      "surfaces": [
+        {
+          "angle_rad": 0,
+          "enabled": true,
+          "jammed": false
+        },
+        {
+          "angle_rad": 0,
+          "enabled": true,
+          "jammed": false
+        }
+      ]
+    }
+  },
+  "snapshot_sha256": "36240003eac03dce4f80b3aca3982608d65c44f0ae0721339dbbcd3fa14f925f",
+  "future_sha256": "58dcb445884e04b98a027fbbb76af690d5b7b50a91043c25293866149d2b553a",
+  "captured_seconds": 4.25,
+  "future_seconds": 1,
+  "future_render_frames": 60,
+  "runtime": {
+    "node": "v26.0.0",
+    "architecture": "arm64",
+    "platform": "darwin"
+  }
+}

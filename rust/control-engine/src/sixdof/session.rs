@@ -1,7 +1,10 @@
 //! 常驻物理状态、采样队列、观测器和20Hz控制时钟。
 
 use super::actuator_system::{ActuatorCommands, LocalWater, ShaftCommand, SurfaceCommand};
-use super::control_law::{HeadingControlMode, HeadingPidGains, command_rudder_deg};
+use super::control_law::{
+    DEFAULT_DERIVATIVE_FILTER_TAU_S, HeadingControlMode, HeadingFeedbackController,
+    HeadingPidGains, command_rudder_deg,
+};
 use super::destroyer_plant::{DestroyerSixDofPlant, PlantCheckpoint};
 use super::environment_state::{EnvironmentState, EnvironmentSwitches};
 use super::instrumentation::{
@@ -17,6 +20,7 @@ use super::wind::WindHullGeometry;
 use serde::{Deserialize, Serialize};
 
 const SESSION_SCHEMA: &str = "act.vessel-session.v1";
+const CHECKPOINT_SCHEMA_V2: &str = "act.vessel-session.v2";
 
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 pub enum EnvironmentPreset {
@@ -85,6 +89,29 @@ pub struct SessionInput {
     pub target_heading_deg: f64,
     pub feedback: FeedbackSource,
     pub actuators: ActuatorCommands,
+    #[serde(default = "default_derivative_filter_tau_s")]
+    pub derivative_filter_tau_s: f64,
+}
+
+fn default_derivative_filter_tau_s() -> f64 {
+    DEFAULT_DERIVATIVE_FILTER_TAU_S
+}
+
+impl SessionInput {
+    fn validate(&self) -> Result<(), String> {
+        if [
+            self.pid.kp,
+            self.pid.ki,
+            self.pid.kd,
+            self.target_heading_deg,
+            self.derivative_filter_tau_s,
+        ].iter().any(|value| !value.is_finite())
+            || self.derivative_filter_tau_s <= 0.0
+        {
+            return Err("控制输入或微分滤波时间常数无效".into());
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -102,6 +129,8 @@ struct SessionCheckpoint {
     held_commands: ActuatorCommands,
     integral_deg_s: f64,
     previous_error_deg: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    heading_controller: Option<HeadingFeedbackController>,
     physics_ticks: u64,
     controller_ticks: u64,
     accumulator_s: f64,
@@ -122,6 +151,7 @@ pub struct FleetSimulation {
     held_commands: ActuatorCommands,
     integral_deg_s: f64,
     previous_error_deg: f64,
+    heading_controller: Option<HeadingFeedbackController>,
     physics_ticks: u64,
     controller_ticks: u64,
     accumulator_s: f64,
@@ -244,10 +274,12 @@ impl FleetSimulation {
                 target_heading_deg: yaw.to_degrees(),
                 feedback: FeedbackSource::Estimate,
                 actuators: actuators.clone(),
+                derivative_filter_tau_s: DEFAULT_DERIVATIVE_FILTER_TAU_S,
             },
             held_commands: actuators,
             integral_deg_s: 0.0,
             previous_error_deg: 0.0,
+            heading_controller: Some(HeadingFeedbackController::default()),
             physics_ticks: 0,
             controller_ticks: 0,
             accumulator_s: 0.0,
@@ -286,8 +318,9 @@ impl FleetSimulation {
         }
     }
 
-    fn update_controller(&mut self) {
+    fn update_controller(&mut self) -> Result<(), String> {
         self.controller_ticks += 1;
+        let previous_commands = self.held_commands.clone();
         self.held_commands = self.input.actuators.clone();
         let heading = match self.input.feedback {
             FeedbackSource::Measurement => self
@@ -298,36 +331,72 @@ impl FleetSimulation {
             }
         };
         if self.input.control_mode == HeadingControlMode::Manual {
-            return;
+            if let Some(controller) = &mut self.heading_controller {
+                *controller = HeadingFeedbackController::default();
+            }
+            return Ok(());
         }
-        let Some(heading) = heading else {
-            return;
+        let rudder_deg = if let Some(controller) = &mut self.heading_controller {
+            let command = controller.step(
+                self.input.control_mode,
+                &self.input.pid,
+                self.input.target_heading_deg,
+                heading,
+                self.physics_ticks as f64 * NOMINAL_DT,
+                0.05,
+                self.input.derivative_filter_tau_s,
+            )?;
+            if heading.is_none() {
+                let system = self.plant.actuator_system().expect("会话已装配执行器组");
+                for ((new, old), propeller) in self.held_commands.shafts.iter_mut()
+                    .zip(&previous_commands.shafts).zip(&system.propulsors)
+                {
+                    if propeller.azimuth.is_some() {
+                        new.azimuth_rad = old.azimuth_rad;
+                    }
+                }
+                for ((new, old), surface) in self.held_commands.surfaces.iter_mut()
+                    .zip(&previous_commands.surfaces).zip(&system.surfaces)
+                {
+                    if surface.normal_body == [0.0, 1.0, 0.0] {
+                        new.angle_rad = old.angle_rad;
+                    }
+                }
+                return Ok(());
+            }
+            command
+        } else {
+            let Some(heading) = heading else {
+                return Ok(());
+            };
+            let control = command_rudder_deg(
+                self.input.control_mode,
+                &self.input.pid,
+                wrap_pi(self.input.target_heading_deg.to_radians()).to_degrees(),
+                heading,
+                0.0,
+                0.05,
+                self.integral_deg_s,
+                self.previous_error_deg,
+                35.0,
+            );
+            self.integral_deg_s = control.integral_deg_s;
+            self.previous_error_deg = control.error_deg;
+            control.rudder_deg
         };
-        let control = command_rudder_deg(
-            self.input.control_mode,
-            &self.input.pid,
-            wrap_pi(self.input.target_heading_deg.to_radians()).to_degrees(),
-            heading,
-            0.0,
-            0.05,
-            self.integral_deg_s,
-            self.previous_error_deg,
-            35.0,
-        );
-        self.integral_deg_s = control.integral_deg_s;
-        self.previous_error_deg = control.error_deg;
         let system = self.plant.actuator_system().expect("会话已装配执行器组");
         if system.propulsors.len() == 2 && system.propulsors.iter().all(|propeller| propeller.azimuth.is_some()) {
             // 双艉吊舱采用对称同角初级分配，实际转向与纵向推力损失由轴系计算。
             for command in &mut self.held_commands.shafts {
-                command.azimuth_rad = -control.rudder_deg.to_radians();
+                command.azimuth_rad = -rudder_deg.to_radians();
             }
         }
         for (command, surface) in self.held_commands.surfaces.iter_mut().zip(&system.surfaces) {
             if surface.normal_body == [0.0, 1.0, 0.0] {
-                command.angle_rad = control.rudder_deg.to_radians();
+                command.angle_rad = rudder_deg.to_radians();
             }
         }
+        Ok(())
     }
 
     fn estimated_control_load(&self) -> [f64; 3] {
@@ -392,7 +461,7 @@ impl FleetSimulation {
 
     fn tick(&mut self) -> Result<(), String> {
         if self.physics_ticks % 6 == 0 {
-            self.update_controller();
+            self.update_controller()?;
         }
         let mut commands = self.held_commands.clone();
         if self.time_s() >= 180.0 {
@@ -463,17 +532,7 @@ impl FleetSimulation {
             return Err("帧推进量必须为0至1秒".into());
         }
         if let Some(input) = &input {
-            if [
-                input.pid.kp,
-                input.pid.ki,
-                input.pid.kd,
-                input.target_heading_deg,
-            ]
-            .iter()
-            .any(|value| !value.is_finite())
-            {
-                return Err("控制输入含非有限值".into());
-            }
+            input.validate()?;
             self.plant
                 .actuator_system()
                 .ok_or("缺少执行器组")?
@@ -500,17 +559,18 @@ impl FleetSimulation {
 
     pub fn frame_json(&self) -> Result<String, String> {
         serde_json::to_string(&serde_json::json!({
-            "schema": SESSION_SCHEMA, "modelVersion": "sixdof-session-v1", "parameterHash": self.parameter_hash,
+            "schema": SESSION_SCHEMA, "modelVersion": if self.heading_controller.is_some() { "sixdof-session-v2" } else { "sixdof-session-v1" }, "parameterHash": self.parameter_hash,
             "timeS": self.time_s(), "physicsTicks": self.physics_ticks, "controllerTicks": self.controller_ticks,
             "paused": self.paused, "truth": self.plant.state(), "observer": self.observer,
             "input": self.input, "heldCommands": self.held_commands, "samples": self.last_samples,
             "liquidCargo": self.plant.liquid_diagnostics()?,
+            "headingController": self.heading_controller,
         })).map_err(|error| error.to_string())
     }
 
     pub fn snapshot_json(&self) -> Result<String, String> {
         let checkpoint = SessionCheckpoint {
-            schema: SESSION_SCHEMA.into(),
+            schema: if self.heading_controller.is_some() { CHECKPOINT_SCHEMA_V2 } else { SESSION_SCHEMA }.into(),
             configuration: self.configuration.clone(),
             parameter_hash: self.parameter_hash.clone(),
             plant: self.plant.checkpoint(),
@@ -523,6 +583,7 @@ impl FleetSimulation {
             held_commands: self.held_commands.clone(),
             integral_deg_s: self.integral_deg_s,
             previous_error_deg: self.previous_error_deg,
+            heading_controller: self.heading_controller.clone(),
             physics_ticks: self.physics_ticks,
             controller_ticks: self.controller_ticks,
             accumulator_s: self.accumulator_s,
@@ -535,7 +596,11 @@ impl FleetSimulation {
         let saved: SessionCheckpoint =
             serde_json::from_str(raw).map_err(|error| format!("会话恢复点无效 {error}"))?;
         let mut simulation = Self::new(saved.configuration.clone())?;
-        if saved.schema != SESSION_SCHEMA || saved.parameter_hash != simulation.parameter_hash {
+        let supported_checkpoint = matches!(
+            (saved.schema.as_str(), saved.heading_controller.is_some()),
+            (SESSION_SCHEMA, false) | (CHECKPOINT_SCHEMA_V2, true)
+        );
+        if !supported_checkpoint || saved.parameter_hash != simulation.parameter_hash {
             return Err("恢复点与当前模型版本不一致".into());
         }
         let time_s = saved.physics_ticks as f64 * NOMINAL_DT;
@@ -548,6 +613,10 @@ impl FleetSimulation {
             return Err("恢复点的物理、控制或帧累计时钟不一致".into());
         }
         let system = simulation.plant.actuator_system().ok_or("缺少执行器组")?;
+        saved.input.validate()?;
+        if let Some(controller) = &saved.heading_controller {
+            controller.validate_checkpoint(time_s)?;
+        }
         system.validate_commands(&saved.input.actuators)?;
         system.validate_commands(&saved.held_commands)?;
         saved
@@ -577,6 +646,7 @@ impl FleetSimulation {
         simulation.held_commands = saved.held_commands;
         simulation.integral_deg_s = saved.integral_deg_s;
         simulation.previous_error_deg = saved.previous_error_deg;
+        simulation.heading_controller = saved.heading_controller;
         simulation.physics_ticks = saved.physics_ticks;
         simulation.controller_ticks = saved.controller_ticks;
         simulation.accumulator_s = saved.accumulator_s;

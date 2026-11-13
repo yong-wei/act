@@ -51,7 +51,9 @@ rtk proxy cargo test --manifest-path rust/control-engine/Cargo.toml --test sixdo
 
 自由板沿用既有湿面的纵向范围，范围外的艏艉干悬伸进入水面仍列为未就绪。适用域限定为完整船体和甲板上浪之前的姿态。解析箱体、30°横倾、势能梯度、保守能量、完全出水/浸没、源模型小角度矩阵及常驻会话恢复共八项直接回归通过。
 
-`validate_native_session.mjs`实际调用生成WASM，验证原始快照恢复后的完整未来逐值一致、暂停和120Hz/20Hz时钟。当前记录保存在`destroyer-nonlinear-session-validation.json`，其中Node单对象时间的测量范围为数值调用，生产并发和网络容量由第6组另行实测。
+`validate_native_session.mjs`实际调用生成WASM，验证原始快照、测量反馈控制、暂停和120Hz/20Hz时钟。四船记录保存在对应session-validation.json。Node单对象时间的测量范围为数值调用，生产并发和网络容量由第6组另行实测。
+
+新建会话的航向控制器采用测量微分和默认0.2s滤波，积分舵令贡献按1s回算时间跟踪受限命令。缺测保持操纵命令并冻结积分/微分。控制状态进入v2快照及原生帧。`capture_legacy_session_fixture.mjs`已从改动前ae293273fe的实际WASM捕获带噪声/风的PID恢复点，`validate_legacy_session.mjs`核验新WASM恢复该v1快照后的完整未来原始字节。旧恢复点及证明位于Rust tests/fixtures/native-session-legacy-v1和legacy-session-restore-validation.json。
 
 ```bash
 rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/sample_hull_sections.py --source /tmp/055-source --include-freeboard --fill-profile-gaps --output /tmp/055-full-sections.json
