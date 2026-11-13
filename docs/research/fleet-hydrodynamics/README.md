@@ -76,3 +76,16 @@ rtk proxy node docs/research/fleet-hydrodynamics/validate_native_session.mjs --v
 完整运动包络揭示原T级布局的碰撞。新包把邮轮鳍中心移至y=±21.75m、雪龙吊舱移至x=−53.5m、天鲸桨/舵分别移至x=−60.5/−62.5m，龙骨高度继续采用公共合同。修订前后配置、实际碰撞原因、粗细几何哈希和全角度证明保存在各包`validation.json`。全回转吊舱使用全部垂直桨盘并集对应的球体核验，翼面使用连续扫掠界。
 
 三个包已接入`VesselSimulationSession`的P0/C1/C2基础工况，双艉吊舱采用对称同角的初级航向分配，鳍单独接受实际角命令。风载投影、波浪域、冰接触和疏浚机构继续由OpenSpec剩余任务实施。`cruise-session-validation.json`、`icebreaker-session-validation.json`及`dredger-session-validation.json`记录同一WASM构建下的对象恢复、暂停和固定时钟验证。
+
+## 水动力与液舱耦合证据
+
+`destroyer-first-order-validation/`保存055零速129频率×24波向和8m/s的17频率×3波向原始A/B/激励/RAO数组、完整维度及求解证明。零速72项矩阵参考检查失败，含航速工况的零速互易/被动性检查按不适用记录。两类数据的网格和适用域状态继续待验证。
+
+`sloshing-coupling-derivation.md`记录完整液舱耦合的势梯度积分、作用高度、质量分配、余伴随项与势能。实际RK和快照已接入该拉格朗日系统，全量Rust353项及随后空间惯性/恒定转向修订的液舱专项7项通过。LNG给定基准GM在纯几何解释下出现负有效稳性，原输入保存在`lng-frozen-cargo-geometry-reference.json`，对应独立体积分结果在`sloshing-coupling-integral-validation.json`。
+
+```bash
+rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/verify_sloshing_coupling.py --geometry docs/research/fleet-hydrodynamics/lng-frozen-cargo-geometry-reference.json --output /tmp/sloshing-integral-verification.json
+rtk proxy cargo test --manifest-path rust/control-engine/Cargo.toml --test sixdof_coupled_sloshing
+```
+
+`container-loading-candidate-validation/`保留可见甲板集装箱均匀密度代理的.6/.9装载候选。该候选在.9得到GM_T约−4.8333m，并输出not_ready证明。舱内配载及其质量分布方向正等待课程决策。

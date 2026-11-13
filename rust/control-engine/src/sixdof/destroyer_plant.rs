@@ -92,6 +92,7 @@ pub struct DestroyerSixDofPlant {
     am: AddedMassParams,
     rp: RestoringParams,
     hydrostatic_hull: Option<std::sync::Arc<super::hydrostatics::HydrostaticHull>>,
+    sloshing: Option<std::sync::Arc<super::coupled_sloshing::CoupledSloshing>>,
     mmg: HullMmgParams,
     low: LowSpeedParams,
     mapped_hull: Option<MappedMmgHull>,
@@ -257,6 +258,7 @@ impl DestroyerSixDofPlant {
             am: AddedMassParams { a_inf },
             rp: RestoringParams { k_linear },
             hydrostatic_hull: None,
+            sloshing: None,
             mmg,
             low,
             mapped_hull: None,
@@ -328,6 +330,9 @@ impl DestroyerSixDofPlant {
         plant.hydrostatic_hull = g.nonlinear_hydrostatics.clone().map(std::sync::Arc::new);
         let half_pitch = g.equilibrium_pitch_rad / 2.0;
         plant.state.quaternion = [half_pitch.cos(), 0.0, half_pitch.sin(), 0.0];
+        if !g.liquid_tanks.is_empty() {
+            plant.configure_liquid_tanks(&g.liquid_tanks).expect("液舱参数已通过加载门禁");
+        }
         // 操纵系数直接来自包。
         if let super::model_pack::PackManeuvering::Mapped { mapped_mmg } = &pack.maneuvering {
             plant.mapped_hull = Some(mapped_mmg.clone());
@@ -397,6 +402,21 @@ impl DestroyerSixDofPlant {
         super::dynamics::mass_matrix(&self.rb, &self.am)
     }
 
+    pub fn configure_liquid_tanks(&mut self, tanks: &[super::coupled_sloshing::LiquidTank]) -> Result<(), String> {
+        let model = super::coupled_sloshing::CoupledSloshing::new(tanks, &self.rb, self.physical_mass_matrix())?;
+        self.state.specialist_states = vec![0.0; model.state_len()];
+        self.sloshing = Some(std::sync::Arc::new(model));
+        Ok(())
+    }
+
+    pub fn sloshing(&self) -> Option<&super::coupled_sloshing::CoupledSloshing> {
+        self.sloshing.as_deref()
+    }
+
+    pub fn liquid_diagnostics(&self) -> Result<Option<super::coupled_sloshing::SloshingDiagnostics>, String> {
+        self.sloshing.as_ref().map(|model| model.diagnostics(&self.state, &self.state.specialist_states)).transpose()
+    }
+
     pub fn environment(&self) -> Option<&crate::sixdof::environment_state::EnvironmentState> {
         self.environment_state.as_ref()
     }
@@ -424,6 +444,7 @@ impl DestroyerSixDofPlant {
         }
         self.actuator_system.as_ref().ok_or("恢复点需要物理执行器组")?
             .validate_state(&state.actuator_states)?;
+        if let Some(model) = &self.sloshing { model.validate_state(&state.specialist_states)?; }
         self.state = checkpoint.state;
         self.sim_time_s = checkpoint.time_s;
         self.environment_state = checkpoint.environment;
@@ -526,6 +547,9 @@ impl DestroyerSixDofPlant {
         if !dt.is_finite() || dt <= 0.0 {
             return Err(IntegrationError::InvalidTimeStep { dt_s: dt });
         }
+        if let Some(model) = &self.sloshing {
+            model.validate_state(&self.state.specialist_states).map_err(IntegrationError::InvalidSpecialistState)?;
+        }
         let radiation_len = self.radiation.state_len();
         let mut y = Vec::with_capacity(13 + radiation_len + 2);
         y.extend_from_slice(&self.state.position_ned);
@@ -538,6 +562,8 @@ impl DestroyerSixDofPlant {
             y.push(self.state.actuator_states.control_surface_angles_rad[0]);
             y.push(self.state.actuator_states.propeller_shaft_speed_rad_s[0]);
         }
+        let specialist_offset = y.len();
+        y.extend_from_slice(&self.state.specialist_states);
 
         // 环境过程与积分状态在本次推进成功后一起写入。
         let mut env_state = self.environment_state.clone();
@@ -559,6 +585,7 @@ impl DestroyerSixDofPlant {
             let am = self.am;
             let rp = self.rp;
             let hydrostatic_hull = self.hydrostatic_hull.as_deref();
+            let sloshing = self.sloshing.as_deref();
             let mmg = self.mmg;
             let low = self.low;
             let mapped_hull = self.mapped_hull.as_ref();
@@ -573,7 +600,7 @@ impl DestroyerSixDofPlant {
             let motor_torque_frozen = motor_torque_actual_nm;
             let actuator_system = self.actuator_system.as_ref();
             let reference_rates = actuator_system.zip(physical_commands).map(|(system, command)| {
-                system.reference_rates(&y[13 + radiation_len..], command, substep_dt)
+                system.reference_rates(&y[13 + radiation_len..specialist_offset], command, substep_dt)
             });
             // 真实环境场物理时钟推进（P2-2：按子步时间；先释放可变借用）。
             if let Some(env) = env_state.as_mut() {
@@ -601,7 +628,7 @@ impl DestroyerSixDofPlant {
                     (actuator_system, physical_commands)
                 {
                     let evaluation = system.derivatives(
-                        &y_slice[13 + radiation_len..], &mut dy[13 + radiation_len..], command,
+                        &y_slice[13 + radiation_len..specialist_offset], &mut dy[13 + radiation_len..specialist_offset], command,
                         reference_rates.as_ref().expect("执行器组参考速率已初始化"),
                         &LocalWater { time_s: t_sub, position_ned: position, quaternion: quat,
                             relative_velocity: hull_nu, environment: real_env },
@@ -641,11 +668,21 @@ impl DestroyerSixDofPlant {
                     || restoring_force(&rp, delta_eta),
                     |hull| hull.evaluate(&state, rb.mass_kg, SEA_WATER_DENSITY).restoring_body,
                 );
-                let out = dynamics_step_with_restoring(
+                let mut out = dynamics_step_with_restoring(
                     &state, &rb, &am,
                     &current_field_local,
                     tau_radiation, restoring, &external,
                 );
+                if let Some(model) = sloshing {
+                    let coupled = match model.evaluate(&state, &y_slice[specialist_offset..], out.nu_dot) {
+                        Ok(evaluation) => evaluation,
+                        Err(_) => { dy.fill(f64::NAN); return; },
+                    };
+                    dy[specialist_offset..].copy_from_slice(&coupled.modal_derivatives);
+                    for axis in 0..6 { external.tau_special[axis] += coupled.reaction_body[axis]; }
+                    out = dynamics_step_with_restoring(&state, &rb, &am, &current_field_local,
+                        tau_radiation, restoring, &external);
+                }
                 dy[0] = out.position_dot_ned[0];
                 dy[1] = out.position_dot_ned[1];
                 dy[2] = out.position_dot_ned[2];
@@ -661,58 +698,56 @@ impl DestroyerSixDofPlant {
 
             super::integrator::rk4_step(time, &mut y, substep_dt, derivs)?;
             if let Some(system) = &self.actuator_system {
-                system.enforce_motor_limits(&mut y[13 + radiation_len..])?;
+                system.enforce_motor_limits(&mut y[13 + radiation_len..specialist_offset])?;
             }
             time += substep_dt;
         }
-        self.sim_time_s = self.sim_time_s + dt;
-        self.environment_state = env_state;
-        self.motor_torque_actual_nm = motor_torque_actual_nm;
-
-        self.state.position_ned = [y[0], y[1], y[2]];
-        self.state.quaternion = normalize_quaternion([y[3], y[4], y[5], y[6]]);
-        self.state.body_velocity.copy_from_slice(&y[7..13]);
-        self.state.radiation_states.copy_from_slice(&y[13..13 + radiation_len]);
+        let final_time_s = self.sim_time_s + dt;
+        let mut final_state = self.state.clone();
+        final_state.position_ned = [y[0], y[1], y[2]];
+        final_state.quaternion = normalize_quaternion([y[3], y[4], y[5], y[6]]);
+        final_state.body_velocity.copy_from_slice(&y[7..13]);
+        final_state.radiation_states.copy_from_slice(&y[13..13 + radiation_len]);
+        final_state.specialist_states.copy_from_slice(&y[specialist_offset..]);
         if let Some(system) = &self.actuator_system {
-            self.state.actuator_states = system.decode_state(&y[13 + radiation_len..]);
-            self.motor_torque_actual_nm = self.state.actuator_states.motor_torques_nm.first().copied().unwrap_or(0.0);
+            final_state.actuator_states = system.decode_state(&y[13 + radiation_len..specialist_offset]);
+            motor_torque_actual_nm = final_state.actuator_states.motor_torques_nm.first().copied().unwrap_or(0.0);
         } else {
-            self.state.actuator_states.control_surface_angles_rad[0] = y[13 + radiation_len];
-            self.state.actuator_states.propeller_shaft_speed_rad_s[0] =
+            final_state.actuator_states.control_surface_angles_rad[0] = y[13 + radiation_len];
+            final_state.actuator_states.propeller_shaft_speed_rad_s[0] =
                 clamp_shaft_speed(&self.shaft, y[14 + radiation_len]);
         }
 
-        let final_state = self.state.clone();
         let environment = if self.environment_enabled {
             EnvironmentField::disturbance_equivalent()
         } else {
             EnvironmentField::default()
         };
         let (final_hull_nu, current_field, tau_wave_1, tau_wind) = resolve_env_loads(
-            self.sim_time_s,
+            final_time_s,
             &final_state.body_velocity,
             &final_state.quaternion,
             &environment,
-            self.environment_state.as_ref(),
+            env_state.as_ref(),
             self.wind_geometry.as_ref(),
         );
         let (thrust, _) = propeller_loads_at(
-            &self.prop, self.propeller_installation.as_ref(), self.environment_state.as_ref(),
-            self.sim_time_s, final_state.position_ned, final_state.quaternion, final_hull_nu,
+            &self.prop, self.propeller_installation.as_ref(), env_state.as_ref(),
+            final_time_s, final_state.position_ned, final_state.quaternion, final_hull_nu,
             final_state.actuator_states.propeller_shaft_speed_rad_s.first().copied().unwrap_or(0.0),
         );
         let physical_evaluation = self.actuator_system.as_ref().zip(physical_commands).map(|(system, command)| {
             let values = system.encode_state(&final_state.actuator_states);
             let mut rates = vec![0.0; values.len()];
             system.derivatives(&values, &mut rates, command, &vec![0.0; system.propulsors.len()],
-                &LocalWater { time_s: self.sim_time_s, position_ned: final_state.position_ned,
+                &LocalWater { time_s: final_time_s, position_ned: final_state.position_ned,
                     quaternion: final_state.quaternion, relative_velocity: final_hull_nu,
-                    environment: self.environment_state.as_ref() })
+                    environment: env_state.as_ref() })
         });
         let physical_loads = physical_evaluation.as_ref().map(|evaluation| evaluation.loads);
         if let Some(evaluation) = physical_evaluation {
-            self.state.actuator_states.motor_torques_nm = evaluation.motor_torques_nm;
-            self.motor_torque_actual_nm = self.state.actuator_states.motor_torques_nm.first().copied().unwrap_or(0.0);
+            final_state.actuator_states.motor_torques_nm = evaluation.motor_torques_nm;
+            motor_torque_actual_nm = final_state.actuator_states.motor_torques_nm.first().copied().unwrap_or(0.0);
         }
         let (mut external, tau_rad, delta_eta) = assemble_forces(
             &self.mmg, &self.low, &self.radiation, &self.config, &self.rudder_hydrodynamics,
@@ -728,10 +763,25 @@ impl DestroyerSixDofPlant {
             || restoring_force(&self.rp, delta_eta),
             |hull| hull.evaluate(&final_state, self.rb.mass_kg, SEA_WATER_DENSITY).restoring_body,
         );
-        self.last_output = Some(dynamics_step_with_restoring(
+        let mut final_output = dynamics_step_with_restoring(
             &final_state, &self.rb, &self.am,
             &current_field, tau_rad, restoring, &external,
-        ));
+        );
+        if let Some(model) = &self.sloshing {
+            let coupled = model.evaluate(&final_state, &final_state.specialist_states, final_output.nu_dot)
+                .map_err(IntegrationError::InvalidSpecialistState)?;
+            for axis in 0..6 { external.tau_special[axis] += coupled.reaction_body[axis]; }
+            final_output = dynamics_step_with_restoring(&final_state, &self.rb, &self.am,
+                &current_field, tau_rad, restoring, &external);
+        }
+        if let Some(index) = final_output.nu_dot.iter().position(|value| !value.is_finite()) {
+            return Err(IntegrationError::NonFiniteState { stage: "final-dynamics", index });
+        }
+        self.sim_time_s = final_time_s;
+        self.environment_state = env_state;
+        self.motor_torque_actual_nm = motor_torque_actual_nm;
+        self.state = final_state;
+        self.last_output = Some(final_output);
         Ok(())
     }
 
@@ -743,6 +793,11 @@ impl DestroyerSixDofPlant {
     pub fn restore_state(&mut self, mut state: TruthState) {
         if state.radiation_states.len() != self.radiation.state_len() {
             state.radiation_states = self.radiation.steady_state(state.body_velocity);
+        }
+        if let Some(model) = &self.sloshing {
+            if state.specialist_states.len() != model.state_len() {
+                state.specialist_states = vec![0.0; model.state_len()];
+            }
         }
         if state.actuator_states.control_surface_angles_rad.is_empty() {
             state.actuator_states.control_surface_angles_rad =

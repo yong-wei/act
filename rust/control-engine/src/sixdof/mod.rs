@@ -26,6 +26,7 @@ pub mod benchmark_s175;
 pub mod shear;
 pub mod hull_mmg;
 pub mod hydrostatics;
+pub mod coupled_sloshing;
 pub mod integrator;
 pub mod model_pack;
 pub mod radiation;

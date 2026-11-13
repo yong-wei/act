@@ -504,6 +504,7 @@ impl FleetSimulation {
             "timeS": self.time_s(), "physicsTicks": self.physics_ticks, "controllerTicks": self.controller_ticks,
             "paused": self.paused, "truth": self.plant.state(), "observer": self.observer,
             "input": self.input, "heldCommands": self.held_commands, "samples": self.last_samples,
+            "liquidCargo": self.plant.liquid_diagnostics()?,
         })).map_err(|error| error.to_string())
     }
 

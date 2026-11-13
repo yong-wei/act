@@ -53,6 +53,8 @@ pub struct PackGeometry {
     pub equilibrium_pitch_rad: f64,
     #[serde(default)]
     pub nonlinear_hydrostatics: Option<super::hydrostatics::HydrostaticHull>,
+    #[serde(default)]
+    pub liquid_tanks: Vec<super::coupled_sloshing::LiquidTank>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -161,6 +163,7 @@ pub enum PackError {
     GyrationRadiusOutOfBounds { axis: char, radius_m: f64, lpp: f64 },
     NonFiniteValue { field: &'static str },
     InvalidHydrostaticHull { reason: String },
+    InvalidLiquidTank { reason: String },
 }
 
 fn fnv1a(bytes: &[u8]) -> u64 {
@@ -294,6 +297,20 @@ pub fn load_model_pack(
         if !value.is_finite() || value <= 0.0 {
             return Err(PackError::NonFiniteValue { field });
         }
+    }
+
+    if !geometry.liquid_tanks.is_empty() {
+        let rigid = super::dynamics::RigidBodyParams {
+            mass_kg: geometry.displacement_mass_kg,
+            inertia_about_cg: [
+                [geometry.inertia_about_cg_kg_m2.ixx, 0.0, 0.0],
+                [0.0, geometry.inertia_about_cg_kg_m2.iyy, 0.0],
+                [0.0, 0.0, geometry.inertia_about_cg_kg_m2.izz],
+            ],
+        };
+        let mass = super::dynamics::mass_matrix(&rigid, &super::dynamics::AddedMassParams { a_inf: [[0.0; 6]; 6] });
+        super::coupled_sloshing::CoupledSloshing::new(&geometry.liquid_tanks, &rigid, mass)
+            .map_err(|reason| PackError::InvalidLiquidTank { reason })?;
     }
 
     // 内容哈希：四个数据文件规范化后链式 FNV（manifest 的 model_version 参与链头）。
