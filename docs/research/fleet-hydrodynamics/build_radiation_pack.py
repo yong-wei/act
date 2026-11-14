@@ -121,7 +121,7 @@ def main():
     provenance['base_generator_sha256'] = provenance['generator_sha256']
     provenance['generator_sha256'] = sha256(Path(__file__))
     provenance['radiation_fit_sha256'] = sha256(args.radiation_fit/'validation.json')
-    provenance['radiation_coefficient_producer_sha256'] = sha256(Path(__file__).with_name('fit_passive_radiation.py'))
+    provenance['radiation_coefficient_producer_sha256'] = validation['generator_sha256']
     provenance['parameter_unit_producer_sha256'] = sha256(Path(__file__).with_name('build_destroyer_pack.py'))
     provenance['radiation_error'] = {name: validation[name] for name in ['relative_a_error', 'relative_b_error']}
     provenance['entries'].extend(radiation_entries(parameters))

@@ -13,6 +13,18 @@ from scipy.optimize import minimize
 from build_destroyer_pack import sha256, write_json
 
 
+def source_to_body_transform(pitch):
+    """BEM全局x艏/y左/z上，转至声明纵倾处的船体FRD力与速度坐标。"""
+    if not np.isfinite(pitch):
+        raise ValueError('声明的静态纵倾无效')
+    cosine, sine = np.cos(pitch), np.sin(pitch)
+    body_to_ned = np.array([[cosine, 0, sine], [0, 1, 0], [-sine, 0, cosine]])
+    rotation = body_to_ned.T@np.diag([1.0, -1.0, -1.0])
+    transform = np.zeros((6, 6))
+    transform[:3, :3], transform[3:, 3:] = rotation, rotation
+    return transform
+
+
 def fit_block(omega, raw_a, raw_b, natural_start, damping_start, iterations, projected_iterations):
     count, dimension = len(natural_start), raw_a.shape[1]
     weights = 1/np.sqrt(omega)
@@ -142,7 +154,8 @@ def main():
         raise ValueError('拟合通道、频带或阶数/迭代设置无效')
     diagonal = np.array([geometry['displacement_mass_kg']]*3
         + [geometry['inertia_about_cg_kg_m2'][key] for key in ['ixx', 'iyy', 'izz']])
-    scale = np.array([1, -1, -1, 1, -1, -1])/np.sqrt(diagonal)
+    scale = 1/np.sqrt(diagonal)
+    transform = source_to_body_transform(geometry.get('equilibrium_pitch_rad', 0.0))
     sources, records, frequencies = [], [], set()
     for directory in args.first_order_dirs:
         provenance = json.loads((directory/'provenance.json').read_text())
@@ -165,8 +178,8 @@ def main():
             'provenance_sha256': sha256(directory/'provenance.json'), 'provenance': provenance})
     records.sort(key=lambda record: record[0])
     omega = np.asarray([record[0] for record in records])
-    raw_a = np.asarray([record[1] for record in records])*np.outer(scale, scale)
-    raw_b = np.asarray([record[2] for record in records])*np.outer(scale, scale)
+    raw_a = (transform@np.asarray([record[1] for record in records])@transform.T)*np.outer(scale, scale)
+    raw_b = (transform@np.asarray([record[2] for record in records])@transform.T)*np.outer(scale, scale)
     if len(omega) < 10 or not np.isfinite([raw_a, raw_b]).all():
         raise ValueError('拟合数据不足或包含非有限值')
     predicted_a, predicted_b = np.zeros_like(raw_a), np.zeros_like(raw_b)
@@ -209,6 +222,8 @@ def main():
         'generator_sha256': generator_sha, 'geometry_sha256': geometry_sha, 'initialization_sha256': initialization_sha,
         'status': 'computed', 'sources': sources, 'blocks': reports, 'projected_iterations': args.projected_iterations,
         'normalization': 'FRD congruence by inverse square root of rigid-body diagonal',
+        'equilibrium_pitch_rad': geometry.get('equilibrium_pitch_rad', 0.0),
+        'source_to_body_transform_six': transform.tolist(),
         'objective_weights': 'omega^-1/2, separate unit global norms of A and B in each symmetry block',
         'relative_a_error': float(np.linalg.norm(predicted_a-raw_a)/np.linalg.norm(raw_a)),
         'relative_b_error': float(np.linalg.norm(predicted_b-raw_b)/np.linalg.norm(raw_b)),
