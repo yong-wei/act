@@ -107,10 +107,10 @@ impl SloshingMode {
         -self.reaction_coupling * q_ddot
     }
 
-    /// 模态对自由液面高度轴的附加力矩（N·m，正号约定与反力同向）：
-    /// M = −c·z_p·q̈（等效作用高度 z_p 于液面下方）。
-    pub fn reaction_moment_about_surface_nm(&self, q_ddot: f64) -> f64 {
-        -self.reaction_coupling * self.action_height_m * q_ddot
+    /// 对自由液面中点的附加力矩，包含重力一阶矩和动态压力贡献。
+    /// M = c·g·q − c·z_p·q̈，位移q使用壁面液位幅值。
+    pub fn reaction_moment_about_surface_nm(&self, q: f64, q_ddot: f64) -> f64 {
+        self.reaction_coupling * (9.81*q-self.action_height_m*q_ddot)
     }
 }
 
@@ -171,12 +171,12 @@ impl TankSloshing {
 
     /// 附加力/力矩（横、纵两方向反力 + 各自对液面中点力矩）：
     /// 返回 [F_trans, F_long, M_trans, M_long]。
-    pub fn reactions(&self, qddot_t: f64, qddot_l: f64) -> [f64; 4] {
+    pub fn reactions(&self, q_t: f64, qddot_t: f64, q_l: f64, qddot_l: f64) -> [f64; 4] {
         [
             self.transverse.reaction_force_n(qddot_t),
             self.longitudinal.reaction_force_n(qddot_l),
-            self.transverse.reaction_moment_about_surface_nm(qddot_t),
-            self.longitudinal.reaction_moment_about_surface_nm(qddot_l),
+            self.transverse.reaction_moment_about_surface_nm(q_t, qddot_t),
+            self.longitudinal.reaction_moment_about_surface_nm(q_l, qddot_l),
         ]
     }
 }
@@ -237,18 +237,16 @@ mod tests {
 
     #[test]
     fn static_tilt_covers_96_over_pi4_of_free_surface_moment() {
-        // 恒定横加速度 a_t：稳态 q_ss=−Γa/ω²；反力矩（静倾部分经
-        // 恢复项折算）与精确平面倾斜自由液面矩之比 = 96/π⁴。
-        // 静稳态力矩：M_static = c·Γ·a_t/ω²·g·(投影系数)... 直接推导：
-        // 稳态下壁面分布的等效恢复力矩 = c·z_p·0（q̈=0），静倾斜力矩
-        // 由恢复项承载：M = m*·ω²·q_ss·z_p_eff。以液面中点矩推导值
-        // M_1 = 8ρL⊥a_t/k⁴b⁴·b³... 用一阶投影精确比：
-        let m = SloshingMode::new(38.0, 44.0, 22.1, 450.0, 0.03).unwrap();
+        let tank = TankSloshing::lng(0.85).unwrap();
+        let m = tank.transverse;
         let a_t = 0.5f64;
         // 一阶模态静力矩（关于液面中点，由平面倾斜一阶投影）：
         let q_ss = -m.forcing_gamma * a_t / (m.omega_n * m.omega_n);
-        // 平面倾斜一阶投影矩 M_1 = ρgL⊥·q_ss·∫sin(kx)·x dx = ρgL⊥q_ss·2/k²。
-        let m1 = m.density * m.span_m * 9.81 * q_ss * 2.0 / (m.k * m.k);
+        let (_, acceleration) = m.step_derivatives(q_ss, 0.0, a_t);
+        let reactions = tank.reactions(q_ss, acceleration, 0.0, 0.0);
+        let m1 = reactions[2];
+        assert!(reactions[0].abs() < 1e-6 && reactions[1] == 0.0 && reactions[3] == 0.0);
+        assert_eq!(m1, m.reaction_moment_about_surface_nm(q_ss, acceleration));
         // 精确自由液面矩 M_exact = ρ·a_t·b³L⊥/12。
         let b = std::f64::consts::PI / m.k;
         let m_exact = m.density * a_t * b.powi(3) * m.span_m / 12.0;
@@ -259,6 +257,18 @@ mod tests {
             "一阶承载比：{ratio} vs 96/π⁴"
         );
         assert!(m1 * a_t < 0.0, "静倾力矩应抵抗横加速度（恢复方向）");
+    }
+
+    #[test]
+    fn dynamic_reaction_and_static_liquid_moment_share_the_public_two_axis_interface() {
+        let tank = TankSloshing::lng(0.7).unwrap();
+        let reactions = tank.reactions(0.2, 0.03, -0.1, -0.04);
+        for (index, mode, q, acceleration) in [(0, tank.transverse, 0.2, 0.03), (1, tank.longitudinal, -0.1, -0.04)] {
+            assert_eq!(reactions[index], -mode.reaction_coupling*acceleration);
+            let integral_moment = 2.0*mode.density*mode.span_m*9.81*q/mode.k.powi(2);
+            let dynamic_moment = -mode.reaction_coupling*mode.action_height_m*acceleration;
+            assert!((reactions[index+2]-integral_moment-dynamic_moment).abs() < 1e-8);
+        }
     }
 
     #[test]
