@@ -74,6 +74,8 @@ pub struct SessionConfiguration {
     pub environment_switches: Option<EnvironmentSwitches>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub second_order_enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub propulsion_power_budget_w: Option<f64>,
     pub initial_heading_deg: f64,
     pub initial_position_ned: [f64; 3],
     pub heading_bias_fault: bool,
@@ -95,6 +97,7 @@ impl Default for SessionConfiguration {
             environment: EnvironmentPreset::P0,
             environment_switches: None,
             second_order_enabled: None,
+            propulsion_power_budget_w: None,
             initial_heading_deg: 0.0,
             initial_position_ned: [0.0; 3],
             heading_bias_fault: false,
@@ -236,9 +239,24 @@ impl FleetSimulation {
                 return Err("LNG靠泊的停止线或初始船艏距离无效".into());
             }
         }
-        let pack = embedded_vessel_pack_with_loading(&configuration.vessel,
+        let mut pack = embedded_vessel_pack_with_loading(&configuration.vessel,
             &configuration.parameter_version, configuration.loading_ratio)
             .map_err(|error| format!("参数包无效 {error:?}"))?;
+        if let Some(budget) = configuration.propulsion_power_budget_w {
+            let super::model_pack::PackActuators::Physical { system, .. } = &mut pack.actuators else {
+                return Err("当前设备没有可配置的推进功率预算".into());
+            };
+            let maximum = system.max_positive_motor_power_w.ok_or("当前设备没有可配置的推进功率预算")?;
+            if !budget.is_finite() || budget <= 0.0 || budget > maximum {
+                return Err("推进功率预算超出冻结设备能力".into());
+            }
+            if budget != maximum {
+                system.max_positive_motor_power_w = Some(budget);
+                let mut identity = pack.content_hash.as_bytes().to_vec();
+                identity.extend(budget.to_le_bytes());
+                pack.content_hash = format!("fnv1a-{:016x}", super::model_pack::fnv1a(&identity));
+            }
+        }
         let cg_height = pack.geometry.center_of_mass_waterline_z_up_m
             .ok_or("参数包缺少重心高度")?[2];
         let installations =
@@ -726,6 +744,16 @@ impl FleetSimulation {
                 "meanForwardSpeedMps": binding.mean_forward_speed_mps,
                 "firstOrderMetadataHash": binding.first_order_metadata_fnv1a64,
                 "fullDifferenceMetadataHash": binding.full_difference_metadata_fnv1a64,
+            });
+        }
+        if let Some(budget) = self.plant.actuator_system().and_then(|system| system.max_positive_motor_power_w) {
+            let state = &self.plant.state().actuator_states;
+            let power: Vec<_> = state.motor_torques_nm.iter().zip(&state.propeller_shaft_speed_rad_s)
+                .map(|(torque, omega)| torque * omega).collect();
+            frame["propulsionPower"] = serde_json::json!({
+                "budgetW": budget, "shaftMechanicalPowerW": power,
+                "positiveMechanicalPowerW": power.iter().map(|value| value.max(0.0)).sum::<f64>(),
+                "positiveMechanicalWorkJ": state.positive_motor_work_j.iter().sum::<f64>(),
             });
         }
         serde_json::to_string(&frame).map_err(|error| error.to_string())

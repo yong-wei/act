@@ -20,6 +20,7 @@ export interface VesselSessionConfiguration {
   environment?: 'P0' | 'W1' | 'W2' | 'C1' | 'C2' | 'V1' | 'V2' | 'V3' | 'E1' | 'E2';
   environmentSwitches?: { wind_force_enabled: boolean; wave_enabled: boolean; current_enabled: boolean };
   secondOrderEnabled?: boolean;
+  propulsionPowerBudgetW?: number;
   initialHeadingDeg?: number;
   initialPositionNed?: [number, number, number];
   headingBiasFault?: boolean;
@@ -168,6 +169,12 @@ export interface VesselSessionFrame {
     fullDifferenceMetadataHash: string | null;
   };
   longitudinalController?: VesselSpeedControlDiagnostics;
+  propulsionPower?: {
+    budgetW: number;
+    shaftMechanicalPowerW: number[];
+    positiveMechanicalPowerW: number;
+    positiveMechanicalWorkJ: number;
+  };
   berth?: {
     bowClearanceM: number;
     northGroundSpeedMps: number;

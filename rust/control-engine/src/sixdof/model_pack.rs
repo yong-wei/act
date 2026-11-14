@@ -471,6 +471,13 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/semisub-981/v4/actuators.json"),
             include_str!("../../model-data/semisub-981/v4/provenance.json"),
         ),
+        ("semisub-981", "research-nominal-v5") => load_model_pack(
+            include_str!("../../model-data/semisub-981/v5/manifest.json"),
+            include_str!("../../model-data/semisub-981/v5/geometry.json"),
+            include_str!("../../model-data/semisub-981/v5/maneuvering.json"),
+            include_str!("../../model-data/semisub-981/v5/actuators.json"),
+            include_str!("../../model-data/semisub-981/v5/provenance.json"),
+        ),
         ("cruise-adora", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/cruise-adora/v1/manifest.json"),
             include_str!("../../model-data/cruise-adora/v1/geometry.json"),

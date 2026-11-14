@@ -122,3 +122,13 @@ rtk proxy node docs/research/fleet-hydrodynamics/validate_wave_session.mjs --fir
 ```
 
 上述程序覆盖P0/V1/V2/V3/E1/E2，结果保存在`semisub-wave-session-validation.json`。单Node进程计时覆盖数组解析、原生积分和恢复，浏览器页面与生产容量继续单独验收。
+
+## 981推进功率预算
+
+981 v5把八台4.6MW设备的安装功率与32MW系统正机械功预算分别冻结。`propulsionPowerBudgetW`允许在新会话选择较低预算，实际电机扭矩、轴速积分和功积分共同执行该约束。单台800kN教学上限叠加于实际四象限桨载荷。参数来源及上限写在新包的provenance中。
+
+```bash
+rtk proxy node docs/research/fleet-hydrodynamics/validate_semisub_power_session.mjs --output /tmp/semisub-power-session-validation.json
+```
+
+`semisub-power-session-validation.json`记录8/16/32MW各45秒实际运行。前两者实际触发共享预算，32MW场景峰值23.45MW，原额定扭矩和当前来流共同限制可达出力。实际功—轴动能相对残差低于4e−12。DP和顺序凸分配继续按既定专项实施。

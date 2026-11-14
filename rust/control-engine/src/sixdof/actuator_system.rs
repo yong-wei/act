@@ -27,6 +27,9 @@ pub struct Propulsor {
     pub reference_slew_rad_s2: f64,
     /// 轴速伺服的T级误差响应时间，前馈由同一桨图谱计算。
     pub speed_control_time_s: f64,
+    /// 教学设备的额外推力上限，基础出力继续由实际四象限桨载荷产生。
+    #[serde(default)]
+    pub max_thrust_n: Option<f64>,
     pub azimuth: Option<AzimuthServo>,
 }
 
@@ -74,6 +77,8 @@ pub struct ControlSurface {
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct ActuatorSystem {
     pub water_density_kg_m3: f64,
+    #[serde(default)]
+    pub max_positive_motor_power_w: Option<f64>,
     pub propulsors: Vec<Propulsor>,
     pub surfaces: Vec<ControlSurface>,
 }
@@ -201,6 +206,9 @@ impl ActuatorSystem {
         if !self.water_density_kg_m3.is_finite() || self.water_density_kg_m3 <= 0.0 {
             return Err("执行器水密度须为有限正值".into());
         }
+        if self.max_positive_motor_power_w.is_some_and(|value| !value.is_finite() || value <= 0.0) {
+            return Err("推进系统正机械功率预算须为有限正值".into());
+        }
         for propulsor in &self.propulsors {
             propulsor.installation.validate()?;
             let values = [propulsor.diameter_m, propulsor.max_power_w, propulsor.rated_speed_rad_s,
@@ -208,6 +216,9 @@ impl ActuatorSystem {
                 propulsor.reference_slew_rad_s2, propulsor.speed_control_time_s];
             if values.iter().any(|value| !value.is_finite() || *value <= 0.0) {
                 return Err("桨轴参数须为有限正值".into());
+            }
+            if propulsor.max_thrust_n.is_some_and(|value| !value.is_finite() || value <= 0.0) {
+                return Err("推进器额外推力上限须为有限正值".into());
             }
             if let Some(azimuth) = &propulsor.azimuth {
                 validate_servo(&azimuth.servo)?;
@@ -263,6 +274,12 @@ impl ActuatorSystem {
             || required.iter().chain(&optional).any(|(values, _)| values.iter().any(|value| !value.is_finite()))
         {
             return Err("执行器状态维度或数值无效".into());
+        }
+        if self.max_positive_motor_power_w.is_some_and(|budget| {
+            state.motor_torques_nm.iter().zip(&state.propeller_shaft_speed_rad_s)
+                .map(|(torque, omega)| (torque * omega).max(0.0)).sum::<f64>() > budget * (1.0 + 1e-10)
+        }) {
+            return Err("实际轴系正机械功率超过系统预算".into());
         }
         for (index, model) in self.propulsors.iter().enumerate() {
             if state.shaft_reference_speed_rad_s[index].abs() > model.rated_speed_rad_s + 1e-9
@@ -329,11 +346,12 @@ impl ActuatorSystem {
 
     pub fn decode_state(&self, values: &[f64]) -> ActuatorStates {
         let mut state = ActuatorStates::default();
-        for (index, model) in self.propulsors.iter().enumerate() {
+        let motor_torques = self.delivered_motor_torques(values);
+        for index in 0..self.propulsors.len() {
             let offset = SHAFT_STATE_LEN * index;
             let omega = values[offset];
             state.propeller_shaft_speed_rad_s.push(omega);
-            state.motor_torques_nm.push(model.limited_motor_torque_nm(values[offset + 1], omega));
+            state.motor_torques_nm.push(motor_torques[index]);
             state.motor_torque_demand_nm.push(values[offset + 1]);
             state.shaft_reference_speed_rad_s.push(values[offset + 2]);
             state.azimuth_angles_rad.push(values[offset + 3]);
@@ -348,6 +366,23 @@ impl ActuatorSystem {
             state.control_surface_work_j.push(values[surface_offset + 2 * index + 1]);
         }
         state
+    }
+
+    /// 正功率共享同一预算，负机械功保持独立，轴系和功积分使用同一实际扭矩。
+    fn delivered_motor_torques(&self, state: &[f64]) -> Vec<f64> {
+        let mut torques: Vec<_> = self.propulsors.iter().enumerate().map(|(index, model)| {
+            let offset = SHAFT_STATE_LEN * index;
+            model.limited_motor_torque_nm(state[offset + 1], state[offset])
+        }).collect();
+        if let Some(budget) = self.max_positive_motor_power_w {
+            let positive: f64 = torques.iter().enumerate()
+                .map(|(index, torque)| (torque * state[SHAFT_STATE_LEN * index]).max(0.0)).sum();
+            let factor = (budget / positive.max(budget)).min(1.0);
+            for (index, torque) in torques.iter_mut().enumerate() {
+                if *torque * state[SHAFT_STATE_LEN * index] > 0.0 { *torque *= factor; }
+            }
+        }
+        torques
     }
 
     /// 一个物理细步内轴速参考按固定斜率变化，不依赖渲染帧。
@@ -370,6 +405,7 @@ impl ActuatorSystem {
         water: &LocalWater<'_>,
     ) -> ActuatorEvaluation {
         let mut total = [0.0; 6];
+        let delivered_motors = self.delivered_motor_torques(state);
         let mut motor_torques_nm = Vec::with_capacity(self.propulsors.len());
         let mut thrusts = Vec::with_capacity(self.propulsors.len());
         let mut advance_velocities = Vec::with_capacity(self.propulsors.len());
@@ -389,10 +425,11 @@ impl ActuatorSystem {
             // 通气先验使用有界CT负载指标，轴停转时仍保持四象限水动力。
             let loading = four_quadrant_coefficients(beta).0;
             let factors = ventilation_factors_for_diameter(model.diameter_m, immersion, loading);
-            let thrust = thrust_wet * factors[0];
+            let raw_thrust = thrust_wet * factors[0];
+            let thrust = model.max_thrust_n.map_or(raw_thrust, |limit| raw_thrust.clamp(-limit, limit));
             let torque = torque_wet * factors[1];
             let friction = model.friction_torque_nm(omega);
-            let mut motor = model.limited_motor_torque_nm(state[offset + 1], omega);
+            let mut motor = delivered_motors[index];
             // 电流约束在固定物理步内限制主动加速，轴速由同一扭矩继续积分。
             // 流体驱动的不可控超速交由步进器报告不可行，轴动能保持可对账。
             let max_acceleration = (model.rated_speed_rad_s - omega) / super::integrator::NOMINAL_DT;
