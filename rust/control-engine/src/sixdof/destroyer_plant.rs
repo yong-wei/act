@@ -465,6 +465,16 @@ impl DestroyerSixDofPlant {
         super::dynamics::mass_matrix(&self.rb, &self.am)
     }
 
+    /// 停止线与当前船体最前端的有符号北向距离，越线后保留负值。
+    pub fn bow_clearance_m(&self, stop_line_north_m: f64) -> Option<f64> {
+        let hull = self.hydrostatic_hull.as_ref()?;
+        let rotation = super::state::rotation_matrix(self.state.quaternion);
+        let foremost = hull.vertices_body_m.iter().map(|point| {
+            self.state.position_ned[0]+(0..3).map(|axis| rotation[0][axis]*point[axis]).sum::<f64>()
+        }).reduce(f64::max)?;
+        Some(stop_line_north_m-foremost)
+    }
+
     pub fn configure_liquid_tanks(&mut self, tanks: &[super::coupled_sloshing::LiquidTank]) -> Result<(), String> {
         let model = super::coupled_sloshing::CoupledSloshing::new(tanks, &self.rb, self.physical_mass_matrix())?;
         self.state.specialist_states = vec![0.0; model.state_len()];

@@ -1,0 +1,104 @@
+{
+  "schema": "act.lng-speed-session-validation.v1",
+  "status": "passed",
+  "generator_sha256": "6f2b83181ebc957e2a59f77fe6a1a30760625ec1a0336ec7615ca8d6564b5dd1",
+  "wasm_sha256": "53894665b0ba87e0b99c0b2af6dc23e9919c8d1c31a8c02222fb6c47b9e20399",
+  "configuration": {
+    "vessel": "lng-changheng",
+    "parameterVersion": "research-nominal-v1",
+    "noiseLevel": "N0"
+  },
+  "control": [
+    {
+      "added_delay_s": 0,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "first_request_tick": 0,
+      "first_applied_tick": 0,
+      "command_transport_delay_ticks": 0,
+      "final_body_speed_mps": 3.991849753719837,
+      "shaft_command_rad_s": -0.8207724808834882,
+      "shaft_speed_rad_s": 4.478432370655967,
+      "controller": {
+        "appliedRpm": -7.83779984918432,
+        "errorMps": -0.9406513097797591,
+        "feedbackAvailable": true,
+        "feedbackMps": 3.940651309779759,
+        "filteredMeasurementMps": 3.993976959423086,
+        "gains": {
+          "kpRpmPerMps": 56.60377358490565,
+          "lambdaS": 33.333333333333336,
+          "tiS": 100,
+          "trackingTimeS": 20
+        },
+        "integralFrozen": false,
+        "integralRateRpmPerS": -0.5324441376111843,
+        "integralRpm": -4.308144536843632,
+        "modelWithDelayDeltaMps": -0.16069902937873015,
+        "modelWithoutDelayDeltaMps": -0.21402467902205682,
+        "requestedRpm": -7.83779984918432,
+        "ticks": 160,
+        "unsaturatedRpm": -7.83779984918432
+      }
+    },
+    {
+      "added_delay_s": 5,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "first_request_tick": 0,
+      "first_applied_tick": 100,
+      "command_transport_delay_ticks": 100,
+      "final_body_speed_mps": 3.999294548298804,
+      "shaft_command_rad_s": -0.4171459922991721,
+      "shaft_speed_rad_s": 5.032024046147791,
+      "controller": {
+        "appliedRpm": -3.983450799923217,
+        "errorMps": -0.8243543610349788,
+        "feedbackAvailable": true,
+        "feedbackMps": 3.824354361034979,
+        "filteredMeasurementMps": 3.999714766888587,
+        "gains": {
+          "kpRpmPerMps": 56.60377358490565,
+          "lambdaS": 33.333333333333336,
+          "tiS": 100,
+          "trackingTimeS": 20
+        },
+        "integralFrozen": false,
+        "integralRateRpmPerS": -0.46661567605753507,
+        "integralRpm": -4.062320248309567,
+        "modelWithDelayDeltaMps": -0.026540599903461883,
+        "modelWithoutDelayDeltaMps": -0.20190100575706976,
+        "requestedRpm": -1.0124208283630187,
+        "ticks": 160,
+        "unsaturatedRpm": -1.0124208283630187
+      }
+    }
+  ],
+  "berth": [
+    {
+      "initial_bow_distance_m": 0.05,
+      "actual_time_s": 0.016666666666666666,
+      "actual_physics_ticks": 2,
+      "termination": {
+        "bowClearanceM": -0.016666669269483236,
+        "reason": "stop_line_crossed",
+        "timeS": 0.016666666666666666
+      },
+      "restored_terminal_bytes_identical": true,
+      "elapsed_ms": 7.826459
+    },
+    {
+      "initial_bow_distance_m": 10000,
+      "actual_time_s": 1200,
+      "actual_physics_ticks": 144000,
+      "termination": {
+        "bowClearanceM": 5199.999913634199,
+        "reason": "time_limit",
+        "timeS": 1200
+      },
+      "restored_terminal_bytes_identical": true,
+      "elapsed_ms": 31204.364875
+    }
+  ],
+  "scope": "Actual WASM session and 120Hz physical integration. The local FOPDT is a test controller fixture."
+}

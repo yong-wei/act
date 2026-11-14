@@ -13,6 +13,7 @@ export interface VesselSessionConfiguration {
   vessel?: string;
   parameterVersion?: string;
   loadingRatio?: number;
+  berth?: { stopLineNorthM: number; initialBowDistanceM: number };
   seed?: number;
   noiseLevel?: 'N0' | 'N1' | 'N2';
   environment?: 'P0' | 'W1' | 'W2' | 'C1' | 'C2' | 'V1' | 'V2' | 'V3' | 'E1' | 'E2';
@@ -51,6 +52,39 @@ export interface VesselSessionInput {
   feedback: 'measurement' | 'estimate';
   actuators: VesselActuatorCommands;
   derivativeFilterTauS?: number;
+  longitudinal?: VesselSpeedPiInput;
+}
+
+export interface VesselSpeedPiInput {
+  localModel: {
+    structure: { kind: 'fopdt'; k: number; t_s: number; delay_s: number };
+    speedMps: number;
+    shaftReferenceRpm: number;
+  };
+  referenceMps: number;
+  kpMultiplier: number;
+  tiMultiplier: number;
+  antiWindup: boolean;
+  smithEnabled: boolean;
+  filterTauS: number;
+  additionalCommandDelayS: 0 | 5;
+}
+
+export interface VesselSpeedControlDiagnostics {
+  ticks: number;
+  gains: { kpRpmPerMps: number; tiS: number; lambdaS: number; trackingTimeS: number };
+  filteredMeasurementMps: number | null;
+  feedbackMps: number | null;
+  modelWithoutDelayDeltaMps: number;
+  modelWithDelayDeltaMps: number;
+  errorMps: number;
+  integralRpm: number;
+  integralRateRpmPerS: number;
+  unsaturatedRpm: number;
+  requestedRpm: number;
+  appliedRpm: number;
+  feedbackAvailable: boolean;
+  integralFrozen: boolean;
 }
 
 export interface VesselActuatorState {
@@ -120,6 +154,16 @@ export interface VesselSessionFrame {
   };
   input: VesselSessionInput;
   heldCommands: VesselActuatorCommands;
+  longitudinalController?: VesselSpeedControlDiagnostics;
+  berth?: {
+    bowClearanceM: number;
+    northGroundSpeedMps: number;
+    termination: {
+      reason: 'stop_line_crossed' | 'time_limit';
+      timeS: number;
+      bowClearanceM: number;
+    } | null;
+  };
   samples: VesselObservedSample[];
   liquidCargo: {
     within_small_amplitude: boolean;

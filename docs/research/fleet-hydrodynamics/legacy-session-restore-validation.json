@@ -5,7 +5,7 @@
   "fixture_manifest_sha256": "2ea0ec3f0c547e8d831ebc6cfaadc9a5e7eb39c02ff8160afd4409d1bad0785d",
   "source_fixture_revision": "ae293273fe",
   "source_fixture_wasm_sha256": "a41bef345b00dca385a30527f1a191d63129b22ae09da5aef7a8e4e1b2e8a50e",
-  "restored_wasm_sha256": "f6f5b4ad32e6fb5c709b1aa91c094cc28ae0eb1f9a0a4c28f9281a040bc0d2a6",
+  "restored_wasm_sha256": "53894665b0ba87e0b99c0b2af6dc23e9919c8d1c31a8c02222fb6c47b9e20399",
   "restored_model_version": "sixdof-session-v1",
   "future_seconds": 1,
   "future_render_frames": 60,

@@ -37,6 +37,7 @@ pub mod sensor;
 pub mod wave;
 pub mod wind;
 pub mod vessel_wind;
+pub mod lng_speed_control;
 pub mod state;
 pub mod student_model;
 pub mod tank_sloshing;

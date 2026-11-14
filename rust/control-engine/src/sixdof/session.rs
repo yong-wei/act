@@ -1,6 +1,6 @@
 //! 常驻物理状态、采样队列、观测器和20Hz控制时钟。
 
-use super::actuator_system::{ActuatorCommands, LocalWater, ShaftCommand, SurfaceCommand};
+use super::actuator_system::{ActuatorCommands, ActuatorSystem, LocalWater, ShaftCommand, SurfaceCommand};
 use super::control_law::{
     DEFAULT_DERIVATIVE_FILTER_TAU_S, HeadingControlMode, HeadingFeedbackController,
     HeadingPidGains, command_rudder_deg,
@@ -11,6 +11,7 @@ use super::instrumentation::{
     ObservationTruth, ObservedSample, SensorInstallations, SensorSignal, SensorSuite,
 };
 use super::integrator::NOMINAL_DT;
+use super::lng_speed_control::{LngSpeedController, SpeedPiInput};
 use super::model_pack::embedded_vessel_pack_with_loading;
 use super::passive_observer::{PassiveObserver, PassiveObserverParameters, wrap_pi};
 use super::sensor::NoiseLevel;
@@ -21,6 +22,25 @@ use serde::{Deserialize, Serialize};
 
 const SESSION_SCHEMA: &str = "act.vessel-session.v1";
 const CHECKPOINT_SCHEMA_V2: &str = "act.vessel-session.v2";
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BerthConfiguration {
+    pub stop_line_north_m: f64,
+    pub initial_bow_distance_m: f64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum BerthTerminationReason { StopLineCrossed, TimeLimit }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct BerthTermination {
+    reason: BerthTerminationReason,
+    time_s: f64,
+    bow_clearance_m: f64,
+}
 
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 pub enum EnvironmentPreset {
@@ -44,6 +64,8 @@ pub struct SessionConfiguration {
     pub parameter_version: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub loading_ratio: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub berth: Option<BerthConfiguration>,
     pub seed: u64,
     pub noise_level: NoiseLevel,
     pub environment: EnvironmentPreset,
@@ -62,6 +84,7 @@ impl Default for SessionConfiguration {
             vessel: "destroyer-055".into(),
             parameter_version: "research-nominal-v3".into(),
             loading_ratio: None,
+            berth: None,
             seed: 20261106,
             noise_level: NoiseLevel::N1,
             environment: EnvironmentPreset::P0,
@@ -94,6 +117,8 @@ pub struct SessionInput {
     pub actuators: ActuatorCommands,
     #[serde(default = "default_derivative_filter_tau_s")]
     pub derivative_filter_tau_s: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub longitudinal: Option<SpeedPiInput>,
 }
 
 fn default_derivative_filter_tau_s() -> f64 {
@@ -101,7 +126,7 @@ fn default_derivative_filter_tau_s() -> f64 {
 }
 
 impl SessionInput {
-    fn validate(&self, vessel: &str) -> Result<(), String> {
+    fn validate(&self, vessel: &str, system: &ActuatorSystem) -> Result<(), String> {
         if [
             self.pid.kp,
             self.pid.ki,
@@ -115,6 +140,12 @@ impl SessionInput {
         }
         if vessel == "semisub-981" && self.control_mode != HeadingControlMode::Manual {
             return Err("平台定位控制模板正在接线，当前可用手动推进器命令".into());
+        }
+        if let Some(input) = &self.longitudinal {
+            if vessel != "lng-changheng" || self.actuators.shafts.iter().any(|shaft| shaft.motor_torque_override_nm.is_some()) {
+                return Err("纵向PI仅用于LNG轴速控制，启用时需使用轴速命令".into());
+            }
+            input.validate(maximum_shaft_rpm(system)?)?;
         }
         Ok(())
     }
@@ -137,6 +168,10 @@ struct SessionCheckpoint {
     previous_error_deg: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     heading_controller: Option<HeadingFeedbackController>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    longitudinal_controller: Option<LngSpeedController>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    berth_termination: Option<BerthTermination>,
     physics_ticks: u64,
     controller_ticks: u64,
     accumulator_s: f64,
@@ -158,6 +193,8 @@ pub struct FleetSimulation {
     integral_deg_s: f64,
     previous_error_deg: f64,
     heading_controller: Option<HeadingFeedbackController>,
+    longitudinal_controller: Option<LngSpeedController>,
+    berth_termination: Option<BerthTermination>,
     physics_ticks: u64,
     controller_ticks: u64,
     accumulator_s: f64,
@@ -174,6 +211,13 @@ impl FleetSimulation {
                 .any(|value| !value.is_finite())
         {
             return Err("初始位置或航向无效".into());
+        }
+        if let Some(berth) = &configuration.berth {
+            if configuration.vessel != "lng-changheng" || !berth.stop_line_north_m.is_finite()
+                || !berth.initial_bow_distance_m.is_finite() || berth.initial_bow_distance_m <= 0.0
+            {
+                return Err("LNG靠泊的停止线或初始船艏距离无效".into());
+            }
         }
         let pack = embedded_vessel_pack_with_loading(&configuration.vessel,
             &configuration.parameter_version, configuration.loading_ratio)
@@ -207,6 +251,12 @@ impl FleetSimulation {
             (yaw / 2.0).cos() * half_pitch.sin(),
             (yaw / 2.0).sin() * half_pitch.cos()];
         plant.restore_state(state);
+        if let Some(berth) = &configuration.berth {
+            let clearance = plant.bow_clearance_m(berth.stop_line_north_m).ok_or("靠泊任务缺少完整船体几何")?;
+            let mut state = plant.state().clone();
+            state.position_ned[0] += clearance-berth.initial_bow_distance_m;
+            plant.restore_state(state);
+        }
         let system = plant.actuator_system().ok_or("缺少物理执行器组")?;
         let actuators = ActuatorCommands {
             shafts: plant
@@ -283,11 +333,14 @@ impl FleetSimulation {
                 feedback: FeedbackSource::Estimate,
                 actuators: actuators.clone(),
                 derivative_filter_tau_s: DEFAULT_DERIVATIVE_FILTER_TAU_S,
+                longitudinal: None,
             },
             held_commands: actuators,
             integral_deg_s: 0.0,
             previous_error_deg: 0.0,
             heading_controller: Some(HeadingFeedbackController::default()),
+            longitudinal_controller: None,
+            berth_termination: None,
             physics_ticks: 0,
             controller_ticks: 0,
             accumulator_s: 0.0,
@@ -330,6 +383,33 @@ impl FleetSimulation {
         self.controller_ticks += 1;
         let previous_commands = self.held_commands.clone();
         self.held_commands = self.input.actuators.clone();
+        self.update_heading_controller(&previous_commands)?;
+        self.update_longitudinal_controller(&previous_commands)
+    }
+
+    fn update_longitudinal_controller(&mut self, previous_commands: &ActuatorCommands) -> Result<(), String> {
+        let Some(input) = &self.input.longitudinal else {
+            self.longitudinal_controller = None;
+            return Ok(());
+        };
+        let system = self.plant.actuator_system().ok_or("缺少执行器组")?;
+        let maximum_rpm = maximum_shaft_rpm(system)?;
+        if self.longitudinal_controller.is_none() {
+            let initial_rpm = previous_commands.shafts.iter().map(|shaft| shaft.speed_reference_rad_s)
+                .sum::<f64>()/previous_commands.shafts.len() as f64*30.0/std::f64::consts::PI;
+            self.longitudinal_controller = Some(LngSpeedController::new(input,
+                initial_rpm.clamp(-maximum_rpm, maximum_rpm), maximum_rpm)?);
+        }
+        let measurement = self.sensors.valid_value(SensorSignal::SpeedLog, self.time_s());
+        let applied_rpm = self.longitudinal_controller.as_mut().expect("纵向控制已初始化")
+            .step(input, measurement, maximum_rpm)?;
+        for shaft in &mut self.held_commands.shafts {
+            shaft.speed_reference_rad_s = applied_rpm*std::f64::consts::PI/30.0;
+        }
+        Ok(())
+    }
+
+    fn update_heading_controller(&mut self, previous_commands: &ActuatorCommands) -> Result<(), String> {
         let heading = match self.input.feedback {
             FeedbackSource::Measurement => self
                 .sensors
@@ -520,6 +600,15 @@ impl FleetSimulation {
         self.observer
             .step(NOMINAL_DT, values, self.estimated_control_load())
             .map_err(|error| format!("观测步失败 {error:?}"))?;
+        if let Some(berth) = &self.configuration.berth {
+            let clearance = self.plant.bow_clearance_m(berth.stop_line_north_m).ok_or("靠泊任务缺少船体几何")?;
+            let reason = if clearance <= 0.0 { Some(BerthTerminationReason::StopLineCrossed) }
+                else if self.time_s() >= 1200.0 { Some(BerthTerminationReason::TimeLimit) } else { None };
+            if let Some(reason) = reason {
+                self.berth_termination = Some(BerthTermination { reason, time_s: self.time_s(), bow_clearance_m: clearance });
+                self.paused = true;
+            }
+        }
         Ok(())
     }
 
@@ -532,7 +621,7 @@ impl FleetSimulation {
     }
 
     pub fn set_paused(&mut self, paused: bool) {
-        self.paused = paused;
+        self.paused = paused || self.berth_termination.is_some();
     }
 
     pub fn advance(&mut self, seconds: f64, input: Option<SessionInput>) -> Result<(), String> {
@@ -540,11 +629,17 @@ impl FleetSimulation {
             return Err("帧推进量必须为0至1秒".into());
         }
         if let Some(input) = &input {
-            input.validate(&self.configuration.vessel)?;
-            self.plant
-                .actuator_system()
-                .ok_or("缺少执行器组")?
-                .validate_commands(&input.actuators)?;
+            let system = self.plant.actuator_system().ok_or("缺少执行器组")?;
+            input.validate(&self.configuration.vessel, system)?;
+            system.validate_commands(&input.actuators)?;
+            if let Some(longitudinal) = &input.longitudinal {
+                if self.heading_controller.is_none() {
+                    return Err("纵向PI需要当前版本的会话".into());
+                }
+                if let Some(controller) = &self.longitudinal_controller {
+                    controller.validate_input(longitudinal, maximum_shaft_rpm(system)?)?;
+                }
+            }
         }
         let checkpoint = self.clone();
         if let Some(input) = input {
@@ -561,6 +656,10 @@ impl FleetSimulation {
                 return Err(error);
             }
             self.accumulator_s = (self.accumulator_s - NOMINAL_DT).max(0.0);
+            if self.paused {
+                self.accumulator_s = 0.0;
+                break;
+            }
         }
         Ok(())
     }
@@ -577,6 +676,18 @@ impl FleetSimulation {
         if self.heading_controller.is_some() {
             frame["dynamics"] = serde_json::to_value(self.plant.last_dynamics())
                 .map_err(|error| error.to_string())?;
+        }
+        if let Some(controller) = &self.longitudinal_controller {
+            frame["longitudinalController"] = serde_json::to_value(controller.diagnostics())
+                .map_err(|error| error.to_string())?;
+        }
+        if let Some(berth) = &self.configuration.berth {
+            let rotation = super::state::rotation_matrix(self.plant.state().quaternion);
+            let north_speed = (0..3).map(|axis| rotation[0][axis]*self.plant.state().body_velocity[axis]).sum::<f64>();
+            frame["berth"] = serde_json::json!({
+                "bowClearanceM": self.plant.bow_clearance_m(berth.stop_line_north_m),
+                "northGroundSpeedMps": north_speed, "termination": self.berth_termination,
+            });
         }
         serde_json::to_string(&frame).map_err(|error| error.to_string())
     }
@@ -597,6 +708,8 @@ impl FleetSimulation {
             integral_deg_s: self.integral_deg_s,
             previous_error_deg: self.previous_error_deg,
             heading_controller: self.heading_controller.clone(),
+            longitudinal_controller: self.longitudinal_controller.clone(),
+            berth_termination: self.berth_termination.clone(),
             physics_ticks: self.physics_ticks,
             controller_ticks: self.controller_ticks,
             accumulator_s: self.accumulator_s,
@@ -626,9 +739,21 @@ impl FleetSimulation {
             return Err("恢复点的物理、控制或帧累计时钟不一致".into());
         }
         let system = simulation.plant.actuator_system().ok_or("缺少执行器组")?;
-        saved.input.validate(&saved.configuration.vessel)?;
+        saved.input.validate(&saved.configuration.vessel, system)?;
+        if saved.heading_controller.is_none() && (saved.input.longitudinal.is_some() || saved.configuration.berth.is_some()) {
+            return Err("纵向控制或靠泊恢复点需要当前版本的会话".into());
+        }
         if let Some(controller) = &saved.heading_controller {
             controller.validate_checkpoint(time_s)?;
+        }
+        if let Some(controller) = &saved.longitudinal_controller {
+            if saved.configuration.vessel != "lng-changheng" || saved.heading_controller.is_none() {
+                return Err("纵向控制恢复点的船型或会话版本不一致".into());
+            }
+            controller.validate_checkpoint(maximum_shaft_rpm(system)?, saved.controller_ticks)?;
+            if let Some(input) = &saved.input.longitudinal {
+                controller.validate_input(input, maximum_shaft_rpm(system)?)?;
+            }
         }
         system.validate_commands(&saved.input.actuators)?;
         system.validate_commands(&saved.held_commands)?;
@@ -640,6 +765,20 @@ impl FleetSimulation {
             return Err("恢复点的观测器配置与冻结模型不一致".into());
         }
         simulation.plant.restore_checkpoint(saved.plant)?;
+        match (&saved.configuration.berth, &saved.berth_termination) {
+            (Some(berth), termination) => {
+                let clearance = simulation.plant.bow_clearance_m(berth.stop_line_north_m).ok_or("靠泊恢复点缺少船体几何")?;
+                let expected_reason = if clearance <= 0.0 { Some(BerthTerminationReason::StopLineCrossed) }
+                    else if time_s >= 1200.0 { Some(BerthTerminationReason::TimeLimit) } else { None };
+                if termination.as_ref().map(|value| value.reason) != expected_reason
+                    || termination.as_ref().is_some_and(|value| !value.time_s.is_finite() || !value.bow_clearance_m.is_finite()
+                        || (value.time_s-time_s).abs() > 1e-8 || (value.bow_clearance_m-clearance).abs() > 1e-8
+                        || !saved.paused)
+                { return Err("靠泊恢复点的停止条件、船艏距离或时钟不一致".into()); }
+            }
+            (None, Some(_)) => return Err("靠泊终止记录缺少冻结任务".into()),
+            (None, None) => {}
+        }
         if (simulation.plant.sim_time_s() - time_s).abs() > 1e-8
             || &saved.previous_truth.state != simulation.plant.state()
         {
@@ -660,6 +799,8 @@ impl FleetSimulation {
         simulation.integral_deg_s = saved.integral_deg_s;
         simulation.previous_error_deg = saved.previous_error_deg;
         simulation.heading_controller = saved.heading_controller;
+        simulation.longitudinal_controller = saved.longitudinal_controller;
+        simulation.berth_termination = saved.berth_termination;
         simulation.physics_ticks = saved.physics_ticks;
         simulation.controller_ticks = saved.controller_ticks;
         simulation.accumulator_s = saved.accumulator_s;
@@ -672,6 +813,13 @@ impl FleetSimulation {
         *self = Self::new(self.configuration.clone())?;
         Ok(())
     }
+}
+
+fn maximum_shaft_rpm(system: &ActuatorSystem) -> Result<f64, String> {
+    let maximum = system.propulsors.iter().map(|shaft| shaft.rated_speed_rad_s)
+        .reduce(f64::min).ok_or("航速控制缺少主轴")?*30.0/std::f64::consts::PI;
+    if !maximum.is_finite() || maximum <= 0.0 { return Err("主轴额定转速无效".into()); }
+    Ok(maximum)
 }
 
 fn configured_environment(
