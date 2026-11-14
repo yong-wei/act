@@ -1,0 +1,56 @@
+{
+  "schema": "act.wind-projection-analytic-validation.v1",
+  "status": "passed",
+  "generator_sha256": "af3eb58f97854fb7e1bbc17fcc2621bbdd4abc1bec662b64ca51433dc44b8724",
+  "projection_generator_sha256": "dc1b7a35cc4bbdccb503abf02d6fe9c7421c6ade45f960df9a3a5bcc1b9e3e8e",
+  "cases": [
+    {
+      "pitch_rad": 0.0,
+      "normal_axis": 0,
+      "area_m2": 15.999999999999996,
+      "area_error_m2": 0.0,
+      "symmetric_difference_m2": 0.0,
+      "first_moment_error_m3": 1.4210854715202004e-14
+    },
+    {
+      "pitch_rad": 0.0,
+      "normal_axis": 1,
+      "area_m2": 23.99999999999999,
+      "area_error_m2": 0.0,
+      "symmetric_difference_m2": 0.0,
+      "first_moment_error_m3": 2.1316282072803006e-14
+    },
+    {
+      "pitch_rad": 0.1,
+      "normal_axis": 0,
+      "area_m2": 17.204015999999996,
+      "area_error_m2": 6.502540728092754e-08,
+      "symmetric_difference_m2": 6.502540639274912e-08,
+      "first_moment_error_m3": 1.4210854715202004e-14
+    },
+    {
+      "pitch_rad": 0.1,
+      "normal_axis": 1,
+      "area_m2": 23.99999996965759,
+      "area_error_m2": 3.034239881571921e-08,
+      "symmetric_difference_m2": 5.611131722019286e-08,
+      "first_moment_error_m3": 1.4210854715202004e-14
+    },
+    {
+      "pitch_rad": -0.1,
+      "normal_axis": 0,
+      "area_m2": 17.204015999999996,
+      "area_error_m2": 6.502540728092754e-08,
+      "symmetric_difference_m2": 6.502540639274912e-08,
+      "first_moment_error_m3": 1.4210854715202004e-14
+    },
+    {
+      "pitch_rad": -0.1,
+      "normal_axis": 1,
+      "area_m2": 23.99999996965759,
+      "area_error_m2": 3.0342402368432886e-08,
+      "symmetric_difference_m2": 5.611131723407065e-08,
+      "first_moment_error_m3": 2.375877272697835e-14
+    }
+  ]
+}

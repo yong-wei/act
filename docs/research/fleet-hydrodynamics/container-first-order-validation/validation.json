@@ -2824,6 +2824,321 @@
           "normalized_min_eigenvalue": 1.3428650132677954e-05
         }
       ]
+    },
+    {
+      "array_prefix": "case1_",
+      "all_finite": true,
+      "dimensions": {
+        "added_mass": {
+          "dimensions": [
+            "omega",
+            "radiating_dof",
+            "influenced_dof"
+          ],
+          "shape": [
+            7,
+            6,
+            6
+          ]
+        },
+        "radiation_damping": {
+          "dimensions": [
+            "omega",
+            "radiating_dof",
+            "influenced_dof"
+          ],
+          "shape": [
+            7,
+            6,
+            6
+          ]
+        },
+        "excitation_force": {
+          "dimensions": [
+            "omega",
+            "wave_direction",
+            "influenced_dof"
+          ],
+          "shape": [
+            7,
+            3,
+            6
+          ]
+        },
+        "RAO": {
+          "dimensions": [
+            "omega",
+            "wave_direction",
+            "radiating_dof"
+          ],
+          "shape": [
+            7,
+            3,
+            6
+          ]
+        }
+      },
+      "dof_order": [
+        "Surge",
+        "Sway",
+        "Heave",
+        "Roll",
+        "Pitch",
+        "Yaw"
+      ],
+      "raw_dataset_sha256": "a373ec89c0a360cb61b72b3996232eaf14944f01194499279edafe0da070b244",
+      "provenance_sha256": "56152577e31c333f7d72ed734fcede11344d5d0505bf18872ab1e4e4271beef0",
+      "provenance": {
+        "schema": "act.hydrodynamics.first-order.v1",
+        "status": "failed",
+        "fidelity": "research-nominal",
+        "solver": {
+          "version": "2.2.1",
+          "files_sha256": "27c027212eae43306b5ffba2417d0def16fd97573a5eb15640adb4d0790dab93"
+        },
+        "dependencies": {
+          "numpy": {
+            "version": "1.26.4",
+            "files_sha256": "d381c6200cef8c8bedfec8479b1540c1b16fc367723163fb2900a0318cef7d16"
+          },
+          "scipy": {
+            "version": "1.14.1",
+            "files_sha256": "c528a06c1641da3d5cc001c67b5acf1cc7ea92d56fc0b07a9aa97dc0bac43543"
+          },
+          "xarray": {
+            "version": "2024.11.0",
+            "files_sha256": "0f93427840da3cb97b0ff0c2297dcc499dd1873d008be3067957cf177262c527"
+          },
+          "h5netcdf": {
+            "version": "1.4.1",
+            "files_sha256": "618277bc0ac650e7ab229e56849a696df84820e96d4227bb2dc7179ad940028a"
+          }
+        },
+        "generator_sha256": "45f4dd6e33143c938bb9f426c1cdcba600f157181197a4e206c40cb157fe5bab",
+        "mesh_sha256": "77d85e82c07f5421eb7c8006fa862d5917a25ece58e47832fb31d79cc5b9e4b4",
+        "output_sha256": "a373ec89c0a360cb61b72b3996232eaf14944f01194499279edafe0da070b244",
+        "lid_mesh_sha256": "01d27ea8241974ee338df811567f657dd936ce6f4a5e59d7092af020ad14aa67",
+        "geometry_sha256": "4ee86a13d589f3c299093245cca477521705f90cf47253aeab9f8605cb21e768",
+        "input_drift": [],
+        "resolution": {
+          "max_panel_radius_m": 5.047899483503979,
+          "underresolved_frequencies_rad_s": [
+            1.5,
+            2.5
+          ]
+        },
+        "configuration": {
+          "name": "container-msc-exact-subdivision",
+          "center_of_mass_m_z_up": [
+            0.0,
+            0.0,
+            17.037810003601365
+          ],
+          "mass_kg": 216000000.0,
+          "density_kg_m3": 1025.0,
+          "water_depth_m": 200.0,
+          "forward_speed_mps": 0.0,
+          "frequencies_rad_s": [
+            0.025,
+            0.2,
+            0.5,
+            0.75,
+            1.0,
+            1.5,
+            2.5
+          ],
+          "headings_deg_to": [
+            0.0,
+            45.0,
+            90.0
+          ]
+        },
+        "hydrostatics": {
+          "displacement_volume_m3": 210731.70731707942,
+          "equilibrium_mass_kg": 216000000.0000064,
+          "center_of_buoyancy_m_z_up": [
+            2.1188501930368213e-13,
+            3.304771987286643e-06,
+            -5.807016833310527
+          ],
+          "stiffness": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              187610142.23049495,
+              -0.0,
+              648252417.380448,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              -0.0,
+              3975884360.978915,
+              -14687691.148607483,
+              -0.0004489758805037436
+            ],
+            [
+              0.0,
+              0.0,
+              648252417.380448,
+              -14687691.148607483,
+              1458913207500.398,
+              -7002.679650181112
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "wet_panels": 13760
+        },
+        "checks": [
+          {
+            "quantity": "added_mass",
+            "frequency_index": 0,
+            "symmetry_relative_error": 0.021757603025591446
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 1,
+            "symmetry_relative_error": 0.003931084835582379
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 2,
+            "symmetry_relative_error": 0.01999391157263169
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 3,
+            "symmetry_relative_error": 0.008282452232640949
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 4,
+            "symmetry_relative_error": 0.0016512378696685523
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 5,
+            "symmetry_relative_error": 0.0002883710349206134
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 6,
+            "symmetry_relative_error": 0.00011727986147428465
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 0,
+            "symmetry_relative_error": 0.04026660104868288,
+            "normalized_min_eigenvalue": -0.00047839115818173436
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 1,
+            "symmetry_relative_error": 0.03981361842305244,
+            "normalized_min_eigenvalue": -0.0001808976635499875
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 2,
+            "symmetry_relative_error": 0.013505125032861153,
+            "normalized_min_eigenvalue": 4.280934621577258e-06
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 3,
+            "symmetry_relative_error": 0.032100931854009467,
+            "normalized_min_eigenvalue": 6.483603690460364e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 4,
+            "symmetry_relative_error": 0.010483687986090342,
+            "normalized_min_eigenvalue": 4.992659950014336e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 5,
+            "symmetry_relative_error": 0.008859440385073747,
+            "normalized_min_eigenvalue": 2.9309717014028876e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 6,
+            "symmetry_relative_error": 0.0016256570371165962,
+            "normalized_min_eigenvalue": -0.00024540575593289183
+          }
+        ],
+        "validation": {
+          "independent_benchmark": "pending",
+          "mesh_convergence": "pending"
+        }
+      },
+      "failed_matrix_checks": [
+        {
+          "quantity": "added_mass",
+          "frequency_index": 0,
+          "symmetry_relative_error": 0.021757603025591446
+        },
+        {
+          "quantity": "added_mass",
+          "frequency_index": 2,
+          "symmetry_relative_error": 0.01999391157263169
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 0,
+          "symmetry_relative_error": 0.04026660104868288,
+          "normalized_min_eigenvalue": -0.00047839115818173436
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 1,
+          "symmetry_relative_error": 0.03981361842305244,
+          "normalized_min_eigenvalue": -0.0001808976635499875
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 2,
+          "symmetry_relative_error": 0.013505125032861153,
+          "normalized_min_eigenvalue": 4.280934621577258e-06
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 3,
+          "symmetry_relative_error": 0.032100931854009467,
+          "normalized_min_eigenvalue": 6.483603690460364e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 4,
+          "symmetry_relative_error": 0.010483687986090342,
+          "normalized_min_eigenvalue": 4.992659950014336e-05
+        }
+      ]
     }
   ],
   "coefficient_axes": "Capytaine x-forward, y-port, z-up, right-handed rotation",
@@ -2841,5 +3156,5 @@
     "validated forward-speed radiation realization",
     "online wave-domain consumption"
   ],
-  "coefficient_arrays_sha256": "306f1bc427ce208e07952c7738942ede2c72ea843548d919473ec9168d4520a8"
+  "coefficient_arrays_sha256": "1dc4fa76abc559ad6b060dd485654407df9401096063e365369a70d4bba8db82"
 }

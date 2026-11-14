@@ -100,6 +100,16 @@ export interface VesselSessionFrame {
   controllerTicks: number;
   paused: boolean;
   truth: VesselTruthState;
+  dynamics?: {
+    nu_dot: [number, number, number, number, number, number];
+    position_dot_ned: [number, number, number];
+    quaternion_dot: [number, number, number, number];
+    euler_rates: [number, number, number];
+    external_components?: Record<'tau_hull_viscous' | 'tau_actuator' | 'tau_wind' | 'tau_wave_1' | 'tau_wave_2' | 'tau_special',
+      [number, number, number, number, number, number]>;
+    breakdown: Record<'coriolis_rb' | 'coriolis_added_mass' | 'radiation' | 'restoring' | 'current_inertia' | 'external',
+      [number, number, number, number, number, number]>;
+  } | null;
   observer: {
     position_heading: [number, number, number];
     body_velocity: [number, number, number];

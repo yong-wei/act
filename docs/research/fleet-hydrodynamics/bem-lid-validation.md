@@ -28,6 +28,16 @@ Capytaine的内部自由面盖板用于消除非规则频率，采用向下法�
 
 结果位于`cruise-first-order-validation/`、`ice-first-order-validation/`及`dredger-first-order-validation/`，case0/case1/case2分别对应三次计算。各目录保留原始数组、完整维度、工具/依赖/输入输出哈希、新盖板及其几何核验。当前精度为research-nominal，在线适用域、被动辐射拟合、含航速数据及峰值收敛继续验证。
 
+## 集装箱的同几何加密对照
+
+另三船的新盖板130频率数据已存入`lng-first-order-validation/`、`container-first-order-validation/`与`destroyer-first-order-lid-validation/`，原始参考失败分别为30、166、58项。
+
+集装箱采用`refine_bem_mesh.py`将同一3440面湿面作精确共面四分，得到13760面。体积和水线面积保持约1e−16相对差，浮心差约1.5e−13m。实际完成.025/.2/.5/.75/1/1.5/2.5rad/s、0/45/90°波向的七频率对照。
+
+细网格的源检查仍有七项失败。.025/.2rad/s阻尼互易参考残差约4.03%/3.98%，.75rad/s约3.21%。使用刚体质量/惯量合同缩放后的粗细A/B差分别约2.07%至19.42%、5.92%至31.73%，复激励差约0.24%至27.07%，RAO差约6.46%至47.17%。1.5及2.5rad/s仍有分辨率提示，完整频带的网格收敛继续待核验。
+
+两份原始数组、完整来源和逐频率比较保存在集装箱目录。`compare_first_order_refinement.py`要求同一几何哈希、质量、CG、惯量、航速和水深，保留全部原始矩阵及其非互易部分。
+
 ## 长时任务输入冻结
 
 `solve_first_order.py`在运行开始捕获生成器、湿面、盖板和几何文件的哈希。结果写入时复核输入一致性，变更进入`input_drift`、失败状态和非零退出码。输出始终记录运行开始的输入身份。

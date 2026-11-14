@@ -4,11 +4,11 @@
   "vessel": "container-msc",
   "parameter_version": "research-nominal-v1",
   "loading_ratio": 0.9,
-  "generator_sha256": "1dc6219ac65186c520e6b4d47740265732dff596f830d87177c2062542475f49",
-  "wasm_sha256": "365fdaf93ee79d6d5061bca4d3bbd886175cce9111ddada3f9dc4882969ef70e",
+  "generator_sha256": "19836988d7daacd6be9cf9c3ef4261b61646d5248ca5a136d97f96567fc12c1a",
+  "wasm_sha256": "3dc26d87bce19d5ff1533151f1e0085e9c029dcc78a441d52151fda59d987c81",
   "build_identity": {
     "schemaVersion": "act-control-engine-identity/v1",
-    "buildHash": "e87feed98ec8a1be111a78e237e8d6e0b7d46512a61723352481687e1d290a28",
+    "buildHash": "d821561f0c5aea513450382b6c4e06617c87c919c64cc657cf9939f93c911b1a",
     "wasmPack": "wasm-pack 0.15.0",
     "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
     "exports": [
@@ -22,7 +22,7 @@
     "files": {
       "index.js": "e51d5ee2a9af6d3e89f1555ca65f5030e5e449c52c8b51fe24aebc52bc7e0efa",
       "index.d.ts": "0b1eac114507da23593dd0f505949cc823e17b87c4b424acf65c460b59df55eb",
-      "index_bg.wasm": "365fdaf93ee79d6d5061bca4d3bbd886175cce9111ddada3f9dc4882969ef70e",
+      "index_bg.wasm": "3dc26d87bce19d5ff1533151f1e0085e9c029dcc78a441d52151fda59d987c81",
       "index_bg.wasm.d.ts": "eaa832d510eac4c6714a51ef8ba3f6edc57a6629e8b4d6794ba6d60e814eb5fc"
     }
   },
@@ -32,6 +32,7 @@
     "platform": "darwin"
   },
   "verification": {
+    "dynamics_exposed": true,
     "restored_future_bitwise_identical": true,
     "pause_state_identical": true,
     "physics_ticks": 720,
@@ -56,8 +57,8 @@
   "timing": {
     "virtual_seconds": 5,
     "render_frames": 300,
-    "elapsed_ms": 160.73779199999998,
-    "mean_frame_ms": 0.5357926399999999,
+    "elapsed_ms": 172.73583399999998,
+    "mean_frame_ms": 0.5757861133333333,
     "scope": "single Node WASM session, excludes browser rendering and network capacity"
   }
 }

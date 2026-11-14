@@ -160,6 +160,7 @@ pub struct DestroyerSixDofPlant {
     /// 真实环境场（B1.4 后半段：Some 时 derivs 消费真实波/风/流）。
     environment_state: Option<crate::sixdof::environment_state::EnvironmentState>,
     wind_geometry: Option<crate::sixdof::wind::WindHullGeometry>,
+    vessel_wind: Option<std::sync::Arc<super::vessel_wind::VesselWindModel>>,
 }
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
@@ -329,6 +330,7 @@ impl DestroyerSixDofPlant {
             environment_enabled: false,
             environment_state: None,
             wind_geometry: None,
+            vessel_wind: None,
         }
     }
 
@@ -361,6 +363,7 @@ impl DestroyerSixDofPlant {
         };
         // 先应用包几何，再组装依赖质量/尺度的附加质量和静水恢复矩阵。
         let mut plant = Self::new(config);
+        plant.vessel_wind = g.wind_model.clone().map(std::sync::Arc::new);
         plant.rb.inertia_about_cg = [
             [g.inertia_about_cg_kg_m2.ixx, 0.0, 0.0],
             [0.0, g.inertia_about_cg_kg_m2.iyy, 0.0],
@@ -680,6 +683,7 @@ impl DestroyerSixDofPlant {
             };
             let real_env = env_state.as_ref();
             let wind_geo = self.wind_geometry.as_ref();
+            let vessel_wind = self.vessel_wind.as_deref();
 
             let derivs = |t_sub: f64, y_slice: &[f64], dy: &mut [f64]| {
                 let position = [y_slice[0], y_slice[1], y_slice[2]];
@@ -689,7 +693,7 @@ impl DestroyerSixDofPlant {
                 ];
                 let x_rad = &y_slice[13..13 + radiation_len];
                 let (hull_nu, current_field_local, tau_wave_1, tau_wind) =
-                    resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo,
+                    resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo, vessel_wind,
                         radiation_model.is_passive_model());
                 let tau_radiation = match radiation_model.derivatives_into(x_rad, nu, hull_nu,
                     &mut dy[13..13+radiation_len]) {
@@ -799,6 +803,7 @@ impl DestroyerSixDofPlant {
             &environment,
             env_state.as_ref(),
             self.wind_geometry.as_ref(),
+            self.vessel_wind.as_deref(),
             self.radiation.is_passive_model(),
         );
         let (thrust, _) = propeller_loads_at(
@@ -850,6 +855,9 @@ impl DestroyerSixDofPlant {
         }
         if let Some(index) = final_output.nu_dot.iter().position(|value| !value.is_finite()) {
             return Err(IntegrationError::NonFiniteState { stage: "final-dynamics", index });
+        }
+        if self.vessel_wind.is_some() {
+            final_output.external_components = Some(external);
         }
         self.sim_time_s = final_time_s;
         self.environment_state = env_state;
@@ -993,6 +1001,7 @@ fn resolve_env_loads(
     environment: &EnvironmentField,
     real_env: Option<&crate::sixdof::environment_state::EnvironmentState>,
     wind_geo: Option<&crate::sixdof::wind::WindHullGeometry>,
+    vessel_wind: Option<&super::vessel_wind::VesselWindModel>,
     full_current_kinematics: bool,
 ) -> ([f64; 6], CurrentFieldBody, [f64; 6], [f64; 6]) {
     let mut current_field_local = CurrentFieldBody::default();
@@ -1005,6 +1014,11 @@ fn resolve_env_loads(
         let wave_coeffs = [5.0e3, 2.0e3, 1.0e4, 5.0e7, 1.0e8, 2.0e7];
         tau_wave_1 = env.wave_loads(t_s, wave_coeffs);
         tau_wind = env.wind_loads(yaw_k, *nu, geo);
+        if let Some(model) = vessel_wind {
+            tau_wind = if env.switches.wind_force_enabled {
+                model.loads(env.wind.true_wind.velocity_ned(), *quat, *nu)
+            } else { [0.0; 6] };
+        }
         current_field_local = CurrentFieldBody {
             nu_current_body: [cur[0], cur[1], 0.0, 0.0, 0.0, 0.0],
             nu_current_body_dot: [0.0; 6],

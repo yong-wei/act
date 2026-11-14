@@ -50,6 +50,9 @@ try {
   original.advance(1, command);
   if (paused !== original.snapshot()) throw new Error('暂停期间状态发生变化');
   const final = JSON.parse(original.read());
+  if (final.dynamics?.nu_dot?.length !== 6 || final.dynamics?.position_dot_ned?.length !== 3) {
+    throw new Error('当前原生帧缺少实际加速度或位置变化率');
+  }
   if (final.physicsTicks !== 720 || final.controllerTicks !== 120) {
     throw new Error('物理或控制时钟未按120Hz/20Hz推进');
   }
@@ -121,6 +124,7 @@ try {
     build_identity: JSON.parse(readFileSync(path.join(wasmDirectory, 'identity.json'), 'utf8')),
     runtime: { node: process.version, architecture: process.arch, platform: process.platform },
     verification: {
+      dynamics_exposed: true,
       restored_future_bitwise_identical: true,
       pause_state_identical: true,
       physics_ticks: final.physicsTicks,

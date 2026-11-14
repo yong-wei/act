@@ -59,6 +59,8 @@ pub struct PackGeometry {
     pub liquid_initial_state: Vec<f64>,
     #[serde(default)]
     pub passive_radiation: Option<super::coupled_radiation::PassiveRadiationModel>,
+    #[serde(default)]
+    pub wind_model: Option<super::vessel_wind::VesselWindModel>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -170,6 +172,7 @@ pub enum PackError {
     InvalidHydrostaticHull { reason: String },
     InvalidLiquidTank { reason: String },
     InvalidRadiation { reason: String },
+    InvalidWindGeometry { reason: String },
 }
 
 pub(crate) fn fnv1a(bytes: &[u8]) -> u64 {
@@ -319,6 +322,10 @@ pub fn load_model_pack(
         {
             return Err(PackError::InvalidHydrostaticHull { reason: "声明的初始姿态与排水/重心不平衡".into() });
         }
+    }
+
+    if let Some(wind) = &geometry.wind_model {
+        wind.validate().map_err(|reason| PackError::InvalidWindGeometry { reason })?;
     }
 
     // 门禁 1：Lpp ≤ LOA（分立字段禁混用）。

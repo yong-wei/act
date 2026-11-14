@@ -42,7 +42,7 @@ pub struct RestoringParams {
 }
 
 /// 外力分项（N / N·m）。分项保留供力/力矩分项输出与载荷不重复校核（issue §7）。
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
 pub struct ExternalForces {
     pub tau_hull_viscous: [f64; 6],
     pub tau_actuator: [f64; 6],
@@ -206,6 +206,8 @@ pub struct DynamicsOutput {
     pub euler_rates: [f64; 3],
     /// 分项力/力矩（质量阵左端各项移到右端后的值，N / N·m）。
     pub breakdown: ForceBreakdown,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub external_components: Option<ExternalForces>,
 }
 
 #[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
@@ -281,6 +283,7 @@ pub fn dynamics_step_with_restoring(
     let euler_rates = euler_rate_transform_inverse(euler, [nu[3], nu[4], nu[5]]);
 
     DynamicsOutput {
+        external_components: None,
         nu_dot,
         position_dot_ned: position_dot,
         quaternion_dot,

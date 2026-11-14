@@ -179,6 +179,7 @@ impl FleetSimulation {
             &configuration.parameter_version, configuration.loading_ratio)
             .map_err(|error| format!("参数包无效 {error:?}"))?;
         if configuration.vessel != "destroyer-055"
+            && pack.geometry.wind_model.is_none()
             && matches!(configuration.environment, EnvironmentPreset::W1 | EnvironmentPreset::W2)
         {
             return Err("该船型的风载投影仍在核验，当前工况未就绪".into());
@@ -565,14 +566,19 @@ impl FleetSimulation {
     }
 
     pub fn frame_json(&self) -> Result<String, String> {
-        serde_json::to_string(&serde_json::json!({
+        let mut frame = serde_json::json!({
             "schema": SESSION_SCHEMA, "modelVersion": if self.heading_controller.is_some() { "sixdof-session-v2" } else { "sixdof-session-v1" }, "parameterHash": self.parameter_hash,
             "timeS": self.time_s(), "physicsTicks": self.physics_ticks, "controllerTicks": self.controller_ticks,
             "paused": self.paused, "truth": self.plant.state(), "observer": self.observer,
             "input": self.input, "heldCommands": self.held_commands, "samples": self.last_samples,
             "liquidCargo": self.plant.liquid_diagnostics()?,
             "headingController": self.heading_controller,
-        })).map_err(|error| error.to_string())
+        });
+        if self.heading_controller.is_some() {
+            frame["dynamics"] = serde_json::to_value(self.plant.last_dynamics())
+                .map_err(|error| error.to_string())?;
+        }
+        serde_json::to_string(&frame).map_err(|error| error.to_string())
     }
 
     pub fn snapshot_json(&self) -> Result<String, String> {
