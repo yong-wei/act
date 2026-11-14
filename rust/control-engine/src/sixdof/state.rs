@@ -37,6 +37,8 @@ pub struct ActuatorStates {
     pub shaft_friction_work_j: Vec<f64>,
     #[serde(default)]
     pub control_surface_work_j: Vec<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fuel: Option<super::fuel::FuelState>,
 }
 
 /// TruthPlant 完整状态。`quaternion` 恒为单位四元数（积分后须归一化）。

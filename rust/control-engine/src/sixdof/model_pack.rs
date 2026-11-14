@@ -450,8 +450,7 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/destroyer-055/v5/actuators.json"),
             include_str!("../../model-data/destroyer-055/v5/provenance.json"),
         ),
-        ("lng-changheng" | "container-msc", "research-nominal-v1")
-        | ("lng-changheng", "research-nominal-v2") => loading_model_pack(vessel, version, None, None),
+        ("lng-changheng" | "container-msc", "research-nominal-v1" | "research-nominal-v2") => loading_model_pack(vessel, version, None, None),
         ("semisub-981", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/semisub-981/v1/manifest.json"),
             include_str!("../../model-data/semisub-981/v1/geometry.json"),
@@ -563,8 +562,7 @@ pub fn embedded_vessel_pack_with_loading(
     match loading_ratio {
         None => embedded_vessel_pack(vessel, version),
         Some(ratio) if matches!((vessel, version),
-            ("lng-changheng" | "container-msc", "research-nominal-v1")
-            | ("lng-changheng", "research-nominal-v2")) => loading_model_pack(vessel, version, Some(ratio), None),
+            ("lng-changheng" | "container-msc", "research-nominal-v1" | "research-nominal-v2")) => loading_model_pack(vessel, version, Some(ratio), None),
         Some(_) => Err(PackError::SchemaMismatch {
             expect: "vessel-with-loading-definition", got: format!("{vessel}@{version}"),
         }),
@@ -578,7 +576,7 @@ pub fn embedded_vessel_pack_with_water_depth(
     water_depth_m: Option<f64>,
 ) -> Result<PackModel, PackError> {
     if water_depth_m.is_some() {
-        if vessel != "lng-changheng" || version != "research-nominal-v2" {
+        if !matches!(vessel, "lng-changheng" | "container-msc") || version != "research-nominal-v2" {
             return Err(PackError::SchemaMismatch {
                 expect: "vessel-with-finite-depth-definition", got: format!("{vessel}@{version}"),
             });
@@ -615,11 +613,22 @@ fn loading_model_pack(vessel: &str, version: &str, ratio: Option<f64>, depth: Op
             include_str!("../../model-data/lng-changheng/v2/provenance.json"),
             include_str!("../../model-data/lng-changheng/v2/loading-cases.json"),
         ],
+        ("container-msc", "research-nominal-v2") => [
+            include_str!("../../model-data/container-msc/v2/manifest.json"),
+            include_str!("../../model-data/container-msc/v2/geometry.json"),
+            include_str!("../../model-data/container-msc/v2/maneuvering.json"),
+            include_str!("../../model-data/container-msc/v2/actuators.json"),
+            include_str!("../../model-data/container-msc/v2/provenance.json"),
+            include_str!("../../model-data/container-msc/v2/loading-cases.json"),
+        ],
         _ => return Err(PackError::SchemaMismatch { expect: "loading-vessel", got: vessel.into() }),
     };
     let [manifest, geometry, maneuvering, actuators, provenance, table] = files;
-    let hydrodynamics = (vessel == "lng-changheng" && version == "research-nominal-v2")
-        .then_some(include_str!("../../model-data/lng-changheng/v2/hydrodynamic-cases.json"));
+    let hydrodynamics = match (vessel, version) {
+        ("lng-changheng", "research-nominal-v2") => Some(include_str!("../../model-data/lng-changheng/v2/hydrodynamic-cases.json")),
+        ("container-msc", "research-nominal-v2") => Some(include_str!("../../model-data/container-msc/v2/hydrodynamic-cases.json")),
+        _ => None,
+    };
     let load_selected = |selected_geometry: &str, selected_maneuvering: &str, selected_actuators: &str, selected_provenance: &str| {
         if let Some(bank) = hydrodynamics {
             load_hydrodynamic_case([manifest, selected_geometry, selected_maneuvering, selected_actuators, selected_provenance],

@@ -153,3 +153,15 @@ rtk proxy cargo run --manifest-path rust/control-engine/Cargo.toml --release --e
 `semisub-qtf-full-contributions-probe/`保存11频率、3波向的实际六阶段求解。DUOK、HASBO、HASFS和ASYMP四项均为有限值，总载荷与独立分项重排/求和的六通道相对差为1.01e−7至1.57e−7，原始文本舍入残差保留。该网格用于完整贡献管道验证，93频率、17波向的正式网格已另行启动。精度继续标记research-nominal。
 
 导出器同时核验原始分项哈希、频率对/波向/通道顺序和总和。旧7579314行DUOK+HASBO数据重新导出的完整压缩数组逐字节相同，删除自由面贡献并更新来源哈希的负向检查被总和门禁拒绝。证明位于`export-regression.json`。
+
+## 集装箱变载荷与教学燃油
+
+集装箱v2在.20/.35/.60/.80/.90五种加载、200m水深使用各自同源的完整六维被动辐射和风投影。原始130频率/24波向数组及15至44项未达矩阵参考检查保存在`loading-validation/container-v2-first-order/`。A/B拟合残差分别为1.62至9.33%/2.88至3.50%，精度保持research-nominal。
+
+`build_container_fuel_pack.py`冻结#2159的五点SFOC曲线。实际四象限桨扭矩乘轴速进入每个RK子阶段，正/负桨功、发动机功和累计燃油分别积分，负功保持独立累计量。教学代理采用`(max(Pshaft,6.5MW)+2MW)/0.95`确定运行时发动机需求，低于0.1负载按怠速曲线。显式停机同时停止教学发动机和辅机消耗，并切断实际电机扭矩，普通驱动断开保持发动机运行状态。该启停及辅机归属为本轮T级代理约定。
+
+```bash
+rtk proxy node docs/research/fleet-hydrodynamics/validate_container_fuel_session.mjs --output /tmp/container-v2-fuel-session-validation.json
+```
+
+六项直接回归、Rust全量446项、前端4项及类型检查通过。五种实际WASM会话各运行12秒并执行停机/重启，独立120Hz曲线重算和梯形积分相对差最大1.56e−7。五组100频率完整SciPy与原生六维响应对照、参数身份、未来/暂停/重置及旧v1完整未来字节均通过。证据位于`loading-validation/container-v2-*`，速度调度、航次评价和正常页面继续既定OpenSpec任务。

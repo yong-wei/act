@@ -765,6 +765,16 @@ impl FleetSimulation {
         if let Some(depth) = self.hydrodynamic_depth_m {
             frame["hydrodynamicDepthM"] = serde_json::json!(depth);
         }
+        if let Some(fuel) = self.plant.state().actuator_states.fuel {
+            let state = &self.plant.state().actuator_states;
+            frame["teachingFuel"] = serde_json::json!({
+                "state": fuel, "rates": self.plant.fuel_rates(&self.held_commands)?,
+                "model": self.plant.actuator_system().and_then(|system| system.fuel_model.as_ref()),
+                "positiveMotorWorkJ": state.positive_motor_work_j.iter().sum::<f64>(),
+                "motorBrakingWorkJ": state.positive_motor_work_j.iter().zip(&state.motor_work_j)
+                    .map(|(positive, net)| positive-net).sum::<f64>().max(0.0),
+            });
+        }
         if let Some(budget) = self.plant.actuator_system().and_then(|system| system.max_positive_motor_power_w) {
             let state = &self.plant.state().actuator_states;
             let power: Vec<_> = state.motor_torques_nm.iter().zip(&state.propeller_shaft_speed_rad_s)

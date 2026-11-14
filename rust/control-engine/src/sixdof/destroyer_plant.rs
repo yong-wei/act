@@ -500,6 +500,25 @@ impl DestroyerSixDofPlant {
         self.environment_state.as_ref()
     }
 
+    pub fn fuel_rates(&self, commands: &ActuatorCommands) -> Result<Option<super::fuel::FuelRates>, String> {
+        let Some(system) = self.actuator_system.as_ref().filter(|system| system.fuel_model.is_some()) else {
+            return Ok(None);
+        };
+        system.validate_commands(commands)?;
+        let environment = if self.environment_enabled { EnvironmentField::disturbance_equivalent() }
+            else { EnvironmentField::default() };
+        let (relative_velocity, ..) = resolve_env_loads(self.sim_time_s, &self.state.body_velocity,
+            &self.state.quaternion, &environment, self.environment_state.as_ref(),
+            self.wind_geometry.as_ref(), self.vessel_wind.as_deref(),
+            self.radiation.is_passive_model(), self.compiled_waves.as_deref(), self.state.position_ned)?;
+        let values = system.encode_state(&self.state.actuator_states);
+        let evaluation = system.derivatives(&values, &mut vec![0.0; values.len()], commands,
+            &vec![0.0; system.propulsors.len()], &LocalWater { time_s: self.sim_time_s,
+                position_ned: self.state.position_ned, quaternion: self.state.quaternion,
+                relative_velocity, environment: self.environment_state.as_ref() });
+        Ok(evaluation.fuel)
+    }
+
     pub fn advance_environment_to_current_time(&mut self) {
         if let Some(environment) = self.environment_state.as_mut() {
             environment.advance_to(self.sim_time_s);
@@ -930,6 +949,9 @@ impl DestroyerSixDofPlant {
             }
             if state.actuator_states.azimuth_angles_rad.is_empty() {
                 state.actuator_states.azimuth_angles_rad = self.state.actuator_states.azimuth_angles_rad.clone();
+            }
+            if state.actuator_states.fuel.is_none() {
+                state.actuator_states.fuel = self.state.actuator_states.fuel;
             }
             state.actuator_states = system.decode_state(&system.encode_state(&state.actuator_states));
         }

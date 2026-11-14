@@ -37,6 +37,7 @@ export interface VesselShaftCommand {
   azimuth_rad: number;
   drive_cut: boolean;
   azimuth_jammed: boolean;
+  engine_running?: boolean;
 }
 
 export interface VesselSurfaceCommand {
@@ -104,6 +105,14 @@ export interface VesselActuatorState {
   propeller_work_j: number[];
   shaft_friction_work_j: number[];
   control_surface_work_j: number[];
+  fuel?: VesselFuelState;
+}
+
+export interface VesselFuelState {
+  fuel_kg: number;
+  positive_propeller_work_j: number;
+  negative_propeller_work_j: number;
+  engine_work_j: number;
 }
 
 export interface VesselTruthState {
@@ -171,6 +180,26 @@ export interface VesselSessionFrame {
   };
   longitudinalController?: VesselSpeedControlDiagnostics;
   hydrodynamicDepthM?: number;
+  teachingFuel?: {
+    state: VesselFuelState;
+    rates: {
+      signed_shaft_power_w: number;
+      load_fraction: number;
+      sfoc_g_per_kwh: number;
+      engine_power_w: number;
+      fuel_kg_per_s: number;
+      running: boolean;
+    };
+    model: {
+      rated_shaft_power_w: number;
+      auxiliary_power_w: number;
+      efficiency: number;
+      load_fractions: number[];
+      sfoc_g_per_kwh: number[];
+    };
+    positiveMotorWorkJ: number;
+    motorBrakingWorkJ: number;
+  };
   propulsionPower?: {
     budgetW: number;
     shaftMechanicalPowerW: number[];

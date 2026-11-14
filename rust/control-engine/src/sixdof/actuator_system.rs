@@ -79,6 +79,8 @@ pub struct ActuatorSystem {
     pub water_density_kg_m3: f64,
     #[serde(default)]
     pub max_positive_motor_power_w: Option<f64>,
+    #[serde(default)]
+    pub fuel_model: Option<super::fuel::FuelModel>,
     pub propulsors: Vec<Propulsor>,
     pub surfaces: Vec<ControlSurface>,
 }
@@ -90,6 +92,8 @@ pub struct ShaftCommand {
     pub azimuth_rad: f64,
     pub drive_cut: bool,
     pub azimuth_jammed: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_running: Option<bool>,
 }
 
 #[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
@@ -116,6 +120,7 @@ pub struct LocalWater<'a> {
 pub struct ActuatorEvaluation {
     pub loads: [f64; 6],
     pub motor_torques_nm: Vec<f64>,
+    pub fuel: Option<super::fuel::FuelRates>,
 }
 
 impl LocalWater<'_> {
@@ -209,6 +214,14 @@ impl ActuatorSystem {
         if self.max_positive_motor_power_w.is_some_and(|value| !value.is_finite() || value <= 0.0) {
             return Err("推进系统正机械功率预算须为有限正值".into());
         }
+        if let Some(fuel) = &self.fuel_model {
+            fuel.validate()?;
+            if self.propulsors.len() != 1
+                || (fuel.rated_shaft_power_w-self.propulsors[0].max_power_w).abs() > 1e-8
+            {
+                return Err("教学发动机需要与冻结单轴额定功率一致".into());
+            }
+        }
         for propulsor in &self.propulsors {
             propulsor.installation.validate()?;
             let values = [propulsor.diameter_m, propulsor.max_power_w, propulsor.rated_speed_rad_s,
@@ -254,6 +267,7 @@ impl ActuatorSystem {
 
     pub fn state_len(&self) -> usize {
         SHAFT_STATE_LEN * self.propulsors.len() + 2 * self.surfaces.len()
+            + if self.fuel_model.is_some() { 4 } else { 0 }
     }
 
     pub fn validate_state(&self, state: &ActuatorStates) -> Result<(), String> {
@@ -274,6 +288,11 @@ impl ActuatorSystem {
             || required.iter().chain(&optional).any(|(values, _)| values.iter().any(|value| !value.is_finite()))
         {
             return Err("执行器状态维度或数值无效".into());
+        }
+        if state.fuel.is_some() != self.fuel_model.is_some()
+            || state.fuel.is_some_and(|fuel| fuel.values().iter().any(|value| !value.is_finite() || *value < 0.0))
+        {
+            return Err("教学燃油累计量或模型版本无效".into());
         }
         if self.max_positive_motor_power_w.is_some_and(|budget| {
             state.motor_torques_nm.iter().zip(&state.propeller_shaft_speed_rad_s)
@@ -313,6 +332,9 @@ impl ActuatorSystem {
         if commands.shafts.len() != self.propulsors.len() || commands.surfaces.len() != self.surfaces.len() {
             return Err("执行器命令数量与冻结布局不符".into());
         }
+        if self.fuel_model.is_none() && commands.shafts.iter().any(|command| command.engine_running.is_some()) {
+            return Err("当前参数包没有教学发动机启停模型".into());
+        }
         if commands.shafts.iter().any(|command| !command.speed_reference_rad_s.is_finite()
             || !command.azimuth_rad.is_finite()
             || command.motor_torque_override_nm.is_some_and(|value| !value.is_finite()))
@@ -341,6 +363,9 @@ impl ActuatorSystem {
             values.push(state.control_surface_angles_rad.get(index).copied().unwrap_or(0.0));
             values.push(state.control_surface_work_j.get(index).copied().unwrap_or(0.0));
         }
+        if self.fuel_model.is_some() {
+            values.extend(state.fuel.unwrap_or_default().values());
+        }
         values
     }
 
@@ -364,6 +389,9 @@ impl ActuatorSystem {
         for index in 0..self.surfaces.len() {
             state.control_surface_angles_rad.push(values[surface_offset + 2 * index]);
             state.control_surface_work_j.push(values[surface_offset + 2 * index + 1]);
+        }
+        if self.fuel_model.is_some() {
+            state.fuel = Some(super::fuel::FuelState::from_values(&values[self.state_len()-4..]));
         }
         state
     }
@@ -429,7 +457,7 @@ impl ActuatorSystem {
             let thrust = model.max_thrust_n.map_or(raw_thrust, |limit| raw_thrust.clamp(-limit, limit));
             let torque = torque_wet * factors[1];
             let friction = model.friction_torque_nm(omega);
-            let mut motor = delivered_motors[index];
+            let mut motor = if command.engine_running == Some(false) { 0.0 } else { delivered_motors[index] };
             // 电流约束在固定物理步内限制主动加速，轴速由同一扭矩继续积分。
             // 流体驱动的不可控超速交由步进器报告不可行，轴动能保持可对账。
             let max_acceleration = (model.rated_speed_rad_s - omega) / super::integrator::NOMINAL_DT;
@@ -446,7 +474,7 @@ impl ActuatorSystem {
                 feedforward * factors[1] + model.friction_torque_nm(reference)
                     + model.shaft_inertia_kg_m2 * (reference - omega) / model.speed_control_time_s,
             );
-            let target_torque = if command.drive_cut { 0.0 } else {
+            let target_torque = if command.drive_cut || command.engine_running == Some(false) { 0.0 } else {
                 model.limited_motor_torque_nm(requested_torque, omega)
             };
             rates[offset] = (motor - torque - friction) / model.shaft_inertia_kg_m2;
@@ -513,7 +541,15 @@ impl ActuatorSystem {
                 (hinge * angle_rate).abs() / power.efficiency + standby
             }).unwrap_or(0.0);
         }
-        ActuatorEvaluation { loads: total, motor_torques_nm }
+        let fuel = self.fuel_model.as_ref().map(|model| {
+            let power = rates[6];
+            let fuel = model.rates(power, commands.shafts[0].engine_running.unwrap_or(true));
+            let offset = self.state_len()-4;
+            rates[offset..offset+4].copy_from_slice(&[fuel.fuel_kg_per_s,
+                power.max(0.0), (-power).max(0.0), fuel.engine_power_w]);
+            fuel
+        });
+        ActuatorEvaluation { loads: total, motor_torques_nm, fuel }
     }
 }
 

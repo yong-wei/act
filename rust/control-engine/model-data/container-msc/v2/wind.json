@@ -1,0 +1,21 @@
+{
+  "kind": "fujiwara",
+  "geometry": {
+    "frontal_area_m2": 2959.8053268922413,
+    "lateral_area_m2": 13676.249598223827,
+    "superstructure_lateral_area_m2": 5785.65476902274,
+    "loa_m": 399.99,
+    "beam_m": 61.5,
+    "center_lateral_from_midship_m": -3.8643404303712963,
+    "center_lateral_above_waterline_m": 18.46499066930001,
+    "superstructure_height_m": 59.690664917848196,
+    "midship_body_x_m": 11.386040791980784,
+    "pressure_center_body_m": [
+      7.521700361609488,
+      -0.006327664630992297,
+      -1.4271806656986472
+    ],
+    "frontal_center_body_z_m": -8.32378500614338,
+    "cg_waterline_height_m": 17.037810003601365
+  }
+}
