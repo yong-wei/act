@@ -132,3 +132,16 @@ rtk proxy node docs/research/fleet-hydrodynamics/validate_semisub_power_session.
 ```
 
 `semisub-power-session-validation.json`记录8/16/32MW各45秒实际运行。前两者实际触发共享预算，32MW场景峰值23.45MW，原额定扭矩和当前来流共同限制可达出力。实际功—轴动能相对残差低于4e−12。DP和顺序凸分配继续按既定专项实施。
+
+## LNG载荷与水深联合模型
+
+LNG v2的`hydrodynamic-cases.json`提供.30/.70/.85/.95加载与40/200m水深的八种同源辐射模型。`waterDepthM`在新会话选择冻结水深，靠泊配置自动选择40m。质量、重心、惯量、吃水、平衡纵倾、拟合参数与来源共同绑定参数身份，表外输入返回错误。
+
+`validation.json`的radiation字段描述基准加载/水深。联合表逐项保存其他状态的拟合残差、数据路径和来源。原始互易/被动参考检查各13至41项未达，A/B拟合残差约1.90至3.50%/2.68至5.53%，模型精度为research-nominal。
+
+```bash
+rtk proxy node docs/research/fleet-hydrodynamics/validate_lng_depth_session.mjs --output /tmp/lng-v2-session-validation.json
+rtk proxy cargo run --manifest-path rust/control-engine/Cargo.toml --release --example validate_passive_radiation -- lng-changheng research-nominal-v2 frequencies.json native.csv 0.85 40
+```
+
+八组100频率完整SciPy对照、原生/WASM参数身份和实际WASM运行证据位于`loading-validation/lng-v2-independent-validation.json`、`lng-v2-radiation/`与`lng-v2-session-validation.json`。含航速波浪数据、靠泊课程参考方案及正常页面由既定OpenSpec任务继续跟踪。

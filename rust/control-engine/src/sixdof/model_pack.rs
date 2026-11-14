@@ -60,6 +60,8 @@ pub struct PackGeometry {
     #[serde(default)]
     pub passive_radiation: Option<super::coupled_radiation::PassiveRadiationModel>,
     #[serde(default)]
+    pub hydrodynamic_depth_m: Option<f64>,
+    #[serde(default)]
     pub wind_model: Option<super::vessel_wind::VesselWindModel>,
     #[serde(default)]
     pub wave_model: Option<super::vessel_wave::WaveModelBinding>,
@@ -235,6 +237,12 @@ pub fn load_model_pack(
         .map_err(|_| PackError::SchemaMismatch { expect: "geometry", got: String::new() })?;
     if let Some(binding) = &geometry.wave_model {
         binding.validate().map_err(|reason| PackError::InvalidWaveModel { reason })?;
+        if geometry.hydrodynamic_depth_m.is_some_and(|depth| (depth-binding.water_depth_m).abs() > 1e-8) {
+            return Err(PackError::InvalidWaveModel { reason: "波浪和辐射数据的水深不一致".into() });
+        }
+    }
+    if geometry.hydrodynamic_depth_m.is_some_and(|depth| !depth.is_finite() || depth <= 0.0) {
+        return Err(PackError::NonFiniteValue { field: "hydrodynamic-depth" });
     }
     let maneuvering: PackManeuvering = serde_json::from_str(maneuvering_json)
         .map_err(|_| PackError::SchemaMismatch { expect: "maneuvering", got: String::new() })?;
@@ -442,7 +450,8 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/destroyer-055/v5/actuators.json"),
             include_str!("../../model-data/destroyer-055/v5/provenance.json"),
         ),
-        ("lng-changheng" | "container-msc", "research-nominal-v1") => loading_model_pack(vessel, None),
+        ("lng-changheng" | "container-msc", "research-nominal-v1")
+        | ("lng-changheng", "research-nominal-v2") => loading_model_pack(vessel, version, None, None),
         ("semisub-981", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/semisub-981/v1/manifest.json"),
             include_str!("../../model-data/semisub-981/v1/geometry.json"),
@@ -553,17 +562,36 @@ pub fn embedded_vessel_pack_with_loading(
 ) -> Result<PackModel, PackError> {
     match loading_ratio {
         None => embedded_vessel_pack(vessel, version),
-        Some(ratio) if version == "research-nominal-v1"
-            && matches!(vessel, "lng-changheng" | "container-msc") => loading_model_pack(vessel, Some(ratio)),
+        Some(ratio) if matches!((vessel, version),
+            ("lng-changheng" | "container-msc", "research-nominal-v1")
+            | ("lng-changheng", "research-nominal-v2")) => loading_model_pack(vessel, version, Some(ratio), None),
         Some(_) => Err(PackError::SchemaMismatch {
             expect: "vessel-with-loading-definition", got: format!("{vessel}@{version}"),
         }),
     }
 }
 
-fn loading_model_pack(vessel: &str, ratio: Option<f64>) -> Result<PackModel, PackError> {
-    let files = match vessel {
-        "lng-changheng" => [
+pub fn embedded_vessel_pack_with_water_depth(
+    vessel: &str,
+    version: &str,
+    loading_ratio: Option<f64>,
+    water_depth_m: Option<f64>,
+) -> Result<PackModel, PackError> {
+    if water_depth_m.is_some() {
+        if vessel != "lng-changheng" || version != "research-nominal-v2" {
+            return Err(PackError::SchemaMismatch {
+                expect: "vessel-with-finite-depth-definition", got: format!("{vessel}@{version}"),
+            });
+        }
+        loading_model_pack(vessel, version, loading_ratio, water_depth_m)
+    } else {
+        embedded_vessel_pack_with_loading(vessel, version, loading_ratio)
+    }
+}
+
+fn loading_model_pack(vessel: &str, version: &str, ratio: Option<f64>, depth: Option<f64>) -> Result<PackModel, PackError> {
+    let files = match (vessel, version) {
+        ("lng-changheng", "research-nominal-v1") => [
             include_str!("../../model-data/lng-changheng/v1/manifest.json"),
             include_str!("../../model-data/lng-changheng/v1/geometry.json"),
             include_str!("../../model-data/lng-changheng/v1/maneuvering.json"),
@@ -571,7 +599,7 @@ fn loading_model_pack(vessel: &str, ratio: Option<f64>) -> Result<PackModel, Pac
             include_str!("../../model-data/lng-changheng/v1/provenance.json"),
             include_str!("../../model-data/lng-changheng/v1/loading-cases.json"),
         ],
-        "container-msc" => [
+        ("container-msc", "research-nominal-v1") => [
             include_str!("../../model-data/container-msc/v1/manifest.json"),
             include_str!("../../model-data/container-msc/v1/geometry.json"),
             include_str!("../../model-data/container-msc/v1/maneuvering.json"),
@@ -579,22 +607,40 @@ fn loading_model_pack(vessel: &str, ratio: Option<f64>) -> Result<PackModel, Pac
             include_str!("../../model-data/container-msc/v1/provenance.json"),
             include_str!("../../model-data/container-msc/v1/loading-cases.json"),
         ],
+        ("lng-changheng", "research-nominal-v2") => [
+            include_str!("../../model-data/lng-changheng/v2/manifest.json"),
+            include_str!("../../model-data/lng-changheng/v2/geometry.json"),
+            include_str!("../../model-data/lng-changheng/v2/maneuvering.json"),
+            include_str!("../../model-data/lng-changheng/v2/actuators.json"),
+            include_str!("../../model-data/lng-changheng/v2/provenance.json"),
+            include_str!("../../model-data/lng-changheng/v2/loading-cases.json"),
+        ],
         _ => return Err(PackError::SchemaMismatch { expect: "loading-vessel", got: vessel.into() }),
     };
     let [manifest, geometry, maneuvering, actuators, provenance, table] = files;
+    let hydrodynamics = (vessel == "lng-changheng" && version == "research-nominal-v2")
+        .then_some(include_str!("../../model-data/lng-changheng/v2/hydrodynamic-cases.json"));
+    let load_selected = |selected_geometry: &str, selected_maneuvering: &str, selected_actuators: &str, selected_provenance: &str| {
+        if let Some(bank) = hydrodynamics {
+            load_hydrodynamic_case([manifest, selected_geometry, selected_maneuvering, selected_actuators, selected_provenance],
+                bank, geometry, ratio, depth)
+        } else {
+            load_model_pack(manifest, selected_geometry, selected_maneuvering, selected_actuators, selected_provenance)
+        }
+    };
     let Some(ratio) = ratio else {
-        return load_model_pack(manifest, geometry, maneuvering, actuators, provenance);
+        return load_selected(geometry, maneuvering, actuators, provenance);
     };
     let invalid = || PackError::SchemaMismatch { expect: "frozen-loading-case", got: ratio.to_string() };
     let table: LoadingTable = serde_json::from_str(table).map_err(|_| invalid())?;
     if !ratio.is_finite() || table.schema != "act.vessel-loading-cases.v1" || table.vessel != vessel
-        || table.model_version != "research-nominal-v1"
+        || table.model_version != version
         || table.base_geometry_fnv1a != format!("{:016x}", fnv1a(geometry.as_bytes()))
     {
         return Err(invalid());
     }
     if (ratio - table.baseline_loading_ratio).abs() < 1e-12 {
-        return load_model_pack(manifest, geometry, maneuvering, actuators, provenance);
+        return load_selected(geometry, maneuvering, actuators, provenance);
     }
     let mut case = table.cases.into_iter()
         .find(|case| (case.loading_ratio - ratio).abs() < 1e-12).ok_or_else(invalid)?;
@@ -612,7 +658,71 @@ fn loading_model_pack(vessel: &str, ratio: Option<f64>) -> Result<PackModel, Pac
         .map_err(|_| invalid())?;
     hull.cg_waterline_height_m = selected.center_of_mass_waterline_z_up_m.ok_or_else(invalid)?[2];
     case.geometry.insert("nonlinear_hydrostatics".into(), serde_json::to_value(hull).map_err(|_| invalid())?);
-    load_model_pack(manifest,
-        &serde_json::to_string(&case.geometry).map_err(|_| invalid())?,
+    load_selected(&serde_json::to_string(&case.geometry).map_err(|_| invalid())?,
         &case.maneuvering.to_string(), &case.actuators.to_string(), &case.provenance.to_string())
+}
+
+#[derive(Deserialize)]
+struct HydrodynamicTable {
+    schema: String,
+    vessel: String,
+    model_version: String,
+    base_geometry_fnv1a: String,
+    baseline_loading_ratio: f64,
+    default_water_depth_m: f64,
+    cases: Vec<HydrodynamicCase>,
+}
+
+#[derive(Deserialize)]
+struct HydrodynamicCase {
+    loading_ratio: f64,
+    water_depth_m: f64,
+    geometry_condition: serde_json::Map<String, serde_json::Value>,
+    passive_radiation: serde_json::Value,
+    provenance: serde_json::Value,
+}
+
+fn load_hydrodynamic_case(
+    inputs: [&str; 5],
+    bank: &str,
+    base_geometry: &str,
+    loading_ratio: Option<f64>,
+    depth: Option<f64>,
+) -> Result<PackModel, PackError> {
+    let invalid = || PackError::SchemaMismatch { expect: "frozen-hydrodynamic-case", got: String::new() };
+    let table: HydrodynamicTable = serde_json::from_str(bank).map_err(|_| invalid())?;
+    let manifest: PackManifest = serde_json::from_str(inputs[0]).map_err(|_| invalid())?;
+    if table.schema != "act.vessel-hydrodynamic-cases.v1" || table.vessel != manifest.vessel
+        || table.model_version != manifest.model_version
+        || table.base_geometry_fnv1a != format!("{:016x}", fnv1a(base_geometry.as_bytes())) {
+        return Err(invalid());
+    }
+    let ratio = loading_ratio.unwrap_or(table.baseline_loading_ratio);
+    let depth = depth.unwrap_or(table.default_water_depth_m);
+    if !ratio.is_finite() || !depth.is_finite() || depth <= 0.0 { return Err(invalid()); }
+    let case = table.cases.into_iter().find(|case| (case.loading_ratio-ratio).abs() < 1e-12
+        && (case.water_depth_m-depth).abs() < 1e-8).ok_or_else(invalid)?;
+    let depth = case.water_depth_m;
+    let mut geometry: serde_json::Map<String, serde_json::Value> = serde_json::from_str(inputs[1]).map_err(|_| invalid())?;
+    if case.geometry_condition.iter().any(|(key, value)| geometry.get(key) != Some(value)) {
+        return Err(invalid());
+    }
+    geometry.insert("passive_radiation".into(), case.passive_radiation);
+    geometry.insert("hydrodynamic_depth_m".into(), serde_json::json!(depth));
+    let mut provenance: serde_json::Value = serde_json::from_str(inputs[4]).map_err(|_| invalid())?;
+    let entries = provenance["entries"].as_array_mut().ok_or_else(invalid)?;
+    entries.retain(|entry| !entry["parameter"].as_str().is_some_and(|name|
+        name.starts_with("geometry.passive_radiation") || name == "geometry.hydrodynamic_depth_m"));
+    entries.extend(case.provenance["entries"].as_array().ok_or_else(invalid)?.iter().cloned());
+    provenance["hydrodynamic_condition"] = serde_json::json!({
+        "loading_ratio": ratio, "water_depth_m": depth, "source": case.provenance,
+    });
+    provenance["radiation_fit_sha256"] = case.provenance["radiation_fit_validation_sha256"].clone();
+    provenance["radiation_coefficient_producer_sha256"] = case.provenance["radiation_coefficient_producer_sha256"].clone();
+    provenance["radiation_error"] = serde_json::json!({
+        "relative_a_error": case.provenance["relative_a_error"],
+        "relative_b_error": case.provenance["relative_b_error"],
+    });
+    load_model_pack(inputs[0], &serde_json::to_string(&geometry).map_err(|_| invalid())?,
+        inputs[2], inputs[3], &provenance.to_string())
 }

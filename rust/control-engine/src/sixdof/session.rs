@@ -12,7 +12,7 @@ use super::instrumentation::{
 };
 use super::integrator::NOMINAL_DT;
 use super::lng_speed_control::{LngSpeedController, SpeedPiInput};
-use super::model_pack::embedded_vessel_pack_with_loading;
+use super::model_pack::embedded_vessel_pack_with_water_depth;
 use super::passive_observer::{PassiveObserver, PassiveObserverParameters, wrap_pi};
 use super::sensor::NoiseLevel;
 use super::state::ActuatorStates;
@@ -76,6 +76,8 @@ pub struct SessionConfiguration {
     pub second_order_enabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub propulsion_power_budget_w: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub water_depth_m: Option<f64>,
     pub initial_heading_deg: f64,
     pub initial_position_ned: [f64; 3],
     pub heading_bias_fault: bool,
@@ -98,6 +100,7 @@ impl Default for SessionConfiguration {
             environment_switches: None,
             second_order_enabled: None,
             propulsion_power_budget_w: None,
+            water_depth_m: None,
             initial_heading_deg: 0.0,
             initial_position_ned: [0.0; 3],
             heading_bias_fault: false,
@@ -195,6 +198,7 @@ pub struct FleetSimulation {
     plant: DestroyerSixDofPlant,
     wave_assets: Option<std::sync::Arc<WaveModelAssets>>,
     wave_binding: Option<WaveModelBinding>,
+    hydrodynamic_depth_m: Option<f64>,
     sensors: SensorSuite,
     observer: PassiveObserver,
     initialized_axes: [bool; 3],
@@ -232,6 +236,9 @@ impl FleetSimulation {
         {
             return Err("初始位置或航向无效".into());
         }
+        if configuration.water_depth_m.is_some_and(|depth| !depth.is_finite() || depth <= 0.0) {
+            return Err("水深须为有限正值".into());
+        }
         if let Some(berth) = &configuration.berth {
             if configuration.vessel != "lng-changheng" || !berth.stop_line_north_m.is_finite()
                 || !berth.initial_bow_distance_m.is_finite() || berth.initial_bow_distance_m <= 0.0
@@ -239,8 +246,15 @@ impl FleetSimulation {
                 return Err("LNG靠泊的停止线或初始船艏距离无效".into());
             }
         }
-        let mut pack = embedded_vessel_pack_with_loading(&configuration.vessel,
-            &configuration.parameter_version, configuration.loading_ratio)
+        let depth = if configuration.vessel == "lng-changheng"
+            && configuration.parameter_version == "research-nominal-v2" && configuration.berth.is_some() {
+            if configuration.water_depth_m.is_some_and(|depth| (depth-40.0).abs() > 1e-8) {
+                return Err("LNG靠泊任务需要40米水深模型".into());
+            }
+            Some(40.0)
+        } else { configuration.water_depth_m };
+        let mut pack = embedded_vessel_pack_with_water_depth(&configuration.vessel,
+            &configuration.parameter_version, configuration.loading_ratio, depth)
             .map_err(|error| format!("参数包无效 {error:?}"))?;
         if let Some(budget) = configuration.propulsion_power_budget_w {
             let super::model_pack::PackActuators::Physical { system, .. } = &mut pack.actuators else {
@@ -324,7 +338,8 @@ impl FleetSimulation {
             damping_diagonal: diagonal.map(|value| value / 60.0),
             wave_frequency_rad_s: 2.0 * std::f64::consts::PI / 8.0,
         })?;
-        let mut environment = configured_environment(&configuration, pack.geometry.wave_model.as_ref())?;
+        let mut environment = configured_environment(&configuration, pack.geometry.wave_model.as_ref(),
+            pack.geometry.hydrodynamic_depth_m)?;
         if configuration.vessel != "destroyer-055" && pack.geometry.wind_model.is_none()
             && environment.switches.wind_force_enabled
         { return Err("该船型的风载投影仍在核验，当前工况未就绪".into()); }
@@ -364,6 +379,7 @@ impl FleetSimulation {
             plant,
             wave_assets,
             wave_binding: pack.geometry.wave_model.clone(),
+            hydrodynamic_depth_m: pack.geometry.hydrodynamic_depth_m,
             sensors,
             observer,
             initialized_axes: [false; 3],
@@ -746,6 +762,9 @@ impl FleetSimulation {
                 "fullDifferenceMetadataHash": binding.full_difference_metadata_fnv1a64,
             });
         }
+        if let Some(depth) = self.hydrodynamic_depth_m {
+            frame["hydrodynamicDepthM"] = serde_json::json!(depth);
+        }
         if let Some(budget) = self.plant.actuator_system().and_then(|system| system.max_positive_motor_power_w) {
             let state = &self.plant.state().actuator_states;
             let power: Vec<_> = state.motor_torques_nm.iter().zip(&state.propeller_shaft_speed_rad_s)
@@ -864,7 +883,8 @@ impl FleetSimulation {
             .plant
             .environment()
             .ok_or("恢复点缺少环境场")?
-            .validate_checkpoint(&configured_environment(&saved.configuration, simulation.wave_binding.as_ref())?, time_s)?;
+            .validate_checkpoint(&configured_environment(&saved.configuration, simulation.wave_binding.as_ref(),
+                simulation.hydrodynamic_depth_m)?, time_s)?;
         simulation.sensors = saved.sensors;
         simulation.observer = saved.observer;
         simulation.initialized_axes = saved.initialized_axes;
@@ -901,6 +921,7 @@ fn maximum_shaft_rpm(system: &ActuatorSystem) -> Result<f64, String> {
 fn configured_environment(
     configuration: &SessionConfiguration,
     wave_binding: Option<&WaveModelBinding>,
+    hydrodynamic_depth_m: Option<f64>,
 ) -> Result<EnvironmentState, String> {
     let (switches, wind, gust, current) = match configuration.environment {
         EnvironmentPreset::P0 => (EnvironmentSwitches::all_off(), 0.0, 0.0, 0.0),
@@ -954,7 +975,9 @@ fn configured_environment(
         EnvironmentPreset::V3 => WaveCondition::v3(),
         _ => WaveCondition::v1(),
     };
-    if let Some(binding) = wave_binding { wave_condition.water_depth_m = binding.water_depth_m; }
+    if let Some(depth) = wave_binding.map(|binding| binding.water_depth_m).or(hydrodynamic_depth_m) {
+        wave_condition.water_depth_m = depth;
+    }
     let mut environment = EnvironmentState::new(
         configuration.seed,
         switches,

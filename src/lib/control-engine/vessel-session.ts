@@ -21,6 +21,7 @@ export interface VesselSessionConfiguration {
   environmentSwitches?: { wind_force_enabled: boolean; wave_enabled: boolean; current_enabled: boolean };
   secondOrderEnabled?: boolean;
   propulsionPowerBudgetW?: number;
+  waterDepthM?: number;
   initialHeadingDeg?: number;
   initialPositionNed?: [number, number, number];
   headingBiasFault?: boolean;
@@ -169,6 +170,7 @@ export interface VesselSessionFrame {
     fullDifferenceMetadataHash: string | null;
   };
   longitudinalController?: VesselSpeedControlDiagnostics;
+  hydrodynamicDepthM?: number;
   propulsionPower?: {
     budgetW: number;
     shaftMechanicalPowerW: number[];

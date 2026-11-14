@@ -1,0 +1,26 @@
+{
+  "schema": "act.ship-static-validation.v1",
+  "status": "passed",
+  "mass_relative_error": 0.0,
+  "gm_transverse_m": 12.567570100914141,
+  "gm_longitudinal_m": 669.3739604190484,
+  "first_mode_free_surface_correction_m": [
+    4.762951101109359,
+    6.385784855780969
+  ],
+  "effective_gm_m": [
+    7.804618999804782,
+    662.9881755632675
+  ],
+  "reason": null,
+  "inputs_sha256": {
+    "source-sections.json": "208556d94d703699c2765969b69c7b40b408c0483d9949c09a6ce868fe4af279"
+  },
+  "outputs_sha256": {
+    "geometry.json": "d698dbbffe6da56e2e6297c5ba6293a5b16d16bb335ed3fee95c83306fa2a82a",
+    "hull.dat": "df81ff17a2e3d808dcf7d1bafc5fcfc722a33005964c62c5ff70ad46e4b7160b",
+    "lid.dat": "8a20a81b819112839212930347a716128d1f1f8a14c75393e2e2a8495fa2d985",
+    "full-hull.dat": "f6f57bfc3b27f8734804783d0112f9896e65457c88f33ba92bc4519e9e30f84e",
+    "hydrostatic-hull.json": "feefffc8c6c66ecb4753f9526123879846ae5d4d38982108bfaff02120d28edb"
+  }
+}

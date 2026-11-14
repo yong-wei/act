@@ -1,0 +1,251 @@
+{
+  "schema": "act.lng-depth-session-validation.v1",
+  "status": "passed",
+  "generator_sha256": "26bfcacfb3de31d8b52e5be72221a31c22e4722a47c471a85b2c964427d125e4",
+  "wasm_sha256": "f3b103e89102c6f23d9f4e75c0e4a7e66c4c8cfa62d01e376a35bcb5c3cb2ffa",
+  "parameter_manifest_sha256": "e2987edd9f1e9435d3ec2b09ae6cc93d3c2257f746433a0546c74412ae870710",
+  "records": [
+    {
+      "loading_ratio": 0.3,
+      "water_depth_m": 40,
+      "parameter_hash": "fnv1a-b88f1f84b022345e",
+      "radiation_states": 122,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "conflicting_depth_restore_rejected_without_mutation": true,
+      "actual_wind_loads_si": [
+        -40117.2192929968,
+        -367320.1369976615,
+        0,
+        -6039968.541218702,
+        336719.1809361357,
+        -14235612.464292401
+      ],
+      "actual_liquid_wall_heights_m": [
+        -0.03613011220974461,
+        0.0042707314850501735,
+        -0.03613004787557741,
+        0.004627824365096568,
+        -0.03612998354141016,
+        0.004984917245142966,
+        -0.036129919207242914,
+        0.005342010125189362
+      ],
+      "physics_ticks": 360,
+      "controller_ticks": 60
+    },
+    {
+      "loading_ratio": 0.3,
+      "water_depth_m": 200,
+      "parameter_hash": "fnv1a-bb02cd86b4a13124",
+      "radiation_states": 116,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "conflicting_depth_restore_rejected_without_mutation": true,
+      "actual_wind_loads_si": [
+        -40106.7628665984,
+        -367296.04888562276,
+        0,
+        -6039572.452291695,
+        336631.41614599223,
+        -14233704.62597883
+      ],
+      "actual_liquid_wall_heights_m": [
+        -0.03364501515758007,
+        0.0040193902387859505,
+        -0.033644965808246725,
+        0.004433532642878815,
+        -0.033644916458913245,
+        0.004847675046971688,
+        -0.03364486710957986,
+        0.005261817451064555
+      ],
+      "physics_ticks": 360,
+      "controller_ticks": 60
+    },
+    {
+      "loading_ratio": 0.7,
+      "water_depth_m": 40,
+      "parameter_hash": "fnv1a-12beeadcb5415d26",
+      "radiation_states": 114,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "conflicting_depth_restore_rejected_without_mutation": true,
+      "actual_wind_loads_si": [
+        -39957.168439423884,
+        -312674.8662578374,
+        0,
+        -5830625.039940224,
+        397313.25968976505,
+        -11671259.753199428
+      ],
+      "actual_liquid_wall_heights_m": [
+        -0.009611634948111408,
+        0.0012197666209097498,
+        -0.009611555754762203,
+        0.0008468685724508597,
+        -0.009611476561413,
+        0.00047397052399197784,
+        -0.0096113973680638,
+        0.00010107247553308598
+      ],
+      "physics_ticks": 360,
+      "controller_ticks": 60
+    },
+    {
+      "loading_ratio": 0.7,
+      "water_depth_m": 200,
+      "parameter_hash": "fnv1a-b27b55bf9a97b4f0",
+      "radiation_states": 110,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "conflicting_depth_restore_rejected_without_mutation": true,
+      "actual_wind_loads_si": [
+        -39964.38058914878,
+        -312681.40916477406,
+        0,
+        -5830747.049225702,
+        397384.97354809096,
+        -11672207.679685302
+      ],
+      "actual_liquid_wall_heights_m": [
+        -0.013277546933877398,
+        0.0014690390127960987,
+        -0.013277424310738065,
+        0.0010117318391718718,
+        -0.013277301687598731,
+        0.0005544246655476427,
+        -0.013277179064459401,
+        0.00009711749192341026
+      ],
+      "physics_ticks": 360,
+      "controller_ticks": 60
+    },
+    {
+      "loading_ratio": 0.85,
+      "water_depth_m": 40,
+      "parameter_hash": "fnv1a-50d30fee9e55568c",
+      "radiation_states": 116,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "conflicting_depth_restore_rejected_without_mutation": true,
+      "actual_wind_loads_si": [
+        -39779.34817654249,
+        -291914.64296860766,
+        0,
+        -5489977.421947732,
+        394173.79461245,
+        -10677847.923985746
+      ],
+      "actual_liquid_wall_heights_m": [
+        0.002083806958817081,
+        0.0013015569088594425,
+        0.0020838334581707164,
+        0.0006961446021498001,
+        0.00208385995752435,
+        0.00009073229544015781,
+        0.002083886456877982,
+        -0.000514680011269485
+      ],
+      "physics_ticks": 360,
+      "controller_ticks": 60
+    },
+    {
+      "loading_ratio": 0.85,
+      "water_depth_m": 200,
+      "parameter_hash": "fnv1a-b8415786b2ac8aa6",
+      "radiation_states": 118,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "conflicting_depth_restore_rejected_without_mutation": true,
+      "actual_wind_loads_si": [
+        -39780.49234044577,
+        -291911.88494219765,
+        0,
+        -5489925.552323906,
+        394185.13213928463,
+        -10677906.454423381
+      ],
+      "actual_liquid_wall_heights_m": [
+        0.0016067520106396206,
+        0.0013267339736438102,
+        0.0016067607670494704,
+        0.0007064221828401164,
+        0.0016067695234593205,
+        0.00008611039203642385,
+        0.0016067782798691696,
+        -0.0005342013987672685
+      ],
+      "physics_ticks": 360,
+      "controller_ticks": 60
+    },
+    {
+      "loading_ratio": 0.95,
+      "water_depth_m": 40,
+      "parameter_hash": "fnv1a-bde0d126002d8107",
+      "radiation_states": 114,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "conflicting_depth_restore_rejected_without_mutation": true,
+      "actual_wind_loads_si": [
+        -39999.85477115294,
+        -278847.5219191366,
+        0,
+        -5229241.990926666,
+        387233.6078266012,
+        -10051660.445879899
+      ],
+      "actual_liquid_wall_heights_m": [
+        0.012505546194864726,
+        0.0015083923019176327,
+        0.012505657045081622,
+        0.0008138955603723878,
+        0.012505767895298515,
+        0.00011939881882714362,
+        0.012505878745515389,
+        -0.0005750979227180994
+      ],
+      "physics_ticks": 360,
+      "controller_ticks": 60
+    },
+    {
+      "loading_ratio": 0.95,
+      "water_depth_m": 200,
+      "parameter_hash": "fnv1a-a0ffb086d2ec5b50",
+      "radiation_states": 116,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "conflicting_depth_restore_rejected_without_mutation": true,
+      "actual_wind_loads_si": [
+        -40003.62385742477,
+        -278849.71614928346,
+        0,
+        -5229283.139438021,
+        387270.0958809604,
+        -10052088.593443932
+      ],
+      "actual_liquid_wall_heights_m": [
+        0.010619191253715072,
+        0.0015998935597280257,
+        0.010619195399723171,
+        0.0008694269065648509,
+        0.01061919954573129,
+        0.00013896025340167902,
+        0.010619203691739411,
+        -0.0005915063997614942
+      ],
+      "physics_ticks": 360,
+      "controller_ticks": 60
+    }
+  ],
+  "berth_automatically_selects_forty_meters": true,
+  "scope": "Actual WASM with 8 loading/depth combinations, fitted radiation, source wind, coupled liquid cargo, 120Hz RK and 20Hz control. Forward-speed wave calibration and normal-page consumption remain pending."
+}

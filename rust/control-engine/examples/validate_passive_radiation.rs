@@ -1,13 +1,15 @@
-use control_engine::sixdof::model_pack::embedded_vessel_pack;
+use control_engine::sixdof::model_pack::embedded_vessel_pack_with_water_depth;
 use std::fs::{read_to_string, File};
 use std::io::{BufWriter, Write};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let arguments: Vec<String> = std::env::args().skip(1).collect();
-    if arguments.len() != 4 {
-        return Err("需要船型、参数版本、频率JSON、输出CSV四个参数".into());
+    if arguments.len() != 4 && arguments.len() != 6 {
+        return Err("需要船型、参数版本、频率JSON、输出CSV，可追加加载比例和水深".into());
     }
-    let pack = embedded_vessel_pack(&arguments[0], &arguments[1])
+    let ratio = arguments.get(4).map(|value| value.parse::<f64>()).transpose()?;
+    let depth = arguments.get(5).map(|value| value.parse::<f64>()).transpose()?;
+    let pack = embedded_vessel_pack_with_water_depth(&arguments[0], &arguments[1], ratio, depth)
         .map_err(|error| format!("参数包无效 {error:?}"))?;
     let model = pack.geometry.passive_radiation.as_ref().ok_or("参数包没有被动辐射数据")?;
     model.validate()?;
