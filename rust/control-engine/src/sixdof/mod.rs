@@ -20,6 +20,7 @@ pub mod instrumentation;
 pub mod session;
 pub mod qtf;
 pub mod full_qtf;
+pub mod first_order_wave;
 pub mod component_drag;
 pub mod benchmark_b470;
 pub mod benchmark_dtmb5415;

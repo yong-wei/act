@@ -7,7 +7,7 @@ use num_complex::{Complex32, Complex64};
 use serde::Deserialize;
 
 use super::model_pack::{fnv1a, normalized_hash};
-use super::wave::{WaveComponent, WaveField};
+use super::wave::{WaveComponent, WaveField, bracket_wave_grid as bracket};
 
 const TWO_PI: f64 = 2.0 * std::f64::consts::PI;
 const FRD_SIGNS: [f64; 6] = [1.0, -1.0, -1.0, 1.0, -1.0, -1.0];
@@ -46,6 +46,7 @@ pub struct FullDifferenceQtf {
     metadata: FullQtfMetadata,
     normalized_coefficients: Arc<Vec<Complex32>>,
     content_hash: String,
+    metadata_bytes_hash: String,
 }
 
 /// 线性势流计算的平均状态。实际振荡速度由物理会话另行推进。
@@ -100,7 +101,8 @@ impl FullDifferenceQtf {
             }
             coefficients.push(Complex32::new(real, imaginary));
         }
-        Ok(Self { metadata, normalized_coefficients: Arc::new(coefficients), content_hash: normalized_hash(&value) })
+        Ok(Self { metadata, normalized_coefficients: Arc::new(coefficients), content_hash: normalized_hash(&value),
+            metadata_bytes_hash: format!("fnv1a-{:016x}", fnv1a(raw_metadata.as_bytes())) })
     }
 
     pub fn metadata(&self) -> &FullQtfMetadata {
@@ -110,6 +112,8 @@ impl FullDifferenceQtf {
     pub fn content_hash(&self) -> &str {
         &self.content_hash
     }
+
+    pub fn metadata_bytes_hash(&self) -> &str { &self.metadata_bytes_hash }
 
     fn direction_pair(&self, first: f64, second: f64) -> Result<([usize; 2], [usize; 2], f64, f64, bool), String> {
         for half_turn in [false, true] {
@@ -208,23 +212,6 @@ impl FullDifferenceQtf {
         Ok(PreparedDifferenceLoads { components: Arc::new(components.to_vec()), pairs: Arc::new(pairs),
             mean_heading_rad, content_hash: self.content_hash.clone() })
     }
-}
-
-fn bracket(grid: &[f64], value: f64, periodic: bool) -> Option<([usize; 2], f64)> {
-    if !value.is_finite() {
-        return None;
-    }
-    let last = grid.len() - 1;
-    if periodic && (value < grid[0] || value > grid[last]) {
-        let position = if value < grid[0] { value + TWO_PI } else { value };
-        return Some(([last, 0], (position - grid[last]) / (grid[0] + TWO_PI - grid[last])));
-    }
-    if value < grid[0] || value > grid[last] {
-        return None;
-    }
-    let right = grid.partition_point(|point| *point <= value).min(last).max(1);
-    let left = right - 1;
-    Some(([left, right], (value - grid[left]) / (grid[right] - grid[left])))
 }
 
 #[derive(Clone)]

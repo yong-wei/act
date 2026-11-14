@@ -31,6 +31,21 @@ pub const FREQUENCY_BINS: usize = 128;
 pub const DIRECTIONS: usize = 7;
 pub const GRAVITY: f64 = 9.81;
 
+pub(crate) fn bracket_wave_grid(grid: &[f64], value: f64, periodic: bool) -> Option<([usize; 2], f64)> {
+    if !value.is_finite() || grid.is_empty() { return None; }
+    if grid.len() == 1 { return (value == grid[0]).then_some(([0, 0], 0.0)); }
+    let last = grid.len()-1;
+    if periodic && (value < grid[0] || value > grid[last]) {
+        let two_pi = 2.0*std::f64::consts::PI;
+        let position = if value < grid[0] { value+two_pi } else { value };
+        return Some(([last, 0], (position-grid[last])/(grid[0]+two_pi-grid[last])));
+    }
+    if value < grid[0] || value > grid[last] { return None; }
+    let right = grid.partition_point(|point| *point <= value).min(last).max(1);
+    let left = right-1;
+    Some(([left, right], (value-grid[left])/(grid[right]-grid[left])))
+}
+
 /// 工况定义（issue §2 表；T 级课程标称）。
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct WaveCondition {

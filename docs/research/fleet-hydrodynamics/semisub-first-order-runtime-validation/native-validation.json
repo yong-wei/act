@@ -1,0 +1,24 @@
+{
+  "data_bytes": 149760,
+  "elapsed_ms": 2.5418749999999997,
+  "evaluations": 120,
+  "mean_evaluation_ms": 0.021182291666666665,
+  "mean_heading_rad": 0.13,
+  "mean_speed_mps": 0.0,
+  "metadata_bytes_fnv1a64": "fnv1a-2a1385d1ff75db94",
+  "model_fidelity": "research-nominal",
+  "schema": "act.first-order-wave.native-validation.v1",
+  "scope": "native release kernel with full wave components and actual spatial phase",
+  "seed": 20261106,
+  "status": "passed",
+  "trace_file": "native-validation.trace.csv",
+  "vessel": "semisub-981",
+  "wave_components": 896,
+  "wave_condition": {
+    "direction_to_deg": 90.0,
+    "hs_m": 1.5,
+    "tp_s": 8.0,
+    "water_depth_m": 200.0
+  },
+  "wave_file": "native-validation.wave.json"
+}

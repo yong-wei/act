@@ -1,0 +1,25 @@
+{
+  "schema": "act.first-order-runtime.validation.v1",
+  "status": "computed",
+  "model_fidelity": "research-nominal",
+  "generator_sha256": "f7a853d73a5c5d827952c637c608b268f7f68165a52991bc0869c2938fe0c2b5",
+  "metadata_sha256": "31d49f5e23dfabd8bf744ffaea7cafb4e1732d450f736291014c1bea6bc33b33",
+  "data_sha256": "0a778224435e9577354b7ddc96a964da31fba561ba658744ac7ea199ae27bc71",
+  "array_shape_speed_frequency_heading_channel": [
+    1,
+    130,
+    24,
+    6
+  ],
+  "quantization_relative_l2_per_channel": [
+    2.2482825534917705e-08,
+    2.4898557789505544e-08,
+    2.24000879743418e-08,
+    2.5232334624254277e-08,
+    2.4847551787306686e-08,
+    2.545236015991044e-08
+  ],
+  "source_reference_checks": [
+    "failed"
+  ]
+}
