@@ -62,6 +62,7 @@ def parameter_entries(value, prefix, leaf='', authority_issue=2158):
         'center_bottom_body_m': 'm', 'width_m': 'm', 'height_m': 'm',
         'fill_ratio': '1', 'density_kg_m3': 'kg/m^3', 'damping_ratio': '1',
         'free_surface_correction_m': 'm', 'effective_gm_m': 'm',
+        'frequency_band_rad_s': 'rad/s', 'natural_frequency_rad_s': 'rad/s',
         'propeller_shaft_speed_rad_s': 'rad/s', 'motor_torques_nm': 'N*m',
         'shaft_reference_speed_rad_s': 'rad/s', 'azimuth_angles_rad': 'rad', 'control_surface_angles_rad': 'rad',
     }
@@ -80,6 +81,11 @@ def parameter_entries(value, prefix, leaf='', authority_issue=2158):
     if leaf == 'liquid_initial_state':
         index = int(re.findall(r'\[(\d+)\]', prefix)[-1])
         unit = 'm' if index % 2 == 0 else 'm/s'
+    if leaf in ['coupling', 'added_mass_factors']:
+        axis = int(re.findall(r'\[(\d+)\]', prefix)[-1])
+        unit = 'sqrt(kg)' if axis < 3 else 'sqrt(kg)*m'
+        if leaf == 'coupling':
+            unit += '/s'
     if unit is None:
         raise ValueError(f'参数缺少单位 {prefix}')
     source = f'https://github.com/yong-wei/act/issues/{authority_issue}'

@@ -169,7 +169,11 @@ fn actual_loaded_sessions_restore_complete_future_and_preserve_initial_liquid_st
             let configuration = SessionConfiguration { vessel: vessel.into(), parameter_version: VERSION.into(),
                 loading_ratio: Some(*ratio), noise_level: NoiseLevel::N0, ..Default::default() };
             let pack = embedded_vessel_pack_with_loading(vessel, VERSION, Some(*ratio)).unwrap();
-            let plant = DestroyerSixDofPlant::from_model_pack(&pack, Default::default());
+            let mut plant = DestroyerSixDofPlant::from_model_pack(&pack, Default::default());
+            assert_eq!(plant.state().specialist_states, pack.geometry.liquid_initial_state);
+            let mut missing_liquid_state = plant.state().clone();
+            missing_liquid_state.specialist_states.clear();
+            plant.restore_state(missing_liquid_state);
             assert_eq!(plant.state().specialist_states, pack.geometry.liquid_initial_state);
             let mut session = FleetSimulation::new(configuration).unwrap();
             session.advance(0.1, None).unwrap();

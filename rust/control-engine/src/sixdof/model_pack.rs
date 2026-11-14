@@ -57,6 +57,8 @@ pub struct PackGeometry {
     pub liquid_tanks: Vec<super::coupled_sloshing::LiquidTank>,
     #[serde(default)]
     pub liquid_initial_state: Vec<f64>,
+    #[serde(default)]
+    pub passive_radiation: Option<super::coupled_radiation::PassiveRadiationModel>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -167,6 +169,7 @@ pub enum PackError {
     NonFiniteValue { field: &'static str },
     InvalidHydrostaticHull { reason: String },
     InvalidLiquidTank { reason: String },
+    InvalidRadiation { reason: String },
 }
 
 pub(crate) fn fnv1a(bytes: &[u8]) -> u64 {
@@ -248,7 +251,15 @@ pub fn load_model_pack(
             [0.0, 0.0, geometry.inertia_about_cg_kg_m2.izz],
         ],
     };
-    let mass = super::dynamics::mass_matrix(&rigid, &super::dynamics::AddedMassParams { a_inf: [[0.0; 6]; 6] });
+    let mut added_mass = [[0.0; 6]; 6];
+    if let Some(model) = &geometry.passive_radiation {
+        model.validate().map_err(|reason| PackError::InvalidRadiation { reason })?;
+        added_mass = model.added_mass();
+    }
+    let mass = super::dynamics::mass_matrix(&rigid, &super::dynamics::AddedMassParams { a_inf: added_mass });
+    if geometry.passive_radiation.is_some() && !super::state::symmetric_positive_definite_6(&mass) {
+        return Err(PackError::InvalidRadiation { reason: "刚体与同源附加质量矩阵无效".into() });
+    }
     let liquid = if geometry.liquid_tanks.is_empty() {
         if !geometry.liquid_initial_state.is_empty() {
             return Err(PackError::InvalidLiquidTank { reason: "无液舱参数的初始液面状态".into() });
@@ -418,6 +429,13 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/semisub-981/v1/maneuvering.json"),
             include_str!("../../model-data/semisub-981/v1/actuators.json"),
             include_str!("../../model-data/semisub-981/v1/provenance.json"),
+        ),
+        ("semisub-981", "research-nominal-v2") => load_model_pack(
+            include_str!("../../model-data/semisub-981/v2/manifest.json"),
+            include_str!("../../model-data/semisub-981/v2/geometry.json"),
+            include_str!("../../model-data/semisub-981/v2/maneuvering.json"),
+            include_str!("../../model-data/semisub-981/v2/actuators.json"),
+            include_str!("../../model-data/semisub-981/v2/provenance.json"),
         ),
         ("cruise-adora", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/cruise-adora/v1/manifest.json"),

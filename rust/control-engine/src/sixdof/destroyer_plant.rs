@@ -29,6 +29,7 @@ use super::dynamics::{
 use super::hull_mmg::{blended_hull_loads, HullMmgParams, LowSpeedParams, MappedMmgHull};
 use super::integrator::{IntegrationError, NOMINAL_DT};
 use super::radiation::{RadiationModel, RadiationMode};
+use super::coupled_radiation::PassiveRadiationModel;
 use super::state::{normalize_quaternion, TruthState};
 
 pub const SEA_WATER_DENSITY: f64 = 1025.0;
@@ -84,6 +85,52 @@ struct RudderHydrodynamics {
     longitudinal_position_m: f64,
 }
 
+#[derive(Clone)]
+enum RadiationDynamics {
+    Legacy(RadiationModel),
+    Passive(PassiveRadiationModel),
+}
+
+impl RadiationDynamics {
+    fn state_len(&self) -> usize {
+        match self {
+            Self::Legacy(model) => model.state_len(),
+            Self::Passive(model) => model.state_len(),
+        }
+    }
+
+    fn is_passive_model(&self) -> bool {
+        matches!(self, Self::Passive(_))
+    }
+
+    fn steady_state(&self, velocity: [f64; 6]) -> Vec<f64> {
+        match self {
+            Self::Legacy(model) => model.steady_state(velocity),
+            Self::Passive(model) => model.steady_state(velocity),
+        }
+    }
+
+    fn derivatives_into(&self, values: &[f64], body_velocity: [f64; 6], relative_velocity: [f64; 6],
+        derivatives: &mut [f64]) -> Result<[f64; 6], String>
+    {
+        match self {
+            Self::Passive(model) => model.derivatives_into(values, relative_velocity, derivatives),
+            Self::Legacy(model) => {
+                if values.len() != model.state_len() || derivatives.len() != model.state_len() {
+                    return Err("辐射状态维度无效".into());
+                }
+                let mut loads = [0.0; 6];
+                for (index, mode) in model.modes.iter().enumerate() {
+                    loads[mode.channel] += mode.output_gain
+                        *(mode.input_gain*body_velocity[mode.channel]+mode.a*values[index]);
+                    derivatives[index] = mode.a*values[index]+mode.input_gain*body_velocity[mode.channel];
+                }
+                Ok(loads)
+            }
+        }
+    }
+}
+
 /// 组装后的 055 TruthPlant。
 #[derive(Clone)]
 pub struct DestroyerSixDofPlant {
@@ -103,7 +150,7 @@ pub struct DestroyerSixDofPlant {
     shaft: PropellerShaft,
     servo: ServoModel,
     rudder_hydrodynamics: RudderHydrodynamics,
-    radiation: RadiationModel,
+    radiation: RadiationDynamics,
     state: TruthState,
     /// 上一拍电机扭矩命令（限幅后实际值）。
     motor_torque_actual_nm: f64,
@@ -274,7 +321,7 @@ impl DestroyerSixDofPlant {
                 lateral_factor: 0.66,
                 longitudinal_position_m: -0.5 * config.length_m,
             },
-            radiation,
+            radiation: RadiationDynamics::Legacy(radiation),
             state,
             motor_torque_actual_nm: 0.0,
             last_output: None,
@@ -328,6 +375,11 @@ impl DestroyerSixDofPlant {
         }
         if let Some(stiffness) = g.hydrostatic_stiffness_si {
             plant.rp.k_linear = stiffness;
+        }
+        if let Some(model) = &g.passive_radiation {
+            plant.am.a_inf = model.added_mass();
+            plant.radiation = RadiationDynamics::Passive(model.clone());
+            plant.state.radiation_states = plant.radiation.steady_state(plant.state.body_velocity);
         }
         plant.hydrostatic_hull = g.nonlinear_hydrostatics.clone().map(std::sync::Arc::new);
         let half_pitch = g.equilibrium_pitch_rad / 2.0;
@@ -498,6 +550,11 @@ impl DestroyerSixDofPlant {
         env: crate::sixdof::environment_state::EnvironmentState,
         wind_geometry: crate::sixdof::WindHullGeometry,
     ) {
+        if self.radiation.is_passive_model() && self.environment_state.is_none() && self.sim_time_s == 0.0 {
+            let current = env.current_field(self.state.quaternion, self.state.body_velocity);
+            let relative = std::array::from_fn(|axis| self.state.body_velocity[axis]-current.nu_current_body[axis]);
+            self.state.radiation_states = self.radiation.steady_state(relative);
+        }
         self.environment_state = Some(env);
         self.wind_geometry = Some(wind_geometry);
     }
@@ -630,9 +687,15 @@ impl DestroyerSixDofPlant {
                 let nu = [
                     y_slice[7], y_slice[8], y_slice[9], y_slice[10], y_slice[11], y_slice[12],
                 ];
-                let x_rad: Vec<f64> = y_slice[13..13 + radiation_len].to_vec();
+                let x_rad = &y_slice[13..13 + radiation_len];
                 let (hull_nu, current_field_local, tau_wave_1, tau_wind) =
-                    resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo);
+                    resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo,
+                        radiation_model.is_passive_model());
+                let tau_radiation = match radiation_model.derivatives_into(x_rad, nu, hull_nu,
+                    &mut dy[13..13+radiation_len]) {
+                    Ok(loads) => loads,
+                    Err(_) => { dy.fill(f64::NAN); return; },
+                };
                 let (rudder_state, thrust, physical_loads) = if let (Some(system), Some(command)) =
                     (actuator_system, physical_commands)
                 {
@@ -657,10 +720,10 @@ impl DestroyerSixDofPlant {
                         - shaft_friction(&shaft, omega_state)) / shaft.shaft_inertia;
                     (rudder_state, thrust, None)
                 };
-                let (mut external, tau_radiation, delta_eta) = assemble_forces(
-                    &mmg, &low, radiation_model, &config, &rudder_hydrodynamics,
+                let (mut external, delta_eta) = assemble_forces(
+                    &mmg, &low, &config, &rudder_hydrodynamics,
                     propeller_installation.as_ref(),
-                    &nu, &hull_nu, &x_rad, rudder_state, thrust, &quat, &position, physical_loads, mapped_hull, component_drag,
+                    &hull_nu, rudder_state, thrust, &quat, &position, physical_loads, mapped_hull, component_drag,
                 );
                 external.tau_wave_1 = tau_wave_1;
                 external.tau_wind = tau_wind;
@@ -700,9 +763,6 @@ impl DestroyerSixDofPlant {
                 dy[5] = out.quaternion_dot[2];
                 dy[6] = out.quaternion_dot[3];
                 dy[7..13].copy_from_slice(&out.nu_dot);
-                for (i, mode) in radiation_model.modes.iter().enumerate() {
-                    dy[13 + i] = mode.a * x_rad[i] + mode.input_gain * nu[mode.channel];
-                }
             };
 
             super::integrator::rk4_step(time, &mut y, substep_dt, derivs)?;
@@ -739,6 +799,7 @@ impl DestroyerSixDofPlant {
             &environment,
             env_state.as_ref(),
             self.wind_geometry.as_ref(),
+            self.radiation.is_passive_model(),
         );
         let (thrust, _) = propeller_loads_at(
             &self.prop, self.propeller_installation.as_ref(), env_state.as_ref(),
@@ -758,10 +819,14 @@ impl DestroyerSixDofPlant {
             final_state.actuator_states.motor_torques_nm = evaluation.motor_torques_nm;
             motor_torque_actual_nm = final_state.actuator_states.motor_torques_nm.first().copied().unwrap_or(0.0);
         }
-        let (mut external, tau_rad, delta_eta) = assemble_forces(
-            &self.mmg, &self.low, &self.radiation, &self.config, &self.rudder_hydrodynamics,
+        let mut radiation_derivatives = vec![0.0; radiation_len];
+        let tau_rad = self.radiation.derivatives_into(&final_state.radiation_states,
+            final_state.body_velocity, final_hull_nu, &mut radiation_derivatives)
+            .map_err(IntegrationError::InvalidRadiationState)?;
+        let (mut external, delta_eta) = assemble_forces(
+            &self.mmg, &self.low, &self.config, &self.rudder_hydrodynamics,
             self.propeller_installation.as_ref(),
-            &final_state.body_velocity, &final_hull_nu, &final_state.radiation_states,
+            &final_hull_nu,
             final_state.actuator_states.control_surface_angles_rad.first().copied().unwrap_or(0.0),
             thrust,
             &final_state.quaternion, &final_state.position_ned, physical_loads, self.mapped_hull.as_ref(), self.component_drag.as_deref(),
@@ -801,11 +866,18 @@ impl DestroyerSixDofPlant {
     /// （旧标量兼容重建没有执行器信息）。
     pub fn restore_state(&mut self, mut state: TruthState) {
         if state.radiation_states.len() != self.radiation.state_len() {
-            state.radiation_states = self.radiation.steady_state(state.body_velocity);
+            let mut velocity = state.body_velocity;
+            if self.radiation.is_passive_model() {
+                if let Some(environment) = &self.environment_state {
+                    let current = environment.current_field(state.quaternion, velocity);
+                    velocity = std::array::from_fn(|axis| velocity[axis]-current.nu_current_body[axis]);
+                }
+            }
+            state.radiation_states = self.radiation.steady_state(velocity);
         }
         if let Some(model) = &self.sloshing {
             if state.specialist_states.len() != model.state_len() {
-                state.specialist_states = vec![0.0; model.state_len()];
+                state.specialist_states = self.state.specialist_states.clone();
             }
         }
         if state.actuator_states.control_surface_angles_rad.is_empty() {
@@ -882,8 +954,14 @@ impl DestroyerSixDofPlant {
 
     /// 校核用：按当前体速度重载辐射稳态（测试改初速后调用）。
     pub fn prewarm_radiation_for_test(&mut self) {
-        self.state.radiation_states =
-            self.radiation.steady_state(self.state.body_velocity);
+        let mut velocity = self.state.body_velocity;
+        if self.radiation.is_passive_model() {
+            if let Some(environment) = &self.environment_state {
+                let current = environment.current_field(self.state.quaternion, velocity);
+                velocity = std::array::from_fn(|axis| velocity[axis]-current.nu_current_body[axis]);
+            }
+        }
+        self.state.radiation_states = self.radiation.steady_state(velocity);
     }
 
     pub fn set_shaft_speed_for_test(&mut self, omega: f64) {
@@ -915,6 +993,7 @@ fn resolve_env_loads(
     environment: &EnvironmentField,
     real_env: Option<&crate::sixdof::environment_state::EnvironmentState>,
     wind_geo: Option<&crate::sixdof::wind::WindHullGeometry>,
+    full_current_kinematics: bool,
 ) -> ([f64; 6], CurrentFieldBody, [f64; 6], [f64; 6]) {
     let mut current_field_local = CurrentFieldBody::default();
     let mut hull_nu = *nu;
@@ -931,6 +1010,10 @@ fn resolve_env_loads(
             nu_current_body_dot: [0.0; 6],
         };
         hull_nu = [nu[0] - cur[0], nu[1] - cur[1], nu[2], nu[3], nu[4], nu[5]];
+        if full_current_kinematics {
+            current_field_local = env.current_field(*quat, *nu);
+            hull_nu = std::array::from_fn(|axis| nu[axis]-current_field_local.nu_current_body[axis]);
+        }
     } else if environment.enabled {
         let wave = environment.wave_moment_amplitude_nm
             * (2.0 * std::f64::consts::PI * t_s / environment.wave_period_s).sin();
@@ -989,19 +1072,15 @@ fn propeller_loads_at(
     propeller_loads_with_ventilation(prop, axial_velocity, shaft_speed_rad_s, Some(immersion))
 }
 
-/// 子阶段力组装：船体、桨、舵（真实局部流速，无下限截断）、
-/// 辐射记忆（连续形式 τ=C·(B·u+A·x)）与恢复偏差。
+/// 子阶段船体、桨舵载荷与恢复偏差，使用真实局部流速。
 #[allow(clippy::too_many_arguments)]
 fn assemble_forces(
     mmg: &HullMmgParams,
     low: &LowSpeedParams,
-    radiation_model: &RadiationModel,
     config: &DestroyerSixDofConfig,
     rudder: &RudderHydrodynamics,
     propeller_installation: Option<&PropellerInstallation>,
-    nu: &[f64; 6],
     nu_rel: &[f64; 6],
-    x_rad: &[f64],
     rudder_state: f64,
     thrust_k: f64,
     quat: &[f64; 4],
@@ -1009,7 +1088,7 @@ fn assemble_forces(
     physical_loads: Option<[f64; 6]>,
     mapped_hull: Option<&MappedMmgHull>,
     component_drag: Option<&super::component_drag::ComponentDrag>,
-) -> (ExternalForces, [f64; 6], [f64; 6]) {
+) -> (ExternalForces, [f64; 6]) {
     let loads = component_drag.map(|model| model.loads(nu_rel)).unwrap_or_else(|| {
         mapped_hull.map(|hull| hull.loads(nu_rel))
             .unwrap_or_else(|| blended_hull_loads(mmg, low, nu_rel[0], nu_rel[1], nu_rel[5]))
@@ -1038,13 +1117,6 @@ fn assemble_forces(
         propeller_lever, [thrust_k, 0.0, 0.0],
     );
 
-    let mut tau_radiation = [0.0f64; 6];
-    for (i, mode) in radiation_model.modes.iter().enumerate() {
-        let x_i = x_rad.get(i).copied().unwrap_or(0.0);
-        tau_radiation[mode.channel] +=
-            mode.output_gain * (mode.input_gain * nu[mode.channel] + mode.a * x_i);
-    }
-
     let external = ExternalForces {
         tau_hull_viscous: loads,
         tau_actuator: physical_loads.unwrap_or([
@@ -1059,7 +1131,7 @@ fn assemble_forces(
     };
     let euler = super::state::euler_from_quaternion(*quat);
     let delta_eta = [0.0, 0.0, position[2], euler.roll_rad, euler.pitch_rad, euler.yaw_rad];
-    (external, tau_radiation, delta_eta)
+    (external, delta_eta)
 }
 
 /// 环境场（T 级等效扰动；真实风浪流随 #2156 接入）。

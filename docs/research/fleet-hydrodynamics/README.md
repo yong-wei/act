@@ -28,6 +28,8 @@ rtk proxy /tmp/act-solvers/bin/python3 docs/research/nemoh-v3/run_case.py --sour
 
 构件低频阻力由六个冻结平均湿面矩形在三种投影方向分别采用21×21中点积分，速度包含相对平均流和作用点ω×r，完整六维载荷进入实际RK。九项直接回归及Rust全量379项通过，原始WASM对象证明位于semisub-session-validation.json。DP/分配、电力/射流运行限制、拟合辐射及在线波浪数据继续由参数包未完成清单和OpenSpec管理。
 
+semisub-981/v2已追加同源A_inf及52振子、104状态的六维被动辐射。实际RK使用相对速度记忆及完整旋转海流导数，同一A_inf进入总质量与C_A。原始A/B拟合残差4.82%/12.64%按research-nominal保留，数值组装与SciPy独立状态空间对照约1e−16。九项直接、Rust全量395项、十五个真实WASM对象和旧恢复点通过，证据及复现命令见`semisub-radiation-validation/README.md`。
+
 ## 055双轴与双舵参数包
 
 `build_destroyer_pack.py`生成 `rust/control-engine/model-data/destroyer-055/v3/`。主尺度、质量、GM_T、设备高度及硬件限制来自#2147、#2158的固定T级定义。源模型为已发布的v2.3.0 GLB，提取HULL_MAIN、HULL_FORE_PATCH并核对GLB、清单、解码器和坐标变换哈希。原组合表面存在开口，经过配对横剖面采样、独立闭合重建以及固定排水量归一化形成物理湿面。LOA=180m用于外形缩放，Lpp=171m用于操纵无量纲化。

@@ -1,0 +1,21 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "semisub-981",
+  "model_version": "research-nominal-v2",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "actuators.json": "da4269c60def0e962c64615d57938fbeee4fb43fd49d29d65d287050920ccf2f",
+    "full-hull.dat": "205cdf8609c8ff2114058ef45bfa689b2c4fad9524084e480219acd083e13d39",
+    "geometry-validation.json": "be1851ed9c0434fc78544cf8b1f0ad1585f1e639a5e6ce87bae8f828c0a1a804",
+    "geometry.json": "efab1436f96b496622c16728c1dfee3063a165d577800d44084bbbfe021a5d26",
+    "hull.dat": "6fc7639e520e3815a0ff761a42b54d72ae71250e5e0112f9f488022c095be7e9",
+    "lid.dat": "bfd0b0b9617bc4810f166dcfd593b629b9b7fa24f258041c4230f78497c9c3e7",
+    "maneuvering.json": "519f1eee1063622133d7b1bca88f35fd3af5d208050d38e2af8660edec49be3f",
+    "nemoh-body.dat": "5a4ed96f9f7dd41637e03b4508f48b50b60b878206407dcbf353d75eec636c3b",
+    "provenance.json": "29ec7c87f20f31b519a95d5795e40fbe508fa3789edb4d9945b5faf34e064bc8",
+    "radiation-fit-arrays.npz": "223bc1c1a4428c8a514aacf5450e4dd14931ae5c567e96077149a2ab49abd89e",
+    "radiation-fit-validation.json": "4c4cd3786d0d3fa1a959159b3b51d48a6b958789c02863dc83e505bc844bb4df",
+    "radiation.json": "9e5ad871d5ae5a238f5bc3b2973bc993dac9d519388e4257ef5f762848bb8ec1",
+    "validation.json": "61f0dd3c15d1fb9251738857714bb3f747cd17e7cda145a5a399ba298dc2f7bf"
+  }
+}

@@ -150,7 +150,7 @@ impl EnvironmentState {
         self.wind.loads(yaw_rad, nu_body, geo)
     }
 
-    /// 体坐标流（从 NED 转到 FRD；恒定均匀流零导数）。
+    /// 既有参数版本使用的水平航向海流投影。
     pub fn current_body(&self, yaw_rad: f64) -> [f64; 2] {
         if !self.switches.current_enabled {
             return [0.0, 0.0];
@@ -160,6 +160,23 @@ impl EnvironmentState {
             self.current_ned[0] * cos_y + self.current_ned[1] * sin_y,
             -self.current_ned[0] * sin_y + self.current_ned[1] * cos_y,
         ]
+    }
+
+    /// 均匀NED海流的完整FRD投影，包含旋转坐标中的时间导数。
+    pub fn current_field(&self, quaternion: [f64; 4], body_velocity: [f64; 6]) -> super::dynamics::CurrentFieldBody {
+        if !self.switches.current_enabled {
+            return super::dynamics::CurrentFieldBody::default();
+        }
+        let rotation = super::state::rotation_matrix(quaternion);
+        let current: [f64; 3] = std::array::from_fn(|axis| {
+            rotation[0][axis]*self.current_ned[0]+rotation[1][axis]*self.current_ned[1]
+        });
+        let derivative = super::state::moment_from_force(
+            [body_velocity[3], body_velocity[4], body_velocity[5]], current).map(|value| -value);
+        super::dynamics::CurrentFieldBody {
+            nu_current_body: [current[0], current[1], current[2], 0.0, 0.0, 0.0],
+            nu_current_body_dot: [derivative[0], derivative[1], derivative[2], 0.0, 0.0, 0.0],
+        }
     }
 
     /// 观测链推进（传感器采样+观测器更新）。

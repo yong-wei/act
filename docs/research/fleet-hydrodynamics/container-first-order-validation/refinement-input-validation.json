@@ -1,0 +1,20 @@
+{
+  "schema": "act.bem-triangle-refinement.v1",
+  "status": "passed",
+  "generator_sha256": "8093ec124666dcfb5be1c799854ae41de45c64d555b20fa6e1504d9aa71ba775",
+  "source_geometry_sha256": "4ee86a13d589f3c299093245cca477521705f90cf47253aeab9f8605cb21e768",
+  "source_mesh_sha256": "46cdd115caeaa3eececc2819894c9b154d2eceec9239b6243acab52272de7410",
+  "refined_mesh_sha256": "77d85e82c07f5421eb7c8006fa862d5917a25ece58e47832fb31d79cc5b9e4b4",
+  "source_faces": 3440,
+  "refined_faces": 13760,
+  "source_max_radius_m": 10.095798967007958,
+  "refined_max_radius_m": 5.047899483503979,
+  "geometric_errors": {
+    "volume": 1.1102230246251565e-16,
+    "waterplane_area": 2.220446049250313e-16,
+    "waterplane_ix": 2.220446049250313e-16,
+    "waterplane_iy": 4.440892098500626e-16,
+    "center_absolute_m": 1.4832579608992091e-13
+  },
+  "refinement": "each source triangle uniformly subdivided into four coplanar triangles"
+}
