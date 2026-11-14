@@ -1,0 +1,69 @@
+{
+  "system": {
+    "water_density_kg_m3": 1025.0,
+    "propulsors": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -176.18,
+            0.0,
+            24.585128479104743
+          ],
+          "referenceImmersionM": 7.547318475503378
+        },
+        "diameter_m": 10.0,
+        "max_power_w": 65000000.0,
+        "rated_speed_rad_s": 9.42477796076938,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 2441406.25,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": null
+      }
+    ],
+    "surfaces": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -187.67,
+            0.0,
+            24.585128479104743
+          ],
+          "referenceImmersionM": 7.547318475503378
+        },
+        "area_m2": 90.0,
+        "aspect_ratio": 2.0,
+        "normal_body": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "servo": {
+          "max_angle_rad": 0.6108652381980153,
+          "max_rate_rad_s": 0.04014257279586958,
+          "time_constant_s": 1.0
+        },
+        "wake_propulsor": 0,
+        "normal_factor": 1.0,
+        "fin_servo_power": null
+      }
+    ]
+  },
+  "initial_state": {
+    "propeller_shaft_speed_rad_s": [
+      8.21836803405342
+    ],
+    "motor_torques_nm": [
+      6373693.762390684
+    ],
+    "shaft_reference_speed_rad_s": [
+      8.21836803405342
+    ],
+    "azimuth_angles_rad": [
+      0.0
+    ],
+    "control_surface_angles_rad": [
+      0.0
+    ]
+  }
+}

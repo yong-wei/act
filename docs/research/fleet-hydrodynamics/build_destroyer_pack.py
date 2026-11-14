@@ -59,6 +59,9 @@ def parameter_entries(value, prefix, leaf='', authority_issue=2158):
         'equilibrium_pitch_rad': 'rad', 'mean_chord_m': 'm', 'efficiency': '1', 'standby_w': 'W',
         'forbidden_sectors_rad': 'rad',
         'drag_coefficient': '1', 'stations_per_axis': '1', 'boxes_body_m': 'm',
+        'center_bottom_body_m': 'm', 'width_m': 'm', 'height_m': 'm',
+        'fill_ratio': '1', 'density_kg_m3': 'kg/m^3', 'damping_ratio': '1',
+        'free_surface_correction_m': 'm', 'effective_gm_m': 'm',
         'propeller_shaft_speed_rad_s': 'rad/s', 'motor_torques_nm': 'N*m',
         'shaft_reference_speed_rad_s': 'rad/s', 'azimuth_angles_rad': 'rad', 'control_surface_angles_rad': 'rad',
     }
@@ -74,6 +77,9 @@ def parameter_entries(value, prefix, leaf='', authority_issue=2158):
     if leaf == 'hydrostatic_stiffness_si':
         row, column = map(int, re.findall(r'\[(\d+)\]', prefix)[-2:])
         unit = [['N/m', 'N/rad'], ['N*m/m', 'N*m/rad']][row >= 3][column >= 3]
+    if leaf == 'liquid_initial_state':
+        index = int(re.findall(r'\[(\d+)\]', prefix)[-1])
+        unit = 'm' if index % 2 == 0 else 'm/s'
     if unit is None:
         raise ValueError(f'参数缺少单位 {prefix}')
     source = f'https://github.com/yong-wei/act/issues/{authority_issue}'

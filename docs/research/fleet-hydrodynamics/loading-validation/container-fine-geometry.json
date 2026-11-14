@@ -1,0 +1,211 @@
+{
+  "loa_m": 399.99,
+  "lpp_m": 383.0,
+  "beam_m": 61.5,
+  "draft_m": 13.039431038198504,
+  "displacement_mass_kg": 216000000.0,
+  "displacement_volume_m3": 210731.70731707316,
+  "mass_basis": "stated_loading",
+  "water_density_kg_m3": 1025.0,
+  "waterline_area_m2": 18618.00176418452,
+  "kg_keel_up_m": 30.085128479104743,
+  "kb_keel_up_m": 7.220725835821244,
+  "gm_transverse_m": 1.9341416819255706,
+  "gm_longitudinal_m": 682.745899210128,
+  "cruise_speed_mps": 8.0,
+  "equilibrium_pitch_rad": -6.341360820708133e-05,
+  "center_of_flotation_x_m": -3.511285646134099,
+  "center_of_mass_waterline_z_up_m": [
+    0.0,
+    0.0,
+    17.04569740663343
+  ],
+  "inertia_about_cg_kg_m2": {
+    "ixx": 100078334999.99998,
+    "iyy": 1980301500000.0,
+    "izz": 1980301500000.0
+  },
+  "hydrostatic_stiffness_si": [
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      187208662.23931637,
+      0.0,
+      657343088.5528783,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      4098368858.333007,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      657343088.5528783,
+      0.0,
+      1449019369941.7136,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  ],
+  "wet_surface_definition": {
+    "grade": "T",
+    "fullness_power": 6.977455543649633,
+    "source_scale_factors": [
+      1.0000000244146734,
+      1.0,
+      1.0181818181818183,
+      0.8475452029295693
+    ],
+    "source_sections_sha256": "dfd98f41d09f0b7dff6ebbc490dcd4ec662dbc5b5e4455f247d846b4c10aac39",
+    "source_center_of_buoyancy_x_m": -11.386040791980784,
+    "longitudinal_panels": 172,
+    "vertical_panels": 24
+  },
+  "loading": {
+    "loading_ratio": 0.6,
+    "cargo_mass": 144000000.0,
+    "ballast_mass": 0.0,
+    "equilibrium_residual": 5.955921678387994e-17,
+    "disk_top_immersion_m": 2.5282588135529656,
+    "fixed_mass": 72000000.0,
+    "fixed_center": [
+      0.0,
+      0.0,
+      19.15702830167446
+    ],
+    "fixed_inertia": [
+      65158379604.29393,
+      1082774704702.9719,
+      1103785969421.2837
+    ],
+    "payload_positions": [
+      [
+        -95.75,
+        0.0,
+        40.347093436373356
+      ],
+      [
+        0.0,
+        0.0,
+        40.347093436373356
+      ],
+      [
+        95.75,
+        0.0,
+        40.347093436373356
+      ],
+      [
+        0.0,
+        0.0,
+        16.357519093606008
+      ]
+    ],
+    "payload_masses_kg": [
+      38400000.0,
+      38400000.0,
+      38400000.0,
+      28800000.0
+    ],
+    "cargo_groups": {
+      "grade": "T",
+      "deck_mass_kg": 115200000.0,
+      "hold_mass_kg": 28800000.0,
+      "hold_equivalent_density_kg_m3": 72.4939081213893,
+      "deck_height_keel_up_m": 40.347093436373356,
+      "hold": {
+        "grade": "T",
+        "grid": [
+          48,
+          20,
+          24
+        ],
+        "bounds_keel_up_m": [
+          [
+            -134.04999999999998,
+            -27.675,
+            2.0
+          ],
+          [
+            134.04999999999998,
+            27.675,
+            31.200000000000003
+          ]
+        ],
+        "admitted_cells": 21124,
+        "volume_m3": 397274.760684375,
+        "center_keel_up_m": [
+          0.0,
+          0.0,
+          16.357519093606008
+        ],
+        "central_inertia_per_mass_m2": [
+          304.26105894224565,
+          5807.720777738148,
+          5986.4003673165425
+        ],
+        "containment": "interior centers, no hull-triangle AABB intersection, common x/y mirror cells"
+      },
+      "loading_rule": "80 percent deck through lambda .6, deck mass fixed thereafter, additional cargo in hold"
+    },
+    "ballast_positions": [
+      [
+        -95.75,
+        -15.375,
+        1.5
+      ],
+      [
+        -95.75,
+        15.375,
+        1.5
+      ],
+      [
+        0.0,
+        -15.375,
+        1.5
+      ],
+      [
+        0.0,
+        15.375,
+        1.5
+      ],
+      [
+        95.75,
+        -15.375,
+        1.5
+      ],
+      [
+        95.75,
+        15.375,
+        1.5
+      ]
+    ]
+  }
+}

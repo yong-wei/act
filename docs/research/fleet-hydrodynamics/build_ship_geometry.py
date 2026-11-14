@@ -4,6 +4,7 @@ import argparse
 import json
 import math
 import shutil
+from dataclasses import dataclass
 from pathlib import Path
 
 import capytaine as cpt
@@ -121,14 +122,75 @@ def hydrostatics(mesh, draft, pitch, kg):
                 cg_height=cg_height, stiffness=stiffness, kb=float(center[2]))
 
 
-def payload(definition, vessel, loading, profile, scales):
+@dataclass
+class Payload:
+    masses: np.ndarray
+    positions: np.ndarray
+    local_inertia: np.ndarray
+    fixed_mass: float
+    groups: dict
+
+    @property
+    def mass(self):
+        return float(self.masses.sum())
+
+    @property
+    def center(self):
+        return np.sum(self.masses[:, None]*self.positions, axis=0)/self.mass
+
+
+def container_hold(full, definition, resolution=(48, 20, 24)):
+    """固定对称T级内舱，剔除任何与源船壳三角形包围盒相交的体元。"""
+    bounds = np.array([[-0.35*definition['lpp'], -0.45*definition['beam'], 2.0],
+                       [0.35*definition['lpp'], 0.45*definition['beam'], definition['moulded_depth']-2.0]])
+    shape = np.array(resolution)
+    cell_size = (bounds[1]-bounds[0])/shape
+    blocked = np.zeros(resolution, dtype=bool)
+    for triangle in full.triangles:
+        lower = np.floor((triangle.min(axis=0)-bounds[0])/cell_size-1e-10).astype(int)
+        upper = np.floor((triangle.max(axis=0)-bounds[0])/cell_size+1e-10).astype(int)
+        if np.any(upper < 0) or np.any(lower >= shape):
+            continue
+        lower, upper = np.maximum(lower, 0), np.minimum(upper+1, shape)
+        blocked[tuple(slice(a, b) for a, b in zip(lower, upper))] = True
+    indices = np.argwhere(~blocked)
+    centers = bounds[0]+(indices+0.5)*cell_size
+    admitted = np.zeros(resolution, dtype=bool)
+    admitted[tuple(indices.T)] = full.contains(centers)
+    admitted &= admitted[::-1, :, :].copy()
+    admitted &= admitted[:, ::-1, :].copy()
+    centers = bounds[0]+(np.argwhere(admitted)+0.5)*cell_size
+    if len(centers) == 0:
+        raise ValueError('源船体没有可容纳的对称内舱体元')
+    center = centers.mean(axis=0)
+    center[:2] = 0.0
+    variance = np.mean((centers-center)**2, axis=0)+cell_size**2/12
+    inertia = variance.sum()-variance
+    return {'grade': 'T', 'grid': list(resolution), 'bounds_keel_up_m': bounds.tolist(),
+        'admitted_cells': len(centers), 'volume_m3': float(len(centers)*np.prod(cell_size)),
+        'center_keel_up_m': center.tolist(), 'central_inertia_per_mass_m2': inertia.tolist(),
+        'containment': 'interior centers, no hull-triangle AABB intersection, common x/y mirror cells'}
+
+
+def free_surface_correction(mass):
+    corrections = []
+    for width, span in [(38.0, 44.0), (44.0, 38.0)]:
+        k = math.pi/width
+        coupling = 2*450.0*span/k**2
+        modal_stiffness = 450.0*span*width*GRAVITY/2
+        corrections.append(4*(coupling*GRAVITY)**2/modal_stiffness/(mass*GRAVITY))
+    return np.asarray(corrections)
+
+
+def payload(definition, vessel, loading, profile, scales, hold):
     if vessel == 'lng-changheng':
         mass = 4*44*38*26*loading*450
         height = 1.5 + loading*26/2
         positions = [[x, 0.0, height] for x in [-66.0, -22.0, 22.0, 66.0]]
         local_inertia = mass * np.array([(38**2+(26*loading)**2)/12,
                                          (44**2+(26*loading)**2)/12, (44**2+38**2)/12])
-        return mass, np.asarray(positions), local_inertia, 50e6
+        return Payload(np.full(4, mass/4), np.asarray(positions), local_inertia, 50e6,
+                       {'liquid_mass_kg': mass, 'fill_ratio': loading})
     if vessel == 'container-msc':
         proxy = profile['source'].get('instancedMassProxy')
         if not proxy:
@@ -136,34 +198,47 @@ def payload(definition, vessel, loading, profile, scales):
         source_z = proxy['weightedCenterBemM'][2]
         height = definition['draft'] + source_z * (scales[3] if source_z >= 0.0 else scales[2])
         mass = 240e6*loading
+        deck_mass = 0.8*min(mass, 240e6*0.6)
+        hold_mass = mass-deck_mass
         positions = [[x, 0.0, height] for x in [-0.25*definition['lpp'], 0.0, 0.25*definition['lpp']]]
-        return mass, np.asarray(positions), np.zeros(3), 72e6
-    return 0.0, np.zeros((0, 3)), np.zeros(3), definition['baseline_mass']
+        positions.append(hold['center_keel_up_m'])
+        return Payload(np.array([deck_mass/3]*3+[hold_mass]), np.asarray(positions),
+            hold_mass*np.asarray(hold['central_inertia_per_mass_m2']), 72e6,
+            {'grade': 'T', 'deck_mass_kg': deck_mass, 'hold_mass_kg': hold_mass,
+             'hold_equivalent_density_kg_m3': hold_mass/hold['volume_m3'],
+             'deck_height_keel_up_m': height, 'hold': hold,
+             'loading_rule': '80 percent deck through lambda .6, deck mass fixed thereafter, additional cargo in hold'})
+    return Payload(np.zeros(0), np.zeros((0, 3)), np.zeros(3), definition['baseline_mass'], {})
 
 
-def point_inertias(positions, mass, center):
+def point_inertias(positions, masses, center):
     if len(positions) == 0:
         return np.zeros(3)
     relative = positions - center
-    return mass / len(positions) * np.sum(np.sum(relative**2, axis=1)[:, None] - relative**2, axis=0)
+    return np.sum(np.asarray(masses)[:, None]*(np.sum(relative**2, axis=1)[:, None]-relative**2), axis=0)
 
 
-def loading_state(full, definition, vessel, loading, profile, scales, base_kg, base_inertia):
+def loading_state(full, definition, vessel, loading, profile, scales, base_kg, base_inertia, hold, reference):
     baseline_loading = 0.85 if vessel == 'lng-changheng' else 0.6
-    baseline_payload, baseline_positions, baseline_local, fixed_mass = payload(definition, vessel, baseline_loading, profile, scales)
+    baseline = payload(definition, vessel, baseline_loading, profile, scales, hold)
+    fixed_mass = baseline.fixed_mass
     baseline_center = np.array([0.0, 0.0, base_kg])
     fixed_center = (definition['baseline_mass']*baseline_center
-                    - baseline_payload*baseline_positions.mean(axis=0)) / fixed_mass
-    fixed_inertia = (base_inertia - baseline_local - point_inertias(baseline_positions, baseline_payload, baseline_center)
-                     - point_inertias(np.asarray([fixed_center]), fixed_mass, baseline_center))
+                    - baseline.mass*baseline.center) / fixed_mass
+    fixed_inertia = (base_inertia - baseline.local_inertia
+                     - point_inertias(baseline.positions, baseline.masses, baseline_center)
+                     - point_inertias(np.asarray([fixed_center]), [fixed_mass], baseline_center))
+    if reference:
+        fixed_center = np.asarray(reference['loading']['fixed_center'])
+        fixed_inertia = np.asarray(reference['loading']['fixed_inertia'])
     if np.any(fixed_inertia <= 0) or fixed_center[2] < 0:
         raise ValueError('固定部分质量/重心/惯量反算不成立')
-    cargo_mass, cargo_positions, cargo_local, _ = payload(definition, vessel, loading, profile, scales)
+    cargo = payload(definition, vessel, loading, profile, scales, hold)
     ballast_positions = np.array([[x, y, 1.5] for x in [-0.25*definition['lpp'], 0.0, 0.25*definition['lpp']]
                                  for y in [-0.25*definition['beam'], 0.25*definition['beam']]])
     def equilibrium(ballast):
-        mass = fixed_mass+cargo_mass+ballast
-        cg = (fixed_mass*fixed_center + cargo_mass*cargo_positions.mean(axis=0)
+        mass = fixed_mass+cargo.mass+ballast
+        cg = (fixed_mass*fixed_center + cargo.mass*cargo.center
               + ballast*ballast_positions.mean(axis=0)) / mass
         def residual(value):
             draft, pitch = value
@@ -171,8 +246,10 @@ def loading_state(full, definition, vessel, loading, profile, scales, base_kg, b
             if wet.volume <= 0:
                 return [1e3, 1e3]
             cb = wet.center_mass
+            liquid_shift_x = -free_surface_correction(mass)[1]*math.sin(pitch) if vessel == 'lng-changheng' else 0.0
             return [(wet.volume*RHO-mass)/mass,
-                    ((cb[0]-cg[0])*math.cos(pitch)-(cb[2]-cg[2])*math.sin(pitch))/definition['lpp']]
+                    ((cb[0]-cg[0]-liquid_shift_x)*math.cos(pitch)
+                     -(cb[2]-cg[2])*math.sin(pitch))/definition['lpp']]
         solution = root(residual, [level_draft(full, mass), 0.0], tol=1e-10)
         error = np.linalg.norm(residual(solution.x))
         if not solution.success and error > 1e-8:
@@ -201,14 +278,15 @@ def loading_state(full, definition, vessel, loading, profile, scales, base_kg, b
         ballast = high
         state = equilibrium(ballast)
     mass, cg, draft, pitch, error = state
-    inertia = (fixed_inertia + point_inertias(np.asarray([fixed_center]), fixed_mass, cg)
-               + cargo_local + point_inertias(cargo_positions, cargo_mass, cg)
-               + point_inertias(ballast_positions, ballast, cg))
+    inertia = (fixed_inertia + point_inertias(np.asarray([fixed_center]), [fixed_mass], cg)
+               + cargo.local_inertia + point_inertias(cargo.positions, cargo.masses, cg)
+               + point_inertias(ballast_positions, np.full(6, ballast/6), cg))
     return dict(mass=mass, kg=float(cg[2]), inertia=inertia, draft=draft, pitch=pitch,
-                cargo_mass=cargo_mass, ballast_mass=ballast, equilibrium_residual=error,
+                loading_ratio=loading, cargo_mass=cargo.mass, ballast_mass=ballast, equilibrium_residual=error,
                 disk_top_immersion_m=clearance(state), fixed_mass=fixed_mass,
                 fixed_center=fixed_center.tolist(), fixed_inertia=fixed_inertia.tolist(),
-                payload_positions=cargo_positions.tolist(), ballast_positions=ballast_positions.tolist())
+                payload_positions=cargo.positions.tolist(), payload_masses_kg=cargo.masses.tolist(),
+                cargo_groups=cargo.groups, ballast_positions=ballast_positions.tolist())
 
 
 def main():
@@ -217,6 +295,8 @@ def main():
     parser.add_argument('--source-sections', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--loading', type=float)
+    parser.add_argument('--loading-reference', type=Path,
+                        help='同一源船形已冻结的基准geometry.json，复用其固定质量分布和货舱')
     parser.add_argument('--longitudinal-panels', type=int, default=86)
     parser.add_argument('--vertical-panels', type=int, default=12)
     args = parser.parse_args()
@@ -227,6 +307,12 @@ def main():
         parser.error('变载荷仅用于LNG/集装箱且比例须在0至1之间')
     d = DEFINITIONS[args.vessel]
     profile = json.loads(args.source_sections.read_text())
+    reference = json.loads(args.loading_reference.read_text()) if args.loading_reference else None
+    if reference and (args.vessel not in ['lng-changheng', 'container-msc']
+            or reference['loa_m'] != d['loa'] or reference['beam_m'] != d['beam']
+            or reference['wet_surface_definition']['source_sections_sha256'] != sha256(args.source_sections)
+            or reference['loading']['loading_ratio'] != (0.85 if args.vessel == 'lng-changheng' else 0.6)):
+        raise ValueError('冻结质量分布须为同一船型的基准加载状态')
     grid = source_grid(profile, d, args.longitudinal_panels, args.vertical_panels)
     low, high = 0.1, 8.0
     target = d['calibration_mass']/RHO
@@ -244,21 +330,30 @@ def main():
     baseline_draft = (d['draft'] if d['baseline_mass'] == d['calibration_mass']
                       else level_draft(full, d['baseline_mass']))
     base_wet = submerged(full, baseline_draft)
-    source_center_x = float(base_wet.center_mass[0])
+    source_center_x = (reference['wet_surface_definition']['source_center_of_buoyancy_x_m'] if reference
+                       else float(base_wet.center_mass[0]))
     full.vertices[:, 0] -= source_center_x
     base = hydrostatics(full, baseline_draft, 0.0, 0.0)
-    base_kg = base['gm_t']-d['gm']
+    correction = free_surface_correction(d['baseline_mass']) if args.vessel == 'lng-changheng' else np.zeros(2)
+    base_kg = base['gm_t']-d['gm']-correction[0]
     base_inertia = d['baseline_mass']*np.array([(0.35*d['beam'])**2, (0.25*d['lpp'])**2, (0.25*d['lpp'])**2])
+    if reference:
+        base_kg = reference['kg_keel_up_m']
+        base_inertia = np.array([reference['inertia_about_cg_kg_m2'][key] for key in ['ixx', 'iyy', 'izz']])
     loading = args.loading if args.loading is not None else (
         0.85 if args.vessel == 'lng-changheng' else 0.6 if args.vessel == 'container-msc' else None)
     if args.vessel in ['lng-changheng', 'container-msc']:
-        state = loading_state(full, d, args.vessel, loading, profile, grid[3], base_kg, base_inertia)
+        hold = (reference['loading']['cargo_groups']['hold'] if reference else container_hold(full, d)) \
+            if args.vessel == 'container-msc' else None
+        state = loading_state(full, d, args.vessel, loading, profile, grid[3], base_kg, base_inertia, hold, reference)
     else:
         state = dict(mass=d['baseline_mass'], kg=base_kg, inertia=base_inertia,
                      draft=baseline_draft, pitch=0.0, cargo_mass=0.0, ballast_mass=0.0)
     actual = hydrostatics(full, state['draft'], state['pitch'], state['kg'])
     mass_error = abs(actual['volume']*RHO/state['mass']-1)
-    ready = min(actual['gm_t'], actual['gm_l']) > 0 and mass_error <= 1e-8
+    actual_correction = free_surface_correction(state['mass']) if args.vessel == 'lng-changheng' else np.zeros(2)
+    effective_gm = np.array([actual['gm_t'], actual['gm_l']])-actual_correction
+    ready = np.min(effective_gm) > 0 and mass_error <= 1e-8
     args.output.mkdir(parents=True, exist_ok=True)
     geometry = dict(loa_m=d['loa'], lpp_m=d['lpp'], beam_m=d['beam'], draft_m=state['draft'],
         displacement_mass_kg=state['mass'], displacement_volume_m3=actual['volume'], mass_basis='stated_loading',
@@ -269,9 +364,14 @@ def main():
         inertia_about_cg_kg_m2=dict(zip(['ixx','iyy','izz'],state['inertia'].tolist())),
         hydrostatic_stiffness_si=actual['stiffness'].tolist(),
         wet_surface_definition=dict(grade='T', fullness_power=power, source_scale_factors=grid[3].tolist(),
+            source_sections_sha256=sha256(args.source_sections),
             source_center_of_buoyancy_x_m=source_center_x, longitudinal_panels=args.longitudinal_panels,
             vertical_panels=args.vertical_panels), loading={key: value for key,value in state.items()
                 if key not in ['mass','kg','inertia','draft','pitch']})
+    if args.vessel == 'lng-changheng':
+        geometry['free_surface_correction_m'] = actual_correction.tolist()
+        geometry['effective_gm_m'] = effective_gm.tolist()
+        geometry['liquid_initial_state'] = [-4*44/math.pi**2*math.sin(state['pitch']), 0.0, 0.0, 0.0]*4
     write_json(args.output/'geometry.json', geometry)
     mesh = actual['wet_mesh']
     write_nemoh(args.output/'hull.dat', mesh.vertices, mesh.faces)
@@ -285,16 +385,19 @@ def main():
     write_json(args.output/'geometry-provenance.json', {'grade':'T', 'model_fidelity':'research-nominal',
         'authority':[f'https://github.com/yong-wei/act/issues/{d["issue"]}','https://github.com/yong-wei/act/issues/2147'],
         'source_sha256':sha256(args.source_sections), 'generator_sha256':sha256(Path(__file__)),
+        'loading_reference_sha256':sha256(args.loading_reference) if args.loading_reference else None,
         'mesh_generator_sha256':sha256(Path(__file__).with_name('build_destroyer_pack.py')),
         'source_model_sha256':profile['source']['sourceSha256'], 'source_model_commit':profile['source']['sourceCommit'],
         'source_symmetry_relative_l2':profile['port_starboard_relative_l2'], 'loading':loading,
         'waterline_snap_tolerance_m':2e-8,
         'vertical_normalization':'underwater draft and published moulded depth separately, same map for cargo geometry',
         'tank_bottom_keel_up_m':1.5 if args.vessel=='lng-changheng' else None,
-        'cargo_height_basis':'transformed visual container bounding-volume center' if args.vessel=='container-msc' else 'fixed equivalent tank geometry',
+        'cargo_height_basis':'source deck group and source-contained symmetric T hold' if args.vessel=='container-msc' else 'fixed equivalent tank geometry',
+        'baseline_gm_interpretation':'effective after first-mode free surface' if args.vessel=='lng-changheng' else 'geometric',
         'not_ready':['vessel-calibrated viscous derivatives','validated wave/radiation data','specialist coupling']})
     validation = {'schema':'act.ship-static-validation.v1','status':'passed' if ready else 'not_ready',
         'mass_relative_error':mass_error, 'gm_transverse_m':actual['gm_t'], 'gm_longitudinal_m':actual['gm_l'],
+        'first_mode_free_surface_correction_m':actual_correction.tolist(), 'effective_gm_m':effective_gm.tolist(),
         'reason':None if ready else 'static instability or mass equilibrium failure',
         'inputs_sha256':{'source-sections.json':sha256(args.source_sections)},
         'outputs_sha256':{name:sha256(args.output/name) for name in ['geometry.json','hull.dat','lid.dat','full-hull.dat','hydrostatic-hull.json']}}

@@ -180,6 +180,8 @@ Active 图谱工作区 UI 精修（OpenSpec `refine-active-knowledge-workspace-u
 - 前端资源层负责界面、任务参数、状态显示、曲线和交互。
 - Rust/WASM 层负责控制分析和物理步进，入口包括 `compute_virtual_simulation_step`、控制分析函数和虚拟仿真模型 dispatch。
 
+七船原生数值会话已形成研究标称参数检查点，包含固定物理/控制时钟、完整恢复点、多轴/多翼执行器及非线性静水。LNG四种填充率已接入八个双向液舱模态，基准有效GM为2.5m。集装箱五种装载状态采用明确的甲板/舱内T级分布，质量、惯量、吃水、压载和推进限制实际生效。十四个真实WASM对象及Rust全量386项通过，逐项参数和离散误差见`docs/research/fleet-hydrodynamics/loading-validation/`。正常页面、专项控制和课程步骤仍由OpenSpec变更`stabilize-ilab-simulation-experience`继续实施。
+
 新增或改造仿真应遵守 `docs/Simulation_Guidelines.md`：固定步长时钟、线性模型 Tustin 离散化、非线性模型走内置积分器接口，避免在页面内直接手写漂移的数值步进。参与 SSR 的页面不能静态导入会触发 React/R3F 浏览器运行时依赖的 3D 预览组件。
 
 Cruise 课程转向场景（`sim/cruise` / `cruise-comfort-course-turn` / `fleet-cruise-adora`）在完成态增加只读“控制效果复盘”：事实层只陈述当前运行已计算指标，任务层仅在显式 `courseMode=cruise-boppps` 绑定注册课程任务并给出权威阈值时逐项判断满足或未满足。独立 `/simulations/cruise` 探索页只陈述事实，不注入课程阈值。复盘不重算物理量、不把结束时刻舵角或功率当作峰值或能量、也不改 Arena 评分、官方评价、榜单或学习证据。其他船型保持原完成态。

@@ -334,6 +334,9 @@ impl DestroyerSixDofPlant {
         plant.state.quaternion = [half_pitch.cos(), 0.0, half_pitch.sin(), 0.0];
         if !g.liquid_tanks.is_empty() {
             plant.configure_liquid_tanks(&g.liquid_tanks).expect("液舱参数已通过加载门禁");
+            if !g.liquid_initial_state.is_empty() {
+                plant.state.specialist_states = g.liquid_initial_state.clone();
+            }
         }
         // 操纵系数直接来自包。
         if let super::model_pack::PackManeuvering::Mapped { mapped_mmg } = &pack.maneuvering {

@@ -1,0 +1,152 @@
+{
+  "schema": "act.loaded-vessel-static-summary.v1",
+  "fidelity": "research-nominal",
+  "cases": [
+    {
+      "vessel": "lng-changheng",
+      "loading_ratio": 0.85,
+      "mass_kg": 116512160.0,
+      "cargo_mass_kg": 66512159.99999999,
+      "ballast_mass_kg": 0.0,
+      "draft_m": 11.5,
+      "trim_rad": -7.598977750732724e-16,
+      "kg_keel_up_m": 15.841925060437193,
+      "geometric_gm_t_m": 5.563340086027063,
+      "effective_gm_t_m": 2.4999999999999987,
+      "disk_top_immersion_m": 3.9999999999999023,
+      "static_residual": 1.2790243635462822e-16
+    },
+    {
+      "vessel": "lng-changheng",
+      "loading_ratio": 0.3,
+      "mass_kg": 74935971.97637998,
+      "cargo_mass_kg": 23474880.0,
+      "ballast_mass_kg": 1461091.9763799757,
+      "draft_m": 7.739469353297427,
+      "trim_rad": 0.0020243860694460257,
+      "kg_keel_up_m": 15.213058018031326,
+      "geometric_gm_t_m": 12.567570100914141,
+      "effective_gm_t_m": 7.804618999804782,
+      "disk_top_immersion_m": 0.5000000000514433,
+      "static_residual": 7.157250705079134e-19
+    },
+    {
+      "vessel": "lng-changheng",
+      "loading_ratio": 0.7,
+      "mass_kg": 104774720.0,
+      "cargo_mass_kg": 54774719.99999999,
+      "ballast_mass_kg": 0.0,
+      "draft_m": 10.443187963453415,
+      "trim_rad": 0.0007022224884905335,
+      "kg_keel_up_m": 15.191272583211559,
+      "geometric_gm_t_m": 7.361300527895368,
+      "effective_gm_t_m": 3.954788248620376,
+      "disk_top_immersion_m": 3.0335624016736586,
+      "static_residual": 6.784257835448003e-16
+    },
+    {
+      "vessel": "lng-changheng",
+      "loading_ratio": 0.95,
+      "mass_kg": 124337120.0,
+      "cargo_mass_kg": 74337120.0,
+      "ballast_mass_kg": 0.0,
+      "draft_m": 12.20211110840276,
+      "trim_rad": -0.0005292173275365749,
+      "kg_keel_up_m": 16.411980680826996,
+      "geometric_gm_t_m": 4.416632609735551,
+      "effective_gm_t_m": 1.5460789871520526,
+      "disk_top_immersion_m": 4.633999692941465,
+      "static_residual": 6.843278843299609e-16
+    },
+    {
+      "vessel": "container-msc",
+      "loading_ratio": 0.6,
+      "mass_kg": 216000000.0,
+      "cargo_mass_kg": 144000000.0,
+      "ballast_mass_kg": 0.0,
+      "draft_m": 13.04731847550338,
+      "trim_rad": -1.3550620012728935e-17,
+      "kg_keel_up_m": 30.085128479104743,
+      "geometric_gm_t_m": 1.9999999999999964,
+      "effective_gm_t_m": 1.9999999999999964,
+      "disk_top_immersion_m": 2.547318475503377,
+      "static_residual": 8.082895607904992e-19
+    },
+    {
+      "vessel": "container-msc",
+      "loading_ratio": 0.2,
+      "mass_kg": 174089162.79149708,
+      "cargo_mass_kg": 48000000.0,
+      "ballast_mass_kg": 54089162.791497074,
+      "draft_m": 10.848268161994662,
+      "trim_rad": 0.0008612432764895889,
+      "kg_keel_up_m": 18.190680582202415,
+      "geometric_gm_t_m": 18.7060904421101,
+      "effective_gm_t_m": 18.7060904421101,
+      "disk_top_immersion_m": 0.5000000001767155,
+      "static_residual": 5.909723992513427e-15
+    },
+    {
+      "vessel": "container-msc",
+      "loading_ratio": 0.35,
+      "mass_kg": 174064041.22500682,
+      "cargo_mass_kg": 84000000.0,
+      "ballast_mass_kg": 18064041.225006804,
+      "draft_m": 10.84692798518134,
+      "trim_rad": 0.000868850336541728,
+      "kg_keel_up_m": 25.23515522414455,
+      "geometric_gm_t_m": 11.665373155845288,
+      "effective_gm_t_m": 11.665373155845288,
+      "disk_top_immersion_m": 0.5000000000137055,
+      "static_residual": 6.329619135162409e-15
+    },
+    {
+      "vessel": "container-msc",
+      "loading_ratio": 0.8,
+      "mass_kg": 264000000.0,
+      "cargo_mass_kg": 192000000.0,
+      "ballast_mass_kg": 0.0,
+      "draft_m": 15.556632614533955,
+      "trim_rad": -0.0012210885454487367,
+      "kg_keel_up_m": 27.589199499923158,
+      "geometric_gm_t_m": 1.276871549104122,
+      "effective_gm_t_m": 1.276871549104122,
+      "disk_top_immersion_m": 4.84149379055251,
+      "static_residual": 1.9543720325029467e-15
+    },
+    {
+      "vessel": "container-msc",
+      "loading_ratio": 0.9,
+      "mass_kg": 288000000.0,
+      "cargo_mass_kg": 216000000.0,
+      "ballast_mass_kg": 0.0,
+      "draft_m": 16.808376346465533,
+      "trim_rad": -0.001898614035136621,
+      "kg_keel_up_m": 26.65322613273006,
+      "geometric_gm_t_m": 1.164064119950158,
+      "effective_gm_t_m": 1.164064119950158,
+      "disk_top_immersion_m": 5.973858344872486,
+      "static_residual": 2.0697656128200691e-16
+    }
+  ],
+  "fixed_kg_mesh_checks": [
+    {
+      "vessel": "lng-changheng",
+      "same_kg": true,
+      "same_fixed_mass_distribution": true,
+      "coarse_gm_t_m": 5.563340086027063,
+      "fine_gm_t_m": 5.5063498934688635,
+      "coarse_draft_m": 11.5,
+      "fine_draft_m": 11.500883811489864
+    },
+    {
+      "vessel": "container-msc",
+      "same_kg": true,
+      "same_fixed_mass_distribution": true,
+      "coarse_gm_t_m": 1.9999999999999964,
+      "fine_gm_t_m": 1.9341416819255706,
+      "coarse_draft_m": 13.04731847550338,
+      "fine_draft_m": 13.039431038198504
+    }
+  ]
+}

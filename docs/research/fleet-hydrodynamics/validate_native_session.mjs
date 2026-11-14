@@ -12,6 +12,9 @@ const option = (name, fallback) => {
 };
 const version = option('--version', 'research-nominal-v4');
 const vessel = option('--vessel', 'destroyer-055');
+const loadingOption = option('--loading-ratio', null);
+const loadingRatio = loadingOption === null ? null : Number(loadingOption);
+if (loadingRatio !== null && !Number.isFinite(loadingRatio)) throw new Error('加载比例无效');
 const outputPath = option('--output', null);
 const wasmDirectory = path.join(repository, 'src/resources/control-system/wasm/control_engine');
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -19,7 +22,8 @@ const wasmBytes = readFileSync(path.join(wasmDirectory, 'index_bg.wasm'));
 const binding = await import(pathToFileURL(path.join(wasmDirectory, 'index.js')).href);
 await binding.default({ module_or_path: wasmBytes });
 
-const configuration = JSON.stringify({ vessel, parameterVersion: version, noiseLevel: 'N0' });
+const configuration = JSON.stringify({ vessel, parameterVersion: version, noiseLevel: 'N0',
+  ...(loadingRatio === null ? {} : { loadingRatio }) });
 const original = new binding.VesselSimulationSession(configuration);
 const restored = new binding.VesselSimulationSession(configuration);
 try {
@@ -95,12 +99,23 @@ try {
       heading_controller_model_version: feedback.modelVersion,
       derivative_filter_tau_s: feedback.input.derivativeFilterTauS,
       heading_controller: feedback.headingController };
+    if (vessel === 'lng-changheng') {
+      const liquid = feedback.liquidCargo;
+      const fill = loadingRatio ?? .85;
+      if (!liquid || liquid.wall_heights_m.length !== 8 || !liquid.within_small_amplitude
+          || Math.abs(liquid.mass_partition.liquid_mass_kg/(4*44*38*26*450*fill)-1) > 1e-12
+          || !liquid.wall_heights_m.some((value) => Math.abs(value) > 1e-6)) {
+        throw new Error('液货质量、实际模态响应或适用域失败');
+      }
+      controlVerification.liquid_cargo = liquid;
+    }
   }
   const report = {
     schema: 'act.native-session-validation.v1',
     status: 'passed',
     vessel,
     parameter_version: version,
+    loading_ratio: loadingRatio,
     generator_sha256: sha256(readFileSync(fileURLToPath(import.meta.url))),
     wasm_sha256: sha256(wasmBytes),
     build_identity: JSON.parse(readFileSync(path.join(wasmDirectory, 'identity.json'), 'utf8')),

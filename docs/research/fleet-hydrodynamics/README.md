@@ -71,7 +71,7 @@ rtk npm run wasm:build:control-engine
 rtk proxy node docs/research/fleet-hydrodynamics/validate_native_session.mjs --version research-nominal-v4
 ```
 
-`build_ship_geometry.py`接续五个常规船型的同源水下/自由板轮廓、装载、最小压载和纵倾求解。源GLB的实例质量代理与原始包围体积均以T级记录，实际货载质量分布继续待核验。当前集装箱可见甲板货载候选在高载下静水不稳定，生成器保留not_ready证明并以非零退出码结束，相关正式步骤继续待完成。
+`build_ship_geometry.py`接续五个常规船型的同源水下/自由板轮廓、装载、最小压载和纵倾求解。源GLB的实例质量代理与原始包围体积均以T级记录。原集装箱甲板单组候选在高载下静水不稳定，失败证明继续保留。经用户审定的甲板/内舱新分布及LNG有效GM解释已形成正式加载包，参数和核验见`loading-validation/README.md`。
 
 ## 邮轮、雪龙2号与天鲸基础包
 
@@ -98,4 +98,12 @@ rtk proxy /tmp/act-solvers/bin/python3 docs/research/fleet-hydrodynamics/verify_
 rtk proxy cargo test --manifest-path rust/control-engine/Cargo.toml --test sixdof_coupled_sloshing
 ```
 
-`container-loading-candidate-validation/`保留可见甲板集装箱均匀密度代理的.6/.9装载候选。该候选在.9得到GM_T约−4.8333m，并输出not_ready证明。舱内配载及其质量分布方向正等待课程决策。
+`container-loading-candidate-validation/`保留可见甲板集装箱均匀密度代理的.6/.9装载候选。该候选在.9得到GM_T约−4.8333m，并输出not_ready证明。2026-11-14用户审定含舱内货载的新T级分布。
+
+## LNG与集装箱正式加载包
+
+lng-changheng/v1包含.30/.70/.85/.95填充，container-msc/v1包含.20/.35/.60/.80/.90装载。`build_loading_cases.py`核验固定质量分布与完整船壳保持一致，加载表共享船壳顶点，并保存各状态的实际质量、KG、惯量、吃水、纵倾、执行器和初始液面。原生会话通过`loadingRatio`在重置时选取冻结状态，实际内容哈希随参数变化。
+
+LNG基准几何GM为5.563340m，经3.063340m第一模态修正后有效GM为2.5m。集装箱采用基准80%甲板/20%内舱质量及基准后固定甲板质量的T级策略，高载GM为1.164064m。最小压载、同一KG的粗细几何对照、65MW受限初始化及实际验证范围见`loading-validation/README.md`。
+
+新增七项加载回归、Rust全量386项、七船基准及七个加载状态的十四个真实WASM对象通过。液舱实际响应、完整未来/旧恢复点对账和类型检查通过。波浪/辐射、专属控制和正常页面继续按OpenSpec剩余任务实施。

@@ -144,26 +144,49 @@ def initial_state(geometry, system, coefficients):
         omega = 0.0
     else:
         if balance(high) < 0:
-            raise ValueError('额定推进能力无法支持标称初速')
+            omega = high
+        else:
+            for _ in range(70):
+                middle = (low+high)/2
+                if balance(middle) < 0:
+                    low = middle
+                else:
+                    high = middle
+            omega = (low+high)/2
+    requested_omega = omega
+    def motor_torques(value):
+        torques = []
+        for propeller, (_, hydraulic_torque) in zip(propulsors, loads(value)):
+            rated_torque = propeller['max_power_w']/propeller['rated_speed_rad_s']
+            friction = (0.01*rated_torque*math.tanh(value/0.1)
+                        +0.005*rated_torque*value/propeller['rated_speed_rad_s'])
+            torques.append(hydraulic_torque+friction)
+        return torques
+    def feasible(value):
+        return all(torque*value <= propeller['max_power_w']
+            and abs(torque) <= 1.2*propeller['max_power_w']/propeller['rated_speed_rad_s']
+            for torque, propeller in zip(motor_torques(value), propulsors))
+    requested_powers = [torque*omega for torque in motor_torques(omega)]
+    if not feasible(omega):
+        low, high = 0.0, omega
+        if not feasible(low):
+            raise ValueError('初始航速下不存在可承受的静止轴系扭矩')
         for _ in range(70):
             middle = (low+high)/2
-            if balance(middle) < 0:
+            if feasible(middle):
                 low = middle
             else:
                 high = middle
-        omega = (low+high)/2
-    torques = []
-    for propeller, (_, hydraulic_torque) in zip(propulsors, loads(omega)):
-        rated_torque = propeller['max_power_w']/propeller['rated_speed_rad_s']
-        friction = (0.01*rated_torque*math.tanh(omega/0.1)
-                    +0.005*rated_torque*omega/propeller['rated_speed_rad_s'])
-        torque = hydraulic_torque+friction
-        if torque*omega > propeller['max_power_w'] or abs(torque) > 1.2*rated_torque:
-            raise ValueError('初始平衡点超过电机功率或扭矩限制')
-        torques.append(torque)
+        omega = low
+    torques = motor_torques(omega)
     return {'propeller_shaft_speed_rad_s': [omega]*len(propulsors), 'motor_torques_nm': torques,
         'shaft_reference_speed_rad_s': [omega]*len(propulsors), 'azimuth_angles_rad': [0.0]*len(propulsors),
-        'control_surface_angles_rad': [0.0]*len(surfaces)}, balance(omega)
+        'control_surface_angles_rad': [0.0]*len(surfaces)}, balance(omega), {
+        'requested_balanced_omega_rad_s': requested_omega,
+        'requested_motor_power_w': requested_powers, 'actual_motor_power_w': [value*omega for value in torques],
+        'power_or_torque_limited': omega < requested_omega,
+        'initial_speed_mps': speed, 'initial_net_surge_force_n': balance(omega),
+        'initial_condition_basis': 'stated initial speed with feasible physical shafts, net force retained'}
 
 
 def main():
@@ -200,8 +223,13 @@ def main():
     points[:, 2] = geometry['kg_keel_up_m']-points[:, 2]
     geometry['nonlinear_hydrostatics'] = {'vertices_body_m': points.tolist(), 'triangles': hull['triangles'],
         'cg_waterline_height_m': geometry['center_of_mass_waterline_z_up_m'][2]}
+    if args.vessel == 'lng-changheng':
+        geometry['liquid_tanks'] = [dict(center_bottom_body_m=[x, 0.0, geometry['kg_keel_up_m']-1.5],
+            length_m=44.0, width_m=38.0, height_m=26.0,
+            fill_ratio=geometry['loading']['loading_ratio'], density_kg_m3=450.0, damping_ratio=0.03)
+            for x in [-66.0, -22.0, 22.0, 66.0]]
     coefficients, coefficient_sha = b470_coefficients()
-    initial, residual = initial_state(geometry, system, coefficients)
+    initial, residual, operating_point = initial_state(geometry, system, coefficients)
     actuators = {'system': system, 'initial_state': initial}
     mapped = {'water_density_kg_m3': RHO, 'length_m': geometry['lpp_m'], 'draft_m': geometry['draft_m'],
         'surge_coefficients': [0.022, -0.040, 0.002, 0.011, 0.771],
@@ -230,6 +258,7 @@ def main():
                       'validated wave coefficients', 'specialist coupling and normal-page integration']}
     validation = {'schema': 'act.vessel-pack-validation.v1', 'status': 'computed',
         'initial_surge_force_residual_n': residual, 'geometry_and_installation': checks,
+        'initial_operating_point': operating_point,
         'previous_layout': previous_system, 'previous_layout_checks': previous_checks,
         'native_verification': 'pending', 'fidelity': 'research-nominal'}
     for name, value in [('geometry.json', geometry), ('maneuvering.json', {'mapped_mmg': mapped}),

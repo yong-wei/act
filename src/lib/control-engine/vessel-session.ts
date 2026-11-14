@@ -12,6 +12,7 @@ export interface VesselSensorInstallations {
 export interface VesselSessionConfiguration {
   vessel?: string;
   parameterVersion?: string;
+  loadingRatio?: number;
   seed?: number;
   noiseLevel?: 'N0' | 'N1' | 'N2';
   environment?: 'P0' | 'W1' | 'W2' | 'C1' | 'C2' | 'V1' | 'V2' | 'V3' | 'E1' | 'E2';
@@ -110,6 +111,18 @@ export interface VesselSessionFrame {
   input: VesselSessionInput;
   heldCommands: VesselActuatorCommands;
   samples: VesselObservedSample[];
+  liquidCargo: {
+    within_small_amplitude: boolean;
+    wall_heights_m: number[];
+    wall_height_rates_mps: number[];
+    coupled_additional_energy_j: number;
+    mass_partition: {
+      liquid_mass_kg: number;
+      fixed_mass_kg: number;
+      fixed_center_body_m: [number, number, number];
+      fixed_inertia_about_own_cg_kg_m2: number[][];
+    };
+  } | null;
   headingController: {
     integralOutputDeg: number;
     derivativeDegS: number;

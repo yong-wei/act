@@ -1,0 +1,113 @@
+{
+  "schema": "act.native-session-validation.v1",
+  "status": "passed",
+  "vessel": "lng-changheng",
+  "parameter_version": "research-nominal-v1",
+  "loading_ratio": null,
+  "generator_sha256": "1dc6219ac65186c520e6b4d47740265732dff596f830d87177c2062542475f49",
+  "wasm_sha256": "92e10b0d4a7583c69f4d3bb7fc151f84c9b0abbad068a95228e900021c9159f8",
+  "build_identity": {
+    "schemaVersion": "act-control-engine-identity/v1",
+    "buildHash": "2b139b57a9d930f64cfc2fc90ad6e81519b2b3dbefca23d3650d130e211b953e",
+    "wasmPack": "wasm-pack 0.15.0",
+    "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "exports": [
+      "compute_analysis",
+      "compute_nonlinear_analysis",
+      "compute_rl_training",
+      "compute_simulation_step",
+      "compute_virtual_simulation_step",
+      "VesselSimulationSession"
+    ],
+    "files": {
+      "index.js": "e51d5ee2a9af6d3e89f1555ca65f5030e5e449c52c8b51fe24aebc52bc7e0efa",
+      "index.d.ts": "0b1eac114507da23593dd0f505949cc823e17b87c4b424acf65c460b59df55eb",
+      "index_bg.wasm": "92e10b0d4a7583c69f4d3bb7fc151f84c9b0abbad068a95228e900021c9159f8",
+      "index_bg.wasm.d.ts": "eaa832d510eac4c6714a51ef8ba3f6edc57a6629e8b4d6794ba6d60e814eb5fc"
+    }
+  },
+  "runtime": {
+    "node": "v26.0.0",
+    "architecture": "arm64",
+    "platform": "darwin"
+  },
+  "verification": {
+    "restored_future_bitwise_identical": true,
+    "pause_state_identical": true,
+    "physics_ticks": 720,
+    "controller_ticks": 120,
+    "snapshot_bytes": 140420,
+    "feedback_future_bitwise_identical": true,
+    "heading_controller_model_version": "sixdof-session-v2",
+    "derivative_filter_tau_s": 0.2,
+    "heading_controller": {
+      "commandDeg": 7.564627421984149,
+      "derivativeDegS": 0.013665381047158311,
+      "errorDeg": 9.961409215060918,
+      "feedbackAvailable": true,
+      "integralFrozen": false,
+      "integralOutputDeg": 0.5993547522584689,
+      "integralRateDegS": 0.09961409215060918,
+      "previousMeasurementDeg": 0.038590784939082474,
+      "previousMeasurementTimeS": 11.95,
+      "unsaturatedDeg": 7.564627421984149
+    },
+    "liquid_cargo": {
+      "coupled_additional_energy_j": -11270.006247151487,
+      "mass_partition": {
+        "fixed_center_body_m": [
+          0,
+          0,
+          -4.379060926556165
+        ],
+        "fixed_inertia_about_own_cg_kg_m2": [
+          [
+            18338321440.225876,
+            0,
+            0
+          ],
+          [
+            0,
+            419562548191.0099,
+            0
+          ],
+          [
+            0,
+            0,
+            415945604360
+          ]
+        ],
+        "fixed_mass_kg": 50000000.00000001,
+        "liquid_mass_kg": 66512159.99999999
+      },
+      "wall_height_rates_mps": [
+        -0.00008856278318091363,
+        0.0011036947626654671,
+        -0.00008539040916384774,
+        0.0031280653402980772,
+        -0.00008221803514678215,
+        0.005152435917930723,
+        -0.00007904566112971738,
+        0.00717680649556336
+      ],
+      "wall_heights_m": [
+        0.0005484367676013874,
+        0.02651265949074785,
+        0.0005532736188530794,
+        0.02051754784570425,
+        0.0005581104701047719,
+        0.014522436200660646,
+        0.0005629473213564644,
+        0.008527324555617034
+      ],
+      "within_small_amplitude": true
+    }
+  },
+  "timing": {
+    "virtual_seconds": 5,
+    "render_frames": 300,
+    "elapsed_ms": 205.01070800000002,
+    "mean_frame_ms": 0.6833690266666668,
+    "scope": "single Node WASM session, excludes browser rendering and network capacity"
+  }
+}

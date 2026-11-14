@@ -11,7 +11,7 @@ use super::instrumentation::{
     ObservationTruth, ObservedSample, SensorInstallations, SensorSignal, SensorSuite,
 };
 use super::integrator::NOMINAL_DT;
-use super::model_pack::embedded_vessel_pack;
+use super::model_pack::embedded_vessel_pack_with_loading;
 use super::passive_observer::{PassiveObserver, PassiveObserverParameters, wrap_pi};
 use super::sensor::NoiseLevel;
 use super::state::ActuatorStates;
@@ -42,6 +42,8 @@ pub enum EnvironmentPreset {
 pub struct SessionConfiguration {
     pub vessel: String,
     pub parameter_version: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub loading_ratio: Option<f64>,
     pub seed: u64,
     pub noise_level: NoiseLevel,
     pub environment: EnvironmentPreset,
@@ -59,6 +61,7 @@ impl Default for SessionConfiguration {
         Self {
             vessel: "destroyer-055".into(),
             parameter_version: "research-nominal-v3".into(),
+            loading_ratio: None,
             seed: 20261106,
             noise_level: NoiseLevel::N1,
             environment: EnvironmentPreset::P0,
@@ -172,7 +175,8 @@ impl FleetSimulation {
         {
             return Err("初始位置或航向无效".into());
         }
-        let pack = embedded_vessel_pack(&configuration.vessel, &configuration.parameter_version)
+        let pack = embedded_vessel_pack_with_loading(&configuration.vessel,
+            &configuration.parameter_version, configuration.loading_ratio)
             .map_err(|error| format!("参数包无效 {error:?}"))?;
         if configuration.vessel != "destroyer-055"
             && matches!(configuration.environment, EnvironmentPreset::W1 | EnvironmentPreset::W2)

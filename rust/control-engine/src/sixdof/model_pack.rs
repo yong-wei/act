@@ -55,6 +55,8 @@ pub struct PackGeometry {
     pub nonlinear_hydrostatics: Option<super::hydrostatics::HydrostaticHull>,
     #[serde(default)]
     pub liquid_tanks: Vec<super::coupled_sloshing::LiquidTank>,
+    #[serde(default)]
+    pub liquid_initial_state: Vec<f64>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -238,6 +240,34 @@ pub fn load_model_pack(
         system.validate().map_err(|_| PackError::NonFiniteValue { field: "actuator-system" })?;
         system.validate_state(initial_state).map_err(|_| PackError::NonFiniteValue { field: "initial-actuators" })?;
     }
+    let rigid = super::dynamics::RigidBodyParams {
+        mass_kg: geometry.displacement_mass_kg,
+        inertia_about_cg: [
+            [geometry.inertia_about_cg_kg_m2.ixx, 0.0, 0.0],
+            [0.0, geometry.inertia_about_cg_kg_m2.iyy, 0.0],
+            [0.0, 0.0, geometry.inertia_about_cg_kg_m2.izz],
+        ],
+    };
+    let mass = super::dynamics::mass_matrix(&rigid, &super::dynamics::AddedMassParams { a_inf: [[0.0; 6]; 6] });
+    let liquid = if geometry.liquid_tanks.is_empty() {
+        if !geometry.liquid_initial_state.is_empty() {
+            return Err(PackError::InvalidLiquidTank { reason: "无液舱参数的初始液面状态".into() });
+        }
+        None
+    } else {
+        Some(super::coupled_sloshing::CoupledSloshing::new(&geometry.liquid_tanks, &rigid, mass)
+            .map_err(|reason| PackError::InvalidLiquidTank { reason })?)
+    };
+    let liquid_initial = liquid.as_ref().map(|model| {
+        if geometry.liquid_initial_state.is_empty() {
+            vec![0.0; model.state_len()]
+        } else {
+            geometry.liquid_initial_state.clone()
+        }
+    }).unwrap_or_default();
+    if let Some(model) = &liquid {
+        model.validate_state(&liquid_initial).map_err(|reason| PackError::InvalidLiquidTank { reason })?;
+    }
     if let Some(stiffness) = geometry.hydrostatic_stiffness_si {
         if stiffness.iter().flatten().any(|value| !value.is_finite())
             || stiffness[2][2] <= 0.0 || stiffness[3][3] <= 0.0 || stiffness[4][4] <= 0.0
@@ -257,8 +287,22 @@ pub fn load_model_pack(
         };
         let equilibrium = hull.evaluate(&state, geometry.displacement_mass_kg, SEA_WATER_DENSITY);
         let weight = geometry.displacement_mass_kg * 9.81;
-        let force_error = equilibrium.restoring_body[..3].iter().map(|value| value.abs()).fold(0.0, f64::max);
-        let moment_error = equilibrium.restoring_body[3..].iter().map(|value| value.abs()).fold(0.0, f64::max);
+        let mut balanced_restoring = equilibrium.restoring_body;
+        if let Some(model) = &liquid {
+            let mut physical_mass = mass;
+            let acceleration = super::dynamics::solve_linear_6(&mut physical_mass,
+                equilibrium.restoring_body.map(|value| -value));
+            let coupled = model.evaluate(&state, &liquid_initial, acceleration)
+                .map_err(|reason| PackError::InvalidLiquidTank { reason })?;
+            balanced_restoring = std::array::from_fn(|row| {
+                -(0..6).map(|column| mass[row][column]*coupled.body_acceleration[column]).sum::<f64>()
+            });
+            if coupled.modal_derivatives.iter().any(|value| value.abs() > 1e-6) {
+                return Err(PackError::InvalidLiquidTank { reason: "初始液面与静水姿态未平衡".into() });
+            }
+        }
+        let force_error = balanced_restoring[..3].iter().map(|value| value.abs()).fold(0.0, f64::max);
+        let moment_error = balanced_restoring[3..].iter().map(|value| value.abs()).fold(0.0, f64::max);
         if !force_error.is_finite() || !moment_error.is_finite()
             || force_error > weight * 1e-6 || moment_error > weight * geometry.lpp_m * 1e-6
         {
@@ -301,20 +345,6 @@ pub fn load_model_pack(
         if !value.is_finite() || value <= 0.0 {
             return Err(PackError::NonFiniteValue { field });
         }
-    }
-
-    if !geometry.liquid_tanks.is_empty() {
-        let rigid = super::dynamics::RigidBodyParams {
-            mass_kg: geometry.displacement_mass_kg,
-            inertia_about_cg: [
-                [geometry.inertia_about_cg_kg_m2.ixx, 0.0, 0.0],
-                [0.0, geometry.inertia_about_cg_kg_m2.iyy, 0.0],
-                [0.0, 0.0, geometry.inertia_about_cg_kg_m2.izz],
-            ],
-        };
-        let mass = super::dynamics::mass_matrix(&rigid, &super::dynamics::AddedMassParams { a_inf: [[0.0; 6]; 6] });
-        super::coupled_sloshing::CoupledSloshing::new(&geometry.liquid_tanks, &rigid, mass)
-            .map_err(|reason| PackError::InvalidLiquidTank { reason })?;
     }
 
     // 内容哈希：四个数据文件规范化后链式 FNV（manifest 的 model_version 参与链头）。
@@ -381,6 +411,7 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
     match (vessel, version) {
         ("destroyer-055", "research-nominal-v3") => embedded_destroyer_055_v3(),
         ("destroyer-055", "research-nominal-v4") => embedded_destroyer_055_v4(),
+        ("lng-changheng" | "container-msc", "research-nominal-v1") => loading_model_pack(vessel, None),
         ("semisub-981", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/semisub-981/v1/manifest.json"),
             include_str!("../../model-data/semisub-981/v1/geometry.json"),
@@ -412,4 +443,96 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
         _ => Err(PackError::SchemaMismatch { expect: "supported-embedded-vessel-version",
             got: format!("{vessel}@{version}") }),
     }
+}
+
+#[derive(Deserialize)]
+struct LoadingTable {
+    schema: String,
+    vessel: String,
+    model_version: String,
+    base_geometry_fnv1a: String,
+    baseline_loading_ratio: f64,
+    cases: Vec<LoadingCase>,
+}
+
+#[derive(Deserialize)]
+struct LoadingCase {
+    loading_ratio: f64,
+    hull_origin_shift_body_m: [f64; 3],
+    geometry: serde_json::Map<String, serde_json::Value>,
+    maneuvering: serde_json::Value,
+    actuators: serde_json::Value,
+    provenance: serde_json::Value,
+}
+
+/// 加载比例在重置时选择冻结参数，运行中的质量与船体几何保持不变。
+pub fn embedded_vessel_pack_with_loading(
+    vessel: &str,
+    version: &str,
+    loading_ratio: Option<f64>,
+) -> Result<PackModel, PackError> {
+    match loading_ratio {
+        None => embedded_vessel_pack(vessel, version),
+        Some(ratio) if version == "research-nominal-v1"
+            && matches!(vessel, "lng-changheng" | "container-msc") => loading_model_pack(vessel, Some(ratio)),
+        Some(_) => Err(PackError::SchemaMismatch {
+            expect: "vessel-with-loading-definition", got: format!("{vessel}@{version}"),
+        }),
+    }
+}
+
+fn loading_model_pack(vessel: &str, ratio: Option<f64>) -> Result<PackModel, PackError> {
+    let files = match vessel {
+        "lng-changheng" => [
+            include_str!("../../model-data/lng-changheng/v1/manifest.json"),
+            include_str!("../../model-data/lng-changheng/v1/geometry.json"),
+            include_str!("../../model-data/lng-changheng/v1/maneuvering.json"),
+            include_str!("../../model-data/lng-changheng/v1/actuators.json"),
+            include_str!("../../model-data/lng-changheng/v1/provenance.json"),
+            include_str!("../../model-data/lng-changheng/v1/loading-cases.json"),
+        ],
+        "container-msc" => [
+            include_str!("../../model-data/container-msc/v1/manifest.json"),
+            include_str!("../../model-data/container-msc/v1/geometry.json"),
+            include_str!("../../model-data/container-msc/v1/maneuvering.json"),
+            include_str!("../../model-data/container-msc/v1/actuators.json"),
+            include_str!("../../model-data/container-msc/v1/provenance.json"),
+            include_str!("../../model-data/container-msc/v1/loading-cases.json"),
+        ],
+        _ => return Err(PackError::SchemaMismatch { expect: "loading-vessel", got: vessel.into() }),
+    };
+    let [manifest, geometry, maneuvering, actuators, provenance, table] = files;
+    let Some(ratio) = ratio else {
+        return load_model_pack(manifest, geometry, maneuvering, actuators, provenance);
+    };
+    let invalid = || PackError::SchemaMismatch { expect: "frozen-loading-case", got: ratio.to_string() };
+    let table: LoadingTable = serde_json::from_str(table).map_err(|_| invalid())?;
+    if !ratio.is_finite() || table.schema != "act.vessel-loading-cases.v1" || table.vessel != vessel
+        || table.model_version != "research-nominal-v1"
+        || table.base_geometry_fnv1a != format!("{:016x}", fnv1a(geometry.as_bytes()))
+    {
+        return Err(invalid());
+    }
+    if (ratio - table.baseline_loading_ratio).abs() < 1e-12 {
+        return load_model_pack(manifest, geometry, maneuvering, actuators, provenance);
+    }
+    let mut case = table.cases.into_iter()
+        .find(|case| (case.loading_ratio - ratio).abs() < 1e-12).ok_or_else(invalid)?;
+    if case.hull_origin_shift_body_m.iter().any(|value| !value.is_finite()) {
+        return Err(invalid());
+    }
+    let base_geometry: PackGeometry = serde_json::from_str(geometry).map_err(|_| invalid())?;
+    let mut hull = base_geometry.nonlinear_hydrostatics.ok_or_else(invalid)?;
+    for point in &mut hull.vertices_body_m {
+        for (value, shift) in point.iter_mut().zip(case.hull_origin_shift_body_m) {
+            *value += shift;
+        }
+    }
+    let selected: PackGeometry = serde_json::from_value(serde_json::Value::Object(case.geometry.clone()))
+        .map_err(|_| invalid())?;
+    hull.cg_waterline_height_m = selected.center_of_mass_waterline_z_up_m.ok_or_else(invalid)?[2];
+    case.geometry.insert("nonlinear_hydrostatics".into(), serde_json::to_value(hull).map_err(|_| invalid())?);
+    load_model_pack(manifest,
+        &serde_json::to_string(&case.geometry).map_err(|_| invalid())?,
+        &case.maneuvering.to_string(), &case.actuators.to_string(), &case.provenance.to_string())
 }

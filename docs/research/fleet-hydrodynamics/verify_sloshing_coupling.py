@@ -52,6 +52,8 @@ def main():
     parser.add_argument('--geometry', type=Path, required=True)
     parser.add_argument('--nasa-sp106', type=Path)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--baseline-effective-gm-m', type=float,
+                        help='已审定的基准有效GM，用于核验单一KG修订')
     args = parser.parse_args()
     geometry = json.loads(args.geometry.read_text())
     kg = geometry['kg_keel_up_m']
@@ -60,6 +62,9 @@ def main():
     baseline = next(mode for mode in modes if mode['fill_ratio'] == 0.85 and mode['width_m'] == 38.0)
     correction = 4*baseline['free_surface_stiffness_reduction_nm_per_rad']/(geometry['displacement_mass_kg']*9.81)
     effective_gm = geometry['gm_transverse_m']-correction
+    approved = args.baseline_effective_gm_m
+    if approved is not None and (not math.isfinite(approved) or approved <= 0 or abs(effective_gm-approved) > 1e-10):
+        raise ValueError('几何GM、模态自由液面修正与审定有效GM不一致')
     report = {'schema': 'act.sloshing-coupling.integral-validation.v1', 'status': 'passed',
         'generator_sha256': sha256(Path(__file__)), 'geometry_sha256': sha256(args.geometry),
         'sources': ['https://ntrs.nasa.gov/citations/19670006555',
@@ -70,8 +75,11 @@ def main():
         'baseline_static_stability': {'mass_kg': geometry['displacement_mass_kg'],
             'geometric_gm_m': geometry['gm_transverse_m'], 'first_mode_free_surface_correction_m': correction,
             'effective_gm_m': effective_gm, 'status': 'not_ready' if effective_gm <= 0 else 'positive',
-            'authority_decision': 'pending course-owner interpretation of prescribed baseline GM'},
-        'not_ready': ['two-way plant integration', 'coupled energy and benchmark validation', 'baseline GM decision']}
+            'approved_effective_gm_m': approved,
+            'authority_decision': 'effective GM interpretation supplied' if approved is not None
+                else 'pending course-owner interpretation of prescribed baseline GM'},
+        'scope_exclusions': ['time-domain coupled energy verification', 'vessel-calibrated benchmark'],
+        'not_ready': ['baseline GM decision'] if approved is None else []}
     write_json(args.output, report)
     print(json.dumps({'status': report['status'], 'modes': len(modes),
         'free_surface_correction_m': correction, 'baseline_effective_gm_m': effective_gm}))
