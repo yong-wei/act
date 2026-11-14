@@ -71,6 +71,9 @@ def main():
     parser.add_argument("--headings-deg", type=float, nargs="+", default=[0.0])
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    generator_sha = sha256(__file__)
+    input_hashes = {str(path): sha256(path) for path in
+                    [args.mesh, args.lid_mesh, args.geometry_file] if path is not None}
     geometry = None
     if args.geometry_file is not None:
         geometry = json.loads(args.geometry_file.read_text())
@@ -149,20 +152,24 @@ def main():
     failed = [record for record in checks
               if record.get("symmetry_relative_error", 0) > 0.01
               or record.get("normalized_min_eigenvalue", 0) < -0.01]
+    input_drift = [path for path, digest in input_hashes.items() if sha256(path) != digest]
+    if sha256(__file__) != generator_sha:
+        input_drift.append("generator")
     args.output.mkdir(parents=True, exist_ok=True)
     output = args.output / "hydro.nc"
     separate_complex_values(dataset).to_netcdf(output, engine="h5netcdf")
     report = {
         "schema": "act.hydrodynamics.first-order.v1",
-        "status": "failed" if failed else "computed",
+        "status": "failed" if failed or input_drift else "computed",
         "fidelity": "research-nominal",
         "solver": dependency_identity("capytaine"),
         "dependencies": {name: dependency_identity(name)
                          for name in ["numpy", "scipy", "xarray", "h5netcdf"]},
-        "generator_sha256": sha256(__file__),
-        "mesh_sha256": sha256(args.mesh), "output_sha256": sha256(output),
-        "lid_mesh_sha256": sha256(args.lid_mesh) if args.lid_mesh else None,
-        "geometry_sha256": sha256(args.geometry_file) if args.geometry_file else None,
+        "generator_sha256": generator_sha,
+        "mesh_sha256": input_hashes[str(args.mesh)], "output_sha256": sha256(output),
+        "lid_mesh_sha256": input_hashes.get(str(args.lid_mesh)),
+        "geometry_sha256": input_hashes.get(str(args.geometry_file)),
+        "input_drift": input_drift,
         "resolution": {"max_panel_radius_m": panel_radius,
                        "underresolved_frequencies_rad_s": underresolved},
         "configuration": {
@@ -188,7 +195,7 @@ def main():
     )
     print(json.dumps({"status": report["status"], "panels": body.mesh.nb_faces,
                       "volume_m3": volume, "failed_checks": len(failed)}))
-    if failed:
+    if failed or input_drift:
         raise SystemExit(1)
 
 
