@@ -429,6 +429,13 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
     match (vessel, version) {
         ("destroyer-055", "research-nominal-v3") => embedded_destroyer_055_v3(),
         ("destroyer-055", "research-nominal-v4") => embedded_destroyer_055_v4(),
+        ("destroyer-055", "research-nominal-v5") => load_model_pack(
+            include_str!("../../model-data/destroyer-055/v5/manifest.json"),
+            include_str!("../../model-data/destroyer-055/v5/geometry.json"),
+            include_str!("../../model-data/destroyer-055/v5/maneuvering.json"),
+            include_str!("../../model-data/destroyer-055/v5/actuators.json"),
+            include_str!("../../model-data/destroyer-055/v5/provenance.json"),
+        ),
         ("lng-changheng" | "container-msc", "research-nominal-v1") => loading_model_pack(vessel, None),
         ("semisub-981", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/semisub-981/v1/manifest.json"),
@@ -444,12 +451,26 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/semisub-981/v2/actuators.json"),
             include_str!("../../model-data/semisub-981/v2/provenance.json"),
         ),
+        ("semisub-981", "research-nominal-v3") => load_model_pack(
+            include_str!("../../model-data/semisub-981/v3/manifest.json"),
+            include_str!("../../model-data/semisub-981/v3/geometry.json"),
+            include_str!("../../model-data/semisub-981/v3/maneuvering.json"),
+            include_str!("../../model-data/semisub-981/v3/actuators.json"),
+            include_str!("../../model-data/semisub-981/v3/provenance.json"),
+        ),
         ("cruise-adora", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/cruise-adora/v1/manifest.json"),
             include_str!("../../model-data/cruise-adora/v1/geometry.json"),
             include_str!("../../model-data/cruise-adora/v1/maneuvering.json"),
             include_str!("../../model-data/cruise-adora/v1/actuators.json"),
             include_str!("../../model-data/cruise-adora/v1/provenance.json"),
+        ),
+        ("cruise-adora", "research-nominal-v2") => load_model_pack(
+            include_str!("../../model-data/cruise-adora/v2/manifest.json"),
+            include_str!("../../model-data/cruise-adora/v2/geometry.json"),
+            include_str!("../../model-data/cruise-adora/v2/maneuvering.json"),
+            include_str!("../../model-data/cruise-adora/v2/actuators.json"),
+            include_str!("../../model-data/cruise-adora/v2/provenance.json"),
         ),
         ("icebreaker-xuelong2", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/icebreaker-xuelong2/v1/manifest.json"),
@@ -458,12 +479,26 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/icebreaker-xuelong2/v1/actuators.json"),
             include_str!("../../model-data/icebreaker-xuelong2/v1/provenance.json"),
         ),
+        ("icebreaker-xuelong2", "research-nominal-v2") => load_model_pack(
+            include_str!("../../model-data/icebreaker-xuelong2/v2/manifest.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v2/geometry.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v2/maneuvering.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v2/actuators.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v2/provenance.json"),
+        ),
         ("dredger-tianjing", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/dredger-tianjing/v1/manifest.json"),
             include_str!("../../model-data/dredger-tianjing/v1/geometry.json"),
             include_str!("../../model-data/dredger-tianjing/v1/maneuvering.json"),
             include_str!("../../model-data/dredger-tianjing/v1/actuators.json"),
             include_str!("../../model-data/dredger-tianjing/v1/provenance.json"),
+        ),
+        ("dredger-tianjing", "research-nominal-v2") => load_model_pack(
+            include_str!("../../model-data/dredger-tianjing/v2/manifest.json"),
+            include_str!("../../model-data/dredger-tianjing/v2/geometry.json"),
+            include_str!("../../model-data/dredger-tianjing/v2/maneuvering.json"),
+            include_str!("../../model-data/dredger-tianjing/v2/actuators.json"),
+            include_str!("../../model-data/dredger-tianjing/v2/provenance.json"),
         ),
         _ => Err(PackError::SchemaMismatch { expect: "supported-embedded-vessel-version",
             got: format!("{vessel}@{version}") }),

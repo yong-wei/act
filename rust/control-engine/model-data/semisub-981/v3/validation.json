@@ -1,0 +1,41 @@
+{
+  "schema": "act.semisub-pack.validation.v1",
+  "status": "computed",
+  "mass_kg": 53095000.0,
+  "gm_transverse_m": 2.0,
+  "gm_longitudinal_m": 10.154440154440152,
+  "kg_keel_up_m": 36.353925353925355,
+  "closed_full_hull": true,
+  "full_triangles": 2368,
+  "all_azimuth_envelope_clearance_lower_bound_m": 0.75,
+  "initial_surge_force_residual_n": 0.0,
+  "propulsors": 8,
+  "native_verification": "separate verification artifacts",
+  "radiation": {
+    "fidelity": "research-nominal",
+    "relative_a_error": 0.04823999469130005,
+    "relative_b_error": 0.12643321119144216,
+    "discrete_stability": {
+      "state_count": 110,
+      "maximum_continuous_pole_real_per_s": 3.1444282173724716e-16,
+      "energy_symmetric_part_max_eigenvalue": 5.224779170117196e-15,
+      "updates": [
+        {
+          "dt_s": 0.008333333333333333,
+          "maximum_energy_amplification": 1.0000000000000009,
+          "spectral_radius": 1.0000000000000004
+        },
+        {
+          "dt_s": 0.004166666666666667,
+          "maximum_energy_amplification": 1.0000000000000018,
+          "spectral_radius": 1.0000000000000022
+        }
+      ]
+    },
+    "fit_validation_sha256": "4c4cd3786d0d3fa1a959159b3b51d48a6b958789c02863dc83e505bc844bb4df"
+  },
+  "native_verification_paths": [
+    "docs/research/fleet-hydrodynamics/fleet-radiation-wind-validation/semisub-981-independent-validation.json",
+    "docs/research/fleet-hydrodynamics/fleet-radiation-wind-validation/semisub-981-session-validation.json"
+  ]
+}

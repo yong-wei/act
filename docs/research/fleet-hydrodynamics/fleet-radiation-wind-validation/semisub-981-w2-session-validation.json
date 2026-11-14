@@ -1,0 +1,61 @@
+{
+  "schema": "act.native-session-validation.v1",
+  "status": "passed",
+  "vessel": "semisub-981",
+  "parameter_version": "research-nominal-v3",
+  "parameter_hash": "fnv1a-e11e4dd390ac900a",
+  "environment": "W2",
+  "loading_ratio": null,
+  "generator_sha256": "4db35616747d8e5e273435d0a02685693f2f8bded65c260b1b8aa4a7b01523f4",
+  "wasm_sha256": "f6f5b4ad32e6fb5c709b1aa91c094cc28ae0eb1f9a0a4c28f9281a040bc0d2a6",
+  "build_identity": {
+    "schemaVersion": "act-control-engine-identity/v1",
+    "buildHash": "394e3eb8d2adcfdcc9ae0201547667a1183e1a2cd980e4c915cb959d6e7c6649",
+    "wasmPack": "wasm-pack 0.15.0",
+    "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "exports": [
+      "compute_analysis",
+      "compute_nonlinear_analysis",
+      "compute_rl_training",
+      "compute_simulation_step",
+      "compute_virtual_simulation_step",
+      "VesselSimulationSession"
+    ],
+    "files": {
+      "index.js": "e51d5ee2a9af6d3e89f1555ca65f5030e5e449c52c8b51fe24aebc52bc7e0efa",
+      "index.d.ts": "0b1eac114507da23593dd0f505949cc823e17b87c4b424acf65c460b59df55eb",
+      "index_bg.wasm": "f6f5b4ad32e6fb5c709b1aa91c094cc28ae0eb1f9a0a4c28f9281a040bc0d2a6",
+      "index_bg.wasm.d.ts": "eaa832d510eac4c6714a51ef8ba3f6edc57a6629e8b4d6794ba6d60e814eb5fc"
+    }
+  },
+  "runtime": {
+    "node": "v26.0.0",
+    "architecture": "arm64",
+    "platform": "darwin"
+  },
+  "verification": {
+    "dynamics_exposed": true,
+    "radiation_states": 104,
+    "restored_future_bitwise_identical": true,
+    "pause_state_identical": true,
+    "physics_ticks": 720,
+    "controller_ticks": 120,
+    "snapshot_bytes": 152118,
+    "active_wind_condition": "W2",
+    "actual_wind_loads_si": [
+      -31031.304095290987,
+      -221603.18093971116,
+      0,
+      -2142351.855915054,
+      279133.0019326095,
+      81731.07133431581
+    ]
+  },
+  "timing": {
+    "virtual_seconds": 5,
+    "render_frames": 300,
+    "elapsed_ms": 183.872833,
+    "mean_frame_ms": 0.6129094433333334,
+    "scope": "single Node WASM session, excludes browser rendering and network capacity"
+  }
+}

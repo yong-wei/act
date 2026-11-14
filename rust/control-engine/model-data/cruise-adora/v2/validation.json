@@ -1,0 +1,317 @@
+{
+  "schema": "act.vessel-pack-validation.v1",
+  "status": "computed",
+  "initial_surge_force_residual_n": -1.3969838619232178e-09,
+  "geometry_and_installation": [
+    {
+      "geometry_sha256": "cd904a650d08b8dbeea0cb111651b299ee275ec381e05f7a7b5668e708ca5d68",
+      "full_hull_sha256": "23997dae4deae42062ee20ed2b6c5274e4c616cdade3305399612007a87d2cbb",
+      "propulsors": [
+        {
+          "center_body_m": [
+            -137.25,
+            -8.184000000000001,
+            15.610853426533483
+          ],
+          "diameter_m": 6.5,
+          "clearance_m": 0.6263125489955184,
+          "center_inside_hull": false,
+          "nearest_hull_point_bem_m": [
+            -136.93224716696184,
+            7.9769553122153924,
+            -1.142285053058413
+          ],
+          "all_angles_clear": true,
+          "rotation_coverage": "sphere equal to union of every vertical propeller disk over full horizontal azimuth"
+        },
+        {
+          "center_body_m": [
+            -137.25,
+            8.184000000000001,
+            15.610853426533483
+          ],
+          "diameter_m": 6.5,
+          "clearance_m": 0.6263125489955184,
+          "center_inside_hull": false,
+          "nearest_hull_point_bem_m": [
+            -136.93224716696184,
+            -7.97695531221539,
+            -1.1422850530584128
+          ],
+          "all_angles_clear": true,
+          "rotation_coverage": "sphere equal to union of every vertical propeller disk over full horizontal azimuth"
+        }
+      ],
+      "surfaces": [
+        {
+          "center_body_m": [
+            -15.25,
+            -21.75,
+            13.610853426533483
+          ],
+          "chord_m": 3.0,
+          "span_m": 6.0,
+          "angle_interval_rad": [
+            -0.4363323129985824,
+            0.4363323129985824
+          ],
+          "slabs": 2,
+          "conservative_clearance_lower_bound_m": 0.14999999999999855,
+          "method": "triangle-clipped slab convex projection versus analytic continuous swept-chord bounds",
+          "all_angles_clear": true
+        },
+        {
+          "center_body_m": [
+            -15.25,
+            21.75,
+            13.610853426533483
+          ],
+          "chord_m": 3.0,
+          "span_m": 6.0,
+          "angle_interval_rad": [
+            -0.4363323129985824,
+            0.4363323129985824
+          ],
+          "slabs": 2,
+          "conservative_clearance_lower_bound_m": 0.14999999999999855,
+          "method": "triangle-clipped slab convex projection versus analytic continuous swept-chord bounds",
+          "all_angles_clear": true
+        }
+      ]
+    },
+    {
+      "geometry_sha256": "99618da8aa3a75ae83842e9595927e9c9628eaf4b84edf13d67069ae54e99a8e",
+      "full_hull_sha256": "5c4113b03e780b1251795bc0a2836ff5376064a4bb18daf4e95b5157b3c04221",
+      "propulsors": [
+        {
+          "center_body_m": [
+            -137.25,
+            -8.184000000000001,
+            15.650580485016688
+          ],
+          "diameter_m": 6.5,
+          "clearance_m": 0.598923797407291,
+          "center_inside_hull": false,
+          "nearest_hull_point_bem_m": [
+            -136.94133328404303,
+            8.072988309206007,
+            -1.1650794452537148
+          ],
+          "all_angles_clear": true,
+          "rotation_coverage": "sphere equal to union of every vertical propeller disk over full horizontal azimuth"
+        },
+        {
+          "center_body_m": [
+            -137.25,
+            8.184000000000001,
+            15.650580485016688
+          ],
+          "diameter_m": 6.5,
+          "clearance_m": 0.598923797407291,
+          "center_inside_hull": false,
+          "nearest_hull_point_bem_m": [
+            -136.94133328404303,
+            -8.072988309205996,
+            -1.1650794452537154
+          ],
+          "all_angles_clear": true,
+          "rotation_coverage": "sphere equal to union of every vertical propeller disk over full horizontal azimuth"
+        }
+      ],
+      "surfaces": [
+        {
+          "center_body_m": [
+            -15.25,
+            -21.75,
+            13.650580485016688
+          ],
+          "chord_m": 3.0,
+          "span_m": 6.0,
+          "angle_interval_rad": [
+            -0.4363323129985824,
+            0.4363323129985824
+          ],
+          "slabs": 2,
+          "conservative_clearance_lower_bound_m": 0.14999999999999855,
+          "method": "triangle-clipped slab convex projection versus analytic continuous swept-chord bounds",
+          "all_angles_clear": true
+        },
+        {
+          "center_body_m": [
+            -15.25,
+            21.75,
+            13.650580485016688
+          ],
+          "chord_m": 3.0,
+          "span_m": 6.0,
+          "angle_interval_rad": [
+            -0.4363323129985824,
+            0.4363323129985824
+          ],
+          "slabs": 2,
+          "conservative_clearance_lower_bound_m": 0.14999999999999855,
+          "method": "triangle-clipped slab convex projection versus analytic continuous swept-chord bounds",
+          "all_angles_clear": true
+        }
+      ]
+    }
+  ],
+  "previous_layout": {
+    "water_density_kg_m3": 1025.0,
+    "propulsors": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -137.25,
+            -8.184000000000001,
+            15.610853426533483
+          ],
+          "referenceImmersionM": 5.0
+        },
+        "diameter_m": 6.5,
+        "max_power_w": 16800000.0,
+        "rated_speed_rad_s": 15.707963267948966,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 283274.0783691406,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": {
+          "servo": {
+            "max_angle_rad": 3.141592653589793,
+            "max_rate_rad_s": 0.08726646259971647,
+            "time_constant_s": 1.0
+          },
+          "forbidden_sectors_rad": []
+        }
+      },
+      {
+        "installation": {
+          "positionBodyM": [
+            -137.25,
+            8.184000000000001,
+            15.610853426533483
+          ],
+          "referenceImmersionM": 5.0
+        },
+        "diameter_m": 6.5,
+        "max_power_w": 16800000.0,
+        "rated_speed_rad_s": 15.707963267948966,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 283274.0783691406,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": {
+          "servo": {
+            "max_angle_rad": 3.141592653589793,
+            "max_rate_rad_s": 0.08726646259971647,
+            "time_constant_s": 1.0
+          },
+          "forbidden_sectors_rad": []
+        }
+      }
+    ],
+    "surfaces": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -15.25,
+            -15.0,
+            13.610853426533483
+          ],
+          "referenceImmersionM": 3.0
+        },
+        "area_m2": 18.0,
+        "aspect_ratio": 2.0,
+        "normal_body": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "servo": {
+          "max_angle_rad": 0.4363323129985824,
+          "max_rate_rad_s": 0.2617993877991494,
+          "time_constant_s": 0.4
+        },
+        "wake_propulsor": null,
+        "normal_factor": 1.0,
+        "fin_servo_power": {
+          "mean_chord_m": 3.0,
+          "efficiency": 0.65,
+          "standby_w": 2000.0
+        }
+      },
+      {
+        "installation": {
+          "positionBodyM": [
+            -15.25,
+            15.0,
+            13.610853426533483
+          ],
+          "referenceImmersionM": 3.0
+        },
+        "area_m2": 18.0,
+        "aspect_ratio": 2.0,
+        "normal_body": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "servo": {
+          "max_angle_rad": 0.4363323129985824,
+          "max_rate_rad_s": 0.2617993877991494,
+          "time_constant_s": 0.4
+        },
+        "wake_propulsor": null,
+        "normal_factor": 1.0,
+        "fin_servo_power": {
+          "mean_chord_m": 3.0,
+          "efficiency": 0.65,
+          "standby_w": 2000.0
+        }
+      }
+    ]
+  },
+  "previous_layout_checks": [
+    {
+      "status": "conflict",
+      "reason": "\u7ffc\u9762\u4e2d\u5fc3\u4f4d\u4e8e\u5c01\u95ed\u8239\u4f53\u5185\u90e8 [-15.25, 15.0, -3.0]",
+      "geometry_sha256": "cd904a650d08b8dbeea0cb111651b299ee275ec381e05f7a7b5668e708ca5d68",
+      "full_hull_sha256": "23997dae4deae42062ee20ed2b6c5274e4c616cdade3305399612007a87d2cbb"
+    },
+    {
+      "status": "conflict",
+      "reason": "\u7ffc\u9762\u4e2d\u5fc3\u4f4d\u4e8e\u5c01\u95ed\u8239\u4f53\u5185\u90e8 [-15.25, 15.0, -3.0]",
+      "geometry_sha256": "99618da8aa3a75ae83842e9595927e9c9628eaf4b84edf13d67069ae54e99a8e",
+      "full_hull_sha256": "5c4113b03e780b1251795bc0a2836ff5376064a4bb18daf4e95b5157b3c04221"
+    }
+  ],
+  "native_verification": "separate verification artifacts",
+  "fidelity": "research-nominal",
+  "radiation": {
+    "fidelity": "research-nominal",
+    "relative_a_error": 0.027972727765722273,
+    "relative_b_error": 0.06658139172448384,
+    "discrete_stability": {
+      "state_count": 126,
+      "maximum_continuous_pole_real_per_s": 2.1429072333522457e-16,
+      "energy_symmetric_part_max_eigenvalue": 8.5820325841129e-16,
+      "updates": [
+        {
+          "dt_s": 0.008333333333333333,
+          "maximum_energy_amplification": 1.0000000000000009,
+          "spectral_radius": 1.0000000000000038
+        },
+        {
+          "dt_s": 0.004166666666666667,
+          "maximum_energy_amplification": 1.0000000000000018,
+          "spectral_radius": 1.0000000000000018
+        }
+      ]
+    },
+    "fit_validation_sha256": "1342b3e4d159ba1f9fdb51471fb33128083817d09496795da8b1353c94b5e39d"
+  },
+  "native_verification_paths": [
+    "docs/research/fleet-hydrodynamics/fleet-radiation-wind-validation/cruise-adora-independent-validation.json",
+    "docs/research/fleet-hydrodynamics/fleet-radiation-wind-validation/cruise-adora-session-validation.json"
+  ]
+}

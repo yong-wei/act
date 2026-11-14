@@ -1,0 +1,24 @@
+{
+  "grade": "T",
+  "model_fidelity": "research-nominal",
+  "authority": [
+    "https://github.com/yong-wei/act/issues/2163",
+    "https://github.com/yong-wei/act/issues/2147"
+  ],
+  "source_sha256": "825f7ef23f566b247934a0d27c8ba21ad30215ceb1574e66ec85eb1384d62098",
+  "generator_sha256": "e2ff3c6b0fa804818c7b1996b201e4f046d9c958569b0a38aa6633266b6ce704",
+  "mesh_generator_sha256": "b097358b9f9b646607cdbf76dcada975d51da1ed56ca109d06d5bb466e58eff6",
+  "source_model_sha256": "25613ad60b2f2cea1bd32366fc0d84f56fafd3168c53f7d8c786e60a9649110d",
+  "source_model_commit": "812a1e2e7486b3f36e2f17520e4f853ab6743dc6",
+  "source_symmetry_relative_l2": 0.03229568018751218,
+  "loading": null,
+  "waterline_snap_tolerance_m": 2e-08,
+  "vertical_normalization": "underwater draft and published moulded depth separately, same map for cargo geometry",
+  "tank_bottom_keel_up_m": null,
+  "cargo_height_basis": "fixed equivalent tank geometry",
+  "not_ready": [
+    "vessel-calibrated viscous derivatives",
+    "validated wave/radiation data",
+    "specialist coupling"
+  ]
+}

@@ -12,6 +12,7 @@ const option = (name, fallback) => {
 };
 const version = option('--version', 'research-nominal-v4');
 const vessel = option('--vessel', 'destroyer-055');
+const environment = option('--environment', 'P0');
 const loadingOption = option('--loading-ratio', null);
 const loadingRatio = loadingOption === null ? null : Number(loadingOption);
 if (loadingRatio !== null && !Number.isFinite(loadingRatio)) throw new Error('加载比例无效');
@@ -22,7 +23,7 @@ const wasmBytes = readFileSync(path.join(wasmDirectory, 'index_bg.wasm'));
 const binding = await import(pathToFileURL(path.join(wasmDirectory, 'index.js')).href);
 await binding.default({ module_or_path: wasmBytes });
 
-const configuration = JSON.stringify({ vessel, parameterVersion: version, noiseLevel: 'N0',
+const configuration = JSON.stringify({ vessel, parameterVersion: version, noiseLevel: 'N0', environment,
   ...(loadingRatio === null ? {} : { loadingRatio }) });
 const original = new binding.VesselSimulationSession(configuration);
 const restored = new binding.VesselSimulationSession(configuration);
@@ -58,7 +59,11 @@ try {
   }
   original.setPaused(false);
   let controlVerification;
-  if (vessel === 'semisub-981') {
+  if (environment === 'W1' || environment === 'W2') {
+    const wind = final.dynamics.external_components?.tau_wind;
+    if (!wind?.some((value) => Math.abs(value) > 1)) throw new Error('风载没有进入实际六维外力分项');
+    controlVerification = { active_wind_condition: environment, actual_wind_loads_si: wind };
+  } else if (vessel === 'semisub-981') {
     const saved = original.snapshot();
     let rejected = false;
     try {
@@ -118,6 +123,8 @@ try {
     status: 'passed',
     vessel,
     parameter_version: version,
+    parameter_hash: initial.parameterHash,
+    environment,
     loading_ratio: loadingRatio,
     generator_sha256: sha256(readFileSync(fileURLToPath(import.meta.url))),
     wasm_sha256: sha256(wasmBytes),
@@ -125,6 +132,7 @@ try {
     runtime: { node: process.version, architecture: process.arch, platform: process.platform },
     verification: {
       dynamics_exposed: true,
+      radiation_states: final.truth.radiation_states.length,
       restored_future_bitwise_identical: true,
       pause_state_identical: true,
       physics_ticks: final.physicsTicks,

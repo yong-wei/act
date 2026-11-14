@@ -1,0 +1,10 @@
+{
+  "frequencies": 100,
+  "oscillators": 53,
+  "parameter_hash": "fnv1a-492b7f919445becd",
+  "parameter_version": "research-nominal-v2",
+  "radiation_states": 106,
+  "status": "computed",
+  "vessel": "icebreaker-xuelong2",
+  "native_csv_sha256": "7fee05ee63842f4a1622b1d670409f1eac67fc660d90f5edf41ba7d88ac77702"
+}

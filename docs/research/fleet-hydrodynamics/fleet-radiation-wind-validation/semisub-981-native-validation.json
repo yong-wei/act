@@ -1,0 +1,10 @@
+{
+  "frequencies": 100,
+  "oscillators": 52,
+  "parameter_hash": "fnv1a-e11e4dd390ac900a",
+  "parameter_version": "research-nominal-v3",
+  "radiation_states": 104,
+  "status": "computed",
+  "vessel": "semisub-981",
+  "native_csv_sha256": "e3933f5c9bfe9c42f2e303524a15512f1f0cb6190d331b302eb861bf7216b1fd"
+}

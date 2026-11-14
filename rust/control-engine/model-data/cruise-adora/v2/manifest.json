@@ -1,0 +1,27 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "cruise-adora",
+  "model_version": "research-nominal-v2",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "actuators.json": "a3caa15c038141045a23fe6b4987fb8c8d811e7807c1f08352bf074d065cedcf",
+    "frontal.wkb": "d2c8d4a84131f8e305fff4f1aae61d8597c4ba366cb91f9a2265c95b2b30944f",
+    "full-hull.dat": "23997dae4deae42062ee20ed2b6c5274e4c616cdade3305399612007a87d2cbb",
+    "geometry-provenance.json": "adc12ebb2fe775b97c9e7051b230ccf1162bcdc6ee5f1daf372f393e4acad66e",
+    "geometry.json": "7ce0e575560edb8f8ef52dec8a54b08c79a7f34ec6769891dbb8cc48b27981ad",
+    "hull.dat": "d1f1b27cb8572fe4d486467705a019b1bc712e2e4280abccf7baa97e30e111c1",
+    "hydrostatic-hull.json": "73f38de4c9b2ffaffa59a25267348e57497ab89cd2684a6f2de42eb01b5427d6",
+    "lateral.wkb": "9cd390065f83f0f1721a403e9af8ccbd1634c15f17c9e3e5d5dc2c84c474bbc5",
+    "lid.dat": "10ccd918c293ae8c9233a5fff0ce90a3ece7ec520a05a76f61fed7c9c23570e2",
+    "maneuvering.json": "d16dfec6dfd1f8fac816f3adc97e3eb33b865a8da80ff5b4c7e49dd3bbc57491",
+    "provenance.json": "eabb85ca9b43bdf1b2ebf1c4653be5c232f84173fad8a5c61d66fb2f2fc978e2",
+    "radiation-fit-arrays.npz": "bcfbb3b8b769bd141e1579c3bedadd57c11f19c4fef805780922ef644c03f31f",
+    "radiation-fit-validation.json": "1342b3e4d159ba1f9fdb51471fb33128083817d09496795da8b1353c94b5e39d",
+    "radiation.json": "e0d947d1d6067837b5d18617295ac9ed27091dd1d38051336c767a6568d2f490",
+    "source-sections.json": "b18445d42e74656669cf26bd7e20eb223a9566928017879141a93c584a204b83",
+    "static-validation.json": "a741f57d4f98f1cbcbf501b1553daa894b98895a40c9400aaca544934f82fb37",
+    "validation.json": "6e51cce617f1b96d338ca2d477c1e03900fa1378f46fb9f609ff12ab3668a425",
+    "wind-validation.json": "52e44173ea05e4fe76b62334af57af797f078c1ae89187c184aab93560a1c3ca",
+    "wind.json": "b1fdb340e22371c9e34a2729625ea52dffbecaab68ee0936a20b60e722dd1fb5"
+  }
+}

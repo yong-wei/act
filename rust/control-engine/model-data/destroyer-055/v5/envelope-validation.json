@@ -1,0 +1,463 @@
+{
+  "schema": "act.hull-installation-validation.v1",
+  "fidelity": "research-nominal",
+  "generator_sha256": "60cbd8efe88c0964bddc282884c8711e96c90aa3258888fc73145dd67fa93d90",
+  "dependencies": {
+    "capytaine": "2.2.1",
+    "numpy": "1.26.4",
+    "trimesh": "4.5.3",
+    "shapely": "2.0.6"
+  },
+  "resolutions": [
+    {
+      "inputs_sha256": {
+        "geometry.json": "9f940257a722925fc1756a17ea99d62b1ee20f768bfe2ff0f3bde04dec459fe2",
+        "hull.dat": "ee5c59d9518fcde20bb773dfb195d66ebb74785b3213ed77cf7d10d8e611e4c8",
+        "lid.dat": "06b668bc1d839d81c7cd10341ac19a35fecc9b0733902697e0540ed5a6b5fbaf",
+        "actuators.json": "ea66b3154b6a2035ac647aa8fe4805e551007816f7d5caf123c4c18ffa234c16",
+        "source-sections.json": "e1002fc3bb8b71f9892f54587ae297abe79a40132091ffcb19edac834bf4af5b"
+      },
+      "wet_panels": 4009,
+      "geometry_normalization": {
+        "grade": "T",
+        "formula": "paired visual-hull sections, y=+-B/2*(2*y_source/B)^p",
+        "fullness_power": 0.9605550973239814,
+        "source_scale_factors": [
+          1.0017251797784066,
+          1.0,
+          1.0842245134761779
+        ],
+        "source_center_of_buoyancy_x_m": -6.339498014458105,
+        "longitudinal_panels": 86,
+        "vertical_panels": 12
+      },
+      "static": {
+        "watertight": true,
+        "winding_consistent": true,
+        "volume_m3": 12682.926829268292,
+        "mass_relative_error": 0.0,
+        "center_of_buoyancy_z_up_m": [
+          -7.649083645680013e-15,
+          3.4420876405560057e-15,
+          -2.3698365528422927
+        ],
+        "capytaine_stiffness_frd": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            30331690.925095886,
+            -1.0974235920002684e-07,
+            143791941.58015,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -1.0974235920002684e-07,
+            169134409.86209154,
+            -7.316157280001789e-07,
+            -5516.925501399473
+          ],
+          [
+            0.0,
+            0.0,
+            143791941.58015,
+            -7.316157280001789e-07,
+            61358021678.48425,
+            -2.2044482031208928e-07
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "exact_stiffness_frd": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            30331690.925095886,
+            0.0,
+            143791941.58015007,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            191295000.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            143791941.58015007,
+            0.0,
+            61364157168.30524,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_stiffness_max_relative_error": 0.11584510906144153,
+        "capytaine_check_scope": "discrete panel hydrostatics versus exact polyhedral volume and waterplane integration"
+      },
+      "previous_propeller_installation": [
+        {
+          "center_x_m": -76.95,
+          "center_y_z_up_m": [
+            3.5999999999999996,
+            -3.5
+          ],
+          "diameter_m": 5.0,
+          "clearance_m": -0.22014125359728842,
+          "overlap_area_lower_bound_m2": 0.27413308433585837,
+          "circumscribed_disk_clear": false,
+          "rotation_coverage": "entire physical disk, all shaft angles"
+        },
+        {
+          "center_x_m": -76.95,
+          "center_y_z_up_m": [
+            -3.5999999999999996,
+            -3.5
+          ],
+          "diameter_m": 5.0,
+          "clearance_m": -0.22014125359728887,
+          "overlap_area_lower_bound_m2": 0.27413308433585853,
+          "circumscribed_disk_clear": false,
+          "rotation_coverage": "entire physical disk, all shaft angles"
+        }
+      ],
+      "revised_propeller_installation": [
+        {
+          "center_x_m": -78.0,
+          "center_y_z_up_m": [
+            3.5999999999999996,
+            -3.5
+          ],
+          "diameter_m": 5.0,
+          "clearance_m": 0.09391511319123991,
+          "overlap_area_lower_bound_m2": 0.0,
+          "circumscribed_disk_clear": true,
+          "rotation_coverage": "entire physical disk, all shaft angles"
+        },
+        {
+          "center_x_m": -78.0,
+          "center_y_z_up_m": [
+            -3.5999999999999996,
+            -3.5
+          ],
+          "diameter_m": 5.0,
+          "clearance_m": 0.09391511319123991,
+          "overlap_area_lower_bound_m2": 0.0,
+          "circumscribed_disk_clear": true,
+          "rotation_coverage": "entire physical disk, all shaft angles"
+        }
+      ],
+      "control_surfaces": [
+        {
+          "center_body_m": [
+            -82.08,
+            -3.5999999999999996,
+            6.780288388332101
+          ],
+          "chord_m": 2.449489742783178,
+          "span_m": 4.898979485566356,
+          "angle_interval_rad": [
+            -0.6108652381980153,
+            0.6108652381980153
+          ],
+          "slabs": 2,
+          "conservative_clearance_lower_bound_m": 0.12523945922449362,
+          "method": "triangle-clipped slab convex projection versus analytic continuous swept-chord bounds",
+          "all_angles_clear": true
+        },
+        {
+          "center_body_m": [
+            -82.08,
+            3.5999999999999996,
+            6.780288388332101
+          ],
+          "chord_m": 2.449489742783178,
+          "span_m": 4.898979485566356,
+          "angle_interval_rad": [
+            -0.6108652381980153,
+            0.6108652381980153
+          ],
+          "slabs": 2,
+          "conservative_clearance_lower_bound_m": 0.125239459224494,
+          "method": "triangle-clipped slab convex projection versus analytic continuous swept-chord bounds",
+          "all_angles_clear": true
+        }
+      ]
+    },
+    {
+      "inputs_sha256": {
+        "geometry.json": "f633296a1b56d4ab88a8c03910480d336c90d562b0bf42ecc6376c656d95a0c9",
+        "hull.dat": "4bb05f92c72c4aabede8b33a6ef72438d48f4bbb5ef1a3c5a17a4cdc067310f9",
+        "lid.dat": "85a284edf93638fdbf93a9ae2086733ec0aa790477aa4f2bdaf69709a7ea309d",
+        "actuators.json": "35bafb8035415440ac6386dc4a1b3a95d2ab62159d4a7534119757cb91e8061e",
+        "source-sections.json": "e1002fc3bb8b71f9892f54587ae297abe79a40132091ffcb19edac834bf4af5b"
+      },
+      "wet_panels": 15885,
+      "geometry_normalization": {
+        "grade": "T",
+        "formula": "paired visual-hull sections, y=+-B/2*(2*y_source/B)^p",
+        "fullness_power": 0.974297620441668,
+        "source_scale_factors": [
+          1.0017251797784066,
+          1.0,
+          1.0842245134761779
+        ],
+        "source_center_of_buoyancy_x_m": -6.3378444475468045,
+        "longitudinal_panels": 172,
+        "vertical_panels": 24
+      },
+      "static": {
+        "watertight": true,
+        "winding_consistent": true,
+        "volume_m3": 12682.926829268292,
+        "mass_relative_error": 0.0,
+        "center_of_buoyancy_z_up_m": [
+          4.206996005124007e-14,
+          5.354358551976009e-15,
+          -2.374997200949477
+        ],
+        "capytaine_stiffness_frd": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            30297852.17132033,
+            -1.6461353880004026e-07,
+            145456318.8764417,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -1.6461353880004026e-07,
+            181412089.6093622,
+            -7.316157280001789e-07,
+            -689.0784416874617
+          ],
+          [
+            0.0,
+            0.0,
+            145456318.8764417,
+            -7.316157280001789e-07,
+            61206012522.11279,
+            -1.6623780186918479e-06
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "exact_stiffness_frd": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            30297852.171320327,
+            0.0,
+            145456318.8764417,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            191295000.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            145456318.8764417,
+            0.0,
+            61207544683.343544,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_stiffness_max_relative_error": 0.05166319240250809,
+        "capytaine_check_scope": "discrete panel hydrostatics versus exact polyhedral volume and waterplane integration"
+      },
+      "previous_propeller_installation": [
+        {
+          "center_x_m": -76.95,
+          "center_y_z_up_m": [
+            3.5999999999999996,
+            -3.5
+          ],
+          "diameter_m": 5.0,
+          "clearance_m": -0.2018812855678247,
+          "overlap_area_lower_bound_m2": 0.2763991992773125,
+          "circumscribed_disk_clear": false,
+          "rotation_coverage": "entire physical disk, all shaft angles"
+        },
+        {
+          "center_x_m": -76.95,
+          "center_y_z_up_m": [
+            -3.5999999999999996,
+            -3.5
+          ],
+          "diameter_m": 5.0,
+          "clearance_m": -0.2018812855678247,
+          "overlap_area_lower_bound_m2": 0.2763991992773124,
+          "circumscribed_disk_clear": false,
+          "rotation_coverage": "entire physical disk, all shaft angles"
+        }
+      ],
+      "revised_propeller_installation": [
+        {
+          "center_x_m": -78.0,
+          "center_y_z_up_m": [
+            3.5999999999999996,
+            -3.5
+          ],
+          "diameter_m": 5.0,
+          "clearance_m": 0.046762962923855955,
+          "overlap_area_lower_bound_m2": 0.0,
+          "circumscribed_disk_clear": true,
+          "rotation_coverage": "entire physical disk, all shaft angles"
+        },
+        {
+          "center_x_m": -78.0,
+          "center_y_z_up_m": [
+            -3.5999999999999996,
+            -3.5
+          ],
+          "diameter_m": 5.0,
+          "clearance_m": 0.046762962923855955,
+          "overlap_area_lower_bound_m2": 0.0,
+          "circumscribed_disk_clear": true,
+          "rotation_coverage": "entire physical disk, all shaft angles"
+        }
+      ],
+      "control_surfaces": [
+        {
+          "center_body_m": [
+            -82.08,
+            -3.5999999999999996,
+            6.763232903550692
+          ],
+          "chord_m": 2.449489742783178,
+          "span_m": 4.898979485566356,
+          "angle_interval_rad": [
+            -0.6108652381980153,
+            0.6108652381980153
+          ],
+          "slabs": 3,
+          "conservative_clearance_lower_bound_m": 0.3129628450070614,
+          "method": "triangle-clipped slab convex projection versus analytic continuous swept-chord bounds",
+          "all_angles_clear": true
+        },
+        {
+          "center_body_m": [
+            -82.08,
+            3.5999999999999996,
+            6.763232903550692
+          ],
+          "chord_m": 2.449489742783178,
+          "span_m": 4.898979485566356,
+          "angle_interval_rad": [
+            -0.6108652381980153,
+            0.6108652381980153
+          ],
+          "slabs": 3,
+          "conservative_clearance_lower_bound_m": 0.3129628450070617,
+          "method": "triangle-clipped slab convex projection versus analytic continuous swept-chord bounds",
+          "all_angles_clear": true
+        }
+      ]
+    }
+  ],
+  "comparison_scope": "section sampling sensitivity, each resolution normalized to the same fixed mass",
+  "status": "passed"
+}

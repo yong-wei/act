@@ -16,10 +16,14 @@ def main():
     parser.add_argument('--native-csv', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    proof = json.loads((args.fit/'validation.json').read_text())
-    if sha256(args.fit/'fit-arrays.npz') != proof['fit_arrays_sha256']:
-        raise ValueError('拟合参考数组发生漂移')
-    arrays = np.load(args.fit/'fit-arrays.npz')
+    packed = (args.fit/'radiation-fit-validation.json').exists()
+    proof_path = args.fit/('radiation-fit-validation.json' if packed else 'validation.json')
+    arrays_path = args.fit/('radiation-fit-arrays.npz' if packed else 'fit-arrays.npz')
+    proof = json.loads(proof_path.read_text())
+    if (sha256(arrays_path) != proof['fit_arrays_sha256']
+            or sha256(args.fit/'radiation.json') != proof['radiation_sha256']):
+        raise ValueError('拟合参考数组或辐射参数发生漂移')
+    arrays = np.load(arrays_path)
     parameters = json.loads((args.fit/'radiation.json').read_text())
     native = np.genfromtxt(args.native_csv, delimiter=',', names=True)
     omega = arrays['omega']
@@ -63,7 +67,7 @@ def main():
         raise ValueError('原生响应、拟合残量及独立完整状态空间响应不符')
     report = {'schema': 'act.passive-radiation-independent-validation.v1', 'status': 'passed',
         'generator_sha256': sha256(Path(__file__)), 'native_csv_sha256': sha256(args.native_csv),
-        'fit_validation_sha256': sha256(args.fit/'validation.json'),
+        'fit_validation_sha256': sha256(proof_path),
         'frequencies': len(omega), 'channels': 6, 'radiation_states': size,
         'factorization_vs_original_psd_fit_relative_a_error': factor_a_error,
         'factorization_vs_original_psd_fit_relative_b_error': factor_b_error,

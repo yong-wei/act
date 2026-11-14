@@ -1,0 +1,26 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "destroyer-055",
+  "model_version": "research-nominal-v5",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "actuators.json": "ea66b3154b6a2035ac647aa8fe4805e551007816f7d5caf123c4c18ffa234c16",
+    "envelope-validation.json": "0d6f5c0a72f877d2d6ef63b4c3b17ea0853b42155dc3f452469356b590c83058",
+    "frontal.wkb": "2c20006dd63e6072d70312b87192c9f89186ba619a61a4370ba8c201149bc30d",
+    "full-hull.dat": "a8e91ec679ab69ff73a895131ef21e60f2591afb013d2708aac85eaec025c1a3",
+    "full-source-sections.json": "39608dd7d7902d79311cace63d71ecaff359899c0cbb6ce7431b1832e6b8e3be",
+    "geometry.json": "b1796e02613b3f3eedfaeed7e2a4ed90a6a3d26499f271408e2016c15717ce63",
+    "hull.dat": "ee5c59d9518fcde20bb773dfb195d66ebb74785b3213ed77cf7d10d8e611e4c8",
+    "lateral.wkb": "8bfca3a6c3b1f2ea29253344606e965a62d4f96469557c0a8cb69127f0317b6f",
+    "lid.dat": "06b668bc1d839d81c7cd10341ac19a35fecc9b0733902697e0540ed5a6b5fbaf",
+    "maneuvering.json": "401a8e8525352de58de20abef4f73ba85b0012a15d4986a6591bae4cdedd1a74",
+    "provenance.json": "64278c40aed9f117e586e817a6699f8593657a6ddb5032b203d7afc4c0e12f9a",
+    "radiation-fit-arrays.npz": "e91b626683e7f7947ef1a0ab91bf391da2ccd902ffdf35e20faef881e871e45f",
+    "radiation-fit-validation.json": "acec2813aead866d1be5afb46f1a09e6a4307aec3fae5e1bb88367c40e411996",
+    "radiation.json": "5b1da55fd3ffbc52064848b58ac2d750ffa7654a481f0c2b1f385b13fda645dc",
+    "source-sections.json": "e1002fc3bb8b71f9892f54587ae297abe79a40132091ffcb19edac834bf4af5b",
+    "validation.json": "2c1537f58c4e1b3ab5b2d8917057efd88b633cd56f1f8da4151f777e788fda60",
+    "wind-validation.json": "fa21eda1d9dfa652b98a78aa4b23f10f50ff4eca6cc870e89a0c2bd80cbc72dd",
+    "wind.json": "d6255e0e2791f5662bd1d23231dd900ff8d0309bda74222eae4bb6d198607d12"
+  }
+}

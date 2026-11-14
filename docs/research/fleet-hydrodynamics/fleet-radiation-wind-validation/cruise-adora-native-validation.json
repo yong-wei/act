@@ -1,0 +1,10 @@
+{
+  "frequencies": 100,
+  "oscillators": 60,
+  "parameter_hash": "fnv1a-d2082112d92c2d57",
+  "parameter_version": "research-nominal-v2",
+  "radiation_states": 120,
+  "status": "computed",
+  "vessel": "cruise-adora",
+  "native_csv_sha256": "a03f2865e8c6351d70be49bf9941d9f00f390071d24514d6c2515b563d6febdd"
+}
