@@ -4,7 +4,7 @@
 //! ω∈[0.2, 2.5] rad/s、128 等能频率段、7 方向（主向 ±30°、10° 间隔、
 //! cos² 权重归一）；离散后重新归一化至 `Σa_i²/2 = Hs²/16`。波面、轨道
 //! 速度与一阶激励共用同一波场（同相位）；水深进入色散/相位/轨道速度。
-//! 二阶 QTF 未就绪：`second_order_available()` 显式 false，不伪造慢漂。
+//! 二阶表的可用域由参数包登记，原始独立波场默认尚无二阶数据。
 //!
 //! 确定性：分量相位由 (seed, 频段, 方向) 经 SplitMix64 派生，与帧率/
 //! 倍速/暂停无关（无墙钟依赖）；同 seed 同工况逐点同一序列。
@@ -30,6 +30,13 @@ pub const OMEGA_MAX: f64 = 2.5;
 pub const FREQUENCY_BINS: usize = 128;
 pub const DIRECTIONS: usize = 7;
 pub const GRAVITY: f64 = 9.81;
+
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct WaveRigidCondition {
+    pub mass_kg: f64,
+    pub center_of_mass_waterline_z_up_m: [f64; 3],
+    pub inertia_about_cg_kg_m2: [f64; 3],
+}
 
 pub(crate) fn bracket_wave_grid(grid: &[f64], value: f64, periodic: bool) -> Option<([usize; 2], f64)> {
     if !value.is_finite() || grid.is_empty() { return None; }
@@ -220,6 +227,10 @@ impl WaveField {
     /// 波面序列的合同由调用侧开关语义保证）。
     pub fn second_order_available(&self) -> bool {
         self.second_order_available
+    }
+
+    pub(crate) fn set_second_order_available(&mut self, available: bool) {
+        self.second_order_available = available;
     }
 
     pub fn condition(&self) -> WaveCondition {

@@ -88,6 +88,24 @@ impl VesselSimulationSession {
         Ok(Self { inner })
     }
 
+    #[wasm_bindgen(js_name = withWaveTables)]
+    pub fn with_wave_tables(configuration_json: &str, first_metadata: &str, first_bytes: &[u8],
+        second_metadata: &str, second_bytes: &[u8]) -> Result<VesselSimulationSession, JsValue>
+    {
+        let configuration = serde_json::from_str(configuration_json)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?;
+        let first_order = sixdof::first_order_wave::FirstOrderExcitation::from_json_and_bytes(first_metadata, first_bytes)
+            .map_err(|error| JsValue::from_str(&error))?;
+        let full_difference = if second_metadata.is_empty() && second_bytes.is_empty() { None } else {
+            Some(sixdof::full_qtf::FullDifferenceQtf::from_json_and_bytes(second_metadata, second_bytes)
+                .map_err(|error| JsValue::from_str(&error))?)
+        };
+        let inner = sixdof::session::FleetSimulation::with_wave_assets(configuration,
+            sixdof::vessel_wave::WaveModelAssets { first_order, full_difference })
+            .map_err(|error| JsValue::from_str(&error))?;
+        Ok(Self { inner })
+    }
+
     pub fn advance(&mut self, seconds: f64, input_json: &str) -> Result<String, JsValue> {
         let input = if input_json.is_empty() { None } else {
             Some(serde_json::from_str(input_json).map_err(|error| JsValue::from_str(&error.to_string()))?)
@@ -105,9 +123,7 @@ impl VesselSimulationSession {
     }
 
     pub fn restore(&mut self, snapshot: &str) -> Result<(), JsValue> {
-        self.inner = sixdof::session::FleetSimulation::from_snapshot_json(snapshot)
-            .map_err(|error| JsValue::from_str(&error))?;
-        Ok(())
+        self.inner.restore_snapshot(snapshot).map_err(|error| JsValue::from_str(&error))
     }
 
     #[wasm_bindgen(js_name = setPaused)]

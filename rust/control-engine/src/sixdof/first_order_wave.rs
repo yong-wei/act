@@ -23,6 +23,8 @@ pub struct FirstOrderMetadata {
     pub draft_m: f64,
     pub equilibrium_pitch_rad: f64,
     pub geometry_sha256: String,
+    #[serde(default)]
+    pub rigid_condition: Option<super::wave::WaveRigidCondition>,
     pub periodic_headings: bool,
     pub storage: String,
     pub normalization: String,

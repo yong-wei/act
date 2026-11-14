@@ -61,6 +61,8 @@ pub struct PackGeometry {
     pub passive_radiation: Option<super::coupled_radiation::PassiveRadiationModel>,
     #[serde(default)]
     pub wind_model: Option<super::vessel_wind::VesselWindModel>,
+    #[serde(default)]
+    pub wave_model: Option<super::vessel_wave::WaveModelBinding>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -173,6 +175,7 @@ pub enum PackError {
     InvalidLiquidTank { reason: String },
     InvalidRadiation { reason: String },
     InvalidWindGeometry { reason: String },
+    InvalidWaveModel { reason: String },
 }
 
 pub(crate) fn fnv1a(bytes: &[u8]) -> u64 {
@@ -230,6 +233,9 @@ pub fn load_model_pack(
     }
     let geometry: PackGeometry = serde_json::from_str(geometry_json)
         .map_err(|_| PackError::SchemaMismatch { expect: "geometry", got: String::new() })?;
+    if let Some(binding) = &geometry.wave_model {
+        binding.validate().map_err(|reason| PackError::InvalidWaveModel { reason })?;
+    }
     let maneuvering: PackManeuvering = serde_json::from_str(maneuvering_json)
         .map_err(|_| PackError::SchemaMismatch { expect: "maneuvering", got: String::new() })?;
     if let PackManeuvering::Mapped { mapped_mmg } = &maneuvering {
@@ -457,6 +463,13 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/semisub-981/v3/maneuvering.json"),
             include_str!("../../model-data/semisub-981/v3/actuators.json"),
             include_str!("../../model-data/semisub-981/v3/provenance.json"),
+        ),
+        ("semisub-981", "research-nominal-v4") => load_model_pack(
+            include_str!("../../model-data/semisub-981/v4/manifest.json"),
+            include_str!("../../model-data/semisub-981/v4/geometry.json"),
+            include_str!("../../model-data/semisub-981/v4/maneuvering.json"),
+            include_str!("../../model-data/semisub-981/v4/actuators.json"),
+            include_str!("../../model-data/semisub-981/v4/provenance.json"),
         ),
         ("cruise-adora", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/cruise-adora/v1/manifest.json"),

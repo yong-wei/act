@@ -111,3 +111,14 @@ LNG基准几何GM为5.563340m，经3.063340m第一模态修正后有效GM为2.5m
 新增七项加载回归、Rust全量386项、七船基准及七个加载状态的十四个真实WASM对象通过。液舱实际响应、完整未来/旧恢复点对账和类型检查通过。波浪/辐射、专属控制和正常页面继续按OpenSpec剩余任务实施。
 
 邮轮、雪龙及天鲸已完成新内部自由面盖板的130频率×24波向计算，原始A/B、复激励和RAO全部有限，矩阵参考检查失败继续保留。九组原始/代表/完整计算、盖板几何与输入漂移直接回归见`bem-lid-validation.md`。
+## 原生会话的实际波浪数据
+
+981 v4的`wave-assets.json`登记一阶和差频元数据、数据SHA-256、字节数及内容寻址对象键。WASM入口`VesselSimulationSession.withWaveTables`接收配置、两份元数据和对应小端数组。普通单参数构造函数继续支持已有参数包。会话恢复按参数包身份重新装配数据能力，未知数组、缺少所需数组和加载条件冲突均返回明确错误。
+
+120Hz实际RK同时消费一阶及DUOK+HASBO差频载荷。冻结平均航速/艏向，波面、局部流和载荷使用同一896分量相位，当前船位进入空间相位，完整姿态进入六维载荷旋转。环境消融和二阶开关独立，完整未来、暂停、重置、错误恢复及旧v1未来字节在实际WASM通过。来源误差、自由面/渐近项、前进速度与收敛边界继续保留在元数据和计划中。
+
+```bash
+rtk proxy node docs/research/fleet-hydrodynamics/validate_wave_session.mjs --first-order /tmp/act-semisub-first-order-runtime-bound-20261114 --full-difference /tmp/act-semisub-qtf-runtime-bound-final-20261114 --output /tmp/semisub-wave-session-validation.json
+```
+
+上述程序覆盖P0/V1/V2/V3/E1/E2，结果保存在`semisub-wave-session-validation.json`。单Node进程计时覆盖数组解析、原生积分和恢复，浏览器页面与生产容量继续单独验收。

@@ -45,6 +45,15 @@ describe('常驻仿真浏览器入口', () => {
     expect(() => session.read()).toThrow('这次仿真已经结束。');
   });
 
+  it('把受控波浪数组原样传给常驻对象', async () => {
+    const assets = { firstOrderMetadata: '{"schema":"act.first-order-excitation.v1"}',
+      firstOrderData: new Uint8Array([1, 2, 3]),
+      fullDifferenceMetadata: '{"schema":"act.full-difference-qtf.v1"}',
+      fullDifferenceData: new Uint8Array([4, 5, 6]) };
+    await createVesselSimulationSessionBrowser({ environment: 'E1', secondOrderEnabled: true }, assets);
+    expect(bindings.create).toHaveBeenCalledWith('{"environment":"E1","secondOrderEnabled":true}', assets);
+  });
+
   it('将构造失败和状态协议错误返回统一错误对象', async () => {
     bindings.create.mockImplementationOnce(() => { throw '入射波浪系数未就绪'; });
     await expect(createVesselSimulationSessionBrowser()).rejects.toMatchObject({

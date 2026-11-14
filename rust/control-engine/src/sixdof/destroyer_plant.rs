@@ -161,6 +161,7 @@ pub struct DestroyerSixDofPlant {
     environment_state: Option<crate::sixdof::environment_state::EnvironmentState>,
     wind_geometry: Option<crate::sixdof::wind::WindHullGeometry>,
     vessel_wind: Option<std::sync::Arc<super::vessel_wind::VesselWindModel>>,
+    compiled_waves: Option<std::sync::Arc<super::vessel_wave::CompiledVesselWaves>>,
 }
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
@@ -331,6 +332,7 @@ impl DestroyerSixDofPlant {
             environment_state: None,
             wind_geometry: None,
             vessel_wind: None,
+            compiled_waves: None,
         }
     }
 
@@ -463,6 +465,10 @@ impl DestroyerSixDofPlant {
 
     pub fn physical_mass_matrix(&self) -> [[f64; 6]; 6] {
         super::dynamics::mass_matrix(&self.rb, &self.am)
+    }
+
+    pub fn configure_wave_model(&mut self, waves: super::vessel_wave::CompiledVesselWaves) {
+        self.compiled_waves = Some(std::sync::Arc::new(waves));
     }
 
     /// 停止线与当前船体最前端的有符号北向距离，越线后保留负值。
@@ -694,6 +700,7 @@ impl DestroyerSixDofPlant {
             let real_env = env_state.as_ref();
             let wind_geo = self.wind_geometry.as_ref();
             let vessel_wind = self.vessel_wind.as_deref();
+            let compiled_waves = self.compiled_waves.as_deref();
 
             let derivs = |t_sub: f64, y_slice: &[f64], dy: &mut [f64]| {
                 let position = [y_slice[0], y_slice[1], y_slice[2]];
@@ -702,9 +709,12 @@ impl DestroyerSixDofPlant {
                     y_slice[7], y_slice[8], y_slice[9], y_slice[10], y_slice[11], y_slice[12],
                 ];
                 let x_rad = &y_slice[13..13 + radiation_len];
-                let (hull_nu, current_field_local, tau_wave_1, tau_wind) =
-                    resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo, vessel_wind,
-                        radiation_model.is_passive_model());
+                let (hull_nu, current_field_local, tau_wave_1, tau_wave_2, tau_wind) =
+                    match resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo, vessel_wind,
+                        radiation_model.is_passive_model(), compiled_waves, position) {
+                        Ok(loads) => loads,
+                        Err(_) => { dy.fill(f64::NAN); return; },
+                    };
                 let tau_radiation = match radiation_model.derivatives_into(x_rad, nu, hull_nu,
                     &mut dy[13..13+radiation_len]) {
                     Ok(loads) => loads,
@@ -740,6 +750,7 @@ impl DestroyerSixDofPlant {
                     &hull_nu, rudder_state, thrust, &quat, &position, physical_loads, mapped_hull, component_drag,
                 );
                 external.tau_wave_1 = tau_wave_1;
+                external.tau_wave_2 = tau_wave_2;
                 external.tau_wind = tau_wind;
 
                 let state = TruthState {
@@ -806,7 +817,7 @@ impl DestroyerSixDofPlant {
         } else {
             EnvironmentField::default()
         };
-        let (final_hull_nu, current_field, tau_wave_1, tau_wind) = resolve_env_loads(
+        let (final_hull_nu, current_field, tau_wave_1, tau_wave_2, tau_wind) = resolve_env_loads(
             final_time_s,
             &final_state.body_velocity,
             &final_state.quaternion,
@@ -815,7 +826,9 @@ impl DestroyerSixDofPlant {
             self.wind_geometry.as_ref(),
             self.vessel_wind.as_deref(),
             self.radiation.is_passive_model(),
-        );
+            self.compiled_waves.as_deref(),
+            final_state.position_ned,
+        ).map_err(IntegrationError::InvalidWaveData)?;
         let (thrust, _) = propeller_loads_at(
             &self.prop, self.propeller_installation.as_ref(), env_state.as_ref(),
             final_time_s, final_state.position_ned, final_state.quaternion, final_hull_nu,
@@ -847,6 +860,7 @@ impl DestroyerSixDofPlant {
             &final_state.quaternion, &final_state.position_ned, physical_loads, self.mapped_hull.as_ref(), self.component_drag.as_deref(),
         );
         external.tau_wave_1 = tau_wave_1;
+        external.tau_wave_2 = tau_wave_2;
         external.tau_wind = tau_wind;
         let restoring = self.hydrostatic_hull.as_deref().map_or_else(
             || restoring_force(&self.rp, delta_eta),
@@ -866,7 +880,7 @@ impl DestroyerSixDofPlant {
         if let Some(index) = final_output.nu_dot.iter().position(|value| !value.is_finite()) {
             return Err(IntegrationError::NonFiniteState { stage: "final-dynamics", index });
         }
-        if self.vessel_wind.is_some() {
+        if self.vessel_wind.is_some() || self.compiled_waves.is_some() {
             final_output.external_components = Some(external);
         }
         self.sim_time_s = final_time_s;
@@ -1013,16 +1027,25 @@ fn resolve_env_loads(
     wind_geo: Option<&crate::sixdof::wind::WindHullGeometry>,
     vessel_wind: Option<&super::vessel_wind::VesselWindModel>,
     full_current_kinematics: bool,
-) -> ([f64; 6], CurrentFieldBody, [f64; 6], [f64; 6]) {
+    compiled_waves: Option<&super::vessel_wave::CompiledVesselWaves>,
+    position: [f64; 3],
+) -> Result<([f64; 6], CurrentFieldBody, [f64; 6], [f64; 6], [f64; 6]), String> {
     let mut current_field_local = CurrentFieldBody::default();
     let mut hull_nu = *nu;
     let mut tau_wave_1 = [0.0; 6];
+    let mut tau_wave_2 = [0.0; 6];
     let mut tau_wind = [0.0; 6];
     let yaw_k = super::state::euler_from_quaternion(*quat).yaw_rad;
     if let (Some(env), Some(geo)) = (real_env, wind_geo) {
         let cur = env.current_body(yaw_k);
         let wave_coeffs = [5.0e3, 2.0e3, 1.0e4, 5.0e7, 1.0e8, 2.0e7];
-        tau_wave_1 = env.wave_loads(t_s, wave_coeffs);
+        if let Some(model) = compiled_waves {
+            if env.switches.wave_enabled {
+                (tau_wave_1, tau_wave_2) = model.loads(t_s, position, *quat)?;
+            }
+        } else {
+            tau_wave_1 = env.wave_loads(t_s, wave_coeffs);
+        }
         tau_wind = env.wind_loads(yaw_k, *nu, geo);
         if let Some(model) = vessel_wind {
             tau_wind = if env.switches.wind_force_enabled {
@@ -1055,7 +1078,7 @@ fn resolve_env_loads(
             nu[5] - environment.current_body[5],
         ];
     }
-    (hull_nu, current_field_local, tau_wave_1, tau_wind)
+    Ok((hull_nu, current_field_local, tau_wave_1, tau_wave_2, tau_wind))
 }
 
 #[allow(clippy::too_many_arguments)]

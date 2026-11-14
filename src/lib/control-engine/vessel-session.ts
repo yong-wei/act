@@ -1,5 +1,6 @@
 import { assertFiniteTree, ControlEngineFailure, mapFailure } from './envelope';
-import { createBrowserVesselSessionBinding, ensureBrowserControlEngine } from './wasm-browser';
+import { createBrowserVesselSessionBinding, ensureBrowserControlEngine, type VesselWaveAssets } from './wasm-browser';
+export type { VesselWaveAssets } from './wasm-browser';
 
 export interface VesselSensorInstallations {
   gnss_body_m: [number, number, number];
@@ -17,6 +18,8 @@ export interface VesselSessionConfiguration {
   seed?: number;
   noiseLevel?: 'N0' | 'N1' | 'N2';
   environment?: 'P0' | 'W1' | 'W2' | 'C1' | 'C2' | 'V1' | 'V2' | 'V3' | 'E1' | 'E2';
+  environmentSwitches?: { wind_force_enabled: boolean; wave_enabled: boolean; current_enabled: boolean };
+  secondOrderEnabled?: boolean;
   initialHeadingDeg?: number;
   initialPositionNed?: [number, number, number];
   headingBiasFault?: boolean;
@@ -154,6 +157,16 @@ export interface VesselSessionFrame {
   };
   input: VesselSessionInput;
   heldCommands: VesselActuatorCommands;
+  waveModel?: {
+    firstOrderLoaded: boolean;
+    firstOrderEnabled: boolean;
+    secondOrderLoaded: boolean;
+    secondOrderEnabled: boolean;
+    waterDepthM: number;
+    meanForwardSpeedMps: number;
+    firstOrderMetadataHash: string;
+    fullDifferenceMetadataHash: string | null;
+  };
   longitudinalController?: VesselSpeedControlDiagnostics;
   berth?: {
     bowClearanceM: number;
@@ -214,11 +227,13 @@ function parseFrame(raw: string): VesselSessionFrame {
 
 export async function createVesselSimulationSessionBrowser(
   configuration: VesselSessionConfiguration = {},
+  assets?: VesselWaveAssets,
 ): Promise<VesselSession> {
   await ensureBrowserControlEngine();
   let native: ReturnType<typeof createBrowserVesselSessionBinding>;
   try {
-    native = createBrowserVesselSessionBinding(JSON.stringify(configuration));
+    native = assets ? createBrowserVesselSessionBinding(JSON.stringify(configuration), assets)
+      : createBrowserVesselSessionBinding(JSON.stringify(configuration));
   } catch (error) {
     throw mapFailure(typeof error === 'string' ? new Error(error) : error);
   }

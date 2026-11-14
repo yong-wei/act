@@ -47,6 +47,11 @@ def main():
         'water_density_kg_m3': float(cal[1].split()[0]), 'gravity_m_s2': float(cal[2].split()[0]),
         'water_depth_m': float(cal[3].split()[0]), 'mean_forward_speed_mps': 0.0,
         'draft_m': geometry['draft_m'], 'mesh_sha256': report['case']['mesh_sha256'],
+        'geometry_sha256': sha256(args.geometry),
+        'equilibrium_pitch_rad': geometry.get('equilibrium_pitch_rad', 0.0),
+        'rigid_condition': {'mass_kg': geometry['displacement_mass_kg'],
+            'center_of_mass_waterline_z_up_m': geometry['center_of_mass_waterline_z_up_m'],
+            'inertia_about_cg_kg_m2': [geometry['inertia_about_cg_kg_m2'][key] for key in ['ixx', 'iyy', 'izz']]},
         'periodic_headings': False, 'half_turn_symmetry': True,
         'half_turn_relative_l2': [item['relative_l2'] for item in report['common_half_turn_residuals']],
         'storage': 'complex-f32-little-endian-heading1-heading2-dof-triangular-frequency',
@@ -62,7 +67,8 @@ def main():
         'sources': ['https://lheea.gitlab.io/Nemoh/description.html#expression-of-physical-quantities',
                     'https://lheea.gitlab.io/Nemoh/input-output.html#quadratic-transfer-function',
                     'https://doi.org/10.5281/zenodo.7418379'],
-        'not_ready': report['not_ready'],
+        'source_not_ready': report['not_ready'],
+        'not_ready': [name for name in report['not_ready'] if name != 'online full-complex QTF consumption'],
     }
     write_json(args.output / 'metadata.json', metadata)
     print(json.dumps({'status': 'computed', 'sample_only': args.sample,

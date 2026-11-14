@@ -48,14 +48,24 @@ export async function ensureBrowserControlEngine(): Promise<void> {
   }
 }
 
-export function createBrowserVesselSessionBinding(configurationJson: string): VesselSimulationSession {
+export interface VesselWaveAssets {
+  firstOrderMetadata: string;
+  firstOrderData: Uint8Array;
+  fullDifferenceMetadata?: string;
+  fullDifferenceData?: Uint8Array;
+}
+
+export function createBrowserVesselSessionBinding(configurationJson: string, assets?: VesselWaveAssets): VesselSimulationSession {
   if (!ready) {
     throw new ControlEngineFailure({
       state: 'unavailable', category: 'wasm-not-ready',
       message: '仿真尚未加载完成。', retryable: true,
     });
   }
-  return new VesselSimulationSession(configurationJson);
+  return assets ? VesselSimulationSession.withWaveTables(configurationJson,
+    assets.firstOrderMetadata, assets.firstOrderData,
+    assets.fullDifferenceMetadata ?? '', assets.fullDifferenceData ?? new Uint8Array())
+    : new VesselSimulationSession(configurationJson);
 }
 
 export function invokeBrowserWasm(exportName: 'compute_analysis' | 'compute_nonlinear_analysis' | 'compute_rl_training' | 'compute_simulation_step' | 'compute_virtual_simulation_step', requestJson: string): string {

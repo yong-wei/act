@@ -26,6 +26,10 @@ pub struct FullQtfMetadata {
     pub mean_forward_speed_mps: f64,
     pub draft_m: f64,
     pub mesh_sha256: String,
+    #[serde(default)]
+    pub equilibrium_pitch_rad: f64,
+    #[serde(default)]
+    pub rigid_condition: Option<super::wave::WaveRigidCondition>,
     pub periodic_headings: bool,
     pub half_turn_symmetry: bool,
     pub half_turn_relative_l2: [f64; 6],
@@ -76,6 +80,7 @@ impl FullDifferenceQtf {
             || [metadata.water_density_kg_m3, metadata.gravity_m_s2, metadata.water_depth_m, metadata.draft_m]
                 .iter().any(|value| !value.is_finite() || *value <= 0.0)
             || !metadata.mean_forward_speed_mps.is_finite()
+            || !metadata.equilibrium_pitch_rad.is_finite()
             || metadata.half_turn_relative_l2.iter().any(|value| !value.is_finite() || *value < 0.0)
         {
             return Err("完整差频表的网格、单位或约定无效".into());
@@ -176,6 +181,15 @@ impl FullDifferenceQtf {
         for (channel, result) in output.iter_mut().enumerate() {
             let rotation = if half_turn { HALF_TURN_SIGNS[channel] } else { 1.0 };
             *result *= FRD_SIGNS[channel] * rotation * self.metadata.water_density_kg_m3 * self.metadata.gravity_m_s2;
+        }
+        if self.metadata.equilibrium_pitch_rad != 0.0 {
+            let (sine, cosine) = self.metadata.equilibrium_pitch_rad.sin_cos();
+            for offset in [0, 3] {
+                let x = output[offset];
+                let z = output[offset+2];
+                output[offset] = cosine*x-sine*z;
+                output[offset+2] = sine*x+cosine*z;
+            }
         }
         if output.iter().any(|value| !value.re.is_finite() || !value.im.is_finite()) {
             return Err("差频系数单位转换超出有限数值范围".into());

@@ -9,6 +9,24 @@ fn table() -> FullDifferenceQtf {
     FullDifferenceQtf::from_json_and_bytes(METADATA, COEFFICIENTS).unwrap()
 }
 
+#[test]
+fn declared_equilibrium_pitch_rotates_each_complex_force_and_moment_pair() {
+    let original = table();
+    let mut metadata: serde_json::Value = serde_json::from_str(METADATA).unwrap();
+    metadata["equilibrium_pitch_rad"] = serde_json::json!(0.4);
+    let pitched = FullDifferenceQtf::from_json_and_bytes(&metadata.to_string(), COEFFICIENTS).unwrap();
+    let frequencies = &original.metadata().frequencies_rad_s;
+    let base = original.lookup_frd(frequencies[0], frequencies[1], 0.0, 0.0).unwrap();
+    let actual = pitched.lookup_frd(frequencies[0], frequencies[1], 0.0, 0.0).unwrap();
+    for offset in [0,3] {
+        let expected_x = 0.4_f64.cos()*base[offset]-0.4_f64.sin()*base[offset+2];
+        let expected_z = 0.4_f64.sin()*base[offset]+0.4_f64.cos()*base[offset+2];
+        assert!((actual[offset]-expected_x).norm() < 1e-12*(1.0+expected_x.norm()));
+        assert_eq!(actual[offset+1], base[offset+1]);
+        assert!((actual[offset+2]-expected_z).norm() < 1e-12*(1.0+expected_z.norm()));
+    }
+}
+
 fn condition(table: &FullDifferenceQtf) -> QtfMeanCondition<'_> {
     QtfMeanCondition { forward_speed_mps: 0.0, draft_m: 19.0, mesh_sha256: &table.metadata().mesh_sha256 }
 }

@@ -12,6 +12,7 @@ pub enum IntegrationError {
     InvalidActuatorCommand(String),
     InvalidSpecialistState(String),
     InvalidRadiationState(String),
+    InvalidWaveData(String),
     ActuatorConstraintInfeasible { shaft_index: usize, speed_rad_s: f64 },
     /// 需要的细分步长小于下限（1/960 s 仍不满足接触刚度）。
     ContactStiffnessBudgetExceeded { required_dt: f64 },

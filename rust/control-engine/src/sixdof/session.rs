@@ -17,6 +17,7 @@ use super::passive_observer::{PassiveObserver, PassiveObserverParameters, wrap_p
 use super::sensor::NoiseLevel;
 use super::state::ActuatorStates;
 use super::wave::WaveCondition;
+use super::vessel_wave::{WaveModelAssets, WaveModelBinding};
 use super::wind::WindHullGeometry;
 use serde::{Deserialize, Serialize};
 
@@ -69,6 +70,10 @@ pub struct SessionConfiguration {
     pub seed: u64,
     pub noise_level: NoiseLevel,
     pub environment: EnvironmentPreset,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub environment_switches: Option<EnvironmentSwitches>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub second_order_enabled: Option<bool>,
     pub initial_heading_deg: f64,
     pub initial_position_ned: [f64; 3],
     pub heading_bias_fault: bool,
@@ -88,6 +93,8 @@ impl Default for SessionConfiguration {
             seed: 20261106,
             noise_level: NoiseLevel::N1,
             environment: EnvironmentPreset::P0,
+            environment_switches: None,
+            second_order_enabled: None,
             initial_heading_deg: 0.0,
             initial_position_ned: [0.0; 3],
             heading_bias_fault: false,
@@ -183,6 +190,8 @@ pub struct FleetSimulation {
     configuration: SessionConfiguration,
     parameter_hash: String,
     plant: DestroyerSixDofPlant,
+    wave_assets: Option<std::sync::Arc<WaveModelAssets>>,
+    wave_binding: Option<WaveModelBinding>,
     sensors: SensorSuite,
     observer: PassiveObserver,
     initialized_axes: [bool; 3],
@@ -204,6 +213,14 @@ pub struct FleetSimulation {
 
 impl FleetSimulation {
     pub fn new(configuration: SessionConfiguration) -> Result<Self, String> {
+        Self::new_with_wave_assets(configuration, None)
+    }
+
+    pub fn with_wave_assets(configuration: SessionConfiguration, assets: WaveModelAssets) -> Result<Self, String> {
+        Self::new_with_wave_assets(configuration, Some(std::sync::Arc::new(assets)))
+    }
+
+    fn new_with_wave_assets(configuration: SessionConfiguration, assets: Option<std::sync::Arc<WaveModelAssets>>) -> Result<Self, String> {
         if !configuration.initial_heading_deg.is_finite()
             || configuration
                 .initial_position_ned
@@ -222,12 +239,6 @@ impl FleetSimulation {
         let pack = embedded_vessel_pack_with_loading(&configuration.vessel,
             &configuration.parameter_version, configuration.loading_ratio)
             .map_err(|error| format!("参数包无效 {error:?}"))?;
-        if configuration.vessel != "destroyer-055"
-            && pack.geometry.wind_model.is_none()
-            && matches!(configuration.environment, EnvironmentPreset::W1 | EnvironmentPreset::W2)
-        {
-            return Err("该船型的风载投影仍在核验，当前工况未就绪".into());
-        }
         let cg_height = pack.geometry.center_of_mass_waterline_z_up_m
             .ok_or("参数包缺少重心高度")?[2];
         let installations =
@@ -295,9 +306,21 @@ impl FleetSimulation {
             damping_diagonal: diagonal.map(|value| value / 60.0),
             wave_frequency_rad_s: 2.0 * std::f64::consts::PI / 8.0,
         })?;
-        let mut environment = configured_environment(&configuration)?;
+        let mut environment = configured_environment(&configuration, pack.geometry.wave_model.as_ref())?;
+        if configuration.vessel != "destroyer-055" && pack.geometry.wind_model.is_none()
+            && environment.switches.wind_force_enabled
+        { return Err("该船型的风载投影仍在核验，当前工况未就绪".into()); }
         environment.sensor_enabled = false;
         environment.observation = None;
+        // 跨版本恢复旧实验时，按恢复点所选参数包重新选择数据能力。
+        let wave_assets = pack.geometry.wave_model.as_ref().and(assets);
+        if environment.switches.wave_enabled || wave_assets.is_some() {
+            let binding = pack.geometry.wave_model.as_ref().ok_or("当前参数包的波浪数据未登记")?;
+            let assets = wave_assets.as_ref().ok_or("波浪数据尚未加载，请完成数据加载后重试")?;
+            let model = assets.compile(&configuration.vessel, binding, &pack.geometry, &environment.wave,
+                yaw, configuration.second_order_enabled.unwrap_or(false))?;
+            plant.configure_wave_model(model);
+        }
         plant.set_environment_state(
             environment,
             WindHullGeometry {
@@ -321,6 +344,8 @@ impl FleetSimulation {
             configuration,
             parameter_hash: pack.content_hash,
             plant,
+            wave_assets,
+            wave_binding: pack.geometry.wave_model.clone(),
             sensors,
             observer,
             initialized_axes: [false; 3],
@@ -689,6 +714,20 @@ impl FleetSimulation {
                 "northGroundSpeedMps": north_speed, "termination": self.berth_termination,
             });
         }
+        if let Some(binding) = &self.wave_binding {
+            let wave_enabled = self.plant.environment().is_some_and(|environment| environment.switches.wave_enabled);
+            let second_loaded = self.wave_assets.as_ref().is_some_and(|assets| assets.full_difference.is_some());
+            frame["waveModel"] = serde_json::json!({
+                "firstOrderLoaded": self.wave_assets.is_some(),
+                "firstOrderEnabled": wave_enabled && self.wave_assets.is_some(),
+                "secondOrderLoaded": second_loaded,
+                "secondOrderEnabled": wave_enabled && second_loaded && self.configuration.second_order_enabled.unwrap_or(false),
+                "waterDepthM": binding.water_depth_m,
+                "meanForwardSpeedMps": binding.mean_forward_speed_mps,
+                "firstOrderMetadataHash": binding.first_order_metadata_fnv1a64,
+                "fullDifferenceMetadataHash": binding.full_difference_metadata_fnv1a64,
+            });
+        }
         serde_json::to_string(&frame).map_err(|error| error.to_string())
     }
 
@@ -719,9 +758,18 @@ impl FleetSimulation {
     }
 
     pub fn from_snapshot_json(raw: &str) -> Result<Self, String> {
+        Self::from_snapshot_with_wave_assets(raw, None)
+    }
+
+    pub fn restore_snapshot(&mut self, raw: &str) -> Result<(), String> {
+        *self = Self::from_snapshot_with_wave_assets(raw, self.wave_assets.clone())?;
+        Ok(())
+    }
+
+    fn from_snapshot_with_wave_assets(raw: &str, assets: Option<std::sync::Arc<WaveModelAssets>>) -> Result<Self, String> {
         let saved: SessionCheckpoint =
             serde_json::from_str(raw).map_err(|error| format!("会话恢复点无效 {error}"))?;
-        let mut simulation = Self::new(saved.configuration.clone())?;
+        let mut simulation = Self::new_with_wave_assets(saved.configuration.clone(), assets)?;
         let supported_checkpoint = matches!(
             (saved.schema.as_str(), saved.heading_controller.is_some()),
             (SESSION_SCHEMA, false) | (CHECKPOINT_SCHEMA_V2, true)
@@ -788,7 +836,7 @@ impl FleetSimulation {
             .plant
             .environment()
             .ok_or("恢复点缺少环境场")?
-            .validate_checkpoint(&configured_environment(&saved.configuration)?, time_s)?;
+            .validate_checkpoint(&configured_environment(&saved.configuration, simulation.wave_binding.as_ref())?, time_s)?;
         simulation.sensors = saved.sensors;
         simulation.observer = saved.observer;
         simulation.initialized_axes = saved.initialized_axes;
@@ -810,7 +858,7 @@ impl FleetSimulation {
     }
 
     pub fn reset(&mut self) -> Result<(), String> {
-        *self = Self::new(self.configuration.clone())?;
+        *self = Self::new_with_wave_assets(self.configuration.clone(), self.wave_assets.clone())?;
         Ok(())
     }
 }
@@ -824,6 +872,7 @@ fn maximum_shaft_rpm(system: &ActuatorSystem) -> Result<f64, String> {
 
 fn configured_environment(
     configuration: &SessionConfiguration,
+    wave_binding: Option<&WaveModelBinding>,
 ) -> Result<EnvironmentState, String> {
     let (switches, wind, gust, current) = match configuration.environment {
         EnvironmentPreset::P0 => (EnvironmentSwitches::all_off(), 0.0, 0.0, 0.0),
@@ -863,18 +912,33 @@ fn configured_environment(
             0.0,
             0.5,
         ),
-        _ => return Err("此参数包的入射波浪系数仍在验证，当前工况未就绪".into()),
+        EnvironmentPreset::V1 | EnvironmentPreset::V2 | EnvironmentPreset::V3 => (
+            EnvironmentSwitches { wave_enabled: true, ..Default::default() }, 0.0, 0.0, 0.0),
+        EnvironmentPreset::E1 => (EnvironmentSwitches::all_on(), 8.0, 1.0, 0.3),
+        EnvironmentPreset::E2 => (EnvironmentSwitches::all_on(), 12.0, 2.0, 0.5),
     };
+    let switches = configuration.environment_switches.unwrap_or(switches);
+    if switches.wave_enabled && wave_binding.is_none() {
+        return Err("此参数包的入射波浪系数仍在验证，当前工况未就绪".into());
+    }
+    let mut wave_condition = match configuration.environment {
+        EnvironmentPreset::V2 | EnvironmentPreset::E2 => WaveCondition::v2(),
+        EnvironmentPreset::V3 => WaveCondition::v3(),
+        _ => WaveCondition::v1(),
+    };
+    if let Some(binding) = wave_binding { wave_condition.water_depth_m = binding.water_depth_m; }
     let mut environment = EnvironmentState::new(
         configuration.seed,
         switches,
-        WaveCondition::v1(),
+        wave_condition,
         wind,
         60.0,
         gust,
         current,
         90.0,
     );
+    environment.wave.set_second_order_available(wave_binding
+        .is_some_and(|binding| binding.full_difference_metadata_fnv1a64.is_some()));
     environment.sensor_enabled = false;
     environment.observation = None;
     Ok(environment)
