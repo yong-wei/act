@@ -1,0 +1,1377 @@
+{
+  "schema": "act.semisub.qtf-validation.v1",
+  "status": "computed",
+  "fidelity": "research-nominal",
+  "generator_sha256": "3e6906b4a9d8a6f6d3fa303042471fabdef79385000b537bec73fde0c48c00ed",
+  "solver_revision": "09853686f6f3ed78823d9dbec0d1d711c015cb3b",
+  "solver_patch_sha256": "3bd13ba2ebdf82f8658ac59d19209c7f5962a3936e08ba091f7aa7c7435262d7",
+  "source_url": "https://gitlab.com/lheea/Nemoh",
+  "execution_sha256": "3d6020418801220ddcc6d865451c7fed8a6a13bba602a66637f220aa3eabf3c9",
+  "configuration_sha256": "5e84e603d0294cf6d11df0f84bfcace9627286f8cfa4fd9007e97ba4617196d2",
+  "case": {
+    "schema": "act.semisub.nemoh-case.v1",
+    "generator_sha256": "5f4db30084be622328e64db1f0000cc091c0463703e01f17203447b07b465304",
+    "geometry_sha256": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+    "mesh_sha256": "5a4ed96f9f7dd41637e03b4508f48b50b60b878206407dcbf353d75eec636c3b",
+    "qtf_scope": "zero-speed DUOK+HASBO+HASFS+ASYMP",
+    "angular_extension": "common 180-degree rotation of both waves on centrosymmetric geometry",
+    "not_ready": [
+      "forward-speed QTF",
+      "full-contribution reference and mesh convergence"
+    ],
+    "nodes": 788,
+    "panels": 784
+  },
+  "stages": [
+    {
+      "program": "preProcessor/preProc",
+      "binary_sha256": "2c36ae6b49131c6a0aba757fc69adbca4b9ab33e8e281ec9f8dbc989f2cb4212",
+      "exit_code": 0,
+      "seconds": 0.561037709005177,
+      "log_sha256": "2cbbb208d0d21e772edf2c420126baaae2424cdbc98c4310f68faaea43022f30"
+    },
+    {
+      "program": "Solver/solver",
+      "binary_sha256": "3366a69d00aef997166f0b13e616e6bcb55c1444ea5441768ab839445aab0eed",
+      "exit_code": 0,
+      "seconds": 140.5487100831233,
+      "log_sha256": "b28c1d26777d01dc86971f5d5245e232e8062d956a4dcf94e1237515f6c8db59"
+    },
+    {
+      "program": "postProcessor/postProc",
+      "binary_sha256": "3abf94eae0db84cf022fc82aae80a9ad2df8b7db703144912954e88f3cc76556",
+      "exit_code": 0,
+      "seconds": 0.06114537501707673,
+      "log_sha256": "d8f22429e7ac2d78b275399c57a1a206113a4883f92ae6a5422bb546f83747a3"
+    },
+    {
+      "program": "QTF/PreProcessor/QTFpreProc",
+      "binary_sha256": "dbeb18ea61150f029c91379e7ead8464adf26965539b97e2be1592b852ec9c40",
+      "exit_code": 0,
+      "seconds": 685.9321370841935,
+      "log_sha256": "1fcc79a4b494d488ce5d8df7bd0ca27d2e153ee815d6a54cb5704d02640f2249"
+    },
+    {
+      "program": "QTF/Solver/QTFsolver",
+      "binary_sha256": "97d8833f114b529743d8a83d826fdda952cb5f36b301433d31f77f09c503bbd0",
+      "exit_code": 0,
+      "seconds": 842.4283435828984,
+      "log_sha256": "5dd1c0d86c56e1d23e34e7f1dee8089d967f899c9c421208b6de3de3198deb1b"
+    },
+    {
+      "program": "QTF/PostProcessor/QTFpostProc",
+      "binary_sha256": "ead8fe0d6712271e5c91548a37cc038ba8c19876c78c5fe63266d48f75ba05b1",
+      "exit_code": 0,
+      "seconds": 0.09258062532171607,
+      "log_sha256": "378d6d33f4281b4cda29e3e495281e8d268a7579ada128ee99abef5379ba72c2"
+    }
+  ],
+  "rows": 3564,
+  "array_dimensions": [
+    "heading1",
+    "heading2",
+    "dof",
+    "triangular_frequency_pair"
+  ],
+  "array_shape": [
+    3,
+    3,
+    6,
+    66
+  ],
+  "all_finite": true,
+  "scope": "zero-speed, depth 200m, DUOK+HASBO+HASFS+ASYMP, difference-frequency",
+  "runtime_grid": false,
+  "contributions": {
+    "DUOK": {
+      "sha256": "1e73b6569ae443f4f5fb7acf2a20a38b951045b9c82aade92bffa7b8e217d96d",
+      "bytes": 306566,
+      "normalized_l2_per_channel": [
+        391.46714849456106,
+        231.50122653402863,
+        129.23870295088838,
+        4373.8717753702595,
+        6402.954453413895,
+        5661.0337982841
+      ]
+    },
+    "HASBO": {
+      "sha256": "0f1680c996b8922ae0db221803ce2439f42a1c099a0ad4c62b8e9c1446601e5d",
+      "bytes": 306566,
+      "normalized_l2_per_channel": [
+        999.7993198973624,
+        597.7943935827662,
+        614.2131551210691,
+        20313.39573032927,
+        25652.13625098739,
+        12561.438423548218
+      ]
+    },
+    "HASFS": {
+      "sha256": "5316ba1ce81d98dac4f8921f0866279c0284d5eb78839705066a36631473f8ff",
+      "bytes": 306566,
+      "normalized_l2_per_channel": [
+        2206.768281737819,
+        1389.5911630079393,
+        2608.029919424897,
+        70561.16812499396,
+        63859.712150585554,
+        32902.20070203556
+      ]
+    },
+    "ASYMP": {
+      "sha256": "d44d758fa8e54db7f5764d76382270d494234ea34bdfb12764e7e2041b46a066",
+      "bytes": 306566,
+      "normalized_l2_per_channel": [
+        152.11970796392512,
+        57.1913146782952,
+        120.24489959962426,
+        3029.064704205229,
+        3720.591113574383,
+        1784.750697625533
+      ]
+    }
+  },
+  "component_sum_residuals": [
+    {
+      "relative_l2": 1.4938446982406998e-07,
+      "max_absolute_normalized": 8.790281660007478e-05
+    },
+    {
+      "relative_l2": 1.4858114375688407e-07,
+      "max_absolute_normalized": 6.579269632778365e-05
+    },
+    {
+      "relative_l2": 1.5741909787009352e-07,
+      "max_absolute_normalized": 7.558860145234082e-05
+    },
+    {
+      "relative_l2": 1.0074045015259832e-07,
+      "max_absolute_normalized": 0.003784461333452866
+    },
+    {
+      "relative_l2": 1.291657344525074e-07,
+      "max_absolute_normalized": 0.004082105212141118
+    },
+    {
+      "relative_l2": 1.1492873398799024e-07,
+      "max_absolute_normalized": 0.0010936244413071701
+    }
+  ],
+  "normalization": "QTF/(rho*g), rho=1025kg/m^3, g=9.81m/s^2; preserve signed real and imaginary values",
+  "axes": "x forward, y port, z up, right-handed rotations",
+  "mesh_panels": {
+    "wetted": 688,
+    "irregular_frequency_lid": 96,
+    "total": 784,
+    "lid_handling": "NEMOH BodyConditions assigns zero boundary forcing at z=0; FORCES and MQSolver exclude these panels from load integration",
+    "source_revision": "09853686f6f3ed78823d9dbec0d1d711c015cb3b"
+  },
+  "body_frd_transform_six": [
+    1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1
+  ],
+  "angular_coordinate_rounding": {
+    "input_deg": [
+      0.0,
+      90.0,
+      180.0
+    ],
+    "reported_deg": [
+      0.0,
+      90.012,
+      180.023
+    ],
+    "reason": "MQSolverOutputFiles writes beta in radians using F12.3; MQpostproc converts that text to degrees",
+    "max_absolute_degree_difference": 0.022999999999996135
+  },
+  "equal_frequency_heading_hermitian_residuals": [
+    {
+      "relative_l2": 1.3006635325319168e-07,
+      "max_absolute_normalized": 1.0198039026869169e-05
+    },
+    {
+      "relative_l2": 1.1128820798699157e-07,
+      "max_absolute_normalized": 2.5079872407738343e-06
+    },
+    {
+      "relative_l2": 1.9012580155365412e-08,
+      "max_absolute_normalized": 1.000000000139778e-06
+    },
+    {
+      "relative_l2": 1.37630018216551e-07,
+      "max_absolute_normalized": 0.00010440306512020274
+    },
+    {
+      "relative_l2": 1.4404833937991527e-07,
+      "max_absolute_normalized": 0.00010719336668943305
+    },
+    {
+      "relative_l2": 2.370616818479411e-07,
+      "max_absolute_normalized": 0.0001414213562369799
+    }
+  ],
+  "common_half_turn_residuals": [
+    {
+      "relative_l2": 5.936743449459823e-06,
+      "max_absolute_normalized": 0.003689173349135464
+    },
+    {
+      "relative_l2": 3.6406838138781934,
+      "max_absolute_normalized": 0.004246544499398604
+    },
+    {
+      "relative_l2": 3.3504651768793246e-06,
+      "max_absolute_normalized": 0.0013572398461723248
+    },
+    {
+      "relative_l2": 3.492968277770638,
+      "max_absolute_normalized": 0.17078042280740527
+    },
+    {
+      "relative_l2": 4.041448736136332e-06,
+      "max_absolute_normalized": 0.06500000000087312
+    },
+    {
+      "relative_l2": 3.1054600561687824,
+      "max_absolute_normalized": 0.23281182919560106
+    }
+  ],
+  "per_channel": [
+    {
+      "dof_one_based": 1,
+      "max_absolute_normalized": 712.5411343414007,
+      "signed_self_diagonal_range_normalized": [
+        -42.61027,
+        42.61025
+      ],
+      "self_diagonal_max_imaginary_normalized": 1.395942e-06,
+      "self_diagonal_imaginary_relative_l2": 1.912229480745117e-08
+    },
+    {
+      "dof_one_based": 2,
+      "max_absolute_normalized": 600.3259967637083,
+      "signed_self_diagonal_range_normalized": [
+        -2.759367e-05,
+        44.30729
+      ],
+      "self_diagonal_max_imaginary_normalized": 1.081633e-06,
+      "self_diagonal_imaginary_relative_l2": 2.522885797819568e-08
+    },
+    {
+      "dof_one_based": 3,
+      "max_absolute_normalized": 665.1572729210212,
+      "signed_self_diagonal_range_normalized": [
+        -0.002432808,
+        54.14699
+      ],
+      "self_diagonal_max_imaginary_normalized": 9.051492e-08,
+      "self_diagonal_imaginary_relative_l2": 1.668887014067573e-09
+    },
+    {
+      "dof_one_based": 4,
+      "max_absolute_normalized": 31064.475425269942,
+      "signed_self_diagonal_range_normalized": [
+        -16.39671,
+        543.3793
+      ],
+      "self_diagonal_max_imaginary_normalized": 1.894017e-05,
+      "self_diagonal_imaginary_relative_l2": 3.268723597337418e-08
+    },
+    {
+      "dof_one_based": 5,
+      "max_absolute_normalized": 23833.698877801155,
+      "signed_self_diagonal_range_normalized": [
+        -603.3272,
+        603.3271
+      ],
+      "self_diagonal_max_imaginary_normalized": 2.418267e-05,
+      "self_diagonal_imaginary_relative_l2": 2.2592082563786087e-08
+    },
+    {
+      "dof_one_based": 6,
+      "max_absolute_normalized": 9405.156208494625,
+      "signed_self_diagonal_range_normalized": [
+        -0.002654636,
+        0.001321238
+      ],
+      "self_diagonal_max_imaginary_normalized": 2.103471e-05,
+      "self_diagonal_imaginary_relative_l2": 0.009355938509857909
+    }
+  ],
+  "complex64_quantization_residuals": [
+    {
+      "relative_l2": 2.6975848601372032e-08,
+      "max_absolute_normalized": 2.289914125722213e-05
+    },
+    {
+      "relative_l2": 2.3972273295726296e-08,
+      "max_absolute_normalized": 1.5240399107941044e-05
+    },
+    {
+      "relative_l2": 2.608305274260033e-08,
+      "max_absolute_normalized": 1.517098270324123e-05
+    },
+    {
+      "relative_l2": 2.9202872632505167e-08,
+      "max_absolute_normalized": 0.0009504316462442551
+    },
+    {
+      "relative_l2": 3.0423001144193096e-08,
+      "max_absolute_normalized": 0.0010312795929599528
+    },
+    {
+      "relative_l2": 2.6226653853824142e-08,
+      "max_absolute_normalized": 0.0003076032364005497
+    }
+  ],
+  "coverage": {
+    "actual_headings_deg": [
+      0.0,
+      90.0,
+      180.0
+    ],
+    "common_rotation_degrees": [
+      0,
+      180
+    ],
+    "rotation_force_signs": [
+      -1,
+      -1,
+      1,
+      -1,
+      -1,
+      1
+    ],
+    "spread_half_width_degrees": 30,
+    "spread_pair_samples": 35280,
+    "spread_pair_geometric_coverage": false,
+    "arbitrary_24_by_24_missing_pairs": [
+      [
+        15.0,
+        195.0
+      ],
+      [
+        15.0,
+        210.0
+      ],
+      [
+        15.0,
+        225.0
+      ],
+      [
+        15.0,
+        240.0
+      ],
+      [
+        15.0,
+        255.0
+      ],
+      [
+        15.0,
+        270.0
+      ],
+      [
+        15.0,
+        285.0
+      ],
+      [
+        15.0,
+        300.0
+      ],
+      [
+        15.0,
+        315.0
+      ],
+      [
+        15.0,
+        330.0
+      ],
+      [
+        15.0,
+        345.0
+      ],
+      [
+        30.0,
+        195.0
+      ],
+      [
+        30.0,
+        210.0
+      ],
+      [
+        30.0,
+        225.0
+      ],
+      [
+        30.0,
+        240.0
+      ],
+      [
+        30.0,
+        255.0
+      ],
+      [
+        30.0,
+        270.0
+      ],
+      [
+        30.0,
+        285.0
+      ],
+      [
+        30.0,
+        300.0
+      ],
+      [
+        30.0,
+        315.0
+      ],
+      [
+        30.0,
+        330.0
+      ],
+      [
+        30.0,
+        345.0
+      ],
+      [
+        45.0,
+        195.0
+      ],
+      [
+        45.0,
+        210.0
+      ],
+      [
+        45.0,
+        225.0
+      ],
+      [
+        45.0,
+        240.0
+      ],
+      [
+        45.0,
+        255.0
+      ],
+      [
+        45.0,
+        270.0
+      ],
+      [
+        45.0,
+        285.0
+      ],
+      [
+        45.0,
+        300.0
+      ],
+      [
+        45.0,
+        315.0
+      ],
+      [
+        45.0,
+        330.0
+      ],
+      [
+        45.0,
+        345.0
+      ],
+      [
+        60.0,
+        195.0
+      ],
+      [
+        60.0,
+        210.0
+      ],
+      [
+        60.0,
+        225.0
+      ],
+      [
+        60.0,
+        240.0
+      ],
+      [
+        60.0,
+        255.0
+      ],
+      [
+        60.0,
+        270.0
+      ],
+      [
+        60.0,
+        285.0
+      ],
+      [
+        60.0,
+        300.0
+      ],
+      [
+        60.0,
+        315.0
+      ],
+      [
+        60.0,
+        330.0
+      ],
+      [
+        60.0,
+        345.0
+      ],
+      [
+        75.0,
+        195.0
+      ],
+      [
+        75.0,
+        210.0
+      ],
+      [
+        75.0,
+        225.0
+      ],
+      [
+        75.0,
+        240.0
+      ],
+      [
+        75.0,
+        255.0
+      ],
+      [
+        75.0,
+        270.0
+      ],
+      [
+        75.0,
+        285.0
+      ],
+      [
+        75.0,
+        300.0
+      ],
+      [
+        75.0,
+        315.0
+      ],
+      [
+        75.0,
+        330.0
+      ],
+      [
+        75.0,
+        345.0
+      ],
+      [
+        90.0,
+        195.0
+      ],
+      [
+        90.0,
+        210.0
+      ],
+      [
+        90.0,
+        225.0
+      ],
+      [
+        90.0,
+        240.0
+      ],
+      [
+        90.0,
+        255.0
+      ],
+      [
+        90.0,
+        270.0
+      ],
+      [
+        90.0,
+        285.0
+      ],
+      [
+        90.0,
+        300.0
+      ],
+      [
+        90.0,
+        315.0
+      ],
+      [
+        90.0,
+        330.0
+      ],
+      [
+        90.0,
+        345.0
+      ],
+      [
+        105.0,
+        195.0
+      ],
+      [
+        105.0,
+        210.0
+      ],
+      [
+        105.0,
+        225.0
+      ],
+      [
+        105.0,
+        240.0
+      ],
+      [
+        105.0,
+        255.0
+      ],
+      [
+        105.0,
+        270.0
+      ],
+      [
+        105.0,
+        285.0
+      ],
+      [
+        105.0,
+        300.0
+      ],
+      [
+        105.0,
+        315.0
+      ],
+      [
+        105.0,
+        330.0
+      ],
+      [
+        105.0,
+        345.0
+      ],
+      [
+        120.0,
+        195.0
+      ],
+      [
+        120.0,
+        210.0
+      ],
+      [
+        120.0,
+        225.0
+      ],
+      [
+        120.0,
+        240.0
+      ],
+      [
+        120.0,
+        255.0
+      ],
+      [
+        120.0,
+        270.0
+      ],
+      [
+        120.0,
+        285.0
+      ],
+      [
+        120.0,
+        300.0
+      ],
+      [
+        120.0,
+        315.0
+      ],
+      [
+        120.0,
+        330.0
+      ],
+      [
+        120.0,
+        345.0
+      ],
+      [
+        135.0,
+        195.0
+      ],
+      [
+        135.0,
+        210.0
+      ],
+      [
+        135.0,
+        225.0
+      ],
+      [
+        135.0,
+        240.0
+      ],
+      [
+        135.0,
+        255.0
+      ],
+      [
+        135.0,
+        270.0
+      ],
+      [
+        135.0,
+        285.0
+      ],
+      [
+        135.0,
+        300.0
+      ],
+      [
+        135.0,
+        315.0
+      ],
+      [
+        135.0,
+        330.0
+      ],
+      [
+        135.0,
+        345.0
+      ],
+      [
+        150.0,
+        195.0
+      ],
+      [
+        150.0,
+        210.0
+      ],
+      [
+        150.0,
+        225.0
+      ],
+      [
+        150.0,
+        240.0
+      ],
+      [
+        150.0,
+        255.0
+      ],
+      [
+        150.0,
+        270.0
+      ],
+      [
+        150.0,
+        285.0
+      ],
+      [
+        150.0,
+        300.0
+      ],
+      [
+        150.0,
+        315.0
+      ],
+      [
+        150.0,
+        330.0
+      ],
+      [
+        150.0,
+        345.0
+      ],
+      [
+        165.0,
+        195.0
+      ],
+      [
+        165.0,
+        210.0
+      ],
+      [
+        165.0,
+        225.0
+      ],
+      [
+        165.0,
+        240.0
+      ],
+      [
+        165.0,
+        255.0
+      ],
+      [
+        165.0,
+        270.0
+      ],
+      [
+        165.0,
+        285.0
+      ],
+      [
+        165.0,
+        300.0
+      ],
+      [
+        165.0,
+        315.0
+      ],
+      [
+        165.0,
+        330.0
+      ],
+      [
+        165.0,
+        345.0
+      ],
+      [
+        195.0,
+        15.0
+      ],
+      [
+        195.0,
+        30.0
+      ],
+      [
+        195.0,
+        45.0
+      ],
+      [
+        195.0,
+        60.0
+      ],
+      [
+        195.0,
+        75.0
+      ],
+      [
+        195.0,
+        90.0
+      ],
+      [
+        195.0,
+        105.0
+      ],
+      [
+        195.0,
+        120.0
+      ],
+      [
+        195.0,
+        135.0
+      ],
+      [
+        195.0,
+        150.0
+      ],
+      [
+        195.0,
+        165.0
+      ],
+      [
+        210.0,
+        15.0
+      ],
+      [
+        210.0,
+        30.0
+      ],
+      [
+        210.0,
+        45.0
+      ],
+      [
+        210.0,
+        60.0
+      ],
+      [
+        210.0,
+        75.0
+      ],
+      [
+        210.0,
+        90.0
+      ],
+      [
+        210.0,
+        105.0
+      ],
+      [
+        210.0,
+        120.0
+      ],
+      [
+        210.0,
+        135.0
+      ],
+      [
+        210.0,
+        150.0
+      ],
+      [
+        210.0,
+        165.0
+      ],
+      [
+        225.0,
+        15.0
+      ],
+      [
+        225.0,
+        30.0
+      ],
+      [
+        225.0,
+        45.0
+      ],
+      [
+        225.0,
+        60.0
+      ],
+      [
+        225.0,
+        75.0
+      ],
+      [
+        225.0,
+        90.0
+      ],
+      [
+        225.0,
+        105.0
+      ],
+      [
+        225.0,
+        120.0
+      ],
+      [
+        225.0,
+        135.0
+      ],
+      [
+        225.0,
+        150.0
+      ],
+      [
+        225.0,
+        165.0
+      ],
+      [
+        240.0,
+        15.0
+      ],
+      [
+        240.0,
+        30.0
+      ],
+      [
+        240.0,
+        45.0
+      ],
+      [
+        240.0,
+        60.0
+      ],
+      [
+        240.0,
+        75.0
+      ],
+      [
+        240.0,
+        90.0
+      ],
+      [
+        240.0,
+        105.0
+      ],
+      [
+        240.0,
+        120.0
+      ],
+      [
+        240.0,
+        135.0
+      ],
+      [
+        240.0,
+        150.0
+      ],
+      [
+        240.0,
+        165.0
+      ],
+      [
+        255.0,
+        15.0
+      ],
+      [
+        255.0,
+        30.0
+      ],
+      [
+        255.0,
+        45.0
+      ],
+      [
+        255.0,
+        60.0
+      ],
+      [
+        255.0,
+        75.0
+      ],
+      [
+        255.0,
+        90.0
+      ],
+      [
+        255.0,
+        105.0
+      ],
+      [
+        255.0,
+        120.0
+      ],
+      [
+        255.0,
+        135.0
+      ],
+      [
+        255.0,
+        150.0
+      ],
+      [
+        255.0,
+        165.0
+      ],
+      [
+        270.0,
+        15.0
+      ],
+      [
+        270.0,
+        30.0
+      ],
+      [
+        270.0,
+        45.0
+      ],
+      [
+        270.0,
+        60.0
+      ],
+      [
+        270.0,
+        75.0
+      ],
+      [
+        270.0,
+        90.0
+      ],
+      [
+        270.0,
+        105.0
+      ],
+      [
+        270.0,
+        120.0
+      ],
+      [
+        270.0,
+        135.0
+      ],
+      [
+        270.0,
+        150.0
+      ],
+      [
+        270.0,
+        165.0
+      ],
+      [
+        285.0,
+        15.0
+      ],
+      [
+        285.0,
+        30.0
+      ],
+      [
+        285.0,
+        45.0
+      ],
+      [
+        285.0,
+        60.0
+      ],
+      [
+        285.0,
+        75.0
+      ],
+      [
+        285.0,
+        90.0
+      ],
+      [
+        285.0,
+        105.0
+      ],
+      [
+        285.0,
+        120.0
+      ],
+      [
+        285.0,
+        135.0
+      ],
+      [
+        285.0,
+        150.0
+      ],
+      [
+        285.0,
+        165.0
+      ],
+      [
+        300.0,
+        15.0
+      ],
+      [
+        300.0,
+        30.0
+      ],
+      [
+        300.0,
+        45.0
+      ],
+      [
+        300.0,
+        60.0
+      ],
+      [
+        300.0,
+        75.0
+      ],
+      [
+        300.0,
+        90.0
+      ],
+      [
+        300.0,
+        105.0
+      ],
+      [
+        300.0,
+        120.0
+      ],
+      [
+        300.0,
+        135.0
+      ],
+      [
+        300.0,
+        150.0
+      ],
+      [
+        300.0,
+        165.0
+      ],
+      [
+        315.0,
+        15.0
+      ],
+      [
+        315.0,
+        30.0
+      ],
+      [
+        315.0,
+        45.0
+      ],
+      [
+        315.0,
+        60.0
+      ],
+      [
+        315.0,
+        75.0
+      ],
+      [
+        315.0,
+        90.0
+      ],
+      [
+        315.0,
+        105.0
+      ],
+      [
+        315.0,
+        120.0
+      ],
+      [
+        315.0,
+        135.0
+      ],
+      [
+        315.0,
+        150.0
+      ],
+      [
+        315.0,
+        165.0
+      ],
+      [
+        330.0,
+        15.0
+      ],
+      [
+        330.0,
+        30.0
+      ],
+      [
+        330.0,
+        45.0
+      ],
+      [
+        330.0,
+        60.0
+      ],
+      [
+        330.0,
+        75.0
+      ],
+      [
+        330.0,
+        90.0
+      ],
+      [
+        330.0,
+        105.0
+      ],
+      [
+        330.0,
+        120.0
+      ],
+      [
+        330.0,
+        135.0
+      ],
+      [
+        330.0,
+        150.0
+      ],
+      [
+        330.0,
+        165.0
+      ],
+      [
+        345.0,
+        15.0
+      ],
+      [
+        345.0,
+        30.0
+      ],
+      [
+        345.0,
+        45.0
+      ],
+      [
+        345.0,
+        60.0
+      ],
+      [
+        345.0,
+        75.0
+      ],
+      [
+        345.0,
+        90.0
+      ],
+      [
+        345.0,
+        105.0
+      ],
+      [
+        345.0,
+        120.0
+      ],
+      [
+        345.0,
+        135.0
+      ],
+      [
+        345.0,
+        150.0
+      ],
+      [
+        345.0,
+        165.0
+      ]
+    ]
+  },
+  "full_array": {
+    "file": "act-semisub-qtf-full-contributions-probe-20261114.npz",
+    "bytes": 28939,
+    "sha256": "3c674ac47c30486296e3aa681d48e0ca03cb36d78aefe711e372435d4dbf4952",
+    "dtype": "complex64",
+    "stored_separately": true
+  },
+  "comparison_array": {
+    "sha256": "e0f9b0412fe86ea7fca9cfa91e6014c50447968a4d793c5fd78c223d6c574d1a",
+    "frequency_indices": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      10
+    ]
+  },
+  "raw_output": {
+    "bytes": 409977,
+    "sha256": "c3001400316e9092b7ff9b05b33ce884f911c5d54c70c99492a70b9c4f6bbfaa"
+  },
+  "not_ready": [
+    "nonzero-speed QTF",
+    "mesh and peak convergence of this QTF",
+    "independent vessel QTF calibration",
+    "unrestricted 24-by-24 directional pairs",
+    "full frequency and directional runtime grid"
+  ],
+  "free_surface_mesh": {
+    "schema": "act.semisub.free-surface-mesh.v1",
+    "status": "passed",
+    "fidelity": "research-nominal",
+    "generator_sha256": "5f4db30084be622328e64db1f0000cc091c0463703e01f17203447b07b465304",
+    "source_geometry_sha256": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+    "body_mesh_sha256": "5a4ed96f9f7dd41637e03b4508f48b50b60b878206407dcbf353d75eec636c3b",
+    "radius_m": 200.0,
+    "inner_spacing_m": 5.0,
+    "asymptotic_radial_points": 129,
+    "bessel_modes": 128,
+    "vertices": 1841,
+    "panels": 3080,
+    "boundary_segments": 608,
+    "waterline_columns": 4,
+    "quarter_surface_area_m2": 31015.138011443007,
+    "quarter_uncovered_area_m2": 6.051029192747385e-09,
+    "mirror_mesh_distance_m": 0.0,
+    "free_surface_sha256": "1b48beaa0e893cd6b4c5f797d6fd4793eaafc0fe9295a6ab4b427b6a55729b7b",
+    "nemoh_configuration_sha256": "2777bb584784b98df0e9a338e0aea40ba78ba68692bbd7b7b622d17210388d27",
+    "numerical_qtf_validation": "pending"
+  }
+}

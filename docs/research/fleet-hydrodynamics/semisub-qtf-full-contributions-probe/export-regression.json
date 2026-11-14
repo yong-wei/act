@@ -1,0 +1,10 @@
+{
+  "schema": "act.semisub.qtf-export-regression.v1",
+  "status": "passed",
+  "generator_sha256": "3e6906b4a9d8a6f6d3fa303042471fabdef79385000b537bec73fde0c48c00ed",
+  "legacy_full_grid_rows": 7579314,
+  "legacy_complex64_archive_sha256": "d526b86f14991b51fbb90d1ac75d5a1a44d162fbaa629e475ac8c4c011e22cf0",
+  "legacy_array_bytes_identical": true,
+  "omitted_surface_contribution_rejected_with_consistent_source_hash": true,
+  "full_contribution_probe_validation_sha256": "893f4535ee50b3d95be0956f19adf2074b84cc3acfff1b0200717ff4faa896d4"
+}

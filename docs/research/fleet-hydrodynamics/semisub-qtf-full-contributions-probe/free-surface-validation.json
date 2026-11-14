@@ -1,0 +1,22 @@
+{
+  "schema": "act.semisub.free-surface-mesh.v1",
+  "status": "passed",
+  "fidelity": "research-nominal",
+  "generator_sha256": "5f4db30084be622328e64db1f0000cc091c0463703e01f17203447b07b465304",
+  "source_geometry_sha256": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+  "body_mesh_sha256": "5a4ed96f9f7dd41637e03b4508f48b50b60b878206407dcbf353d75eec636c3b",
+  "radius_m": 200.0,
+  "inner_spacing_m": 5.0,
+  "asymptotic_radial_points": 129,
+  "bessel_modes": 128,
+  "vertices": 1841,
+  "panels": 3080,
+  "boundary_segments": 608,
+  "waterline_columns": 4,
+  "quarter_surface_area_m2": 31015.138011443007,
+  "quarter_uncovered_area_m2": 6.051029192747385e-09,
+  "mirror_mesh_distance_m": 0.0,
+  "free_surface_sha256": "1b48beaa0e893cd6b4c5f797d6fd4793eaafc0fe9295a6ab4b427b6a55729b7b",
+  "nemoh_configuration_sha256": "2777bb584784b98df0e9a338e0aea40ba78ba68692bbd7b7b622d17210388d27",
+  "numerical_qtf_validation": "pending"
+}

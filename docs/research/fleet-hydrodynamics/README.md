@@ -145,3 +145,11 @@ rtk proxy cargo run --manifest-path rust/control-engine/Cargo.toml --release --e
 ```
 
 八组100频率完整SciPy对照、原生/WASM参数身份和实际WASM运行证据位于`loading-validation/lng-v2-independent-validation.json`、`lng-v2-radiation/`与`lng-v2-session-validation.json`。含航速波浪数据、靠泊课程参考方案及正常页面由既定OpenSpec任务继续跟踪。
+
+## 981完整差频贡献求解
+
+`prepare_semisub_full_qtf_case.py`从同一船体生成含四个实际立柱开孔的对称自由面，冻结外半径200m、3080个自由面面元、129个渐近积分点和128个Bessel模态。自由面面积闭合、边界和镜面对称检查与实际网格哈希共同保存。
+
+`semisub-qtf-full-contributions-probe/`保存11频率、3波向的实际六阶段求解。DUOK、HASBO、HASFS和ASYMP四项均为有限值，总载荷与独立分项重排/求和的六通道相对差为1.01e−7至1.57e−7，原始文本舍入残差保留。该网格用于完整贡献管道验证，93频率、17波向的正式网格已另行启动。精度继续标记research-nominal。
+
+导出器同时核验原始分项哈希、频率对/波向/通道顺序和总和。旧7579314行DUOK+HASBO数据重新导出的完整压缩数组逐字节相同，删除自由面贡献并更新来源哈希的负向检查被总和门禁拒绝。证明位于`export-regression.json`。

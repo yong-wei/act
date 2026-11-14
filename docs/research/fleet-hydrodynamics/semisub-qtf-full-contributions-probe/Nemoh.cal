@@ -1,0 +1,47 @@
+--- Environment ---
+1025.0 ! rho
+9.81 ! g
+200.0 ! depth
+0.0 0.0
+--- Description of floating bodies ---
+1
+--- Body 1 ---
+nemoh-body.dat
+788 784
+6
+1 1 0 0 0 0 0
+1 0 1 0 0 0 0
+1 0 0 1 0 0 0
+2 1 0 0 0.0 0.0 17.353925353925355
+2 0 1 0 0.0 0.0 17.353925353925355
+2 0 0 1 0.0 0.0 17.353925353925355
+6
+1 1 0 0 0 0 0
+1 0 1 0 0 0 0
+1 0 0 1 0 0 0
+2 1 0 0 0.0 0.0 17.353925353925355
+2 0 1 0 0.0 0.0 17.353925353925355
+2 0 0 1 0.0 0.0 17.353925353925355
+0
+--- Load cases to be solved ---
+1 200 0.025 5.0 ! Freq type 1 rad/s, count, min, max
+3 0.0 180.0 ! Number of wave directions, min, max (degrees)
+--- Post processing ---
+0 0.1 10.0
+0
+0 0.0 180.0
+0 0 0.0 0.0
+1 ! RAO
+1 ! frequency unit rad/s
+---QTF---
+1 ! QTF enabled
+11 0.2 2.5 ! Number of radial frequencies, min, max
+1 ! bidirectional
+3 ! DUOK+HASBO+HASFS+ASYMP
+free-surface.dat
+200.0 129 128
+0
+1
+1
+1
+1 ! include HASFS+ASYMP
