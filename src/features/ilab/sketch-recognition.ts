@@ -43,39 +43,53 @@ export async function recognizeSketch(input: {
   const rejected = acceptSketchImage(input.image);
   if (rejected) return { ok: false, message: rejected };
   const env = input.env ?? process.env;
-  const apiKey = env.AI_API_KEY || env.SILICONFLOW_API_KEY || '';
-  const baseUrl = env.AI_BASE_URL || env.SILICONFLOW_API_URL || '';
-  const provider = env.AI_PROVIDER || 'siliconflow';
-  if (!apiKey.trim() || !baseUrl.trim()) {
+  const provider = (env.AI_PROVIDER || 'siliconflow').trim() || 'siliconflow';
+  const baseUrl = (
+    env.AI_BASE_URL ||
+    env.SILICONFLOW_API_URL ||
+    (provider === 'siliconflow' ? 'https://api.siliconflow.cn/v1' : '')
+  ).trim();
+  const apiKeys = Array.from(
+    new Set([env.AI_API_KEY, env.SILICONFLOW_API_KEY].map((k) => (k ?? '').trim()).filter(Boolean)),
+  );
+  if (apiKeys.length === 0 || !baseUrl) {
     return { ok: false, message: '图像识别暂时不可用，请稍后重试。' };
   }
 
   const fetcher = input.fetcher ?? fetch;
+  const endpoint = `${baseUrl.replace(/\/+$/, '')}/chat/completions`;
+  const payload = JSON.stringify({
+    model: SKETCH_VISION_MODEL,
+    temperature: 0,
+    max_tokens: 200,
+    messages: [{
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: '你是自动控制实验的看图助教。判断这张学生手绘图属于哪一种：nyquist（奈奎斯特图，复平面曲线）、bode（伯德图，常有两条随频率变化的曲线）、root-locus（根轨迹图，s 平面上的轨迹）、time-response（时域响应图，横轴是时间）。画布几乎空白时 blank 为 true，plotKind 为 other。只输出 JSON：{"plotKind":"nyquist|bode|root-locus|time-response|other","blank":false,"evaluation":"不超过80字的中文评价，不要打分，不要提到模型名称"}',
+        },
+        { type: 'image_url', image_url: { url: input.image.trim() } },
+      ],
+    }],
+  });
   try {
-    const response = await fetcher(`${baseUrl.replace(/\/+$/, '')}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        authorization: `Bearer ${apiKey}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: SKETCH_VISION_MODEL,
-        temperature: 0,
-        max_tokens: 200,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: '你是自动控制实验的看图助教。判断这张学生手绘图属于哪一种：nyquist（奈奎斯特图，复平面曲线）、bode（伯德图，常有两条随频率变化的曲线）、root-locus（根轨迹图，s 平面上的轨迹）、time-response（时域响应图，横轴是时间）。画布几乎空白时 blank 为 true，plotKind 为 other。只输出 JSON：{"plotKind":"nyquist|bode|root-locus|time-response|other","blank":false,"evaluation":"不超过80字的中文评价，不要打分，不要提到模型名称"}',
-            },
-            { type: 'image_url', image_url: { url: input.image.trim() } },
-          ],
-        }],
-      }),
-      signal: AbortSignal.timeout(45000),
-    });
-    if (!response.ok) return { ok: false, message: '图像识别暂时不可用，请稍后重试。' };
+    let response: Response | null = null;
+    for (let i = 0; i < apiKeys.length; i += 1) {
+      response = await fetcher(endpoint, {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${apiKeys[i]}`,
+          'content-type': 'application/json',
+        },
+        body: payload,
+        signal: AbortSignal.timeout(45000),
+      });
+      if ((response.status !== 401 && response.status !== 403) || i === apiKeys.length - 1) {
+        break;
+      }
+    }
+    if (!response || !response.ok) return { ok: false, message: '图像识别暂时不可用，请稍后重试。' };
     const body = await response.json() as {
       usage?: { prompt_tokens?: number; completion_tokens?: number };
       choices?: Array<{ message?: { content?: unknown } }>;

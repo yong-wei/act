@@ -1,0 +1,27 @@
+{
+  "schema": "act.wave-static-kernel-cache-validation.v1",
+  "status": "passed",
+  "virtualSeconds": 12,
+  "physicsTicks": 1440,
+  "completeFutureBitwiseIdentical": true,
+  "before": {
+    "schema": "act.wave-cache-runtime-probe.v1",
+    "wasmSha256": "d4505a9a1bbaedc0e9f673c5eaf356f06681ff65ff10634a398de4279af6c80f",
+    "elapsedMs": 7301.0615419999995,
+    "creationMs": 40.46725000000001,
+    "virtualSeconds": 12,
+    "physicsTicks": 1440,
+    "completeFutureSha256": "d90f5539100463084466070338ec7db0724700ca0c38dc501246db263562387c"
+  },
+  "after": {
+    "schema": "act.wave-cache-runtime-probe.v1",
+    "wasmSha256": "55272a635c67e5c2eaaa3447b589d2f8545041f6d7a84b58cc28a8f5191774ed",
+    "elapsedMs": 3739.780791,
+    "creationMs": 41.73970800000001,
+    "virtualSeconds": 12,
+    "physicsTicks": 1440,
+    "completeFutureSha256": "d90f5539100463084466070338ec7db0724700ca0c38dc501246db263562387c"
+  },
+  "observedElapsedRatio": 1.9522699190205022,
+  "scope": "相同E1、N1、种子20261106、8m/s、10度航向参考与PID(.7,.005,6)。静态方向三角值和水深分母缓存不进入恢复点，完整未来字节相同。耗时取本机单次配对观测，受当时负载影响。"
+}

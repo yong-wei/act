@@ -226,6 +226,12 @@ impl SensorSuite {
             .and_then(|sensor| sensor.latest)
     }
 
+    pub fn latest_samples(&self) -> Vec<ObservedSample> {
+        self.channels.iter().filter_map(|sensor| sensor.latest.map(|measurement| ObservedSample {
+            signal: sensor.signal, measurement,
+        })).collect()
+    }
+
     pub fn validate_checkpoint(&self, expected: &Self, time_s: f64) -> Result<(), String> {
         if self.channels.len() != expected.channels.len()
             || serde_json::to_string(&self.installations).ok()

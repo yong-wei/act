@@ -1,6 +1,6 @@
 use control_engine::sixdof::control_law::{
     DEFAULT_DERIVATIVE_FILTER_TAU_S, HeadingControlMode, HeadingFeedbackController,
-    HeadingPidGains,
+    HeadingIntegralTracking, HeadingPidGains,
 };
 use control_engine::sixdof::session::{FeedbackSource, FleetSimulation, SessionConfiguration};
 use control_engine::sixdof::NoiseLevel;
@@ -56,6 +56,28 @@ fn integral_back_calculation_matches_the_discrete_tracking_equation() {
 }
 
 #[test]
+fn tracking_can_be_disabled_and_its_time_constant_controls_recovery() {
+    let gains = HeadingPidGains { kp: 2.0, ki: 0.2, kd: 0.0 };
+    let mut without = HeadingFeedbackController::default();
+    let mut with = HeadingFeedbackController::default();
+    for tick in 0..400 {
+        for (state, enabled) in [(&mut without, false), (&mut with, true)] {
+            state.step_with_tracking(HeadingControlMode::Pid, &gains, 100.0, Some(0.0), tick as f64*0.05,
+                0.05, 0.2, HeadingIntegralTracking { enabled, time_s: 2.0 }).unwrap();
+        }
+    }
+    assert!((without.integral_output_deg-400.0).abs() < 1e-10);
+    let expected = -125.0*(1.0-0.975_f64.powi(400));
+    assert!((with.integral_output_deg-expected).abs() < 1e-10);
+    assert_eq!(without.command_deg, 35.0);
+    assert_eq!(with.command_deg, 35.0);
+    let previous = with.clone();
+    assert!(with.step_with_tracking(HeadingControlMode::Pid, &gains, 0.0, Some(0.0), 20.0, 0.05, 0.2,
+        HeadingIntegralTracking { enabled: true, time_s: 0.0 }).is_err());
+    assert_eq!(with, previous);
+}
+
+#[test]
 fn zero_integral_gain_and_non_integrating_modes_keep_finite_zero_integral() {
     let mut state = HeadingFeedbackController::default();
     let mut gains = HeadingPidGains { kp: 1.0, ki: 1.0, kd: 0.0 };
@@ -99,7 +121,7 @@ fn invalid_or_overflowing_control_calculation_does_not_commit_partial_state() {
     let gains = HeadingPidGains { kp: 1.0, ki: 0.1, kd: 1.0 };
     advance(&mut state, gains, 10.0, Some(0.0), 0.0);
     let previous = state.clone();
-    assert!(state.step(HeadingControlMode::Pid, &gains, 10.0, Some(0.0), 0.05, 0.05, 0.0).is_err());
+    assert!(state.step(HeadingControlMode::Pid, &gains, 10.0, Some(0.0), 0.05, 0.05, -0.1).is_err());
     assert_eq!(state, previous);
     let huge = HeadingPidGains { kp: f64::MAX, ki: 0.1, kd: 1.0 };
     assert!(state.step(HeadingControlMode::Pid, &huge, 180.0, Some(0.0), 0.05, 0.05, 0.2).is_err());
@@ -166,9 +188,19 @@ fn new_controller_snapshots_validate_and_control_failure_rolls_back_the_whole_fr
     saved["heading_controller"]["previousMeasurementTimeS"] = serde_json::json!(10.0);
     assert!(FleetSimulation::from_snapshot_json(&saved.to_string()).is_err());
     saved = serde_json::from_str(&previous).unwrap();
-    saved["input"]["derivativeFilterTauS"] = serde_json::json!(0.0);
+    saved["input"]["derivativeFilterTauS"] = serde_json::json!(-0.1);
     assert!(FleetSimulation::from_snapshot_json(&saved.to_string()).is_err());
     saved = serde_json::from_str(&previous).unwrap();
     saved.as_object_mut().unwrap().remove("heading_controller");
     assert!(FleetSimulation::from_snapshot_json(&saved.to_string()).is_err());
+}
+
+#[test]
+fn zero_filter_time_exposes_raw_measured_derivative() {
+    let mut controller = control_engine::sixdof::control_law::HeadingFeedbackController::default();
+    let gains = HeadingPidGains { kp: 1.0, ki: 0.0, kd: 1.0 };
+    controller.step(HeadingControlMode::Pd, &gains, 0.0, Some(0.0), 0.0, 0.05, 0.0).unwrap();
+    controller.step(HeadingControlMode::Pd, &gains, 0.0, Some(1.0), 0.05, 0.05, 0.0).unwrap();
+    assert_eq!(controller.derivative_deg_s, 20.0);
+    assert_eq!(controller.command_deg, -21.0);
 }

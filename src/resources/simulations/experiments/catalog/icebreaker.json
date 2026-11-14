@@ -1,0 +1,146 @@
+{
+  "sourceIssue": 2162,
+  "sourceBodySha256": "f9da313f00a3b096fb28855704b3aa8f42d456ce7a3258b0b6799614dc3fefe9",
+  "steps": [
+    {
+      "sequence": 1,
+      "title": "认识双吊舱通道",
+      "condition": "开阔水60s",
+      "interaction": "标注双吊舱推力方向、力臂、6DOF及无传统舵",
+      "evidence": "推进/转向一体化，kW与kN区别"
+    },
+    {
+      "sequence": 2,
+      "title": "测量吊舱伺服",
+      "condition": "U0=4，吊舱±3°阶跃，180s",
+      "interaction": "比较指令/实际角度，估计伺服与速率限制",
+      "evidence": "执行器状态不能直接跳变"
+    },
+    {
+      "sequence": 3,
+      "title": "辨识开水局部模型",
+      "condition": "U0=4，等效偏转+3°，300s",
+      "interaction": "选窗口辨识航向局部K/T",
+      "evidence": "实际输入定义、横移/艏摇耦合"
+    },
+    {
+      "sequence": 4,
+      "title": "独立验证开水模型",
+      "condition": "新run，−2°，300s",
+      "interaction": "冻结模型叠加预测与实际响应",
+      "evidence": "独立验证，不使用同一训练序列自证"
+    },
+    {
+      "sequence": 5,
+      "title": "设计开水航向控制",
+      "condition": "开阔水10°航向阶跃，400s",
+      "interaction": "设计并比较两组PD/PID",
+      "evidence": "理想闭环与实际双吊舱闭环"
+    },
+    {
+      "sequence": 6,
+      "title": "比较低速能力",
+      "condition": "U0=.5/4两工况，400s",
+      "interaction": "原模型预测，再观察/辨识低速响应",
+      "evidence": "低速控制能力与舵船差异"
+    },
+    {
+      "sequence": 7,
+      "title": "选择波浪噪声滤波",
+      "condition": "V1+N1开阔水，600s",
+      "interaction": "比较滤波tau及控制动作",
+      "evidence": "波浪/测量噪声/回转速率权衡"
+    },
+    {
+      "sequence": 8,
+      "title": "标注首次冰接触",
+      "condition": "h=.30m，入冰1m/s",
+      "interaction": "预测入冰后速度、横摇/纵摇变化，运行并标注首次接触",
+      "evidence": "冰力作用于6DOF，不是仅K/T变色"
+    },
+    {
+      "sequence": 9,
+      "title": "核对接触断裂与功",
+      "condition": "同工况",
+      "interaction": "展开一次压碎—弯折—滑移事件并核对力/功",
+      "evidence": "断裂与耗散，脉冲来自接触而非随机脚本"
+    },
+    {
+      "sequence": 10,
+      "title": "检验入冰模型失配",
+      "condition": "h=.60m，冻结开阔水模型",
+      "interaction": "对比实际与预测航向/速度，定位失配时间段",
+      "evidence": "工况改变导致模型有效域失效"
+    },
+    {
+      "sequence": 11,
+      "title": "辨识冰区局部模型",
+      "condition": "冰区小参考±5°，600s",
+      "interaction": "选非重叠训练/验证窗，辨识冰区局部模型",
+      "evidence": "时变/非线性下局部模型及不确定性"
+    },
+    {
+      "sequence": 12,
+      "title": "比较冰厚影响",
+      "condition": "h=.30/.60/.90，同推进计划",
+      "interaction": "比较平均冰力、通过速度、功率和卡滞时间",
+      "evidence": "冰厚作用不能写成任意增益倍数"
+    },
+    {
+      "sequence": 13,
+      "title": "比较冰强度影响",
+      "condition": "同h=.60，sigma_f=.35/.65MPa",
+      "interaction": "先预测再运行，分析强度与厚度不能互换",
+      "evidence": "参数敏感性与机理解释"
+    },
+    {
+      "sequence": 14,
+      "title": "比较两工况调度",
+      "condition": "h=.60，同参考",
+      "interaction": "比较固定控制器与两工况调度",
+      "evidence": "调度收益/切换冲击，后台参数不随模式被改写"
+    },
+    {
+      "sequence": 15,
+      "title": "选择转向参考斜坡",
+      "condition": "h=.60，参考航向0→15°，600s",
+      "interaction": "改参考斜坡10/60s，比较吊舱速率和饱和",
+      "evidence": "受限执行器与抗饱和"
+    },
+    {
+      "sequence": 16,
+      "title": "比较冰区推进速度",
+      "condition": "h=.60，W1+C1+N1",
+      "interaction": "选择速度.5/1/1.5m/s并比较航迹/能耗",
+      "evidence": "进度与控制余量，不预设越快越好"
+    },
+    {
+      "sequence": 17,
+      "title": "形成综合策略",
+      "condition": "同场景",
+      "interaction": "设计第一综合航向/推进/滤波策略",
+      "evidence": "走廊完成、实际出力及模型适用性"
+    },
+    {
+      "sequence": 18,
+      "title": "比较第二策略",
+      "condition": "同seed另一策略",
+      "interaction": "调整一个维度形成第二方案",
+      "evidence": "跟踪误差/耗能/卡滞的公平对照"
+    },
+    {
+      "sequence": 19,
+      "title": "验证未见冰况与故障",
+      "condition": "seed17/29，h=.45/.75及sigma_f变化",
+      "interaction": "冻结方案验证；另设一次吊舱t180方位卡滞",
+      "evidence": "未见冰况和失效；允许减速/停止，禁止强求必能通过"
+    },
+    {
+      "sequence": 20,
+      "title": "完成实验报告",
+      "condition": "至少6run",
+      "interaction": "报告开水/冰区模型对照、物理因果、鲁棒策略",
+      "evidence": "不把教学结果当实船冰级或结构安全鉴定"
+    }
+  ]
+}

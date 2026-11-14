@@ -1,0 +1,53 @@
+import { describe, expect, it } from 'vitest';
+import type { VesselRunSummary } from '@/features/simulations/local-evidence-store';
+import type { StudentModelSaveInput } from '@/lib/student-model-artifact-contract';
+import { DESTROYER_COURSE_STEPS } from '../experiments/destroyer-course';
+import { validateDestroyerCourseEvidence, type DestroyerModelEvidence } from '../experiments/destroyer-evidence';
+
+const input = {controlMode:'p' as const,pid:{kp:1,ki:0,kd:0},targetHeadingDeg:10,
+  feedback:'measurement' as const,actuators:{shafts:[],surfaces:[]}};
+const model:DestroyerModelEvidence = {id:'own-model',channel:'rudder-to-yaw',createdAtMs:1,
+  payload:{structure:{kind:'nomoto1',k:.06,t_s:10},operatingPoint:{speedMps:8},
+    trainingRuns:[{runRef:'training',startS:20,endS:300}]} as StudentModelSaveInput};
+function run(id:string,sequence:number,kp = 1):VesselRunSummary {
+  const step = DESTROYER_COURSE_STEPS[sequence-1];
+  return {id,scopeKey:'scope',courseVersion:step.experimentVersion,stepSequence:sequence,createdAtMs:2,
+    stoppedAtMs:3,lastTimeS:step.runDurationS ?? 300,durationS:step.runDurationS ?? 300,sampleCount:6000,
+    configuration:step.configuration,initialInput:{...input,controlMode:step.controlMode,pid:{...input.pid,kp}},
+    stopReason:'duration',designStudentModelId:model.id};
+}
+
+describe('055本人控制方案与报告证据', () => {
+  it('比例增益检查本人模型的规定倍率及独立运行', () => {
+    const evidence = {models:[model],comparisons:[],answers:{interpretation:'比较本人两次响应'},designKp:()=>1};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[8],{...evidence,runs:[run('a',9,.5),run('b',9,2)]})).toBeNull();
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[8],{...evidence,runs:[run('a',9,.6),run('b',9,1.4)]})).toContain('0.5、1、2倍');
+  });
+
+  it('未见工况继承已修订方案的最终控制器，并核验整次冻结', () => {
+    const source = run('source',16);
+    source.finalInput = {...source.initialInput,pid:{kp:2,ki:.01,kd:8}};
+    const unseen = run('unseen',18);
+    unseen.createdAtMs = 4;
+    unseen.controllerSourceRunId = source.id;
+    unseen.initialInput = structuredClone(source.finalInput);
+    const evidence = {runs:[source,unseen],models:[model],comparisons:[],answers:{interpretation:'分析降速验证'}};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[17],evidence)).toBeNull();
+    unseen.finalInput = {...unseen.initialInput,pid:{...unseen.initialInput.pid,kp:3}};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[17],evidence)).toContain('保持');
+  });
+
+  it('六部分报告绑定训练、独立验证及同条件方案，不增加第七个说明', () => {
+    const training = run('training',3), validation = run('validation',5);
+    const first = run('first',9,.5), second = run('second',10,1);
+    const answers = Object.fromEntries(['problem','identification','validation','comparison','revision','conclusion'].map((key)=>[key,'本人证据与推理']));
+    const comparison = {id:'comparison',modelId:model.id,actuatorModelId:null,runId:validation.id,mode:'hull_model' as const,
+      purpose:'validation' as const,createdAtMs:3,actualSampleCount:100};
+    const evidence = {runs:[training,validation,first,second],models:[model],comparisons:[comparison],answers};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[19],evidence)).toBeNull();
+    second.configuration = {...second.configuration,seed:17};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[19],evidence)).toContain('公平对照');
+    second.configuration = first.configuration;
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[19],{...evidence,comparisons:[]})).toContain('独立运行');
+  });
+});

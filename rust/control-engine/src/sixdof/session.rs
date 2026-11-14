@@ -60,6 +60,17 @@ pub enum EnvironmentPreset {
     E2,
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EnvironmentOverrides {
+    pub wind_speed_mps: Option<f64>,
+    pub wind_from_deg: Option<f64>,
+    pub gust_sigma_mps: Option<f64>,
+    pub current_speed_mps: Option<f64>,
+    pub current_to_deg: Option<f64>,
+    pub wave: Option<WaveCondition>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SessionConfiguration {
@@ -71,9 +82,13 @@ pub struct SessionConfiguration {
     pub berth: Option<BerthConfiguration>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container_voyage: Option<ContainerVoyageConfiguration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub course_evidence: Option<super::course_evidence::CourseEvidenceConfiguration>,
     pub seed: u64,
     pub noise_level: NoiseLevel,
     pub environment: EnvironmentPreset,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub environment_overrides: Option<EnvironmentOverrides>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub environment_switches: Option<EnvironmentSwitches>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -82,6 +97,10 @@ pub struct SessionConfiguration {
     pub propulsion_power_budget_w: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub water_depth_m: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub initial_water_speed_mps: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub initial_roll_deg: Option<f64>,
     pub initial_heading_deg: f64,
     pub initial_position_ned: [f64; 3],
     pub heading_bias_fault: bool,
@@ -99,13 +118,17 @@ impl Default for SessionConfiguration {
             loading_ratio: None,
             berth: None,
             container_voyage: None,
+            course_evidence: None,
             seed: 20261106,
             noise_level: NoiseLevel::N1,
             environment: EnvironmentPreset::P0,
+            environment_overrides: None,
             environment_switches: None,
             second_order_enabled: None,
             propulsion_power_budget_w: None,
             water_depth_m: None,
+            initial_water_speed_mps: None,
+            initial_roll_deg: None,
             initial_heading_deg: 0.0,
             initial_position_ned: [0.0; 3],
             heading_bias_fault: false,
@@ -136,6 +159,8 @@ pub struct SessionInput {
     #[serde(default = "default_derivative_filter_tau_s")]
     pub derivative_filter_tau_s: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub heading_integral_tracking: Option<super::control_law::HeadingIntegralTracking>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub longitudinal: Option<SpeedPiInput>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub container_speed: Option<ContainerSpeedInput>,
@@ -154,9 +179,12 @@ impl SessionInput {
             self.target_heading_deg,
             self.derivative_filter_tau_s,
         ].iter().any(|value| !value.is_finite())
-            || self.derivative_filter_tau_s <= 0.0
+            || self.derivative_filter_tau_s < 0.0
         {
             return Err("控制输入或微分滤波时间常数无效".into());
+        }
+        if self.heading_integral_tracking.is_some_and(|tracking| !tracking.time_s.is_finite() || tracking.time_s <= 0.0) {
+            return Err("航向积分回算时间常数应为正数".into());
         }
         if vessel == "semisub-981" && self.control_mode != HeadingControlMode::Manual {
             return Err("平台定位控制模板正在接线，当前可用手动推进器命令".into());
@@ -202,10 +230,26 @@ struct SessionCheckpoint {
     voyage_progress: Option<ContainerVoyageProgress>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     berth_termination: Option<BerthTermination>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    course_evidence: Option<super::course_evidence::CourseEvidenceState>,
     physics_ticks: u64,
     controller_ticks: u64,
     accumulator_s: f64,
     paused: bool,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ControlSample {
+    time_s: f64,
+    truth: super::state::TruthState,
+    observer: PassiveObserver,
+    attitude_deg: serde_json::Value,
+    water_velocity_body: [f64; 6],
+    target_heading_deg: f64,
+    held_commands: ActuatorCommands,
+    samples: Vec<ObservedSample>,
+    dynamics: Option<super::dynamics::DynamicsOutput>,
 }
 
 #[derive(Clone)]
@@ -216,6 +260,7 @@ pub struct FleetSimulation {
     wave_assets: Option<std::sync::Arc<WaveModelAssets>>,
     wave_binding: Option<WaveModelBinding>,
     hydrodynamic_depth_m: Option<f64>,
+    parameter_summary: serde_json::Value,
     sensors: SensorSuite,
     observer: PassiveObserver,
     initialized_axes: [bool; 3],
@@ -230,11 +275,13 @@ pub struct FleetSimulation {
     container_controller: Option<ContainerSpeedController>,
     voyage_progress: Option<ContainerVoyageProgress>,
     berth_termination: Option<BerthTermination>,
+    course_evidence: Option<super::course_evidence::CourseEvidenceState>,
     physics_ticks: u64,
     controller_ticks: u64,
     accumulator_s: f64,
     paused: bool,
     last_samples: Vec<ObservedSample>,
+    last_control_samples: Vec<ControlSample>,
 }
 
 impl FleetSimulation {
@@ -247,6 +294,10 @@ impl FleetSimulation {
     }
 
     fn new_with_wave_assets(configuration: SessionConfiguration, assets: Option<std::sync::Arc<WaveModelAssets>>) -> Result<Self, String> {
+        let assets = match assets {
+            Some(assets) => Some(assets),
+            None => super::vessel_wave::embedded_teaching_assets(&configuration.vessel, &configuration.parameter_version)?,
+        };
         if !configuration.initial_heading_deg.is_finite()
             || configuration
                 .initial_position_ned
@@ -257,6 +308,10 @@ impl FleetSimulation {
         }
         if configuration.water_depth_m.is_some_and(|depth| !depth.is_finite() || depth <= 0.0) {
             return Err("水深须为有限正值".into());
+        }
+        if configuration.course_evidence.as_ref().is_some_and(|evidence|
+            !evidence.roll_warning_deg.is_finite() || evidence.roll_warning_deg <= 0.0) {
+            return Err("横摇教学警戒值应为有限正数".into());
         }
         if let Some(berth) = &configuration.berth {
             if configuration.vessel != "lng-changheng" || !berth.stop_line_north_m.is_finite()
@@ -270,6 +325,7 @@ impl FleetSimulation {
             if configuration.vessel != "container-msc" || configuration.berth.is_some()
                 || configuration.initial_position_ned != [0.0; 3]
                 || wrap_pi(configuration.initial_heading_deg.to_radians()).abs() > 1e-12
+                || configuration.initial_water_speed_mps.is_some_and(|speed| speed != 8.0)
             { return Err("集装箱航次需要从原点沿零度航向开始".into()); }
         }
         let depth = if configuration.vessel == "lng-changheng"
@@ -318,6 +374,8 @@ impl FleetSimulation {
                     wind_body_m: [0.0, 0.0, -10.0],
                     cg_waterline_height_m: cg_height,
                 });
+        let mut environment = configured_environment(&configuration, pack.geometry.wave_model.as_ref(),
+            pack.geometry.hydrodynamic_depth_m)?;
         let mut plant = DestroyerSixDofPlant::from_model_pack(&pack, Default::default());
         let yaw = wrap_pi(configuration.initial_heading_deg.to_radians());
         let mut state = plant.state().clone();
@@ -327,6 +385,43 @@ impl FleetSimulation {
             -(yaw / 2.0).sin() * half_pitch.sin(),
             (yaw / 2.0).cos() * half_pitch.sin(),
             (yaw / 2.0).sin() * half_pitch.cos()];
+        if let Some(roll_deg) = configuration.initial_roll_deg {
+            if !roll_deg.is_finite() || roll_deg.abs() > 10.0 {
+                return Err("初始横摇角必须在正负10度内".into());
+            }
+            let (sr, cr) = (roll_deg.to_radians()/2.0).sin_cos();
+            let (sp, cp) = half_pitch.sin_cos();
+            let (sy, cy) = (yaw/2.0).sin_cos();
+            state.quaternion = [cr*cp*cy+sr*sp*sy, sr*cp*cy-cr*sp*sy,
+                cr*sp*cy+sr*cp*sy, cr*cp*sy-sr*sp*cy];
+        }
+        if let Some(speed) = configuration.initial_water_speed_mps {
+            if !speed.is_finite() || !(0.0..=15.0).contains(&speed) {
+                return Err("初始对水纵向速度必须在0至15米每秒内".into());
+            }
+            let baseline = state.body_velocity[0];
+            if baseline <= 0.0 && speed != 0.0 {
+                return Err("该作业船型仅提供零速初态".into());
+            }
+            let current = environment.current_field(state.quaternion, state.body_velocity);
+            state.body_velocity = std::array::from_fn(|axis| current.nu_current_body[axis]);
+            state.body_velocity[0] += speed;
+            state.radiation_states.clear();
+            let ratio = if baseline > 0.0 { speed/baseline } else { 0.0 };
+            let system = plant.actuator_system().ok_or("初态缺少轴系参数")?;
+            for (index, propulsor) in system.propulsors.iter().enumerate() {
+                let omega = (state.actuator_states.propeller_shaft_speed_rad_s[index]*ratio)
+                    .clamp(-propulsor.rated_speed_rad_s, propulsor.rated_speed_rad_s);
+                let torque = propulsor.limited_motor_torque_nm(
+                    state.actuator_states.motor_torques_nm[index]*ratio.powi(2), omega);
+                state.actuator_states.propeller_shaft_speed_rad_s[index] = omega;
+                state.actuator_states.shaft_reference_speed_rad_s[index] = omega;
+                state.actuator_states.motor_torques_nm[index] = torque;
+                if !state.actuator_states.motor_torque_demand_nm.is_empty() {
+                    state.actuator_states.motor_torque_demand_nm[index] = torque;
+                }
+            }
+        }
         plant.restore_state(state);
         if let Some(berth) = &configuration.berth {
             let clearance = plant.bow_clearance_m(berth.stop_line_north_m).ok_or("靠泊任务缺少完整船体几何")?;
@@ -372,8 +467,6 @@ impl FleetSimulation {
             damping_diagonal: diagonal.map(|value| value / 60.0),
             wave_frequency_rad_s: 2.0 * std::f64::consts::PI / 8.0,
         })?;
-        let mut environment = configured_environment(&configuration, pack.geometry.wave_model.as_ref(),
-            pack.geometry.hydrodynamic_depth_m)?;
         if configuration.vessel != "destroyer-055" && pack.geometry.wind_model.is_none()
             && environment.switches.wind_force_enabled
         { return Err("该船型的风载投影仍在核验，当前工况未就绪".into()); }
@@ -407,7 +500,37 @@ impl FleetSimulation {
             &initial_truth,
             plant.environment().ok_or("缺少环境场")?,
         );
+        let geometric_gm = pack.geometry.hydrostatic_stiffness_si
+            .map(|stiffness| stiffness[3][3]/(pack.geometry.displacement_mass_kg*9.81));
+        let liquid_gm_correction: f64 = plant.sloshing().map(|liquid| liquid.modes.iter()
+            .map(|mode| mode.direction_body[1].powi(2)*mode.mode.reaction_coupling.powi(2)*9.81
+                /(mode.mode.modal_mass*mode.mode.omega_n.powi(2)*pack.geometry.displacement_mass_kg))
+            .sum()).unwrap_or(0.0);
+        let hardware = plant.actuator_system().ok_or("缺少执行器组")?;
+        let parameter_summary = serde_json::json!({
+            "massKg": pack.geometry.displacement_mass_kg,
+            "draftM": pack.geometry.draft_m, "lengthM": pack.geometry.loa_m,
+            "beamM": pack.geometry.beam_m, "cgAboveWaterlineM": cg_height,
+            "geometricGmTransverseM": geometric_gm,
+            "effectiveGmTransverseM": geometric_gm.map(|value| value-liquid_gm_correction),
+            "effectiveInertia": [mass[0][0], mass[1][1], mass[5][5]],
+            "shaftConfigurations": hardware.propulsors.iter().map(|propulsor| serde_json::json!({
+                "ratedRpm": propulsor.rated_speed_rad_s*30.0/std::f64::consts::PI,
+                "maximumPowerW": propulsor.max_power_w, "diameterM": propulsor.diameter_m,
+                "positionBodyM": propulsor.installation.position_body_m,
+                "azimuthAvailable": propulsor.azimuth.is_some(),
+            })).collect::<Vec<_>>(),
+            "surfaceConfigurations": hardware.surfaces.iter().map(|surface| serde_json::json!({
+                "normalBody": surface.normal_body, "maximumAngleDeg": surface.servo.max_angle_rad.to_degrees(),
+                "maximumRateDegS": surface.servo.max_rate_rad_s.to_degrees(), "areaM2": surface.area_m2,
+            })).collect::<Vec<_>>(),
+        });
         let voyage_progress = configuration.container_voyage.as_ref().map(|_| ContainerVoyageProgress::default());
+        let course_evidence = configuration.course_evidence.as_ref().map(|_| {
+            let mut evidence = super::course_evidence::CourseEvidenceState::new(plant.state());
+            evidence.event(0, "run_start");
+            evidence
+        });
         let mut simulation = Self {
             configuration,
             parameter_hash: pack.content_hash,
@@ -415,6 +538,7 @@ impl FleetSimulation {
             wave_assets,
             wave_binding: pack.geometry.wave_model.clone(),
             hydrodynamic_depth_m: pack.geometry.hydrodynamic_depth_m,
+            parameter_summary,
             sensors,
             observer,
             initialized_axes: [false; 3],
@@ -427,6 +551,7 @@ impl FleetSimulation {
                 feedback: FeedbackSource::Estimate,
                 actuators: actuators.clone(),
                 derivative_filter_tau_s: DEFAULT_DERIVATIVE_FILTER_TAU_S,
+                heading_integral_tracking: None,
                 longitudinal: None,
                 container_speed: None,
             },
@@ -438,11 +563,13 @@ impl FleetSimulation {
             container_controller: None,
             voyage_progress,
             berth_termination: None,
+            course_evidence,
             physics_ticks: 0,
             controller_ticks: 0,
             accumulator_s: 0.0,
             paused: false,
             last_samples,
+            last_control_samples: Vec::new(),
         };
         simulation.initialize_from_measurements();
         Ok(simulation)
@@ -556,7 +683,7 @@ impl FleetSimulation {
             return Ok(());
         }
         let rudder_deg = if let Some(controller) = &mut self.heading_controller {
-            let command = controller.step(
+            let command = controller.step_with_tracking(
                 self.input.control_mode,
                 &self.input.pid,
                 target_heading,
@@ -564,6 +691,7 @@ impl FleetSimulation {
                 self.physics_ticks as f64 * NOMINAL_DT,
                 0.05,
                 self.input.derivative_filter_tau_s,
+                self.input.heading_integral_tracking.unwrap_or_default(),
             )?;
             if heading.is_none() {
                 let system = self.plant.actuator_system().expect("会话已装配执行器组");
@@ -681,8 +809,24 @@ impl FleetSimulation {
     fn tick(&mut self) -> Result<(), String> {
         if self.physics_ticks % 6 == 0 {
             self.update_controller()?;
+            let state = self.plant.state();
+            let attitude = super::state::euler_from_quaternion(state.quaternion);
+            self.last_control_samples.push(ControlSample {
+                time_s: self.time_s(), truth: state.clone(), observer: self.observer.clone(),
+                attitude_deg: serde_json::json!({ "roll": attitude.roll_rad.to_degrees(),
+                    "pitch": attitude.pitch_rad.to_degrees(), "heading": attitude.yaw_rad.to_degrees() }),
+                water_velocity_body: self.plant.relative_body_velocity()?,
+                target_heading_deg: self.voyage_progress.as_ref().map(|progress| progress.heading_reference_deg)
+                    .unwrap_or(self.input.target_heading_deg),
+                held_commands: self.held_commands.clone(), samples: self.sensors.latest_samples(),
+                dynamics: self.plant.last_dynamics().copied(),
+            });
         }
         let mut commands = self.held_commands.clone();
+        if self.physics_ticks == 21600 && (self.configuration.drive_cut_fault || self.configuration.azimuth_jam_fault
+            || self.configuration.heading_bias_fault || self.configuration.gnss_outage_fault) {
+            if let Some(evidence) = &mut self.course_evidence { evidence.event(self.physics_ticks, "fault_activation"); }
+        }
         if self.time_s() >= 180.0 {
             if let Some(shaft) = commands.shafts.first_mut() {
                 shaft.drive_cut |= self.configuration.drive_cut_fault;
@@ -695,6 +839,10 @@ impl FleetSimulation {
             .map_err(|error| format!("物理步失败 {error:?}"))?;
         self.physics_ticks += 1;
         self.plant.restore_time_for_runtime(self.time_s());
+        if let (Some(evidence), Some(configuration)) = (&mut self.course_evidence, &self.configuration.course_evidence) {
+            evidence.observe(self.physics_ticks, self.plant.state(), self.plant.actuator_system().ok_or("缺少执行器组")?,
+                &commands, configuration.roll_warning_deg);
+        }
         self.plant.advance_environment_to_current_time();
         let current = ObservationTruth {
             time_s: self.time_s(),
@@ -789,10 +937,16 @@ impl FleetSimulation {
             }
         }
         let checkpoint = self.clone();
+        if let Some(evidence) = &mut self.course_evidence { evidence.pending_window_samples.clear(); }
         if let Some(input) = input {
+            if self.course_evidence.is_some() && serde_json::to_value(&input).map_err(|error| error.to_string())?
+                != serde_json::to_value(&self.input).map_err(|error| error.to_string())? {
+                self.course_evidence.as_mut().expect("细步证据已初始化").event(self.physics_ticks, "control_revision");
+            }
             self.input = input;
         }
         self.last_samples.clear();
+        self.last_control_samples.clear();
         if self.paused {
             return Ok(());
         }
@@ -812,6 +966,7 @@ impl FleetSimulation {
     }
 
     pub fn frame_json(&self) -> Result<String, String> {
+        let attitude = super::state::euler_from_quaternion(self.plant.state().quaternion);
         let mut frame = serde_json::json!({
             "schema": SESSION_SCHEMA, "modelVersion": if self.heading_controller.is_some() { "sixdof-session-v2" } else { "sixdof-session-v1" }, "parameterHash": self.parameter_hash,
             "timeS": self.time_s(), "physicsTicks": self.physics_ticks, "controllerTicks": self.controller_ticks,
@@ -819,10 +974,22 @@ impl FleetSimulation {
             "input": self.input, "heldCommands": self.held_commands, "samples": self.last_samples,
             "liquidCargo": self.plant.liquid_diagnostics()?,
             "headingController": self.heading_controller,
+            "parameters": self.parameter_summary,
+            "attitudeDeg": { "roll": attitude.roll_rad.to_degrees(),
+                "pitch": attitude.pitch_rad.to_degrees(), "heading": attitude.yaw_rad.to_degrees() },
+            "waterVelocityBody": self.plant.relative_body_velocity()?,
+            "controlSamples": self.last_control_samples,
         });
         if self.heading_controller.is_some() {
             frame["dynamics"] = serde_json::to_value(self.plant.last_dynamics())
                 .map_err(|error| error.to_string())?;
+        }
+        if let Some(evidence) = &self.course_evidence {
+            frame["fineStepMetrics"] = serde_json::json!({ "sampleCadenceS": NOMINAL_DT,
+                "algorithm": "post_physics_step_v1", "rollWarningDeg": self.configuration.course_evidence.as_ref().expect("配置已绑定").roll_warning_deg,
+                "eventWindowBeforeS": 1.0, "eventWindowAfterS": 1.0, "values": evidence.metrics });
+            frame["fineStepSamples"] = serde_json::to_value(&evidence.pending_window_samples).map_err(|error| error.to_string())?;
+            frame["fineStepWindowSampleCount"] = serde_json::json!(evidence.emitted_samples);
         }
         if let Some(controller) = &self.longitudinal_controller {
             frame["longitudinalController"] = serde_json::to_value(controller.diagnostics())
@@ -909,6 +1076,7 @@ impl FleetSimulation {
             container_controller: self.container_controller.clone(),
             voyage_progress: self.voyage_progress.clone(),
             berth_termination: self.berth_termination.clone(),
+            course_evidence: self.course_evidence.clone(),
             physics_ticks: self.physics_ticks,
             controller_ticks: self.controller_ticks,
             accumulator_s: self.accumulator_s,
@@ -984,6 +1152,10 @@ impl FleetSimulation {
             return Err("恢复点的观测器配置与冻结模型不一致".into());
         }
         simulation.plant.restore_checkpoint(saved.plant)?;
+        if saved.course_evidence.is_some() != saved.configuration.course_evidence.is_some() {
+            return Err("物理细步证据缺少冻结配置或恢复状态".into());
+        }
+        if let Some(evidence) = &saved.course_evidence { evidence.validate(saved.physics_ticks, simulation.plant.state())?; }
         if saved.voyage_progress.is_some() != saved.configuration.container_voyage.is_some() {
             return Err("航次恢复点与冻结计划不一致".into());
         }
@@ -1035,11 +1207,13 @@ impl FleetSimulation {
         simulation.container_controller = saved.container_controller;
         simulation.voyage_progress = saved.voyage_progress;
         simulation.berth_termination = saved.berth_termination;
+        simulation.course_evidence = saved.course_evidence;
         simulation.physics_ticks = saved.physics_ticks;
         simulation.controller_ticks = saved.controller_ticks;
         simulation.accumulator_s = saved.accumulator_s;
         simulation.paused = saved.paused;
         simulation.last_samples.clear();
+        simulation.last_control_samples.clear();
         Ok(simulation)
     }
 
@@ -1061,7 +1235,7 @@ fn configured_environment(
     wave_binding: Option<&WaveModelBinding>,
     hydrodynamic_depth_m: Option<f64>,
 ) -> Result<EnvironmentState, String> {
-    let (switches, wind, gust, current) = match configuration.environment {
+    let (mut switches, mut wind, mut gust, mut current) = match configuration.environment {
         EnvironmentPreset::P0 => (EnvironmentSwitches::all_off(), 0.0, 0.0, 0.0),
         EnvironmentPreset::W1 => (
             EnvironmentSwitches {
@@ -1104,15 +1278,41 @@ fn configured_environment(
         EnvironmentPreset::E1 => (EnvironmentSwitches::all_on(), 8.0, 1.0, 0.3),
         EnvironmentPreset::E2 => (EnvironmentSwitches::all_on(), 12.0, 2.0, 0.5),
     };
-    let switches = configuration.environment_switches.unwrap_or(switches);
-    if switches.wave_enabled && wave_binding.is_none() {
-        return Err("此参数包的入射波浪系数仍在验证，当前工况未就绪".into());
-    }
     let mut wave_condition = match configuration.environment {
         EnvironmentPreset::V2 | EnvironmentPreset::E2 => WaveCondition::v2(),
         EnvironmentPreset::V3 => WaveCondition::v3(),
         _ => WaveCondition::v1(),
     };
+    let mut wind_from = 60.0;
+    let mut current_to = 90.0;
+    if let Some(overrides) = &configuration.environment_overrides {
+        for (value, maximum) in [(overrides.wind_speed_mps, 50.0), (overrides.gust_sigma_mps, 10.0),
+            (overrides.current_speed_mps, 3.0)] {
+            if value.is_some_and(|value| !value.is_finite() || !(0.0..=maximum).contains(&value)) {
+                return Err("教学风流条件超出允许范围".into());
+            }
+        }
+        if overrides.wind_from_deg.into_iter().chain(overrides.current_to_deg)
+            .any(|value| !value.is_finite()) { return Err("教学风流方向无效".into()); }
+        if let Some(value) = overrides.wind_speed_mps { wind = value; switches.wind_force_enabled = true; }
+        if let Some(value) = overrides.gust_sigma_mps { gust = value; }
+        if let Some(value) = overrides.current_speed_mps { current = value; switches.current_enabled = true; }
+        wind_from = overrides.wind_from_deg.unwrap_or(wind_from);
+        current_to = overrides.current_to_deg.unwrap_or(current_to);
+        if let Some(wave) = overrides.wave {
+            if !wave.hs_m.is_finite() || !(0.0..=5.0).contains(&wave.hs_m)
+                || !wave.tp_s.is_finite() || !(2.6..=30.0).contains(&wave.tp_s)
+                || !wave.direction_to_deg.is_finite() || !wave.water_depth_m.is_finite() || wave.water_depth_m <= 0.0 {
+                return Err("教学波浪条件无效".into());
+            }
+            wave_condition = wave;
+            switches.wave_enabled = true;
+        }
+    }
+    let switches = configuration.environment_switches.unwrap_or(switches);
+    if switches.wave_enabled && wave_binding.is_none() {
+        return Err("此参数包的入射波浪系数仍在验证，当前工况未就绪".into());
+    }
     if let Some(depth) = wave_binding.map(|binding| binding.water_depth_m).or(hydrodynamic_depth_m) {
         wave_condition.water_depth_m = depth;
     }
@@ -1121,10 +1321,10 @@ fn configured_environment(
         switches,
         wave_condition,
         wind,
-        60.0,
+        wind_from,
         gust,
         current,
-        90.0,
+        current_to,
     );
     environment.wave.set_second_order_available(wave_binding
         .is_some_and(|binding| binding.full_difference_metadata_fnv1a64.is_some()));

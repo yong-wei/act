@@ -5203,6 +5203,7 @@ model IlabExperimentRun {
   endTimeMs        BigInt?
   timeUsedSeconds  Int       @default(0)
   vesselId         String    @default("")
+  experimentVersion String   @default("legacy-v1")
   steps            Json
   aiLedger         Json
   reportHtml       String?   @db.Text
@@ -5219,23 +5220,38 @@ model IlabExperimentRun {
 model VirtualSimulationReport {
   id            String   @id @default(cuid())
   userId        String
+  clientRef     String?  @unique
   experimentKey String
+  experimentVersion String @default("legacy-v1")
+  status        String   @default("finalized")
+  revision      Int      @default(1)
+  classId       String?
+  reviewerId    String?
   title         String
   score         Int
   maxScore      Int
   reportHtml    String   @db.Text
   stepScores    Json
+  sections      Json?
+  evidenceRefs  Json?
+  rubric        Json?
+  teacherFeedback String? @db.Text
+  reviewedAt    DateTime?
+  finalizedAt   DateTime?
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, experimentKey, createdAt])
+  @@index([classId, experimentKey, status])
 }
 
 // 学生辨识模型工件（issue-2152 记录类型 B）：有版本、只增不改。
 // 重新辨识生成同 lineage 的新 version 行；验证与预测引用工件 id+contentHash。
 model StudentModelArtifact {
   id             String   @id @default(cuid())
+  clientRef      String?  @unique
   userId         String
   experimentKey  String
   lineageKey     String // 同一通道/工作点的版本链标识（如 "heading@cruise15"）
@@ -5262,6 +5278,7 @@ model StudentModelArtifact {
 // 学生模型与物理后台的对照工件（issue-2152 记录类型 C / issue-2148 三模式）。
 model ComparisonArtifact {
   id                     String   @id @default(cuid())
+  clientRef              String?  @unique
   userId                 String
   experimentKey          String
   stepKey                String
@@ -5323,6 +5340,7 @@ model AppliedRunEnvelope {
 // 删除其他尝试——保留较差与未达目标的记录即保留学习过程。
 model StepSubmissionAttempt {
   id              String    @id @default(cuid())
+  clientRef       String?   @unique
   userId          String
   experimentKey   String
   stepKey         String
@@ -5774,6 +5792,7 @@ model SimulationRun {
 model SimulationTrace {
   id               String   @id @default(cuid())
   runId            String
+  chunkIndex       Int?
   protocolVersion  String
   runtimeVersion   String
   modelVersion     String
@@ -5789,6 +5808,7 @@ model SimulationTrace {
 
   @@index([runId, createdAt])
   @@index([checksum])
+  @@unique([runId, chunkIndex])
 }
 
 // Student competency snapshot

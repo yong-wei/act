@@ -50,4 +50,34 @@ describe('手绘图识别', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.message).toContain('暂时不可用');
   });
+
+  it('主密钥返回 401 时回退到备选 SiliconFlow 密钥', async () => {
+    const tokens: string[] = [];
+    const fetcher = (async (_url: string, init?: RequestInit) => {
+      const headers = new Headers(init?.headers);
+      const auth = headers.get('authorization') ?? '';
+      tokens.push(auth);
+      if (auth === 'Bearer bad-key') {
+        return new Response('unauthorized', { status: 401 });
+      }
+      return new Response(JSON.stringify({
+        usage: { prompt_tokens: 12, completion_tokens: 8 },
+        choices: [{ message: { content: '{"plotKind":"time-response","blank":false,"evaluation":"时域响应曲线平稳收敛。"}' } }],
+      }), { status: 200 });
+    }) as typeof fetch;
+    const result = await recognizeSketch({
+      image: PNG,
+      fetcher,
+      env: {
+        AI_PROVIDER: 'siliconflow',
+        AI_API_KEY: 'bad-key',
+        SILICONFLOW_API_KEY: 'good-sf-key',
+      },
+    });
+    expect(tokens).toEqual(['Bearer bad-key', 'Bearer good-sf-key']);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.verdict.plotKind).toBe('time-response');
+    }
+  });
 });

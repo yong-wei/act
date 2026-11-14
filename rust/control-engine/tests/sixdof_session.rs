@@ -32,6 +32,85 @@ fn frame(simulation: &FleetSimulation) -> serde_json::Value {
 }
 
 #[test]
+fn complete_control_packets_have_exact_twenty_hertz_time_and_render_independent_values() {
+    let packets = |dt: f64, count: usize| {
+        let mut simulation = FleetSimulation::new(configuration()).unwrap();
+        let mut collected = Vec::new();
+        for _ in 0..count {
+            simulation.advance(dt, None).unwrap();
+            collected.extend(frame(&simulation)["controlSamples"].as_array().unwrap().clone());
+        }
+        assert_eq!(collected.len(), 20);
+        for (index, sample) in collected.iter().enumerate() {
+            assert!((sample["timeS"].as_f64().unwrap()-index as f64*0.05).abs() < 1e-12);
+            assert!(sample["truth"]["actuator_states"].is_object());
+            let samples = sample["samples"].as_array().unwrap();
+            if index >= 10 { assert!(samples.len() >= 12); }
+            for reading in samples {
+                assert!(reading["measurement"]["t_arrive_s"].as_f64().unwrap()
+                    <= sample["timeS"].as_f64().unwrap()+1e-12);
+            }
+        }
+        simulation.set_paused(true);
+        simulation.advance(1.0, None).unwrap();
+        assert!(frame(&simulation)["controlSamples"].as_array().unwrap().is_empty());
+        let restored = FleetSimulation::from_snapshot_json(&simulation.snapshot_json().unwrap()).unwrap();
+        assert!(frame(&restored)["controlSamples"].as_array().unwrap().is_empty());
+        collected
+    };
+    assert_eq!(packets(1.0, 1), packets(1.0/60.0, 60));
+}
+
+#[test]
+fn teaching_initial_speed_is_relative_to_current_and_roll_rotates_about_cg() {
+    let config = SessionConfiguration { parameter_version: "research-nominal-v5".into(),
+        initial_water_speed_mps: Some(4.0), initial_roll_deg: Some(2.0),
+        environment: EnvironmentPreset::C1, ..Default::default() };
+    let mut simulation = FleetSimulation::new(config).unwrap();
+    let initial = frame(&simulation);
+    assert!((initial["waterVelocityBody"][0].as_f64().unwrap()-4.0).abs() < 1e-12);
+    assert!((initial["attitudeDeg"]["roll"].as_f64().unwrap()-2.0).abs() < 1e-12);
+    assert!((initial["truth"]["body_velocity"][1].as_f64().unwrap()).abs() > 0.1);
+    let snapshot = simulation.snapshot_json().unwrap();
+    let mut restored = FleetSimulation::from_snapshot_json(&snapshot).unwrap();
+    simulation.advance(0.5, None).unwrap();
+    restored.advance(0.5, None).unwrap();
+    assert_eq!(simulation.snapshot_json().unwrap(), restored.snapshot_json().unwrap());
+    simulation.reset().unwrap();
+    assert_eq!(snapshot, simulation.snapshot_json().unwrap());
+}
+
+#[test]
+fn teaching_wave_pack_and_composed_wind_keep_their_declared_components_and_future() {
+    use control_engine::sixdof::session::EnvironmentOverrides;
+    let configuration = SessionConfiguration { parameter_version: "research-nominal-v6".into(),
+        environment: EnvironmentPreset::E1,
+        environment_overrides: Some(EnvironmentOverrides { wind_speed_mps: Some(12.0), gust_sigma_mps: Some(2.0),
+            ..Default::default() }), ..Default::default() };
+    let mut session = FleetSimulation::new(configuration).unwrap();
+    let initial = session.snapshot_json().unwrap();
+    session.advance(0.5, None).unwrap();
+    let observed = frame(&session);
+    assert_eq!(observed["waveModel"]["firstOrderEnabled"], true);
+    assert_eq!(observed["waveModel"]["secondOrderEnabled"], false);
+    assert_eq!(observed["waveModel"]["meanForwardSpeedMps"], 0.0);
+    let components = &observed["dynamics"]["external_components"];
+    for name in ["tau_wave_1", "tau_wind"] {
+        assert!(components[name].as_array().unwrap().iter().any(|value| value.as_f64().unwrap().abs() > 1.0));
+    }
+    let checkpoint = session.snapshot_json().unwrap();
+    let stored: serde_json::Value = serde_json::from_str(&checkpoint).unwrap();
+    assert_eq!(stored["plant"]["environment"]["wave"]["condition"]["hs_m"], 0.75);
+    assert_eq!(stored["plant"]["environment"]["current_ned"][1], 0.3);
+    let mut restored = FleetSimulation::from_snapshot_json(&checkpoint).unwrap();
+    session.advance(0.5, None).unwrap();
+    restored.advance(0.5, None).unwrap();
+    assert_eq!(session.snapshot_json().unwrap(), restored.snapshot_json().unwrap());
+    session.reset().unwrap();
+    assert_eq!(initial, session.snapshot_json().unwrap());
+}
+
+#[test]
 fn physical_sensor_observer_and_twenty_hertz_clocks_ignore_render_partition() {
     let thirty = run(1.0 / 30.0, 120);
     let sixty = run(1.0 / 60.0, 240);

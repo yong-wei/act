@@ -128,6 +128,14 @@ pub struct WaveField {
     components: Vec<WaveComponent>,
     condition: WaveCondition,
     second_order_available: bool,
+    #[serde(skip)]
+    evaluation_kernels: std::sync::OnceLock<std::sync::Arc<Vec<WaveEvaluationKernel>>>,
+}
+
+struct WaveEvaluationKernel {
+    direction_cos: f64,
+    direction_sin: f64,
+    bottom_sinh: f64,
 }
 
 impl WaveField {
@@ -177,14 +185,21 @@ impl WaveField {
         for c in components.iter_mut() {
             c.amplitude *= scale;
         }
-        Self { components, condition, second_order_available: false }
+        Self { components, condition, second_order_available: false, evaluation_kernels: Default::default() }
+    }
+
+    fn evaluation_kernels(&self) -> &[WaveEvaluationKernel] {
+        self.evaluation_kernels.get_or_init(|| std::sync::Arc::new(self.components.iter().map(|component| WaveEvaluationKernel {
+            direction_cos: component.direction.cos(), direction_sin: component.direction.sin(),
+            bottom_sinh: (component.k*self.condition.water_depth_m).sinh().max(1e-12),
+        }).collect())).as_slice()
     }
 
     /// 波面高程（NED 位置，m）。
     pub fn elevation(&self, t: f64, x_n: f64, y_e: f64) -> f64 {
         let mut eta = 0.0;
-        for c in &self.components {
-            let arg = c.omega * t - c.k * (x_n * c.direction.cos() + y_e * c.direction.sin()) + c.phase;
+        for (c,kernel) in self.components.iter().zip(self.evaluation_kernels()) {
+            let arg = c.omega * t - c.k * (x_n * kernel.direction_cos + y_e * kernel.direction_sin) + c.phase;
             eta += c.amplitude * arg.cos();
         }
         eta
@@ -194,18 +209,17 @@ impl WaveField {
     pub fn orbital_velocity(&self, t: f64, x_n: f64, y_e: f64, z_up_from_surface: f64) -> [f64; 3] {
         let depth = self.condition.water_depth_m;
         let mut vel = [0.0f64; 3];
-        for c in &self.components {
-            let arg = c.omega * t - c.k * (x_n * c.direction.cos() + y_e * c.direction.sin()) + c.phase;
+        for (c,kernel) in self.components.iter().zip(self.evaluation_kernels()) {
+            let arg = c.omega * t - c.k * (x_n * kernel.direction_cos + y_e * kernel.direction_sin) + c.phase;
             let (sin_arg, cos_arg) = arg.sin_cos();
             // Airy 有限水深：u = aω·cosh(k(h+z))/sinh(kh)、
-            // w = aω·sinh(k(h+z))/sinh(kh)；海床 z=-h 处水平分量最大、
-            // 垂向为零（不穿透海床）。
-            let sh_bottom = (c.k * depth).sinh().max(1e-12);
+            // w = aω·sinh(k(h+z))/sinh(kh)；海床 z=-h 处垂向为零。
+            let sh_bottom = kernel.bottom_sinh;
             let ch_z = (c.k * (depth + z_up_from_surface)).cosh();
             let sh_z = (c.k * (depth + z_up_from_surface)).sinh();
             let horizontal = c.amplitude * c.omega * (ch_z / sh_bottom);
-            vel[0] += horizontal * c.direction.cos() * cos_arg;
-            vel[1] += horizontal * c.direction.sin() * cos_arg;
+            vel[0] += horizontal * kernel.direction_cos * cos_arg;
+            vel[1] += horizontal * kernel.direction_sin * cos_arg;
             vel[2] += c.amplitude * c.omega * (sh_z / sh_bottom) * sin_arg;
         }
         vel
@@ -249,5 +263,38 @@ impl WaveField {
     /// 分量能量和 Σaᵢ²/2（谱归一化对账；应精确 = Hs²/16）。
     pub fn energy_sum(&self) -> f64 {
         self.components.iter().map(|c| c.amplitude * c.amplitude / 2.0).sum()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cached_wave_kernels_match_original_scalar_operations_bitwise_and_stay_out_of_snapshots() {
+        for depth in [40.0,200.0] {
+            let field = WaveField::new(20261106,WaveCondition {hs_m:1.5,tp_s:9.0,direction_to_deg:45.0,water_depth_m:depth});
+            let before = serde_json::to_string(&field).unwrap();
+            for (time,north,east,z) in [(0.0,0.0,0.0,-4.0),(37.25,1234.5,-35.0,-8.5),(600.0,-1800.0,230.0,-depth)] {
+                let mut elevation = 0.0;
+                let mut velocity = [0.0_f64;3];
+                for component in &field.components {
+                    let argument = component.omega*time-component.k*(north*component.direction.cos()+east*component.direction.sin())+component.phase;
+                    elevation += component.amplitude*argument.cos();
+                    let (sin_argument,cos_argument) = argument.sin_cos();
+                    let bottom = (component.k*depth).sinh().max(1e-12);
+                    let horizontal = component.amplitude*component.omega*((component.k*(depth+z)).cosh()/bottom);
+                    velocity[0] += horizontal*component.direction.cos()*cos_argument;
+                    velocity[1] += horizontal*component.direction.sin()*cos_argument;
+                    velocity[2] += component.amplitude*component.omega*((component.k*(depth+z)).sinh()/bottom)*sin_argument;
+                }
+                assert_eq!(field.elevation(time,north,east).to_bits(),elevation.to_bits());
+                assert_eq!(field.orbital_velocity(time,north,east,z).map(f64::to_bits),velocity.map(f64::to_bits));
+            }
+            assert_eq!(serde_json::to_string(&field).unwrap(),before);
+            let restored:WaveField = serde_json::from_str(&before).unwrap();
+            assert!(restored.evaluation_kernels.get().is_none());
+            assert_eq!(restored.orbital_velocity(71.0,170.0,25.0,-3.0),field.orbital_velocity(71.0,170.0,25.0,-3.0));
+        }
     }
 }

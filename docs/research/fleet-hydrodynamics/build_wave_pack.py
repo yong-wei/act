@@ -31,6 +31,8 @@ def main():
     parser.add_argument('--mean-forward-speed-mps', type=float, required=True)
     parser.add_argument('--model-version', required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--embed-first-order', action='store_true')
+    parser.add_argument('--native-session-validation')
     args = parser.parse_args()
     manifest = json.loads((args.base_pack/'manifest.json').read_text())
     for name, expected in manifest['files_sha256'].items():
@@ -92,9 +94,11 @@ def main():
     validation['wave_model'] = {'fidelity': 'research-nominal', 'binding': binding,
         'asset_manifest': 'wave-assets.json',
         'mean_state_approximation': 'fixed mean speed and heading, current position phase and full attitude rotation',
-        'native_session_validation': 'docs/research/fleet-hydrodynamics/semisub-wave-session-validation.json'}
+        'native_session_validation': args.native_session_validation}
     write_json(args.output/'validation.json', validation)
     write_json(args.output/first_asset['metadata_file'], first)
+    if args.embed_first_order:
+        shutil.copy2(args.first_order/'excitation-f32le.bin', args.output/'excitation-f32le.bin')
     if second is not None:
         write_json(args.output/assets['full_difference']['metadata_file'], second)
     for descriptor in [first_asset, assets['full_difference']]:

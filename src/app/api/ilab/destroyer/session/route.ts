@@ -7,10 +7,11 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { ticket?: unknown };
+    const body = await request.json() as { ticket?: unknown; experimentVersion?: unknown };
     const ticket = typeof body.ticket === 'string' ? body.ticket : '';
     const grant = readIlabGrantFromRequest(request);
-    const result = await openDestroyerSession({ ticket, grant });
+    const experimentVersion = typeof body.experimentVersion === 'string' ? body.experimentVersion : undefined;
+    const result = await openDestroyerSession({ ticket, grant, experimentVersion });
     if (!result.connected) {
       return NextResponse.json({ connected: false });
     }

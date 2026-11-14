@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 import {
   assertDestroyerStepOrder,
   chooseBetterDestroyerAttempt,
@@ -27,6 +28,7 @@ import { buildSafeStepWindow, ilabConfig, resolveSessionAuth, uploadWithAutoRefr
 export { toIlabHttpError };
 
 export interface DestroyerSessionView {
+  experimentVersion: string;
   originId: string;
   displayName: string;
   status: number;
@@ -47,6 +49,7 @@ export interface DestroyerSessionView {
 }
 
 interface RunRecord {
+  experimentVersion: string;
   originId: string;
   appId: string;
   ilabUsername: string;
@@ -106,6 +109,7 @@ function currentSeq(steps: StoredDestroyerStep[]): number {
 function viewOf(run: RunRecord): DestroyerSessionView {
   const steps = readSteps(run.steps);
   return {
+    experimentVersion: run.experimentVersion,
     originId: run.originId,
     displayName: run.displayName,
     status: run.status,
@@ -142,7 +146,12 @@ export type OpenDestroyerSessionResult =
 export async function openDestroyerSession(input: {
   ticket?: string;
   grant?: IlabGrantPayload | null;
+  experimentVersion?: string;
 }): Promise<OpenDestroyerSessionResult> {
+  const experimentVersion = input.experimentVersion ?? 'legacy-v1';
+  if (experimentVersion !== 'legacy-v1' && experimentVersion !== VESSEL_COURSE_VERSION) {
+    throw new IlabServiceError('实验步骤版本无效。', 400);
+  }
   const auth = await resolveSessionAuth(input.ticket ?? '', input.grant ?? null);
   if (!auth) {
     return { connected: false };
@@ -160,6 +169,7 @@ export async function openDestroyerSession(input: {
       tokenExpiresAt: grant.expiresAtMs ? new Date(grant.expiresAtMs) : null,
       startTimeMs: BigInt(runStartTimeMs),
       vesselId: 'destroyer-055',
+      experimentVersion,
       steps: [],
       aiLedger: emptyAiLedger() as unknown as Prisma.InputJsonValue,
     },
@@ -180,6 +190,9 @@ export async function submitDestroyerStep(originId: string, input: {
 }): Promise<DestroyerSessionView> {
   if (!/^dds_[A-Za-z0-9_]{1,48}$/.test(originId)) {
     throw new IlabServiceError('实验记录编号无效。', 400);
+  }
+  if ((await findRun(originId)).experimentVersion !== 'legacy-v1') {
+    throw new IlabServiceError('请通过本次实验的证据提交入口提交新版步骤。', 409);
   }
   const definition = DESTROYER_STEP_BY_SEQ.get(input.seq);
   if (!definition) throw new IlabServiceError('实验步骤不存在。', 400);
@@ -246,6 +259,9 @@ export async function completeDestroyerSession(originId: string): Promise<{
   refreshedGrant: IlabGrantPayload | null;
 }> {
   const run = await findRun(originId);
+  if (run.experimentVersion !== 'legacy-v1') {
+    throw new IlabServiceError('新版实验需在教师完成复核后回传正式成绩与报告。', 409);
+  }
   if (run.status === 1 && run.reportHtml && run.uploadStatus === 'uploaded') {
     return { session: viewOf(run), upload: null, remote: { message: '实验成绩和报告已经回传。' }, refreshedGrant: null };
   }

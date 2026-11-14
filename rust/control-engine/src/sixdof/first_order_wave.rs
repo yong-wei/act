@@ -190,6 +190,7 @@ impl FirstOrderExcitation {
         Ok(PreparedFirstOrderLoads {
             components: Arc::new(field.components().to_vec()),
             coefficients: Arc::new(coefficients),
+            directions: Arc::new(field.components().iter().map(|component| [component.direction.cos(),component.direction.sin()]).collect()),
             mean_heading_rad,
             equilibrium_pitch_rad: self.metadata.equilibrium_pitch_rad,
         })
@@ -200,6 +201,7 @@ impl FirstOrderExcitation {
 pub struct PreparedFirstOrderLoads {
     components: Arc<Vec<WaveComponent>>,
     coefficients: Arc<Vec<[Complex64; 6]>>,
+    directions: Arc<Vec<[f64;2]>>,
     mean_heading_rad: f64,
     equilibrium_pitch_rad: f64,
 }
@@ -214,10 +216,10 @@ impl PreparedFirstOrderLoads {
             return Err("一阶激励合成时间或位置无效".into());
         }
         let mut output = [0.0; 6];
-        for (component, coefficients) in self.components.iter().zip(self.coefficients.iter()) {
+        for ((component, coefficients),direction) in self.components.iter().zip(self.coefficients.iter()).zip(self.directions.iter()) {
             let phase = component.omega * time_s
                 - component.k
-                    * (north_m * component.direction.cos() + east_m * component.direction.sin())
+                    * (north_m * direction[0] + east_m * direction[1])
                 + component.phase;
             let phasor = Complex64::from_polar(component.amplitude, -phase);
             for (channel, value) in output.iter_mut().enumerate() {

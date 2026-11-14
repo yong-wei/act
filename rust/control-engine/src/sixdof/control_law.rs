@@ -56,6 +56,17 @@ pub const DEFAULT_RUDDER_LIMIT_DEG: f64 = 35.0;
 pub const DEFAULT_DERIVATIVE_FILTER_TAU_S: f64 = 0.2;
 pub const INTEGRAL_TRACKING_TIME_S: f64 = 1.0;
 
+#[derive(Clone, Copy, Debug, serde::Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HeadingIntegralTracking {
+    pub enabled: bool,
+    pub time_s: f64,
+}
+
+impl Default for HeadingIntegralTracking {
+    fn default() -> Self { Self { enabled: true, time_s: INTEGRAL_TRACKING_TIME_S } }
+}
+
 /// 常驻20Hz反馈状态，积分以实际舵令贡献保存，允许Ki为零。
 #[derive(Clone, Debug, PartialEq, serde::Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -120,10 +131,25 @@ impl HeadingFeedbackController {
         dt_s: f64,
         derivative_filter_tau_s: f64,
     ) -> Result<f64, String> {
+        self.step_with_tracking(mode, gains, target_deg, measurement_deg, time_s, dt_s,
+            derivative_filter_tau_s, HeadingIntegralTracking::default())
+    }
+
+    pub fn step_with_tracking(
+        &mut self,
+        mode: HeadingControlMode,
+        gains: &HeadingPidGains,
+        target_deg: f64,
+        measurement_deg: Option<f64>,
+        time_s: f64,
+        dt_s: f64,
+        derivative_filter_tau_s: f64,
+        tracking: HeadingIntegralTracking,
+    ) -> Result<f64, String> {
         if [
-            gains.kp, gains.ki, gains.kd, target_deg, time_s, dt_s, derivative_filter_tau_s,
+            gains.kp, gains.ki, gains.kd, target_deg, time_s, dt_s, derivative_filter_tau_s, tracking.time_s,
         ].iter().any(|value| !value.is_finite())
-            || time_s < 0.0 || dt_s <= 0.0 || derivative_filter_tau_s <= 0.0
+            || time_s < 0.0 || dt_s <= 0.0 || derivative_filter_tau_s < 0.0 || tracking.time_s <= 0.0
         {
             return Err("航向控制参数或时钟无效".into());
         }
@@ -147,7 +173,8 @@ impl HeadingFeedbackController {
             match (self.previous_measurement_deg, self.previous_measurement_time_s) {
                 (Some(previous), Some(previous_time)) if time_s > previous_time => {
                     let rate = wrap_180(measurement_deg % 360.0 - previous % 360.0) / (time_s - previous_time);
-                    let decay = (-dt_s / derivative_filter_tau_s).exp();
+                    let decay = if derivative_filter_tau_s == 0.0 { 0.0 }
+                        else { (-dt_s / derivative_filter_tau_s).exp() };
                     decay * self.derivative_deg_s + (1.0 - decay) * rate
                 }
                 (None, None) => 0.0,
@@ -164,7 +191,8 @@ impl HeadingFeedbackController {
         next.integral_rate_deg_s = if next.integral_frozen {
             0.0
         } else {
-            gains.ki * next.error_deg + (next.command_deg - next.unsaturated_deg) / INTEGRAL_TRACKING_TIME_S
+            let correction = if tracking.enabled { (next.command_deg - next.unsaturated_deg) / tracking.time_s } else { 0.0 };
+            gains.ki * next.error_deg + correction
         };
         next.integral_output_deg = integral + dt_s * next.integral_rate_deg_s;
         next.previous_measurement_deg = Some(measurement_deg);

@@ -450,6 +450,13 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/destroyer-055/v5/actuators.json"),
             include_str!("../../model-data/destroyer-055/v5/provenance.json"),
         ),
+        ("destroyer-055", "research-nominal-v6") => load_model_pack(
+            include_str!("../../model-data/destroyer-055/v6/manifest.json"),
+            include_str!("../../model-data/destroyer-055/v6/geometry.json"),
+            include_str!("../../model-data/destroyer-055/v6/maneuvering.json"),
+            include_str!("../../model-data/destroyer-055/v6/actuators.json"),
+            include_str!("../../model-data/destroyer-055/v6/provenance.json"),
+        ),
         ("lng-changheng" | "container-msc", "research-nominal-v1" | "research-nominal-v2") => loading_model_pack(vessel, version, None, None),
         ("semisub-981", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/semisub-981/v1/manifest.json"),

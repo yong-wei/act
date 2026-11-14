@@ -1,0 +1,56 @@
+{
+  "volume_relative_error": 0.0,
+  "initial_force_residual_n": -6.984919309616089e-10,
+  "initial_shaft_speed_rpm": 127.52005763614538,
+  "initial_motor_power_w_per_shaft": 5360301.609756789,
+  "wet_panels": 4009,
+  "kg_keel_up_m": 9.8802883883321,
+  "gm_longitudinal_m": 475.8291370526516,
+  "convergence": "pending",
+  "fidelity": "research-nominal",
+  "full_hull_watertight": true,
+  "full_hull_winding_consistent": true,
+  "wet_surface_unchanged": true,
+  "full_hull_triangles": 8178,
+  "nonlinear_restoring": "pending native verification",
+  "radiation": {
+    "fidelity": "research-nominal",
+    "relative_a_error": 0.016421688672210305,
+    "relative_b_error": 0.02486604850186508,
+    "discrete_stability": {
+      "state_count": 124,
+      "maximum_continuous_pole_real_per_s": 3.635669627959863e-16,
+      "energy_symmetric_part_max_eigenvalue": 1.8161305942401832e-14,
+      "updates": [
+        {
+          "dt_s": 0.008333333333333333,
+          "maximum_energy_amplification": 1.0000000000000009,
+          "spectral_radius": 1.0000000000000018
+        },
+        {
+          "dt_s": 0.004166666666666667,
+          "maximum_energy_amplification": 1.0000000000000009,
+          "spectral_radius": 1.0000000000000009
+        }
+      ]
+    },
+    "fit_validation_sha256": "acec2813aead866d1be5afb46f1a09e6a4307aec3fae5e1bb88367c40e411996"
+  },
+  "native_verification": "separate verification artifacts",
+  "native_verification_paths": [
+    "docs/research/fleet-hydrodynamics/fleet-radiation-wind-validation/destroyer-055-independent-validation.json",
+    "docs/research/fleet-hydrodynamics/fleet-radiation-wind-validation/destroyer-055-session-validation.json"
+  ],
+  "wave_model": {
+    "fidelity": "research-nominal",
+    "binding": {
+      "first_order_metadata_fnv1a64": "fnv1a-b6a664408dfee10e",
+      "full_difference_metadata_fnv1a64": null,
+      "water_depth_m": 200.0,
+      "mean_forward_speed_mps": 0.0
+    },
+    "asset_manifest": "wave-assets.json",
+    "mean_state_approximation": "fixed mean speed and heading, current position phase and full attitude rotation",
+    "native_session_validation": "docs/research/fleet-hydrodynamics/destroyer-course-session-validation.json"
+  }
+}

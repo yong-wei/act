@@ -12,7 +12,7 @@ export default async function LNGSimulationPage({
   return (
     <SimulationShell
       title="长恒号 LNG 大惯性操纵"
-      subtitle="大型船舶操纵仿真 · 大惯性系统控制"
+      subtitle="液舱晃荡 · 纵向制动与约束靠泊"
       activeHref="/simulations/lng"
       guideHref="/supporting/guide-02-lng-carrier.pdf"
       localToolTemplate="heading-control"

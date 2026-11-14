@@ -1,0 +1,281 @@
+{
+  "schema": "act.destroyer-teaching-controller-validation.v1",
+  "status": "passed",
+  "wasmSha256": "d4505a9a1bbaedc0e9f673c5eaf356f06681ff65ff10634a398de4279af6c80f",
+  "generatorSha256": "e87503c4d40628153a86faa09d8ea1732d3343d4ab2ac8d4552e8c7d9d747bf4",
+  "identificationEvidenceSha256": "250c2c84731a658b1e51839281afa03bb51601583b54cf692e0381d348c25533",
+  "frozenStudentModel": {
+    "k": 0.06059672863596699,
+    "kind": "nomoto1",
+    "t_s": 9.413487980826535
+  },
+  "suggestedDesign": {
+    "dampingRatio": 0.8,
+    "kd": 16.502541020117928,
+    "kdMaximum": 49.50762306035378,
+    "ki": 0.018261187490725226,
+    "kp": 2.739178123608784,
+    "kpMaximum": 8.217534370826352,
+    "kpMinimum": 0.5478356247217568,
+    "naturalFrequencyRadS": 0.13278818675351897,
+    "schema": "act.student-heading-design.v1"
+  },
+  "scope": "Frozen parameter pack, measured heading, one model-based PD and two distinct E1 schemes. Roll above 8 degrees is the source-defined teaching alert. Control-sample maxima are 20Hz; fine-step safety accumulation is verified separately.",
+  "cases": [
+    {
+      "sequence": 10,
+      "case": "identified-model-pd",
+      "parameterHash": "fnv1a-1e1e97d5bcbcfaaf",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "actuators": {
+          "shafts": [
+            {
+              "azimuth_jammed": false,
+              "azimuth_rad": 0,
+              "drive_cut": false,
+              "motor_torque_override_nm": null,
+              "speed_reference_rad_s": 13.353869208502044
+            },
+            {
+              "azimuth_jammed": false,
+              "azimuth_rad": 0,
+              "drive_cut": false,
+              "motor_torque_override_nm": null,
+              "speed_reference_rad_s": 13.353869208502044
+            }
+          ],
+          "surfaces": [
+            {
+              "angle_rad": 0,
+              "enabled": true,
+              "jammed": false
+            },
+            {
+              "angle_rad": 0,
+              "enabled": true,
+              "jammed": false
+            }
+          ]
+        },
+        "controlMode": "pd",
+        "derivativeFilterTauS": 0.2,
+        "feedback": "measurement",
+        "pid": {
+          "kp": 2.739178123608784,
+          "ki": 0,
+          "kd": 16.502541020117928
+        },
+        "targetHeadingDeg": 10,
+        "headingIntegralTracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "virtualSeconds": 300,
+      "physicsTicks": 36000,
+      "controllerTicks": 6000,
+      "metrics": {
+        "final120sHeadingMaeDeg": 0.019181007074744752,
+        "headingOvershootPercent": 1.05971167948951,
+        "headingRmseDeg": 1.8509479657826848,
+        "maximumRollDeg": 5.400970470724888,
+        "maximumShaftPowerW": 5555409.3684113175,
+        "missingHeadingSamples": 0,
+        "positiveMotorWorkJ": 3221524037.4629736,
+        "rudderTotalVariationDeg": 63.61369001699998,
+        "sampleCadenceS": 0.05,
+        "settlingBandDeg": 0.5,
+        "settlingTimeS": 28.5,
+        "validHeadingSamples": 6000
+      },
+      "meetsHeadingGoal": true,
+      "constraintsAtControlSamples": true,
+      "rollTeachingAlert": false,
+      "elapsedMs": 9016.251417000001
+    },
+    {
+      "sequence": 16,
+      "case": "e1-first-scheme",
+      "parameterHash": "fnv1a-1e1e97d5bcbcfaaf",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "E1",
+        "noiseLevel": "N1",
+        "seed": 20261106
+      },
+      "controller": {
+        "actuators": {
+          "shafts": [
+            {
+              "azimuth_jammed": false,
+              "azimuth_rad": 0,
+              "drive_cut": false,
+              "motor_torque_override_nm": null,
+              "speed_reference_rad_s": 13.353869208502044
+            },
+            {
+              "azimuth_jammed": false,
+              "azimuth_rad": 0,
+              "drive_cut": false,
+              "motor_torque_override_nm": null,
+              "speed_reference_rad_s": 13.353869208502044
+            }
+          ],
+          "surfaces": [
+            {
+              "angle_rad": 0,
+              "enabled": true,
+              "jammed": false
+            },
+            {
+              "angle_rad": 0,
+              "enabled": true,
+              "jammed": false
+            }
+          ]
+        },
+        "controlMode": "pid",
+        "derivativeFilterTauS": 0.2,
+        "feedback": "measurement",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "targetHeadingDeg": 10,
+        "headingIntegralTracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "virtualSeconds": 600,
+      "physicsTicks": 72000,
+      "controllerTicks": 12000,
+      "metrics": {
+        "final120sHeadingMaeDeg": 0.4377750000000009,
+        "headingOvershootPercent": 25.699999999999932,
+        "headingRmseDeg": 1.941939422704385,
+        "maximumRollDeg": 17.92735906908896,
+        "maximumShaftPowerW": 5943989.787239187,
+        "missingHeadingSamples": 2,
+        "positiveMotorWorkJ": 6406711175.509746,
+        "rudderTotalVariationDeg": 1922.7586962187236,
+        "sampleCadenceS": 0.05,
+        "settlingBandDeg": 0.5,
+        "settlingTimeS": null,
+        "validHeadingSamples": 11998
+      },
+      "meetsHeadingGoal": true,
+      "constraintsAtControlSamples": true,
+      "rollTeachingAlert": true,
+      "elapsedMs": 197687.373416
+    },
+    {
+      "sequence": 17,
+      "case": "e1-revised-scheme",
+      "parameterHash": "fnv1a-1e1e97d5bcbcfaaf",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "E1",
+        "noiseLevel": "N1",
+        "seed": 20261106
+      },
+      "controller": {
+        "actuators": {
+          "shafts": [
+            {
+              "azimuth_jammed": false,
+              "azimuth_rad": 0,
+              "drive_cut": false,
+              "motor_torque_override_nm": null,
+              "speed_reference_rad_s": 13.353869208502044
+            },
+            {
+              "azimuth_jammed": false,
+              "azimuth_rad": 0,
+              "drive_cut": false,
+              "motor_torque_override_nm": null,
+              "speed_reference_rad_s": 13.353869208502044
+            }
+          ],
+          "surfaces": [
+            {
+              "angle_rad": 0,
+              "enabled": true,
+              "jammed": false
+            },
+            {
+              "angle_rad": 0,
+              "enabled": true,
+              "jammed": false
+            }
+          ]
+        },
+        "controlMode": "pid",
+        "derivativeFilterTauS": 0.2,
+        "feedback": "measurement",
+        "pid": {
+          "kp": 1,
+          "ki": 0.006,
+          "kd": 8
+        },
+        "targetHeadingDeg": 10,
+        "headingIntegralTracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "virtualSeconds": 600,
+      "physicsTicks": 72000,
+      "controllerTicks": 12000,
+      "metrics": {
+        "final120sHeadingMaeDeg": 0.4001499999999989,
+        "headingOvershootPercent": 20.09999999999991,
+        "headingRmseDeg": 1.7230178462268726,
+        "maximumRollDeg": 17.94096944065914,
+        "maximumShaftPowerW": 5936112.840864626,
+        "missingHeadingSamples": 2,
+        "positiveMotorWorkJ": 6417586225.826801,
+        "rudderTotalVariationDeg": 2162.145895156772,
+        "sampleCadenceS": 0.05,
+        "settlingBandDeg": 0.5,
+        "settlingTimeS": null,
+        "validHeadingSamples": 11998
+      },
+      "meetsHeadingGoal": true,
+      "constraintsAtControlSamples": true,
+      "rollTeachingAlert": true,
+      "elapsedMs": 347541.990125
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "destroyer-055",
+  "model_version": "research-nominal-v6",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "actuators.json": "ea66b3154b6a2035ac647aa8fe4805e551007816f7d5caf123c4c18ffa234c16",
+    "envelope-validation.json": "0d6f5c0a72f877d2d6ef63b4c3b17ea0853b42155dc3f452469356b590c83058",
+    "excitation-f32le.bin": "f2d2494d601730b5370f8cc034e2fbc00250bdab9bdf87e26eaaf8d90a6c727f",
+    "first-order-wave.json": "287f0064bfe617bc3cec45b9ef4b3607f2e7dafc7facc7e694a0b0be7c63d50c",
+    "frontal.wkb": "2c20006dd63e6072d70312b87192c9f89186ba619a61a4370ba8c201149bc30d",
+    "full-hull.dat": "a8e91ec679ab69ff73a895131ef21e60f2591afb013d2708aac85eaec025c1a3",
+    "full-source-sections.json": "39608dd7d7902d79311cace63d71ecaff359899c0cbb6ce7431b1832e6b8e3be",
+    "geometry.json": "067250373bf434ac8251f73246bad5b6ede87d1ae15365efb1ff9b43d8c36c9e",
+    "hull.dat": "ee5c59d9518fcde20bb773dfb195d66ebb74785b3213ed77cf7d10d8e611e4c8",
+    "lateral.wkb": "8bfca3a6c3b1f2ea29253344606e965a62d4f96469557c0a8cb69127f0317b6f",
+    "lid.dat": "06b668bc1d839d81c7cd10341ac19a35fecc9b0733902697e0540ed5a6b5fbaf",
+    "maneuvering.json": "401a8e8525352de58de20abef4f73ba85b0012a15d4986a6591bae4cdedd1a74",
+    "provenance.json": "c34e5d5216098569283e6d59b291e015e352c1c2d8971012b084b1f7ee7b1636",
+    "radiation-fit-arrays.npz": "e91b626683e7f7947ef1a0ab91bf391da2ccd902ffdf35e20faef881e871e45f",
+    "radiation-fit-validation.json": "acec2813aead866d1be5afb46f1a09e6a4307aec3fae5e1bb88367c40e411996",
+    "radiation.json": "5b1da55fd3ffbc52064848b58ac2d750ffa7654a481f0c2b1f385b13fda645dc",
+    "source-sections.json": "e1002fc3bb8b71f9892f54587ae297abe79a40132091ffcb19edac834bf4af5b",
+    "validation.json": "547daf0b5e75dbbfc1bfd10a0959b8301ac62a4bc527880bb2e871c27e151df7",
+    "wave-assets.json": "6f2cb7436445389e2c641fd1a2ca3ba36c2fcbda2049be3f954dd479b4042896",
+    "wind-validation.json": "fa21eda1d9dfa652b98a78aa4b23f10f50ff4eca6cc870e89a0c2bd80cbc72dd",
+    "wind.json": "d6255e0e2791f5662bd1d23231dd900ff8d0309bda74222eae4bb6d198607d12"
+  }
+}

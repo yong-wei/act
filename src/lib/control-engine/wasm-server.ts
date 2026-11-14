@@ -8,6 +8,7 @@ import {
   compute_simulation_step,
   compute_virtual_simulation_step,
   initSync,
+  VesselSimulationSession,
 } from '@/resources/control-system/wasm/control_engine/index.js';
 
 import { ControlEngineFailure } from './envelope';
@@ -33,6 +34,11 @@ export function preloadServerControlEngine(cwd = process.cwd()): void {
       retryable: false,
     });
   }
+}
+
+export function createServerVesselSession(configuration: unknown): VesselSimulationSession {
+  preloadServerControlEngine();
+  return new VesselSimulationSession(JSON.stringify(configuration));
 }
 
 export function invokeServerWasm(

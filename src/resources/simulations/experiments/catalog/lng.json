@@ -1,0 +1,146 @@
+{
+  "sourceIssue": 2154,
+  "sourceBodySha256": "741d25f85ddbf6d0f71d2b3b66f0f64656ad3f141023bcf2ce5fa1411d942a55",
+  "steps": [
+    {
+      "sequence": 1,
+      "title": "标注推进因果链",
+      "condition": "P0/N0，120s",
+      "interaction": "标识轴速指令、轴速、推力、航速、距离，给出预期先后顺序",
+      "evidence": "输入链和惯性；保存因果标注"
+    },
+    {
+      "sequence": 2,
+      "title": "设计小信号激励",
+      "condition": "U0=4，P0，600s；t20轴速参考+5%",
+      "interaction": "选择阶跃幅值3/5/8%之一并记录输入输出",
+      "evidence": "小信号实验设计，不能改实际速度"
+    },
+    {
+      "sequence": 3,
+      "title": "辨识局部航速模型",
+      "condition": "步骤2数据",
+      "interaction": "拖选窗口拟合Ku/Tu/L，分别显示轴系与船速延迟",
+      "evidence": "执行器与船体惯性区分；模型与残差"
+    },
+    {
+      "sequence": 4,
+      "title": "独立减速验证",
+      "condition": "新run，600s，轴速参考−4%",
+      "interaction": "冻结模型叠加预测，计算留出误差",
+      "evidence": "辨识泛化，不能重新拟合同一验证轨迹"
+    },
+    {
+      "sequence": 5,
+      "title": "测量自由停车",
+      "condition": "U0=4，P0，1200s，自由停车",
+      "interaction": "t20把驱动扭矩命令设0，测量降到.2m/s的时间/距离",
+      "evidence": "停车不是瞬停；若窗口未停车按未达到记录"
+    },
+    {
+      "sequence": 6,
+      "title": "比较反车制动",
+      "condition": "同初速，t20下达反车，1200s",
+      "interaction": "比较自由停车与受限倒车制动；选择两种反车强度",
+      "evidence": "四象限、轴系过零、制动力/功率约束"
+    },
+    {
+      "sequence": 7,
+      "title": "预测减速距离",
+      "condition": "靠泊P0",
+      "interaction": "用理想局部模型预测起始减速距离，选择减速时刻",
+      "evidence": "模型用于决策；保存运行前预测"
+    },
+    {
+      "sequence": 8,
+      "title": "对齐理想与实际",
+      "condition": "同步骤7真实运行",
+      "interaction": "对齐理想距离/速度与六自由度响应，定位偏差来源",
+      "evidence": "大幅度外推、低速模型/推力差异；不能只改阈值掩盖"
+    },
+    {
+      "sequence": 9,
+      "title": "比较靠泊方案",
+      "condition": "靠泊P0，两次",
+      "interaction": "调整减速起点或分段速度曲线，比较至少两方案",
+      "evidence": "安全余量/时间权衡，保留失败轨迹"
+    },
+    {
+      "sequence": 10,
+      "title": "设计航速PI",
+      "condition": "P0，600s，4→3m/s速度参考",
+      "interaction": "设计并运行PI，比较原始与抗饱和实现",
+      "evidence": "闭环性能、真实速度状态；峰值推力和末段误差"
+    },
+    {
+      "sequence": 11,
+      "title": "检验时延补偿",
+      "condition": "P0，600s，同参考，额外时延0/5s",
+      "interaction": "先预测影响，分别运行；比较给定Smith结构开/关",
+      "evidence": "补偿依赖模型，不承诺消除全部现实误差"
+    },
+    {
+      "sequence": 12,
+      "title": "比较不同填充率",
+      "condition": ".30/.70/.95填充各600s，实际轴速相同小激励",
+      "interaction": "使用原模型预测后再估计各载荷局部模型",
+      "evidence": "质量/吃水/稳性/参数变化，不能仅改T而不改物理"
+    },
+    {
+      "sequence": 13,
+      "title": "观察转向与晃荡",
+      "condition": "P0，U0=4，psi_ref+10°，600s，.70填充",
+      "interaction": "选择转向斜坡5/20/60s，观察液舱与横摇",
+      "evidence": "转弯引起横向加速度及液面反作用"
+    },
+    {
+      "sequence": 14,
+      "title": "辨识液舱频率",
+      "condition": "同激励，.30/.70/.95各600s",
+      "interaction": "运行前按公式预测模态频率，识别谱峰",
+      "evidence": "填充率—频率—响应差异；模型量纲"
+    },
+    {
+      "sequence": 15,
+      "title": "设计平滑转向",
+      "condition": "同填充/同航向终值，两种斜坡600s",
+      "interaction": "设计转向过渡，比较晃荡峰值/RMS/转向耗时",
+      "evidence": "平滑操作的收益与代价，末值相同不等于过程相同"
+    },
+    {
+      "sequence": 16,
+      "title": "检验风流干扰",
+      "condition": "靠泊C1+W1、N0",
+      "interaction": "冻结静水方案重试，再改一项策略",
+      "evidence": "横流横偏、风载、低速舵效；轨迹与停止距离"
+    },
+    {
+      "sequence": 17,
+      "title": "选择速度滤波",
+      "condition": "靠泊V1+N1",
+      "interaction": "选择滤波tau=.2/1/3s，比较测量和实际约束",
+      "evidence": "噪声/波频影响控制，不通过改真值降噪"
+    },
+    {
+      "sequence": 18,
+      "title": "冻结综合靠泊方案",
+      "condition": "靠泊E1+N1",
+      "interaction": "设计最终速度/转向计划并冻结",
+      "evidence": "综合约束下取舍；参考控制器/任务有解性先验证"
+    },
+    {
+      "sequence": 19,
+      "title": "验证未见装载",
+      "condition": "seed17/29，.70和.95两加载工况",
+      "interaction": "不重整定先测试，再提交一次有依据的修正",
+      "evidence": "对未见条件的泛化与有效域；两次记录不覆盖"
+    },
+    {
+      "sequence": 20,
+      "title": "完成实验报告",
+      "condition": "引用至少5组run",
+      "interaction": "报告辨识、理想对照、制动、晃荡、综合方案",
+      "evidence": "本人证据、误差解释、不能据教学模型宣称实船靠泊许可"
+    }
+  ]
+}

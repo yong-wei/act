@@ -1,4 +1,5 @@
 import { assertFiniteTree, ControlEngineFailure, mapFailure } from './envelope';
+import { CONTROL_ENGINE_BUILD_HASH } from './identity.generated';
 import { createBrowserVesselSessionBinding, ensureBrowserControlEngine, type VesselWaveAssets } from './wasm-browser';
 export type { VesselWaveAssets } from './wasm-browser';
 
@@ -16,13 +17,19 @@ export interface VesselSessionConfiguration {
   loadingRatio?: number;
   berth?: { stopLineNorthM: number; initialBowDistanceM: number };
   containerVoyage?: { segmentSpeedsMps: [number, number, number, number] };
+  courseEvidence?: { rollWarningDeg: number };
   seed?: number;
   noiseLevel?: 'N0' | 'N1' | 'N2';
   environment?: 'P0' | 'W1' | 'W2' | 'C1' | 'C2' | 'V1' | 'V2' | 'V3' | 'E1' | 'E2';
+  environmentOverrides?: { windSpeedMps?: number; windFromDeg?: number; gustSigmaMps?: number;
+    currentSpeedMps?: number; currentToDeg?: number;
+    wave?: { hs_m: number; tp_s: number; direction_to_deg: number; water_depth_m: number } };
   environmentSwitches?: { wind_force_enabled: boolean; wave_enabled: boolean; current_enabled: boolean };
   secondOrderEnabled?: boolean;
   propulsionPowerBudgetW?: number;
   waterDepthM?: number;
+  initialWaterSpeedMps?: number;
+  initialRollDeg?: number;
   initialHeadingDeg?: number;
   initialPositionNed?: [number, number, number];
   headingBiasFault?: boolean;
@@ -59,6 +66,7 @@ export interface VesselSessionInput {
   feedback: 'measurement' | 'estimate';
   actuators: VesselActuatorCommands;
   derivativeFilterTauS?: number;
+  headingIntegralTracking?: { enabled: boolean; timeS: number };
   longitudinal?: VesselSpeedPiInput;
   containerSpeed?: VesselContainerSpeedInput;
 }
@@ -169,6 +177,27 @@ export interface VesselSessionFrame {
   controllerTicks: number;
   paused: boolean;
   truth: VesselTruthState;
+  attitudeDeg: { roll: number; pitch: number; heading: number };
+  waterVelocityBody: [number, number, number, number, number, number];
+  controlSamples: VesselControlSample[];
+  fineStepSamples?: VesselFineStepPoint[];
+  fineStepWindowSampleCount?: number;
+  fineStepMetrics?: {sampleCadenceS:number;algorithm:string;rollWarningDeg:number;
+    eventWindowBeforeS:number;eventWindowAfterS:number;values:VesselFineStepMetrics};
+  parameters: {
+    massKg: number;
+    draftM: number;
+    lengthM: number;
+    beamM: number;
+    cgAboveWaterlineM: number;
+    geometricGmTransverseM: number | null;
+    effectiveGmTransverseM: number | null;
+    effectiveInertia: [number, number, number];
+    shaftConfigurations: Array<{ ratedRpm: number; maximumPowerW: number; diameterM: number;
+      positionBodyM: [number, number, number]; azimuthAvailable: boolean }>;
+    surfaceConfigurations: Array<{ normalBody: [number, number, number]; maximumAngleDeg: number;
+      maximumRateDegS: number; areaM2: number }>;
+  };
   dynamics?: {
     nu_dot: [number, number, number, number, number, number];
     position_dot_ned: [number, number, number];
@@ -298,7 +327,36 @@ export interface VesselSessionFrame {
   } | null;
 }
 
+export interface VesselFineStepPoint {
+  timeS:number;
+  positionNedM:[number,number,number];
+  attitudeDeg:[number,number,number];
+  bodyVelocitySi:[number,number,number,number,number,number];
+  surfaceDeg:number[];shaftRpm:number[];azimuthDeg:number[];motorPowerW:number[];
+}
+
+export interface VesselFineStepMetrics {
+  physicsSamples:number;maximumRollDeg:number;maximumPitchDeg:number;maximumYawRateDegS:number;
+  maximumSurfaceAngleDeg:number;maximumSurfaceRateDegS:number;maximumShaftPowerW:number;
+  maximumPositiveSystemPowerW:number;rollWarningDurationS:number;surfaceAngleViolationS:number;
+  surfaceRateViolationS:number;shaftPowerViolationS:number;systemPowerViolationS:number;
+  shaftSpeedViolationS:number;surfaceSaturationDurationS:number;positiveMotorWorkJ:number;
+}
+
+export interface VesselControlSample {
+  timeS: number;
+  truth: VesselTruthState;
+  observer: VesselSessionFrame['observer'];
+  attitudeDeg: VesselSessionFrame['attitudeDeg'];
+  waterVelocityBody: VesselSessionFrame['waterVelocityBody'];
+  targetHeadingDeg: number;
+  heldCommands: VesselActuatorCommands;
+  samples: VesselObservedSample[];
+  dynamics: VesselSessionFrame['dynamics'];
+}
+
 export interface VesselSession {
+  readonly runtimeVersion?:string;
   read(): VesselSessionFrame;
   advance(seconds: number, input?: VesselSessionInput): VesselSessionFrame;
   setPaused(paused: boolean): void;
@@ -345,6 +403,7 @@ export async function createVesselSimulationSessionBrowser(
     }
   }
   return {
+    runtimeVersion:CONTROL_ENGINE_BUILD_HASH,
     read: () => invoke(() => parseFrame(native.read())),
     advance: (seconds, input) => invoke(() => parseFrame(native.advance(seconds, input ? JSON.stringify(input) : ''))),
     setPaused: (paused) => invoke(() => native.setPaused(paused)),

@@ -45,6 +45,9 @@ pub mod vessel_wind;
 pub mod lng_speed_control;
 pub mod state;
 pub mod student_model;
+pub mod student_model_runtime;
+pub mod course_metrics;
+pub mod course_evidence;
 pub mod tank_sloshing;
 pub mod vessel_runtime;
 

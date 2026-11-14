@@ -43,6 +43,17 @@ pub struct WaveModelAssets {
     pub full_difference: Option<FullDifferenceQtf>,
 }
 
+pub fn embedded_teaching_assets(vessel: &str, version: &str)
+    -> Result<Option<std::sync::Arc<WaveModelAssets>>, String> {
+    let first_order = match (vessel, version) {
+        ("destroyer-055", "research-nominal-v6") => FirstOrderExcitation::from_json_and_bytes(
+            include_str!("../../model-data/destroyer-055/v6/first-order-wave.json"),
+            include_bytes!("../../model-data/destroyer-055/v6/excitation-f32le.bin"))?,
+        _ => return Ok(None),
+    };
+    Ok(Some(std::sync::Arc::new(WaveModelAssets { first_order, full_difference: None })))
+}
+
 fn validate_rigid(
     condition: Option<&WaveRigidCondition>,
     geometry: &PackGeometry,
