@@ -505,18 +505,23 @@ impl DestroyerSixDofPlant {
             return Ok(None);
         };
         system.validate_commands(commands)?;
-        let environment = if self.environment_enabled { EnvironmentField::disturbance_equivalent() }
-            else { EnvironmentField::default() };
-        let (relative_velocity, ..) = resolve_env_loads(self.sim_time_s, &self.state.body_velocity,
-            &self.state.quaternion, &environment, self.environment_state.as_ref(),
-            self.wind_geometry.as_ref(), self.vessel_wind.as_deref(),
-            self.radiation.is_passive_model(), self.compiled_waves.as_deref(), self.state.position_ned)?;
+        let relative_velocity = self.relative_body_velocity()?;
         let values = system.encode_state(&self.state.actuator_states);
         let evaluation = system.derivatives(&values, &mut vec![0.0; values.len()], commands,
             &vec![0.0; system.propulsors.len()], &LocalWater { time_s: self.sim_time_s,
                 position_ned: self.state.position_ned, quaternion: self.state.quaternion,
                 relative_velocity, environment: self.environment_state.as_ref() });
         Ok(evaluation.fuel)
+    }
+
+    pub fn relative_body_velocity(&self) -> Result<[f64; 6], String> {
+        let environment = if self.environment_enabled { EnvironmentField::disturbance_equivalent() }
+            else { EnvironmentField::default() };
+        let (relative_velocity, ..) = resolve_env_loads(self.sim_time_s, &self.state.body_velocity,
+            &self.state.quaternion, &environment, self.environment_state.as_ref(),
+            self.wind_geometry.as_ref(), self.vessel_wind.as_deref(),
+            self.radiation.is_passive_model(), self.compiled_waves.as_deref(), self.state.position_ned)?;
+        Ok(relative_velocity)
     }
 
     pub fn advance_environment_to_current_time(&mut self) {

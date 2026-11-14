@@ -15,6 +15,7 @@ export interface VesselSessionConfiguration {
   parameterVersion?: string;
   loadingRatio?: number;
   berth?: { stopLineNorthM: number; initialBowDistanceM: number };
+  containerVoyage?: { segmentSpeedsMps: [number, number, number, number] };
   seed?: number;
   noiseLevel?: 'N0' | 'N1' | 'N2';
   environment?: 'P0' | 'W1' | 'W2' | 'C1' | 'C2' | 'V1' | 'V2' | 'V3' | 'E1' | 'E2';
@@ -59,6 +60,26 @@ export interface VesselSessionInput {
   actuators: VesselActuatorCommands;
   derivativeFilterTauS?: number;
   longitudinal?: VesselSpeedPiInput;
+  containerSpeed?: VesselContainerSpeedInput;
+}
+
+export interface VesselScheduledSpeedModel {
+  loadingRatio: number;
+  operatingModel: VesselSpeedPiInput['localModel'];
+}
+
+export interface VesselContainerSpeedInput {
+  models: [VesselScheduledSpeedModel, VesselScheduledSpeedModel, VesselScheduledSpeedModel];
+  referenceMps: number;
+  fixedModelIndex: number;
+  schedulingEnabled: boolean;
+  bumpless: boolean;
+  kpMultiplier: number;
+  tiMultiplier: number;
+  antiWindup: boolean;
+  filterTauS: 0.2 | 1 | 3;
+  feedback: 'water' | 'ground';
+  losLookaheadM: number | null;
 }
 
 export interface VesselSpeedPiInput {
@@ -179,6 +200,41 @@ export interface VesselSessionFrame {
     fullDifferenceMetadataHash: string | null;
   };
   longitudinalController?: VesselSpeedControlDiagnostics;
+  containerController?: {
+    ticks: number;
+    requestedReferenceMps: number;
+    slewedReferenceMps: number;
+    filteredWaterSpeedMps: number | null;
+    filteredFeedbackMps: number | null;
+    errorMps: number;
+    modelWeights: [number, number, number];
+    outsideIdentifiedDomain: boolean;
+    gains: VesselSpeedControlDiagnostics['gains'];
+    operatingReferenceRpm: number;
+    integralRpm: number;
+    integralRateRpmPerS: number;
+    unsaturatedRpm: number;
+    commandRpm: number;
+    integralFrozen: boolean;
+  };
+  containerSpeedFeedback?: 'water_speed_log' | 'gnss_low_frequency_estimate' | null;
+  containerVoyage?: {
+    progress: {
+      lastTimeS: number;
+      northM: number;
+      eastM: number;
+      maximumCrossTrackM: number;
+      maximumRollDeg: number;
+      headingReferenceDeg: number;
+      finalSegmentHeadingIntegralDegS: number;
+      finalSegmentDurationS: number;
+      termination: { reason: 'arrived' | 'time_limit'; timeS: number; finalWaterSpeedMps: number } | null;
+    };
+    segmentIndex: number;
+    meanFinalHeadingErrorDeg: number;
+    rollWarning: boolean;
+    eligibleForFuelComparison: boolean;
+  };
   hydrodynamicDepthM?: number;
   teachingFuel?: {
     state: VesselFuelState;

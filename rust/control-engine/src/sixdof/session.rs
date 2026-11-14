@@ -6,6 +6,8 @@ use super::control_law::{
     HeadingPidGains, command_rudder_deg,
 };
 use super::destroyer_plant::{DestroyerSixDofPlant, PlantCheckpoint};
+use super::container_speed_control::{ContainerSpeedController, ContainerSpeedInput, SpeedFeedback};
+use super::container_voyage::{ContainerVoyageConfiguration, ContainerVoyageProgress};
 use super::environment_state::{EnvironmentState, EnvironmentSwitches};
 use super::instrumentation::{
     ObservationTruth, ObservedSample, SensorInstallations, SensorSignal, SensorSuite,
@@ -67,6 +69,8 @@ pub struct SessionConfiguration {
     pub loading_ratio: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub berth: Option<BerthConfiguration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub container_voyage: Option<ContainerVoyageConfiguration>,
     pub seed: u64,
     pub noise_level: NoiseLevel,
     pub environment: EnvironmentPreset,
@@ -94,6 +98,7 @@ impl Default for SessionConfiguration {
             parameter_version: "research-nominal-v3".into(),
             loading_ratio: None,
             berth: None,
+            container_voyage: None,
             seed: 20261106,
             noise_level: NoiseLevel::N1,
             environment: EnvironmentPreset::P0,
@@ -132,6 +137,8 @@ pub struct SessionInput {
     pub derivative_filter_tau_s: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub longitudinal: Option<SpeedPiInput>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub container_speed: Option<ContainerSpeedInput>,
 }
 
 fn default_derivative_filter_tau_s() -> f64 {
@@ -160,6 +167,12 @@ impl SessionInput {
             }
             input.validate(maximum_shaft_rpm(system)?)?;
         }
+        if let Some(input) = &self.container_speed {
+            if vessel != "container-msc" || self.longitudinal.is_some()
+                || self.actuators.shafts.iter().any(|shaft| shaft.motor_torque_override_nm.is_some())
+            { return Err("集装箱调度PI需要独立轴速控制输入".into()); }
+            input.validate(maximum_shaft_rpm(system)?)?;
+        }
         Ok(())
     }
 }
@@ -183,6 +196,10 @@ struct SessionCheckpoint {
     heading_controller: Option<HeadingFeedbackController>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     longitudinal_controller: Option<LngSpeedController>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    container_controller: Option<ContainerSpeedController>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    voyage_progress: Option<ContainerVoyageProgress>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     berth_termination: Option<BerthTermination>,
     physics_ticks: u64,
@@ -210,6 +227,8 @@ pub struct FleetSimulation {
     previous_error_deg: f64,
     heading_controller: Option<HeadingFeedbackController>,
     longitudinal_controller: Option<LngSpeedController>,
+    container_controller: Option<ContainerSpeedController>,
+    voyage_progress: Option<ContainerVoyageProgress>,
     berth_termination: Option<BerthTermination>,
     physics_ticks: u64,
     controller_ticks: u64,
@@ -246,6 +265,13 @@ impl FleetSimulation {
                 return Err("LNG靠泊的停止线或初始船艏距离无效".into());
             }
         }
+        if let Some(voyage) = &configuration.container_voyage {
+            voyage.validate()?;
+            if configuration.vessel != "container-msc" || configuration.berth.is_some()
+                || configuration.initial_position_ned != [0.0; 3]
+                || wrap_pi(configuration.initial_heading_deg.to_radians()).abs() > 1e-12
+            { return Err("集装箱航次需要从原点沿零度航向开始".into()); }
+        }
         let depth = if configuration.vessel == "lng-changheng"
             && configuration.parameter_version == "research-nominal-v2" && configuration.berth.is_some() {
             if configuration.water_depth_m.is_some_and(|depth| (depth-40.0).abs() > 1e-8) {
@@ -256,6 +282,14 @@ impl FleetSimulation {
         let mut pack = embedded_vessel_pack_with_water_depth(&configuration.vessel,
             &configuration.parameter_version, configuration.loading_ratio, depth)
             .map_err(|error| format!("参数包无效 {error:?}"))?;
+        if configuration.container_voyage.is_some() {
+            let super::model_pack::PackActuators::Physical { system, .. } = &pack.actuators else {
+                return Err("航次任务需要实际轴系和教学燃油模型".into());
+            };
+            if system.fuel_model.is_none() || pack.geometry.cruise_speed_mps != Some(8.0) {
+                return Err("航次任务需要8米每秒初态和教学燃油模型".into());
+            }
+        }
         if let Some(budget) = configuration.propulsion_power_budget_w {
             let super::model_pack::PackActuators::Physical { system, .. } = &mut pack.actuators else {
                 return Err("当前设备没有可配置的推进功率预算".into());
@@ -373,6 +407,7 @@ impl FleetSimulation {
             &initial_truth,
             plant.environment().ok_or("缺少环境场")?,
         );
+        let voyage_progress = configuration.container_voyage.as_ref().map(|_| ContainerVoyageProgress::default());
         let mut simulation = Self {
             configuration,
             parameter_hash: pack.content_hash,
@@ -393,12 +428,15 @@ impl FleetSimulation {
                 actuators: actuators.clone(),
                 derivative_filter_tau_s: DEFAULT_DERIVATIVE_FILTER_TAU_S,
                 longitudinal: None,
+                container_speed: None,
             },
             held_commands: actuators,
             integral_deg_s: 0.0,
             previous_error_deg: 0.0,
             heading_controller: Some(HeadingFeedbackController::default()),
             longitudinal_controller: None,
+            container_controller: None,
+            voyage_progress,
             berth_termination: None,
             physics_ticks: 0,
             controller_ticks: 0,
@@ -443,7 +481,33 @@ impl FleetSimulation {
         let previous_commands = self.held_commands.clone();
         self.held_commands = self.input.actuators.clone();
         self.update_heading_controller(&previous_commands)?;
-        self.update_longitudinal_controller(&previous_commands)
+        self.update_longitudinal_controller(&previous_commands)?;
+        self.update_container_controller(&previous_commands)
+    }
+
+    fn update_container_controller(&mut self, previous_commands: &ActuatorCommands) -> Result<(), String> {
+        let Some(input) = &self.input.container_speed else {
+            self.container_controller = None;
+            if self.configuration.container_voyage.is_some() { return Err("航次任务需要先设置航速控制模型".into()); }
+            return Ok(());
+        };
+        let maximum = maximum_shaft_rpm(self.plant.actuator_system().ok_or("缺少执行器组")?)?;
+        if self.container_controller.is_none() {
+            let initial_rpm = previous_commands.shafts[0].speed_reference_rad_s*30.0/std::f64::consts::PI;
+            self.container_controller = Some(ContainerSpeedController::new(input,
+                self.configuration.loading_ratio.unwrap_or(0.6), initial_rpm, maximum)?);
+        }
+        let target = self.configuration.container_voyage.as_ref()
+            .map(|voyage| voyage.reference_at(self.plant.state().position_ned[0])).unwrap_or(input.reference_mps);
+        let water_speed = self.sensors.valid_value(SensorSignal::SpeedLog, self.time_s());
+        let ground_speed = (self.initialized_axes.iter().all(|value| *value)
+            && self.sensors.valid_value(SensorSignal::North, self.time_s()).is_some()
+            && self.sensors.valid_value(SensorSignal::East, self.time_s()).is_some())
+            .then_some(self.observer.body_velocity[0]);
+        let rpm = self.container_controller.as_mut().expect("调度控制已初始化")
+            .step(input, target, water_speed, ground_speed, maximum)?;
+        self.held_commands.shafts[0].speed_reference_rad_s = rpm*std::f64::consts::PI/30.0;
+        Ok(())
     }
 
     fn update_longitudinal_controller(&mut self, previous_commands: &ActuatorCommands) -> Result<(), String> {
@@ -469,6 +533,14 @@ impl FleetSimulation {
     }
 
     fn update_heading_controller(&mut self, previous_commands: &ActuatorCommands) -> Result<(), String> {
+        let target_heading = self.input.container_speed.as_ref()
+            .filter(|_| self.configuration.container_voyage.is_some())
+            .and_then(|input| input.los_lookahead_m)
+            .map(|lookahead| (-self.observer.position_heading[1]).atan2(lookahead).to_degrees())
+            .unwrap_or(self.input.target_heading_deg);
+        if let Some(progress) = &mut self.voyage_progress {
+            progress.heading_reference_deg = wrap_pi(target_heading.to_radians()).to_degrees();
+        }
         let heading = match self.input.feedback {
             FeedbackSource::Measurement => self
                 .sensors
@@ -487,7 +559,7 @@ impl FleetSimulation {
             let command = controller.step(
                 self.input.control_mode,
                 &self.input.pid,
-                self.input.target_heading_deg,
+                target_heading,
                 heading,
                 self.physics_ticks as f64 * NOMINAL_DT,
                 0.05,
@@ -519,7 +591,7 @@ impl FleetSimulation {
             let control = command_rudder_deg(
                 self.input.control_mode,
                 &self.input.pid,
-                wrap_pi(self.input.target_heading_deg.to_radians()).to_degrees(),
+                wrap_pi(target_heading.to_radians()).to_degrees(),
                 heading,
                 0.0,
                 0.05,
@@ -668,6 +740,15 @@ impl FleetSimulation {
                 self.paused = true;
             }
         }
+        if self.voyage_progress.is_some() {
+            let state = self.plant.state();
+            let euler = super::state::euler_from_quaternion(state.quaternion);
+            let water_speed = self.plant.relative_body_velocity()?[0];
+            let heading_reference = self.voyage_progress.as_ref().expect("航次已初始化").heading_reference_deg.to_radians();
+            let stopped = self.voyage_progress.as_mut().expect("航次已初始化").update(
+                self.physics_ticks as f64*NOMINAL_DT, state.position_ned, water_speed, euler.yaw_rad-heading_reference, euler.roll_rad)?;
+            self.paused |= stopped;
+        }
         Ok(())
     }
 
@@ -680,7 +761,8 @@ impl FleetSimulation {
     }
 
     pub fn set_paused(&mut self, paused: bool) {
-        self.paused = paused || self.berth_termination.is_some();
+        self.paused = paused || self.berth_termination.is_some()
+            || self.voyage_progress.as_ref().is_some_and(|progress| progress.termination.is_some());
     }
 
     pub fn advance(&mut self, seconds: f64, input: Option<SessionInput>) -> Result<(), String> {
@@ -697,6 +779,12 @@ impl FleetSimulation {
                 }
                 if let Some(controller) = &self.longitudinal_controller {
                     controller.validate_input(longitudinal, maximum_shaft_rpm(system)?)?;
+                }
+            }
+            if let Some(container) = &input.container_speed {
+                if self.heading_controller.is_none() { return Err("集装箱调度需要当前版本的会话".into()); }
+                if let Some(controller) = &self.container_controller {
+                    controller.validate_input(container, maximum_shaft_rpm(system)?)?;
                 }
             }
         }
@@ -739,6 +827,19 @@ impl FleetSimulation {
         if let Some(controller) = &self.longitudinal_controller {
             frame["longitudinalController"] = serde_json::to_value(controller.diagnostics())
                 .map_err(|error| error.to_string())?;
+        }
+        if let Some(controller) = &self.container_controller {
+            frame["containerController"] = serde_json::to_value(controller.diagnostics()).map_err(|error| error.to_string())?;
+            frame["containerSpeedFeedback"] = serde_json::json!(self.input.container_speed.as_ref().map(|input| match input.feedback {
+                SpeedFeedback::Water => "water_speed_log", SpeedFeedback::Ground => "gnss_low_frequency_estimate",
+            }));
+        }
+        if let Some(progress) = &self.voyage_progress {
+            frame["containerVoyage"] = serde_json::json!({ "progress": progress,
+                "segmentIndex": ((progress.north_m.max(0.0)/1500.0).floor() as usize).min(3),
+                "meanFinalHeadingErrorDeg": progress.mean_final_heading_error_deg(),
+                "rollWarning": progress.maximum_roll_deg > 8.0,
+                "eligibleForFuelComparison": progress.eligible_for_fuel_comparison() });
         }
         if let Some(berth) = &self.configuration.berth {
             let rotation = super::state::rotation_matrix(self.plant.state().quaternion);
@@ -805,6 +906,8 @@ impl FleetSimulation {
             previous_error_deg: self.previous_error_deg,
             heading_controller: self.heading_controller.clone(),
             longitudinal_controller: self.longitudinal_controller.clone(),
+            container_controller: self.container_controller.clone(),
+            voyage_progress: self.voyage_progress.clone(),
             berth_termination: self.berth_termination.clone(),
             physics_ticks: self.physics_ticks,
             controller_ticks: self.controller_ticks,
@@ -845,7 +948,8 @@ impl FleetSimulation {
         }
         let system = simulation.plant.actuator_system().ok_or("缺少执行器组")?;
         saved.input.validate(&saved.configuration.vessel, system)?;
-        if saved.heading_controller.is_none() && (saved.input.longitudinal.is_some() || saved.configuration.berth.is_some()) {
+        if saved.heading_controller.is_none() && (saved.input.longitudinal.is_some() || saved.configuration.berth.is_some()
+            || saved.input.container_speed.is_some() || saved.configuration.container_voyage.is_some()) {
             return Err("纵向控制或靠泊恢复点需要当前版本的会话".into());
         }
         if let Some(controller) = &saved.heading_controller {
@@ -860,6 +964,16 @@ impl FleetSimulation {
                 controller.validate_input(input, maximum_shaft_rpm(system)?)?;
             }
         }
+        if let Some(controller) = &saved.container_controller {
+            if saved.configuration.vessel != "container-msc" || saved.heading_controller.is_none() {
+                return Err("集装箱调度恢复点的船型或版本不一致".into());
+            }
+            if controller.loading_ratio() != saved.configuration.loading_ratio.unwrap_or(0.6) {
+                return Err("集装箱调度恢复点的载荷与冻结模型不一致".into());
+            }
+            controller.validate_checkpoint(maximum_shaft_rpm(system)?, saved.controller_ticks)?;
+            if let Some(input) = &saved.input.container_speed { controller.validate_input(input, maximum_shaft_rpm(system)?)?; }
+        }
         system.validate_commands(&saved.input.actuators)?;
         system.validate_commands(&saved.held_commands)?;
         saved
@@ -870,6 +984,18 @@ impl FleetSimulation {
             return Err("恢复点的观测器配置与冻结模型不一致".into());
         }
         simulation.plant.restore_checkpoint(saved.plant)?;
+        if saved.voyage_progress.is_some() != saved.configuration.container_voyage.is_some() {
+            return Err("航次恢复点与冻结计划不一致".into());
+        }
+        if let Some(progress) = &saved.voyage_progress {
+            progress.validate_checkpoint(time_s, simulation.plant.state().position_ned, saved.paused)?;
+            if let Some(end) = &progress.termination {
+                let actual_speed = simulation.plant.relative_body_velocity()?[0];
+                if (end.final_water_speed_mps-actual_speed).abs() > 1e-8 {
+                    return Err("航次终速与实际物理状态不一致".into());
+                }
+            }
+        }
         match (&saved.configuration.berth, &saved.berth_termination) {
             (Some(berth), termination) => {
                 let clearance = simulation.plant.bow_clearance_m(berth.stop_line_north_m).ok_or("靠泊恢复点缺少船体几何")?;
@@ -906,6 +1032,8 @@ impl FleetSimulation {
         simulation.previous_error_deg = saved.previous_error_deg;
         simulation.heading_controller = saved.heading_controller;
         simulation.longitudinal_controller = saved.longitudinal_controller;
+        simulation.container_controller = saved.container_controller;
+        simulation.voyage_progress = saved.voyage_progress;
         simulation.berth_termination = saved.berth_termination;
         simulation.physics_ticks = saved.physics_ticks;
         simulation.controller_ticks = saved.controller_ticks;

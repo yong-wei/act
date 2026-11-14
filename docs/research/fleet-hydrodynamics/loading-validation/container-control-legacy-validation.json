@@ -1,0 +1,18 @@
+{
+  "schema": "act.native-session.legacy-restore-validation.v1",
+  "status": "passed",
+  "generator_sha256": "60a0c7476c43fec5087f1b1cd42d66e656bfb3c6ca306aafa109beabd83818eb",
+  "fixture_manifest_sha256": "2ea0ec3f0c547e8d831ebc6cfaadc9a5e7eb39c02ff8160afd4409d1bad0785d",
+  "source_fixture_revision": "ae293273fe",
+  "source_fixture_wasm_sha256": "a41bef345b00dca385a30527f1a191d63129b22ae09da5aef7a8e4e1b2e8a50e",
+  "restored_wasm_sha256": "a9131821c37f8934ce303b3545ceb3054702aca803da79dce9b6882d25050936",
+  "restored_model_version": "sixdof-session-v1",
+  "future_seconds": 1,
+  "future_render_frames": 60,
+  "complete_future_byte_identical_after_default_input_field": true,
+  "runtime": {
+    "node": "v26.0.0",
+    "architecture": "arm64",
+    "platform": "darwin"
+  }
+}

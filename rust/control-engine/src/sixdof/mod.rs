@@ -22,6 +22,8 @@ pub mod qtf;
 pub mod full_qtf;
 pub mod first_order_wave;
 pub mod fuel;
+pub mod container_speed_control;
+pub mod container_voyage;
 pub mod vessel_wave;
 pub mod component_drag;
 pub mod benchmark_b470;

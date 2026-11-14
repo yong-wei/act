@@ -51,31 +51,35 @@ fn fopdt(model: &ModelStructure) -> Result<(f64, f64, f64), String> {
     }
 }
 
+pub(crate) fn imc_pi_gains(model: &ModelStructure, kp_multiplier: f64, ti_multiplier: f64) -> Result<ImcPiGains, String> {
+    let (gain, time_constant, delay) = fopdt(model)?;
+    let lambda = (time_constant / 3.0).max(3.0 * delay).max(5.0);
+    let ti = time_constant * ti_multiplier;
+    let gains = ImcPiGains {
+        kp_rpm_per_mps: time_constant / (gain * (lambda + delay)) * kp_multiplier,
+        ti_s: ti,
+        lambda_s: lambda,
+        tracking_time_s: ti / 5.0,
+    };
+    if [
+        gains.kp_rpm_per_mps,
+        gains.ti_s,
+        gains.lambda_s,
+        gains.tracking_time_s,
+    ]
+    .iter()
+    .any(|x| !x.is_finite())
+        || gains.ti_s <= 0.0
+        || gains.tracking_time_s <= 0.0
+    {
+        return Err("IMC航速控制参数超出有限数值范围".into());
+    }
+    Ok(gains)
+}
+
 impl SpeedPiInput {
     pub fn gains(&self) -> Result<ImcPiGains, String> {
-        let (gain, time_constant, delay) = fopdt(&self.local_model.structure)?;
-        let lambda = (time_constant / 3.0).max(3.0 * delay).max(5.0);
-        let ti = time_constant * self.ti_multiplier;
-        let gains = ImcPiGains {
-            kp_rpm_per_mps: time_constant / (gain * (lambda + delay)) * self.kp_multiplier,
-            ti_s: ti,
-            lambda_s: lambda,
-            tracking_time_s: ti / 5.0,
-        };
-        if [
-            gains.kp_rpm_per_mps,
-            gains.ti_s,
-            gains.lambda_s,
-            gains.tracking_time_s,
-        ]
-        .iter()
-        .any(|x| !x.is_finite())
-            || gains.ti_s <= 0.0
-            || gains.tracking_time_s <= 0.0
-        {
-            return Err("IMC航速控制参数超出有限数值范围".into());
-        }
-        Ok(gains)
+        imc_pi_gains(&self.local_model.structure, self.kp_multiplier, self.ti_multiplier)
     }
 
     pub fn validate(&self, maximum_rpm: f64) -> Result<(), String> {
