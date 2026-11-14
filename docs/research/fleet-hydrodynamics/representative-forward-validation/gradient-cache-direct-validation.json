@@ -1,0 +1,120 @@
+{
+  "schema": "act.bem.gradient-cache-validation.v1",
+  "status": "passed",
+  "generator_sha256": "9b5ed0870d00ee6e0796ca5df3e10759babb72311fc57dc0d53e64db75865a2a",
+  "cache_implementation_sha256": "0a6bd89eb372379a063a4945bc1a22a1409233ed7048bb296acd24014d421a2d",
+  "capytaine_version": "2.2.1",
+  "faces": 60,
+  "forward_speed_mps": 2,
+  "initial_water_depth_m": 40,
+  "problems": 21,
+  "errors": [
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 2.680577798461884e-16,
+      "source_relative_l2": 7.976789185819162e-16
+    },
+    {
+      "force_relative_l2": 1.7942904723904776e-16,
+      "source_relative_l2": 8.219776581995271e-16
+    },
+    {
+      "force_relative_l2": 3.986436775885599e-16,
+      "source_relative_l2": 1.1277933497583679e-15
+    },
+    {
+      "force_relative_l2": 2.0456411013517456e-16,
+      "source_relative_l2": 7.774496222866103e-16
+    },
+    {
+      "force_relative_l2": 5.153863623127357e-16,
+      "source_relative_l2": 1.063120545475319e-15
+    },
+    {
+      "force_relative_l2": 4.475588640166838e-16,
+      "source_relative_l2": 1.2044271463114052e-15
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    },
+    {
+      "force_relative_l2": 0.0,
+      "source_relative_l2": 0.0
+    }
+  ],
+  "off_body_velocity_relative_l2": 0.0,
+  "depth_and_frequency_invalidation": [
+    {
+      "water_depth_m": 60,
+      "omega_rad_s": 0.8,
+      "force_relative_l2": 0.0
+    },
+    {
+      "water_depth_m": 60,
+      "omega_rad_s": 1.2,
+      "force_relative_l2": 0.0
+    }
+  ],
+  "geometry_invalidation_relative_l2": 4.288686909081373e-16,
+  "reference_seconds": 0.06604633294045925,
+  "cached_seconds": 0.01521216705441475,
+  "statistics": {
+    "hits": 18,
+    "evaluations": 3,
+    "maximum_retained_bytes": 172800,
+    "green_function_seconds": 0.006548624485731125
+  },
+  "scope": "Exact same Green-function evaluation and source contraction; bounded one-matrix cache. Vessel-grid comparison is recorded separately."
+}

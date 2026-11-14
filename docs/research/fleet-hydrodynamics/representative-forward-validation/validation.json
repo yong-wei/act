@@ -1,0 +1,445 @@
+{
+  "schema": "act.vessel.first-order-evidence.v1",
+  "fidelity": "research-nominal",
+  "generator_sha256": "f8890e3df5998f7fc11a35da30a33fc1c5ffb904090471db9f22dd40ff2a6a7a",
+  "cases": [
+    {
+      "array_prefix": "case0_",
+      "all_finite": true,
+      "dimensions": {
+        "added_mass": {
+          "dimensions": [
+            "wave_direction",
+            "omega",
+            "radiating_dof",
+            "influenced_dof"
+          ],
+          "shape": [
+            3,
+            5,
+            6,
+            6
+          ]
+        },
+        "radiation_damping": {
+          "dimensions": [
+            "wave_direction",
+            "omega",
+            "radiating_dof",
+            "influenced_dof"
+          ],
+          "shape": [
+            3,
+            5,
+            6,
+            6
+          ]
+        },
+        "excitation_force": {
+          "dimensions": [
+            "omega",
+            "wave_direction",
+            "influenced_dof"
+          ],
+          "shape": [
+            5,
+            3,
+            6
+          ]
+        },
+        "RAO": {
+          "dimensions": [
+            "forward_speed",
+            "wave_direction",
+            "omega",
+            "radiating_dof"
+          ],
+          "shape": [
+            1,
+            3,
+            5,
+            6
+          ]
+        }
+      },
+      "dof_order": [
+        "Surge",
+        "Sway",
+        "Heave",
+        "Roll",
+        "Pitch",
+        "Yaw"
+      ],
+      "raw_dataset_sha256": "545adcd32d0a21b59f5021e11f8cd1641c5037db756f51cbf35e8a6dcaba333f",
+      "provenance_sha256": "35d7e0e02e2307452746b02322cd64a44543e1aa60ff9b4a0a9dbf4bc64ed74f",
+      "provenance": {
+        "schema": "act.hydrodynamics.first-order.v1",
+        "status": "computed",
+        "fidelity": "research-nominal",
+        "solver": {
+          "version": "2.2.1",
+          "files_sha256": "27c027212eae43306b5ffba2417d0def16fd97573a5eb15640adb4d0790dab93"
+        },
+        "dependencies": {
+          "numpy": {
+            "version": "1.26.4",
+            "files_sha256": "d381c6200cef8c8bedfec8479b1540c1b16fc367723163fb2900a0318cef7d16"
+          },
+          "scipy": {
+            "version": "1.14.1",
+            "files_sha256": "c528a06c1641da3d5cc001c67b5acf1cc7ea92d56fc0b07a9aa97dc0bac43543"
+          },
+          "xarray": {
+            "version": "2024.11.0",
+            "files_sha256": "0f93427840da3cb97b0ff0c2297dcc499dd1873d008be3067957cf177262c527"
+          },
+          "h5netcdf": {
+            "version": "1.4.1",
+            "files_sha256": "618277bc0ac650e7ab229e56849a696df84820e96d4227bb2dc7179ad940028a"
+          }
+        },
+        "generator_sha256": "45f4dd6e33143c938bb9f426c1cdcba600f157181197a4e206c40cb157fe5bab",
+        "mesh_sha256": "62bcef21a011c39226c7aec5350165dcfd122d59a7d61253a4cf8a782f835bc9",
+        "output_sha256": "545adcd32d0a21b59f5021e11f8cd1641c5037db756f51cbf35e8a6dcaba333f",
+        "lid_mesh_sha256": "6f8c3a21fc5a5047b7b42a2f3eae4801e9c0e9703ceacb4fc7efb5fd8aca0f00",
+        "geometry_sha256": "761fd339b6eff4bff57c080cd2733fac425f641b93225f5f89dbe01beb95cff6",
+        "input_drift": [],
+        "resolution": {
+          "max_panel_radius_m": 11.863978370924668,
+          "underresolved_frequencies_rad_s": [
+            0.9,
+            1.5,
+            2.5
+          ]
+        },
+        "configuration": {
+          "name": "lng085-dense-lu-reference",
+          "center_of_mass_m_z_up": [
+            0.0,
+            0.0,
+            4.341925060437193
+          ],
+          "mass_kg": 116512160.0,
+          "density_kg_m3": 1025.0,
+          "water_depth_m": 40.0,
+          "forward_speed_mps": 4.0,
+          "frequencies_rad_s": [
+            0.2,
+            0.575,
+            0.9,
+            1.5,
+            2.5
+          ],
+          "headings_deg_to": [
+            0.0,
+            90.0,
+            180.0
+          ]
+        },
+        "hydrostatics": {
+          "displacement_volume_m3": 113670.39999999916,
+          "equilibrium_mass_kg": 116512159.99999915,
+          "center_of_buoyancy_m_z_up": [
+            3.318100571270402e-13,
+            -1.774128766459695e-14,
+            -5.359998814475876
+          ],
+          "stiffness": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              109413884.38655367,
+              -0.0,
+              367572259.76748776,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              -0.0,
+              5807064467.821363,
+              -1.1705851648002863e-06,
+              -0.0003792536824274827
+            ],
+            [
+              0.0,
+              0.0,
+              367572259.76748776,
+              -1.1705851648002863e-06,
+              516019283889.83765,
+              2.0278013077908437e-05
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "wet_panels": 4092
+        },
+        "checks": [
+          {
+            "scope": "forward_speed",
+            "zero_speed_passivity": "not_applicable"
+          }
+        ],
+        "validation": {
+          "independent_benchmark": "pending",
+          "mesh_convergence": "pending"
+        }
+      },
+      "failed_matrix_checks": []
+    },
+    {
+      "array_prefix": "case1_",
+      "all_finite": true,
+      "dimensions": {
+        "added_mass": {
+          "dimensions": [
+            "wave_direction",
+            "omega",
+            "radiating_dof",
+            "influenced_dof"
+          ],
+          "shape": [
+            3,
+            5,
+            6,
+            6
+          ]
+        },
+        "radiation_damping": {
+          "dimensions": [
+            "wave_direction",
+            "omega",
+            "radiating_dof",
+            "influenced_dof"
+          ],
+          "shape": [
+            3,
+            5,
+            6,
+            6
+          ]
+        },
+        "excitation_force": {
+          "dimensions": [
+            "omega",
+            "wave_direction",
+            "influenced_dof"
+          ],
+          "shape": [
+            5,
+            3,
+            6
+          ]
+        },
+        "RAO": {
+          "dimensions": [
+            "forward_speed",
+            "wave_direction",
+            "omega",
+            "radiating_dof"
+          ],
+          "shape": [
+            1,
+            3,
+            5,
+            6
+          ]
+        }
+      },
+      "dof_order": [
+        "Surge",
+        "Sway",
+        "Heave",
+        "Roll",
+        "Pitch",
+        "Yaw"
+      ],
+      "raw_dataset_sha256": "9986fa8af410829798d6039d02bf2c992545074d8c5660622132df67c29f32ce",
+      "provenance_sha256": "9db648ee675f5297f291e02b789e8792a3b525b4cac5b650f24f3a40f6fcf1f8",
+      "provenance": {
+        "schema": "act.hydrodynamics.first-order.v1",
+        "status": "computed",
+        "fidelity": "research-nominal",
+        "solver": {
+          "version": "2.2.1",
+          "files_sha256": "27c027212eae43306b5ffba2417d0def16fd97573a5eb15640adb4d0790dab93"
+        },
+        "dependencies": {
+          "numpy": {
+            "version": "1.26.4",
+            "files_sha256": "d381c6200cef8c8bedfec8479b1540c1b16fc367723163fb2900a0318cef7d16"
+          },
+          "scipy": {
+            "version": "1.14.1",
+            "files_sha256": "c528a06c1641da3d5cc001c67b5acf1cc7ea92d56fc0b07a9aa97dc0bac43543"
+          },
+          "xarray": {
+            "version": "2024.11.0",
+            "files_sha256": "0f93427840da3cb97b0ff0c2297dcc499dd1873d008be3067957cf177262c527"
+          },
+          "h5netcdf": {
+            "version": "1.4.1",
+            "files_sha256": "618277bc0ac650e7ab229e56849a696df84820e96d4227bb2dc7179ad940028a"
+          }
+        },
+        "generator_sha256": "45f4dd6e33143c938bb9f426c1cdcba600f157181197a4e206c40cb157fe5bab",
+        "mesh_sha256": "62bcef21a011c39226c7aec5350165dcfd122d59a7d61253a4cf8a782f835bc9",
+        "output_sha256": "9986fa8af410829798d6039d02bf2c992545074d8c5660622132df67c29f32ce",
+        "lid_mesh_sha256": "6f8c3a21fc5a5047b7b42a2f3eae4801e9c0e9703ceacb4fc7efb5fd8aca0f00",
+        "geometry_sha256": "761fd339b6eff4bff57c080cd2733fac425f641b93225f5f89dbe01beb95cff6",
+        "input_drift": [],
+        "resolution": {
+          "max_panel_radius_m": 11.863978370924668,
+          "underresolved_frequencies_rad_s": [
+            0.9,
+            1.5,
+            2.5
+          ]
+        },
+        "configuration": {
+          "name": "lng085-controlled-cached",
+          "center_of_mass_m_z_up": [
+            0.0,
+            0.0,
+            4.341925060437193
+          ],
+          "mass_kg": 116512160.0,
+          "density_kg_m3": 1025.0,
+          "water_depth_m": 40.0,
+          "forward_speed_mps": 4.0,
+          "frequencies_rad_s": [
+            0.2,
+            0.575,
+            0.9,
+            1.5,
+            2.5
+          ],
+          "headings_deg_to": [
+            0.0,
+            90.0,
+            180.0
+          ]
+        },
+        "hydrostatics": {
+          "displacement_volume_m3": 113670.39999999992,
+          "equilibrium_mass_kg": 116512159.99999993,
+          "center_of_buoyancy_m_z_up": [
+            3.31810057127038e-13,
+            -1.774128766459683e-14,
+            -5.359998814475841
+          ],
+          "stiffness": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              109413884.38655367,
+              -0.0,
+              367572259.76748747,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              -0.0,
+              5807064467.821328,
+              -2.3411703296005726e-06,
+              -0.00037925368242748266
+            ],
+            [
+              0.0,
+              0.0,
+              367572259.76748747,
+              -2.3411703296005726e-06,
+              516019283889.8375,
+              2.0278013077908437e-05
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "wet_panels": 4092
+        },
+        "checks": [
+          {
+            "scope": "forward_speed",
+            "zero_speed_passivity": "not_applicable"
+          }
+        ],
+        "validation": {
+          "independent_benchmark": "pending",
+          "mesh_convergence": "pending"
+        },
+        "controlled_solver": {
+          "linear_solver": "lu_decomposition",
+          "generator_sha256": "c466b629330648b39fb35d20e57c0a7e6e5f484816786f14501b091f371c4d75",
+          "validation_sha256": "44706d215424f98e27ecd553c838424d585df15e007055d539cbe7712049d5b8",
+          "gradient_cache_producer_sha256": {
+            "solve_first_order_cached.py": "3f6f5d3f2e3f705af1ed81c4381c7233bf1b42c2f2245b936ee26cfa2630b10b",
+            "cached_gradient_solver.py": "0a6bd89eb372379a063a4945bc1a22a1409233ed7048bb296acd24014d421a2d",
+            "solve_first_order_controlled.py": "c466b629330648b39fb35d20e57c0a7e6e5f484816786f14501b091f371c4d75"
+          }
+        }
+      },
+      "failed_matrix_checks": []
+    }
+  ],
+  "coefficient_axes": "Capytaine x-forward, y-port, z-up, right-handed rotation",
+  "body_frd_transform_six": [
+    1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1
+  ],
+  "not_ready": [
+    "independent vessel calibration",
+    "mesh and peak convergence",
+    "validated forward-speed radiation realization",
+    "online wave-domain consumption"
+  ],
+  "coefficient_arrays_sha256": "bc95a661d9a58f15dd04ca09bad8588c8c054658c0ee3e58f0141cfdd090f446"
+}

@@ -148,6 +148,8 @@ rtk proxy cargo run --manifest-path rust/control-engine/Cargo.toml --release --e
 
 ## 981完整差频贡献求解
 
+2026-11-14用户审定教学精度范围后，93频率/17波向完整贡献主求解及两组981全频带前进速度求解已终止。已完成的差频、辐射和代表前进速度结果保持冻结，保留误差、贡献范围和适用域。完整自由面/渐近项、加密与全域计算列入后续研究。
+
 `prepare_semisub_full_qtf_case.py`从同一船体生成含四个实际立柱开孔的对称自由面，冻结外半径200m、3080个自由面面元、129个渐近积分点和128个Bessel模态。自由面面积闭合、边界和镜面对称检查与实际网格哈希共同保存。
 
 `semisub-qtf-full-contributions-probe/`保存11频率、3波向的实际六阶段求解。DUOK、HASBO、HASFS和ASYMP四项均为有限值，总载荷与独立分项重排/求和的六通道相对差为1.01e−7至1.57e−7，原始文本舍入残差保留。该网格用于完整贡献管道验证，93频率、17波向的正式网格已另行启动。精度继续标记research-nominal。
@@ -165,3 +167,9 @@ rtk proxy node docs/research/fleet-hydrodynamics/validate_container_fuel_session
 ```
 
 六项直接回归、Rust全量446项、前端4项及类型检查通过。五种实际WASM会话各运行12秒并执行停机/重启，独立120Hz曲线重算和梯形积分相对差最大1.56e−7。五组100频率完整SciPy与原生六维响应对照、参数身份、未来/暂停/重置及旧v1完整未来字节均通过。证据位于`loading-validation/container-v2-*`，速度调度、航次评价和正常页面继续既定OpenSpec任务。
+
+## 教学数值范围冻结
+
+`teaching-accuracy-stop-20261114.json`保存本轮范围调整及已核验退出的计算任务。`representative-forward-validation/`冻结已经完成的LNG .85填充、40m水深、4m/s、五频率/三波向实际数据。缓存生产器与原密集LU的A/B、激励、RAO相对差为1.09e−15至6.94e−15，原始数组和来源均保存。GMRES比较未完成，失败证明保留。
+
+后续验收以七船代表操纵、环境、饱和与故障场景的响应方向、时间尺度、幅值量级、约束、能量收支和可复现性为依据。达到OpenSpec声明的教学验收后转入页面及实验流程。只有具体反例表明简化改变教学结论或控制策略评价时，才针对该反例提高精度。
