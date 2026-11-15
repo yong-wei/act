@@ -42,12 +42,12 @@ async function loadAuth(env: Record<string, string>) {
       process.env[key] = env[key];
     }
   }
-  const module = await import('@/lib/auth');
+  const authModule = await import('@/lib/auth');
   for (const [key, value] of Object.entries(previous)) {
     if (value === undefined) delete process.env[key];
     else process.env[key] = value;
   }
-  return module;
+  return authModule;
 }
 
 const OIDC_ENV = {
