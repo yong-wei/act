@@ -2,7 +2,7 @@ import {config} from 'dotenv';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
 import bcrypt from 'bcryptjs';
-import {chromium,expect,type BrowserContext,type Page} from '@playwright/test';
+import {chromium,expect,type BrowserContext,type Page,type Request as PlaywrightRequest} from '@playwright/test';
 import {prisma} from '@/lib/prisma';
 import {readSimulationTraceChunk} from '@/lib/data-governance/simulation-trace-cas';
 import {vesselRunStorageSummary} from '@/features/ilab/course-evidence-service';
@@ -11,9 +11,10 @@ config({path:'.env.local',quiet:true});
 config({quiet:true});
 const origin=process.env.VESSEL_BROWSER_ORIGIN ?? 'http://127.0.0.1:3002';
 const courseKey=process.env.VESSEL_RECOVERY_COURSE ?? 'cruise';
-assert(['cruise','container','drilling','destroyer'].includes(courseKey));
-const experimentKey={cruise:'cruise-comfort',container:'container-voyage',drilling:'drilling-dp',destroyer:'destroyer'}[courseKey]!;
-const predictionLabel=courseKey==='destroyer' ? '运行前预测与理由' : '运行前预测与方案依据';
+assert(['cruise','container','drilling','destroyer','lng'].includes(courseKey));
+const experimentKey={cruise:'cruise-comfort',container:'container-voyage',drilling:'drilling-dp',destroyer:'destroyer',lng:'lng-berthing'}[courseKey]!;
+const predictionLabel=courseKey==='destroyer' ? '运行前预测与理由'
+  : courseKey==='lng' ? '运行或分析前的预测' : '运行前预测与方案依据';
 const storageKey=courseKey==='destroyer' ? 'act-destroyer-origin' : `act-vessel-origin:${experimentKey}`;
 assert(['127.0.0.1','localhost'].includes(new URL(origin).hostname));
 assert(['127.0.0.1','localhost'].includes(new URL(process.env.DATABASE_URL!).hostname));
@@ -100,14 +101,46 @@ try {
   assert.equal(saved.completedAt,null);
   const remote=await readSimulationTraceChunk<{checkpoint:string}>(summary.lastCheckpointReference);
   assert.equal(remote.checkpoint,local.checkpoint);
+  if (courseKey!=='destroyer') {
+    const auditOrigin=await page.evaluate((key)=>sessionStorage.getItem(key),storageKey);
+    assert(auditOrigin);
+    const response=await page.request.get(`${origin}/api/ilab/vessel/session/${encodeURIComponent(auditOrigin)}`);
+    assert.equal(response.status(),200);
+    const audit=await response.json();
+    assert.equal(audit.auditTelemetry.controlSampleCadenceS,.05);
+    assert.equal(audit.auditTelemetry.totalSamplePoints,summary.controlCount);
+    assert.equal(audit.auditTelemetry.persistedChunkCount,summary.chunkCount);
+    if (['cruise','container','drilling'].includes(courseKey)) {
+      const tourWrites:string[]=[];
+      const capture=(request:PlaywrightRequest)=>{
+        if (['POST','PATCH','PUT','DELETE'].includes(request.method()) && new URL(request.url()).pathname.startsWith('/api/ilab/')) {
+          tourWrites.push(new URL(request.url()).pathname);
+        }
+      };
+      await page.locator('[data-highlight-tour-toggle]').click();
+      await page.locator('[data-highlight-tour-banner]').waitFor();
+      const expectedNode={cruise:'node-mismatch',container:'node-container',drilling:'node-drilling'}[courseKey]!;
+      await expect(page.locator(`button[data-tour-node-pill="${expectedNode}"]`)).toBeVisible();
+      page.on('request',capture);
+      await page.getByLabel(predictionLabel,{exact:true}).fill('只读导览临时输入，不应进入本人实验。');
+      await expect(page.getByRole('button',{name:'导览只读锁定',exact:true})).toBeDisabled();
+      await page.waitForTimeout(1600);
+      page.off('request',capture);
+      assert.deepEqual(tourWrites,[],'Read-only tour must not write formal experiment state');
+      await page.locator('[data-highlight-tour-exit]').click();
+      await page.locator('[data-highlight-tour-banner]').waitFor({state:'hidden'});
+      await expect(page.getByLabel(predictionLabel,{exact:true})).toHaveValue(prediction);
+      const returnedFromTour=await activeLocalRun(page);
+      assert.equal(returnedFromTour.id,local.id);
+      assert.equal(returnedFromTour.checkpoint,local.checkpoint);
+      assert.equal(await page.evaluate((key)=>sessionStorage.getItem(key),storageKey),auditOrigin);
+    }
+  }
   console.log(JSON.stringify({courseKey,phase:'first-browser-saved',timeS:local.lastTimeS}));
 
   second=await browser.newContext({viewport:{width:1801,height:867}});
   const recoveredPage=await enter(second);
-  await recoveredPage.waitForFunction((expected)=>{
-    const text=document.querySelector<HTMLTextAreaElement>('[aria-label^="运行前预测与"]')?.value;
-    return text===expected;
-  },prediction);
+  await expect(recoveredPage.getByLabel(predictionLabel,{exact:true})).toHaveValue(prediction);
   const recovered=await activeLocalRun(recoveredPage);
   assert.equal(recovered.id,local.id);
   assert.equal(recovered.lastTimeS,local.lastTimeS);
@@ -138,11 +171,11 @@ try {
   await recoveredPage.getByRole('tab',{name:'评估',exact:true}).click();
   await recoveredPage.getByRole('button',{name:'开启新一轮实验',exact:true}).click();
   await recoveredPage.getByRole('tab',{name:'控制',exact:true}).click();
-  await recoveredPage.waitForFunction(({previous,key})=>{
+  await recoveredPage.waitForFunction(({previous,key,label})=>{
     const current=sessionStorage.getItem(key);
-    const answer=document.querySelector<HTMLTextAreaElement>('[aria-label^="运行前预测与"]');
+    const answer=document.querySelector<HTMLTextAreaElement>(`textarea[aria-label="${label}"]`);
     return current && current!==previous && answer?.value==='';
-  },{previous:oldOrigin,key:storageKey});
+  },{previous:oldOrigin,key:storageKey,label:predictionLabel});
   const newOrigin=await recoveredPage.evaluate((key)=>sessionStorage.getItem(key),storageKey);
   assert(newOrigin && newOrigin!==oldOrigin);
   await recoveredPage.getByLabel(predictionLabel,{exact:true}).fill('New round B prediction');
@@ -157,7 +190,7 @@ try {
     assert(oldScope); await selector.selectOption(oldScope);
   }
   await recoveredPage.getByRole('tab',{name:'控制',exact:true}).click();
-  await recoveredPage.waitForFunction(()=>document.querySelector<HTMLTextAreaElement>('[aria-label^="运行前预测与"]')?.value!=='New round B prediction');
+  await expect(recoveredPage.getByLabel(predictionLabel,{exact:true})).not.toHaveValue('New round B prediction');
   await recoveredPage.getByLabel(courseKey==='destroyer' ? '证据解释与适用边界' : predictionLabel,{exact:true}).fill('Historical round A edited');
   await recoveredPage.waitForTimeout(1500);
   const after=await prisma.ilabExperimentRun.findUniqueOrThrow({where:{originId:newOrigin}});
@@ -167,13 +200,16 @@ try {
   assert.equal(historicalAnswers[courseKey==='destroyer' ? 'interpretation' : 'prediction'],'Historical round A edited');
   third=await browser.newContext({viewport:{width:1801,height:867}});
   const emptyRoundPage=await enter(third);
-  await emptyRoundPage.waitForFunction(()=>{
-    const answer=document.querySelector<HTMLTextAreaElement>('[aria-label^="运行前预测与"]');
-    return answer && !answer.matches(':disabled');
-  });
+  await expect(emptyRoundPage.getByLabel(predictionLabel,{exact:true})).toBeEnabled();
   assert.equal(await emptyRoundPage.getByLabel(predictionLabel,{exact:true}).inputValue(),'New round B prediction');
   assert.equal(await emptyRoundPage.evaluate((key)=>sessionStorage.getItem(key),storageKey),newOrigin);
   assert(!(await activeLocalRun(emptyRoundPage)),'An empty new round must not hydrate the earlier physical run');
+  if (courseKey!=='destroyer') {
+    const response=await emptyRoundPage.request.get(`${origin}/api/ilab/vessel/session/${encodeURIComponent(newOrigin)}`);
+    assert.equal(response.status(),200);
+    const body=await response.json();
+    assert.equal(body.auditTelemetry.totalSamplePoints,0,'New-round audit must exclude historical records');
+  }
   if(courseKey==='cruise') {
     await recoveredPage.close();
     const branchPage=await second.newPage();debugPage=branchPage;

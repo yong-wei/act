@@ -114,6 +114,25 @@ import {
   Step20EvidenceWorkbench,
 } from '../experiments/step20-evidence-workbench';
 import { IlabTelemetryDrawer } from '../experiments/ilab-telemetry-inspector';
+
+it('审计抽屉使用真实控制采样数及已落库分块数', () => {
+  const telemetry = {
+    ...buildAuditTelemetry({
+      originId: 'cruise_test_9001', uploadMode: 'local-only', uploadStatus: 'pending',
+      completedStepCount: 0, totalSamplePoints: 1200, ledgerValue: null,
+    }),
+    controlSampleCadenceS: .05,
+    persistedChunkCount: 10,
+  };
+  const samples = Array.from({length: 60}, (_, time) => ({time, values: {heading: 0}}));
+  const html = renderToStaticMarkup(
+    <IlabTelemetryDrawer auditTelemetry={telemetry} doneSeqs={new Set()}
+      samples={samples} models={[]} controlSampleCount={1200} />,
+  );
+  expect(html).toContain('本轮20Hz采样进度');
+  expect(html).toContain('1200');
+  expect(html).toContain('10 块');
+});
 import { findHighlightTourNode, HIGHLIGHT_TOUR_NODES } from '../experiments/highlight-tour';
 import { VesselCourseEvidencePanel, VesselCurve, VesselStepForm } from '../simulations/vessel-experiment-panels';
 import { VESSEL_COURSE_VERSION } from '../experiments/destroyer-course';
