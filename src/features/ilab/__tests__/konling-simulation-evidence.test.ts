@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ModelMessage } from 'ai';
 import type { VesselTracePoint } from '@/features/simulations/run-evidence';
 
 const mocks = vi.hoisted(() => ({
@@ -9,7 +10,7 @@ vi.mock('@/lib/prisma', () => ({ prisma: {
   stepSubmissionAttempt: { findMany: mocks.attempts }, simulationRun: { findFirst: mocks.run },
 } }));
 vi.mock('@/lib/data-governance/simulation-trace-cas', () => ({ readSimulationTraceChunk: mocks.read }));
-import { formatSimulationKonlingEvidence, loadSimulationKonlingEvidence } from '../adapters/konling-simulation-evidence';
+import { attachSimulationKonlingContext, formatSimulationKonlingEvidence, loadSimulationKonlingEvidence } from '../adapters/konling-simulation-evidence';
 
 const point = {
   timeS: 60, command: { headingDeg: 12 },
@@ -74,11 +75,21 @@ describe('控灵读取本次本人仿真证据', () => {
     expect(mocks.report).not.toHaveBeenCalled();
   });
 
-  it('新实验轮次没有报告时仅提供当前目标', async () => {
+  it('首份报告生成前提供已保存的操作步骤和当前目标', async () => {
     mocks.report.mockResolvedValue(null);
-    expect(await loadSimulationKonlingEvidence('owner', 'cruise-comfort-experiment', 'cruise-comfort-step-2')).toContain('本轮尚无已保存');
+    const text = await loadSimulationKonlingEvidence('owner', 'cruise-comfort-experiment', 'cruise-comfort-step-2');
+    expect(text).toContain('本轮尚无已保存');
+    expect(text).toContain('当前操作步骤为第3步');
     expect(mocks.run).not.toHaveBeenCalled();
     expect(mocks.read).not.toHaveBeenCalled();
+  });
+
+  it('没有已保存操作步骤时明确其状态，同时标明当前提问步骤', async () => {
+    mocks.session.mockResolvedValue(null);
+    const text = await loadSimulationKonlingEvidence('owner', 'container-voyage-experiment', 'container-voyage-step-2');
+    expect(text).toContain('本页船舶实验第2步');
+    expect(text).toContain('服务端尚未保存当前操作步骤');
+    expect(text).not.toContain('当前操作步骤为第2步');
   });
 
   it('没有本步采样时仍注入服务端步骤机理与实际坐标约定', async () => {
@@ -97,5 +108,51 @@ describe('控灵读取本次本人仿真证据', () => {
     const text = await loadSimulationKonlingEvidence('owner', 'cruise-comfort-experiment', 'cruise-comfort-step-2');
     expect(text).toContain('本步采样暂时无法读取');
     expect(text).not.toContain('private-storage-detail');
+  });
+
+  it('在跨船历史后的本次问题中保留当前页面资料，并通过模型系统消息过滤', async () => {
+    mocks.run.mockResolvedValue(null);
+    const context = await loadSimulationKonlingEvidence('owner', 'container-voyage-experiment', 'container-voyage-step-1');
+    const history: ModelMessage[] = [
+      { role: 'user', content: '我已进入邮轮第2步，怎样辨识横摇衰减？' },
+      { role: 'assistant', content: '当前为第2步：辨识横摇衰减。' },
+      { role: 'user', content: '我现在正在查看哪艘船的第几步，目标是什么？' },
+    ];
+    const before = structuredClone(history);
+    const projected = attachSimulationKonlingContext(history, context)
+      .filter((message) => message.role !== 'system');
+
+    expect(projected.slice(0, 2)).toEqual(history.slice(0, 2));
+    expect(projected.at(-1)).toEqual({ role: 'user', content: [
+      { type: 'text', text: history[2].content },
+      { type: 'text', text: expect.stringContaining('第 1 步：区分瞬时与累计量') },
+    ] });
+    expect(JSON.stringify(projected.at(-1))).toContain('集装箱船航速、准点与燃油');
+    expect(JSON.stringify(projected.at(-1))).toContain('当前操作步骤为第3步');
+    expect(history).toEqual(before);
+  });
+
+  it('保留当前问题的图片和文字，只为最后一个用户回合附加页面资料', () => {
+    const history: ModelMessage[] = [
+      { role: 'user', content: '前一次问题' },
+      { role: 'assistant', content: '前一次回答' },
+      { role: 'user', content: [
+        { type: 'text', text: '请分析当前曲线' },
+        { type: 'image', image: new URL('https://example.com/curve.png') },
+      ] },
+    ];
+    const projected = attachSimulationKonlingContext(history, '当前为981第2步。');
+    expect(projected.slice(0, 2)).toEqual(history.slice(0, 2));
+    expect(projected[2].content).toEqual([
+      ...(history[2].content as unknown[]),
+      { type: 'text', text: expect.stringContaining('当前为981第2步。') },
+    ]);
+    expect((history[2].content as unknown[])).toHaveLength(2);
+  });
+
+  it('没有仿真资料或用户问题时保持既有模型输入', () => {
+    const history: ModelMessage[] = [{ role: 'assistant', content: '已有回答' }];
+    expect(attachSimulationKonlingContext(history, '')).toBe(history);
+    expect(attachSimulationKonlingContext(history, '当前页面')).toEqual(history);
   });
 });
