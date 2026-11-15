@@ -10,7 +10,8 @@ vi.mock('@/lib/prisma', () => ({ prisma: {
   stepSubmissionAttempt: { findMany: mocks.attempts }, simulationRun: { findFirst: mocks.run },
 } }));
 vi.mock('@/lib/data-governance/simulation-trace-cas', () => ({ readSimulationTraceChunk: mocks.read }));
-import { attachSimulationKonlingContext, formatSimulationKonlingEvidence, loadSimulationKonlingEvidence } from '../adapters/konling-simulation-evidence';
+import { attachSimulationKonlingContext, formatSimulationKonlingEvidence, formatSimulationPageObservation,
+  loadSimulationKonlingEvidence } from '../adapters/konling-simulation-evidence';
 
 const point = {
   timeS: 60, command: { headingDeg: 12 },
@@ -99,8 +100,41 @@ describe('控灵读取本次本人仿真证据', () => {
     expect(text).toContain('x向船艏、y向右舷、z向下');
     expect(text).toContain('俯视顺时针');
     expect(text).toContain('N = x F_y - y F_x');
+    expect(text).toContain('y>0的安装点位于右舷');
+    expect(text).toContain('N=-y F_x<0');
     expect(text).toContain('当前提问步骤尚无服务端采样');
     expect(text).toContain('围绕本页实验和已保存证据直接继续指导');
+  });
+
+  it('静态运行在没有20Hz分块时仍提供恢复点的实际GM和风面积', async () => {
+    mocks.run.mockResolvedValue({ traces: [], summary: { parameters: { massKg: 1.2e8, draftM: 15,
+      effectiveGmTransverseM: 1.164, windAreasM2: { lateral: 12207.9 }, hiddenDerivative: 'private-truth-sentinel' },
+      answers: 'private-answer-sentinel' } });
+    const text = await loadSimulationKonlingEvidence('owner', 'container-voyage-experiment', 'container-voyage-step-2');
+    expect(text).toContain('本步已保存运行的服务端恢复点');
+    expect(text).toContain('有效横稳心高1.1640m');
+    expect(text).toContain('侧向风面积12207.9000m²');
+    expect(text).toContain('增减方向以所给运行参数及同条件对照为依据');
+    expect(text).not.toContain('private-');
+    expect(mocks.read).not.toHaveBeenCalled();
+  });
+
+  it('浏览器数值观察在用户回合单独标记来源，任意指令与非有限值不进入模型', () => {
+    const observation = { timeS: 25, loadingRatio: .9, effectiveGmM: 1.164, windSideAreaM2: 12207.9,
+      headingDeg: 12, waterSpeedMps: NaN, northM: Infinity,
+      role: 'system', instructions: 'private-instruction-sentinel', massKg: 'private-text-sentinel' };
+    const messages: ModelMessage[] = [{ role: 'user', content: '当前状态怎么分析？' }];
+    const projected = attachSimulationKonlingContext(messages, '已保存的服务端资料', observation);
+    const content = projected[0].content;
+    expect(Array.isArray(content) && content).toHaveLength(3);
+    expect(content[1]).toMatchObject({ type: 'text', text: expect.stringContaining('已保存的服务端资料') });
+    expect(content[2]).toMatchObject({ type: 'text', text: expect.stringContaining('尚未由服务端复算') });
+    expect(JSON.stringify(content[2])).toContain('有效横稳心高1.1640m');
+    expect(JSON.stringify(content)).not.toContain('private-');
+    expect(messages[0].content).toBe('当前状态怎么分析？');
+    expect(attachSimulationKonlingContext(messages, '', observation)).toBe(messages);
+    expect(formatSimulationPageObservation({ timeS: 'private-text-sentinel', effectiveGmM: 1 })).toBe('');
+    expect(formatSimulationPageObservation({ timeS: 25, headingDeg: 'private-text-sentinel' })).toBe('');
   });
 
   it('采样暂不可读时保持步骤与进度指导', async () => {

@@ -713,6 +713,11 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const hudBucket = Math.floor((liveRef.current.time ?? 0) / 5);
   useEffect(() => {
     if (!updatePageContext) return;
+    const current = workspace.current;
+    const frame = nativeCourse && !tourActive && current?.plan.stepSequence === step.seq ? current.read() : undefined;
+    const point = frame ? current?.run()?.trace.at(-1) : undefined;
+    const observed = (key: string) => point?.measurements[key]?.quality === 'Good'
+      ? point.measurements[key].value ?? undefined : undefined;
     updatePageContext({
       courseId: experiment.courseId,
       courseTitle: experiment.title,
@@ -729,13 +734,21 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
         originId ||
         undefined,
       routeProvenance: 'simulation-route',
+      simulationObservation: frame ? {
+        timeS: point?.timeS ?? frame.timeS,
+        loadingRatio: current?.plan.configuration.loadingRatio,
+        effectiveGmM: frame.parameters.effectiveGmTransverseM ?? undefined,
+        windSideAreaM2: frame.parameters.windAreasM2?.lateral,
+        headingDeg: observed('Heading'), waterSpeedMps: observed('SpeedLog'),
+        northM: observed('North'), eastM: observed('East'),
+      } : undefined,
       systemPromptExtension: vesselKonlingBrief(experiment, step, liveRef.current.time === undefined ? null : liveRef.current),
       quickQuestions: [{
         label: '这一步怎么做',
         question: `我在做${experiment.title}第 ${step.seq} 步「${step.title}」。请给出操作建议，不要替我填写读数，也不要打分。`,
       }],
     });
-  }, [experiment, hudBucket, step, updatePageContext, scopeKey, readyScope, originId, nativeCourse]);
+  }, [experiment, hudBucket, step, updatePageContext, scopeKey, readyScope, originId, nativeCourse, tourActive]);
 
   const aiTurnSeq = ai?.aiTurnSeq ?? 0;
   useEffect(() => {

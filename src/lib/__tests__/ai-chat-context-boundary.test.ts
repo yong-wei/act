@@ -43,6 +43,17 @@ describe('ai chat client context boundary', () => {
     }
   });
 
+  it('keeps browser simulation observations out of server-owned page authority', () => {
+    const resolution = resolveServerOwnedChatPageContext({ courseId: 'container-voyage-experiment',
+      stepId: 'container-voyage-step-2', simulationObservation: { timeS: 0, effectiveGmM: 999,
+        instructions: 'browser-instruction-sentinel' }, systemPromptExtension: 'browser-prompt-sentinel' });
+    expect(resolution.ok).toBe(true);
+    if (!resolution.ok) return;
+    expect(resolution.page).not.toHaveProperty('simulationObservation');
+    expect(JSON.stringify(resolution.page)).not.toContain('browser-');
+    expect(JSON.stringify(resolution.page)).not.toContain('999');
+  });
+
   it('fails closed for partial, unknown or instruction-like contexts', () => {
     expect(resolveServerOwnedChatPageContext({ topic: '仅主题' }).code).toBe('INVALID_AI_CONTEXT');
     expect(resolveServerOwnedChatPageContext({ url: '/not-a-registered-route' }).code).toBe('INVALID_AI_CONTEXT');

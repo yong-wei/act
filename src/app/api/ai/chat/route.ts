@@ -1027,6 +1027,7 @@ export async function POST(request: Request) {
     const frozenModelMessages = attachSimulationKonlingContext(
       (await toModelMessages(uiMessages)).filter((message) => message.role !== 'system'),
       simulationTurnContext,
+      pageContext?.simulationObservation,
     );
     const effectiveUserMessage = [...messages].reverse().find((message) => message.role === 'user');
     const precomputedMath = effectiveUserMessage
