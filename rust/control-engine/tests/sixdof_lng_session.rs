@@ -368,3 +368,59 @@ fn earlier_lng_initial_checkpoints_gain_empty_statistics_and_running_ones_keep_m
     assert!(frame(&restored)["fineStepMetrics"]["values"]["lng"].is_null());
     assert_eq!(frame(&restored)["physicsTicks"],72);
 }
+
+#[test]
+fn current_teaching_pack_keeps_coasting_and_reverse_braking_physical_and_recoverable() {
+    let mut results = Vec::new();
+    for reverse_fraction in [0.0, 0.3, 0.6] {
+        let mut simulation = FleetSimulation::new(SessionConfiguration {
+            parameter_version: "research-nominal-v3".into(),
+            initial_water_speed_mps: Some(4.0),
+            course_evidence: Some(control_engine::sixdof::course_evidence::CourseEvidenceConfiguration {
+                roll_warning_deg: 8.0,
+            }),
+            ..configuration()
+        }).unwrap();
+        for _ in 0..20 {
+            simulation.advance(1.0, None).unwrap();
+        }
+        let before = frame(&simulation);
+        let initial_shaft = before["truth"]["actuator_states"]["propeller_shaft_speed_rad_s"][0]
+            .as_f64().unwrap();
+        let rated_rpm = before["parameters"]["shaftConfigurations"][0]["ratedRpm"].as_f64().unwrap();
+        let mut input = simulation.input().clone();
+        for shaft in &mut input.actuators.shafts {
+            if reverse_fraction == 0.0 {
+                shaft.motor_torque_override_nm = Some(0.0);
+            } else {
+                shaft.speed_reference_rad_s = -rated_rpm * std::f64::consts::PI / 30.0 * reverse_fraction;
+            }
+        }
+        simulation.advance(0.05, Some(input)).unwrap();
+        let first = frame(&simulation);
+        let first_shaft = first["truth"]["actuator_states"]["propeller_shaft_speed_rad_s"][0]
+            .as_f64().unwrap();
+        assert!(first_shaft > 0.0, "A reversal request must retain shaft inertia");
+        assert!((first_shaft - initial_shaft).abs() < initial_shaft * 0.1);
+        for _ in 0..100 {
+            simulation.advance(1.0, None).unwrap();
+        }
+        let actual = frame(&simulation);
+        let metrics = &actual["fineStepMetrics"]["values"];
+        assert_eq!(metrics["shaftPowerViolationS"], 0.0);
+        assert_eq!(metrics["shaftSpeedViolationS"], 0.0);
+        assert!(metrics["positiveMotorWorkJ"].as_f64().unwrap().is_finite());
+        let distance = actual["truth"]["position_ned"][0].as_f64().unwrap();
+        let speed = actual["waterVelocityBody"][0].as_f64().unwrap();
+        assert!(distance > 0.0 && speed < 4.0);
+        let saved = simulation.snapshot_json().unwrap();
+        let mut restored = FleetSimulation::from_snapshot_json(&saved).unwrap();
+        simulation.advance(1.0, None).unwrap();
+        restored.advance(1.0, None).unwrap();
+        assert_eq!(simulation.snapshot_json().unwrap(), restored.snapshot_json().unwrap());
+        results.push((distance, speed));
+    }
+    assert!(results[0].0 > results[1].0 && results[1].0 > results[2].0,
+        "The same representative initial state must retain the coasting/reverse braking order: {results:?}");
+    println!("LNG current-pack braking representative results {results:?}");
+}
