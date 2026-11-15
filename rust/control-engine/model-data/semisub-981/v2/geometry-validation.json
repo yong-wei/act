@@ -1,0 +1,70 @@
+{
+  "schema": "act.semisub.geometry.validation.v1",
+  "generator_sha256": "93521d1edb6358ca3e13bcd142300bc452d1c02ab63d42b0734d73fd777082b2",
+  "capytaine_version": "2.2.1",
+  "max_edge_m": 5.0,
+  "wet_panels": 688,
+  "lid_panels": 96,
+  "volume_relative_error": 0.0,
+  "hydrostatic_stiffness_diagonal_relative_error": [
+    0.0,
+    0.020193854568856057,
+    0.006337135614702336
+  ],
+  "capytaine_stiffness_si": [
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      16088400.0,
+      -0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      -0.0,
+      1020687479.0624985,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      5255543999.999998,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  ],
+  "output_sha256": {
+    "geometry.json": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+    "hull.dat": "6fc7639e520e3815a0ff761a42b54d72ae71250e5e0112f9f488022c095be7e9",
+    "lid.dat": "bfd0b0b9617bc4810f166dcfd593b629b9b7fa24f258041c4230f78497c9c3e7",
+    "nemoh-body.dat": "5a4ed96f9f7dd41637e03b4508f48b50b60b878206407dcbf353d75eec636c3b"
+  }
+}

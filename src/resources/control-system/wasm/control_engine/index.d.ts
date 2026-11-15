@@ -1,6 +1,19 @@
 /* tslint:disable */
 /* eslint-disable */
 
+export class VesselSimulationSession {
+    free(): void;
+    [Symbol.dispose](): void;
+    advance(seconds: number, input_json: string): string;
+    constructor(configuration_json: string);
+    read(): string;
+    reset(): void;
+    restore(snapshot: string): void;
+    setPaused(paused: boolean): void;
+    snapshot(): string;
+    static withWaveTables(configuration_json: string, first_metadata: string, first_bytes: Uint8Array, second_metadata: string, second_bytes: Uint8Array): VesselSimulationSession;
+}
+
 export function compute_analysis(request_json: string): string;
 
 export function compute_nonlinear_analysis(request_json: string): string;
@@ -15,11 +28,20 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly __wbg_vesselsimulationsession_free: (a: number, b: number) => void;
     readonly compute_analysis: (a: number, b: number) => [number, number, number, number];
     readonly compute_nonlinear_analysis: (a: number, b: number) => [number, number, number, number];
     readonly compute_rl_training: (a: number, b: number) => [number, number, number, number];
     readonly compute_simulation_step: (a: number, b: number) => [number, number, number, number];
     readonly compute_virtual_simulation_step: (a: number, b: number) => [number, number, number, number];
+    readonly vesselsimulationsession_advance: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly vesselsimulationsession_new: (a: number, b: number) => [number, number, number];
+    readonly vesselsimulationsession_read: (a: number) => [number, number, number, number];
+    readonly vesselsimulationsession_reset: (a: number) => [number, number];
+    readonly vesselsimulationsession_restore: (a: number, b: number, c: number) => [number, number];
+    readonly vesselsimulationsession_setPaused: (a: number, b: number) => void;
+    readonly vesselsimulationsession_snapshot: (a: number) => [number, number, number, number];
+    readonly vesselsimulationsession_withWaveTables: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

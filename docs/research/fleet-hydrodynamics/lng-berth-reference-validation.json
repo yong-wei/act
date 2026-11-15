@@ -1,0 +1,818 @@
+{
+  "schema": "act.lng-berth-reference.v1",
+  "generatorSha256": "c10fa4f060dea2acb68691d413ce905e284b8c6d49d0041f4d4d0db38864cfd5",
+  "wasmSha256": "160e2845e6fc18c2fff88cff3f05a04c8bb8b3a8470e82ef7e9d550026f599fd",
+  "referenceModelSha256": "b340bf3821f29e5ca18892862f9a6475df1321d1ee6872eb0622a1cab369afc3",
+  "authorship": "Automated acceptance fixture using the model identified through the original LNG page.",
+  "maximumDurationS": 1200,
+  "liquidMetricCadenceHz": 120,
+  "controller": {
+    "localModel": {
+      "structure": {
+        "delay_s": 1,
+        "k": 0.08123569611806045,
+        "kind": "fopdt",
+        "t_s": 213.82972294140308
+      },
+      "speedMps": 4,
+      "shaftReferenceRpm": 49.68813624189718
+    },
+    "referenceMps": 4,
+    "kpMultiplier": 1,
+    "tiMultiplier": 1,
+    "antiWindup": true,
+    "smithEnabled": false,
+    "filterTauS": 0.2,
+    "additionalCommandDelayS": 0
+  },
+  "speedPlan": {
+    "brakingDistanceM": 1200,
+    "nodes": [
+      {
+        "distanceM": 600,
+        "speedMps": 2
+      },
+      {
+        "distanceM": 30,
+        "speedMps": 0
+      }
+    ]
+  },
+  "cases": {
+    "calm-student-finish": {
+      "status": "passed",
+      "configuration": {
+        "vessel": "lng-changheng",
+        "parameterVersion": "research-nominal-v3",
+        "loadingRatio": 0.85,
+        "initialWaterSpeedMps": 4,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          0,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106,
+        "courseEvidence": {
+          "rollWarningDeg": 8
+        },
+        "waterDepthM": 40,
+        "berth": {
+          "stopLineNorthM": 0,
+          "initialBowDistanceM": 1500
+        }
+      },
+      "input": {
+        "actuators": {
+          "shafts": [
+            {
+              "azimuth_jammed": false,
+              "azimuth_rad": 0,
+              "drive_cut": false,
+              "motor_torque_override_nm": null,
+              "speed_reference_rad_s": 5.203329459603765
+            },
+            {
+              "azimuth_jammed": false,
+              "azimuth_rad": 0,
+              "drive_cut": false,
+              "motor_torque_override_nm": null,
+              "speed_reference_rad_s": 5.203329459603765
+            }
+          ],
+          "surfaces": [
+            {
+              "angle_rad": 0,
+              "enabled": true,
+              "jammed": false
+            },
+            {
+              "angle_rad": 0,
+              "enabled": true,
+              "jammed": false
+            }
+          ]
+        },
+        "berthPlan": {
+          "brakingDistanceM": 1200,
+          "nodes": [
+            {
+              "distanceM": 600,
+              "speedMps": 2
+            },
+            {
+              "distanceM": 30,
+              "speedMps": 0
+            }
+          ]
+        },
+        "controlMode": "pd",
+        "derivativeFilterTauS": 0.2,
+        "feedback": "measurement",
+        "longitudinal": {
+          "additionalCommandDelayS": 0,
+          "antiWindup": true,
+          "filterTauS": 0.2,
+          "kpMultiplier": 1,
+          "localModel": {
+            "shaftReferenceRpm": 49.68813624189718,
+            "speedMps": 4,
+            "structure": {
+              "delay_s": 1,
+              "k": 0.08123569611806045,
+              "kind": "fopdt",
+              "t_s": 213.82972294140308
+            }
+          },
+          "referenceMps": 4,
+          "smithEnabled": false,
+          "tiMultiplier": 1
+        },
+        "pid": {
+          "kd": 20,
+          "ki": 0,
+          "kp": 1.5
+        },
+        "targetHeadingDeg": 0
+      },
+      "timeS": 584,
+      "conditions": {
+        "bowDistance": true,
+        "longitudinalGroundSpeed": true,
+        "final60sLateral": true,
+        "finalHeading": true,
+        "liquidDomain": true
+      },
+      "fineStepMetrics": {
+        "lng": {
+          "cornerHeightSquaredIntegralM2S": 0.12564749173131687,
+          "final60sLateralMaximumM": 2.194806036963177e-13,
+          "finalBowClearanceM": 17.454403534033702,
+          "finalHeadingDeg": -6.042905825049882e-14,
+          "finalNorthGroundSpeedMps": 0.19667446369254077,
+          "lateralWindowDurationS": 60,
+          "liquidDepthM": 22.099999999999998,
+          "maximumCornerHeightM": 0.02162632872487214,
+          "outsideLiquidDomainDurationS": 0,
+          "physicsSamples": 70080
+        },
+        "maximumPitchDeg": 0.006148243529420676,
+        "maximumPositiveSystemPowerW": 9304714.012142316,
+        "maximumRollDeg": 3.801585214885639e-13,
+        "maximumShaftPowerW": 4652357.006071159,
+        "maximumSurfaceAngleDeg": 1.267041726393432e-13,
+        "maximumSurfaceRateDegS": 1.3615507242530397e-14,
+        "maximumYawRateDegS": 1.8327477978568634e-15,
+        "physicsSamples": 70080,
+        "positiveMotorWorkJ": 2315275459.4113226,
+        "rollWarningDurationS": 0,
+        "shaftPowerViolationS": 0,
+        "shaftSpeedViolationS": 0,
+        "surfaceAngleViolationS": 0,
+        "surfaceRateViolationS": 0,
+        "surfaceSaturationDurationS": 0,
+        "systemPowerViolationS": 0
+      },
+      "checkpointSha256": "9097373e381603b66625aa97aaa2eecec969ec32df06b3e1b743674a79fe5b38",
+      "milestones": [
+        {
+          "timeS": 30,
+          "bowClearanceM": 1380.0001999870512,
+          "headingDeg": 4.5699670949796585e-15,
+          "eastM": 3.6800189751611615e-15,
+          "northGroundSpeedMps": 3.999996899234451,
+          "lateralMaximumM": 4.412385864721915e-15
+        },
+        {
+          "timeS": 60,
+          "bowClearanceM": 1259.9999375343457,
+          "headingDeg": 1.852181525375501e-15,
+          "eastM": 1.463674573556767e-14,
+          "northGroundSpeedMps": 4.000010429023184,
+          "lateralMaximumM": 1.5036729058460794e-14
+        },
+        {
+          "timeS": 90,
+          "bowClearanceM": 1140.073453178766,
+          "headingDeg": 1.1677143834064237e-15,
+          "eastM": 1.7681187846029132e-14,
+          "northGroundSpeedMps": 3.9844793739965128,
+          "lateralMaximumM": 2.2010793162820277e-14
+        },
+        {
+          "timeS": 120,
+          "bowClearanceM": 1021.9782063263992,
+          "headingDeg": -3.4497600786515443e-15,
+          "eastM": 2.2158491381530444e-14,
+          "northGroundSpeedMps": 3.875400259226701,
+          "lateralMaximumM": 2.539856641808117e-14
+        },
+        {
+          "timeS": 150,
+          "bowClearanceM": 908.0705752042916,
+          "headingDeg": -4.117749960733177e-15,
+          "eastM": 1.4567964384057703e-14,
+          "northGroundSpeedMps": 3.7127419452408694,
+          "lateralMaximumM": 2.539856641808117e-14
+        },
+        {
+          "timeS": 180,
+          "bowClearanceM": 799.4759332145771,
+          "headingDeg": -1.0069778771566684e-14,
+          "eastM": 1.0991181843035339e-14,
+          "northGroundSpeedMps": 3.5235907135714744,
+          "lateralMaximumM": 2.2158491381530444e-14
+        },
+        {
+          "timeS": 210,
+          "bowClearanceM": 696.7843276817025,
+          "headingDeg": -1.1066837882330377e-14,
+          "eastM": -1.0342533889473126e-14,
+          "northGroundSpeedMps": 3.3253173880563227,
+          "lateralMaximumM": 1.736851945831078e-14
+        },
+        {
+          "timeS": 240,
+          "bowClearanceM": 599.7164550424837,
+          "headingDeg": -1.4905404416130675e-14,
+          "eastM": -2.203835316890463e-14,
+          "northGroundSpeedMps": 3.14295213883881,
+          "lateralMaximumM": 2.730019332160721e-14
+        },
+        {
+          "timeS": 270,
+          "bowClearanceM": 508.3529414839428,
+          "headingDeg": -1.1277648098843023e-14,
+          "eastM": -5.193934541662412e-14,
+          "northGroundSpeedMps": 2.943976652553414,
+          "lateralMaximumM": 5.262019804108502e-14
+        },
+        {
+          "timeS": 300,
+          "bowClearanceM": 423.35084529546486,
+          "headingDeg": -1.5947318469764174e-14,
+          "eastM": -6.80351547919112e-14,
+          "northGroundSpeedMps": 2.720688058559661,
+          "lateralMaximumM": 6.80351547919112e-14
+        },
+        {
+          "timeS": 330,
+          "bowClearanceM": 345.1230371862223,
+          "headingDeg": -1.7174631711210812e-14,
+          "eastM": -8.563429350142217e-14,
+          "northGroundSpeedMps": 2.493865964718465,
+          "lateralMaximumM": 9.159863640827724e-14
+        },
+        {
+          "timeS": 360,
+          "bowClearanceM": 273.8963737831572,
+          "headingDeg": -1.5522612866629703e-14,
+          "eastM": -1.167627580154754e-13,
+          "northGroundSpeedMps": 2.249383063387169,
+          "lateralMaximumM": 1.1677884813383747e-13
+        },
+        {
+          "timeS": 390,
+          "bowClearanceM": 210.53628158414296,
+          "headingDeg": -2.0303924673200025e-14,
+          "eastM": -1.297928363330895e-13,
+          "northGroundSpeedMps": 1.9682102705901385,
+          "lateralMaximumM": 1.3118292314794745e-13
+        },
+        {
+          "timeS": 420,
+          "bowClearanceM": 156.12609983276857,
+          "headingDeg": -2.040678207762152e-14,
+          "eastM": -1.517842149492415e-13,
+          "northGroundSpeedMps": 1.6552991083377628,
+          "lateralMaximumM": 1.546349255156483e-13
+        },
+        {
+          "timeS": 450,
+          "bowClearanceM": 111.33340586244725,
+          "headingDeg": -2.444119173268969e-14,
+          "eastM": -1.7033051553235245e-13,
+          "northGroundSpeedMps": 1.330907175494033,
+          "lateralMaximumM": 1.7033051553235245e-13
+        },
+        {
+          "timeS": 480,
+          "bowClearanceM": 76.16383450009408,
+          "headingDeg": -3.4003933830646153e-14,
+          "eastM": -1.7563542335991004e-13,
+          "northGroundSpeedMps": 1.0171035443163534,
+          "lateralMaximumM": 1.8733467598764552e-13
+        },
+        {
+          "timeS": 510,
+          "bowClearanceM": 50.032858704209815,
+          "headingDeg": -3.581344966830668e-14,
+          "eastM": -2.0439272513599763e-13,
+          "northGroundSpeedMps": 0.7305064380356368,
+          "lateralMaximumM": 2.0439272513599763e-13
+        },
+        {
+          "timeS": 540,
+          "bowClearanceM": 31.964476563371733,
+          "headingDeg": -5.136077738891464e-14,
+          "eastM": -1.9487305714927046e-13,
+          "northGroundSpeedMps": 0.48062823448406067,
+          "lateralMaximumM": 2.1157300633544408e-13
+        },
+        {
+          "timeS": 570,
+          "bowClearanceM": 20.749767790050498,
+          "headingDeg": -5.6708377273548715e-14,
+          "eastM": -2.1296969873052283e-13,
+          "northGroundSpeedMps": 0.275689637506978,
+          "lateralMaximumM": 2.194806036963177e-13
+        },
+        {
+          "timeS": 584,
+          "bowClearanceM": 17.454403534033702,
+          "headingDeg": -6.042905825049882e-14,
+          "eastM": -2.1843703040243863e-13,
+          "northGroundSpeedMps": 0.19667446369254077,
+          "lateralMaximumM": 2.194806036963177e-13
+        }
+      ]
+    },
+    "combined-timed-heading": {
+      "status": "below-target",
+      "configuration": {
+        "vessel": "lng-changheng",
+        "parameterVersion": "research-nominal-v3",
+        "loadingRatio": 0.85,
+        "initialWaterSpeedMps": 4,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          0,
+          0,
+          0
+        ],
+        "environment": "E1",
+        "noiseLevel": "N1",
+        "seed": 20261106,
+        "courseEvidence": {
+          "rollWarningDeg": 8
+        },
+        "waterDepthM": 40,
+        "berth": {
+          "stopLineNorthM": 0,
+          "initialBowDistanceM": 1500
+        }
+      },
+      "input": {
+        "actuators": {
+          "shafts": [
+            {
+              "azimuth_jammed": false,
+              "azimuth_rad": 0,
+              "drive_cut": false,
+              "motor_torque_override_nm": null,
+              "speed_reference_rad_s": 5.203329459603765
+            },
+            {
+              "azimuth_jammed": false,
+              "azimuth_rad": 0,
+              "drive_cut": false,
+              "motor_torque_override_nm": null,
+              "speed_reference_rad_s": 5.203329459603765
+            }
+          ],
+          "surfaces": [
+            {
+              "angle_rad": 0,
+              "enabled": true,
+              "jammed": false
+            },
+            {
+              "angle_rad": 0,
+              "enabled": true,
+              "jammed": false
+            }
+          ]
+        },
+        "berthPlan": {
+          "brakingDistanceM": 1200,
+          "headingNodes": [
+            {
+              "headingDeg": -9,
+              "timeS": 0
+            },
+            {
+              "headingDeg": -9,
+              "timeS": 200
+            },
+            {
+              "headingDeg": 0,
+              "timeS": 400
+            }
+          ],
+          "nodes": [
+            {
+              "distanceM": 600,
+              "speedMps": 2
+            },
+            {
+              "distanceM": 30,
+              "speedMps": 0
+            }
+          ]
+        },
+        "controlMode": "pd",
+        "derivativeFilterTauS": 0.2,
+        "feedback": "measurement",
+        "longitudinal": {
+          "additionalCommandDelayS": 0,
+          "antiWindup": true,
+          "filterTauS": 0.2,
+          "kpMultiplier": 1,
+          "localModel": {
+            "shaftReferenceRpm": 49.68813624189718,
+            "speedMps": 4,
+            "structure": {
+              "delay_s": 1,
+              "k": 0.08123569611806045,
+              "kind": "fopdt",
+              "t_s": 213.82972294140308
+            }
+          },
+          "referenceMps": 4,
+          "smithEnabled": false,
+          "tiMultiplier": 1
+        },
+        "pid": {
+          "kd": 20,
+          "ki": 0,
+          "kp": 1.5
+        },
+        "targetHeadingDeg": 0
+      },
+      "timeS": 1200,
+      "conditions": {
+        "bowDistance": false,
+        "longitudinalGroundSpeed": true,
+        "final60sLateral": false,
+        "finalHeading": false,
+        "liquidDomain": true
+      },
+      "fineStepMetrics": {
+        "lng": {
+          "cornerHeightSquaredIntegralM2S": 107.95430102872716,
+          "final60sLateralMaximumM": 78.41088867952037,
+          "finalBowClearanceM": 142.6113989457183,
+          "finalHeadingDeg": -15.224984685619296,
+          "finalNorthGroundSpeedMps": -0.06701945528121028,
+          "lateralWindowDurationS": 60,
+          "liquidDepthM": 22.099999999999998,
+          "maximumCornerHeightM": 0.7761327244509405,
+          "outsideLiquidDomainDurationS": 0,
+          "physicsSamples": 144000
+        },
+        "maximumPitchDeg": 0.0886222987254894,
+        "maximumPositiveSystemPowerW": 9060381.163486522,
+        "maximumRollDeg": 0.43630726037515166,
+        "maximumShaftPowerW": 4546042.784413572,
+        "maximumSurfaceAngleDeg": 23.77948398682298,
+        "maximumSurfaceRateDegS": 2.3000000000001113,
+        "maximumYawRateDegS": 0.1392803150984134,
+        "physicsSamples": 144000,
+        "positiveMotorWorkJ": 2434874712.3652096,
+        "rollWarningDurationS": 0,
+        "shaftPowerViolationS": 0,
+        "shaftSpeedViolationS": 0,
+        "surfaceAngleViolationS": 0,
+        "surfaceRateViolationS": 0,
+        "surfaceSaturationDurationS": 935.4666666659803,
+        "systemPowerViolationS": 0
+      },
+      "checkpointSha256": "e86f2908fcc4583121d21b3b841389f33615d0e76d444c5d214e3983dd3d4a38",
+      "milestones": [
+        {
+          "timeS": 30,
+          "bowClearanceM": 1380.3633965886902,
+          "headingDeg": -1.523198975086205,
+          "eastM": 9.049305644496428,
+          "northGroundSpeedMps": 3.9899829212276163,
+          "lateralMaximumM": 9.049305644496428
+        },
+        {
+          "timeS": 60,
+          "bowClearanceM": 1261.6267691183969,
+          "headingDeg": -4.7598585186522655,
+          "eastM": 14.247508423985925,
+          "northGroundSpeedMps": 3.9764764567116893,
+          "lateralMaximumM": 14.247508423985925
+        },
+        {
+          "timeS": 90,
+          "bowClearanceM": 1143.7455236057492,
+          "headingDeg": -7.856739471177608,
+          "eastM": 13.215383055304175,
+          "northGroundSpeedMps": 3.9227170755831007,
+          "lateralMaximumM": 14.640455775950798
+        },
+        {
+          "timeS": 120,
+          "bowClearanceM": 1028.0769707533727,
+          "headingDeg": -10.002929058606055,
+          "eastM": 6.181959644824666,
+          "northGroundSpeedMps": 3.826776128283998,
+          "lateralMaximumM": 14.640455775950798
+        },
+        {
+          "timeS": 150,
+          "bowClearanceM": 916.7552124125544,
+          "headingDeg": -11.225548985765444,
+          "eastM": -4.95857086446267,
+          "northGroundSpeedMps": 3.644446288935125,
+          "lateralMaximumM": 13.215383055304175
+        },
+        {
+          "timeS": 180,
+          "bowClearanceM": 810.8353756257455,
+          "headingDeg": -11.845846694474051,
+          "eastM": -17.991509608609118,
+          "northGroundSpeedMps": 3.4417638071648025,
+          "lateralMaximumM": 17.991509608609118
+        },
+        {
+          "timeS": 210,
+          "bowClearanceM": 710.6238128937553,
+          "headingDeg": -11.937795293563646,
+          "eastM": -31.520771968793618,
+          "northGroundSpeedMps": 3.2289358401797763,
+          "lateralMaximumM": 31.520771968793618
+        },
+        {
+          "timeS": 240,
+          "bowClearanceM": 615.8692304022492,
+          "headingDeg": -11.425112333345858,
+          "eastM": -44.70158023815813,
+          "northGroundSpeedMps": 3.0747048929380383,
+          "lateralMaximumM": 44.70158023815813
+        },
+        {
+          "timeS": 270,
+          "bowClearanceM": 526.1721595455599,
+          "headingDeg": -10.17756543875858,
+          "eastM": -56.52167474857949,
+          "northGroundSpeedMps": 2.856151390149193,
+          "lateralMaximumM": 56.52167474857949
+        },
+        {
+          "timeS": 300,
+          "bowClearanceM": 442.0186269163029,
+          "headingDeg": -8.399106948722038,
+          "eastM": -66.09567172981113,
+          "northGroundSpeedMps": 2.6849658299604915,
+          "lateralMaximumM": 66.09567172981113
+        },
+        {
+          "timeS": 330,
+          "bowClearanceM": 364.2361668519384,
+          "headingDeg": -6.320730088893747,
+          "eastM": -72.83203719932777,
+          "northGroundSpeedMps": 2.478813087846388,
+          "lateralMaximumM": 72.83203719932777
+        },
+        {
+          "timeS": 360,
+          "bowClearanceM": 292.9415978305777,
+          "headingDeg": -4.129231620197027,
+          "eastM": -76.77186649221655,
+          "northGroundSpeedMps": 2.2387064685169658,
+          "lateralMaximumM": 76.77186649221655
+        },
+        {
+          "timeS": 390,
+          "bowClearanceM": 228.91928865477783,
+          "headingDeg": -1.8184204688978816,
+          "eastM": -78.22489118245772,
+          "northGroundSpeedMps": 2.0156252267405623,
+          "lateralMaximumM": 78.22489118245772
+        },
+        {
+          "timeS": 420,
+          "bowClearanceM": 173.17986888730937,
+          "headingDeg": 0.5344835810225392,
+          "eastM": -77.59899844620807,
+          "northGroundSpeedMps": 1.6944503865591083,
+          "lateralMaximumM": 78.27226644753682
+        },
+        {
+          "timeS": 450,
+          "bowClearanceM": 126.62471245358597,
+          "headingDeg": 2.8058475164692105,
+          "eastM": -75.72982313231428,
+          "northGroundSpeedMps": 1.4193309725628172,
+          "lateralMaximumM": 78.27226644753682
+        },
+        {
+          "timeS": 480,
+          "bowClearanceM": 89.4442788410347,
+          "headingDeg": 4.693343556487768,
+          "eastM": -73.49261220009954,
+          "northGroundSpeedMps": 1.0936909219077449,
+          "lateralMaximumM": 77.59899844620807
+        },
+        {
+          "timeS": 510,
+          "bowClearanceM": 61.114323092940225,
+          "headingDeg": 6.0652018327126775,
+          "eastM": -71.47028616811212,
+          "northGroundSpeedMps": 0.8128941778123792,
+          "lateralMaximumM": 75.72982313231428
+        },
+        {
+          "timeS": 540,
+          "bowClearanceM": 40.590573864553534,
+          "headingDeg": 6.833036489610281,
+          "eastM": -69.8572875288745,
+          "northGroundSpeedMps": 0.5842403884490341,
+          "lateralMaximumM": 73.49261220009954
+        },
+        {
+          "timeS": 570,
+          "bowClearanceM": 26.756457615835416,
+          "headingDeg": 6.968623850776588,
+          "eastM": -68.82474976357054,
+          "northGroundSpeedMps": 0.3537079868717112,
+          "lateralMaximumM": 71.47028616811212
+        },
+        {
+          "timeS": 600,
+          "bowClearanceM": 18.544308999308356,
+          "headingDeg": 6.656534200018856,
+          "eastM": -68.4141415884005,
+          "northGroundSpeedMps": 0.2001295952037869,
+          "lateralMaximumM": 69.8597436092697
+        },
+        {
+          "timeS": 630,
+          "bowClearanceM": 14.689685860693203,
+          "headingDeg": 6.262726098348558,
+          "eastM": -68.2170946190703,
+          "northGroundSpeedMps": 0.05292473096785555,
+          "lateralMaximumM": 68.82474976357054
+        },
+        {
+          "timeS": 660,
+          "bowClearanceM": 14.20900821900679,
+          "headingDeg": 5.841465228796236,
+          "eastM": -68.30965921501137,
+          "northGroundSpeedMps": -0.022875956792402875,
+          "lateralMaximumM": 68.4141415884005
+        },
+        {
+          "timeS": 690,
+          "bowClearanceM": 16.30748209241196,
+          "headingDeg": 5.356005340377171,
+          "eastM": -68.77111193027962,
+          "northGroundSpeedMps": -0.10519923006849312,
+          "lateralMaximumM": 68.77111193027962
+        },
+        {
+          "timeS": 720,
+          "bowClearanceM": 20.35761386393358,
+          "headingDeg": 4.7050079974509815,
+          "eastM": -69.49933123133519,
+          "northGroundSpeedMps": -0.17142357138662995,
+          "lateralMaximumM": 69.49933123133519
+        },
+        {
+          "timeS": 750,
+          "bowClearanceM": 26.028048568659898,
+          "headingDeg": 3.921223124831692,
+          "eastM": -70.4034857346745,
+          "northGroundSpeedMps": -0.21842145972679877,
+          "lateralMaximumM": 70.4034857346745
+        },
+        {
+          "timeS": 780,
+          "bowClearanceM": 32.90192140109582,
+          "headingDeg": 2.8980202726012525,
+          "eastM": -71.26439665326654,
+          "northGroundSpeedMps": -0.24367753337334547,
+          "lateralMaximumM": 71.26439665326654
+        },
+        {
+          "timeS": 810,
+          "bowClearanceM": 40.67989512386464,
+          "headingDeg": 1.904209358434362,
+          "eastM": -72.15418433183795,
+          "northGroundSpeedMps": -0.28197034468902804,
+          "lateralMaximumM": 72.15418433183795
+        },
+        {
+          "timeS": 840,
+          "bowClearanceM": 49.048429358203606,
+          "headingDeg": 0.8580584298620251,
+          "eastM": -73.03349095642591,
+          "northGroundSpeedMps": -0.2808328170569745,
+          "lateralMaximumM": 73.03349095642591
+        },
+        {
+          "timeS": 870,
+          "bowClearanceM": 57.74752614437642,
+          "headingDeg": -0.36126381395880985,
+          "eastM": -73.92401457634091,
+          "northGroundSpeedMps": -0.30769083276624815,
+          "lateralMaximumM": 73.92401457634091
+        },
+        {
+          "timeS": 900,
+          "bowClearanceM": 66.65200686972702,
+          "headingDeg": -1.8857751578975723,
+          "eastM": -74.60693170516056,
+          "northGroundSpeedMps": -0.26541711447355915,
+          "lateralMaximumM": 74.60693170516056
+        },
+        {
+          "timeS": 930,
+          "bowClearanceM": 75.7338471144337,
+          "headingDeg": -3.554678601091345,
+          "eastM": -75.129097892115,
+          "northGroundSpeedMps": -0.3151101669967187,
+          "lateralMaximumM": 75.129097892115
+        },
+        {
+          "timeS": 960,
+          "bowClearanceM": 84.92263198733517,
+          "headingDeg": -5.293768714471411,
+          "eastM": -75.64189805614923,
+          "northGroundSpeedMps": -0.2884825661992306,
+          "lateralMaximumM": 75.64573113847003
+        },
+        {
+          "timeS": 990,
+          "bowClearanceM": 94.06002034811547,
+          "headingDeg": -6.851434751119726,
+          "eastM": -75.87143743164182,
+          "northGroundSpeedMps": -0.2985929537553973,
+          "lateralMaximumM": 75.9265323524184
+        },
+        {
+          "timeS": 1020,
+          "bowClearanceM": 103.13143492692336,
+          "headingDeg": -8.163863459625844,
+          "eastM": -76.00653493294159,
+          "northGroundSpeedMps": -0.2777929018764154,
+          "lateralMaximumM": 76.00653493294159
+        },
+        {
+          "timeS": 1050,
+          "bowClearanceM": 111.7744436514761,
+          "headingDeg": -9.25496300131213,
+          "eastM": -76.0889420471507,
+          "northGroundSpeedMps": -0.26786532019890635,
+          "lateralMaximumM": 76.0903547942961
+        },
+        {
+          "timeS": 1080,
+          "bowClearanceM": 119.89254527117623,
+          "headingDeg": -10.30370182233973,
+          "eastM": -76.2772998340335,
+          "northGroundSpeedMps": -0.23177381416402898,
+          "lateralMaximumM": 76.30572621832734
+        },
+        {
+          "timeS": 1110,
+          "bowClearanceM": 127.29625674100092,
+          "headingDeg": -11.532708037736208,
+          "eastM": -76.58283402955504,
+          "northGroundSpeedMps": -0.22003216017129293,
+          "lateralMaximumM": 76.60771010975334
+        },
+        {
+          "timeS": 1140,
+          "bowClearanceM": 133.77463394293608,
+          "headingDeg": -12.906163939800802,
+          "eastM": -76.91790998563515,
+          "northGroundSpeedMps": -0.15311413304487817,
+          "lateralMaximumM": 76.91790998563515
+        },
+        {
+          "timeS": 1170,
+          "bowClearanceM": 138.91429260082236,
+          "headingDeg": -14.223683399907594,
+          "eastM": -77.36358211148514,
+          "northGroundSpeedMps": -0.11126352636260903,
+          "lateralMaximumM": 77.36358211148514
+        },
+        {
+          "timeS": 1200,
+          "bowClearanceM": 142.6113989457183,
+          "headingDeg": -15.224984685619296,
+          "eastM": -78.41088867952037,
+          "northGroundSpeedMps": -0.06701945528121028,
+          "lateralMaximumM": 78.41088867952037
+        }
+      ]
+    }
+  },
+  "status": "partial"
+}

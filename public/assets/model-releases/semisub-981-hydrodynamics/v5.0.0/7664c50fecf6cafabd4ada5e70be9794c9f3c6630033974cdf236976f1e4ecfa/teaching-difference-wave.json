@@ -1,0 +1,134 @@
+{
+  "schema": "act.full-difference-qtf.v1",
+  "vessel": "semisub-981",
+  "model_fidelity": "teaching-nominal",
+  "frequencies_rad_s": [
+    0.2,
+    0.275,
+    0.35,
+    0.425,
+    0.5,
+    0.55,
+    0.6,
+    0.6499999999999999,
+    0.7,
+    0.8,
+    0.8999999999999999,
+    1.0,
+    1.2,
+    1.4999999999999998,
+    1.9,
+    2.5
+  ],
+  "headings_rad_to": [
+    0.0,
+    0.5235987755982988,
+    1.0471975511965976,
+    1.5707963267948966,
+    2.0943951023931953,
+    2.6179938779914944,
+    3.141592653589793,
+    3.6651914291880923,
+    4.1887902047863905
+  ],
+  "water_density_kg_m3": 1025.0,
+  "gravity_m_s2": 9.81,
+  "water_depth_m": 200.0,
+  "mean_forward_speed_mps": 0.0,
+  "draft_m": 19.0,
+  "mesh_sha256": "5a4ed96f9f7dd41637e03b4508f48b50b60b878206407dcbf353d75eec636c3b",
+  "geometry_sha256": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+  "equilibrium_pitch_rad": 0.0,
+  "rigid_condition": {
+    "mass_kg": 53095000.0,
+    "center_of_mass_waterline_z_up_m": [
+      0.0,
+      0.0,
+      17.353925353925355
+    ],
+    "inertia_about_cg_kg_m2": [
+      51519273137.49999,
+      84527770950.0,
+      69411757187.49998
+    ]
+  },
+  "periodic_headings": false,
+  "half_turn_symmetry": true,
+  "half_turn_relative_l2": [
+    1.0511671059967865e-05,
+    7.623100161003611e-06,
+    9.038576915252492e-06,
+    8.379272760869394e-06,
+    9.072764574392419e-06,
+    8.400197158692637e-06
+  ],
+  "storage": "complex-f32-little-endian-heading1-heading2-dof-triangular-frequency",
+  "normalization": "qtf-divided-by-rho-g",
+  "time_convention": "real-part-of-exp-minus-i-omega-t",
+  "source_axes": "x-forward-y-port-z-up",
+  "full_double_sum_factor": 0.5,
+  "contributions": "DUOK+HASBO",
+  "sample_only": false,
+  "data_sha256": "7664c50fecf6cafabd4ada5e70be9794c9f3c6630033974cdf236976f1e4ecfa",
+  "data_fnv1a64": "fnv1a-b9adf750fbab2d4a",
+  "data_bytes": 528768,
+  "archive_sha256": "d526b86f14991b51fbb90d1ac75d5a1a44d162fbaa629e475ac8c4c011e22cf0",
+  "validation_report_sha256": "9501b0b52c13a4c9177940437fd553a959ac038ad36fd1f7ee970c66aa4e2f6b",
+  "generator_sha256": "cb2bc7ad388000f7d65f89bf243fb79dfac9ab396ac4c85e173493383c7fabb6",
+  "solver_revision": "09853686f6f3ed78823d9dbec0d1d711c015cb3b",
+  "sources": [
+    "https://lheea.gitlab.io/Nemoh/description.html#expression-of-physical-quantities",
+    "https://lheea.gitlab.io/Nemoh/input-output.html#quadratic-transfer-function",
+    "https://doi.org/10.5281/zenodo.7418379"
+  ],
+  "source_not_ready": [
+    "free-surface and asymptotic contributions",
+    "nonzero-speed QTF",
+    "mesh and peak convergence of this QTF",
+    "independent vessel QTF calibration",
+    "online full-complex QTF consumption",
+    "unrestricted 24-by-24 directional pairs"
+  ],
+  "not_ready": [
+    "free-surface and asymptotic contributions",
+    "nonzero-speed QTF",
+    "mesh and peak convergence of this QTF",
+    "independent vessel QTF calibration",
+    "unrestricted 24-by-24 directional pairs"
+  ],
+  "teaching_projection": {
+    "profile": "teaching-v1",
+    "source_data_sha256": "2f1251e6c2ad163c4d6771ceec143edcc028445f7c77181ea8ff84b0fb17bb4b",
+    "frequency_indices": [
+      0,
+      3,
+      6,
+      9,
+      12,
+      14,
+      16,
+      18,
+      20,
+      24,
+      28,
+      32,
+      40,
+      52,
+      68,
+      92
+    ],
+    "heading_indices": [
+      0,
+      2,
+      4,
+      6,
+      8,
+      10,
+      12,
+      14,
+      16
+    ],
+    "amplitude_relative_tolerance": 0.5,
+    "scope": "representative low-frequency station-keeping teaching; existing linear interpolation"
+  }
+}

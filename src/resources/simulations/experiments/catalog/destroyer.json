@@ -1,0 +1,146 @@
+{
+  "sourceIssue": 2158,
+  "sourceBodySha256": "5de9755c2d0d982ee9e0150dc21eccc6959cea54a34f376858e426db706c5ebd",
+  "steps": [
+    {
+      "sequence": 1,
+      "title": "认识控制通道",
+      "condition": "P0/N0，60s",
+      "interaction": "在受力图中标识舵指令、实际舵、r、psi、v、phi并切换显示",
+      "evidence": "输入/状态/输出与单位，不把姿态等同舵角；保存标注"
+    },
+    {
+      "sequence": 2,
+      "title": "测量舵机动态",
+      "condition": "P0，120s；t20舵指令+5°，t60回0",
+      "interaction": "选择测量窗口，在曲线上估计舵机Ta和速率上限",
+      "evidence": "执行器动态与指令/实际差异；提交Ta及两点依据"
+    },
+    {
+      "sequence": 3,
+      "title": "观察阶跃响应",
+      "condition": "P0，300s；+5°舵阶跃",
+      "interaction": "先预测r与psi形态，再选择实际舵作为辨识输入",
+      "evidence": "一阶转艏率与积分航向区别；完整轨迹和预测"
+    },
+    {
+      "sequence": 4,
+      "title": "辨识局部模型",
+      "condition": "上一步数据",
+      "interaction": "拖选t20后有效窗，拟合K、T；剔除启动伺服段或明确串联辨识",
+      "evidence": "物理输入选择、参数量纲；拟合模型/残差，不抄默认数"
+    },
+    {
+      "sequence": 5,
+      "title": "独立留出验证",
+      "condition": "新run，300s；舵−3°，不重拟合",
+      "interaction": "将步骤4模型冻结，叠加预测/测量并给出验证RMSE",
+      "evidence": "训练/验证分离、正负输入；明确是否通过有效域判断"
+    },
+    {
+      "sequence": 6,
+      "title": "检验大幅值边界",
+      "condition": "新run，300s；舵+20°",
+      "interaction": "预测小信号模型误差方向，再比较真值事后层、测量与模型",
+      "evidence": "大幅值非线性、耦合/速率；指出至少一个模型假设失效"
+    },
+    {
+      "sequence": 7,
+      "title": "比较不同航速",
+      "condition": "U0=4与12m/s各300s，舵+5°",
+      "interaction": "先用同一K/T预测，再分别辨识新工况",
+      "evidence": "航速影响舵效/时间常数；三工况参数表"
+    },
+    {
+      "sequence": 8,
+      "title": "绘制模型特征",
+      "condition": "回U0=8，冻结步骤4模型",
+      "interaction": "手绘/交互标注开环极点、积分环节和频率特征",
+      "evidence": "G_r与G_psi不同；关键数值由模型计算核对，图种识别不计正确性"
+    },
+    {
+      "sequence": 9,
+      "title": "设计比例控制",
+      "condition": "P0，300s，psi_ref+10°",
+      "interaction": "跑P控制基线，选择Kp为.5/1/2倍初值中的至少两种",
+      "evidence": "增益—速度—超调关系；两组完整闭环证据"
+    },
+    {
+      "sequence": 10,
+      "title": "设计比例微分控制",
+      "condition": "P0，300s，同参考",
+      "interaction": "按ζ/ωn设计PD，先在理想侧预测，再在物理侧独立闭环",
+      "evidence": "极点设计与实际非线性差距；禁止两模型共享控制误差信号"
+    },
+    {
+      "sequence": 11,
+      "title": "分析积分抗扰",
+      "condition": "W1，400s，保持10°",
+      "interaction": "开启/调整Ki，比较PD与PID末120s误差",
+      "evidence": "恒/慢变扰动抑制、积分作用；同时记录风力矩"
+    },
+    {
+      "sequence": 12,
+      "title": "比较抗饱和",
+      "condition": "P0，500s，psi_ref在t20变60°、t250变0°",
+      "interaction": "比较抗饱和关/开，调整积分回算时间",
+      "evidence": "饱和及恢复；饱和占比/恢复时间，不仅末值"
+    },
+    {
+      "sequence": 13,
+      "title": "区分航向与航迹",
+      "condition": "C1，400s，psi_ref=0",
+      "interaction": "维持航向后观察对地轨迹，选择“航向保持/航迹保持”解释",
+      "evidence": "航向正确仍可能横漂；提交对水/对地速度及横偏"
+    },
+    {
+      "sequence": 14,
+      "title": "识别波频运动",
+      "condition": "V1，600s",
+      "interaction": "同一控制器与P0比较；在横摇/艏摇/舵角曲线上标波频分量",
+      "evidence": "波浪激励与多自由度响应；不能把视觉摇摆当证据"
+    },
+    {
+      "sequence": 15,
+      "title": "选择微分滤波",
+      "condition": "P0+N1，400s",
+      "interaction": "比较原始微分与tau=.2/1/3s过滤，至少两档",
+      "evidence": "噪声放大与滤波相位代价；舵总变差和跟踪RMSE"
+    },
+    {
+      "sequence": 16,
+      "title": "形成综合方案",
+      "condition": "E1+N1，600s",
+      "interaction": "只调整Kp/Ki/Kd与滤波，完成第一版综合方案",
+      "evidence": "单因子认识迁移；保存修改理由和参数快照"
+    },
+    {
+      "sequence": 17,
+      "title": "比较第二方案",
+      "condition": "同上同seed，600s",
+      "interaction": "在约束内提出第二方案，与步骤16公平比较",
+      "evidence": "误差、超调、舵动作、功耗权衡，不用单一最高分替代解释"
+    },
+    {
+      "sequence": 18,
+      "title": "验证未见航速",
+      "condition": "seed17，U0=6，E1+N1，600s",
+      "interaction": "冻结选定方案运行未知验证，不允许看完后覆盖原记录",
+      "evidence": "泛化/鲁棒性，明确模型有效范围"
+    },
+    {
+      "sequence": 19,
+      "title": "检验与修正边界",
+      "condition": "seed29，U0=10，W2+V1+C1+N1，600s",
+      "interaction": "判断是否仍满足约束；允许选择降速至8并重新验证",
+      "evidence": "超出有效域时的工程修正；保留失败和修正两次"
+    },
+    {
+      "sequence": 20,
+      "title": "完成实验报告",
+      "condition": "选择个人至少4次run",
+      "interaction": "提交结构化报告：辨识验证、理想/物理差异、控制修改及边界",
+      "evidence": "证据引用正确、因果解释和适用性；独立实验报告"
+    }
+  ]
+}

@@ -27,6 +27,7 @@ import {
 } from '../components/simulation-panels';
 import { SketchPad } from './sketch-pad';
 import { StepNode } from './vessel-experiment-panels';
+import type { VesselTracePoint } from '@/features/simulations/run-evidence';
 
 Chart.register(...registerables);
 
@@ -45,28 +46,32 @@ export function DestroyerStepList({
   viewSeq,
   doneSeqs,
   onOpen,
+  steps = DESTROYER_EXPERIMENT_STEPS,
 }: {
   activeSeq: number;
   viewSeq: number;
   doneSeqs: number[];
   onOpen: (seq: number) => void;
+  steps?: readonly DestroyerExperimentStep[];
 }) {
   const frontier = destroyerFrontierSeq(doneSeqs);
-  const progress = Math.round((doneSeqs.length / DESTROYER_EXPERIMENT_STEPS.length) * 100);
+  const progress = Math.round((doneSeqs.length / steps.length) * 100);
   return (
     <div className="w-full space-y-3" data-destroyer-step-nav>
       <div className="sim-hud-tile p-2.5">
         <div className="flex items-center justify-between text-xs">
           <span className="text-platform-fg-secondary">任务进度</span>
-          <span className="sim-hud-value font-semibold">{doneSeqs.length}/{DESTROYER_EXPERIMENT_STEPS.length}</span>
+          <span className="sim-hud-value font-semibold">{doneSeqs.length}/{steps.length}</span>
         </div>
         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-platform-fg-primary/10">
           <div className="h-full rounded-full bg-platform-action-primary shadow-[0_0_10px_hsl(var(--platform-action-primary))] transition-[width] duration-500" style={{ width: `${progress}%` }} />
         </div>
-        <p className="mt-2 text-[11px] leading-4 text-platform-fg-muted">当前进行第 {activeSeq} 步。已完成的步骤可以回去重做，只保留更好的成绩。还没完成的后续步骤不能打开。</p>
+        <p className="mt-2 text-[11px] leading-4 text-platform-fg-muted">当前进行第 {activeSeq} 步。{steps[0]?.courseDefinition
+          ? '已记录的步骤可以重做，各次运行和提交均会保留，成绩等待教师复核。'
+          : '已完成的步骤可以回去重做，只保留更好的成绩。'}还没完成的后续步骤不能打开。</p>
       </div>
       <ol className="relative space-y-1.5 before:absolute before:bottom-3 before:left-[15px] before:top-3 before:w-px before:bg-platform-fg-primary/10">
-        {DESTROYER_EXPERIMENT_STEPS.map((step) => {
+        {steps.map((step) => {
           const done = doneSeqs.includes(step.seq);
           const locked = step.seq > frontier;
           const viewing = step.seq === viewSeq;
@@ -119,6 +124,7 @@ export function DestroyerStatusPanel({
   samples,
   visible,
   onToggle,
+  courseMeasurements,
 }: {
   heading: number;
   yawRate: number;
@@ -133,8 +139,14 @@ export function DestroyerStatusPanel({
   samples: DestroyerSample[];
   visible: Record<DestroyerSeriesId, boolean>;
   onToggle: (id: DestroyerSeriesId) => void;
+  courseMeasurements?: VesselTracePoint['measurements'];
 }) {
   const readout = (name: string) => ({ 'data-destroyer-readout': name });
+  const value = (signal: string, fallback: number, digits: number) => {
+    const measurement = courseMeasurements?.[signal];
+    const selected = courseMeasurements ? measurement?.quality === 'Good' ? measurement.value : null : fallback;
+    return typeof selected === 'number' && Number.isFinite(selected) ? selected.toFixed(digits) : '—';
+  };
   return (
     <SimPanelStack>
       <SimStatusStrip
@@ -143,16 +155,16 @@ export function DestroyerStatusPanel({
       >
         <SimChip tone="accent" className="font-mono uppercase">{mode}</SimChip>
       </SimStatusStrip>
-      <SimPanelSection title="导航状态" icon={Compass}>
+      <SimPanelSection title="导航状态" icon={Compass} aside={courseMeasurements ? <SimChip tone="accent">仪器量测</SimChip> : undefined}>
         <SimReadoutGrid>
-          <SimReadout label="航向" value={heading.toFixed(1)} unit="°" size="lg" valueProps={readout('heading')} />
-          <SimReadout label="转艏速率" value={yawRate.toFixed(2)} unit="°/s" size="lg" valueProps={readout('yaw')} />
-          <SimReadout label="舵角" value={rudder.toFixed(1)} unit="°" valueProps={readout('rudder')} />
+          <SimReadout label="航向" value={value('Heading',heading,1)} unit="°" size="lg" valueProps={readout('heading')} />
+          <SimReadout label="转艏速率" value={value('YawRate',yawRate,2)} unit="°/s" size="lg" valueProps={readout('yaw')} />
+          <SimReadout label="舵角" value={value('SurfaceEncoder0',rudder,1)} unit="°" valueProps={readout('rudder')} />
           <SimReadout label="手操舵角" value={manualRudder.toFixed(1)} unit="°" valueProps={readout('manual-rudder')} />
-          <SimReadout label="航速" value={speed.toFixed(1)} unit="m/s" span valueProps={readout('speed')} />
+          <SimReadout label="航速" value={value('SpeedLog',speed,1)} unit="m/s" span valueProps={readout('speed')} />
         </SimReadoutGrid>
       </SimPanelSection>
-      <SimPanelSection title="航迹误差" icon={Target}>
+      <SimPanelSection title={courseMeasurements ? '估计航迹误差' : '航迹误差'} icon={Target}>
         <SimReadoutGrid>
           <SimReadout label="当前误差" value={currentError.toFixed(1)} unit="m" />
           <SimReadout label="平均误差" value={avgError.toFixed(1)} unit="m" />
@@ -177,7 +189,7 @@ export function DestroyerCurve({
   const chartTheme = useSimulationChartTheme();
 
   const last = samples[samples.length - 1];
-  const headings = samples.map((sample) => sample.actualHeading);
+  const headings = samples.map((sample) => sample.actualHeading).filter(Number.isFinite);
   const headingMin = headings.length ? Math.min(...headings) : null;
   const headingMax = headings.length ? Math.max(...headings) : null;
 
@@ -293,7 +305,7 @@ export function DestroyerCurve({
 }
 
 function formatSeriesValue(sample: DestroyerSample | undefined, id: DestroyerSeriesId): string {
-  if (!sample) return '—';
+  if (!sample || !Number.isFinite(sample[id])) return '—';
   const digits = id === 'yawRate' ? 2 : 1;
   return sample[id].toFixed(digits);
 }
@@ -305,6 +317,7 @@ export function DestroyerStepForm({
   busy,
   reportEnabled,
   showRestart = false,
+  connectionStatus = '',
   onChange,
   onSubmit,
   onReport,
@@ -317,16 +330,17 @@ export function DestroyerStepForm({
   busy: boolean;
   reportEnabled: boolean;
   showRestart?: boolean;
+  connectionStatus?: string;
   onChange: (key: string, value: string) => void;
   onSubmit: () => void;
   onReport: () => void;
   onAsk: () => void;
   onRestart?: () => void;
 }) {
-  const showReport = step.scene === 'review';
+  const showReport = step.courseDefinition ? step.seq === 20 : step.scene === 'review';
   return (
     <div className="space-y-2.5">
-      {step.fields.map((field) => (
+      {step.fields.filter((field) => field.stage !== 'prediction').map((field) => (
         <label key={field.key} className="block space-y-1 text-xs text-platform-fg-secondary">
           <span className="flex items-baseline justify-between gap-2">
             <span>{field.label}</span>
@@ -367,7 +381,8 @@ export function DestroyerStepForm({
             </span>
           ) : null}
           {field.kind === 'sketch' ? (
-            <SketchPad label={field.label} hint="画出奈奎斯特图、伯德图、根轨迹图或时域响应图。" onChange={(dataUrl) => onChange('sketchImage', dataUrl)} />
+            <SketchPad label={field.label} hint="画出奈奎斯特图、伯德图、根轨迹图或时域响应图。"
+              value={readings.sketchImage ?? ''} onChange={(dataUrl) => onChange('sketchImage', dataUrl)} />
           ) : null}
         </label>
       ))}
@@ -389,6 +404,7 @@ export function DestroyerStepForm({
           </Button>
         ) : null}
       </div>
+      {connectionStatus ? <p className="text-xs leading-5 text-platform-fg-secondary" data-ilab-connection-status>{connectionStatus}</p> : null}
       {message ? (
         <p className="rounded-md border border-platform-action-primary/25 bg-platform-action-primary/10 px-2.5 py-2 text-xs leading-5 text-platform-fg-primary" data-destroyer-message>{message}</p>
       ) : null}

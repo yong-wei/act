@@ -1,0 +1,18 @@
+{
+  "schema": "act.ship-static-validation.v1",
+  "status": "not_ready",
+  "mass_relative_error": 2.220446049250313e-16,
+  "gm_transverse_m": -4.833269207055029,
+  "gm_longitudinal_m": 520.3210053961557,
+  "reason": "static instability or mass equilibrium failure",
+  "inputs_sha256": {
+    "source-sections.json": "dfd98f41d09f0b7dff6ebbc490dcd4ec662dbc5b5e4455f247d846b4c10aac39"
+  },
+  "outputs_sha256": {
+    "geometry.json": "a4cb2f086a7500cb9f5712f15281b3ee71b19b70b10e60f0c04094d048fd9e06",
+    "hull.dat": "6487142959ab171a289986fbf977b4eee65cc9c407b9afb5fc17a9842f670efe",
+    "lid.dat": "9ab0d8754a6f70a0403a1a684c5dcd9cd4f84d8d97d56be91503c427d452ffdc",
+    "full-hull.dat": "d42982a85bda002f8be1d272077850f856990d7c2613286bfe4d3d72b4d4b629",
+    "hydrostatic-hull.json": "ef7265994db08f6978fc2b7291835b3b26adf6051327008a0331ccb48fc7b36f"
+  }
+}

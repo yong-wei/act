@@ -1,17 +1,18 @@
 import { IDENTITY_SCHEMA, type ControlEngineWasmExport } from './types';
 
 export const CONTROL_ENGINE_IDENTITY_SCHEMA = IDENTITY_SCHEMA;
-export const CONTROL_ENGINE_BUILD_HASH = 'c313ee7d563ea81e4b4fcd9075567726008cf13c3a5d9dbba798b3464e2d0c4e';
+export const CONTROL_ENGINE_BUILD_HASH = '0f0f153cd10f0a247cb257e8798cbe7aad597c55ef5251ef3a0e1f842225a45f';
 export const CONTROL_ENGINE_EXPORTS: readonly ControlEngineWasmExport[] = [
   'compute_analysis',
   'compute_nonlinear_analysis',
   'compute_rl_training',
   'compute_simulation_step',
   'compute_virtual_simulation_step',
+  'VesselSimulationSession',
 ] as const;
 export const CONTROL_ENGINE_FILE_HASHES = {
-  'index.js': 'f034d1b247fc4aac06748c041144f1f7aa40c4e06efe4384bacebf229e3c7bfe',
-  'index.d.ts': '8760847ef56477d823a4038d166252c79267f4cec9d87f17fb7c7c83ccf6e84f',
-  'index_bg.wasm': '72809d1d795fc3550a75ffb7e9623655c4b634e44b2c8ea5519e9cebdadf8bfb',
-  'index_bg.wasm.d.ts': '53fbffe06bcff31b3c038bc9750fc9bf8b0dda579b294499e4687023e376ca09',
+  'index.js': '22992fc1957d5c06fb7e8df6875c4fe497cd4e525fb3a48dc8156159a5dae750',
+  'index.d.ts': 'a5cc8155bb2cd31e326c9dee57047d43afcb9a6134733449e72f37fa17403d4c',
+  'index_bg.wasm': '8ccdee699fe4d05e99fe6c8be898fd2d7933577f5e95269e33eb996b61f844d1',
+  'index_bg.wasm.d.ts': 'd1e94aaaba98f60ed33e00a6fd51db58b80f0305127ae2a31287218707aa8bef',
 } as const;

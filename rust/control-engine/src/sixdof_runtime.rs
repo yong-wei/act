@@ -21,9 +21,16 @@ use crate::sixdof::control_law::{
     DEFAULT_RUDDER_LIMIT_DEG, HeadingControlMode, HeadingPidGains, command_rudder_deg,
 };
 use crate::sixdof::state::TruthState;
+use crate::sixdof::actuators::PropellerInstallation;
+use crate::sixdof::actuator_system::{ActuatorCommands, ShaftCommand, SurfaceCommand};
+use crate::sixdof::model_pack::{
+    PackActuators, PackModel, embedded_destroyer_055, embedded_destroyer_055_v2,
+    embedded_destroyer_055_v3, embedded_destroyer_055_v4,
+};
+use crate::sixdof::state::ActuatorStates;
 
 const DEG: f64 = std::f64::consts::PI / 180.0;
-pub const SIX_DOF_MODEL_VERSION: &str = "sixdof-destroyer-v1";
+pub const SIX_DOF_MODEL_VERSION: &str = "sixdof-destroyer-v3";
 pub const SIX_DOF_ENVIRONMENT_VERSION: &str = "calm-v0";
 pub const SIX_DOF_SENSOR_VERSION: &str = "truth-v0";
 
@@ -43,6 +50,8 @@ struct RuntimeSixDofState {
     /// 实际电机扭矩（限幅状态机连续性，P1：逐帧重建必须恢复）。
     #[serde(default)]
     motor_torque_actual_nm: f64,
+    #[serde(default)]
+    actuator_states: Option<ActuatorStates>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -60,6 +69,8 @@ struct RuntimeRunManifest {
     /// 冻结初态摘要（P2：不同初态必须不同 run 身份）。
     initial_state: String,
     seed: u64,
+    #[serde(default)]
+    propeller_installation: Option<PropellerInstallation>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -97,6 +108,10 @@ struct RuntimeState {
 #[serde(rename_all = "camelCase")]
 struct RuntimeRequest {
     #[serde(default)]
+    parameter_bundle_version: Option<String>,
+    #[serde(default)]
+    shaft_speed_reference_rpm: Option<f64>,
+    #[serde(default)]
     dt_s: f64,
     #[serde(default)]
     target_heading_deg: f64,
@@ -111,6 +126,8 @@ struct RuntimeRequest {
     course_version: String,
     #[serde(default)]
     step_id: String,
+    #[serde(default)]
+    propeller_installation: Option<PropellerInstallation>,
     #[serde(default)]
     state: RuntimeState,
 }
@@ -144,12 +161,27 @@ fn fnv_u64(bytes: &[u8]) -> u64 {
     hash
 }
 
-fn parameter_bundle_hash(_config: &DestroyerSixDofConfig) -> String {
-    // issue-2157：哈希源切换为结构化参数包（含模型版本）；改包即换 run。
-    match crate::sixdof::embedded_destroyer_055() {
-        Ok(pack) => format!("{}@{}", pack.manifest.model_version, pack.content_hash),
-        // 包损坏属部署缺陷：退回配置哈希并显式标记未验证来源。
-        Err(_) => format!("unverified-fallback:{:016x}", 0),
+fn selected_pack(request: &RuntimeRequest) -> Result<PackModel, String> {
+    match request.parameter_bundle_version.as_deref() {
+        Some("research-nominal-v4") => embedded_destroyer_055_v4(),
+        Some("research-nominal-v3") => embedded_destroyer_055_v3(),
+        Some("research-nominal-v2") => embedded_destroyer_055_v2(),
+        None | Some("research-nominal-v1") => embedded_destroyer_055(),
+        Some(version) => return Err(format!("未知参数包版本 {version}")),
+    }.map_err(|error| format!("内嵌参数包校验失败 {error:?}"))
+}
+
+fn parameter_bundle_hash(pack: &PackModel) -> String {
+    format!("{}@{}", pack.manifest.model_version, pack.content_hash)
+}
+
+fn model_version(pack: &PackModel) -> &'static str {
+    if pack.geometry.nonlinear_hydrostatics.is_some() {
+        "sixdof-destroyer-v4"
+    } else if matches!(pack.actuators, PackActuators::Physical { .. }) {
+        SIX_DOF_MODEL_VERSION
+    } else {
+        "sixdof-destroyer-v2"
     }
 }
 
@@ -186,19 +218,24 @@ fn initial_state_digest(state: &RuntimeState) -> String {
     format!("fnv1a-{:016x}", fnv_u64(raw.as_bytes()))
 }
 
-fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
+fn build_manifest(request: &RuntimeRequest, pack: &PackModel) -> RuntimeRunManifest {
     let controller = controller_artifact(
         &request.control_mode,
         &request.pid,
         request.manual_rudder_deg,
     );
-    let mask = factor_mask(request.disturbance_enabled);
+    let mut mask = factor_mask(request.disturbance_enabled);
+    if request.propeller_installation.is_some() || matches!(pack.actuators, PackActuators::Physical { .. }) {
+        mask.push("ventilation".to_string());
+    }
+    let installation = serde_json::to_string(&request.propeller_installation)
+        .expect("validated propeller installation must serialize");
     let initial_state = initial_state_digest(&request.state);
     let seed = 20261106u64; // 训练种子（验证 run 由参数覆盖）
     let identity = format!(
-        "{}|{}|{}|{}|{}|{}|{:?}|{}|{}|{}",
-        SIX_DOF_MODEL_VERSION,
-        parameter_bundle_hash(&DestroyerSixDofConfig::default()),
+        "{}|{}|{}|{}|{}|{}|{:?}|{}|{}|{}|{}",
+        model_version(pack),
+        parameter_bundle_hash(pack),
         SIX_DOF_ENVIRONMENT_VERSION,
         SIX_DOF_SENSOR_VERSION,
         request.course_version,
@@ -207,11 +244,12 @@ fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
         initial_state,
         mask.join(","),
         seed,
+        installation,
     );
     RuntimeRunManifest {
         manifest_id: format!("fnv1a-{:016x}", fnv_u64(identity.as_bytes())),
-        model_version: SIX_DOF_MODEL_VERSION.to_string(),
-        parameter_bundle_hash: parameter_bundle_hash(&DestroyerSixDofConfig::default()),
+        model_version: model_version(pack).to_string(),
+        parameter_bundle_hash: parameter_bundle_hash(pack),
         environment_version: SIX_DOF_ENVIRONMENT_VERSION.to_string(),
         sensor_version: SIX_DOF_SENSOR_VERSION.to_string(),
         course_version: request.course_version.clone(),
@@ -220,11 +258,12 @@ fn build_manifest(request: &RuntimeRequest) -> RuntimeRunManifest {
         factor_mask: mask,
         initial_state,
         seed,
+        propeller_installation: request.propeller_installation,
     }
 }
 
-fn manifest_matches(existing: &RuntimeRunManifest, request: &RuntimeRequest) -> bool {
-    let fresh = build_manifest(request);
+fn manifest_matches(existing: &RuntimeRunManifest, request: &RuntimeRequest, pack: &PackModel) -> bool {
+    let fresh = build_manifest(request, pack);
     existing.controller_artifact == fresh.controller_artifact
         && existing.factor_mask == fresh.factor_mask
         && existing.course_version == fresh.course_version
@@ -232,13 +271,12 @@ fn manifest_matches(existing: &RuntimeRunManifest, request: &RuntimeRequest) -> 
         && existing.model_version == fresh.model_version
         // issue-2157：参数包哈希变化（升级/换包）必须使旧 run 失效。
         && existing.parameter_bundle_hash == fresh.parameter_bundle_hash
+        && existing.propeller_installation == fresh.propeller_installation
 }
 
-fn rebuild_plant(state: &RuntimeState) -> DestroyerSixDofPlant {
+fn rebuild_plant(state: &RuntimeState, pack: &PackModel) -> DestroyerSixDofPlant {
     // issue-2157 A3：物理参数单一真源——从已校验参数包构造。
-    let pack = crate::sixdof::embedded_destroyer_055()
-        .expect("内嵌参数包必须通过门禁（部署期资产损坏属构建失败）");
-    let mut plant = DestroyerSixDofPlant::from_model_pack(&pack, DestroyerSixDofConfig::default());
+    let mut plant = DestroyerSixDofPlant::from_model_pack(pack, DestroyerSixDofConfig::default());
     if let Some(six) = &state.sixdof_state {
         if six.quaternion.len() == 4 && six.body_velocity.len() == 6 {
             let mut full = TruthState::default();
@@ -256,10 +294,16 @@ fn rebuild_plant(state: &RuntimeState) -> DestroyerSixDofPlant {
             }
             full.body_velocity = nu;
             full.radiation_states = six.radiation_states.clone();
-            full.actuator_states.propeller_shaft_speed_rad_s = vec![six.shaft_speed_rad_s];
-            full.actuator_states.control_surface_angles_rad = vec![six.rudder_actual_rad];
+            full.actuator_states = six.actuator_states.clone().unwrap_or_else(|| {
+                let mut actuators = plant.state().actuator_states.clone();
+                actuators.propeller_shaft_speed_rad_s.fill(six.shaft_speed_rad_s);
+                actuators.control_surface_angles_rad.fill(six.rudder_actual_rad);
+                actuators
+            });
             plant.restore_state(full);
-            plant.restore_motor_torque_for_runtime(six.motor_torque_actual_nm);
+            if six.actuator_states.is_none() {
+                plant.restore_motor_torque_for_runtime(six.motor_torque_actual_nm);
+            }
         }
         plant
     } else {
@@ -310,13 +354,33 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
     if !(request.dt_s.is_finite()) || request.dt_s <= 0.0 || request.dt_s > 1.0 {
         return Err(format!("sixdof 拒绝非法帧时长 dt_s={}", request.dt_s));
     }
+    if let Some(installation) = &request.propeller_installation {
+        installation.validate()?;
+    }
+    let pack = selected_pack(&request)?;
+    if let crate::sixdof::model_pack::PackActuators::Physical { system, .. } = &pack.actuators {
+        if let Some(six) = &request.state.sixdof_state {
+            if six.position_ned.len() != 3 || six.quaternion.len() != 4 || six.body_velocity.len() != 6 {
+                return Err("六自由度状态维度与当前模型不符".into());
+            }
+        }
+        if let Some(actuators) = request.state.sixdof_state.as_ref().and_then(|six| six.actuator_states.as_ref()) {
+            system.validate_state(actuators)?;
+        }
+    }
+    if matches!(pack.actuators, PackActuators::Physical { .. }) && request.propeller_installation.is_some() {
+        return Err("当前参数包的双桨固定安装几何由模型版本确定".into());
+    }
 
     let (manifest, manifest_reset) = match &request.state.run_manifest {
-        Some(existing) if manifest_matches(existing, &request) => (existing.clone(), false),
-        _ => (build_manifest(&request), true),
+        Some(existing) if manifest_matches(existing, &request, &pack) => (existing.clone(), false),
+        _ => (build_manifest(&request, &pack), true),
     };
 
-    let mut plant = rebuild_plant(&request.state);
+    let mut plant = rebuild_plant(&request.state, &pack);
+    if let Some(installation) = request.propeller_installation {
+        plant.set_propeller_installation(installation)?;
+    }
     let control = command_rudder_for_request(&request);
     let (rudder_command_deg, integral, prev_error) =
         (control.rudder_deg, control.integral_deg_s, control.error_deg);
@@ -351,9 +415,22 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
     };
     plant.set_environment_state(environment, wind_geo);
     plant.restore_time_for_runtime(request.state.time_s);
-    plant
-        .step_with_dt(request.dt_s, commands)
-        .map_err(|e| format!("sixdof 推进失败: {e:?}"))?;
+    if let Some(system) = plant.actuator_system() {
+        let commands = ActuatorCommands {
+            shafts: system.propulsors.iter().enumerate().map(|(index, _)| ShaftCommand {
+                speed_reference_rad_s: request.shaft_speed_reference_rpm
+                    .map(|rpm| rpm * std::f64::consts::PI / 30.0)
+                    .unwrap_or(plant.state().actuator_states.shaft_reference_speed_rad_s[index]),
+                ..Default::default()
+            }).collect(),
+            surfaces: system.surfaces.iter().map(|_| SurfaceCommand {
+                angle_rad: rudder_command_deg * DEG, enabled: true, ..Default::default()
+            }).collect(),
+        };
+        plant.step_with_actuators(request.dt_s, &commands)
+    } else {
+        plant.step_with_dt(request.dt_s, commands)
+    }.map_err(|e| format!("sixdof 推进失败: {e:?}"))?;
 
     let state = plant.state();
     let euler = crate::sixdof::state::euler_from_quaternion(state.quaternion);
@@ -380,6 +457,7 @@ pub fn compute_destroyer_sixdof_step_json(request_json: &str) -> Result<String, 
             rudder_actual_rad: state.actuator_states.control_surface_angles_rad[0],
             shaft_speed_rad_s: state.actuator_states.propeller_shaft_speed_rad_s[0],
             motor_torque_actual_nm: plant.motor_torque_actual_for_runtime(),
+            actuator_states: plant.actuator_system().map(|_| state.actuator_states.clone()),
         },
         run_manifest: manifest,
         manifest_reset,

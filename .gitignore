@@ -114,6 +114,8 @@ var/cache/runtime-release/
 
 # GLB meshopt 压缩产物：由独立 npm run models:produce 流程生成，应用构建仅消费现有产物
 public/assets/models-opt/
+public/assets/model-releases/semisub-981-hydrodynamics/**/*.bin
+!public/assets/model-releases/semisub-981-hydrodynamics/v5.0.0/7664c50fecf6cafabd4ada5e70be9794c9f3c6630033974cdf236976f1e4ecfa/qtf-teaching-f32le.bin
 
 # Teacher AI grading lab local data and runtime artifacts
 /teacher-ai-grading-lab-data/

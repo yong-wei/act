@@ -6,6 +6,7 @@
 //! 辨识算法：输出误差最小二乘（ZOH 离散化，多初值有界优化）。
 
 use serde::{Deserialize, Serialize};
+use std::collections::VecDeque;
 
 // ---------- 角度正确处理（§4） ----------
 
@@ -488,6 +489,14 @@ pub fn identify_dp_low_freq(
     heading: &[f64],
     dt: f64,
 ) -> IdentificationResult {
+    identify_dp_low_freq_segments(input_x,input_y,input_n,pos_x,pos_y,heading,dt,&[0])
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn identify_dp_low_freq_segments(
+    input_x: &[f64], input_y: &[f64], input_n: &[f64],
+    pos_x: &[f64], pos_y: &[f64], heading: &[f64], dt: f64, segment_starts: &[usize],
+) -> IdentificationResult {
     // 离散模型结构本身无时间量纲：dt 由工件采样周期字段承载，此处仅守卫。
     if !dt.is_finite() || dt <= 0.0 {
         return IdentificationResult {
@@ -523,6 +532,12 @@ pub fn identify_dp_low_freq(
         return fail("输入/响应含非有限数值");
     }
     // 逐输入通道激励检查（三通道必须都动——DP 分配依赖全方向激励）。
+    if segment_starts.first()!=Some(&0) || segment_starts.len()>20
+        || segment_starts.windows(2).any(|pair|pair[1]<=pair[0]+19)
+        || segment_starts.last().is_some_and(|start|*start+19>=n)
+    {return fail("独立训练运行的采样边界无效");}
+    // 独立初态之间没有物理过渡，回归时排除跨运行的相邻样本对。
+    let pairs:Vec<usize>=(0..n-1).filter(|index|!segment_starts.contains(&(index+1))).collect();
     for (idx, ch) in [input_x, input_y, input_n].iter().enumerate() {
         let mean: f64 = ch.iter().sum::<f64>() / n as f64;
         let var: f64 = ch.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / n as f64;
@@ -545,9 +560,9 @@ pub fn identify_dp_low_freq(
             pos_x[k], pos_y[k], heading[k],
             inputs[0][k], inputs[1][k], inputs[2][k],
         ];
-        let m_pairs = n - 1;
+        let m_pairs = pairs.len();
         let mut means = [0.0f64; 6];
-        for k in 0..m_pairs {
+        for &k in &pairs {
             let phi = phi_at(k);
             for (j, v) in phi.iter().enumerate() {
                 means[j] += v;
@@ -558,8 +573,8 @@ pub fn identify_dp_low_freq(
         }
         let mut scales = [1.0f64; 6];
         for (j, scale) in scales.iter_mut().enumerate() {
-            let energy: f64 = (0..m_pairs)
-                .map(|k| {
+            let energy: f64 = pairs.iter()
+                .map(|&k| {
                     let d = phi_at(k)[j] - means[j];
                     d * d
                 })
@@ -568,7 +583,7 @@ pub fn identify_dp_low_freq(
         }
         let mut ata = [0.0f64; 36];
         let mut atb = [0.0f64; 6];
-        for k in 0..m_pairs {
+        for &k in &pairs {
             let phi_raw = phi_at(k);
             let phi = [
                 (phi_raw[0] - means[0]) / scales[0],
@@ -602,7 +617,7 @@ pub fn identify_dp_low_freq(
             b_mat[row * 3 + j] = theta[3 + j];
         }
         // 一步预测残差。
-        for k in 0..n - 1 {
+        for &k in &pairs {
             let pred = theta[0] * pos_x[k]
                 + theta[1] * pos_y[k]
                 + theta[2] * heading[k]
@@ -612,7 +627,7 @@ pub fn identify_dp_low_freq(
             residual_sum += (pred - out[k + 1]).powi(2);
         }
     }
-    let rms = (residual_sum / (3.0 * (n - 1) as f64)).sqrt();
+    let rms = (residual_sum / (3.0 * pairs.len() as f64)).sqrt();
 
     IdentificationResult {
         structure: Some(ModelStructure::DpLowFreq3 { a: a_mat, b: b_mat }),
@@ -922,70 +937,76 @@ pub fn identify_fopdt(
 
 // ---------- 模型预测（用于比较模式） ----------
 
+/// 学生侧独立连续状态。物理会话不会持有或读取此对象。
+pub struct ScalarPredictor {
+    structure: ModelStructure,
+    output: f64,
+    output_rate: f64,
+    delayed_inputs: VecDeque<f64>,
+    dt: f64,
+}
+
+impl ScalarPredictor {
+    pub fn new(structure: ModelStructure, output: f64, dt: f64) -> Self {
+        Self { structure, output, output_rate: 0.0, delayed_inputs: VecDeque::new(), dt }
+    }
+
+    pub fn output(&self) -> f64 { self.output }
+
+    pub fn step(&mut self, input: f64) -> f64 {
+        match &self.structure {
+            ModelStructure::Nomoto1 { k, t_s } => {
+                let decay = (-self.dt/t_s).exp();
+                self.output = decay*self.output+k*(1.0-decay)*input;
+            }
+            ModelStructure::Fopdt { k, t_s, delay_s } => {
+                let delay_steps = (delay_s/self.dt).round() as usize;
+                self.delayed_inputs.push_back(input);
+                let delayed = if self.delayed_inputs.len() > delay_steps {
+                    self.delayed_inputs.pop_front().unwrap_or(0.0)
+                } else { 0.0 };
+                let decay = (-self.dt/t_s).exp();
+                self.output = decay*self.output+k*(1.0-decay)*delayed;
+            }
+            ModelStructure::Nomoto2 { .. } | ModelStructure::RollOscillator { .. } => {
+                let accel = |y: f64, rate: f64| match &self.structure {
+                    ModelStructure::Nomoto2 { k, t1_s, t2_s } =>
+                        (k*input-y-(t1_s+t2_s)*rate)/(t1_s*t2_s),
+                    ModelStructure::RollOscillator { natural_freq_rad_s: wn, damping, control_gain } =>
+                        -wn*wn*y-2.0*damping*wn*rate+control_gain*input,
+                    _ => unreachable!(),
+                };
+                let h = self.dt/8.0;
+                for _ in 0..8 {
+                    let (y, rate) = (self.output, self.output_rate);
+                    let k1y = rate;
+                    let k1v = accel(y, rate);
+                    let k2y = rate+0.5*h*k1v;
+                    let k2v = accel(y+0.5*h*k1y, rate+0.5*h*k1v);
+                    let k3y = rate+0.5*h*k2v;
+                    let k3v = accel(y+0.5*h*k2y, rate+0.5*h*k2v);
+                    let k4y = rate+h*k3v;
+                    let k4v = accel(y+h*k3y, rate+h*k3v);
+                    self.output += h/6.0*(k1y+2.0*k2y+2.0*k3y+k4y);
+                    self.output_rate += h/6.0*(k1v+2.0*k2v+2.0*k3v+k4v);
+                }
+            }
+            ModelStructure::DpLowFreq3 { .. } => {}
+        }
+        self.output
+    }
+}
+
 /// 用学生模型结构推进预测（ZOH 离散化）。
 pub fn predict(structure: &ModelStructure, input: &[f64], y0: f64, dt: f64) -> Vec<f64> {
-    let mut out = Vec::with_capacity(input.len());
-    match structure {
-        ModelStructure::Nomoto1 { k, t_s } => {
-            // 与 identify 相同时序约定：y[k+1] = a·y[k] + b·u[k]。
-            // out[0] = y0（初始值），out[k+1] 由 input[k] 推进。
-            let a = (-dt / t_s).exp();
-            let b = k * (1.0 - a);
-            out.push(y0);
-            let mut y = y0;
-            for &u in input {
-                y = a * y + b * u;
-                out.push(y);
-            }
-        }
-        ModelStructure::Fopdt { k, t_s, delay_s } => {
-            let a = (-dt / t_s).exp();
-            let b = k * (1.0 - a);
-            let delay_steps = (*delay_s / dt).round() as usize;
-            out.push(y0);
-            let mut y = y0;
-            for (i, _) in input.iter().enumerate() {
-                let u_delayed = if i >= delay_steps { input[i - delay_steps] } else { 0.0 };
-                y = a * y + b * u_delayed;
-                out.push(y);
-            }
-        }
-        ModelStructure::Nomoto2 { k, t1_s, t2_s } => {
-            // ÿ·(T1·T2) = K·u − y − (T1+T2)·ẏ；RK4 子步推进（dt/8）。
-            out.push(y0);
-            let (mut y, mut yd) = (y0, 0.0);
-            for &u in input {
-                let accel =
-                    |yy: f64, yyd: f64| (k * u - yy - (t1_s + t2_s) * yyd) / (t1_s * t2_s);
-                let (h, steps) = (dt / 8.0, 8);
-                for _ in 0..steps {
-                    let k1y = yd;
-                    let k1v = accel(y, yd);
-                    let k2y = yd + 0.5 * h * k1v;
-                    let k2v = accel(y + 0.5 * h * k1y, yd + 0.5 * h * k1v);
-                    let k3y = yd + 0.5 * h * k2v;
-                    let k3v = accel(y + 0.5 * h * k2y, yd + 0.5 * h * k2v);
-                    let k4y = yd + h * k3v;
-                    let k4v = accel(y + h * k3y, yd + h * k3v);
-                    y += h / 6.0 * (k1y + 2.0 * k2y + 2.0 * k3y + k4y);
-                    yd += h / 6.0 * (k1v + 2.0 * k2v + 2.0 * k3v + k4v);
-                }
-                out.push(y);
-            }
-        }
-        ModelStructure::RollOscillator { natural_freq_rad_s: wn, damping: z, control_gain: g } => {
-            // φ̈ = −ωn²·φ − 2ζωn·φ̇ + G·u；与辨识增益拟合共用仿真。
-            return roll_oscillator_response(*wn, *z, *g, input, y0, dt);
-        }
-        ModelStructure::DpLowFreq3 { .. } => {
-            // 多通道结构不适用单通道 predict 契约 → 恒 y0。
-            // 调用方应使用 predict_dp（三输入通道 + [f64;3] 状态）。
-            for _ in input {
-                out.push(y0);
-            }
-        }
+    if matches!(structure, ModelStructure::DpLowFreq3 { .. }) {
+        return vec![y0; input.len()];
     }
-    out
+    let mut state = ScalarPredictor::new(structure.clone(), y0, dt);
+    let mut output = Vec::with_capacity(input.len()+1);
+    output.push(y0);
+    for value in input { output.push(state.step(*value)); }
+    output
 }
 
 /// 评价（预测 vs 测量）。

@@ -1,0 +1,36 @@
+{
+  "schema": "act.radiation-coordinate-validation.v1",
+  "status": "passed",
+  "generator_sha256": "45fcdfada2f8a4e27716d886ff248c073ae667589724a64655dc3def91ae9c15",
+  "fit_generator_sha256": "535044375e373bcbce1fc75afcbb37db0ce60d054ac68e26ff5194fa14cdf400",
+  "cases": [
+    {
+      "equilibrium_pitch_rad": 0.0,
+      "scipy_quaternion_transform_error": 0.0,
+      "matrix_roundtrip_relative_error": 0.0,
+      "work_error": 0.0,
+      "quadratic_energy_error": 0.0
+    },
+    {
+      "equilibrium_pitch_rad": 0.0008612432764895889,
+      "scipy_quaternion_transform_error": 1.1102230246251565e-16,
+      "matrix_roundtrip_relative_error": 2.4263862678842265e-16,
+      "work_error": 1.3877787807814457e-16,
+      "quadratic_energy_error": 7.105427357601002e-15
+    },
+    {
+      "equilibrium_pitch_rad": 0.4,
+      "scipy_quaternion_transform_error": 5.551115123125783e-17,
+      "matrix_roundtrip_relative_error": 1.0096678864865634e-16,
+      "work_error": 4.440892098500626e-16,
+      "quadratic_energy_error": 0.0
+    },
+    {
+      "equilibrium_pitch_rad": -0.3,
+      "scipy_quaternion_transform_error": 1.1102230246251565e-16,
+      "matrix_roundtrip_relative_error": 1.1300716795688282e-16,
+      "work_error": 1.1102230246251565e-16,
+      "quadratic_energy_error": 0.0
+    }
+  ]
+}

@@ -40,6 +40,41 @@ pub struct PropellerShaft {
     pub viscous_friction_nm_s_per_rad: f64,
 }
 
+/// 固定桨轴安装点及零姿态平衡浸深，随运行配置冻结。
+#[derive(Debug, Clone, Copy, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PropellerInstallation {
+    pub position_body_m: [f64; 3],
+    pub reference_immersion_m: f64,
+}
+
+impl PropellerInstallation {
+    pub fn validate(&self) -> Result<(), String> {
+        if !self.reference_immersion_m.is_finite()
+            || self.position_body_m.iter().any(|value| !value.is_finite())
+        {
+            return Err("桨轴安装几何必须为有限值".into());
+        }
+        Ok(())
+    }
+
+    /// 波面高程向上为正，船体位置和旋转采用NED/FRD。
+    pub fn immersion_depth(
+        &self,
+        position_ned: [f64; 3],
+        quaternion: [f64; 4],
+        surface_elevation_m: f64,
+    ) -> f64 {
+        let rotation = super::state::rotation_matrix(quaternion);
+        let vertical_offset: f64 = rotation[2].iter()
+            .zip(self.position_body_m)
+            .map(|(component, lever)| component * lever)
+            .sum();
+        self.reference_immersion_m + position_ned[2]
+            + vertical_offset - self.position_body_m[2] + surface_elevation_m
+    }
+}
+
 /// 四象限进速比：J = Va / (n·D)，n→0 时按有效标尺正则化保持连续。
 fn advance_ratio(va_mps: f64, n_rad_s: f64, diameter_m: f64) -> f64 {
     let n_eff = n_rad_s.abs().max(0.05);
@@ -87,7 +122,15 @@ pub fn ventilation_loss_factors(
     immersion_m: f64,
     kt_wetted: f64,
 ) -> [f64; 2] {
-    let radius = model.diameter_m / 2.0;
+    ventilation_factors_for_diameter(model.diameter_m, immersion_m, kt_wetted)
+}
+
+pub fn ventilation_factors_for_diameter(
+    diameter_m: f64,
+    immersion_m: f64,
+    loading_coefficient: f64,
+) -> [f64; 2] {
+    let radius = diameter_m / 2.0;
     if radius <= 0.0 || immersion_m <= 0.0 {
         // 轴心在自由面以上：无水动力载荷（轴系惯性/摩擦仍由轴动力学
         // 承载——断桨不停轴，见 #2147 失效语义）。
@@ -98,7 +141,7 @@ pub fn ventilation_loss_factors(
         return [1.0, 1.0]; // 深浸没：全湿（适用域上界钳位）。
     }
     // 临界浸没（T 级系数）：重载（大 |k_T|）更早通气。
-    let loading = kt_wetted.abs().clamp(0.0, 1.0);
+    let loading = loading_coefficient.abs().clamp(0.0, 1.0);
     let h_c = 1.0 + 0.6 * loading; // h_c/R ∈ [1, 1.6]
     // 光滑过渡（logistic，宽度 ~0.25R）；部分通气残余推力下限随负载
     // 增大而降低（重载通气损失更严重）。
@@ -191,7 +234,7 @@ pub fn clamp_shaft_speed(shaft: &PropellerShaft, n_rad_s: f64) -> f64 {
 }
 
 /// 舵/鳍/吊舱一阶伺服：速率与幅值限幅后的实际角增量。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Deserialize)]
 pub struct ServoModel {
     pub max_angle_rad: f64,
     pub max_rate_rad_s: f64,

@@ -1,0 +1,18 @@
+{
+  "schema": "act.ship-static-validation.v1",
+  "status": "passed",
+  "mass_relative_error": 1.1102230246251565e-16,
+  "gm_transverse_m": 2.000000000000001,
+  "gm_longitudinal_m": 233.71936001553308,
+  "reason": null,
+  "inputs_sha256": {
+    "source-sections.json": "825f7ef23f566b247934a0d27c8ba21ad30215ceb1574e66ec85eb1384d62098"
+  },
+  "outputs_sha256": {
+    "geometry.json": "ac897a89a2180cf782cb6a4c992f5f3c69c477650e855a5ff8434e9cc80a7154",
+    "hull.dat": "d83308b04d59bad0c5ecd7d4ea0a5042287cf44562c1938ff8b1528fb1037d6c",
+    "lid.dat": "d2ddc0b3c1207073ec1a9c04b4677b55114e0c9229c179b841c16971bde5d55b",
+    "full-hull.dat": "47bd3a91846d25aa0730fdf7ea1eeada50efc554e6d3e09ae5696688d05337e9",
+    "hydrostatic-hull.json": "92a85f946d854355c587c243e0dc8f525a83f0fbafed76765230d02aac54f729"
+  }
+}

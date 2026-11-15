@@ -1,0 +1,15 @@
+{
+  "schema": "act.vessel-wave-assets.v1",
+  "vessel": "cruise-adora",
+  "model_version": "research-nominal-v3",
+  "first_order": {
+    "metadata_file": "first-order-wave.json",
+    "metadata_sha256": "36e098e2bbf5da2dfa3ac3a3ab52c2633380d738885f1d6f592872750910654f",
+    "metadata_fnv1a64": "fnv1a-67637197ea981bdf",
+    "data_file": "excitation-f32le.bin",
+    "data_sha256": "f0ba95857e992b846376a5354f467e47947a034ab2b13d12b2af38758caf58b6",
+    "data_bytes": 148608,
+    "object_key": "simulation-hydrodynamics/f0ba95857e992b846376a5354f467e47947a034ab2b13d12b2af38758caf58b6/excitation-f32le.bin"
+  },
+  "full_difference": null
+}

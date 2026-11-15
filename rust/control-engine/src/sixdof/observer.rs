@@ -10,7 +10,7 @@
 use super::sensor::{Measurement, NoiseLevel, Quality, SensorChannel, channel_seed, SEED_TRAINING};
 
 /// 低频观测器状态（3-DOF 水平面：位置 N/E + 航向 + 速度 u/v + 转艏率 r）。
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct LowFrequencyObserver {
     /// 估计位置（NED 北/东）。
     pub pos_n: f64,
@@ -139,6 +139,7 @@ impl Default for LowFrequencyObserver {
 }
 
 /// 组合观测链：传感器通道 + 低频观测器（真值→传感器→估计器→控制器）。
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct ObservationChain {
     pub gnss: SensorChannel,
     pub heading: SensorChannel,

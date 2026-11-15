@@ -1,7 +1,7 @@
 //! Smogeli 型通气/出水损失算例（issue-2156 阶段 B2.2）。
 
 use control_engine::sixdof::actuators::{
-    PropellerModel, propeller_loads, propeller_loads_with_ventilation,
+    PropellerInstallation, PropellerModel, propeller_loads, propeller_loads_with_ventilation,
     ventilation_loss_factors,
 };
 
@@ -11,6 +11,64 @@ fn model() -> PropellerModel {
         water_density: 1025.0,
         kt_coefficients: [0.45, -0.30, -0.05],
         kq_coefficients: [0.05, -0.02, -0.005],
+    }
+}
+
+#[test]
+fn fixed_installation_follows_heave_pitch_and_roll() {
+    let installation = PropellerInstallation {
+        position_body_m: [-50.0, 4.0, 3.0],
+        reference_immersion_m: 5.0,
+    };
+    let identity = [1.0, 0.0, 0.0, 0.0];
+    assert_eq!(installation.immersion_depth([20.0, 30.0, 1.0], identity, 0.5), 6.5);
+    let angle = 0.2_f64;
+    let pitch = [(angle / 2.0).cos(), 0.0, (angle / 2.0).sin(), 0.0];
+    let expected_pitch = 5.0 + 50.0 * angle.sin() + 3.0 * (angle.cos() - 1.0);
+    assert!((installation.immersion_depth([0.0; 3], pitch, 0.0) - expected_pitch).abs() < 1e-12);
+    let roll = [(angle / 2.0).cos(), (angle / 2.0).sin(), 0.0, 0.0];
+    let expected_roll = 5.0 + 4.0 * angle.sin() + 3.0 * (angle.cos() - 1.0);
+    assert!((installation.immersion_depth([0.0; 3], roll, 0.0) - expected_roll).abs() < 1e-12);
+}
+
+fn plant_with_depth(depth: f64) -> control_engine::sixdof::DestroyerSixDofPlant {
+    use control_engine::sixdof::{DestroyerSixDofConfig, DestroyerSixDofPlant};
+    let mut plant = DestroyerSixDofPlant::new(DestroyerSixDofConfig::default());
+    plant.set_propeller_installation(PropellerInstallation {
+        position_body_m: [-80.0, 0.0, 3.0],
+        reference_immersion_m: depth,
+    }).unwrap();
+    plant
+}
+
+#[test]
+fn online_plant_reduces_both_thrust_and_shaft_loading() {
+    use control_engine::sixdof::DestroyerCommands;
+    let mut wet = plant_with_depth(10.0);
+    let mut emerged = plant_with_depth(-10.0);
+    let command = DestroyerCommands::default();
+    wet.step_with_dt(0.05, command).unwrap();
+    emerged.step_with_dt(0.05, command).unwrap();
+    assert!(wet.state().body_velocity[0] > emerged.state().body_velocity[0]);
+    let wet_omega = wet.state().actuator_states.propeller_shaft_speed_rad_s[0];
+    let emerged_omega = emerged.state().actuator_states.propeller_shaft_speed_rad_s[0];
+    assert!(emerged_omega > wet_omega, "失去水动力负载后轴系应按惯量减速更慢");
+    assert!(emerged_omega < 12.0, "电机切断后摩擦仍消耗轴能");
+    let expected_friction_only = (12.0 + 5000.0 / 400.0)
+        * (-400.0_f64 * 0.05 / 24000.0).exp() - 5000.0 / 400.0;
+    assert!((emerged_omega - expected_friction_only).abs() < 1e-9);
+}
+
+#[test]
+fn propeller_installation_rejects_nonfinite_geometry() {
+    for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        let mut installation = PropellerInstallation {
+            position_body_m: [0.0, 0.0, 3.0], reference_immersion_m: value,
+        };
+        assert!(installation.validate().is_err());
+        installation.reference_immersion_m = 5.0;
+        installation.position_body_m[1] = value;
+        assert!(installation.validate().is_err());
     }
 }
 

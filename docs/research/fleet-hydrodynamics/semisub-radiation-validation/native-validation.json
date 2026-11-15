@@ -1,0 +1,12 @@
+{
+  "frequencies": 100,
+  "oscillators": 52,
+  "parameter_hash": "fnv1a-0a5bc338fa2905ff",
+  "parameter_version": "research-nominal-v2",
+  "radiation_states": 104,
+  "status": "computed",
+  "vessel": "semisub-981",
+  "native_validator_sha256": "fa47b4741d0b9f7e8626a54e3bb4d234d60674f4870996dae8ea7e316e93ef90",
+  "manifest_sha256": "7d51091b7bc38b51987c9608ed6d5a2ab0f6eb0bf4e84f5f135b05fdab71087c",
+  "trace_sha256": "e3933f5c9bfe9c42f2e303524a15512f1f0cb6190d331b302eb861bf7216b1fd"
+}

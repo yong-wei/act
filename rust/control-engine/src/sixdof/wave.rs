@@ -4,7 +4,7 @@
 //! ω∈[0.2, 2.5] rad/s、128 等能频率段、7 方向（主向 ±30°、10° 间隔、
 //! cos² 权重归一）；离散后重新归一化至 `Σa_i²/2 = Hs²/16`。波面、轨道
 //! 速度与一阶激励共用同一波场（同相位）；水深进入色散/相位/轨道速度。
-//! 二阶 QTF 未就绪：`second_order_available()` 显式 false，不伪造慢漂。
+//! 二阶表的可用域由参数包登记，原始独立波场默认尚无二阶数据。
 //!
 //! 确定性：分量相位由 (seed, 频段, 方向) 经 SplitMix64 派生，与帧率/
 //! 倍速/暂停无关（无墙钟依赖）；同 seed 同工况逐点同一序列。
@@ -31,8 +31,30 @@ pub const FREQUENCY_BINS: usize = 128;
 pub const DIRECTIONS: usize = 7;
 pub const GRAVITY: f64 = 9.81;
 
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct WaveRigidCondition {
+    pub mass_kg: f64,
+    pub center_of_mass_waterline_z_up_m: [f64; 3],
+    pub inertia_about_cg_kg_m2: [f64; 3],
+}
+
+pub(crate) fn bracket_wave_grid(grid: &[f64], value: f64, periodic: bool) -> Option<([usize; 2], f64)> {
+    if !value.is_finite() || grid.is_empty() { return None; }
+    if grid.len() == 1 { return (value == grid[0]).then_some(([0, 0], 0.0)); }
+    let last = grid.len()-1;
+    if periodic && (value < grid[0] || value > grid[last]) {
+        let two_pi = 2.0*std::f64::consts::PI;
+        let position = if value < grid[0] { value+two_pi } else { value };
+        return Some(([last, 0], (position-grid[last])/(grid[0]+two_pi-grid[last])));
+    }
+    if value < grid[0] || value > grid[last] { return None; }
+    let right = grid.partition_point(|point| *point <= value).min(last).max(1);
+    let left = right-1;
+    Some(([left, right], (value-grid[left])/(grid[right]-grid[left])))
+}
+
 /// 工况定义（issue §2 表；T 级课程标称）。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct WaveCondition {
     pub hs_m: f64,
     pub tp_s: f64,
@@ -70,7 +92,7 @@ fn jonswap_spectrum(omega: f64, tp_s: f64) -> f64 {
 }
 
 /// 有限水深色散：ω² = g·k·tanh(kh)（牛顿迭代）。
-fn wave_number(omega: f64, depth: f64) -> f64 {
+pub(crate) fn wave_number(omega: f64, depth: f64) -> f64 {
     let k_deep = omega * omega / GRAVITY;
     if depth > 1.0e4 {
         return k_deep;
@@ -90,7 +112,7 @@ fn wave_number(omega: f64, depth: f64) -> f64 {
 }
 
 /// 离散分量（波数、幅值、方向、相位）。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub(crate) struct WaveComponent {
     pub(crate) omega: f64,
     pub(crate) k: f64,
@@ -101,22 +123,57 @@ pub(crate) struct WaveComponent {
 }
 
 /// 带种子波场。
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct WaveField {
     components: Vec<WaveComponent>,
     condition: WaveCondition,
     second_order_available: bool,
+    #[serde(skip)]
+    evaluation_kernels: std::sync::OnceLock<std::sync::Arc<Vec<WaveEvaluationKernel>>>,
+}
+
+struct WaveEvaluationKernel {
+    direction_cos: f64,
+    direction_sin: f64,
+    bottom_sinh: f64,
 }
 
 impl WaveField {
+    pub fn regular(seed: u64, mut condition: WaveCondition, height_m: f64) -> Result<Self, String> {
+        if !height_m.is_finite() || !(0.0..=3.5).contains(&height_m)
+            || !condition.tp_s.is_finite() || !(2.6..=30.0).contains(&condition.tp_s) {
+            return Err("规则波波高或周期超出教学范围".into());
+        }
+        condition.hs_m = std::f64::consts::SQRT_2 * height_m;
+        let omega = 2.0 * std::f64::consts::PI / condition.tp_s;
+        let mut phase_seed = seed;
+        Ok(Self {components:vec![WaveComponent {omega,k:wave_number(omega, condition.water_depth_m),
+            amplitude:height_m / 2.0,direction:condition.direction_to_deg.to_radians(),
+            phase:2.0 * std::f64::consts::PI * seed_to_unit(&mut phase_seed)}],
+            condition,second_order_available:false,evaluation_kernels:Default::default()})
+    }
+
     pub fn new(seed: u64, condition: WaveCondition) -> Self {
+        Self::with_frequency_bins(seed, condition, FREQUENCY_BINS)
+    }
+
+    /// 教学代表谱保留方向、能量和同源相位。频率分辨率随运行配置冻结。
+    pub fn representative(seed: u64, condition: WaveCondition, bins: usize) -> Result<Self, String> {
+        if ![16,32,FREQUENCY_BINS].contains(&bins) {
+            return Err("教学波谱仅支持16、32或128个频段".into());
+        }
+        Ok(Self::with_frequency_bins(seed, condition, bins))
+    }
+
+    fn with_frequency_bins(seed: u64, condition: WaveCondition, bins: usize) -> Self {
         let mut rng = seed
             .wrapping_mul(0x9E3779B97F4A7C15)
             .wrapping_add(0x1234567890ABCDEF);
         // 1) 等能频率段：谱 CDF 反演。
-        let mut cdf = [0.0f64; FREQUENCY_BINS + 1];
+        let mut cdf = vec![0.0f64; bins + 1];
         let mut total = 0.0;
-        for i in 0..FREQUENCY_BINS {
-            let w_mid = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * (i as f64 + 0.5) / FREQUENCY_BINS as f64;
+        for i in 0..bins {
+            let w_mid = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * (i as f64 + 0.5) / bins as f64;
             total += jonswap_spectrum(w_mid, condition.tp_s);
             cdf[i + 1] = total;
         }
@@ -131,10 +188,10 @@ impl WaveField {
             dir_total += w;
         }
         // 3) 分量幅值（比例）与确定性相位。
-        let mut components = Vec::with_capacity(FREQUENCY_BINS * DIRECTIONS);
-        for i in 0..FREQUENCY_BINS {
+        let mut components = Vec::with_capacity(bins * DIRECTIONS);
+        for i in 0..bins {
             let band_energy = (cdf[i + 1] - cdf[i]) / total;
-            let w_mid = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * (i as f64 + 0.5) / FREQUENCY_BINS as f64;
+            let w_mid = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * (i as f64 + 0.5) / bins as f64;
             let k = wave_number(w_mid, condition.water_depth_m);
             for (j, &weight) in dir_weight.iter().enumerate() {
                 let share = band_energy * (weight / dir_total);
@@ -154,14 +211,21 @@ impl WaveField {
         for c in components.iter_mut() {
             c.amplitude *= scale;
         }
-        Self { components, condition, second_order_available: false }
+        Self { components, condition, second_order_available: false, evaluation_kernels: Default::default() }
+    }
+
+    fn evaluation_kernels(&self) -> &[WaveEvaluationKernel] {
+        self.evaluation_kernels.get_or_init(|| std::sync::Arc::new(self.components.iter().map(|component| WaveEvaluationKernel {
+            direction_cos: component.direction.cos(), direction_sin: component.direction.sin(),
+            bottom_sinh: (component.k*self.condition.water_depth_m).sinh().max(1e-12),
+        }).collect())).as_slice()
     }
 
     /// 波面高程（NED 位置，m）。
     pub fn elevation(&self, t: f64, x_n: f64, y_e: f64) -> f64 {
         let mut eta = 0.0;
-        for c in &self.components {
-            let arg = c.omega * t - c.k * (x_n * c.direction.cos() + y_e * c.direction.sin()) + c.phase;
+        for (c,kernel) in self.components.iter().zip(self.evaluation_kernels()) {
+            let arg = c.omega * t - c.k * (x_n * kernel.direction_cos + y_e * kernel.direction_sin) + c.phase;
             eta += c.amplitude * arg.cos();
         }
         eta
@@ -171,18 +235,17 @@ impl WaveField {
     pub fn orbital_velocity(&self, t: f64, x_n: f64, y_e: f64, z_up_from_surface: f64) -> [f64; 3] {
         let depth = self.condition.water_depth_m;
         let mut vel = [0.0f64; 3];
-        for c in &self.components {
-            let arg = c.omega * t - c.k * (x_n * c.direction.cos() + y_e * c.direction.sin()) + c.phase;
+        for (c,kernel) in self.components.iter().zip(self.evaluation_kernels()) {
+            let arg = c.omega * t - c.k * (x_n * kernel.direction_cos + y_e * kernel.direction_sin) + c.phase;
             let (sin_arg, cos_arg) = arg.sin_cos();
             // Airy 有限水深：u = aω·cosh(k(h+z))/sinh(kh)、
-            // w = aω·sinh(k(h+z))/sinh(kh)；海床 z=-h 处水平分量最大、
-            // 垂向为零（不穿透海床）。
-            let sh_bottom = (c.k * depth).sinh().max(1e-12);
+            // w = aω·sinh(k(h+z))/sinh(kh)；海床 z=-h 处垂向为零。
+            let sh_bottom = kernel.bottom_sinh;
             let ch_z = (c.k * (depth + z_up_from_surface)).cosh();
             let sh_z = (c.k * (depth + z_up_from_surface)).sinh();
             let horizontal = c.amplitude * c.omega * (ch_z / sh_bottom);
-            vel[0] += horizontal * c.direction.cos() * cos_arg;
-            vel[1] += horizontal * c.direction.sin() * cos_arg;
+            vel[0] += horizontal * kernel.direction_cos * cos_arg;
+            vel[1] += horizontal * kernel.direction_sin * cos_arg;
             vel[2] += c.amplitude * c.omega * (sh_z / sh_bottom) * sin_arg;
         }
         vel
@@ -206,6 +269,10 @@ impl WaveField {
         self.second_order_available
     }
 
+    pub(crate) fn set_second_order_available(&mut self, available: bool) {
+        self.second_order_available = available;
+    }
+
     pub fn condition(&self) -> WaveCondition {
         self.condition
     }
@@ -222,5 +289,38 @@ impl WaveField {
     /// 分量能量和 Σaᵢ²/2（谱归一化对账；应精确 = Hs²/16）。
     pub fn energy_sum(&self) -> f64 {
         self.components.iter().map(|c| c.amplitude * c.amplitude / 2.0).sum()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cached_wave_kernels_match_original_scalar_operations_bitwise_and_stay_out_of_snapshots() {
+        for depth in [40.0,200.0] {
+            let field = WaveField::new(20261106,WaveCondition {hs_m:1.5,tp_s:9.0,direction_to_deg:45.0,water_depth_m:depth});
+            let before = serde_json::to_string(&field).unwrap();
+            for (time,north,east,z) in [(0.0,0.0,0.0,-4.0),(37.25,1234.5,-35.0,-8.5),(600.0,-1800.0,230.0,-depth)] {
+                let mut elevation = 0.0;
+                let mut velocity = [0.0_f64;3];
+                for component in &field.components {
+                    let argument = component.omega*time-component.k*(north*component.direction.cos()+east*component.direction.sin())+component.phase;
+                    elevation += component.amplitude*argument.cos();
+                    let (sin_argument,cos_argument) = argument.sin_cos();
+                    let bottom = (component.k*depth).sinh().max(1e-12);
+                    let horizontal = component.amplitude*component.omega*((component.k*(depth+z)).cosh()/bottom);
+                    velocity[0] += horizontal*component.direction.cos()*cos_argument;
+                    velocity[1] += horizontal*component.direction.sin()*cos_argument;
+                    velocity[2] += component.amplitude*component.omega*((component.k*(depth+z)).sinh()/bottom)*sin_argument;
+                }
+                assert_eq!(field.elevation(time,north,east).to_bits(),elevation.to_bits());
+                assert_eq!(field.orbital_velocity(time,north,east,z).map(f64::to_bits),velocity.map(f64::to_bits));
+            }
+            assert_eq!(serde_json::to_string(&field).unwrap(),before);
+            let restored:WaveField = serde_json::from_str(&before).unwrap();
+            assert!(restored.evaluation_kernels.get().is_none());
+            assert_eq!(restored.orbital_velocity(71.0,170.0,25.0,-3.0),field.orbital_velocity(71.0,170.0,25.0,-3.0));
+        }
     }
 }

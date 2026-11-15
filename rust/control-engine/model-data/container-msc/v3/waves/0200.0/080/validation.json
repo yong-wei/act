@@ -1,0 +1,19 @@
+{
+  "schema": "act.teaching-first-order-export.v1",
+  "status": "assembled-frozen-teaching-reference",
+  "base_pack_manifest_sha256": "71323e641d94b77bd26778607536250f45dd6dbde6eb1e78cccc20ab6c7936cb",
+  "source_evidence_sha256": "0f80aef0b32813bd1b3f24c9196d4186bcb6049183d3dd67b7a5752f37aaf0b1",
+  "source_case_index": 3,
+  "metadata_sha256": "fd72ccf2ba362632e09dccc310d24b9b4431501001c870225e8ac0c01729adda",
+  "data_sha256": "d91e10155621c6adfe443289aa396cc47fef331a67ef5de358bc0e45b1a92984",
+  "failed_source_checks": 21,
+  "quantization_relative_l2_per_channel": [
+    2.5595821839722675e-08,
+    2.636527160705361e-08,
+    2.4932331519147622e-08,
+    2.495495686076495e-08,
+    2.4878156217434135e-08,
+    2.8240048498384934e-08
+  ],
+  "approximation": "Frozen zero-speed excitation coefficients. Actual world position retains encounter phase. Forward-speed diffraction corrections are deferred."
+}

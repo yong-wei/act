@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 
-import { submitDestroyerStep, toIlabHttpError } from '@/features/ilab/destroyer-session';
+import { resolveCurrentActorContext } from '@/features/ilab/adapters/ilab-session-lifecycle';
+import { readIlabGrantFromRequest } from '@/features/ilab/grant-cookie';
+
+import { readDestroyerSession, submitDestroyerStep, toIlabHttpError } from '@/features/ilab/destroyer-session';
 import { readDestroyerSamples, type DestroyerReadings } from '@/resources/simulations/simulations/destroyer-experiment';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +11,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request, props: { params: Promise<{ originId: string }> }) {
   try {
     const { originId } = await props.params;
+    await readDestroyerSession(originId, await resolveCurrentActorContext(readIlabGrantFromRequest(request)));
     const body = await request.json() as {
       seq?: unknown;
       readings?: unknown;

@@ -1,0 +1,33 @@
+{
+  "schema": "act.vessel-wave-assets.v1",
+  "vessel": "semisub-981",
+  "model_version": "research-nominal-v5",
+  "first_order": {
+    "metadata_file": "first-order-wave.json",
+    "metadata_sha256": "01a2bfea32b569bd72215de111ec39c87d779f59178470f0bf8959edccc3ca88",
+    "metadata_fnv1a64": "fnv1a-1c74e01fb914911d",
+    "data_file": "excitation-f32le.bin",
+    "data_sha256": "0a778224435e9577354b7ddc96a964da31fba561ba658744ac7ea199ae27bc71",
+    "data_bytes": 149760,
+    "object_key": "model-releases/semisub-981-hydrodynamics/v5.0.0/0a778224435e9577354b7ddc96a964da31fba561ba658744ac7ea199ae27bc71/excitation-f32le.bin"
+  },
+  "full_difference": {
+    "metadata_file": "full-difference-wave.json",
+    "metadata_sha256": "6c4a3aa89cea1013d6fb653fee4efe985f294d52084f5282dde40c6ac0303c9e",
+    "metadata_fnv1a64": "fnv1a-7a5e8e4aded238b7",
+    "data_file": "qtf-f32le.bin",
+    "data_sha256": "2f1251e6c2ad163c4d6771ceec143edcc028445f7c77181ea8ff84b0fb17bb4b",
+    "data_bytes": 60634512,
+    "object_key": "model-releases/semisub-981-hydrodynamics/v5.0.0/2f1251e6c2ad163c4d6771ceec143edcc028445f7c77181ea8ff84b0fb17bb4b/qtf-f32le.bin"
+  },
+  "teaching_difference": {
+    "metadata_file": "teaching-difference-wave.json",
+    "metadata_sha256": "204f3da861fc98b577357ddd5f222b66d69aa9b23eb02cee1af722706f8edbaa",
+    "metadata_fnv1a64": "fnv1a-c5239c4503c4e563",
+    "data_file": "qtf-teaching-f32le.bin",
+    "data_sha256": "7664c50fecf6cafabd4ada5e70be9794c9f3c6630033974cdf236976f1e4ecfa",
+    "data_bytes": 528768,
+    "object_key": "model-releases/semisub-981-hydrodynamics/v5.0.0/7664c50fecf6cafabd4ada5e70be9794c9f3c6630033974cdf236976f1e4ecfa/qtf-teaching-f32le.bin",
+    "delivery": "application"
+  }
+}

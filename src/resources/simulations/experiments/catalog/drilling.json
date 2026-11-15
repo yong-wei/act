@@ -1,0 +1,146 @@
+{
+  "sourceIssue": 2161,
+  "sourceBodySha256": "93e0d3555852051b8d8e9e98eaa108d9f12084b455f205d7aeb4353e62bf240b",
+  "steps": [
+    {
+      "sequence": 1,
+      "title": "认识运动与控制通道",
+      "condition": "P0，120s",
+      "interaction": "匹配6自由度与本实验控制3通道，查看8推进器布局",
+      "evidence": "控制自由度与实际运动自由度不同"
+    },
+    {
+      "sequence": 2,
+      "title": "检验推进器力矩臂",
+      "condition": "P0，单台50kN等效命令脉冲30s，300s",
+      "interaction": "选择前/后/左右推进器，预测并测量位移/艏摇符号",
+      "evidence": "F与r×F，正确力矩臂"
+    },
+    {
+      "sequence": 3,
+      "title": "设计组合激励",
+      "condition": "P0，分别纯X/Y/N小激励各300s",
+      "interaction": "设计组合出力，记录交叉响应",
+      "evidence": "多变量耦合和控制分配；不直接注入理想tau绕过执行器"
+    },
+    {
+      "sequence": 4,
+      "title": "辨识三通道模型",
+      "condition": "步骤3数据",
+      "interaction": "拟合局部3×3低频模型，标记主/交叉通道",
+      "evidence": "教学模型降阶与后台6DOF区别"
+    },
+    {
+      "sequence": 5,
+      "title": "独立验证低频模型",
+      "condition": "新run，小位移(2,−2)m，300s",
+      "interaction": "冻结模型对比预测和实响应",
+      "evidence": "留出验证及耦合残差"
+    },
+    {
+      "sequence": 6,
+      "title": "整定定位PID",
+      "condition": "P0，(5,3)m/5°参考，600s",
+      "interaction": "运行独立PID并调整带宽一档",
+      "evidence": "各通道耦合、阻尼/速度权衡"
+    },
+    {
+      "sequence": 7,
+      "title": "比较模型解耦",
+      "condition": "同条件",
+      "interaction": "开启模型前馈/解耦补偿再比较",
+      "evidence": "解耦改变控制输出，不是后台物理被关闭"
+    },
+    {
+      "sequence": 8,
+      "title": "检验积分抵流",
+      "condition": "C1，目标原点，600s",
+      "interaction": "对比无积分/有积分；标出对水/对地速度",
+      "evidence": "抵流守位和慢变偏置"
+    },
+    {
+      "sequence": 9,
+      "title": "比较测量风前馈",
+      "condition": "W1，600s",
+      "interaction": "比较无风前馈与测量风前馈",
+      "evidence": "反馈/前馈、测量与模型不确定性"
+    },
+    {
+      "sequence": 10,
+      "title": "观察波频运动",
+      "condition": "V2，一阶开/二阶关，600s",
+      "interaction": "比较3DOF控制量和heave/roll/pitch运动",
+      "evidence": "不应以无限推力抵消全部波频运动"
+    },
+    {
+      "sequence": 11,
+      "title": "识别二阶慢漂",
+      "condition": "同波场一/二阶均开，600s",
+      "interaction": "保持控制器不变，比较低频漂移与均值",
+      "evidence": "一阶振动与二阶慢漂的物理区别"
+    },
+    {
+      "sequence": 12,
+      "title": "比较原始与低频反馈",
+      "condition": "V2+N1，600s",
+      "interaction": "原始反馈与波滤LF反馈对照，选带宽",
+      "evidence": "波滤减少无效出力并引入滞后；多项证据"
+    },
+    {
+      "sequence": 13,
+      "title": "比较控制分配",
+      "condition": "E1+N1，600s",
+      "interaction": "比较伪逆与约束分配，显示期望/实际tau",
+      "evidence": "推力、方位、功率限制和分配残差"
+    },
+    {
+      "sequence": 14,
+      "title": "选择参考斜坡",
+      "condition": "同条件，目标(20,10)m/15°",
+      "interaction": "选择参考斜坡30/90/180s",
+      "evidence": "大步进的饱和、参考整形与恢复"
+    },
+    {
+      "sequence": 15,
+      "title": "应对推进器故障",
+      "condition": "E1+N1，t180 T2失效，600s",
+      "interaction": "选择是否重分配并比较",
+      "evidence": "故障—可控余量—位置/航向变化，不预设失败必失控"
+    },
+    {
+      "sequence": 16,
+      "title": "设计故障恢复",
+      "condition": "同故障",
+      "interaction": "调整轴向权重与电力预算，形成恢复方案",
+      "evidence": "保航向或保位置的可行性取舍"
+    },
+    {
+      "sequence": 17,
+      "title": "应对定位缺测",
+      "condition": "E1+N1，F2 GNSS缺测20s，600s",
+      "interaction": "选择维持预测/冻结积分/安全退出策略并执行",
+      "evidence": "缺测不等于零位置，估计不确定性增长"
+    },
+    {
+      "sequence": 18,
+      "title": "估计电力能力边界",
+      "condition": "预算32/16/8MW；风8/12/18/24/30m/s，静态能力计算＋选2组600s",
+      "interaction": "先预测能力边界，选择可行和临界工况验证",
+      "evidence": "不可行与控制器没调好不同；范围内全可行也如实报告"
+    },
+    {
+      "sequence": 19,
+      "title": "验证综合方案",
+      "condition": "seed17/29，E2+N1，一台故障",
+      "interaction": "冻结最终控制/观测/分配方案做验证",
+      "evidence": "综合抗扰与故障重构、误差/能耗/能力余量"
+    },
+    {
+      "sequence": 20,
+      "title": "完成实验报告",
+      "condition": "至少6run",
+      "interaction": "报告局部模型、波频/LF、分配、故障和退出判断",
+      "evidence": "证据完整，不能把教学结果称DP3安全认证"
+    }
+  ]
+}

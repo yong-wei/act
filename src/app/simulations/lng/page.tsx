@@ -11,11 +11,11 @@ export default async function LNGSimulationPage({
   const ticket = firstQueryValue((await searchParams)?.ticket);
   return (
     <SimulationShell
-      title="长恒号 LNG 大惯性操纵"
-      subtitle="大型船舶操纵仿真 · 大惯性系统控制"
+      title="长恒系列 LNG 运输船大惯性操纵（教学代表船）"
+      subtitle="液舱晃荡 · 纵向制动与约束靠泊"
       activeHref="/simulations/lng"
       guideHref="/supporting/guide-02-lng-carrier.pdf"
-      localToolTemplate="heading-control"
+      localToolTemplate="lng-berthing"
     >
       <LNGSimulation ticket={ticket} />
     </SimulationShell>

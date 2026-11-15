@@ -1,0 +1,31 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "dredger-tianjing",
+  "model_version": "research-nominal-v3",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "actuators.json": "155ee132e606103115e094b525a564b27155dfc548500ebfbb3ed7bf98c870d9",
+    "excitation-f32le.bin": "b00a0a4e709b8be81f1776c64be093d9cff54a1fa6163b93377bc800f70660f0",
+    "first-order-export-validation.json": "3b5624757576225f625305e61e3b8d683b9d8ea00078f78dbc150dd2398726a4",
+    "first-order-wave.json": "9d7bc598f4c61d6d011ff08afa4b0f887c43f50fc88f96406335be4580ba73ec",
+    "frontal.wkb": "336bc74e25dafcae8973e8f0ff69d7f75219aed624908fa38c44a92ef09a2609",
+    "full-hull.dat": "47bd3a91846d25aa0730fdf7ea1eeada50efc554e6d3e09ae5696688d05337e9",
+    "geometry-provenance.json": "89974f6446a578a7da3ceb408389e3177e625382c642b8598e28c675617a978f",
+    "geometry.json": "8468b59efbe8d2eb263f5cd26f7127d4850e2a735b20ecd9bdeb4c50b17ec730",
+    "hull.dat": "d83308b04d59bad0c5ecd7d4ea0a5042287cf44562c1938ff8b1528fb1037d6c",
+    "hydrostatic-hull.json": "92a85f946d854355c587c243e0dc8f525a83f0fbafed76765230d02aac54f729",
+    "lateral.wkb": "4183e75d170783040cafd025577f776cb5063d2c4d07b3354af1a3d14e383a95",
+    "lid.dat": "d2ddc0b3c1207073ec1a9c04b4677b55114e0c9229c179b841c16971bde5d55b",
+    "maneuvering.json": "3c19f4598435f0f38c342165da636254d8d3d65af89876ab6da46b0968bbc216",
+    "provenance.json": "d40ebd8eecc9a21da9c22f6d2b431e984e945876a1130751796fb8a35879e815",
+    "radiation-fit-arrays.npz": "65e885f1a73384dec8e88045c05a28a7fabd330a468466a055bdae1b57a8caf3",
+    "radiation-fit-validation.json": "ef46d0cf6d7437bd93b0f4cb2bd611ebc891162ee80e47e65beed5294cb2b2d3",
+    "radiation.json": "325ad62628348228ae027957cf670bc9b71aa2ccee36565e187d68891645ef93",
+    "source-sections.json": "825f7ef23f566b247934a0d27c8ba21ad30215ceb1574e66ec85eb1384d62098",
+    "static-validation.json": "0c05b4f3caea0ad134b049b6a021eefd571d4404616ac82216ef3979fad6cabc",
+    "validation.json": "48c44659b059cd1de1aa4e26bc71e64c5076615e6e42553d68e9ddcd3e307cd9",
+    "wave-assets.json": "d2b47406cc61af1da36acfebaedef77a515a00c8a73a3aa254a3e17b79c3b713",
+    "wind-validation.json": "57e5c8a9ce3743dc34f6a210a7a9306a109dd30b1d8da1fd719f8c0d6ddb7be2",
+    "wind.json": "aec9860964dc2bfe5b2bf6303b4f22d6ff754a4ca1a5dd2089080f8a8aead83f"
+  }
+}

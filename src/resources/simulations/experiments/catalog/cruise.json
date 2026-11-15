@@ -1,0 +1,146 @@
+{
+  "sourceIssue": 2160,
+  "sourceBodySha256": "a6032ea66619680f201a4e22406ca1fcead2ca81a4b248885d502acf4c10226e",
+  "steps": [
+    {
+      "sequence": 1,
+      "title": "认识吊舱与减摇鳍",
+      "condition": "P0，60s",
+      "interaction": "在执行器图选双吊舱/减摇鳍及对应六维力矩",
+      "evidence": "原型与控制通道，不能把吊舱角当舵角"
+    },
+    {
+      "sequence": 2,
+      "title": "辨识横摇衰减",
+      "condition": "P0，初始phi=2°，鳍关，300s",
+      "interaction": "测量衰减周期与峰值比，估计自然频率/阻尼",
+      "evidence": "二阶振荡与参数辨识"
+    },
+    {
+      "sequence": 3,
+      "title": "辨识鳍控制效能",
+      "condition": "P0，鳍差动±2°脉冲各10s，300s",
+      "interaction": "选择有效窗辨识K_fin；同时观察yaw/sway响应",
+      "evidence": "控制效能与多通道耦合"
+    },
+    {
+      "sequence": 4,
+      "title": "独立验证横摇模型",
+      "condition": "新run，初始phi=1°＋小鳍脉冲，300s",
+      "interaction": "冻结模型叠加预测/物理响应",
+      "evidence": "独立验证和局部模型限制"
+    },
+    {
+      "sequence": 5,
+      "title": "区分波频与固有频率",
+      "condition": "V1，鳍关，600s",
+      "interaction": "估计谱峰，标示波浪和横摇主频",
+      "evidence": "激励频率与固有频率并非同一物理量"
+    },
+    {
+      "sequence": 6,
+      "title": "检验共振范围",
+      "condition": "规则波H=.5m，周期为识别Tphi的.7/1/1.3倍，各600s",
+      "interaction": "预测幅值排序后运行；画/标幅频响应",
+      "evidence": "共振，合理承认实际峰值受阻尼/耦合影响"
+    },
+    {
+      "sequence": 7,
+      "title": "比较低速鳍效",
+      "condition": "P0，U0=0/2/8，各120s，鳍+5°",
+      "interaction": "比较实际升力/横摇力矩",
+      "evidence": "常规鳍依赖来流，不能把零速减摇编成常量比例"
+    },
+    {
+      "sequence": 8,
+      "title": "设计横摇速率反馈",
+      "condition": "V1，U0=8，600s",
+      "interaction": "按识别模型设计zeta_d=.5的速率反馈，理想侧先预测",
+      "evidence": "从二阶指标到物理闭环"
+    },
+    {
+      "sequence": 9,
+      "title": "比较鳍关与鳍开",
+      "condition": "同种子600s",
+      "interaction": "鳍关/开公平比较相同统计窗",
+      "evidence": "RMS/峰值/能耗，而非末端过零值"
+    },
+    {
+      "sequence": 10,
+      "title": "检验鳍约束与增益",
+      "condition": "V2，600s，zeta_d=.3/.7",
+      "interaction": "比较两组控制，记录鳍角/速率饱和",
+      "evidence": "高增益不必更好，有限控制能力"
+    },
+    {
+      "sequence": 11,
+      "title": "观察转向舒适性",
+      "condition": "P0，psi_ref20°，转向斜坡10s，400s",
+      "interaction": "观察吊舱转向与横摇/乘客点加速度",
+      "evidence": "manoeuvring–roll耦合，不能只研究独立横摇TF"
+    },
+    {
+      "sequence": 12,
+      "title": "比较转向斜坡",
+      "condition": "相同终航向，转向斜坡40/80s",
+      "interaction": "自选一组斜坡并比较完成时间/舒适性",
+      "evidence": "快速响应与平稳操作冲突"
+    },
+    {
+      "sequence": 13,
+      "title": "评价减速收益与代价",
+      "condition": "V2，U0=4/8/10，各600s",
+      "interaction": "先预测减速收益与鳍效损失，再运行",
+      "evidence": "航速改变遭遇频率、鳍力和能耗；避免“越慢必越好”"
+    },
+    {
+      "sequence": 14,
+      "title": "选择测量滤波",
+      "condition": "V2+N1，600s",
+      "interaction": "调整测量滤波截止并对比鳍总变差与横摇",
+      "evidence": "噪声放大、相位延迟"
+    },
+    {
+      "sequence": 15,
+      "title": "检验陷波取舍",
+      "condition": "同上600s",
+      "interaction": "由谱选择陷波中心/带宽，开关对照",
+      "evidence": "滤除干扰同时可能损失控制信息，按实际结果判断"
+    },
+    {
+      "sequence": 16,
+      "title": "形成联合控制方案",
+      "condition": "E1+N1，400s，20°转向",
+      "interaction": "联合选择转向斜坡/鳍阻尼/滤波第一方案",
+      "evidence": "航向与舒适性双任务"
+    },
+    {
+      "sequence": 17,
+      "title": "比较两乘客点",
+      "condition": "同工况另一方案",
+      "interaction": "调整一项策略并比较两乘客点响应",
+      "evidence": "空间位置差异与多目标权衡"
+    },
+    {
+      "sequence": 18,
+      "title": "验证变化波谱",
+      "condition": "seed17、Tp=10s、Hs1.5m，600s",
+      "interaction": "冻结方案验证不同谱峰，不许重新拟合后覆盖",
+      "evidence": "频率变化与鲁棒性"
+    },
+    {
+      "sequence": 19,
+      "title": "应对单鳍失效",
+      "condition": "seed29，E1+N1；一片鳍t180卡零，600s",
+      "interaction": "选择降速/延长转向/保持策略，实际执行并分析",
+      "evidence": "剩余执行能力，保留失效事件和恢复过程"
+    },
+    {
+      "sequence": 20,
+      "title": "完成实验报告",
+      "condition": "至少5run及两客点指标",
+      "interaction": "报告理想模型、实际共振/饱和、方案及边界",
+      "evidence": "不把教学舒适性代理当医学预测"
+    }
+  ]
+}

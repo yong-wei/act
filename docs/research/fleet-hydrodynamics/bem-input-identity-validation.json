@@ -1,0 +1,36 @@
+{
+  "schema": "act.bem-input-identity-validation.v1",
+  "status": "passed",
+  "generator_sha256": "4c49947328745a12bbf9259e264c70829a62e3cfa8b52c224abbf1da8a2a9969",
+  "solver_generator_sha256": "45f4dd6e33143c938bb9f426c1cdcba600f157181197a4e206c40cb157fe5bab",
+  "cases": [
+    {
+      "mutation_injected": false,
+      "exit_code": 0,
+      "status": "computed",
+      "input_drift": [],
+      "captured_mesh_sha256": "58438aa90412e3d60794e5a511efe35b7cd0c91ad42b700f11299c00f1223649",
+      "final_mesh_sha256": "58438aa90412e3d60794e5a511efe35b7cd0c91ad42b700f11299c00f1223649",
+      "solver": {
+        "version": "2.2.1",
+        "files_sha256": "27c027212eae43306b5ffba2417d0def16fd97573a5eb15640adb4d0790dab93"
+      },
+      "output_sha256": "88bb357c2927e6a62669c72e10eed8a438994cb65aa61d78cc530737b1d72088"
+    },
+    {
+      "mutation_injected": true,
+      "exit_code": 1,
+      "status": "failed",
+      "input_drift": [
+        "mesh.dat"
+      ],
+      "captured_mesh_sha256": "58438aa90412e3d60794e5a511efe35b7cd0c91ad42b700f11299c00f1223649",
+      "final_mesh_sha256": "8afe0ede69161c4202d86b35339cedf8c668a216291fa5e5fad8eb5d6d83f90a",
+      "solver": {
+        "version": "2.2.1",
+        "files_sha256": "27c027212eae43306b5ffba2417d0def16fd97573a5eb15640adb4d0790dab93"
+      },
+      "output_sha256": "cb2ff78e3c6ebaa2c88eac43a955ec7fc9bd6c9cb2d009578faffcac1e6f7221"
+    }
+  ]
+}

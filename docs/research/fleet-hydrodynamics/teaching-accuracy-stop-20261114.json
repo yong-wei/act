@@ -1,0 +1,33 @@
+{
+  "schema": "act.numerical-scope-stop.v1",
+  "time_utc": "2026-11-14T07:19:29.698665+00:00",
+  "reason": "User explicitly prioritizes teaching response, constraints and causal correctness. Further mesh refinement, complete bands and speed/heading products are deferred. Completed data and source residuals remain frozen.",
+  "processes": [
+    {
+      "pid": 70886,
+      "status": "terminated_by_user_scope_verified_exited"
+    },
+    {
+      "pid": 14449,
+      "status": "terminated_by_user_scope_verified_exited"
+    },
+    {
+      "pid": 70888,
+      "status": "terminated_by_user_scope_verified_exited"
+    },
+    {
+      "pid": 70889,
+      "status": "terminated_by_user_scope_verified_exited"
+    },
+    {
+      "pid": 26315,
+      "status": "terminated_by_user_scope_verified_exited"
+    }
+  ],
+  "preserved_partial_results": [
+    "act-semisub-first-order-6896-head24-u005-20261114",
+    "act-semisub-first-order-6896-head24-u010-20261114",
+    "act-semisub-full-contributions-main-result-20261114"
+  ],
+  "completed_lng_forward_probe": "act-lng085-forward-cached-probe-20261114; matched dense LU reference to 7e-15 in A/B/excitation/RAO"
+}

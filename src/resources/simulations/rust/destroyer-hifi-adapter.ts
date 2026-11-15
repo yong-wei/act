@@ -1,4 +1,5 @@
 import type { ControlMode, PIDGains } from '@/resources/simulations/core/types';
+import type { VesselSession, VesselSessionFrame, VesselSessionInput } from '@/lib/control-engine/vessel-session';
 
 export interface DestroyerHifiState {
   timeS: number;
@@ -101,3 +102,20 @@ export const mapDestroyerHifiStepResult = (result: DestroyerHifiStepResult) => (
   speedMps: result.speedMps,
   state: result,
 });
+
+/** 现有055场景消费常驻会话，角度和世界坐标在显示边界转换。 */
+export function advanceDestroyerCourseSession(session: VesselSession, input: VesselSessionInput, request: {
+  dtS: number; targetHeadingDeg: number; controlMode: VesselSessionInput['controlMode'];
+  pid: PIDGains; manualRudderDeg: number; derivativeFilterTauS: number;
+  headingIntegralTracking?: VesselSessionInput['headingIntegralTracking'];
+  feedback?: VesselSessionInput['feedback'];
+}): VesselSessionFrame {
+  const command: VesselSessionInput = { ...input, controlMode: request.controlMode,
+    pid: { kp:request.pid.kp,ki:request.controlMode === 'pid' ? request.pid.ki : 0,
+      kd:request.controlMode === 'pd' || request.controlMode === 'pid' ? request.pid.kd : 0 },
+    targetHeadingDeg: request.targetHeadingDeg, derivativeFilterTauS: request.derivativeFilterTauS,
+    headingIntegralTracking: request.headingIntegralTracking, feedback: request.feedback ?? input.feedback,
+    actuators: { ...input.actuators, surfaces: input.actuators.surfaces.map((surface) =>
+      ({ ...surface, angle_rad: request.manualRudderDeg*Math.PI/180 })) } };
+  return session.advance(request.dtS, command);
+}

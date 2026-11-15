@@ -8,10 +8,8 @@ import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-l
  */
 
 import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  Html,
   PerspectiveCamera,
   } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -29,7 +27,6 @@ import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder
 import { SimulationTopBar, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
 import {
   SimField,
-  SimLockedChip,
   SimNotice,
   SimPanelSection,
   SimPanelStack,
@@ -47,12 +44,9 @@ import {
   EnvironmentScene,
   MARINE_SCENE_LAYOUTS,
   MarineSceneLayoutObjects,
-  shorelineAmplitudeAttenuation,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
-  useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import {
   SceneSoundscapeProvider,
   SoundscapeAmbienceDriver,
@@ -74,47 +68,52 @@ import { WaterHuggingLine } from '../scene/lines';
 
 import type {
   ControlMode,
-  SimulationState,
   Vector2,
-  PIDGains,
 } from '../core/types';
-import {
-  preloadVirtualSimulationRuntime,
-  isVirtualSimulationRuntimeReady,
-} from '../physics/simulation-engine-facade';
-import { createLngDrive } from './vessel-drives';
-import { lngExperiment } from './vessel-experiments';
-import { takeVesselSubstep, vesselSampleMark } from './vessel-experiment';
+import { lngCourseExperiment as lngExperiment } from '../experiments/lng-experiment';
+import { LNG_COURSE_STEPS, type LngCourseSettings } from '../experiments/lng-course';
+import { VesselModelWorkbench } from '../experiments/model-workbench';
+import { ModelComparisonCurve } from '../experiments/model-comparison-curve';
+import type { VesselSessionFrame, VesselFineStepMetrics } from '@/lib/control-engine/vessel-session';
+import { vesselSampleMark } from './vessel-experiment';
 import { VesselExperimentDocks } from './vessel-experiment-panels';
 import { useVesselExperiment } from './use-vessel-experiment';
-import { toDegrees, toRadians, LNG_CHANGHENG_PARAMS } from '../core/constants';
+import type { VesselExperimentController } from './use-vessel-experiment';
+import { Button } from '@/components/ui/button';
+import { toRadians, LNG_CHANGHENG_PARAMS } from '../core/constants';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
   SIMULATION_MAX_SUB_STEPS,
   getSimulationDeltaFromMilliseconds,
 } from '../lib/simulation-timing';
-import {
-  absoluteHeadingErrorDeg,
-  advanceAttainment,
-  createAttainmentState,
-} from '../lib/heading-attainment';
 
 // ============ 类型定义 ============
 
 interface LNGSimulationState {
   isRunning: boolean;
   isPaused: boolean;
+  isCompleted: boolean;
   time: number;
   position: Vector2;
   heading: number;
   yawRate: number;
   rudder: number;
   speed: number;
-  sloshingAngle: number;
-  tankPressure: number;
+  sloshHeightM: number;
+  liquidWithinDomain: boolean;
+  liquidDepthM: number;
+  rollRad: number;
+  pitchRad: number;
+  heaveM: number;
+  draftM: number;
+  shaftRpm: number;
+  referenceRpm: number;
+  bowDistanceM: number | null;
   targetHeading: number;
   controlMode: ControlMode;
   smithEnabled: boolean;
+  seaState: number;
+  lngMetrics?: VesselFineStepMetrics['lng'];
 }
 
 // ============ LNG 船模型组件 ============
@@ -122,30 +121,28 @@ interface LNGSimulationState {
 function LNGShipModel(props: {
   position: Vector2;
   heading: number;
-  sloshingAngle: number;
+  rollRad: number;
+  pitchRad: number;
+  heaveM: number;
+  draftM: number;
   simRef: React.MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
-  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
-  const waterHeight = useNearFieldWaterHeight({
-    positionSampler: () => props.position,
-    seaState: 3,
-      shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
-  });
-
   return (
+    <group position={[0, 11.5 - props.draftM, 0]}>
     <VersionedFleetShip
       logicalId="lng-carrier"
       simRef={props.simRef}
       position={props.position}
-      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
+      waterY={props.heaveM}
       headingRad={props.heading}
-      extraEuler={{ z: props.sloshingAngle * 0.1 }}
-      sceneLengthMeters={LNG_CHANGHENG_PARAMS.LENGTH}
+      extraEuler={{ x: props.pitchRad, z: props.rollRad }}
+      sceneLengthMeters={299}
       resetToken={props.resetToken}
       legacyYawOffsetRad={-Math.PI / 2}
       fallbackDraftMeters={LNG_CHANGHENG_PARAMS.DRAFT}
     />
+    </group>
   );
 }
 
@@ -255,7 +252,7 @@ function LNGWater({ state, resetToken }: { state: LNGSimulationState; resetToken
   return (
     <MarineWater
       worldSpeedSampler={() => state.isRunning && !state.isPaused ? state.speed : 0}
-      vesselLengthMeters={295} vesselBeamMeters={45}
+      vesselLengthMeters={299} vesselBeamMeters={46.4}
       resetToken={resetToken}
       tier={params.waterTier}
       positionSampler={() => ({ x: state.position.x, z: state.position.z })}
@@ -265,7 +262,7 @@ function LNGWater({ state, resetToken }: { state: LNGSimulationState; resetToken
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
-      seaState={3}
+      seaState={state.seaState}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
@@ -301,106 +298,168 @@ function StatusPanel({
   state: LNGSimulationState;
 }) {
   const headingError = state.heading - state.targetHeading;
-  const cargoAlarm = state.sloshingAngle > 5 || state.tankPressure > 150;
+  const cargoAlarm = !state.liquidWithinDomain;
   return (
     <SimPanelStack>
       <SimStatusStrip state={runStateOf(state)} time={`${state.time.toFixed(1)} s`} />
       <SimPanelSection title="航向状态" icon={Compass}>
         <SimReadoutGrid>
-          <SimReadout label="航向" value={state.heading.toFixed(1)} unit="°" size="lg" />
+          <SimReadout label="航向真值" value={state.heading.toFixed(1)} unit="°" size="lg" />
           <SimReadout label="目标航向" value={state.targetHeading.toFixed(1)} unit="°" size="lg" tone="accent" />
           <SimReadout label="航向误差" value={headingError.toFixed(1)} unit="°" tone={simToneForMagnitude(headingError, 5)} />
           <SimReadout label="转艏率" value={state.yawRate.toFixed(2)} unit="°/s" />
           <SimReadout label="舵角" value={state.rudder.toFixed(1)} unit="°" />
-          <SimReadout label="航速" value={`${(state.speed * 1.944).toFixed(1)} · ${state.speed.toFixed(2)} m/s`} unit="kn" />
+          <SimReadout label="航速" value={state.speed.toFixed(2)} unit="m/s" />
         </SimReadoutGrid>
       </SimPanelSection>
+      {state.lngMetrics ? <SimPanelSection title="本次运行与液面统计" icon={Droplets}>
+        <SimReadoutGrid>
+          <SimReadout label="全程液面峰值" value={state.lngMetrics.maximumCornerHeightM.toFixed(3)} unit="m" />
+          <SimReadout label="全程液面均方根" value={state.time > 0
+            ? Math.sqrt(state.lngMetrics.cornerHeightSquaredIntegralM2S / state.time).toFixed(3) : '—'} unit="m" />
+          <SimReadout label="超出小幅适用域" value={state.lngMetrics.outsideLiquidDomainDurationS.toFixed(3)} unit="s" />
+          <SimReadout label="末60秒横偏峰值" value={state.lngMetrics.final60sLateralMaximumM.toFixed(2)} unit="m" />
+          {state.bowDistanceM !== null ? <SimReadout label="北向对地航速" value={state.lngMetrics.physicsSamples > 0
+            ? state.lngMetrics.finalNorthGroundSpeedMps.toFixed(3) : '—'} unit="m/s" /> : null}
+        </SimReadoutGrid>
+        <p className="text-xs leading-5 text-platform-fg-secondary">以120Hz物理细步统计各舱角点最大幅值。当前横偏窗口覆盖{state.lngMetrics.lateralWindowDurationS.toFixed(1)}秒。</p>
+      </SimPanelSection> : null}
       <SimPanelSection title="液货舱" icon={Droplets} tone={cargoAlarm ? 'danger' : 'neutral'}>
         <SimReadoutGrid>
-          <SimReadout label="液货晃荡" value={state.sloshingAngle.toFixed(2)} unit="°" tone={state.sloshingAngle > 5 ? 'danger' : 'accent'} />
-          <SimReadout label="货舱压力" value={state.tankPressure.toFixed(0)} unit="kPa" tone={state.tankPressure > 150 ? 'danger' : 'accent'} />
+          <SimReadout label="液面幅值真值" value={state.sloshHeightM.toFixed(3)} unit="m" tone={cargoAlarm ? 'danger' : 'accent'} />
+          <SimReadout label="小幅适用上限" value={(.1 * state.liquidDepthM).toFixed(3)} unit="m" />
+          <SimReadout label="轴速指令" value={state.referenceRpm.toFixed(2)} unit="r/min" />
+          <SimReadout label="实际轴速真值" value={state.shaftRpm.toFixed(2)} unit="r/min" />
+          {state.bowDistanceM !== null ? <SimReadout label="船艏剩余距离真值" value={state.bowDistanceM.toFixed(2)} unit="m" /> : null}
         </SimReadoutGrid>
       </SimPanelSection>
-      <SimNotice icon={Timer}>大惯性提示：时滞约 25 秒，晃荡周期约 12 秒。</SimNotice>
+      <SimNotice icon={Timer}>轴系与船速保持连续响应。液面幅值超过当前液深的10%时，线性小幅模型超出适用域，冲击未建模。</SimNotice>
     </SimPanelStack>
   );
 }
 
-function runStateOf(state: { isRunning: boolean; isPaused: boolean }): SimRunState {
+function runStateOf(state: { isRunning: boolean; isPaused: boolean; isCompleted: boolean }): SimRunState {
+  if (state.isCompleted) return 'completed';
+  if (state.isPaused) return 'paused';
   if (!state.isRunning) return 'idle';
   return state.isPaused ? 'paused' : 'running';
 }
 
-function ControlPanel({
-  state,
-  inputsEnabled = true,
-  onControlModeChange,
-  onTargetHeadingChange,
-  onSmithToggle,
-  onStartPause,
-  onReset,
-}: {
-  state: LNGSimulationState;
-  inputsEnabled?: boolean;
-  onControlModeChange: (mode: ControlMode) => void;
-  onTargetHeadingChange: (heading: number) => void;
-  onSmithToggle: () => void;
-  onStartPause: () => void;
-  onReset: () => void;
-}) {
-  const running = state.isRunning && !state.isPaused;
-  return (
-    <SimPanelStack>
-      <SimRunControls running={running} primaryLabel={running ? '暂停' : '开始'} onPrimary={onStartPause} onReset={onReset} />
-      <SimPanelSection title="控制器" icon={SlidersHorizontal} aside={<SimLockedChip locked={!inputsEnabled} />}>
-        <div className="space-y-3">
-          <SimField label="控制模式" htmlFor="lng-simulation-control-1">
-            <select id="lng-simulation-control-1"
-              value={state.controlMode}
-              disabled={!inputsEnabled}
-              onChange={(e) => onControlModeChange(e.target.value as ControlMode)}
-              className="sim-hud-input disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              <option value="manual">手动</option>
-              <option value="p">P 控制</option>
-              <option value="pd">PD 控制</option>
-              <option value="pid">PID 控制</option>
-              <option value="autopilot">自动舵</option>
-            </select>
-          </SimField>
-          <SimField label="目标航向" value={`${state.targetHeading}°`}>
-            <input aria-label="LNG 船仿真参数"
-              type="range"
-              min="-180"
-              max="180"
-              value={state.targetHeading}
-              disabled={!inputsEnabled}
-              onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
-              className={simulationUi.nativeRange}
-            />
-          </SimField>
-        </div>
-      </SimPanelSection>
-      <SimPanelSection title="时滞补偿" icon={Timer}>
-        <SimToggleRow
-          label="启用 Smith 预估器"
-          description="消除25秒时滞影响"
-          htmlFor="lng-smith-predictor"
-          control={(
-            <SimSwitchInput
-              id="lng-smith-predictor"
-              checked={state.smithEnabled}
-              disabled={!inputsEnabled}
-              onChange={onSmithToggle}
-            />
-          )}
-        />
-      </SimPanelSection>
-    </SimPanelStack>
-  );
+function ControlPanel({ state, session }: { state: LNGSimulationState; session: VesselExperimentController }) {
+  const course = session.course;
+  if (!course) return null;
+  const definition = LNG_COURSE_STEPS[session.activeSeq - 1];
+  const settings = course.settings;
+  const locked = session.busy || course.running || state.time > 0;
+  const update = (patch: Partial<LngCourseSettings>) => course.setSettings((previous) => ({ ...previous, ...patch }));
+  const forecast = course.comparisons.filter((item) => item.purpose === 'forecast' && item.runId === course.plannedRunId).at(-1);
+  const selectControls: Array<{ key: 'excitationPercent' | 'reverseFraction' | 'loadingRatio' | 'headingRampS' | 'filterTauS' | 'validationSeed'; label: string; values: number[]; visible: boolean }> = [
+    { key: 'excitationPercent', label: '轴速参考阶跃 / %', values: [3, 5, 8], visible: session.activeSeq === 2 },
+    { key: 'reverseFraction', label: '反车额定转速比例', values: [.3, .6], visible: session.activeSeq === 6 },
+    { key: 'loadingRatio', label: '液舱填充率', values: [.30, .70, .95], visible: [12, 14].includes(session.activeSeq) },
+    { key: 'headingRampS', label: '转向斜坡 / s', values: [5, 20, 60], visible: [13, 15].includes(session.activeSeq) },
+    { key: 'filterTauS', label: '航速量测滤波 / s', values: [.2, 1, 3], visible: session.activeSeq === 17 },
+    { key: 'validationSeed', label: '未见工况种子', values: [17, 29], visible: session.activeSeq === 19 },
+  ];
+  return <SimPanelStack>
+    <SimRunControls running={course.running} primaryLabel={course.completed ? '已结束' : course.running ? '暂停' : '开始'}
+      disabled={session.busy} primaryDisabled={!course.ready || course.completed || definition.stepKind === 'analysis'}
+      onPrimary={() => { void (course.running ? course.pause() : course.start()); }} onReset={() => { void course.reset(); }} />
+    {definition.berthTask && definition.stepKind === 'run' ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline}
+      disabled={session.busy || !course.canFinish} onClick={() => {void course.finish();}}>结束本次靠泊并保留记录</Button> : null}
+    {session.activeSeq === 20 ? <SimPanelSection title="报告引用的本人运行" icon={Timer}>
+      <div className="space-y-2">{course.runs.filter((run) => run.stoppedAtMs !== null).map((run) =>
+        <label key={run.id} className="flex items-center gap-2 text-xs text-platform-fg-secondary">
+          <input type="checkbox" checked={course.reportRunIds.includes(run.id)} onChange={(event) => course.setReportRunIds((previous) =>
+            event.target.checked ? [...previous, run.id] : previous.filter((id) => id !== run.id))} />
+          第{run.stepSequence}步 · {run.durationS.toFixed(1)} s · {new Date(run.createdAtMs).toLocaleTimeString('zh-CN')}
+        </label>)}</div>
+    </SimPanelSection> : null}
+    {selectControls.filter((control) => control.visible).map((control) => <SimField key={control.key} label={control.label}>
+      <select className="sim-hud-input" aria-label={control.label} disabled={locked} value={settings[control.key]}
+        onChange={(event) => update({[control.key]: Number(event.target.value)})}>
+        {control.values.map((value) => <option key={value} value={value}>{value}</option>)}
+      </select>
+    </SimField>)}
+    {definition.speedControl ? <SimPanelSection title="本人航速控制方案" icon={SlidersHorizontal}>
+      <div className="space-y-3">
+        <SimField label="冻结的航速模型">
+          <select className="sim-hud-input" aria-label="控制所用航速模型" disabled={locked} value={course.designModelId}
+            onChange={(event) => course.setDesignModelId(event.target.value)}>
+            <option value="">选择本人模型</option>
+            {course.models.filter((model) => model.channel === 'shaft-reference-to-speed' && model.payload.structure.kind === 'fopdt')
+              .map((model, index) => <option key={model.id} value={model.id}>{model.label} · 版本{index + 1}</option>)}
+          </select>
+        </SimField>
+        {([['kpMultiplier', 'Kp相对IMC建议值', .2, 3], ['tiMultiplier', 'Ti相对IMC建议值', .3, 3]] as const).map(([key, label, min, max]) =>
+          <SimField key={key} label={label}><input className="sim-hud-input" type="number" aria-label={label}
+            min={min} max={max} step={.1} disabled={locked} value={settings[key]} onChange={(event) => update({[key]: Number(event.target.value)})} /></SimField>)}
+        <SimToggleRow label="积分抗饱和回算" htmlFor="lng-integral-tracking" control={<SimSwitchInput id="lng-integral-tracking"
+          checked={settings.antiWindup} disabled={locked} onChange={() => update({antiWindup: !settings.antiWindup})} />} />
+        {session.activeSeq === 11 ? <>
+          <SimField label="额外命令时延 / s"><select className="sim-hud-input" aria-label="额外命令时延" disabled={locked}
+            value={settings.additionalCommandDelayS} onChange={(event) => update({additionalCommandDelayS: Number(event.target.value) as 0 | 5})}>
+            <option value={0}>0</option><option value={5}>5</option></select></SimField>
+          <SimToggleRow label="给定Smith结构" htmlFor="lng-smith" control={<SimSwitchInput id="lng-smith" checked={settings.smithEnabled}
+            disabled={locked} onChange={() => update({smithEnabled: !settings.smithEnabled})} />} />
+        </> : null}
+        {session.activeSeq === 19 ? <SimField label="已冻结的综合方案">
+          <select className="sim-hud-input" aria-label="引用第18步综合方案" disabled={locked} value="" onChange={(event) => {
+            const source = course.runs.find((run) => run.id === event.target.value);
+            if (!source?.courseSettings) return;
+            const frozen = source.courseSettings as unknown as LngCourseSettings;
+            course.setSettings({...frozen, validationSeed: settings.validationSeed});
+            course.setDesignModelId(source.designStudentModelId ?? '');
+          }}><option value="">选择第18步本人方案</option>{course.runs.filter((run) => run.stepSequence === 18 && run.stoppedAtMs !== null)
+            .map((run) => <option key={run.id} value={run.id}>{run.durationS.toFixed(1)} s · {new Date(run.createdAtMs).toLocaleTimeString('zh-CN')}</option>)}</select>
+        </SimField> : null}
+      </div>
+    </SimPanelSection> : null}
+    {definition.berthTask ? <SimPanelSection title="减速计划" icon={Timer}>
+      <div className="space-y-2">
+        <SimField label="减速起点 / m"><input type="number" className="sim-hud-input" aria-label="减速起点" disabled={locked}
+          min={300} max={1500} value={settings.brakingDistanceM} onChange={(event) => update({brakingDistanceM: Number(event.target.value)})} /></SimField>
+        {settings.speedNodes.map((node, index) => <div key={index} className="grid grid-cols-2 gap-2">
+          <SimField label={`节点${index + 1}剩余距离 / m`}><input type="number" className="sim-hud-input" aria-label={`节点${index + 1}剩余距离`}
+            disabled={locked} min={0} value={node.distanceM} onChange={(event) => update({speedNodes: settings.speedNodes.map((item, at) => at === index ? {...item, distanceM: Number(event.target.value)} : item)})} /></SimField>
+          <SimField label={`节点${index + 1}航速 / m/s`}><input type="number" className="sim-hud-input" aria-label={`节点${index + 1}航速`}
+            disabled={locked} min={0} max={4} step={.1} value={node.speedMps} onChange={(event) => update({speedNodes: settings.speedNodes.map((item, at) => at === index ? {...item, speedMps: Number(event.target.value)} : item)})} /></SimField>
+        </div>)}
+        <div className="flex gap-2"><Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={locked || settings.speedNodes.length >= 4}
+          onClick={() => update({speedNodes: [...settings.speedNodes, {distanceM: (settings.speedNodes.at(-1)?.distanceM ?? 60) / 2, speedMps: 0}]})}>增加节点</Button>
+          <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={locked || settings.speedNodes.length <= 1}
+            onClick={() => update({speedNodes: settings.speedNodes.slice(0, -1)})}>删除末节点</Button></div>
+        <p className="text-xs leading-5 text-platform-fg-secondary">节点按剩余距离递减排列。航速为0至4m/s，船艏越线将按实际失败轨迹停止。</p>
+      </div>
+    </SimPanelSection> : null}
+    {[16, 18, 19].includes(session.activeSeq) ? <SimPanelSection title="时序转向计划" icon={Compass}>
+      <div className="space-y-2">{(settings.headingNodes ?? [{timeS: 0, headingDeg: 0}]).map((node, index, nodes) =>
+        <div key={index} className="grid grid-cols-2 gap-2">
+          <SimField label={`转向节点${index + 1}时刻 / s`}><input className="sim-hud-input" type="number"
+            aria-label={`转向节点${index + 1}时刻`} min={0} max={1200} disabled={locked || index === 0} value={node.timeS}
+            onChange={(event) => update({headingNodes: nodes.map((item, at) => at === index ? {...item, timeS: Number(event.target.value)} : item)})} /></SimField>
+          <SimField label={`转向节点${index + 1}航向 / °`}><input className="sim-hud-input" type="number"
+            aria-label={`转向节点${index + 1}航向`} min={-30} max={30} step={.5} disabled={locked} value={node.headingDeg}
+            onChange={(event) => update({headingNodes: nodes.map((item, at) => at === index ? {...item, headingDeg: Number(event.target.value)} : item)})} /></SimField>
+        </div>)}
+        <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" className={simulationUi.buttonOutline}
+          disabled={locked || (settings.headingNodes?.length ?? 1) >= 4 || (settings.headingNodes?.at(-1)?.timeS ?? 0) >= 1200} onClick={() => {
+            const nodes = settings.headingNodes ?? [{timeS: 0, headingDeg: 0}];
+            update({headingNodes: [...nodes, {timeS: Math.min(1200, nodes.at(-1)!.timeS + 200), headingDeg: 0}]});
+          }}>增加转向节点</Button>
+          <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={locked}
+            onClick={() => update({headingNodes: undefined})}>恢复直航</Button></div>
+        <p className="text-xs leading-5 text-platform-fg-secondary">航向参考在节点之间连续变化，实际转向由船体与执行器响应决定。</p>
+      </div>
+    </SimPanelSection> : null}
+    {definition.speedControl ? <>
+      <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={locked || !course.ready || !course.designModelId}
+        onClick={() => { void course.freezePrediction(); }}>冻结速度与距离预测</Button>
+      {forecast ? <ModelComparisonCurve comparison={forecast} /> : null}
+    </> : null}
+    {state.time > 0 ? <p className="text-xs text-platform-fg-secondary">本次方案已冻结。重置后可以修订参数，各次运行独立保留。</p> : null}
+  </SimPanelStack>;
 }
-
-// ============ 3D 场景 ============
 
 function Scene({
   state,
@@ -466,7 +525,10 @@ function Scene({
         <LNGShipModel
           position={state.position}
           heading={toRadians(state.heading)}
-          sloshingAngle={state.sloshingAngle}
+          rollRad={state.rollRad}
+          pitchRad={state.pitchRad}
+          heaveM={state.heaveM}
+          draftM={state.draftM}
           simRef={simRef}
           resetToken={resetToken}
         />
@@ -506,257 +568,115 @@ function Scene({
 
 // ============ 主组件 ============
 
+function lngStateFromFrame(frame: VesselSessionFrame, running: boolean, completed = false): LNGSimulationState {
+  const actual = frame.truth.actuator_states;
+  return {isRunning: running, isPaused: !running && frame.timeS > 0 && !completed, isCompleted: completed, time: frame.timeS,
+    position: {x: frame.truth.position_ned[0], z: frame.truth.position_ned[1]}, heading: frame.attitudeDeg.heading,
+    yawRate: frame.truth.body_velocity[5] * 180 / Math.PI, rudder: (actual.control_surface_angles_rad[0] ?? 0) * 180 / Math.PI,
+    speed: frame.waterVelocityBody[0], sloshHeightM: frame.liquidObservation
+      ? Math.max(0, ...frame.liquidObservation.cornerHeightsM)
+      : Math.max(0, ...Array.from({length: (frame.liquidCargo?.wall_heights_m.length ?? 0) / 2}, (_, tank) =>
+        Math.abs(frame.liquidCargo!.wall_heights_m[2 * tank]) + Math.abs(frame.liquidCargo!.wall_heights_m[2 * tank + 1]))),
+    liquidWithinDomain: frame.liquidCargo?.within_small_amplitude ?? true,
+    liquidDepthM: frame.liquidObservation?.liquidDepthM ?? frame.parameters.liquidDepthM
+      ?? 26 * (frame.liquidCargo?.mass_partition ? frame.liquidCargo.mass_partition.liquid_mass_kg / (4 * 44 * 38 * 26 * 450) : .85),
+    rollRad: frame.attitudeDeg.roll * Math.PI / 180, pitchRad: frame.attitudeDeg.pitch * Math.PI / 180,
+    heaveM: -frame.truth.position_ned[2], draftM: frame.parameters.draftM,
+    referenceRpm: (actual.shaft_reference_speed_rad_s[0] ?? 0) * 30 / Math.PI,
+    shaftRpm: (actual.propeller_shaft_speed_rad_s[0] ?? 0) * 30 / Math.PI,
+    bowDistanceM: frame.berth?.bowClearanceM ?? null, targetHeading: frame.headingReferenceDeg ?? frame.input.targetHeadingDeg,
+    controlMode: frame.input.controlMode, smithEnabled: frame.input.longitudinal?.smithEnabled ?? false,
+    seaState: frame.waveModel?.firstOrderEnabled ? 3 : 0,
+    lngMetrics: frame.fineStepMetrics?.values.lng};
+}
+
 export function LNGSimulation({ ticket = '' }: { ticket?: string }) {
   const session = useVesselExperiment(lngExperiment, ticket);
   const sessionRef = useRef(session);
   sessionRef.current = session;
-  const timeRef = useRef(0);
-  const driveRef = useRef<ReturnType<typeof createLngDrive> | null>(null);
-  const markRef = useRef(-1);
   const animationRef = useRef<number | null>(null);
-  const lastTimeRef = useRef<number>(0);
-  const clockRef = useRef(
-    new SimulationClock({
-      dt: SIMULATION_FIXED_STEP_SECONDS,
-      maxSubSteps: SIMULATION_MAX_SUB_STEPS,
-    })
-  );
+  const lastTimeRef = useRef(0);
+  const markRef = useRef(-1);
+  const clockRef = useRef(new SimulationClock({dt: SIMULATION_FIXED_STEP_SECONDS, maxSubSteps: SIMULATION_MAX_SUB_STEPS}));
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  // 循环稳定化（issue 1945）：每帧变化的量走 ref，时钟真源在 timeRef，
-  // 循环回调与启动 effect 引用稳定，运行期间不 teardown 重建。
-  const controlRef = useRef({
-    isRunning: false,
-    isPaused: false,
-    targetHeading: 0,
-    controlMode: 'pid' as LNGSimulationState['controlMode'],
-  });
   const speedScaleRef = useRef(8);
   const lastHudUpdateRef = useRef(0);
   const lastTrajectoryTimeRef = useRef(0);
-  const bindingRef = useRef<BindingTelemetrySource>({
-    rudderDeg: 0,
-    speedMps: LNG_CHANGHENG_PARAMS.CRUISE_SPEED,
-    attainedCount: 0,
-    advancing: false,
-  });
-  const attainmentRef = useRef(createAttainmentState(0));
-
-  const [cameraMode, setCameraMode] = useState<string>('chase');
+  const bindingRef = useRef<BindingTelemetrySource>({rudderDeg: 0, speedMps: 4, attainedCount: 0, advancing: false});
+  const [cameraMode, setCameraMode] = useState('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(8);
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
-  const [state, setState] = useState<LNGSimulationState>({
-    isRunning: false,
-    isPaused: false,
-    time: 0,
-    position: { x: -800, z: 0 },
-    heading: 0,
-    yawRate: 0,
-    rudder: 0,
-    speed: LNG_CHANGHENG_PARAMS.CRUISE_SPEED,
-    sloshingAngle: 0,
-    tankPressure: 100,
-    targetHeading: 0,
-    controlMode: 'pid',
-    smithEnabled: false,
-  });
-
+  const [state, setState] = useState<LNGSimulationState>({isRunning: false, isPaused: false, isCompleted: false, time: 0,
+    position: {x: 0, z: 0}, heading: 0, yawRate: 0, rudder: 0, speed: 4, sloshHeightM: 0,
+    liquidWithinDomain: true, liquidDepthM: 22.1, rollRad: 0, pitchRad: 0, heaveM: 0, draftM: 11.5,
+    shaftRpm: 0, referenceRpm: 0, bowDistanceM: null, targetHeading: 0, controlMode: 'pd', smithEnabled: false, seaState: 0});
   const [trajectory, setTrajectory] = useState<Vector2[]>([]);
 
-  const resetPose = useCallback((clearCurve: boolean) => {
-    const drive = driveRef.current;
-    if (!drive) return;
-    const command = lngExperiment.command(sessionRef.current.step, 0);
-    drive.reset(command);
-    const view = drive.view();
-    markRef.current = -1;
-    timeRef.current = 0;
-    lastHudUpdateRef.current = 0;
-    lastTrajectoryTimeRef.current = 0;
-    attainmentRef.current = createAttainmentState(command.targetHeading);
-    bindingRef.current = {
-      rudderDeg: view.rudder,
-      speedMps: view.speed,
-      attainedCount: 0,
-      advancing: false,
-    };
-    if (clearCurve) sessionRef.current.clearSamples();
-    setState({
-      isRunning: false,
-      isPaused: false,
-      time: 0,
-      position: view.position,
-      heading: view.heading,
-      yawRate: view.yawRate,
-      rudder: view.rudder,
-      speed: view.speed,
-      sloshingAngle: view.sloshingAngle,
-      tankPressure: view.tankPressure,
-      targetHeading: command.targetHeading,
-      controlMode: command.mode,
-      smithEnabled: command.smith,
-    });
-    lastTimeRef.current = 0;
-    clockRef.current.reset();
-    setTrajectory([]);
-    setResetCount((previous) => previous + 1);
-  }, []);
-
   useEffect(() => {
-    let cancelled = false;
-    preloadVirtualSimulationRuntime().catch(console.error);
-    const drive = createLngDrive();
-    driveRef.current = drive;
-    if (!cancelled) resetPose(false);
-    return () => {
-      cancelled = true;
-    };
-  }, [resetPose]);
-
-  useEffect(() => {
-    resetPose(false);
-  }, [session.activeSeq, resetPose]);
+    if (!sessionRef.current.course?.ready) return;
+    const frame = sessionRef.current.course.read();
+    if (!frame) return;
+    setState(lngStateFromFrame(frame, false, sessionRef.current.course?.completed));
+    lastHudUpdateRef.current = frame.timeS;
+    lastTrajectoryTimeRef.current = frame.timeS;
+    markRef.current = vesselSampleMark(frame.timeS);
+    clockRef.current.reset(); lastTimeRef.current = 0;
+    setTrajectory([]); setResetCount((value) => value + 1);
+  }, [session.course?.ready, session.activeSeq]);
 
   const simulationStep = useCallback((timestamp: number) => {
-    const drive = driveRef.current;
-    if (!drive) return;
-    const control = controlRef.current;
-    if (!isVirtualSimulationRuntimeReady()) {
-      lastTimeRef.current = timestamp;
-      animationRef.current = requestAnimationFrame(simulationStep);
-      return;
-    }
-
+    const current = sessionRef.current;
+    const course = current.course;
+    if (!course?.ready || !course.running) return;
     const frameDt = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScaleRef.current);
     lastTimeRef.current = timestamp;
-
-    let nextTime = timeRef.current;
-    let view = drive.view();
-    let command = lngExperiment.command(sessionRef.current.step, nextTime);
-
+    let frame = course.read();
     clockRef.current.advance(frameDt, (dt) => {
-      const moved = takeVesselSubstep(
-        sessionRef.current.step,
-        (time) => lngExperiment.command(sessionRef.current.step, time),
-        (nextCommand, stepDt, time) => drive.step(nextCommand, stepDt, time),
-        nextTime,
-        dt,
-      );
-      nextTime = moved.time;
-      command = moved.command;
-      if (!moved.sample) return;
-      view = drive.view();
-      sessionRef.current.trackLatest(moved.sample);
-      const mark = vesselSampleMark(moved.sample.time);
-      if (mark > markRef.current) {
-        markRef.current = mark;
-        sessionRef.current.observe(moved.sample);
-      }
-      const headingError = absoluteHeadingErrorDeg(view.heading, command.targetHeading);
-      let attainedCount = bindingRef.current.attainedCount;
-      if (advanceAttainment(attainmentRef.current, command.targetHeading, headingError, 5, dt)) {
-        attainedCount += 1;
-      }
-      bindingRef.current = {
-        rudderDeg: view.rudder,
-        speedMps: view.speed,
-        attainedCount,
-        advancing: control.isRunning && !control.isPaused,
-      };
+      frame = course.advance(dt);
+      if (!frame) return;
+      const point = course.latestPoint();
+      const measured = (key: string) => point?.measurements[key]?.quality === 'Good' ? point.measurements[key].value ?? NaN : NaN;
+      const sample = {time: frame.timeS, values: {heading: measured('Heading'), speed: measured('SpeedLog'),
+        speedReference: point?.longitudinal?.referenceMps ?? NaN, filteredSpeed: point?.longitudinal?.filteredMeasurementMps ?? NaN,
+        lowFrequencySpeed: point?.estimate.groundBodySpeedMps ?? NaN,
+        shaftRpm: measured('ShaftSpeed0'), referenceRpm: point?.command.shaftRpm[0] ?? NaN,
+        east: measured('East'), distance: frame.berth?.bowClearanceM ?? NaN,
+        north: frame.truth.position_ned[0], actuatorForce: (frame.dynamics?.external_components?.tau_actuator[0] ?? NaN) / 1000,
+        slosh: frame.liquidObservation ? Math.max(0, ...frame.liquidObservation.cornerHeightsM) : NaN}};
+      current.trackLatest(sample);
+      const mark = vesselSampleMark(frame.timeS);
+      if (mark > markRef.current) {markRef.current = mark;current.observe(sample);}
+      bindingRef.current = {rudderDeg: (frame.truth.actuator_states.control_surface_angles_rad[0] ?? 0) * 180 / Math.PI,
+        speedMps: frame.waterVelocityBody[0], attainedCount: 0, advancing: course.running};
     });
-
-    timeRef.current = nextTime;
-    // HUD setState 0.1s 节流、轨迹 0.5s 节流（对齐 destroyer 口径）；
-    // 被跳过的帧仅推进 timeRef，不再触发整树渲染。
-    if (nextTime - lastHudUpdateRef.current > 0.1) {
-      lastHudUpdateRef.current = nextTime;
-      setState((prev) => ({
-        ...prev,
-        time: nextTime,
-        position: view.position,
-        heading: view.heading,
-        yawRate: view.yawRate,
-        rudder: view.rudder,
-        speed: view.speed,
-        sloshingAngle: view.sloshingAngle,
-        tankPressure: view.tankPressure,
-        targetHeading: command.targetHeading,
-        controlMode: command.mode,
-        smithEnabled: command.smith,
-      }));
+    if (frame && frame.timeS - lastHudUpdateRef.current >= .1) {
+      lastHudUpdateRef.current = frame.timeS;
+      setState(lngStateFromFrame(frame, course.running, course.completed));
     }
-
-    if (nextTime - lastTrajectoryTimeRef.current > 0.5) {
-      lastTrajectoryTimeRef.current = nextTime;
-      const newPoint = { ...view.position };
-      setTrajectory((prev) => {
-        const newTraj = [...prev, newPoint];
-        return newTraj.length > 500 ? newTraj.slice(-500) : newTraj;
-      });
+    if (frame && frame.timeS - lastTrajectoryTimeRef.current >= .5) {
+      lastTrajectoryTimeRef.current = frame.timeS;
+      const position = {x: frame.truth.position_ned[0], z: frame.truth.position_ned[1]};
+      setTrajectory((previous) => [...previous.slice(-499), position]);
     }
+    animationRef.current = requestAnimationFrame(simulationStep);
+  }, []);
 
-    if (control.isRunning && !control.isPaused) {
+  useEffect(() => {speedScaleRef.current = speedScale;}, [speedScale]);
+  useEffect(() => {
+    if (session.course?.running) {
+      clockRef.current.reset(); lastTimeRef.current = performance.now();
       animationRef.current = requestAnimationFrame(simulationStep);
+    } else {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      const frame = sessionRef.current.course?.read();
+      if (frame) setState(lngStateFromFrame(frame, false, sessionRef.current.course?.completed));
+      bindingRef.current = {...bindingRef.current, advancing: false};
     }
-  }, []);
-
-  // 控制量同步到 ref：低频、由 UI 事件驱动，rAF 循环每帧读取最新值。
-  useEffect(() => {
-    controlRef.current = {
-      isRunning: state.isRunning,
-      isPaused: state.isPaused,
-      targetHeading: state.targetHeading,
-      controlMode: state.controlMode,
-    };
-  }, [state.isRunning, state.isPaused, state.targetHeading, state.controlMode]);
-  useEffect(() => {
-    speedScaleRef.current = speedScale;
-  }, [speedScale]);
-
-  // 控制仿真启停
-  useEffect(() => {
-    if (state.isRunning && !state.isPaused) {
-      clockRef.current.reset();
-      lastTimeRef.current = performance.now();
-      animationRef.current = requestAnimationFrame(simulationStep);
-    } else if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [state.isRunning, state.isPaused, simulationStep]);
-
-  // 事件处理
-  const handleStartPause = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      isRunning: !prev.isRunning || prev.isPaused,
-      isPaused: prev.isRunning && !prev.isPaused,
-    }));
-  }, []);
-
-  const handleReset = useCallback(() => {
-    if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    resetPose(true);
-  }, [resetPose]);
-
-  const handleControlModeChange = useCallback((mode: ControlMode) => {
-    setState((prev) => ({ ...prev, controlMode: mode }));
-  }, []);
-
-  const handleTargetHeadingChange = useCallback((heading: number) => {
-    setState((prev) => ({ ...prev, targetHeading: heading }));
-  }, []);
-
-  const handleSmithToggle = useCallback(() => {
-    setState((prev) => ({ ...prev, smithEnabled: !prev.smithEnabled }));
-  }, []);
+    return () => {if (animationRef.current) cancelAnimationFrame(animationRef.current);};
+  }, [session.course?.running, simulationStep]);
 
   return (
     <SceneEnvironmentProvider>
@@ -785,31 +705,40 @@ export function LNGSimulation({ ticket = '' }: { ticket?: string }) {
         session={session}
         status={<StatusPanel state={state} />}
         controls={(
-          <ControlPanel
-            state={state}
-            inputsEnabled={false}
-            onControlModeChange={handleControlModeChange}
-            onTargetHeadingChange={handleTargetHeadingChange}
-            onSmithToggle={handleSmithToggle}
-            onStartPause={handleStartPause}
-            onReset={handleReset}
-          />
+<ControlPanel state={state} session={session} />
         )}
         assessment={(
+          <div className="space-y-4">
+          {session.course ? <SimPanelSection title="本机实验轮次" icon={Timer}>
+            <div className="space-y-2"><select className="sim-hud-input" aria-label="本机实验轮次" value={session.course.scopeKey}
+              disabled={session.busy || !session.course.ready} onChange={(event) => {void session.course?.selectRound(event.target.value);}}>
+              {session.course.rounds.map((draft, index) => <option key={draft.scopeKey} value={draft.scopeKey}>
+                {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步{index === 0 ? ' · 最近' : ''}
+              </option>)}</select>
+              <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || !session.course.ready}
+                onClick={() => {void session.restartIlabSession();}}>开启新一轮实验</Button></div>
+          </SimPanelSection> : null}
+          {session.course ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy}
+            onClick={() => { void session.course?.upload(); }}>上传或重试保存本人证据</Button> : null}
+          {session.course ? <VesselModelWorkbench scopeKey={session.course.scopeKey} runs={session.course.runs}
+            onArtifactsChange={session.course.onArtifactsChange} defaultChannel="shaft-reference-to-speed" /> : null}
           <SimulationAssessmentPanel
             title="运行质量评估"
+            pendingReview
             metrics={[
               { id: 'heading-error', label: '航向误差', value: Math.abs(state.heading - state.targetHeading), max: 30, better: 'lower', unit: '°', precision: 1 },
               { id: 'rudder', label: '舵角幅值', value: Math.abs(state.rudder), max: 35, better: 'lower', unit: '°', precision: 1 },
-              { id: 'sloshing', label: '液货晃荡', value: state.sloshingAngle, max: 12, better: 'lower', unit: '°', precision: 2 },
-              { id: 'pressure', label: '舱压稳定', value: state.tankPressure, max: 200, better: 'lower', unit: 'kPa', precision: 0 },
+              { id: 'sloshing', label: '液面幅值真值', value: state.sloshHeightM, max: .1 * state.liquidDepthM, better: 'lower', unit: 'm', precision: 3 },
+              { id: 'roll', label: '横摇真值', value: Math.abs(state.rollRad * 180 / Math.PI), max: 8, better: 'lower', unit: '°', precision: 2 },
             ]}
           />
+          <p className="text-xs leading-5 text-platform-fg-secondary">采用教学标称参数及既有零航速代表波浪数据。局部模型的速度、加载与低速外推误差随本人对照保留。</p>
+          </div>
         )}
       />
 
       <SimulationTopBar
-        title="长恒号 LNG 大惯性操纵"
+        title="长恒系列 LNG 大惯性操纵"
         subtitle="时滞补偿控制 · 液货晃荡耦合"
         badge="LNG / OBE"
       />

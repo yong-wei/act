@@ -72,7 +72,7 @@ describe('仿真循环引用稳定（#1945）', () => {
 
     // 启动 effect 只允许依赖低频启停状态与稳定回调，不得依赖每帧时间状态。
     const effectMatch = source.match(new RegExp(
-      `\\}, \\[state\\.isRunning, state\\.isPaused, ${callback}\\]\\);|\\}, \\[simState\\.isRunning, simState\\.isPaused, ${callback}\\]\\);`
+      `\\}, \\[state\\.isRunning, state\\.isPaused, ${callback}\\]\\);|\\}, \\[simState\\.isRunning, simState\\.isPaused, ${callback}\\]\\);|\\}, \\[session\\.course\\?\\.running, ${callback}\\]\\);`
     ));
     expect(effectMatch, `${file} 启动 effect 依赖必须只含启停状态与稳定回调`).not.toBeNull();
     // 循环回调内部不得调用 clock.reset（每帧 reset 丢 accumulator）。

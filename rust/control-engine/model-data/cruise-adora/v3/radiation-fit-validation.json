@@ -1,0 +1,1878 @@
+{
+  "schema": "act.passive-radiation-fit.v1",
+  "fidelity": "research-nominal",
+  "generator_sha256": "c20993b4b17b0599d8a018a573066c00096ac06361ee7bd794f4f041ac573750",
+  "geometry_sha256": "471d3dbca1541923cee325836aae81926a82cbdefd4a4a3bd58f719b2043b345",
+  "initialization_sha256": "5cd6b8dc7b8f35d9cdcba1909ca38eb1ab44971be6b00cc503ef977f12d033f4",
+  "status": "computed",
+  "sources": [
+    {
+      "dataset_sha256": "6ff2093ed89deaf91e00109372ca0f1d12dcc81113522aa37a7d70ab74d84130",
+      "provenance_sha256": "dbd2d1cfcaf5464881eb0fb37c749906cdea93dd448c4f6aa980a86ff3ad6bf4",
+      "provenance": {
+        "schema": "act.hydrodynamics.first-order.v1",
+        "status": "failed",
+        "fidelity": "research-nominal",
+        "solver": {
+          "version": "2.2.1",
+          "files_sha256": "27c027212eae43306b5ffba2417d0def16fd97573a5eb15640adb4d0790dab93"
+        },
+        "dependencies": {
+          "numpy": {
+            "version": "1.26.4",
+            "files_sha256": "d381c6200cef8c8bedfec8479b1540c1b16fc367723163fb2900a0318cef7d16"
+          },
+          "scipy": {
+            "version": "1.14.1",
+            "files_sha256": "c528a06c1641da3d5cc001c67b5acf1cc7ea92d56fc0b07a9aa97dc0bac43543"
+          },
+          "xarray": {
+            "version": "2024.11.0",
+            "files_sha256": "0f93427840da3cb97b0ff0c2297dcc499dd1873d008be3067957cf177262c527"
+          },
+          "h5netcdf": {
+            "version": "1.4.1",
+            "files_sha256": "618277bc0ac650e7ab229e56849a696df84820e96d4227bb2dc7179ad940028a"
+          }
+        },
+        "generator_sha256": "45f4dd6e33143c938bb9f426c1cdcba600f157181197a4e206c40cb157fe5bab",
+        "mesh_sha256": "d1f1b27cb8572fe4d486467705a019b1bc712e2e4280abccf7baa97e30e111c1",
+        "output_sha256": "6ff2093ed89deaf91e00109372ca0f1d12dcc81113522aa37a7d70ab74d84130",
+        "lid_mesh_sha256": "393871276045ce6c1129c939dbd09609f4df59e929e676e98c75d2e2644afb87",
+        "geometry_sha256": "471d3dbca1541923cee325836aae81926a82cbdefd4a4a3bd58f719b2043b345",
+        "input_drift": [],
+        "resolution": {
+          "max_panel_radius_m": 12.539338569967326,
+          "underresolved_frequencies_rad_s": [
+            0.8,
+            0.825,
+            0.85,
+            0.875,
+            0.9,
+            0.925,
+            0.95,
+            0.975,
+            1.0,
+            1.025,
+            1.05,
+            1.075,
+            1.1,
+            1.125,
+            1.15,
+            1.175,
+            1.2,
+            1.225,
+            1.25,
+            1.275,
+            1.3,
+            1.325,
+            1.35,
+            1.375,
+            1.4,
+            1.425,
+            1.45,
+            1.475,
+            1.5,
+            1.525,
+            1.55,
+            1.575,
+            1.6,
+            1.625,
+            1.65,
+            1.675,
+            1.7,
+            1.725,
+            1.75,
+            1.775,
+            1.8,
+            1.825,
+            1.85,
+            1.875,
+            1.9,
+            1.925,
+            1.95,
+            1.975,
+            2.0,
+            2.025,
+            2.05,
+            2.075,
+            2.1,
+            2.125,
+            2.15,
+            2.175,
+            2.2,
+            2.225,
+            2.25,
+            2.275,
+            2.3,
+            2.325,
+            2.35,
+            2.375,
+            2.4,
+            2.425,
+            2.45,
+            2.475,
+            2.5,
+            2.55,
+            2.6,
+            2.65,
+            2.7,
+            2.75,
+            2.8,
+            2.85,
+            2.9,
+            2.95,
+            3.0,
+            3.05,
+            3.1,
+            3.15,
+            3.2,
+            3.25,
+            3.3,
+            3.35,
+            3.4,
+            3.45,
+            3.5,
+            3.55,
+            3.6,
+            3.65,
+            3.7,
+            3.75,
+            3.8,
+            3.85,
+            3.9,
+            3.95,
+            4.0
+          ]
+        },
+        "configuration": {
+          "name": "cruise-adora",
+          "center_of_mass_m_z_up": [
+            0.0,
+            0.0,
+            10.610853426533483
+          ],
+          "mass_kg": 68000000.0,
+          "density_kg_m3": 1025.0,
+          "water_depth_m": 200.0,
+          "forward_speed_mps": 0.0,
+          "frequencies_rad_s": [
+            0.025,
+            0.05,
+            0.075,
+            0.1,
+            0.125,
+            0.15,
+            0.175,
+            0.2,
+            0.225,
+            0.25,
+            0.275,
+            0.3,
+            0.325,
+            0.35,
+            0.375,
+            0.4,
+            0.425,
+            0.45,
+            0.475,
+            0.5,
+            0.525,
+            0.55,
+            0.575,
+            0.6,
+            0.625,
+            0.65,
+            0.675,
+            0.7,
+            0.725,
+            0.75,
+            0.775,
+            0.8,
+            0.825,
+            0.85,
+            0.875,
+            0.9,
+            0.925,
+            0.95,
+            0.975,
+            1.0,
+            1.025,
+            1.05,
+            1.075,
+            1.1,
+            1.125,
+            1.15,
+            1.175,
+            1.2,
+            1.225,
+            1.25,
+            1.275,
+            1.3,
+            1.325,
+            1.35,
+            1.375,
+            1.4,
+            1.425,
+            1.45,
+            1.475,
+            1.5,
+            1.525,
+            1.55,
+            1.575,
+            1.6,
+            1.625,
+            1.65,
+            1.675,
+            1.7,
+            1.725,
+            1.75,
+            1.775,
+            1.8,
+            1.825,
+            1.85,
+            1.875,
+            1.9,
+            1.925,
+            1.95,
+            1.975,
+            2.0,
+            2.025,
+            2.05,
+            2.075,
+            2.1,
+            2.125,
+            2.15,
+            2.175,
+            2.2,
+            2.225,
+            2.25,
+            2.275,
+            2.3,
+            2.325,
+            2.35,
+            2.375,
+            2.4,
+            2.425,
+            2.45,
+            2.475,
+            2.5,
+            2.55,
+            2.6,
+            2.65,
+            2.7,
+            2.75,
+            2.8,
+            2.85,
+            2.9,
+            2.95,
+            3.0,
+            3.05,
+            3.1,
+            3.15,
+            3.2,
+            3.25,
+            3.3,
+            3.35,
+            3.4,
+            3.45,
+            3.5,
+            3.55,
+            3.6,
+            3.65,
+            3.7,
+            3.75,
+            3.8,
+            3.85,
+            3.9,
+            3.95,
+            4.0
+          ],
+          "headings_deg_to": [
+            0.0,
+            15.0,
+            30.0,
+            45.0,
+            60.0,
+            75.0,
+            90.0,
+            105.0,
+            120.0,
+            135.0,
+            150.0,
+            165.0,
+            180.0,
+            195.0,
+            210.0,
+            225.0,
+            240.0,
+            255.0,
+            270.0,
+            285.0,
+            300.0,
+            315.0,
+            330.0,
+            345.0
+          ]
+        },
+        "hydrostatics": {
+          "displacement_volume_m3": 66341.4634146345,
+          "equilibrium_mass_kg": 68000000.00000037,
+          "center_of_buoyancy_m_z_up": [
+            1.1631480092813989e-14,
+            -2.3958730975561052e-15,
+            -3.6936365766971573
+          ],
+          "stiffness": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              96976372.5672787,
+              7.316157280001789e-08,
+              1077138634.723536,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              7.316157280001789e-08,
+              519777564.2650676,
+              -43557652.420303866,
+              -7.759127740314398e-06
+            ],
+            [
+              0.0,
+              0.0,
+              1077138634.723536,
+              -43557652.420303866,
+              555509124393.9979,
+              1.5982390259177354e-06
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "wet_panels": 3892
+        },
+        "checks": [
+          {
+            "quantity": "added_mass",
+            "frequency_index": 0,
+            "symmetry_relative_error": 0.002183527658588603
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 1,
+            "symmetry_relative_error": 0.0018750140225116498
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 2,
+            "symmetry_relative_error": 0.0016365711310329656
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 3,
+            "symmetry_relative_error": 0.0014301701923030762
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 4,
+            "symmetry_relative_error": 0.0012356044683458547
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 5,
+            "symmetry_relative_error": 0.0011015764737685033
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 6,
+            "symmetry_relative_error": 0.0011624930964312125
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 7,
+            "symmetry_relative_error": 0.0012239081383337144
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 8,
+            "symmetry_relative_error": 0.00129452224791547
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 9,
+            "symmetry_relative_error": 0.001376095123938904
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 10,
+            "symmetry_relative_error": 0.0014602732537363206
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 11,
+            "symmetry_relative_error": 0.0015535182132650838
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 12,
+            "symmetry_relative_error": 0.0016381714526363634
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 13,
+            "symmetry_relative_error": 0.0017153223879572755
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 14,
+            "symmetry_relative_error": 0.0017793729900294464
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 15,
+            "symmetry_relative_error": 0.001816533059821466
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 16,
+            "symmetry_relative_error": 0.0018307580230055244
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 17,
+            "symmetry_relative_error": 0.0018287623250498584
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 18,
+            "symmetry_relative_error": 0.001847298380730668
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 19,
+            "symmetry_relative_error": 0.0019091429510058398
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 20,
+            "symmetry_relative_error": 0.0019960648772644665
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 21,
+            "symmetry_relative_error": 0.002105367147559613
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 22,
+            "symmetry_relative_error": 0.002196777256790798
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 23,
+            "symmetry_relative_error": 0.0022079266558313695
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 24,
+            "symmetry_relative_error": 0.00215861544300568
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 25,
+            "symmetry_relative_error": 0.002062431692956025
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 26,
+            "symmetry_relative_error": 0.0019489536437967603
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 27,
+            "symmetry_relative_error": 0.0018930607226477832
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 28,
+            "symmetry_relative_error": 0.0018830573744891583
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 29,
+            "symmetry_relative_error": 0.0019086318527760566
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 30,
+            "symmetry_relative_error": 0.001996263977746866
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 31,
+            "symmetry_relative_error": 0.004958043460969304
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 32,
+            "symmetry_relative_error": 0.0017866963502328563
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 33,
+            "symmetry_relative_error": 0.0017095959382186022
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 34,
+            "symmetry_relative_error": 0.0016827839692906252
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 35,
+            "symmetry_relative_error": 0.0016288579294739707
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 36,
+            "symmetry_relative_error": 0.0016176509397357434
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 37,
+            "symmetry_relative_error": 0.0015816105631835935
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 38,
+            "symmetry_relative_error": 0.0015398593679484664
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 39,
+            "symmetry_relative_error": 0.0014997289985859232
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 40,
+            "symmetry_relative_error": 0.0014503149702603086
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 41,
+            "symmetry_relative_error": 0.0014542372441260563
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 42,
+            "symmetry_relative_error": 0.0013978956920674183
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 43,
+            "symmetry_relative_error": 0.0013505794937337281
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 44,
+            "symmetry_relative_error": 0.0013622691999530285
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 45,
+            "symmetry_relative_error": 0.0013641553492530515
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 46,
+            "symmetry_relative_error": 0.0013221520491383822
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 47,
+            "symmetry_relative_error": 0.0012516979284246006
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 48,
+            "symmetry_relative_error": 0.0012628089655608312
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 49,
+            "symmetry_relative_error": 0.0012613870536131737
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 50,
+            "symmetry_relative_error": 0.001228489381715083
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 51,
+            "symmetry_relative_error": 0.0012026672174010981
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 52,
+            "symmetry_relative_error": 0.0011868089027955928
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 53,
+            "symmetry_relative_error": 0.001184070420210798
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 54,
+            "symmetry_relative_error": 0.0012185314653983229
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 55,
+            "symmetry_relative_error": 0.0012023573388804788
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 56,
+            "symmetry_relative_error": 0.0011930173494515888
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 57,
+            "symmetry_relative_error": 0.0011915011122063974
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 58,
+            "symmetry_relative_error": 0.001147934547875376
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 59,
+            "symmetry_relative_error": 0.0011933958110190367
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 60,
+            "symmetry_relative_error": 0.001256809369523623
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 61,
+            "symmetry_relative_error": 0.0014287045330901849
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 62,
+            "symmetry_relative_error": 0.0015201892524374968
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 63,
+            "symmetry_relative_error": 0.0017917686531143898
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 64,
+            "symmetry_relative_error": 0.001818496034865296
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 65,
+            "symmetry_relative_error": 0.0018771830811638048
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 66,
+            "symmetry_relative_error": 0.0019022480503050841
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 67,
+            "symmetry_relative_error": 0.0019084556668801655
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 68,
+            "symmetry_relative_error": 0.001783000565368379
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 69,
+            "symmetry_relative_error": 0.0015050191745377974
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 70,
+            "symmetry_relative_error": 0.0013313351531296666
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 71,
+            "symmetry_relative_error": 0.001417749483727599
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 72,
+            "symmetry_relative_error": 0.001485547034277219
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 73,
+            "symmetry_relative_error": 0.0015427786139914576
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 74,
+            "symmetry_relative_error": 0.0016208681952005607
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 75,
+            "symmetry_relative_error": 0.0016908345532077923
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 76,
+            "symmetry_relative_error": 0.0017395541328700896
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 77,
+            "symmetry_relative_error": 0.0017692817669042054
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 78,
+            "symmetry_relative_error": 0.0018102826934226842
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 79,
+            "symmetry_relative_error": 0.001855155005874021
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 80,
+            "symmetry_relative_error": 0.0018591990603965055
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 81,
+            "symmetry_relative_error": 0.0018387624398368094
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 82,
+            "symmetry_relative_error": 0.0018179829006679312
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 83,
+            "symmetry_relative_error": 0.0017802597895614305
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 84,
+            "symmetry_relative_error": 0.0017368711535868213
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 85,
+            "symmetry_relative_error": 0.0016756633845147148
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 86,
+            "symmetry_relative_error": 0.001655630984830846
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 87,
+            "symmetry_relative_error": 0.001589740466131768
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 88,
+            "symmetry_relative_error": 0.0015011691913732114
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 89,
+            "symmetry_relative_error": 0.0015158106809319031
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 90,
+            "symmetry_relative_error": 0.0014210170912999274
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 91,
+            "symmetry_relative_error": 0.0013041752216372598
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 92,
+            "symmetry_relative_error": 0.0012788007812656306
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 93,
+            "symmetry_relative_error": 0.0011933471699481786
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 94,
+            "symmetry_relative_error": 0.0011719440659214515
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 95,
+            "symmetry_relative_error": 0.0011036012365859414
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 96,
+            "symmetry_relative_error": 0.0010103164382387789
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 97,
+            "symmetry_relative_error": 0.0009843329735534285
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 98,
+            "symmetry_relative_error": 0.0009527734647362105
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 99,
+            "symmetry_relative_error": 0.0007588001400077677
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 100,
+            "symmetry_relative_error": 0.0005647699194280596
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 101,
+            "symmetry_relative_error": 0.0003838483902174
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 102,
+            "symmetry_relative_error": 0.00025163824065484733
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 103,
+            "symmetry_relative_error": 0.00041952868748754884
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 104,
+            "symmetry_relative_error": 0.0005788233366061864
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 105,
+            "symmetry_relative_error": 0.0005943052733980774
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 106,
+            "symmetry_relative_error": 0.0005623823543135825
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 107,
+            "symmetry_relative_error": 0.0005068551363379816
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 108,
+            "symmetry_relative_error": 0.0005096597727585445
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 109,
+            "symmetry_relative_error": 0.00044464042664061476
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 110,
+            "symmetry_relative_error": 0.00047822801453560886
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 111,
+            "symmetry_relative_error": 0.00039890594306056683
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 112,
+            "symmetry_relative_error": 0.00026831648327277737
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 113,
+            "symmetry_relative_error": 0.0001731053008540105
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 114,
+            "symmetry_relative_error": 0.0003888960581094615
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 115,
+            "symmetry_relative_error": 0.0007612895314605633
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 116,
+            "symmetry_relative_error": 0.0009531275028667142
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 117,
+            "symmetry_relative_error": 0.0014590881869731619
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 118,
+            "symmetry_relative_error": 0.0013865084389627976
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 119,
+            "symmetry_relative_error": 0.0017902373293320042
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 120,
+            "symmetry_relative_error": 0.002779824394535619
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 121,
+            "symmetry_relative_error": 0.0033640993268594143
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 122,
+            "symmetry_relative_error": 0.0031984829011282813
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 123,
+            "symmetry_relative_error": 0.0025111037765607504
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 124,
+            "symmetry_relative_error": 0.0019355328218350204
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 125,
+            "symmetry_relative_error": 0.0020227696373138213
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 126,
+            "symmetry_relative_error": 0.002204248971008969
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 127,
+            "symmetry_relative_error": 0.0035825176631981317
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 128,
+            "symmetry_relative_error": 0.001286541696336248
+          },
+          {
+            "quantity": "added_mass",
+            "frequency_index": 129,
+            "symmetry_relative_error": 0.00037870230130417786
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 0,
+            "symmetry_relative_error": 0.004516146165998795,
+            "normalized_min_eigenvalue": -9.519903773045179e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 1,
+            "symmetry_relative_error": 0.004580735433562752,
+            "normalized_min_eigenvalue": -8.946676287607949e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 2,
+            "symmetry_relative_error": 0.004562237032759929,
+            "normalized_min_eigenvalue": -8.9544057288936e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 3,
+            "symmetry_relative_error": 0.004530058377387332,
+            "normalized_min_eigenvalue": -8.998960850006622e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 4,
+            "symmetry_relative_error": 0.004484125893720891,
+            "normalized_min_eigenvalue": -9.072442390431179e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 5,
+            "symmetry_relative_error": 0.004412532298585712,
+            "normalized_min_eigenvalue": -8.743745061247371e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 6,
+            "symmetry_relative_error": 0.0043113133347125404,
+            "normalized_min_eigenvalue": -8.391816426558341e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 7,
+            "symmetry_relative_error": 0.004176447639354275,
+            "normalized_min_eigenvalue": -4.0242970913209573e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 8,
+            "symmetry_relative_error": 0.003985106818442692,
+            "normalized_min_eigenvalue": -2.030918886827307e-10
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 9,
+            "symmetry_relative_error": 0.003724252632561988,
+            "normalized_min_eigenvalue": -2.148473456956106e-10
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 10,
+            "symmetry_relative_error": 0.003382367236901378,
+            "normalized_min_eigenvalue": 5.696038799519421e-10
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 11,
+            "symmetry_relative_error": 0.00296130160709528,
+            "normalized_min_eigenvalue": 1.1293914184359866e-09
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 12,
+            "symmetry_relative_error": 0.002444440456012706,
+            "normalized_min_eigenvalue": -1.919319575083974e-09
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 13,
+            "symmetry_relative_error": 0.0018547236898602286,
+            "normalized_min_eigenvalue": -2.7496452281137496e-10
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 14,
+            "symmetry_relative_error": 0.0012292983870749528,
+            "normalized_min_eigenvalue": 1.3873586517991658e-09
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 15,
+            "symmetry_relative_error": 0.001092374944725969,
+            "normalized_min_eigenvalue": 8.10031889169527e-09
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 16,
+            "symmetry_relative_error": 0.001164130320484527,
+            "normalized_min_eigenvalue": 3.2080556831618084e-08
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 17,
+            "symmetry_relative_error": 0.001200443453569639,
+            "normalized_min_eigenvalue": 7.216181831867558e-08
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 18,
+            "symmetry_relative_error": 0.0012104937366472974,
+            "normalized_min_eigenvalue": 1.79297108535202e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 19,
+            "symmetry_relative_error": 0.0012144553903450273,
+            "normalized_min_eigenvalue": 3.7660101419712696e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 20,
+            "symmetry_relative_error": 0.0012449298428976999,
+            "normalized_min_eigenvalue": 7.808169191047784e-07
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 21,
+            "symmetry_relative_error": 0.001340953067095422,
+            "normalized_min_eigenvalue": 1.5274849794830424e-06
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 22,
+            "symmetry_relative_error": 0.0015096178680290425,
+            "normalized_min_eigenvalue": 2.823244367015481e-06
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 23,
+            "symmetry_relative_error": 0.001733094006479353,
+            "normalized_min_eigenvalue": 4.815053106280478e-06
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 24,
+            "symmetry_relative_error": 0.001955180357180463,
+            "normalized_min_eigenvalue": 7.522723275694345e-06
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 25,
+            "symmetry_relative_error": 0.002134130300165891,
+            "normalized_min_eigenvalue": 1.0635317582952463e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 26,
+            "symmetry_relative_error": 0.0022487488040774015,
+            "normalized_min_eigenvalue": 1.3703044934527415e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 27,
+            "symmetry_relative_error": 0.0023080617255431105,
+            "normalized_min_eigenvalue": 1.6530248732275322e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 28,
+            "symmetry_relative_error": 0.002374330246853565,
+            "normalized_min_eigenvalue": 1.989560400965524e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 29,
+            "symmetry_relative_error": 0.0024991939136629793,
+            "normalized_min_eigenvalue": 2.574980879330417e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 30,
+            "symmetry_relative_error": 0.003554003082796797,
+            "normalized_min_eigenvalue": 3.787328955086665e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 31,
+            "symmetry_relative_error": 0.0032926242807470147,
+            "normalized_min_eigenvalue": 4.140027355169854e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 32,
+            "symmetry_relative_error": 0.0031929032088714835,
+            "normalized_min_eigenvalue": 2.6730893710893478e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 33,
+            "symmetry_relative_error": 0.0033708594674669422,
+            "normalized_min_eigenvalue": 3.2703636710080955e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 34,
+            "symmetry_relative_error": 0.0035076369197118,
+            "normalized_min_eigenvalue": 3.719619838935875e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 35,
+            "symmetry_relative_error": 0.00373353223354,
+            "normalized_min_eigenvalue": 4.199144764073017e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 36,
+            "symmetry_relative_error": 0.0040051835939404045,
+            "normalized_min_eigenvalue": 4.79323861857298e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 37,
+            "symmetry_relative_error": 0.004318760241078678,
+            "normalized_min_eigenvalue": 5.372722325845923e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 38,
+            "symmetry_relative_error": 0.00460957085642034,
+            "normalized_min_eigenvalue": 5.793087444234917e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 39,
+            "symmetry_relative_error": 0.004890038563688918,
+            "normalized_min_eigenvalue": 6.142631514049767e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 40,
+            "symmetry_relative_error": 0.005242074761275862,
+            "normalized_min_eigenvalue": 6.589671296187852e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 41,
+            "symmetry_relative_error": 0.005555650350206915,
+            "normalized_min_eigenvalue": 7.035684518074949e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 42,
+            "symmetry_relative_error": 0.0059976699190323396,
+            "normalized_min_eigenvalue": 7.395307757381226e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 43,
+            "symmetry_relative_error": 0.006076683150081822,
+            "normalized_min_eigenvalue": 7.29811031107329e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 44,
+            "symmetry_relative_error": 0.0060759816803122165,
+            "normalized_min_eigenvalue": 7.202150881724694e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 45,
+            "symmetry_relative_error": 0.006187040706142916,
+            "normalized_min_eigenvalue": 6.910552487112663e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 46,
+            "symmetry_relative_error": 0.006655682036079475,
+            "normalized_min_eigenvalue": 6.919487004430463e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 47,
+            "symmetry_relative_error": 0.006905369474755575,
+            "normalized_min_eigenvalue": 7.053634367518423e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 48,
+            "symmetry_relative_error": 0.0069465482764228675,
+            "normalized_min_eigenvalue": 7.046319499387826e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 49,
+            "symmetry_relative_error": 0.0070442069033268455,
+            "normalized_min_eigenvalue": 7.018515265877265e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 50,
+            "symmetry_relative_error": 0.007192099390225062,
+            "normalized_min_eigenvalue": 6.933502162536029e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 51,
+            "symmetry_relative_error": 0.007296457550380849,
+            "normalized_min_eigenvalue": 6.823800067362714e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 52,
+            "symmetry_relative_error": 0.007420415363302438,
+            "normalized_min_eigenvalue": 6.676334744308439e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 53,
+            "symmetry_relative_error": 0.007377657046141281,
+            "normalized_min_eigenvalue": 6.30080955265494e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 54,
+            "symmetry_relative_error": 0.007928747121778174,
+            "normalized_min_eigenvalue": 6.610557592927208e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 55,
+            "symmetry_relative_error": 0.008120982894568739,
+            "normalized_min_eigenvalue": 6.524228351761097e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 56,
+            "symmetry_relative_error": 0.008307114703894626,
+            "normalized_min_eigenvalue": 6.384895735834935e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 57,
+            "symmetry_relative_error": 0.008461536041740846,
+            "normalized_min_eigenvalue": 6.23477381364084e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 58,
+            "symmetry_relative_error": 0.008936599503803981,
+            "normalized_min_eigenvalue": 6.081524965406684e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 59,
+            "symmetry_relative_error": 0.009009913880102182,
+            "normalized_min_eigenvalue": 5.88626495527702e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 60,
+            "symmetry_relative_error": 0.009429707418103414,
+            "normalized_min_eigenvalue": 5.6914476544375254e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 61,
+            "symmetry_relative_error": 0.00993101853501948,
+            "normalized_min_eigenvalue": 5.483237752373497e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 62,
+            "symmetry_relative_error": 0.01036762486564407,
+            "normalized_min_eigenvalue": 5.2462879427817786e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 63,
+            "symmetry_relative_error": 0.011754404090535079,
+            "normalized_min_eigenvalue": 5.013152172303035e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 64,
+            "symmetry_relative_error": 0.012179626489733914,
+            "normalized_min_eigenvalue": 4.77254141665153e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 65,
+            "symmetry_relative_error": 0.012803682465020587,
+            "normalized_min_eigenvalue": 4.514540383582035e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 66,
+            "symmetry_relative_error": 0.014952259774649396,
+            "normalized_min_eigenvalue": 4.266737338982029e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 67,
+            "symmetry_relative_error": 0.021225096105788342,
+            "normalized_min_eigenvalue": 4.015859158469739e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 68,
+            "symmetry_relative_error": 0.028826796951337597,
+            "normalized_min_eigenvalue": 3.775844624266096e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 69,
+            "symmetry_relative_error": 0.03606620422894144,
+            "normalized_min_eigenvalue": 3.580606001171305e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 70,
+            "symmetry_relative_error": 0.04387544633047006,
+            "normalized_min_eigenvalue": 3.389144003779476e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 71,
+            "symmetry_relative_error": 0.05025991823839029,
+            "normalized_min_eigenvalue": 3.23295375664637e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 72,
+            "symmetry_relative_error": 0.05446533259259766,
+            "normalized_min_eigenvalue": 3.095161468531449e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 73,
+            "symmetry_relative_error": 0.06130616598454132,
+            "normalized_min_eigenvalue": 2.9974130074942477e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 74,
+            "symmetry_relative_error": 0.062149685750175834,
+            "normalized_min_eigenvalue": 2.90669911842109e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 75,
+            "symmetry_relative_error": 0.06315820162966694,
+            "normalized_min_eigenvalue": 2.82397405939626e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 76,
+            "symmetry_relative_error": 0.06377196104301822,
+            "normalized_min_eigenvalue": 2.722652330905114e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 77,
+            "symmetry_relative_error": 0.061505522587467935,
+            "normalized_min_eigenvalue": 2.6256835569441475e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 78,
+            "symmetry_relative_error": 0.05852919276093964,
+            "normalized_min_eigenvalue": 2.474634301204007e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 79,
+            "symmetry_relative_error": 0.06053933632287113,
+            "normalized_min_eigenvalue": 2.2751369295109652e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 80,
+            "symmetry_relative_error": 0.05532952910675574,
+            "normalized_min_eigenvalue": 1.9795603982603273e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 81,
+            "symmetry_relative_error": 0.04749088480296185,
+            "normalized_min_eigenvalue": -0.0010278301686356614
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 82,
+            "symmetry_relative_error": 0.04532716186957358,
+            "normalized_min_eigenvalue": -0.003360920454126077
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 83,
+            "symmetry_relative_error": 0.04200891272783608,
+            "normalized_min_eigenvalue": -0.006615975759684584
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 84,
+            "symmetry_relative_error": 0.037116538306950754,
+            "normalized_min_eigenvalue": -0.010431501468367924
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 85,
+            "symmetry_relative_error": 0.03257882963678168,
+            "normalized_min_eigenvalue": -0.013700600666480022
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 86,
+            "symmetry_relative_error": 0.034238670176483556,
+            "normalized_min_eigenvalue": -0.011053334179791707
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 87,
+            "symmetry_relative_error": 0.03015424169345498,
+            "normalized_min_eigenvalue": -0.014003736736232312
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 88,
+            "symmetry_relative_error": 0.023545128794660385,
+            "normalized_min_eigenvalue": -0.01877376357997072
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 89,
+            "symmetry_relative_error": 0.03073870017404812,
+            "normalized_min_eigenvalue": -0.01269539237791115
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 90,
+            "symmetry_relative_error": 0.025789327788556884,
+            "normalized_min_eigenvalue": -0.01679531541304169
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 91,
+            "symmetry_relative_error": 0.015277397059656856,
+            "normalized_min_eigenvalue": -0.027970800174451645
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 92,
+            "symmetry_relative_error": 0.019241226442379168,
+            "normalized_min_eigenvalue": -0.0235213603815284
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 93,
+            "symmetry_relative_error": 0.013287954965564085,
+            "normalized_min_eigenvalue": -0.0329517893268265
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 94,
+            "symmetry_relative_error": 0.01844942707698677,
+            "normalized_min_eigenvalue": -0.03275163138051103
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 95,
+            "symmetry_relative_error": 0.015824614417206402,
+            "normalized_min_eigenvalue": -0.04067777546499904
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 96,
+            "symmetry_relative_error": 0.014945642319757608,
+            "normalized_min_eigenvalue": -0.056179942796848806
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 97,
+            "symmetry_relative_error": 0.019260733214580588,
+            "normalized_min_eigenvalue": -0.05200190765311925
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 98,
+            "symmetry_relative_error": 0.02426082499871542,
+            "normalized_min_eigenvalue": -0.048420907774900816
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 99,
+            "symmetry_relative_error": 0.021322404008213756,
+            "normalized_min_eigenvalue": -0.08332174633973588
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 100,
+            "symmetry_relative_error": 0.03226515933158209,
+            "normalized_min_eigenvalue": -0.05389424833079301
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 101,
+            "symmetry_relative_error": 0.04950306790121653,
+            "normalized_min_eigenvalue": -0.007051568566745797
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 102,
+            "symmetry_relative_error": 0.057639350260315914,
+            "normalized_min_eigenvalue": -0.00025949967265258316
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 103,
+            "symmetry_relative_error": 0.05820846694277196,
+            "normalized_min_eigenvalue": -0.0001326720695523515
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 104,
+            "symmetry_relative_error": 0.05154985000608391,
+            "normalized_min_eigenvalue": -3.740682033506078e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 105,
+            "symmetry_relative_error": 0.04374812007695294,
+            "normalized_min_eigenvalue": 3.094646359722977e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 106,
+            "symmetry_relative_error": 0.03609429226339259,
+            "normalized_min_eigenvalue": 8.443500292440138e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 107,
+            "symmetry_relative_error": 0.026579698798298003,
+            "normalized_min_eigenvalue": 0.00012351524291910756
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 108,
+            "symmetry_relative_error": 0.019433208609655465,
+            "normalized_min_eigenvalue": 0.000161192693739126
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 109,
+            "symmetry_relative_error": 0.01772676502128345,
+            "normalized_min_eigenvalue": 0.00018778271350444563
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 110,
+            "symmetry_relative_error": 0.014732200535438111,
+            "normalized_min_eigenvalue": 0.00021535353654673507
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 111,
+            "symmetry_relative_error": 0.017714882993703517,
+            "normalized_min_eigenvalue": 0.00021914561267963586
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 112,
+            "symmetry_relative_error": 0.022123342226172012,
+            "normalized_min_eigenvalue": 0.00021090350098857265
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 113,
+            "symmetry_relative_error": 0.023749475579514807,
+            "normalized_min_eigenvalue": 0.0002047633271397794
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 114,
+            "symmetry_relative_error": 0.021459072964942257,
+            "normalized_min_eigenvalue": 0.00020058280647631147
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 115,
+            "symmetry_relative_error": 0.0106138482431692,
+            "normalized_min_eigenvalue": 0.00021848284609860086
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 116,
+            "symmetry_relative_error": 0.005875429059387695,
+            "normalized_min_eigenvalue": 0.0002671553125862889
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 117,
+            "symmetry_relative_error": 0.010852214478239761,
+            "normalized_min_eigenvalue": 0.000214192141377428
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 118,
+            "symmetry_relative_error": 0.04024844641201557,
+            "normalized_min_eigenvalue": -0.00039381835120265077
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 119,
+            "symmetry_relative_error": 0.009418162539885998,
+            "normalized_min_eigenvalue": 0.00024598935510041257
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 120,
+            "symmetry_relative_error": 0.009397502856481787,
+            "normalized_min_eigenvalue": -2.2107904051386534e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 121,
+            "symmetry_relative_error": 0.01668602788277379,
+            "normalized_min_eigenvalue": 0.00014114748786040246
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 122,
+            "symmetry_relative_error": 0.02621954411428376,
+            "normalized_min_eigenvalue": 0.00013313764533177442
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 123,
+            "symmetry_relative_error": 0.07854335994575505,
+            "normalized_min_eigenvalue": 3.971919669173367e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 124,
+            "symmetry_relative_error": 0.09233571141102055,
+            "normalized_min_eigenvalue": 0.00023243628972917962
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 125,
+            "symmetry_relative_error": 0.15977315840051148,
+            "normalized_min_eigenvalue": 0.0002105335899112061
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 126,
+            "symmetry_relative_error": 0.049013356308134234,
+            "normalized_min_eigenvalue": 6.9478485226983e-05
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 127,
+            "symmetry_relative_error": 0.019842395195274566,
+            "normalized_min_eigenvalue": -0.00016016726952122537
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 128,
+            "symmetry_relative_error": 0.08943838408560127,
+            "normalized_min_eigenvalue": -0.0001118847759760838
+          },
+          {
+            "quantity": "radiation_damping",
+            "frequency_index": 129,
+            "symmetry_relative_error": 0.011279753512070223,
+            "normalized_min_eigenvalue": -9.515887039844571e-05
+          }
+        ],
+        "validation": {
+          "independent_benchmark": "pending",
+          "mesh_convergence": "pending"
+        }
+      }
+    }
+  ],
+  "blocks": [
+    {
+      "success": true,
+      "message": "CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH",
+      "iterations": 554,
+      "seconds": 38.17343470873311,
+      "relative_a_error": 0.022331143708398858,
+      "relative_b_error": 0.06720708812017173,
+      "weighted_a_error": 0.010167100825049473,
+      "weighted_b_error": 0.03686711435464825,
+      "axes": [
+        0,
+        2,
+        4
+      ]
+    },
+    {
+      "success": true,
+      "message": "CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH",
+      "iterations": 739,
+      "seconds": 50.45035883272067,
+      "relative_a_error": 0.09724764437694372,
+      "relative_b_error": 0.06526524984871808,
+      "weighted_a_error": 0.062052991852511584,
+      "weighted_b_error": 0.07669977280107948,
+      "axes": [
+        1,
+        3,
+        5
+      ]
+    }
+  ],
+  "projected_iterations": 3000,
+  "normalization": "FRD congruence by inverse square root of rigid-body diagonal",
+  "objective_weights": "omega^-1/2, separate unit global norms of A and B in each symmetry block",
+  "relative_a_error": 0.027972727765722273,
+  "relative_b_error": 0.06658139172448384,
+  "discrete_stability": {
+    "state_count": 126,
+    "maximum_continuous_pole_real_per_s": 2.1429072333522457e-16,
+    "energy_symmetric_part_max_eigenvalue": 8.5820325841129e-16,
+    "updates": [
+      {
+        "dt_s": 0.008333333333333333,
+        "maximum_energy_amplification": 1.0000000000000009,
+        "spectral_radius": 1.0000000000000038
+      },
+      {
+        "dt_s": 0.004166666666666667,
+        "maximum_energy_amplification": 1.0000000000000018,
+        "spectral_radius": 1.0000000000000018
+      }
+    ]
+  },
+  "radiation_sha256": "e0d947d1d6067837b5d18617295ac9ed27091dd1d38051336c767a6568d2f490",
+  "fit_arrays_sha256": "bcfbb3b8b769bd141e1579c3bedadd57c11f19c4fef805780922ef644c03f31f",
+  "not_ready": [
+    "independent vessel calibration",
+    "validated forward-speed realization",
+    "online physical assembly"
+  ]
+}

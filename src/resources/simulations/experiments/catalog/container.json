@@ -1,0 +1,146 @@
+{
+  "sourceIssue": 2159,
+  "sourceBodySha256": "959efdee5c526bfcd14c2eb5b3c60515fd7a0aac26b1e48f38fa4ad39842777c",
+  "steps": [
+    {
+      "sequence": 1,
+      "title": "区分瞬时与累计量",
+      "condition": "P0，60s",
+      "interaction": "配对轴速、推力、对水/对地速度、航程、功率、燃油",
+      "evidence": "单位和瞬时/累计量区别"
+    },
+    {
+      "sequence": 2,
+      "title": "比较真实装载状态",
+      "condition": "lambda=.2/.6/.9静水平衡",
+      "interaction": "选择装载，记录质量/吃水/GM/风面积并预测控制变化",
+      "evidence": "装载具有多条物理作用链，不能只改变时间常数"
+    },
+    {
+      "sequence": 3,
+      "title": "辨识局部航速模型",
+      "condition": "lambda=.6，+5%轴速，600s",
+      "interaction": "选择辨识窗，拟合局部速度模型",
+      "evidence": "增益/惯性、执行器动态"
+    },
+    {
+      "sequence": 4,
+      "title": "独立验证航速模型",
+      "condition": "新run，−4%，600s",
+      "interaction": "冻结模型叠加预测与实际响应",
+      "evidence": "独立验证及残差"
+    },
+    {
+      "sequence": 5,
+      "title": "比较装载工作点",
+      "condition": "lambda=.2与.9各600s",
+      "interaction": "原模型外推后分别辨识，比较K/T",
+      "evidence": "参数随加载改变，辨识误差与工况失配区分"
+    },
+    {
+      "sequence": 6,
+      "title": "比较航速工作点",
+      "condition": "U0=6与10各600s",
+      "interaction": "同载荷小阶跃辨识，绘出工作点参数表",
+      "evidence": "非线性阻力与局部线性化"
+    },
+    {
+      "sequence": 7,
+      "title": "设计航速PI",
+      "condition": "8→9m/s，600s",
+      "interaction": "用模型设计PI，先理想后真实闭环比较",
+      "evidence": "从辨识到设计，不能直接套默认参数评分"
+    },
+    {
+      "sequence": 8,
+      "title": "检验固定控制器",
+      "condition": "lambda=.2/.9，600s各",
+      "interaction": "使用同一PI，标记超调/调节差异",
+      "evidence": "固定控制器鲁棒性边界"
+    },
+    {
+      "sequence": 9,
+      "title": "建立三点调度表",
+      "condition": "同上",
+      "interaction": "填写三点调度表，选择插值并重跑",
+      "evidence": "增益调度是随工况设计，不是任意随机改参数"
+    },
+    {
+      "sequence": 10,
+      "title": "比较积分跟踪",
+      "condition": "Uref8→10→8，900s",
+      "interaction": "比较直接切换与无扰积分跟踪",
+      "evidence": "切换冲击、执行器限幅、积分状态"
+    },
+    {
+      "sequence": 11,
+      "title": "预测与完成航次",
+      "condition": "静水航次，恒速8",
+      "interaction": "运行前预测ETA/油耗，实际完成后对照",
+      "evidence": "speed³近似与实际功率/积分燃油差异"
+    },
+    {
+      "sequence": 12,
+      "title": "比较分段速度计划",
+      "condition": "同航程，分段速度",
+      "interaction": "提交至少两组四段速度计划，比较到达与油耗",
+      "evidence": "同任务条件下的经济性，初末动能一致"
+    },
+    {
+      "sequence": 13,
+      "title": "比较对水与对地反馈",
+      "condition": "C1航次",
+      "interaction": "选择对水或对地速度反馈并比较",
+      "evidence": "流速、准点与经济速度定义"
+    },
+    {
+      "sequence": 14,
+      "title": "检验装载与风力",
+      "condition": "W1航次，lambda=.2/.9",
+      "interaction": "预测风面积变化影响，再保持同计划比较",
+      "evidence": "装载—风力/力矩—航向/功耗链"
+    },
+    {
+      "sequence": 15,
+      "title": "观察波浪能耗",
+      "condition": "V2航次",
+      "interaction": "切换一阶激励/二阶附加阻力显示，计划不变",
+      "evidence": "波浪引起运动和平均能耗，不能只有画面波浪"
+    },
+    {
+      "sequence": 16,
+      "title": "选择滤波与航迹保持",
+      "condition": "C1+N1航次",
+      "interaction": "选滤波tau=.2/1/3s及LOS前视距离",
+      "evidence": "航迹保持、噪声/时延与舵动作代价"
+    },
+    {
+      "sequence": 17,
+      "title": "冻结综合速度方案",
+      "condition": "E1+N1航次",
+      "interaction": "冻结第一综合速度/调度方案",
+      "evidence": "到达时限、能耗、横偏约束"
+    },
+    {
+      "sequence": 18,
+      "title": "比较第二方案",
+      "condition": "同seed/初值航次",
+      "interaction": "调整一个设计维度形成第二方案，作Pareto式选择",
+      "evidence": "不同权重的合理取舍，不预设唯一最优"
+    },
+    {
+      "sequence": 19,
+      "title": "验证未见装载",
+      "condition": "seed17/29，lambda=.35/.8航次",
+      "interaction": "固定方案做未知验证，必要时标注修正版本",
+      "evidence": "调度插值、环境泛化、保留失败记录"
+    },
+    {
+      "sequence": 20,
+      "title": "完成实验报告",
+      "condition": "个人至少5run",
+      "interaction": "报告模型、调度、计划、实际/理想油耗、边界",
+      "evidence": "可复现方案，禁止把代理燃油写成实船节油证据"
+    }
+  ]
+}

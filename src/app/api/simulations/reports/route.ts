@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   const experiment = findVesselExperiment(new URL(request.url).searchParams.get('experimentKey') ?? '');
   if (!experiment) return NextResponse.json({ error: '实验不存在。' }, { status: 404 });
   const reports = await prisma.virtualSimulationReport.findMany({
-    where: { userId, experimentKey: experiment.key },
+    where: { userId, experimentKey: experiment.key, status: 'finalized' },
     orderBy: { createdAt: 'desc' },
     take: 30,
     select: { id: true, score: true, maxScore: true, createdAt: true },

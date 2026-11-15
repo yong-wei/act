@@ -262,15 +262,12 @@ describe('cruise control-effect debrief isolation', () => {
       expect(source).not.toContain('LearningFact');
     }
     expect(acceptance).toContain("nodeEnv !== 'production'");
-    expect(scene).toContain('canEmitCruiseCompletionTelemetry');
-    expect(scene).toContain('isCompleted={state.isCompleted}');
-    expect(scene).toContain('hasFiniteRequiredCruisePerformance(runtimePerformance)');
-    expect(scene).toContain('hasFiniteRequiredCruisePerformance(performance)');
-    expect(scene).toContain("searchParams.get('courseMode') === CRUISE_COURSE_MODE");
-    expect(scene).toContain('searchParams.get(CRUISE_DEBRIEF_ACCEPTANCE_QUERY)');
-    expect(scene).toContain('isBoundCourseTask');
-    expect(scene).not.toContain('resolveCruiseDebriefTaskContract(isCourseMode)');
-    expect(scene).not.toContain('taskContract: state.targetForm');
+    expect(scene).toContain('VesselCourseEvidencePanel');
+    expect(scene).toContain('comfort: frame.cruiseComfort ?? null');
+    expect(scene).toContain('CruiseComfortReadout comfort={state.comfort}');
+    expect(scene).not.toContain('syntheticPerformance');
+    expect(scene).not.toContain('comfort.msi');
+    expect(scene).not.toContain('persistSceneTraceRun');
   });
 });
 

@@ -1,0 +1,139 @@
+{
+  "system": {
+    "water_density_kg_m3": 1025.0,
+    "propulsors": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -137.25,
+            -8.184000000000001,
+            15.610853426533483
+          ],
+          "referenceImmersionM": 5.0
+        },
+        "diameter_m": 6.5,
+        "max_power_w": 16800000.0,
+        "rated_speed_rad_s": 15.707963267948966,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 283274.0783691406,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": {
+          "servo": {
+            "max_angle_rad": 3.141592653589793,
+            "max_rate_rad_s": 0.08726646259971647,
+            "time_constant_s": 1.0
+          },
+          "forbidden_sectors_rad": []
+        }
+      },
+      {
+        "installation": {
+          "positionBodyM": [
+            -137.25,
+            8.184000000000001,
+            15.610853426533483
+          ],
+          "referenceImmersionM": 5.0
+        },
+        "diameter_m": 6.5,
+        "max_power_w": 16800000.0,
+        "rated_speed_rad_s": 15.707963267948966,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 283274.0783691406,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": {
+          "servo": {
+            "max_angle_rad": 3.141592653589793,
+            "max_rate_rad_s": 0.08726646259971647,
+            "time_constant_s": 1.0
+          },
+          "forbidden_sectors_rad": []
+        }
+      }
+    ],
+    "surfaces": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -15.25,
+            -21.75,
+            13.610853426533483
+          ],
+          "referenceImmersionM": 3.0
+        },
+        "area_m2": 18.0,
+        "aspect_ratio": 2.0,
+        "normal_body": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "servo": {
+          "max_angle_rad": 0.4363323129985824,
+          "max_rate_rad_s": 0.2617993877991494,
+          "time_constant_s": 0.4
+        },
+        "wake_propulsor": null,
+        "normal_factor": 1.0,
+        "fin_servo_power": {
+          "mean_chord_m": 3.0,
+          "efficiency": 0.65,
+          "standby_w": 2000.0
+        }
+      },
+      {
+        "installation": {
+          "positionBodyM": [
+            -15.25,
+            21.75,
+            13.610853426533483
+          ],
+          "referenceImmersionM": 3.0
+        },
+        "area_m2": 18.0,
+        "aspect_ratio": 2.0,
+        "normal_body": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "servo": {
+          "max_angle_rad": 0.4363323129985824,
+          "max_rate_rad_s": 0.2617993877991494,
+          "time_constant_s": 0.4
+        },
+        "wake_propulsor": null,
+        "normal_factor": 1.0,
+        "fin_servo_power": {
+          "mean_chord_m": 3.0,
+          "efficiency": 0.65,
+          "standby_w": 2000.0
+        }
+      }
+    ]
+  },
+  "initial_state": {
+    "propeller_shaft_speed_rad_s": [
+      10.884141232391915,
+      10.884141232391915
+    ],
+    "motor_torques_nm": [
+      1085871.442714007,
+      1085871.442714007
+    ],
+    "shaft_reference_speed_rad_s": [
+      10.884141232391915,
+      10.884141232391915
+    ],
+    "azimuth_angles_rad": [
+      0.0,
+      0.0
+    ],
+    "control_surface_angles_rad": [
+      0.0,
+      0.0
+    ]
+  }
+}

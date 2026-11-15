@@ -1,0 +1,10 @@
+{
+  "frequencies": 100,
+  "oscillators": 59,
+  "parameter_hash": "fnv1a-51007deec2f6372c",
+  "parameter_version": "research-nominal-v5",
+  "radiation_states": 118,
+  "status": "computed",
+  "vessel": "destroyer-055",
+  "native_csv_sha256": "6e17c308ac34482d6576757f8ebdfd85e6f3a7239cdc05effceb297690edde76"
+}

@@ -1,0 +1,1486 @@
+{
+  "schema": "act.fleet-teaching-wave-session-validation.v1",
+  "status": "passed",
+  "generator_sha256": "b10d862ffe61513a0eee252f3519bbc600b90deee3269c353c660696a737b625",
+  "wasm_sha256": "c35cc8603a33a39c5593fcbab5052134c4401bd3320c225001971468225b7470",
+  "conditions": [
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.3,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-defb4978a0769dfe",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-8e9ec9be79c15592",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.3,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-defb4978a0769dfe",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-8e9ec9be79c15592",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        207.85421085046642,
+        491429.2582334828,
+        -599072.2266656444,
+        1054086.238747015,
+        24877327.902937874,
+        85890056.05908337
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.3,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-defb4978a0769dfe",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-8e9ec9be79c15592",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        214.6842722385457,
+        491433.04254028545,
+        -599043.9105422795,
+        1054172.4330042212,
+        24874533.427204404,
+        85891794.98840307
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.3,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-faa6fcf605b65070",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-b0f5d204db3de97d",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.3,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-faa6fcf605b65070",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-b0f5d204db3de97d",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        -11137.929960681868,
+        461739.62416110304,
+        -580907.509698164,
+        536188.6418452127,
+        30542994.878270615,
+        86255090.61405906
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.3,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-faa6fcf605b65070",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-b0f5d204db3de97d",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        -11130.495986748107,
+        461746.30180206633,
+        -580878.5844929637,
+        536294.8278965615,
+        30539639.702028986,
+        86257348.72940956
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.7,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-1b476f79dbc6a818",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-55ffd9db21f33d2b",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.7,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-1b476f79dbc6a818",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-55ffd9db21f33d2b",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        65627.98512267943,
+        769384.5706206998,
+        -780525.3396033609,
+        1466743.305915863,
+        -4471200.84648026,
+        108174729.04578562
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.7,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-1b476f79dbc6a818",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-55ffd9db21f33d2b",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        65640.80381740424,
+        769392.576244093,
+        -780489.287845245,
+        1466790.427576107,
+        -4475278.646099567,
+        108175326.70171845
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.7,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-b12e0f2e512a9513",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-2724b4232ee0422e",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.7,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-b12e0f2e512a9513",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-2724b4232ee0422e",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        56088.240272021605,
+        724100.3096544349,
+        -723527.2255960396,
+        1022276.3948286502,
+        -399455.0028997583,
+        107362800.56410654
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.7,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-b12e0f2e512a9513",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-2724b4232ee0422e",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        56100.09842079858,
+        724102.7803656968,
+        -723503.5660719766,
+        1022337.0484269965,
+        -402417.22787827655,
+        107363429.55929932
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.85,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-4e8273ad29d4ed48",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-6ac806395559994c",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.85,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-4e8273ad29d4ed48",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-6ac806395559994c",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        99830.03421330088,
+        911745.6826383397,
+        -868262.542477,
+        773033.7706486714,
+        -17682864.494352918,
+        116446316.9992466
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.85,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-4e8273ad29d4ed48",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-6ac806395559994c",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        99844.19231093765,
+        911751.5586188969,
+        -868228.3217807759,
+        773032.243488328,
+        -17686592.141201682,
+        116446110.1896263
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.85,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-bd649d2a88d4771e",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-c2dd838c1a3857f1",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.85,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-bd649d2a88d4771e",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-c2dd838c1a3857f1",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        91752.71684858084,
+        854674.7838885447,
+        -792961.0819240286,
+        399276.7299536022,
+        -14094506.305737784,
+        114480097.27219035
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.85,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-bd649d2a88d4771e",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-c2dd838c1a3857f1",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        91766.644172973,
+        854678.6322958587,
+        -792933.0407416091,
+        399296.71809529257,
+        -14097943.699013893,
+        114479986.71080719
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.95,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-de33c7517d3a4b8a",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-4acc6a7874fb676d",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.95,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-de33c7517d3a4b8a",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-4acc6a7874fb676d",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        117645.20102378557,
+        839545.3348778246,
+        -940534.1275788394,
+        1453155.6772085477,
+        -25211626.490023002,
+        95660642.73867536
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.95,
+        "waterDepthM": 40,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-de33c7517d3a4b8a",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-4acc6a7874fb676d",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 40
+      },
+      "actual_wave_loads_si": [
+        117659.54492870929,
+        839555.0488559658,
+        -940502.332923981,
+        1453100.6969045263,
+        -25215020.060122173,
+        95660324.76684487
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.95,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-df17aaf5465a730f",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-2ad7b1aa9d14c05e",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.95,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-df17aaf5465a730f",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-2ad7b1aa9d14c05e",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        110182.61486665433,
+        777707.7502010525,
+        -851617.6116041265,
+        1101448.2252915965,
+        -21828799.384212736,
+        93452909.53939806
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "lng-changheng",
+        "loadingRatio": 0.95,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-df17aaf5465a730f",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-2ad7b1aa9d14c05e",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        110196.49803911189,
+        777713.0591702352,
+        -851594.3504939062,
+        1101407.3151438944,
+        -21831623.777604293,
+        93452741.69456783
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.2,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-124b944ac4d326a6",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-60222a4714bd0d87",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.2,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-124b944ac4d326a6",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-60222a4714bd0d87",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        185944.15553206005,
+        746278.0219906281,
+        -2111252.4342792905,
+        17941508.425349206,
+        46023309.96016489,
+        104020606.85635716
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.2,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-124b944ac4d326a6",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-60222a4714bd0d87",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        185955.52229298252,
+        746316.1496578371,
+        -2111222.0654641604,
+        17941470.829159945,
+        46018739.42460452,
+        104020007.06433056
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.35,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-bfd63f65b373a9f4",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-60ccddf76f5e75e9",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.35,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-bfd63f65b373a9f4",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-60ccddf76f5e75e9",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        185942.17809963934,
+        746081.1895160123,
+        -2111399.3828701037,
+        12688578.034782177,
+        47347639.26100011,
+        103994474.24018332
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.35,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-bfd63f65b373a9f4",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-60ccddf76f5e75e9",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        185953.1438642761,
+        746125.8371165263,
+        -2111367.528062696,
+        12688546.926157752,
+        47342963.01550634,
+        103994114.26956391
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.6,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-75b1f3785bdf2ec0",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-9d3426d708dfe9d0",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.6,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-75b1f3785bdf2ec0",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-9d3426d708dfe9d0",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        255407.42805424955,
+        937109.9246164045,
+        -2130679.998541711,
+        5932025.426922562,
+        21012531.304617997,
+        64926739.91697655
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.6,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-75b1f3785bdf2ec0",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-9d3426d708dfe9d0",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        255418.9605267145,
+        937167.2335462266,
+        -2130641.5323364856,
+        5931909.873580361,
+        21009117.61354277,
+        64925803.023604035
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.8,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-9043dd441eb6eb2f",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-51c79e60d641b426",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.8,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-9043dd441eb6eb2f",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-51c79e60d641b426",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        324484.67398319737,
+        1573197.8901742774,
+        -2024261.9373548587,
+        -3912505.367221903,
+        -570967.0069051025,
+        88994014.98604786
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.8,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-9043dd441eb6eb2f",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-51c79e60d641b426",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        324501.6538864404,
+        1573243.952361843,
+        -2024212.173029808,
+        -3912669.060883556,
+        -574247.8958542016,
+        88992452.2849426
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.9,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-8f269e01c0c36410",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-ae34cb4a6ba01019",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.9,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-8f269e01c0c36410",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-ae34cb4a6ba01019",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        351626.99626849394,
+        1819569.5405591102,
+        -1933085.2168613314,
+        -6714857.380490984,
+        -7368928.597163466,
+        88780879.41740984
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "container-msc",
+        "loadingRatio": 0.9,
+        "waterDepthM": 200,
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-8f269e01c0c36410",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-ae34cb4a6ba01019",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        351645.63905375835,
+        1819609.111435565,
+        -1933032.6448176496,
+        -6715018.272819007,
+        -7371820.125988878,
+        88779059.10362113
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "cruise-adora",
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-92bf0794fb3a16fe",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-67637197ea981bdf",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "cruise-adora",
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-92bf0794fb3a16fe",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-67637197ea981bdf",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        39402.61267598824,
+        718975.1514297869,
+        -915788.3111280439,
+        -309368.42307734507,
+        -27244262.33157698,
+        134423819.7250903
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "cruise-adora",
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-92bf0794fb3a16fe",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-67637197ea981bdf",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        39407.00019779135,
+        719080.3694794782,
+        -915704.2321846377,
+        -309405.4604180169,
+        -27263761.135049365,
+        134419766.8977019
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "icebreaker-xuelong2",
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-54008133fd594729",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-48d9aa4468705382",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "icebreaker-xuelong2",
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-54008133fd594729",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-48d9aa4468705382",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        -32008.284852332887,
+        243622.01952417934,
+        -347154.5419557466,
+        -233126.09372324523,
+        2985364.1342152967,
+        2095282.6832697988
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "icebreaker-xuelong2",
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-54008133fd594729",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-48d9aa4468705382",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 200
+      },
+      "actual_wave_loads_si": [
+        -32001.84562104569,
+        243674.50999824892,
+        -347143.58797527914,
+        -233039.49215650943,
+        2985291.14632888,
+        2095751.704165023
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "dredger-tianjing",
+        "parameterVersion": "research-nominal-v3",
+        "environment": "P0",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-baa923270a0bcdd9",
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-6d1b771f31fe7375",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 20
+      },
+      "actual_wave_loads_si": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "dredger-tianjing",
+        "parameterVersion": "research-nominal-v3",
+        "environment": "V1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-baa923270a0bcdd9",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-6d1b771f31fe7375",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 20
+      },
+      "actual_wave_loads_si": [
+        -17839.41269224252,
+        -24038.400317593398,
+        -287317.0955835959,
+        32469.932376843608,
+        1538718.1805104387,
+        6335424.188169271
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    },
+    {
+      "configuration": {
+        "vessel": "dredger-tianjing",
+        "parameterVersion": "research-nominal-v3",
+        "environment": "E1",
+        "noiseLevel": "N1"
+      },
+      "parameter_hash": "fnv1a-baa923270a0bcdd9",
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-6d1b771f31fe7375",
+        "fullDifferenceMetadataHash": null,
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": false,
+        "waterDepthM": 20
+      },
+      "actual_wave_loads_si": [
+        -17839.481165110145,
+        -24034.4227895796,
+        -287314.055560183,
+        32459.247996229235,
+        1538584.8715152566,
+        6335432.463410558
+      ],
+      "cross_loading_future_identical": true,
+      "pause_reset_and_failed_restore_identical": true
+    }
+  ],
+  "complete_legacy_future_identical": true,
+  "scope": "Actual WASM with frozen first-order arrays, 120Hz physical and 20Hz control clocks. Source solver residuals remain in each pack.",
+  "approximation": "Zero-speed diffraction coefficients with actual world-position encounter phase.",
+  "pending": [
+    "Vessel wave calibration",
+    "Forward-speed diffraction correction",
+    "Normal page and teaching reference acceptance"
+  ]
+}

@@ -1774,6 +1774,7 @@ pub fn compute_virtual_simulation_step_json(request_json: &str) -> Result<String
         "sixdof_vessel" => {
             crate::sixdof::vessel_runtime::compute_vessel_sixdof_step_json(request_json)
         }
+        "student_model_analysis" => crate::sixdof::student_model_runtime::compute(request_json),
         "destroyer_hifi" => {
             crate::sixdof_runtime::compute_destroyer_sixdof_step_json(request_json)
         }

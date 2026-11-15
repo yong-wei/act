@@ -1,129 +1,43 @@
 'use client';
-import { MarineGrid as Grid } from '../scene/lines/marine-grid';
 
-/**
- * 海洋石油981深水钻井平台动力定位仿真
- * 使用 3DOF 耦合模型 + 解耦控制 + 8台推进器推力分配
- */
-
-import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type ReactNode, type RefObject } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
-import {
-  OrbitControls,
-  Html,
-  PerspectiveCamera,
-  Line,
-} from '@react-three/drei';
+import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type RefObject } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { OrbitControls, Html, PerspectiveCamera } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { Anchor, ArrowDownFromLine, Compass, Gauge, Orbit, Target, Video, Waves } from 'lucide-react';
+import { MarineGrid as Grid } from '../scene/lines/marine-grid';
 import { MarineCanvas } from '../scene/marine-canvas';
 import { MarineWater } from '../scene/water/marine-water';
 import { SimulationClock } from '@/lib/simulation';
-import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
-import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
+import { VersionedFleetShip } from '../components/versioned-fleet-ship';
+import type { BindingTelemetrySource } from '../components/semantic-bindings-rig';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { SimulationTopBar, simulationUi } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette } from '../components/simulation-theme';
-import {
-  EnvironmentScene,
-  MarineSceneLayoutObjects,
-  SceneEnvironmentProvider,
-  useEnvironmentWaterColors,
-  useSceneEnvironment,
-} from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
-import { computeThrusterWashActivity } from '../scene/wake/wake-physics';
-import {
-  SceneSoundscapeProvider,
-  SoundscapeAmbienceDriver,
-} from '../scene/audio';
-import {
-  TeachingAnnotationsProvider,
-  useTeachingAnnotations,
-} from '../scene/annotations';
-import {
-  SceneQualityDriver,
-  SceneQualityProvider,
-  useSceneQuality,
-  MarinePerformanceEvidenceProbe,
-} from '../scene/quality';
+import { EnvironmentScene, MarineSceneLayoutObjects, SceneEnvironmentProvider, useEnvironmentWaterColors } from '../scene/environment';
+import { SceneSoundscapeProvider, SoundscapeAmbienceDriver } from '../scene/audio';
+import { TeachingAnnotationsProvider, useTeachingAnnotations } from '../scene/annotations';
+import { SceneQualityDriver, SceneQualityProvider, useSceneQuality, MarinePerformanceEvidenceProbe } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { drillingHysy981SceneVisual } from '../profiles/drilling-hysy981-scene';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { WaterHuggingLine } from '../scene/lines';
-import { Anchor, ArrowDownFromLine, Compass, Gauge, Orbit, Settings, Target, Video, Waves } from 'lucide-react';
-
-import { Slider } from '@/components/ui/slider';
-import {
-  SimChip,
-  SimField,
-  SimLockedChip,
-  SimMeter,
-  SimNotice,
-  SimPanelSection,
-  SimPanelStack,
-  SimReadout,
-  SimReadoutGrid,
-  SimRunControls,
-  SimStatusStrip,
-  SimSwitchInput,
-  SimToggleRow,
-  simToneText,
-} from '../components/simulation-panels';
-
-import {
-  getDrillingDefaultConfig,
-} from '../profiles/drilling-hysy981';
-import { HYSY981_PLATFORM_PARAMS } from '../core/constants';
-import {
-  createSemiSub3DOFState,
-  createCurrentEnvironment,
-  createWindEnvironment,
-  getTypicalEnvironment,
-  createDPControllerConfig,
-  createDPDecouplingState,
-  preloadVirtualSimulationRuntime,
-  isVirtualSimulationRuntimeReady,
-  type SemiSubmersible3DOFState,
-  type CurrentEnvironment,
-  type WindEnvironment,
-  type DPControllerConfig,
-  type DPDecouplingState,
-} from '../physics/simulation-engine-facade';
-import { createDrillingDrive } from './vessel-drives';
-import { drillingExperiment } from './vessel-experiments';
-import { takeVesselSubstep, vesselSampleMark } from './vessel-experiment';
-import { VesselExperimentDocks } from './vessel-experiment-panels';
+import { computeThrusterWashActivity } from '../scene/wake/wake-physics';
+import { SimChip, SimMeter, SimNotice, SimPanelSection, SimPanelStack, SimReadout, SimReadoutGrid, SimStatusStrip, simToneText } from '../components/simulation-panels';
+import { HYSY981_PLATFORM_PARAMS, DRILLING_ETHICAL_THRESHOLDS, toRadians, toDegrees } from '../core/constants';
+import type { EthicalViolation, Vector2, ThrusterState } from '../core/types';
+import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
+import { drillingCourseExperiment as drillingExperiment } from '../experiments/drilling-experiment';
+import { drillingCourseAdapter, drillingCourseTraceSamples } from '../experiments/drilling-course';
+import { DrillingCourseControls } from '../experiments/drilling-course-controls';
+import { vesselSampleMark } from './vessel-experiment';
+import { VesselExperimentDocks, VesselCourseEvidencePanel } from './vessel-experiment-panels';
 import { useVesselExperiment } from './use-vessel-experiment';
-import {
-  HYSY981_THRUSTER_LAYOUT,
-  DRILLING_ETHICAL_THRESHOLDS,
-  DRILLING_DEFAULT_DP,
-} from '../core/constants';
-import {
-  SIMULATION_FIXED_STEP_SECONDS,
-  SIMULATION_MAX_SUB_STEPS,
-  getSimulationDeltaFromMilliseconds,
-} from '../lib/simulation-timing';
-import {
-  advanceStationKeepAttainment,
-  displayRpmFromThrust,
-} from '../lib/heading-attainment';
-import type { ControlMode, EthicalViolation, Vector2, ThrusterState } from '../core/types';
-import { toRadians, toDegrees } from '../core/constants';
-
-// ============ 类型定义 ============
-
-interface SimulationConfig {
-  controlMode: ControlMode;
-  targetPosition: Vector2;
-  targetHeading: number;
-  seaStateLevel: number;
-  decouplingEnabled: boolean;
-}
+import { SIMULATION_FIXED_STEP_SECONDS, SIMULATION_MAX_SUB_STEPS, getSimulationDeltaFromMilliseconds } from '../lib/simulation-timing';
 
 interface SimulationMetrics {
   positionError: number;
@@ -132,73 +46,34 @@ interface SimulationMetrics {
   time: number;
 }
 
-// ============ 着色器材质 ============
-
-const waterVertexShader = `
-  uniform float time;
-  varying vec2 vUv;
-  varying float vHeight;
-
-  void main() {
-    vUv = uv;
-    vec3 pos = position;
-
-    float wave1 = sin(pos.x * 0.015 + time * 0.4) * 0.8;
-    float wave2 = sin(pos.y * 0.012 + time * 0.3) * 0.5;
-    float wave3 = sin((pos.x + pos.y) * 0.008 + time * 0.35) * 0.4;
-
-    pos.z = wave1 + wave2 + wave3;
-    vHeight = pos.z;
-
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-  }
-`;
-
-const waterFragmentShader = `
-  uniform float time;
-  varying vec2 vUv;
-  varying float vHeight;
-
-  void main() {
-    vec3 deepColor = vec3(0.0, 0.15, 0.35);
-    vec3 shallowColor = vec3(0.0, 0.4, 0.6);
-    vec3 foamColor = vec3(0.85, 0.9, 0.95);
-
-    float depth = smoothstep(-1.5, 1.5, vHeight);
-    vec3 waterColor = mix(deepColor, shallowColor, depth);
-
-    float foam = smoothstep(0.4, 0.6, vHeight);
-    waterColor = mix(waterColor, foamColor, foam * 0.25);
-
-    gl_FragColor = vec4(waterColor, 0.92);
-  }
-`;
-
-// ============ 3D 组件 ============
+interface PlatformViewState {
+  x: number;
+  y: number;
+  psi: number;
+  u: number;
+  v: number;
+  thrusters: Array<ThrusterState & { rpm: number; positionBodyM: [number, number, number] }>;
+}
 
 function DrillingPlatformModel(props: {
   position: Vector2;
   heading: number;
   simRef: MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
+  frame: VesselSessionFrame | null;
 }) {
-  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
-  const waterHeight = useNearFieldWaterHeight({
-    positionSampler: () => props.position,
-    seaState: 3,
-  });
-
   return (
     <VersionedFleetShip
       logicalId="drilling-rig"
       simRef={props.simRef}
       position={props.position}
-      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
+      waterY={-(props.frame?.truth.position_ned[2] ?? 0)}
+      extraEuler={{ x: toRadians(props.frame?.attitudeDeg.pitch ?? 0), z: toRadians(props.frame?.attitudeDeg.roll ?? 0) }}
       headingRad={props.heading}
       sceneLengthMeters={HYSY981_PLATFORM_PARAMS.LENGTH}
       resetToken={props.resetToken}
       legacyYawOffsetRad={Math.PI / 2}
-      fallbackDraftMeters={HYSY981_PLATFORM_PARAMS.DRAFT_TRANSIT}
+      fallbackDraftMeters={19}
     />
   );
 }
@@ -217,14 +92,14 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
     <group name="marine-annotations" ref={groupRef} position={[position.x, 5, position.z]}>
       {/* 目标圆圈 - 绿色安全区 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0, DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION * 10, 32]} />
+        <ringGeometry args={[0, DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION, 32]} />
         <meshBasicMaterial color={simulationScenePalette.success} side={THREE.DoubleSide} transparent opacity={0.2} />
       </mesh>
       {/* 黄色警告区 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[
-          DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION * 10,
-          DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION * 10,
+          DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION,
+          DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION,
           32
         ]} />
         <meshBasicMaterial color={simulationScenePalette.warning} side={THREE.DoubleSide} transparent opacity={0.2} />
@@ -232,8 +107,8 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
       {/* 红色危险区 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[
-          DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION * 10,
-          DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT * 10,
+          DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION,
+          DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT,
           32
         ]} />
         <meshBasicMaterial color={simulationScenePalette.danger} side={THREE.DoubleSide} transparent opacity={0.2} />
@@ -250,7 +125,7 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
       {/* 标签 */}
       <Html position={[0, 20, 0]} center>
         <div className="rounded bg-[hsl(var(--platform-brand-success)/0.78)] px-2 py-1 text-xs text-platform-fg-inverse whitespace-nowrap">
-          钻井位置
+          目标位置
         </div>
       </Html>
     </group>
@@ -267,7 +142,7 @@ function TrajectoryLine({ points, waterOriginSampler, }: { points: Vector2[]; wa
 // ============ UI 组件 ============
 
 /** 推进器状态面板 */
-function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
+function ThrusterPanel({ thrusters }: { thrusters: PlatformViewState['thrusters'] }) {
   // 按照俯视图布局排列
   const layout = [
     { id: 1, row: 0, col: 0 },
@@ -293,7 +168,7 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
           const thruster = thrusters.find(t => t.id === id);
           if (!thruster) return null;
 
-          const powerPercent = (thruster.power / 4500) * 100;
+          const powerPercent = (thruster.power / 4600) * 100;
           const isFailed = thruster.failed;
           const tone = isFailed ? 'danger' : powerPercent > 80 ? 'warning' : 'neutral';
 
@@ -310,6 +185,8 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
                   {isFailed ? '故障' : `${powerPercent.toFixed(0)}%`}
                 </span>
               </div>
+              <span className="font-mono text-[10px] tabular-nums">{thruster.azimuth.toFixed(1)}° · {thruster.rpm.toFixed(1)}rpm</span>
+              <span className="font-mono text-[10px] tabular-nums">{Number.isFinite(thruster.thrust) ? thruster.thrust.toFixed(1) : '—'}kN</span>
               <div className="sim-meter w-full">
                 <span
                   className={isFailed ? 'bg-[hsl(var(--platform-brand-danger))]' : powerPercent > 80 ? 'bg-[hsl(var(--platform-brand-evidence))]' : 'bg-platform-action-primary'}
@@ -334,7 +211,7 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
 }
 
 const DRILLING_ALERT_TONE = { green: 'success', yellow: 'warning', red: 'danger', emergency: 'danger' } as const;
-const DRILLING_ALERT_LABEL = { green: '定位正常', yellow: '黄色警报', red: '红色警报', emergency: '紧急解脱' } as const;
+const DRILLING_ALERT_LABEL = { green: '定位正常', yellow: '黄色警报', red: '红色警报', emergency: '超过教学警戒' } as const;
 
 /** HUD 显示 */
 function HUD({
@@ -343,12 +220,16 @@ function HUD({
   isRunning,
   thrusters,
   decouplingEnabled,
+  frame,
+  completed,
 }: {
   metrics: SimulationMetrics;
   violations: EthicalViolation[];
   isRunning: boolean;
-  thrusters: ThrusterState[];
+  thrusters: PlatformViewState['thrusters'];
   decouplingEnabled: boolean;
+  frame: VesselSessionFrame | null;
+  completed: boolean;
 }) {
   // 确定警报级别
   const alertLevel = metrics.positionError > DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT
@@ -362,8 +243,8 @@ function HUD({
 
   return (
     <SimPanelStack>
-      <SimStatusStrip state={isRunning ? 'running' : metrics.time > 0 ? 'paused' : 'idle'} time={`${metrics.time.toFixed(1)}s`}>
-        <SimChip tone={decouplingEnabled ? 'accent' : 'neutral'}>{decouplingEnabled ? '解耦控制' : '标准PID'}</SimChip>
+      <SimStatusStrip state={completed ? 'completed' : isRunning ? 'running' : metrics.time > 0 ? 'paused' : 'idle'} time={`${metrics.time.toFixed(1)}s`}>
+        <SimChip tone={decouplingEnabled ? 'accent' : 'neutral'}>{frame?.dpController ? decouplingEnabled ? '模型交叉补偿' : '位置PID' : '手动推进器'}</SimChip>
       </SimStatusStrip>
 
       <SimPanelSection
@@ -383,7 +264,7 @@ function HUD({
         </SimReadoutGrid>
         <SimMeter
           className="mt-2.5"
-          label="位置误差相对紧急解脱阈值"
+          label="位置误差与教学警戒"
           value={metrics.positionError / DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT}
           tone={alertTone}
           scale={[
@@ -395,10 +276,28 @@ function HUD({
         />
       </SimPanelSection>
 
+      <SimPanelSection title="六自由度与定位反馈" icon={Waves}>
+        <SimReadoutGrid columns={2}>
+          <SimReadout label="北向实际位置" value={frame?.truth.position_ned[0].toFixed(3) ?? '—'} unit="m" />
+          <SimReadout label="东向实际位置" value={frame?.truth.position_ned[1].toFixed(3) ?? '—'} unit="m" />
+          <SimReadout label="升沉" value={frame ? (-frame.truth.position_ned[2]).toFixed(3) : '—'} unit="m" />
+          <SimReadout label="横摇" value={frame?.attitudeDeg.roll.toFixed(3) ?? '—'} unit="°" />
+          <SimReadout label="纵摇" value={frame?.attitudeDeg.pitch.toFixed(3) ?? '—'} unit="°" />
+          <SimReadout label="航向" value={frame?.attitudeDeg.heading.toFixed(3) ?? '—'} unit="°" />
+          <SimReadout label="对水纵向速度" value={frame?.waterVelocityBody[0].toFixed(3) ?? '—'} unit="m/s" />
+          <SimReadout label="对地纵向速度" value={frame?.truth.body_velocity[0].toFixed(3) ?? '—'} unit="m/s" />
+        </SimReadoutGrid>
+        {frame?.dpController ? <div className="mt-3 space-y-2 text-xs text-platform-fg-secondary">
+          <p>{frame.dpController.navigationGood ? '定位量测可用' : `定位量测缺失${frame.dpController.missingNavigationS.toFixed(1)}s`}，{frame.dpController.safeExit ? '已退出定位，出力随实际轴系降低' : frame.dpController.integralFrozen ? '积分已冻结' : '积分与抗饱和工作中'}。</p>
+          <p>归一化分配残差 {frame.dpController.allocation?.normalizedResidual.toFixed(5) ?? '等待有效编码器'}，本次迭代 {frame.dpController.allocation?.iterations ?? 0} 次。</p>
+          <p>单台正车与反车的射流方向均受邻机扇区限制，转向时保留实际轴速和方位。</p>
+        </div> : null}
+        <p className="mt-2 text-xs text-platform-fg-secondary">本实验分析位置保持与推进控制，钻柱和隔水管的结构安全需要专门评估。</p>
+      </SimPanelSection>
       <ThrusterPanel thrusters={thrusters} />
 
       {violations.length > 0 ? (
-        <SimNotice tone="danger" title={`伦理违规 (${violations.length})`}>
+        <SimNotice tone="danger" title={`教学警戒 (${violations.length})`}>
           <div className="max-h-32 space-y-0.5 overflow-y-auto">
             {violations.slice(-5).map((v, i) => (
               <div key={i}>[{v.timestamp.toFixed(1)}s] {v.description}</div>
@@ -409,123 +308,6 @@ function HUD({
     </SimPanelStack>
   );
 }
-
-/** 控制面板 */
-function ControlPanel({
-  config,
-  onConfigChange,
-  onStart,
-  onPause,
-  onReset,
-  isRunning,
-  inputsEnabled = true,
-}: {
-  config: SimulationConfig;
-  onConfigChange: (config: Partial<SimulationConfig>) => void;
-  onStart: () => void;
-  onPause: () => void;
-  onReset: () => void;
-  isRunning: boolean;
-  inputsEnabled?: boolean;
-}) {
-  const env = getTypicalEnvironment(config.seaStateLevel);
-  return (
-    <SimPanelStack>
-      <SimRunControls
-        running={isRunning}
-        primaryLabel={isRunning ? '暂停' : '开始'}
-        onPrimary={isRunning ? onPause : onStart}
-        onReset={onReset}
-      />
-
-      <SimPanelSection title="控制策略" icon={Settings} aside={<SimLockedChip locked={!inputsEnabled} />}>
-        <SimToggleRow
-          label="解耦控制"
-          description="消除纵荡、横荡与艏摇之间的耦合"
-          htmlFor="drilling-decoupling"
-          control={(
-            <SimSwitchInput
-              id="drilling-decoupling"
-              checked={config.decouplingEnabled}
-              disabled={!inputsEnabled}
-              onChange={(event) => onConfigChange({ decouplingEnabled: event.target.checked })}
-            />
-          )}
-        />
-      </SimPanelSection>
-
-      <SimPanelSection title="定位目标" icon={Target}>
-        <div className="space-y-3">
-          <SimField label="目标 X" value={`${config.targetPosition.x} m`}>
-            <Slider
-              aria-label="目标 X"
-              disabled={!inputsEnabled}
-              className={simulationUi.slider}
-              value={[config.targetPosition.x]}
-              min={-100}
-              max={100}
-              step={1}
-              onValueChange={([v]) =>
-                onConfigChange({ targetPosition: { ...config.targetPosition, x: v } })
-              }
-            />
-          </SimField>
-          <SimField label="目标 Z" value={`${config.targetPosition.z} m`}>
-            <Slider
-              aria-label="目标 Z"
-              disabled={!inputsEnabled}
-              className={simulationUi.slider}
-              value={[config.targetPosition.z]}
-              min={-100}
-              max={100}
-              step={1}
-              onValueChange={([v]) =>
-                onConfigChange({ targetPosition: { ...config.targetPosition, z: v } })
-              }
-            />
-          </SimField>
-          <SimField label="目标航向" value={`${config.targetHeading}°`}>
-            <Slider
-              aria-label="目标航向"
-              disabled={!inputsEnabled}
-              className={simulationUi.slider}
-              value={[config.targetHeading]}
-              min={-180}
-              max={180}
-              step={5}
-              onValueChange={([v]) => onConfigChange({ targetHeading: v })}
-            />
-          </SimField>
-        </div>
-      </SimPanelSection>
-
-      <SimPanelSection title="海况环境" icon={Waves}>
-        <SimField
-          label="海况等级"
-          value={`等级 ${config.seaStateLevel} · ${config.seaStateLevel <= 2 ? '平静' : config.seaStateLevel <= 4 ? '中等' : '恶劣'}`}
-        >
-          <Slider
-            aria-label="海况等级"
-            disabled={!inputsEnabled}
-            className={simulationUi.slider}
-            value={[config.seaStateLevel]}
-            min={1}
-            max={6}
-            step={1}
-            onValueChange={([v]) => onConfigChange({ seaStateLevel: v })}
-          />
-        </SimField>
-        <SimReadoutGrid columns={3} className="mt-2.5">
-          <SimReadout label="有效波高" value={env.waveHeight.toFixed(1)} unit="m" />
-          <SimReadout label="风速" value={env.windSpeed} unit="m/s" />
-          <SimReadout label="流速" value={env.currentSpeed.toFixed(1)} unit="m/s" />
-        </SimReadoutGrid>
-      </SimPanelSection>
-    </SimPanelStack>
-  );
-}
-
-// ============ 管线桥接组件 ============
 
 const CAMERA_SHOT_VIEWS = [
   { id: SCENE_CAMERA_SHOTS.chase.id, label: '跟船', shortLabel: '跟', icon: Video, description: SCENE_CAMERA_SHOTS.chase.description },
@@ -555,7 +337,7 @@ function DrillingWater({
   resetToken,
   playing,
 }: {
-  platformStateRef: RefObject<SemiSubmersible3DOFState>;
+  platformStateRef: RefObject<PlatformViewState>;
   resetToken: number;
   playing: boolean;
 }) {
@@ -568,14 +350,14 @@ function DrillingWater({
         if (!playing) return [];
         const state = platformStateRef.current;
         return state.thrusters.flatMap(thruster => {
-          const layout = HYSY981_THRUSTER_LAYOUT.find(item => item.id === thruster.id);
-          if (!layout || !thruster.enabled || thruster.failed || Math.abs(thruster.power) < 1) return [];
+          const position = thruster.positionBodyM;
+          if (!thruster.enabled || thruster.failed || Math.abs(thruster.power) < 1) return [];
           return [{
-            id: `thruster-${thruster.id}`, diameterMeters: 3.5, depthMeters: 8,
-            x: state.x + layout.positionX * Math.cos(state.psi) - layout.positionY * Math.sin(state.psi),
-            z: state.y + layout.positionX * Math.sin(state.psi) + layout.positionY * Math.cos(state.psi),
+            id: `thruster-${thruster.id}`, diameterMeters: 4.5, depthMeters: 22,
+            x: state.x + position[0] * Math.cos(state.psi) - position[1] * Math.sin(state.psi),
+            z: state.y + position[0] * Math.sin(state.psi) + position[1] * Math.cos(state.psi),
             headingRad: platformHeadingToSceneRad(toDegrees(state.psi) + thruster.azimuth),
-            activity: computeThrusterWashActivity({ totalThrustPower: Math.abs(thruster.power), ratedPowerPerThruster: 4500, thrusterCount: 1 }).washFoamActivity,
+            activity: computeThrusterWashActivity({ totalThrustPower: Math.abs(thruster.power), ratedPowerPerThruster: 4600, thrusterCount: 1 }).washFoamActivity,
           }];
         });
       }}
@@ -608,290 +390,116 @@ function TeachingAnnotationsGate({
   return <TargetMarker position={position} heading={heading} />;
 }
 
-// ============ 主组件 ============
-
 export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
-  const session = useVesselExperiment(drillingExperiment, ticket);
+  const session = useVesselExperiment(drillingExperiment, ticket, drillingCourseAdapter);
   const sessionRef = useRef(session);
   sessionRef.current = session;
-  const driveRef = useRef<ReturnType<typeof createDrillingDrive> | null>(null);
-  const markRef = useRef(-1);
-  const timeRef = useRef(0);
-  // 配置状态
-  const defaultConfig = getDrillingDefaultConfig();
-  const [config, setConfig] = useState<SimulationConfig>({
-    controlMode: defaultConfig.controlMode,
-    targetPosition: defaultConfig.targetPosition,
-    targetHeading: defaultConfig.targetHeading,
-    seaStateLevel: defaultConfig.seaState.level,
-    decouplingEnabled: defaultConfig.decouplingEnabled,
-  });
-
-  // 仿真状态
-  const [isRunning, setIsRunning] = useState(false);
-  const [metrics, setMetrics] = useState<SimulationMetrics>({
-    positionError: 0,
-    headingError: 0,
-    totalPower: 0,
-    time: 0,
-  });
+  const [frame, setFrame] = useState<VesselSessionFrame | null>(null);
   const [trajectory, setTrajectory] = useState<Vector2[]>([]);
-  const [violations, setViolations] = useState<EthicalViolation[]>([]);
-  const [thrusters, setThrusters] = useState<ThrusterState[]>([]);
-
-  // 引用
-  const platformStateRef = useRef<SemiSubmersible3DOFState>(
-    createSemiSub3DOFState(0, 0, 0)
-  );
-  const dpStateRef = useRef<DPDecouplingState>(createDPDecouplingState());
-  const dpConfigRef = useRef<DPControllerConfig>(
-    createDPControllerConfig(DRILLING_DEFAULT_DP, true)
-  );
-  const currentEnvRef = useRef<CurrentEnvironment>(
-    createCurrentEnvironment(0.5, 45, 0.1)
-  );
-  const windEnvRef = useRef<WindEnvironment>(
-    createWindEnvironment(10, 45, 1.2)
-  );
-  const meanWindSpeedRef = useRef(10);
-  const waveHeightRef = useRef(1.5);
-  const animationFrameRef = useRef<number | undefined>(undefined);
-  const lastUpdateRef = useRef(performance.now());
-  const clockRef = useRef(
-    new SimulationClock({
-      dt: SIMULATION_FIXED_STEP_SECONDS,
-      maxSubSteps: SIMULATION_MAX_SUB_STEPS,
-    })
-  );
-  const controlsRef = useRef<OrbitControlsImpl>(null);
-  const [cameraMode, setCameraMode] = useState<string>('chase');
+  const [cameraMode, setCameraMode] = useState('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(8);
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
-  const bindingRef = useRef<BindingTelemetrySource>({
-    rudderDeg: 0,
-    speedMps: 0,
-    attainedCount: 0,
-    advancing: false,
-  });
-  const stationKeepRef = useRef({ dwell: 0, armed: true });
+  const platformStateRef = useRef<PlatformViewState>({ x: 0, y: 0, psi: 0, u: 0, v: 0, thrusters: [] });
+  const bindingRef = useRef<BindingTelemetrySource>({ rudderDeg: 0, speedMps: 0, attainedCount: 0, advancing: false });
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const animationRef = useRef<number | null>(null);
+  const speedScaleRef = useRef(8);
+  const lastTimeRef = useRef(0);
+  const lastHudUpdateRef = useRef(0);
+  const lastTrajectoryRef = useRef(0);
+  const markRef = useRef(-1);
+  const clockRef = useRef(new SimulationClock({ dt: SIMULATION_FIXED_STEP_SECONDS, maxSubSteps: SIMULATION_MAX_SUB_STEPS }));
+  const isRunning = Boolean(session.course?.running);
+  const target = frame?.input.semisubDp?.targetPositionM ?? [0, 0];
+  const targetHeading = frame?.input.semisubDp?.targetHeadingDeg ?? 0;
+  const config = { targetPosition: { x: target[0], z: target[1] }, targetHeading,
+    seaStateLevel: frame?.waveModel?.firstOrderEnabled ? 3 : 0, decouplingEnabled: Boolean(frame?.input.semisubDp?.decoupling) };
+  const metrics: SimulationMetrics = { time: frame?.timeS ?? 0,
+    positionError: frame ? Math.hypot(frame.truth.position_ned[0] - target[0], frame.truth.position_ned[1] - target[1]) : 0,
+    headingError: frame ? Math.abs(((frame.attitudeDeg.heading - targetHeading + 180) % 360 + 360) % 360 - 180) : 0,
+    totalPower: (frame?.propulsionPower?.positiveMechanicalPowerW ?? 0) / 1000 };
+  const violations: EthicalViolation[] = metrics.positionError > 8 ? [{ type: 'RED_ALERT_POSITION', thresholdValue: 8,
+    actualValue: metrics.positionError, timestamp: metrics.time, description: `超过本实验8m位置警戒，当前偏差${metrics.positionError.toFixed(2)}m`, severity: 'warning' }] : [];
+  const thrusters = platformStateRef.current.thrusters;
+  const platformPosition = { x: platformStateRef.current.x, z: platformStateRef.current.y };
+  const platformHeading = platformStateRef.current.psi;
 
-  const resetPose = useCallback((clearCurve: boolean) => {
-    const drive = driveRef.current;
-    if (!drive) return;
-    const command = drillingExperiment.command(sessionRef.current.step, 0);
-    drive.reset(command);
-    const view = drive.view();
-    platformStateRef.current = view.state;
-    markRef.current = -1;
-    timeRef.current = 0;
-    stationKeepRef.current = { dwell: 0, armed: true };
-    bindingRef.current = { rudderDeg: 0, speedMps: 0, attainedCount: 0, advancing: false };
-    if (clearCurve) sessionRef.current.clearSamples();
-    lastUpdateRef.current = performance.now();
-    clockRef.current.reset();
-    setIsRunning(false);
-    setTrajectory([]);
-    setViolations([]);
-    setThrusters([...view.state.thrusters]);
-    setMetrics({ positionError: view.positionError, headingError: view.headingError, totalPower: view.power, time: 0 });
-    setConfig((prev) => ({
-      ...prev,
-      decouplingEnabled: command.decoupling,
-      seaStateLevel: command.seaState,
-      targetHeading: command.targetHeading,
-      targetPosition: { x: command.targetX, z: command.targetZ },
-    }));
-    setResetCount((previous) => previous + 1);
+  const projectFrame = useCallback((current: VesselSessionFrame, running: boolean) => {
+    const actual = current.truth.actuator_states;
+    const thrusters = actual.azimuth_angles_rad.map((angle, index) => ({ id: index + 1,
+      azimuth: toDegrees(angle), thrust: (current.propulsorThrustN?.[index] ?? NaN) / 1000,
+      power: Math.max(0, actual.motor_torques_nm[index] * actual.propeller_shaft_speed_rad_s[index]) / 1000,
+      rpm: actual.propeller_shaft_speed_rad_s[index] * 30 / Math.PI,
+      positionBodyM: current.parameters.shaftConfigurations[index].positionBodyM,
+      enabled: true, failed: Boolean(current.timeS >= 180 && current.input.semisubDp && index === 1
+        && [15, 16, 19].includes(sessionRef.current.activeSeq)) }));
+    platformStateRef.current = { x: current.truth.position_ned[0], y: current.truth.position_ned[1],
+      psi: toRadians(current.attitudeDeg.heading), u: current.truth.body_velocity[0], v: current.truth.body_velocity[1], thrusters };
+    bindingRef.current = { rudderDeg: 0, speedMps: Math.hypot(current.truth.body_velocity[0], current.truth.body_velocity[1]),
+      attainedCount: 0, advancing: running, thrusters: thrusters.map((shaft) => ({ id: shaft.id, azimuthRad: toRadians(shaft.azimuth), rpm: shaft.rpm })) };
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    preloadVirtualSimulationRuntime().catch(console.error);
-    driveRef.current = createDrillingDrive();
-    if (!cancelled) resetPose(false);
-    return () => {
-      cancelled = true;
-    };
-  }, [resetPose]);
+    const current = sessionRef.current.course;
+    const actual = current?.ready ? current.read() : null;
+    if (!actual || !current) return;
+    projectFrame(actual, false);
+    setFrame(actual);
+    setTrajectory([]);
+    setResetCount((value) => value + 1);
+    clockRef.current.reset();
+    lastTimeRef.current = 0;
+    lastHudUpdateRef.current = actual.timeS;
+    lastTrajectoryRef.current = actual.timeS;
+    markRef.current = vesselSampleMark(actual.timeS);
+  }, [session.course?.ready, session.activeSeq, projectFrame]);
 
-  useEffect(() => {
-    resetPose(false);
-  }, [session.activeSeq, resetPose]);
-
-  // 更新海况
-  useEffect(() => {
-    const env = getTypicalEnvironment(config.seaStateLevel);
-    currentEnvRef.current = createCurrentEnvironment(env.currentSpeed, 45, 0.1);
-    windEnvRef.current = createWindEnvironment(env.windSpeed, 45, 1.2);
-    meanWindSpeedRef.current = env.windSpeed;
-    waveHeightRef.current = env.waveHeight;
-  }, [config.seaStateLevel]);
-
-  // 仿真主循环
-  const simulate = useCallback(() => {
-    if (!isRunning) return;
-
-    if (!isVirtualSimulationRuntimeReady()) {
-      lastUpdateRef.current = performance.now();
-      animationFrameRef.current = requestAnimationFrame(simulate);
-      return;
+  const simulate = useCallback((timestamp: number) => {
+    const current = sessionRef.current;
+    const course = current.course;
+    if (!course?.ready || !course.running) return;
+    const elapsed = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScaleRef.current);
+    lastTimeRef.current = timestamp;
+    let actual = course.read();
+    clockRef.current.advance(elapsed, (dt) => {
+      actual = course.advance(dt);
+      if (!actual) return;
+      projectFrame(actual, course.running);
+      const point = course.latestPoint();
+      if (!point) return;
+      const sample = drillingCourseTraceSamples([point])[0];
+      current.trackLatest(sample);
+      const mark = vesselSampleMark(actual.timeS);
+      if (mark > markRef.current) { markRef.current = mark; current.observe(sample); }
+    });
+    if (actual && (actual.timeS - lastHudUpdateRef.current >= 0.1 || actual.paused)) {
+      setFrame(actual);
+      lastHudUpdateRef.current = actual.timeS;
     }
+    if (actual && actual.timeS - lastTrajectoryRef.current >= 0.5) {
+      lastTrajectoryRef.current = actual.timeS;
+      const point = { x: actual.truth.position_ned[0], z: actual.truth.position_ned[1] };
+      setTrajectory((previous) => [...previous.slice(-1200), point]);
+    }
+    animationRef.current = requestAnimationFrame(simulate);
+  }, [projectFrame]);
 
-    const now = performance.now();
-    const frameDt = getSimulationDeltaFromMilliseconds(now, lastUpdateRef.current, speedScale);
-    lastUpdateRef.current = now;
-
-    const stepSimulation = (dt: number) => {
-      const drive = driveRef.current;
-      if (!drive) return;
-      const moved = takeVesselSubstep(
-        sessionRef.current.step,
-        (time) => drillingExperiment.command(sessionRef.current.step, time),
-        (command, stepDt, time) => drive.step(command, stepDt, time),
-        timeRef.current,
-        dt,
-      );
-      timeRef.current = moved.time;
-      if (!moved.sample) return;
-      const view = drive.view();
-      platformStateRef.current = view.state;
-      sessionRef.current.trackLatest(moved.sample);
-      const mark = vesselSampleMark(moved.sample.time);
-      if (mark > markRef.current) {
-        markRef.current = mark;
-        sessionRef.current.observe(moved.sample);
-      }
-      const posError = view.positionError;
-      const headError = view.headingError;
-      const totalPower = view.power;
-      const surgeSpeed = Math.hypot(view.state.u, view.state.v);
-      const insideDeadzone =
-        posError <= DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION
-        && headError <= 5;
-      let attainedCount = bindingRef.current.attainedCount;
-      if (advanceStationKeepAttainment(stationKeepRef.current, insideDeadzone, dt)) {
-        attainedCount += 1;
-      }
-      bindingRef.current = {
-        rudderDeg: 0,
-        speedMps: surgeSpeed,
-        attainedCount,
-        advancing: true,
-        thrusters: platformStateRef.current.thrusters.map((thruster) => ({
-          id: thruster.id,
-          azimuthRad: toRadians(thruster.azimuth),
-          rpm: displayRpmFromThrust(Math.abs(thruster.thrust), 800, 90),
-        })),
-      };
-
-      // 更新指标
-      setMetrics({
-        positionError: posError,
-        headingError: headError,
-        totalPower,
-        time: timeRef.current,
-      });
-
-      // 更新推进器状态
-      setThrusters([...platformStateRef.current.thrusters]);
-
-      // 违规检测
-      const newViolations: EthicalViolation[] = [];
-
-      if (posError > DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT) {
-        newViolations.push({
-          type: 'EMERGENCY_DISCONNECT',
-          thresholdValue: DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT,
-          actualValue: posError,
-          timestamp: timeRef.current,
-          description: `紧急解脱: 位置偏差 ${posError.toFixed(1)}m`,
-          severity: 'critical',
-        });
-      } else if (posError > DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION) {
-        newViolations.push({
-          type: 'RED_ALERT_POSITION',
-          thresholdValue: DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION,
-          actualValue: posError,
-          timestamp: timeRef.current,
-          description: `红色警报: 位置偏差 ${posError.toFixed(1)}m`,
-          severity: 'critical',
-        });
-      } else if (posError > DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION) {
-        newViolations.push({
-          type: 'YELLOW_ALERT_POSITION',
-          thresholdValue: DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION,
-          actualValue: posError,
-          timestamp: timeRef.current,
-          description: `黄色警报: 位置偏差 ${posError.toFixed(1)}m`,
-          severity: 'warning',
-        });
-      }
-
-      if (newViolations.length > 0) {
-        setViolations((prev) => [...prev.slice(-20), ...newViolations]);
-      }
-
-      // 记录轨迹
-      setTrajectory((prev) => {
-        const newPoint = {
-          x: platformStateRef.current.x,
-          z: platformStateRef.current.y,
-        };
-        if (prev.length === 0) return [newPoint];
-        const last = prev[prev.length - 1];
-        const dist = Math.sqrt((newPoint.x - last.x) ** 2 + (newPoint.z - last.z) ** 2);
-        if (dist > 0.5) {
-          return [...prev.slice(-300), newPoint];
-        }
-        return prev;
-      });
-    };
-
-    clockRef.current.advance(frameDt, stepSimulation);
-
-    animationFrameRef.current = requestAnimationFrame(simulate);
-  }, [isRunning, speedScale]);
-
+  useEffect(() => { speedScaleRef.current = speedScale; }, [speedScale]);
   useEffect(() => {
-    if (isRunning) return;
-    bindingRef.current = { ...bindingRef.current, advancing: false };
-  }, [isRunning]);
-
-  // 启动/停止仿真
-  useEffect(() => {
-    if (isRunning) {
+    if (session.course?.running) {
       clockRef.current.reset();
-      lastUpdateRef.current = performance.now();
-      animationFrameRef.current = requestAnimationFrame(simulate);
+      lastTimeRef.current = performance.now();
+      animationRef.current = requestAnimationFrame(simulate);
+    } else {
+      const actual = sessionRef.current.course?.read();
+      if (actual) { projectFrame(actual, false); setFrame(actual); }
+      bindingRef.current = { ...bindingRef.current, advancing: false };
     }
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [isRunning, simulate]);
-
-  // 控制函数
-  const handleStart = () => setIsRunning(true);
-  const handlePause = () => setIsRunning(false);
-  const handleReset = () => {
-    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    resetPose(true);
-  };
-
-  const handleConfigChange = (updates: Partial<SimulationConfig>) => {
-    setConfig((prev) => ({ ...prev, ...updates }));
-  };
-
-  // 当前平台位置
-  const platformPosition = {
-    x: platformStateRef.current.x,
-    z: platformStateRef.current.y,
-  };
-  const platformHeading = platformStateRef.current.psi;
+    return () => { if (animationRef.current !== null) cancelAnimationFrame(animationRef.current); };
+  }, [session.course?.running, simulate, projectFrame]);
 
   return (
     <SceneEnvironmentProvider>
@@ -958,6 +566,7 @@ export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
             heading={platformHeading}
             simRef={bindingRef}
             resetToken={resetCount}
+            frame={frame}
           />
         </Suspense>
 
@@ -999,28 +608,15 @@ export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
             isRunning={isRunning}
             thrusters={thrusters}
             decouplingEnabled={config.decouplingEnabled}
+            frame={frame}
+            completed={Boolean(session.course?.completed)}
           />
         )}
         controls={(
-          <ControlPanel
-            config={config}
-            onConfigChange={handleConfigChange}
-            onStart={handleStart}
-            onPause={handlePause}
-            onReset={handleReset}
-            isRunning={isRunning}
-            inputsEnabled={false}
-          />
+          <DrillingCourseControls session={session} timeS={metrics.time} />
         )}
         assessment={(
-          <SimulationAssessmentPanel
-            title="DP定位评估"
-            metrics={[
-              { id: 'position', label: '位置误差', value: metrics.positionError, max: 12, better: 'lower', unit: 'm' },
-              { id: 'heading', label: '航向误差', value: metrics.headingError, max: 45, better: 'lower', unit: '°' },
-              { id: 'power', label: '总功率', value: metrics.totalPower / 1000, max: 40, better: 'lower', unit: 'MW' },
-            ]}
-          />
+          <VesselCourseEvidencePanel session={session} defaultChannel="dp-low-frequency" />
         )}
       />
 

@@ -12,7 +12,7 @@ export default async function DrillingSimulationPage({
   return (
     <SimulationShell
       title="海洋石油981动力定位"
-      subtitle="动力定位 DP 系统 · 多推进器解耦控制"
+      subtitle="八推进器 · 环境载荷与动力定位"
       activeHref="/simulations/drilling"
       guideHref="/supporting/guide-05-drilling-platform.pdf"
       localToolTemplate="dp-positioning"

@@ -150,8 +150,9 @@ describe('water contact preserves DOF ownership (#2101, carried from #2097)', ()
       path.join(ROOT, 'src/resources/simulations/simulations/cruise-simulation.tsx'),
       'utf-8',
     );
-    // 邮轮横摇来自物理引擎 waveRoll 遥测，模型组只读消费，无叠加视觉横摇。
-    expect(source).toContain('rollAngle: simState.waveRoll');
+    // 邮轮六自由度姿态由常驻物理会话提供，模型组只读消费。
+    expect(source).toContain('rollAngle: toRadians(frame.attitudeDeg.roll)');
+    expect(source).toContain('extraEuler={{ x: props.pitchAngle, z: props.rollAngle }}');
     expect(source).not.toContain('visualRoll');
     expect(source).not.toContain('waveRoll +');
   });

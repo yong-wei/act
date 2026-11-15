@@ -1,0 +1,82 @@
+{
+  "schema": "act.container-control-session-validation.v1",
+  "status": "passed",
+  "generator_sha256": "84e09827d8cd87b6523d9770bd13e3ca430ed41f9dde786c3f21b94a6c01b3a2",
+  "wasm_sha256": "a9131821c37f8934ce303b3545ceb3054702aca803da79dce9b6882d25050936",
+  "parameter_manifest_sha256": "71323e641d94b77bd26778607536250f45dd6dbde6eb1e78cccc20ab6c7936cb",
+  "local_models": [
+    {
+      "loadingRatio": 0.2,
+      "operatingModel": {
+        "structure": {
+          "kind": "fopdt",
+          "k": 0.04,
+          "t_s": 120,
+          "delay_s": 2
+        },
+        "speedMps": 8,
+        "shaftReferenceRpm": 40
+      }
+    },
+    {
+      "loadingRatio": 0.6,
+      "operatingModel": {
+        "structure": {
+          "kind": "fopdt",
+          "k": 0.05,
+          "t_s": 160,
+          "delay_s": 2
+        },
+        "speedMps": 8,
+        "shaftReferenceRpm": 55
+      }
+    },
+    {
+      "loadingRatio": 0.9,
+      "operatingModel": {
+        "structure": {
+          "kind": "fopdt",
+          "k": 0.06,
+          "t_s": 200,
+          "delay_s": 2
+        },
+        "speedMps": 8,
+        "shaftReferenceRpm": 65
+      }
+    }
+  ],
+  "local_model_status": "Controller interface fixtures. Formal student identification uses independent experiment artifacts.",
+  "records": [
+    {
+      "engine_stopped": false,
+      "parameter_hash": "fnv1a-6e681fd3ebba79dd",
+      "time_s": 750.0083333333333,
+      "actual_north_m": 6000.025914330455,
+      "actual_final_water_speed_mps": 7.999997008445889,
+      "termination": "arrived",
+      "eligible_for_fuel_comparison": true,
+      "fuel_kg": 2076.8555948607527,
+      "maximum_motor_power_w": 52676460.33365495,
+      "shaft_energy_relative_residual": 1.601799326754259e-14,
+      "terminal_restored_future_bytes_identical": true,
+      "terminal_resume_keeps_physics_frozen": true,
+      "reset_bytes_identical": true
+    },
+    {
+      "engine_stopped": true,
+      "parameter_hash": "fnv1a-6e681fd3ebba79dd",
+      "time_s": 1200,
+      "actual_north_m": 4694.395901493887,
+      "actual_final_water_speed_mps": 2.1476270831223823,
+      "termination": "time_limit",
+      "eligible_for_fuel_comparison": false,
+      "fuel_kg": 0,
+      "maximum_motor_power_w": 0,
+      "shaft_energy_relative_residual": 4.63509208235651e-12,
+      "terminal_restored_future_bytes_identical": true,
+      "terminal_resume_keeps_physics_frozen": true,
+      "reset_bytes_identical": true
+    }
+  ],
+  "scope": "Actual 6000m arrival and 1200s timeout, constrained physical shaft, RK fuel and terminal restoration. Teaching-response acceptance."
+}

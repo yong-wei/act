@@ -1,0 +1,10 @@
+{
+  "frequencies": 100,
+  "oscillators": 58,
+  "parameter_hash": "fnv1a-da04eac5339b7801",
+  "parameter_version": "research-nominal-v2",
+  "radiation_states": 116,
+  "status": "computed",
+  "vessel": "dredger-tianjing",
+  "native_csv_sha256": "eb0e3718580285bbd0d1fe8b252ce202ebc2691757b086f7689809fa32c8c279"
+}

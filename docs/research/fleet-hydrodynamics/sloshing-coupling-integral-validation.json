@@ -1,0 +1,229 @@
+{
+  "schema": "act.sloshing-coupling.integral-validation.v1",
+  "status": "passed",
+  "generator_sha256": "07cc71059f70fa06ca0b136be47c3b5d1250e000e1fb0eeb72277adf11e1caba",
+  "geometry_sha256": "a64efe16b5552fce8388dcfcb48a80006621363edabb9f67b4471f85b4917e41",
+  "sources": [
+    "https://ntrs.nasa.gov/citations/19670006555",
+    "https://www2.swri.org/www2/fluid-slosh/dodge-sp-106-update.pdf"
+  ],
+  "nasa_sp106_sha256": "ac8a780f9faf95b89f5a36a2e657b0e6f0b3554ad1b9b2a897ca5b6132c9bd88",
+  "reference_kg_keel_up_m": 18.90526515555746,
+  "quadrature_points_per_axis": 80,
+  "modes": [
+    {
+      "width_m": 38.0,
+      "span_m": 44.0,
+      "fill_ratio": 0.3,
+      "fill_depth_m": 7.8,
+      "k_per_m": 0.08267349088394192,
+      "omega_rad_s": 0.6788383130674266,
+      "modal_mass_kg": 8008572.425716795,
+      "translation_coupling_kg": 5793788.451509616,
+      "rotation_coupling_scalar_kg_m": 99338893.99853672,
+      "equivalent_action_height_keel_up_m": 1.7595072753826635,
+      "wall_pressure_depth_below_surface_m": 3.7702463623086686,
+      "convective_equivalent_mass_kg": 4191506.655175407,
+      "free_surface_stiffness_reduction_nm_per_rad": 875337398.007712,
+      "independent_integrals": {
+        "translation_kg": 5793788.451509578,
+        "rotation_kg_m": 99338893.99853644,
+        "modal_mass_kg": 8008572.425716763,
+        "errors": {
+          "translation_relative": -6.5503158452884236e-15,
+          "rotation_relative": -2.886579864025407e-15,
+          "modal_mass_relative": -3.9968028886505635e-15
+        }
+      }
+    },
+    {
+      "width_m": 44.0,
+      "span_m": 38.0,
+      "fill_ratio": 0.3,
+      "fill_depth_m": 7.8,
+      "k_per_m": 0.07139983303613166,
+      "omega_rad_s": 0.5951470403300314,
+      "modal_mass_kg": 10419316.781552982,
+      "translation_coupling_kg": 6708597.154379555,
+      "rotation_coupling_scalar_kg_m": 115453110.7537729,
+      "equivalent_action_height_keel_up_m": 1.6955403655688448,
+      "wall_pressure_depth_below_surface_m": 3.802229817215578,
+      "convective_equivalent_mass_kg": 4319407.56993104,
+      "free_surface_stiffness_reduction_nm_per_rad": 1173582550.2374861,
+      "independent_integrals": {
+        "translation_kg": 6708597.154379509,
+        "rotation_kg_m": 115453110.75377256,
+        "modal_mass_kg": 10419316.781552933,
+        "errors": {
+          "translation_relative": -6.772360450213455e-15,
+          "rotation_relative": -2.9976021664879227e-15,
+          "modal_mass_relative": -4.6629367034256575e-15
+        }
+      }
+    },
+    {
+      "width_m": 38.0,
+      "span_m": 44.0,
+      "fill_ratio": 0.7,
+      "fill_depth_m": 18.2,
+      "k_per_m": 0.08267349088394192,
+      "omega_rad_s": 0.8571927155673236,
+      "modal_mass_kg": 5022626.169141655,
+      "translation_coupling_kg": 5793788.451509616,
+      "rotation_coupling_scalar_kg_m": 84612854.46039352,
+      "equivalent_action_height_keel_up_m": 4.301201654007452,
+      "wall_pressure_depth_below_surface_m": 7.699399172996274,
+      "convective_equivalent_mass_kg": 6683353.188235154,
+      "free_surface_stiffness_reduction_nm_per_rad": 875337398.007712,
+      "independent_integrals": {
+        "translation_kg": 5793788.451509586,
+        "rotation_kg_m": 84612854.4603937,
+        "modal_mass_kg": 5022626.169141671,
+        "errors": {
+          "translation_relative": -5.329070518200751e-15,
+          "rotation_relative": 2.220446049250313e-15,
+          "modal_mass_relative": 3.1086244689504383e-15
+        }
+      }
+    },
+    {
+      "width_m": 44.0,
+      "span_m": 38.0,
+      "fill_ratio": 0.7,
+      "fill_depth_m": 18.2,
+      "k_per_m": 0.07139983303613166,
+      "omega_rad_s": 0.776842605635956,
+      "modal_mass_kg": 6115355.74490122,
+      "translation_coupling_kg": 6708597.154379555,
+      "rotation_coupling_scalar_kg_m": 102061475.6531808,
+      "equivalent_action_height_keel_up_m": 3.691730447104696,
+      "wall_pressure_depth_below_surface_m": 8.004134776447652,
+      "convective_equivalent_mass_kg": 7359388.015533415,
+      "free_surface_stiffness_reduction_nm_per_rad": 1173582550.237486,
+      "independent_integrals": {
+        "translation_kg": 6708597.154379515,
+        "rotation_kg_m": 102061475.65318099,
+        "modal_mass_kg": 6115355.744901224,
+        "errors": {
+          "translation_relative": -5.995204332975845e-15,
+          "rotation_relative": 1.9984014443252818e-15,
+          "modal_mass_relative": 6.661338147750939e-16
+        }
+      }
+    },
+    {
+      "width_m": 38.0,
+      "span_m": 44.0,
+      "fill_ratio": 0.85,
+      "fill_depth_m": 22.099999999999998,
+      "k_per_m": 0.08267349088394192,
+      "omega_rad_s": 0.8775548680293113,
+      "modal_mass_kg": 4792247.496444188,
+      "translation_coupling_kg": 5793788.451509616,
+      "rotation_coupling_scalar_kg_m": 74111800.05604313,
+      "equivalent_action_height_keel_up_m": 6.1136693497539625,
+      "wall_pressure_depth_below_surface_m": 8.743165325123018,
+      "convective_equivalent_mass_kg": 7004643.363213898,
+      "free_surface_stiffness_reduction_nm_per_rad": 875337398.0077119,
+      "independent_integrals": {
+        "translation_kg": 5793788.451509587,
+        "rotation_kg_m": 74111800.05604343,
+        "modal_mass_kg": 4792247.496444213,
+        "errors": {
+          "translation_relative": -5.10702591327572e-15,
+          "rotation_relative": 3.9968028886505635e-15,
+          "modal_mass_relative": 5.329070518200751e-15
+        }
+      }
+    },
+    {
+      "width_m": 44.0,
+      "span_m": 38.0,
+      "fill_ratio": 0.85,
+      "fill_depth_m": 22.099999999999998,
+      "k_per_m": 0.07139983303613166,
+      "omega_rad_s": 0.8019927209928481,
+      "modal_mass_kg": 5737820.336588322,
+      "translation_coupling_kg": 6708597.154379555,
+      "rotation_coupling_scalar_kg_m": 92120803.49331062,
+      "equivalent_action_height_keel_up_m": 5.173511500745789,
+      "wall_pressure_depth_below_surface_m": 9.213244249627104,
+      "convective_equivalent_mass_kg": 7843618.855188722,
+      "free_surface_stiffness_reduction_nm_per_rad": 1173582550.2374861,
+      "independent_integrals": {
+        "translation_kg": 6708597.154379518,
+        "rotation_kg_m": 92120803.493311,
+        "modal_mass_kg": 5737820.336588342,
+        "errors": {
+          "translation_relative": -5.551115123125783e-15,
+          "rotation_relative": 4.218847493575595e-15,
+          "modal_mass_relative": 3.3306690738754696e-15
+        }
+      }
+    },
+    {
+      "width_m": 38.0,
+      "span_m": 44.0,
+      "fill_ratio": 0.95,
+      "fill_depth_m": 24.7,
+      "k_per_m": 0.08267349088394192,
+      "omega_rad_s": 0.885531387353148,
+      "modal_mass_kg": 4706302.954322784,
+      "translation_coupling_kg": 5793788.451509616,
+      "rotation_coupling_scalar_kg_m": 65698954.02454353,
+      "equivalent_action_height_keel_up_m": 7.565715122897021,
+      "wall_pressure_depth_below_surface_m": 9.317142438551489,
+      "convective_equivalent_mass_kg": 7132559.239522327,
+      "free_surface_stiffness_reduction_nm_per_rad": 875337398.0077118,
+      "independent_integrals": {
+        "translation_kg": 5793788.451509588,
+        "rotation_kg_m": 65698954.02454389,
+        "modal_mass_kg": 4706302.954322816,
+        "errors": {
+          "translation_relative": -4.773959005888173e-15,
+          "rotation_relative": 5.551115123125783e-15,
+          "modal_mass_relative": 6.661338147750939e-15
+        }
+      }
+    },
+    {
+      "width_m": 44.0,
+      "span_m": 38.0,
+      "fill_ratio": 0.95,
+      "fill_depth_m": 24.7,
+      "k_per_m": 0.07139983303613166,
+      "omega_rad_s": 0.812673617162469,
+      "modal_mass_kg": 5587988.153198943,
+      "translation_coupling_kg": 6708597.154379555,
+      "rotation_coupling_scalar_kg_m": 83978391.31724808,
+      "equivalent_action_height_keel_up_m": 6.38723949613555,
+      "wall_pressure_depth_below_surface_m": 9.906380251932225,
+      "convective_equivalent_mass_kg": 8053931.852734046,
+      "free_surface_stiffness_reduction_nm_per_rad": 1173582550.237486,
+      "independent_integrals": {
+        "translation_kg": 6708597.1543795215,
+        "rotation_kg_m": 83978391.31724854,
+        "modal_mass_kg": 5587988.153198968,
+        "errors": {
+          "translation_relative": -4.9960036108132044e-15,
+          "rotation_relative": 5.551115123125783e-15,
+          "modal_mass_relative": 4.440892098500626e-15
+        }
+      }
+    }
+  ],
+  "coupling_scope": "first antisymmetric free-surface mode, frozen reference KG, independent potential-gradient volume integrals",
+  "baseline_static_stability": {
+    "mass_kg": 116512160.0,
+    "geometric_gm_m": 2.499999990906794,
+    "first_mode_free_surface_correction_m": 3.0633400860270643,
+    "effective_gm_m": -0.5633400951202705,
+    "status": "not_ready",
+    "authority_decision": "pending course-owner interpretation of prescribed baseline GM"
+  },
+  "not_ready": [
+    "two-way plant integration",
+    "coupled energy and benchmark validation",
+    "baseline GM decision"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "grade": "T",
+  "model_fidelity": "research-nominal",
+  "authority": [
+    "https://github.com/yong-wei/act/issues/2154",
+    "https://github.com/yong-wei/act/issues/2147"
+  ],
+  "source_sha256": "208556d94d703699c2765969b69c7b40b408c0483d9949c09a6ce868fe4af279",
+  "generator_sha256": "a9206728ea0a111b10100765a886262c03410e2eacd26dd586646c69b0109e63",
+  "loading_reference_sha256": "8b422a461aedd6ef7fa16805b28bb9b2f8185559e428bc936d55615f5d22d3c0",
+  "mesh_generator_sha256": "f3bacafcedf0b44a6e7f47b217afc6783ca32225c2d3f2e8a7ad5445fe830155",
+  "source_model_sha256": "6f294e520e3bbfebb631dcf3791f453f3387651cb0b1833aaafcfd4cadf56d2f",
+  "source_model_commit": "812a1e2e7486b3f36e2f17520e4f853ab6743dc6",
+  "source_symmetry_relative_l2": 2.578948122127054e-09,
+  "loading": 0.7,
+  "waterline_snap_tolerance_m": 2e-08,
+  "vertical_normalization": "underwater draft and published moulded depth separately, same map for cargo geometry",
+  "tank_bottom_keel_up_m": 1.5,
+  "cargo_height_basis": "fixed equivalent tank geometry",
+  "baseline_gm_interpretation": "effective after first-mode free surface",
+  "not_ready": [
+    "vessel-calibrated viscous derivatives",
+    "validated wave/radiation data",
+    "specialist coupling"
+  ]
+}

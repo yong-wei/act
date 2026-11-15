@@ -1,0 +1,20 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "icebreaker-xuelong2",
+  "model_version": "research-nominal-v1",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "actuators.json": "7628c2deff835a42615270c49dc35dea26d54f6bb8f18232707d20ddd989ff50",
+    "full-hull.dat": "bd0a660760c84933064b2bf797c3af273a22de6d9361f1426f4091f40b59f3fa",
+    "geometry-provenance.json": "c90c9da8d596a576a9be5f642295f745eebb0856a2ecd34f9caba542c2bc65af",
+    "geometry.json": "b6beb9f05a65e6c875c8fe2f94a7b1ea0ad645c820e926210873cb42eebc6770",
+    "hull.dat": "c9d51fc251ad0c6eb9aca8be5212745f62b90ab51c88864b99bf46ef0c3e6330",
+    "hydrostatic-hull.json": "a4cd2ede2e74a74400e04fe72c9f44ada4acf77990aad0e68dd315ee5f69ed2c",
+    "lid.dat": "fc94ea9991691686ecd37f3e62e3ca214ebe892b1820efb81d9c5e7a76aba6d6",
+    "maneuvering.json": "677d4f07532b454f19a07efe9e6387215891e9755620842c82abcad03491b5de",
+    "provenance.json": "86b546e1b6a7ed45a17138c1bfd54c090f9cb4b735384b8791dfc231a3b44470",
+    "source-sections.json": "a8416edcf9ae26fc08948d83b5083bb164052b173342c66f6992ab01bf1874f0",
+    "static-validation.json": "9e8f82915f1bd5478250811bfb879431c925fd03962d831618a03ebb021033e9",
+    "validation.json": "cec3f1669d001b1681e1f4cf8204dfc3c587bc1fbc9b580b5b9a74876b6cf9bb"
+  }
+}

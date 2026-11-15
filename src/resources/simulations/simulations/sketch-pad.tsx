@@ -9,21 +9,36 @@ export function SketchPad({
   label,
   hint,
   onChange,
+  value,
 }: {
   label: string;
   hint: string;
   onChange: (dataUrl: string) => void;
+  value?:string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const moved = useRef(0);
+  const published = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     if (!canvas || !context) return;
+    if (value && value === published.current) return;
     context.fillStyle = '#ffffff';
     context.fillRect(0, 0, canvas.width, canvas.height);
-  }, []);
+    if (!value) { moved.current = 0;return; }
+    let cancelled = false;
+    const image = new window.Image();
+    image.onload = () => {
+      if (cancelled) return;
+      context.drawImage(image,0,0,canvas.width,canvas.height);
+      moved.current = 8;
+      published.current = value;
+    };
+    image.src = value;
+    return () => { cancelled = true; };
+  }, [value]);
 
   function point(event: PointerEvent<HTMLCanvasElement>) {
     const canvas = event.currentTarget;
@@ -40,7 +55,9 @@ export function SketchPad({
       onChange('');
       return;
     }
-    onChange(canvas.toDataURL('image/png'));
+    const image = canvas.toDataURL('image/png');
+    published.current = image;
+    onChange(image);
   }
 
   return (
@@ -86,6 +103,7 @@ export function SketchPad({
           context.fillStyle = '#ffffff';
           context.fillRect(0, 0, canvas.width, canvas.height);
           moved.current = 0;
+          published.current = '';
           onChange('');
         }}
       >

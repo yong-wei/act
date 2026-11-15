@@ -28,20 +28,34 @@ describe('admin users API/UI query contract', () => {
   it('marks unsupported role and invalid page without leaking them into filters', () => {
     expect(normalizeAdminUsersQueryContract({
       role: 'NOT_A_ROLE',
+      accountSource: 'BAD_SOURCE',
       page: '-3',
       pageSize: '200',
       action: 'reset',
       userId: 'user-1',
     })).toMatchObject({
       role: 'ALL',
+      accountSource: 'ALL',
       page: 1,
       pageSize: 50,
       action: 'reset',
       targetId: 'user-1',
       source: {
         roleSupported: false,
+        accountSourceSupported: false,
         pageValid: false,
         pageSizeValid: false,
+      },
+    });
+
+    expect(normalizeAdminUsersQueryContract({
+      accountSource: 'ilab',
+      role: 'STUDENT',
+    })).toMatchObject({
+      role: 'STUDENT',
+      accountSource: 'ILAB',
+      source: {
+        accountSourceSupported: true,
       },
     });
   });

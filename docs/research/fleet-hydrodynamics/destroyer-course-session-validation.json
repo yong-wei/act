@@ -1,0 +1,1151 @@
+{
+  "schema": "act.destroyer-course-session-validation.v1",
+  "status": "passed",
+  "generator_sha256": "a5e15e1d39231f6c0b9ad3b252efcab5552bd0887f4a02e9b6d418f5dcfd3fb7",
+  "wasm_sha256": "e0d09c3b0d09c4b8ffc5083fd2da980d739d2e9b1500f10a801f275c2a80c424",
+  "course_sha256": "bc83ffcf02afa13230f8c635fe6c019fc9b8f528974d640f721b1c2b2a5ede92",
+  "scope": "本机实际WASM教学工况、原生量测、时钟、恢复和轴系能量验收，网络容量另测",
+  "first_order_applicability": "冻结零平均航速的一阶系数用于4至12m/s教学工况，实际位置相位进入相遇波。源矩阵与拟合残差随参数包保留。",
+  "elapsed_ms": 2788983.65975,
+  "cases": [
+    {
+      "case": "1/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "manual",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 60,
+      "control_samples": 1200,
+      "native_sensor_samples": 23340,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": -1.0008079218988325e-14,
+      "final_yaw_rate_deg_s": -2.8621646645362757e-16,
+      "final_north_m": -1320.1413878326946,
+      "final_east_m": 8.067295302711464e-16,
+      "peak_roll_deg": 2.3717210257660575e-13,
+      "peak_rudder_deg": 0,
+      "peak_single_shaft_power_w": 5360643.91938944,
+      "shaft_energy_relative_residual": 4.942639289068206e-16,
+      "elapsed_ms": 3090.4439159999997
+    },
+    {
+      "case": "2/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "manual",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 120,
+      "control_samples": 2400,
+      "native_sensor_samples": 46680,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 11.915683338398866,
+      "final_yaw_rate_deg_s": 0.00852849380122753,
+      "final_north_m": -851.8974506679845,
+      "final_east_m": 108.20968285823005,
+      "peak_roll_deg": 1.9592674195157702,
+      "peak_rudder_deg": 4.999999999999976,
+      "peak_single_shaft_power_w": 5426907.558972639,
+      "shaft_energy_relative_residual": 4.554644007077639e-15,
+      "elapsed_ms": 7255.2325
+    },
+    {
+      "case": "3/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "manual",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 300,
+      "control_samples": 6000,
+      "native_sensor_samples": 116700,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 83.08050684318599,
+      "final_yaw_rate_deg_s": 0.3130363323925027,
+      "final_north_m": -47.18825567171525,
+      "final_east_m": 1253.2384223607025,
+      "peak_roll_deg": 1.7596382822765033,
+      "peak_rudder_deg": 4.999999999999976,
+      "peak_single_shaft_power_w": 5437880.271291276,
+      "shaft_energy_relative_residual": 3.3618951392475964e-15,
+      "elapsed_ms": 13591.192916000002
+    },
+    {
+      "case": "5/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "manual",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 300,
+      "control_samples": 6000,
+      "native_sensor_samples": 116700,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": -50.27390349940981,
+      "final_yaw_rate_deg_s": -0.18958916933053985,
+      "final_north_m": 346.0616138095469,
+      "final_east_m": -848.6293601894347,
+      "peak_roll_deg": 1.06085635765394,
+      "peak_rudder_deg": 2.999999999999988,
+      "peak_single_shaft_power_w": 5392106.964491423,
+      "shaft_energy_relative_residual": 1.481641565115447e-15,
+      "elapsed_ms": 10275.912500000002
+    },
+    {
+      "case": "6/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "manual",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 300,
+      "control_samples": 6000,
+      "native_sensor_samples": 116700,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": -72.7193542242896,
+      "final_yaw_rate_deg_s": 1.067339568646173,
+      "final_north_m": -1877.2308140653786,
+      "final_east_m": 336.2335662143423,
+      "peak_roll_deg": 6.151477940894197,
+      "peak_rudder_deg": 19.999999999999904,
+      "peak_single_shaft_power_w": 6316516.793136016,
+      "shaft_energy_relative_residual": 1.972843083768152e-15,
+      "elapsed_ms": 12381.937208999996
+    },
+    {
+      "case": "7/4/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 4,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "manual",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 300,
+      "control_samples": 6000,
+      "native_sensor_samples": 116700,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 39.295397594266625,
+      "final_yaw_rate_deg_s": 0.1553338437503773,
+      "final_north_m": -674.0934630897824,
+      "final_east_m": 314.74664244970387,
+      "peak_roll_deg": 0.43136907345198916,
+      "peak_rudder_deg": 4.999999999999976,
+      "peak_single_shaft_power_w": 728742.5281466244,
+      "shaft_energy_relative_residual": 7.568017145607865e-15,
+      "elapsed_ms": 12753.9225
+    },
+    {
+      "case": "7/12/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 12,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "manual",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 300,
+      "control_samples": 6000,
+      "native_sensor_samples": 116700,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 106.0507206559517,
+      "final_yaw_rate_deg_s": 0.3955742512184868,
+      "final_north_m": -3.396088192755802,
+      "final_east_m": 1820.1767318507848,
+      "peak_roll_deg": 2.8061164563907015,
+      "peak_rudder_deg": 4.999999999999976,
+      "peak_single_shaft_power_w": 15000000,
+      "shaft_energy_relative_residual": 4.1719424498769763e-17,
+      "elapsed_ms": 13529.957332999998
+    },
+    {
+      "case": "9/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "p",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 300,
+      "control_samples": 6000,
+      "native_sensor_samples": 116700,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 9.949310890937696,
+      "final_yaw_rate_deg_s": 0.0052472944224379375,
+      "final_north_m": 567.486295605888,
+      "final_east_m": 350.15505703105345,
+      "peak_roll_deg": 1.892683051255212,
+      "peak_rudder_deg": 6.892219515162299,
+      "peak_single_shaft_power_w": 5415679.2215875825,
+      "shaft_energy_relative_residual": 1.1035363316561524e-15,
+      "elapsed_ms": 17929.141375000007
+    },
+    {
+      "case": "10/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pd",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 300,
+      "control_samples": 6000,
+      "native_sensor_samples": 116700,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 9.963186247346428,
+      "final_yaw_rate_deg_s": 0.0028523381021949685,
+      "final_north_m": 569.5605120994305,
+      "final_east_m": 338.58927315524676,
+      "peak_roll_deg": 1.731950920243791,
+      "peak_rudder_deg": 6.505417078363109,
+      "peak_single_shaft_power_w": 5402077.731260275,
+      "shaft_energy_relative_residual": 4.0156267636385925e-15,
+      "elapsed_ms": 17686.207249999992
+    },
+    {
+      "case": "11/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "W1",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 400,
+      "control_samples": 8000,
+      "native_sensor_samples": 155600,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 9.773071579797667,
+      "final_yaw_rate_deg_s": 0.000684765177630974,
+      "final_north_m": 1315.0780935865628,
+      "final_east_m": 523.9930481145389,
+      "peak_roll_deg": 2.262605744899273,
+      "peak_rudder_deg": 6.669061539284626,
+      "peak_single_shaft_power_w": 5496268.620831793,
+      "shaft_energy_relative_residual": 3.761526418383834e-15,
+      "elapsed_ms": 31478.096541999985
+    },
+    {
+      "case": "12/base/false",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": false,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 500,
+      "control_samples": 10000,
+      "native_sensor_samples": 194500,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": -3.2198830696628016,
+      "final_yaw_rate_deg_s": 0.10286252040545393,
+      "final_north_m": 1019.3873813518211,
+      "final_east_m": 1484.6936157063717,
+      "peak_roll_deg": 8.949298808490632,
+      "peak_rudder_deg": 34.9999988387706,
+      "peak_single_shaft_power_w": 6499080.345536026,
+      "shaft_energy_relative_residual": 7.12370381152456e-15,
+      "elapsed_ms": 26334.463540999976
+    },
+    {
+      "case": "12/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 500,
+      "control_samples": 10000,
+      "native_sensor_samples": 194500,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": -1.1023106593180494,
+      "final_yaw_rate_deg_s": 0.07119503025386392,
+      "final_north_m": 1196.9924392526955,
+      "final_east_m": 1571.8834621860772,
+      "peak_roll_deg": 7.249502447738424,
+      "peak_rudder_deg": 32.49568203514883,
+      "peak_single_shaft_power_w": 6168306.481840914,
+      "shaft_energy_relative_residual": 8.492333584290095e-15,
+      "elapsed_ms": 128635.93316699998
+    },
+    {
+      "case": "13/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "C1",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 400,
+      "control_samples": 8000,
+      "native_sensor_samples": 155600,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": -1.0602086432764113e-15,
+      "final_yaw_rate_deg_s": 2.6446595105132353e-16,
+      "final_north_m": 1398.486715860281,
+      "final_east_m": 119.99999999992713,
+      "peak_roll_deg": 2.28545261374342e-13,
+      "peak_rudder_deg": 1.7365256351943955e-14,
+      "peak_single_shaft_power_w": 5360643.91938944,
+      "shaft_energy_relative_residual": 2.657420545700958e-15,
+      "elapsed_ms": 53765.086332999985
+    },
+    {
+      "case": "14/V1/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "V1",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 600,
+      "control_samples": 12000,
+      "native_sensor_samples": 233400,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": -0.010222336878575426,
+      "final_yaw_rate_deg_s": 0.08403053491165445,
+      "final_north_m": 2993.224322893253,
+      "final_east_m": 0.6928028581968467,
+      "peak_roll_deg": 1.6592831123783072,
+      "peak_rudder_deg": 1.28132419885774,
+      "peak_single_shaft_power_w": 5622163.183591901,
+      "shaft_energy_relative_residual": 1.1840378747522145e-14,
+      "elapsed_ms": 537136.8045000001
+    },
+    {
+      "case": "14/P0/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N0",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 600,
+      "control_samples": 12000,
+      "native_sensor_samples": 233400,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": -4.543225709605705e-16,
+      "final_yaw_rate_deg_s": 4.29179292027111e-16,
+      "final_north_m": 2997.671169351078,
+      "final_east_m": -2.021516474727317e-13,
+      "peak_roll_deg": 2.366651384026801e-13,
+      "peak_rudder_deg": 1.581815407252437e-14,
+      "peak_single_shaft_power_w": 5360643.91938944,
+      "shaft_energy_relative_residual": 1.7777302414383886e-15,
+      "elapsed_ms": 42550.117791000055
+    },
+    {
+      "case": "15/base/0",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N1",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pd",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 400,
+      "control_samples": 8000,
+      "native_sensor_samples": 155600,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 9.65449132841535,
+      "final_yaw_rate_deg_s": -0.010099553959412838,
+      "final_north_m": 1355.284509903695,
+      "final_east_m": 486.8854132860939,
+      "peak_roll_deg": 1.8504127577125826,
+      "peak_rudder_deg": 7.002869117360837,
+      "peak_single_shaft_power_w": 5414113.379802132,
+      "shaft_energy_relative_residual": 3.991294258132348e-15,
+      "elapsed_ms": 35846.544166999985
+    },
+    {
+      "case": "15/base/0.2",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N1",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pd",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 400,
+      "control_samples": 8000,
+      "native_sensor_samples": 155600,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 9.804217678247259,
+      "final_yaw_rate_deg_s": -0.008836417113925158,
+      "final_north_m": 1356.6278628717455,
+      "final_east_m": 479.125645549698,
+      "peak_roll_deg": 1.7052148020236033,
+      "peak_rudder_deg": 6.820133472422156,
+      "peak_single_shaft_power_w": 5404241.392626522,
+      "shaft_energy_relative_residual": 2.1258414203194394e-15,
+      "elapsed_ms": 57161.35804199998
+    },
+    {
+      "case": "15/base/1",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N1",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pd",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 1,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 400,
+      "control_samples": 8000,
+      "native_sensor_samples": 155600,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 9.824216130272882,
+      "final_yaw_rate_deg_s": -0.003971135987389238,
+      "final_north_m": 1356.8717443371395,
+      "final_east_m": 478.3381873809796,
+      "peak_roll_deg": 1.803596902128208,
+      "peak_rudder_deg": 6.79608840687404,
+      "peak_single_shaft_power_w": 5404195.288856154,
+      "shaft_energy_relative_residual": 2.234831171204748e-15,
+      "elapsed_ms": 50065.90054199996
+    },
+    {
+      "case": "15/base/3",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "P0",
+        "noiseLevel": "N1",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pd",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 3,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 400,
+      "control_samples": 8000,
+      "native_sensor_samples": 155600,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 9.820457966809434,
+      "final_yaw_rate_deg_s": -0.003365883499780514,
+      "final_north_m": 1356.8926292496924,
+      "final_east_m": 478.32213387643867,
+      "peak_roll_deg": 1.8533477525292719,
+      "peak_rudder_deg": 6.80279880255837,
+      "peak_single_shaft_power_w": 5406044.160672537,
+      "shaft_energy_relative_residual": 7.994268861429165e-16,
+      "elapsed_ms": 37296.529541000025
+    },
+    {
+      "case": "16/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "E1",
+        "noiseLevel": "N1",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 600,
+      "control_samples": 12000,
+      "native_sensor_samples": 233400,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 10.581415922094498,
+      "final_yaw_rate_deg_s": -0.17817573551368215,
+      "final_north_m": 2827.132623458149,
+      "final_east_m": 940.9040293263549,
+      "peak_roll_deg": 17.92735906908896,
+      "peak_rudder_deg": 7.216959301546319,
+      "peak_single_shaft_power_w": 5943989.787239187,
+      "shaft_energy_relative_residual": 5.014505358332951e-14,
+      "elapsed_ms": 437627.57804200007
+    },
+    {
+      "case": "17/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "E1",
+        "noiseLevel": "N1",
+        "seed": 20261106
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 600,
+      "control_samples": 12000,
+      "native_sensor_samples": 233400,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 10.581415922094498,
+      "final_yaw_rate_deg_s": -0.17817573551368215,
+      "final_north_m": 2827.132623458149,
+      "final_east_m": 940.9040293263549,
+      "peak_roll_deg": 17.92735906908896,
+      "peak_rudder_deg": 7.216959301546319,
+      "peak_single_shaft_power_w": 5943989.787239187,
+      "shaft_energy_relative_residual": 5.014505358332951e-14,
+      "elapsed_ms": 530743.464292
+    },
+    {
+      "case": "18/base/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 6,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "E1",
+        "noiseLevel": "N1",
+        "seed": 17
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 600,
+      "control_samples": 12000,
+      "native_sensor_samples": 233400,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 10.988995273406735,
+      "final_yaw_rate_deg_s": 0.14389084253737233,
+      "final_north_m": 1676.4770115490032,
+      "final_east_m": 736.4231584842495,
+      "peak_roll_deg": 21.012890855272932,
+      "peak_rudder_deg": 7.648446523020046,
+      "peak_single_shaft_power_w": 2688095.9156665346,
+      "shaft_energy_relative_residual": 4.345460053725699e-14,
+      "elapsed_ms": 343737.39725000015
+    },
+    {
+      "case": "19/10/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 10,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "E1",
+        "noiseLevel": "N1",
+        "seed": 29,
+        "environmentOverrides": {
+          "windSpeedMps": 12,
+          "gustSigmaMps": 2
+        }
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 600,
+      "control_samples": 12000,
+      "native_sensor_samples": 233400,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 9.894901383168623,
+      "final_yaw_rate_deg_s": 0.11937393201556129,
+      "final_north_m": 4000.889401245106,
+      "final_east_m": 1121.4412057262339,
+      "peak_roll_deg": 14.403713797000155,
+      "peak_rudder_deg": 7.874674005703093,
+      "peak_single_shaft_power_w": 11301949.589956442,
+      "shaft_energy_relative_residual": 1.6954343298268437e-12,
+      "elapsed_ms": 207896.25716699986
+    },
+    {
+      "case": "19/8/true",
+      "status": "passed",
+      "configuration": {
+        "vessel": "destroyer-055",
+        "parameterVersion": "research-nominal-v6",
+        "initialWaterSpeedMps": 8,
+        "initialHeadingDeg": 0,
+        "initialPositionNed": [
+          -1800,
+          0,
+          0
+        ],
+        "environment": "E1",
+        "noiseLevel": "N1",
+        "seed": 29,
+        "environmentOverrides": {
+          "windSpeedMps": 12,
+          "gustSigmaMps": 2
+        }
+      },
+      "controller": {
+        "mode": "pid",
+        "pid": {
+          "kp": 0.7,
+          "ki": 0.005,
+          "kd": 6
+        },
+        "derivative_filter_tau_s": 0.2,
+        "integral_tracking": {
+          "enabled": true,
+          "timeS": 1
+        }
+      },
+      "parameter_hash": "fnv1a-1e1e97d5bcbcfaaf",
+      "virtual_seconds": 600,
+      "control_samples": 12000,
+      "native_sensor_samples": 233400,
+      "restored_future_bitwise_identical": true,
+      "final_heading_deg": 10.247948449444879,
+      "final_yaw_rate_deg_s": 0.17401985211415594,
+      "final_north_m": 2826.42758209588,
+      "final_east_m": 914.8874722064795,
+      "peak_roll_deg": 13.674488385498048,
+      "peak_rudder_deg": 7.678814735913794,
+      "peak_single_shaft_power_w": 5903457.1585599985,
+      "shaft_energy_relative_residual": 1.526034513524778e-14,
+      "elapsed_ms": 159582.1281659999
+    }
+  ],
+  "identification": [
+    {
+      "step": 2,
+      "channel": "rudder-servo",
+      "sample_dt_s": 0.02,
+      "source": "native_sensor_measurements",
+      "result": {
+        "failureReason": null,
+        "identifiedOk": true,
+        "metrics": {
+          "fit_percent": 98.04310893053912,
+          "peak_error": 0.31194119540934073,
+          "residual_input_correlation": -0.0048863289665741095,
+          "residual_mean": 0.0060525765062338956,
+          "residual_rms": 0.046562508693675966,
+          "rmse": 0.046562508693675966
+        },
+        "schema": "act.student-model-analysis.v1",
+        "structure": {
+          "delay_s": 0,
+          "k": 1.0033295223359922,
+          "kind": "fopdt",
+          "t_s": 0.7097433982576131
+        }
+      }
+    },
+    {
+      "step": 3,
+      "channel": "rudder-to-yaw",
+      "sample_dt_s": 0.05,
+      "source": "native_sensor_measurements",
+      "result": {
+        "failureReason": null,
+        "identifiedOk": true,
+        "metrics": {
+          "fit_percent": 86.62913347803367,
+          "peak_error": 0.020668597237166547,
+          "residual_input_correlation": -0.10374209005440052,
+          "residual_mean": -0.004348471787980825,
+          "residual_rms": 0.008976428333952475,
+          "rmse": 0.008976428333952475
+        },
+        "schema": "act.student-model-analysis.v1",
+        "structure": {
+          "k": 0.06059672863596699,
+          "kind": "nomoto1",
+          "t_s": 9.413487980826535
+        }
+      }
+    }
+  ]
+}

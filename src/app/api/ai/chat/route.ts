@@ -7,7 +7,9 @@
  */
 
 import { consumeStream, createUIMessageStreamResponse, generateText, streamText, stepCountIs } from 'ai';
-import { getConfiguredAIModel, isConfiguredAIServiceAvailable } from '@/lib/ai/provider-runtime';
+import { getConfiguredAIModel, getConfiguredAIProviderBinding, isConfiguredAIServiceAvailable } from '@/lib/ai/provider-runtime';
+import { recordSimulationKonlingAiUsage } from '@/features/ilab/adapters/konling-ai-ledger';
+import { loadSimulationKonlingEvidence } from '@/features/ilab/adapters/konling-simulation-evidence';
 import { SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai/lesson-prompts';
 import { resolveServerOwnedChatPageContext } from '@/lib/ai/chat-context-boundary';
 import { requestsLearningPathGeneration } from '@/lib/ai/path-generation-intent';
@@ -496,6 +498,7 @@ export async function POST(request: Request) {
     let citationRepairServerContext: KonlingCitationRepairRequest['serverContext'] | null = null;
     let citationRepairPrivateValues: readonly string[] = [];
     let forceStructuredSmartPrepTool = false;
+    let ledgerTrackingTarget: { userId: string; courseId: string; stepId?: string | null; originId?: string } | null = null;
     let modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
       streaming: true,
@@ -736,6 +739,13 @@ export async function POST(request: Request) {
         user: runtimeContext.userProfile,
         sessionHistory: messages.slice(0, -1),
       };
+      if (session?.user?.id && runtimeContext.pageContext.courseId) {
+        ledgerTrackingTarget = {
+          userId: session.user.id,
+          courseId: runtimeContext.pageContext.courseId,
+          stepId: runtimeContext.pageContext.stepId,
+        };
+      }
       systemPrompt = buildKonlingSystemPrompt({
         ...aiContext,
         adaptiveRuntime: modeRuntimeContext,
@@ -947,10 +957,27 @@ export async function POST(request: Request) {
         }),
         sessionHistory: messages.slice(0, -1),
       };
+      if (session?.user?.id && resolvedPage.page.courseId) {
+        ledgerTrackingTarget = {
+          userId: session.user.id,
+          courseId: resolvedPage.page.courseId,
+          stepId: resolvedPage.page.stepId,
+        };
+      }
       systemPrompt = buildKonlingSystemPrompt(aiContext);
     } else {
       // 回退到旧的提示词构建方式
       systemPrompt = buildContextAwarePrompt(SYSTEM_PROMPT, lessonContext);
+    }
+
+    if (ledgerTrackingTarget) {
+      const requestedOrigin = pageContext?.simulationOriginId;
+      if (typeof requestedOrigin === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(requestedOrigin)) {
+        ledgerTrackingTarget.originId = requestedOrigin;
+      }
+      const evidence = await loadSimulationKonlingEvidence(ledgerTrackingTarget.userId,
+        ledgerTrackingTarget.courseId, ledgerTrackingTarget.stepId, ledgerTrackingTarget.originId);
+      if (evidence) systemPrompt = `${systemPrompt}\n\n${evidence}`;
     }
 
     if (lessonContext?.stage === 'interactive') {
@@ -988,7 +1015,11 @@ export async function POST(request: Request) {
     }
 
     // 使用 Vercel AI SDK 生成流式响应
+    const providerBindingPromise = ledgerTrackingTarget
+      ? getConfiguredAIProviderBinding().catch(() => null)
+      : Promise.resolve(null);
     const responseModel = await getConfiguredAIModel(undefined, modelRequirements);
+    const providerBinding = await providerBindingPromise;
     const frozenModelMessages = (await toModelMessages(uiMessages)).filter(
       (message) => (message as { role?: string }).role !== 'system',
     );
@@ -1023,6 +1054,23 @@ export async function POST(request: Request) {
       }),
       temperature: 0.7,
       maxOutputTokens: 2000,
+      onFinish: async ({ totalUsage, usage }) => {
+        if (!ledgerTrackingTarget) return;
+        const effectiveUsage = totalUsage ?? usage;
+        const inputTokens = typeof effectiveUsage?.inputTokens === 'number' ? effectiveUsage.inputTokens : undefined;
+        const outputTokens = typeof effectiveUsage?.outputTokens === 'number' ? effectiveUsage.outputTokens : undefined;
+        await recordSimulationKonlingAiUsage({
+          userId: ledgerTrackingTarget.userId,
+          courseId: ledgerTrackingTarget.courseId,
+          stepId: ledgerTrackingTarget.stepId,
+          originId: ledgerTrackingTarget.originId,
+          model: providerBinding?.model || responseModel.modelId || 'configured-model',
+          provider: providerBinding?.provider || 'configured-provider',
+          endpoint: providerBinding?.endpoint,
+          inputTokens,
+          outputTokens,
+        });
+      },
     });
 
     let completedResponseMessage: Message | null = null;

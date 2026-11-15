@@ -1,0 +1,1920 @@
+{
+  "schema": "act.semisub.mesh-validation.v1",
+  "fidelity": "research-nominal",
+  "generator_sha256": "93496ae54a21c0699cdbdb632ac084fc4f493fde58629de6ed97373565755388",
+  "geometry": [
+    {
+      "schema": "act.semisub.geometry.validation.v1",
+      "generator_sha256": "68c750302ff57c60eb5a2b028b6f5cc822b884806440a14e744db97697072f33",
+      "capytaine_version": "2.2.1",
+      "max_edge_m": 10.0,
+      "wet_panels": 188,
+      "lid_panels": 32,
+      "volume_relative_error": 0.0,
+      "hydrostatic_stiffness_diagonal_relative_error": [
+        0.0,
+        0.07947232947233096,
+        0.0253485424588088
+      ],
+      "capytaine_stiffness_si": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          16088400.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -0.0,
+          958935674.9999985,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          5154991499.999998,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "output_sha256": {
+        "geometry.json": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+        "hull.dat": "0414bbb5429fae8ddab71c0c06570ca9f278d69ec4accce0b0fdff78926c0811",
+        "lid.dat": "f7cd50c27e8956b5da9db9bf83da704fed6a60529ade12b9cb098d4a255d6c07",
+        "nemoh-body.dat": "bdcaa8bc51996a8b3e0c0f60e4aa0ae67a89325132386913f0310498b05b4796"
+      }
+    },
+    {
+      "schema": "act.semisub.geometry.validation.v1",
+      "generator_sha256": "68c750302ff57c60eb5a2b028b6f5cc822b884806440a14e744db97697072f33",
+      "capytaine_version": "2.2.1",
+      "max_edge_m": 5.0,
+      "wet_panels": 688,
+      "lid_panels": 96,
+      "volume_relative_error": 0.0,
+      "hydrostatic_stiffness_diagonal_relative_error": [
+        0.0,
+        0.020193854568856057,
+        0.006337135614702336
+      ],
+      "capytaine_stiffness_si": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          16088400.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -0.0,
+          1020687479.0624985,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          5255543999.999998,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "output_sha256": {
+        "geometry.json": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+        "hull.dat": "6fc7639e520e3815a0ff761a42b54d72ae71250e5e0112f9f488022c095be7e9",
+        "lid.dat": "bfd0b0b9617bc4810f166dcfd593b629b9b7fa24f258041c4230f78497c9c3e7",
+        "nemoh-body.dat": "5a4ed96f9f7dd41637e03b4508f48b50b60b878206407dcbf353d75eec636c3b"
+      }
+    },
+    {
+      "schema": "act.semisub.geometry.validation.v1",
+      "generator_sha256": "68c750302ff57c60eb5a2b028b6f5cc822b884806440a14e744db97697072f33",
+      "capytaine_version": "2.2.1",
+      "max_edge_m": 2.5,
+      "wet_panels": 2432,
+      "lid_panels": 288,
+      "volume_relative_error": 5.61850008817253e-16,
+      "hydrostatic_stiffness_diagonal_relative_error": [
+        0.0,
+        0.006886441835405042,
+        0.0015842839036724736
+      ],
+      "capytaine_stiffness_si": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          16088400.0,
+          2.2291416712505452e-08,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          2.2291416712505452e-08,
+          1034550128.9540987,
+          -1.1888755580002908e-07,
+          4.755502232001163e-07
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          -1.1888755580002908e-07,
+          5280682125.000015,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "output_sha256": {
+        "geometry.json": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+        "hull.dat": "2501c9620b7f81739030ceff2f922c3bb94c3aba96f083d7e9e7fe14c555db25",
+        "lid.dat": "898dc2d022629aa6939b204a3ccb76f9ced42219f23572b6a09986e9b6b92ee7",
+        "nemoh-body.dat": "7b4d942b1bb829e6527584d3fdd1fed82b1c00dd56e85fbc19a9eef0d18a44ce"
+      }
+    },
+    {
+      "schema": "act.semisub.geometry.validation.v1",
+      "generator_sha256": "b7d5f64f368f89a49714390015d7fb1065b9e9cc945da1e1dc7151605b2cb97b",
+      "capytaine_version": "2.2.1",
+      "max_edge_m": 1.5,
+      "wet_panels": 6896,
+      "lid_panels": 784,
+      "volume_relative_error": 8.568212634463108e-15,
+      "hydrostatic_stiffness_diagonal_relative_error": [
+        0.0,
+        0.002629862004912661,
+        0.000517317193046607
+      ],
+      "capytaine_stiffness_si": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          16088400.0,
+          8.002047025001957e-09,
+          -3.6580786400008947e-08,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          8.002047025001957e-09,
+          1038984309.8957806,
+          -7.316157280001789e-08,
+          2.1033952180005144e-07
+        ],
+        [
+          0.0,
+          0.0,
+          -3.6580786400008947e-08,
+          -7.316157280001789e-08,
+          5286325377.550968,
+          7.590513178001856e-07
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "output_sha256": {
+        "geometry.json": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+        "hull.dat": "0cc1b227c34487d25f88c744f2c2f528879587b6b2bf80eff7ebde7e04cadc7e",
+        "lid.dat": "bb026d625c17390feb8836fd9932d9e18af610ef36f6a0076bf5da3d2aac6968",
+        "nemoh-body.dat": "3d48dd7ed1f04840100abee85c78b629a2bab83169afc8061a4d1b6bc6cf318b"
+      }
+    }
+  ],
+  "first_order": [
+    {
+      "wet_panels": 688,
+      "provenance_sha256": "ee8dadd44eef4de3d3dafcd90d7a0129ecdc5e8e4198521615740ff5de704cb4",
+      "output_sha256": "dd762659b4d8f77d891cb2d39a8ac61d0adc0651585914418d0d810f6aaa0324",
+      "solver_status": "failed",
+      "configuration": {
+        "name": "semisub-981-mesh688-full-grid",
+        "center_of_mass_m_z_up": [
+          0.0,
+          0.0,
+          17.353925353925355
+        ],
+        "mass_kg": 53095000.0,
+        "density_kg_m3": 1025.0,
+        "water_depth_m": 200.0,
+        "forward_speed_mps": 0.0,
+        "frequencies_rad_s": [
+          0.05,
+          0.075,
+          0.1,
+          0.125,
+          0.15,
+          0.175,
+          0.2,
+          0.225,
+          0.25,
+          0.275,
+          0.3,
+          0.325,
+          0.35,
+          0.375,
+          0.4,
+          0.425,
+          0.45,
+          0.475,
+          0.5,
+          0.525,
+          0.55,
+          0.575,
+          0.6,
+          0.625,
+          0.65,
+          0.675,
+          0.7,
+          0.725,
+          0.75,
+          0.775,
+          0.8,
+          0.825,
+          0.85,
+          0.875,
+          0.9,
+          0.925,
+          0.95,
+          0.975,
+          1.0,
+          1.025,
+          1.05,
+          1.075,
+          1.1,
+          1.125,
+          1.15,
+          1.175,
+          1.2,
+          1.225,
+          1.25,
+          1.275,
+          1.3,
+          1.325,
+          1.35,
+          1.375,
+          1.4,
+          1.425,
+          1.45,
+          1.475,
+          1.5,
+          1.525,
+          1.55,
+          1.575,
+          1.6,
+          1.625,
+          1.65,
+          1.675,
+          1.7,
+          1.725,
+          1.75,
+          1.775,
+          1.8,
+          1.825,
+          1.85,
+          1.875,
+          1.9,
+          1.925,
+          1.95,
+          1.975,
+          2.0,
+          2.025,
+          2.05,
+          2.075,
+          2.1,
+          2.125,
+          2.15,
+          2.175,
+          2.2,
+          2.225,
+          2.25,
+          2.275,
+          2.3,
+          2.325,
+          2.35,
+          2.375,
+          2.4,
+          2.425,
+          2.45,
+          2.475,
+          2.5,
+          2.55,
+          2.6,
+          2.65,
+          2.7,
+          2.75,
+          2.8,
+          2.85,
+          2.9,
+          2.95,
+          3.0,
+          3.05,
+          3.1,
+          3.15,
+          3.2,
+          3.25,
+          3.3,
+          3.35,
+          3.4,
+          3.45,
+          3.5,
+          3.55,
+          3.6,
+          3.65,
+          3.7,
+          3.75,
+          3.8,
+          3.85,
+          3.9,
+          3.95,
+          4.0
+        ],
+        "headings_deg_to": [
+          0.0,
+          15.0,
+          30.0,
+          45.0,
+          60.0,
+          75.0,
+          90.0,
+          105.0,
+          120.0,
+          135.0,
+          150.0,
+          165.0,
+          180.0,
+          195.0,
+          210.0,
+          225.0,
+          240.0,
+          255.0,
+          270.0,
+          285.0,
+          300.0,
+          315.0,
+          330.0,
+          345.0
+        ]
+      },
+      "resolution": {
+        "max_panel_radius_m": 3.535533905932738,
+        "underresolved_frequencies_rad_s": [
+          1.5,
+          1.525,
+          1.55,
+          1.575,
+          1.6,
+          1.625,
+          1.65,
+          1.675,
+          1.7,
+          1.725,
+          1.75,
+          1.775,
+          1.8,
+          1.825,
+          1.85,
+          1.875,
+          1.9,
+          1.925,
+          1.95,
+          1.975,
+          2.0,
+          2.025,
+          2.05,
+          2.075,
+          2.1,
+          2.125,
+          2.15,
+          2.175,
+          2.2,
+          2.225,
+          2.25,
+          2.275,
+          2.3,
+          2.325,
+          2.35,
+          2.375,
+          2.4,
+          2.425,
+          2.45,
+          2.475,
+          2.5,
+          2.55,
+          2.6,
+          2.65,
+          2.7,
+          2.75,
+          2.8,
+          2.85,
+          2.9,
+          2.95,
+          3.0,
+          3.05,
+          3.1,
+          3.15,
+          3.2,
+          3.25,
+          3.3,
+          3.35,
+          3.4,
+          3.45,
+          3.5,
+          3.55,
+          3.6,
+          3.65,
+          3.7,
+          3.75,
+          3.8,
+          3.85,
+          3.9,
+          3.95,
+          4.0
+        ]
+      },
+      "all_finite": true,
+      "failed_matrix_checks": [
+        {
+          "quantity": "added_mass",
+          "frequency_index": 77,
+          "symmetry_relative_error": 0.029297850853084693
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 11,
+          "symmetry_relative_error": 0.010654444545752437,
+          "normalized_min_eigenvalue": -4.741481129021781e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 12,
+          "symmetry_relative_error": 0.010458716050510904,
+          "normalized_min_eigenvalue": -3.626013419448754e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 13,
+          "symmetry_relative_error": 0.010305159691599047,
+          "normalized_min_eigenvalue": -1.809070108825662e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 14,
+          "symmetry_relative_error": 0.010156676575097353,
+          "normalized_min_eigenvalue": -2.8106244402913802e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 15,
+          "symmetry_relative_error": 0.010022901396216458,
+          "normalized_min_eigenvalue": -1.2312212020653353e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 21,
+          "symmetry_relative_error": 0.010333888476961418,
+          "normalized_min_eigenvalue": 4.940502628227791e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 22,
+          "symmetry_relative_error": 0.010458403159480508,
+          "normalized_min_eigenvalue": 3.5004201333984924e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 23,
+          "symmetry_relative_error": 0.011080425310879072,
+          "normalized_min_eigenvalue": -2.9955686794875613e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 24,
+          "symmetry_relative_error": 0.010522333295627555,
+          "normalized_min_eigenvalue": -0.00011386965423824335
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 50,
+          "symmetry_relative_error": 0.010755931828060823,
+          "normalized_min_eigenvalue": 0.020002076455839082
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 51,
+          "symmetry_relative_error": 0.01179771255119456,
+          "normalized_min_eigenvalue": 0.014090026421254202
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 73,
+          "symmetry_relative_error": 0.008385012925497735,
+          "normalized_min_eigenvalue": -0.010854578339754272
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 74,
+          "symmetry_relative_error": 0.010284677185028087,
+          "normalized_min_eigenvalue": -0.01068963334773802
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 75,
+          "symmetry_relative_error": 0.012815061253920979,
+          "normalized_min_eigenvalue": -0.008677303310463985
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 76,
+          "symmetry_relative_error": 0.017916438487421065,
+          "normalized_min_eigenvalue": -0.003501869469143955
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 78,
+          "symmetry_relative_error": 0.017116862587098044,
+          "normalized_min_eigenvalue": -0.017900996301147856
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 79,
+          "symmetry_relative_error": 0.001528313711690478,
+          "normalized_min_eigenvalue": -0.014485980226478198
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 80,
+          "symmetry_relative_error": 0.0055828406031816534,
+          "normalized_min_eigenvalue": -0.012350150486742041
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 81,
+          "symmetry_relative_error": 0.013989639150346898,
+          "normalized_min_eigenvalue": -0.01108671433914567
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 82,
+          "symmetry_relative_error": 0.017800338679627846,
+          "normalized_min_eigenvalue": -0.0038504274802851337
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 83,
+          "symmetry_relative_error": 0.04030245943831492,
+          "normalized_min_eigenvalue": -0.00464201448691881
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 84,
+          "symmetry_relative_error": 0.015760997323393606,
+          "normalized_min_eigenvalue": -0.02256505894708126
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 85,
+          "symmetry_relative_error": 0.010281318120666901,
+          "normalized_min_eigenvalue": -0.010721697804872515
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 86,
+          "symmetry_relative_error": 0.010374712620290733,
+          "normalized_min_eigenvalue": -0.0010501897554270583
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 87,
+          "symmetry_relative_error": 0.012563652964117938,
+          "normalized_min_eigenvalue": -0.0005856947899712079
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 88,
+          "symmetry_relative_error": 0.03661055734170594,
+          "normalized_min_eigenvalue": -0.007688808546091063
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 89,
+          "symmetry_relative_error": 0.02467707306853426,
+          "normalized_min_eigenvalue": -0.008119122800227028
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 90,
+          "symmetry_relative_error": 0.025570252014036603,
+          "normalized_min_eigenvalue": -0.37646137865078544
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 91,
+          "symmetry_relative_error": 0.007958152538598053,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 92,
+          "symmetry_relative_error": 0.007257021754808101,
+          "normalized_min_eigenvalue": -0.13790697519810188
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 94,
+          "symmetry_relative_error": 0.04911954310151752,
+          "normalized_min_eigenvalue": 0.00016617538769566665
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 95,
+          "symmetry_relative_error": 0.025444904007816436,
+          "normalized_min_eigenvalue": 0.0004288571687951158
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 99,
+          "symmetry_relative_error": 0.024122826403745544,
+          "normalized_min_eigenvalue": -0.0042407481667915145
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 100,
+          "symmetry_relative_error": 0.005956092704069861,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 101,
+          "symmetry_relative_error": 0.12151466278876612,
+          "normalized_min_eigenvalue": -0.03783180880486373
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 102,
+          "symmetry_relative_error": 0.046885710221912055,
+          "normalized_min_eigenvalue": -0.003994090162529151
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 103,
+          "symmetry_relative_error": 0.8236690397484152,
+          "normalized_min_eigenvalue": -0.17360689200698118
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 104,
+          "symmetry_relative_error": 0.020625500381880175,
+          "normalized_min_eigenvalue": -0.02982189795406518
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 105,
+          "symmetry_relative_error": 0.052530192357749396,
+          "normalized_min_eigenvalue": -0.005733067917370017
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 106,
+          "symmetry_relative_error": 0.007054706107468764,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 107,
+          "symmetry_relative_error": 0.10478480387275607,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 108,
+          "symmetry_relative_error": 0.018123296831434002,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 109,
+          "symmetry_relative_error": 0.019625281772815792,
+          "normalized_min_eigenvalue": -0.28469846291159095
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 110,
+          "symmetry_relative_error": 0.03794782950767784,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 111,
+          "symmetry_relative_error": 0.051830163133740434,
+          "normalized_min_eigenvalue": -0.0026108984111784398
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 112,
+          "symmetry_relative_error": 0.08169263036041999,
+          "normalized_min_eigenvalue": -0.15271525121834695
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 113,
+          "symmetry_relative_error": 0.10328521793661521,
+          "normalized_min_eigenvalue": -0.0011582820425112639
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 114,
+          "symmetry_relative_error": 0.2161923740321178,
+          "normalized_min_eigenvalue": -0.21426807395332234
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 115,
+          "symmetry_relative_error": 0.04435369465301523,
+          "normalized_min_eigenvalue": -0.0006887245040147188
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 116,
+          "symmetry_relative_error": 0.2531871803863844,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 117,
+          "symmetry_relative_error": 0.05083600086282715,
+          "normalized_min_eigenvalue": -0.23634486180153805
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 118,
+          "symmetry_relative_error": 0.014992340164428335,
+          "normalized_min_eigenvalue": -0.05802349752735764
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 119,
+          "symmetry_relative_error": 0.017514435140162717,
+          "normalized_min_eigenvalue": -0.02427894244009417
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 120,
+          "symmetry_relative_error": 0.25214718866031793,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 122,
+          "symmetry_relative_error": 0.06164818995057443,
+          "normalized_min_eigenvalue": -0.11871176723755018
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 123,
+          "symmetry_relative_error": 0.11786573935548714,
+          "normalized_min_eigenvalue": -0.004577764422796646
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 124,
+          "symmetry_relative_error": 0.020442388253353642,
+          "normalized_min_eigenvalue": -0.044478826838801576
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 125,
+          "symmetry_relative_error": 0.024548115016319396,
+          "normalized_min_eigenvalue": -0.02837856778371301
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 126,
+          "symmetry_relative_error": 0.3429457429052505,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 127,
+          "symmetry_relative_error": 0.07006394629935986,
+          "normalized_min_eigenvalue": -0.05547898626040598
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 128,
+          "symmetry_relative_error": 0.1651960994736237,
+          "normalized_min_eigenvalue": -1.0
+        }
+      ]
+    },
+    {
+      "wet_panels": 2432,
+      "provenance_sha256": "2d2c2e8ab262bb89add383e0e8b4147f059e8ddc19fccee65a56928d672e31a6",
+      "output_sha256": "9233ee0ac218ab0e25a99fb1a74b11f741afd082da62fc6c1ce8e3b957dc0264",
+      "solver_status": "failed",
+      "configuration": {
+        "name": "semisub-981-mesh2432-full-grid",
+        "center_of_mass_m_z_up": [
+          0.0,
+          0.0,
+          17.353925353925355
+        ],
+        "mass_kg": 53095000.0,
+        "density_kg_m3": 1025.0,
+        "water_depth_m": 200.0,
+        "forward_speed_mps": 0.0,
+        "frequencies_rad_s": [
+          0.05,
+          0.075,
+          0.1,
+          0.125,
+          0.15,
+          0.175,
+          0.2,
+          0.225,
+          0.25,
+          0.275,
+          0.3,
+          0.325,
+          0.35,
+          0.375,
+          0.4,
+          0.425,
+          0.45,
+          0.475,
+          0.5,
+          0.525,
+          0.55,
+          0.575,
+          0.6,
+          0.625,
+          0.65,
+          0.675,
+          0.7,
+          0.725,
+          0.75,
+          0.775,
+          0.8,
+          0.825,
+          0.85,
+          0.875,
+          0.9,
+          0.925,
+          0.95,
+          0.975,
+          1.0,
+          1.025,
+          1.05,
+          1.075,
+          1.1,
+          1.125,
+          1.15,
+          1.175,
+          1.2,
+          1.225,
+          1.25,
+          1.275,
+          1.3,
+          1.325,
+          1.35,
+          1.375,
+          1.4,
+          1.425,
+          1.45,
+          1.475,
+          1.5,
+          1.525,
+          1.55,
+          1.575,
+          1.6,
+          1.625,
+          1.65,
+          1.675,
+          1.7,
+          1.725,
+          1.75,
+          1.775,
+          1.8,
+          1.825,
+          1.85,
+          1.875,
+          1.9,
+          1.925,
+          1.95,
+          1.975,
+          2.0,
+          2.025,
+          2.05,
+          2.075,
+          2.1,
+          2.125,
+          2.15,
+          2.175,
+          2.2,
+          2.225,
+          2.25,
+          2.275,
+          2.3,
+          2.325,
+          2.35,
+          2.375,
+          2.4,
+          2.425,
+          2.45,
+          2.475,
+          2.5,
+          2.55,
+          2.6,
+          2.65,
+          2.7,
+          2.75,
+          2.8,
+          2.85,
+          2.9,
+          2.95,
+          3.0,
+          3.05,
+          3.1,
+          3.15,
+          3.2,
+          3.25,
+          3.3,
+          3.35,
+          3.4,
+          3.45,
+          3.5,
+          3.55,
+          3.6,
+          3.65,
+          3.7,
+          3.75,
+          3.8,
+          3.85,
+          3.9,
+          3.95,
+          4.0
+        ],
+        "headings_deg_to": [
+          0.0,
+          15.0,
+          30.0,
+          45.0,
+          60.0,
+          75.0,
+          90.0,
+          105.0,
+          120.0,
+          135.0,
+          150.0,
+          165.0,
+          180.0,
+          195.0,
+          210.0,
+          225.0,
+          240.0,
+          255.0,
+          270.0,
+          285.0,
+          300.0,
+          315.0,
+          330.0,
+          345.0
+        ]
+      },
+      "resolution": {
+        "max_panel_radius_m": 1.767766952966369,
+        "underresolved_frequencies_rad_s": [
+          2.1,
+          2.125,
+          2.15,
+          2.175,
+          2.2,
+          2.225,
+          2.25,
+          2.275,
+          2.3,
+          2.325,
+          2.35,
+          2.375,
+          2.4,
+          2.425,
+          2.45,
+          2.475,
+          2.5,
+          2.55,
+          2.6,
+          2.65,
+          2.7,
+          2.75,
+          2.8,
+          2.85,
+          2.9,
+          2.95,
+          3.0,
+          3.05,
+          3.1,
+          3.15,
+          3.2,
+          3.25,
+          3.3,
+          3.35,
+          3.4,
+          3.45,
+          3.5,
+          3.55,
+          3.6,
+          3.65,
+          3.7,
+          3.75,
+          3.8,
+          3.85,
+          3.9,
+          3.95,
+          4.0
+        ]
+      },
+      "all_finite": true,
+      "failed_matrix_checks": [
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 20,
+          "symmetry_relative_error": 0.010456839817451128,
+          "normalized_min_eigenvalue": 5.110137877210883e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 21,
+          "symmetry_relative_error": 0.011885083984730553,
+          "normalized_min_eigenvalue": 5.92869532441009e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 22,
+          "symmetry_relative_error": 0.013176235652553823,
+          "normalized_min_eigenvalue": 5.9806895353281076e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 23,
+          "symmetry_relative_error": 0.011117717144140494,
+          "normalized_min_eigenvalue": 2.6931587704341966e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 100,
+          "symmetry_relative_error": 0.0011016601783936115,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 101,
+          "symmetry_relative_error": 0.014970775100560501,
+          "normalized_min_eigenvalue": -0.003353238570696195
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 103,
+          "symmetry_relative_error": 0.004616245583911548,
+          "normalized_min_eigenvalue": -0.017781267739152302
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 105,
+          "symmetry_relative_error": 0.005809536573275804,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 106,
+          "symmetry_relative_error": 0.013829888749407711,
+          "normalized_min_eigenvalue": -0.018510855239491423
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 109,
+          "symmetry_relative_error": 0.00970015288036747,
+          "normalized_min_eigenvalue": -0.37215162561980003
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 110,
+          "symmetry_relative_error": 0.0297103354175689,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 113,
+          "symmetry_relative_error": 0.0187274997287633,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 114,
+          "symmetry_relative_error": 0.017941581866626456,
+          "normalized_min_eigenvalue": -0.0003851091932521182
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 115,
+          "symmetry_relative_error": 0.010050780803409811,
+          "normalized_min_eigenvalue": -0.20608657115033627
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 117,
+          "symmetry_relative_error": 0.0033071270751474035,
+          "normalized_min_eigenvalue": -0.24738641966774697
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 118,
+          "symmetry_relative_error": 0.011699468027555619,
+          "normalized_min_eigenvalue": 2.3376984618766275e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 119,
+          "symmetry_relative_error": 0.02845433231354216,
+          "normalized_min_eigenvalue": -0.0016756578383724733
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 120,
+          "symmetry_relative_error": 0.046180817194295544,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 121,
+          "symmetry_relative_error": 0.03342918432943734,
+          "normalized_min_eigenvalue": -0.006027781929867808
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 122,
+          "symmetry_relative_error": 0.054683357243936394,
+          "normalized_min_eigenvalue": -0.007724581463602907
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 123,
+          "symmetry_relative_error": 0.3591480877214533,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 124,
+          "symmetry_relative_error": 0.07858991256474647,
+          "normalized_min_eigenvalue": -0.08546699652432245
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 125,
+          "symmetry_relative_error": 0.05276444773374036,
+          "normalized_min_eigenvalue": -0.18188107621657792
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 126,
+          "symmetry_relative_error": 0.04022371397302965,
+          "normalized_min_eigenvalue": -0.004334417745830514
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 127,
+          "symmetry_relative_error": 0.04060297532309661,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 128,
+          "symmetry_relative_error": 0.0705381924543754,
+          "normalized_min_eigenvalue": -0.008843962876563862
+        }
+      ]
+    },
+    {
+      "wet_panels": 6896,
+      "provenance_sha256": "6dba80ef270f6ab3a6c2f6538a64f5cb2978a5481c12ec4ee194329bdfde09c1",
+      "output_sha256": "4552faeec4e3d53ab91960e6f4399252a69bd09aa05da7b38dfbb390e49399b2",
+      "solver_status": "failed",
+      "configuration": {
+        "name": "semisub-981-mesh6896-refinement",
+        "center_of_mass_m_z_up": [
+          0.0,
+          0.0,
+          17.353925353925355
+        ],
+        "mass_kg": 53095000.0,
+        "density_kg_m3": 1025.0,
+        "water_depth_m": 200.0,
+        "forward_speed_mps": 0.0,
+        "frequencies_rad_s": [
+          0.55,
+          0.575,
+          0.6,
+          0.625,
+          2.1,
+          2.5,
+          4.0
+        ],
+        "headings_deg_to": [
+          0.0,
+          45.0,
+          90.0
+        ]
+      },
+      "resolution": {
+        "max_panel_radius_m": 1.0606601717798212,
+        "underresolved_frequencies_rad_s": [
+          4.0
+        ]
+      },
+      "all_finite": true,
+      "failed_matrix_checks": [
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 1,
+          "symmetry_relative_error": 0.011033483244837022,
+          "normalized_min_eigenvalue": 6.847303590442416e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 2,
+          "symmetry_relative_error": 0.012574952830426927,
+          "normalized_min_eigenvalue": 6.944598224402731e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 3,
+          "symmetry_relative_error": 0.010768008250284901,
+          "normalized_min_eigenvalue": 3.8358138032836925e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 6,
+          "symmetry_relative_error": 0.011086813461699247,
+          "normalized_min_eigenvalue": 0.00018674262916290095
+        }
+      ]
+    },
+    {
+      "wet_panels": 6896,
+      "provenance_sha256": "65d3f4d0468fbc9dc0fffff68abc1ecf57e844b1abaa11d4ee43bb0e7c9c5bec",
+      "output_sha256": "e54feb1dfe47980f8c7cd4d67d194c5c185c7f562d5c5229911757530c6c9052",
+      "solver_status": "failed",
+      "configuration": {
+        "name": "semisub-981-mesh6896-full",
+        "center_of_mass_m_z_up": [
+          0.0,
+          0.0,
+          17.353925353925355
+        ],
+        "mass_kg": 53095000.0,
+        "density_kg_m3": 1025.0,
+        "water_depth_m": 200.0,
+        "forward_speed_mps": 0.0,
+        "frequencies_rad_s": [
+          0.05,
+          0.075,
+          0.1,
+          0.125,
+          0.15,
+          0.175,
+          0.2,
+          0.225,
+          0.25,
+          0.275,
+          0.3,
+          0.325,
+          0.35,
+          0.375,
+          0.4,
+          0.425,
+          0.45,
+          0.475,
+          0.5,
+          0.525,
+          0.55,
+          0.575,
+          0.6,
+          0.625,
+          0.65,
+          0.675,
+          0.7,
+          0.725,
+          0.75,
+          0.775,
+          0.8,
+          0.825,
+          0.85,
+          0.875,
+          0.9,
+          0.925,
+          0.95,
+          0.975,
+          1.0,
+          1.025,
+          1.05,
+          1.075,
+          1.1,
+          1.125,
+          1.15,
+          1.175,
+          1.2,
+          1.225,
+          1.25,
+          1.275,
+          1.3,
+          1.325,
+          1.35,
+          1.375,
+          1.4,
+          1.425,
+          1.45,
+          1.475,
+          1.5,
+          1.525,
+          1.55,
+          1.575,
+          1.6,
+          1.625,
+          1.65,
+          1.675,
+          1.7,
+          1.725,
+          1.75,
+          1.775,
+          1.8,
+          1.825,
+          1.85,
+          1.875,
+          1.9,
+          1.925,
+          1.95,
+          1.975,
+          2.0,
+          2.025,
+          2.05,
+          2.075,
+          2.1,
+          2.125,
+          2.15,
+          2.175,
+          2.2,
+          2.225,
+          2.25,
+          2.275,
+          2.3,
+          2.325,
+          2.35,
+          2.375,
+          2.4,
+          2.425,
+          2.45,
+          2.475,
+          2.5,
+          2.55,
+          2.6,
+          2.65,
+          2.7,
+          2.75,
+          2.8,
+          2.85,
+          2.9,
+          2.95,
+          3.0,
+          3.05,
+          3.1,
+          3.15,
+          3.2,
+          3.25,
+          3.3,
+          3.35,
+          3.4,
+          3.45,
+          3.5,
+          3.55,
+          3.6,
+          3.65,
+          3.7,
+          3.75,
+          3.8,
+          3.85,
+          3.9,
+          3.95,
+          4.0
+        ],
+        "headings_deg_to": [
+          0.0
+        ]
+      },
+      "resolution": {
+        "max_panel_radius_m": 1.0606601717798212,
+        "underresolved_frequencies_rad_s": [
+          2.7,
+          2.75,
+          2.8,
+          2.85,
+          2.9,
+          2.95,
+          3.0,
+          3.05,
+          3.1,
+          3.15,
+          3.2,
+          3.25,
+          3.3,
+          3.35,
+          3.4,
+          3.45,
+          3.5,
+          3.55,
+          3.6,
+          3.65,
+          3.7,
+          3.75,
+          3.8,
+          3.85,
+          3.9,
+          3.95,
+          4.0
+        ]
+      },
+      "all_finite": true,
+      "failed_matrix_checks": [
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 21,
+          "symmetry_relative_error": 0.011033483244837022,
+          "normalized_min_eigenvalue": 6.847303590442416e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 22,
+          "symmetry_relative_error": 0.012574952830426927,
+          "normalized_min_eigenvalue": 6.944598224402731e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 23,
+          "symmetry_relative_error": 0.010768008250284901,
+          "normalized_min_eigenvalue": 3.8358138032836925e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 103,
+          "symmetry_relative_error": 0.0014811114072809087,
+          "normalized_min_eigenvalue": -0.014840721990320603
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 105,
+          "symmetry_relative_error": 0.030566657432220336,
+          "normalized_min_eigenvalue": -0.027207013982484384
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 110,
+          "symmetry_relative_error": 0.031345941928372756,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 113,
+          "symmetry_relative_error": 0.006246020354091299,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 115,
+          "symmetry_relative_error": 0.012393839839607365,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 117,
+          "symmetry_relative_error": 0.011645375537700588,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 119,
+          "symmetry_relative_error": 0.000746373202130935,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 123,
+          "symmetry_relative_error": 0.0004574183570556547,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 124,
+          "symmetry_relative_error": 0.020818968877482424,
+          "normalized_min_eigenvalue": -0.15262640036420397
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 126,
+          "symmetry_relative_error": 0.012228528802798103,
+          "normalized_min_eigenvalue": 5.976177611751311e-05
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 127,
+          "symmetry_relative_error": 0.012210802392526874,
+          "normalized_min_eigenvalue": -1.0
+        },
+        {
+          "quantity": "radiation_damping",
+          "frequency_index": 128,
+          "symmetry_relative_error": 0.011086813461699247,
+          "normalized_min_eigenvalue": 0.00018674262916290095
+        }
+      ]
+    }
+  ],
+  "convergence": [
+    {
+      "coarse_wet_panels": 688,
+      "fine_wet_panels": 2432,
+      "common_omega_rad_s": [
+        0.05,
+        0.075,
+        0.1,
+        0.125,
+        0.15,
+        0.175,
+        0.2,
+        0.225,
+        0.25,
+        0.275,
+        0.3,
+        0.325,
+        0.35,
+        0.375,
+        0.4,
+        0.425,
+        0.45,
+        0.475,
+        0.5,
+        0.525,
+        0.55,
+        0.575,
+        0.6,
+        0.625,
+        0.65,
+        0.675,
+        0.7,
+        0.725,
+        0.75,
+        0.775,
+        0.8,
+        0.825,
+        0.85,
+        0.875,
+        0.9,
+        0.925,
+        0.95,
+        0.975,
+        1.0,
+        1.025,
+        1.05,
+        1.075,
+        1.1,
+        1.125,
+        1.15,
+        1.175,
+        1.2,
+        1.225,
+        1.25,
+        1.275,
+        1.3,
+        1.325,
+        1.35,
+        1.375,
+        1.4,
+        1.425,
+        1.45,
+        1.475,
+        1.5,
+        1.525,
+        1.55,
+        1.575,
+        1.6,
+        1.625,
+        1.65,
+        1.675,
+        1.7,
+        1.725,
+        1.75,
+        1.775,
+        1.8,
+        1.825,
+        1.85,
+        1.875,
+        1.9,
+        1.925,
+        1.95,
+        1.975,
+        2.0,
+        2.025,
+        2.05,
+        2.075,
+        2.1,
+        2.125,
+        2.15,
+        2.175,
+        2.2,
+        2.225,
+        2.25,
+        2.275,
+        2.3,
+        2.325,
+        2.35,
+        2.375,
+        2.4,
+        2.425,
+        2.45,
+        2.475,
+        2.5,
+        2.55,
+        2.6,
+        2.65,
+        2.7,
+        2.75,
+        2.8,
+        2.85,
+        2.9,
+        2.95,
+        3.0,
+        3.05,
+        3.1,
+        3.15,
+        3.2,
+        3.25,
+        3.3,
+        3.35,
+        3.4,
+        3.45,
+        3.5,
+        3.55,
+        3.6,
+        3.65,
+        3.7,
+        3.75,
+        3.8,
+        3.85,
+        3.9,
+        3.95,
+        4.0
+      ],
+      "common_headings_rad": [
+        0.0,
+        0.2617993877991494,
+        0.5235987755982988,
+        0.7853981633974483,
+        1.0471975511965976,
+        1.3089969389957472,
+        1.5707963267948966,
+        1.8325957145940461,
+        2.0943951023931953,
+        2.356194490192345,
+        2.6179938779914944,
+        2.8797932657906435,
+        3.141592653589793,
+        3.4033920413889427,
+        3.6651914291880923,
+        3.9269908169872414,
+        4.1887902047863905,
+        4.4505895925855405,
+        4.71238898038469,
+        4.974188368183839,
+        5.235987755982989,
+        5.497787143782138,
+        5.759586531581287,
+        6.021385919380437
+      ],
+      "length_normalized_relative_l2": {
+        "added_mass": 0.049665092723326934,
+        "radiation_damping": 2.290336624636093,
+        "excitation_force": 0.6428758032352044,
+        "RAO": 0.8993241043570724
+      },
+      "rao_channel_order": [
+        "Surge",
+        "Sway",
+        "Heave",
+        "Roll",
+        "Pitch",
+        "Yaw"
+      ],
+      "rao_peak_relative_change": [
+        2.9685490753335e-05,
+        1.69657124496429e-05,
+        0.8308709857027544,
+        0.017011029340689,
+        0.29097858008596267,
+        0.0053731334277659195
+      ],
+      "peak_comparison_scope": "common discrete samples only"
+    },
+    {
+      "coarse_wet_panels": 2432,
+      "fine_wet_panels": 6896,
+      "common_omega_rad_s": [
+        0.55,
+        0.575,
+        0.6,
+        0.625,
+        2.1,
+        2.5,
+        4.0
+      ],
+      "common_headings_rad": [
+        0.0,
+        0.7853981633974483,
+        1.5707963267948966
+      ],
+      "length_normalized_relative_l2": {
+        "added_mass": 0.009538034943436264,
+        "radiation_damping": 0.04066233647336901,
+        "excitation_force": 0.014208337003320453,
+        "RAO": 0.005000042739549277
+      },
+      "rao_channel_order": [
+        "Surge",
+        "Sway",
+        "Heave",
+        "Roll",
+        "Pitch",
+        "Yaw"
+      ],
+      "rao_peak_relative_change": [
+        0.0022282072040381083,
+        0.004870183098658487,
+        0.002445236459110782,
+        0.00298981579121564,
+        0.006679505607390909,
+        0.0014222788524668737
+      ],
+      "peak_comparison_scope": "common discrete samples only"
+    },
+    {
+      "coarse_wet_panels": 6896,
+      "fine_wet_panels": 6896,
+      "common_omega_rad_s": [
+        0.55,
+        0.575,
+        0.6,
+        0.625,
+        2.1,
+        2.5,
+        4.0
+      ],
+      "common_headings_rad": [
+        0.0
+      ],
+      "length_normalized_relative_l2": {
+        "added_mass": 5.578931794056151e-17,
+        "radiation_damping": 1.431416084314462e-16,
+        "excitation_force": 1.1132711840149844e-16,
+        "RAO": 2.2018772297673426e-16
+      },
+      "rao_channel_order": [
+        "Surge",
+        "Sway",
+        "Heave",
+        "Roll",
+        "Pitch",
+        "Yaw"
+      ],
+      "rao_peak_relative_change": [
+        6.379726822888665e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "peak_comparison_scope": "common discrete samples only"
+    }
+  ],
+  "precision_reference_targets": {
+    "volume_relative_error": 0.01,
+    "response_peak_relative_change": 0.03
+  },
+  "not_ready": [
+    "validated full-frequency reciprocity",
+    "converged response peaks",
+    "forward-speed coefficients",
+    "online consumption"
+  ],
+  "geometry_sha256": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+  "comparison_arrays_sha256": "4d2470147e4d8a75a4c1342647de88c7482d875c710035887e429ba43f0430df"
+}

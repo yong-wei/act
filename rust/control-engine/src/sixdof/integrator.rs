@@ -8,6 +8,12 @@
 /// 积分步进错误（分型报告合同：issue §4 非有限/不可行/越域的步进器侧对应）。
 #[derive(Debug, Clone, PartialEq)]
 pub enum IntegrationError {
+    InvalidTimeStep { dt_s: f64 },
+    InvalidActuatorCommand(String),
+    InvalidSpecialistState(String),
+    InvalidRadiationState(String),
+    InvalidWaveData(String),
+    ActuatorConstraintInfeasible { shaft_index: usize, speed_rad_s: f64 },
     /// 需要的细分步长小于下限（1/960 s 仍不满足接触刚度）。
     ContactStiffnessBudgetExceeded { required_dt: f64 },
     /// 状态出现非有限值，运行必须终止并保留诊断。

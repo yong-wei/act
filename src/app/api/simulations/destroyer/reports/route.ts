@@ -18,7 +18,7 @@ export async function GET() {
   const userId = session?.user?.id;
   if (!userId) return NextResponse.json({ error: '请先登录。' }, { status: 401 });
   const reports = await prisma.virtualSimulationReport.findMany({
-    where: { userId, experimentKey: DESTROYER_EXPERIMENT_KEY },
+    where: { userId, experimentKey: DESTROYER_EXPERIMENT_KEY, status: 'finalized' },
     orderBy: { createdAt: 'desc' },
     take: 30,
     select: { id: true, score: true, maxScore: true, createdAt: true },

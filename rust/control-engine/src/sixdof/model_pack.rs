@@ -43,6 +43,28 @@ pub struct PackGeometry {
     pub waterline_area_m2: f64,
     #[serde(default)]
     pub inertia_about_cg_kg_m2: InertiaEntry,
+    #[serde(default)]
+    pub hydrostatic_stiffness_si: Option<[[f64; 6]; 6]>,
+    #[serde(default)]
+    pub cruise_speed_mps: Option<f64>,
+    #[serde(default)]
+    pub center_of_mass_waterline_z_up_m: Option<[f64; 3]>,
+    #[serde(default)]
+    pub equilibrium_pitch_rad: f64,
+    #[serde(default)]
+    pub nonlinear_hydrostatics: Option<super::hydrostatics::HydrostaticHull>,
+    #[serde(default)]
+    pub liquid_tanks: Vec<super::coupled_sloshing::LiquidTank>,
+    #[serde(default)]
+    pub liquid_initial_state: Vec<f64>,
+    #[serde(default)]
+    pub passive_radiation: Option<super::coupled_radiation::PassiveRadiationModel>,
+    #[serde(default)]
+    pub hydrodynamic_depth_m: Option<f64>,
+    #[serde(default)]
+    pub wind_model: Option<super::vessel_wind::VesselWindModel>,
+    #[serde(default)]
+    pub wave_model: Option<super::vessel_wave::WaveModelBinding>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -75,10 +97,11 @@ pub struct PackManeuveringHull {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub struct PackManeuvering {
-    pub hull: PackManeuveringHull,
-    pub low_speed: PackLowSpeed,
+#[serde(untagged)]
+pub enum PackManeuvering {
+    Components { component_drag: super::component_drag::ComponentDragDefinition },
+    Mapped { mapped_mmg: super::hull_mmg::MappedMmgHull },
+    Legacy { hull: PackManeuveringHull, low_speed: PackLowSpeed },
 }
 
 #[derive(Debug, Deserialize)]
@@ -90,11 +113,17 @@ pub struct PackLowSpeed {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub struct PackActuators {
-    pub propeller: PackPropeller,
-    pub shaft: PackShaft,
-    pub rudder: PackRudder,
+#[serde(untagged)]
+pub enum PackActuators {
+    Physical {
+        system: super::actuator_system::ActuatorSystem,
+        initial_state: super::state::ActuatorStates,
+    },
+    Legacy {
+        propeller: PackPropeller,
+        shaft: PackShaft,
+        rudder: PackRudder,
+    },
 }
 
 #[derive(Debug, Deserialize)]
@@ -144,9 +173,14 @@ pub enum PackError {
     MassVolumeMismatch { mass_kg: f64, rho_v_kg: f64 },
     GyrationRadiusOutOfBounds { axis: char, radius_m: f64, lpp: f64 },
     NonFiniteValue { field: &'static str },
+    InvalidHydrostaticHull { reason: String },
+    InvalidLiquidTank { reason: String },
+    InvalidRadiation { reason: String },
+    InvalidWindGeometry { reason: String },
+    InvalidWaveModel { reason: String },
 }
 
-fn fnv1a(bytes: &[u8]) -> u64 {
+pub(crate) fn fnv1a(bytes: &[u8]) -> u64 {
     let mut hash: u64 = 0xcbf29ce484222325;
     for byte in bytes {
         hash ^= *byte as u64;
@@ -156,7 +190,7 @@ fn fnv1a(bytes: &[u8]) -> u64 {
 }
 
 /// 规范化 JSON（key 排序、无空白）→ 十六进制哈希。
-fn normalized_hash(value: &serde_json::Value) -> String {
+pub(crate) fn normalized_hash(value: &serde_json::Value) -> String {
     let canonical = canonicalize(value);
     let compact = serde_json::to_string(&canonical).unwrap_or_default();
     format!("fnv1a-{:016x}", fnv1a(compact.as_bytes()))
@@ -201,10 +235,112 @@ pub fn load_model_pack(
     }
     let geometry: PackGeometry = serde_json::from_str(geometry_json)
         .map_err(|_| PackError::SchemaMismatch { expect: "geometry", got: String::new() })?;
+    if let Some(binding) = &geometry.wave_model {
+        binding.validate().map_err(|reason| PackError::InvalidWaveModel { reason })?;
+        if geometry.hydrodynamic_depth_m.is_some_and(|depth| (depth-binding.water_depth_m).abs() > 1e-8) {
+            return Err(PackError::InvalidWaveModel { reason: "波浪和辐射数据的水深不一致".into() });
+        }
+    }
+    if geometry.hydrodynamic_depth_m.is_some_and(|depth| !depth.is_finite() || depth <= 0.0) {
+        return Err(PackError::NonFiniteValue { field: "hydrodynamic-depth" });
+    }
     let maneuvering: PackManeuvering = serde_json::from_str(maneuvering_json)
         .map_err(|_| PackError::SchemaMismatch { expect: "maneuvering", got: String::new() })?;
+    if let PackManeuvering::Mapped { mapped_mmg } = &maneuvering {
+        if !mapped_mmg.validate() {
+            return Err(PackError::NonFiniteValue { field: "mapped-mmg" });
+        }
+    }
+    if let PackManeuvering::Components { component_drag } = &maneuvering {
+        component_drag.compile().map_err(|_| PackError::NonFiniteValue { field: "component-drag" })?;
+    }
     let actuators: PackActuators = serde_json::from_str(actuators_json)
         .map_err(|_| PackError::SchemaMismatch { expect: "actuators", got: String::new() })?;
+    if let PackActuators::Physical { system, initial_state } = &actuators {
+        system.validate().map_err(|_| PackError::NonFiniteValue { field: "actuator-system" })?;
+        system.validate_state(initial_state).map_err(|_| PackError::NonFiniteValue { field: "initial-actuators" })?;
+    }
+    let rigid = super::dynamics::RigidBodyParams {
+        mass_kg: geometry.displacement_mass_kg,
+        inertia_about_cg: [
+            [geometry.inertia_about_cg_kg_m2.ixx, 0.0, 0.0],
+            [0.0, geometry.inertia_about_cg_kg_m2.iyy, 0.0],
+            [0.0, 0.0, geometry.inertia_about_cg_kg_m2.izz],
+        ],
+    };
+    let mut added_mass = [[0.0; 6]; 6];
+    if let Some(model) = &geometry.passive_radiation {
+        model.validate().map_err(|reason| PackError::InvalidRadiation { reason })?;
+        added_mass = model.added_mass();
+    }
+    let mass = super::dynamics::mass_matrix(&rigid, &super::dynamics::AddedMassParams { a_inf: added_mass });
+    if geometry.passive_radiation.is_some() && !super::state::symmetric_positive_definite_6(&mass) {
+        return Err(PackError::InvalidRadiation { reason: "刚体与同源附加质量矩阵无效".into() });
+    }
+    let liquid = if geometry.liquid_tanks.is_empty() {
+        if !geometry.liquid_initial_state.is_empty() {
+            return Err(PackError::InvalidLiquidTank { reason: "无液舱参数的初始液面状态".into() });
+        }
+        None
+    } else {
+        Some(super::coupled_sloshing::CoupledSloshing::new(&geometry.liquid_tanks, &rigid, mass)
+            .map_err(|reason| PackError::InvalidLiquidTank { reason })?)
+    };
+    let liquid_initial = liquid.as_ref().map(|model| {
+        if geometry.liquid_initial_state.is_empty() {
+            vec![0.0; model.state_len()]
+        } else {
+            geometry.liquid_initial_state.clone()
+        }
+    }).unwrap_or_default();
+    if let Some(model) = &liquid {
+        model.validate_state(&liquid_initial).map_err(|reason| PackError::InvalidLiquidTank { reason })?;
+    }
+    if let Some(stiffness) = geometry.hydrostatic_stiffness_si {
+        if stiffness.iter().flatten().any(|value| !value.is_finite())
+            || stiffness[2][2] <= 0.0 || stiffness[3][3] <= 0.0 || stiffness[4][4] <= 0.0
+        {
+            return Err(PackError::NonFiniteValue { field: "hydrostatic-stiffness" });
+        }
+    }
+    if let Some(hull) = &geometry.nonlinear_hydrostatics {
+        hull.validate().map_err(|reason| PackError::InvalidHydrostaticHull { reason })?;
+        if !geometry.equilibrium_pitch_rad.is_finite() {
+            return Err(PackError::NonFiniteValue { field: "equilibrium-pitch" });
+        }
+        let half_pitch = geometry.equilibrium_pitch_rad / 2.0;
+        let state = super::state::TruthState {
+            quaternion: [half_pitch.cos(), 0.0, half_pitch.sin(), 0.0],
+            ..Default::default()
+        };
+        let equilibrium = hull.evaluate(&state, geometry.displacement_mass_kg, SEA_WATER_DENSITY);
+        let weight = geometry.displacement_mass_kg * 9.81;
+        let mut balanced_restoring = equilibrium.restoring_body;
+        if let Some(model) = &liquid {
+            let mut physical_mass = mass;
+            let acceleration = super::dynamics::solve_linear_6(&mut physical_mass,
+                equilibrium.restoring_body.map(|value| -value));
+            let coupled = model.evaluate(&state, &liquid_initial, acceleration)
+                .map_err(|reason| PackError::InvalidLiquidTank { reason })?;
+            balanced_restoring = std::array::from_fn(|row| {
+                -(0..6).map(|column| mass[row][column]*coupled.body_acceleration[column]).sum::<f64>()
+            });
+            if coupled.modal_derivatives.iter().any(|value| value.abs() > 1e-6) {
+                return Err(PackError::InvalidLiquidTank { reason: "初始液面与静水姿态未平衡".into() });
+            }
+        }
+        let force_error = balanced_restoring[..3].iter().map(|value| value.abs()).fold(0.0, f64::max);
+        let moment_error = balanced_restoring[3..].iter().map(|value| value.abs()).fold(0.0, f64::max);
+        if !force_error.is_finite() || !moment_error.is_finite()
+            || force_error > weight * 1e-6 || moment_error > weight * geometry.lpp_m * 1e-6
+        {
+            return Err(PackError::InvalidHydrostaticHull { reason: "声明的初始姿态与排水/重心不平衡".into() });
+        }
+    }
+
+    if let Some(wind) = &geometry.wind_model {
+        wind.validate().map_err(|reason| PackError::InvalidWindGeometry { reason })?;
+    }
 
     // 门禁 1：Lpp ≤ LOA（分立字段禁混用）。
     if geometry.lpp_m > geometry.loa_m + 1e-9 {
@@ -269,4 +405,386 @@ pub fn embedded_destroyer_055() -> Result<PackModel, PackError> {
         include_str!("../../model-data/destroyer-055/v1/actuators.json"),
         include_str!("../../model-data/destroyer-055/v1/provenance.json"),
     )
+}
+
+pub fn embedded_destroyer_055_v2() -> Result<PackModel, PackError> {
+    load_model_pack(
+        include_str!("../../model-data/destroyer-055/v2/manifest.json"),
+        include_str!("../../model-data/destroyer-055/v2/geometry.json"),
+        include_str!("../../model-data/destroyer-055/v2/maneuvering.json"),
+        include_str!("../../model-data/destroyer-055/v2/actuators.json"),
+        include_str!("../../model-data/destroyer-055/v2/provenance.json"),
+    )
+}
+
+/// 独立源剖面湿面及经包络核验的安装修订。
+pub fn embedded_destroyer_055_v3() -> Result<PackModel, PackError> {
+    load_model_pack(
+        include_str!("../../model-data/destroyer-055/v3/manifest.json"),
+        include_str!("../../model-data/destroyer-055/v3/geometry.json"),
+        include_str!("../../model-data/destroyer-055/v3/maneuvering.json"),
+        include_str!("../../model-data/destroyer-055/v3/actuators.json"),
+        include_str!("../../model-data/destroyer-055/v3/provenance.json"),
+    )
+}
+
+/// 保留v3湿面并接入源几何自由板的非线性静水版本。
+pub fn embedded_destroyer_055_v4() -> Result<PackModel, PackError> {
+    load_model_pack(
+        include_str!("../../model-data/destroyer-055/v4/manifest.json"),
+        include_str!("../../model-data/destroyer-055/v4/geometry.json"),
+        include_str!("../../model-data/destroyer-055/v4/maneuvering.json"),
+        include_str!("../../model-data/destroyer-055/v4/actuators.json"),
+        include_str!("../../model-data/destroyer-055/v4/provenance.json"),
+    )
+}
+
+pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, PackError> {
+    match (vessel, version) {
+        ("destroyer-055", "research-nominal-v3") => embedded_destroyer_055_v3(),
+        ("destroyer-055", "research-nominal-v4") => embedded_destroyer_055_v4(),
+        ("destroyer-055", "research-nominal-v5") => load_model_pack(
+            include_str!("../../model-data/destroyer-055/v5/manifest.json"),
+            include_str!("../../model-data/destroyer-055/v5/geometry.json"),
+            include_str!("../../model-data/destroyer-055/v5/maneuvering.json"),
+            include_str!("../../model-data/destroyer-055/v5/actuators.json"),
+            include_str!("../../model-data/destroyer-055/v5/provenance.json"),
+        ),
+        ("destroyer-055", "research-nominal-v6") => load_model_pack(
+            include_str!("../../model-data/destroyer-055/v6/manifest.json"),
+            include_str!("../../model-data/destroyer-055/v6/geometry.json"),
+            include_str!("../../model-data/destroyer-055/v6/maneuvering.json"),
+            include_str!("../../model-data/destroyer-055/v6/actuators.json"),
+            include_str!("../../model-data/destroyer-055/v6/provenance.json"),
+        ),
+        ("lng-changheng" | "container-msc", "research-nominal-v1" | "research-nominal-v2" | "research-nominal-v3") => loading_model_pack(vessel, version, None, None),
+        ("semisub-981", "research-nominal-v1") => load_model_pack(
+            include_str!("../../model-data/semisub-981/v1/manifest.json"),
+            include_str!("../../model-data/semisub-981/v1/geometry.json"),
+            include_str!("../../model-data/semisub-981/v1/maneuvering.json"),
+            include_str!("../../model-data/semisub-981/v1/actuators.json"),
+            include_str!("../../model-data/semisub-981/v1/provenance.json"),
+        ),
+        ("semisub-981", "research-nominal-v2") => load_model_pack(
+            include_str!("../../model-data/semisub-981/v2/manifest.json"),
+            include_str!("../../model-data/semisub-981/v2/geometry.json"),
+            include_str!("../../model-data/semisub-981/v2/maneuvering.json"),
+            include_str!("../../model-data/semisub-981/v2/actuators.json"),
+            include_str!("../../model-data/semisub-981/v2/provenance.json"),
+        ),
+        ("semisub-981", "research-nominal-v3") => load_model_pack(
+            include_str!("../../model-data/semisub-981/v3/manifest.json"),
+            include_str!("../../model-data/semisub-981/v3/geometry.json"),
+            include_str!("../../model-data/semisub-981/v3/maneuvering.json"),
+            include_str!("../../model-data/semisub-981/v3/actuators.json"),
+            include_str!("../../model-data/semisub-981/v3/provenance.json"),
+        ),
+        ("semisub-981", "research-nominal-v4") => load_model_pack(
+            include_str!("../../model-data/semisub-981/v4/manifest.json"),
+            include_str!("../../model-data/semisub-981/v4/geometry.json"),
+            include_str!("../../model-data/semisub-981/v4/maneuvering.json"),
+            include_str!("../../model-data/semisub-981/v4/actuators.json"),
+            include_str!("../../model-data/semisub-981/v4/provenance.json"),
+        ),
+        ("semisub-981", "research-nominal-v5") => load_model_pack(
+            include_str!("../../model-data/semisub-981/v5/manifest.json"),
+            include_str!("../../model-data/semisub-981/v5/geometry.json"),
+            include_str!("../../model-data/semisub-981/v5/maneuvering.json"),
+            include_str!("../../model-data/semisub-981/v5/actuators.json"),
+            include_str!("../../model-data/semisub-981/v5/provenance.json"),
+        ),
+        ("cruise-adora", "research-nominal-v1") => load_model_pack(
+            include_str!("../../model-data/cruise-adora/v1/manifest.json"),
+            include_str!("../../model-data/cruise-adora/v1/geometry.json"),
+            include_str!("../../model-data/cruise-adora/v1/maneuvering.json"),
+            include_str!("../../model-data/cruise-adora/v1/actuators.json"),
+            include_str!("../../model-data/cruise-adora/v1/provenance.json"),
+        ),
+        ("cruise-adora", "research-nominal-v2") => load_model_pack(
+            include_str!("../../model-data/cruise-adora/v2/manifest.json"),
+            include_str!("../../model-data/cruise-adora/v2/geometry.json"),
+            include_str!("../../model-data/cruise-adora/v2/maneuvering.json"),
+            include_str!("../../model-data/cruise-adora/v2/actuators.json"),
+            include_str!("../../model-data/cruise-adora/v2/provenance.json"),
+        ),
+        ("cruise-adora", "research-nominal-v3") => load_model_pack(
+            include_str!("../../model-data/cruise-adora/v3/manifest.json"),
+            include_str!("../../model-data/cruise-adora/v3/geometry.json"),
+            include_str!("../../model-data/cruise-adora/v3/maneuvering.json"),
+            include_str!("../../model-data/cruise-adora/v3/actuators.json"),
+            include_str!("../../model-data/cruise-adora/v3/provenance.json"),
+        ),
+        ("icebreaker-xuelong2", "research-nominal-v1") => load_model_pack(
+            include_str!("../../model-data/icebreaker-xuelong2/v1/manifest.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v1/geometry.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v1/maneuvering.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v1/actuators.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v1/provenance.json"),
+        ),
+        ("icebreaker-xuelong2", "research-nominal-v2") => load_model_pack(
+            include_str!("../../model-data/icebreaker-xuelong2/v2/manifest.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v2/geometry.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v2/maneuvering.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v2/actuators.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v2/provenance.json"),
+        ),
+        ("icebreaker-xuelong2", "research-nominal-v3") => load_model_pack(
+            include_str!("../../model-data/icebreaker-xuelong2/v3/manifest.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v3/geometry.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v3/maneuvering.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v3/actuators.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v3/provenance.json"),
+        ),
+        ("dredger-tianjing", "research-nominal-v1") => load_model_pack(
+            include_str!("../../model-data/dredger-tianjing/v1/manifest.json"),
+            include_str!("../../model-data/dredger-tianjing/v1/geometry.json"),
+            include_str!("../../model-data/dredger-tianjing/v1/maneuvering.json"),
+            include_str!("../../model-data/dredger-tianjing/v1/actuators.json"),
+            include_str!("../../model-data/dredger-tianjing/v1/provenance.json"),
+        ),
+        ("dredger-tianjing", "research-nominal-v2") => load_model_pack(
+            include_str!("../../model-data/dredger-tianjing/v2/manifest.json"),
+            include_str!("../../model-data/dredger-tianjing/v2/geometry.json"),
+            include_str!("../../model-data/dredger-tianjing/v2/maneuvering.json"),
+            include_str!("../../model-data/dredger-tianjing/v2/actuators.json"),
+            include_str!("../../model-data/dredger-tianjing/v2/provenance.json"),
+        ),
+        ("dredger-tianjing", "research-nominal-v3") => load_model_pack(
+            include_str!("../../model-data/dredger-tianjing/v3/manifest.json"),
+            include_str!("../../model-data/dredger-tianjing/v3/geometry.json"),
+            include_str!("../../model-data/dredger-tianjing/v3/maneuvering.json"),
+            include_str!("../../model-data/dredger-tianjing/v3/actuators.json"),
+            include_str!("../../model-data/dredger-tianjing/v3/provenance.json"),
+        ),
+        _ => Err(PackError::SchemaMismatch { expect: "supported-embedded-vessel-version",
+            got: format!("{vessel}@{version}") }),
+    }
+}
+
+#[derive(Deserialize)]
+struct LoadingTable {
+    schema: String,
+    vessel: String,
+    model_version: String,
+    base_geometry_fnv1a: String,
+    baseline_loading_ratio: f64,
+    cases: Vec<LoadingCase>,
+}
+
+#[derive(Deserialize)]
+struct LoadingCase {
+    loading_ratio: f64,
+    hull_origin_shift_body_m: [f64; 3],
+    geometry: serde_json::Map<String, serde_json::Value>,
+    maneuvering: serde_json::Value,
+    actuators: serde_json::Value,
+    provenance: serde_json::Value,
+}
+
+/// 加载比例在重置时选择冻结参数，运行中的质量与船体几何保持不变。
+pub fn embedded_vessel_pack_with_loading(
+    vessel: &str,
+    version: &str,
+    loading_ratio: Option<f64>,
+) -> Result<PackModel, PackError> {
+    match loading_ratio {
+        None => embedded_vessel_pack(vessel, version),
+        Some(ratio) if matches!((vessel, version),
+            ("lng-changheng" | "container-msc", "research-nominal-v1" | "research-nominal-v2" | "research-nominal-v3")) => loading_model_pack(vessel, version, Some(ratio), None),
+        Some(_) => Err(PackError::SchemaMismatch {
+            expect: "vessel-with-loading-definition", got: format!("{vessel}@{version}"),
+        }),
+    }
+}
+
+pub fn embedded_vessel_pack_with_water_depth(
+    vessel: &str,
+    version: &str,
+    loading_ratio: Option<f64>,
+    water_depth_m: Option<f64>,
+) -> Result<PackModel, PackError> {
+    if water_depth_m.is_some() {
+        if !matches!(vessel, "lng-changheng" | "container-msc")
+            || !matches!(version, "research-nominal-v2" | "research-nominal-v3") {
+            return Err(PackError::SchemaMismatch {
+                expect: "vessel-with-finite-depth-definition", got: format!("{vessel}@{version}"),
+            });
+        }
+        loading_model_pack(vessel, version, loading_ratio, water_depth_m)
+    } else {
+        embedded_vessel_pack_with_loading(vessel, version, loading_ratio)
+    }
+}
+
+fn loading_model_pack(vessel: &str, version: &str, ratio: Option<f64>, depth: Option<f64>) -> Result<PackModel, PackError> {
+    let files = match (vessel, version) {
+        ("lng-changheng", "research-nominal-v1") => [
+            include_str!("../../model-data/lng-changheng/v1/manifest.json"),
+            include_str!("../../model-data/lng-changheng/v1/geometry.json"),
+            include_str!("../../model-data/lng-changheng/v1/maneuvering.json"),
+            include_str!("../../model-data/lng-changheng/v1/actuators.json"),
+            include_str!("../../model-data/lng-changheng/v1/provenance.json"),
+            include_str!("../../model-data/lng-changheng/v1/loading-cases.json"),
+        ],
+        ("container-msc", "research-nominal-v1") => [
+            include_str!("../../model-data/container-msc/v1/manifest.json"),
+            include_str!("../../model-data/container-msc/v1/geometry.json"),
+            include_str!("../../model-data/container-msc/v1/maneuvering.json"),
+            include_str!("../../model-data/container-msc/v1/actuators.json"),
+            include_str!("../../model-data/container-msc/v1/provenance.json"),
+            include_str!("../../model-data/container-msc/v1/loading-cases.json"),
+        ],
+        ("lng-changheng", "research-nominal-v2") => [
+            include_str!("../../model-data/lng-changheng/v2/manifest.json"),
+            include_str!("../../model-data/lng-changheng/v2/geometry.json"),
+            include_str!("../../model-data/lng-changheng/v2/maneuvering.json"),
+            include_str!("../../model-data/lng-changheng/v2/actuators.json"),
+            include_str!("../../model-data/lng-changheng/v2/provenance.json"),
+            include_str!("../../model-data/lng-changheng/v2/loading-cases.json"),
+        ],
+        ("container-msc", "research-nominal-v2") => [
+            include_str!("../../model-data/container-msc/v2/manifest.json"),
+            include_str!("../../model-data/container-msc/v2/geometry.json"),
+            include_str!("../../model-data/container-msc/v2/maneuvering.json"),
+            include_str!("../../model-data/container-msc/v2/actuators.json"),
+            include_str!("../../model-data/container-msc/v2/provenance.json"),
+            include_str!("../../model-data/container-msc/v2/loading-cases.json"),
+        ],
+        ("lng-changheng", "research-nominal-v3") => [
+            include_str!("../../model-data/lng-changheng/v3/manifest.json"),
+            include_str!("../../model-data/lng-changheng/v3/geometry.json"),
+            include_str!("../../model-data/lng-changheng/v3/maneuvering.json"),
+            include_str!("../../model-data/lng-changheng/v3/actuators.json"),
+            include_str!("../../model-data/lng-changheng/v3/provenance.json"),
+            include_str!("../../model-data/lng-changheng/v3/loading-cases.json"),
+        ],
+        ("container-msc", "research-nominal-v3") => [
+            include_str!("../../model-data/container-msc/v3/manifest.json"),
+            include_str!("../../model-data/container-msc/v3/geometry.json"),
+            include_str!("../../model-data/container-msc/v3/maneuvering.json"),
+            include_str!("../../model-data/container-msc/v3/actuators.json"),
+            include_str!("../../model-data/container-msc/v3/provenance.json"),
+            include_str!("../../model-data/container-msc/v3/loading-cases.json"),
+        ],
+        _ => return Err(PackError::SchemaMismatch { expect: "loading-vessel", got: vessel.into() }),
+    };
+    let [manifest, geometry, maneuvering, actuators, provenance, table] = files;
+    let hydrodynamics = match (vessel, version) {
+        ("lng-changheng", "research-nominal-v2") => Some(include_str!("../../model-data/lng-changheng/v2/hydrodynamic-cases.json")),
+        ("container-msc", "research-nominal-v2") => Some(include_str!("../../model-data/container-msc/v2/hydrodynamic-cases.json")),
+        ("lng-changheng", "research-nominal-v3") => Some(include_str!("../../model-data/lng-changheng/v3/hydrodynamic-cases.json")),
+        ("container-msc", "research-nominal-v3") => Some(include_str!("../../model-data/container-msc/v3/hydrodynamic-cases.json")),
+        _ => None,
+    };
+    let load_selected = |selected_geometry: &str, selected_maneuvering: &str, selected_actuators: &str, selected_provenance: &str| {
+        if let Some(bank) = hydrodynamics {
+            load_hydrodynamic_case([manifest, selected_geometry, selected_maneuvering, selected_actuators, selected_provenance],
+                bank, geometry, ratio, depth)
+        } else {
+            load_model_pack(manifest, selected_geometry, selected_maneuvering, selected_actuators, selected_provenance)
+        }
+    };
+    let Some(ratio) = ratio else {
+        return load_selected(geometry, maneuvering, actuators, provenance);
+    };
+    let invalid = || PackError::SchemaMismatch { expect: "frozen-loading-case", got: ratio.to_string() };
+    let table: LoadingTable = serde_json::from_str(table).map_err(|_| invalid())?;
+    if !ratio.is_finite() || table.schema != "act.vessel-loading-cases.v1" || table.vessel != vessel
+        || table.model_version != version
+        || table.base_geometry_fnv1a != format!("{:016x}", fnv1a(geometry.as_bytes()))
+    {
+        return Err(invalid());
+    }
+    if (ratio - table.baseline_loading_ratio).abs() < 1e-12 {
+        return load_selected(geometry, maneuvering, actuators, provenance);
+    }
+    let mut case = table.cases.into_iter()
+        .find(|case| (case.loading_ratio - ratio).abs() < 1e-12).ok_or_else(invalid)?;
+    if case.hull_origin_shift_body_m.iter().any(|value| !value.is_finite()) {
+        return Err(invalid());
+    }
+    let base_geometry: PackGeometry = serde_json::from_str(geometry).map_err(|_| invalid())?;
+    let mut hull = base_geometry.nonlinear_hydrostatics.ok_or_else(invalid)?;
+    for point in &mut hull.vertices_body_m {
+        for (value, shift) in point.iter_mut().zip(case.hull_origin_shift_body_m) {
+            *value += shift;
+        }
+    }
+    let selected: PackGeometry = serde_json::from_value(serde_json::Value::Object(case.geometry.clone()))
+        .map_err(|_| invalid())?;
+    hull.cg_waterline_height_m = selected.center_of_mass_waterline_z_up_m.ok_or_else(invalid)?[2];
+    case.geometry.insert("nonlinear_hydrostatics".into(), serde_json::to_value(hull).map_err(|_| invalid())?);
+    load_selected(&serde_json::to_string(&case.geometry).map_err(|_| invalid())?,
+        &case.maneuvering.to_string(), &case.actuators.to_string(), &case.provenance.to_string())
+}
+
+#[derive(Deserialize)]
+struct HydrodynamicTable {
+    schema: String,
+    vessel: String,
+    model_version: String,
+    base_geometry_fnv1a: String,
+    baseline_loading_ratio: f64,
+    default_water_depth_m: f64,
+    cases: Vec<HydrodynamicCase>,
+}
+
+#[derive(Deserialize)]
+struct HydrodynamicCase {
+    loading_ratio: f64,
+    water_depth_m: f64,
+    geometry_condition: serde_json::Map<String, serde_json::Value>,
+    passive_radiation: serde_json::Value,
+    provenance: serde_json::Value,
+    #[serde(default)]
+    wave_model: Option<serde_json::Value>,
+}
+
+fn load_hydrodynamic_case(
+    inputs: [&str; 5],
+    bank: &str,
+    base_geometry: &str,
+    loading_ratio: Option<f64>,
+    depth: Option<f64>,
+) -> Result<PackModel, PackError> {
+    let invalid = || PackError::SchemaMismatch { expect: "frozen-hydrodynamic-case", got: String::new() };
+    let table: HydrodynamicTable = serde_json::from_str(bank).map_err(|_| invalid())?;
+    let manifest: PackManifest = serde_json::from_str(inputs[0]).map_err(|_| invalid())?;
+    if table.schema != "act.vessel-hydrodynamic-cases.v1" || table.vessel != manifest.vessel
+        || table.model_version != manifest.model_version
+        || table.base_geometry_fnv1a != format!("{:016x}", fnv1a(base_geometry.as_bytes())) {
+        return Err(invalid());
+    }
+    let ratio = loading_ratio.unwrap_or(table.baseline_loading_ratio);
+    let depth = depth.unwrap_or(table.default_water_depth_m);
+    if !ratio.is_finite() || !depth.is_finite() || depth <= 0.0 { return Err(invalid()); }
+    let case = table.cases.into_iter().find(|case| (case.loading_ratio-ratio).abs() < 1e-12
+        && (case.water_depth_m-depth).abs() < 1e-8).ok_or_else(invalid)?;
+    let depth = case.water_depth_m;
+    let mut geometry: serde_json::Map<String, serde_json::Value> = serde_json::from_str(inputs[1]).map_err(|_| invalid())?;
+    if case.geometry_condition.iter().any(|(key, value)| geometry.get(key) != Some(value)) {
+        return Err(invalid());
+    }
+    geometry.insert("passive_radiation".into(), case.passive_radiation);
+    geometry.insert("hydrodynamic_depth_m".into(), serde_json::json!(depth));
+    if let Some(binding) = case.wave_model {
+        geometry.insert("wave_model".into(), binding);
+    }
+    let mut provenance: serde_json::Value = serde_json::from_str(inputs[4]).map_err(|_| invalid())?;
+    let entries = provenance["entries"].as_array_mut().ok_or_else(invalid)?;
+    entries.retain(|entry| !entry["parameter"].as_str().is_some_and(|name|
+        name.starts_with("geometry.passive_radiation") || name == "geometry.hydrodynamic_depth_m"
+            || name.starts_with("geometry.wave_model.")));
+    entries.extend(case.provenance["entries"].as_array().ok_or_else(invalid)?.iter().cloned());
+    provenance["hydrodynamic_condition"] = serde_json::json!({
+        "loading_ratio": ratio, "water_depth_m": depth, "source": case.provenance,
+    });
+    provenance["radiation_fit_sha256"] = case.provenance["radiation_fit_validation_sha256"].clone();
+    provenance["radiation_coefficient_producer_sha256"] = case.provenance["radiation_coefficient_producer_sha256"].clone();
+    provenance["radiation_error"] = serde_json::json!({
+        "relative_a_error": case.provenance["relative_a_error"],
+        "relative_b_error": case.provenance["relative_b_error"],
+    });
+    load_model_pack(inputs[0], &serde_json::to_string(&geometry).map_err(|_| invalid())?,
+        inputs[2], inputs[3], &provenance.to_string())
 }

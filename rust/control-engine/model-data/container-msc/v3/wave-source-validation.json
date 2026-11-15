@@ -1,0 +1,136 @@
+{
+  "schema": "act.loading-wave-pack.validation.v1",
+  "status": "assembled-frozen-teaching-reference",
+  "base_pack_manifest_sha256": "71323e641d94b77bd26778607536250f45dd6dbde6eb1e78cccc20ab6c7936cb",
+  "source_evidence_sha256": "0f80aef0b32813bd1b3f24c9196d4186bcb6049183d3dd67b7a5752f37aaf0b1",
+  "source_arrays_sha256": "fbd4e98e61a1958e4665f2c4cdeb576d67ae08f7c715dbd29b755c45050350f0",
+  "generator_sha256": "6d844078ce6753e055ff40cdbff4598fef8bc2164def0d81ebee5d1ad354cbe4",
+  "helper_sha256": {
+    "build_destroyer_pack.py": "ca75f0d9de419eb3f8eefd8a77244d4df054e72c37174aedf196f0f4566379f2",
+    "build_loading_cases.py": "084f2ad1c327699a0194106dc04592570df410ba2625987ec11ff94bc382291a",
+    "build_wave_pack.py": "ac3eeff32b90b881d5256745906adbbc3d2783cd660b541b9e21a829ab4727dc"
+  },
+  "approximation": "Frozen zero-speed coefficients at discrete loading/depth. Actual position retains encounter phase.",
+  "conditions": [
+    {
+      "loading_ratio": 0.2,
+      "water_depth_m": 200,
+      "source_geometry_sha256": "2a4c6eab9e02bf5780743d0458d9e8587ba8bbe69e26f9570e2225b5d3e5e7e0",
+      "source_case_index": 0,
+      "source_failed_matrix_checks": 44,
+      "quantization_relative_l2_per_channel": [
+        2.4213898588175243e-08,
+        2.639686600146021e-08,
+        2.5503452833921025e-08,
+        2.4963407744856866e-08,
+        2.3956880245700318e-08,
+        2.6859105886632247e-08
+      ],
+      "metadata_sha256": "449551966771d4e66d1a52244e876c967ad61b24035d277afa4cf4f2fcd68536",
+      "data_sha256": "b9bffe2d8fcacd63794d4bcb87b5313d71672e2214f0be86fd87c5c4bafccba5",
+      "symmetric_mesh_validation_sha256": "053cab7e2b8236498d05cf6f007b43dec0e815e8e9918a310c816973825e6755",
+      "binding": {
+        "first_order_metadata_fnv1a64": "fnv1a-60222a4714bd0d87",
+        "full_difference_metadata_fnv1a64": null,
+        "water_depth_m": 200,
+        "mean_forward_speed_mps": 0.0
+      }
+    },
+    {
+      "loading_ratio": 0.35,
+      "water_depth_m": 200,
+      "source_geometry_sha256": "39ec6a9e9328e1bc9b952c2c62881752697ec3c543a45026143f1fb189822e3c",
+      "source_case_index": 1,
+      "source_failed_matrix_checks": 43,
+      "quantization_relative_l2_per_channel": [
+        2.5071460676923642e-08,
+        2.3522597572474585e-08,
+        2.5540247013284215e-08,
+        2.6051479319172328e-08,
+        2.5617026264668777e-08,
+        2.569630135841241e-08
+      ],
+      "metadata_sha256": "96b4ea24f6ceb41192338c2872dd75a24bdaca3c1a4947ff59af9bc06eba8917",
+      "data_sha256": "8c356466814a6e8105f8b3de94d9d35ae3adeb00e703b4eacfc5a934f55dcaf4",
+      "symmetric_mesh_validation_sha256": "20a279447eac3757e1c9b2243e1195dba2b4f6575b43027f85113d3dae79b60c",
+      "binding": {
+        "first_order_metadata_fnv1a64": "fnv1a-60ccddf76f5e75e9",
+        "full_difference_metadata_fnv1a64": null,
+        "water_depth_m": 200,
+        "mean_forward_speed_mps": 0.0
+      }
+    },
+    {
+      "loading_ratio": 0.6,
+      "water_depth_m": 200,
+      "source_geometry_sha256": "4ee86a13d589f3c299093245cca477521705f90cf47253aeab9f8605cb21e768",
+      "source_case_index": 2,
+      "source_failed_matrix_checks": 31,
+      "quantization_relative_l2_per_channel": [
+        2.659009788494347e-08,
+        2.543745208087767e-08,
+        2.7477582537696242e-08,
+        2.682733017523945e-08,
+        2.3641749702820655e-08,
+        2.455390825861723e-08
+      ],
+      "metadata_sha256": "6fd280d8b3f1e76fdeeb2990ede376ec83560ce1dff36811831efbcbf8894f83",
+      "data_sha256": "d2bd04e0c6c5412ff43a334091bb071bc92bb22d2743694d4c95e2a71c937651",
+      "symmetric_mesh_validation_sha256": "2f10aecbb06af5713929ca9e6078e366971edcfea221bb8b86213a8a75dabcb1",
+      "binding": {
+        "first_order_metadata_fnv1a64": "fnv1a-9d3426d708dfe9d0",
+        "full_difference_metadata_fnv1a64": null,
+        "water_depth_m": 200,
+        "mean_forward_speed_mps": 0.0
+      }
+    },
+    {
+      "loading_ratio": 0.8,
+      "water_depth_m": 200,
+      "source_geometry_sha256": "d89e766563cf262b5beac632a854371c50d5a33cbe7f38053d6ad0fbddd75d5a",
+      "source_case_index": 3,
+      "source_failed_matrix_checks": 21,
+      "quantization_relative_l2_per_channel": [
+        2.5595821839722675e-08,
+        2.636527160705361e-08,
+        2.4932331519147622e-08,
+        2.495495686076495e-08,
+        2.4878156217434135e-08,
+        2.8240048498384934e-08
+      ],
+      "metadata_sha256": "fd72ccf2ba362632e09dccc310d24b9b4431501001c870225e8ac0c01729adda",
+      "data_sha256": "d91e10155621c6adfe443289aa396cc47fef331a67ef5de358bc0e45b1a92984",
+      "symmetric_mesh_validation_sha256": "8cde2123b6b71d684ade0cc9520352597b0bafcd344428724ed2223cd9f69ac1",
+      "binding": {
+        "first_order_metadata_fnv1a64": "fnv1a-51c79e60d641b426",
+        "full_difference_metadata_fnv1a64": null,
+        "water_depth_m": 200,
+        "mean_forward_speed_mps": 0.0
+      }
+    },
+    {
+      "loading_ratio": 0.9,
+      "water_depth_m": 200,
+      "source_geometry_sha256": "86f8492a9dff4d30739464f4fde872f6c572d81c537b4ea03707d5854969df14",
+      "source_case_index": 4,
+      "source_failed_matrix_checks": 15,
+      "quantization_relative_l2_per_channel": [
+        2.5329409654899368e-08,
+        2.5184460666773454e-08,
+        2.3559117173129802e-08,
+        2.457806846646307e-08,
+        2.485540554814345e-08,
+        2.662598491421931e-08
+      ],
+      "metadata_sha256": "3ee0ab6cc16e80d5987646d10999b253884b9f26551ade4189e0553295e5c5df",
+      "data_sha256": "55415327440ba70882df1346cf4fbaf7e991571e551504a148caf683a8827818",
+      "symmetric_mesh_validation_sha256": "de47da0d5078398c2f341b86567dc4d4addaca8e70037c4f4dd5335a8a1a9bad",
+      "binding": {
+        "first_order_metadata_fnv1a64": "fnv1a-ae34cb4a6ba01019",
+        "full_difference_metadata_fnv1a64": null,
+        "water_depth_m": 200,
+        "mean_forward_speed_mps": 0.0
+      }
+    }
+  ]
+}

@@ -1,12 +1,12 @@
-import { randomBytes } from 'node:crypto';
-
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 import {
   assertDestroyerStepOrder,
   chooseBetterDestroyerAttempt,
   buildDestroyerReportHtml,
+  DESTROYER_EXPERIMENT_KEY,
   DESTROYER_EXPERIMENT_TITLE,
   DESTROYER_MAX_POINTS,
   DESTROYER_STEP_BY_SEQ,
@@ -22,18 +22,37 @@ import type { IlabGrantPayload } from './grant-cookie';
 import { recognizeSketch } from './sketch-recognition';
 import { ILAB_PROJECT_TITLE, buildIlabUploadBody, type IlabUploadBody, type StoredIlabStep } from './payload';
 import { assertIlabRunOpen, IlabServiceError, toIlabHttpError, withIlabRunLock } from './run-lock';
-import { buildSafeStepWindow, ilabConfig, resolveSessionAuth, uploadWithAutoRefresh } from './session-shared';
+import { buildSafeStepWindow, ilabConfig, safeUploadWithAutoRefresh } from './session-shared';
+import type { IlabAuthUserSummary } from './adapters/ilab-account-service';
+import { syncPlatformReportForIlabRun } from './adapters/ilab-report-sync';
+import {
+  assertIlabRunAccess,
+  openIlabRun,
+  mergeStepDrafts,
+  parseStepDrafts,
+  resolveIlabUploadMode,
+  resolveUnifiedSessionActor,
+} from './adapters/ilab-session-lifecycle';
 
 export { toIlabHttpError };
 
 export interface DestroyerSessionView {
+  experimentVersion: string;
+  userId: string | null;
   originId: string;
   displayName: string;
   status: number;
   score: number;
   uploadStatus: string;
+  uploadMode: 'local-only' | 'dev-bypass' | 'ilab-remote';
+  retryableUpload: boolean;
   currentSeq: number;
+  draftActiveSeq?: number;
   reportReady: boolean;
+  reportId: string | null;
+  reportClientRef?: string;
+  reportHtml: string | null;
+  stepDrafts: Record<string, Record<string, string>>;
   steps: Array<{
     seq: number;
     title: string;
@@ -47,6 +66,10 @@ export interface DestroyerSessionView {
 }
 
 interface RunRecord {
+  id: string;
+  userId: string | null;
+  reportId: string | null;
+  experimentVersion: string;
   originId: string;
   appId: string;
   ilabUsername: string;
@@ -57,6 +80,7 @@ interface RunRecord {
   status: number;
   score: number;
   steps: Prisma.JsonValue;
+  stepDrafts: Prisma.JsonValue;
   aiLedger: Prisma.JsonValue;
   reportHtml: string | null;
   uploadStatus: string;
@@ -105,14 +129,25 @@ function currentSeq(steps: StoredDestroyerStep[]): number {
 
 function viewOf(run: RunRecord): DestroyerSessionView {
   const steps = readSteps(run.steps);
+  const drafts = parseStepDrafts(run.stepDrafts);
+  const uploadMode = resolveIlabUploadMode(run);
   return {
+    experimentVersion: run.experimentVersion,
+    userId: run.userId,
     originId: run.originId,
     displayName: run.displayName,
     status: run.status,
     score: run.score,
     uploadStatus: run.uploadStatus,
+    uploadMode,
+    retryableUpload: uploadMode === 'ilab-remote' && (run.uploadStatus === 'failed' || run.uploadStatus === 'score-uploaded'),
     currentSeq: currentSeq(steps),
+    ...(drafts.activeSeq !== undefined ? { draftActiveSeq: drafts.activeSeq } : {}),
     reportReady: Boolean(run.reportHtml),
+    reportId: run.reportId,
+    reportHtml: run.reportHtml,
+    stepDrafts: drafts.bySeq,
+    ...(typeof drafts.courseState?.reportClientRef === 'string' ? { reportClientRef: drafts.courseState.reportClientRef } : {}),
     steps: steps.map((step) => ({
       seq: step.seq,
       title: step.title,
@@ -137,38 +172,59 @@ async function findRun(originId: string): Promise<RunRecord> {
 
 export type OpenDestroyerSessionResult =
   | { connected: false }
-  | { connected: true; session: DestroyerSessionView; grantToSet: IlabGrantPayload };
+  | {
+      connected: true;
+      resumed: boolean;
+      session: DestroyerSessionView;
+      grantToSet: IlabGrantPayload | null;
+      user: IlabAuthUserSummary | null;
+    };
 
 export async function openDestroyerSession(input: {
   ticket?: string;
   grant?: IlabGrantPayload | null;
+  experimentVersion?: string;
+  forceNew?: boolean;
+  platformUser?: { id: string; name?: string | null } | null;
 }): Promise<OpenDestroyerSessionResult> {
-  const auth = await resolveSessionAuth(input.ticket ?? '', input.grant ?? null);
-  if (!auth) {
+  const experimentVersion = input.experimentVersion ?? 'legacy-v1';
+  if (experimentVersion !== 'legacy-v1' && experimentVersion !== VESSEL_COURSE_VERSION) {
+    throw new IlabServiceError('实验步骤版本无效。', 400);
+  }
+  const actor = await resolveUnifiedSessionActor({
+    ticket: input.ticket,
+    grant: input.grant,
+    platformUser: input.platformUser,
+  });
+  if (!actor) {
     return { connected: false };
   }
-  const { grant } = auth;
-  const originId = `dds_${Date.now().toString(36)}_${randomBytes(4).toString('hex')}`;
-  const runStartTimeMs = Math.max(Date.now(), grant.issuedAtMs);
-  const run = await prisma.ilabExperimentRun.create({
-    data: {
-      originId,
-      appId: grant.appId,
-      ilabUsername: grant.username,
-      displayName: grant.displayName,
-      accessToken: grant.accessToken,
-      tokenExpiresAt: grant.expiresAtMs ? new Date(grant.expiresAtMs) : null,
-      startTimeMs: BigInt(runStartTimeMs),
-      vesselId: 'destroyer-055',
-      steps: [],
-      aiLedger: emptyAiLedger() as unknown as Prisma.InputJsonValue,
-    },
+
+  const { run, resumed } = await openIlabRun({
+    actor,
+    vesselId: 'destroyer-055',
+    originPrefix: 'dds_',
+    experimentVersion,
+    forceNew: input.forceNew,
   });
-  return { connected: true, session: viewOf(run), grantToSet: grant };
+  return {
+    connected: true,
+    resumed,
+    session: viewOf(run),
+    grantToSet: actor.grantToSet,
+    user: actor.user,
+  };
 }
 
-export async function readDestroyerSession(originId: string): Promise<DestroyerSessionView> {
-  return viewOf(await findRun(originId));
+export async function readDestroyerSession(
+  originId: string,
+  actor?: { userId?: string | null; grant?: IlabGrantPayload | null },
+): Promise<DestroyerSessionView> {
+  const run = await findRun(originId);
+  if (actor) {
+    await assertIlabRunAccess(run, actor);
+  }
+  return viewOf(run);
 }
 
 export async function submitDestroyerStep(originId: string, input: {
@@ -180,6 +236,9 @@ export async function submitDestroyerStep(originId: string, input: {
 }): Promise<DestroyerSessionView> {
   if (!/^dds_[A-Za-z0-9_]{1,48}$/.test(originId)) {
     throw new IlabServiceError('实验记录编号无效。', 400);
+  }
+  if ((await findRun(originId)).experimentVersion !== 'legacy-v1') {
+    throw new IlabServiceError('请通过本次实验的证据提交入口提交新版步骤。', 409);
   }
   const definition = DESTROYER_STEP_BY_SEQ.get(input.seq);
   if (!definition) throw new IlabServiceError('实验步骤不存在。', 400);
@@ -226,11 +285,16 @@ export async function submitDestroyerStep(originId: string, input: {
       readings,
     };
     const nextSteps = [...steps.filter((step) => step.seq !== input.seq), stored];
+    const nextDrafts = mergeStepDrafts(run.stepDrafts, {
+      removeSeq: input.seq,
+      activeSeq: currentSeq(nextSteps),
+    });
     const ledger = recognition?.ok ? recordAiCall(readLedger(run.aiLedger), recognition.call) : readLedger(run.aiLedger);
     return tx.ilabExperimentRun.update({
       where: { originId },
       data: {
         steps: nextSteps as unknown as Prisma.InputJsonValue,
+        stepDrafts: nextDrafts as unknown as Prisma.InputJsonValue,
         aiLedger: ledger as unknown as Prisma.InputJsonValue,
         score: Math.round(nextSteps.reduce((sum, step) => sum + step.earnedPoints, 0) / DESTROYER_MAX_POINTS * 100),
       },
@@ -244,10 +308,31 @@ export async function completeDestroyerSession(originId: string): Promise<{
   upload: IlabUploadBody | null;
   remote: { message: string };
   refreshedGrant: IlabGrantPayload | null;
+  reportSaved: boolean;
+  reportId: string | null;
+  retryableUpload: boolean;
 }> {
   const run = await findRun(originId);
-  if (run.status === 1 && run.reportHtml && run.uploadStatus === 'uploaded') {
-    return { session: viewOf(run), upload: null, remote: { message: '实验成绩和报告已经回传。' }, refreshedGrant: null };
+  if (run.experimentVersion !== 'legacy-v1') {
+    throw new IlabServiceError('新版实验需通过课程报告提交流程同步至实验空间。', 409);
+  }
+  const uploadMode = resolveIlabUploadMode(run);
+  if (
+    run.status === 1
+    && run.reportHtml
+    && (run.uploadStatus === 'uploaded' || run.uploadStatus === 'local-only' || run.uploadStatus === 'skipped')
+  ) {
+    return {
+      session: viewOf(run),
+      upload: null,
+      remote: {
+        message: run.uploadStatus === 'local-only' ? '实验报告已保存到本平台账号。' : '实验成绩和报告已经回传。',
+      },
+      refreshedGrant: null,
+      reportSaved: Boolean(run.reportId),
+      reportId: run.reportId,
+      retryableUpload: false,
+    };
   }
   const steps = readSteps(run.steps);
   const done = new Set(steps.map((step) => step.seq));
@@ -255,11 +340,59 @@ export async function completeDestroyerSession(originId: string): Promise<{
     if (!done.has(seq)) throw new IlabServiceError('请先完成全部实验步骤。', 422);
   }
   const ledger = readLedger(run.aiLedger);
+  const earnedTotal = steps.reduce((sum, item) => sum + item.earnedPoints, 0);
   const reportHtml = buildDestroyerReportHtml({
     displayName: run.displayName,
     steps,
   });
-  const bypass = run.accessToken === 'dev-bypass-token';
+  const stepScores = steps.map((item) => ({
+    seq: item.seq,
+    title: item.title,
+    earnedPoints: item.earnedPoints,
+    maxPoints: item.maxPoints,
+    evaluation: item.evaluation,
+    remarks: item.remarks,
+  }));
+
+  const { reportId } = await syncPlatformReportForIlabRun({
+    runId: run.id,
+    userId: run.userId,
+    experimentKey: DESTROYER_EXPERIMENT_KEY,
+    experimentVersion: 'legacy-v1',
+    title: DESTROYER_EXPERIMENT_TITLE,
+    score: earnedTotal,
+    maxScore: DESTROYER_MAX_POINTS,
+    reportHtml,
+    stepScores,
+  });
+
+  if (uploadMode === 'local-only') {
+    const endTimeMs = Date.now();
+    const timeUsedSeconds = Math.max(1, Math.floor((endTimeMs - Number(run.startTimeMs)) / 1000));
+    const saved = await prisma.ilabExperimentRun.update({
+      where: { originId },
+      data: {
+        status: 1,
+        score: Math.round((earnedTotal / DESTROYER_MAX_POINTS) * 100),
+        endTimeMs: BigInt(endTimeMs),
+        timeUsedSeconds,
+        reportHtml,
+        uploadStatus: 'local-only',
+        ...(reportId ? { reportId } : {}),
+      },
+    });
+    return {
+      session: viewOf(saved),
+      upload: null,
+      remote: { message: reportId ? '实验报告已保存到本平台账号。' : '报告已在本机生成。' },
+      refreshedGrant: null,
+      reportSaved: Boolean(reportId),
+      reportId,
+      retryableUpload: false,
+    };
+  }
+
+  const bypass = uploadMode === 'dev-bypass';
   const config = ilabConfig();
   const upload = buildIlabUploadBody({
     username: run.ilabUsername,
@@ -284,27 +417,50 @@ export async function completeDestroyerSession(originId: string): Promise<{
         reportHtml,
         uploadStatus: 'skipped',
         uploadResult: { skipped: true, reason: 'dev-bypass' },
+        ...(reportId ? { reportId } : {}),
       },
     });
     return {
       session: viewOf(saved),
       upload,
-      remote: { message: '本地演示没有回传实验空间。报告已生成。' },
+      remote: { message: reportId ? '本地演示没有回传实验空间。报告已保存到账号。' : '本地演示没有回传实验空间。报告已生成。' },
       refreshedGrant: null,
+      reportSaved: Boolean(reportId),
+      reportId,
+      retryableUpload: false,
     };
   }
-  const { saved, refreshedGrant } = await uploadWithAutoRefresh<RunRecord>({
-    run,
+
+  const uploadOutcome = await safeUploadWithAutoRefresh<RunRecord>({
+    run: reportId ? { ...run, reportId } : run,
     config,
     upload,
     reportFilename: 'destroyer-experiment-report.html',
     reportTitle: `${DESTROYER_EXPERIMENT_TITLE}实验报告`,
     reportHtml,
   });
+
+  if (!uploadOutcome.ok) {
+    return {
+      session: viewOf({ ...uploadOutcome.saved, reportId: uploadOutcome.saved.reportId ?? reportId }),
+      upload,
+      remote: {
+        message: `实验记录与报告已保存到本平台，但实验空间回传暂未成功（${uploadOutcome.errorMessage}），请点击“重新回传实验空间”重试。`,
+      },
+      refreshedGrant: null,
+      reportSaved: Boolean(reportId),
+      reportId,
+      retryableUpload: true,
+    };
+  }
+
   return {
-    session: viewOf(saved),
+    session: viewOf({ ...uploadOutcome.saved, reportId: uploadOutcome.saved.reportId ?? reportId }),
     upload,
-    remote: { message: '成绩和实验报告已回传。' },
-    refreshedGrant,
+    remote: { message: reportId ? '成绩和实验报告已回传，并已同步保存到本平台账号。' : '成绩和实验报告已回传。' },
+    refreshedGrant: uploadOutcome.refreshedGrant,
+    reportSaved: Boolean(reportId),
+    reportId,
+    retryableUpload: false,
   };
 }

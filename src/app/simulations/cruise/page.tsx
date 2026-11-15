@@ -110,7 +110,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
   return (
     <SimulationShell
       title="爱达·魔都号邮轮横摇控制"
-      subtitle="舒适性导向控制 · 减摇稳定与黑箱识别任务"
+      subtitle="转向耦合 · 减摇鳍与乘客舒适性"
       activeHref="/simulations/cruise"
       guideHref="/supporting/guide-04-cruise.pdf"
       returnHref={returnHref}

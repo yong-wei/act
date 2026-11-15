@@ -1,0 +1,148 @@
+{
+  "schema": "act.offline-hydrodynamics.benchmark.v1",
+  "fidelity": "research-nominal",
+  "generator_sha256": "10b2c0a95b01f77843c88cbd1fc86c28bbf6e5f49e23edf9b9696f7170e13d3f",
+  "qtf_output_sha256": "55a34f23f1f607217ef7438151f8c78e0d95fb36d1a507da26ddc7d580420ca7",
+  "qtf_numeric_rows": 12870,
+  "qtf_all_finite": true,
+  "qtf_comparisons": {
+    "1": {
+      "samples": 1275,
+      "relative_l2_complex": 0.6620232973624164,
+      "relative_l2_magnitude": 0.288292566567898,
+      "max_absolute_error_si": 487108.72575244546,
+      "reference_sha256": "ee670378b7a1a5a6c664b290880e56b98c8a8716f83bbc10db1fe21434a2e3b1"
+    },
+    "3": {
+      "samples": 1275,
+      "relative_l2_complex": 0.15633297785003675,
+      "relative_l2_magnitude": 0.08090681240114032,
+      "max_absolute_error_si": 42648.669322500056,
+      "reference_sha256": "11a2f0e6f04534b900c223a35f9b04163eea91e8c8bcda9965f78ddd2471efa5"
+    },
+    "5": {
+      "samples": 1275,
+      "relative_l2_complex": 0.3624509876413446,
+      "relative_l2_magnitude": 0.17373690593992389,
+      "max_absolute_error_si": 1512021.6208937732,
+      "reference_sha256": "e69116324057a99a11224834fd5d5ce2724d3a24d18faa546a56f8bc7ba60091"
+    }
+  },
+  "first_order_comparisons": {
+    "Surge_added_mass": {
+      "samples": 50,
+      "relative_l2_complex": 0.0050365516510149436,
+      "relative_l2_magnitude": 0.0050365516510149436,
+      "max_absolute_error_si": 6669.617168469471
+    },
+    "Surge_radiation_damping": {
+      "samples": 50,
+      "relative_l2_complex": 0.00979419653497694,
+      "relative_l2_magnitude": 0.00979419653497694,
+      "max_absolute_error_si": 6803.2360116487835
+    },
+    "Heave_added_mass": {
+      "samples": 50,
+      "relative_l2_complex": 0.0014639901611765383,
+      "relative_l2_magnitude": 0.0014639901611765383,
+      "max_absolute_error_si": 833.2013950441033
+    },
+    "Heave_radiation_damping": {
+      "samples": 50,
+      "relative_l2_complex": 0.018571622073979065,
+      "relative_l2_magnitude": 0.018571622073979065,
+      "max_absolute_error_si": 744.4669905825112
+    },
+    "Pitch_added_mass": {
+      "samples": 50,
+      "relative_l2_complex": 0.004757638883099935,
+      "relative_l2_magnitude": 0.004757638883099935,
+      "max_absolute_error_si": 97981.94606415369
+    },
+    "Pitch_radiation_damping": {
+      "samples": 50,
+      "relative_l2_complex": 0.0028691286420818017,
+      "relative_l2_magnitude": 0.0028691286420818017,
+      "max_absolute_error_si": 38740.80239340849
+    }
+  },
+  "build": {
+    "cmake_version": "3.31.6",
+    "compiler": {
+      "CMAKE_Fortran_COMPILER_ID": "GNU",
+      "CMAKE_Fortran_COMPILER_VERSION": "15.2.0"
+    },
+    "cache_sha256": "beb26580b7558caf6b6322eba9b54568428b75d4191c06e3471194e57000d625",
+    "configuration": {
+      "CMAKE_BUILD_TYPE": "Release",
+      "CMAKE_Fortran_FLAGS": "",
+      "CMAKE_Fortran_FLAGS_RELEASE": "-O3",
+      "BUILD_TESTING": "OFF"
+    }
+  },
+  "first_order_output_sha256": "27cca054fb10e1450f1dce9218eebe034c027cf8c3b381ff58ab7223949ff2f2",
+  "aquaplus_source_sha256": "d05ed02f9813c453ea4a8ce4ece880886f8ca45a455b7d4c49dfc7cf1e192165",
+  "comparison_arrays_sha256": "85de33cb8b4a00e0c8658ef3d505c9ef0e2304226577d466974a799253f84cac",
+  "execution": {
+    "schema": "act.nemoh.case.v1",
+    "solver_revision": "09853686f6f3ed78823d9dbec0d1d711c015cb3b",
+    "source_url": "https://gitlab.com/lheea/Nemoh",
+    "build_patch_sha256": "3bd13ba2ebdf82f8658ac59d19209c7f5962a3936e08ba091f7aa7c7435262d7",
+    "generator_sha256": "c804c476e0aef7291f8c186d95427fa038932680213bc45172215fe0a029f2eb",
+    "case": "8b_QTF_Cylinder/mesh634_floating",
+    "configuration_sha256": "935993ce822d959e1594a21760ccda27c946fe54be2b74014f6a4da38294e179",
+    "stages": [
+      {
+        "program": "preProcessor/preProc",
+        "binary_sha256": "2c36ae6b49131c6a0aba757fc69adbca4b9ab33e8e281ec9f8dbc989f2cb4212",
+        "exit_code": 0,
+        "seconds": 0.15137100033462048,
+        "log_sha256": "7ab3b5d801cb6cbefef0de5fa2b3cc4179b2a372452bf9b19e77a4c2cdafd295"
+      },
+      {
+        "program": "Mesh/hydrosCal",
+        "binary_sha256": "9af88e65f8bfff1a65d73cc504e9a531a85e6e9525d0eea4a2606f0c4ddfedc0",
+        "exit_code": 0,
+        "seconds": 0.024844916071742773,
+        "log_sha256": "47580936ddf9d4c9f2e6a56b1994fe0489f6b8fc2511a31bb90dce5ce0469c88"
+      },
+      {
+        "program": "Solver/solver",
+        "binary_sha256": "3366a69d00aef997166f0b13e616e6bcb55c1444ea5441768ab839445aab0eed",
+        "exit_code": 0,
+        "seconds": 15.11935270903632,
+        "log_sha256": "6a09aced412036c58f6081cb344fc43156d01bd8a71ae8dfa7ea9a11a7f80443"
+      },
+      {
+        "program": "postProcessor/postProc",
+        "binary_sha256": "3abf94eae0db84cf022fc82aae80a9ad2df8b7db703144912954e88f3cc76556",
+        "exit_code": 0,
+        "seconds": 0.024957791902124882,
+        "log_sha256": "d8f22429e7ac2d78b275399c57a1a206113a4883f92ae6a5422bb546f83747a3"
+      },
+      {
+        "program": "QTF/PreProcessor/QTFpreProc",
+        "binary_sha256": "dbeb18ea61150f029c91379e7ead8464adf26965539b97e2be1592b852ec9c40",
+        "exit_code": 0,
+        "seconds": 13.651529124937952,
+        "log_sha256": "f94720e426aec0956c38d6ec23d95147ac3265a88fdb898cb4b989bc2114da5d"
+      },
+      {
+        "program": "QTF/Solver/QTFsolver",
+        "binary_sha256": "97d8833f114b529743d8a83d826fdda952cb5f36b301433d31f77f09c503bbd0",
+        "exit_code": 0,
+        "seconds": 7.618303416762501,
+        "log_sha256": "10fcb675e1f6f64dc0d33b657f02a18e2cd863f57527c1f86b0c8e16e87ba99d"
+      },
+      {
+        "program": "QTF/PostProcessor/QTFpostProc",
+        "binary_sha256": "ead8fe0d6712271e5c91548a37cc038ba8c19876c78c5fe63266d48f75ba05b1",
+        "exit_code": 0,
+        "seconds": 0.14258704194799066,
+        "log_sha256": "378d6d33f4281b4cda29e3e495281e8d268a7579ada128ee99abef5379ba72c2"
+      }
+    ],
+    "status": "computed",
+    "validation": "pending"
+  }
+}

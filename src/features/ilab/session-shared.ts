@@ -9,9 +9,10 @@ import {
   uploadIlabReport,
   uploadIlabScore,
   type IlabRemoteResult,
+  type IlabTokenResult,
 } from './ilab-client';
 import type { IlabUploadBody } from './payload';
-import { IlabServiceError } from './run-lock';
+import { IlabServiceError, withIlabRunLock } from './run-lock';
 
 export function ilabConfig() {
   return {
@@ -25,7 +26,7 @@ export function ilabConfig() {
 export async function resolveSessionAuth(
   ticket: string,
   existingGrant: IlabGrantPayload | null,
-): Promise<{ grant: IlabGrantPayload; freshlyExchanged: boolean } | null> {
+): Promise<{ grant: IlabGrantPayload; freshlyExchanged: boolean; token?: IlabTokenResult } | null> {
   const trimmed = ticket.trim();
   if (trimmed) {
     const config = ilabConfig();
@@ -50,6 +51,7 @@ export async function resolveSessionAuth(
         bypass: token.bypass,
       },
       freshlyExchanged: true,
+      token,
     };
   }
   if (existingGrant) {
@@ -102,6 +104,7 @@ export interface UploadRunTarget {
   accessToken: string;
   tokenExpiresAt: Date | null;
   uploadStatus: string;
+  userId?: string | null;
 }
 
 export async function uploadWithAutoRefresh<TRun>(input: {
@@ -152,6 +155,7 @@ export async function uploadWithAutoRefresh<TRun>(input: {
         issuedAtMs: Date.now(),
         expiresAtMs: refreshed.expiresAtMs,
         bypass: refreshed.bypass,
+        ...(run.userId ? { userId: run.userId } : {}),
       };
       return true;
     } catch {
@@ -181,15 +185,15 @@ export async function uploadWithAutoRefresh<TRun>(input: {
       });
     }
     if (scoreResult.code !== 0) {
-      await prisma.ilabExperimentRun.update({
-        where: { originId: run.originId },
+      await prisma.ilabExperimentRun.updateMany({
+        where: { originId: run.originId, uploadStatus: { notIn: ['score-uploaded', 'uploaded'] } },
         data: { reportHtml, uploadStatus: 'failed', uploadResult: scoreResult.body as Prisma.InputJsonValue },
       });
       throw new IlabServiceError(scoreResult.message || `成绩回传失败（code ${scoreResult.code}）。`, 502);
     }
     scoreCode = scoreResult.code;
-    await prisma.ilabExperimentRun.update({
-      where: { originId: run.originId },
+    await prisma.ilabExperimentRun.updateMany({
+      where: { originId: run.originId, uploadStatus: { notIn: ['score-uploaded', 'uploaded'] } },
       data: {
         score: upload.score,
         endTimeMs: BigInt(upload.endTime),
@@ -224,8 +228,8 @@ export async function uploadWithAutoRefresh<TRun>(input: {
     });
   }
   if (reportResult.code !== 0) {
-    await prisma.ilabExperimentRun.update({
-      where: { originId: run.originId },
+    await prisma.ilabExperimentRun.updateMany({
+      where: { originId: run.originId, uploadStatus: { not: 'uploaded' } },
       data: {
         reportHtml,
         uploadStatus: 'score-uploaded',
@@ -248,4 +252,52 @@ export async function uploadWithAutoRefresh<TRun>(input: {
     },
   });
   return { saved: saved as unknown as TRun, refreshedGrant };
+}
+
+export async function safeUploadWithAutoRefresh<TRun extends { uploadStatus: string }>(input: {
+  run: UploadRunTarget;
+  config: ReturnType<typeof ilabConfig>;
+  upload: IlabUploadBody;
+  reportFilename: string;
+  reportTitle: string;
+  reportHtml: string;
+  scoreFetcher?: typeof fetch;
+  reportFetcher?: typeof fetch;
+  refreshFetcher?: typeof fetch;
+}): Promise<
+  | { ok: true; saved: TRun; refreshedGrant: IlabGrantPayload | null }
+  | { ok: false; saved: TRun; refreshedGrant: null; errorMessage: string }
+> {
+  try {
+    const result = await uploadWithAutoRefresh<TRun>(input);
+    return { ok: true, ...result };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '实验空间网络回传失败。';
+    const saved = await withIlabRunLock(input.run.originId, async (latest, tx) => {
+      if (latest.uploadStatus === 'uploaded') return latest;
+      const nextUploadStatus = latest.uploadStatus === 'score-uploaded' ? 'score-uploaded' : 'failed';
+      return tx.ilabExperimentRun.update({
+        where: { id: latest.id },
+        data: {
+          score: input.upload.score,
+          endTimeMs: BigInt(input.upload.endTime),
+          timeUsedSeconds: input.upload.timeUsed,
+          reportHtml: input.reportHtml,
+          uploadStatus: nextUploadStatus,
+          ...(nextUploadStatus === 'score-uploaded'
+            ? { attachmentResult: { error: message } as Prisma.InputJsonValue }
+            : { uploadResult: { error: message } as Prisma.InputJsonValue }),
+        },
+      });
+    });
+    if (saved.uploadStatus === 'uploaded') {
+      return { ok: true, saved: saved as unknown as TRun, refreshedGrant: null };
+    }
+    return {
+      ok: false,
+      saved: saved as unknown as TRun,
+      refreshedGrant: null,
+      errorMessage: message,
+    };
+  }
 }

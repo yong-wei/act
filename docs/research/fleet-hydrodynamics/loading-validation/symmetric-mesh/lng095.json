@@ -1,0 +1,41 @@
+{
+  "schema": "act.symmetric-bem-mesh.validation.v1",
+  "status": "passed",
+  "generator_sha256": "bd8f9f18b9a705fcc74e71fa6aec781d0eb6a6faf5b206d4bfa8d05cfba6c441",
+  "source_mesh_sha256": "66d79fa48d902c6cf5861bc93c4dc25fda710c5b7fff7afa574c219a2e437abe",
+  "source_lid_sha256": "7e07140a3b4cc2dc046b8aa95f227e0262d73bc2080217b4856505bc4f6cff2d",
+  "geometry_sha256": "df8c98ae8d43e6ad231ae3a76d6379b3854bf5e6f64af4ffde7baa3387d209ac",
+  "output_mesh_sha256": "a60985c8af1e6b33d5006802364f02dd8d1874cd18f36358d9d3837ac25e7e82",
+  "output_lid_sha256": "c1ac902ece12d86832ef6ff377a4680c571801a3476c6742d9f83e37bd1cf581",
+  "source_faces": 4494,
+  "symmetric_faces": 4602,
+  "relative_volume_error": 0.0,
+  "relative_area_error": 0.0,
+  "surface_comparison": {
+    "source_to_symmetric": {
+      "samples": 20394,
+      "maximum_distance_m": 2.896916322034642e-14,
+      "rms_distance_m": 1.6987373791220238e-15
+    },
+    "symmetric_to_source": {
+      "samples": 21357,
+      "maximum_distance_m": 3.241851231905457e-14,
+      "rms_distance_m": 1.9890211139186925e-15
+    },
+    "lid_source_to_symmetric": {
+      "samples": 12400,
+      "maximum_distance_m": 5.0242958677880805e-15,
+      "rms_distance_m": 7.879666771267873e-16
+    },
+    "lid_symmetric_to_source": {
+      "samples": 13274,
+      "maximum_distance_m": 2.842170943040401e-14,
+      "rms_distance_m": 9.057583664760872e-16
+    }
+  },
+  "mass_cg_inertia_configuration": "unchanged source geometry",
+  "surface_sampling": "referenced vertices, triangle centroids and three edge midpoints",
+  "construction": "clip at source y=0, mirror y<=0 panels, merge and serialize full mesh",
+  "capytaine_version": "2.2.1",
+  "source": "https://capytaine.org/v2.2.1/user_manual/mesh.html#creating-a-symmetric-mesh"
+}

@@ -7,10 +7,11 @@
 //! 冻结。低风速方向无定义→quality 未定义。表值 T 级课程标称。
 
 use std::collections::VecDeque;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::wave::{seed_to_unit, split_mix64};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Quality {
     Good,
     /// 缺测（不产生 0 值样本）。
@@ -19,23 +20,24 @@ pub enum Quality {
     Undefined,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Measurement {
     pub t_sample_s: f64,
     pub t_arrive_s: f64,
+    #[serde(serialize_with = "serialize_measurement_value", deserialize_with = "deserialize_measurement_value")]
     pub value: f64,
     pub quality: Quality,
 }
 
 /// 噪声档位：N0 无误差保 API / N1 表值 / N2 ×2。
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum NoiseLevel {
     N0,
     N1,
     N2,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum FaultKind {
     /// F1：t0 起 1 s 内航向偏置线性升至 2°。
     HeadingBiasRamp { t_start: f64 },
@@ -43,7 +45,7 @@ pub enum FaultKind {
     GnssOutage { t_start: f64, t_end: f64 },
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 struct ChannelSpec {
     rate_hz: f64,
     white_sigma: f64,
@@ -63,16 +65,19 @@ const SPECS: &[(&str, ChannelSpec)] = &[
     ("imu_specific_force", ChannelSpec { rate_hz: 50.0, white_sigma: 0.01, bias_sigma: 0.005, bias_tau_s: 300.0, delay_s: 0.02, quant: 0.001 }),
     ("encoder", ChannelSpec { rate_hz: 50.0, white_sigma: 0.05, bias_sigma: 0.0, bias_tau_s: 300.0, delay_s: 0.02, quant: 0.01 }),
     ("wind", ChannelSpec { rate_hz: 2.0, white_sigma: 0.3, bias_sigma: 0.1, bias_tau_s: 300.0, delay_s: 0.5, quant: 0.1 }),
+    ("wind_speed", ChannelSpec { rate_hz: 2.0, white_sigma: 0.3, bias_sigma: 0.1, bias_tau_s: 300.0, delay_s: 0.5, quant: 0.1 }),
+    ("wind_direction", ChannelSpec { rate_hz: 2.0, white_sigma: 1.0, bias_sigma: 0.3, bias_tau_s: 300.0, delay_s: 0.5, quant: 0.1 }),
     ("shaft_speed", ChannelSpec { rate_hz: 20.0, white_sigma: 0.2, bias_sigma: 0.0, bias_tau_s: 300.0, delay_s: 0.05, quant: 0.1 }),
 ];
 
 /// 单传感器通道：采样、误差链与时延队列。
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SensorChannel {
     spec: ChannelSpec,
     level: NoiseLevel,
     rng_state: u64,
     bias: f64,
-    last_sample_t: f64,
+    last_sample_t: Option<f64>,
     queue: VecDeque<Measurement>,
     fault: Option<FaultKind>,
     /// 风向通道辅助：低于该风速方向无定义（m/s）；仅 wind 通道启用。
@@ -96,6 +101,8 @@ impl SensorChannel {
             spec: ChannelSpec {
                 white_sigma: spec.white_sigma * scale,
                 bias_sigma: spec.bias_sigma * scale,
+                delay_s: spec.delay_s * scale,
+                quant: if level == NoiseLevel::N0 { 0.0 } else { spec.quant },
                 ..spec
             },
             level,
@@ -103,11 +110,11 @@ impl SensorChannel {
                 .wrapping_mul(0x5851F42D4C957F2D)
                 .wrapping_add(0x2545F4914F6CDD1D),
             bias: 0.0,
-            last_sample_t: f64::NEG_INFINITY,
+            last_sample_t: None,
             queue: VecDeque::new(),
             fault: None,
-            wind_undefined_below_mps: if name == "wind" { 1.0 } else { 0.0 },
-            wind_direction_channel: name == "wind",
+            wind_undefined_below_mps: if matches!(name, "wind" | "wind_direction") { 1.0 } else { 0.0 },
+            wind_direction_channel: matches!(name, "wind" | "wind_direction"),
             heading_channel: name == "heading_gyro",
             gnss_channel: name == "gnss_ne",
         })
@@ -131,11 +138,7 @@ impl SensorChannel {
     /// 返回本次到达（t_arrive ≤ t）的测量；无到达返回 None。
     pub fn advance<F: Fn(f64) -> (f64, f64)>(&mut self, t: f64, truth: F) -> Option<Measurement> {
         let dt = 1.0 / self.spec.rate_hz;
-        let next_t = if self.last_sample_t.is_finite() {
-            self.last_sample_t + dt
-        } else {
-            0.0
-        };
+        let next_t = self.last_sample_t.map(|previous| previous + dt).unwrap_or(0.0);
         if t + 1e-9 < next_t {
             return self.deliver(t);
         }
@@ -165,7 +168,7 @@ impl SensorChannel {
                             value: f64::NAN,
                             quality: Quality::Missing,
                         });
-                        self.last_sample_t = t_sample;
+                        self.last_sample_t = Some(t_sample);
                         t_sample += dt;
                         continue;
                     }
@@ -187,10 +190,10 @@ impl SensorChannel {
             self.queue.push_back(Measurement {
                 t_sample_s: t_sample,
                 t_arrive_s: t_sample + self.spec.delay_s,
-                value: quantized,
+                value: if quality == Quality::Good { quantized } else { f64::NAN },
                 quality,
             });
-            self.last_sample_t = t_sample;
+            self.last_sample_t = Some(t_sample);
             t_sample += dt;
         }
         self.deliver(t)
@@ -206,6 +209,15 @@ impl SensorChannel {
         }
     }
 
+    /// 交付本次已经到达的全部样本，保留各自的采样和到达时刻。
+    pub fn advance_all<F: Fn(f64) -> (f64, f64)>(&mut self, t: f64, truth: F) -> Vec<Measurement> {
+        let mut arrived: Vec<Measurement> = self.advance(t, truth).into_iter().collect();
+        while let Some(measurement) = self.deliver(t) {
+            arrived.push(measurement);
+        }
+        arrived
+    }
+
     pub fn level(&self) -> NoiseLevel {
         self.level
     }
@@ -213,6 +225,32 @@ impl SensorChannel {
     pub fn rate_hz(&self) -> f64 {
         self.spec.rate_hz
     }
+
+    pub fn validate_checkpoint(&self, expected: &Self, time_s: f64) -> Result<(), String> {
+        let valid_measurement = |sample: &Measurement| sample.t_sample_s.is_finite()
+            && sample.t_arrive_s.is_finite() && sample.t_sample_s >= 0.0
+            && sample.t_arrive_s >= sample.t_sample_s && sample.t_sample_s <= time_s + 1e-8
+            && (sample.value.is_finite() || (sample.value.is_nan()
+                && matches!(sample.quality, Quality::Missing | Quality::Undefined)));
+        if self.spec != expected.spec || self.level != expected.level || self.fault != expected.fault
+            || self.heading_channel != expected.heading_channel || self.gnss_channel != expected.gnss_channel
+            || self.wind_direction_channel != expected.wind_direction_channel
+            || self.wind_undefined_below_mps != expected.wind_undefined_below_mps
+            || !self.bias.is_finite() || self.queue.iter().any(|sample| !valid_measurement(sample))
+            || self.queue.len() > (self.spec.delay_s * self.spec.rate_hz).ceil() as usize + 2
+            || !self.last_sample_t.is_some_and(|last| last.is_finite()
+                && last <= time_s + 1e-8 && last >= time_s - 1.0 / self.spec.rate_hz - 1e-8)
+        { return Err("传感器恢复点配置、采样时钟或队列无效".into()); }
+        Ok(())
+    }
+}
+
+fn serialize_measurement_value<S: Serializer>(value: &f64, serializer: S) -> Result<S::Ok, S::Error> {
+    value.is_finite().then_some(*value).serialize(serializer)
+}
+
+fn deserialize_measurement_value<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f64, D::Error> {
+    Ok(Option::<f64>::deserialize(deserializer)?.unwrap_or(f64::NAN))
 }
 
 /// 训练/验证种子（issue §2）。

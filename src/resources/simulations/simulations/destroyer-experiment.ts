@@ -2,6 +2,9 @@ import { sketchLabelForId, sketchReadingError, SKETCH_PLOTS } from '@/features/i
 
 import type { ControlMode } from '../core/types';
 import { runReachesMinimum } from './vessel-experiment';
+import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION, destroyerCourseCommands,
+  type DestroyerCourseStep } from '../experiments/destroyer-course';
+import { VESSEL_COURSES } from '../experiments/course-catalog';
 
 export const DESTROYER_EXPERIMENT_TITLE = '055 型驱逐舰航向控制';
 
@@ -25,6 +28,7 @@ export interface DestroyerField {
   unit?: string;
   kind: 'number' | 'choice' | 'text' | 'sketch';
   choices?: string[];
+  stage?: 'prediction' | 'observation' | 'interpretation';
 }
 
 export interface DestroyerExperimentStep {
@@ -43,6 +47,7 @@ export interface DestroyerExperimentStep {
   maxPoints: number;
   expectTime: number;
   fields: DestroyerField[];
+  courseDefinition?: DestroyerCourseStep;
 }
 
 export interface DestroyerSample {
@@ -321,7 +326,62 @@ export const DESTROYER_MAX_POINTS = DESTROYER_EXPERIMENT_STEPS.reduce((sum, step
 
 export const DESTROYER_STEP_BY_SEQ = new Map(DESTROYER_EXPERIMENT_STEPS.map((step) => [step.seq, step]));
 
+function currentCourseFields(sequence: number): DestroyerField[] {
+  if (sequence === 20) return [
+    { key: 'problem', label: '问题、目标与约束', kind: 'text' },
+    { key: 'identification', label: '局部模型与训练证据', kind: 'text' },
+    { key: 'validation', label: '独立验证与预测差异', kind: 'text' },
+    { key: 'comparison', label: '两个本人控制方案与公平比较', kind: 'text' },
+    { key: 'revision', label: '实际修订、未见工况与不可行性判断', kind: 'text' },
+    { key: 'conclusion', label: '工程结论与适用范围', kind: 'text' },
+  ];
+  const extra: Record<number, DestroyerField[]> = {
+    1: [{ key: 'signalAnnotations', label: '说明舵指令、实际舵角、转艏速率、航向、航速与横摇的因果关系及单位', kind: 'text' }],
+    2: [{ key: 'actuatorTimeConstantS', label: '由量测估计的舵机时间常数', unit: 's', kind: 'number' },
+      {key:'estimatedRudderRateDegS',label:'由量测估计的舵机速率上限',unit:'°/s',kind:'number'},
+      {key:'measurementWindowStartS',label:'选定量测窗口起点',unit:'s',kind:'number'},
+      {key:'measurementWindowEndS',label:'选定量测窗口终点',unit:'s',kind:'number'},
+      {key:'measurementPoint1',label:'选定量测点1及读数',kind:'text'},
+      {key:'measurementPoint2',label:'选定量测点2及读数',kind:'text'}],
+    3: [{ key: 'steadyYawRateDegS', label: '所选稳态窗口的转艏速率', unit: '°/s', kind: 'number' }],
+    4: [{key:'modelChoiceReason',label:'模型结构、训练窗口及执行器初始段处理的依据',kind:'text'}],
+    8: [{ key: 'sketchImage', label: '本人模型的时域、频域或根轨迹特征图', kind: 'sketch' },
+      {key:'modelCharacteristics',label:'本人模型的极点、航向积分环节及频域特征',kind:'text'}],
+    10: [{ key: 'designReason', label: '由阻尼比、自然频率或极点选取PD参数的依据', kind: 'text' }],
+    13: [{ key: 'trackJudgment', label: '航向保持与航迹保持的区别，以及对水、对地速度和横偏证据', kind: 'text' }],
+  };
+  return [
+    { key: 'prediction', label: '运行前预测与理由', kind: 'text', stage: 'prediction' },
+    ...(extra[sequence] ?? []),
+    { key: 'interpretation', label: '证据解释与适用边界', kind: 'text', stage: 'interpretation' },
+  ];
+}
+
+export const DESTROYER_CURRENT_STEPS: DestroyerExperimentStep[] = DESTROYER_COURSE_STEPS.map((contract, index) => ({
+  seq: contract.sequence, title: contract.title, goal: contract.learningObjective,
+  watch: VESSEL_COURSES.destroyer.steps[index].interaction,
+  suggestion: VESSEL_COURSES.destroyer.steps[index].condition,
+  scene: contract.stepKind === 'analysis' ? 'review' : 'straight',
+  duration: contract.runDurationS ?? 0, minRunS: contract.runDurationS ?? 0,
+  modes: contract.allowedModes, defaultMode: contract.controlMode,
+  gains: contract.studentControls.map((control) => control.key)
+    .filter((key): key is DestroyerGain => key === 'kp' || key === 'ki' || key === 'kd'),
+  disturbance: contract.configuration.environment !== 'P0', maxPoints: contract.points,
+  expectTime: contract.runDurationS ?? 300,
+  fields: currentCourseFields(contract.sequence), courseDefinition: contract,
+}));
+
+export function destroyerStepsForVersion(version = 'legacy-v1'): DestroyerExperimentStep[] {
+  if (version === 'legacy-v1') return DESTROYER_EXPERIMENT_STEPS;
+  if (version === VESSEL_COURSE_VERSION) return DESTROYER_CURRENT_STEPS;
+  throw new Error('实验步骤版本无法识别。');
+}
+
 export function scriptedManualRudder(step: DestroyerExperimentStep, time: number): number | null {
+  if (step.courseDefinition) {
+    return step.courseDefinition.events.some((event) => event.rudderDeg !== undefined)
+      ? destroyerCourseCommands(step.courseDefinition, time).rudderDeg : null;
+  }
   if (step.seq === 14 || step.seq === 17) return 12;
   if (step.seq === 15) return -12;
   if (step.seq === 16) return time < 12 ? 12 : 0;
@@ -329,6 +389,14 @@ export function scriptedManualRudder(step: DestroyerExperimentStep, time: number
 }
 
 export function destroyerSceneMotion(step: DestroyerExperimentStep, speedMps: number): DestroyerSceneMotion {
+  if (step.courseDefinition) {
+    const contract = step.courseDefinition;
+    const start = contract.configuration.initialPositionNed ?? [0, 0, 0];
+    return { duration: contract.runDurationS ?? 0, disturbance: step.disturbance,
+      start: { x: start[0], z: start[1], headingDeg: contract.configuration.initialHeadingDeg ?? 0 },
+      desiredHeading: (time) => destroyerCourseCommands(contract, time).headingDeg,
+      manualRudder: (time) => scriptedManualRudder(step, time) };
+  }
   const speed = speedMps > 0 ? speedMps : 15;
   const straight = { x: -1800, z: 0, headingDeg: 0 };
   // 满舵时这艘船的稳定转艏大约每秒 1°。450 米半径需要约 1.9°/s，指令会一直把舵顶满也追不上。

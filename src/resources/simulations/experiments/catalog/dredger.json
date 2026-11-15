@@ -1,0 +1,146 @@
+{
+  "sourceIssue": 2163,
+  "sourceBodySha256": "d71fab25207eac8d8ba05fca4bfb8cb7cf62ea1e6920abbde3ad9184eec6e944",
+  "steps": [
+    {
+      "sequence": 1,
+      "title": "认识作业受力链",
+      "condition": "静水停船，120s",
+      "interaction": "在受力/执行器图标注双桨舵、钢桩、两绞车、桥架、绞刀",
+      "evidence": "作业定位与推进器DP不同"
+    },
+    {
+      "sequence": 2,
+      "title": "检验自航与横漂",
+      "condition": "自航模式，C1，300s",
+      "interaction": "维持航向后观察横漂，再预测仅靠舵能否零速守位",
+      "evidence": "欠驱动、低速舵效、对地/对水区别"
+    },
+    {
+      "sequence": 3,
+      "title": "观察钢桩反力建立",
+      "condition": "Prepare→SpudHold，P0，300s",
+      "interaction": "下达落桩，观察反力建立与船体运动",
+      "evidence": "有限刚度接触而非瞬移固定"
+    },
+    {
+      "sequence": 4,
+      "title": "比较单侧绞车作用",
+      "condition": "SpudHold，两缆，300s",
+      "interaction": "分别收/放一条缆，预测力与转向方向",
+      "evidence": "只承拉、张力/长度/几何关系"
+    },
+    {
+      "sequence": 5,
+      "title": "辨识小横移模型",
+      "condition": "无切削小横移±2°，300s",
+      "interaction": "施加小绞车速度阶跃并辨识局部响应",
+      "evidence": "执行器—缆—船体耦合的低阶近似"
+    },
+    {
+      "sequence": 6,
+      "title": "独立反向验证",
+      "condition": "新run反向小横移，300s",
+      "interaction": "冻结辨识模型叠加预测/实际",
+      "evidence": "独立验证、缆松弛导致非线性"
+    },
+    {
+      "sequence": 7,
+      "title": "调节桥架深度",
+      "condition": "SpudHold，桥架目标20.3m，300s",
+      "interaction": "调桥架目标/斜坡，记录6DOF和深度",
+      "evidence": "桥架重力浮力反力、海面参考与床面"
+    },
+    {
+      "sequence": 8,
+      "title": "观察绞刀空载",
+      "condition": "绞刀离床.5m，300s",
+      "interaction": "开刀至30rpm并测实际扭矩/转速",
+      "evidence": "空载不等于产土，轴惯性与功率"
+    },
+    {
+      "sequence": 9,
+      "title": "建立砂层切削",
+      "condition": "饱和砂，切厚.3m，600s",
+      "interaction": "降刀接触并开启横移.08m/s，观察载荷",
+      "evidence": "切削负载与产量由土体/运动生成"
+    },
+    {
+      "sequence": 10,
+      "title": "设计横移PI",
+      "condition": "同砂层",
+      "interaction": "设计横移PI，比较两组增益",
+      "evidence": "速度跟踪、张力/桩反力与控制代价"
+    },
+    {
+      "sequence": 11,
+      "title": "检验土层模型失配",
+      "condition": "相同计划改黏土，600s",
+      "interaction": "使用砂层模型预测后实跑，再重新辨识",
+      "evidence": "土质变化导致模型失配，不固定“控制必失败”"
+    },
+    {
+      "sequence": 12,
+      "title": "比较受限切削能力",
+      "condition": "黏土、切厚.3/.5m对照",
+      "interaction": "调横移速度/刀速，不得改变硬功率上限",
+      "evidence": "受限切削能力、单位实际产量能耗"
+    },
+    {
+      "sequence": 13,
+      "title": "设计平滑换向",
+      "condition": "CutSwing换向，600s",
+      "interaction": "选择换向斜坡5/15/30s，比较张力峰值",
+      "evidence": "模式/参考切换的冲击与平滑性"
+    },
+    {
+      "sequence": 14,
+      "title": "比较模式积分跟踪",
+      "condition": "SpudHold↔CutSwing，600s",
+      "interaction": "比较积分重置与跟踪，再设防抖保持时间",
+      "evidence": "状态连续、反复切换与积分累积"
+    },
+    {
+      "sequence": 15,
+      "title": "检验风流作业负载",
+      "condition": "W1+C1，砂层，600s",
+      "interaction": "冻结静水方案运行，再改一项策略",
+      "evidence": "环境力、钢桩/缆负载余量"
+    },
+    {
+      "sequence": 16,
+      "title": "观察波浪切厚",
+      "condition": "Hs=.5m,Tp6s横浪，20m水深，600s",
+      "interaction": "比较无浪/有浪桥架深度与切厚；调深度滤波",
+      "evidence": "波浪影响实际刀位/切削，不只船身摇晃"
+    },
+    {
+      "sequence": 17,
+      "title": "选择滤波与保持时间",
+      "condition": "上述波浪+N1，600s",
+      "interaction": "调阈值保持5/10/20s及过滤",
+      "evidence": "噪声/时延导致误触发，反应速度与稳定性"
+    },
+    {
+      "sequence": 18,
+      "title": "执行断缆安全退出",
+      "condition": "作业中t180一侧断缆，600s",
+      "interaction": "执行PauseCut→抬刀→安全保持/退出动作",
+      "evidence": "失效改变受力，不能只改状态标签"
+    },
+    {
+      "sequence": 19,
+      "title": "验证综合作业方案",
+      "condition": "seed17/29、砂/黏土与W1+C1+N1",
+      "interaction": "冻结完整模式图和控制参数做验证",
+      "evidence": "综合负载/环境适应与安全切换；失败分析可得分"
+    },
+    {
+      "sequence": 20,
+      "title": "完成实验报告",
+      "condition": "至少6run",
+      "interaction": "提交模式图、辨识对照、负载/切换/故障证据报告",
+      "evidence": "结果解释与范围，不宣称实际工程产能/结构许可"
+    }
+  ]
+}

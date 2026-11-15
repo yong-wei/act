@@ -73,6 +73,13 @@ export const TEACHER_DASHBOARD_PRIMARY_STATS: TeacherDashboardPrimaryStat[] = [
 
 export const TEACHER_DASHBOARD_QUICK_ACTIONS: TeacherDashboardQuickAction[] = [
   {
+    title: '仿真实验复核',
+    description: '查看实验报告、原始证据并确认成绩',
+    href: '/teacher/experiment-reports',
+    icon: 'file-text',
+    tone: 'cyan',
+  },
+  {
     title: '新建班级',
     description: '创建班级并生成加入码',
     href: withReturnTo(`${teacherHref('teacher-classes', '/teacher/classes')}/new`, '/teacher'),

@@ -153,6 +153,7 @@ import {
   getUnit11StepAIContext as getUnit11StepAIContextLocal,
   getUnit11StepQuickQuestions as getUnit11StepQuickQuestionsLocal,
 } from './lesson-1-1-ai-contexts';
+import { SIMULATION_COURSE_AI_CONTEXTS } from '@/resources/simulations/experiments/simulation-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -771,6 +772,7 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseDescription: UNIT_5_6_COURSE_META.courseDescription,
     },
   },
+  ...SIMULATION_COURSE_AI_CONTEXTS,
 };
 
 /** 解析互动课注册表键（含别名归一），非互动课返回 null。 */

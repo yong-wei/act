@@ -14,8 +14,10 @@ import {
 } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { prepareVesselWaveAssets } from './prepare-vessel-wave-assets.mjs';
 
 const repoRoot = process.cwd();
+await prepareVesselWaveAssets(repoRoot);
 const controlEngineRoot = path.join(repoRoot, 'rust/control-engine');
 const wasmOutDir = path.join(repoRoot, 'src/resources/control-system/wasm/control_engine');
 const wasmPackageFiles = ['index.js', 'index_bg.wasm', 'index.d.ts'];
@@ -29,24 +31,11 @@ const wasmExports = [
   'compute_rl_training',
   'compute_simulation_step',
   'compute_virtual_simulation_step',
+  'VesselSimulationSession',
 ];
 
 function sha256File(filePath) {
   return createHash('sha256').update(readFileSync(filePath)).digest('hex');
-}
-
-function readToolchainVersion(command) {
-  try {
-    return execFileSync(command, {
-      cwd: repoRoot,
-      env: process.env,
-      encoding: 'utf8',
-      shell: true,
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
-  } catch {
-    return 'unknown';
-  }
 }
 
 function writeIdentityArtifacts(buildHash) {
@@ -58,8 +47,8 @@ function writeIdentityArtifacts(buildHash) {
   const identity = {
     schemaVersion: 'act-control-engine-identity/v1',
     buildHash,
-    wasmPack: readToolchainVersion('wasm-pack --version'),
-    rustc: readToolchainVersion('rustc --version'),
+    wasmPack: readCommandVersion('wasm-pack --version'),
+    rustc: readCommandVersion('rustc --version'),
     exports: wasmExports,
     files,
   };
@@ -171,6 +160,7 @@ function computeBuildHash() {
     path.join(repoRoot, 'rust/control-engine/Cargo.toml'),
     path.join(repoRoot, 'rust/control-engine/Cargo.lock'),
     ...collectFiles(path.join(repoRoot, 'rust/control-engine/src')),
+    ...collectFiles(path.join(repoRoot, 'rust/control-engine/model-data')),
   ].filter((filePath) => existsSync(filePath));
 
   for (const filePath of inputFiles) {

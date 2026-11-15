@@ -1,0 +1,248 @@
+{
+  "schema": "act.vessel-pack-validation.v1",
+  "status": "computed",
+  "initial_surge_force_residual_n": 0.0,
+  "geometry_and_installation": [
+    {
+      "geometry_sha256": "ac897a89a2180cf782cb6a4c992f5f3c69c477650e855a5ff8434e9cc80a7154",
+      "full_hull_sha256": "47bd3a91846d25aa0730fdf7ea1eeada50efc554e6d3e09ae5696688d05337e9",
+      "propulsors": [
+        {
+          "center_x_m": -60.5,
+          "center_y_z_up_m": [
+            4.6000000000000005,
+            -2.5
+          ],
+          "diameter_m": 3.5,
+          "clearance_m": 0.5933151694756944,
+          "overlap_area_lower_bound_m2": 0.0,
+          "circumscribed_disk_clear": true,
+          "rotation_coverage": "complete disk plane beyond closed hull longitudinal extent"
+        },
+        {
+          "center_x_m": -60.5,
+          "center_y_z_up_m": [
+            -4.6000000000000005,
+            -2.5
+          ],
+          "diameter_m": 3.5,
+          "clearance_m": 0.5933151694756944,
+          "overlap_area_lower_bound_m2": 0.0,
+          "circumscribed_disk_clear": true,
+          "rotation_coverage": "complete disk plane beyond closed hull longitudinal extent"
+        }
+      ],
+      "surfaces": [
+        {
+          "center_body_m": [
+            -62.5,
+            -4.6000000000000005,
+            5.207514583146629
+          ],
+          "chord_m": 2.0,
+          "span_m": 4.0,
+          "angle_interval_rad": [
+            -0.6108652381980153,
+            0.6108652381980153
+          ],
+          "slabs": 0,
+          "conservative_clearance_lower_bound_m": 1.5933151694756944,
+          "method": "disjoint longitudinal bounds of complete swept surface and closed hull",
+          "all_angles_clear": true
+        },
+        {
+          "center_body_m": [
+            -62.5,
+            4.6000000000000005,
+            5.207514583146629
+          ],
+          "chord_m": 2.0,
+          "span_m": 4.0,
+          "angle_interval_rad": [
+            -0.6108652381980153,
+            0.6108652381980153
+          ],
+          "slabs": 0,
+          "conservative_clearance_lower_bound_m": 1.5933151694756944,
+          "method": "disjoint longitudinal bounds of complete swept surface and closed hull",
+          "all_angles_clear": true
+        }
+      ]
+    },
+    {
+      "geometry_sha256": "05163f98bbc2f87b38a2520d54b64c5a10ed749d30a6fde6d9ab947961f7bada",
+      "full_hull_sha256": "7d38b75de7069327b0fecae3dcb9145c5ec3fe295d9ef9334148651d468c7026",
+      "propulsors": [
+        {
+          "center_x_m": -60.5,
+          "center_y_z_up_m": [
+            4.6000000000000005,
+            -2.5
+          ],
+          "diameter_m": 3.5,
+          "clearance_m": 0.5911944840817611,
+          "overlap_area_lower_bound_m2": 0.0,
+          "circumscribed_disk_clear": true,
+          "rotation_coverage": "complete disk plane beyond closed hull longitudinal extent"
+        },
+        {
+          "center_x_m": -60.5,
+          "center_y_z_up_m": [
+            -4.6000000000000005,
+            -2.5
+          ],
+          "diameter_m": 3.5,
+          "clearance_m": 0.5911944840817611,
+          "overlap_area_lower_bound_m2": 0.0,
+          "circumscribed_disk_clear": true,
+          "rotation_coverage": "complete disk plane beyond closed hull longitudinal extent"
+        }
+      ],
+      "surfaces": [
+        {
+          "center_body_m": [
+            -62.5,
+            -4.6000000000000005,
+            5.133523533266056
+          ],
+          "chord_m": 2.0,
+          "span_m": 4.0,
+          "angle_interval_rad": [
+            -0.6108652381980153,
+            0.6108652381980153
+          ],
+          "slabs": 0,
+          "conservative_clearance_lower_bound_m": 1.5911944840817611,
+          "method": "disjoint longitudinal bounds of complete swept surface and closed hull",
+          "all_angles_clear": true
+        },
+        {
+          "center_body_m": [
+            -62.5,
+            4.6000000000000005,
+            5.133523533266056
+          ],
+          "chord_m": 2.0,
+          "span_m": 4.0,
+          "angle_interval_rad": [
+            -0.6108652381980153,
+            0.6108652381980153
+          ],
+          "slabs": 0,
+          "conservative_clearance_lower_bound_m": 1.5911944840817611,
+          "method": "disjoint longitudinal bounds of complete swept surface and closed hull",
+          "all_angles_clear": true
+        }
+      ]
+    }
+  ],
+  "previous_layout": {
+    "water_density_kg_m3": 1025.0,
+    "propulsors": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -47.3,
+            -4.6000000000000005,
+            5.207514583146629
+          ],
+          "referenceImmersionM": 2.5
+        },
+        "diameter_m": 3.5,
+        "max_power_w": 3000000.0,
+        "rated_speed_rad_s": 18.84955592153876,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 12822.723388671875,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": null
+      },
+      {
+        "installation": {
+          "positionBodyM": [
+            -47.3,
+            4.6000000000000005,
+            5.207514583146629
+          ],
+          "referenceImmersionM": 2.5
+        },
+        "diameter_m": 3.5,
+        "max_power_w": 3000000.0,
+        "rated_speed_rad_s": 18.84955592153876,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 12822.723388671875,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": null
+      }
+    ],
+    "surfaces": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -52.8,
+            -4.6000000000000005,
+            5.207514583146629
+          ],
+          "referenceImmersionM": 2.5
+        },
+        "area_m2": 8.0,
+        "aspect_ratio": 2.0,
+        "normal_body": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "servo": {
+          "max_angle_rad": 0.6108652381980153,
+          "max_rate_rad_s": 0.05235987755982989,
+          "time_constant_s": 0.6
+        },
+        "wake_propulsor": 0,
+        "normal_factor": 1.0,
+        "fin_servo_power": null
+      },
+      {
+        "installation": {
+          "positionBodyM": [
+            -52.8,
+            4.6000000000000005,
+            5.207514583146629
+          ],
+          "referenceImmersionM": 2.5
+        },
+        "area_m2": 8.0,
+        "aspect_ratio": 2.0,
+        "normal_body": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "servo": {
+          "max_angle_rad": 0.6108652381980153,
+          "max_rate_rad_s": 0.05235987755982989,
+          "time_constant_s": 0.6
+        },
+        "wake_propulsor": 1,
+        "normal_factor": 1.0,
+        "fin_servo_power": null
+      }
+    ]
+  },
+  "previous_layout_checks": [
+    {
+      "status": "conflict",
+      "reason": "\u5b8c\u6574\u6868\u76d8\u8fd0\u52a8\u5305\u7edc\u4e0e\u8239\u4f53\u51b2\u7a81 {'center_x_m': -47.3, 'center_y_z_up_m': [4.6000000000000005, -2.5], 'diameter_m': 3.5, 'clearance_m': -4.521986529819348, 'overlap_area_lower_bound_m2': 9.621067129874215, 'circumscribed_disk_clear': False, 'rotation_coverage': 'entire physical disk, all shaft angles'}",
+      "geometry_sha256": "ac897a89a2180cf782cb6a4c992f5f3c69c477650e855a5ff8434e9cc80a7154",
+      "full_hull_sha256": "47bd3a91846d25aa0730fdf7ea1eeada50efc554e6d3e09ae5696688d05337e9"
+    },
+    {
+      "status": "conflict",
+      "reason": "\u5b8c\u6574\u6868\u76d8\u8fd0\u52a8\u5305\u7edc\u4e0e\u8239\u4f53\u51b2\u7a81 {'center_x_m': -47.3, 'center_y_z_up_m': [4.6000000000000005, -2.5], 'diameter_m': 3.5, 'clearance_m': -4.596261399469203, 'overlap_area_lower_bound_m2': 9.621067129874215, 'circumscribed_disk_clear': False, 'rotation_coverage': 'entire physical disk, all shaft angles'}",
+      "geometry_sha256": "05163f98bbc2f87b38a2520d54b64c5a10ed749d30a6fde6d9ab947961f7bada",
+      "full_hull_sha256": "7d38b75de7069327b0fecae3dcb9145c5ec3fe295d9ef9334148651d468c7026"
+    }
+  ],
+  "native_verification": "pending",
+  "fidelity": "research-nominal"
+}

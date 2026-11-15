@@ -1,0 +1,32 @@
+{
+  "mapped_mmg": {
+    "water_density_kg_m3": 1025.0,
+    "length_m": 286.0,
+    "draft_m": 11.5,
+    "surge_coefficients": [
+      0.022,
+      -0.04,
+      0.002,
+      0.011,
+      0.771
+    ],
+    "sway_coefficients": [
+      -0.315,
+      0.083,
+      -1.607,
+      0.379,
+      -0.391,
+      0.008
+    ],
+    "yaw_coefficients": [
+      -0.137,
+      -0.049,
+      -0.03,
+      -0.294,
+      0.055,
+      -0.013
+    ],
+    "crossflow_cd": 1.0,
+    "force_center_body_z_m": 9.703460839258554
+  }
+}

@@ -42,7 +42,7 @@ pub struct RestoringParams {
 }
 
 /// 外力分项（N / N·m）。分项保留供力/力矩分项输出与载荷不重复校核（issue §7）。
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
 pub struct ExternalForces {
     pub tau_hull_viscous: [f64; 6],
     pub tau_actuator: [f64; 6],
@@ -197,7 +197,7 @@ pub fn solve_linear_6(matrix: &mut [[f64; 6]; 6], mut rhs: [f64; 6]) -> [f64; 6]
 }
 
 /// 一次动力学右端组装的输出：ν̇、η̇ 与力/力矩分项（对账与教学输出）。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct DynamicsOutput {
     pub nu_dot: [f64; 6],
     pub position_dot_ned: [f64; 3],
@@ -206,9 +206,11 @@ pub struct DynamicsOutput {
     pub euler_rates: [f64; 3],
     /// 分项力/力矩（质量阵左端各项移到右端后的值，N / N·m）。
     pub breakdown: ForceBreakdown,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub external_components: Option<ExternalForces>,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
 pub struct ForceBreakdown {
     pub coriolis_rb: [f64; 6],
     pub coriolis_added_mass: [f64; 6],
@@ -230,6 +232,20 @@ pub fn dynamics_step(
     delta_eta: [f64; 6],
     external: &ExternalForces,
 ) -> DynamicsOutput {
+    dynamics_step_with_restoring(state, rb, am, current, tau_radiation,
+        restoring_force(rp, delta_eta), external)
+}
+
+/// 与线性校核入口共用动力学组装，恢复项可由当前姿态的排水积分提供。
+pub fn dynamics_step_with_restoring(
+    state: &TruthState,
+    rb: &RigidBodyParams,
+    am: &AddedMassParams,
+    current: &CurrentFieldBody,
+    tau_radiation: [f64; 6],
+    restoring_body: [f64; 6],
+    external: &ExternalForces,
+) -> DynamicsOutput {
     let nu = state.body_velocity;
     let mut nu_r = [0.0f64; 6];
     for i in 0..6 {
@@ -238,7 +254,7 @@ pub fn dynamics_step(
 
     let c_rb = coriolis_centripetal_rb(rb, nu);
     let c_a = coriolis_added_mass(am, nu_r);
-    let g = restoring_force(rp, delta_eta);
+    let g = restoring_body;
     let tau_ext = external.total();
 
     let mut current_inertia = [0.0f64; 6];
@@ -267,6 +283,7 @@ pub fn dynamics_step(
     let euler_rates = euler_rate_transform_inverse(euler, [nu[3], nu[4], nu[5]]);
 
     DynamicsOutput {
+        external_components: None,
         nu_dot,
         position_dot_ned: position_dot,
         quaternion_dot,

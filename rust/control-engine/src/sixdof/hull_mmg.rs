@@ -47,6 +47,68 @@ pub struct LowSpeedParams {
     pub z_h: f64,
 }
 
+/// 公开基准无量纲导数的B→T映射，尺度统一为0.5ρLppT U²及其Lpp倍。
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct MappedMmgHull {
+    pub water_density_kg_m3: f64,
+    pub length_m: f64,
+    pub draft_m: f64,
+    /// R0、Xvv、Xvr、Xrr、Xvvvv。
+    pub surge_coefficients: [f64; 5],
+    /// Yv、Yr、Yvvv、Yvvr、Yvrr、Yrrr。
+    pub sway_coefficients: [f64; 6],
+    pub yaw_coefficients: [f64; 6],
+    pub crossflow_cd: f64,
+    pub force_center_body_z_m: f64,
+}
+
+impl MappedMmgHull {
+    pub fn validate(&self) -> bool {
+        [self.water_density_kg_m3, self.length_m, self.draft_m, self.crossflow_cd].iter()
+            .all(|value| value.is_finite() && *value > 0.0)
+            && self.surge_coefficients.iter().chain(&self.sway_coefficients)
+                .chain(&self.yaw_coefficients).all(|value| value.is_finite())
+            && self.surge_coefficients[0] >= 0.0 && self.force_center_body_z_m.is_finite()
+    }
+
+    pub fn loads(&self, relative_velocity: &[f64; 6]) -> [f64; 6] {
+        let z = self.force_center_body_z_m;
+        let u = relative_velocity[0] + relative_velocity[4] * z;
+        let v = relative_velocity[1] - relative_velocity[3] * z;
+        let r = relative_velocity[5];
+        let speed = u.hypot(v);
+        let mut high = [0.0; 3];
+        if speed > 0.0 {
+            let vp = v / speed;
+            let rp = r * self.length_m / speed;
+            let [r0, xvv, xvr, xrr, xvvvv] = self.surge_coefficients;
+            let basis = [vp, rp, vp.powi(3), vp * vp * rp, vp * rp * rp, rp.powi(3)];
+            let scale = 0.5 * self.water_density_kg_m3 * self.length_m * self.draft_m * speed * speed;
+            high[0] = scale * (-r0 + xvv * vp * vp + xvr * vp * rp + xrr * rp * rp + xvvvv * vp.powi(4));
+            high[1] = scale * self.sway_coefficients.iter().zip(basis).map(|(a, b)| a * b).sum::<f64>();
+            high[2] = scale * self.length_m * self.yaw_coefficients.iter().zip(basis).map(|(a, b)| a * b).sum::<f64>();
+        }
+        let mut low = [-0.5 * self.water_density_kg_m3 * self.length_m * self.draft_m
+            * self.surge_coefficients[0] * u * u.abs(), 0.0, 0.0];
+        // 21个站点的梯形积分，横向力和艏摇矩来自同一条带载荷。
+        let spacing = self.length_m / 20.0;
+        for index in 0..=20 {
+            let x = -0.5 * self.length_m + spacing * index as f64;
+            let local = v + x * r;
+            let weight = if index == 0 || index == 20 { 0.5 } else { 1.0 };
+            let force = -0.5 * self.water_density_kg_m3 * self.crossflow_cd
+                * self.draft_m * spacing * weight * local * local.abs();
+            low[1] += force;
+            low[2] += x * force;
+        }
+        // 倒航沿用低速阻力，避免把正航MMG导数外推至反向。
+        let weight = transition_weight(u);
+        let loads = std::array::from_fn::<_, 3, _>(|index| weight * high[index] + (1.0 - weight) * low[index]);
+        [loads[0], loads[1], 0.0, -self.force_center_body_z_m * loads[1],
+            self.force_center_body_z_m * loads[0], loads[2]]
+    }
+}
+
 pub const TRANSITION_LOW_MPS: f64 = 1.0;
 pub const TRANSITION_HIGH_MPS: f64 = 3.0;
 

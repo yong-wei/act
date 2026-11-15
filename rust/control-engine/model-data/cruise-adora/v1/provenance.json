@@ -1,0 +1,1449 @@
+{
+  "schema": "act.model-pack.provenance.v2",
+  "model_fidelity": "research-nominal",
+  "authority": [
+    "https://github.com/yong-wei/act/issues/2160",
+    "https://github.com/yong-wei/act/issues/2147"
+  ],
+  "generator_sha256": "d8d5d75d57930decc6b9df2599ad15cd084e3c708f5dd2b5a69f379e4ab8425f",
+  "geometry_provenance_sha256": "adc12ebb2fe775b97c9e7051b230ccf1162bcdc6ee5f1daf372f393e4acad66e",
+  "coefficient_generator_sha256": "b097358b9f9b646607cdbf76dcada975d51da1ed56ca109d06d5bb466e58eff6",
+  "envelope_validator_sha256": "61773e20abb5b75f1f3605e632c099e26d86b43e772fecc283614fc2bf87971f",
+  "propeller_coefficients_sha256": "c063afb4f3fb7434cc5489d238eeb51c16c78f1b547be917af08f2f3c13691ec",
+  "entries": [
+    {
+      "parameter": "geometry.loa_m",
+      "value": 323.6,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.lpp_m",
+      "value": 305.0,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.beam_m",
+      "value": 37.2,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.draft_m",
+      "value": 8.26,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.displacement_mass_kg",
+      "value": 68000000.0,
+      "unit": "kg",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.displacement_volume_m3",
+      "value": 66341.46341463416,
+      "unit": "m^3",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.water_density_kg_m3",
+      "value": 1025.0,
+      "unit": "kg/m^3",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.waterline_area_m2",
+      "value": 9644.3522107634,
+      "unit": "m^2",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.kg_keel_up_m",
+      "value": 18.870853426533483,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.kb_keel_up_m",
+      "value": 4.565016989268833,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.gm_transverse_m",
+      "value": 1.6000000000000032,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.gm_longitudinal_m",
+      "value": 814.9254704474669,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.cruise_speed_mps",
+      "value": 8.0,
+      "unit": "m/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.equilibrium_pitch_rad",
+      "value": 0.0,
+      "unit": "rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.center_of_flotation_x_m",
+      "value": -11.10722752571773,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.center_of_mass_waterline_z_up_m[0]",
+      "value": 0.0,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.center_of_mass_waterline_z_up_m[1]",
+      "value": 0.0,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.center_of_mass_waterline_z_up_m[2]",
+      "value": 10.610853426533483,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.inertia_about_cg_kg_m2.ixx",
+      "value": 11527387200.0,
+      "unit": "kg*m^2",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.inertia_about_cg_kg_m2.iyy",
+      "value": 395356250000.0,
+      "unit": "kg*m^2",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.inertia_about_cg_kg_m2.izz",
+      "value": 395356250000.0,
+      "unit": "kg*m^2",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[0][0]",
+      "value": 0.0,
+      "unit": "N/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[0][1]",
+      "value": 0.0,
+      "unit": "N/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[0][2]",
+      "value": 0.0,
+      "unit": "N/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[0][3]",
+      "value": 0.0,
+      "unit": "N/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[0][4]",
+      "value": 0.0,
+      "unit": "N/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[0][5]",
+      "value": 0.0,
+      "unit": "N/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[1][0]",
+      "value": 0.0,
+      "unit": "N/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[1][1]",
+      "value": 0.0,
+      "unit": "N/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[1][2]",
+      "value": 0.0,
+      "unit": "N/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[1][3]",
+      "value": 0.0,
+      "unit": "N/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[1][4]",
+      "value": 0.0,
+      "unit": "N/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[1][5]",
+      "value": 0.0,
+      "unit": "N/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[2][0]",
+      "value": 0.0,
+      "unit": "N/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[2][1]",
+      "value": 0.0,
+      "unit": "N/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[2][2]",
+      "value": 96976372.56727868,
+      "unit": "N/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[2][3]",
+      "value": 0.0,
+      "unit": "N/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[2][4]",
+      "value": 1077138634.7235355,
+      "unit": "N/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[2][5]",
+      "value": 0.0,
+      "unit": "N/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[3][0]",
+      "value": 0.0,
+      "unit": "N*m/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[3][1]",
+      "value": 0.0,
+      "unit": "N*m/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[3][2]",
+      "value": 0.0,
+      "unit": "N*m/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[3][3]",
+      "value": 1067328000.0000023,
+      "unit": "N*m/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[3][4]",
+      "value": 0.0,
+      "unit": "N*m/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[3][5]",
+      "value": 0.0,
+      "unit": "N*m/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[4][0]",
+      "value": 0.0,
+      "unit": "N*m/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[4][1]",
+      "value": 0.0,
+      "unit": "N*m/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[4][2]",
+      "value": 1077138634.7235355,
+      "unit": "N*m/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[4][3]",
+      "value": 0.0,
+      "unit": "N*m/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[4][4]",
+      "value": 555584506718.7117,
+      "unit": "N*m/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[4][5]",
+      "value": 0.0,
+      "unit": "N*m/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[5][0]",
+      "value": 0.0,
+      "unit": "N*m/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[5][1]",
+      "value": 0.0,
+      "unit": "N*m/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[5][2]",
+      "value": 0.0,
+      "unit": "N*m/m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[5][3]",
+      "value": 0.0,
+      "unit": "N*m/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[5][4]",
+      "value": 0.0,
+      "unit": "N*m/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.hydrostatic_stiffness_si[5][5]",
+      "value": 0.0,
+      "unit": "N*m/rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.wet_surface_definition.fullness_power",
+      "value": 3.6299175028643935,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.wet_surface_definition.source_scale_factors[0]",
+      "value": 1.0007438105328754,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.wet_surface_definition.source_scale_factors[1]",
+      "value": 0.9999999794908754,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.wet_surface_definition.source_scale_factors[2]",
+      "value": 0.9999999722903353,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.wet_surface_definition.source_scale_factors[3]",
+      "value": 0.9999999722903353,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.wet_surface_definition.source_center_of_buoyancy_x_m",
+      "value": -18.632440264271832,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.wet_surface_definition.longitudinal_panels",
+      "value": 86,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "geometry.wet_surface_definition.vertical_panels",
+      "value": 12,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.water_density_kg_m3",
+      "value": 1025.0,
+      "unit": "kg/m^3",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.length_m",
+      "value": 305.0,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.draft_m",
+      "value": 8.26,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.surge_coefficients[0]",
+      "value": 0.022,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.surge_coefficients[1]",
+      "value": -0.04,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.surge_coefficients[2]",
+      "value": 0.002,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.surge_coefficients[3]",
+      "value": 0.011,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.surge_coefficients[4]",
+      "value": 0.771,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.sway_coefficients[0]",
+      "value": -0.315,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.sway_coefficients[1]",
+      "value": 0.083,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.sway_coefficients[2]",
+      "value": -1.607,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.sway_coefficients[3]",
+      "value": 0.379,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.sway_coefficients[4]",
+      "value": -0.391,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.sway_coefficients[5]",
+      "value": 0.008,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.yaw_coefficients[0]",
+      "value": -0.137,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.yaw_coefficients[1]",
+      "value": -0.049,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.yaw_coefficients[2]",
+      "value": -0.03,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.yaw_coefficients[3]",
+      "value": -0.294,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.yaw_coefficients[4]",
+      "value": 0.055,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.yaw_coefficients[5]",
+      "value": -0.013,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://doi.org/10.1007/s00773-014-0293-y",
+      "formula_or_table": "Table 3 nondimensional derivatives, B-to-T prior at this hull Lpp/draft",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.crossflow_cd",
+      "value": 1.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "maneuvering.mapped_mmg.force_center_body_z_m",
+      "value": 14.305836437264649,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.water_density_kg_m3",
+      "value": 1025.0,
+      "unit": "kg/m^3",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].installation.positionBodyM[0]",
+      "value": -137.25,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].installation.positionBodyM[1]",
+      "value": -8.184000000000001,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].installation.positionBodyM[2]",
+      "value": 15.610853426533483,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].installation.referenceImmersionM",
+      "value": 5.0,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].diameter_m",
+      "value": 6.5,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].max_power_w",
+      "value": 16800000.0,
+      "unit": "W",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].rated_speed_rad_s",
+      "value": 15.707963267948966,
+      "unit": "rad/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].motor_time_constant_s",
+      "value": 0.5,
+      "unit": "s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].shaft_inertia_kg_m2",
+      "value": 283274.0783691406,
+      "unit": "kg*m^2",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].reference_slew_rad_s2",
+      "value": 0.5235987755982988,
+      "unit": "rad/s^2",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].speed_control_time_s",
+      "value": 0.75,
+      "unit": "s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].azimuth.servo.max_angle_rad",
+      "value": 3.141592653589793,
+      "unit": "rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].azimuth.servo.max_rate_rad_s",
+      "value": 0.08726646259971647,
+      "unit": "rad/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[0].azimuth.servo.time_constant_s",
+      "value": 1.0,
+      "unit": "s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].installation.positionBodyM[0]",
+      "value": -137.25,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].installation.positionBodyM[1]",
+      "value": 8.184000000000001,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].installation.positionBodyM[2]",
+      "value": 15.610853426533483,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].installation.referenceImmersionM",
+      "value": 5.0,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].diameter_m",
+      "value": 6.5,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].max_power_w",
+      "value": 16800000.0,
+      "unit": "W",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].rated_speed_rad_s",
+      "value": 15.707963267948966,
+      "unit": "rad/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].motor_time_constant_s",
+      "value": 0.5,
+      "unit": "s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].shaft_inertia_kg_m2",
+      "value": 283274.0783691406,
+      "unit": "kg*m^2",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].reference_slew_rad_s2",
+      "value": 0.5235987755982988,
+      "unit": "rad/s^2",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].speed_control_time_s",
+      "value": 0.75,
+      "unit": "s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].azimuth.servo.max_angle_rad",
+      "value": 3.141592653589793,
+      "unit": "rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].azimuth.servo.max_rate_rad_s",
+      "value": 0.08726646259971647,
+      "unit": "rad/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.propulsors[1].azimuth.servo.time_constant_s",
+      "value": 1.0,
+      "unit": "s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].installation.positionBodyM[0]",
+      "value": -15.25,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].installation.positionBodyM[1]",
+      "value": -21.75,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].installation.positionBodyM[2]",
+      "value": 13.610853426533483,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].installation.referenceImmersionM",
+      "value": 3.0,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].area_m2",
+      "value": 18.0,
+      "unit": "m^2",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].aspect_ratio",
+      "value": 2.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].normal_body[0]",
+      "value": 0.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].normal_body[1]",
+      "value": 0.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].normal_body[2]",
+      "value": 1.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].servo.max_angle_rad",
+      "value": 0.4363323129985824,
+      "unit": "rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].servo.max_rate_rad_s",
+      "value": 0.2617993877991494,
+      "unit": "rad/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].servo.time_constant_s",
+      "value": 0.4,
+      "unit": "s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].normal_factor",
+      "value": 1.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].fin_servo_power.mean_chord_m",
+      "value": 3.0,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].fin_servo_power.efficiency",
+      "value": 0.65,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[0].fin_servo_power.standby_w",
+      "value": 2000.0,
+      "unit": "W",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].installation.positionBodyM[0]",
+      "value": -15.25,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].installation.positionBodyM[1]",
+      "value": 21.75,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].installation.positionBodyM[2]",
+      "value": 13.610853426533483,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].installation.referenceImmersionM",
+      "value": 3.0,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].area_m2",
+      "value": 18.0,
+      "unit": "m^2",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].aspect_ratio",
+      "value": 2.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].normal_body[0]",
+      "value": 0.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].normal_body[1]",
+      "value": 0.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].normal_body[2]",
+      "value": 1.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].servo.max_angle_rad",
+      "value": 0.4363323129985824,
+      "unit": "rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].servo.max_rate_rad_s",
+      "value": 0.2617993877991494,
+      "unit": "rad/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].servo.time_constant_s",
+      "value": 0.4,
+      "unit": "s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].normal_factor",
+      "value": 1.0,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].fin_servo_power.mean_chord_m",
+      "value": 3.0,
+      "unit": "m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].fin_servo_power.efficiency",
+      "value": 0.65,
+      "unit": "1",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.system.surfaces[1].fin_servo_power.standby_w",
+      "value": 2000.0,
+      "unit": "W",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.initial_state.propeller_shaft_speed_rad_s[0]",
+      "value": 10.884141232391915,
+      "unit": "rad/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.initial_state.propeller_shaft_speed_rad_s[1]",
+      "value": 10.884141232391915,
+      "unit": "rad/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.initial_state.motor_torques_nm[0]",
+      "value": 1085871.442714007,
+      "unit": "N*m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.initial_state.motor_torques_nm[1]",
+      "value": 1085871.442714007,
+      "unit": "N*m",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.initial_state.shaft_reference_speed_rad_s[0]",
+      "value": 10.884141232391915,
+      "unit": "rad/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.initial_state.shaft_reference_speed_rad_s[1]",
+      "value": 10.884141232391915,
+      "unit": "rad/s",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.initial_state.azimuth_angles_rad[0]",
+      "value": 0.0,
+      "unit": "rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.initial_state.azimuth_angles_rad[1]",
+      "value": 0.0,
+      "unit": "rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.initial_state.control_surface_angles_rad[0]",
+      "value": 0.0,
+      "unit": "rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    },
+    {
+      "parameter": "actuators.initial_state.control_surface_angles_rad[1]",
+      "value": 0.0,
+      "unit": "rad",
+      "grade": "T",
+      "source": "https://github.com/yong-wei/act/issues/2160",
+      "formula_or_table": "fixed teaching definition or geometric/force-equilibrium derivation in generator",
+      "uncertainty": "not_quantified"
+    }
+  ],
+  "installation_revisions": {
+    "prop_x": -137.25,
+    "fin_y": 21.75,
+    "previous_fin_y": 15.0
+  },
+  "installation_revision_basis": "closed source hull versus complete physical actuator swept envelope",
+  "not_ready": [
+    "vessel-calibrated viscous derivatives",
+    "fitted vessel radiation",
+    "validated wave coefficients",
+    "specialist coupling and normal-page integration"
+  ]
+}

@@ -159,4 +159,42 @@ describe('GET /api/admin/users/export', () => {
     expect(csv).toContain(`"'@employee"`);
     expect(csv).toContain(`"' @自动化""2401"`);
   });
+
+  it('filters by accountSource=ILAB, labels source in CSV, and blocks invalid accountSource', async () => {
+    mocks.prisma.user.count.mockResolvedValueOnce(1);
+    mocks.prisma.user.findMany.mockResolvedValueOnce([
+      {
+        id: 'ilab-export-1',
+        name: '林远航',
+        email: 'lin@just.edu.cn',
+        role: 'STUDENT',
+        accountSource: 'ILAB',
+        employeeNumber: null,
+        createdAt: new Date('2026-11-15T00:00:00.000Z'),
+        profile: { studentNumber: '20248888', className: '海工2401' },
+      },
+    ]);
+
+    const validRes = await GET(new Request(
+      'http://localhost/api/admin/users/export?accountSource=ILAB',
+    ) as never);
+    const validCsv = await validRes.text();
+
+    expect(validRes.status).toBe(200);
+    expect(validCsv).toContain('"accountSource"');
+    expect(validCsv).toContain('"实验空间用户"');
+    expect(mocks.prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ accountSource: 'ILAB' }),
+    }));
+
+    const badRes = await GET(new Request(
+      'http://localhost/api/admin/users/export?accountSource=UNKNOWN',
+    ) as never);
+    const badBody = await badRes.json();
+
+    expect(badRes.status).toBe(400);
+    expect(badBody).toEqual(expect.objectContaining({
+      code: 'invalid-account-source-filter',
+    }));
+  });
 });

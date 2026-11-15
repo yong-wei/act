@@ -1,0 +1,14 @@
+{
+  "schema": "act.semisub.nemoh-case.v1",
+  "generator_sha256": "5f4db30084be622328e64db1f0000cc091c0463703e01f17203447b07b465304",
+  "geometry_sha256": "04d5c40ecd1d96d5f7b3164a16495d73f66ac80f6c2a4c0dc18f6647a72c9f81",
+  "mesh_sha256": "5a4ed96f9f7dd41637e03b4508f48b50b60b878206407dcbf353d75eec636c3b",
+  "qtf_scope": "zero-speed DUOK+HASBO+HASFS+ASYMP",
+  "angular_extension": "common 180-degree rotation of both waves on centrosymmetric geometry",
+  "not_ready": [
+    "forward-speed QTF",
+    "full-contribution reference and mesh convergence"
+  ],
+  "nodes": 788,
+  "panels": 784
+}

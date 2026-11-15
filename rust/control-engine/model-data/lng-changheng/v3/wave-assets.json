@@ -1,0 +1,121 @@
+{
+  "schema": "act.vessel-wave-assets.v1",
+  "vessel": "lng-changheng",
+  "model_version": "research-nominal-v3",
+  "first_order": {
+    "metadata_file": "waves/0200.0/085/metadata.json",
+    "metadata_sha256": "cc31adbff0286db7959035f42a62cc6bcf2f0e6149a75a3cee4c065f388d9b29",
+    "metadata_fnv1a64": "fnv1a-c2dd838c1a3857f1",
+    "data_file": "waves/0200.0/085/excitation-f32le.bin",
+    "data_sha256": "456ed3929df1f5281719a03d45a92bbaded059c18481676931696c7bfee347a5",
+    "data_bytes": 149760,
+    "object_key": "simulation-hydrodynamics/456ed3929df1f5281719a03d45a92bbaded059c18481676931696c7bfee347a5/excitation-f32le.bin"
+  },
+  "full_difference": null,
+  "conditions": [
+    {
+      "loading_ratio": 0.3,
+      "water_depth_m": 40,
+      "first_order": {
+        "metadata_file": "waves/0040.0/030/metadata.json",
+        "metadata_sha256": "7a46e92ae6c7603e026ef80beb0b6708427f6d56707c6f26e6b980526c841202",
+        "metadata_fnv1a64": "fnv1a-8e9ec9be79c15592",
+        "data_file": "waves/0040.0/030/excitation-f32le.bin",
+        "data_sha256": "7eb2f4a152d80b34b1bc798672b02871c854b3de0cac6b8e6cb6992dbf2b620b",
+        "data_bytes": 149760,
+        "object_key": "simulation-hydrodynamics/7eb2f4a152d80b34b1bc798672b02871c854b3de0cac6b8e6cb6992dbf2b620b/excitation-f32le.bin"
+      }
+    },
+    {
+      "loading_ratio": 0.3,
+      "water_depth_m": 200,
+      "first_order": {
+        "metadata_file": "waves/0200.0/030/metadata.json",
+        "metadata_sha256": "742b36a7855f56465c175974f8255c7ac2d7b7e80b5ae0c8d2504595ac2ffcf2",
+        "metadata_fnv1a64": "fnv1a-b0f5d204db3de97d",
+        "data_file": "waves/0200.0/030/excitation-f32le.bin",
+        "data_sha256": "0f01b7f1764f6754f26aa6587ca051b87cc4e9c475e9e1ff430617914f50640c",
+        "data_bytes": 149760,
+        "object_key": "simulation-hydrodynamics/0f01b7f1764f6754f26aa6587ca051b87cc4e9c475e9e1ff430617914f50640c/excitation-f32le.bin"
+      }
+    },
+    {
+      "loading_ratio": 0.7,
+      "water_depth_m": 40,
+      "first_order": {
+        "metadata_file": "waves/0040.0/070/metadata.json",
+        "metadata_sha256": "acc235c9bda20e16d264b38dbec110748776056461ed585561eb7ee5d64bd1f3",
+        "metadata_fnv1a64": "fnv1a-55ffd9db21f33d2b",
+        "data_file": "waves/0040.0/070/excitation-f32le.bin",
+        "data_sha256": "9057905ca7d66475b70261c25028508d001a9d23ab18290cbb2022f4b0cf7b27",
+        "data_bytes": 149760,
+        "object_key": "simulation-hydrodynamics/9057905ca7d66475b70261c25028508d001a9d23ab18290cbb2022f4b0cf7b27/excitation-f32le.bin"
+      }
+    },
+    {
+      "loading_ratio": 0.7,
+      "water_depth_m": 200,
+      "first_order": {
+        "metadata_file": "waves/0200.0/070/metadata.json",
+        "metadata_sha256": "aaa0e611f3636069125490d2a3e47cc008f6bbf0b4aaf5e0a853dcccc0478fd0",
+        "metadata_fnv1a64": "fnv1a-2724b4232ee0422e",
+        "data_file": "waves/0200.0/070/excitation-f32le.bin",
+        "data_sha256": "2545b82fcb5ef4563ce7a5cb42058ba07ff82b8c77e5e63bd3bd59ca19df2554",
+        "data_bytes": 149760,
+        "object_key": "simulation-hydrodynamics/2545b82fcb5ef4563ce7a5cb42058ba07ff82b8c77e5e63bd3bd59ca19df2554/excitation-f32le.bin"
+      }
+    },
+    {
+      "loading_ratio": 0.85,
+      "water_depth_m": 40,
+      "first_order": {
+        "metadata_file": "waves/0040.0/085/metadata.json",
+        "metadata_sha256": "7d5199956ce9b357e36bb96fa4be57da1c5e8c01e52214847e46921ebed0eff9",
+        "metadata_fnv1a64": "fnv1a-6ac806395559994c",
+        "data_file": "waves/0040.0/085/excitation-f32le.bin",
+        "data_sha256": "3c5858ac436af8d6c61d3f937decdc03725216b0ac8617bd9eca019a0110c3a9",
+        "data_bytes": 149760,
+        "object_key": "simulation-hydrodynamics/3c5858ac436af8d6c61d3f937decdc03725216b0ac8617bd9eca019a0110c3a9/excitation-f32le.bin"
+      }
+    },
+    {
+      "loading_ratio": 0.85,
+      "water_depth_m": 200,
+      "first_order": {
+        "metadata_file": "waves/0200.0/085/metadata.json",
+        "metadata_sha256": "cc31adbff0286db7959035f42a62cc6bcf2f0e6149a75a3cee4c065f388d9b29",
+        "metadata_fnv1a64": "fnv1a-c2dd838c1a3857f1",
+        "data_file": "waves/0200.0/085/excitation-f32le.bin",
+        "data_sha256": "456ed3929df1f5281719a03d45a92bbaded059c18481676931696c7bfee347a5",
+        "data_bytes": 149760,
+        "object_key": "simulation-hydrodynamics/456ed3929df1f5281719a03d45a92bbaded059c18481676931696c7bfee347a5/excitation-f32le.bin"
+      }
+    },
+    {
+      "loading_ratio": 0.95,
+      "water_depth_m": 40,
+      "first_order": {
+        "metadata_file": "waves/0040.0/095/metadata.json",
+        "metadata_sha256": "4b1f21300c18d79dde9215f9f439e0b6e6036aab73098fdca8cde4a18e5a8fdc",
+        "metadata_fnv1a64": "fnv1a-4acc6a7874fb676d",
+        "data_file": "waves/0040.0/095/excitation-f32le.bin",
+        "data_sha256": "a789d3f11fcbf3206ee672cc033b22b6057973ab7bf264ab4a8a0d60556f14e2",
+        "data_bytes": 149760,
+        "object_key": "simulation-hydrodynamics/a789d3f11fcbf3206ee672cc033b22b6057973ab7bf264ab4a8a0d60556f14e2/excitation-f32le.bin"
+      }
+    },
+    {
+      "loading_ratio": 0.95,
+      "water_depth_m": 200,
+      "first_order": {
+        "metadata_file": "waves/0200.0/095/metadata.json",
+        "metadata_sha256": "51cac9f4209e266820319b68cd7147e490f1130e7839388a96f6aa0a9b5d2bdf",
+        "metadata_fnv1a64": "fnv1a-2ad7b1aa9d14c05e",
+        "data_file": "waves/0200.0/095/excitation-f32le.bin",
+        "data_sha256": "f5aea96fdad1c2bf2fa9bf6d5de22572b23f376e329a1328cd62c02b2498b795",
+        "data_bytes": 149760,
+        "object_key": "simulation-hydrodynamics/f5aea96fdad1c2bf2fa9bf6d5de22572b23f376e329a1328cd62c02b2498b795/excitation-f32le.bin"
+      }
+    }
+  ]
+}

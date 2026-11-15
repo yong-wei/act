@@ -12,7 +12,7 @@ export default async function DredgerSimulationPage({
   return (
     <SimulationShell
       title="天鲸号挖泥船动力定位"
-      subtitle="MMG 三自由度 · 动力定位与前馈扰动补偿"
+      subtitle="钢桩、绞车、桥架与切削控制"
       activeHref="/simulations/dredger"
       guideHref="/supporting/guide-07-dredger.pdf"
       localToolTemplate="dp-positioning"

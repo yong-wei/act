@@ -1,0 +1,77 @@
+{
+  "full_scale": {
+    "missing": "Schoenherr three-dimensional resistance extrapolation inputs",
+    "status": "not_ready",
+    "turning_port": {
+      "measured": [
+        3.05550269946374,
+        3.0203881351913244
+      ],
+      "reference": [
+        3.56,
+        3.59
+      ]
+    },
+    "turning_starboard": {
+      "measured": [
+        3.0357316159961942,
+        3.025594310884947
+      ],
+      "reference": [
+        3.62,
+        3.71
+      ]
+    },
+    "zigzag_10": {
+      "measured": [
+        5.36219546632701,
+        14.008699309232712
+      ],
+      "reference": [
+        5.8,
+        20.5
+      ]
+    },
+    "zigzag_20": {
+      "measured": [
+        11.87455896346469,
+        16.74487360982606
+      ],
+      "reference_first_osa_deg": 11.8
+    }
+  },
+  "l7": {
+    "turning_port": {
+      "measured": [
+        3.144618496650082,
+        3.1045775638250808
+      ],
+      "reference": [
+        3.26,
+        3.26
+      ]
+    },
+    "turning_starboard": {
+      "measured": [
+        3.1392438683518438,
+        3.1344092651605733
+      ],
+      "reference": [
+        3.31,
+        3.36
+      ]
+    },
+    "zigzag_10": {
+      "measured": [
+        5.457496510600491,
+        14.800322879964092
+      ],
+      "reference_second_osa_deg": 15.8
+    }
+  },
+  "resistance_model": "constant R0=0.022 from L3 table 2",
+  "schema": "act.kvlcc2.validation.v1",
+  "self_propulsion": "(1-tP)*T=R",
+  "source": "https://doi.org/10.1007/s00773-014-0293-y",
+  "time_step_s": 0.1
+}

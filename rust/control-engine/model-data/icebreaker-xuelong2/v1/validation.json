@@ -1,0 +1,161 @@
+{
+  "schema": "act.vessel-pack-validation.v1",
+  "status": "computed",
+  "initial_surge_force_residual_n": -1.4551915228366852e-10,
+  "geometry_and_installation": [
+    {
+      "geometry_sha256": "eccba9127d6104ac07ba5db8abcde74a0b3e7c0105cd9a1a75a7dbadfdc5b92f",
+      "full_hull_sha256": "bd0a660760c84933064b2bf797c3af273a22de6d9361f1426f4091f40b59f3fa",
+      "propulsors": [
+        {
+          "center_body_m": [
+            -53.5,
+            -5.0,
+            5.327182491673574
+          ],
+          "diameter_m": 4.5,
+          "clearance_m": 0.422151738435097,
+          "center_inside_hull": false,
+          "nearest_hull_point_bem_m": [
+            -51.91742783081013,
+            4.43041216313172,
+            -1.9236016907589526
+          ],
+          "all_angles_clear": true,
+          "rotation_coverage": "sphere equal to union of every vertical propeller disk over full horizontal azimuth"
+        },
+        {
+          "center_body_m": [
+            -53.5,
+            5.0,
+            5.327182491673574
+          ],
+          "diameter_m": 4.5,
+          "clearance_m": 0.42215173843509746,
+          "center_inside_hull": false,
+          "nearest_hull_point_bem_m": [
+            -51.91742783081013,
+            -4.43041216313172,
+            -1.9236016907589524
+          ],
+          "all_angles_clear": true,
+          "rotation_coverage": "sphere equal to union of every vertical propeller disk over full horizontal azimuth"
+        }
+      ],
+      "surfaces": []
+    },
+    {
+      "geometry_sha256": "17705663fe86ad0edeb6560197a6becb977676e3216075bfd435a0b6ced69cc2",
+      "full_hull_sha256": "a4fbda8c4a32093ca35ebe9443fe6b3dd580adc64b15db0a4c951469b07d48d0",
+      "propulsors": [
+        {
+          "center_body_m": [
+            -53.5,
+            -5.0,
+            5.403168104431823
+          ],
+          "diameter_m": 4.5,
+          "clearance_m": 0.2513608951295381,
+          "center_inside_hull": false,
+          "nearest_hull_point_bem_m": [
+            -52.035039249860944,
+            4.643110951791063,
+            -2.0041727190200618
+          ],
+          "all_angles_clear": true,
+          "rotation_coverage": "sphere equal to union of every vertical propeller disk over full horizontal azimuth"
+        },
+        {
+          "center_body_m": [
+            -53.5,
+            5.0,
+            5.403168104431823
+          ],
+          "diameter_m": 4.5,
+          "clearance_m": 0.2513608951295381,
+          "center_inside_hull": false,
+          "nearest_hull_point_bem_m": [
+            -52.035039249860944,
+            -4.643110951791063,
+            -2.0041727190200618
+          ],
+          "all_angles_clear": true,
+          "rotation_coverage": "sphere equal to union of every vertical propeller disk over full horizontal azimuth"
+        }
+      ],
+      "surfaces": []
+    }
+  ],
+  "previous_layout": {
+    "water_density_kg_m3": 1025.0,
+    "propulsors": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -49.88,
+            -5.0,
+            5.327182491673574
+          ],
+          "referenceImmersionM": 4.000000000000001
+        },
+        "diameter_m": 4.5,
+        "max_power_w": 7500000.0,
+        "rated_speed_rad_s": 15.707963267948966,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 45050.811767578125,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": {
+          "servo": {
+            "max_angle_rad": 3.141592653589793,
+            "max_rate_rad_s": 0.20943951023931956,
+            "time_constant_s": 0.8
+          },
+          "forbidden_sectors_rad": []
+        }
+      },
+      {
+        "installation": {
+          "positionBodyM": [
+            -49.88,
+            5.0,
+            5.327182491673574
+          ],
+          "referenceImmersionM": 4.000000000000001
+        },
+        "diameter_m": 4.5,
+        "max_power_w": 7500000.0,
+        "rated_speed_rad_s": 15.707963267948966,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 45050.811767578125,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": {
+          "servo": {
+            "max_angle_rad": 3.141592653589793,
+            "max_rate_rad_s": 0.20943951023931956,
+            "time_constant_s": 0.8
+          },
+          "forbidden_sectors_rad": []
+        }
+      }
+    ],
+    "surfaces": []
+  },
+  "previous_layout_checks": [
+    {
+      "status": "conflict",
+      "reason": "\u5b8c\u6574\u6868\u76d8\u8fd0\u52a8\u5305\u7edc\u4e0e\u8239\u4f53\u51b2\u7a81 {'center_body_m': [-49.88, -5.0, 5.327182491673574], 'diameter_m': 4.5, 'clearance_m': -0.6595002720511238, 'center_inside_hull': False, 'nearest_hull_point_bem_m': [-49.040092992917984, 4.649981301506301, -2.6954952990637597], 'all_angles_clear': False, 'rotation_coverage': 'sphere equal to union of every vertical propeller disk over full horizontal azimuth'}",
+      "geometry_sha256": "eccba9127d6104ac07ba5db8abcde74a0b3e7c0105cd9a1a75a7dbadfdc5b92f",
+      "full_hull_sha256": "bd0a660760c84933064b2bf797c3af273a22de6d9361f1426f4091f40b59f3fa"
+    },
+    {
+      "status": "conflict",
+      "reason": "\u5b8c\u6574\u6868\u76d8\u8fd0\u52a8\u5305\u7edc\u4e0e\u8239\u4f53\u51b2\u7a81 {'center_body_m': [-49.88, -5.0, 5.403168104431823], 'diameter_m': 4.5, 'clearance_m': -0.803199502946383, 'center_inside_hull': False, 'nearest_hull_point_bem_m': [-49.18620204055861, 4.799203280210022, -2.7463825355910445], 'all_angles_clear': False, 'rotation_coverage': 'sphere equal to union of every vertical propeller disk over full horizontal azimuth'}",
+      "geometry_sha256": "17705663fe86ad0edeb6560197a6becb977676e3216075bfd435a0b6ced69cc2",
+      "full_hull_sha256": "a4fbda8c4a32093ca35ebe9443fe6b3dd580adc64b15db0a4c951469b07d48d0"
+    }
+  ],
+  "native_verification": "pending",
+  "fidelity": "research-nominal"
+}

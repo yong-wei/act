@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 
 export type SimulationLocalToolTemplateId =
   | 'heading-control'
+  | 'lng-berthing'
   | 'dp-positioning'
   | 'comfort-frequency'
   | 'ice-propulsion';
@@ -27,6 +28,14 @@ interface SimulationLocalToolTemplate {
 }
 
 const simulationLocalToolTemplates: Record<SimulationLocalToolTemplateId, SimulationLocalToolTemplate> = {
+  'lng-berthing': {
+    id: 'lng-berthing', family: '大惯性靠泊',
+    leftPanel: {title: '推进与液舱状态', summary: '结合轴速、航速、距离及液面响应读取因果关系。',
+      items: ['轴系与船速响应', '船艏剩余距离', '液面幅值与适用域']},
+    rightPanel: {title: '方案与模型对照', summary: '用本人冻结模型预测，再比较真实制动与控制方案。',
+      items: ['减速速度计划', '局部模型独立验证', '实际约束及能量']},
+    hints: ['先保存运行前预测，再比较轴速指令、实际轴速和连续变化的船速。靠泊时保留实际剩余距离及失败轨迹。'],
+  },
   'heading-control': {
     id: 'heading-control',
     family: '航向控制',

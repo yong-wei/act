@@ -1,0 +1,27 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "icebreaker-xuelong2",
+  "model_version": "research-nominal-v2",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "actuators.json": "7628c2deff835a42615270c49dc35dea26d54f6bb8f18232707d20ddd989ff50",
+    "frontal.wkb": "ee6974c367abec1c1f9ba5863ec5f8653206c7504e4c05380510f7058d4d8ac3",
+    "full-hull.dat": "bd0a660760c84933064b2bf797c3af273a22de6d9361f1426f4091f40b59f3fa",
+    "geometry-provenance.json": "c90c9da8d596a576a9be5f642295f745eebb0856a2ecd34f9caba542c2bc65af",
+    "geometry.json": "9a7f48f29593ba2ed47301a8fc231662856e414b605497d2c26d024f7e1bde31",
+    "hull.dat": "c9d51fc251ad0c6eb9aca8be5212745f62b90ab51c88864b99bf46ef0c3e6330",
+    "hydrostatic-hull.json": "a4cd2ede2e74a74400e04fe72c9f44ada4acf77990aad0e68dd315ee5f69ed2c",
+    "lateral.wkb": "e04bad2b92c5f36d242194ee00fd15e8fc85e4906ca7756b09425f0e23719989",
+    "lid.dat": "fc94ea9991691686ecd37f3e62e3ca214ebe892b1820efb81d9c5e7a76aba6d6",
+    "maneuvering.json": "677d4f07532b454f19a07efe9e6387215891e9755620842c82abcad03491b5de",
+    "provenance.json": "4c4ee96786450e73e7f2ae6f9fffe0d0581f5cb586ec1f2c9a2c9f72ebee766f",
+    "radiation-fit-arrays.npz": "b90d891dcd653600c5df809fbdb1017997146a95420aea48cb91a103897d60d1",
+    "radiation-fit-validation.json": "91ff4d7171309dabea47093fd0c499b7914d9fbb04793a281088195b5113e8c6",
+    "radiation.json": "9484e76a158c2d606c9247434a9dea5efba7d703bd9bfbda45fde75b8ee0bc6c",
+    "source-sections.json": "a8416edcf9ae26fc08948d83b5083bb164052b173342c66f6992ab01bf1874f0",
+    "static-validation.json": "9e8f82915f1bd5478250811bfb879431c925fd03962d831618a03ebb021033e9",
+    "validation.json": "f8402ed03d83ffbac97990ce89f98a79c5b2cb71edc03312ea13ab87734c3502",
+    "wind-validation.json": "d2754109f0a52dccdf884ce84dd5c83778f9738dcd311a0e0a97f4fd73a5d298",
+    "wind.json": "a9656d626d996f48d175c84342c598f7dacb322da4f33968f30d2a454b67c7b2"
+  }
+}

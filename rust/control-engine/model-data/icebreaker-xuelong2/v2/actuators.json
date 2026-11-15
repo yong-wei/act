@@ -1,0 +1,77 @@
+{
+  "system": {
+    "water_density_kg_m3": 1025.0,
+    "propulsors": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -53.5,
+            -5.0,
+            5.327182491673574
+          ],
+          "referenceImmersionM": 4.000000000000001
+        },
+        "diameter_m": 4.5,
+        "max_power_w": 7500000.0,
+        "rated_speed_rad_s": 15.707963267948966,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 45050.811767578125,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": {
+          "servo": {
+            "max_angle_rad": 3.141592653589793,
+            "max_rate_rad_s": 0.20943951023931956,
+            "time_constant_s": 0.8
+          },
+          "forbidden_sectors_rad": []
+        }
+      },
+      {
+        "installation": {
+          "positionBodyM": [
+            -53.5,
+            5.0,
+            5.327182491673574
+          ],
+          "referenceImmersionM": 4.000000000000001
+        },
+        "diameter_m": 4.5,
+        "max_power_w": 7500000.0,
+        "rated_speed_rad_s": 15.707963267948966,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 45050.811767578125,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": {
+          "servo": {
+            "max_angle_rad": 3.141592653589793,
+            "max_rate_rad_s": 0.20943951023931956,
+            "time_constant_s": 0.8
+          },
+          "forbidden_sectors_rad": []
+        }
+      }
+    ],
+    "surfaces": []
+  },
+  "initial_state": {
+    "propeller_shaft_speed_rad_s": [
+      7.421519650744479,
+      7.421519650744479
+    ],
+    "motor_torques_nm": [
+      78731.16694315182,
+      78731.16694315182
+    ],
+    "shaft_reference_speed_rad_s": [
+      7.421519650744479,
+      7.421519650744479
+    ],
+    "azimuth_angles_rad": [
+      0.0,
+      0.0
+    ],
+    "control_surface_angles_rad": []
+  }
+}

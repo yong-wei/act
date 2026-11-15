@@ -62,6 +62,8 @@ export interface PageContext {
   url?: string;
   /** 仿真页面路由解析出的仿真ID */
   simulationId?: string;
+  /** 浏览器选择的实验轮次引用，仅用于服务端校验归属后查询证据。 */
+  simulationOriginId?: string;
   /** 仿真上下文来源 */
   routeProvenance?: 'simulation-route';
   /** 运行摘要可用性 */

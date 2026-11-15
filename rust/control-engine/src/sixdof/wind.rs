@@ -11,6 +11,7 @@ use super::wave::seed_to_unit;
 pub const RHO_AIR: f64 = 1.225;
 
 /// 阵风 OU 过程（二维水平分量，物理时钟 20Hz 步进）。
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct GustProcess {
     tau_s: f64,
     sigma_mps: f64,
@@ -52,7 +53,9 @@ impl GustProcess {
     /// 连续调用只推进新增网格步，重复同 t 不消耗随机流）。
     pub fn advance_to(&mut self, t: f64) {
         let dt = 1.0 / self.step_hz;
-        let target_steps = (t * self.step_hz).round() as i64;
+        // 仅消费已经到达的采样点。固定步长累计误差在网格边界容许1e-9步，
+        // 避免重建状态与持续推进在同一物理时刻取得相邻随机样本。
+        let target_steps = (t * self.step_hz + 1e-9).floor() as i64;
         let steps = (target_steps - self.executed_steps).max(0);
         self.executed_steps += steps;
         let decay = (-dt / self.tau_s).exp();
@@ -68,10 +71,19 @@ impl GustProcess {
     pub fn components(&self) -> [f64; 2] {
         [self.v_n, self.v_e]
     }
+
+    pub fn validate_checkpoint(&self, expected: &Self, time_s: f64, enabled: bool) -> Result<(), String> {
+        let steps = if enabled { (time_s * self.step_hz + 1e-9).floor() as i64 } else { 0 };
+        if self.tau_s != expected.tau_s || self.sigma_mps != expected.sigma_mps
+            || self.step_hz != expected.step_hz || !self.v_n.is_finite() || !self.v_e.is_finite()
+            || self.executed_steps != steps
+        { return Err("阵风恢复点配置或随机时钟不一致".into()); }
+        Ok(())
+    }
 }
 
 /// 真风（均值 + 阵风；FROM 真北顺时针）。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct TrueWind {
     /// 平均风速 m/s。
     pub speed_mps: f64,
@@ -94,7 +106,7 @@ impl TrueWind {
 }
 
 /// 船参数（水上投影与压力中心，T 级）。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct WindHullGeometry {
     pub frontal_area_m2: f64,
     pub lateral_area_m2: f64,
@@ -150,6 +162,7 @@ pub fn fujiwara_loads(rel_body: [f64; 2], geo: &WindHullGeometry) -> [f64; 4] {
 }
 
 /// 风载荷状态机：消融开关语义入口。
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct WindEnvironment {
     pub true_wind: TrueWind,
     pub wind_force_enabled: bool,

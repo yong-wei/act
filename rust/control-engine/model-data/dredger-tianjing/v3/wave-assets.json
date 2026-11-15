@@ -1,0 +1,15 @@
+{
+  "schema": "act.vessel-wave-assets.v1",
+  "vessel": "dredger-tianjing",
+  "model_version": "research-nominal-v3",
+  "first_order": {
+    "metadata_file": "first-order-wave.json",
+    "metadata_sha256": "9d7bc598f4c61d6d011ff08afa4b0f887c43f50fc88f96406335be4580ba73ec",
+    "metadata_fnv1a64": "fnv1a-6d1b771f31fe7375",
+    "data_file": "excitation-f32le.bin",
+    "data_sha256": "b00a0a4e709b8be81f1776c64be093d9cff54a1fa6163b93377bc800f70660f0",
+    "data_bytes": 148608,
+    "object_key": "simulation-hydrodynamics/b00a0a4e709b8be81f1776c64be093d9cff54a1fa6163b93377bc800f70660f0/excitation-f32le.bin"
+  },
+  "full_difference": null
+}

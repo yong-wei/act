@@ -1,0 +1,44 @@
+{
+  "schema": "act.controlled-first-order-solver.v1",
+  "generator_sha256": "c466b629330648b39fb35d20e57c0a7e6e5f484816786f14501b091f371c4d75",
+  "base_generator_sha256": "45f4dd6e33143c938bb9f426c1cdcba600f157181197a4e206c40cb157fe5bab",
+  "linear_solver": "lu_decomposition",
+  "gmres_relative_tolerance": 1e-10,
+  "maximum_accepted_relative_residual": 1e-08,
+  "restart": 80,
+  "maximum_restart_cycles": 500,
+  "preconditioner": "Jacobi",
+  "elapsed_seconds": 524.07961550029,
+  "symmetry_proof_sha256": "4054c23bacc1a4224a11d25426e53df7e06431a30d950e6b07a30085cb40b30b",
+  "symmetry_meshes": [
+    {
+      "input_sha256": "62bcef21a011c39226c7aec5350165dcfd122d59a7d61253a4cf8a782f835bc9",
+      "full_faces": 4092,
+      "relative_volume_error": 6.656962515088201e-15,
+      "relative_area_error": 0.0
+    },
+    {
+      "input_sha256": "6f8c3a21fc5a5047b7b42a2f3eae4801e9c0e9703ceacb4fc7efb5fd8aca0f00",
+      "full_faces": 1460,
+      "relative_volume_error": 0.0,
+      "relative_area_error": 0.0
+    }
+  ],
+  "linear_solves": [],
+  "gradient_cache": {
+    "producer_sha256": {
+      "solve_first_order_cached.py": "3f6f5d3f2e3f705af1ed81c4381c7233bf1b42c2f2245b936ee26cfa2630b10b",
+      "cached_gradient_solver.py": "0a6bd89eb372379a063a4945bc1a22a1409233ed7048bb296acd24014d421a2d",
+      "solve_first_order_controlled.py": "c466b629330648b39fb35d20e57c0a7e6e5f484816786f14501b091f371c4d75"
+    },
+    "maximum_retained_matrices": 1,
+    "solver_instances": [
+      {
+        "hits": 90,
+        "evaluations": 15,
+        "maximum_retained_bytes": 1479585792,
+        "green_function_seconds": 238.4989548320882
+      }
+    ]
+  }
+}

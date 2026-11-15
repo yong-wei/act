@@ -60,6 +60,8 @@ export async function GET(request: NextRequest) {
     q: searchParams.get('q'),
     search: searchParams.get('search'),
     role: searchParams.get('role'),
+    accountSource: searchParams.get('accountSource'),
+    source: searchParams.get('source'),
     page: searchParams.get('page'),
     pageSize: searchParams.get('pageSize'),
     action: searchParams.get('action'),
@@ -70,6 +72,9 @@ export async function GET(request: NextRequest) {
   const where: Prisma.UserWhereInput = {};
   if (query.role !== 'ALL') {
     where.role = query.role;
+  }
+  if (query.accountSource !== 'ALL') {
+    where.accountSource = query.accountSource;
   }
 
   if (query.search) {
@@ -106,6 +111,7 @@ export async function GET(request: NextRequest) {
     query: {
       search: query.search,
       role: query.role,
+      accountSource: query.accountSource,
       action: query.action,
       targetId: query.targetId,
       source: query.source,
@@ -116,6 +122,7 @@ export async function GET(request: NextRequest) {
       email: user.email,
       employeeNumber: user.employeeNumber,
       role: user.role,
+      accountSource: user.accountSource ?? 'PLATFORM',
       createdAt: user.createdAt,
       profile: user.profile,
     })),

@@ -1,0 +1,56 @@
+{
+  "schema": "act.semisub-power-session-validation.v1",
+  "status": "passed",
+  "generator_sha256": "5403d06adf3999b21bf49dad50ee3816e771313b68f6377e26531177bf4f43af",
+  "wasm_sha256": "acea5501d5c04e5259abe7dab9b3efc626f7766e1e0ba8532b1de7d07589b4db",
+  "parameter_manifest_sha256": "62b6dfdac1ac123077a20808a92a998b492f9591c0984e80ec6e0f7ec7e6fb70",
+  "records": [
+    {
+      "budget_w": 8000000,
+      "parameter_hash": "fnv1a-38f842c62b0c83b8",
+      "virtual_seconds": 45,
+      "peak_positive_mechanical_power_w": 8000000.000000002,
+      "budget_active_in_this_run": true,
+      "final_positive_mechanical_power_w": 7999999.999999999,
+      "net_motor_work_after_friction_and_propeller_j": 8653765.721029699,
+      "shaft_kinetic_energy_j": 8653765.721055629,
+      "relative_energy_residual": 2.9963698993322294e-12,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "elapsed_ms": 2284.9109580000004
+    },
+    {
+      "budget_w": 16000000,
+      "parameter_hash": "fnv1a-385522c62a81ec08",
+      "virtual_seconds": 45,
+      "peak_positive_mechanical_power_w": 16000000.000000004,
+      "budget_active_in_this_run": true,
+      "final_positive_mechanical_power_w": 16000000.000000002,
+      "net_motor_work_after_friction_and_propeller_j": 13934609.88446211,
+      "shaft_kinetic_energy_j": 13934609.884511415,
+      "relative_energy_residual": 3.5382560049238274e-12,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "elapsed_ms": 2151.2071670000005
+    },
+    {
+      "budget_w": 32000000,
+      "parameter_hash": "fnv1a-ec3eb83de57a5b05",
+      "virtual_seconds": 45,
+      "peak_positive_mechanical_power_w": 23452775.032803543,
+      "budget_active_in_this_run": false,
+      "final_positive_mechanical_power_w": 23452775.032803543,
+      "net_motor_work_after_friction_and_propeller_j": 18059062.63573301,
+      "shaft_kinetic_energy_j": 18059062.635734204,
+      "relative_energy_residual": 6.621706840088478e-14,
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "elapsed_ms": 2194.9116249999997
+    }
+  ],
+  "scope": "Actual WASM, 8 physical drives, 120Hz RK and positive motor work. Single Node process excludes browser rendering and network capacity.",
+  "interpretation": "The declared torque, propeller map, initial loading and incoming flow determine attainable power. The 32MW-budget scenario peaks at 23.45MW over this 45-second run."
+}

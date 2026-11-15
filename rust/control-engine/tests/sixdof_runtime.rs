@@ -24,10 +24,79 @@ fn legacy_state() -> String {
 }
 
 #[test]
+fn propeller_installation_is_frozen_in_runtime_manifest() {
+    let mut request: serde_json::Value = serde_json::from_str(&base_request(&legacy_state())).unwrap();
+    request["propellerInstallation"] = serde_json::json!({
+        "positionBodyM": [-80.0, 0.0, 3.0], "referenceImmersionM": 3.5,
+    });
+    let first: serde_json::Value = serde_json::from_str(
+        &compute_destroyer_sixdof_step_json(&request.to_string()).unwrap(),
+    ).unwrap();
+    assert_eq!(first["runManifest"]["propellerInstallation"], request["propellerInstallation"]);
+    assert!(first["runManifest"]["factorMask"].as_array().unwrap()
+        .contains(&serde_json::json!("ventilation")));
+    request["state"] = first.clone();
+    let same: serde_json::Value = serde_json::from_str(
+        &compute_destroyer_sixdof_step_json(&request.to_string()).unwrap(),
+    ).unwrap();
+    assert_eq!(same["manifestReset"], false);
+    request["propellerInstallation"]["referenceImmersionM"] = serde_json::json!(4.0);
+    let changed: serde_json::Value = serde_json::from_str(
+        &compute_destroyer_sixdof_step_json(&request.to_string()).unwrap(),
+    ).unwrap();
+    assert_eq!(changed["manifestReset"], true);
+    assert_ne!(changed["runManifest"]["manifestId"], first["runManifest"]["manifestId"]);
+    request.as_object_mut().unwrap().remove("propellerInstallation");
+    let disabled: serde_json::Value = serde_json::from_str(
+        &compute_destroyer_sixdof_step_json(&request.to_string()).unwrap(),
+    ).unwrap();
+    assert_eq!(disabled["manifestReset"], true);
+    assert_eq!(disabled["runManifest"]["propellerInstallation"], serde_json::Value::Null);
+}
+
+#[test]
+fn malformed_propeller_installation_is_rejected_at_runtime_entry() {
+    let mut request: serde_json::Value = serde_json::from_str(&base_request(&legacy_state())).unwrap();
+    request["propellerInstallation"] = serde_json::json!({
+        "positionBodyM": [-80.0, 0.0], "referenceImmersionM": 3.5,
+    });
+    assert!(compute_destroyer_sixdof_step_json(&request.to_string()).is_err());
+}
+
+#[test]
+fn ventilation_and_wave_loads_survive_runtime_frame_round_trips() {
+    let simulate = |dt: f64| {
+        let mut request: serde_json::Value = serde_json::from_str(&base_request(&legacy_state())).unwrap();
+        request["dtS"] = serde_json::json!(dt);
+        request["disturbanceEnabled"] = serde_json::json!(true);
+        request["propellerInstallation"] = serde_json::json!({
+            "positionBodyM": [-80.0, 0.0, 3.0], "referenceImmersionM": 1.5,
+        });
+        for _ in 0..(1.0 / dt) as usize {
+            request["state"] = serde_json::from_str(
+                &compute_destroyer_sixdof_step_json(&request.to_string()).unwrap(),
+            ).unwrap();
+        }
+        request["state"].clone()
+    };
+    let fast = simulate(1.0 / 60.0);
+    let slow = simulate(0.5);
+    for key in ["bodyVelocity", "positionNed", "quaternion"] {
+        let a = fast["sixdofState"][key].as_array().unwrap();
+        let b = slow["sixdofState"][key].as_array().unwrap();
+        for (left, right) in a.iter().zip(b) {
+            assert!((left.as_f64().unwrap() - right.as_f64().unwrap()).abs() < 1e-7, "{key}: {left} vs {right}");
+        }
+    }
+    assert!((fast["sixdofState"]["shaftSpeedRadS"].as_f64().unwrap()
+        - slow["sixdofState"]["shaftSpeedRadS"].as_f64().unwrap()).abs() < 1e-7);
+}
+
+#[test]
 fn first_step_creates_manifest_and_legacy_state_rebuilds() {
     let out = compute_destroyer_sixdof_step_json(&base_request(&legacy_state())).unwrap();
     let v: serde_json::Value = serde_json::from_str(&out).unwrap();
-    assert_eq!(v["runManifest"]["modelVersion"], "sixdof-destroyer-v1");
+    assert_eq!(v["runManifest"]["modelVersion"], "sixdof-destroyer-v2");
     assert_eq!(v["manifestReset"], true, "首步必须生成新 run manifest");
     assert_eq!(v["timeS"], 0.5);
     // 兼容重建：初速 15 m/s 保持（六自由体速度首分量）。
@@ -290,4 +359,18 @@ fn parameter_pack_hash_change_resets_run_identity() {
     let v2: serde_json::Value = serde_json::from_str(&second).unwrap();
     assert_eq!(v2["manifestReset"], true, "参数包哈希不匹配必须重置 run");
     assert_ne!(v2["runManifest"]["manifestId"], v1["runManifest"]["manifestId"]);
+}
+
+#[test]
+fn prior_model_version_starts_a_new_manifest() {
+    let first = compute_destroyer_sixdof_step_json(&base_request(&legacy_state())).unwrap();
+    let mut state: serde_json::Value = serde_json::from_str(&first).unwrap();
+    state["runManifest"]["modelVersion"] = serde_json::json!("sixdof-destroyer-v1");
+    state["runManifest"]["manifestId"] = serde_json::json!("fnv1a-prior-model");
+
+    let resumed = compute_destroyer_sixdof_step_json(&base_request(&state.to_string())).unwrap();
+    let resumed: serde_json::Value = serde_json::from_str(&resumed).unwrap();
+    assert_eq!(resumed["manifestReset"], true);
+    assert_eq!(resumed["runManifest"]["modelVersion"], "sixdof-destroyer-v2");
+    assert_ne!(resumed["runManifest"]["manifestId"], "fnv1a-prior-model");
 }

@@ -228,6 +228,7 @@ export function ExperimentStepAreas({
   watch,
   hint,
   hintAttribute,
+  prediction,
   controls,
   submission,
 }: {
@@ -237,6 +238,7 @@ export function ExperimentStepAreas({
   watch?: string;
   hint?: string;
   hintAttribute?: string;
+  prediction?: ReactNode;
   controls: ReactNode;
   submission?: ReactNode;
 }) {
@@ -277,10 +279,10 @@ export function ExperimentStepAreas({
           ) : null}
         </div>
       </section>
+      {prediction}
       <section
         className="space-y-2.5"
         data-step-controls
-        aria-disabled={readiness === 'runnable' ? undefined : true}
         {...(readiness === 'runnable' ? {} : { 'data-controls-locked': '' })}
         onKeyDownCapture={readiness === 'runnable' ? undefined : (event) => {
           // 就绪门前拦截键盘激活（pointer-events 挡不住 Enter/Space）。
@@ -292,12 +294,12 @@ export function ExperimentStepAreas({
       >
         <p className={simulationUi.sectionTitle}>控制</p>
         <SimulationReadinessGate status={readiness} />
-        <div
-          className={readiness === 'runnable' ? undefined : 'pointer-events-none opacity-60'}
-          aria-hidden={readiness === 'runnable' ? undefined : true}
+        <fieldset
+          disabled={readiness !== 'runnable'}
+          className={`m-0 min-w-0 border-0 p-0${readiness === 'runnable' ? '' : ' pointer-events-none opacity-60'}`}
         >
           {controls}
-        </div>
+        </fieldset>
       </section>
       {submission ? (
         <section className="space-y-2.5" data-step-submit>
@@ -321,7 +323,7 @@ export function SimulationMissionTracker({
   total: number;
   title: string;
   doneSeqs: number[];
-  earnedPoints: number;
+  earnedPoints: number | null;
   maxPoints: number;
 }) {
   const ticks = Array.from({ length: total }, (_, index) => index + 1);
@@ -339,7 +341,7 @@ export function SimulationMissionTracker({
         </div>
         <span className="flex shrink-0 items-center gap-1 text-[11px] text-platform-fg-secondary">
           <Trophy className="h-3.5 w-3.5 text-[hsl(var(--platform-brand-evidence))]" />
-          <span className="sim-hud-value font-semibold">{earnedPoints}</span>
+          <span className="sim-hud-value font-semibold">{earnedPoints ?? '待复核'}</span>
           <span className="text-platform-fg-muted">/ {maxPoints}</span>
         </span>
       </div>
@@ -422,9 +424,11 @@ function metricTone(normalized: number): string {
 export function SimulationAssessmentPanel({
   title = '多目标评估',
   metrics,
+  pendingReview = false,
 }: {
   title?: string;
   metrics: SimulationAssessmentMetric[];
+  pendingReview?: boolean;
 }) {
   const sceneTheme = useSimulationSceneTheme();
   const score = useMemo(() => {
@@ -439,7 +443,9 @@ export function SimulationAssessmentPanel({
   return (
     <div className="space-y-3">
       <p className={simulationUi.sectionTitle}>{title}</p>
-      <div className="sim-hud-tile flex items-center gap-4 p-3" style={{ backgroundColor: sceneTheme.hudOverlay }}>
+      {pendingReview ? <div className="sim-hud-tile p-3 text-xs leading-5 text-platform-fg-secondary" role="status">
+        本人运行及各次尝试保留，课程评价待教师按量规复核。
+      </div> : <div className="sim-hud-tile flex items-center gap-4 p-3" style={{ backgroundColor: sceneTheme.hudOverlay }}>
         <div className="relative h-20 w-20 shrink-0">
           <svg viewBox="0 0 80 80" className="h-20 w-20 -rotate-90" aria-hidden="true">
             <circle cx="40" cy="40" r={radius} fill="none" stroke="currentColor" strokeWidth="5" className="text-platform-fg-primary/10" />
@@ -466,7 +472,7 @@ export function SimulationAssessmentPanel({
           <div className="sim-hud-value mt-1 text-3xl font-bold leading-none" style={{ color: sceneTheme.labelColor }}>{score.toFixed(1)}</div>
           <div className="mt-1.5 text-[11px] leading-4 text-platform-fg-secondary">按当前运行状态实时计算，提交步骤后以正式成绩为准。</div>
         </div>
-      </div>
+      </div>}
       <div className="grid gap-2">
         {metrics.map((metric) => {
           const normalized = normalizeMetric(metric);

@@ -1,0 +1,454 @@
+{
+  "schema": "act.vessel-wave-session-validation.v1",
+  "status": "passed",
+  "generator_sha256": "192289ea98ce44ad6a22eccb4130e73226962c62343c2f6e6abfd961ca35d661",
+  "wasm_sha256": "46e59eedd0468da111cac8c824cf76b69302b2fba89dee8a50f889e20b4e0c18",
+  "wave_asset_manifest_sha256": "bc095dd91572b57fbe5392dd00ea09218d5dc57daf4cdbd62530ed16e74b6aeb",
+  "external_data_bytes": 60784272,
+  "verification": [
+    {
+      "environment": "P0",
+      "physics_ticks": 24,
+      "controller_ticks": 4,
+      "wave_model": {
+        "firstOrderEnabled": false,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-1c74e01fb914911d",
+        "fullDifferenceMetadataHash": "fnv1a-7a5e8e4aded238b7",
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": false,
+        "secondOrderLoaded": true,
+        "waterDepthM": 200
+      },
+      "actual_loads_si": {
+        "tau_actuator": [
+          -5.430633274417627e-32,
+          0,
+          0,
+          0,
+          -2.137167365059745e-30,
+          0
+        ],
+        "tau_hull_viscous": [
+          -2.256652896606533e-31,
+          2.8936771208451115e-29,
+          -3.404058003896712e-23,
+          -4.573512880433613e-24,
+          -5.961487899647063e-25,
+          1.1541006571025173e-43
+        ],
+        "tau_special": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "tau_wave_1": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "tau_wave_2": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "tau_wind": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "rejected_restore_preserves_state": true,
+      "snapshot_bytes": 143476,
+      "creation_and_second_session_ms": 418.01675,
+      "integration_and_restore_ms": 361.350958
+    },
+    {
+      "environment": "V1",
+      "physics_ticks": 24,
+      "controller_ticks": 4,
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-1c74e01fb914911d",
+        "fullDifferenceMetadataHash": "fnv1a-7a5e8e4aded238b7",
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": true,
+        "secondOrderLoaded": true,
+        "waterDepthM": 200
+      },
+      "actual_loads_si": {
+        "tau_actuator": [
+          0.6970666423832323,
+          0,
+          0,
+          0,
+          27.432308611061103,
+          65.76502140938352
+        ],
+        "tau_hull_viscous": [
+          2.89845047753843,
+          18.576773935459936,
+          24.166438793720854,
+          -563.2700850906099,
+          320.8298239470549,
+          42.69659853529626
+        ],
+        "tau_special": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "tau_wave_1": [
+          -595175.5269656243,
+          -1277391.0429060708,
+          -1599533.9907126497,
+          8504236.969223361,
+          -11087879.03630089,
+          -777908.4086871409
+        ],
+        "tau_wave_2": [
+          1413.2818776968213,
+          14920.165292380116,
+          -1274.6199138159566,
+          -341430.78216327284,
+          19939.103232959664,
+          -100981.52291049712
+        ],
+        "tau_wind": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "rejected_restore_preserves_state": true,
+      "snapshot_bytes": 143475,
+      "creation_and_second_session_ms": 406.861167,
+      "integration_and_restore_ms": 778.3556249999999
+    },
+    {
+      "environment": "V2",
+      "physics_ticks": 24,
+      "controller_ticks": 4,
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-1c74e01fb914911d",
+        "fullDifferenceMetadataHash": "fnv1a-7a5e8e4aded238b7",
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": true,
+        "secondOrderLoaded": true,
+        "waterDepthM": 200
+      },
+      "actual_loads_si": {
+        "tau_actuator": [
+          13.060671959939928,
+          0,
+          0,
+          0,
+          513.9887093835819,
+          961.0790982010974
+        ],
+        "tau_hull_viscous": [
+          12.87341234031731,
+          140.99043756421392,
+          40.591308682130325,
+          -3318.7170759867568,
+          1047.4284915339556,
+          2380.8594577750127
+        ],
+        "tau_special": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "tau_wave_1": [
+          -1100650.7237338,
+          -4076558.2918722294,
+          -2019938.1368965667,
+          9769899.122325541,
+          -25774439.708198823,
+          -36641836.17641938
+        ],
+        "tau_wave_2": [
+          6783.588539709062,
+          35315.74894891393,
+          1184.2398956031825,
+          -1112483.952542322,
+          125805.92611999776,
+          -320987.9133839572
+        ],
+        "tau_wind": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "rejected_restore_preserves_state": true,
+      "snapshot_bytes": 143232,
+      "creation_and_second_session_ms": 487.7867080000001,
+      "integration_and_restore_ms": 760.284584
+    },
+    {
+      "environment": "V3",
+      "physics_ticks": 24,
+      "controller_ticks": 4,
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-1c74e01fb914911d",
+        "fullDifferenceMetadataHash": "fnv1a-7a5e8e4aded238b7",
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": true,
+        "secondOrderLoaded": true,
+        "waterDepthM": 200
+      },
+      "actual_loads_si": {
+        "tau_actuator": [
+          242.9013155985662,
+          0,
+          0,
+          0,
+          9559.12024243624,
+          -9765.148895973178
+        ],
+        "tau_hull_viscous": [
+          -66.44646981628144,
+          24.981045907468836,
+          126.77000825357604,
+          1485.2486578495802,
+          -4551.233584656442,
+          -4174.73494653497
+        ],
+        "tau_special": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "tau_wave_1": [
+          2326758.043798598,
+          -1483910.6098280642,
+          -3362672.2568983478,
+          -27028484.668522943,
+          60863838.55751337,
+          92942536.97997344
+        ],
+        "tau_wave_2": [
+          -59831.57531851995,
+          69371.30811383782,
+          -14442.593969742027,
+          -1681573.1485719797,
+          -981430.5856281822,
+          843694.6820471559
+        ],
+        "tau_wind": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "rejected_restore_preserves_state": true,
+      "snapshot_bytes": 142544,
+      "creation_and_second_session_ms": 386.123834,
+      "integration_and_restore_ms": 717.0895830000004
+    },
+    {
+      "environment": "E1",
+      "physics_ticks": 24,
+      "controller_ticks": 4,
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-1c74e01fb914911d",
+        "fullDifferenceMetadataHash": "fnv1a-7a5e8e4aded238b7",
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": true,
+        "secondOrderLoaded": true,
+        "waterDepthM": 200
+      },
+      "actual_loads_si": {
+        "tau_actuator": [
+          0.7292607710902114,
+          0,
+          0,
+          0,
+          28.699273949030225,
+          65.94726624374118
+        ],
+        "tau_hull_viscous": [
+          3.0874607618109144,
+          137630.75368559686,
+          24.20607390419743,
+          -3992656.586649948,
+          317.54120838862997,
+          2966.909369840623
+        ],
+        "tau_special": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "tau_wave_1": [
+          -595175.3606162,
+          -1277391.050161792,
+          -1599534.6940317268,
+          8504279.391902445,
+          -11087871.746736413,
+          -777926.6579548822
+        ],
+        "tau_wave_2": [
+          1413.2831409592163,
+          14920.15383927541,
+          -1274.6114255136954,
+          -341430.58122476307,
+          19939.16864878659,
+          -100981.51592172091
+        ],
+        "tau_wind": [
+          -25081.72024276905,
+          -79073.5933326839,
+          0,
+          -765929.3288407008,
+          225835.58974400186,
+          37589.72176050409
+        ]
+      },
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "rejected_restore_preserves_state": true,
+      "snapshot_bytes": 144644,
+      "creation_and_second_session_ms": 379.6022920000005,
+      "integration_and_restore_ms": 705.7207500000004
+    },
+    {
+      "environment": "E2",
+      "physics_ticks": 24,
+      "controller_ticks": 4,
+      "wave_model": {
+        "firstOrderEnabled": true,
+        "firstOrderLoaded": true,
+        "firstOrderMetadataHash": "fnv1a-1c74e01fb914911d",
+        "fullDifferenceMetadataHash": "fnv1a-7a5e8e4aded238b7",
+        "meanForwardSpeedMps": 0,
+        "secondOrderEnabled": true,
+        "secondOrderLoaded": true,
+        "waterDepthM": 200
+      },
+      "actual_loads_si": {
+        "tau_actuator": [
+          13.365477267156225,
+          0,
+          0,
+          0,
+          525.9839946912523,
+          962.4622547663315
+        ],
+        "tau_hull_viscous": [
+          13.634128975950714,
+          387196.00989282696,
+          45.19738472501947,
+          -11229861.797816766,
+          1046.0742653082114,
+          110774.40618531148
+        ],
+        "tau_special": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "tau_wave_1": [
+          -1100649.797687278,
+          -4076564.8123142035,
+          -2019941.8284637444,
+          9770325.072721226,
+          -25774369.999178205,
+          -36641873.49689189
+        ],
+        "tau_wave_2": [
+          6783.6158239804445,
+          35315.62263948706,
+          1184.2610805287372,
+          -1112482.573638872,
+          125806.99538582691,
+          -320989.8198217297
+        ],
+        "tau_wind": [
+          -56228.33730586082,
+          -179693.10244222448,
+          0,
+          -1739727.4372451631,
+          506420.2915672781,
+          86711.7278800967
+        ]
+      },
+      "restored_future_bytes_identical": true,
+      "pause_bytes_identical": true,
+      "reset_bytes_identical": true,
+      "rejected_restore_preserves_state": true,
+      "snapshot_bytes": 144410,
+      "creation_and_second_session_ms": 360.12116700000024,
+      "integration_and_restore_ms": 656.0758329999999
+    }
+  ],
+  "first_order_only_keeps_same_wave_components": true,
+  "complete_legacy_future_bytes_identical": true,
+  "corrupt_and_missing_data_rejected": true,
+  "scope": "Actual WASM with 896 wave components, full source tables, 120Hz RK integration and 20Hz controller. Single Node process excludes browser rendering and network capacity.",
+  "source_qtf_contributions": "DUOK+HASBO",
+  "not_ready": [
+    "free-surface and asymptotic contributions",
+    "nonzero-speed QTF",
+    "mesh and peak convergence of this QTF",
+    "independent vessel QTF calibration",
+    "unrestricted 24-by-24 directional pairs"
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "schema": "act.vessel-pack-validation.v1",
+  "status": "computed",
+  "initial_surge_force_residual_n": -4.656612873077393e-10,
+  "geometry_and_installation": [
+    {
+      "geometry_sha256": "2a4c6eab9e02bf5780743d0458d9e8587ba8bbe69e26f9570e2225b5d3e5e7e0",
+      "full_hull_sha256": "d42982a85bda002f8be1d272077850f856990d7c2613286bfe4d3d72b4d4b629",
+      "propulsors": [
+        {
+          "center_x_m": -176.18,
+          "center_y_z_up_m": [
+            -0.0,
+            -5.348268161994662
+          ],
+          "diameter_m": 10.0,
+          "clearance_m": 0.7000000019946624,
+          "overlap_area_lower_bound_m2": 0.0,
+          "circumscribed_disk_clear": true,
+          "rotation_coverage": "entire physical disk, all shaft angles"
+        }
+      ],
+      "surfaces": [
+        {
+          "center_body_m": [
+            -187.67,
+            0.0,
+            12.690680582202415
+          ],
+          "chord_m": 6.708203932499369,
+          "span_m": 13.416407864998739,
+          "angle_interval_rad": [
+            -0.6108652381980153,
+            0.6108652381980153
+          ],
+          "slabs": 2,
+          "conservative_clearance_lower_bound_m": 5.958462734167298,
+          "method": "triangle-clipped slab convex projection versus analytic continuous swept-chord bounds",
+          "all_angles_clear": true
+        }
+      ]
+    }
+  ],
+  "initial_operating_point": {
+    "requested_balanced_omega_rad_s": 8.588547594716704,
+    "requested_motor_power_w": [
+      49027401.545687184
+    ],
+    "actual_motor_power_w": [
+      49027401.545687184
+    ],
+    "power_or_torque_limited": false,
+    "initial_speed_mps": 8.0,
+    "initial_net_surge_force_n": -4.656612873077393e-10,
+    "initial_condition_basis": "stated initial speed with feasible physical shafts, net force retained"
+  },
+  "previous_layout": {
+    "water_density_kg_m3": 1025.0,
+    "propulsors": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -176.18,
+            0.0,
+            12.690680582202415
+          ],
+          "referenceImmersionM": 5.348270885074919
+        },
+        "diameter_m": 10.0,
+        "max_power_w": 65000000.0,
+        "rated_speed_rad_s": 9.42477796076938,
+        "motor_time_constant_s": 0.5,
+        "shaft_inertia_kg_m2": 2441406.25,
+        "reference_slew_rad_s2": 0.5235987755982988,
+        "speed_control_time_s": 0.75,
+        "azimuth": null
+      }
+    ],
+    "surfaces": [
+      {
+        "installation": {
+          "positionBodyM": [
+            -187.67,
+            0.0,
+            12.690680582202415
+          ],
+          "referenceImmersionM": 5.348270885074919
+        },
+        "area_m2": 90.0,
+        "aspect_ratio": 2.0,
+        "normal_body": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "servo": {
+          "max_angle_rad": 0.6108652381980153,
+          "max_rate_rad_s": 0.04014257279586958,
+          "time_constant_s": 1.0
+        },
+        "wake_propulsor": 0,
+        "normal_factor": 1.0,
+        "fin_servo_power": null
+      }
+    ]
+  },
+  "previous_layout_checks": [
+    {
+      "status": "clear",
+      "proof": {
+        "geometry_sha256": "2a4c6eab9e02bf5780743d0458d9e8587ba8bbe69e26f9570e2225b5d3e5e7e0",
+        "full_hull_sha256": "d42982a85bda002f8be1d272077850f856990d7c2613286bfe4d3d72b4d4b629",
+        "propulsors": [
+          {
+            "center_x_m": -176.18,
+            "center_y_z_up_m": [
+              -0.0,
+              -5.348268161994662
+            ],
+            "diameter_m": 10.0,
+            "clearance_m": 0.7000000019946624,
+            "overlap_area_lower_bound_m2": 0.0,
+            "circumscribed_disk_clear": true,
+            "rotation_coverage": "entire physical disk, all shaft angles"
+          }
+        ],
+        "surfaces": [
+          {
+            "center_body_m": [
+              -187.67,
+              0.0,
+              12.690680582202415
+            ],
+            "chord_m": 6.708203932499369,
+            "span_m": 13.416407864998739,
+            "angle_interval_rad": [
+              -0.6108652381980153,
+              0.6108652381980153
+            ],
+            "slabs": 2,
+            "conservative_clearance_lower_bound_m": 5.958462734167298,
+            "method": "triangle-clipped slab convex projection versus analytic continuous swept-chord bounds",
+            "all_angles_clear": true
+          }
+        ]
+      }
+    }
+  ],
+  "native_verification": "pending",
+  "fidelity": "research-nominal"
+}

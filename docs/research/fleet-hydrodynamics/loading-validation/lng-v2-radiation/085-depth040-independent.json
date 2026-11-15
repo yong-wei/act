@@ -1,0 +1,17 @@
+{
+  "schema": "act.passive-radiation-independent-validation.v1",
+  "status": "passed",
+  "generator_sha256": "f4b222a4ff7a404d1de48692dd345f01d4fa95cfc6accb933be3e175ca61bfea",
+  "native_csv_sha256": "555245ce5a64f5f5ee810037e565856a875ab33e3482538ae2b3a66bc12b80f3",
+  "fit_validation_sha256": "707126a076d93848066b6351d2c1c09fa3745a4d63cc940f9108211a2f31e070",
+  "frequencies": 100,
+  "channels": 6,
+  "radiation_states": 116,
+  "factorization_vs_original_psd_fit_relative_a_error": 9.54512163223818e-16,
+  "factorization_vs_original_psd_fit_relative_b_error": 4.0674957782740787e-16,
+  "native_vs_full_scipy_state_space_relative_a_error": 4.277031363835186e-16,
+  "native_vs_full_scipy_state_space_relative_b_error": 1.772199919768276e-16,
+  "raw_bem_fit_relative_a_error": 0.02182698105872235,
+  "raw_bem_fit_relative_b_error": 0.03544606766273934,
+  "scope": "numerical assembly agreement with frozen nominal fit, source BEM residuals retained"
+}

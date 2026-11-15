@@ -1,0 +1,15 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "destroyer-055",
+  "model_version": "research-nominal-v2",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "geometry.json": "ecb6f1e8d8d5ab36fe726ba4e2f865ff7341e34b5493ffb6642eb6f6c489ffb5",
+    "maneuvering.json": "3cad185c1bc0d378f6ae89ac647c7b539c7103be6b0d65f091c038e626a52c57",
+    "actuators.json": "ffdae67ac584e45273967bc6b77768326b66d4ccdd6551389342b272a5604777",
+    "provenance.json": "200015abd03310fe793f2440fe4ed7d96a58da3fdb90b1b1898a4ec76670a545",
+    "hull.dat": "0a4d94aad3b157b2af56ead89549d1006863f413150b9b68954bfc57b9bc4bf2",
+    "lid.dat": "c1639259c50169f2ea693424cfdcbf70f72c4b9dd7d942b2ff025c553f151641",
+    "validation.json": "2fd0e191c4b87bd38e827c3b7ef44b50bb8dcb16583c6eab005cfa9457f55cb9"
+  }
+}

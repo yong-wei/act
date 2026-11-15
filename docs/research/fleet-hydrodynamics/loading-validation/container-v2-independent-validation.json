@@ -1,0 +1,126 @@
+{
+  "schema": "act.container-loading-radiation-independent-validation.v1",
+  "status": "passed",
+  "source_model_version": "research-nominal-v2",
+  "generator_sha256": "f4b222a4ff7a404d1de48692dd345f01d4fa95cfc6accb933be3e175ca61bfea",
+  "native_example_source_sha256": "9ec9c50615f5bcb88c0ff79ce0c14a88ba291c99fcb41676ec3dc30881f3e3af",
+  "native_binary_sha256": "5deb9af1396adec8928933b731b6bcd19d83f0a8881f99c8942c75b03f8802aa",
+  "parameter_manifest_sha256": "71323e641d94b77bd26778607536250f45dd6dbde6eb1e78cccc20ab6c7936cb",
+  "records": [
+    {
+      "loading_ratio": 0.2,
+      "water_depth_m": 200,
+      "parameter_hash": "fnv1a-8ab3b595844b8cf8",
+      "validation_file": "docs/research/fleet-hydrodynamics/loading-validation/container-v2-radiation/020-depth200-independent.json",
+      "validation": {
+        "schema": "act.passive-radiation-independent-validation.v1",
+        "status": "passed",
+        "generator_sha256": "f4b222a4ff7a404d1de48692dd345f01d4fa95cfc6accb933be3e175ca61bfea",
+        "native_csv_sha256": "ad0a808e0bdb5b253fd60d805e33890b64e4f60ab3af4646cd7a9b22f5fe0df0",
+        "fit_validation_sha256": "ee781c8e80ae2c5b38abb667966182553d23d6e43fa9d60c7fb1a0f623c6328e",
+        "frequencies": 100,
+        "channels": 6,
+        "radiation_states": 118,
+        "factorization_vs_original_psd_fit_relative_a_error": 1.1583836849235415e-15,
+        "factorization_vs_original_psd_fit_relative_b_error": 4.268567935396782e-16,
+        "native_vs_full_scipy_state_space_relative_a_error": 7.139793152403215e-17,
+        "native_vs_full_scipy_state_space_relative_b_error": 1.7800217858981606e-16,
+        "raw_bem_fit_relative_a_error": 0.027171045068442395,
+        "raw_bem_fit_relative_b_error": 0.028831747961504946,
+        "scope": "numerical assembly agreement with frozen nominal fit, source BEM residuals retained"
+      }
+    },
+    {
+      "loading_ratio": 0.35,
+      "water_depth_m": 200,
+      "parameter_hash": "fnv1a-c254f76128c0ce7a",
+      "validation_file": "docs/research/fleet-hydrodynamics/loading-validation/container-v2-radiation/035-depth200-independent.json",
+      "validation": {
+        "schema": "act.passive-radiation-independent-validation.v1",
+        "status": "passed",
+        "generator_sha256": "f4b222a4ff7a404d1de48692dd345f01d4fa95cfc6accb933be3e175ca61bfea",
+        "native_csv_sha256": "41a4de99413363fa4689c3d5c7a1d100eb043f9ad1a0902c65b9e63b1afc9d26",
+        "fit_validation_sha256": "dff7d138ab6afaaa276887b25136a37703e57c1901869f56899e357e52b9436e",
+        "frequencies": 100,
+        "channels": 6,
+        "radiation_states": 120,
+        "factorization_vs_original_psd_fit_relative_a_error": 5.73356729497272e-16,
+        "factorization_vs_original_psd_fit_relative_b_error": 4.2443100850481744e-16,
+        "native_vs_full_scipy_state_space_relative_a_error": 8.188970994184262e-17,
+        "native_vs_full_scipy_state_space_relative_b_error": 1.832709280766618e-16,
+        "raw_bem_fit_relative_a_error": 0.027356454990069834,
+        "raw_bem_fit_relative_b_error": 0.02984396699206692,
+        "scope": "numerical assembly agreement with frozen nominal fit, source BEM residuals retained"
+      }
+    },
+    {
+      "loading_ratio": 0.6,
+      "water_depth_m": 200,
+      "parameter_hash": "fnv1a-6e681fd3ebba79dd",
+      "validation_file": "docs/research/fleet-hydrodynamics/loading-validation/container-v2-radiation/060-depth200-independent.json",
+      "validation": {
+        "schema": "act.passive-radiation-independent-validation.v1",
+        "status": "passed",
+        "generator_sha256": "f4b222a4ff7a404d1de48692dd345f01d4fa95cfc6accb933be3e175ca61bfea",
+        "native_csv_sha256": "9fca8d3c43a9838f35d593107af12089149ec950d0122d440b928559f1f487b5",
+        "fit_validation_sha256": "9cfcf4bca625b48e0850fec804530e0900b53d4061cc45d2985d05510eb77d06",
+        "frequencies": 100,
+        "channels": 6,
+        "radiation_states": 92,
+        "factorization_vs_original_psd_fit_relative_a_error": 3.4152240482794183e-16,
+        "factorization_vs_original_psd_fit_relative_b_error": 4.772046959827852e-16,
+        "native_vs_full_scipy_state_space_relative_a_error": 1.3474519005340302e-16,
+        "native_vs_full_scipy_state_space_relative_b_error": 1.656904208279343e-16,
+        "raw_bem_fit_relative_a_error": 0.09330471222753037,
+        "raw_bem_fit_relative_b_error": 0.03354793871197283,
+        "scope": "numerical assembly agreement with frozen nominal fit, source BEM residuals retained"
+      }
+    },
+    {
+      "loading_ratio": 0.8,
+      "water_depth_m": 200,
+      "parameter_hash": "fnv1a-f98bb2b2a1141d39",
+      "validation_file": "docs/research/fleet-hydrodynamics/loading-validation/container-v2-radiation/080-depth200-independent.json",
+      "validation": {
+        "schema": "act.passive-radiation-independent-validation.v1",
+        "status": "passed",
+        "generator_sha256": "f4b222a4ff7a404d1de48692dd345f01d4fa95cfc6accb933be3e175ca61bfea",
+        "native_csv_sha256": "6271e001aaaf5e4bbfb72b846243652ca6f0e9651d373baddffb59471995d223",
+        "fit_validation_sha256": "c419d617dc6acc815e15dd85ab94913d199795f13a433bc5b8e6a677129ee7b0",
+        "frequencies": 100,
+        "channels": 6,
+        "radiation_states": 122,
+        "factorization_vs_original_psd_fit_relative_a_error": 4.2043674844805375e-16,
+        "factorization_vs_original_psd_fit_relative_b_error": 3.320798763991712e-16,
+        "native_vs_full_scipy_state_space_relative_a_error": 5.72457790926437e-17,
+        "native_vs_full_scipy_state_space_relative_b_error": 1.6809387141450879e-16,
+        "raw_bem_fit_relative_a_error": 0.016192866160682166,
+        "raw_bem_fit_relative_b_error": 0.03250019053864464,
+        "scope": "numerical assembly agreement with frozen nominal fit, source BEM residuals retained"
+      }
+    },
+    {
+      "loading_ratio": 0.9,
+      "water_depth_m": 200,
+      "parameter_hash": "fnv1a-a9d55cb2d0232700",
+      "validation_file": "docs/research/fleet-hydrodynamics/loading-validation/container-v2-radiation/090-depth200-independent.json",
+      "validation": {
+        "schema": "act.passive-radiation-independent-validation.v1",
+        "status": "passed",
+        "generator_sha256": "f4b222a4ff7a404d1de48692dd345f01d4fa95cfc6accb933be3e175ca61bfea",
+        "native_csv_sha256": "42b915b7f0cbf690f4bee62bcbdba2f89592decfdf6f14d3cba74a91e3c6e828",
+        "fit_validation_sha256": "b702304b717085127cb4a401672950b9f00ff656c0decbc88b64088356866858",
+        "frequencies": 100,
+        "channels": 6,
+        "radiation_states": 114,
+        "factorization_vs_original_psd_fit_relative_a_error": 2.751998912097647e-16,
+        "factorization_vs_original_psd_fit_relative_b_error": 4.3616284871709977e-16,
+        "native_vs_full_scipy_state_space_relative_a_error": 8.211994140458908e-17,
+        "native_vs_full_scipy_state_space_relative_b_error": 1.5932276725929935e-16,
+        "raw_bem_fit_relative_a_error": 0.016232677554707933,
+        "raw_bem_fit_relative_b_error": 0.0350044035325526,
+        "scope": "numerical assembly agreement with frozen nominal fit, source BEM residuals retained"
+      }
+    }
+  ]
+}

@@ -17,7 +17,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
     return NextResponse.json({ error: '找不到这份报告。' }, { status: 404 });
   }
   const report = await prisma.virtualSimulationReport.findFirst({
-    where: { id, userId, experimentKey: { in: VESSEL_KEYS } },
+    where: { id, userId, experimentKey: { in: VESSEL_KEYS }, status: 'finalized' },
     select: { reportHtml: true },
   });
   if (!report) return NextResponse.json({ error: '找不到这份报告。' }, { status: 404 });

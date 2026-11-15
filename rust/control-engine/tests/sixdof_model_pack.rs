@@ -110,6 +110,117 @@ fn embedded_pack_matches_plant_defaults() {
 use control_engine::sixdof::DestroyerSixDofPlant;
 
 #[test]
+fn pack_geometry_overrides_conflicting_legacy_geometry() {
+    use control_engine::sixdof::{DestroyerCommands, DestroyerSixDofConfig};
+
+    let pack = embedded_destroyer_055().unwrap();
+    let mut baseline = DestroyerSixDofPlant::from_model_pack(&pack, Default::default());
+    let mut conflicting = DestroyerSixDofPlant::from_model_pack(&pack, DestroyerSixDofConfig {
+        length_m: 90.0,
+        beam_m: 10.0,
+        draft_m: 3.0,
+        displacement_t: 2_000.0,
+        ..Default::default()
+    });
+    let command = DestroyerCommands {
+        rudder_command_rad: 10.0_f64.to_radians(),
+        motor_torque_command_nm: 500_000.0,
+    };
+    for _ in 0..120 {
+        baseline.step(command).unwrap();
+        conflicting.step(command).unwrap();
+    }
+    assert_eq!(baseline.state().body_velocity, conflicting.state().body_velocity);
+    assert_eq!(baseline.state().position_ned, conflicting.state().position_ned);
+}
+
+#[test]
+fn pack_waterline_area_controls_heave_restoring() {
+    let base_geometry = geometry_json(13_000_000.0, 1.3e9, 2.85e10, 2.63e10);
+    let mut changed: serde_json::Value = serde_json::from_str(&base_geometry).unwrap();
+    changed["waterline_area_m2"] = serde_json::json!(5620.0);
+    let base = load_model_pack(
+        MANIFEST, &base_geometry, MANEUVERING, ACTUATORS, PROVENANCE,
+    ).unwrap();
+    let larger = load_model_pack(
+        MANIFEST, &changed.to_string(), MANEUVERING, ACTUATORS, PROVENANCE,
+    ).unwrap();
+
+    let acceleration = |pack: &control_engine::sixdof::PackModel| {
+        let mut plant = DestroyerSixDofPlant::from_model_pack(pack, Default::default());
+        let mut state = plant.state().clone();
+        state.position_ned[2] = 0.2;
+        state.body_velocity = [0.0; 6];
+        state.actuator_states.propeller_shaft_speed_rad_s = vec![0.0];
+        plant.restore_state(state);
+        plant.prewarm_radiation_for_test();
+        plant.step_with_dt(1e-6, Default::default()).unwrap();
+        plant.last_dynamics().unwrap().nu_dot[2]
+    };
+    let expected = -1025.0 * 9.81 * 2810.0 * 0.2 / (1.9 * 13_000_000.0);
+    // 首个微步内已产生辐射阻尼，允许其O(dt)的加速度变化。
+    assert!((acceleration(&base) - expected).abs() < expected.abs() * 1e-6);
+    assert!((acceleration(&larger) - 2.0 * expected).abs() < expected.abs() * 2e-6);
+}
+
+#[test]
+fn pack_roll_inertia_sets_rigid_and_added_inertia() {
+    let pack = load_with(13_000_000.0, 1.69e9, 2.85e10, 2.63e10).unwrap();
+    let mut plant = DestroyerSixDofPlant::from_model_pack(&pack, Default::default());
+    let angle = 0.02_f64;
+    let mut state = plant.state().clone();
+    state.quaternion = [(angle / 2.0).cos(), (angle / 2.0).sin(), 0.0, 0.0];
+    state.body_velocity = [0.0; 6];
+    state.actuator_states.propeller_shaft_speed_rad_s = vec![0.0];
+    plant.restore_state(state);
+    plant.prewarm_radiation_for_test();
+    plant.step_with_dt(1e-6, Default::default()).unwrap();
+
+    let expected = -13_000_000.0 * 9.81 * 1.2 * angle / (1.2 * 1.69e9);
+    assert!((plant.last_dynamics().unwrap().nu_dot[3] - expected).abs() < 1e-8);
+}
+
+#[test]
+fn pack_rudder_interaction_and_position_change_actual_loads() {
+    let baseline = load_with(13_000_000.0, 1.3e9, 2.85e10, 2.63e10).unwrap();
+    let forces = |pack: &control_engine::sixdof::PackModel| {
+        let mut plant = DestroyerSixDofPlant::from_model_pack(pack, Default::default());
+        let mut state = plant.state().clone();
+        state.actuator_states.control_surface_angles_rad = vec![10.0_f64.to_radians()];
+        state.actuator_states.propeller_shaft_speed_rad_s = vec![0.0];
+        plant.restore_state(state);
+        plant.step_with_dt(1e-9, control_engine::sixdof::DestroyerCommands {
+            rudder_command_rad: 10.0_f64.to_radians(),
+            motor_torque_command_nm: 0.0,
+        }).unwrap();
+        plant.last_dynamics().unwrap().breakdown.external
+    };
+    let base_load = forces(&baseline);
+    let mut changed: serde_json::Value = serde_json::from_str(ACTUATORS).unwrap();
+    changed["rudder"]["normal_factor"] = serde_json::json!(0.62);
+    let geometry = geometry_json(13_000_000.0, 1.3e9, 2.85e10, 2.63e10);
+    let half_normal = load_model_pack(
+        MANIFEST, &geometry, MANEUVERING, &changed.to_string(), PROVENANCE,
+    ).unwrap();
+    assert!((forces(&half_normal)[1] / base_load[1] - 0.5).abs() < 1e-8);
+
+    changed["rudder"]["normal_factor"] = serde_json::json!(1.24);
+    changed["rudder"]["lateral_factor"] = serde_json::json!(0.33);
+    let half_lateral = load_model_pack(
+        MANIFEST, &geometry, MANEUVERING, &changed.to_string(), PROVENANCE,
+    ).unwrap();
+    assert!((forces(&half_lateral)[1] / base_load[1] - 0.5).abs() < 1e-8);
+
+    changed["rudder"]["lateral_factor"] = serde_json::json!(0.66);
+    changed["rudder"]["longitudinal_position_m"] = serde_json::json!(-43.0);
+    let shorter_arm = load_model_pack(
+        MANIFEST, &geometry, MANEUVERING, &changed.to_string(), PROVENANCE,
+    ).unwrap();
+    let expected_ratio = (-43.0 + 0.06 * 172.0) / (-86.0 + 0.06 * 172.0);
+    assert!((forces(&shorter_arm)[5] / base_load[5] - expected_ratio).abs() < 1e-8);
+}
+
+#[test]
 fn pack_actually_drives_plant_physics() {
     // P1-1：参数包变化必须改变物理——包舵速率 5→1 时同舵令实际舵角变小。
     let pack = embedded_destroyer_055().unwrap();

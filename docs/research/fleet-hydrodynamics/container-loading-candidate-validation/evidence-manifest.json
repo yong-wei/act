@@ -1,0 +1,15 @@
+{
+  "schema": "act.container.loading-candidate.v1",
+  "status": "not_ready",
+  "candidate": "uniform density of visible deck-container bounding volumes",
+  "files_sha256": {
+    "090-geometry.json": "a4cb2f086a7500cb9f5712f15281b3ee71b19b70b10e60f0c04094d048fd9e06",
+    "060-geometry.json": "f1ef07bb8e7b0254a6a025b293224185ae9f6416e67cc767f4b51496ccacf17b",
+    "source-sections.json": "dfd98f41d09f0b7dff6ebbc490dcd4ec662dbc5b5e4455f247d846b4c10aac39",
+    "090-geometry-provenance.json": "c3650cb4d2c8fe32c92e4fb034bd08f5a278e32f7264d74aad8bd17b7bc9622c",
+    "060-geometry-provenance.json": "c9f25f02356df8ffabd8899aca797d8050b8f5c13c5d89b08bb05be2ab818b74",
+    "060-static-validation.json": "08406aadf0dbc7d2d2f5f0f7326fb77fa6455e31b02bb532c5aa63ebb0f009ef",
+    "090-static-validation.json": "17bf2f08e737da40db9d62f6fb07952954767bf85e60bc9ae8b863deff9ed7dc"
+  },
+  "scope": "static geometry and loading diagnostics, hydrodynamic meshes reproducible from source sections and recorded generator revision"
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "act.model-pack.manifest.v2",
+  "vessel": "semisub-981",
+  "model_version": "research-nominal-v5",
+  "model_fidelity": "research-nominal",
+  "files_sha256": {
+    "actuators.json": "041a21a91df7417544a8e75335e2bfb110862720f2983d6375b4739860b9e062",
+    "first-order-wave.json": "01a2bfea32b569bd72215de111ec39c87d779f59178470f0bf8959edccc3ca88",
+    "frontal.wkb": "a5e97db6d5e7998654101cae25c3408a35d16783a831a1edce3f9e8db344f056",
+    "full-difference-wave.json": "6c4a3aa89cea1013d6fb653fee4efe985f294d52084f5282dde40c6ac0303c9e",
+    "full-hull.dat": "205cdf8609c8ff2114058ef45bfa689b2c4fad9524084e480219acd083e13d39",
+    "geometry-validation.json": "be1851ed9c0434fc78544cf8b1f0ad1585f1e639a5e6ce87bae8f828c0a1a804",
+    "geometry.json": "cc0f348c1aad263e8f611abb9ddf045d0242856644809162554f0849b03adfed",
+    "hull.dat": "6fc7639e520e3815a0ff761a42b54d72ae71250e5e0112f9f488022c095be7e9",
+    "lateral.wkb": "04864248d7d381ace8e20c9b1d971bfd558340c462743fb0590726076e70fb5b",
+    "lid.dat": "bfd0b0b9617bc4810f166dcfd593b629b9b7fa24f258041c4230f78497c9c3e7",
+    "maneuvering.json": "519f1eee1063622133d7b1bca88f35fd3af5d208050d38e2af8660edec49be3f",
+    "nemoh-body.dat": "5a4ed96f9f7dd41637e03b4508f48b50b60b878206407dcbf353d75eec636c3b",
+    "provenance.json": "79ee597ee9337d8e3ffbd120861c2b097fc213eee04ffd1a1cd26e5999f2d39e",
+    "radiation-fit-arrays.npz": "223bc1c1a4428c8a514aacf5450e4dd14931ae5c567e96077149a2ab49abd89e",
+    "radiation-fit-validation.json": "4c4cd3786d0d3fa1a959159b3b51d48a6b958789c02863dc83e505bc844bb4df",
+    "radiation.json": "9e5ad871d5ae5a238f5bc3b2973bc993dac9d519388e4257ef5f762848bb8ec1",
+    "validation.json": "8772357c213a35310a55a04e2f40ce827b53326f724b7f7484f9eef4fe93606d",
+    "wave-assets.json": "bc811ec008bd3773cb66b0e4c31ff0ab2e194db294043bd8b147c86e16bf351c",
+    "wind-validation.json": "7066515691320c35c27b6da4023a1d3f863f00c008b295f842f4bdecabdc2597",
+    "wind.json": "11d22a3ad0421a368fd894ad88ea7980b4c6c4f43a8e870b4c6d487527ef7a4c"
+  }
+}
