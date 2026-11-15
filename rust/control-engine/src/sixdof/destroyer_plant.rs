@@ -162,6 +162,7 @@ pub struct DestroyerSixDofPlant {
     wind_geometry: Option<crate::sixdof::wind::WindHullGeometry>,
     vessel_wind: Option<std::sync::Arc<super::vessel_wind::VesselWindModel>>,
     compiled_waves: Option<std::sync::Arc<super::vessel_wave::CompiledVesselWaves>>,
+    mean_wave_resistance: Option<super::mean_wave_resistance::ContainerMeanWaveResistance>,
 }
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
@@ -333,6 +334,7 @@ impl DestroyerSixDofPlant {
             wind_geometry: None,
             vessel_wind: None,
             compiled_waves: None,
+            mean_wave_resistance: None,
         }
     }
 
@@ -474,8 +476,23 @@ impl DestroyerSixDofPlant {
         super::dynamics::mass_matrix(&self.rb, &self.am)
     }
 
+    pub fn wind_model(&self) -> Option<&super::vessel_wind::VesselWindModel> {
+        self.vessel_wind.as_deref()
+    }
+
     pub fn configure_wave_model(&mut self, waves: super::vessel_wave::CompiledVesselWaves) {
         self.compiled_waves = Some(std::sync::Arc::new(waves));
+    }
+
+    pub fn configure_mean_wave_resistance(&mut self, model: super::mean_wave_resistance::ContainerMeanWaveResistance) {
+        self.mean_wave_resistance = Some(model);
+    }
+
+    pub fn mean_wave_resistance_diagnostics(&self) -> Result<Option<serde_json::Value>, String> {
+        let Some(model) = &self.mean_wave_resistance else { return Ok(None); };
+        let yaw = super::state::euler_from_quaternion(self.state.quaternion).yaw_rad;
+        let enabled = self.environment_state.as_ref().is_some_and(|env| env.switches.wave_enabled);
+        Ok(Some(model.diagnostics(yaw, self.relative_body_velocity()?, enabled)))
     }
 
     /// 停止线与当前船体最前端的有符号北向距离，越线后保留负值。
@@ -530,13 +547,25 @@ impl DestroyerSixDofPlant {
         Ok(evaluation.fuel)
     }
 
+    pub fn propulsor_thrust_n(&self, commands: &ActuatorCommands) -> Result<Vec<f64>, String> {
+        let system=self.actuator_system.as_ref().ok_or("缺少实际推进器")?;
+        system.validate_commands(commands)?;
+        let values=system.encode_state(&self.state.actuator_states);
+        let evaluation=system.derivatives(&values,&mut vec![0.0;values.len()],commands,
+            &vec![0.0;system.propulsors.len()],&LocalWater {time_s:self.sim_time_s,
+                position_ned:self.state.position_ned,quaternion:self.state.quaternion,
+                relative_velocity:self.relative_body_velocity()?,environment:self.environment_state.as_ref()});
+        Ok(evaluation.propulsor_thrust_n)
+    }
+
     pub fn relative_body_velocity(&self) -> Result<[f64; 6], String> {
         let environment = if self.environment_enabled { EnvironmentField::disturbance_equivalent() }
             else { EnvironmentField::default() };
         let (relative_velocity, ..) = resolve_env_loads(self.sim_time_s, &self.state.body_velocity,
             &self.state.quaternion, &environment, self.environment_state.as_ref(),
             self.wind_geometry.as_ref(), self.vessel_wind.as_deref(),
-            self.radiation.is_passive_model(), self.compiled_waves.as_deref(), self.state.position_ned)?;
+            self.radiation.is_passive_model(), self.compiled_waves.as_deref(),
+            self.mean_wave_resistance.as_ref(), self.state.position_ned)?;
         Ok(relative_velocity)
     }
 
@@ -741,6 +770,7 @@ impl DestroyerSixDofPlant {
             let wind_geo = self.wind_geometry.as_ref();
             let vessel_wind = self.vessel_wind.as_deref();
             let compiled_waves = self.compiled_waves.as_deref();
+            let mean_wave_resistance = self.mean_wave_resistance.as_ref();
 
             let derivs = |t_sub: f64, y_slice: &[f64], dy: &mut [f64]| {
                 let position = [y_slice[0], y_slice[1], y_slice[2]];
@@ -751,7 +781,7 @@ impl DestroyerSixDofPlant {
                 let x_rad = &y_slice[13..13 + radiation_len];
                 let (hull_nu, current_field_local, tau_wave_1, tau_wave_2, tau_wind) =
                     match resolve_env_loads(t_sub, &nu, &quat, &environment, real_env, wind_geo, vessel_wind,
-                        radiation_model.is_passive_model(), compiled_waves, position) {
+                        radiation_model.is_passive_model(), compiled_waves, mean_wave_resistance, position) {
                         Ok(loads) => loads,
                         Err(_) => { dy.fill(f64::NAN); return; },
                     };
@@ -867,6 +897,7 @@ impl DestroyerSixDofPlant {
             self.vessel_wind.as_deref(),
             self.radiation.is_passive_model(),
             self.compiled_waves.as_deref(),
+            self.mean_wave_resistance.as_ref(),
             final_state.position_ned,
         ).map_err(IntegrationError::InvalidWaveData)?;
         let (thrust, _) = propeller_loads_at(
@@ -1071,6 +1102,7 @@ fn resolve_env_loads(
     vessel_wind: Option<&super::vessel_wind::VesselWindModel>,
     full_current_kinematics: bool,
     compiled_waves: Option<&super::vessel_wave::CompiledVesselWaves>,
+    mean_wave_resistance: Option<&super::mean_wave_resistance::ContainerMeanWaveResistance>,
     position: [f64; 3],
 ) -> Result<([f64; 6], CurrentFieldBody, [f64; 6], [f64; 6], [f64; 6]), String> {
     let mut current_field_local = CurrentFieldBody::default();
@@ -1103,6 +1135,12 @@ fn resolve_env_loads(
         if full_current_kinematics {
             current_field_local = env.current_field(*quat, *nu);
             hull_nu = std::array::from_fn(|axis| nu[axis]-current_field_local.nu_current_body[axis]);
+        }
+        if env.switches.wave_enabled {
+            if let Some(model) = mean_wave_resistance {
+                let load = model.loads(yaw_k, hull_nu);
+                for axis in 0..6 { tau_wave_2[axis] += load[axis]; }
+            }
         }
     } else if environment.enabled {
         let wave = environment.wave_moment_amplitude_nm

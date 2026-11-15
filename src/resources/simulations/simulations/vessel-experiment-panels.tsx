@@ -32,7 +32,7 @@ import {SimPanelSection} from '../components/simulation-panels';
 Chart.register(...registerables);
 
 export function VesselCourseEvidencePanel<Settings extends object>({session,defaultChannel}:{
-  session:VesselExperimentController<Settings>;defaultChannel:IdentificationChannel;
+  session:VesselExperimentController<Settings>;defaultChannel:IdentificationChannel | 'dp-low-frequency';
 }) {
   const course=session.course;
   if (!course) return null;
@@ -295,6 +295,7 @@ export function VesselStepForm({
   showReport,
   showRestart = false,
   showRetryUpload = false,
+  connectionStatus = '',
   onChange,
   onSubmit,
   onReport,
@@ -310,6 +311,7 @@ export function VesselStepForm({
   showReport: boolean;
   showRestart?: boolean;
   showRetryUpload?: boolean;
+  connectionStatus?: string;
   onChange: (key: string, value: string) => void;
   onSubmit: () => void;
   onReport: () => void;
@@ -358,6 +360,7 @@ export function VesselStepForm({
           <Button type="button" size="sm" variant="outline" disabled={busy} onClick={onRestart} data-vessel-restart className={cn(simulationUi.buttonOutline, 'col-span-2')}>开启新一轮实验</Button>
         ) : null}
       </div>
+      {connectionStatus ? <p className="text-xs leading-5 text-platform-fg-secondary" data-ilab-connection-status>{connectionStatus}</p> : null}
       {message ? <p className="rounded-md border border-platform-action-primary/25 bg-platform-action-primary/10 px-2.5 py-2 text-xs leading-5 text-platform-fg-primary" data-vessel-message>{message}</p> : null}
     </div>
   );
@@ -487,6 +490,7 @@ export function VesselExperimentDocks<Settings extends object>({
                     step={session.step}
                     readings={session.readings}
                     message={session.message}
+                    connectionStatus={session.connectionStatus}
                     busy={session.busy || Boolean(session.course && !session.course.ready)}
                     reportEnabled={session.reportEnabled}
                     showReport={session.step.seq === experiment.steps.length}

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 
-import { submitVesselStep, toIlabHttpError } from '@/features/ilab/vessel-session';
+import { resolveCurrentActorContext } from '@/features/ilab/adapters/ilab-session-lifecycle';
+import { readIlabGrantFromRequest } from '@/features/ilab/grant-cookie';
+
+import { readVesselSession, submitVesselStep, toIlabHttpError } from '@/features/ilab/vessel-session';
 import { readVesselSamples, type VesselReadings } from '@/resources/simulations/simulations/vessel-experiment';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +11,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request, props: { params: Promise<{ originId: string }> }) {
   try {
     const { originId } = await props.params;
+    await readVesselSession(originId, await resolveCurrentActorContext(readIlabGrantFromRequest(request)));
     const body = await request.json() as {
       experimentKey?: unknown;
       seq?: unknown;

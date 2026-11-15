@@ -1,10 +1,13 @@
+import { randomBytes } from 'node:crypto';
+
 import type { IlabExperimentRun, Prisma } from '@prisma/client';
 
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+import { emptyAiLedger } from '../ai-data';
 import type { IlabGrantPayload } from '../grant-cookie';
-import { IlabServiceError } from '../run-lock';
+import { IlabServiceError, withIlabRunLock } from '../run-lock';
 import { resolveSessionAuth } from '../session-shared';
 import {
   ensureIlabPlatformUser,
@@ -211,7 +214,7 @@ export async function findRecoverableIlabRun(input: {
   experimentVersion?: string;
   actor: UnifiedSessionActor;
   forceNew?: boolean;
-}): Promise<IlabExperimentRun | null> {
+}, db: Prisma.TransactionClient = prisma): Promise<IlabExperimentRun | null> {
   if (input.forceNew) return null;
 
   const baseFilter: Prisma.IlabExperimentRunWhereInput = {
@@ -223,7 +226,7 @@ export async function findRecoverableIlabRun(input: {
     ],
   };
 
-  let existing = await prisma.ilabExperimentRun.findFirst({
+  let existing = await db.ilabExperimentRun.findFirst({
     where: {
       userId: input.actor.userId,
       ...baseFilter,
@@ -232,7 +235,7 @@ export async function findRecoverableIlabRun(input: {
   });
 
   if (!existing && input.actor.kind === 'ilab') {
-    existing = await prisma.ilabExperimentRun.findFirst({
+    existing = await db.ilabExperimentRun.findFirst({
       where: {
         appId: input.actor.grantToSet.appId,
         ilabUsername: input.actor.grantToSet.username,
@@ -246,7 +249,7 @@ export async function findRecoverableIlabRun(input: {
 
   if (input.actor.kind === 'ilab') {
     const grant = input.actor.grantToSet;
-    return prisma.ilabExperimentRun.update({
+    return db.ilabExperimentRun.update({
       where: { id: existing.id },
       data: {
         userId: input.actor.userId,
@@ -260,7 +263,7 @@ export async function findRecoverableIlabRun(input: {
   }
 
   if (!existing.userId) {
-    return prisma.ilabExperimentRun.update({
+    return db.ilabExperimentRun.update({
       where: { id: existing.id },
       data: {
         userId: input.actor.userId,
@@ -270,6 +273,41 @@ export async function findRecoverableIlabRun(input: {
   }
 
   return existing;
+}
+
+export async function openIlabRun(input: {
+  actor: UnifiedSessionActor;
+  vesselId: string;
+  originPrefix: string;
+  experimentVersion: string;
+  forceNew?: boolean;
+}): Promise<{ run: IlabExperimentRun; resumed: boolean }> {
+  return prisma.$transaction(async (tx) => {
+    const lockKey = JSON.stringify([input.actor.userId, input.vesselId, input.experimentVersion]);
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))::text`;
+    const recoverable = await findRecoverableIlabRun(input, tx);
+    if (recoverable) return { run: recoverable, resumed: true };
+
+    const { actor } = input;
+    const startTimeMs = actor.kind === 'ilab' ? Math.max(Date.now(), actor.grantToSet.issuedAtMs) : Date.now();
+    const run = await tx.ilabExperimentRun.create({ data: {
+      originId: `${input.originPrefix}${Date.now().toString(36)}_${randomBytes(4).toString('hex')}`,
+      userId: actor.userId,
+      vesselId: input.vesselId,
+      experimentVersion: input.experimentVersion,
+      appId: actor.kind === 'ilab' ? actor.grantToSet.appId : 'platform',
+      ilabUsername: actor.kind === 'ilab' ? actor.grantToSet.username : actor.userId,
+      displayName: actor.displayName,
+      accessToken: actor.kind === 'ilab' ? actor.grantToSet.accessToken : '',
+      tokenExpiresAt: actor.kind === 'ilab' && actor.grantToSet.expiresAtMs
+        ? new Date(actor.grantToSet.expiresAtMs) : null,
+      startTimeMs: BigInt(startTimeMs),
+      uploadStatus: actor.kind === 'ilab' ? 'pending' : 'local-only',
+      steps: [],
+      aiLedger: emptyAiLedger() as unknown as Prisma.InputJsonValue,
+    } });
+    return { run, resumed: false };
+  });
 }
 
 export async function resolveCurrentActorContext(existingGrant: IlabGrantPayload | null): Promise<{
@@ -286,12 +324,13 @@ export async function resolveCurrentActorContext(existingGrant: IlabGrantPayload
 export async function assertIlabRunAccess(
   run: Pick<IlabExperimentRun, 'userId' | 'appId' | 'ilabUsername'>,
   actor: { userId?: string | null; grant?: IlabGrantPayload | null },
-  strict = false,
+  strict = true,
 ): Promise<void> {
   if (run.appId === 'platform' || strict) {
     const ownsByUser = Boolean(actor.userId && run.userId && actor.userId === run.userId);
     const ownsByGrant = Boolean(
-      actor.grant
+      !actor.userId
+      && actor.grant
       && actor.grant.appId === run.appId
       && actor.grant.username === run.ilabUsername,
     );
@@ -310,32 +349,21 @@ export async function saveIlabRunDraft(input: {
   readings?: Record<string, string>;
   courseState?: Record<string, unknown>;
 }): Promise<StepDraftsPayload> {
-  const existing = await prisma.ilabExperimentRun.findUnique({
-    where: { originId: input.originId },
-    select: {
-      id: true,
-      userId: true,
-      appId: true,
-      ilabUsername: true,
-      vesselId: true,
-      stepDrafts: true,
-    },
+  return withIlabRunLock(input.originId, async (existing, tx) => {
+    if (input.expectedVesselId && existing.vesselId !== input.expectedVesselId) {
+      throw new IlabServiceError('实验记录不存在。', 404);
+    }
+    await assertIlabRunAccess(existing, input.actor, true);
+    const nextDrafts = mergeStepDrafts(existing.stepDrafts, {
+      activeSeq: input.activeSeq,
+      seq: input.seq,
+      readings: input.readings,
+      courseState: input.courseState,
+    });
+    await tx.ilabExperimentRun.update({
+      where: { id: existing.id },
+      data: { stepDrafts: nextDrafts as unknown as Prisma.InputJsonValue },
+    });
+    return nextDrafts;
   });
-  if (!existing || (input.expectedVesselId && existing.vesselId !== input.expectedVesselId)) {
-    throw new IlabServiceError('实验记录不存在。', 404);
-  }
-  await assertIlabRunAccess(existing, input.actor, true);
-  const nextDrafts = mergeStepDrafts(existing.stepDrafts, {
-    activeSeq: input.activeSeq,
-    seq: input.seq,
-    readings: input.readings,
-    courseState: input.courseState,
-  });
-  await prisma.ilabExperimentRun.update({
-    where: { id: existing.id },
-    data: {
-      stepDrafts: nextDrafts as unknown as Prisma.InputJsonValue,
-    },
-  });
-  return nextDrafts;
 }

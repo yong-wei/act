@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
@@ -13,6 +14,8 @@ import {
 
 import { ControlEngineFailure } from './envelope';
 import { GENERATED_PACKAGE_DIR } from './types';
+import { fetchVesselWaveAsset, loadVesselWaveAssets } from './wasm-browser';
+import type { VesselSessionConfiguration } from './vessel-session';
 
 let ready = false;
 
@@ -39,6 +42,22 @@ export function preloadServerControlEngine(cwd = process.cwd()): void {
 export function createServerVesselSession(configuration: unknown): VesselSimulationSession {
   preloadServerControlEngine();
   return new VesselSimulationSession(JSON.stringify(configuration));
+}
+
+export async function createServerVesselSessionWithAssets(configuration: VesselSessionConfiguration): Promise<VesselSimulationSession> {
+  preloadServerControlEngine();
+  const assets = await loadVesselWaveAssets(configuration, async (asset) => {
+    try {
+      const localPath = path.join(process.cwd(), 'public', 'assets', asset.path);
+      return new Uint8Array(await readFile(/* turbopackIgnore: true */ localPath));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      return fetchVesselWaveAsset(asset);
+    }
+  });
+  return assets ? VesselSimulationSession.withWaveTables(JSON.stringify(configuration),
+    assets.firstOrderMetadata, assets.firstOrderData, assets.fullDifferenceMetadata ?? '',
+    assets.fullDifferenceData ?? new Uint8Array()) : createServerVesselSession(configuration);
 }
 
 export function invokeServerWasm(

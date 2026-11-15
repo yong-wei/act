@@ -2,6 +2,9 @@ import type { VesselControlSample, VesselFineStepPoint, VesselObservedSample, Ve
 import type { VesselCourseKey } from '@/resources/simulations/experiments/course-catalog';
 
 export interface VesselTracePoint {
+  dp?: VesselSessionFrame['dpController'];
+  estimatedControlLoadBody?: [number, number, number];
+  propulsorThrustN?: number[];
   cruise?: VesselSessionFrame['cruiseController'];
   container?: VesselSessionFrame['containerController'];
   liquid?: {modeHeightsM:number[];cornerHeightsM:number[];withinSmallAmplitude:boolean};
@@ -41,6 +44,10 @@ export type VesselRunMetrics = {
   maximumRollDeg:number;
   maximumShaftPowerW:number;
   positiveMotorWorkJ:number;
+  positionRmsM?:number;
+  headingRmsDeg?:number;
+  maximumPositionErrorM?:number;
+  normalizedAllocationResidualRms?:number;
 };
 
 export interface VesselRunEvidence {
@@ -87,6 +94,14 @@ export interface VesselLocalStepAttempt {
   serverId: string | null;
 }
 
+export function vesselDpMetricsRequest(points: VesselTracePoint[], endTimeS: number) {
+  return { modelId: 'student_model_analysis', operation: 'dp_metrics', endTimeS,
+    points: points.map((point) => ({ timeS: point.timeS,
+      positionErrorM: [point.truth.northM - (point.dp?.targetPositionM[0] ?? 0), point.truth.eastM - (point.dp?.targetPositionM[1] ?? 0)],
+      headingErrorDeg: point.truth.headingDeg - (point.dp?.targetHeadingDeg ?? point.command.headingDeg),
+      normalizedAllocationResidual: point.dp?.allocation?.normalizedResidual ?? 0 })) };
+}
+
 export function sensorKey(signal: VesselObservedSample['signal']): string {
   if (typeof signal === 'string') return signal;
   const [name, index] = Object.entries(signal)[0];
@@ -106,6 +121,9 @@ export function collectVesselTracePoint(frame: VesselControlSample,
   const loads = frame.dynamics?.external_components;
   const speed = frame.longitudinal;
   return { timeS: frame.timeS,
+    ...(frame.dp ? {dp: frame.dp} : {}),
+    ...(frame.estimatedControlLoadBody ? {estimatedControlLoadBody: frame.estimatedControlLoadBody} : {}),
+    ...(frame.propulsorThrustN ? {propulsorThrustN: frame.propulsorThrustN} : {}),
     ...(frame.cruise ? {cruise: frame.cruise} : {}),
     ...(frame.container ? {container: frame.container} : {}),
     ...(frame.liquid ? {liquid:{modeHeightsM:frame.liquid.modeHeightsM,cornerHeightsM:frame.liquid.cornerHeightsM,

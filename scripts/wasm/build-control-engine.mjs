@@ -14,8 +14,10 @@ import {
 } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { prepareVesselWaveAssets } from './prepare-vessel-wave-assets.mjs';
 
 const repoRoot = process.cwd();
+await prepareVesselWaveAssets(repoRoot);
 const controlEngineRoot = path.join(repoRoot, 'rust/control-engine');
 const wasmOutDir = path.join(repoRoot, 'src/resources/control-system/wasm/control_engine');
 const wasmPackageFiles = ['index.js', 'index_bg.wasm', 'index.d.ts'];

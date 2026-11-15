@@ -1,5 +1,3 @@
-import { randomBytes } from 'node:crypto';
-
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
@@ -27,7 +25,7 @@ import type { IlabAuthUserSummary } from './adapters/ilab-account-service';
 import { syncPlatformReportForIlabRun } from './adapters/ilab-report-sync';
 import {
   assertIlabRunAccess,
-  findRecoverableIlabRun,
+  openIlabRun,
   mergeStepDrafts,
   parseStepDrafts,
   resolveIlabUploadMode,
@@ -209,46 +207,16 @@ export async function openVesselSession(input: {
     return { connected: false };
   }
 
-  const recoverable = await findRecoverableIlabRun({
-    vesselId: experiment.vesselId,
+  const { run, resumed } = await openIlabRun({
     actor,
-    forceNew: input.forceNew,
+    vesselId: experiment.vesselId,
+    originPrefix: experiment.originPrefix,
     experimentVersion: input.experimentVersion ?? 'legacy-v1',
-  });
-  if (recoverable) {
-    return {
-      connected: true,
-      resumed: true,
-      session: viewOf(experiment, recoverable),
-      grantToSet: actor.grantToSet,
-      user: actor.user,
-    };
-  }
-
-  const originId = `${experiment.originPrefix}${Date.now().toString(36)}_${randomBytes(4).toString('hex')}`;
-  const runStartTimeMs = actor.kind === 'ilab' ? Math.max(Date.now(), actor.grantToSet.issuedAtMs) : Date.now();
-  const run = await prisma.ilabExperimentRun.create({
-    data: {
-      originId,
-      userId: actor.userId,
-      experimentVersion: input.experimentVersion ?? 'legacy-v1',
-      appId: actor.kind === 'ilab' ? actor.grantToSet.appId : 'platform',
-      ilabUsername: actor.kind === 'ilab' ? actor.grantToSet.username : actor.userId,
-      displayName: actor.displayName,
-      accessToken: actor.kind === 'ilab' ? actor.grantToSet.accessToken : '',
-      tokenExpiresAt: actor.kind === 'ilab' && actor.grantToSet.expiresAtMs
-        ? new Date(actor.grantToSet.expiresAtMs)
-        : null,
-      startTimeMs: BigInt(runStartTimeMs),
-      vesselId: experiment.vesselId,
-      uploadStatus: actor.kind === 'ilab' ? 'pending' : 'local-only',
-      steps: [],
-      aiLedger: emptyAiLedger() as unknown as Prisma.InputJsonValue,
-    },
+    forceNew: input.forceNew,
   });
   return {
     connected: true,
-    resumed: false,
+    resumed,
     session: viewOf(experiment, run),
     grantToSet: actor.grantToSet,
     user: actor.user,

@@ -1,6 +1,6 @@
 import { assertFiniteTree, ControlEngineFailure, mapFailure } from './envelope';
 import { CONTROL_ENGINE_BUILD_HASH } from './identity.generated';
-import { createBrowserVesselSessionBinding, ensureBrowserControlEngine, type VesselWaveAssets } from './wasm-browser';
+import { createBrowserVesselSessionBinding, ensureBrowserControlEngine, loadVesselWaveAssets, type VesselWaveAssets } from './wasm-browser';
 export type { VesselWaveAssets } from './wasm-browser';
 
 export interface VesselSensorInstallations {
@@ -19,6 +19,7 @@ export interface VesselSessionConfiguration {
   containerVoyage?: { segmentSpeedsMps: [number, number, number, number] };
   cruise?: { statisticsStartS:number;statisticsEndS:number;finFailureTimeS:number|null;failedFinIndex:number|null };
   regularWaveHeightM?: number;
+  waveFrequencyBins?: 16 | 32 | 128;
   courseEvidence?: { rollWarningDeg: number };
   seed?: number;
   noiseLevel?: 'N0' | 'N1' | 'N2';
@@ -28,6 +29,7 @@ export interface VesselSessionConfiguration {
     wave?: { hs_m: number; tp_s: number; direction_to_deg: number; water_depth_m: number } };
   environmentSwitches?: { wind_force_enabled: boolean; wave_enabled: boolean; current_enabled: boolean };
   secondOrderEnabled?: boolean;
+  meanWaveResistanceModel?: 'container_reflection_teaching_v1';
   propulsionPowerBudgetW?: number;
   waterDepthM?: number;
   initialWaterSpeedMps?: number;
@@ -74,6 +76,59 @@ export interface VesselSessionInput {
     headingNodes?: Array<{timeS: number; headingDeg: number}> };
   containerSpeed?: VesselContainerSpeedInput;
   cruiseFins?: VesselCruiseFinInput;
+  semisubDp?: VesselSemisubDpInput;
+}
+
+export interface VesselSemisubDpInput {
+  targetPositionM: [number, number];
+  targetHeadingDeg: number;
+  bandwidthRadS: 0.015 | 0.025 | 0.04;
+  integralEnabled: boolean;
+  integralTimeS: 100 | 200 | 400;
+  feedback: 'raw' | 'low_frequency';
+  lowFrequencyCutoffHz: 0.02 | 0.04 | 0.08;
+  decoupling: boolean;
+  studentModel: { a: number[]; b: number[] } | null;
+  windFeedforward: boolean;
+  allocation: 'pseudoinverse' | 'sequential_convex';
+  axisWeights: [number, number, number];
+  energyWeight: number;
+  reallocate: boolean;
+  navigationLossStrategy: 'predict' | 'freeze_integral' | 'safe_exit';
+}
+
+export interface VesselDpDiagnostics {
+  ticks: number;
+  integralEarth: [number, number, number];
+  requestedBody: [number, number, number];
+  actualEstimatedBody: [number, number, number];
+  positionErrorBody: [number, number, number];
+  feedbackPositionHeading: [number, number, number];
+  feedbackBodyVelocity: [number, number, number];
+  targetPositionM: [number, number];
+  targetHeadingDeg: number;
+  measuredWindFeedforwardBody: [number, number, number];
+  navigationGood: boolean;
+  missingNavigationS: number;
+  integralFrozen: boolean;
+  safeExit: boolean;
+  kp: [number, number, number];
+  kd: [number, number, number];
+  ki: [number, number, number];
+  estimatedRollRad: number;
+  estimatedPitchRad: number;
+  allocation: {
+    requestedBody: [number, number, number];
+    allocatedBody: [number, number, number];
+    residualBody: [number, number, number];
+    normalizedResidual: number;
+    forcesBodyN: Array<[number, number]>;
+    predictedPowerW: number;
+    iterations: number;
+    feasible: boolean;
+    turningWithoutThrust: boolean[];
+    commands: VesselActuatorCommands;
+  } | null;
 }
 
 export interface VesselCruiseFinInput {
@@ -209,6 +264,8 @@ export interface VesselObservedSample {
 }
 
 export interface VesselSessionFrame {
+  dpController?: VesselDpDiagnostics;
+  propulsorThrustN?: number[];
   liquidObservation?: VesselLiquidObservation;
   headingReferenceDeg?: number;
   cruiseComfort?:VesselCruiseComfort;
@@ -279,6 +336,12 @@ export interface VesselSessionFrame {
     meanForwardSpeedMps: number;
     firstOrderMetadataHash: string;
     fullDifferenceMetadataHash: string | null;
+  };
+  meanWaveResistance?: {
+    model: 'container_reflection_teaching_v1'; grade: 'T'; enabled: boolean;
+    inReferenceDomain: boolean; resistanceN: number;
+    loadBody: [number, number, number, number, number, number];
+    definition: Record<string, unknown>;
   };
   longitudinalController?: VesselSpeedControlDiagnostics;
   containerController?: {
@@ -410,6 +473,9 @@ export interface VesselLiquidObservation {
 }
 
 export interface VesselControlSample {
+  dp?: VesselDpDiagnostics;
+  estimatedControlLoadBody?: [number, number, number];
+  propulsorThrustN?: number[];
   cruise?: VesselSessionFrame['cruiseController'];
   liquid?: VesselLiquidObservation;
   longitudinal?: VesselSpeedControlDiagnostics;
@@ -453,6 +519,7 @@ export async function createVesselSimulationSessionBrowser(
   assets?: VesselWaveAssets,
 ): Promise<VesselSession> {
   await ensureBrowserControlEngine();
+  assets ??= await loadVesselWaveAssets(configuration);
   let native: ReturnType<typeof createBrowserVesselSessionBinding>;
   try {
     native = assets ? createBrowserVesselSessionBinding(JSON.stringify(configuration), assets)

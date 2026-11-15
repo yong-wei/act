@@ -63,6 +63,17 @@ impl PassiveObserver {
         measurement: [Option<f64>; 3],
         commanded_load_body: [f64; 3],
     ) -> Result<(), IntegrationError> {
+        self.step_with_bandwidth(dt, measurement, commanded_load_body, None)
+    }
+
+    /// 定位教学可选LF截止与已知谱峰。旧会话继续使用原冻结增益。
+    pub fn step_with_bandwidth(
+        &mut self,
+        dt: f64,
+        measurement: [Option<f64>; 3],
+        commanded_load_body: [f64; 3],
+        tuning: Option<(f64, f64)>,
+    ) -> Result<(), IntegrationError> {
         if !dt.is_finite() || dt <= 0.0 || dt > NOMINAL_DT + 1e-12 {
             return Err(IntegrationError::InvalidTimeStep { dt_s: dt });
         }
@@ -90,13 +101,19 @@ impl PassiveObserver {
             target.copy_from_slice(&source);
         }
         let p = &self.parameters;
-        let omega = p.wave_frequency_rad_s;
+        if tuning.is_some_and(|(cutoff, omega)| !cutoff.is_finite() || cutoff<=0.0
+            || !omega.is_finite() || omega<=0.05) {
+            return Err(IntegrationError::InvalidActuatorCommand("定位观测器带宽或波频无效".into()));
+        }
+        let omega = tuning.map(|(_,omega)|omega).unwrap_or(p.wave_frequency_rad_s);
         let damping = 0.1;
         let desired_damping = 1.0;
-        let cutoff_ratio = 1.1;
+        let cutoff_ratio = tuning.map(|(cutoff,_)|2.0*std::f64::consts::PI*cutoff/omega).unwrap_or(1.1);
         let k11 = -2.0 * (desired_damping - damping) * cutoff_ratio;
         let k12 = 2.0 * (desired_damping - damping) * omega;
         let k2 = cutoff_ratio * omega;
+        let velocity_gain = tuning.map(|_|k2*k2).unwrap_or(0.04);
+        let bias_gain = tuning.map(|_|0.05*velocity_gain).unwrap_or(0.002);
         // 世界水平面两增益相等，满足与偏航旋转矩阵可交换的条件。
         let horizontal_mass = (p.mass_diagonal[0] + p.mass_diagonal[1]) / 2.0;
         let gain_mass = [horizontal_mass, horizontal_mass, p.mass_diagonal[2]];
@@ -126,7 +143,7 @@ impl PassiveObserver {
             let motion = rotate_to_world([state[12], state[13], state[14]]);
             let body_bias = rotate_to_body([state[9], state[10], state[11]]);
             let body_correction = rotate_to_body(std::array::from_fn(|axis| {
-                0.04 * gain_mass[axis] * innovation[axis]
+                velocity_gain * gain_mass[axis] * innovation[axis]
             }));
             for axis in 0..3 {
                 rates[axis] = state[3 + axis] + k11 * innovation[axis];
@@ -135,7 +152,7 @@ impl PassiveObserver {
                     + k12 * innovation[axis];
                 rates[6 + axis] = motion[axis] + k2 * innovation[axis];
                 rates[9 + axis] =
-                    -state[9 + axis] / 1000.0 + 0.002 * gain_mass[axis] * innovation[axis];
+                    -state[9 + axis] / 1000.0 + bias_gain * gain_mass[axis] * innovation[axis];
                 rates[12 + axis] = (-p.damping_diagonal[axis] * state[12 + axis]
                     + commanded_load_body[axis]
                     + body_bias[axis]

@@ -1,5 +1,3 @@
-import { randomBytes } from 'node:crypto';
-
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
@@ -29,7 +27,7 @@ import type { IlabAuthUserSummary } from './adapters/ilab-account-service';
 import { syncPlatformReportForIlabRun } from './adapters/ilab-report-sync';
 import {
   assertIlabRunAccess,
-  findRecoverableIlabRun,
+  openIlabRun,
   mergeStepDrafts,
   parseStepDrafts,
   resolveIlabUploadMode,
@@ -200,46 +198,16 @@ export async function openDestroyerSession(input: {
     return { connected: false };
   }
 
-  const recoverable = await findRecoverableIlabRun({
-    vesselId: 'destroyer-055',
-    experimentVersion,
+  const { run, resumed } = await openIlabRun({
     actor,
+    vesselId: 'destroyer-055',
+    originPrefix: 'dds_',
+    experimentVersion,
     forceNew: input.forceNew,
-  });
-  if (recoverable) {
-    return {
-      connected: true,
-      resumed: true,
-      session: viewOf(recoverable),
-      grantToSet: actor.grantToSet,
-      user: actor.user,
-    };
-  }
-
-  const originId = `dds_${Date.now().toString(36)}_${randomBytes(4).toString('hex')}`;
-  const runStartTimeMs = actor.kind === 'ilab' ? Math.max(Date.now(), actor.grantToSet.issuedAtMs) : Date.now();
-  const run = await prisma.ilabExperimentRun.create({
-    data: {
-      originId,
-      userId: actor.userId,
-      appId: actor.kind === 'ilab' ? actor.grantToSet.appId : 'platform',
-      ilabUsername: actor.kind === 'ilab' ? actor.grantToSet.username : actor.userId,
-      displayName: actor.displayName,
-      accessToken: actor.kind === 'ilab' ? actor.grantToSet.accessToken : '',
-      tokenExpiresAt: actor.kind === 'ilab' && actor.grantToSet.expiresAtMs
-        ? new Date(actor.grantToSet.expiresAtMs)
-        : null,
-      startTimeMs: BigInt(runStartTimeMs),
-      vesselId: 'destroyer-055',
-      experimentVersion,
-      uploadStatus: actor.kind === 'ilab' ? 'pending' : 'local-only',
-      steps: [],
-      aiLedger: emptyAiLedger() as unknown as Prisma.InputJsonValue,
-    },
   });
   return {
     connected: true,
-    resumed: false,
+    resumed,
     session: viewOf(run),
     grantToSet: actor.grantToSet,
     user: actor.user,

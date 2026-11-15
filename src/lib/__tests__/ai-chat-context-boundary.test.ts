@@ -29,6 +29,20 @@ describe('ai chat client context boundary', () => {
     expect(resolution.page.learningObjectives.length).toBeGreaterThan(0);
   });
 
+  it('resolves the delivered vessel steps to their current teaching objectives', () => {
+    for (const [courseId, stepId, topic, objective] of [
+      ['cruise-comfort-experiment', 'cruise-comfort-step-2', '辨识横摇衰减', '二阶振荡与参数辨识'],
+      ['drilling-dp-experiment', 'drilling-dp-step-3', '设计组合激励', '多变量耦合和控制分配'],
+      ['container-voyage-experiment', 'container-voyage-step-15', '观察波浪能耗', '波浪引起运动和平均能耗'],
+    ]) {
+      const resolution = resolveServerOwnedChatPageContext({ courseId, stepId });
+      expect(resolution.ok).toBe(true);
+      if (!resolution.ok) continue;
+      expect(resolution.page.topic).toBe(topic);
+      expect(resolution.page.learningObjectives.join(' ')).toContain(objective);
+    }
+  });
+
   it('fails closed for partial, unknown or instruction-like contexts', () => {
     expect(resolveServerOwnedChatPageContext({ topic: '仅主题' }).code).toBe('INVALID_AI_CONTEXT');
     expect(resolveServerOwnedChatPageContext({ url: '/not-a-registered-route' }).code).toBe('INVALID_AI_CONTEXT');

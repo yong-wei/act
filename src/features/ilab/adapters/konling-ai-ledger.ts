@@ -114,8 +114,13 @@ export async function recordSimulationKonlingAiUsage(input: {
 
       if (!activeRun) return;
 
-      const currentLedger = isAiUsageLedger(activeRun.aiLedger)
-        ? activeRun.aiLedger
+      // 并发流式回复先锁定同一运行，再读取账本，避免后写覆盖另一条真实用量。
+      await tx.$queryRaw`SELECT "id" FROM "IlabExperimentRun" WHERE "id" = ${activeRun.id} FOR UPDATE`;
+      const currentRun = await tx.ilabExperimentRun.findUnique({ where: { id: activeRun.id },
+        select: { aiLedger: true, userId: true, status: true } });
+      if (!currentRun || currentRun.status !== 2) return;
+      const currentLedger = isAiUsageLedger(currentRun.aiLedger)
+        ? currentRun.aiLedger
         : emptyAiLedger();
       const nextLedger = recordAiCall(currentLedger, {
         scenario,
@@ -130,7 +135,7 @@ export async function recordSimulationKonlingAiUsage(input: {
       await tx.ilabExperimentRun.update({
         where: { id: activeRun.id },
         data: {
-          ...(activeRun.userId ? {} : { userId: input.userId }),
+          ...(currentRun.userId ? {} : { userId: input.userId }),
           aiLedger: nextLedger as unknown as Prisma.InputJsonValue,
         },
       });

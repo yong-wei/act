@@ -8,12 +8,12 @@ import { findVesselExperiment } from '@/resources/simulations/simulations/vessel
 
 import { emptyAiLedger, isAiUsageLedger } from '../ai-data';
 import { vesselExperimentKey } from '../course-artifact-service';
-import type { VesselStepReview } from '../course-report-review-contract';
+import { summarizeVesselReview, type VesselStepReview } from '../course-report-review-contract';
 import type { IlabGrantPayload } from '../grant-cookie';
 import { ILAB_PROJECT_TITLE, buildIlabUploadBody, type StoredIlabStep } from '../payload';
 import { IlabServiceError } from '../run-lock';
 import { ilabConfig, safeUploadWithAutoRefresh } from '../session-shared';
-import { resolveIlabUploadMode } from './ilab-session-lifecycle';
+import { parseStepDrafts, resolveIlabUploadMode } from './ilab-session-lifecycle';
 
 const VESSEL_ID_BY_COURSE_KEY: Record<VesselCourseKey, string> = {
   destroyer: 'destroyer-055',
@@ -49,7 +49,7 @@ function stepMetaForCourse(courseKey: VesselCourseKey, seq: number): {
   const experiment = findVesselExperiment(vesselId);
   const step = experiment?.steps[seq - 1];
   return {
-    title: step?.title ?? `第 ${seq} 步`,
+    title: findVesselCourse(courseKey)?.steps[seq - 1]?.title ?? step?.title ?? `第 ${seq} 步`,
     expectTime: step?.expectTime ?? 300,
     scoringModel: '预测+仿真采样+因果解释',
   };
@@ -112,7 +112,11 @@ export async function uploadCourseReportToIlab(input: {
       && run.appId === input.grant.appId
       && run.ilabUsername === input.grant.username,
     );
-    if (!ownedByReportUser && !ownedByGrant) {
+    const roundRef = parseStepDrafts(run.stepDrafts).courseState?.reportClientRef;
+    if ((!ownedByReportUser && !ownedByGrant) || run.vesselId !== vesselId
+      || (run.reportId && run.reportId !== report.id)
+      || (typeof roundRef === 'string' && roundRef !== report.clientRef)
+      || (report.experimentVersion && run.experimentVersion !== report.experimentVersion)) {
       run = null;
     }
   }
@@ -127,23 +131,28 @@ export async function uploadCourseReportToIlab(input: {
     });
   }
 
-  if (!run) {
+  if (!run && report.clientRef) {
     run = await prisma.ilabExperimentRun.findFirst({
       where: {
         userId: report.userId,
         vesselId,
+        reportId: null,
+        stepDrafts: { path: ['courseState', 'reportClientRef'], equals: report.clientRef },
         ...(report.experimentVersion ? { experimentVersion: report.experimentVersion } : {}),
       },
       orderBy: { updatedAt: 'desc' },
     });
   }
 
-  if (!run && input.grant && report.userId === input.actorUserId) {
+  if (!run && report.clientRef && input.grant && report.userId === input.actorUserId) {
     run = await prisma.ilabExperimentRun.findFirst({
       where: {
         appId: input.grant.appId,
         ilabUsername: input.grant.username,
         vesselId,
+        reportId: null,
+        stepDrafts: { path: ['courseState', 'reportClientRef'], equals: report.clientRef },
+        ...(report.experimentVersion ? { experimentVersion: report.experimentVersion } : {}),
       },
       orderBy: { updatedAt: 'desc' },
     });
@@ -171,6 +180,17 @@ export async function uploadCourseReportToIlab(input: {
   }
 
   const uploadMode = resolveIlabUploadMode(run);
+  if (report.status !== 'finalized' || !report.finalizedAt) {
+    return { uploaded: false, retryableUpload: false, uploadMode, originId: run.originId,
+      message: '报告与实验证据已保存，等待教师确认最终成绩后回传实验空间。', refreshedGrant: null };
+  }
+  const rubricSteps = Array.isArray((report.rubric as { steps?: unknown } | null)?.steps)
+    ? ((report.rubric as { steps: VesselStepReview[] }).steps)
+    : [];
+  const reviewSummary = summarizeVesselReview(rubricSteps);
+  if (!reviewSummary.complete || reviewSummary.finalScore !== report.score) {
+    throw new IlabServiceError('最终量规评分与报告成绩不一致，请核验教师复核记录。', 409);
+  }
   if (uploadMode === 'local-only') {
     const nowMs = Date.now();
     await prisma.ilabExperimentRun.update({
@@ -225,9 +245,6 @@ export async function uploadCourseReportToIlab(input: {
     attemptsBySeq.set(seq, list);
   }
 
-  const rubricSteps = Array.isArray((report.rubric as { steps?: unknown } | null)?.steps)
-    ? ((report.rubric as { steps: VesselStepReview[] }).steps)
-    : [];
   const reviewBySeq = new Map<number, VesselStepReview>(
     rubricSteps.map((step) => [step.stepSequence, step]),
   );
@@ -246,13 +263,7 @@ export async function uploadCourseReportToIlab(input: {
     let earnedPoints = 0;
     if (review) {
       const sum = (review.prediction ?? 0) + (review.operation ?? 0) + (review.performance ?? 0) + (review.interpretation ?? 0);
-      earnedPoints = Math.max(0, Math.min(maxPoints, Math.round(sum)));
-    } else if (selectedAttempt) {
-      if (selectedAttempt.status === 'submitted' || selectedAttempt.status === 'scored') {
-        earnedPoints = maxPoints;
-      } else if (selectedAttempt.status === 'below_target' || selectedAttempt.status === 'model_mismatch') {
-        earnedPoints = Math.max(1, Math.floor(maxPoints * 0.6));
-      }
+      earnedPoints = Math.max(0, Math.min(maxPoints, sum));
     }
 
     const startTime = cursorMs;

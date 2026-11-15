@@ -64,8 +64,12 @@ export async function uploadVesselRunEvidence(reportClientRef: string, run: Vess
     const staged = await requestVesselEvidence<{reference:string}>(`/api/ilab/experiment-runs/${run.id}/chunks?stage=1`, {
       schema: 'act.vessel-trace-chunk.v1', runRef: run.id, chunkIndex: progress.chunkCount,
       controlStart: progress.controlCount, nativeStart: progress.nativeCount, parameterHash: run.parameterHash,
-      endTimeS, points: run.trace.slice(progress.controlCount, controlEnd),
-      nativeSamples: run.nativeSensorSamples.slice(progress.nativeCount, nativeEnd),
+      endTimeS, points: run.trace.slice(progress.controlCount, controlEnd).map((point) => ({ ...point,
+        measurements: Object.fromEntries(Object.entries(point.measurements).map(([key, reading]) =>
+          [key, reading.quality === 'Undefined' ? { ...reading, value: null } : reading])),
+      })),
+      nativeSamples: run.nativeSensorSamples.slice(progress.nativeCount, nativeEnd).map((sample) =>
+        sample.measurement.quality === 'Undefined' ? { ...sample, measurement: { ...sample.measurement, value: null } } : sample),
       ...(run.fineStepSamples ? {fineStart:progress.fineCount ?? 0,fineSamples:fineSamples.slice(progress.fineCount ?? 0,fineEnd)} : {}),
       changes: run.changes.filter((change) => change.timeS >= progress.lastTimeS - 1e-7
         && (change.timeS < endTimeS - 1e-7 || finalChunk)),

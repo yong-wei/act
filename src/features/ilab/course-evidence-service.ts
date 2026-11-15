@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { Prisma, SimulationRun } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { createServerVesselSession } from '@/lib/control-engine/wasm-server';
+import { createServerVesselSessionWithAssets } from '@/lib/control-engine/wasm-server';
 import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generated';
 import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
@@ -16,6 +16,9 @@ import { CONTAINER_COURSE_STEPS, containerCourseConfiguration, validateContainer
   type ContainerCourseSettings } from '@/resources/simulations/experiments/container-course';
 import {CRUISE_COURSE_STEPS,cruiseCourseConfiguration,validateCruiseCourseSettings,
   type CruiseCourseSettings} from '@/resources/simulations/experiments/cruise-course';
+
+import { DRILLING_COURSE_STEPS, drillingCourseConfiguration, validateDrillingCourseSettings,
+  type DrillingCourseSettings } from '@/resources/simulations/experiments/drilling-course';
 
 export const VESSEL_EVIDENCE_DOMAIN = 'ilab-course';
 export interface VesselRunStorageSummary {
@@ -140,6 +143,29 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
       throw new IlabServiceError('请保存对应的本人横摇模型和鳍反馈方案。',409);
     }
   }
+  if (course.key === 'drilling') {
+    const step = DRILLING_COURSE_STEPS[input.stepSequence - 1];
+    const settings = input.courseSettings as unknown as DrillingCourseSettings;
+    const control = input.input.semisubDp;
+    const controlled = step.sequence >= 5 && step.sequence <= 19;
+    if (step.stepKind !== 'run' || validateDrillingCourseSettings(settings)
+      || canonicalJson(drillingCourseConfiguration(step.sequence, settings)) !== canonicalJson(input.configuration)
+      || input.input.controlMode !== (controlled ? 'pid' : 'manual')
+      || Boolean(control) !== controlled || input.input.cruiseFins || input.input.containerSpeed
+      || input.input.longitudinal || input.input.berthPlan) {
+      throw new IlabServiceError('实际运行条件与本步课程约定不一致。', 409);
+    }
+    if (controlled && (!control || control.bandwidthRadS !== settings.bandwidthRadS
+      || control.integralEnabled !== settings.integralEnabled || control.integralTimeS !== settings.integralTimeS
+      || control.feedback !== settings.feedback || control.lowFrequencyCutoffHz !== settings.lowFrequencyCutoffHz
+      || control.decoupling !== settings.decoupling || control.windFeedforward !== settings.windFeedforward
+      || control.allocation !== settings.allocation || canonicalJson(control.axisWeights) !== canonicalJson(settings.axisWeights)
+      || control.energyWeight !== settings.energyWeight || control.reallocate !== settings.reallocate
+      || control.navigationLossStrategy !== settings.navigationLossStrategy
+      || (settings.decoupling && (!input.designStudentModelId || !control.studentModel)))) {
+      throw new IlabServiceError('请保存对应的本人低频模型和定位控制方案。', 409);
+    }
+  }
   const existingReport = await prisma.virtualSimulationReport.findUnique({ where:{ clientRef:input.reportClientRef } });
   if (existingReport && existingReport.userId !== userId) throw new IlabServiceError('实验报告不存在。',404);
   if (existingReport && (existingReport.experimentKey !== course.key || existingReport.experimentVersion !== input.courseVersion)) {
@@ -157,8 +183,8 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
   if (existingReport && !['draft','revision-requested'].includes(existingReport.status)) {
     throw new IlabServiceError('这份报告正在复核或已经完成，请先读取报告状态。',409);
   }
-  let native: ReturnType<typeof createServerVesselSession>;
-  try { native = createServerVesselSession(input.configuration); }
+  let native: Awaited<ReturnType<typeof createServerVesselSessionWithAssets>>;
+  try { native = await createServerVesselSessionWithAssets(input.configuration); }
   catch { throw new IlabServiceError('船型初态或环境配置无法建立有效运行。',400); }
   let frame: VesselSessionFrame;
   let configurationHash: string;
@@ -168,7 +194,12 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
     frame = JSON.parse(native.advance(0,JSON.stringify(input.input))) as VesselSessionFrame;
     const checkpoint = native.snapshot();
     native.restore(input.initialCheckpoint);
-    if (frame.parameterHash !== input.parameterHash || native.snapshot() !== checkpoint) {
+    const restoredCheckpoint = native.snapshot();
+    // 历史静风记录曾保留未定义风向的数值，当前格式将该值保存为空。
+    const withoutUndefinedDirection = (value: string) => JSON.stringify(JSON.parse(value), (_key, entry) =>
+      entry?.quality === 'Undefined' ? { ...entry, value: null } : entry);
+    if (frame.parameterHash !== input.parameterHash || (restoredCheckpoint !== checkpoint
+      && withoutUndefinedDirection(restoredCheckpoint) !== withoutUndefinedDirection(checkpoint))) {
       throw new IlabServiceError('实际初态、控制参数或参数包与本次运行不一致。',409);
     }
     const actual = JSON.parse(checkpoint);

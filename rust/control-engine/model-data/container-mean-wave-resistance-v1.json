@@ -1,0 +1,21 @@
+{
+  "id": "container_reflection_teaching_v1",
+  "grade": "T",
+  "source": "ITTC 2024 7.5-04-01-01.1 Appendix G.1",
+  "sourceUrl": "https://www.ittc.info/media/11972/75-04-01-011.pdf",
+  "headSeaFormula": "rho*g*Hs^2*B*sqrt(B/Lbow)/16",
+  "referenceGeometry": "existing container v3 waterline, loading ratio 0.6",
+  "beamM": 61.5,
+  "bowLengthM": 96.18590600484558,
+  "waterDensityKgM3": 1025.0,
+  "gravityMps2": 9.81,
+  "directionHypothesis": "f(beta)=((1+cos(beta))/2)^2; beta is incoming-wave angle relative to bow",
+  "applicationPoint": "body centreline at mean waterline height",
+  "zeroSpeedTransitionMps": 0.5,
+  "sensitivityScaleRange": [0.5, 1.5],
+  "sensitivityMeaning": "assumed teaching range; physical error is uncalibrated",
+  "speedRangeMps": [6.0, 12.0],
+  "maximumSignificantWaveHeightM": 1.5,
+  "maximumPeakWavelengthLppRatio": 0.5,
+  "limitations": "mean reflection only; directional extension and reuse across loading are T-grade hypotheses; no difference-frequency oscillation or full-heading validation"
+}

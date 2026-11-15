@@ -87,6 +87,8 @@ pub struct SessionConfiguration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub regular_wave_height_m: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub wave_frequency_bins: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub course_evidence: Option<super::course_evidence::CourseEvidenceConfiguration>,
     pub seed: u64,
     pub noise_level: NoiseLevel,
@@ -97,6 +99,8 @@ pub struct SessionConfiguration {
     pub environment_switches: Option<EnvironmentSwitches>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub second_order_enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mean_wave_resistance_model: Option<super::mean_wave_resistance::MeanWaveResistanceModel>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub propulsion_power_budget_w: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -124,6 +128,7 @@ impl Default for SessionConfiguration {
             container_voyage: None,
             cruise: None,
             regular_wave_height_m: None,
+            wave_frequency_bins: None,
             course_evidence: None,
             seed: 20261106,
             noise_level: NoiseLevel::N1,
@@ -131,6 +136,7 @@ impl Default for SessionConfiguration {
             environment_overrides: None,
             environment_switches: None,
             second_order_enabled: None,
+            mean_wave_resistance_model: None,
             propulsion_power_budget_w: None,
             water_depth_m: None,
             initial_water_speed_mps: None,
@@ -174,6 +180,8 @@ pub struct SessionInput {
     pub container_speed: Option<ContainerSpeedInput>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cruise_fins: Option<super::cruise_control::CruiseFinInput>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub semisub_dp: Option<super::semisub_dp::SemisubDpInput>,
 }
 
 fn default_derivative_filter_tau_s() -> f64 {
@@ -196,8 +204,14 @@ impl SessionInput {
         if self.heading_integral_tracking.is_some_and(|tracking| !tracking.time_s.is_finite() || tracking.time_s <= 0.0) {
             return Err("航向积分回算时间常数应为正数".into());
         }
-        if vessel == "semisub-981" && self.control_mode != HeadingControlMode::Manual {
+        if vessel == "semisub-981" && self.control_mode != HeadingControlMode::Manual && self.semisub_dp.is_none() {
             return Err("平台定位控制模板正在接线，当前可用手动推进器命令".into());
+        }
+        if let Some(input) = &self.semisub_dp {
+            if vessel != "semisub-981" || self.control_mode != HeadingControlMode::Pid
+                || system.propulsors.len()!=8 || self.actuators.shafts.iter().any(|shaft|shaft.motor_torque_override_nm.is_some())
+            {return Err("定位控制需要981八推进器和独立位置PID输入".into());}
+            input.validate()?;
         }
         if let Some(input) = &self.longitudinal {
             if vessel != "lng-changheng" || self.actuators.shafts.iter().any(|shaft| shaft.motor_torque_override_nm.is_some()) {
@@ -249,6 +263,8 @@ struct SessionCheckpoint {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     cruise_controller: Option<super::cruise_control::CruiseFinController>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    dp_controller: Option<super::semisub_dp::SemisubDpController>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     cruise_comfort: Option<super::cruise_comfort::CruiseComfortState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     voyage_progress: Option<ContainerVoyageProgress>,
@@ -284,6 +300,12 @@ struct ControlSample {
     container: Option<super::container_speed_control::ContainerSpeedDiagnostics>,
     #[serde(skip_serializing_if = "Option::is_none")]
     cruise: Option<super::cruise_control::CruiseFinController>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    dp: Option<super::semisub_dp::SemisubDpController>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    estimated_control_load_body: Option<[f64;3]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    propulsor_thrust_n: Option<Vec<f64>>,
 }
 
 #[derive(Clone)]
@@ -308,6 +330,7 @@ pub struct FleetSimulation {
     longitudinal_controller: Option<LngSpeedController>,
     container_controller: Option<ContainerSpeedController>,
     cruise_controller: Option<super::cruise_control::CruiseFinController>,
+    dp_controller: Option<super::semisub_dp::SemisubDpController>,
     cruise_comfort: Option<super::cruise_comfort::CruiseComfortState>,
     voyage_progress: Option<ContainerVoyageProgress>,
     berth_termination: Option<BerthTermination>,
@@ -419,6 +442,17 @@ impl FleetSimulation {
         let mut environment = configured_environment(&configuration, pack.geometry.wave_model.as_ref(),
             pack.geometry.hydrodynamic_depth_m)?;
         let mut plant = DestroyerSixDofPlant::from_model_pack(&pack, Default::default());
+        if configuration.mean_wave_resistance_model.is_some() {
+            if configuration.vessel != "container-msc" || configuration.second_order_enabled.unwrap_or(false) {
+                return Err("教学平均附加阻力仅用于集装箱船，且不能与完整二阶数据重复叠加".into());
+            }
+            let model = super::mean_wave_resistance::ContainerMeanWaveResistance::from_wave(
+                &environment.wave, cg_height, pack.geometry.lpp_m)?;
+            plant.configure_mean_wave_resistance(model);
+            let mut identity = pack.content_hash.as_bytes().to_vec();
+            identity.extend(super::mean_wave_resistance::DEFINITION_JSON.as_bytes());
+            pack.content_hash = format!("fnv1a-{:016x}", super::model_pack::fnv1a(&identity));
+        }
         let yaw = wrap_pi(configuration.initial_heading_deg.to_radians());
         let mut state = plant.state().clone();
         state.position_ned = configuration.initial_position_ned;
@@ -614,6 +648,7 @@ impl FleetSimulation {
                 berth_plan: None,
                 container_speed: None,
                 cruise_fins: None,
+                semisub_dp: None,
             },
             held_commands: actuators,
             integral_deg_s: 0.0,
@@ -622,6 +657,7 @@ impl FleetSimulation {
             longitudinal_controller: None,
             container_controller: None,
             cruise_controller: None,
+            dp_controller: None,
             cruise_comfort,
             voyage_progress,
             berth_termination: None,
@@ -668,11 +704,69 @@ impl FleetSimulation {
     fn update_controller(&mut self) -> Result<(), String> {
         self.controller_ticks += 1;
         let previous_commands = self.held_commands.clone();
+        if self.input.semisub_dp.is_some() {
+            let rates=[SensorSignal::RollRate,SensorSignal::PitchRate,SensorSignal::YawRate]
+                .map(|signal|self.sensors.valid_value(signal,self.time_s()).map(f64::to_radians));
+            let forces=[SensorSignal::SpecificForceX,SensorSignal::SpecificForceY,SensorSignal::SpecificForceZ]
+                .map(|signal|self.sensors.valid_value(signal,self.time_s()));
+            self.dp_controller.get_or_insert_with(Default::default).observe_attitude(
+                match rates {[Some(p),Some(q),Some(r)]=>Some([p,q,r]),_=>None},
+                match forces {[Some(x),Some(y),Some(z)]=>Some([x,y,z]),_=>None});
+            if self.controller_ticks%2==1 {self.update_dp_controller(previous_commands)?;}
+            return Ok(());
+        }
         self.held_commands = self.input.actuators.clone();
         self.update_heading_controller(&previous_commands)?;
         self.update_longitudinal_controller(&previous_commands)?;
         self.update_container_controller(&previous_commands)?;
         self.update_cruise_controller()
+    }
+
+    fn update_dp_controller(&mut self, commands: ActuatorCommands) -> Result<(),String> {
+        use super::semisub_dp::DpMeasurements;
+        let time = self.time_s();
+        let input = self.input.semisub_dp.as_ref().ok_or("缺少定位输入")?;
+        let position_heading=self.navigation_measurement();
+        let wind = match (self.sensors.valid_value(SensorSignal::WindSpeed,time),
+            self.sensors.valid_value(SensorSignal::WindDirection,time),self.plant.wind_model()) {
+            (Some(speed),Some(direction),Some(model)) => {
+                let direction=direction.to_radians();
+                // 风仪给出局部相对风，仅以公开投影模型估算前馈。
+                let load=model.loads([-speed*direction.cos(),-speed*direction.sin()],[1.0,0.0,0.0,0.0],[0.0;6]);
+                Some([load[0],load[1],load[5]])
+            }
+            _=>None,
+        };
+        let position_sample_time_s=self.sensors.latest_samples().iter()
+            .find(|sample|sample.signal==SensorSignal::North && sample.measurement.quality==super::sensor::Quality::Good)
+            .map(|sample|sample.measurement.t_sample_s);
+        let measurement=DpMeasurements {position_heading,position_sample_time_s,
+            low_frequency_position_heading:self.observer.position_heading,
+            low_frequency_body_velocity:self.observer.body_velocity,
+            yaw_rate_rad_s:self.sensors.valid_value(SensorSignal::YawRate,time).map(f64::to_radians),
+            azimuth_rad:std::array::from_fn(|index|self.sensors.valid_value(SensorSignal::AzimuthEncoder(index),time).map(f64::to_radians)),
+            shaft_speed_rad_s:std::array::from_fn(|index|self.sensors.valid_value(SensorSignal::ShaftSpeed(index),time)
+                .map(|rpm|rpm*std::f64::consts::PI/30.0)),
+            estimated_control_load_body:self.estimated_control_load(),measured_wind_load_body:wind};
+        let mass=self.plant.physical_mass_matrix();
+        let system=self.plant.actuator_system().ok_or("缺少推进器组")?;
+        let failed=(self.configuration.drive_cut_fault && time>=180.0).then_some(1);
+        let controller=self.dp_controller.get_or_insert_with(Default::default);
+        // 冻结构件阻力在零速处的一阶导数为零。
+        self.held_commands=controller.step(input,measurement,[mass[0][0],mass[1][1],mass[5][5]],
+            [0.0;3],system,failed,commands)?;
+        Ok(())
+    }
+
+    fn navigation_measurement(&self) -> [Option<f64>;3] {
+        let mut values=[SensorSignal::North,SensorSignal::East,SensorSignal::Heading]
+            .map(|signal|self.sensors.valid_value(signal,self.time_s()).map(|value|
+                if signal==SensorSignal::Heading {value.to_radians()} else {value}));
+        if let (Some(controller),Some(yaw))=(&self.dp_controller,values[2]) {
+            let offset=controller.navigation_offset_ne(self.sensors.installations.gnss_body_m,yaw);
+            for axis in 0..2 {values[axis]=values[axis].map(|value|value-offset[axis]);}
+        }
+        values
     }
 
     fn update_cruise_controller(&mut self) -> Result<(), String> {
@@ -942,6 +1036,12 @@ impl FleetSimulation {
                 container: self.course_evidence.as_ref().and_then(|_| self.container_controller.as_ref())
                     .map(|controller| controller.diagnostics().clone()),
                 cruise: self.course_evidence.as_ref().and_then(|_| self.cruise_controller.clone()),
+                dp: self.course_evidence.as_ref().and_then(|_|self.dp_controller.clone()),
+                estimated_control_load_body: (self.configuration.vessel=="semisub-981"
+                    && self.course_evidence.is_some()).then(||self.estimated_control_load()),
+                propulsor_thrust_n: if self.configuration.vessel=="semisub-981" && self.course_evidence.is_some() {
+                    Some(self.plant.propulsor_thrust_n(&self.held_commands)?)
+                } else {None},
             });
         }
         let mut commands = self.held_commands.clone();
@@ -961,7 +1061,8 @@ impl FleetSimulation {
             if let Some(evidence) = &mut self.course_evidence { evidence.event(self.physics_ticks, "fault_activation"); }
         }
         if self.time_s() >= 180.0 {
-            if let Some(shaft) = commands.shafts.first_mut() {
+            let failed_index=if self.input.semisub_dp.is_some() {1} else {0};
+            if let Some(shaft) = commands.shafts.get_mut(failed_index) {
                 shaft.drive_cut |= self.configuration.drive_cut_fault;
                 shaft.azimuth_jammed |= self.configuration.azimuth_jam_fault;
             }
@@ -1001,24 +1102,11 @@ impl FleetSimulation {
         ));
         self.previous_truth = current;
         self.initialize_from_measurements();
-        let values = [
-            SensorSignal::North,
-            SensorSignal::East,
-            SensorSignal::Heading,
-        ]
-        .map(|signal| {
-            self.sensors
-                .valid_value(signal, self.time_s())
-                .map(|value| {
-                    if signal == SensorSignal::Heading {
-                        value.to_radians()
-                    } else {
-                        value
-                    }
-                })
-        });
+        let values = self.navigation_measurement();
+        let tuning=self.input.semisub_dp.as_ref().map(|input|(input.low_frequency_cutoff_hz,
+            2.0*std::f64::consts::PI/self.plant.environment().expect("会话环境已配置").wave.condition().tp_s));
         self.observer
-            .step(NOMINAL_DT, values, self.estimated_control_load())
+            .step_with_bandwidth(NOMINAL_DT, values, self.estimated_control_load(),tuning)
             .map_err(|error| format!("观测步失败 {error:?}"))?;
         if let Some(berth) = &self.configuration.berth {
             let clearance = self.plant.bow_clearance_m(berth.stop_line_north_m).ok_or("靠泊任务缺少船体几何")?;
@@ -1061,6 +1149,9 @@ impl FleetSimulation {
         if let Some(input) = &input {
             let system = self.plant.actuator_system().ok_or("缺少执行器组")?;
             input.validate(&self.configuration.vessel, system)?;
+            if self.physics_ticks>0 && input.semisub_dp.is_some()!=self.input.semisub_dp.is_some() {
+                return Err("定位控制的启用状态在本次运行中已冻结".into());
+            }
             if input.berth_plan.is_some() && self.configuration.berth.is_none() {
                 return Err("靠泊速度计划需要绑定靠泊初态".into());
             }
@@ -1162,6 +1253,12 @@ impl FleetSimulation {
         if let Some(controller) = &self.cruise_controller {
             frame["cruiseController"] = serde_json::to_value(controller).map_err(|error| error.to_string())?;
         }
+        if let Some(controller) = &self.dp_controller {
+            frame["dpController"] = serde_json::to_value(controller).map_err(|error|error.to_string())?;
+        }
+        if self.configuration.vessel=="semisub-981" && self.course_evidence.is_some() {
+            frame["propulsorThrustN"]=serde_json::json!(self.plant.propulsor_thrust_n(&self.held_commands)?);
+        }
         if let Some(comfort) = &self.cruise_comfort {
             frame["cruiseComfort"] = comfort.diagnostics();
             let configuration = self.configuration.cruise.as_ref().expect("客点统计已绑定配置");
@@ -1195,6 +1292,9 @@ impl FleetSimulation {
                 "firstOrderMetadataHash": binding.first_order_metadata_fnv1a64,
                 "fullDifferenceMetadataHash": binding.full_difference_metadata_fnv1a64,
             });
+        }
+        if let Some(diagnostics) = self.plant.mean_wave_resistance_diagnostics()? {
+            frame["meanWaveResistance"] = diagnostics;
         }
         if let Some(depth) = self.hydrodynamic_depth_m {
             frame["hydrodynamicDepthM"] = serde_json::json!(depth);
@@ -1241,6 +1341,7 @@ impl FleetSimulation {
             longitudinal_controller: self.longitudinal_controller.clone(),
             container_controller: self.container_controller.clone(),
             cruise_controller: self.cruise_controller.clone(),
+            dp_controller: self.dp_controller.clone(),
             cruise_comfort: self.cruise_comfort.clone(),
             voyage_progress: self.voyage_progress.clone(),
             berth_termination: self.berth_termination.clone(),
@@ -1323,6 +1424,10 @@ impl FleetSimulation {
             return Err("减摇恢复点与邮轮配置不一致".into());
         }
         if let Some(controller) = &saved.cruise_controller {controller.validate_checkpoint(saved.controller_ticks)?;}
+        if saved.dp_controller.is_some() != (saved.input.semisub_dp.is_some() && saved.physics_ticks>0) {
+            return Err("定位恢复点缺少10Hz控制状态或冻结输入".into());
+        }
+        if let Some(controller)=&saved.dp_controller {controller.validate_checkpoint(saved.controller_ticks)?;}
         if let Some(comfort) = &saved.cruise_comfort {
             comfort.validate(time_s,saved.configuration.cruise.as_ref().expect("客点统计已绑定配置"))?;
             let expected = simulation.cruise_comfort.as_ref().expect("邮轮统计已初始化");
@@ -1413,6 +1518,7 @@ impl FleetSimulation {
         simulation.longitudinal_controller = saved.longitudinal_controller;
         simulation.container_controller = saved.container_controller;
         simulation.cruise_controller = saved.cruise_controller;
+        simulation.dp_controller = saved.dp_controller;
         simulation.cruise_comfort = saved.cruise_comfort;
         simulation.voyage_progress = saved.voyage_progress;
         simulation.berth_termination = saved.berth_termination;
@@ -1538,6 +1644,10 @@ fn configured_environment(
     if let Some(height) = configuration.regular_wave_height_m {
         if !switches.wave_enabled { return Err("规则波任务需要开启实际波浪场".into()); }
         environment.wave = super::wave::WaveField::regular(configuration.seed, wave_condition, height)?;
+    }
+    if let Some(bins)=configuration.wave_frequency_bins {
+        if configuration.regular_wave_height_m.is_some() {return Err("规则波与代表谱频段配置不能同时使用".into());}
+        environment.wave=super::wave::WaveField::representative(configuration.seed,wave_condition,bins)?;
     }
     environment.wave.set_second_order_available(wave_binding
         .is_some_and(|binding| binding.full_difference_metadata_fnv1a64.is_some()));

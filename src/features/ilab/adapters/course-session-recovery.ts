@@ -31,7 +31,8 @@ const VESSEL_ID_BY_COURSE_KEY: Record<VesselCourseKey, string> = {
   dredger: 'fleet-dredger-tianjing',
 };
 
-function inferModelChannel(lineageKey: string, outputChannel: string, inputChannel: string): IdentificationChannel {
+function inferModelChannel(lineageKey: string, outputChannel: string, inputChannel: string): IdentificationChannel | 'dp-low-frequency' {
+  if (inputChannel === 'EstimatedTauBody3') return 'dp-low-frequency';
   if (outputChannel === 'EstimatedRoll') return 'fin-to-roll';
   if (inputChannel === 'ShaftReference0') return 'shaft-reference-to-speed';
   if (lineageKey.includes('servo') || outputChannel.includes('rudder') || outputChannel.includes('surface')) {
@@ -318,6 +319,8 @@ export async function loadCourseSessionRecovery(input: {
       outputChannel?: string;
       actualHeadingDeg?: Array<number | null>;
       predictedHeadingDeg?: number[];
+      actualEastM?: number[];
+      predictedEastM?: number[];
       actualBowClearanceM?: number[];
       predictedBowClearanceM?: number[];
       createdAtMs?: number;
@@ -347,6 +350,8 @@ export async function loadCourseSessionRecovery(input: {
       outputChannel: curve?.outputChannel,
       actualHeadingDeg: curve?.actualHeadingDeg,
       predictedHeadingDeg: curve?.predictedHeadingDeg,
+      actualEastM: curve?.actualEastM,
+      predictedEastM: curve?.predictedEastM,
       actualBowClearanceM: curve?.actualBowClearanceM,
       predictedBowClearanceM: curve?.predictedBowClearanceM,
       factorFlags,

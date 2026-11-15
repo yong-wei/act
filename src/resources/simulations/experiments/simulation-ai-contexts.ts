@@ -85,6 +85,8 @@ function buildStepConfig(descriptor: SimulationCourseDescriptor, seq: number, st
       `教学目标：${detail.goal}`,
       `观察要点：${detail.watch}`,
       `操作提示：${detail.suggestion}`,
+      '本实验采用船体坐标x向船艏、y向右舷、z向下，世界坐标北、东、下。正航向和正艏摇为俯视顺时针。相对重心的推进器位置为r，力为F，艏摇力矩N = x F_y - y F_x。按当前推进器位置和推力方向逐项判断符号，流体耦合会影响实际响应的幅值和时程。',
+      '围绕本页实验和已保存证据直接继续指导，学习路径或自适应练习信息缺失时也以本实验上下文为依据。',
       '回答要求：围绕船舶控制物理机理与实验证据启发学生分析；严禁直接代填实验读数、跳过实验步骤或直接给出评分判定。',
     ].join('\n'),
   };
@@ -108,19 +110,26 @@ function buildDescriptorFromVesselExperiment(
   }
 
   for (const step of experiment.steps) {
-    stepsBySeq.set(step.seq, {
-      title: step.title,
-      goal: step.goal,
-      watch: step.watch,
-      suggestion: step.suggestion,
-      keyConcepts: VESSEL_KEY_CONCEPTS[catalogKey],
-    });
+    if (!stepsBySeq.has(step.seq)) {
+      stepsBySeq.set(step.seq, {
+        title: step.title,
+        goal: step.goal,
+        watch: step.watch,
+        suggestion: step.suggestion,
+        keyConcepts: VESSEL_KEY_CONCEPTS[catalogKey],
+      });
+    }
+  }
+  if (catalogKey === 'container') {
+    const step = stepsBySeq.get(15)!;
+    step.watch = '保持同一波场、本人模型和速度计划，关闭与开启T级教学平均附加阻力，比较完整实际航次及燃油。';
+    step.suggestion = '短波反射尺度来自ITTC附录G.1，方向扩展和跨装载复用属于教学假设，真实误差尚未校准。';
   }
 
   return {
     courseId: experiment.courseId,
-    courseTitle: experiment.title,
-    courseDescription: `${experiment.title}虚拟仿真实验课程，覆盖模型辨识、闭环控制与工况边界验证。`,
+    courseTitle: catalogCourse.title,
+    courseDescription: `${catalogCourse.title}虚拟仿真实验课程，覆盖模型辨识、闭环控制与工况边界验证。`,
     vesselId: experiment.vesselId,
     prefixes: Array.from(new Set([experiment.key, catalogKey])),
     stepsBySeq,
@@ -217,4 +226,8 @@ export const SIMULATION_COURSE_AI_CONTEXTS: Record<string, SimulationCourseAIEnt
 
 export function resolveSimulationVesselIdForCourse(courseId: string): string | null {
   return COURSE_ID_TO_VESSEL_ID.get(courseId.trim()) ?? null;
+}
+
+export function resolveSimulationCourseKeyForAI(courseId: string): VesselCourseKey | null {
+  return CATALOG_KEY_BY_COURSE_ID[courseId.trim()] ?? null;
 }

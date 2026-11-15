@@ -55,7 +55,9 @@ export function VesselCourseReportReviewPanel() {
       const saved = (result.report.rubric as {steps?:VesselStepReview[]}|null)?.steps;
       setSteps(Array.from({length:20},(_,index)=>saved?.find((step)=>step.stepSequence === index+1) ?? {
         stepSequence:index+1,attemptId:result.attempts.filter((attempt)=>attempt.stepKey.endsWith(`-step-${index+1}`)).at(-1)?.id ?? '',
-        prediction:null,operation:null,performance:index >= 8 ? null : 0,interpretation:null,feedback:'',
+        prediction:null,operation:null,
+        performance:vesselCourseStepReviewLimits(result.report.courseKey,index+1).performance === 0 ? 0 : null,
+        interpretation:null,feedback:'',
       }));
     } catch (error) {setMessage(error instanceof Error ? error.message : '报告读取失败。');}
     finally {setBusy(false);}
@@ -124,6 +126,9 @@ export function VesselCourseReportReviewPanel() {
               <h4>第{run.stepSequence}步 · {run.timeS.toFixed(1)}s · {run.status === 'failed' ? '数值运行中断' : run.status === 'running' ? '采集中' : '已结束'}</h4>
               <p>20Hz航向RMSE {metrics?.headingRmseDeg?.toFixed(3) ?? '缺少有效量测'}° · 末120s平均绝对误差 {metrics?.final120sHeadingMaeDeg?.toFixed(3) ?? '不适用'}°</p>
               <p>调节时间 {metrics?.settlingTimeS === null || metrics?.settlingTimeS === undefined ? '末段尚未持续保持60s' : `${metrics.settlingTimeS.toFixed(2)}s`} · 20Hz最大横摇 {metrics?.maximumRollDeg?.toFixed(2) ?? '待核验'}°</p>
+              {metrics?.positionRmsM !== undefined ? <p>末180s位置RMS {metrics.positionRmsM?.toFixed(3) ?? '—'}m ·
+                航向RMS {metrics.headingRmsDeg?.toFixed(3) ?? '—'}° · 最大位置误差 {metrics.maximumPositionErrorM?.toFixed(3) ?? '—'}m ·
+                归一化分配残差RMS {metrics.normalizedAllocationResidualRms?.toFixed(5) ?? '—'}</p> : null}
               {voyage ? <p>实际航程 {voyage.northM.toFixed(2)}m · 最大横偏 {voyage.maximumCrossTrackM.toFixed(3)}m ·
                 {voyage.termination?.reason === 'arrived' ? '已实际到达' : voyage.termination?.reason === 'time_limit' ? '达到运行时限' : '采集中'} ·
                 结束航速 {voyage.termination?.finalWaterSpeedMps.toFixed(3) ?? '—'}m/s · 教学估计燃油 {fuelKg?.toFixed(3) ?? '—'}kg</p> : null}

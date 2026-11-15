@@ -8,7 +8,7 @@ import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-l
 
 import { Suspense, useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
-import { clearIlabOriginSessionStorage, stripIlabUrlParams } from '@/features/ilab/client-grant';
+import { clearIlabOriginSessionStorage, describeIlabConnection, stripIlabUrlParams } from '@/features/ilab/client-grant';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -1198,6 +1198,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   const ai = useOptionalGlobalAI();
   const { data: session, status: sessionStatus, update: updateSession } = useSession();
   const [ilabUserId, setIlabUserId] = useState<string | null>(null);
+  const [ilabConnectionStatus, setIlabConnectionStatus] = useState('');
   const [ilabUploadFailed, setIlabUploadFailed] = useState(false);
   const stepDraftsRef = useRef<Record<string, Record<string, string>>>({});
   const sessionUserIdRef = useRef<string | null>(null);
@@ -1313,12 +1314,13 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   // 数值仿真时间（#2097 提升）：引擎逐 fixed-step 写入，帧快照 simulationTime 只读消费。
   const simTimeRef = useRef(0);
 
-  const effectiveUserId = session?.user?.id ?? ilabUserId;
+  const effectiveUserId = ilabUserId ?? session?.user?.id;
   const canUseCloudEvidence = sessionStatus === 'authenticated' && (!ilabUserId || session?.user?.id === ilabUserId);
+  const accountReady = !ilabUserId || canUseCloudEvidence;
   const baseScopeKey = `${effectiveUserId ? `account:${effectiveUserId}` : originId ? `ilab:${originId}` : 'local'}:destroyer:${experimentVersion}`;
   const scopeKey = selectedRound?.base === baseScopeKey ? selectedRound.scope : baseScopeKey;
   uploadScopeRef.current = scopeKey;
-  const draftReady = readyDraftScope === scopeKey;
+  const draftReady = accountReady && readyDraftScope === scopeKey;
   const runSummaries = useMemo(() => loadedRunSummaries.filter((run) => run.scopeKey === scopeKey), [loadedRunSummaries,scopeKey]);
   const studentModels = useMemo(() => loadedStudentModels.filter((model) => model.scopeKey === scopeKey), [loadedStudentModels,scopeKey]);
   const modelComparisons = useMemo(() => loadedModelComparisons.filter((comparison) => comparison.scopeKey === scopeKey), [loadedModelComparisons,scopeKey]);
@@ -1602,7 +1604,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   }, [activeSeq, handleReset, step.defaultMode, scopeKey, courseStep]);
 
   useEffect(() => {
-    if (!sessionReady || sessionStatus === 'loading') return;
+    if (!sessionReady || !accountReady || sessionStatus === 'loading') return;
     let cancelled = false;
     setReadyDraftScope('');
     setCourseReport(null);setEvidenceUploadMessage('');
@@ -1617,8 +1619,11 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       if (cancelled) return;
       if (scopeKey === baseScopeKey && experimentVersion === VESSEL_COURSE_VERSION && canUseCloudEvidence
         && !draft && attempts.length === 0 && runs.length === 0 && models.length === 0) {
-        const recovered = await fetchCourseSessionRecovery('destroyer', experimentVersion).catch(() => null);
+        const recovered = await fetchCourseSessionRecovery('destroyer', experimentVersion);
         if (cancelled) return;
+        if (!recovered.authenticated || recovered.userId !== effectiveUserId || !recovered.recovery) {
+          throw new Error('账号或云端进度暂时无法恢复，请刷新重试。已保存的实验记录将继续保留。');
+        }
         const recovery = recovered?.recovery ?? null;
         if (recovery) {
           if (recovery.ilabRun) {
@@ -1631,7 +1636,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           if (recovery.report) {
             setCourseReport(recovery.report);
           }
-          if (recovery.reportClientRef || recovery.attempts.length > 0 || recovery.runs.length > 0 || recovery.models.length > 0 || recovery.comparisons.length > 0) {
+          if (recovery.reportClientRef || recovery.ilabRun || recovery.attempts.length > 0 || recovery.runs.length > 0 || recovery.models.length > 0 || recovery.comparisons.length > 0) {
             await hydrateRecoveredCourseSession(scopeKey, recovery);
             if (cancelled) return;
             [draft, attempts, models, comparisons, runs] = await Promise.all([
@@ -1691,7 +1696,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       setReadyDraftScope(scopeKey);
     })().catch((error:unknown) => {if (!cancelled) handleRuntimeFailure(error);});
     return () => { cancelled = true; };
-  }, [scopeKey, baseScopeKey, sessionReady, sessionStatus, canUseCloudEvidence, experimentVersion, handleRuntimeFailure]);
+  }, [scopeKey, baseScopeKey, sessionReady, accountReady, sessionStatus, canUseCloudEvidence, effectiveUserId, experimentVersion, handleRuntimeFailure]);
 
   const activeRunId = recorderRef.current?.run.id ?? null;
   const saveDraft = useCallback(() => saveExperimentDraft({ scopeKey, stepSequence: activeSeq, activeRunId,
@@ -1838,12 +1843,18 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       if (body.userId) {
         setIlabUserId(body.userId);
         if (body.userId !== sessionUserIdRef.current) {
+          if (!sessionUserIdRef.current) {
+            window.sessionStorage.setItem(storageKey, body.originId);
+            window.location.replace(stripIlabUrlParams('/simulations/destroyer', window.location.search));
+            return;
+          }
           await updateSessionRef.current().catch(() => undefined);
           if (cancelled) return;
         }
       }
       window.sessionStorage.setItem(storageKey, body.originId);
       setOriginId(body.originId);
+      setIlabConnectionStatus(describeIlabConnection(body.uploadMode ?? 'ilab-remote'));
       const resolvedVersion = body.experimentVersion ?? 'legacy-v1';
       setExperimentVersion(resolvedVersion);
       setSessionCompleted(body.status === 1);
@@ -2287,10 +2298,12 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({ experimentVersion: VESSEL_COURSE_VERSION, forceNew: true }),
           });
-          const body = await res.json().catch(() => null) as { connected?: boolean; originId?: string; status?: number } | null;
+          const body = await res.json().catch(() => null) as { connected?: boolean; originId?: string; status?: number;
+            uploadMode?: 'local-only' | 'dev-bypass' | 'ilab-remote' } | null;
           if (res.ok && body?.connected && body.originId) {
             window.sessionStorage.setItem('act-destroyer-origin', body.originId);
             setOriginId(body.originId);
+            setIlabConnectionStatus(describeIlabConnection(body.uploadMode ?? 'ilab-remote'));
             setSessionCompleted(body.status === 1);
           } else {
             setOriginId('');
@@ -2318,11 +2331,13 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
         originId?: string;
         displayName?: string;
         status?: number;
+        uploadMode?: 'local-only' | 'dev-bypass' | 'ilab-remote';
         error?: string;
       };
       if (response.ok && body.connected && body.originId) {
         window.sessionStorage.setItem('act-destroyer-origin', body.originId);
         setOriginId(body.originId);
+        setIlabConnectionStatus(describeIlabConnection(body.uploadMode ?? 'ilab-remote'));
         setSessionCompleted(body.status === 1);
         setMessage(`已开启新一轮实验（学生 ${body.displayName ?? ''}），请从第 1 步开始。`);
         return;
@@ -2731,6 +2746,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                     step={step}
                     readings={readings}
                     message={message}
+                    connectionStatus={originId ? ilabConnectionStatus : ''}
                     busy={busy || Boolean(courseStep && courseReport && !['draft','revision-requested'].includes(courseReport.status))}
                     reportEnabled={courseStep ? reportRunIds.length > 0 && !isRunning : records.some((record) => record.seq === DESTROYER_EXPERIMENT_STEPS.length) || Boolean(reportHtml)}
                     showRestart={sessionCompleted || Boolean(courseStep && draftReady && courseAttempts.length)}

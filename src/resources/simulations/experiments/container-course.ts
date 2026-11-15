@@ -23,6 +23,7 @@ export interface ContainerCourseSettings {
   losLookaheadM: number;
   segmentSpeedsMps: [number, number, number, number];
   validationSeed: 17 | 29;
+  meanWaveResistanceEnabled?: boolean;
 }
 
 export interface ContainerCourseStep extends VesselCourseStep {
@@ -37,7 +38,8 @@ export function containerCourseDefaultSettings(sequence: number): ContainerCours
     initialSpeedMps: sequence === 6 ? 6 : 8, excitationPercent: sequence === 6 ? -5 : 5,
     modelIds: ['', '', ''], schedulingEnabled: sequence >= 9, bumpless: true,
     kpMultiplier: 1, tiMultiplier: 1, antiWindup: true, filterTauS: .2, feedback: 'water',
-    losLookaheadM: 400, segmentSpeedsMps: [8, 8, 8, 8], validationSeed: 17};
+    losLookaheadM: 400, segmentSpeedsMps: [8, 8, 8, 8], validationSeed: 17,
+    ...(sequence >= 15 ? {meanWaveResistanceEnabled: true} : {})};
 }
 
 export function validateContainerCourseSettings(settings: ContainerCourseSettings): string | null {
@@ -52,6 +54,9 @@ export function validateContainerCourseSettings(settings: ContainerCourseSetting
     || !Array.isArray(settings.segmentSpeedsMps) || settings.segmentSpeedsMps.length !== 4
     || settings.segmentSpeedsMps.some((value) => !Number.isFinite(value) || value < 6 || value > 12)
     || ![17, 29].includes(settings.validationSeed)) return '请选择允许的装载、航速、三点模型及控制参数。';
+  if (settings.meanWaveResistanceEnabled !== undefined && typeof settings.meanWaveResistanceEnabled !== 'boolean') {
+    return '请选择是否启用教学平均附加阻力。';
+  }
   return null;
 }
 
@@ -75,12 +80,15 @@ export function containerCourseConfiguration(sequence: number,
     noiseLevel: sequence >= 16 && sequence <= 19 ? 'N1' : 'N0', courseEvidence: {rollWarningDeg: 8}};
   if (sequence >= 11 && sequence <= 19) config.containerVoyage = {
     segmentSpeedsMps: sequence === 11 ? [8, 8, 8, 8] : [...settings.segmentSpeedsMps]};
+  if (sequence >= 15 && sequence <= 19 && settings.meanWaveResistanceEnabled) {
+    config.meanWaveResistanceModel = 'container_reflection_teaching_v1';
+  }
   return config;
 }
 
 const durations = [60, 1, 600, 600, 600, 600, 600, 600, 600, 900,
   1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200];
-const minimumRuns: Record<number, number> = {2: 3, 5: 2, 6: 2, 8: 2, 9: 2, 10: 2, 12: 2, 13: 2, 14: 2, 16: 2, 19: 2, 20: 5};
+const minimumRuns: Record<number, number> = {2: 3, 5: 2, 6: 2, 8: 2, 9: 2, 10: 2, 12: 2, 13: 2, 14: 2, 15: 2, 16: 2, 19: 2, 20: 5};
 
 export const CONTAINER_COURSE_STEPS: readonly ContainerCourseStep[] = VESSEL_COURSES.container.steps.map((source, index) => {
   const seq = source.sequence;
@@ -98,7 +106,8 @@ export const CONTAINER_COURSE_STEPS: readonly ContainerCourseStep[] = VESSEL_COU
     measurementSignals: ['ShaftSpeed0', 'SpeedLog', 'Heading', 'North', 'East'],
     requiredArtifacts: seq === 20 ? ['five-own-runs', 'report'] : ['prediction', 'run', 'interpretation'],
     rubric: {kind: seq >= 7 && seq <= 19 ? 'design' : 'standard', performanceCriteria: source.evidence, evidenceCriteria: source.interaction},
-    hints: [source.interaction], retryPolicy: 'free', points: STEP_SCORE_DISTRIBUTION[index],
+    hints: [seq === 15 ? '固定同一波场、本人模型和速度计划，分别关闭与开启T级教学平均附加阻力，比较实际航次、运动及燃油，并说明假设范围。' : source.interaction],
+    retryPolicy: 'free', points: STEP_SCORE_DISTRIBUTION[index],
     minimumRuns: minimumRuns[seq] ?? 1, configuration: config, speedControl: seq >= 7 && seq <= 19,
     voyageTask: seq >= 11 && seq <= 19};
 });

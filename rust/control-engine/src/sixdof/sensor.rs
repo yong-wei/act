@@ -190,7 +190,7 @@ impl SensorChannel {
             self.queue.push_back(Measurement {
                 t_sample_s: t_sample,
                 t_arrive_s: t_sample + self.spec.delay_s,
-                value: quantized,
+                value: if quality == Quality::Good { quantized } else { f64::NAN },
                 quality,
             });
             self.last_sample_t = Some(t_sample);
@@ -230,7 +230,8 @@ impl SensorChannel {
         let valid_measurement = |sample: &Measurement| sample.t_sample_s.is_finite()
             && sample.t_arrive_s.is_finite() && sample.t_sample_s >= 0.0
             && sample.t_arrive_s >= sample.t_sample_s && sample.t_sample_s <= time_s + 1e-8
-            && (sample.value.is_finite() || sample.quality == Quality::Missing);
+            && (sample.value.is_finite() || (sample.value.is_nan()
+                && matches!(sample.quality, Quality::Missing | Quality::Undefined)));
         if self.spec != expected.spec || self.level != expected.level || self.fault != expected.fault
             || self.heading_channel != expected.heading_channel || self.gnss_channel != expected.gnss_channel
             || self.wind_direction_channel != expected.wind_direction_channel

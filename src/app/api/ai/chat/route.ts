@@ -9,6 +9,7 @@
 import { consumeStream, createUIMessageStreamResponse, generateText, streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel, getConfiguredAIProviderBinding, isConfiguredAIServiceAvailable } from '@/lib/ai/provider-runtime';
 import { recordSimulationKonlingAiUsage } from '@/features/ilab/adapters/konling-ai-ledger';
+import { loadSimulationKonlingEvidence } from '@/features/ilab/adapters/konling-simulation-evidence';
 import { SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai/lesson-prompts';
 import { resolveServerOwnedChatPageContext } from '@/lib/ai/chat-context-boundary';
 import { requestsLearningPathGeneration } from '@/lib/ai/path-generation-intent';
@@ -967,6 +968,12 @@ export async function POST(request: Request) {
     } else {
       // 回退到旧的提示词构建方式
       systemPrompt = buildContextAwarePrompt(SYSTEM_PROMPT, lessonContext);
+    }
+
+    if (ledgerTrackingTarget) {
+      const evidence = await loadSimulationKonlingEvidence(ledgerTrackingTarget.userId,
+        ledgerTrackingTarget.courseId, ledgerTrackingTarget.stepId);
+      if (evidence) systemPrompt = `${systemPrompt}\n\n${evidence}`;
     }
 
     if (lessonContext?.stage === 'interactive') {

@@ -18,14 +18,23 @@ import { DestroyerRunEvaluation } from './destroyer-run-evaluation';
 import { LngLiquidSpectrum } from './lng-liquid-spectrum';
 import { CruiseRollSpectrum } from './cruise-roll-spectrum';
 import { CruiseComfortReadout } from './cruise-comfort-readout';
+import { DpModelWorkbench } from './dp-model-workbench';
 
 
-export function VesselModelWorkbench({ scopeKey, runs, onArtifactsChange, defaultChannel = 'rudder-to-yaw' }: {
+interface WorkbenchProps {
   scopeKey: string;
   runs: VesselRunSummary[];
   onArtifactsChange: (models: FrozenVesselStudentModel[], comparisons: VesselModelComparison[], scopeKey: string) => void;
-  defaultChannel?: IdentificationChannel;
-}) {
+  defaultChannel?: IdentificationChannel | 'dp-low-frequency';
+}
+
+export function VesselModelWorkbench(props: WorkbenchProps) {
+  return props.defaultChannel === 'dp-low-frequency' ? <DpModelWorkbench {...props} />
+    : <ScalarVesselModelWorkbench {...props} defaultChannel={props.defaultChannel} />;
+}
+
+function ScalarVesselModelWorkbench({ scopeKey, runs, onArtifactsChange, defaultChannel = 'rudder-to-yaw' }:
+  Omit<WorkbenchProps, 'defaultChannel'> & { defaultChannel?: IdentificationChannel }) {
   const [loadedModels, setModels] = useState<FrozenVesselStudentModel[]>([]);
   const [loadedComparisons, setComparisons] = useState<VesselModelComparison[]>([]);
   const activeScope = useRef(scopeKey);

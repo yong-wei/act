@@ -19,6 +19,7 @@ const { state, mocks } = vi.hoisted(() => {
   }
 
   const tx = {
+    $queryRaw: vi.fn(async () => Array.from(hoistedState.ilabRuns.values(), (run) => ({ id: run.id }))),
     account: {
       findUnique: vi.fn(async ({ where }: { where: { provider_providerAccountId?: { provider: string; providerAccountId: string } } }) => {
         const key = `${where.provider_providerAccountId?.provider}:${where.provider_providerAccountId?.providerAccountId}`;
@@ -207,6 +208,7 @@ import {
 import { uploadCourseReportToIlab } from '@/features/ilab/adapters/ilab-course-upload';
 import {
   findRecoverableIlabRun,
+  assertIlabRunAccess,
   mergeStepDrafts,
   saveIlabRunDraft,
 } from '@/features/ilab/adapters/ilab-session-lifecycle';
@@ -215,6 +217,7 @@ import { recordSimulationKonlingAiUsage } from '@/features/ilab/adapters/konling
 import { extractIlabUserProfileClaims } from '@/features/ilab/ilab-client';
 import { resolveServerOwnedChatPageContext } from '@/lib/ai/chat-context-boundary';
 import { getStepAIContext } from '@/lib/course-ai-contexts';
+import { summarizeVesselReview, vesselCourseStepReviewLimits } from '../course-report-review-contract';
 
 function encodeUnsignedJwt(payload: Record<string, unknown>): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
@@ -241,6 +244,16 @@ describe('iLab auth, Konling AI registration/ledger, and state recovery', () => 
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('requires the active account to own iLab records and rejects a stale grant from another account', async () => {
+    const run = { userId: 'ilab-owner', appId: 'app-test-1', ilabUsername: 'ilab_u1' };
+    const grant = { v: 1 as const, appId: run.appId, username: run.ilabUsername,
+      displayName: '实验空间同学', accessToken: 'test-token', issuedAtMs: Date.now(), bypass: false };
+    await expect(assertIlabRunAccess(run, { userId: run.userId, grant })).resolves.toBeUndefined();
+    await expect(assertIlabRunAccess(run, {})).rejects.toMatchObject({ status: 403 });
+    await expect(assertIlabRunAccess(run, { userId: 'another-account', grant })).rejects.toMatchObject({ status: 403 });
+    await expect(assertIlabRunAccess({ ...run, userId: null }, { grant })).resolves.toBeUndefined();
   });
 
   it('extracts comprehensive claims across envelope, nested user/data, JWT accessToken and ticket while ignoring status envelope code', () => {
@@ -555,6 +568,19 @@ describe('iLab auth, Konling AI registration/ledger, and state recovery', () => 
 
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('ETIMEDOUT')));
 
+    const pendingOutcome = await uploadCourseReportToIlab({
+      reportId: synced.reportId!, actorUserId: 'user-1', originId: 'dds_up_1',
+    });
+    expect(pendingOutcome).toMatchObject({ uploaded: false, retryableUpload: false });
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    const reviewSteps = Array.from({ length: 20 }, (_, index) => ({
+      stepSequence: index + 1, attemptId: `att-${index + 1}`, feedback: '保留未达到性能目标的结果',
+      ...vesselCourseStepReviewLimits('destroyer', index + 1), performance: 0,
+    }));
+    const confirmedScore = summarizeVesselReview(reviewSteps).finalScore;
+    state.reports.set(synced.reportId!, { ...state.reports.get(synced.reportId!)!,
+      status: 'finalized', finalizedAt: new Date(), score: confirmedScore, rubric: { steps: reviewSteps } });
+
     const failedOutcome = await uploadCourseReportToIlab({
       reportId: synced.reportId!,
       actorUserId: 'user-1',
@@ -563,7 +589,7 @@ describe('iLab auth, Konling AI registration/ledger, and state recovery', () => 
 
     expect(failedOutcome.uploaded).toBe(false);
     expect(failedOutcome.retryableUpload).toBe(true);
-    expect(state.reports.get(synced.reportId!)?.status).toBe('submitted');
+    expect(state.reports.get(synced.reportId!)?.status).toBe('finalized');
     expect(state.ilabRuns.get(runId)?.uploadStatus).toBe('failed');
     expect(state.ilabRuns.get(runId)?.reportId).toBe(synced.reportId);
 
@@ -584,6 +610,7 @@ describe('iLab auth, Konling AI registration/ledger, and state recovery', () => 
     expect(retryOutcome.retryableUpload).toBe(false);
     expect(state.ilabRuns.get(runId)?.status).toBe(1);
     expect(state.ilabRuns.get(runId)?.uploadStatus).toBe('uploaded');
+    expect(state.ilabRuns.get(runId)?.score).toBe(confirmedScore);
     expect(state.reports.size).toBe(1);
   });
 });

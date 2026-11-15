@@ -214,6 +214,7 @@ export async function uploadVesselCourseArtifacts(reportClientRef: string, cours
         metrics:comparison.metrics,purpose:comparison.purpose ?? 'validation',controllerInput:comparison.controllerInput,
         outputUnit:comparison.outputUnit,outputChannel:comparison.outputChannel,
         actualHeadingDeg:comparison.actualHeadingDeg,predictedHeadingDeg:comparison.predictedHeadingDeg,
+        actualEastM:comparison.actualEastM,predictedEastM:comparison.predictedEastM,
         actualBowClearanceM:comparison.actualBowClearanceM,predictedBowClearanceM:comparison.predictedBowClearanceM,
         createdAtMs:comparison.createdAtMs},
     });

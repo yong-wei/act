@@ -113,6 +113,11 @@ export async function saveVesselCourseArtifact(userId: string, input: VesselCour
         && (comparison.mode !== 'hull_model' || comparison.actuatorModelClientRef)) {
         throw new IlabServiceError('横摇局部模型需要A模式的实际差动鳍量测对照。',400);
       }
+      const dpModel = input.courseKey === 'drilling' && io?.inputChannel === 'EstimatedTauBody3';
+      if (dpModel && (comparison.mode !== 'hull_model' || comparison.actuatorModelClientRef
+        || !comparison.actualEastM || !comparison.predictedEastM || !comparison.actualHeadingDeg || !comparison.predictedHeadingDeg)) {
+        throw new IlabServiceError('三通道低频模型需要保存位置和航向的A模式独立对照。',400);
+      }
       if (!model || (comparison.mode !== 'hull_model' && !speedReference && !actuator)) throw new IlabServiceError('所引用的冻结模型不存在。',404);
       if (speedReference && (comparison.mode === 'hull_model' || comparison.actuatorModelClientRef
         || comparison.outputChannel !== 'SpeedLog')) {
@@ -137,7 +142,7 @@ export async function saveVesselCourseArtifact(userId: string, input: VesselCour
         clientRef:comparison.clientRef,userId,experimentKey,stepKey:`${input.courseKey}-step-${summary.stepSequence}`,
         mode:comparison.mode,studentModelId:model.id,physicalRunRef:comparison.runRef,
         controllerArtifactHash:comparison.controllerInput ? contentHash(comparison.controllerInput) : null,
-        inputSource:comparison.mode === 'hull_model' ? 'actuator_measurement' : 'command',
+        inputSource:dpModel ? 'estimated_thrust' : comparison.mode === 'hull_model' ? 'actuator_measurement' : 'command',
         alignmentWindow:{startS:comparison.startS,endS:comparison.endS},
         factorFlags:{...vesselComparisonFactors(opening.configuration,comparison.mode,summary.appliedFactors)},
         metrics:comparison.metrics,curveRefs:{uri:curve.uri,checksum:curve.checksum,recordHash,

@@ -92,7 +92,7 @@ fn jonswap_spectrum(omega: f64, tp_s: f64) -> f64 {
 }
 
 /// 有限水深色散：ω² = g·k·tanh(kh)（牛顿迭代）。
-fn wave_number(omega: f64, depth: f64) -> f64 {
+pub(crate) fn wave_number(omega: f64, depth: f64) -> f64 {
     let k_deep = omega * omega / GRAVITY;
     if depth > 1.0e4 {
         return k_deep;
@@ -154,14 +154,26 @@ impl WaveField {
     }
 
     pub fn new(seed: u64, condition: WaveCondition) -> Self {
+        Self::with_frequency_bins(seed, condition, FREQUENCY_BINS)
+    }
+
+    /// 教学代表谱保留方向、能量和同源相位。频率分辨率随运行配置冻结。
+    pub fn representative(seed: u64, condition: WaveCondition, bins: usize) -> Result<Self, String> {
+        if ![16,32,FREQUENCY_BINS].contains(&bins) {
+            return Err("教学波谱仅支持16、32或128个频段".into());
+        }
+        Ok(Self::with_frequency_bins(seed, condition, bins))
+    }
+
+    fn with_frequency_bins(seed: u64, condition: WaveCondition, bins: usize) -> Self {
         let mut rng = seed
             .wrapping_mul(0x9E3779B97F4A7C15)
             .wrapping_add(0x1234567890ABCDEF);
         // 1) 等能频率段：谱 CDF 反演。
-        let mut cdf = [0.0f64; FREQUENCY_BINS + 1];
+        let mut cdf = vec![0.0f64; bins + 1];
         let mut total = 0.0;
-        for i in 0..FREQUENCY_BINS {
-            let w_mid = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * (i as f64 + 0.5) / FREQUENCY_BINS as f64;
+        for i in 0..bins {
+            let w_mid = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * (i as f64 + 0.5) / bins as f64;
             total += jonswap_spectrum(w_mid, condition.tp_s);
             cdf[i + 1] = total;
         }
@@ -176,10 +188,10 @@ impl WaveField {
             dir_total += w;
         }
         // 3) 分量幅值（比例）与确定性相位。
-        let mut components = Vec::with_capacity(FREQUENCY_BINS * DIRECTIONS);
-        for i in 0..FREQUENCY_BINS {
+        let mut components = Vec::with_capacity(bins * DIRECTIONS);
+        for i in 0..bins {
             let band_energy = (cdf[i + 1] - cdf[i]) / total;
-            let w_mid = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * (i as f64 + 0.5) / FREQUENCY_BINS as f64;
+            let w_mid = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * (i as f64 + 0.5) / bins as f64;
             let k = wave_number(w_mid, condition.water_depth_m);
             for (j, &weight) in dir_weight.iter().enumerate() {
                 let share = band_energy * (weight / dir_total);

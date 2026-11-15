@@ -16,6 +16,9 @@ import { validateContainerCourseEvidence } from '@/resources/simulations/experim
 import {CRUISE_COURSE_STEPS} from '@/resources/simulations/experiments/cruise-course';
 import {validateCruiseCourseEvidence} from '@/resources/simulations/experiments/cruise-evidence';
 
+import { DRILLING_COURSE_STEPS } from '@/resources/simulations/experiments/drilling-course';
+import { validateDrillingCourseEvidence } from '@/resources/simulations/experiments/drilling-evidence';
+
 /** 从同一报告的实际运行和冻结工件重建验收引用，客户端反馈仅作作品保存。 */
 export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,userId:string,reportId:string,
   experimentKey:string,courseKey:string,
@@ -53,7 +56,8 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
       trainingRuns:model.trainingRuns,validationRuns:model.validationRuns,sampleDt:model.sampleDt});
     if (!payload.success) continue;
     models.push({id:model.clientRef,payload:payload.data,
-      channel:payload.data.ioContract.outputChannel === 'YawRate' ? 'rudder-to-yaw'
+      channel:payload.data.structure.kind === 'dp_low_freq3' ? 'dp-low-frequency'
+        : payload.data.ioContract.outputChannel === 'YawRate' ? 'rudder-to-yaw'
         : payload.data.ioContract.outputChannel === 'EstimatedRoll' ? 'fin-to-roll'
         : payload.data.ioContract.outputChannel.startsWith('SurfaceEncoder') ? 'rudder-servo'
           : payload.data.ioContract.inputChannel === 'ShaftReference0' ? 'shaft-reference-to-speed' : 'shaft-to-speed',
@@ -97,6 +101,12 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
     const selected=step.sequence === 20 ? runs.filter((run)=>attempt.runRefs.includes(run.id)) : runs;
     const feedback=validateCruiseCourseEvidence(step,{runs:selected,models,comparisons,answers:attempt.answers});
     return {feedback,outcome:feedback ? 'model_mismatch' : attempt.outcome};
+  }
+  if (courseKey === 'drilling') {
+    const step = DRILLING_COURSE_STEPS[attempt.stepSequence - 1];
+    const selected = step.sequence === 20 ? runs.filter((run) => attempt.runRefs.includes(run.id)) : runs;
+    const feedback = validateDrillingCourseEvidence(step, {runs: selected, models, comparisons, answers: attempt.answers});
+    return {feedback, outcome: feedback ? 'model_mismatch' : attempt.outcome};
   }
   return {feedback:null,outcome:attempt.outcome};
 }

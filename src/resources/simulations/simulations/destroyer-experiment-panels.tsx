@@ -317,6 +317,7 @@ export function DestroyerStepForm({
   busy,
   reportEnabled,
   showRestart = false,
+  connectionStatus = '',
   onChange,
   onSubmit,
   onReport,
@@ -329,6 +330,7 @@ export function DestroyerStepForm({
   busy: boolean;
   reportEnabled: boolean;
   showRestart?: boolean;
+  connectionStatus?: string;
   onChange: (key: string, value: string) => void;
   onSubmit: () => void;
   onReport: () => void;
@@ -402,6 +404,7 @@ export function DestroyerStepForm({
           </Button>
         ) : null}
       </div>
+      {connectionStatus ? <p className="text-xs leading-5 text-platform-fg-secondary" data-ilab-connection-status>{connectionStatus}</p> : null}
       {message ? (
         <p className="rounded-md border border-platform-action-primary/25 bg-platform-action-primary/10 px-2.5 py-2 text-xs leading-5 text-platform-fg-primary" data-destroyer-message>{message}</p>
       ) : null}

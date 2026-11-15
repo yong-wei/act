@@ -60,13 +60,28 @@ fn wind_speed_remains_defined_when_direction_is_unavailable() {
         speed.advance(0.0, |_| (0.2, 0.2)).unwrap().quality,
         Quality::Good
     );
-    assert_eq!(
-        direction.advance(0.0, |_| (60.0, 0.2)).unwrap().quality,
-        Quality::Undefined
-    );
+    let undefined = direction.advance(0.0, |_| (60.0, 0.2)).unwrap();
+    assert_eq!(undefined.quality, Quality::Undefined);
+    assert!(undefined.value.is_nan());
+    assert!(serde_json::to_value(undefined).unwrap()["value"].is_null());
     let valid = direction.advance(0.5, |_| (60.0, 8.0)).unwrap();
     assert_eq!(valid.quality, Quality::Good);
     assert_eq!(valid.value, 60.0);
+}
+
+#[test]
+fn delayed_undefined_wind_direction_restores_the_complete_queue() {
+    for level in [NoiseLevel::N1, NoiseLevel::N2] {
+        let expected = SensorChannel::new("wind_direction", 29, level).unwrap();
+        let mut original = expected.clone();
+        assert!(original.advance_all(0.0, |_| (0.0, 0.0)).is_empty());
+        let snapshot = serde_json::to_string(&original).unwrap();
+        let mut restored: SensorChannel = serde_json::from_str(&snapshot).unwrap();
+        restored.validate_checkpoint(&expected, 0.0).unwrap();
+        let first = original.advance_all(0.5, |_| (60.0, 8.0));
+        let second = restored.advance_all(0.5, |_| (60.0, 8.0));
+        assert_eq!(serde_json::to_string(&first).unwrap(), serde_json::to_string(&second).unwrap());
+    }
 }
 
 #[test]

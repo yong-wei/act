@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { buildAiData, emptyAiLedger, recordAiCall } from '@/features/ilab/ai-data';
-import { stripIlabUrlParams } from '@/features/ilab/client-grant';
+import { describeIlabConnection, stripIlabUrlParams } from '@/features/ilab/client-grant';
 import {
   readIlabGrantFromRequest,
   sealIlabGrant,
@@ -30,6 +30,11 @@ import { assertIlabRunOpen, IlabServiceError } from '@/features/ilab/run-lock';
 import { buildSafeStepWindow } from '@/features/ilab/session-shared';
 
 describe('ilab experiment contract', () => {
+  it('keeps the return destination visible independently of transient step feedback', () => {
+    expect(describeIlabConnection('ilab-remote')).toContain('成绩与报告回传实验空间');
+    expect(describeIlabConnection('local-only')).toContain('当前账号');
+    expect(describeIlabConnection('dev-bypass')).toContain('联调模式');
+  });
   it('builds a timed upload body and ai_data without extra fields', () => {
     const steps: StoredIlabStep[] = Array.from({ length: 12 }, (_, index) => ({
       seq: index + 1,

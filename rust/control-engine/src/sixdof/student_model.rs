@@ -489,6 +489,14 @@ pub fn identify_dp_low_freq(
     heading: &[f64],
     dt: f64,
 ) -> IdentificationResult {
+    identify_dp_low_freq_segments(input_x,input_y,input_n,pos_x,pos_y,heading,dt,&[0])
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn identify_dp_low_freq_segments(
+    input_x: &[f64], input_y: &[f64], input_n: &[f64],
+    pos_x: &[f64], pos_y: &[f64], heading: &[f64], dt: f64, segment_starts: &[usize],
+) -> IdentificationResult {
     // 离散模型结构本身无时间量纲：dt 由工件采样周期字段承载，此处仅守卫。
     if !dt.is_finite() || dt <= 0.0 {
         return IdentificationResult {
@@ -524,6 +532,12 @@ pub fn identify_dp_low_freq(
         return fail("输入/响应含非有限数值");
     }
     // 逐输入通道激励检查（三通道必须都动——DP 分配依赖全方向激励）。
+    if segment_starts.first()!=Some(&0) || segment_starts.len()>20
+        || segment_starts.windows(2).any(|pair|pair[1]<=pair[0]+19)
+        || segment_starts.last().is_some_and(|start|*start+19>=n)
+    {return fail("独立训练运行的采样边界无效");}
+    // 独立初态之间没有物理过渡，回归时排除跨运行的相邻样本对。
+    let pairs:Vec<usize>=(0..n-1).filter(|index|!segment_starts.contains(&(index+1))).collect();
     for (idx, ch) in [input_x, input_y, input_n].iter().enumerate() {
         let mean: f64 = ch.iter().sum::<f64>() / n as f64;
         let var: f64 = ch.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / n as f64;
@@ -546,9 +560,9 @@ pub fn identify_dp_low_freq(
             pos_x[k], pos_y[k], heading[k],
             inputs[0][k], inputs[1][k], inputs[2][k],
         ];
-        let m_pairs = n - 1;
+        let m_pairs = pairs.len();
         let mut means = [0.0f64; 6];
-        for k in 0..m_pairs {
+        for &k in &pairs {
             let phi = phi_at(k);
             for (j, v) in phi.iter().enumerate() {
                 means[j] += v;
@@ -559,8 +573,8 @@ pub fn identify_dp_low_freq(
         }
         let mut scales = [1.0f64; 6];
         for (j, scale) in scales.iter_mut().enumerate() {
-            let energy: f64 = (0..m_pairs)
-                .map(|k| {
+            let energy: f64 = pairs.iter()
+                .map(|&k| {
                     let d = phi_at(k)[j] - means[j];
                     d * d
                 })
@@ -569,7 +583,7 @@ pub fn identify_dp_low_freq(
         }
         let mut ata = [0.0f64; 36];
         let mut atb = [0.0f64; 6];
-        for k in 0..m_pairs {
+        for &k in &pairs {
             let phi_raw = phi_at(k);
             let phi = [
                 (phi_raw[0] - means[0]) / scales[0],
@@ -603,7 +617,7 @@ pub fn identify_dp_low_freq(
             b_mat[row * 3 + j] = theta[3 + j];
         }
         // 一步预测残差。
-        for k in 0..n - 1 {
+        for &k in &pairs {
             let pred = theta[0] * pos_x[k]
                 + theta[1] * pos_y[k]
                 + theta[2] * heading[k]
@@ -613,7 +627,7 @@ pub fn identify_dp_low_freq(
             residual_sum += (pred - out[k + 1]).powi(2);
         }
     }
-    let rms = (residual_sum / (3.0 * (n - 1) as f64)).sqrt();
+    let rms = (residual_sum / (3.0 * pairs.len() as f64)).sqrt();
 
     IdentificationResult {
         structure: Some(ModelStructure::DpLowFreq3 { a: a_mat, b: b_mat }),

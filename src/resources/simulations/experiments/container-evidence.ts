@@ -2,10 +2,11 @@ import type { VesselCourseEvidence } from './course-adapter';
 import { CONTAINER_COURSE_STEPS, type ContainerCourseStep } from './container-course';
 import type { VesselRunSummary } from '@/features/simulations/local-evidence-store';
 
-function condition(run: VesselRunSummary, variable?: 'loading' | 'seed') {
+function condition(run: VesselRunSummary, variable?: 'loading' | 'seed' | 'meanResistance') {
   const config = {...run.configuration};
   if (variable === 'loading') delete config.loadingRatio;
   if (variable === 'seed') {delete config.loadingRatio; delete config.seed;}
+  if (variable === 'meanResistance') delete config.meanWaveResistanceModel;
   return JSON.stringify(config);
 }
 
@@ -30,11 +31,15 @@ export function validateContainerCourseEvidence(step: ContainerCourseStep, evide
   }
   if (step.stepKind === 'run' && own.length < step.minimumRuns) return `本步需要至少${step.minimumRuns}次完整独立运行。`;
   if (step.speedControl && own.some((run) => !run.initialInput.containerSpeed?.models.every((point) =>
-    speedModels.some((model) => model.createdAtMs <= run.createdAtMs
-      && JSON.stringify(model.payload.structure) === JSON.stringify(point.operatingModel.structure)
-      && Number(model.payload.operatingPoint.loadingRatio) === point.loadingRatio
-      && Number(model.payload.operatingPoint.inputOrigin) === point.operatingModel.shaftReferenceRpm
-      && Number(model.payload.operatingPoint.speedMps) === point.operatingModel.speedMps)))) {
+    speedModels.some((model) => {
+      const frozen = model.payload.structure;
+      const applied = point.operatingModel.structure;
+      return model.createdAtMs <= run.createdAtMs && frozen.kind === 'fopdt'
+        && frozen.k === applied.k && frozen.t_s === applied.t_s && frozen.delay_s === applied.delay_s
+        && Number(model.payload.operatingPoint.loadingRatio) === point.loadingRatio
+        && Number(model.payload.operatingPoint.inputOrigin) === point.operatingModel.shaftReferenceRpm
+        && Number(model.payload.operatingPoint.speedMps) === point.operatingModel.speedMps;
+    })))) {
     return '控制方案的三个工作点必须来自本轮运行开始前已冻结的本人辨识模型。';
   }
   const modelFrom = (run: VesselRunSummary) => speedModels.some((model) => model.payload.trainingRuns.some((window) => window.runRef === run.id));
@@ -70,6 +75,11 @@ export function validateContainerCourseEvidence(step: ContainerCourseStep, evide
   }
   if (step.sequence === 14 && !own.some((a, i) => own.slice(i + 1).some((b) => condition(a, 'loading') === condition(b, 'loading')
     && scheme(a) === scheme(b)))) return '请保持相同计划和控制参数，比较两种装载的风力航次。';
+  if (step.sequence === 15 && !own.some((a, i) => own.slice(i + 1).some((b) =>
+    condition(a, 'meanResistance') === condition(b, 'meanResistance') && scheme(a) === scheme(b)
+    && Boolean(a.configuration.meanWaveResistanceModel) !== Boolean(b.configuration.meanWaveResistanceModel)))) {
+    return '请固定同一波场、本人模型和航速计划，分别关闭与开启教学平均附加阻力完成两次航次。';
+  }
   if (step.sequence === 18 && !own.some((run) => runs.some((source) => source.stepSequence === 17 && complete(source)
     && condition(source) === condition(run) && scheme(source) !== scheme(run)
     && ['modelIds','segmentSpeedsMps','kpMultiplier','tiMultiplier','antiWindup','bumpless','schedulingEnabled','filterTauS','losLookaheadM']

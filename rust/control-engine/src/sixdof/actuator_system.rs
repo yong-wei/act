@@ -119,6 +119,7 @@ pub struct LocalWater<'a> {
 
 pub struct ActuatorEvaluation {
     pub loads: [f64; 6],
+    pub propulsor_thrust_n: Vec<f64>,
     pub motor_torques_nm: Vec<f64>,
     pub fuel: Option<super::fuel::FuelRates>,
 }
@@ -549,7 +550,7 @@ impl ActuatorSystem {
                 power.max(0.0), (-power).max(0.0), fuel.engine_power_w]);
             fuel
         });
-        ActuatorEvaluation { loads: total, motor_torques_nm, fuel }
+        ActuatorEvaluation { loads: total, propulsor_thrust_n: thrusts, motor_torques_nm, fuel }
     }
 }
 

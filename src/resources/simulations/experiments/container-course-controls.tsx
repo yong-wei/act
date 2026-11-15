@@ -36,6 +36,14 @@ export function ContainerCourseControls({session, timeS}: {
         {item.values.map((value) => <option key={value} value={value}>{value}</option>)}
       </select>
     </SimField>)}
+    {session.activeSeq >= 15 && session.activeSeq <= 19 ? <SimPanelSection title="教学平均附加阻力">
+      {session.activeSeq === 15 ? <SimToggleRow label="启用教学平均附加阻力" htmlFor="container-mean-resistance"
+        control={<SimSwitchInput id="container-mean-resistance" checked={Boolean(settings.meanWaveResistanceEnabled)} disabled={locked}
+          onChange={() => update({meanWaveResistanceEnabled: !settings.meanWaveResistanceEnabled})} />} /> : null}
+      <p className="text-xs leading-5 text-platform-fg-secondary">T级近似采用ITTC短波反射尺度，方向函数与跨装载复用属于教学假设。
+        参考范围为航速6至12m/s、波高不超过1.5m、谱峰波长不超过半船长。标称值的0.5至1.5倍为假设敏感性范围，实际误差尚未校准。
+        平均阻力与作用点力矩参与实际航程和燃油积分。</p>
+    </SimPanelSection> : null}
     {step.speedControl ? <SimPanelSection title="本人航速控制方案" icon={SlidersHorizontal}>
       <div className="space-y-3">
         {settings.modelIds.map((id, index) => <SimField key={index} label={`工作点${index + 1}${index === 1 ? '（固定控制器基准）' : ''}`}>

@@ -18,8 +18,54 @@ struct ActuatorPrediction {
 enum StructureKind { Nomoto1, Nomoto2, Fopdt, RollOscillator }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DpSignals {
+    input_body: Vec<[f64;3]>,
+    output: Vec<[f64;3]>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DpMetricPoint {
+    time_s: f64,
+    position_error_m: [f64;2],
+    heading_error_deg: f64,
+    normalized_allocation_residual: f64,
+}
+
+#[derive(Deserialize)]
 #[serde(tag = "operation", rename_all = "snake_case")]
 enum Request {
+    DpMetrics {
+        points: Vec<DpMetricPoint>,
+        #[serde(rename = "endTimeS")]
+        end_time_s: f64,
+    },
+    DpCapacity {
+        #[serde(rename = "windSpeedMps")]
+        wind_speed_mps: f64,
+        #[serde(rename = "windFromDeg")]
+        wind_from_deg: f64,
+        #[serde(rename = "powerBudgetW")]
+        power_budget_w: f64,
+    },
+    DpIdentify {
+        runs: Vec<DpSignals>,
+        #[serde(rename = "dtS")]
+        dt_s: f64,
+    },
+    DpPredict {
+        structure: ModelStructure,
+        signals: DpSignals,
+        #[serde(rename = "dtS")]
+        dt_s: f64,
+    },
+    DpManualCommands {
+        #[serde(rename = "targetBody")]
+        target_body: [f64;3],
+        #[serde(rename = "thrusterIndex")]
+        thruster_index: Option<usize>,
+    },
     SignalSpectrum {
         values: Vec<f64>,
         #[serde(rename = "dtS")]
@@ -171,6 +217,109 @@ fn identify(kind: StructureKind, input: &[f64], output: &[f64], dt: f64,
 pub fn compute(request_json: &str) -> Result<String, String> {
     let request: Request = serde_json::from_str(request_json).map_err(|error| error.to_string())?;
     let response = match request {
+        Request::DpMetrics {points,end_time_s} => {
+            if points.is_empty() || points.len()>72001 || !end_time_s.is_finite() || end_time_s<=0.0
+                || points.iter().any(|point|!point.time_s.is_finite() || point.position_error_m.iter().any(|value|!value.is_finite())
+                    || !point.heading_error_deg.is_finite() || !point.normalized_allocation_residual.is_finite())
+                || points.windows(2).any(|pair|pair[1].time_s<=pair[0].time_s)
+            {return Err("定位评价需要有效的完整时序记录".into());}
+            let start=(end_time_s-180.0).max(0.0);
+            let selected=points.iter().filter(|point|point.time_s>=start-1e-7 && point.time_s<=end_time_s+1e-7).collect::<Vec<_>>();
+            if selected.is_empty() {return Err("定位评价的末段窗口尚无有效样本".into());}
+            let mut position_squared=0.0;let mut heading_squared=0.0;let mut maximum_position=0.0_f64;let mut residual_squared=0.0;
+            for point in &selected {
+                let error=point.position_error_m[0].hypot(point.position_error_m[1]);
+                position_squared+=error*error;
+                let heading=super::passive_observer::wrap_pi(point.heading_error_deg.to_radians()).to_degrees();
+                heading_squared+=heading*heading;maximum_position=maximum_position.max(error);
+                residual_squared+=point.normalized_allocation_residual.powi(2);
+            }
+            json!({"windowStartS":start,"windowEndS":end_time_s,"samples":selected.len(),
+                "positionRmsM":(position_squared/selected.len() as f64).sqrt(),
+                "headingRmsDeg":(heading_squared/selected.len() as f64).sqrt(),"maximumPositionErrorM":maximum_position,
+                "normalizedAllocationResidualRms":(residual_squared/selected.len() as f64).sqrt()})
+        }
+        Request::DpCapacity {wind_speed_mps,wind_from_deg,power_budget_w} => {
+            use super::actuator_system::{ActuatorCommands,ShaftCommand};
+            use super::model_pack::PackActuators;
+            use super::semisub_allocator::{allocate,AllocationMode};
+            if ![8.0,12.0,18.0,24.0,30.0].contains(&wind_speed_mps) || !wind_from_deg.is_finite()
+                || ![8e6,16e6,32e6].contains(&power_budget_w) {return Err("请选择规定的风速和可用功率".into());}
+            let pack=super::model_pack::embedded_vessel_pack("semisub-981","research-nominal-v5")
+                .map_err(|error|format!("参数包无效 {error:?}"))?;
+            let direction=wind_from_deg.to_radians();
+            let load=pack.geometry.wind_model.as_ref().ok_or("缺少公开风载投影")?
+                .loads([-wind_speed_mps*direction.cos(),-wind_speed_mps*direction.sin()],[1.0,0.0,0.0,0.0],[0.0;6]);
+            let PackActuators::Physical {mut system,..}=pack.actuators else {return Err("缺少实际推进器参数".into());};
+            system.max_positive_motor_power_w=Some(power_budget_w);
+            let commands=ActuatorCommands {shafts:vec![ShaftCommand::default();8],surfaces:vec![]};
+            let desired=[-load[0],-load[1],-load[5]];
+            let ideal=allocate(&system,desired,AllocationMode::Pseudoinverse,[1.0;3],1.0,
+                [0.0;8],[0.0;8],[0.0;3],[[0.0;2];8],None,true,commands.clone());
+            let azimuth=std::array::from_fn(|index|ideal.commands.shafts[index].azimuth_rad);
+            let result=allocate(&system,desired,AllocationMode::SequentialConvex,[1.0;3],1.0,
+                azimuth,[0.0;8],[0.0;3],[[0.0;2];8],None,true,commands);
+            json!({"windSpeedMps":wind_speed_mps,"windFromDeg":wind_from_deg,"powerBudgetW":power_budget_w,
+                "windLoadBody":desired.map(|value|-value),"allocation":result,
+                "withinNominalStaticCapacity":result.normalized_residual<=0.02,
+                "assumptions":"公开教学投影、零流速、静态方位对齐、无阵风与波浪，动态运行另行验证"})
+        }
+        Request::DpManualCommands {target_body,thruster_index} => {
+            use super::actuator_system::{ActuatorCommands,ShaftCommand};
+            use super::model_pack::PackActuators;
+            if target_body.iter().any(|value|!value.is_finite() || value.abs()>8e6)
+                || thruster_index.is_some_and(|index|index>=8) {return Err("推进器激励无效".into());}
+            let pack=super::model_pack::embedded_vessel_pack("semisub-981","research-nominal-v5")
+                .map_err(|error|format!("参数包无效 {error:?}"))?;
+            let PackActuators::Physical {system,..}=pack.actuators else {return Err("缺少实际推进器".into());};
+            let mut commands=ActuatorCommands {shafts:vec![ShaftCommand::default();8],surfaces:vec![]};
+            if let Some(index)=thruster_index {
+                let magnitude=target_body[0].hypot(target_body[1]);
+                let angle=target_body[1].atan2(target_body[0]);
+                commands.shafts[index].azimuth_rad=angle;
+                commands.shafts[index].speed_reference_rad_s=super::semisub_allocator::shaft_reference(
+                    &system,index,magnitude,angle,[0.0;3]).0;
+            } else {
+                let allocation=super::semisub_allocator::allocate(&system,target_body,
+                    super::semisub_allocator::AllocationMode::Pseudoinverse,[1.0;3],1.0,
+                    [0.0;8],[0.0;8],[0.0;3],[[0.0;2];8],None,true,commands);
+                commands=allocation.commands;
+            }
+            serde_json::to_value(commands).map_err(|error|error.to_string())?
+        }
+        Request::DpIdentify {runs,dt_s} => {
+            if !(0.01..=1.0).contains(&dt_s) || runs.is_empty() || runs.len()>20 {return Err("低频辨识运行或采样周期无效".into());}
+            let mut inputs=Vec::new();let mut outputs=Vec::new();let mut starts=Vec::new();
+            for run in runs {
+                if run.input_body.len()!=run.output.len() || run.output.len()<20
+                    || run.input_body.iter().chain(&run.output).flatten().any(|value|!value.is_finite() || value.abs()>1e12)
+                {return Err("低频辨识通道或独立窗口无效".into());}
+                starts.push(inputs.len());inputs.extend(run.input_body);outputs.extend(run.output);
+            }
+            if inputs.len()>24001 {return Err("低频辨识窗口超过支持长度".into());}
+            let channel=|values:&Vec<[f64;3]>,axis|values.iter().map(|value|value[axis]).collect::<Vec<f64>>();
+            let result=student_model::identify_dp_low_freq_segments(&channel(&inputs,0),&channel(&inputs,1),&channel(&inputs,2),
+                &channel(&outputs,0),&channel(&outputs,1),&channel(&outputs,2),dt_s,&starts);
+            json!({"identifiedOk":result.identified_ok,"structure":result.structure,
+                "failureReason":result.failure_reason,"residualRms":result.residual_rms})
+        }
+        Request::DpPredict {structure,signals,dt_s} => {
+            let ModelStructure::DpLowFreq3 {a,b}=&structure else {return Err("请选择本人三通道低频模型".into());};
+            if a.len()!=9 || b.len()!=9 || a.iter().chain(b).any(|value|!value.is_finite())
+                || !(0.01..=1.0).contains(&dt_s) || signals.input_body.len()!=signals.output.len()
+                || !(20..=24001).contains(&signals.output.len())
+                || signals.input_body.iter().chain(&signals.output).flatten().any(|value|!value.is_finite() || value.abs()>1e12)
+            {return Err("三通道低频模型或独立验证窗口无效".into());}
+            let input=|axis|signals.input_body.iter().map(|point|point[axis]).collect::<Vec<f64>>();
+            let predicted=student_model::predict_dp(&structure,&input(0),&input(1),&input(2),signals.output[0])
+                .ok_or("三通道模型预测失败")?;
+            let metrics=(0..3).map(|axis| {
+                let predicted=predicted.iter().map(|point|point[axis]).collect::<Vec<_>>();
+                let output=signals.output.iter().map(|point|point[axis]).collect::<Vec<_>>();
+                student_model::evaluate(&predicted,&output)
+            }).collect::<Vec<_>>();
+            json!({"predicted":predicted,"metrics":metrics})
+        }
         Request::SignalSpectrum { values, dt_s, minimum_frequency_hz, maximum_frequency_hz } => {
             if !(32..=24001).contains(&values.len()) || !(0.01..=1.0).contains(&dt_s)
                 || !minimum_frequency_hz.is_finite() || !maximum_frequency_hz.is_finite()

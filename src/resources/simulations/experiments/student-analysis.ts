@@ -1,5 +1,5 @@
 import type { ModelStructureValue, StudentModelSaveInput, ComparisonModeValue } from '@/lib/student-model-artifact-contract';
-import { sensorKey, vesselRunMetricsRequest, type VesselRunEvidence, type VesselRunMetrics } from '@/features/simulations/run-evidence';
+import { sensorKey, vesselRunMetricsRequest, vesselDpMetricsRequest, type VesselRunEvidence, type VesselRunMetrics } from '@/features/simulations/run-evidence';
 import { computeVirtualSimulationStep } from '../physics/simulation-engine-facade';
 import type { VesselSessionConfiguration, VesselSessionFrame, VesselSessionInput } from '@/lib/control-engine/vessel-session';
 import { destroyerCourseCommands, type DestroyerCourseStep } from './destroyer-course';
@@ -16,6 +16,9 @@ export function evaluateVesselHeadingRun(run:VesselRunEvidence) {
   if (run.stoppedAtMs === null) throw new Error('请在运行结束后查看完整评价。');
   const metrics = computeVirtualSimulationStep<VesselRunMetrics>(vesselRunMetricsRequest(run.trace,run.lastTimeS,
     run.configuration.initialHeadingDeg ?? 0));
+  if (run.courseKey === 'drilling' && run.trace.some((point) => point.dp)) {
+    Object.assign(metrics,computeVirtualSimulationStep<Record<string,number>>(vesselDpMetricsRequest(run.trace,run.lastTimeS)));
+  }
   const checkpoint = JSON.parse(run.checkpoint) as {
     course_evidence?:{metrics:NonNullable<VesselSessionFrame['fineStepMetrics']>['values']};
     plant?:{state?:{actuator_states?:{positive_motor_work_j?:number[];fuel?:{fuel_kg:number}}}};
@@ -39,7 +42,7 @@ export interface FrozenVesselStudentModel {
   id: string;
   scopeKey: string;
   label: string;
-  channel: IdentificationChannel;
+  channel: IdentificationChannel | 'dp-low-frequency';
   createdAtMs: number;
   payload: StudentModelSaveInput;
   serverId: string | null;
@@ -69,6 +72,8 @@ export interface VesselModelComparison {
   outputChannel?:string;
   actualHeadingDeg?:Array<number|null>;
   predictedHeadingDeg?:number[];
+  actualEastM?:number[];
+  predictedEastM?:number[];
   actualBowClearanceM?:number[];
   predictedBowClearanceM?:number[];
   factorFlags?:VesselComparisonFactors;
@@ -210,6 +215,7 @@ export function identifyVesselStudentModel(run: VesselRunEvidence, channel: Iden
 
 export function compareVesselStudentModel(run: VesselRunEvidence, model: FrozenVesselStudentModel,
   mode: ComparisonModeValue, startS: number, endS: number, actuator?: FrozenVesselStudentModel): VesselModelComparison {
+  if (model.channel === 'dp-low-frequency') throw new Error('请在三通道模型工作台保存独立对照。');
   if (model.scopeKey !== run.scopeKey || (actuator && actuator.scopeKey !== run.scopeKey)) throw new Error('请选择本次实验的模型。');
   if (model.channel === 'rudder-servo') throw new Error('请选择船体或航速模型执行对照，舵机模型用于执行器级联。');
   const speedReference = model.channel === 'shaft-reference-to-speed';

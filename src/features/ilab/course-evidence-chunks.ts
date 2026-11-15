@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { Prisma, SimulationRun } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { createServerVesselSession } from '@/lib/control-engine/wasm-server';
+import { createServerVesselSessionWithAssets } from '@/lib/control-engine/wasm-server';
 import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generated';
 import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
@@ -159,7 +159,7 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
     || (input.fineCount ?? 0) !== (projected.fineCount ?? 0)
     || input.endTimeS < projected.lastTimeS - 1e-7) throw new IlabServiceError('原始采样尚未完整接收，请继续上传。',409);
   const opening = await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);
-  const native = createServerVesselSession(opening.configuration);
+  const native = await createServerVesselSessionWithAssets(opening.configuration);
   let frame: VesselSessionFrame;
   try {
     native.restore(input.checkpoint);

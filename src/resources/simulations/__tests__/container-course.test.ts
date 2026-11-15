@@ -5,6 +5,8 @@ import {validateExperiment} from '../contracts/experiment-step';
 import {CONTAINER_COURSE_STEPS, containerCourseConfiguration, containerCourseDefaultSettings, containerCourseInput,
   containerModelBank, validateContainerCourseSettings} from '../experiments/container-course';
 import {lngCourseAdapter} from '../experiments/course-adapter';
+import {validateContainerCourseEvidence} from '../experiments/container-evidence';
+import type {VesselRunSummary} from '@/features/simulations/local-evidence-store';
 
 const input: VesselSessionInput = {controlMode:'manual',pid:{kp:0,ki:0,kd:0},targetHeadingDeg:0,feedback:'measurement',
   actuators:{shafts:[{speed_reference_rad_s:8,motor_torque_override_nm:null,azimuth_rad:0,drive_cut:false,azimuth_jammed:false}],surfaces:[]}};
@@ -48,5 +50,28 @@ describe('集装箱船原页面课程合同', () => {
     expect(lngCourseAdapter.restoreSettings(settings,8)).toEqual(settings);
     expect(lngCourseAdapter.nativeSequence?.(7)).toBe(8);
     expect(lngCourseAdapter.previousPlanSequence?.(8)).toBe(7);
+  });
+
+  it('第15步切换真实教学平均附加阻力，旧设置仍可恢复且要求同条件两次航次', () => {
+    const settings = {...containerCourseDefaultSettings(15), modelIds: ['model-0','model-1','model-2'] as [string,string,string]};
+    expect(containerCourseConfiguration(15, settings).meanWaveResistanceModel).toBe('container_reflection_teaching_v1');
+    const old = {...settings}; delete old.meanWaveResistanceEnabled;
+    expect(validateContainerCourseSettings(old)).toBeNull();
+    expect(containerCourseConfiguration(15, old)).not.toHaveProperty('meanWaveResistanceModel');
+    const run = (enabled: boolean) => ({id: enabled ? 'on' : 'off', stepSequence:15, stoppedAtMs:1,
+      stopReason:'arrival', lastTimeS:800, configuration:containerCourseConfiguration(15,{...settings,meanWaveResistanceEnabled:enabled}),
+      createdAtMs: 1, initialInput:containerCourseInput(15,settings,input,frame(0),models)}) as VesselRunSummary;
+    const evidence = {runs:[run(false),run(true)],models:models.map((model) => ({...model,createdAtMs:0})),
+      comparisons:[],answers:{observation:'读数',interpretation:'边界'}};
+    expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[14],evidence)).toBeNull();
+    const reordered = evidence.models.map((model) => ({...model,payload:{...model.payload,
+      structure:{delay_s:2,t_s:160,k:.05,kind:'fopdt' as const}}}));
+    expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[14],{...evidence,models:reordered})).toBeNull();
+    const different = reordered.map((model) => ({...model,payload:{...model.payload,
+      structure:{...model.payload.structure,k:.06}}}));
+    expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[14],{...evidence,models:different})).toContain('已冻结');
+    expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[14],{...evidence,runs:[run(true),run(true)]})).toContain('分别关闭与开启');
+    const changed = run(true); changed.configuration.seed = 29;
+    expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[14],{...evidence,runs:[run(false),changed]})).toContain('同一波场');
   });
 });
