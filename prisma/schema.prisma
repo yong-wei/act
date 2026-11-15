@@ -562,6 +562,7 @@ model User {
   emailVerified  DateTime?
   image          String?
   role           UserRole  @default(STUDENT)
+  accountSource  String    @default("PLATFORM")
   passwordHash   String?
   employeeNumber String? // 工号（教师/管理员使用）
   createdAt      DateTime  @default(now())
@@ -575,6 +576,7 @@ model User {
   progress                  UserProgress[]
   simulationLogs            SimulationLog[]
   virtualSimulationReports  VirtualSimulationReport[]
+  ilabRuns                  IlabExperimentRun[]
   studentModelArtifacts     StudentModelArtifact[]
   comparisonArtifacts       ComparisonArtifact[]
   appliedRunEnvelopes       AppliedRunEnvelope[]
@@ -681,6 +683,8 @@ model User {
   smartCoursewareStaleAcknowledgements SmartCoursewareStalePlanAcknowledgement[] @relation("SmartCoursewareStalePlanAcknowledgementActor")
   publishedSmartCoursewareRevisions    SmartCoursewarePublicationRevision[]      @relation("SmartCoursewarePublicationActor")
   smartCoursewarePdfExports            SmartCoursewarePdfExport[]                @relation("SmartCoursewarePdfExportActor")
+
+  @@index([accountSource, role])
 }
 
 model CourseBasis {
@@ -5192,6 +5196,8 @@ model PlatformSetting {
 model IlabExperimentRun {
   id               String    @id @default(cuid())
   originId         String    @unique
+  userId           String?
+  reportId         String?
   appId            String
   ilabUsername     String
   displayName      String    @default("")
@@ -5205,6 +5211,7 @@ model IlabExperimentRun {
   vesselId         String    @default("")
   experimentVersion String   @default("legacy-v1")
   steps            Json
+  stepDrafts       Json?
   aiLedger         Json
   reportHtml       String?   @db.Text
   uploadStatus     String    @default("pending")
@@ -5213,7 +5220,12 @@ model IlabExperimentRun {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
+  user   User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  report VirtualSimulationReport? @relation(fields: [reportId], references: [id], onDelete: SetNull)
+
   @@index([ilabUsername, createdAt])
+  @@index([userId, vesselId, status, updatedAt])
+  @@index([reportId])
 }
 
 // 登录用户在某个虚拟仿真实验中保存的报告。只保留该用户自己的成绩和报告正文。
@@ -5241,7 +5253,8 @@ model VirtualSimulationReport {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ilabRuns IlabExperimentRun[]
 
   @@index([userId, experimentKey, createdAt])
   @@index([classId, experimentKey, status])

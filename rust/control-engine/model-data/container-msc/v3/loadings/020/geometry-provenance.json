@@ -1,0 +1,26 @@
+{
+  "grade": "T",
+  "model_fidelity": "research-nominal",
+  "authority": [
+    "https://github.com/yong-wei/act/issues/2159",
+    "https://github.com/yong-wei/act/issues/2147"
+  ],
+  "source_sha256": "dfd98f41d09f0b7dff6ebbc490dcd4ec662dbc5b5e4455f247d846b4c10aac39",
+  "generator_sha256": "a9206728ea0a111b10100765a886262c03410e2eacd26dd586646c69b0109e63",
+  "loading_reference_sha256": "e5360780917fcf922816a76e9ce048c51a15ff9ad98e2560feffff85ae7fa0ea",
+  "mesh_generator_sha256": "f3bacafcedf0b44a6e7f47b217afc6783ca32225c2d3f2e8a7ad5445fe830155",
+  "source_model_sha256": "52519cc2c3c8ef939b0fa7c22c487d44c6f6c931d214c86d3311a88b3084a487",
+  "source_model_commit": "812a1e2e7486b3f36e2f17520e4f853ab6743dc6",
+  "source_symmetry_relative_l2": 1.5460181960949554e-09,
+  "loading": 0.2,
+  "waterline_snap_tolerance_m": 2e-08,
+  "vertical_normalization": "underwater draft and published moulded depth separately, same map for cargo geometry",
+  "tank_bottom_keel_up_m": null,
+  "cargo_height_basis": "source deck group and source-contained symmetric T hold",
+  "baseline_gm_interpretation": "geometric",
+  "not_ready": [
+    "vessel-calibrated viscous derivatives",
+    "validated wave/radiation data",
+    "specialist coupling"
+  ]
+}

@@ -457,7 +457,7 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/destroyer-055/v6/actuators.json"),
             include_str!("../../model-data/destroyer-055/v6/provenance.json"),
         ),
-        ("lng-changheng" | "container-msc", "research-nominal-v1" | "research-nominal-v2") => loading_model_pack(vessel, version, None, None),
+        ("lng-changheng" | "container-msc", "research-nominal-v1" | "research-nominal-v2" | "research-nominal-v3") => loading_model_pack(vessel, version, None, None),
         ("semisub-981", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/semisub-981/v1/manifest.json"),
             include_str!("../../model-data/semisub-981/v1/geometry.json"),
@@ -507,6 +507,13 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/cruise-adora/v2/actuators.json"),
             include_str!("../../model-data/cruise-adora/v2/provenance.json"),
         ),
+        ("cruise-adora", "research-nominal-v3") => load_model_pack(
+            include_str!("../../model-data/cruise-adora/v3/manifest.json"),
+            include_str!("../../model-data/cruise-adora/v3/geometry.json"),
+            include_str!("../../model-data/cruise-adora/v3/maneuvering.json"),
+            include_str!("../../model-data/cruise-adora/v3/actuators.json"),
+            include_str!("../../model-data/cruise-adora/v3/provenance.json"),
+        ),
         ("icebreaker-xuelong2", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/icebreaker-xuelong2/v1/manifest.json"),
             include_str!("../../model-data/icebreaker-xuelong2/v1/geometry.json"),
@@ -521,6 +528,13 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/icebreaker-xuelong2/v2/actuators.json"),
             include_str!("../../model-data/icebreaker-xuelong2/v2/provenance.json"),
         ),
+        ("icebreaker-xuelong2", "research-nominal-v3") => load_model_pack(
+            include_str!("../../model-data/icebreaker-xuelong2/v3/manifest.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v3/geometry.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v3/maneuvering.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v3/actuators.json"),
+            include_str!("../../model-data/icebreaker-xuelong2/v3/provenance.json"),
+        ),
         ("dredger-tianjing", "research-nominal-v1") => load_model_pack(
             include_str!("../../model-data/dredger-tianjing/v1/manifest.json"),
             include_str!("../../model-data/dredger-tianjing/v1/geometry.json"),
@@ -534,6 +548,13 @@ pub fn embedded_vessel_pack(vessel: &str, version: &str) -> Result<PackModel, Pa
             include_str!("../../model-data/dredger-tianjing/v2/maneuvering.json"),
             include_str!("../../model-data/dredger-tianjing/v2/actuators.json"),
             include_str!("../../model-data/dredger-tianjing/v2/provenance.json"),
+        ),
+        ("dredger-tianjing", "research-nominal-v3") => load_model_pack(
+            include_str!("../../model-data/dredger-tianjing/v3/manifest.json"),
+            include_str!("../../model-data/dredger-tianjing/v3/geometry.json"),
+            include_str!("../../model-data/dredger-tianjing/v3/maneuvering.json"),
+            include_str!("../../model-data/dredger-tianjing/v3/actuators.json"),
+            include_str!("../../model-data/dredger-tianjing/v3/provenance.json"),
         ),
         _ => Err(PackError::SchemaMismatch { expect: "supported-embedded-vessel-version",
             got: format!("{vessel}@{version}") }),
@@ -569,7 +590,7 @@ pub fn embedded_vessel_pack_with_loading(
     match loading_ratio {
         None => embedded_vessel_pack(vessel, version),
         Some(ratio) if matches!((vessel, version),
-            ("lng-changheng" | "container-msc", "research-nominal-v1" | "research-nominal-v2")) => loading_model_pack(vessel, version, Some(ratio), None),
+            ("lng-changheng" | "container-msc", "research-nominal-v1" | "research-nominal-v2" | "research-nominal-v3")) => loading_model_pack(vessel, version, Some(ratio), None),
         Some(_) => Err(PackError::SchemaMismatch {
             expect: "vessel-with-loading-definition", got: format!("{vessel}@{version}"),
         }),
@@ -583,7 +604,8 @@ pub fn embedded_vessel_pack_with_water_depth(
     water_depth_m: Option<f64>,
 ) -> Result<PackModel, PackError> {
     if water_depth_m.is_some() {
-        if !matches!(vessel, "lng-changheng" | "container-msc") || version != "research-nominal-v2" {
+        if !matches!(vessel, "lng-changheng" | "container-msc")
+            || !matches!(version, "research-nominal-v2" | "research-nominal-v3") {
             return Err(PackError::SchemaMismatch {
                 expect: "vessel-with-finite-depth-definition", got: format!("{vessel}@{version}"),
             });
@@ -628,12 +650,30 @@ fn loading_model_pack(vessel: &str, version: &str, ratio: Option<f64>, depth: Op
             include_str!("../../model-data/container-msc/v2/provenance.json"),
             include_str!("../../model-data/container-msc/v2/loading-cases.json"),
         ],
+        ("lng-changheng", "research-nominal-v3") => [
+            include_str!("../../model-data/lng-changheng/v3/manifest.json"),
+            include_str!("../../model-data/lng-changheng/v3/geometry.json"),
+            include_str!("../../model-data/lng-changheng/v3/maneuvering.json"),
+            include_str!("../../model-data/lng-changheng/v3/actuators.json"),
+            include_str!("../../model-data/lng-changheng/v3/provenance.json"),
+            include_str!("../../model-data/lng-changheng/v3/loading-cases.json"),
+        ],
+        ("container-msc", "research-nominal-v3") => [
+            include_str!("../../model-data/container-msc/v3/manifest.json"),
+            include_str!("../../model-data/container-msc/v3/geometry.json"),
+            include_str!("../../model-data/container-msc/v3/maneuvering.json"),
+            include_str!("../../model-data/container-msc/v3/actuators.json"),
+            include_str!("../../model-data/container-msc/v3/provenance.json"),
+            include_str!("../../model-data/container-msc/v3/loading-cases.json"),
+        ],
         _ => return Err(PackError::SchemaMismatch { expect: "loading-vessel", got: vessel.into() }),
     };
     let [manifest, geometry, maneuvering, actuators, provenance, table] = files;
     let hydrodynamics = match (vessel, version) {
         ("lng-changheng", "research-nominal-v2") => Some(include_str!("../../model-data/lng-changheng/v2/hydrodynamic-cases.json")),
         ("container-msc", "research-nominal-v2") => Some(include_str!("../../model-data/container-msc/v2/hydrodynamic-cases.json")),
+        ("lng-changheng", "research-nominal-v3") => Some(include_str!("../../model-data/lng-changheng/v3/hydrodynamic-cases.json")),
+        ("container-msc", "research-nominal-v3") => Some(include_str!("../../model-data/container-msc/v3/hydrodynamic-cases.json")),
         _ => None,
     };
     let load_selected = |selected_geometry: &str, selected_maneuvering: &str, selected_actuators: &str, selected_provenance: &str| {
@@ -696,6 +736,8 @@ struct HydrodynamicCase {
     geometry_condition: serde_json::Map<String, serde_json::Value>,
     passive_radiation: serde_json::Value,
     provenance: serde_json::Value,
+    #[serde(default)]
+    wave_model: Option<serde_json::Value>,
 }
 
 fn load_hydrodynamic_case(
@@ -725,10 +767,14 @@ fn load_hydrodynamic_case(
     }
     geometry.insert("passive_radiation".into(), case.passive_radiation);
     geometry.insert("hydrodynamic_depth_m".into(), serde_json::json!(depth));
+    if let Some(binding) = case.wave_model {
+        geometry.insert("wave_model".into(), binding);
+    }
     let mut provenance: serde_json::Value = serde_json::from_str(inputs[4]).map_err(|_| invalid())?;
     let entries = provenance["entries"].as_array_mut().ok_or_else(invalid)?;
     entries.retain(|entry| !entry["parameter"].as_str().is_some_and(|name|
-        name.starts_with("geometry.passive_radiation") || name == "geometry.hydrodynamic_depth_m"));
+        name.starts_with("geometry.passive_radiation") || name == "geometry.hydrodynamic_depth_m"
+            || name.starts_with("geometry.wave_model.")));
     entries.extend(case.provenance["entries"].as_array().ok_or_else(invalid)?.iter().cloned());
     provenance["hydrodynamic_condition"] = serde_json::json!({
         "loading_ratio": ratio, "water_depth_m": depth, "source": case.provenance,

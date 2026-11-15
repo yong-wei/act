@@ -11,6 +11,11 @@ import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION, destroyerCourseVariants 
 import { IlabServiceError } from './run-lock';
 import { activeVesselFactors } from '@/resources/simulations/experiments/comparison-factors';
 import type { VesselEvidenceOpening } from './course-evidence-contract';
+import { LNG_COURSE_STEPS, lngCourseConfiguration, validateLngCourseSettings, type LngCourseSettings } from '@/resources/simulations/experiments/lng-course';
+import { CONTAINER_COURSE_STEPS, containerCourseConfiguration, validateContainerCourseSettings,
+  type ContainerCourseSettings } from '@/resources/simulations/experiments/container-course';
+import {CRUISE_COURSE_STEPS,cruiseCourseConfiguration,validateCruiseCourseSettings,
+  type CruiseCourseSettings} from '@/resources/simulations/experiments/cruise-course';
 
 export const VESSEL_EVIDENCE_DOMAIN = 'ilab-course';
 export interface VesselRunStorageSummary {
@@ -75,8 +80,64 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
       return savedBeforeFineStepEvidence;
     })];
     if (step.stepKind !== 'run' || !configurations.some((configuration)=>canonicalJson(configuration) === canonicalJson(input.configuration))
-      || !step.allowedModes.includes(input.input.controlMode) || input.input.feedback !== 'measurement') {
+      || !step.allowedModes.includes(input.input.controlMode)
+      || (input.input.controlMode !== 'manual' && input.input.feedback !== 'measurement')) {
       throw new IlabServiceError('实际运行条件与本步课程约定不一致。',409);
+    }
+  }
+  if (course.key === 'lng') {
+    const step = LNG_COURSE_STEPS[input.stepSequence - 1];
+    const settings = input.courseSettings as unknown as LngCourseSettings;
+    if (step.stepKind !== 'run' || validateLngCourseSettings(settings)
+      || canonicalJson(lngCourseConfiguration(step.sequence, settings)) !== canonicalJson(input.configuration)
+      || input.input.controlMode !== 'pd' || input.input.feedback !== 'measurement'
+      || canonicalJson(input.input.pid) !== canonicalJson({kp: 1.5, ki: 0, kd: 20})
+      || Boolean(input.input.longitudinal) !== step.speedControl
+      || Boolean(input.input.berthPlan) !== step.berthTask) {
+      throw new IlabServiceError('实际运行条件与本步课程约定不一致。', 409);
+    }
+    if (step.speedControl && (canonicalJson(input.input.berthPlan ?? null) !== canonicalJson(step.berthTask
+      ? {brakingDistanceM: settings.brakingDistanceM, nodes: settings.speedNodes,
+        ...([16,18,19].includes(step.sequence) && settings.headingNodes ? {headingNodes:settings.headingNodes} : {})} : null)
+      || !input.designStudentModelId)) throw new IlabServiceError('请保存对应的本人航速模型与减速方案。', 409);
+  }
+  if (course.key === 'container') {
+    const step = CONTAINER_COURSE_STEPS[input.stepSequence - 1];
+    const settings = input.courseSettings as unknown as ContainerCourseSettings;
+    const control = input.input.containerSpeed;
+    if (step.stepKind !== 'run' || validateContainerCourseSettings(settings)
+      || canonicalJson(containerCourseConfiguration(step.sequence, settings)) !== canonicalJson(input.configuration)
+      || input.input.controlMode !== (step.sequence === 2 ? 'manual' : 'pd') || input.input.feedback !== 'measurement'
+      || canonicalJson(input.input.pid) !== canonicalJson({kp: 1.5, ki: 0, kd: 20})
+      || Boolean(control) !== step.speedControl || input.input.longitudinal || input.input.berthPlan) {
+      throw new IlabServiceError('实际运行条件与本步课程约定不一致。', 409);
+    }
+    if (step.speedControl && (!control || input.designStudentModelId !== settings.modelIds[1]
+      || control.kpMultiplier !== settings.kpMultiplier || control.tiMultiplier !== settings.tiMultiplier
+      || control.schedulingEnabled !== (step.sequence >= 9 && settings.schedulingEnabled)
+      || control.bumpless !== settings.bumpless || control.antiWindup !== settings.antiWindup
+      || control.filterTauS !== settings.filterTauS || control.fixedModelIndex !== 1
+      || control.feedback !== (step.sequence === 13 ? settings.feedback : 'water')
+      || control.losLookaheadM !== ([13,16,17,18,19].includes(step.sequence) ? settings.losLookaheadM : null))) {
+      throw new IlabServiceError('请保存对应的本人三点航速模型与控制方案。', 409);
+    }
+  }
+  if (course.key === 'cruise') {
+    const step=CRUISE_COURSE_STEPS[input.stepSequence-1],settings=input.courseSettings as unknown as CruiseCourseSettings;
+    const fins=input.input.cruiseFins;
+    if (step.stepKind !== 'run' || validateCruiseCourseSettings(settings)
+      || canonicalJson(cruiseCourseConfiguration(step.sequence,settings)) !== canonicalJson(input.configuration)
+      || input.input.controlMode !== 'pd' || input.input.feedback !== 'measurement'
+      || canonicalJson(input.input.pid) !== canonicalJson({kp:1.5,ki:0,kd:20}) || Boolean(fins) !== step.finControl
+      || input.input.longitudinal || input.input.berthPlan || input.input.containerSpeed) {
+      throw new IlabServiceError('实际运行条件与本步课程约定不一致。',409);
+    }
+    if (step.finControl && (!fins || !input.designStudentModelId || fins.enabled !== settings.finsEnabled
+      || fins.dampingRatio !== (step.sequence === 8 ? .5 : settings.dampingRatio)
+      || fins.stiffnessFraction !== settings.stiffnessFraction || fins.lowPassCutoffHz !== settings.lowPassCutoffHz
+      || canonicalJson(fins.notch) !== canonicalJson(step.sequence >= 15 && settings.notchEnabled
+        ? {centerHz:settings.notchCenterHz,bandwidthHz:settings.notchBandwidthHz} : null))) {
+      throw new IlabServiceError('请保存对应的本人横摇模型和鳍反馈方案。',409);
     }
   }
   const existingReport = await prisma.virtualSimulationReport.findUnique({ where:{ clientRef:input.reportClientRef } });
@@ -148,7 +209,7 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
       status:'running',protocolVersion:'act.vessel-evidence.v2',runtimeVersion:input.runtimeVersion ?? 'unrecorded-development',
       modelVersion:frame.modelVersion,sceneSpecVersion:input.courseVersion,
       seed:BigInt(input.configuration.seed ?? 20261106),startedAt:new Date(input.startedAtMs),
-      summary:summary as unknown as Prisma.InputJsonValue } });
+      summary:{...summary,parameters:frame.parameters} as unknown as Prisma.InputJsonValue } });
     await tx.appliedRunEnvelope.create({ data:{ userId,experimentKey,runRef:input.runRef,
       stepKey:`${course.key}-step-${input.stepSequence}`,courseVersion:input.courseVersion,
       modelId:course.vessel,modelVersion:input.configuration.parameterVersion!,parameterBundleHash:frame.parameterHash,

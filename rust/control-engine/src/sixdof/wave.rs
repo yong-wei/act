@@ -139,6 +139,20 @@ struct WaveEvaluationKernel {
 }
 
 impl WaveField {
+    pub fn regular(seed: u64, mut condition: WaveCondition, height_m: f64) -> Result<Self, String> {
+        if !height_m.is_finite() || !(0.0..=3.5).contains(&height_m)
+            || !condition.tp_s.is_finite() || !(2.6..=30.0).contains(&condition.tp_s) {
+            return Err("规则波波高或周期超出教学范围".into());
+        }
+        condition.hs_m = std::f64::consts::SQRT_2 * height_m;
+        let omega = 2.0 * std::f64::consts::PI / condition.tp_s;
+        let mut phase_seed = seed;
+        Ok(Self {components:vec![WaveComponent {omega,k:wave_number(omega, condition.water_depth_m),
+            amplitude:height_m / 2.0,direction:condition.direction_to_deg.to_radians(),
+            phase:2.0 * std::f64::consts::PI * seed_to_unit(&mut phase_seed)}],
+            condition,second_order_available:false,evaluation_kernels:Default::default()})
+    }
+
     pub fn new(seed: u64, condition: WaveCondition) -> Self {
         let mut rng = seed
             .wrapping_mul(0x9E3779B97F4A7C15)

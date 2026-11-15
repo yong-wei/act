@@ -294,12 +294,12 @@ export function ExperimentStepAreas({
       >
         <p className={simulationUi.sectionTitle}>控制</p>
         <SimulationReadinessGate status={readiness} />
-        <div
-          className={readiness === 'runnable' ? undefined : 'pointer-events-none opacity-60'}
-          aria-hidden={readiness === 'runnable' ? undefined : true}
+        <fieldset
+          disabled={readiness !== 'runnable'}
+          className={`m-0 min-w-0 border-0 p-0${readiness === 'runnable' ? '' : ' pointer-events-none opacity-60'}`}
         >
           {controls}
-        </div>
+        </fieldset>
       </section>
       {submission ? (
         <section className="space-y-2.5" data-step-submit>

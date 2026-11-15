@@ -19,6 +19,9 @@ export interface VesselExperimentDraft {
   plannedRunId?: string;
   reportRunIds?: string[];
   reportClientRef?: string;
+  lngSettings?: import('@/resources/simulations/experiments/lng-course').LngCourseSettings;
+  courseSettings?: Record<string, unknown>;
+  designStudentModelId?: string;
   controls?: { mode: VesselSessionInput['controlMode']; pid: VesselSessionInput['pid'];
     manualRudderDeg: number; derivativeFilterTauS: number; integralTrackingEnabled: boolean;
     integralTrackingTimeS: number; variants: Record<number, string>; controllerSourceRunId?: string; designStudentModelId?: string };
@@ -32,7 +35,7 @@ interface TraceChunk { runId: string; start: number; points: VesselRunEvidence['
 interface SensorChunk { runId: string; start: number; points: VesselObservedSample[] }
 interface FineStepChunk { runId:string;start:number;points:VesselFineStepPoint[] }
 export interface VesselRunSummary extends Pick<VesselRunEvidence, 'id' | 'scopeKey' | 'courseVersion' | 'stepSequence' |
-  'createdAtMs' | 'stoppedAtMs' | 'lastTimeS' | 'configuration' | 'initialInput' | 'stopReason' | 'controllerSourceRunId' | 'designStudentModelId'> {
+  'createdAtMs' | 'stoppedAtMs' | 'lastTimeS' | 'configuration' | 'initialInput' | 'stopReason' | 'controllerSourceRunId' | 'designStudentModelId' | 'courseSettings'> {
   durationS: number;
   sampleCount: number;
   finalInput?:VesselSessionInput;
@@ -205,6 +208,7 @@ export async function listRunEvidence(scopeKey: string): Promise<VesselRunSummar
       finalInput:run.changes.at(-1)?.input ?? run.initialInput,
       scopeKey: run.scopeKey, courseVersion: run.courseVersion, lastTimeS: run.lastTimeS,
       configuration: run.configuration, initialInput: run.initialInput, controllerSourceRunId: run.controllerSourceRunId,designStudentModelId:run.designStudentModelId,
+      courseSettings:run.courseSettings,
       uploadedToReportRef:run.stoppedAtMs !== null && run.uploadReceipt
         && ['completed','failed'].includes(run.uploadReceipt.status) && run.uploadReceipt.controlCount === run.traceLength
         && run.uploadReceipt.nativeCount === run.nativeSampleCount && (run.uploadReceipt.fineCount ?? 0) === (run.fineSampleCount ?? 0)
@@ -245,7 +249,8 @@ async function listByScope<T>(store: string, scopeKey: string): Promise<T[]> {
 }
 
 export const saveFrozenStudentModel = (model: FrozenVesselStudentModel) => put('models', model);
-export const listFrozenStudentModels = (scopeKey: string) => listByScope<FrozenVesselStudentModel>('models', scopeKey);
+export const listFrozenStudentModels = async (scopeKey: string) =>
+  (await listByScope<FrozenVesselStudentModel>('models', scopeKey)).sort((a,b) => a.createdAtMs-b.createdAtMs);
 export const saveModelComparison = (comparison: VesselModelComparison) => put('comparisons', comparison);
 export const listModelComparisons = (scopeKey: string) => listByScope<VesselModelComparison>('comparisons', scopeKey);
 export const saveLocalStepAttempt = (attempt: VesselLocalStepAttempt) => put('attempts', attempt);

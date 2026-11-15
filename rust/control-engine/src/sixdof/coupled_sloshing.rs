@@ -61,6 +61,16 @@ pub struct SloshingDiagnostics {
     pub mass_partition: LiquidMassPartition,
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LiquidObservation {
+    pub mode_heights_m: Vec<f64>,
+    pub corner_heights_m: Vec<f64>,
+    pub modal_frequencies_hz: Vec<f64>,
+    pub liquid_depth_m: f64,
+    pub within_small_amplitude: bool,
+}
+
 fn add_parallel_axis(inertia: &mut [[f64; 3]; 3], mass: f64, point: [f64; 3]) {
     let squared: f64 = point.iter().map(|value| value * value).sum();
     for row in 0..3 {
@@ -370,6 +380,16 @@ impl CoupledSloshing {
             reaction_body: reaction,
             within_small_amplitude: self.within_linear_domain(values),
         })
+    }
+
+    pub fn observation(&self, values: &[f64]) -> LiquidObservation {
+        LiquidObservation {
+            mode_heights_m: values.chunks_exact(2).map(|pair| pair[0]).collect(),
+            corner_heights_m: values.chunks_exact(4).map(|tank| tank[0].abs() + tank[2].abs()).collect(),
+            modal_frequencies_hz: self.modes.iter().map(|installed| installed.mode.omega_n / (2.0 * std::f64::consts::PI)).collect(),
+            liquid_depth_m: self.modes[0].mode.fill_depth_m,
+            within_small_amplitude: self.within_linear_domain(values),
+        }
     }
 
     fn within_linear_domain(&self, values: &[f64]) -> bool {

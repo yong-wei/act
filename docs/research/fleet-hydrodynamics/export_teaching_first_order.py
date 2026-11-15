@@ -10,26 +10,31 @@ from build_destroyer_pack import sha256, write_json
 from build_loading_cases import fnv1a
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--base', type=Path, required=True)
-    parser.add_argument('--evidence', type=Path, required=True)
-    parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--case-index', type=int, default=0)
-    args = parser.parse_args()
-    base = args.base
+def export_first_order(base, evidence, output, case_index=0, symmetry_proof=None):
     manifest = json.loads((base/'manifest.json').read_text())
     geometry = json.loads((base/'geometry.json').read_text())
-    proof = json.loads((args.evidence/'validation.json').read_text())
-    arrays_path = args.evidence/'coefficient-arrays.npz'
+    proof = json.loads((evidence/'validation.json').read_text())
+    arrays_path = evidence/'coefficient-arrays.npz'
     if sha256(arrays_path) != proof['coefficient_arrays_sha256']:
         raise ValueError('已冻结BEM数组的身份不符')
-    if not 0 <= args.case_index < len(proof['cases']):
+    if not 0 <= case_index < len(proof['cases']):
         raise ValueError('代表工况索引无效')
-    case = proof['cases'][args.case_index]
+    case = proof['cases'][case_index]
     source = case['provenance']
     configuration = source['configuration']
-    if (source['mesh_sha256'] != sha256(base/'hull.dat')
+    source_mesh = sha256(base/'hull.dat')
+    bridge = None
+    if symmetry_proof is not None:
+        bridge = json.loads(symmetry_proof.read_text())
+        if (bridge['schema'] != 'act.symmetric-bem-mesh.validation.v1'
+                or bridge['status'] != 'passed'
+                or bridge['source_mesh_sha256'] != source_mesh
+                or bridge['output_mesh_sha256'] != source['mesh_sha256']
+                or bridge['geometry_sha256'] != source['geometry_sha256']
+                or bridge['output_lid_sha256'] != source['lid_mesh_sha256']):
+            raise ValueError('对称湿面证明与原船壳、求解面或质量几何身份不符')
+        source_mesh = bridge['output_mesh_sha256']
+    if (source['mesh_sha256'] != source_mesh
             or not np.allclose(configuration['center_of_mass_m_z_up'],
                                geometry['center_of_mass_waterline_z_up_m'], rtol=0, atol=1e-10)
             or configuration['mass_kg'] != geometry['displacement_mass_kg']
@@ -52,7 +57,7 @@ def main():
     quantized = values.astype('<c8')[None, ...]
     errors = [float(np.linalg.norm(quantized[0, ..., axis]-values[..., axis])
                     /max(np.linalg.norm(values[..., axis]), 1e-30)) for axis in range(6)]
-    waves = args.output
+    waves = output
     waves.mkdir(parents=True, exist_ok=False)
     data = waves/'excitation-f32le.bin'
     data.write_bytes(quantized.tobytes(order='C'))
@@ -70,26 +75,40 @@ def main():
         'normalization': 'force-per-unit-wave-amplitude-si', 'time_convention': 'real-part-of-exp-minus-i-omega-t',
         'source_axes': 'x-forward-y-port-z-up', 'data_fnv1a64': 'fnv1a-'+fnv1a(data.read_bytes()),
         'data_sha256': sha256(data), 'data_bytes': data.stat().st_size,
-        'source_evidence_sha256': sha256(args.evidence/'validation.json'),
-        'source_case_index': args.case_index,
+        'source_evidence_sha256': sha256(evidence/'validation.json'),
+        'source_case_index': case_index,
         'source_mesh_sha256': source['mesh_sha256'], 'generator_sha256': sha256(Path(__file__)),
         'quantization_relative_l2_per_channel': errors,
         'teaching_approximation': 'Frozen zero-speed excitation coefficients. Actual world position retains encounter phase. Forward-speed diffraction corrections are deferred.',
         'not_ready': ['independent vessel wave calibration', 'forward-speed diffraction correction',
                       'mesh and peak convergence', 'second-order wave loads'],
         'source': 'https://capytaine.org/v2.2.1/theory_manual/theory.html'}
+    if bridge is not None:
+        metadata['symmetric_mesh_validation_sha256'] = sha256(symmetry_proof)
     write_json(waves/'metadata.json', metadata)
     write_json(waves/'validation.json', {
         'schema': 'act.teaching-first-order-export.v1', 'status': 'assembled-frozen-teaching-reference',
         'base_pack_manifest_sha256': sha256(base/'manifest.json'),
-        'source_evidence_sha256': sha256(args.evidence/'validation.json'),
-        'source_case_index': args.case_index, 'metadata_sha256': sha256(waves/'metadata.json'),
+        'source_evidence_sha256': sha256(evidence/'validation.json'),
+        'source_case_index': case_index, 'metadata_sha256': sha256(waves/'metadata.json'),
         'data_sha256': sha256(data), 'failed_source_checks': len(case['failed_matrix_checks']),
         'quantization_relative_l2_per_channel': errors,
         'approximation': metadata['teaching_approximation']})
-    print(json.dumps({'vessel': manifest['vessel'], 'excitation_bytes': data.stat().st_size,
+    return {'vessel': manifest['vessel'], 'excitation_bytes': data.stat().st_size,
         'failed_source_checks': len(case['failed_matrix_checks']),
-        'status': 'assembled-frozen-teaching-reference'}))
+        'status': 'assembled-frozen-teaching-reference'}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--base', type=Path, required=True)
+    parser.add_argument('--evidence', type=Path, required=True)
+    parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--case-index', type=int, default=0)
+    parser.add_argument('--symmetry-proof', type=Path)
+    args = parser.parse_args()
+    print(json.dumps(export_first_order(args.base, args.evidence, args.output,
+        args.case_index, args.symmetry_proof)))
 
 
 if __name__ == '__main__':

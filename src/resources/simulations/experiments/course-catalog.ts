@@ -32,28 +32,28 @@ export interface VesselCourse {
   sourceBodySha256: string;
 }
 
-const version2 = 'research-nominal-v2';
+const version3 = 'research-nominal-v3';
 export const VESSEL_COURSES: Record<VesselCourseKey, VesselCourse> = {
   destroyer: { key: 'destroyer', experimentId: 'exp-01-055-heading', title: '055型驱逐舰航向控制',
     vessel: 'destroyer-055', parameterVersion: 'research-nominal-v6', logicalModelId: 'destroyer',
     modelDesignDraftM: 6.6, legacyYawOffsetRad: 0, ...destroyer },
-  lng: { key: 'lng', experimentId: 'exp-02-lng-berthing', title: '长恒号LNG大惯性靠泊',
-    vessel: 'lng-changheng', parameterVersion: version2, logicalModelId: 'lng-carrier',
+  lng: { key: 'lng', experimentId: 'exp-02-lng-berthing', title: '长恒系列LNG运输船大惯性操纵（教学代表船）',
+    vessel: 'lng-changheng', parameterVersion: version3, logicalModelId: 'lng-carrier',
     modelDesignDraftM: 11.5, legacyYawOffsetRad: -Math.PI / 2, ...lng },
   container: { key: 'container', experimentId: 'exp-03-container-schedule', title: '集装箱船航速、准点与燃油',
-    vessel: 'container-msc', parameterVersion: version2, logicalModelId: 'container',
+    vessel: 'container-msc', parameterVersion: version3, logicalModelId: 'container',
     modelDesignDraftM: 16.8, legacyYawOffsetRad: 0, ...container },
   cruise: { key: 'cruise', experimentId: 'exp-04-cruise-comfort', title: '邮轮转向、减摇与舒适性',
-    vessel: 'cruise-adora', parameterVersion: version2, logicalModelId: 'luxury-liner',
+    vessel: 'cruise-adora', parameterVersion: version3, logicalModelId: 'luxury-liner',
     modelDesignDraftM: 8.26, legacyYawOffsetRad: 0, ...cruise },
   drilling: { key: 'drilling', experimentId: 'exp-05-981-dp', title: '海洋石油981动力定位',
     vessel: 'semisub-981', parameterVersion: 'research-nominal-v5', logicalModelId: 'drilling-rig',
     modelDesignDraftM: 19, legacyYawOffsetRad: 0, ...drilling },
   icebreaker: { key: 'icebreaker', experimentId: 'exp-06-xuelong2-ice', title: '雪龙2号吊舱与冰区控制',
-    vessel: 'icebreaker-xuelong2', parameterVersion: version2, logicalModelId: 'icebreaker',
+    vessel: 'icebreaker-xuelong2', parameterVersion: version3, logicalModelId: 'icebreaker',
     modelDesignDraftM: 8.3, legacyYawOffsetRad: 0, ...icebreaker },
   dredger: { key: 'dredger', experimentId: 'exp-07-tianjing-dredging', title: '天鲸号作业定位与切削控制',
-    vessel: 'dredger-tianjing', parameterVersion: version2, logicalModelId: 'dredger',
+    vessel: 'dredger-tianjing', parameterVersion: version3, logicalModelId: 'dredger',
     modelDesignDraftM: 6, legacyYawOffsetRad: 0, ...dredger },
 };
 

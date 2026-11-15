@@ -188,7 +188,7 @@ fn berth_origin_uses_the_rotated_source_hull_and_signed_bow_distance() {
         }),
         ..configuration()
     };
-    let simulation = FleetSimulation::new(config).unwrap();
+    let mut simulation = FleetSimulation::new(config).unwrap();
     let actual = frame(&simulation);
     let pack = embedded_vessel_pack("lng-changheng", "research-nominal-v1").unwrap();
     let hull = pack.geometry.nonlinear_hydrostatics.unwrap();
@@ -204,6 +204,9 @@ fn berth_origin_uses_the_rotated_source_hull_and_signed_bow_distance() {
     assert!((north - (800.0 - 1500.0 - bow_offset)).abs() < 1e-10);
     assert!((actual["berth"]["bowClearanceM"].as_f64().unwrap() - 1500.0).abs() < 1e-10);
     assert_eq!(actual["truth"]["position_ned"][1], 12.0);
+    simulation.advance(0.05, None).unwrap();
+    let sampled = frame(&simulation);
+    assert!((sampled["controlSamples"][0]["bowClearanceM"].as_f64().unwrap() - 1500.0).abs() < 1e-10);
 }
 
 #[test]
@@ -238,4 +241,130 @@ fn crossing_stops_on_the_physics_tick_and_remains_signed_across_pause_and_restor
     simulation.reset().unwrap();
     assert_eq!(frame(&simulation)["paused"], false);
     assert!(frame(&simulation)["berth"]["termination"].is_null());
+}
+
+#[test]
+fn berth_plan_changes_the_real_pi_reference_and_preserves_frozen_future() {
+    use control_engine::sixdof::lng_berth_plan::{BerthSpeedPlan,SpeedPlanNode};
+    let configuration = SessionConfiguration {
+        berth: Some(BerthConfiguration {stop_line_north_m:0.0,initial_bow_distance_m:600.0}),
+        ..configuration()
+    };
+    let mut early = FleetSimulation::new(configuration.clone()).unwrap();
+    let mut late = FleetSimulation::new(configuration).unwrap();
+    for (simulation,braking_distance_m) in [(&mut early,1500.0),(&mut late,300.0)] {
+        let mut input = speed_input(simulation,0.0);
+        input.longitudinal.as_mut().unwrap().reference_mps = 4.0;
+        input.longitudinal.as_mut().unwrap().smith_enabled = false;
+        input.berth_plan = Some(BerthSpeedPlan {braking_distance_m,heading_nodes:None,
+            nodes:vec![SpeedPlanNode {distance_m:30.0,speed_mps:0.0}]});
+        simulation.advance(0.0,Some(input)).unwrap();
+        for _ in 0..60 {simulation.advance(0.05,None).unwrap();}
+    }
+    assert!(frame(&early)["longitudinalController"]["appliedRpm"].as_f64().unwrap()
+        < frame(&late)["longitudinalController"]["appliedRpm"].as_f64().unwrap());
+    assert_ne!(frame(&early)["truth"]["actuator_states"],frame(&late)["truth"]["actuator_states"]);
+    let saved = early.snapshot_json().unwrap();
+    let mut restored = FleetSimulation::from_snapshot_json(&saved).unwrap();
+    for _ in 0..20 {
+        early.advance(0.05,None).unwrap();
+        restored.advance(0.05,None).unwrap();
+    }
+    assert_eq!(early.snapshot_json().unwrap(),restored.snapshot_json().unwrap());
+    let before = early.snapshot_json().unwrap();
+    let mut revision = early.input().clone();
+    revision.berth_plan.as_mut().unwrap().braking_distance_m = 1400.0;
+    assert!(early.advance(0.0,Some(revision)).is_err());
+    assert_eq!(before,early.snapshot_json().unwrap());
+    let mut detached:serde_json::Value = serde_json::from_str(&saved).unwrap();
+    detached["configuration"].as_object_mut().unwrap().remove("berth");
+    assert!(FleetSimulation::from_snapshot_json(&detached.to_string()).is_err());
+}
+
+#[test]
+fn berth_plan_requires_a_berth_and_valid_ordered_nodes_before_any_mutation() {
+    use control_engine::sixdof::lng_berth_plan::{BerthSpeedPlan,SpeedPlanNode};
+    let mut simulation = FleetSimulation::new(configuration()).unwrap();
+    let before = simulation.snapshot_json().unwrap();
+    let mut input = speed_input(&simulation,0.0);
+    input.berth_plan = Some(BerthSpeedPlan {braking_distance_m:1200.0,heading_nodes:None,
+        nodes:vec![SpeedPlanNode {distance_m:30.0,speed_mps:0.0}]});
+    assert!(simulation.advance(0.0,Some(input)).is_err());
+    assert_eq!(before,simulation.snapshot_json().unwrap());
+}
+
+#[test]
+fn timed_heading_liquid_peaks_and_navigation_window_follow_physics_and_restore() {
+    use control_engine::sixdof::lng_berth_plan::{BerthSpeedPlan, HeadingPlanNode, SpeedPlanNode};
+    let mut simulation = FleetSimulation::new(SessionConfiguration {
+        berth: Some(BerthConfiguration { stop_line_north_m: 0.0, initial_bow_distance_m: 1500.0 }),
+        course_evidence: Some(control_engine::sixdof::course_evidence::CourseEvidenceConfiguration { roll_warning_deg: 8.0 }),
+        ..configuration()
+    }).unwrap();
+    let mut input = speed_input(&simulation, 0.0);
+    input.control_mode = control_engine::sixdof::control_law::HeadingControlMode::Pd;
+    input.berth_plan = Some(BerthSpeedPlan {
+        braking_distance_m: 1200.0,
+        nodes: vec![SpeedPlanNode { distance_m: 30.0, speed_mps: 0.0 }],
+        heading_nodes: Some(vec![HeadingPlanNode { time_s: 0.0, heading_deg: -1.0 },
+            HeadingPlanNode { time_s: 0.2, heading_deg: -1.0 },
+            HeadingPlanNode { time_s: 0.4, heading_deg: 0.0 }]),
+    });
+    simulation.advance(0.3, Some(input)).unwrap();
+    let observed = frame(&simulation);
+    assert!((observed["headingReferenceDeg"].as_f64().unwrap() + 0.5).abs() < 1e-12);
+    assert_eq!(observed["controlSamples"][0]["targetHeadingDeg"], -1.0);
+    let metrics = &observed["fineStepMetrics"]["values"]["lng"];
+    assert_eq!(metrics["physicsSamples"], 36);
+    assert_eq!(metrics["lateralWindowDurationS"], 0.3);
+    assert!(metrics["maximumCornerHeightM"].as_f64().unwrap() > 0.0);
+    assert_eq!(observed["controlSamples"][0]["liquid"]["modeHeightsM"].as_array().unwrap().len(), 8);
+    assert!(observed["controlSamples"][0]["longitudinal"]["referenceMps"].is_number());
+    let liquid = &observed["liquidObservation"];
+    let modes = liquid["modeHeightsM"].as_array().unwrap();
+    for tank in 0..4 {
+        let corner = modes[2 * tank].as_f64().unwrap().abs() + modes[2 * tank + 1].as_f64().unwrap().abs();
+        assert_eq!(corner, liquid["cornerHeightsM"][tank].as_f64().unwrap());
+        assert!(metrics["maximumCornerHeightM"].as_f64().unwrap() >= corner);
+    }
+    let saved = simulation.snapshot_json().unwrap();
+    let mut restored = FleetSimulation::from_snapshot_json(&saved).unwrap();
+    simulation.advance(0.3, None).unwrap();
+    restored.advance(0.3, None).unwrap();
+    assert_eq!(simulation.snapshot_json().unwrap(), restored.snapshot_json().unwrap());
+    assert_eq!(frame(&simulation)["headingReferenceDeg"], 0.0);
+    let before = simulation.snapshot_json().unwrap();
+    let mut changed = simulation.input().clone();
+    changed.berth_plan.as_mut().unwrap().heading_nodes.as_mut().unwrap()[0].heading_deg = 1.0;
+    assert!(simulation.advance(0.0, Some(changed)).is_err());
+    assert_eq!(before, simulation.snapshot_json().unwrap());
+    let mut forged: serde_json::Value = serde_json::from_str(&saved).unwrap();
+    forged["course_evidence"]["metrics"]["lng"]["physicsSamples"] = serde_json::json!(35);
+    assert!(FleetSimulation::from_snapshot_json(&forged.to_string()).is_err());
+    let mut forged: serde_json::Value = serde_json::from_str(&saved).unwrap();
+    forged["course_evidence"]["metrics"]["lng"]["finalBowClearanceM"] = serde_json::json!(20.0);
+    assert!(FleetSimulation::from_snapshot_json(&forged.to_string()).is_err());
+}
+
+#[test]
+fn earlier_lng_initial_checkpoints_gain_empty_statistics_and_running_ones_keep_missing_history() {
+    let mut simulation = FleetSimulation::new(SessionConfiguration {
+        course_evidence: Some(control_engine::sixdof::course_evidence::CourseEvidenceConfiguration { roll_warning_deg: 8.0 }),
+        ..configuration()
+    }).unwrap();
+    let initial = simulation.snapshot_json().unwrap();
+    let without_lng = |snapshot: &str| {
+        let mut saved: serde_json::Value = serde_json::from_str(snapshot).unwrap();
+        saved["course_evidence"]["metrics"].as_object_mut().unwrap().remove("lng");
+        saved["course_evidence"].as_object_mut().unwrap().remove("lngLateralWindow");
+        saved.to_string()
+    };
+    let restored = FleetSimulation::from_snapshot_json(&without_lng(&initial)).unwrap();
+    assert_eq!(restored.snapshot_json().unwrap(), initial);
+    simulation.advance(0.3, None).unwrap();
+    let old_running = without_lng(&simulation.snapshot_json().unwrap());
+    let mut restored = FleetSimulation::from_snapshot_json(&old_running).unwrap();
+    restored.advance(0.3, None).unwrap();
+    assert!(frame(&restored)["fineStepMetrics"]["values"]["lng"].is_null());
+    assert_eq!(frame(&restored)["physicsTicks"],72);
 }

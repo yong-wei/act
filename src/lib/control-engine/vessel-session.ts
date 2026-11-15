@@ -17,6 +17,8 @@ export interface VesselSessionConfiguration {
   loadingRatio?: number;
   berth?: { stopLineNorthM: number; initialBowDistanceM: number };
   containerVoyage?: { segmentSpeedsMps: [number, number, number, number] };
+  cruise?: { statisticsStartS:number;statisticsEndS:number;finFailureTimeS:number|null;failedFinIndex:number|null };
+  regularWaveHeightM?: number;
   courseEvidence?: { rollWarningDeg: number };
   seed?: number;
   noiseLevel?: 'N0' | 'N1' | 'N2';
@@ -68,7 +70,44 @@ export interface VesselSessionInput {
   derivativeFilterTauS?: number;
   headingIntegralTracking?: { enabled: boolean; timeS: number };
   longitudinal?: VesselSpeedPiInput;
+  berthPlan?: { brakingDistanceM: number; nodes: Array<{ distanceM: number; speedMps: number }>;
+    headingNodes?: Array<{timeS: number; headingDeg: number}> };
   containerSpeed?: VesselContainerSpeedInput;
+  cruiseFins?: VesselCruiseFinInput;
+}
+
+export interface VesselCruiseFinInput {
+  enabled:boolean;
+  model:{inertiaKgM2:number;dampingNmSRad:number;stiffnessNmRad:number};
+  dampingRatio:number;
+  stiffnessFraction:number;
+  lowPassCutoffHz:number;
+  notch:{centerHz:number;bandwidthHz:number}|null;
+}
+
+export interface VesselCruiseComfort {
+  sampleCadenceS:number;
+  statisticsWindowS:[number,number];
+  physicsSamples:number;
+  durationS:number;
+  rollRmsDeg:number|null;
+  rollPeakDeg:number;
+  rollRateRmsDegS:number|null;
+  rollRatePeakDegS:number;
+  positivePropulsionWorkJ:number;
+  finServoElectricWorkJ:number;
+  comfortInterpretation:'teaching_proxy_unweighted';
+  passengers:Array<{
+    positionBodyM:[number,number,number];
+    accelerationBodyMps2:[number,number,number];
+    specificForceBodyMps2:[number,number,number];
+    accelerationNedMps2:[number,number,number];
+    horizontalAccelerationRmsMps2:number|null;
+    horizontalAccelerationPeakMps2:number;
+    accelerationRmsMps2:number|null;
+    accelerationPeakMps2:number;
+    jerkRmsMps3:number|null;
+  }>;
 }
 
 export interface VesselScheduledSpeedModel {
@@ -106,6 +145,7 @@ export interface VesselSpeedPiInput {
 }
 
 export interface VesselSpeedControlDiagnostics {
+  referenceMps?: number;
   ticks: number;
   gains: { kpRpmPerMps: number; tiS: number; lambdaS: number; trackingTimeS: number };
   filteredMeasurementMps: number | null;
@@ -169,6 +209,14 @@ export interface VesselObservedSample {
 }
 
 export interface VesselSessionFrame {
+  liquidObservation?: VesselLiquidObservation;
+  headingReferenceDeg?: number;
+  cruiseComfort?:VesselCruiseComfort;
+  cruiseController?:{
+    estimatedRollRad:number;estimatedPitchRad:number;filteredRollRad:number;filteredRollRateRadS:number;
+    requestedMomentNm:number;availableMomentNm:number;allocatedMomentNm:number;anglesRad:[number,number];
+    measurementGood:boolean;lowSpeedAuthority:boolean;samples:number;
+  };
   schema: 'act.vessel-session.v1';
   modelVersion: 'sixdof-session-v1' | 'sixdof-session-v2';
   parameterHash: string;
@@ -185,6 +233,10 @@ export interface VesselSessionFrame {
   fineStepMetrics?: {sampleCadenceS:number;algorithm:string;rollWarningDeg:number;
     eventWindowBeforeS:number;eventWindowAfterS:number;values:VesselFineStepMetrics};
   parameters: {
+    windAreasM2?: {frontal: number; lateral: number};
+    liquidModalFrequenciesHz?:number[];
+    liquidDepthM?:number;
+    rollInertiaKgM2?:number;
     massKg: number;
     draftM: number;
     lengthM: number;
@@ -336,6 +388,12 @@ export interface VesselFineStepPoint {
 }
 
 export interface VesselFineStepMetrics {
+  lng?: {
+    physicsSamples:number;maximumCornerHeightM:number;cornerHeightSquaredIntegralM2S:number;
+    outsideLiquidDomainDurationS:number;liquidDepthM:number;finalHeadingDeg:number;
+    finalNorthGroundSpeedMps:number;finalBowClearanceM:number|null;
+    final60sLateralMaximumM:number;lateralWindowDurationS:number;
+  };
   physicsSamples:number;maximumRollDeg:number;maximumPitchDeg:number;maximumYawRateDegS:number;
   maximumSurfaceAngleDeg:number;maximumSurfaceRateDegS:number;maximumShaftPowerW:number;
   maximumPositiveSystemPowerW:number;rollWarningDurationS:number;surfaceAngleViolationS:number;
@@ -343,7 +401,20 @@ export interface VesselFineStepMetrics {
   shaftSpeedViolationS:number;surfaceSaturationDurationS:number;positiveMotorWorkJ:number;
 }
 
+export interface VesselLiquidObservation {
+  modeHeightsM:number[];
+  cornerHeightsM:number[];
+  modalFrequenciesHz:number[];
+  liquidDepthM:number;
+  withinSmallAmplitude:boolean;
+}
+
 export interface VesselControlSample {
+  cruise?: VesselSessionFrame['cruiseController'];
+  liquid?: VesselLiquidObservation;
+  longitudinal?: VesselSpeedControlDiagnostics;
+  container?: VesselSessionFrame['containerController'];
+  bowClearanceM?: number;
   timeS: number;
   truth: VesselTruthState;
   observer: VesselSessionFrame['observer'];

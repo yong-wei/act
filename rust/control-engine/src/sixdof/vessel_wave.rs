@@ -43,14 +43,66 @@ pub struct WaveModelAssets {
     pub full_difference: Option<FullDifferenceQtf>,
 }
 
-pub fn embedded_teaching_assets(vessel: &str, version: &str)
-    -> Result<Option<std::sync::Arc<WaveModelAssets>>, String> {
-    let first_order = match (vessel, version) {
-        ("destroyer-055", "research-nominal-v6") => FirstOrderExcitation::from_json_and_bytes(
-            include_str!("../../model-data/destroyer-055/v6/first-order-wave.json"),
-            include_bytes!("../../model-data/destroyer-055/v6/excitation-f32le.bin"))?,
+pub fn embedded_teaching_assets(
+    vessel: &str,
+    version: &str,
+    binding: Option<&WaveModelBinding>,
+) -> Result<Option<std::sync::Arc<WaveModelAssets>>, String> {
+    let Some(binding) = binding else { return Ok(None); };
+    let candidates: &[(&str, &[u8])] = match (vessel, version) {
+        ("destroyer-055", "research-nominal-v6") => &[
+            (include_str!("../../model-data/destroyer-055/v6/first-order-wave.json"),
+                include_bytes!("../../model-data/destroyer-055/v6/excitation-f32le.bin")),
+        ],
+        ("cruise-adora", "research-nominal-v3") => &[
+            (include_str!("../../model-data/cruise-adora/v3/first-order-wave.json"),
+                include_bytes!("../../model-data/cruise-adora/v3/excitation-f32le.bin")),
+        ],
+        ("icebreaker-xuelong2", "research-nominal-v3") => &[
+            (include_str!("../../model-data/icebreaker-xuelong2/v3/first-order-wave.json"),
+                include_bytes!("../../model-data/icebreaker-xuelong2/v3/excitation-f32le.bin")),
+        ],
+        ("dredger-tianjing", "research-nominal-v3") => &[
+            (include_str!("../../model-data/dredger-tianjing/v3/first-order-wave.json"),
+                include_bytes!("../../model-data/dredger-tianjing/v3/excitation-f32le.bin")),
+        ],
+        ("lng-changheng", "research-nominal-v3") => &[
+            (include_str!("../../model-data/lng-changheng/v3/waves/0040.0/030/metadata.json"),
+                include_bytes!("../../model-data/lng-changheng/v3/waves/0040.0/030/excitation-f32le.bin")),
+            (include_str!("../../model-data/lng-changheng/v3/waves/0200.0/030/metadata.json"),
+                include_bytes!("../../model-data/lng-changheng/v3/waves/0200.0/030/excitation-f32le.bin")),
+            (include_str!("../../model-data/lng-changheng/v3/waves/0040.0/070/metadata.json"),
+                include_bytes!("../../model-data/lng-changheng/v3/waves/0040.0/070/excitation-f32le.bin")),
+            (include_str!("../../model-data/lng-changheng/v3/waves/0200.0/070/metadata.json"),
+                include_bytes!("../../model-data/lng-changheng/v3/waves/0200.0/070/excitation-f32le.bin")),
+            (include_str!("../../model-data/lng-changheng/v3/waves/0040.0/085/metadata.json"),
+                include_bytes!("../../model-data/lng-changheng/v3/waves/0040.0/085/excitation-f32le.bin")),
+            (include_str!("../../model-data/lng-changheng/v3/waves/0200.0/085/metadata.json"),
+                include_bytes!("../../model-data/lng-changheng/v3/waves/0200.0/085/excitation-f32le.bin")),
+            (include_str!("../../model-data/lng-changheng/v3/waves/0040.0/095/metadata.json"),
+                include_bytes!("../../model-data/lng-changheng/v3/waves/0040.0/095/excitation-f32le.bin")),
+            (include_str!("../../model-data/lng-changheng/v3/waves/0200.0/095/metadata.json"),
+                include_bytes!("../../model-data/lng-changheng/v3/waves/0200.0/095/excitation-f32le.bin")),
+        ],
+        ("container-msc", "research-nominal-v3") => &[
+            (include_str!("../../model-data/container-msc/v3/waves/0200.0/020/metadata.json"),
+                include_bytes!("../../model-data/container-msc/v3/waves/0200.0/020/excitation-f32le.bin")),
+            (include_str!("../../model-data/container-msc/v3/waves/0200.0/035/metadata.json"),
+                include_bytes!("../../model-data/container-msc/v3/waves/0200.0/035/excitation-f32le.bin")),
+            (include_str!("../../model-data/container-msc/v3/waves/0200.0/060/metadata.json"),
+                include_bytes!("../../model-data/container-msc/v3/waves/0200.0/060/excitation-f32le.bin")),
+            (include_str!("../../model-data/container-msc/v3/waves/0200.0/080/metadata.json"),
+                include_bytes!("../../model-data/container-msc/v3/waves/0200.0/080/excitation-f32le.bin")),
+            (include_str!("../../model-data/container-msc/v3/waves/0200.0/090/metadata.json"),
+                include_bytes!("../../model-data/container-msc/v3/waves/0200.0/090/excitation-f32le.bin")),
+        ],
         _ => return Ok(None),
     };
+    let (metadata, data) = candidates.iter().find(|(metadata, _)| {
+        format!("fnv1a-{:016x}", super::model_pack::fnv1a(metadata.as_bytes()))
+            == binding.first_order_metadata_fnv1a64
+    }).ok_or("当前装载与水深的一阶波浪资产身份不符")?;
+    let first_order = FirstOrderExcitation::from_json_and_bytes(metadata, data)?;
     Ok(Some(std::sync::Arc::new(WaveModelAssets { first_order, full_difference: None })))
 }
 

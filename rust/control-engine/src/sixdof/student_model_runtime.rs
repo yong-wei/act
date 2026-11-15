@@ -20,6 +20,15 @@ enum StructureKind { Nomoto1, Nomoto2, Fopdt, RollOscillator }
 #[derive(Deserialize)]
 #[serde(tag = "operation", rename_all = "snake_case")]
 enum Request {
+    SignalSpectrum {
+        values: Vec<f64>,
+        #[serde(rename = "dtS")]
+        dt_s: f64,
+        #[serde(rename = "minimumFrequencyHz")]
+        minimum_frequency_hz: f64,
+        #[serde(rename = "maximumFrequencyHz")]
+        maximum_frequency_hz: f64,
+    },
     RunMetrics {
         points: Vec<super::course_metrics::RunMetricPoint>,
         #[serde(rename = "endTimeS")]
@@ -28,6 +37,29 @@ enum Request {
         initial_heading_deg: f64,
     },
     HeadingDesign { structure: ModelStructure },
+    SpeedDesign { structure: ModelStructure },
+    RollDesign { input: super::cruise_control::CruiseFinInput },
+    ContainerClosedLoop {
+        #[serde(flatten)]
+        request: super::student_speed_forecast::ContainerForecast,
+    },
+    SpeedOpenLoop {
+        #[serde(flatten)]
+        request: super::student_speed_forecast::SpeedForecast,
+        #[serde(rename = "inputRpm")]
+        input_rpm: Vec<f64>,
+    },
+    SpeedClosedLoop {
+        #[serde(flatten)]
+        request: super::student_speed_forecast::SpeedForecast,
+        #[serde(rename = "referenceMps")]
+        reference_mps: Vec<f64>,
+        controller: super::lng_speed_control::SpeedPiInput,
+        #[serde(rename = "maximumRpm")]
+        maximum_rpm: f64,
+        #[serde(default, rename = "brakingPlan")]
+        braking_plan: Option<super::lng_berth_plan::BerthSpeedPlan>,
+    },
     Identify {
         #[serde(rename = "structureKind")]
         structure_kind: StructureKind,
@@ -139,6 +171,47 @@ fn identify(kind: StructureKind, input: &[f64], output: &[f64], dt: f64,
 pub fn compute(request_json: &str) -> Result<String, String> {
     let request: Request = serde_json::from_str(request_json).map_err(|error| error.to_string())?;
     let response = match request {
+        Request::SignalSpectrum { values, dt_s, minimum_frequency_hz, maximum_frequency_hz } => {
+            if !(32..=24001).contains(&values.len()) || !(0.01..=1.0).contains(&dt_s)
+                || !minimum_frequency_hz.is_finite() || !maximum_frequency_hz.is_finite()
+                || minimum_frequency_hz <= 0.0 || minimum_frequency_hz >= maximum_frequency_hz
+                || maximum_frequency_hz > 1.0_f64.min(0.5 / dt_s)
+                || values.iter().any(|value| !value.is_finite() || value.abs() > 1e9) {
+                return Err("频谱需要32至24001个等间隔有限样本，分析频带须处于有效采样范围".into());
+            }
+            let mean = values.iter().sum::<f64>() / values.len() as f64;
+            let window: Vec<f64> = (0..values.len()).map(|index|
+                0.5 - 0.5 * (2.0 * std::f64::consts::PI * index as f64 / (values.len() - 1) as f64).cos()).collect();
+            let window_sum = window.iter().sum::<f64>();
+            let samples: Vec<f64> = values.iter().zip(&window).map(|(value, weight)| (value - mean) * weight).collect();
+            let resolution = 1.0 / (values.len() as f64 * dt_s);
+            let first_bin = (minimum_frequency_hz / resolution).ceil() as usize;
+            let last_bin = (maximum_frequency_hz / resolution).floor() as usize;
+            if last_bin <= first_bin || last_bin > 1200 {
+                return Err("所选窗口的频率分辨率不足，或分析频带超出支持范围".into());
+            }
+            let mut peak = None;
+            let mut maximum_amplitude = 1e-10;
+            let mut bins = Vec::new();
+            for bin in first_bin..=last_bin {
+                let omega = 2.0 * std::f64::consts::PI * bin as f64 / values.len() as f64;
+                let coefficient = 2.0 * omega.cos();
+                let mut previous = 0.0;
+                let mut second_previous = 0.0;
+                for value in &samples {
+                    let next = value + coefficient * previous - second_previous;
+                    second_previous = previous;
+                    previous = next;
+                }
+                let squared = previous * previous + second_previous * second_previous - coefficient * previous * second_previous;
+                let amplitude = 2.0 * squared.max(0.0).sqrt() / window_sum;
+                let frequency = bin as f64 * resolution;
+                if amplitude > maximum_amplitude { maximum_amplitude = amplitude; peak = Some(frequency); }
+                bins.push(json!({ "frequencyHz": frequency, "amplitude": amplitude }));
+            }
+            json!({ "method": "mean_removed_hann_amplitude", "resolutionHz": resolution,
+                "peakFrequencyHz": peak, "bins": bins })
+        }
         Request::RunMetrics { points,end_time_s,initial_heading_deg } => {
             serde_json::to_value(super::course_metrics::evaluate(&points,end_time_s,initial_heading_deg)?)
                 .map_err(|error| error.to_string())?
@@ -155,6 +228,40 @@ pub fn compute(request_json: &str) -> Result<String, String> {
             json!({ "schema":"act.student-heading-design.v1", "dampingRatio":damping,
                 "naturalFrequencyRadS":frequency, "kp":kp, "kd":kd, "ki":kp/150.0,
                 "kpMinimum":0.2*kp, "kpMaximum":3.0*kp, "kdMaximum":3.0*kd })
+        }
+        Request::SpeedDesign { structure } => {
+            validate_structure(&structure)?;
+            if !matches!(structure, ModelStructure::Fopdt { k, .. } if k > 0.0) {
+                return Err("航速设计初值需要本人辨识的正增益一阶时延模型".into());
+            }
+            serde_json::to_value(super::lng_speed_control::imc_pi_gains(&structure, 1.0, 1.0)?)
+                .map_err(|error| error.to_string())?
+        }
+        Request::RollDesign { input } => {
+            input.validate()?;
+            let model=input.model;
+            let [kp,kd]=model.feedback_gains(input.damping_ratio,input.stiffness_fraction);
+            let stiffness=model.stiffness_nm_rad+kp;
+            let damping=model.damping_nm_s_rad+kd;
+            let natural=(stiffness/model.inertia_kg_m2).sqrt();
+            let ratio=damping/(2.0*(model.inertia_kg_m2*stiffness).sqrt());
+            let bins:Vec<_>=(0..81).map(|index| {
+                let frequency=0.01*10.0_f64.powf(index as f64/40.0);
+                let omega=2.0*std::f64::consts::PI*frequency;
+                let amplitude=|c:f64,b:f64| 1e6*180.0/std::f64::consts::PI
+                    /((c-model.inertia_kg_m2*omega*omega).powi(2)+(b*omega).powi(2)).sqrt();
+                json!({"frequencyHz":frequency,"openAmplitudeDegPerMNm":amplitude(model.stiffness_nm_rad,model.damping_nm_s_rad),
+                    "closedAmplitudeDegPerMNm":amplitude(stiffness,damping)})
+            }).collect();
+            json!({"angleGainNmRad":kp,"rateGainNmSRad":kd,"naturalFrequencyRadS":natural,
+                "dampingRatio":ratio,"assumptions":"linear_roll_unlimited_moment_no_measurement_delay","bins":bins})
+        }
+        Request::ContainerClosedLoop { request } => super::student_speed_forecast::container_closed_loop(request)?,
+        Request::SpeedOpenLoop { request, input_rpm } => {
+            super::student_speed_forecast::open_loop(request, input_rpm)?
+        }
+        Request::SpeedClosedLoop { request, reference_mps, controller, maximum_rpm, braking_plan } => {
+            super::student_speed_forecast::closed_loop(request, reference_mps, controller, maximum_rpm, braking_plan)?
         }
         Request::Identify { structure_kind, free_decay_output, input, output, dt_s, input_origin, output_origin } => {
             if free_decay_output.as_ref().is_some_and(|values| !(2..=24001).contains(&values.len())

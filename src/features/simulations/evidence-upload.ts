@@ -27,7 +27,7 @@ export async function requestVesselEvidence<T = VesselEvidenceProgress>(url: str
   return result;
 }
 
-/** 按五秒边界追加，暂停与结束时保存当前余段，后续沿服务端前缀继续。 */
+/** 五秒分块先存入私有 CAS，采样前缀与对应恢复点在同一事务中生效。 */
 export async function uploadVesselRunEvidence(reportClientRef: string, run: VesselRunEvidence) {
   let progress = await requestVesselEvidence('/api/ilab/experiment-runs', {
     reportClientRef, runRef: run.id, courseKey: run.courseKey, courseVersion: run.courseVersion,
@@ -36,6 +36,7 @@ export async function uploadVesselRunEvidence(reportClientRef: string, run: Vess
     runtimeVersion:run.runtimeVersion,
     prediction: run.prediction, startedAtMs: run.createdAtMs,
     designStudentModelId: run.designStudentModelId || undefined,
+    courseSettings: run.courseSettings,
     controllerSourceRunId: run.controllerSourceRunId || undefined,
   });
   if (progress.status !== 'running') {
@@ -47,11 +48,12 @@ export async function uploadVesselRunEvidence(reportClientRef: string, run: Vess
   }
   const completed = run.stoppedAtMs !== null;
   const fineSamples = run.fineStepSamples ?? [];
+  const pendingChunks: string[] = [];
   while (progress.controlCount < run.trace.length || progress.nativeCount < run.nativeSensorSamples.length
     || (progress.fineCount ?? 0) < fineSamples.length) {
     const boundary = (Math.floor((progress.lastTimeS+1e-7)/5)+1)*5;
     const endTimeS = Math.min(boundary, run.lastTimeS);
-    const finalChunk = completed && endTimeS >= run.lastTimeS;
+    const finalChunk = endTimeS >= run.lastTimeS - 1e-7;
     let controlEnd = progress.controlCount;
     while (controlEnd < run.trace.length && (run.trace[controlEnd].timeS < endTimeS - 1e-7 || finalChunk)) controlEnd++;
     let nativeEnd = progress.nativeCount;
@@ -59,7 +61,7 @@ export async function uploadVesselRunEvidence(reportClientRef: string, run: Vess
     let fineEnd = progress.fineCount ?? 0;
     while (fineEnd < fineSamples.length && fineSamples[fineEnd].timeS <= endTimeS + 1e-7) fineEnd++;
     if (controlEnd === progress.controlCount && nativeEnd === progress.nativeCount && fineEnd === (progress.fineCount ?? 0)) break;
-    progress = await requestVesselEvidence(`/api/ilab/experiment-runs/${run.id}/chunks`, {
+    const staged = await requestVesselEvidence<{reference:string}>(`/api/ilab/experiment-runs/${run.id}/chunks?stage=1`, {
       schema: 'act.vessel-trace-chunk.v1', runRef: run.id, chunkIndex: progress.chunkCount,
       controlStart: progress.controlCount, nativeStart: progress.nativeCount, parameterHash: run.parameterHash,
       endTimeS, points: run.trace.slice(progress.controlCount, controlEnd),
@@ -68,13 +70,15 @@ export async function uploadVesselRunEvidence(reportClientRef: string, run: Vess
       changes: run.changes.filter((change) => change.timeS >= progress.lastTimeS - 1e-7
         && (change.timeS < endTimeS - 1e-7 || finalChunk)),
     });
+    pendingChunks.push(staged.reference);
+    progress = {...progress, chunkCount:progress.chunkCount + 1, controlCount:controlEnd,
+      nativeCount:nativeEnd, fineCount:fineEnd, lastTimeS:endTimeS};
   }
-  if (completed) {
-    progress = await requestVesselEvidence(`/api/ilab/experiment-runs/${run.id}`, {
-      checkpoint: run.checkpoint, endTimeS: run.lastTimeS, controlCount: run.trace.length,
-      nativeCount: run.nativeSensorSamples.length, reason: run.stopReason, failure: run.failure,
-      ...(run.fineStepSamples ? {fineCount:fineSamples.length} : {}),
-    }, 'PUT');
-  }
+  progress = await requestVesselEvidence(`/api/ilab/experiment-runs/${run.id}`, {
+    checkpoint: run.checkpoint, endTimeS: run.lastTimeS, controlCount: run.trace.length,
+    nativeCount: run.nativeSensorSamples.length, reason: completed ? run.stopReason : 'checkpoint', failure: run.failure,
+    durationS:run.durationS, pendingChunks,
+    ...(run.fineStepSamples ? {fineCount:fineSamples.length} : {}),
+  }, 'PUT');
   return progress;
 }

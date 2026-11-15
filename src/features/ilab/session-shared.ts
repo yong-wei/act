@@ -9,6 +9,7 @@ import {
   uploadIlabReport,
   uploadIlabScore,
   type IlabRemoteResult,
+  type IlabTokenResult,
 } from './ilab-client';
 import type { IlabUploadBody } from './payload';
 import { IlabServiceError } from './run-lock';
@@ -25,7 +26,7 @@ export function ilabConfig() {
 export async function resolveSessionAuth(
   ticket: string,
   existingGrant: IlabGrantPayload | null,
-): Promise<{ grant: IlabGrantPayload; freshlyExchanged: boolean } | null> {
+): Promise<{ grant: IlabGrantPayload; freshlyExchanged: boolean; token?: IlabTokenResult } | null> {
   const trimmed = ticket.trim();
   if (trimmed) {
     const config = ilabConfig();
@@ -50,6 +51,7 @@ export async function resolveSessionAuth(
         bypass: token.bypass,
       },
       freshlyExchanged: true,
+      token,
     };
   }
   if (existingGrant) {
@@ -248,4 +250,50 @@ export async function uploadWithAutoRefresh<TRun>(input: {
     },
   });
   return { saved: saved as unknown as TRun, refreshedGrant };
+}
+
+export async function safeUploadWithAutoRefresh<TRun extends { uploadStatus: string }>(input: {
+  run: UploadRunTarget;
+  config: ReturnType<typeof ilabConfig>;
+  upload: IlabUploadBody;
+  reportFilename: string;
+  reportTitle: string;
+  reportHtml: string;
+  scoreFetcher?: typeof fetch;
+  reportFetcher?: typeof fetch;
+  refreshFetcher?: typeof fetch;
+}): Promise<
+  | { ok: true; saved: TRun; refreshedGrant: IlabGrantPayload | null }
+  | { ok: false; saved: TRun; refreshedGrant: null; errorMessage: string }
+> {
+  try {
+    const result = await uploadWithAutoRefresh<TRun>(input);
+    return { ok: true, ...result };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '实验空间网络回传失败。';
+    const latest = await prisma.ilabExperimentRun.findUnique({
+      where: { originId: input.run.originId },
+      select: { uploadStatus: true },
+    });
+    const nextUploadStatus = latest?.uploadStatus === 'score-uploaded' ? 'score-uploaded' : 'failed';
+    const saved = await prisma.ilabExperimentRun.update({
+      where: { originId: input.run.originId },
+      data: {
+        score: input.upload.score,
+        endTimeMs: BigInt(input.upload.endTime),
+        timeUsedSeconds: input.upload.timeUsed,
+        reportHtml: input.reportHtml,
+        uploadStatus: nextUploadStatus,
+        ...(nextUploadStatus === 'score-uploaded'
+          ? { attachmentResult: { error: message } as Prisma.InputJsonValue }
+          : { uploadResult: { error: message } as Prisma.InputJsonValue }),
+      },
+    });
+    return {
+      ok: false,
+      saved: saved as unknown as TRun,
+      refreshedGrant: null,
+      errorMessage: message,
+    };
+  }
 }

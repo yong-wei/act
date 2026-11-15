@@ -1,0 +1,15 @@
+{
+  "schema": "act.vessel-wave-assets.v1",
+  "vessel": "icebreaker-xuelong2",
+  "model_version": "research-nominal-v3",
+  "first_order": {
+    "metadata_file": "first-order-wave.json",
+    "metadata_sha256": "50e194be8ff34d3cf837b9a67629c9180d4e10f556b0238e45f9d38dc0cbad66",
+    "metadata_fnv1a64": "fnv1a-48d9aa4468705382",
+    "data_file": "excitation-f32le.bin",
+    "data_sha256": "50c62c60b0153413e43d36cad54daefccb0cb16b6ba087b5136145290c758111",
+    "data_bytes": 148608,
+    "object_key": "simulation-hydrodynamics/50c62c60b0153413e43d36cad54daefccb0cb16b6ba087b5136145290c758111/excitation-f32le.bin"
+  },
+  "full_difference": null
+}

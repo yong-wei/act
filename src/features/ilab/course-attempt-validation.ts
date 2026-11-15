@@ -9,6 +9,12 @@ import type { VesselEvidenceOpening } from './course-evidence-contract';
 import type { VesselSessionInput } from '@/lib/control-engine/vessel-session';
 import type { VesselCourseArtifactInput } from './course-artifact-contract';
 import { computeVirtualSimulationServerStep } from '@/lib/control-engine/server';
+import { LNG_COURSE_STEPS } from '@/resources/simulations/experiments/lng-course';
+import { validateLngCourseEvidence } from '@/resources/simulations/experiments/lng-evidence';
+import { CONTAINER_COURSE_STEPS } from '@/resources/simulations/experiments/container-course';
+import { validateContainerCourseEvidence } from '@/resources/simulations/experiments/container-evidence';
+import {CRUISE_COURSE_STEPS} from '@/resources/simulations/experiments/cruise-course';
+import {validateCruiseCourseEvidence} from '@/resources/simulations/experiments/cruise-evidence';
 
 /** 从同一报告的实际运行和冻结工件重建验收引用，客户端反馈仅作作品保存。 */
 export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,userId:string,reportId:string,
@@ -25,9 +31,11 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
     const summary = vesselRunStorageSummary(run);
     const opening = await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);
     let finalInput:VesselSessionInput | undefined;
+    let stopReason:VesselRunSummary['stopReason'] = run.status === 'failed' ? 'failure' : run.status === 'completed' ? 'student' : null;
     if (run.completedAt) {
-      const ending = await readSimulationTraceChunk<{appliedFinalInput?:VesselSessionInput;checkpoint?:string}>(summary.lastCheckpointReference);
+      const ending = await readSimulationTraceChunk<{appliedFinalInput?:VesselSessionInput;checkpoint?:string;reason?:VesselRunSummary['stopReason']}>(summary.lastCheckpointReference);
       finalInput = ending.appliedFinalInput ?? (ending.checkpoint ? JSON.parse(ending.checkpoint).input as VesselSessionInput : undefined);
+      stopReason = ending.reason ?? stopReason;
     }
     runs.push({id:run.sourceRefId,scopeKey:experimentKey,courseVersion:summary.courseVersion,
       stepSequence:summary.stepSequence,createdAtMs:opening.startedAtMs,stoppedAtMs:run.completedAt?.getTime() ?? null,
@@ -35,7 +43,7 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
       configuration:opening.configuration,initialInput:opening.input,controllerSourceRunId:opening.controllerSourceRunId,
       finalInput,
       designStudentModelId:opening.designStudentModelId,
-      stopReason:run.status === 'failed' ? 'failure' : run.status === 'completed' ? 'student' : null});
+      courseSettings:opening.courseSettings, stopReason});
   }
   const models:DestroyerModelEvidence[] = [];
   for (const model of storedModels) {
@@ -45,7 +53,10 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
       trainingRuns:model.trainingRuns,validationRuns:model.validationRuns,sampleDt:model.sampleDt});
     if (!payload.success) continue;
     models.push({id:model.clientRef,payload:payload.data,
-      channel:payload.data.ioContract.outputChannel === 'YawRate' ? 'rudder-to-yaw' : payload.data.ioContract.outputChannel.startsWith('SurfaceEncoder') ? 'rudder-servo' : 'shaft-to-speed',
+      channel:payload.data.ioContract.outputChannel === 'YawRate' ? 'rudder-to-yaw'
+        : payload.data.ioContract.outputChannel === 'EstimatedRoll' ? 'fin-to-roll'
+        : payload.data.ioContract.outputChannel.startsWith('SurfaceEncoder') ? 'rudder-servo'
+          : payload.data.ioContract.inputChannel === 'ShaftReference0' ? 'shaft-reference-to-speed' : 'shaft-to-speed',
       createdAtMs:Number(payload.data.operatingPoint.clientFrozenAtMs ?? model.frozenAt.getTime())});
   }
   const comparisons:DestroyerComparisonEvidence[] = [];
@@ -68,6 +79,24 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
     const validPhysical = step.stepKind === 'analysis' || runs.some((run)=>run.stepSequence === attempt.stepSequence
       && run.stopReason !== 'failure' && run.stoppedAtMs !== null && run.lastTimeS+1e-7 >= (step.runDurationS ?? 0));
     return {feedback,outcome:feedback ? (validPhysical ? 'model_mismatch' : 'invalid_run') : attempt.outcome};
+  }
+  if (courseKey === 'lng') {
+    const step = LNG_COURSE_STEPS[attempt.stepSequence - 1];
+    const selected = step.sequence === 20 ? runs.filter((run) => attempt.runRefs.includes(run.id)) : runs;
+    const feedback = validateLngCourseEvidence(step, {runs: selected, models, comparisons, answers: attempt.answers});
+    return {feedback, outcome: feedback ? 'model_mismatch' : attempt.outcome};
+  }
+  if (courseKey === 'container') {
+    const step = CONTAINER_COURSE_STEPS[attempt.stepSequence - 1];
+    const selected = step.sequence === 20 ? runs.filter((run) => attempt.runRefs.includes(run.id)) : runs;
+    const feedback = validateContainerCourseEvidence(step, {runs: selected, models, comparisons, answers: attempt.answers});
+    return {feedback, outcome: feedback ? 'model_mismatch' : attempt.outcome};
+  }
+  if (courseKey === 'cruise') {
+    const step=CRUISE_COURSE_STEPS[attempt.stepSequence-1];
+    const selected=step.sequence === 20 ? runs.filter((run)=>attempt.runRefs.includes(run.id)) : runs;
+    const feedback=validateCruiseCourseEvidence(step,{runs:selected,models,comparisons,answers:attempt.answers});
+    return {feedback,outcome:feedback ? 'model_mismatch' : attempt.outcome};
   }
   return {feedback:null,outcome:attempt.outcome};
 }

@@ -284,3 +284,23 @@ fn physical_rk_assembles_both_wave_orders_and_preserves_the_force_breakdown() {
         assert_eq!(output.breakdown.external[channel], sum);
     }
 }
+
+#[test]
+fn other_monohulls_use_frozen_embedded_waves_through_the_normal_session() {
+    for vessel in ["cruise-adora", "icebreaker-xuelong2", "dredger-tianjing"] {
+        let mut simulation = FleetSimulation::new(SessionConfiguration {
+            vessel: vessel.into(), parameter_version: "research-nominal-v3".into(),
+            environment: control_engine::sixdof::session::EnvironmentPreset::V1,
+            ..Default::default()
+        }).unwrap();
+        simulation.advance(0.2, None).unwrap();
+        let frame: serde_json::Value = serde_json::from_str(&simulation.frame_json().unwrap()).unwrap();
+        assert_eq!(frame["waveModel"]["firstOrderEnabled"], true);
+        assert!(frame["dynamics"]["external_components"]["tau_wave_1"].as_array().unwrap()
+            .iter().any(|value| value.as_f64().unwrap().abs() > 1.0));
+        let saved = simulation.snapshot_json().unwrap();
+        let mut restored = FleetSimulation::from_snapshot_json(&saved).unwrap();
+        simulation.advance(0.1, None).unwrap(); restored.advance(0.1, None).unwrap();
+        assert_eq!(simulation.snapshot_json().unwrap(), restored.snapshot_json().unwrap());
+    }
+}

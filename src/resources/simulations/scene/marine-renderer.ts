@@ -4,6 +4,21 @@ import { marineBackendName } from './marine-backend';
 export type MarineGraphicsApi = 'webgl' | 'webgpu';
 
 const identities = new WeakMap<WebGPURenderer, { api: string; hardware: string | null }>();
+
+function initializeWithinDeadline<T>(pending: Promise<T>, releaseLate?: (value:T) => void): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let expired = false;
+    const timer = setTimeout(() => {
+      expired = true;
+      reject(new Error('Graphics context unavailable: initialization timed out.'));
+    }, 5000);
+    void pending.then((value) => {
+      clearTimeout(timer);
+      if (expired) { releaseLate?.(value); return; }
+      resolve(value);
+    }, (error:unknown) => { clearTimeout(timer); reject(error); }).catch(reject);
+  });
+}
 type RendererDevice = NonNullable<NonNullable<ConstructorParameters<typeof WebGPURenderer>[0]>['device']> & {
   destroy(): void;
 };
@@ -26,7 +41,7 @@ export async function createMarineRenderer(canvas: HTMLCanvasElement, api: Marin
   let hardware: string | null = null;
   if (api === 'webgpu') {
     const gpu = (navigator as Navigator & { gpu?: ComparisonGpuHost }).gpu;
-    const adapter = await gpu?.requestAdapter();
+    const adapter = await initializeWithinDeadline(gpu?.requestAdapter() ?? Promise.resolve(null));
     if (!adapter) throw new Error('此设备未能初始化原生 WebGPU。');
     if (adapter.isFallbackAdapter || adapter.limits.maxTextureDimension2D < 2048
       || adapter.limits.maxColorAttachments < 4) {
@@ -34,7 +49,8 @@ export async function createMarineRenderer(canvas: HTMLCanvasElement, api: Marin
     }
     const info = adapter.info;
     hardware = [info.vendor, info.architecture, info.device, info.description].filter(Boolean).join(' / ') || null;
-    device = await adapter.requestDevice({ requiredFeatures: [...adapter.features] });
+    device = await initializeWithinDeadline(adapter.requestDevice({ requiredFeatures: [...adapter.features] }),
+      (lateDevice) => lateDevice.destroy());
   }
   const renderer = new WebGPURenderer({ canvas, device, forceWebGL: api === 'webgl', antialias: true });
   const release = renderer.dispose.bind(renderer);
@@ -49,7 +65,7 @@ export async function createMarineRenderer(canvas: HTMLCanvasElement, api: Marin
     identities.delete(renderer);
   };
   try {
-    await renderer.init();
+    await initializeWithinDeadline(renderer.init(), () => release());
     const backend = marineBackendName(renderer.backend);
     if (backend !== (api === 'webgpu' ? 'WebGPUBackend' : 'WebGLBackend')) {
       throw new Error('实际图形后端与所选接口不一致。');

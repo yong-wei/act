@@ -14,6 +14,7 @@ export interface IlabGrantPayload {
   issuedAtMs: number;
   expiresAtMs: number | null;
   bypass: boolean;
+  userId?: string;
 }
 
 export interface IlabGrantPublicView {
@@ -56,7 +57,8 @@ function isValidPayload(value: unknown): value is IlabGrantPayload {
     && typeof candidate.accessToken === 'string' && candidate.accessToken.length > 0
     && typeof candidate.issuedAtMs === 'number' && Number.isFinite(candidate.issuedAtMs)
     && (candidate.expiresAtMs === null || (typeof candidate.expiresAtMs === 'number' && Number.isFinite(candidate.expiresAtMs)))
-    && typeof candidate.bypass === 'boolean';
+    && typeof candidate.bypass === 'boolean'
+    && (candidate.userId === undefined || (typeof candidate.userId === 'string' && candidate.userId.length > 0));
 }
 
 /** 验签并解密 HttpOnly 授权凭证；无效、篡改或超过 72 小时硬有效期均返回 null。 */

@@ -1,7 +1,7 @@
 use control_engine::sixdof::model_pack::{
     embedded_vessel_pack_with_loading, embedded_vessel_pack_with_water_depth,
 };
-use control_engine::sixdof::session::{BerthConfiguration, FleetSimulation, SessionConfiguration};
+use control_engine::sixdof::session::{BerthConfiguration, EnvironmentPreset, FleetSimulation, SessionConfiguration};
 
 #[test]
 fn every_loading_and_depth_selects_its_fitted_matrix_without_changing_rigid_loading() {
@@ -160,4 +160,77 @@ fn berth_scenarios_select_forty_meters_and_reject_a_conflicting_depth() {
             .is_err()
         );
     }
+}
+
+#[test]
+fn frozen_loading_waves_follow_each_rigid_condition_and_restore_the_same_future() {
+    for (vessel, ratios, depths) in [
+        ("lng-changheng", vec![0.3, 0.7, 0.85, 0.95], vec![40.0, 200.0]),
+        ("container-msc", vec![0.2, 0.35, 0.6, 0.8, 0.9], vec![200.0]),
+    ] {
+        let mut hashes = Vec::new();
+        for ratio in ratios {
+            for depth in &depths {
+                let old = embedded_vessel_pack_with_water_depth(vessel, "research-nominal-v2",
+                    Some(ratio), Some(*depth)).unwrap();
+                let pack = embedded_vessel_pack_with_water_depth(vessel, "research-nominal-v3",
+                    Some(ratio), Some(*depth)).unwrap();
+                assert_eq!(pack.geometry.displacement_mass_kg, old.geometry.displacement_mass_kg);
+                assert_eq!(pack.geometry.center_of_mass_waterline_z_up_m,
+                    old.geometry.center_of_mass_waterline_z_up_m);
+                assert_eq!(pack.geometry.inertia_about_cg_kg_m2.ixx, old.geometry.inertia_about_cg_kg_m2.ixx);
+                let binding = pack.geometry.wave_model.as_ref().unwrap();
+                assert_eq!(binding.water_depth_m, *depth);
+                hashes.push(binding.first_order_metadata_fnv1a64.clone());
+                let mut simulation = FleetSimulation::new(SessionConfiguration {
+                    vessel: vessel.into(), parameter_version: "research-nominal-v3".into(),
+                    loading_ratio: Some(ratio), water_depth_m: Some(*depth),
+                    environment: EnvironmentPreset::V1, ..Default::default()
+                }).unwrap();
+                simulation.advance(0.2, None).unwrap();
+                let frame: serde_json::Value = serde_json::from_str(&simulation.frame_json().unwrap()).unwrap();
+                assert_eq!(frame["waveModel"]["firstOrderLoaded"], true);
+                assert_eq!(frame["waveModel"]["firstOrderEnabled"], true);
+                assert_eq!(frame["waveModel"]["waterDepthM"], *depth);
+                assert!(frame["dynamics"]["external_components"]["tau_wave_1"].as_array().unwrap()
+                    .iter().any(|value| value.as_f64().unwrap().abs() > 1.0));
+                let snapshot = simulation.snapshot_json().unwrap();
+                let mut restored = FleetSimulation::from_snapshot_json(&snapshot).unwrap();
+                simulation.advance(0.1, None).unwrap();
+                restored.advance(0.1, None).unwrap();
+                assert_eq!(simulation.snapshot_json().unwrap(), restored.snapshot_json().unwrap());
+                simulation.set_paused(true);
+                let paused = simulation.snapshot_json().unwrap();
+                simulation.advance(1.0, None).unwrap();
+                assert_eq!(simulation.snapshot_json().unwrap(), paused);
+            }
+        }
+        hashes.sort(); hashes.dedup();
+        assert_eq!(hashes.len(), if vessel == "lng-changheng" { 8 } else { 5 });
+    }
+}
+
+#[test]
+fn restoring_a_loading_wave_session_reselects_assets_and_berth_depth() {
+    let configuration = SessionConfiguration {
+        vessel: "lng-changheng".into(), parameter_version: "research-nominal-v3".into(),
+        environment: EnvironmentPreset::E1, loading_ratio: Some(0.3),
+        berth: Some(BerthConfiguration { stop_line_north_m: 0.0, initial_bow_distance_m: 1500.0 }),
+        ..Default::default()
+    };
+    let mut source = FleetSimulation::new(configuration.clone()).unwrap();
+    source.advance(0.1, None).unwrap();
+    let frame: serde_json::Value = serde_json::from_str(&source.frame_json().unwrap()).unwrap();
+    assert_eq!(frame["hydrodynamicDepthM"], 40.0);
+    let saved = source.snapshot_json().unwrap();
+    let mut other_loading = FleetSimulation::new(SessionConfiguration {
+        loading_ratio: Some(0.95), ..configuration.clone()
+    }).unwrap();
+    other_loading.restore_snapshot(&saved).unwrap();
+    assert_eq!(other_loading.snapshot_json().unwrap(), saved);
+    source.advance(0.1, None).unwrap(); other_loading.advance(0.1, None).unwrap();
+    assert_eq!(source.snapshot_json().unwrap(), other_loading.snapshot_json().unwrap());
+    assert!(FleetSimulation::new(SessionConfiguration {
+        water_depth_m: Some(200.0), ..configuration
+    }).is_err());
 }

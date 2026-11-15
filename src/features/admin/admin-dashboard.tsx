@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObjec
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import type { AdminOperationLedgerEntry, PiiMinimizedFailedImportRow } from '@/lib/admin-operation-ledger';
 import { createAuditedActionState } from '@/lib/action-status-contract';
-import type { AdminUsersQueryContract } from '@/lib/api-ui-contracts';
+import type { AdminUsersQueryContract, AdminUsersSourceFilter } from '@/lib/api-ui-contracts';
 import { toCsv } from '@/lib/csv-export';
 
 import { AdminConsoleHeader } from './admin-console-header';
@@ -61,6 +61,7 @@ type UserItem = {
   email: string | null;
   employeeNumber?: string | null;
   role: UserRole;
+  accountSource?: 'PLATFORM' | 'ILAB';
   createdAt: string;
   profile?: {
     studentNumber: string | null;
@@ -125,6 +126,11 @@ const ROLE_LABELS: Record<UserRole, string> = {
   STUDENT: '学生',
 };
 
+const ACCOUNT_SOURCE_LABELS: Record<'PLATFORM' | 'ILAB', string> = {
+  PLATFORM: '本平台用户',
+  ILAB: '实验空间用户',
+};
+
 const ROLE_STYLES: Record<UserRole, string> = {
   ADMIN: 'admin-console-pill admin-console-pill-admin',
   TEACHER: 'admin-console-pill admin-console-pill-teacher',
@@ -150,6 +156,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
   const [page, setPage] = useState(initialUsersQuery?.page ?? 1);
   const [search, setSearch] = useState(initialUsersQuery?.search ?? '');
   const [roleFilter, setRoleFilter] = useState<'ALL' | UserRole>(initialUsersQuery?.role ?? 'ALL');
+  const [sourceFilter, setSourceFilter] = useState<AdminUsersSourceFilter>(initialUsersQuery?.accountSource ?? 'ALL');
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingOverview, setLoadingOverview] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(
@@ -200,7 +207,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
     const action = initialUsersQuery?.action;
     if (!action) return null;
     if (action === 'export') {
-      if (!initialUsersQuery.source.roleSupported) {
+      if (!initialUsersQuery.source.roleSupported || !initialUsersQuery.source.accountSourceSupported) {
         return createAuditedActionState({
           identity: {
             id: 'admin-users-route-action:export',
@@ -211,8 +218,8 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
             requestedAction: action,
           },
           status: 'blocked',
-          message: '账号导出参数包含无效角色筛选，已阻止生成文件。',
-          recoveryAction: '清空无效角色参数后重新导出',
+          message: '账号导出参数包含无效筛选条件，已阻止生成文件。',
+          recoveryAction: '清空无效筛选参数后重新导出',
           httpStatus: 400,
         });
       }
@@ -265,6 +272,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
     if (!query || !shouldBlockInvalidAdminUsersQuery(query, usersQueryTouched)) return null;
     const invalidParts = [
       query.source.roleSupported ? null : '角色筛选',
+      query.source.accountSourceSupported ? null : '账号来源筛选',
       query.source.pageValid ? null : '分页参数',
       query.source.pageSizeValid ? null : '分页大小',
     ].filter((part): part is string => Boolean(part));
@@ -287,12 +295,12 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
     if (invalidQueryState) return '账号筛选参数无效，账号列表已暂停更新。';
     if (loadingUsers) return '正在加载账号列表。';
     if (users.length === 0) {
-      return search.trim() || roleFilter !== 'ALL'
+      return search.trim() || roleFilter !== 'ALL' || sourceFilter !== 'ALL'
         ? '当前筛选条件下没有匹配账号。'
         : '账号列表暂无数据。';
     }
     return `账号列表已更新，共 ${totalUsers} 条，当前第 ${page} 页显示 ${users.length} 条。`;
-  }, [invalidQueryState, loadingUsers, page, roleFilter, search, totalUsers, users.length]);
+  }, [invalidQueryState, loadingUsers, page, roleFilter, search, sourceFilter, totalUsers, users.length]);
 
   const showNotice = useCallback((type: 'success' | 'error', message: string) => {
     setNotice({ type, message });
@@ -359,6 +367,9 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
       if (roleFilter !== 'ALL') {
         params.set('role', roleFilter);
       }
+      if (sourceFilter !== 'ALL') {
+        params.set('accountSource', sourceFilter);
+      }
       params.set('page', String(page));
       params.set('pageSize', String(pageSize));
       const res = await fetch(`/api/admin/users?${params.toString()}`, {
@@ -375,7 +386,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
     } finally {
       setLoadingUsers(false);
     }
-  }, [invalidQueryState, page, pageSize, roleFilter, search, showNotice]);
+  }, [invalidQueryState, page, pageSize, roleFilter, search, showNotice, sourceFilter]);
 
   useEffect(() => {
     fetchOverview();
@@ -658,6 +669,9 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
     }
     if (roleFilter !== 'ALL') {
       params.set('role', roleFilter);
+    }
+    if (sourceFilter !== 'ALL') {
+      params.set('accountSource', sourceFilter);
     }
     try {
       const res = await fetch(`/api/admin/users/export?${params.toString()}`, { cache: 'no-store' });
@@ -1097,7 +1111,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                 <span className="admin-console-kicker">账号视图</span>
                 <h2 className="admin-console-title mt-2 text-2xl font-semibold">账号列表</h2>
                 <p className="admin-console-muted mt-2 text-sm">
-                  按角色、姓名、账号或学号筛选，并在右侧查看详情与执行敏感操作。
+                  按角色、来源、姓名、账号或学号筛选，并在右侧查看详情与执行敏感操作。
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -1128,6 +1142,20 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                   <option value="ADMIN">管理员</option>
                   <option value="TEACHER">教师</option>
                   <option value="STUDENT">学生</option>
+                </select>
+                <select
+                  aria-label="按账号来源筛选"
+                  value={sourceFilter}
+                  onChange={(event) => {
+                    setUsersQueryTouched(true);
+                    setSourceFilter(event.target.value as AdminUsersSourceFilter);
+                    setPage(1);
+                  }}
+                  className="admin-console-select"
+                >
+                  <option value="ALL">全部来源</option>
+                  <option value="ILAB">实验空间用户</option>
+                  <option value="PLATFORM">本平台用户</option>
                 </select>
                 <button type="button"
                   onClick={openCreateDialog}
@@ -1192,8 +1220,8 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                   ) : users.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
-                        {search.trim() || roleFilter !== 'ALL'
-                          ? `没有找到匹配的账号。当前条件：${search.trim() || '全部关键词'} / ${roleFilter === 'ALL' ? '全部角色' : ROLE_LABELS[roleFilter]}。`
+                        {search.trim() || roleFilter !== 'ALL' || sourceFilter !== 'ALL'
+                          ? `没有找到匹配的账号。当前条件：${search.trim() || '全部关键词'} / ${roleFilter === 'ALL' ? '全部角色' : ROLE_LABELS[roleFilter]} / ${sourceFilter === 'ALL' ? '全部来源' : ACCOUNT_SOURCE_LABELS[sourceFilter]}。`
                           : '暂无账号数据'}
                       </td>
                     </tr>
@@ -1201,7 +1229,12 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                     users.map((user) => (
                       <tr key={user.id}>
                         <td className="px-4 py-3" data-label="账号信息">
-                          <div className="admin-console-title font-medium">{user.name || '未命名'}</div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="admin-console-title font-medium">{user.name || '未命名'}</span>
+                            {user.accountSource === 'ILAB' ? (
+                              <span className="admin-console-chip">实验空间用户</span>
+                            ) : null}
+                          </div>
                           <div className="admin-console-table-subtle mt-1 text-xs">
                             {user.email || user.employeeNumber || user.profile?.studentNumber || '未绑定账号'}
                           </div>
@@ -1334,6 +1367,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                 </div>
                 <div className="admin-console-surface-soft grid gap-2 text-sm">
                   <div>角色：{ROLE_LABELS[selectedUser.role]}</div>
+                  <div>账号来源：{ACCOUNT_SOURCE_LABELS[selectedUser.accountSource ?? 'PLATFORM']}</div>
                   <div>学号：{selectedUser.profile?.studentNumber || '-'}</div>
                   <div>班级：{selectedUser.profile?.className || '-'}</div>
                   <div>工号：{selectedUser.employeeNumber || '-'}</div>
@@ -1556,6 +1590,7 @@ export function shouldBlockInvalidAdminUsersQuery(
 ) {
   if (!initialUsersQuery || usersQueryTouched) return false;
   return !initialUsersQuery.source.roleSupported
+    || !initialUsersQuery.source.accountSourceSupported
     || !initialUsersQuery.source.pageValid
     || !initialUsersQuery.source.pageSizeValid;
 }

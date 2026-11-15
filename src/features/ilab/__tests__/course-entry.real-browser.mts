@@ -8,6 +8,8 @@ import { prisma } from '@/lib/prisma';
 config({path:'.env.local',quiet:true});
 config({quiet:true});
 assert(['127.0.0.1','localhost'].includes(new URL(process.env.DATABASE_URL!).hostname));
+const origin=process.env.VESSEL_BROWSER_ORIGIN ?? 'http://127.0.0.1:3001';
+assert(['127.0.0.1','localhost'].includes(new URL(origin).hostname));
 const password = randomBytes(24).toString('base64url');
 const user = await prisma.user.create({data:{name:'本地055正常入口验收夹具',role:'STUDENT',
   employeeNumber:`ACT-VESSEL-${randomUUID()}`,passwordHash:await bcrypt.hash(password,10)}});
@@ -20,7 +22,7 @@ try {
     if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/ilab/experiment-runs') rawOpeningRequests++;
   });
   page.setDefaultTimeout(30000);
-  await page.goto('http://127.0.0.1:3001/login?callbackUrl=%2Fsimulations%2Fdestroyer',{waitUntil:'networkidle'});
+  await page.goto(`${origin}/login?callbackUrl=%2Fsimulations%2Fdestroyer%3Fgraphics%3Dwebgl`,{waitUntil:'networkidle'});
   await page.getByPlaceholder('学号/工号').fill(user.employeeNumber!);
   await page.getByPlaceholder('密码',{exact:true}).fill(password).catch(()=>{throw new Error('本地测试登录字段不可用');});
   await page.getByRole('button',{name:'登录',exact:true}).click();
@@ -53,10 +55,28 @@ try {
   await page.getByRole('button',{name:'同步本轮实验记录',exact:true}).click();
   await page.getByText('本轮原始运行、模型、对照与提交尝试已同步。',{exact:true}).waitFor();
   assert.equal(rawOpeningRequests,openingCount,'Completed raw runs should reuse durable local receipts');
+  const emptyRound = `account:${user.id}:destroyer:seven-vessel-2026.11.14:round:${randomUUID()}`;
+  await page.evaluate((scope)=>localStorage.setItem(scope.slice(0,scope.indexOf(':round:'))+':active-round',scope),emptyRound);
+  await page.reload({waitUntil:'domcontentloaded'});
+  const prediction = page.getByLabel('运行前预测与理由',{exact:true});
+  await prediction.waitFor();
+  await page.waitForFunction(()=>{
+    const input=document.querySelector<HTMLTextAreaElement>('[aria-label="运行前预测与理由"]');
+    return input && !input.matches(':disabled');
+  });
+  assert.equal(await prediction.inputValue(),'','A missing round draft must start with empty answers');
+  await page.getByRole('tab',{name:'评估',exact:true}).click();
+  assert.equal(await page.getByLabel('分析运行记录',{exact:true}).locator('option').count(),1);
+  assert.equal(await page.getByLabel('冻结的学生模型',{exact:true}).locator('option').count(),1);
+  assert.equal(rawOpeningRequests,openingCount,'Changing rounds must not upload prior round evidence');
+  await page.getByRole('button',{name:/继续此轮实验/}).click();
+  await page.getByRole('tab',{name:'控制',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector<HTMLTextAreaElement>('[aria-label="运行前预测与理由"]')?.value
+    === '正常账户入口验收夹具，保持直航并观察仪器量测。');
   console.log(JSON.stringify({status:'passed',entry:'normal-login-and-original-page',
     serverStatus:saved.status,controlSamples:summary.controlCount,nativeSamples:summary.nativeCount,
     fineWindowSamples:summary.fineCount ?? 0,timeS:summary.lastTimeS,chunks:saved.traces.length,
-    repeatedRawOpenings:rawOpeningRequests-openingCount}));
+    repeatedRawOpenings:rawOpeningRequests-openingCount,emptyRoundIsolation:true,previousRoundRecovered:true}));
 } finally {
   await browser?.close();
   await prisma.simulationRun.deleteMany({where:{ownerUserId:user.id}});

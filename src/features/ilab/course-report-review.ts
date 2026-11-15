@@ -1,12 +1,12 @@
 import { Prisma, type UserRole } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { readSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
-import { DESTROYER_COURSE_STEPS } from '@/resources/simulations/experiments/destroyer-course';
 import { vesselExperimentKey, vesselReportView } from './course-artifact-service';
 import { VESSEL_EVIDENCE_DOMAIN, vesselRunStorageSummary } from './course-evidence-service';
-import { summarizeVesselReview, vesselStepReviewLimits, type VesselReportReviewInput, type VesselStepReview } from './course-report-review-contract';
+import { summarizeVesselReview, vesselCourseStepReviewLimits, type VesselReportReviewInput, type VesselStepReview } from './course-report-review-contract';
 import { IlabServiceError } from './run-lock';
 import { finalizeVesselReportHtml } from '@/features/simulations/course-report';
+import { uploadCourseReportToIlab } from './adapters/ilab-course-upload';
 
 export interface VesselReportActor {id:string;role:UserRole}
 
@@ -64,7 +64,7 @@ export async function readVesselReportWork(actor:VesselReportActor, reportId:str
 /** 人工量规与确定性指标分开保存，最终成绩要求全部评分项和教师身份。 */
 export async function reviewVesselCourseReport(actor:VesselReportActor,reportId:string,input:VesselReportReviewInput) {
   await requireVesselReportAccess(actor,reportId,true);
-  return prisma.$transaction(async (tx) => {
+  const outcome = await prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT "id" FROM "VirtualSimulationReport" WHERE "id" = ${reportId} FOR UPDATE`;
     const report = await tx.virtualSimulationReport.findUniqueOrThrow({where:{id:reportId}});
     if (report.revision !== input.expectedRevision) throw new IlabServiceError('报告已经更新，请重新读取后复核。',409);
@@ -82,8 +82,7 @@ export async function reviewVesselCourseReport(actor:VesselReportActor,reportId:
       for (const step of input.steps) {
         const attempt = await tx.stepSubmissionAttempt.findFirst({where:{id:step.attemptId,userId:report.userId,experimentKey,stepKey:`${report.experimentKey}-step-${step.stepSequence}`}});
         if (!attempt) throw new IlabServiceError('评分引用的步骤尝试不存在。',404);
-        const design = report.experimentKey === 'destroyer' ? DESTROYER_COURSE_STEPS[step.stepSequence-1].rubric.kind === 'design' : step.stepSequence >= 9 && step.stepSequence < 20;
-        const limits = vesselStepReviewLimits(step.stepSequence,design);
+        const limits = vesselCourseStepReviewLimits(report.experimentKey, step.stepSequence);
         if (Object.entries(limits).some(([key,limit]) => (step[key as keyof typeof limits] ?? 0) > limit+1e-7)) throw new IlabServiceError('评分超过本步固定量规。',400);
         if (attempt.status === 'invalid_run' && ((step.operation ?? 0) > 0 || (step.performance ?? 0) > 0)) throw new IlabServiceError('数值无效运行的操作和性能分需要重新核验有效证据。',400);
         await tx.stepSubmissionAttempt.updateMany({where:{userId:report.userId,experimentKey,stepKey:attempt.stepKey},data:{selectedFinalAt:null}});
@@ -114,6 +113,22 @@ export async function reviewVesselCourseReport(actor:VesselReportActor,reportId:
       reviewedAt:input.action === 'review' ? new Date() : report.reviewedAt,
       finalizedAt:confirmedAt,reportHtml,revision:{increment:1},
     }});
-    return vesselReportView(saved);
+    return {
+      view: vesselReportView(saved),
+      finalizedReportId: confirmedAt ? saved.id : null,
+      studentUserId: saved.userId,
+    };
   },{timeout:15000});
+
+  if (outcome.finalizedReportId) {
+    await uploadCourseReportToIlab({
+      reportId: outcome.finalizedReportId,
+      actorUserId: outcome.studentUserId,
+      allowTeacherFinalize: true,
+    }).catch((err: unknown) => {
+      console.error('[ilab] 教师终审同步实验空间失败:', err);
+    });
+  }
+
+  return outcome.view;
 }

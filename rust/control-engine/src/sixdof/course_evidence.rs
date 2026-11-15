@@ -13,9 +13,44 @@ pub struct CourseEvidenceConfiguration {
     pub roll_warning_deg: f64,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use super::super::coupled_sloshing::LiquidObservation;
+
+    #[test]
+    fn lng_window_expires_old_peaks_and_preserves_between_control_tick_liquid_extrema() {
+        let mut state = TruthState::default();
+        let mut evidence = CourseEvidenceState::new(&state);
+        evidence.enable_lng();
+        let mut liquid = LiquidObservation { mode_heights_m: vec![0.0; 8], corner_heights_m: vec![0.0; 4],
+            modal_frequencies_hz: vec![0.1; 8], liquid_depth_m: 20.0, within_small_amplitude: true };
+        for tick in 1..=7440 {
+            state.position_ned[1] = if tick == 1 { 40.0 } else { 2.0 };
+            liquid.corner_heights_m[0] = if tick == 7 { 2.5 } else { 0.5 };
+            liquid.within_small_amplitude = tick != 7;
+            evidence.observe_lng(tick, &state, &liquid, Some(30.0));
+        }
+        let metrics = evidence.metrics.lng.as_ref().unwrap();
+        assert_eq!(metrics.physics_samples, 7440);
+        assert_eq!(metrics.maximum_corner_height_m, 2.5);
+        assert_eq!(metrics.outside_liquid_domain_duration_s, DT);
+        assert_eq!(metrics.final60s_lateral_maximum_m, 2.0);
+        assert_eq!(metrics.lateral_window_duration_s, 60.0);
+        let mut restored: CourseEvidenceState = serde_json::from_str(&serde_json::to_string(&evidence).unwrap()).unwrap();
+        for tick in 7441..=7446 {
+            evidence.observe_lng(tick, &state, &liquid, Some(30.0));
+            restored.observe_lng(tick, &state, &liquid, Some(30.0));
+        }
+        assert_eq!(serde_json::to_value(&evidence).unwrap(), serde_json::to_value(&restored).unwrap());
+    }
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FineStepMetrics {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lng: Option<LngCourseMetrics>,
     pub physics_samples: u64,
     pub maximum_roll_deg: f64,
     pub maximum_pitch_deg: f64,
@@ -32,6 +67,21 @@ pub struct FineStepMetrics {
     pub shaft_speed_violation_s: f64,
     pub surface_saturation_duration_s: f64,
     pub positive_motor_work_j: f64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LngCourseMetrics {
+    pub physics_samples: u64,
+    pub maximum_corner_height_m: f64,
+    pub corner_height_squared_integral_m2_s: f64,
+    pub outside_liquid_domain_duration_s: f64,
+    pub liquid_depth_m: f64,
+    pub final_heading_deg: f64,
+    pub final_north_ground_speed_mps: f64,
+    pub final_bow_clearance_m: Option<f64>,
+    pub final60s_lateral_maximum_m: f64,
+    pub lateral_window_duration_s: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -70,6 +120,8 @@ pub struct CourseEvidenceState {
     previous_violation: bool,
     #[serde(default)]
     previous_saturation: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    lng_lateral_window: Option<VecDeque<[f64; 2]>>,
 }
 
 impl CourseEvidenceState {
@@ -77,7 +129,35 @@ impl CourseEvidenceState {
         Self { metrics: FineStepMetrics::default(), events: Vec::new(), pending_window_samples: Vec::new(), emitted_samples: 0,
             recent_samples: VecDeque::new(), active_until_tick: WINDOW_TICKS, last_emitted_tick: None,
             previous_surface_rad: state.actuator_states.control_surface_angles_rad.clone(),
-            previous_roll_warning: false, previous_violation: false, previous_saturation: false }
+            previous_roll_warning: false, previous_violation: false, previous_saturation: false,
+            lng_lateral_window: None }
+    }
+
+    pub fn enable_lng(&mut self) {
+        self.metrics.lng = Some(LngCourseMetrics::default());
+        self.lng_lateral_window = Some(VecDeque::new());
+    }
+
+    pub fn observe_lng(&mut self, tick: u64, state: &TruthState,
+        liquid: &super::coupled_sloshing::LiquidObservation, bow_clearance_m: Option<f64>) {
+        let (Some(metrics), Some(window)) = (&mut self.metrics.lng, &mut self.lng_lateral_window) else { return; };
+        let time_s = tick as f64 * DT;
+        let height = liquid.corner_heights_m.iter().copied().fold(0.0_f64, f64::max);
+        metrics.physics_samples += 1;
+        metrics.maximum_corner_height_m = metrics.maximum_corner_height_m.max(height);
+        metrics.corner_height_squared_integral_m2_s += height * height * DT;
+        metrics.outside_liquid_domain_duration_s += if liquid.within_small_amplitude { 0.0 } else { DT };
+        metrics.liquid_depth_m = liquid.liquid_depth_m;
+        metrics.final_heading_deg = euler_from_quaternion(state.quaternion).yaw_rad.to_degrees();
+        let rotation = super::state::rotation_matrix(state.quaternion);
+        metrics.final_north_ground_speed_mps = (0..3).map(|axis| rotation[0][axis] * state.body_velocity[axis]).sum();
+        metrics.final_bow_clearance_m = bow_clearance_m;
+        let lateral = state.position_ned[1].abs();
+        while window.back().is_some_and(|point| point[1] <= lateral) { window.pop_back(); }
+        window.push_back([time_s, lateral]);
+        while window.front().is_some_and(|point| point[0] < time_s - 60.0 - 1e-9) { window.pop_front(); }
+        metrics.final60s_lateral_maximum_m = window.front().map(|point| point[1]).unwrap_or(0.0);
+        metrics.lateral_window_duration_s = time_s.min(60.0);
     }
 
     pub fn event(&mut self, tick: u64, kind: &str) {
@@ -159,6 +239,30 @@ impl CourseEvidenceState {
 
     pub fn validate(&self, tick: u64, state: &TruthState) -> Result<(), String> {
         let time_s = tick as f64 * DT;
+        if self.metrics.lng.is_some() != self.lng_lateral_window.is_some() {
+            return Err("液货证据与横偏窗口不一致".into());
+        }
+        if let (Some(metrics), Some(window)) = (&self.metrics.lng, &self.lng_lateral_window) {
+            let rotation = super::state::rotation_matrix(state.quaternion);
+            let north_speed: f64 = (0..3).map(|axis| rotation[0][axis] * state.body_velocity[axis]).sum();
+            let values = [metrics.maximum_corner_height_m, metrics.corner_height_squared_integral_m2_s,
+                metrics.outside_liquid_domain_duration_s, metrics.liquid_depth_m, metrics.final60s_lateral_maximum_m,
+                metrics.lateral_window_duration_s];
+            if metrics.physics_samples != tick || values.iter().any(|value| !value.is_finite() || *value < 0.0)
+                || metrics.outside_liquid_domain_duration_s > time_s + 1e-7
+                || metrics.lateral_window_duration_s != time_s.min(60.0)
+                || !metrics.final_heading_deg.is_finite() || !metrics.final_north_ground_speed_mps.is_finite()
+                || metrics.final_bow_clearance_m.is_some_and(|value| !value.is_finite())
+                || window.len() > 7201 || (tick > 0 && window.is_empty())
+                || window.iter().any(|point| !point[0].is_finite() || !point[1].is_finite() || point[1] < 0.0
+                    || point[0] < (time_s - 60.0).max(0.0) - 1e-8 || point[0] > time_s)
+                || window.iter().zip(window.iter().skip(1)).any(|(first, second)| first[0] >= second[0] || first[1] <= second[1])
+                || window.front().is_some_and(|point| point[1] != metrics.final60s_lateral_maximum_m)
+                || (tick > 0 && ((metrics.final_heading_deg - euler_from_quaternion(state.quaternion).yaw_rad.to_degrees()).abs() > 1e-10
+                    || (metrics.final_north_ground_speed_mps - north_speed).abs() > 1e-10
+                    || window.back().is_none_or(|point| point[0] != time_s || point[1] != state.position_ned[1].abs())))
+            { return Err("液货物理细步统计或末60秒横偏窗口无效".into()); }
+        }
         if self.metrics.physics_samples != tick || self.previous_surface_rad != state.actuator_states.control_surface_angles_rad
             || self.recent_samples.len() > WINDOW_TICKS as usize + 1
             || self.events.iter().any(|event| !event.time_s.is_finite() || event.time_s < 0.0 || event.time_s > time_s + 1e-8)

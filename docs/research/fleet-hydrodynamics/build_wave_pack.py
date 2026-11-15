@@ -99,6 +99,8 @@ def main():
     write_json(args.output/first_asset['metadata_file'], first)
     if args.embed_first_order:
         shutil.copy2(args.first_order/'excitation-f32le.bin', args.output/'excitation-f32le.bin')
+    if (args.first_order/'validation.json').exists():
+        shutil.copy2(args.first_order/'validation.json', args.output/'first-order-export-validation.json')
     if second is not None:
         write_json(args.output/assets['full_difference']['metadata_file'], second)
     for descriptor in [first_asset, assets['full_difference']]:

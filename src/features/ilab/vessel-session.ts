@@ -15,24 +15,43 @@ import {
   type VesselSample,
 } from '@/resources/simulations/simulations/vessel-experiment';
 import { findVesselExperiment, VESSEL_EXPERIMENTS } from '@/resources/simulations/simulations/vessel-experiments';
+import { VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 
 import { emptyAiLedger, isAiUsageLedger, recordAiCall, type AiUsageLedger } from './ai-data';
 import type { IlabGrantPayload } from './grant-cookie';
 import { recognizeSketch } from './sketch-recognition';
 import { ILAB_PROJECT_TITLE, buildIlabUploadBody, type IlabUploadBody, type StoredIlabStep } from './payload';
 import { assertIlabRunOpen, IlabServiceError, toIlabHttpError, withIlabRunLock } from './run-lock';
-import { buildSafeStepWindow, ilabConfig, resolveSessionAuth, uploadWithAutoRefresh } from './session-shared';
+import { buildSafeStepWindow, ilabConfig, safeUploadWithAutoRefresh } from './session-shared';
+import type { IlabAuthUserSummary } from './adapters/ilab-account-service';
+import { syncPlatformReportForIlabRun } from './adapters/ilab-report-sync';
+import {
+  assertIlabRunAccess,
+  findRecoverableIlabRun,
+  mergeStepDrafts,
+  parseStepDrafts,
+  resolveIlabUploadMode,
+  resolveUnifiedSessionActor,
+} from './adapters/ilab-session-lifecycle';
 
 export { toIlabHttpError };
 
 export interface VesselSessionView {
+  userId: string | null;
+  experimentVersion: string;
   originId: string;
   displayName: string;
   status: number;
   score: number;
   uploadStatus: string;
+  uploadMode: 'local-only' | 'dev-bypass' | 'ilab-remote';
+  retryableUpload: boolean;
   currentSeq: number;
+  draftActiveSeq?: number;
   reportReady: boolean;
+  reportId: string | null;
+  reportHtml: string | null;
+  stepDrafts: Record<string, Record<string, string>>;
   steps: Array<{
     seq: number;
     title: string;
@@ -46,6 +65,9 @@ export interface VesselSessionView {
 }
 
 interface RunRecord {
+  id: string;
+  userId: string | null;
+  reportId: string | null;
   originId: string;
   appId: string;
   ilabUsername: string;
@@ -57,9 +79,11 @@ interface RunRecord {
   score: number;
   vesselId: string;
   steps: Prisma.JsonValue;
+  stepDrafts: Prisma.JsonValue;
   aiLedger: Prisma.JsonValue;
   reportHtml: string | null;
   uploadStatus: string;
+  experimentVersion?: string;
 }
 
 interface StoredVesselStep extends StoredIlabStep {
@@ -111,14 +135,24 @@ function currentSeq(experiment: VesselExperiment, steps: StoredVesselStep[]): nu
 
 function viewOf(experiment: VesselExperiment, run: RunRecord): VesselSessionView {
   const steps = readSteps(run.steps);
+  const drafts = parseStepDrafts(run.stepDrafts);
+  const uploadMode = resolveIlabUploadMode(run);
   return {
+    userId: run.userId,
+    experimentVersion: run.experimentVersion ?? 'legacy-v1',
     originId: run.originId,
     displayName: run.displayName,
     status: run.status,
     score: run.score,
     uploadStatus: run.uploadStatus,
+    uploadMode,
+    retryableUpload: uploadMode === 'ilab-remote' && (run.uploadStatus === 'failed' || run.uploadStatus === 'score-uploaded'),
     currentSeq: currentSeq(experiment, steps),
+    ...(drafts.activeSeq !== undefined ? { draftActiveSeq: drafts.activeSeq } : {}),
     reportReady: Boolean(run.reportHtml),
+    reportId: run.reportId,
+    reportHtml: run.reportHtml,
+    stepDrafts: drafts.bySeq,
     steps: steps.map((step) => ({
       seq: step.seq,
       title: step.title,
@@ -145,41 +179,90 @@ function clip(value: string): string {
 
 export type OpenVesselSessionResult =
   | { connected: false }
-  | { connected: true; session: VesselSessionView; grantToSet: IlabGrantPayload };
+  | {
+      connected: true;
+      resumed: boolean;
+      session: VesselSessionView;
+      grantToSet: IlabGrantPayload | null;
+      user: IlabAuthUserSummary | null;
+    };
 
 export async function openVesselSession(input: {
   ticket?: string;
   grant?: IlabGrantPayload | null;
   experimentKey: string;
+  forceNew?: boolean;
+  experimentVersion?: string;
+  platformUser?: { id: string; name?: string | null } | null;
 }): Promise<OpenVesselSessionResult> {
   const experiment = findVesselExperiment(input.experimentKey);
   if (!experiment) throw new IlabServiceError('实验不存在。', 404);
-  const auth = await resolveSessionAuth(input.ticket ?? '', input.grant ?? null);
-  if (!auth) {
+  if (input.experimentVersion && !['legacy-v1', VESSEL_COURSE_VERSION].includes(input.experimentVersion)) {
+    throw new IlabServiceError('实验课程版本不存在。', 400);
+  }
+  const actor = await resolveUnifiedSessionActor({
+    ticket: input.ticket,
+    grant: input.grant,
+    platformUser: input.platformUser,
+  });
+  if (!actor) {
     return { connected: false };
   }
-  const { grant } = auth;
+
+  const recoverable = await findRecoverableIlabRun({
+    vesselId: experiment.vesselId,
+    actor,
+    forceNew: input.forceNew,
+    experimentVersion: input.experimentVersion ?? 'legacy-v1',
+  });
+  if (recoverable) {
+    return {
+      connected: true,
+      resumed: true,
+      session: viewOf(experiment, recoverable),
+      grantToSet: actor.grantToSet,
+      user: actor.user,
+    };
+  }
+
   const originId = `${experiment.originPrefix}${Date.now().toString(36)}_${randomBytes(4).toString('hex')}`;
-  const runStartTimeMs = Math.max(Date.now(), grant.issuedAtMs);
+  const runStartTimeMs = actor.kind === 'ilab' ? Math.max(Date.now(), actor.grantToSet.issuedAtMs) : Date.now();
   const run = await prisma.ilabExperimentRun.create({
     data: {
       originId,
-      appId: grant.appId,
-      ilabUsername: grant.username,
-      displayName: grant.displayName,
-      accessToken: grant.accessToken,
-      tokenExpiresAt: grant.expiresAtMs ? new Date(grant.expiresAtMs) : null,
+      userId: actor.userId,
+      experimentVersion: input.experimentVersion ?? 'legacy-v1',
+      appId: actor.kind === 'ilab' ? actor.grantToSet.appId : 'platform',
+      ilabUsername: actor.kind === 'ilab' ? actor.grantToSet.username : actor.userId,
+      displayName: actor.displayName,
+      accessToken: actor.kind === 'ilab' ? actor.grantToSet.accessToken : '',
+      tokenExpiresAt: actor.kind === 'ilab' && actor.grantToSet.expiresAtMs
+        ? new Date(actor.grantToSet.expiresAtMs)
+        : null,
       startTimeMs: BigInt(runStartTimeMs),
       vesselId: experiment.vesselId,
+      uploadStatus: actor.kind === 'ilab' ? 'pending' : 'local-only',
       steps: [],
       aiLedger: emptyAiLedger() as unknown as Prisma.InputJsonValue,
     },
   });
-  return { connected: true, session: viewOf(experiment, run), grantToSet: grant };
+  return {
+    connected: true,
+    resumed: false,
+    session: viewOf(experiment, run),
+    grantToSet: actor.grantToSet,
+    user: actor.user,
+  };
 }
 
-export async function readVesselSession(originId: string): Promise<VesselSessionView> {
+export async function readVesselSession(
+  originId: string,
+  actor?: { userId?: string | null; grant?: IlabGrantPayload | null },
+): Promise<VesselSessionView> {
   const { experiment, run } = await findRun(originId);
+  if (actor) {
+    await assertIlabRunAccess(run, actor);
+  }
   return viewOf(experiment, run);
 }
 
@@ -238,11 +321,16 @@ export async function submitVesselStep(originId: string, input: {
       readings,
     };
     const nextSteps = [...steps.filter((step) => step.seq !== input.seq), stored];
+    const nextDrafts = mergeStepDrafts(run.stepDrafts, {
+      removeSeq: input.seq,
+      activeSeq: currentSeq(experiment, nextSteps),
+    });
     const ledger = recognition?.ok ? recordAiCall(readLedger(run.aiLedger), recognition.call) : readLedger(run.aiLedger);
     return tx.ilabExperimentRun.update({
       where: { originId },
       data: {
         steps: nextSteps as unknown as Prisma.InputJsonValue,
+        stepDrafts: nextDrafts as unknown as Prisma.InputJsonValue,
         aiLedger: ledger as unknown as Prisma.InputJsonValue,
         score: Math.round(nextSteps.reduce((sum, step) => sum + step.earnedPoints, 0) / vesselMaxPoints(experiment.steps) * 100),
       },
@@ -256,21 +344,88 @@ export async function completeVesselSession(originId: string): Promise<{
   upload: IlabUploadBody | null;
   remote: { message: string };
   refreshedGrant: IlabGrantPayload | null;
+  reportSaved: boolean;
+  reportId: string | null;
+  retryableUpload: boolean;
 }> {
   const { experiment, run } = await findRun(originId);
-  if (run.status === 1 && run.reportHtml && run.uploadStatus === 'uploaded') {
-    return { session: viewOf(experiment, run), upload: null, remote: { message: '实验成绩和报告已经回传。' }, refreshedGrant: null };
+  const uploadMode = resolveIlabUploadMode(run);
+  if (
+    run.status === 1
+    && run.reportHtml
+    && (run.uploadStatus === 'uploaded' || run.uploadStatus === 'local-only' || run.uploadStatus === 'skipped')
+  ) {
+    return {
+      session: viewOf(experiment, run),
+      upload: null,
+      remote: {
+        message: run.uploadStatus === 'local-only' ? '实验报告已保存到本平台账号。' : '实验成绩和报告已经回传。',
+      },
+      refreshedGrant: null,
+      reportSaved: Boolean(run.reportId),
+      reportId: run.reportId,
+      retryableUpload: false,
+    };
   }
   const steps = readSteps(run.steps);
   const done = new Set(steps.map((step) => step.seq));
   for (const step of experiment.steps) {
     if (!done.has(step.seq)) throw new IlabServiceError('请先完成全部实验步骤。', 422);
   }
+  const maxPointsTotal = vesselMaxPoints(experiment.steps);
+  const earnedTotal = steps.reduce((sum, item) => sum + item.earnedPoints, 0);
   const reportHtml = buildVesselReportHtml(experiment, {
     displayName: run.displayName,
     steps,
   });
-  const bypass = run.accessToken === 'dev-bypass-token';
+  const stepScores = steps.map((item) => ({
+    seq: item.seq,
+    title: item.title,
+    earnedPoints: item.earnedPoints,
+    maxPoints: item.maxPoints,
+    evaluation: item.evaluation,
+    remarks: item.remarks,
+  }));
+
+  const { reportId } = await syncPlatformReportForIlabRun({
+    runId: run.id,
+    userId: run.userId,
+    experimentKey: experiment.key,
+    experimentVersion: 'legacy-v1',
+    title: experiment.title,
+    score: earnedTotal,
+    maxScore: maxPointsTotal,
+    reportHtml,
+    stepScores,
+  });
+
+  if (uploadMode === 'local-only') {
+    const endTimeMs = Date.now();
+    const timeUsedSeconds = Math.max(1, Math.floor((endTimeMs - Number(run.startTimeMs)) / 1000));
+    const saved = await prisma.ilabExperimentRun.update({
+      where: { originId },
+      data: {
+        status: 1,
+        score: Math.round((earnedTotal / maxPointsTotal) * 100),
+        endTimeMs: BigInt(endTimeMs),
+        timeUsedSeconds,
+        reportHtml,
+        uploadStatus: 'local-only',
+        ...(reportId ? { reportId } : {}),
+      },
+    });
+    return {
+      session: viewOf(experiment, saved),
+      upload: null,
+      remote: { message: reportId ? '实验报告已保存到本平台账号。' : '报告已在本机生成。' },
+      refreshedGrant: null,
+      reportSaved: Boolean(reportId),
+      reportId,
+      retryableUpload: false,
+    };
+  }
+
+  const bypass = uploadMode === 'dev-bypass';
   const config = ilabConfig();
   const upload = buildIlabUploadBody({
     username: run.ilabUsername,
@@ -281,7 +436,7 @@ export async function completeVesselSession(originId: string): Promise<{
     status: 1,
     steps,
     ledger: readLedger(run.aiLedger),
-    pointTotal: vesselMaxPoints(experiment.steps),
+    pointTotal: maxPointsTotal,
     runStartTimeMs: Number(run.startTimeMs),
   });
   if (bypass) {
@@ -295,27 +450,50 @@ export async function completeVesselSession(originId: string): Promise<{
         reportHtml,
         uploadStatus: 'skipped',
         uploadResult: { skipped: true, reason: 'dev-bypass' },
+        ...(reportId ? { reportId } : {}),
       },
     });
     return {
       session: viewOf(experiment, saved),
       upload,
-      remote: { message: '本地演示没有回传实验空间。报告已生成。' },
+      remote: { message: reportId ? '本地演示没有回传实验空间。报告已保存到账号。' : '本地演示没有回传实验空间。报告已生成。' },
       refreshedGrant: null,
+      reportSaved: Boolean(reportId),
+      reportId,
+      retryableUpload: false,
     };
   }
-  const { saved, refreshedGrant } = await uploadWithAutoRefresh<RunRecord>({
-    run,
+
+  const uploadOutcome = await safeUploadWithAutoRefresh<RunRecord>({
+    run: reportId ? { ...run, reportId } : run,
     config,
     upload,
     reportFilename: `${experiment.key}-report.html`,
     reportTitle: `${experiment.title}实验报告`,
     reportHtml,
   });
+
+  if (!uploadOutcome.ok) {
+    return {
+      session: viewOf(experiment, { ...uploadOutcome.saved, reportId: uploadOutcome.saved.reportId ?? reportId }),
+      upload,
+      remote: {
+        message: `实验记录与报告已保存到本平台，但实验空间回传暂未成功（${uploadOutcome.errorMessage}），请点击“重新回传实验空间”重试。`,
+      },
+      refreshedGrant: null,
+      reportSaved: Boolean(reportId),
+      reportId,
+      retryableUpload: true,
+    };
+  }
+
   return {
-    session: viewOf(experiment, saved),
+    session: viewOf(experiment, { ...uploadOutcome.saved, reportId: uploadOutcome.saved.reportId ?? reportId }),
     upload,
-    remote: { message: '成绩和实验报告已回传。' },
-    refreshedGrant,
+    remote: { message: reportId ? '成绩和实验报告已回传，并已同步保存到本平台账号。' : '成绩和实验报告已回传。' },
+    refreshedGrant: uploadOutcome.refreshedGrant,
+    reportSaved: Boolean(reportId),
+    reportId,
+    retryableUpload: false,
   };
 }

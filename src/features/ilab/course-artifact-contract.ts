@@ -23,12 +23,16 @@ export const vesselCourseArtifactSchema = z.object({
     runRef:z.string().uuid(), mode:comparisonModeSchema, startS:finite.min(0), endS:finite.min(0),
     timeS:series, actual:series, predicted:series, measuredInput:series,
     predictedInput:series.nullable(), metrics:z.record(finite.nullable()),
-    outputUnit:z.string().max(40).optional(),actualHeadingDeg:z.array(finite.nullable()).max(72001).optional(),
+    outputUnit:z.string().max(40).optional(),outputChannel:z.string().max(80).optional(),
+    actualHeadingDeg:z.array(finite.nullable()).max(72001).optional(),
     predictedHeadingDeg:series.optional(),
+    actualBowClearanceM:series.optional(), predictedBowClearanceM:series.optional(),
     purpose:z.enum(['forecast','validation']), controllerInput:z.record(z.unknown()).optional(),
     createdAtMs:z.number().int().nonnegative(),
   }).refine((value) => value.endS > value.startS && value.timeS.length === value.predicted.length
-    && (value.purpose === 'forecast' || value.actual.length === value.timeS.length), {message:'对照窗口或数组长度无效'}).optional(),
+    && (value.purpose === 'forecast' || value.actual.length === value.timeS.length)
+    && (!value.predictedBowClearanceM || value.predictedBowClearanceM.length === value.timeS.length)
+    && (!value.actualBowClearanceM || value.actualBowClearanceM.length === value.timeS.length), {message:'对照窗口或数组长度无效'}).optional(),
   attempt:z.object({
     clientRef:z.string().uuid(), stepSequence:z.number().int().min(1).max(20),
     runRefs:z.array(z.string().uuid()).max(100), modelClientRefs:z.array(z.string().uuid()).max(100),

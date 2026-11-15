@@ -25,8 +25,33 @@ import {
 } from './vessel-experiment';
 import { SketchPad } from './sketch-pad';
 import type { VesselExperimentController } from './use-vessel-experiment';
+import {VesselModelWorkbench} from '../experiments/model-workbench';
+import type {IdentificationChannel} from '../experiments/student-analysis';
+import {SimPanelSection} from '../components/simulation-panels';
 
 Chart.register(...registerables);
+
+export function VesselCourseEvidencePanel<Settings extends object>({session,defaultChannel}:{
+  session:VesselExperimentController<Settings>;defaultChannel:IdentificationChannel;
+}) {
+  const course=session.course;
+  if (!course) return null;
+  return <div className="space-y-4">
+    <SimPanelSection title="本机实验轮次">
+      <div className="space-y-2"><select className="sim-hud-input" aria-label="本机实验轮次" value={course.scopeKey}
+        disabled={session.busy || !course.ready} onChange={(event)=>{void course.selectRound(event.target.value);}}>
+        {course.rounds.map((draft)=><option key={draft.scopeKey} value={draft.scopeKey}>
+          {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步
+        </option>)}</select>
+        <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || !course.ready}
+          onClick={()=>{void session.restartIlabSession();}}>开启新一轮实验</Button>
+      </div>
+    </SimPanelSection>
+    <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy}
+      onClick={()=>{void course.upload();}}>上传或重试保存本人证据</Button>
+    <VesselModelWorkbench scopeKey={course.scopeKey} runs={course.runs} onArtifactsChange={course.onArtifactsChange} defaultChannel={defaultChannel} />
+  </div>;
+}
 
 const SERIES_COLORS = [
   simulationScenePalette.danger,
@@ -68,7 +93,8 @@ export function VesselStepList({
         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-platform-fg-primary/10">
           <div className="h-full rounded-full bg-platform-action-primary shadow-[0_0_10px_hsl(var(--platform-action-primary))] transition-[width] duration-500" style={{ width: `${progress}%` }} />
         </div>
-        <p className="mt-2 text-[11px] leading-4 text-platform-fg-muted">当前进行第 {activeSeq} 步。已完成的步骤可以回去重做，只保留更好的成绩。还没完成的后续步骤不能打开。</p>
+        <p className="mt-2 text-[11px] leading-4 text-platform-fg-muted">当前进行第 {activeSeq} 步。{experiment.courseVersion
+          ? '各次提交和运行均保留，成绩由教师复核。' : '已完成的步骤可以回去重做，只保留更好的成绩。'}还没完成的后续步骤不能打开。</p>
       </div>
       <ol className="relative space-y-1.5 before:absolute before:bottom-3 before:left-[15px] before:top-3 before:w-px before:bg-platform-fg-primary/10">
         {experiment.steps.map((step) => {
@@ -268,11 +294,13 @@ export function VesselStepForm({
   reportEnabled,
   showReport,
   showRestart = false,
+  showRetryUpload = false,
   onChange,
   onSubmit,
   onReport,
   onAsk,
   onRestart,
+  onRetryUpload,
 }: {
   step: VesselStep;
   readings: VesselReadings;
@@ -281,11 +309,13 @@ export function VesselStepForm({
   reportEnabled: boolean;
   showReport: boolean;
   showRestart?: boolean;
+  showRetryUpload?: boolean;
   onChange: (key: string, value: string) => void;
   onSubmit: () => void;
   onReport: () => void;
   onAsk: () => void;
   onRestart?: () => void;
+  onRetryUpload?: () => void;
 }) {
   return (
     <div className="w-full space-y-2.5">
@@ -321,6 +351,9 @@ export function VesselStepForm({
         {showReport ? (
           <Button type="button" size="sm" variant="outline" disabled={!reportEnabled} onClick={onReport} data-vessel-report className={simulationUi.buttonOutline}>查看实验报告</Button>
         ) : null}
+        {showRetryUpload && onRetryUpload ? (
+          <Button type="button" size="sm" variant="outline" disabled={busy} onClick={onRetryUpload} data-vessel-retry-upload className={cn(simulationUi.buttonPrimary, 'col-span-2')}>重新回传实验空间</Button>
+        ) : null}
         {showRestart && onRestart ? (
           <Button type="button" size="sm" variant="outline" disabled={busy} onClick={onRestart} data-vessel-restart className={cn(simulationUi.buttonOutline, 'col-span-2')}>开启新一轮实验</Button>
         ) : null}
@@ -336,7 +369,7 @@ export function VesselReportHistory({
   onOpen,
 }: {
   signedIn: boolean;
-  reports: Array<{ id: string; score: number; maxScore: number; createdAt: string }>;
+  reports: Array<{ id: string; score: number | null; maxScore: number; createdAt: string }>;
   onOpen: (id: string) => void;
 }) {
   return (
@@ -350,7 +383,7 @@ export function VesselReportHistory({
             <li key={report.id} className="sim-hud-tile flex items-center gap-2 px-2.5 py-2 text-xs text-platform-fg-secondary">
               <FileText className="h-3.5 w-3.5 shrink-0 text-platform-action-primary" aria-hidden="true" />
               <span className="min-w-0 flex-1 truncate">{new Date(report.createdAt).toLocaleString('zh-CN', { hour12: false })}</span>
-              <span className="sim-hud-value shrink-0">成绩 {report.score}/{report.maxScore}</span>
+              <span className="sim-hud-value shrink-0">{report.score === null ? '待复核' : `成绩 ${report.score}/${report.maxScore}`}</span>
               <Button type="button" size="sm" variant="outline" className={cn(simulationUi.buttonOutline, 'h-7 px-2')} onClick={() => onOpen(report.id)}>查看</Button>
             </li>
           ))}
@@ -360,7 +393,7 @@ export function VesselReportHistory({
   );
 }
 
-export function VesselExperimentDocks({
+export function VesselExperimentDocks<Settings extends object>({
   experiment,
   session,
   status,
@@ -368,7 +401,7 @@ export function VesselExperimentDocks({
   assessment,
 }: {
   experiment: VesselExperiment;
-  session: VesselExperimentController;
+  session: VesselExperimentController<Settings>;
   status?: ReactNode;
   controls: ReactNode;
   assessment?: ReactNode;
@@ -449,20 +482,24 @@ export function VesselExperimentDocks({
                 hint={session.step.suggestion}
                 controls={controls}
                 submission={(
+                  <fieldset className="m-0 min-w-0 border-0 p-0" disabled={Boolean(session.course && !session.course.ready)}>
                   <VesselStepForm
                     step={session.step}
                     readings={session.readings}
                     message={session.message}
-                    busy={session.busy}
+                    busy={session.busy || Boolean(session.course && !session.course.ready)}
                     reportEnabled={session.reportEnabled}
                     showReport={session.step.seq === experiment.steps.length}
-                    showRestart={session.sessionCompleted}
+                    showRestart={session.sessionCompleted || Boolean(session.course && session.reportEnabled)}
+                    showRetryUpload={session.uploadFailed}
                     onChange={session.setReading}
                     onSubmit={() => { void session.submitStep(); }}
                     onReport={session.openReport}
                     onAsk={session.ask}
                     onRestart={() => { void session.restartIlabSession(); }}
+                    onRetryUpload={() => { void session.retryIlabUpload(); }}
                   />
+                  </fieldset>
                 )}
               />
             ),

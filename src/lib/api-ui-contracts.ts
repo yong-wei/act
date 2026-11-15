@@ -1,6 +1,7 @@
 import type { UserRole } from '@prisma/client';
 
 export type AdminUsersRoleFilter = 'ALL' | UserRole;
+export type AdminUsersSourceFilter = 'ALL' | 'PLATFORM' | 'ILAB';
 export type ApiUiContractStateKind =
   | 'no-match'
   | 'bad-object'
@@ -21,6 +22,7 @@ export interface ApiUiContractRecoveryState {
 export interface AdminUsersQueryContract {
   search: string;
   role: AdminUsersRoleFilter;
+  accountSource: AdminUsersSourceFilter;
   page: number;
   pageSize: number;
   action: string | null;
@@ -28,17 +30,21 @@ export interface AdminUsersQueryContract {
   source: {
     searchParam: 'q' | 'search' | null;
     roleSupported: boolean;
+    accountSourceSupported: boolean;
     pageValid: boolean;
     pageSizeValid: boolean;
   };
 }
 
 const USER_ROLES: readonly UserRole[] = ['STUDENT', 'TEACHER', 'ADMIN'];
+const USER_SOURCES: readonly AdminUsersSourceFilter[] = ['ALL', 'PLATFORM', 'ILAB'];
 
 export function normalizeAdminUsersQueryContract(input: {
   q?: string | string[] | null;
   search?: string | string[] | null;
   role?: string | string[] | null;
+  accountSource?: string | string[] | null;
+  source?: string | string[] | null;
   page?: string | string[] | number | null;
   pageSize?: string | string[] | number | null;
   action?: string | string[] | null;
@@ -48,17 +54,20 @@ export function normalizeAdminUsersQueryContract(input: {
   const q = firstQueryValue(input.q)?.trim() ?? '';
   const search = firstQueryValue(input.search)?.trim() ?? '';
   const role = firstQueryValue(input.role);
+  const rawAccountSource = (firstQueryValue(input.accountSource) ?? firstQueryValue(input.source))?.trim().toUpperCase() ?? null;
   const rawPage = firstQueryValue(input.page);
   const rawPageSize = firstQueryValue(input.pageSize);
   const page = positiveInteger(firstQueryValue(input.page), 1);
   const pageSize = clamp(positiveInteger(firstQueryValue(input.pageSize), 12), 1, 50);
   const roleSupported = !role || role === 'ALL' || USER_ROLES.includes(role as UserRole);
+  const accountSourceSupported = !rawAccountSource || USER_SOURCES.includes(rawAccountSource as AdminUsersSourceFilter);
   const pageValid = isPositiveInteger(rawPage) || rawPage === null;
   const pageSizeValid = rawPageSize === null || (isPositiveInteger(rawPageSize) && Number(rawPageSize) <= 50);
 
   return {
     search: q || search,
     role: roleSupported && role && role !== 'ALL' ? role as UserRole : 'ALL',
+    accountSource: accountSourceSupported && rawAccountSource ? (rawAccountSource as AdminUsersSourceFilter) : 'ALL',
     page,
     pageSize,
     action: firstQueryValue(input.action),
@@ -66,6 +75,7 @@ export function normalizeAdminUsersQueryContract(input: {
     source: {
       searchParam: q ? 'q' : search ? 'search' : null,
       roleSupported,
+      accountSourceSupported,
       pageValid,
       pageSizeValid,
     },

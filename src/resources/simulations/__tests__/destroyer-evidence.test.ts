@@ -37,6 +37,40 @@ describe('055本人控制方案与报告证据', () => {
     expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[17],evidence)).toContain('保持');
   });
 
+  it('波浪与滤波对照需要固定其他条件，积分对照保持PD基准参数',()=>{
+    const evidence = {models:[model],comparisons:[],answers:{interpretation:'按同条件证据比较'}};
+    const calm = run('calm',14), waves = run('waves',14);
+    calm.configuration = {...calm.configuration,environment:'P0'};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[13],{...evidence,runs:[calm,waves]})).toBeNull();
+    waves.initialInput = {...waves.initialInput,pid:{...waves.initialInput.pid,kp:2}};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[13],{...evidence,runs:[calm,waves]})).toContain('同一控制器');
+    const raw = run('raw',15), filtered = run('filtered',15);
+    raw.initialInput = {...raw.initialInput,derivativeFilterTauS:0};
+    filtered.initialInput = {...filtered.initialInput,derivativeFilterTauS:.2};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[14],{...evidence,runs:[raw,filtered]})).toBeNull();
+    filtered.configuration = {...filtered.configuration,seed:17};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[14],{...evidence,runs:[raw,filtered]})).toContain('固定其余参数');
+    const pd = run('pd',11),pid = run('pid',11);
+    pd.initialInput = {...pd.initialInput,controlMode:'pd'};
+    pid.initialInput = {...pid.initialInput,pid:{kp:1,ki:.01,kd:0}};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[10],{...evidence,runs:[pd,pid]})).toBeNull();
+    pid.initialInput.pid.kd = 1;
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[10],{...evidence,runs:[pd,pid]})).toContain('固定其余参数');
+  });
+
+  it('边界步骤保留10m/s及8m/s两次运行并继承同一冻结来源',()=>{
+    const source = run('source',17),high = run('high',19),reduced = run('reduced',19);
+    for(const item of [high,reduced]) {
+      item.createdAtMs=4;item.controllerSourceRunId=source.id;item.initialInput=structuredClone(source.initialInput);
+    }
+    reduced.configuration={...reduced.configuration,initialWaterSpeedMps:8};
+    const evidence = {models:[model],comparisons:[],answers:{interpretation:'保留边界和降速证据'}};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[18],{...evidence,runs:[source,high]})).toContain('至少2次');
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[18],{...evidence,runs:[source,high,reduced]})).toBeNull();
+    reduced.configuration={...reduced.configuration,seed:17};
+    expect(validateDestroyerCourseEvidence(DESTROYER_COURSE_STEPS[18],{...evidence,runs:[source,high,reduced]})).toContain('两次同条件');
+  });
+
   it('六部分报告绑定训练、独立验证及同条件方案，不增加第七个说明', () => {
     const training = run('training',3), validation = run('validation',5);
     const first = run('first',9,.5), second = run('second',10,1);

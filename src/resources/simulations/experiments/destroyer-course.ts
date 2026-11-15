@@ -62,7 +62,7 @@ const settings: readonly Setting[] = [
     artifacts: ['prediction', 'run', 'frozen-controller', 'fair-comparison', 'interpretation'] },
   { durationS: 600, mode: 'pid', environment: 'E1', noise: 'N1', events: heading10, speedMps: 6, seed: 17,
     artifacts: ['prediction', 'run', 'frozen-controller', 'unseen-validation', 'interpretation'] },
-  { durationS: 600, mode: 'pid', environment: 'E1', noise: 'N1', events: heading10, speedMps: 10, seed: 29,
+  { durationS: 600, mode: 'pid', environment: 'E1', noise: 'N1', events: heading10, speedMps: 10, seed: 29, minimumRuns: 2,
     artifacts: ['prediction', 'run', 'constraint-check', 'boundary-judgment', 'interpretation'] },
   { durationS: 600, mode: 'manual', analysis: true, minimumRuns: 4,
     artifacts: ['model-assumptions', 'four-own-runs', 'controller-comparison', 'applicability-boundary', 'report'] },

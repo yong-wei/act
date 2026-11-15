@@ -1,0 +1,82 @@
+{
+  "schema": "act.lng-course-controls-validation.v1",
+  "status": "passed",
+  "generator_sha256": "706bef8569b7d2db5dec29c25b8a2f027f2cfa178e66031e2e76e7044a8a85bb",
+  "wasm_sha256": "03814171abba7b54bff961b0d249c380ad8b80185cfbe25847494caff4a6f319",
+  "configuration": {
+    "vessel": "lng-changheng",
+    "parameterVersion": "research-nominal-v2",
+    "initialWaterSpeedMps": 4,
+    "loadingRatio": 0.85,
+    "environment": "P0",
+    "noiseLevel": "N0",
+    "seed": 20261106,
+    "berth": {
+      "stopLineNorthM": 0,
+      "initialBowDistanceM": 600
+    },
+    "courseEvidence": {
+      "rollWarningDeg": 8
+    }
+  },
+  "controller_fixture": "Declared nominal interface fixture for control and persistence verification.",
+  "actual": {
+    "physicsTicks": 1440,
+    "controllerTicks": 240,
+    "controller": {
+      "appliedRpm": -85.56010112544388,
+      "errorMps": -2.1415228400219006,
+      "feedbackAvailable": true,
+      "feedbackMps": 3.9809471774053025,
+      "filteredMeasurementMps": 3.9809471774053025,
+      "gains": {
+        "kpRpmPerMps": 56.60377358490565,
+        "lambdaS": 33.333333333333336,
+        "tiS": 100,
+        "trackingTimeS": 20
+      },
+      "integralFrozen": false,
+      "integralRateRpmPerS": -1.2121827396350378,
+      "integralRpm": -14.090572540819029,
+      "modelWithDelayDeltaMps": -0.5807407239758079,
+      "modelWithoutDelayDeltaMps": -0.7013327430679183,
+      "requestedRpm": -85.56010112544388,
+      "ticks": 240,
+      "unsaturatedRpm": -85.56010112544388
+    },
+    "bow": {
+      "bowClearanceM": 552.0757921350361,
+      "northGroundSpeedMps": 3.979922023655063,
+      "termination": null
+    },
+    "waterSpeedMps": 3.9799220201405388,
+    "shaftSpeedsRadS": [
+      4.05826086618373,
+      4.05826086618373
+    ],
+    "complete_future_bytes_identical": true,
+    "pause_bytes_identical": true,
+    "plan_revision_rejected_atomically": true
+  },
+  "forecast": {
+    "samplingHz": 5,
+    "internalControlHz": 20,
+    "durationS": 600,
+    "gains": {
+      "kpRpmPerMps": 56.60377358490565,
+      "lambdaS": 33.333333333333336,
+      "tiS": 100,
+      "trackingTimeS": 20
+    },
+    "finalReferenceStepSpeedMps": 2.9999995158042356,
+    "finalBrakingSpeedMps": 0.5836897188348731,
+    "finalBrakingBowDistanceM": 172.67954386458848,
+    "constantWaterSpeedWithCurrentFinalBowDistanceM": -1079.9999999999663
+  },
+  "complete_legacy_future_bytes_identical": true,
+  "pending": [
+    "Normal LNG page integration",
+    "Student identification provenance",
+    "Full twenty-step and constrained E1 berthing acceptance"
+  ]
+}

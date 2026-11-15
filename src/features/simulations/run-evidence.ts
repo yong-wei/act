@@ -1,26 +1,50 @@
-import type { VesselControlSample, VesselFineStepPoint, VesselObservedSample, VesselSessionConfiguration, VesselSessionInput } from '@/lib/control-engine/vessel-session';
+import type { VesselControlSample, VesselFineStepPoint, VesselObservedSample, VesselSessionConfiguration, VesselSessionFrame, VesselSessionInput } from '@/lib/control-engine/vessel-session';
 import type { VesselCourseKey } from '@/resources/simulations/experiments/course-catalog';
 
 export interface VesselTracePoint {
+  cruise?: VesselSessionFrame['cruiseController'];
+  container?: VesselSessionFrame['containerController'];
+  liquid?: {modeHeightsM:number[];cornerHeightsM:number[];withinSmallAmplitude:boolean};
+  longitudinal?: {referenceMps:number|null;filteredMeasurementMps:number|null;feedbackMps:number|null;
+    integralRpm:number;unsaturatedRpm:number;requestedRpm:number;appliedRpm:number;integralFrozen:boolean};
   timeS: number;
   command: { headingDeg: number; shaftRpm: number[]; surfaceDeg: number[] };
   measurements: Record<string, { value: number | null; sampledAtS: number; arrivedAtS: number; quality: string }>;
-  estimate: { headingDeg: number; yawRateDegS: number; groundBodySpeedMps: number; northM: number; eastM: number };
+  estimate: { headingDeg: number; yawRateDegS: number; groundBodySpeedMps: number;
+    groundBodyLateralSpeedMps?:number; northM: number; eastM: number };
   dynamics?: VesselControlSample['dynamics'];
   truth: {
     headingDeg: number; yawRateDegS: number; rollDeg: number; pitchDeg: number; rollRateDegS: number; pitchRateDegS: number;
     waterSpeedMps: number; groundBodySpeedMps: number; northM: number; eastM: number;
+    waterLateralSpeedMps?:number;
     shaftRpm: number[]; surfaceDeg: number[]; azimuthDeg: number[];
     windLoad: number[] | null; waveFirstLoad: number[] | null; waveSecondLoad: number[] | null;
     propellerWorkJ: number[];
     motorPowerW: number[]; positiveMotorWorkJ: number; fuelKg: number | null;
     positionNedM?: [number,number,number];
+    bowClearanceM?: number;
     quaternionWxyz?: [number,number,number,number];
     bodyVelocitySi?: [number,number,number,number,number,number];
   };
 }
 
+export type VesselRunMetrics = {
+  sampleCadenceS:number;
+  validHeadingSamples:number;
+  missingHeadingSamples:number;
+  headingRmseDeg:number | null;
+  final120sHeadingMaeDeg:number | null;
+  headingOvershootPercent:number | null;
+  settlingTimeS:number | null;
+  settlingBandDeg:number;
+  rudderTotalVariationDeg:number;
+  maximumRollDeg:number;
+  maximumShaftPowerW:number;
+  positiveMotorWorkJ:number;
+};
+
 export interface VesselRunEvidence {
+  cruiseComfort?: VesselSessionFrame['cruiseComfort'];
   id: string;
   scopeKey: string;
   courseKey: VesselCourseKey;
@@ -35,8 +59,10 @@ export interface VesselRunEvidence {
   initialInput: VesselSessionInput;
   controllerSourceRunId?: string;
   designStudentModelId?: string;
+  courseSettings?: Record<string, unknown>;
   parameterHash: string;
   runtimeVersion?:string;
+  parameters?: VesselSessionFrame['parameters'];
   initialCheckpoint: string;
   checkpoint: string;
   trace: VesselTracePoint[];
@@ -78,7 +104,15 @@ export function collectVesselTracePoint(frame: VesselControlSample,
   const actual = frame.truth.actuator_states;
   const power = actual.motor_torques_nm.map((torque, index) => torque * actual.propeller_shaft_speed_rad_s[index]);
   const loads = frame.dynamics?.external_components;
+  const speed = frame.longitudinal;
   return { timeS: frame.timeS,
+    ...(frame.cruise ? {cruise: frame.cruise} : {}),
+    ...(frame.container ? {container: frame.container} : {}),
+    ...(frame.liquid ? {liquid:{modeHeightsM:frame.liquid.modeHeightsM,cornerHeightsM:frame.liquid.cornerHeightsM,
+      withinSmallAmplitude:frame.liquid.withinSmallAmplitude}} : {}),
+    ...(speed ? {longitudinal:{referenceMps:speed.referenceMps ?? null,filteredMeasurementMps:speed.filteredMeasurementMps,
+      feedbackMps:speed.feedbackMps,integralRpm:speed.integralRpm,unsaturatedRpm:speed.unsaturatedRpm,
+      requestedRpm:speed.requestedRpm,appliedRpm:speed.appliedRpm,integralFrozen:speed.integralFrozen}} : {}),
     command: { headingDeg: frame.targetHeadingDeg,
       shaftRpm: frame.heldCommands.shafts.map((shaft) => shaft.speed_reference_rad_s * 30 / Math.PI),
       surfaceDeg: frame.heldCommands.surfaces.map((surface) => surface.angle_rad * 180 / Math.PI) },
@@ -86,12 +120,15 @@ export function collectVesselTracePoint(frame: VesselControlSample,
     estimate: { headingDeg: frame.observer.position_heading[2] * 180 / Math.PI,
       yawRateDegS: frame.observer.body_velocity[2] * 180 / Math.PI,
       groundBodySpeedMps: frame.observer.body_velocity[0], northM: frame.observer.position_heading[0],
+      groundBodyLateralSpeedMps:frame.observer.body_velocity[1],
       eastM: frame.observer.position_heading[1] },
     truth: { headingDeg: frame.attitudeDeg.heading, yawRateDegS: frame.truth.body_velocity[5] * 180 / Math.PI,
       rollDeg: frame.attitudeDeg.roll, pitchDeg: frame.attitudeDeg.pitch,
       rollRateDegS: frame.truth.body_velocity[3]*180/Math.PI, pitchRateDegS: frame.truth.body_velocity[4]*180/Math.PI,
       positionNedM:frame.truth.position_ned,quaternionWxyz:frame.truth.quaternion,bodyVelocitySi:frame.truth.body_velocity,
+      bowClearanceM:frame.bowClearanceM,
       waterSpeedMps: frame.waterVelocityBody[0], groundBodySpeedMps: frame.truth.body_velocity[0],
+      waterLateralSpeedMps:frame.waterVelocityBody[1],
       northM: frame.truth.position_ned[0], eastM: frame.truth.position_ned[1],
       shaftRpm: actual.propeller_shaft_speed_rad_s.map((value) => value * 30 / Math.PI),
       surfaceDeg: actual.control_surface_angles_rad.map((value) => value * 180 / Math.PI),

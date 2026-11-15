@@ -30,6 +30,7 @@ export class VesselRunRecorder {
       this.run.trace.push(collectVesselTracePoint(sample, previous?.measurements ?? {}));
     }
     this.run.lastTimeS = frame.timeS;
+    if (frame.cruiseComfort) this.run.cruiseComfort = frame.cruiseComfort;
     this.run.nativeSensorSamples.push(...frame.samples);
     if (frame.fineStepSamples) {
       this.run.fineStepSamples ??= [];

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { clearIlabOriginSessionStorage, stripIlabUrlParams } from '@/features/ilab/client-grant';
 import {
   Anchor,
@@ -267,6 +268,7 @@ function simulationTaskFit(simulation: SimulationInfo) {
 // ============ 页面组件 ============
 
 export default function SimulationsPage() {
+  const { data: session, update: updateSession } = useSession();
   const searchParams = useSearchParams();
   const compatibilitySource = searchParams.get('compat');
   const arrivalTicket = searchParams.get('ticket')?.trim() ?? '';
@@ -293,6 +295,7 @@ export default function SimulationsPage() {
           const body = await response.json() as {
             connected?: boolean;
             displayName?: string;
+            userId?: string;
             error?: string;
           };
           if (cancelled) return;
@@ -310,6 +313,9 @@ export default function SimulationsPage() {
           setIlabStudentName(body.displayName || '');
           setIlabStatus('connected');
           setIlabMessage('');
+          if (body.userId && session?.user?.id !== body.userId) {
+            void updateSession();
+          }
         } catch {
           if (!cancelled) {
             setIlabStatus('error');
@@ -325,11 +331,15 @@ export default function SimulationsPage() {
         const body = await response.json() as {
           connected?: boolean;
           displayName?: string;
+          userId?: string;
         };
         if (cancelled) return;
         if (body.connected) {
           setIlabStudentName(body.displayName || '');
           setIlabStatus('connected');
+          if (body.userId && session?.user?.id !== body.userId) {
+            void updateSession();
+          }
         }
       } catch {
         // Ignore network errors while checking optional iLab grant status.
@@ -338,7 +348,7 @@ export default function SimulationsPage() {
     return () => {
       cancelled = true;
     };
-  }, [arrivalTicket]);
+  }, [arrivalTicket, session?.user?.id, updateSession]);
 
   async function handleDisconnectIlab() {
     try {

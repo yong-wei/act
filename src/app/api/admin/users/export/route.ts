@@ -27,6 +27,8 @@ export async function GET(request: NextRequest) {
     q: searchParams.get('q'),
     search: searchParams.get('search'),
     role: searchParams.get('role'),
+    accountSource: searchParams.get('accountSource'),
+    source: searchParams.get('source'),
   });
 
   if (!query.source.roleSupported) {
@@ -39,9 +41,22 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  if (!query.source.accountSourceSupported) {
+    return NextResponse.json(
+      {
+        error: '账号来源筛选参数无效，已阻止导出。',
+        code: 'invalid-account-source-filter',
+      },
+      { status: 400 },
+    );
+  }
+
   const where: Prisma.UserWhereInput = {};
   if (query.role !== 'ALL') {
     where.role = query.role;
+  }
+  if (query.accountSource !== 'ALL') {
+    where.accountSource = query.accountSource;
   }
   if (query.search) {
     where.OR = [
@@ -76,6 +91,7 @@ export async function GET(request: NextRequest) {
     user.role,
     user.profile?.studentNumber ?? user.employeeNumber ?? '',
     user.profile?.className ?? '',
+    (user.accountSource ?? 'PLATFORM') === 'ILAB' ? '实验空间用户' : '本平台用户',
     user.createdAt.toISOString(),
   ]);
   const exportSetDigest = createHash('sha256')
@@ -83,7 +99,7 @@ export async function GET(request: NextRequest) {
     .digest('hex')
     .slice(0, 16);
   const csv = toCsv([
-    ['id', 'name', 'email', 'role', 'account', 'className', 'createdAt'],
+    ['id', 'name', 'email', 'role', 'account', 'className', 'accountSource', 'createdAt'],
     ...exportRows,
   ]);
   const filename = `admin-users-${query.role.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`;
@@ -92,13 +108,16 @@ export async function GET(request: NextRequest) {
     kind: 'admin-users-export',
     actorId: session.user.id,
     actorRole: session.user.role,
-    scope: `admin-users-export:${query.role}`,
+    scope: query.accountSource !== 'ALL'
+      ? `admin-users-export:${query.role}:${query.accountSource}`
+      : `admin-users-export:${query.role}`,
     startedAt: completedAt,
     completedAt,
     outcome: 'export-ready',
     idempotencyKey: buildAdminOperationIdempotencyKey([
       'admin-users-export',
       query.role,
+      query.accountSource,
       query.search,
       total,
       users.length,

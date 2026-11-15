@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { VesselTracePoint } from '@/features/simulations/run-evidence';
 import { calculateVesselRunMetrics } from '../course-run-metrics';
-import { summarizeVesselReview, vesselStepReviewLimits, type VesselStepReview } from '../course-report-review-contract';
+import { summarizeVesselReview, vesselStepReviewLimits, vesselCourseStepReviewLimits, type VesselStepReview } from '../course-report-review-contract';
 
 function trace(endTimeS:number, settledAtS:number):VesselTracePoint[] {
   return Array.from({length:Math.round(endTimeS*20)},(_,tick)=>{
@@ -50,5 +50,12 @@ describe('20Hz运行评价与教师量规',()=>{
     expect(summarizeVesselReview(steps).complete).toBe(false);
     expect(summarizeVesselReview(steps).finalScore).toBeNull();
     expect(summarizeVesselReview(steps).earned).toBe(99.1);
+  });
+  it('LNG设计阶段与教师服务端、页面使用同一课程量规', () => {
+    expect(vesselCourseStepReviewLimits('lng', 7)).toEqual(vesselStepReviewLimits(7, true));
+    expect(vesselCourseStepReviewLimits('lng', 6)).toEqual(vesselStepReviewLimits(6, false));
+    const score = Array.from({length: 20}, (_, index) => vesselCourseStepReviewLimits('lng', index + 1))
+      .flatMap((limits) => Object.values(limits)).reduce((sum, value) => sum + value, 0);
+    expect(score).toBeCloseTo(100, 10);
   });
 });

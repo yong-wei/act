@@ -12,12 +12,17 @@ import { uploadVesselRunEvidence } from '@/features/simulations/evidence-upload'
 import { readVesselEvidenceJson } from '@/features/ilab/course-evidence-api';
 import { vesselEvidenceOpeningSchema, vesselTraceChunkSchema, vesselEvidenceCloseSchema } from '@/features/ilab/course-evidence-contract';
 import { openVesselEvidenceRun, findOwnedVesselRun } from '@/features/ilab/course-evidence-service';
-import { appendVesselEvidenceChunk, closeVesselEvidenceRun } from '@/features/ilab/course-evidence-chunks';
+import { appendVesselEvidenceChunk, closeVesselEvidenceRun, stageVesselEvidenceChunk } from '@/features/ilab/course-evidence-chunks';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
+import { LNG_COURSE_STEPS, lngCourseDefaultSettings, lngCourseInput } from '@/resources/simulations/experiments/lng-course';
+import {containerCourseConfiguration,containerCourseDefaultSettings,containerCourseInput} from '@/resources/simulations/experiments/container-course';
+import {cruiseCourseConfiguration,cruiseCourseDefaultSettings,cruiseCourseInput} from '@/resources/simulations/experiments/cruise-course';
+import type {FrozenVesselStudentModel} from '@/resources/simulations/experiments/student-analysis';
 import { saveVesselCourseArtifact } from '@/features/ilab/course-artifact-service';
 import { vesselCourseArtifactSchema } from '@/features/ilab/course-artifact-contract';
 import { readVesselReportEvidence, reviewVesselCourseReport } from '@/features/ilab/course-report-review';
 import { vesselStepReviewLimits } from '@/features/ilab/course-report-review-contract';
+import { loadCourseSessionRecovery } from '@/features/ilab/adapters/course-session-recovery';
 
 config({ path: '.env.local', quiet: true });
 config({ quiet: true });
@@ -30,6 +35,7 @@ const reviewer = await prisma.user.create({ data: { name:'vessel reviewer integr
 const native = createServerVesselSession(DESTROYER_COURSE_STEPS[0].configuration);
 const fetchOriginal = globalThis.fetch;
 const captured: Array<{ url: string; data: unknown }> = [];
+let interruptCheckpointCommit = false;
 try {
   const frame = JSON.parse(native.read()) as VesselSessionFrame;
   frame.input.feedback = 'measurement';
@@ -49,8 +55,13 @@ try {
     const data = await readVesselEvidenceJson(request);
     captured.push({ url:String(url), data });
     let result;
-    if (String(url).endsWith('/chunks')) result = await appendVesselEvidenceChunk(user.id,vesselTraceChunkSchema.parse(data));
-    else if (options?.method === 'PUT') result = await closeVesselEvidenceRun(user.id,run.id,vesselEvidenceCloseSchema.parse(data));
+    if (String(url).includes('/chunks')) result = String(url).endsWith('?stage=1')
+      ? await stageVesselEvidenceChunk(user.id,vesselTraceChunkSchema.parse(data))
+      : await appendVesselEvidenceChunk(user.id,vesselTraceChunkSchema.parse(data));
+    else if (options?.method === 'PUT') {
+      if (interruptCheckpointCommit) throw new Error('Interrupted before atomic checkpoint commit');
+      result = await closeVesselEvidenceRun(user.id,run.id,vesselEvidenceCloseSchema.parse(data));
+    }
     else result = await openVesselEvidenceRun(user.id,vesselEvidenceOpeningSchema.parse(data));
     return Response.json(result);
   };
@@ -67,8 +78,39 @@ try {
   assert.equal(partial.status,'running');
   assert.equal(partial.controlCount,140);
   assert.equal(partial.fineCount,120);
+  const partialRecovery = await loadCourseSessionRecovery({userId:user.id,courseKey:'destroyer',courseVersion:VESSEL_COURSE_VERSION});
+  const recoveredPartial = partialRecovery.runs.find((item) => item.id === run.id)!;
+  const resumed = createServerVesselSession(run.configuration);
+  try {
+    resumed.restore(recoveredPartial.checkpoint);
+    const restoredFrame = JSON.parse(resumed.read()) as VesselSessionFrame;
+    assert.equal(restoredFrame.timeS,7,'Server recovery must restore the uploaded in-progress checkpoint');
+    assert.equal(restoredFrame.controllerTicks,recoveredPartial.trace.length);
+    assert.equal(recoveredPartial.checkpoint,run.checkpoint);
+    assert.equal(recoveredPartial.stoppedAtMs,null);
+    assert.equal(recoveredPartial.resumable,true);
+    assert.equal(recoveredPartial.durationS,11);
+  } finally { resumed.free(); }
+  const checkpointRequest=captured.find((item) => (item.data as {reason?:string}).reason === 'checkpoint')!;
+  const checkpointInput=vesselEvidenceCloseSchema.parse(checkpointRequest.data);
+  const repeatedCheckpoints=await Promise.all([
+    closeVesselEvidenceRun(user.id,run.id,checkpointInput),
+    closeVesselEvidenceRun(user.id,run.id,checkpointInput),
+  ]);
+  assert.deepEqual(repeatedCheckpoints,[partial,partial]);
+  await assert.rejects(stageVesselEvidenceChunk('unrelated-owner',vesselTraceChunkSchema.parse(
+    captured.find((item)=>item.url.includes('/chunks'))!.data)),/不存在/);
   const beforeRetry = await prisma.simulationTrace.count({where:{runId:(await findOwnedVesselRun(user.id,run.id)).id}});
-  const originalChunk = captured.find((item)=>item.url.endsWith('/chunks'))!.data;
+  const originalChunk = captured.find((item)=>item.url.includes('/chunks'))!.data;
+  const withLateral = vesselTraceChunkSchema.parse(originalChunk);
+  assert.equal(typeof withLateral.points[0].estimate.groundBodyLateralSpeedMps,'number');
+  assert.equal(typeof withLateral.points[0].truth.waterLateralSpeedMps,'number');
+  const oldChunk = structuredClone(withLateral);
+  for (const point of oldChunk.points) {
+    delete point.estimate.groundBodyLateralSpeedMps;
+    delete point.truth.waterLateralSpeedMps;
+  }
+  assert.doesNotThrow(()=>vesselTraceChunkSchema.parse(oldChunk));
   await Promise.all([appendVesselEvidenceChunk(user.id,vesselTraceChunkSchema.parse(originalChunk)),appendVesselEvidenceChunk(user.id,vesselTraceChunkSchema.parse(originalChunk))]);
   assert.equal(await prisma.simulationTrace.count({where:{runId:(await findOwnedVesselRun(user.id,run.id)).id}}),beforeRetry);
   await assert.rejects(findOwnedVesselRun('unrelated-owner',run.id),/不存在/);
@@ -84,6 +126,15 @@ try {
   }
   native.setPaused(true);
   run.checkpoint = native.snapshot(); run.stoppedAtMs = Date.now(); run.stopReason = 'duration';
+  interruptCheckpointCommit = true;
+  await assert.rejects(uploadVesselRunEvidence(reportClientRef,run),/Interrupted before atomic checkpoint commit/);
+  const interruptedRun = await findOwnedVesselRun(user.id,run.id);
+  assert.equal((interruptedRun.summary as {lastTimeS:number}).lastTimeS,7);
+  assert.equal(interruptedRun.completedAt,null);
+  assert.equal(await prisma.simulationTrace.count({where:{runId:interruptedRun.id}}),beforeRetry);
+  const interruptedRecovery = await loadCourseSessionRecovery({userId:user.id,courseKey:'destroyer',courseVersion:VESSEL_COURSE_VERSION});
+  assert.equal(interruptedRecovery.runs.find((item) => item.id === run.id)!.checkpoint,recoveredPartial.checkpoint);
+  interruptCheckpointCommit = false;
   const completed = await uploadVesselRunEvidence(reportClientRef,run);
   assert.equal(completed.status,'completed');
   assert.equal(completed.controlCount,220);
@@ -109,7 +160,183 @@ try {
       initialCheckpoint:earlierNative.snapshot(),prediction:'earlier saved configuration remains uploadable',startedAtMs:Date.now(),
     }));
     assert.equal(receipt.fineCount,0);
+    const earlierManualInput = {...earlier.input,feedback:'estimate' as const};
+    earlierNative.advance(0,JSON.stringify(earlierManualInput));
+    const manualReceipt = await openVesselEvidenceRun(user.id,vesselEvidenceOpeningSchema.parse({
+      reportClientRef,runRef:randomUUID(),courseKey:'destroyer',courseVersion:VESSEL_COURSE_VERSION,stepSequence:1,
+      configuration:earlierConfiguration,input:earlierManualInput,parameterHash:earlier.parameterHash,
+      initialCheckpoint:earlierNative.snapshot(),prediction:'Earlier manual input does not close a feedback loop',startedAtMs:Date.now(),
+    }));
+    assert.equal(manualReceipt.status,'running');
+    await assert.rejects(openVesselEvidenceRun(user.id,vesselEvidenceOpeningSchema.parse({
+      reportClientRef,runRef:randomUUID(),courseKey:'destroyer',courseVersion:VESSEL_COURSE_VERSION,stepSequence:9,
+      configuration:DESTROYER_COURSE_STEPS[8].configuration,input:{...earlierManualInput,controlMode:'p'},
+      parameterHash:earlier.parameterHash,initialCheckpoint:earlierNative.snapshot(),
+      prediction:'Closed-loop teaching still requires measurement feedback',startedAtMs:Date.now(),
+    })),/实际运行条件/);
   } finally {earlierNative.free();}
+  const lngConfiguration = LNG_COURSE_STEPS[9].configuration;
+  const lngNative = createServerVesselSession(lngConfiguration);
+  try {
+    const initial = JSON.parse(lngNative.read()) as VesselSessionFrame;
+    const shaftReferenceRpm = initial.input.actuators.shafts[0].speed_reference_rad_s*30/Math.PI;
+    const lngInput = lngCourseInput(LNG_COURSE_STEPS[9],lngCourseDefaultSettings(10),initial.input,initial,
+      {structure:{kind:'fopdt',k:.05,t_s:100,delay_s:2},speedMps:4,shaftReferenceRpm});
+    lngNative.advance(0,JSON.stringify(lngInput));
+    const lngReportRef = randomUUID(), lngRunRef = randomUUID();
+    const lngContext = {reportClientRef:lngReportRef,courseKey:'lng',courseVersion:VESSEL_COURSE_VERSION};
+    const lngModelRef = randomUUID();
+    const earlierLngInitial = lngNative.snapshot().replace(/"lng":\{[^{}]*\},/,'').replace(/,"lngLateralWindow":\[\]/,'');
+    assert(!earlierLngInitial.includes('"lng":'));
+    await openVesselEvidenceRun(user.id,vesselEvidenceOpeningSchema.parse({...lngContext,runRef:lngRunRef,
+      stepSequence:10,configuration:lngConfiguration,input:lngInput,parameterHash:initial.parameterHash,
+      courseSettings:lngCourseDefaultSettings(10),designStudentModelId:lngModelRef,
+      initialCheckpoint:earlierLngInitial,prediction:'Declared fixture checks speed comparison persistence',startedAtMs:Date.now()}));
+    const points:VesselRunEvidence['trace'] = [], nativeSamples:VesselRunEvidence['nativeSensorSamples'] = [];
+    const fineSamples:NonNullable<VesselRunEvidence['fineStepSamples']> = [];
+    for (let second=0;second<3;second++) {
+      const current = JSON.parse(lngNative.advance(1,'')) as VesselSessionFrame;
+      for (const packet of current.controlSamples) points.push(collectVesselTracePoint(packet,points.at(-1)?.measurements ?? {}));
+      nativeSamples.push(...current.samples);fineSamples.push(...(current.fineStepSamples ?? []));
+    }
+    assert.equal(points[0].liquid?.modeHeightsM.length,8);
+    assert.equal(points[0].liquid?.cornerHeightsM.length,4);
+    assert.equal(typeof points[0].longitudinal?.referenceMps,'number');
+    await appendVesselEvidenceChunk(user.id,vesselTraceChunkSchema.parse({schema:'act.vessel-trace-chunk.v1',runRef:lngRunRef,chunkIndex:0,
+      parameterHash:initial.parameterHash,controlStart:0,nativeStart:0,fineStart:0,endTimeS:3,
+      points,nativeSamples,fineSamples,changes:[]}));
+    await closeVesselEvidenceRun(user.id,lngRunRef,vesselEvidenceCloseSchema.parse({checkpoint:lngNative.snapshot(),
+      endTimeS:3,controlCount:points.length,nativeCount:nativeSamples.length,fineCount:fineSamples.length,
+      reason:'duration',failure:null}));
+    const lngSaved = await findOwnedVesselRun(user.id,lngRunRef);
+    const lngMetrics = (lngSaved.summary as {fineStepMetrics:NonNullable<VesselSessionFrame['fineStepMetrics']>}).fineStepMetrics.values.lng;
+    assert.equal(lngMetrics?.physicsSamples,360);
+    assert.equal(lngMetrics?.lateralWindowDurationS,3);
+    await saveVesselCourseArtifact(user.id,vesselCourseArtifactSchema.parse({...lngContext,model:{clientRef:lngModelRef,payload:{
+      experimentKey:'lng',lineageKey:'reference-speed-fixture',structure:{kind:'fopdt',k:.05,t_s:100,delay_s:2},
+      ioContract:{inputChannel:'ShaftReference0',outputChannel:'SpeedLog',inputUnit:'r/min',outputUnit:'m/s'},
+      operatingPoint:{speedMps:4,inputOrigin:shaftReferenceRpm,outputOrigin:4},
+      identification:{algorithm:'fixture',settings:{},identifiedOk:true},
+      trainingRuns:[{runRef:lngRunRef,startS:0,endS:1}],validationRuns:[],sampleDt:.2,
+    }}}));
+    const speedComparison = {clientRef:randomUUID(),modelClientRef:lngModelRef,actuatorModelClientRef:null,
+      runRef:lngRunRef,mode:'command_to_output',startS:2,endS:3,timeS:[2,3],actual:[4,3.99],predicted:[4,3.99],
+      measuredInput:[shaftReferenceRpm,shaftReferenceRpm],predictedInput:null,metrics:{rmse:0},
+      purpose:'validation',createdAtMs:Date.now(),outputUnit:'m/s',outputChannel:'SpeedLog'};
+    assert.equal((await saveVesselCourseArtifact(user.id,vesselCourseArtifactSchema.parse({...lngContext,comparison:speedComparison}))).kind,'comparison');
+    const independent = {...speedComparison,clientRef:randomUUID(),mode:'independent_closed_loop',controllerInput:lngInput};
+    assert.equal((await saveVesselCourseArtifact(user.id,vesselCourseArtifactSchema.parse({...lngContext,comparison:independent}))).kind,'comparison');
+    await assert.rejects(saveVesselCourseArtifact(user.id,vesselCourseArtifactSchema.parse({...lngContext,
+      comparison:{...independent,clientRef:randomUUID(),controllerInput:undefined}})),/冻结控制器/);
+    await assert.rejects(saveVesselCourseArtifact(user.id,vesselCourseArtifactSchema.parse({...lngContext,
+      comparison:{...speedComparison,clientRef:randomUUID(),outputChannel:'YawRate'}})),/航速输出通道/);
+    const recovered=await loadCourseSessionRecovery({userId:user.id,courseKey:'lng',courseVersion:VESSEL_COURSE_VERSION});
+    assert.equal(recovered.models.find((item)=>item.id===lngModelRef)?.channel,'shaft-reference-to-speed');
+    assert.equal(recovered.runs.find((item)=>item.id===lngRunRef)?.parameters?.massKg,initial.parameters.massKg);
+    assert.equal(recovered.comparisons.find((item)=>item.id===speedComparison.clientRef)?.outputChannel,'SpeedLog');
+  } finally {lngNative.free();}
+  const containerSettings = {...containerCourseDefaultSettings(7),modelIds:[randomUUID(),randomUUID(),randomUUID()] as [string,string,string]};
+  const containerConfiguration = containerCourseConfiguration(7,containerSettings);
+  const containerNative = createServerVesselSession(containerConfiguration);
+  try {
+    const initial = JSON.parse(containerNative.read()) as VesselSessionFrame;
+    const rpm = initial.input.actuators.shafts[0].speed_reference_rad_s*30/Math.PI;
+    const models = [.2,.6,.9].map((loading,index) => ({id:containerSettings.modelIds[index],channel:'shaft-reference-to-speed',
+      payload:{structure:{kind:'fopdt',k:.05,t_s:160,delay_s:2},operatingPoint:{loadingRatio:loading,speedMps:8,inputOrigin:rpm}}})) as FrozenVesselStudentModel[];
+    const input = containerCourseInput(7,containerSettings,initial.input,initial,models);
+    const applied = JSON.parse(containerNative.advance(0,JSON.stringify(input))) as VesselSessionFrame;
+    const reportClientRef = randomUUID(),runRef = randomUUID();
+    const opening = vesselEvidenceOpeningSchema.parse({reportClientRef,runRef,courseKey:'container',courseVersion:VESSEL_COURSE_VERSION,
+      stepSequence:7,configuration:containerConfiguration,input:applied.input,parameterHash:initial.parameterHash,
+      initialCheckpoint:containerNative.snapshot(),courseSettings:containerSettings,designStudentModelId:containerSettings.modelIds[1],
+      prediction:'Declared fixture checks native container scheduling channels and private persistence',startedAtMs:Date.now()});
+    await openVesselEvidenceRun(user.id,opening);
+    await assert.rejects(openVesselEvidenceRun(user.id,{...opening,runRef:randomUUID(),
+      configuration:{...containerConfiguration,seed:17}}),/课程约定/);
+    const points:VesselRunEvidence['trace']=[],nativeSamples:VesselRunEvidence['nativeSensorSamples']=[];
+    const fineSamples:NonNullable<VesselRunEvidence['fineStepSamples']>=[];
+    for (let second=0;second<3;second++) {
+      const current=JSON.parse(containerNative.advance(1,'')) as VesselSessionFrame;
+      for (const packet of current.controlSamples) points.push(collectVesselTracePoint(packet,points.at(-1)?.measurements ?? {}));
+      nativeSamples.push(...current.samples);fineSamples.push(...(current.fineStepSamples ?? []));
+    }
+    assert.equal(typeof points[0].container?.integralRpm,'number');
+    assert.deepEqual(points[0].container?.modelWeights,[0,1,0]);
+    const chunk=vesselTraceChunkSchema.parse({schema:'act.vessel-trace-chunk.v1',runRef,chunkIndex:0,parameterHash:initial.parameterHash,
+      controlStart:0,nativeStart:0,fineStart:0,endTimeS:3,points,nativeSamples,fineSamples,changes:[]});
+    assert.deepEqual(chunk.points[0].container,points[0].container);
+    await appendVesselEvidenceChunk(user.id,chunk);
+    await closeVesselEvidenceRun(user.id,runRef,vesselEvidenceCloseSchema.parse({checkpoint:containerNative.snapshot(),endTimeS:3,
+      controlCount:points.length,nativeCount:nativeSamples.length,fineCount:fineSamples.length,reason:'duration',failure:null}));
+    const saved=await findOwnedVesselRun(user.id,runRef);
+    const summary=saved.summary as {parameters:VesselSessionFrame['parameters'];fuelKg:number};
+    assert.equal(summary.parameters.massKg,initial.parameters.massKg);
+    assert.equal(summary.parameters.windAreasM2?.lateral,initial.parameters.windAreasM2?.lateral);
+    assert(summary.fuelKg > 0);
+  } finally {containerNative.free();}
+  const cruiseSettings = cruiseCourseDefaultSettings(16);
+  const cruiseConfiguration = cruiseCourseConfiguration(16,cruiseSettings);
+  const cruiseNative = createServerVesselSession(cruiseConfiguration);
+  try {
+    const initial=JSON.parse(cruiseNative.read()) as VesselSessionFrame;
+    const model={id:randomUUID(),channel:'fin-to-roll',payload:{
+      structure:{kind:'roll_oscillator',natural_freq_rad_s:.3,damping:.05,control_gain:1e6},
+      operatingPoint:{rollInertiaKgM2:initial.parameters.rollInertiaKgM2}}} as FrozenVesselStudentModel;
+    const input=cruiseCourseInput(16,cruiseSettings,initial.input,initial,model);
+    const applied=JSON.parse(cruiseNative.advance(0,JSON.stringify(input))) as VesselSessionFrame;
+    const reportClientRef=randomUUID(),runRef=randomUUID();
+    const opening=vesselEvidenceOpeningSchema.parse({reportClientRef,runRef,courseKey:'cruise',courseVersion:VESSEL_COURSE_VERSION,
+      stepSequence:16,configuration:cruiseConfiguration,input:applied.input,parameterHash:initial.parameterHash,
+      initialCheckpoint:cruiseNative.snapshot(),courseSettings:cruiseSettings,designStudentModelId:model.id,
+      prediction:'Declared fixture checks actual cruise IMU feedback and two-point comfort evidence',startedAtMs:Date.now()});
+    await openVesselEvidenceRun(user.id,opening);
+    await assert.rejects(openVesselEvidenceRun(user.id,{...opening,runRef:randomUUID(),
+      input:{...applied.input,feedback:'truth'}}),/课程约定/);
+    const points:VesselRunEvidence['trace']=[],nativeSamples:VesselRunEvidence['nativeSensorSamples']=[];
+    const fineSamples:NonNullable<VesselRunEvidence['fineStepSamples']>=[];
+    for(let second=0;second<3;second++) {
+      const current=JSON.parse(cruiseNative.advance(1,'')) as VesselSessionFrame;
+      for(const packet of current.controlSamples) points.push(collectVesselTracePoint(packet,points.at(-1)?.measurements ?? {}));
+      nativeSamples.push(...current.samples);fineSamples.push(...(current.fineStepSamples ?? []));
+    }
+    assert.equal(typeof points.at(-1)!.cruise?.estimatedRollRad,'number');
+    const chunk=vesselTraceChunkSchema.parse({schema:'act.vessel-trace-chunk.v1',runRef,chunkIndex:0,parameterHash:initial.parameterHash,
+      controlStart:0,nativeStart:0,fineStart:0,endTimeS:3,points,nativeSamples,fineSamples,changes:[]});
+    for(const key of ['estimatedRollRad','estimatedPitchRad','filteredRollRad','filteredRollRateRadS',
+      'requestedMomentNm','availableMomentNm','allocatedMomentNm','anglesRad','measurementGood','lowSpeedAuthority','samples'] as const) {
+      assert.deepEqual(chunk.points.at(-1)!.cruise?.[key],points.at(-1)!.cruise?.[key]);
+    }
+    await appendVesselEvidenceChunk(user.id,chunk);
+    await closeVesselEvidenceRun(user.id,runRef,vesselEvidenceCloseSchema.parse({checkpoint:cruiseNative.snapshot(),endTimeS:3,
+      controlCount:points.length,nativeCount:nativeSamples.length,fineCount:fineSamples.length,reason:'student',failure:null}));
+    const saved=await findOwnedVesselRun(user.id,runRef);
+    const summary=saved.summary as {cruiseComfort:NonNullable<VesselSessionFrame['cruiseComfort']>};
+    assert.equal(summary.cruiseComfort.physicsSamples,360);
+    assert.equal(summary.cruiseComfort.passengers.length,2);
+    assert.equal(summary.cruiseComfort.comfortInterpretation,'teaching_proxy_unweighted');
+    assert(summary.cruiseComfort.positivePropulsionWorkJ>0);
+    assert(summary.cruiseComfort.finServoElectricWorkJ>0);
+    const context={reportClientRef,courseKey:'cruise',courseVersion:VESSEL_COURSE_VERSION};
+    await saveVesselCourseArtifact(user.id,vesselCourseArtifactSchema.parse({...context,model:{clientRef:model.id,payload:{
+      experimentKey:'cruise',lineageKey:'roll-evidence-fixture',structure:model.payload.structure,
+      ioContract:{inputChannel:'FinDifferential',outputChannel:'EstimatedRoll',inputUnit:'°',outputUnit:'°'},
+      operatingPoint:model.payload.operatingPoint,identification:{algorithm:'fixture',settings:{},identifiedOk:true},
+      trainingRuns:[{runRef,startS:0,endS:1}],validationRuns:[],sampleDt:.05,
+    }}}));
+    const comparison={clientRef:randomUUID(),modelClientRef:model.id,actuatorModelClientRef:null,runRef,mode:'hull_model',
+      startS:2,endS:3,timeS:[2,3],actual:[0,0],predicted:[0,0],measuredInput:[0,0],predictedInput:null,
+      metrics:{rmse:0},purpose:'validation',createdAtMs:Date.now(),outputUnit:'°',outputChannel:'EstimatedRoll'};
+    assert.equal((await saveVesselCourseArtifact(user.id,vesselCourseArtifactSchema.parse({...context,comparison}))).kind,'comparison');
+    await assert.rejects(saveVesselCourseArtifact(user.id,vesselCourseArtifactSchema.parse({...context,
+      comparison:{...comparison,clientRef:randomUUID(),mode:'command_to_output'}})),/A模式/);
+    const recovered=await loadCourseSessionRecovery({userId:user.id,courseKey:'cruise',courseVersion:VESSEL_COURSE_VERSION});
+    const recoveredRun=recovered.runs.find((item)=>item.id===runRef);
+    assert.equal(recovered.models.find((item)=>item.id===model.id)?.channel,'fin-to-roll');
+    assert.equal(recoveredRun?.parameters?.rollInertiaKgM2,initial.parameters.rollInertiaKgM2);
+    assert.equal(recoveredRun?.cruiseComfort?.physicsSamples,360);
+    assert.equal(recoveredRun?.courseSettings?.dampingRatio,cruiseSettings.dampingRatio);
+    assert.equal(recovered.comparisons.find((item)=>item.id===comparison.clientRef)?.outputChannel,'EstimatedRoll');
+  } finally {cruiseNative.free();}
   const context = {reportClientRef,courseKey:'destroyer',courseVersion:VESSEL_COURSE_VERSION};
   const reportBeforeForeignWrite = await prisma.virtualSimulationReport.findUniqueOrThrow({where:{id:completed.reportId}});
   await assert.rejects(saveVesselCourseArtifact(reviewer.id,vesselCourseArtifactSchema.parse({...context,report:{sections:{problem:'',identification:'',validation:'',comparison:'',revision:'',conclusion:''},runRefs:[],action:'save'}})),/不存在/);
@@ -171,7 +398,10 @@ try {
   await assert.rejects(saveVesselCourseArtifact(user.id,vesselCourseArtifactSchema.parse({...context,model:{...modelInput.model,clientRef:randomUUID()}})),/已提交/);
   console.log(JSON.stringify({status:'passed',controlSamples:completed.controlCount,nativeSamples:completed.nativeCount,
     chunks:completed.chunkCount,fineWindowSamples:completed.fineCount,reviewStateFixtureScore:report.score,
-    checks:['gzip-bound','opening-identity','pause-prefix','concurrent-retry','conflict-409','foreign-404','append-resume','native-close','terminal-retry','receipt-time','model-freeze','comparison','server-attempt-validation','report-minimum','escaped-html','review-authorization','pending-score-null','fixed-rubric','finalization-freeze']}));
+    checks:['gzip-bound','opening-identity','pause-prefix','exact-running-checkpoint','atomic-interrupted-upload',
+      'concurrent-checkpoint-retry','concurrent-retry','conflict-409','foreign-404','append-resume','native-close','terminal-retry',
+      'receipt-time','model-freeze','comparison','server-attempt-validation','report-minimum','escaped-html',
+      'review-authorization','pending-score-null','fixed-rubric','finalization-freeze']}));
 } finally {
   globalThis.fetch = fetchOriginal;
   native.free();

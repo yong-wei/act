@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ComparisonModeValue } from '@/lib/student-model-artifact-contract';
@@ -14,45 +14,61 @@ import { ModelComparisonCurve } from './model-comparison-curve';
 import { MeasurementWindow } from './measurement-window';
 import type { VesselRunEvidence } from '@/features/simulations/run-evidence';
 import { studentModelFormula } from './student-model-presentation';
+import { DestroyerRunEvaluation } from './destroyer-run-evaluation';
+import { LngLiquidSpectrum } from './lng-liquid-spectrum';
+import { CruiseRollSpectrum } from './cruise-roll-spectrum';
+import { CruiseComfortReadout } from './cruise-comfort-readout';
 
 
-export function VesselModelWorkbench({ scopeKey, runs, onArtifactsChange }: {
+export function VesselModelWorkbench({ scopeKey, runs, onArtifactsChange, defaultChannel = 'rudder-to-yaw' }: {
   scopeKey: string;
   runs: VesselRunSummary[];
-  onArtifactsChange: (models: FrozenVesselStudentModel[], comparisons: VesselModelComparison[]) => void;
+  onArtifactsChange: (models: FrozenVesselStudentModel[], comparisons: VesselModelComparison[], scopeKey: string) => void;
+  defaultChannel?: IdentificationChannel;
 }) {
-  const [models, setModels] = useState<FrozenVesselStudentModel[]>([]);
-  const [comparisons, setComparisons] = useState<VesselModelComparison[]>([]);
+  const [loadedModels, setModels] = useState<FrozenVesselStudentModel[]>([]);
+  const [loadedComparisons, setComparisons] = useState<VesselModelComparison[]>([]);
+  const activeScope = useRef(scopeKey);
+  activeScope.current = scopeKey;
+  const models = loadedModels.filter((model) => model.scopeKey === scopeKey);
+  const comparisons = loadedComparisons.filter((comparison) => comparison.scopeKey === scopeKey);
   const [runId, setRunId] = useState('');
   const [modelId, setModelId] = useState('');
   const [actuatorId, setActuatorId] = useState('');
-  const [channel, setChannel] = useState<IdentificationChannel>('rudder-to-yaw');
-  const [kind, setKind] = useState<'nomoto1' | 'nomoto2' | 'fopdt'>('nomoto1');
+  const [channel, setChannel] = useState<IdentificationChannel>(defaultChannel);
+  const [kind, setKind] = useState<'nomoto1' | 'nomoto2' | 'fopdt' | 'roll_oscillator'>(defaultChannel === 'fin-to-roll'
+    ? 'roll_oscillator' : defaultChannel === 'rudder-to-yaw' ? 'nomoto1' : 'fopdt');
+  const [freeDecayRunId,setFreeDecayRunId] = useState('');
+  const [freeDecayStartS,setFreeDecayStartS] = useState(10);
+  const [freeDecayEndS,setFreeDecayEndS] = useState(120);
   const [startS, setStartS] = useState(10);
   const [endS, setEndS] = useState(60);
-  const [mode, setMode] = useState<ComparisonModeValue>('hull_model');
+  const [mode, setMode] = useState<ComparisonModeValue>(defaultChannel === 'shaft-reference-to-speed' ? 'command_to_output' : 'hull_model');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [previewRun,setPreviewRun] = useState<VesselRunEvidence|null>(null);
-  const eligibleRuns = useMemo(() => runs.filter((run) => run.sampleCount >= 20), [runs]);
+  const eligibleRuns = useMemo(() => runs.filter((run) => run.scopeKey === scopeKey && run.sampleCount >= 20), [runs,scopeKey]);
+  const visibleRun = previewRun?.id === runId && previewRun.scopeKey === scopeKey ? previewRun : null;
   const selectedModel = models.find((model) => model.id === modelId);
+  const selectedRun = eligibleRuns.find((run)=>run.id === runId);
   const selectedComparison = comparisons.filter((comparison)=>comparison.runId === runId && comparison.modelId === modelId
-    && comparison.mode === mode && (mode === 'hull_model' || comparison.actuatorModelId === actuatorId)
+    && comparison.mode === mode && (mode === 'hull_model' || selectedModel?.channel === 'shaft-reference-to-speed' || comparison.actuatorModelId === actuatorId)
     && Math.abs(comparison.startS-startS) < 1e-7 && Math.abs(comparison.endS-endS) < 1e-7).at(-1);
 
   const reload = useCallback(async () => {
     const [nextModels, nextComparisons] = await Promise.all([listFrozenStudentModels(scopeKey), listModelComparisons(scopeKey)]);
-    nextModels.sort((a,b) => a.createdAtMs-b.createdAtMs);
+    if (activeScope.current !== scopeKey) return;
     nextComparisons.sort((a,b) => a.createdAtMs-b.createdAtMs);
     setModels(nextModels); setComparisons(nextComparisons);
-    onArtifactsChange(nextModels, nextComparisons);
+    onArtifactsChange(nextModels, nextComparisons, scopeKey);
   }, [scopeKey, onArtifactsChange]);
 
   useEffect(() => { void reload().catch((error: unknown) => setMessage(error instanceof Error ? error.message : '模型记录读取失败。')); }, [reload]);
   useEffect(() => {
     if (runId && eligibleRuns.some((run) => run.id === runId)) return;
     const latest = eligibleRuns[0];
-    if (latest) { setRunId(latest.id); setEndS(latest.durationS); }
+    setRunId(latest?.id ?? '');
+    if (latest) setEndS(latest.durationS);
   }, [runId, eligibleRuns]);
   useEffect(()=>{
     let cancelled = false;
@@ -60,7 +76,7 @@ export function VesselModelWorkbench({ scopeKey, runs, onArtifactsChange }: {
     void readRunEvidence(runId).then((run)=>{if (!cancelled) setPreviewRun(run?.scopeKey === scopeKey ? run : null);})
       .catch((error:unknown)=>{if (!cancelled) setMessage(error instanceof Error ? error.message : '量测窗口读取失败。');});
     return ()=>{cancelled=true;};
-  },[runId,scopeKey,eligibleRuns]);
+  },[runId,scopeKey,selectedRun?.sampleCount,selectedRun?.lastTimeS,selectedRun?.stoppedAtMs]);
 
   async function analyze(operation: 'identify' | 'compare') {
     if (busy) return;
@@ -69,7 +85,9 @@ export function VesselModelWorkbench({ scopeKey, runs, onArtifactsChange }: {
       const run = await readRunEvidence(runId);
       if (!run || run.scopeKey !== scopeKey) throw new Error('请先完成并保存一次运行。');
       if (operation === 'identify') {
-        const model = identifyVesselStudentModel(run, channel, kind, startS, endS);
+        const freeDecay = channel === 'fin-to-roll' && freeDecayRunId ? await readRunEvidence(freeDecayRunId) : undefined;
+        const model = identifyVesselStudentModel(run, channel, kind, startS, endS,
+          freeDecay ? {run:freeDecay,startS:freeDecayStartS,endS:freeDecayEndS} : undefined);
         await saveFrozenStudentModel(model);
         setModelId(model.id);
         setMessage('本次辨识模型已冻结。更换窗口或结构会保存为另一版本。');
@@ -99,24 +117,50 @@ export function VesselModelWorkbench({ scopeKey, runs, onArtifactsChange }: {
           <SimField label="窗口起点" value="s"><input type="number" min={0} step={0.05} className="sim-hud-input" aria-label="分析窗口起点" value={startS} onChange={(event) => setStartS(Number(event.target.value))} /></SimField>
           <SimField label="窗口终点" value="s"><input type="number" min={0} step={0.05} className="sim-hud-input" aria-label="分析窗口终点" value={endS} onChange={(event) => setEndS(Number(event.target.value))} /></SimField>
         </div>
-        {previewRun ? <MeasurementWindow run={previewRun} startS={startS} endS={endS}
-          signal={channel === 'rudder-servo' ? 'SurfaceEncoder0' : channel === 'shaft-to-speed' ? 'SpeedLog' : 'YawRate'}
-          unit={channel === 'rudder-servo' ? '°' : channel === 'shaft-to-speed' ? 'm/s' : '°/s'}
+        {visibleRun ? <MeasurementWindow run={visibleRun} startS={startS} endS={endS}
+          signal={channel === 'fin-to-roll' ? 'EstimatedRoll' : channel === 'rudder-servo' ? 'SurfaceEncoder0' : channel.startsWith('shaft-') ? 'SpeedLog' : 'YawRate'}
+          unit={channel === 'fin-to-roll' || channel === 'rudder-servo' ? '°' : channel.startsWith('shaft-') ? 'm/s' : '°/s'}
           onSelect={({start,end})=>{setStartS(start.timeS);setEndS(end.timeS);}} /> : null}
+        {visibleRun?.courseKey === 'destroyer' ? <DestroyerRunEvaluation run={visibleRun} /> : null}
+        {visibleRun?.courseKey === 'lng' ? <LngLiquidSpectrum run={visibleRun} startS={startS} endS={endS} /> : null}
+        {visibleRun?.courseKey === 'cruise' ? <>
+          <CruiseComfortReadout comfort={visibleRun.cruiseComfort ?? null} />
+          <CruiseRollSpectrum run={visibleRun} startS={startS} endS={endS} />
+        </> : null}
         <SimField label="量测通道">
           <select className="sim-hud-input" aria-label="辨识量测通道" value={channel} onChange={(event) => {
-            const next = event.target.value as IdentificationChannel; setChannel(next); setKind(next === 'rudder-servo' || next === 'shaft-to-speed' ? 'fopdt' : 'nomoto1');
+            const next = event.target.value as IdentificationChannel;
+            setChannel(next); setKind(next === 'fin-to-roll' ? 'roll_oscillator' : next === 'rudder-to-yaw' ? 'nomoto1' : 'fopdt');
+            if (next === 'shaft-reference-to-speed') setMode('command_to_output');
+            if (next === 'fin-to-roll') setMode('hull_model');
           }}>
             <option value="rudder-to-yaw">实际舵角 → 转艏速率</option>
             <option value="rudder-servo">舵指令 → 实际舵角</option>
             <option value="shaft-to-speed">实际轴速 → 对水航速</option>
+            <option value="shaft-reference-to-speed">轴速参考 → 对水航速</option>
+            {visibleRun?.courseKey === 'cruise' ? <option value="fin-to-roll">实际差动鳍角 → 横摇姿态估计</option> : null}
           </select>
         </SimField>
         <SimField label="候选结构">
           <select className="sim-hud-input" aria-label="候选模型结构" value={kind} onChange={(event) => setKind(event.target.value as typeof kind)}>
             <option value="nomoto1">一阶模型</option><option value="nomoto2">二阶模型</option><option value="fopdt">一阶惯性与时延</option>
+            {channel === 'fin-to-roll' ? <option value="roll_oscillator">二阶横摇振子</option> : null}
           </select>
         </SimField>
+        {channel === 'fin-to-roll' ? <SimField label="控制效能辨识所用自由衰减记录">
+          <select className="sim-hud-input" aria-label="自由衰减运行记录" value={freeDecayRunId} onChange={(event) => setFreeDecayRunId(event.target.value)}>
+            <option value="">当前记录用于辨识自由衰减</option>
+            {eligibleRuns.filter((run) => run.stepSequence === 2).map((run) => <option key={run.id} value={run.id}>
+              第2步 · {run.durationS.toFixed(1)}s · {new Date(run.createdAtMs).toLocaleTimeString('zh-CN')}
+            </option>)}
+          </select>
+        </SimField> : null}
+        {channel === 'fin-to-roll' && freeDecayRunId ? <div className="grid grid-cols-2 gap-2">
+          <SimField label="自由衰减窗口起点" value="s"><input type="number" min={0} step={.05} className="sim-hud-input"
+            aria-label="自由衰减窗口起点" value={freeDecayStartS} onChange={(event) => setFreeDecayStartS(Number(event.target.value))} /></SimField>
+          <SimField label="自由衰减窗口终点" value="s"><input type="number" min={0} step={.05} className="sim-hud-input"
+            aria-label="自由衰减窗口终点" value={freeDecayEndS} onChange={(event) => setFreeDecayEndS(Number(event.target.value))} /></SimField>
+        </div> : null}
         <Button className={simulationUi.buttonOutline} size="sm" disabled={busy || !runId} onClick={() => { void analyze('identify'); }}>辨识并冻结模型</Button>
         <SimField label="冻结的学生模型">
           <select className="sim-hud-input" aria-label="冻结的学生模型" value={modelId} onChange={(event) => setModelId(event.target.value)}>
@@ -140,11 +184,12 @@ export function VesselModelWorkbench({ scopeKey, runs, onArtifactsChange }: {
         <SimField label="对照方式">
           <select className="sim-hud-input" aria-label="模型对照方式" value={mode} onChange={(event) => setMode(event.target.value as ComparisonModeValue)}>
             <option value="hull_model">A · 实际执行器量测驱动船体模型</option>
-            <option value="command_to_output">B · 指令经舵机模型驱动船体模型</option>
-            <option value="independent_closed_loop">C · 学生模型独立闭环</option>
+            <option value="command_to_output" disabled={selectedModel?.channel === 'fin-to-roll'}>{selectedModel?.channel === 'shaft-reference-to-speed'
+              ? 'B · 轴速参考驱动联合惯性模型' : 'B · 指令经舵机模型驱动船体模型'}</option>
+            <option value="independent_closed_loop" disabled={selectedModel?.channel === 'fin-to-roll'}>C · 学生模型独立闭环</option>
           </select>
         </SimField>
-        {mode !== 'hull_model' ? <SimField label="冻结的舵机模型">
+        {mode !== 'hull_model' && selectedModel?.channel !== 'shaft-reference-to-speed' ? <SimField label="冻结的舵机模型">
           <select className="sim-hud-input" aria-label="冻结的舵机模型" value={actuatorId} onChange={(event) => setActuatorId(event.target.value)}>
             <option value="">选择舵机模型</option>{models.filter((model) => model.channel === 'rudder-servo').map((model,index) => <option key={model.id} value={model.id}>{model.label} · 版本{index+1}</option>)}
           </select>

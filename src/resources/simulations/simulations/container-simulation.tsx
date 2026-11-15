@@ -8,29 +8,21 @@ import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-l
  */
 
 import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  Html,
   PerspectiveCamera,
   } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { Compass, Video, Orbit, ArrowDownFromLine, Gauge, Navigation, SlidersHorizontal, Wind } from 'lucide-react';
+import { Compass, Video, Orbit, ArrowDownFromLine, Gauge, Wind } from 'lucide-react';
 import {
   SimChip,
-  SimField,
-  SimLockedChip,
   SimNotice,
   SimPanelSection,
   SimPanelStack,
   SimReadout,
   SimReadoutGrid,
-  SimRunControls,
-  SimSegmented,
   SimStatusStrip,
-  SimSwitchInput,
-  SimToggleRow,
   simToneForMagnitude,
 } from '../components/simulation-panels';
 import { MarineCanvas } from '../scene/marine-canvas';
@@ -48,12 +40,9 @@ import {
   EnvironmentScene,
   MARINE_SCENE_LAYOUTS,
   MarineSceneLayoutObjects,
-  shorelineAmplitudeAttenuation,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
-  useSceneEnvironment,
 } from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
 import {
   SceneSoundscapeProvider,
   SoundscapeAmbienceDriver,
@@ -73,18 +62,14 @@ import { containerMscSceneVisual } from '../profiles/container-msc-scene';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { WaterHuggingLine } from '../scene/lines';
 
-import type {
-  ControlMode,
-  Vector2,
-  PIDGains,
-} from '../core/types';
-import {
-  preloadVirtualSimulationRuntime,
-  isVirtualSimulationRuntimeReady,
-} from '../physics/simulation-engine-facade';
-import { createContainerDrive } from './vessel-drives';
-import { containerExperiment } from './vessel-experiments';
-import { takeVesselSubstep, vesselSampleMark } from './vessel-experiment';
+import type { ControlMode, Vector2 } from '../core/types';
+import { containerCourseExperiment as containerExperiment } from '../experiments/container-experiment';
+import { containerCourseAdapter, containerCourseTraceSamples } from '../experiments/container-course';
+import { ContainerCourseControls } from '../experiments/container-course-controls';
+import { VesselModelWorkbench } from '../experiments/model-workbench';
+import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
+import { Button } from '@/components/ui/button';
+import { vesselSampleMark } from './vessel-experiment';
 import { VesselExperimentDocks } from './vessel-experiment-panels';
 import { useVesselExperiment } from './use-vessel-experiment';
 import { toDegrees, toRadians, CONTAINER_MSC_PARAMS } from '../core/constants';
@@ -93,17 +78,23 @@ import {
   SIMULATION_MAX_SUB_STEPS,
   getSimulationDeltaFromMilliseconds,
 } from '../lib/simulation-timing';
-import {
-  absoluteHeadingErrorDeg,
-  advanceAttainment,
-  createAttainmentState,
-} from '../lib/heading-attainment';
 
 // ============ 类型定义 ============
 
 interface ContainerSimulationState {
   isRunning: boolean;
   isPaused: boolean;
+  isCompleted: boolean;
+  pitchAngle: number;
+  heaveM: number;
+  draftM: number;
+  seaState: number;
+  massKg: number;
+  gmM: number | null;
+  windAreas?: {frontal: number; lateral: number};
+  powerW: number;
+  fuelKg: number;
+  voyage?: VesselSessionFrame['containerVoyage'];
   time: number;
   position: Vector2;
   heading: number;
@@ -123,42 +114,30 @@ interface ContainerSimulationState {
 
 // ============ 集装箱船模型组件 ============
 
-function containerDraftMeters(loadRatio: number): number {
-  const clamped = Math.min(1, Math.max(0, loadRatio));
-  return CONTAINER_MSC_PARAMS.DRAFT_EMPTY
-    + (CONTAINER_MSC_PARAMS.DRAFT_FULL - CONTAINER_MSC_PARAMS.DRAFT_EMPTY) * clamped;
-}
-
 function ContainerShipModel(props: {
   position: Vector2;
   heading: number;
   rollAngle: number;
-  loadRatio: number;
+  draftM: number;
+  heaveM: number;
+  pitchAngle: number;
   simRef: React.MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
 }) {
-  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
-  const waterHeight = useNearFieldWaterHeight({
-    positionSampler: () => props.position,
-    seaState: 3,
-      shoreSegments: MARINE_SCENE_LAYOUTS['harbor-entrance-channel'].shoreSegments,
-  });
-
-  const currentDraft = containerDraftMeters(props.loadRatio);
   return (
-    <VersionedFleetShip
+    <group position={[0, 16.8 - props.draftM, 0]}><VersionedFleetShip
       logicalId="container"
       simRef={props.simRef}
       position={props.position}
-      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
+      waterY={props.heaveM}
       headingRad={props.heading}
-      extraEuler={{ z: props.rollAngle }}
+      extraEuler={{ x: props.pitchAngle, z: props.rollAngle }}
       sceneLengthMeters={CONTAINER_MSC_PARAMS.LENGTH}
       resetToken={props.resetToken}
       legacyYawOffsetRad={0}
-      fallbackDraftMeters={currentDraft}
-      verticalOffsetMeters={CONTAINER_MSC_PARAMS.DRAFT_FULL - currentDraft}
-    />
+      fallbackDraftMeters={props.draftM}
+      verticalOffsetMeters={0}
+    /></group>
   );
 }
 
@@ -268,131 +247,6 @@ function HeadingIndicator({
 
 // ============ 控制面板组件 ============
 
-function ControlPanel({
-  state,
-  inputsEnabled = true,
-  onTargetHeadingChange,
-  onControlModeChange,
-  onLoadRatioChange,
-  onWindSpeedChange,
-  onWindDirectionChange,
-  onGainSchedulingToggle,
-  onStart,
-  onPause,
-  onReset,
-}: {
-  state: ContainerSimulationState;
-  inputsEnabled?: boolean;
-  onTargetHeadingChange: (heading: number) => void;
-  onControlModeChange: (mode: ControlMode) => void;
-  onLoadRatioChange: (ratio: number) => void;
-  onWindSpeedChange: (speed: number) => void;
-  onWindDirectionChange: (direction: number) => void;
-  onGainSchedulingToggle: () => void;
-  onStart: () => void;
-  onPause: () => void;
-  onReset: () => void;
-}) {
-  const loadLabel = state.loadRatio < 0.3 ? '空载' : state.loadRatio < 0.7 ? '半载' : '满载';
-  return (
-    <SimPanelStack>
-      <SimRunControls
-        running={state.isRunning && !state.isPaused}
-        primaryLabel={!state.isRunning ? '开始仿真' : state.isPaused ? '继续' : '暂停'}
-        onPrimary={state.isRunning ? onPause : onStart}
-        primarySoundStart={!state.isRunning}
-        onReset={onReset}
-      />
-      <SimPanelSection title="航线与装载" icon={Navigation} aside={<SimLockedChip locked={!inputsEnabled} />}>
-        <div className="space-y-3">
-          <SimField label="目标航向" value={`${state.targetHeading.toFixed(0)}°`}>
-            <input aria-label="目标航向（度，-180 至 180）"
-              type="range"
-              min="-180"
-              max="180"
-              value={state.targetHeading}
-              disabled={!inputsEnabled}
-              onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
-              className={simulationUi.nativeRange}
-            />
-          </SimField>
-          <SimField
-            label="装载率"
-            value={`${(state.loadRatio * 100).toFixed(0)}%（${loadLabel}）`}
-            hint={`当前模型参数 K=${state.currentK.toFixed(3)}，T=${state.currentT.toFixed(0)}s`}
-          >
-            <input aria-label="装载率（百分比，影响船舶质量与模型参数 K、T）"
-              type="range"
-              min="0"
-              max="100"
-              value={state.loadRatio * 100}
-              disabled={!inputsEnabled}
-              onChange={(e) => onLoadRatioChange(Number(e.target.value) / 100)}
-              className={simulationUi.nativeRange}
-            />
-          </SimField>
-        </div>
-      </SimPanelSection>
-      <SimPanelSection title="风载荷" icon={Wind}>
-        <div className="space-y-3">
-          <SimField label="风速" value={`${state.windSpeed.toFixed(1)} m/s`}>
-            <input aria-label="集装箱船仿真参数三"
-              type="range"
-              min="0"
-              max="25"
-              step="0.5"
-              value={state.windSpeed}
-              disabled={!inputsEnabled}
-              onChange={(e) => onWindSpeedChange(Number(e.target.value))}
-              className={simulationUi.nativeRange}
-            />
-          </SimField>
-          <SimField label="风向" value={`${state.windDirection.toFixed(0)}°`}>
-            <input aria-label="集装箱船仿真参数四"
-              type="range"
-              min="0"
-              max="360"
-              value={state.windDirection}
-              disabled={!inputsEnabled}
-              onChange={(e) => onWindDirectionChange(Number(e.target.value))}
-              className={simulationUi.nativeRange}
-            />
-          </SimField>
-        </div>
-      </SimPanelSection>
-      <SimPanelSection title="控制器" icon={SlidersHorizontal}>
-        <div className="space-y-3">
-          <SimField label="控制模式">
-            <SimSegmented
-              ariaLabel="控制模式"
-              value={state.controlMode}
-              disabled={!inputsEnabled}
-              onChange={onControlModeChange}
-              options={(['manual', 'p', 'pd', 'pid', 'pid_scheduled'] as ControlMode[]).map((mode) => ({
-                value: mode,
-                label: mode === 'pid_scheduled' ? '增益调度' : mode.toUpperCase(),
-              }))}
-            />
-          </SimField>
-          <SimToggleRow
-            label="启用增益调度"
-            description="随装载与航速自动调整 PID"
-            htmlFor="gainScheduling"
-            control={(
-              <SimSwitchInput
-                id="gainScheduling"
-                checked={state.gainSchedulingEnabled}
-                disabled={!inputsEnabled}
-                onChange={onGainSchedulingToggle}
-              />
-            )}
-          />
-        </div>
-      </SimPanelSection>
-    </SimPanelStack>
-  );
-}
-
 // ============ HUD 组件 ============
 
 function HUD({ state }: { state: ContainerSimulationState }) {
@@ -404,7 +258,7 @@ function HUD({ state }: { state: ContainerSimulationState }) {
   return (
     <SimPanelStack>
       <SimStatusStrip
-        state={!state.isRunning ? 'idle' : state.isPaused ? 'paused' : 'running'}
+        state={state.isCompleted ? 'completed' : !state.isRunning ? state.time > 0 ? 'paused' : 'idle' : 'running'}
         time={`${state.time.toFixed(1)} s`}
       />
       <SimPanelSection title="航向状态" icon={Compass}>
@@ -418,23 +272,42 @@ function HUD({ state }: { state: ContainerSimulationState }) {
       {Math.abs(rollDeg) > 8 ? (
         <SimNotice tone="danger" title={`横摇角过大：${rollDeg.toFixed(1)}°`}>有落箱风险，请减小舵角或降低航速。</SimNotice>
       ) : null}
-      <SimPanelSection title="当前系统参数" icon={Gauge}>
+      <SimPanelSection title="当前装载与航速" icon={Gauge}>
         <SimReadoutGrid>
-          <SimReadout label="增益 K" value={state.currentK.toFixed(3)} />
-          <SimReadout label="时间常数 T" value={state.currentT.toFixed(0)} unit="s" />
+          <SimReadout label="当前本人模型增益" value={Number.isFinite(state.currentK) ? state.currentK.toFixed(4) : '尚未选择'} />
+          <SimReadout label="当前本人模型时间常数" value={Number.isFinite(state.currentT) ? state.currentT.toFixed(1) : '尚未选择'} unit="s" />
+          <SimReadout label="质量" value={(state.massKg / 1e6).toFixed(3)} unit="千吨" />
+          <SimReadout label="吃水" value={state.draftM.toFixed(2)} unit="m" />
+          <SimReadout label="横稳心高" value={state.gmM?.toFixed(3) ?? '—'} unit="m" />
+          <SimReadout label="侧向风面积" value={state.windAreas?.lateral.toFixed(1) ?? '—'} unit="m²" />
+          <SimReadout label="正向风面积" value={state.windAreas?.frontal.toFixed(1) ?? '—'} unit="m²" />
           <SimReadout label="装载" value={(state.loadRatio * 100).toFixed(0)} unit="%" />
           <SimReadout label="航速" value={state.speed.toFixed(1)} unit="m/s" />
         </SimReadoutGrid>
       </SimPanelSection>
+      <SimPanelSection title="航程与教学估计燃油" icon={Gauge}>
+        <SimReadoutGrid>
+          <SimReadout label="北向实际航程" value={state.position.x.toFixed(1)} unit="m" />
+          <SimReadout label="当前轴功率" value={(state.powerW / 1e6).toFixed(2)} unit="MW" />
+          <SimReadout label="累计燃油" value={state.fuelKg.toFixed(2)} unit="kg" />
+          <SimReadout label="累计横偏峰值" value={state.voyage?.progress.maximumCrossTrackM.toFixed(2) ?? '—'} unit="m" />
+          <SimReadout label="末段航向平均误差" value={state.voyage?.meanFinalHeadingErrorDeg.toFixed(3) ?? '—'} unit="°" />
+        </SimReadoutGrid>
+        {state.voyage?.progress.termination ? <p className="mt-2 text-xs text-platform-fg-secondary">
+          {state.voyage.progress.termination.reason === 'arrived' ? '已实际到达' : '航次达到运行时限'}，
+          {state.voyage.eligibleForFuelComparison ? '满足本教学航次的燃油比较条件。' : '需结合到达时间、末速、横偏和航向约束解释结果。'}
+        </p> : null}
+        <p className="mt-2 text-xs text-platform-fg-secondary">燃油采用教学发动机曲线，实际轴功率积分保留推进、制动和怠速影响。</p>
+      </SimPanelSection>
       <SimPanelSection
-        title="风载荷"
+        title="相对风量测"
         icon={Wind}
         tone={windTone === 'success' ? 'neutral' : windTone}
         aside={<SimChip tone={windTone}>{state.windSpeed > 20 ? '风速超限' : state.windSpeed > 15 ? '注意大风' : '正常'}</SimChip>}
       >
         <SimReadoutGrid columns={3}>
-          <SimReadout label="风速" value={state.windSpeed.toFixed(1)} unit="m/s" />
-          <SimReadout label="风向" value={state.windDirection.toFixed(0)} unit="°" />
+          <SimReadout label="相对风速" value={state.windSpeed.toFixed(1)} unit="m/s" />
+          <SimReadout label="相对风向" value={state.windDirection.toFixed(0)} unit="°" />
           <SimReadout label="横摇" value={rollDeg.toFixed(1)} unit="°" tone={simToneForMagnitude(rollDeg, 5, 8, 'neutral')} />
         </SimReadoutGrid>
       </SimPanelSection>
@@ -483,7 +356,7 @@ function ContainerWater({ state, resetToken }: { state: ContainerSimulationState
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
-      seaState={3}
+      seaState={state.seaState}
       sunDirection={water.sunDirection}
       sunIllumination={water.sunIllumination}
     />
@@ -597,7 +470,9 @@ function Scene({
           position={state.position}
           heading={toRadians(state.heading)}
           rollAngle={state.rollAngle}
-          loadRatio={state.loadRatio}
+          draftM={state.draftM}
+          heaveM={state.heaveM}
+          pitchAngle={state.pitchAngle}
           simRef={simRef}
           resetToken={resetToken}
         />
@@ -630,271 +505,116 @@ function Scene({
 
 // ============ 主仿真组件 ============
 
-export default function ContainerSimulation({ ticket = '' }: { ticket?: string }) {
-  const session = useVesselExperiment(containerExperiment, ticket);
-  const sessionRef = useRef(session);
-  sessionRef.current = session;
-  const timeRef = useRef(0);
-  const driveRef = useRef<ReturnType<typeof createContainerDrive> | null>(null);
-  const markRef = useRef(-1);
-  const frameRef = useRef<number>(0);
-  const lastTimeRef = useRef<number>(0);
-  const clockRef = useRef(
-    new SimulationClock({
-      dt: SIMULATION_FIXED_STEP_SECONDS,
-      maxSubSteps: SIMULATION_MAX_SUB_STEPS,
-    })
-  );
-  const controlsRef = useRef<OrbitControlsImpl>(null);
-  // 循环稳定化（issue 1945）：每帧变化的量走 ref，仿真时钟真源在 timeRef，
-  // 循环回调与启动 effect 引用稳定，运行期间不因状态更新 teardown 重建。
-  const controlRef = useRef({
-    isPaused: false,
-    targetHeading: 0,
-    controlMode: 'pid_scheduled' as ContainerSimulationState['controlMode'],
-    speed: CONTAINER_MSC_PARAMS.CRUISE_SPEED,
-  });
-  const speedScaleRef = useRef(8);
-  const lastHudUpdateRef = useRef(0);
-  const bindingRef = useRef<BindingTelemetrySource>({
-    rudderDeg: 0,
-    speedMps: CONTAINER_MSC_PARAMS.CRUISE_SPEED,
-    attainedCount: 0,
-    advancing: false,
-  });
-  const attainmentRef = useRef(createAttainmentState(0));
+function containerStateFromFrame(frame: VesselSessionFrame, running: boolean, completed: boolean): ContainerSimulationState {
+  const actual = frame.truth.actuator_states;
+  const controller = frame.containerController;
+  const models = frame.input.containerSpeed?.models;
+  const weights = controller?.modelWeights;
+  const weighted = (property: 'k' | 't_s') => models && weights ? models.reduce((sum, model, index) =>
+    sum + weights[index] * (model.operatingModel.structure.kind === 'fopdt' ? model.operatingModel.structure[property] : NaN), 0) : NaN;
+  const wind = frame.samples.find((sample) => sample.signal === 'WindSpeed')?.measurement.value;
+  const direction = frame.samples.find((sample) => sample.signal === 'WindDirection')?.measurement.value;
+  return {isRunning: running, isPaused: !running && frame.timeS > 0 && !completed, isCompleted: completed,
+    time: frame.timeS, position: {x: frame.truth.position_ned[0], z: frame.truth.position_ned[1]},
+    heading: frame.attitudeDeg.heading, yawRate: frame.truth.body_velocity[5] * 180 / Math.PI,
+    rudder: (actual.control_surface_angles_rad[0] ?? 0) * 180 / Math.PI, speed: frame.waterVelocityBody[0],
+    loadRatio: 0, rollAngle: toRadians(frame.attitudeDeg.roll), pitchAngle: toRadians(frame.attitudeDeg.pitch),
+    heaveM: -frame.truth.position_ned[2], draftM: frame.parameters.draftM, seaState: frame.waveModel?.firstOrderEnabled ? 3 : 0,
+    massKg: frame.parameters.massKg, gmM: frame.parameters.effectiveGmTransverseM, windAreas: frame.parameters.windAreasM2,
+    powerW: actual.motor_torques_nm.reduce((sum, torque, index) => sum + torque * actual.propeller_shaft_speed_rad_s[index], 0),
+    fuelKg: frame.teachingFuel?.state.fuel_kg ?? 0, voyage: frame.containerVoyage,
+    windSpeed: wind ?? 0, windDirection: direction ?? 0, targetHeading: frame.headingReferenceDeg ?? frame.input.targetHeadingDeg,
+    controlMode: frame.input.controlMode, gainSchedulingEnabled: frame.input.containerSpeed?.schedulingEnabled ?? false,
+    currentK: weighted('k'), currentT: weighted('t_s')};
+}
 
-  // 相机状态
-  const [cameraMode, setCameraMode] = useState<string>('chase');
+export default function ContainerSimulation({ ticket = '' }: { ticket?: string }) {
+  const session = useVesselExperiment(containerExperiment, ticket, containerCourseAdapter);
+  const sessionRef = useRef(session); sessionRef.current = session;
+  const frameRef = useRef<number | null>(null);
+  const lastTimeRef = useRef(0);
+  const lastHudUpdateRef = useRef(0);
+  const lastTrajectoryRef = useRef(0);
+  const markRef = useRef(-1);
+  const clockRef = useRef(new SimulationClock({dt: SIMULATION_FIXED_STEP_SECONDS, maxSubSteps: SIMULATION_MAX_SUB_STEPS}));
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const speedScaleRef = useRef(8);
+  const bindingRef = useRef<BindingTelemetrySource>({rudderDeg: 0, speedMps: 8, attainedCount: 0, advancing: false});
+  const [cameraMode, setCameraMode] = useState('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(8);
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
-
-  // 轨迹记录
   const [trajectory, setTrajectory] = useState<Vector2[]>([]);
+  const [simState, setSimState] = useState<ContainerSimulationState>({isRunning: false, isPaused: false, isCompleted: false,
+    time: 0, position: {x: 0, z: 0}, heading: 0, yawRate: 0, rudder: 0, speed: 8, loadRatio: .6,
+    rollAngle: 0, pitchAngle: 0, heaveM: 0, draftM: 16.8, seaState: 0, massKg: 216e6, gmM: 2,
+    powerW: 0, fuelKg: 0, windSpeed: 0, windDirection: 0, targetHeading: 0,
+    controlMode: 'pd', gainSchedulingEnabled: false, currentK: NaN, currentT: NaN});
 
-  // 仿真状态
-  const [simState, setSimState] = useState<ContainerSimulationState>({
-    isRunning: false,
-    isPaused: false,
-    time: 0,
-    position: { x: 0, z: 0 },
-    heading: 0,
-    yawRate: 0,
-    rudder: 0,
-    speed: CONTAINER_MSC_PARAMS.CRUISE_SPEED,
-    loadRatio: 0.5,
-    rollAngle: 0,
-    windSpeed: 10,
-    windDirection: 90,
-    targetHeading: 0,
-    controlMode: 'pid_scheduled',
-    gainSchedulingEnabled: true,
-    currentK: 0.08,
-    currentT: 80,
-  });
+  useEffect(() => {
+    const course = sessionRef.current.course;
+    const frame = course?.ready ? course.read() : null;
+    if (!frame || !course) return;
+    const next = containerStateFromFrame(frame, false, course.completed);
+    next.loadRatio = containerCourseAdapter.configuration(sessionRef.current.activeSeq, course.settings).loadingRatio ?? .6;
+    setSimState(next); setTrajectory([]); setResetCount((value) => value + 1);
+    clockRef.current.reset(); lastTimeRef.current = 0;
+    lastHudUpdateRef.current = frame.timeS; lastTrajectoryRef.current = frame.timeS;
+    markRef.current = vesselSampleMark(frame.timeS);
+  }, [session.course?.ready, session.activeSeq]);
 
-  const resetPose = useCallback((clearCurve: boolean) => {
-    const drive = driveRef.current;
-    if (!drive) return;
-    const command = containerExperiment.command(sessionRef.current.step, 0);
-    drive.reset(command);
-    const view = drive.view();
-    markRef.current = -1;
-    timeRef.current = 0;
-    lastHudUpdateRef.current = 0;
-    attainmentRef.current = createAttainmentState(command.targetHeading);
-    bindingRef.current = {
-      rudderDeg: view.rudder,
-      speedMps: view.speed,
-      attainedCount: 0,
-      advancing: false,
-    };
-    if (clearCurve) sessionRef.current.clearSamples();
-    setTrajectory([]);
-    setSimState({
-      isRunning: false,
-      isPaused: false,
-      time: 0,
-      position: view.position,
-      heading: view.heading,
-      yawRate: view.yawRate,
-      rudder: view.rudder,
-      speed: view.speed,
-      loadRatio: command.loadRatio,
-      rollAngle: toRadians(view.rollDeg),
-      windSpeed: command.windSpeed,
-      windDirection: command.windDirection,
-      targetHeading: command.targetHeading,
-      controlMode: command.mode,
-      gainSchedulingEnabled: false,
-      currentK: view.currentK,
-      currentT: view.currentT,
+  const simulationLoop = useCallback((timestamp: number) => {
+    const current = sessionRef.current;
+    const course = current.course;
+    if (!course?.ready || !course.running) return;
+    const elapsed = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScaleRef.current);
+    lastTimeRef.current = timestamp;
+    let frame = course.read();
+    clockRef.current.advance(elapsed, (dt) => {
+      frame = course.advance(dt);
+      if (!frame) return;
+      const point = course.latestPoint();
+      if (point) {
+        const sample = containerCourseTraceSamples([point])[0];
+        current.trackLatest(sample);
+        const mark = vesselSampleMark(frame.timeS);
+        if (mark > markRef.current) {markRef.current = mark; current.observe(sample);}
+      }
+      bindingRef.current = {rudderDeg: (frame.truth.actuator_states.control_surface_angles_rad[0] ?? 0) * 180 / Math.PI,
+        speedMps: frame.waterVelocityBody[0], attainedCount: 0, advancing: course.running};
     });
-    setResetCount((previous) => previous + 1);
+    if (frame && (frame.timeS - lastHudUpdateRef.current >= .1 || frame.paused)) {
+      const next = containerStateFromFrame(frame, course.running, course.completed);
+      next.loadRatio = containerCourseAdapter.configuration(current.activeSeq, course.settings).loadingRatio ?? .6;
+      setSimState(next); lastHudUpdateRef.current = frame.timeS;
+    }
+    if (frame && frame.timeS - lastTrajectoryRef.current >= .5) {
+      lastTrajectoryRef.current = frame.timeS;
+      const position = {x: frame.truth.position_ned[0], z: frame.truth.position_ned[1]};
+      setTrajectory((previous) => [...previous.slice(-1200), position]);
+    }
+    if (course.running) frameRef.current = requestAnimationFrame(simulationLoop);
   }, []);
 
+  useEffect(() => {speedScaleRef.current = speedScale;}, [speedScale]);
   useEffect(() => {
-    preloadVirtualSimulationRuntime().catch(console.error);
-    driveRef.current = createContainerDrive();
-    resetPose(false);
-    return () => {
-      if (frameRef.current) cancelAnimationFrame(frameRef.current);
-    };
-  }, [resetPose]);
-
-  useEffect(() => {
-    resetPose(false);
-  }, [session.activeSeq, resetPose]);
-
-  const simulationLoop = useCallback(() => {
-    const drive = driveRef.current;
-    const control = controlRef.current;
-    if (!drive || control.isPaused || !isVirtualSimulationRuntimeReady()) {
+    if (session.course?.running) {
+      clockRef.current.reset(); lastTimeRef.current = performance.now();
       frameRef.current = requestAnimationFrame(simulationLoop);
-      return;
-    }
-
-    const now = performance.now();
-    const frameDt = getSimulationDeltaFromMilliseconds(now, lastTimeRef.current, speedScaleRef.current);
-    lastTimeRef.current = now;
-
-    let nextTime = timeRef.current;
-    let view = drive.view();
-    let command = containerExperiment.command(sessionRef.current.step, nextTime);
-
-    clockRef.current.advance(frameDt, (dt) => {
-      const moved = takeVesselSubstep(
-        sessionRef.current.step,
-        (time) => containerExperiment.command(sessionRef.current.step, time),
-        (nextCommand, stepDt, time) => drive.step(nextCommand, stepDt, time),
-        nextTime,
-        dt,
-      );
-      nextTime = moved.time;
-      command = moved.command;
-      if (!moved.sample) return;
-      view = drive.view();
-      sessionRef.current.trackLatest(moved.sample);
-      const mark = vesselSampleMark(moved.sample.time);
-      if (mark > markRef.current) {
-        markRef.current = mark;
-        sessionRef.current.observe(moved.sample);
+    } else {
+      const course = sessionRef.current.course;
+      const frame = course?.read();
+      if (frame && course) {
+        const next = containerStateFromFrame(frame, false, course.completed);
+        next.loadRatio = containerCourseAdapter.configuration(sessionRef.current.activeSeq, course.settings).loadingRatio ?? .6;
+        setSimState(next);
       }
-      const headingError = absoluteHeadingErrorDeg(view.heading, command.targetHeading);
-      let attainedCount = bindingRef.current.attainedCount;
-      if (advanceAttainment(attainmentRef.current, command.targetHeading, headingError, 5, dt)) {
-        attainedCount += 1;
-      }
-      bindingRef.current = {
-        rudderDeg: view.rudder,
-        speedMps: view.speed,
-        attainedCount,
-        advancing: !control.isPaused,
-      };
-    });
-
-    if (Math.floor(timeRef.current) !== Math.floor(nextTime)) {
-      setTrajectory(prev => [...prev.slice(-300), view.position]);
+      bindingRef.current = {...bindingRef.current, advancing: false};
     }
-    timeRef.current = nextTime;
-
-    if (nextTime - lastHudUpdateRef.current > 0.1) {
-      lastHudUpdateRef.current = nextTime;
-      setSimState(prev => ({
-        ...prev,
-        time: nextTime,
-        position: view.position,
-        heading: view.heading,
-        yawRate: view.yawRate,
-        rudder: view.rudder,
-        speed: view.speed,
-        loadRatio: command.loadRatio,
-        rollAngle: toRadians(view.rollDeg),
-        windSpeed: command.windSpeed,
-        windDirection: command.windDirection,
-        targetHeading: command.targetHeading,
-        controlMode: command.mode,
-        gainSchedulingEnabled: false,
-        currentK: view.currentK,
-        currentT: view.currentT,
-      }));
-    }
-
-    frameRef.current = requestAnimationFrame(simulationLoop);
-  }, []);
-
-  // 控制量同步到 ref：低频、由 UI 事件驱动，rAF 循环每帧读取最新值。
-  useEffect(() => {
-    controlRef.current = {
-      isPaused: simState.isPaused,
-      targetHeading: simState.targetHeading,
-      controlMode: simState.controlMode,
-      speed: simState.speed,
-    };
-  }, [simState.isPaused, simState.targetHeading, simState.controlMode, simState.speed]);
-  useEffect(() => {
-    speedScaleRef.current = speedScale;
-  }, [speedScale]);
-
-  // 启动/停止仿真
-  useEffect(() => {
-    if (simState.isRunning && !simState.isPaused) {
-      clockRef.current.reset();
-      lastTimeRef.current = performance.now();
-      frameRef.current = requestAnimationFrame(simulationLoop);
-    }
-
-    return () => {
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current);
-      }
-    };
-  }, [simState.isRunning, simState.isPaused, simulationLoop]);
-
-  // 事件处理
-  const handleStart = () => {
-    setSimState(prev => ({ ...prev, isRunning: true, isPaused: false }));
-  };
-
-  const handlePause = () => {
-    setSimState(prev => ({ ...prev, isPaused: !prev.isPaused }));
-  };
-
-  const handleReset = () => {
-    if (frameRef.current) cancelAnimationFrame(frameRef.current);
-    resetPose(true);
-  };
-
-  const handleTargetHeadingChange = (heading: number) => {
-    setSimState(prev => ({ ...prev, targetHeading: heading }));
-  };
-
-  const handleControlModeChange = (mode: ControlMode) => {
-    setSimState(prev => ({
-      ...prev,
-      controlMode: mode,
-      gainSchedulingEnabled: mode === 'pid_scheduled',
-    }));
-  };
-
-  const handleLoadRatioChange = (ratio: number) => {
-    setSimState(prev => ({ ...prev, loadRatio: ratio }));
-  };
-
-  const handleWindSpeedChange = (speed: number) => {
-    setSimState(prev => ({ ...prev, windSpeed: speed }));
-  };
-
-  const handleWindDirectionChange = (direction: number) => {
-    setSimState(prev => ({ ...prev, windDirection: direction }));
-  };
-
-  const handleGainSchedulingToggle = () => {
-    setSimState(prev => ({ ...prev, gainSchedulingEnabled: !prev.gainSchedulingEnabled }));
-  };
+    return () => {if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);};
+  }, [session.course?.running, simulationLoop]);
 
   return (
     <SceneEnvironmentProvider>
@@ -922,31 +642,33 @@ export default function ContainerSimulation({ ticket = '' }: { ticket?: string }
         experiment={containerExperiment}
         session={session}
         status={<HUD state={simState} />}
-        controls={(
-          <ControlPanel
-            state={simState}
-            inputsEnabled={false}
-            onTargetHeadingChange={handleTargetHeadingChange}
-            onControlModeChange={handleControlModeChange}
-            onLoadRatioChange={handleLoadRatioChange}
-            onWindSpeedChange={handleWindSpeedChange}
-            onWindDirectionChange={handleWindDirectionChange}
-            onGainSchedulingToggle={handleGainSchedulingToggle}
-            onStart={handleStart}
-            onPause={handlePause}
-            onReset={handleReset}
-          />
-        )}
+        controls={<ContainerCourseControls session={session} timeS={simState.time} />}
         assessment={(
+          <div className="space-y-4">
+          {session.course ? <SimPanelSection title="本机实验轮次" icon={Gauge}>
+            <div className="space-y-2"><select className="sim-hud-input" aria-label="本机实验轮次" value={session.course.scopeKey}
+              disabled={session.busy || !session.course.ready} onChange={(event) => {void session.course?.selectRound(event.target.value);}}>
+              {session.course.rounds.map((draft) => <option key={draft.scopeKey} value={draft.scopeKey}>
+                {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步
+              </option>)}</select>
+              <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || !session.course.ready}
+                onClick={() => {void session.restartIlabSession();}}>开启新一轮实验</Button></div>
+          </SimPanelSection> : null}
+          {session.course ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy}
+            onClick={() => {void session.course?.upload();}}>上传或重试保存本人证据</Button> : null}
+          {session.course ? <VesselModelWorkbench scopeKey={session.course.scopeKey} runs={session.course.runs}
+            onArtifactsChange={session.course.onArtifactsChange} defaultChannel="shaft-reference-to-speed" /> : null}
           <SimulationAssessmentPanel
+            pendingReview
             title="航线控制评估"
             metrics={[
               { id: 'heading-error', label: '航向误差', value: Math.abs(simState.targetHeading - simState.heading), max: 40, better: 'lower', unit: '°' },
               { id: 'roll', label: '横摇角', value: Math.abs(toDegrees(simState.rollAngle)), max: 12, better: 'lower', unit: '°' },
               { id: 'wind', label: '风速工况', value: simState.windSpeed, max: 25, better: 'lower', unit: 'm/s' },
-              { id: 'load-stability', label: '装载适配', value: 100 - Math.abs(simState.loadRatio - 0.6) * 100, max: 100, better: 'higher', unit: '%' },
             ]}
           />
+          <p className="text-xs leading-5 text-platform-fg-secondary">采用冻结教学标称参数与代表波浪工况，燃油属于教学估计。本人局部模型的残差及调度超域随证据保存。</p>
+          </div>
         )}
       />
 

@@ -136,6 +136,40 @@ describe('admin users API/UI query contract', () => {
     }));
   });
 
+  it('filters users by ILAB accountSource and returns accountSource metadata', async () => {
+    mocks.prisma.user.count.mockResolvedValueOnce(1);
+    mocks.prisma.user.findMany.mockResolvedValueOnce([
+      {
+        id: 'ilab-u-1',
+        name: '周海工',
+        email: 'zhou@just.edu.cn',
+        employeeNumber: null,
+        role: 'STUDENT',
+        accountSource: 'ILAB',
+        createdAt: new Date('2026-11-15T00:00:00.000Z'),
+        profile: { studentNumber: '20240099', className: '控制2402' },
+      },
+    ]);
+
+    const response = await getAdminUsers(new Request(
+      'http://localhost/api/admin/users?accountSource=ILAB&role=STUDENT',
+    ) as never);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.query.accountSource).toBe('ILAB');
+    expect(payload.users[0]).toMatchObject({
+      id: 'ilab-u-1',
+      accountSource: 'ILAB',
+    });
+    expect(mocks.prisma.user.count).toHaveBeenCalledWith({
+      where: {
+        role: 'STUDENT',
+        accountSource: 'ILAB',
+      },
+    });
+  });
+
   it('unwraps smart lesson class references before the admin teacher deletion path removes classes', async () => {
     mocks.prisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER' });
     mocks.tx.class.findMany.mockResolvedValue([{ id: 'class-1' }, { id: 'class-2' }]);

@@ -17,7 +17,14 @@ const FLEET = [
 describe('fleet unified marine stack (#2104 contracts)', () => {
   it.each(FLEET)('%s samples wake water through the shared near-field surface query', (file) => {
     const source = readFileSync(path.join(ROOT, 'src/resources/simulations/simulations', file), 'utf-8');
-    expect(source, file).toContain('createNearFieldSurfaceQuery');
+    if (['lng-simulation.tsx','container-simulation.tsx','cruise-simulation.tsx'].includes(file)) {
+      const water = readFileSync(path.join(ROOT, 'src/resources/simulations/scene/water/marine-water.tsx'), 'utf-8');
+      expect(source, file).toContain('<MarineWater');
+      expect(water).toContain('createMarineSurfaceSampling');
+      expect(water).toContain('sampling.update(surface.current');
+      expect(source, file).toContain('waterY={props.heaveM}');
+      expect(source, file).toContain('heaveM: -frame.truth.position_ned[2]');
+    } else expect(source, file).toContain('createNearFieldSurfaceQuery');
     // 实验内不再自带解析波场采样（统一近场可见曲面，与 GPU 同参数）。
     expect(source, file).not.toContain('computeGerstnerDisplacement');
   });
@@ -43,11 +50,11 @@ describe('fleet unified marine stack (#2104 contracts)', () => {
   });
 
   it('memoizes the near-field query per frame across the fleet', () => {
-    // #2117：帧记忆化收敛进 useNearFieldWaterHeight（共享视觉时钟 + 同参数查询，
-    // 含岸线衰减）；各 rig 消费同一 hook——不再各自维护 wakeQueryCacheRef。
+    // #2117视觉水高查询按帧记忆化，原生六自由度船体消费物理升沉。
     for (const file of FLEET) {
       const source = readFileSync(path.join(ROOT, 'src/resources/simulations/simulations', file), 'utf-8');
-      expect(source, file).toContain(file.startsWith('destroyer') ? 'MarineFrameProvider' : 'useNearFieldWaterHeight(');
+      expect(source, file).toContain(['lng-simulation.tsx','container-simulation.tsx','cruise-simulation.tsx'].includes(file) ? 'waterY={props.heaveM}'
+        : file.startsWith('destroyer') ? 'MarineFrameProvider' : 'useNearFieldWaterHeight(');
       // 水高查询不再走独立 wall-clock（其他合法用途不受影响）。
       expect(source, file).not.toContain('timeRef.current = frameState.clock.getElapsedTime()');
       expect(source, file).not.toContain('timeRef.current = state.clock.getElapsedTime()');

@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { VesselObservedSample } from '@/lib/control-engine/vessel-session';
+import type { VesselObservedSample, VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import type { VesselRunEvidence } from '@/features/simulations/run-evidence';
-import { measuredWindow } from '../experiments/student-analysis';
+import { compareVesselStudentModel, evaluateVesselHeadingRun, forecastVesselSpeed, identifyVesselStudentModel, measuredWindow,
+  type FrozenVesselStudentModel } from '../experiments/student-analysis';
+import { computeVirtualSimulationStep } from '../physics/simulation-engine-facade';
 
 vi.mock('../physics/simulation-engine-facade', () => ({ computeVirtualSimulationStep: vi.fn() }));
 
@@ -56,5 +58,177 @@ describe('学生模型量测窗口', () => {
 
   it('缺测产生明确窗口错误', () => {
     expect(() => measuredWindow(evidence(true),'rudder-to-yaw',0,2)).toThrow('不连续采样');
+  });
+
+  it('分别保留轴速参考和实际轴速，LNG联合模型使用参考命令及5Hz计程仪', () => {
+    const run = evidence();
+    run.lastTimeS = 4;
+    run.trace = Array.from({length:81},(_,index)=>({...run.trace[0],timeS:index*.05,
+      command:{headingDeg:0,surfaceDeg:[999],shaftRpm:[index < 20 ? 100 : 105]}}));
+    run.nativeSensorSamples = Array.from({length:21},(_,index)=>[
+      {signal:'SpeedLog' as const,measurement:{t_sample_s:index*.2,t_arrive_s:index*.2,value:4+index*.01,quality:'Good' as const}},
+      {signal:{ShaftSpeed:0},measurement:{t_sample_s:index*.2,t_arrive_s:index*.2,value:90+index,quality:'Good' as const}},
+    ]).flat();
+    const reference = measuredWindow(run,'shaft-reference-to-speed',0,4);
+    const shaft = measuredWindow(run,'shaft-to-speed',0,4);
+    expect(reference.dtS).toBeCloseTo(.2,12);
+    expect(reference.signals).toMatchObject({input:'ShaftReference0',output:'SpeedLog'});
+    expect(reference.input.slice(0,6)).toEqual([100,100,100,100,100,105]);
+    expect(shaft.input.slice(0,6)).toEqual([90,91,92,93,94,95]);
+    vi.mocked(computeVirtualSimulationStep).mockReturnValue({identifiedOk:true,
+      structure:{kind:'fopdt',k:.04,t_s:80,delay_s:5},predicted:[],metrics:{rmse:.01}});
+    const model = identifyVesselStudentModel(run,'shaft-reference-to-speed','fopdt',0,4);
+    expect(model.payload.ioContract).toMatchObject({inputChannel:'ShaftReference0',inputUnit:'r/min',outputChannel:'SpeedLog'});
+    const validation = {...run,id:'independent-speed-run'};
+    const comparison = compareVesselStudentModel(validation,model,'command_to_output',0,4);
+    expect(comparison).toMatchObject({outputChannel:'SpeedLog',outputUnit:'m/s',actuatorModelId:null});
+    expect(vi.mocked(computeVirtualSimulationStep).mock.lastCall?.[0]).toMatchObject({operation:'predict',input:reference.input});
+    expect(()=>compareVesselStudentModel(validation,model,'hull_model',0,4)).toThrow('请选择B指令对照');
+  });
+});
+
+describe('学生运行评价', () => {
+  it('结束状态的累积功覆盖20Hz末帧近似值，细步安全指标保持独立', () => {
+    vi.mocked(computeVirtualSimulationStep).mockReturnValue({positiveMotorWorkJ:4,headingRmseDeg:2});
+    const run = evidence();
+    run.checkpoint = JSON.stringify({plant:{state:{actuator_states:{positive_motor_work_j:[7,11]}}}});
+    expect(evaluateVesselHeadingRun(run).metrics.positiveMotorWorkJ).toBe(18);
+    run.checkpoint = JSON.stringify({course_evidence:{metrics:{positiveMotorWorkJ:23,maximumRollDeg:9}},
+      plant:{state:{actuator_states:{positive_motor_work_j:[7,11]}}}});
+    const evaluation = evaluateVesselHeadingRun(run);
+    expect(evaluation.metrics).toMatchObject({positiveMotorWorkJ:23,headingRmseDeg:2});
+    expect(evaluation.fineStepMetrics).toMatchObject({sampleCadenceS:1/120,rollWarningDeg:8,
+      values:{maximumRollDeg:9,positiveMotorWorkJ:23}});
+  });
+
+  it('正在运行时保留未完成语义', () => {
+    const run = evidence();
+    run.stoppedAtMs = null;
+    expect(() => evaluateVesselHeadingRun(run)).toThrow('运行结束后');
+  });
+});
+
+describe('邮轮横摇仪器模型', () => {
+  function rollEvidence():VesselRunEvidence {
+    const run=evidence();
+    run.courseKey='cruise';run.stepSequence=2;
+    run.parameters={rollInertiaKgM2:12e9} as VesselSessionFrame['parameters'];
+    run.nativeSensorSamples=Array.from({length:106},(_,index)=>[
+      {signal:{SurfaceEncoder:0},measurement:{value:1,t_sample_s:index*.02,t_arrive_s:index*.02,quality:'Good' as const}},
+      {signal:{SurfaceEncoder:1},measurement:{value:-1,t_sample_s:index*.02,t_arrive_s:index*.02,quality:'Good' as const}},
+    ]).flat();
+    run.trace=run.trace.map((point,index)=>({...point,command:{...point.command,surfaceDeg:[999,-999]},
+      cruise:{estimatedRollRad:(2-index*.01)*Math.PI/180,estimatedPitchRad:0,filteredRollRad:0,filteredRollRateRadS:0,
+        requestedMomentNm:0,availableMomentNm:0,allocatedMomentNm:0,anglesRad:[0,0],measurementGood:true,lowSpeedAuthority:false,samples:index}}));
+    return run;
+  }
+
+  it('仅用编码器差动与仪器姿态估计，保留自由衰减的非零初态', () => {
+    const run=rollEvidence();
+    const window=measuredWindow(run,'fin-to-roll',0,2);
+    expect(window.dtS).toBeCloseTo(.05,12);
+    expect(window.input.every((value)=>value === 1)).toBe(true);
+    expect(window.output[0]).toBeCloseTo(2,12);
+    expect(window.output).not.toContain(999);
+    vi.mocked(computeVirtualSimulationStep).mockReturnValue({identifiedOk:true,
+      structure:{kind:'roll_oscillator',natural_freq_rad_s:.3,damping:.05,control_gain:.1},predicted:[],metrics:{rmse:.01}});
+    const model=identifyVesselStudentModel(run,'fin-to-roll','roll_oscillator',0,2);
+    expect(vi.mocked(computeVirtualSimulationStep).mock.lastCall?.[0]).toMatchObject({inputOrigin:0,outputOrigin:0,output:window.output});
+    expect(model.payload.operatingPoint.rollInertiaKgM2).toBe(12e9);
+    expect(model.payload.ioContract).toMatchObject({inputChannel:'FinDifferential',outputChannel:'EstimatedRoll',inputUnit:'°',outputUnit:'°'});
+    const validation={...run,id:'independent-roll'};
+    expect(compareVesselStudentModel(validation,model,'hull_model',0,2)).toMatchObject({outputChannel:'EstimatedRoll',outputUnit:'°'});
+  });
+
+  it('联合控制效能引用本人独立衰减来源，并拒绝跨轮次来源', () => {
+    const excited=rollEvidence();excited.id='excitation';excited.stepSequence=3;
+    const decay=rollEvidence();
+    vi.mocked(computeVirtualSimulationStep).mockReturnValue({identifiedOk:true,
+      structure:{kind:'roll_oscillator',natural_freq_rad_s:.3,damping:.05,control_gain:.1},predicted:[],metrics:{rmse:.01}});
+    const model=identifyVesselStudentModel(excited,'fin-to-roll','roll_oscillator',0,2,{run:decay,startS:0,endS:2});
+    expect(model.payload.trainingRuns.map((window)=>window.runRef)).toEqual(['excitation','owned-run']);
+    expect(vi.mocked(computeVirtualSimulationStep).mock.lastCall?.[0]).toHaveProperty('freeDecayOutput');
+    expect(()=>identifyVesselStudentModel(excited,'fin-to-roll','roll_oscillator',0,2,
+      {run:{...decay,scopeKey:'other'},startS:0,endS:2})).toThrow('同一实验轮次');
+  });
+});
+
+describe('运行前独立航速与距离预测', () => {
+  it('以冻结局部模型和给定计划建立独立状态，保留距离曲线及原生采样周期', () => {
+    const model: FrozenVesselStudentModel = {id: 'model', scopeKey: 'scope', channel: 'shaft-reference-to-speed',
+      label: '本人速度模型', createdAtMs: 1, serverId: null, contentHash: null, payload: {
+        experimentKey: 'lng', lineageKey: 'fixture', structure: {kind: 'fopdt', k: .08, t_s: 210, delay_s: 1},
+        ioContract: {inputChannel: 'ShaftReference0', outputChannel: 'SpeedLog', inputUnit: 'r/min', outputUnit: 'm/s'},
+        operatingPoint: {speedMps: 4, inputOrigin: 50, outputOrigin: 4},
+        identification: {algorithm: 'fixture', settings: {}, identifiedOk: true},
+        trainingRuns: [{runRef: 'training', startS: 10, endS: 580}], validationRuns: [], sampleDt: .2,
+      }};
+    const input = evidence().initialInput;
+    input.longitudinal = {localModel: {structure: {kind: 'fopdt', k: .08, t_s: 210, delay_s: 1},
+      speedMps: 4, shaftReferenceRpm: 50}, referenceMps: 4, kpMultiplier: 1, tiMultiplier: 1,
+      antiWindup: true, smithEnabled: false, filterTauS: .2, additionalCommandDelayS: 0};
+    input.berthPlan = {brakingDistanceM: 1200, nodes: [{distanceM: 30, speedMps: 0}]};
+    vi.mocked(computeVirtualSimulationStep).mockReturnValue({predicted: [4, 3.9, 3.8], commandsRpm: [50, 49, 48],
+      bowClearanceM: [1500, 1499.21, 1498.44], outsideLocalSpeedDomain: false});
+    const before = structuredClone(input);
+    const comparison = forecastVesselSpeed('scope', 'future-run', {initialWaterSpeedMps: 4,
+      berth: {stopLineNorthM: 0, initialBowDistanceM: 1500}}, .4, input,
+      {shaftConfigurations: [{ratedRpm: 110}]} as VesselSessionFrame['parameters'], model);
+    expect(comparison).toMatchObject({purpose: 'forecast', actual: [], actuatorModelId: null,
+      timeS: [0, .2, .4], predictedBowClearanceM: [1500, 1499.21, 1498.44]});
+    expect(vi.mocked(computeVirtualSimulationStep).mock.lastCall?.[0]).toMatchObject({operation: 'speed_closed_loop',
+      dtS: .2, maximumRpm: 110, initialBowDistanceM: 1500, brakingPlan: input.berthPlan});
+    expect(vi.mocked(computeVirtualSimulationStep).mock.lastCall?.[0]).not.toHaveProperty('output');
+    expect(input).toEqual(before);
+  });
+
+  it('靠泊从声明初态独立预测，首个计程仪量测晚到时按真实时刻评价', () => {
+    const run = evidence();
+    run.courseKey='lng';run.lastTimeS=4;run.configuration={initialWaterSpeedMps:4,
+      berth:{initialBowDistanceM:1500,stopLineNorthM:0}};
+    run.trace=Array.from({length:81},(_,index) => ({...run.trace[0],timeS:index*.05,
+      command:{headingDeg:0,surfaceDeg:[],shaftRpm:[50]}}));
+    run.nativeSensorSamples=Array.from({length:20},(_,index) => ({signal:'SpeedLog',
+      measurement:{t_sample_s:(index+1)*.2,t_arrive_s:(index+1)*.2+.05,value:3.9,quality:'Good'}}));
+    const structure={kind:'fopdt' as const,k:.08,t_s:210,delay_s:1};
+    run.initialInput.longitudinal={localModel:{structure,speedMps:4,shaftReferenceRpm:50},referenceMps:4,
+      kpMultiplier:1,tiMultiplier:1,antiWindup:true,smithEnabled:false,filterTauS:.2,additionalCommandDelayS:0};
+    run.initialInput.berthPlan={brakingDistanceM:1200,nodes:[{distanceM:30,speedMps:0}]};
+    run.parameters={shaftConfigurations:[{ratedRpm:110}]} as VesselSessionFrame['parameters'];
+    const model:FrozenVesselStudentModel={id:'model',scopeKey:run.scopeKey,channel:'shaft-reference-to-speed',label:'fixture',
+      createdAtMs:0,serverId:null,contentHash:null,payload:{experimentKey:'lng',lineageKey:'fixture',structure,
+        ioContract:{inputChannel:'ShaftReference0',outputChannel:'SpeedLog',inputUnit:'r/min',outputUnit:'m/s'},
+        operatingPoint:{speedMps:4,inputOrigin:50,outputOrigin:4},identification:{algorithm:'fixture',settings:{},identifiedOk:true},
+        trainingRuns:[],validationRuns:[],sampleDt:.2}};
+    vi.mocked(computeVirtualSimulationStep).mockReturnValue({predicted:[4,...Array(20).fill(3.8)],
+      commandsRpm:Array(21).fill(50),bowClearanceM:Array.from({length:21},(_,index)=>1500-index),metrics:{rmse:.1}});
+    const comparison=compareVesselStudentModel(run,model,'independent_closed_loop',0,4);
+    expect(vi.mocked(computeVirtualSimulationStep).mock.lastCall?.[0]).toMatchObject({initialSpeedMps:4,outputOffsetSamples:1});
+    expect(comparison.timeS[0]).toBe(.2);
+    expect(comparison.predicted).toHaveLength(20);
+    expect(comparison.actual).toEqual(Array(20).fill(3.9));
+    expect(comparison.predictedBowClearanceM?.[0]).toBe(1499);
+    expect(()=>compareVesselStudentModel(run,model,'independent_closed_loop',.2,4)).toThrow('0s完整初态');
+  });
+});
+
+describe('学生运行评价', () => {
+  it('结束状态的累积功覆盖20Hz末帧近似值，细步安全指标保持独立', () => {
+    vi.mocked(computeVirtualSimulationStep).mockReturnValue({positiveMotorWorkJ:4,headingRmseDeg:2});
+    const run = evidence();
+    run.checkpoint = JSON.stringify({plant:{state:{actuator_states:{positive_motor_work_j:[7,11]}}}});
+    expect(evaluateVesselHeadingRun(run).metrics.positiveMotorWorkJ).toBe(18);
+    run.checkpoint = JSON.stringify({course_evidence:{metrics:{positiveMotorWorkJ:23,maximumRollDeg:9}},
+      plant:{state:{actuator_states:{positive_motor_work_j:[7,11]}}}});
+    const evaluation = evaluateVesselHeadingRun(run);
+    expect(evaluation.metrics).toMatchObject({positiveMotorWorkJ:23,headingRmseDeg:2});
+    expect(evaluation.fineStepMetrics).toMatchObject({sampleCadenceS:1/120,rollWarningDeg:8,
+      values:{maximumRollDeg:9,positiveMotorWorkJ:23}});
+  });
+
+  it('正在运行时保留未完成语义', () => {
+    const run = evidence();
+    run.stoppedAtMs = null;
+    expect(() => evaluateVesselHeadingRun(run)).toThrow('运行结束后');
   });
 });

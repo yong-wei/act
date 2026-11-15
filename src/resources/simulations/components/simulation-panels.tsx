@@ -121,12 +121,13 @@ export function SimReadout({
   );
 }
 
-export type SimRunState = 'running' | 'paused' | 'idle';
+export type SimRunState = 'running' | 'paused' | 'idle' | 'completed';
 
 const RUN_STATE_LABEL: Record<SimRunState, string> = {
   running: '运行中',
   paused: '已暂停',
   idle: '待开始',
+  completed: '已结束',
 };
 
 export function SimStatusStrip({
@@ -349,6 +350,7 @@ export function SimRunControls({
   onReset,
   resetLabel = '重置',
   disabled = false,
+  primaryDisabled = false,
 }: {
   /** 运行中时主按钮显示为暂停样式。 */
   running: boolean;
@@ -359,6 +361,7 @@ export function SimRunControls({
   onReset: () => void;
   resetLabel?: string;
   disabled?: boolean;
+  primaryDisabled?: boolean;
 }) {
   const PrimaryIcon = running ? Pause : Play;
   return (
@@ -366,7 +369,7 @@ export function SimRunControls({
       <button
         type="button"
         data-sound-start={primarySoundStart ? '' : undefined}
-        disabled={disabled}
+        disabled={disabled || primaryDisabled}
         onClick={onPrimary}
         className={cn(
           'inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3 text-sm disabled:cursor-not-allowed disabled:opacity-50',

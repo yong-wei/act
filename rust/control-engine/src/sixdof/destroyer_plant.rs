@@ -459,6 +459,13 @@ impl DestroyerSixDofPlant {
         &self.state
     }
 
+    pub fn jam_surface_at_zero(&mut self, index: usize) -> Result<(), String> {
+        let angle = self.state.actuator_states.control_surface_angles_rad.get_mut(index)
+            .ok_or("卡零故障的鳍不存在")?;
+        *angle = 0.0;
+        Ok(())
+    }
+
     pub fn actuator_system(&self) -> Option<&ActuatorSystem> {
         self.actuator_system.as_ref()
     }
@@ -478,6 +485,15 @@ impl DestroyerSixDofPlant {
         let foremost = hull.vertices_body_m.iter().map(|point| {
             self.state.position_ned[0]+(0..3).map(|axis| rotation[0][axis]*point[axis]).sum::<f64>()
         }).reduce(f64::max)?;
+        Some(stop_line_north_m-foremost)
+    }
+
+    /// 控制计划使用低频导航位置/航向及同一固定船形，观测与完整物理姿态各自保留。
+    pub fn navigation_bow_clearance_m(&self, stop_line_north_m: f64, north_m: f64,
+        heading_rad: f64) -> Option<f64> {
+        let hull = self.hydrostatic_hull.as_ref()?;
+        let foremost = hull.vertices_body_m.iter().map(|point|
+            north_m+heading_rad.cos()*point[0]-heading_rad.sin()*point[1]).reduce(f64::max)?;
         Some(stop_line_north_m-foremost)
     }
 

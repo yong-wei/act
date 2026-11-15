@@ -114,6 +114,8 @@ impl SpeedPiInput {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SpeedControlDiagnostics {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference_mps: Option<f64>,
     pub ticks: u64,
     pub gains: ImcPiGains,
     pub filtered_measurement_mps: Option<f64>,
@@ -156,6 +158,7 @@ impl LngSpeedController {
             requested_history_delta_rpm: VecDeque::new(),
             command_delay_queue_rpm: VecDeque::new(),
             diagnostics: SpeedControlDiagnostics {
+                reference_mps: Some(input.reference_mps),
                 ticks: 0,
                 gains: input.gains()?,
                 filtered_measurement_mps: None,
@@ -241,6 +244,7 @@ impl LngSpeedController {
             return Err("航速测量无效".into());
         }
         let mut next = self.clone();
+        next.diagnostics.reference_mps = Some(input.reference_mps);
         next.advance_models();
         let gains = input.gains()?;
         if let Some(measurement) = measurement_mps {

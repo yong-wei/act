@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { VESSEL_COURSES } from '@/resources/simulations/experiments/course-catalog';
 import { VESSEL_REPORT_SECTION_LABELS } from './course-artifact-contract';
-import { VESSEL_REPORT_STATUSES, summarizeVesselReview, vesselStepReviewLimits, type VesselStepReview } from './course-report-review-contract';
+import { VESSEL_REPORT_STATUSES, summarizeVesselReview, vesselCourseStepReviewLimits, type VesselStepReview } from './course-report-review-contract';
 import { ModelComparisonCurve } from '@/resources/simulations/experiments/model-comparison-curve';
 import type { VesselModelComparison } from '@/resources/simulations/experiments/student-analysis';
 import type { readVesselReportEvidence } from './course-report-review';
@@ -117,15 +117,34 @@ export function VesselCourseReportReviewPanel() {
           {evidence.runs.map((run)=>{
             const metrics = (run.summary as {metrics?:Record<string,number|null>}).metrics;
             const fine = (run.summary as {fineStepMetrics?:VesselSessionFrame['fineStepMetrics']}).fineStepMetrics;
+            const voyage = (run.summary as {voyage?:NonNullable<VesselSessionFrame['containerVoyage']>['progress']}).voyage;
+            const fuelKg = (run.summary as {fuelKg?:number}).fuelKg;
+            const comfort=(run.summary as {cruiseComfort?:VesselSessionFrame['cruiseComfort']}).cruiseComfort;
             return <section key={run.runRef} className="rounded border border-platform-border p-3 text-sm">
               <h4>第{run.stepSequence}步 · {run.timeS.toFixed(1)}s · {run.status === 'failed' ? '数值运行中断' : run.status === 'running' ? '采集中' : '已结束'}</h4>
               <p>20Hz航向RMSE {metrics?.headingRmseDeg?.toFixed(3) ?? '缺少有效量测'}° · 末120s平均绝对误差 {metrics?.final120sHeadingMaeDeg?.toFixed(3) ?? '不适用'}°</p>
               <p>调节时间 {metrics?.settlingTimeS === null || metrics?.settlingTimeS === undefined ? '末段尚未持续保持60s' : `${metrics.settlingTimeS.toFixed(2)}s`} · 20Hz最大横摇 {metrics?.maximumRollDeg?.toFixed(2) ?? '待核验'}°</p>
+              {voyage ? <p>实际航程 {voyage.northM.toFixed(2)}m · 最大横偏 {voyage.maximumCrossTrackM.toFixed(3)}m ·
+                {voyage.termination?.reason === 'arrived' ? '已实际到达' : voyage.termination?.reason === 'time_limit' ? '达到运行时限' : '采集中'} ·
+                结束航速 {voyage.termination?.finalWaterSpeedMps.toFixed(3) ?? '—'}m/s · 教学估计燃油 {fuelKg?.toFixed(3) ?? '—'}kg</p> : null}
+              {comfort ? <div className="space-y-1">
+                <p>教学舒适性代理，120Hz统计窗{comfort.statisticsWindowS.join('至')}s，已覆盖{comfort.durationS.toFixed(2)}s。</p>
+                <p>横摇RMS/峰值 {comfort.rollRmsDeg?.toFixed(3) ?? '—'}/{comfort.rollPeakDeg.toFixed(3)}° ·
+                  主推进正功{(comfort.positivePropulsionWorkJ/1e6).toFixed(3)}MJ · 鳍伺服电能{(comfort.finServoElectricWorkJ/1e6).toFixed(3)}MJ</p>
+                {comfort.passengers.map((point,index)=><p key={index}>乘客点{index+1}，水平加速度RMS/峰值
+                  {point.horizontalAccelerationRmsMps2?.toFixed(4) ?? '—'}/{point.horizontalAccelerationPeakMps2.toFixed(4)}m/s²，
+                  jerk RMS {point.jerkRmsMps3?.toFixed(4) ?? '—'}m/s³</p>)}
+              </div> : null}
               {fine ? <div className="space-y-1">
                 <p>120Hz物理细步最大横摇 {fine.values.maximumRollDeg.toFixed(3)}° · 超过{fine.rollWarningDeg}°累计 {fine.values.rollWarningDurationS.toFixed(3)}s</p>
-                <p>最大舵速 {fine.values.maximumSurfaceRateDegS.toFixed(3)}°/s · 单轴功率峰值 {(fine.values.maximumShaftPowerW/1e6).toFixed(3)}MW · 正机械功 {(fine.values.positiveMotorWorkJ/1e6).toFixed(3)}MJ</p>
-                <p>约束违反持续时间，舵角 {fine.values.surfaceAngleViolationS.toFixed(4)}s，舵速 {fine.values.surfaceRateViolationS.toFixed(4)}s，轴速 {fine.values.shaftSpeedViolationS.toFixed(4)}s，单轴功率 {fine.values.shaftPowerViolationS.toFixed(4)}s，系统功率 {fine.values.systemPowerViolationS.toFixed(4)}s</p>
+                <p>最大操纵面速率 {fine.values.maximumSurfaceRateDegS.toFixed(3)}°/s · 单轴功率峰值 {(fine.values.maximumShaftPowerW/1e6).toFixed(3)}MW · 正机械功 {(fine.values.positiveMotorWorkJ/1e6).toFixed(3)}MJ</p>
+                <p>约束违反持续时间，操纵面角 {fine.values.surfaceAngleViolationS.toFixed(4)}s，操纵面速率 {fine.values.surfaceRateViolationS.toFixed(4)}s，轴速 {fine.values.shaftSpeedViolationS.toFixed(4)}s，单轴功率 {fine.values.shaftPowerViolationS.toFixed(4)}s，系统功率 {fine.values.systemPowerViolationS.toFixed(4)}s</p>
                 <p>原始分块含事件前后各1s的120Hz窗口，重叠区间合并保留。</p>
+                {fine.values.lng ? <>
+                  <p>120Hz液面角点峰值 {fine.values.lng.maximumCornerHeightM.toFixed(3)}m · 超出小幅适用域 {fine.values.lng.outsideLiquidDomainDurationS.toFixed(4)}s</p>
+                  <p>结束时船艏距离 {fine.values.lng.finalBowClearanceM?.toFixed(3) ?? '本步无靠泊停止线'}m · 北向对地航速 {fine.values.lng.finalNorthGroundSpeedMps.toFixed(3)}m/s · 航向 {fine.values.lng.finalHeadingDeg.toFixed(3)}°</p>
+                  <p>末{fine.values.lng.lateralWindowDurationS.toFixed(1)}s横偏峰值 {fine.values.lng.final60sLateralMaximumM.toFixed(3)}m</p>
+                </> : null}
               </div> : null}
               <details><summary>原始采样分块</summary>{run.traces.map((trace)=><Button key={trace.id} size="sm" variant="outline" onClick={()=>{void openWork('trace',trace.id);}}>下载第{(trace.chunkIndex ?? 0)+1}段 · {trace.sampleCount}个控制样本</Button>)}</details>
             </section>;
@@ -150,7 +169,7 @@ export function VesselCourseReportReviewPanel() {
           <p className="text-sm text-platform-fg-secondary">已评 {reviewSummary.earned}分 · {reviewSummary.complete ? '全部评分项已填写' : '仍有待评分项'}</p>
           <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr><th>步骤与选定尝试</th><th>预测／模型</th><th>证据／验证</th><th>性能／比较</th><th>解释／边界</th><th>评语</th></tr></thead><tbody>
             {steps.map((step,index)=>{
-              const limits = vesselStepReviewLimits(step.stepSequence,step.stepSequence >= 9 && step.stepSequence < 20);
+              const limits = vesselCourseStepReviewLimits(evidence.report.courseKey, step.stepSequence);
               return <tr key={step.stepSequence}><td className="py-2"><select aria-label={`第${step.stepSequence}步选定尝试`} className={inputClass} value={step.attemptId} onChange={(event)=>setSteps((previous)=>previous.map((item,i)=>i === index ? {...item,attemptId:event.target.value} : item))}>
                 <option value="">选择第{step.stepSequence}步尝试</option>{evidence.attempts.filter((attempt)=>attempt.stepKey.endsWith(`-step-${step.stepSequence}`)).map((attempt)=><option key={attempt.id} value={attempt.id}>第{step.stepSequence}步 · 第{attempt.attemptSeq}次</option>)}
               </select></td>{(['prediction','operation','performance','interpretation'] as const).map((key)=><td key={key}><input type="number" aria-label={`第${step.stepSequence}步${key}评分`} min={0} max={limits[key]} step={.01} className={`${inputClass} w-24`} value={step[key] ?? ''} placeholder={`待评/${limits[key]}`} disabled={busy || evidence.report.status === 'finalized'}

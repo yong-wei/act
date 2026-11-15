@@ -19,11 +19,14 @@ export function MeasurementWindow({run,startS,endS,onSelect,signal='SurfaceEncod
   const theme = useSimulationChartTheme();
   const bucket = Math.floor(run.lastTimeS);
   const nativeSamples = run.nativeSensorSamples;
+  const trace = run.trace;
   const timeLimit = run.lastTimeS;
-  const samples = useMemo<MeasurementWindowPoint[]>(()=>nativeSamples
+  const samples = useMemo<MeasurementWindowPoint[]>(()=>signal === 'EstimatedRoll'
+    ? trace.map((point) => ({timeS:point.timeS,value:point.cruise?.measurementGood ? point.cruise.estimatedRollRad*180/Math.PI : null}))
+    : nativeSamples
     .filter((sample)=>sensorKey(sample.signal) === signal && sample.measurement.t_sample_s <= bucket+1)
     .map((sample)=>({timeS:sample.measurement.t_sample_s,value:sample.measurement.quality === 'Good' ? sample.measurement.value : null})),
-  [nativeSamples,signal,bucket]);
+  [nativeSamples,trace,signal,bucket]);
   const nearest = (time:number) => samples.reduce((best,point)=>Math.abs(point.timeS-time) < Math.abs(best.timeS-time) ? point : best,
     samples[0] ?? {timeS:time,value:null});
   const first = nearest(startS),last = nearest(endS);
@@ -38,7 +41,7 @@ export function MeasurementWindow({run,startS,endS,onSelect,signal='SurfaceEncod
     const stride = Math.max(1,Math.ceil(samples.length/1500));
     const points = samples.filter((_,index)=>index%stride === 0 || index === samples.length-1);
     const instance = new Chart(canvas.current,{type:'line',data:{datasets:[{
-      label:`仪器量测 / ${unit}`,data:points.map((point)=>({x:point.timeS,y:point.value})),
+      label:`${signal === 'EstimatedRoll' ? '仪器姿态估计' : '仪器量测'} / ${unit}`,data:points.map((point)=>({x:point.timeS,y:point.value})),
       borderColor:'#22d3ee',pointRadius:0,borderWidth:1.5,spanGaps:false,
     }]},options:{animation:false,responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false}},scales:{x:{type:'linear',min:0,max:Math.max(1,timeLimit),
@@ -51,7 +54,7 @@ export function MeasurementWindow({run,startS,endS,onSelect,signal='SurfaceEncod
       }}]});
     chart.current = instance;
     return ()=>{instance.destroy();chart.current=null;};
-  },[samples,timeLimit,startS,endS,unit,theme]);
+  },[samples,timeLimit,startS,endS,unit,theme,signal]);
 
   const valueAt = (clientX:number) => {
     const bounds = canvas.current!.getBoundingClientRect();

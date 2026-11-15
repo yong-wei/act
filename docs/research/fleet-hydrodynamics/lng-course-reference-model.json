@@ -1,0 +1,58 @@
+{
+  "schema": "act.lng-course-reference-model.v1",
+  "authorship": "Automated acceptance fixture recorded and identified through the original LNG page.",
+  "runtimeVersion": "7ce3f446e381789004312b1c951cb4d6dd71af707c7a7d1a74bd5e9c3135dd3e",
+  "parameterHash": "fnv1a-bd649d2a88d4771e",
+  "configuration": {
+    "vessel": "lng-changheng",
+    "parameterVersion": "research-nominal-v3",
+    "loadingRatio": 0.85,
+    "initialWaterSpeedMps": 4,
+    "initialHeadingDeg": 0,
+    "initialPositionNed": [
+      0,
+      0,
+      0
+    ],
+    "environment": "P0",
+    "noiseLevel": "N0",
+    "seed": 20261106,
+    "courseEvidence": {
+      "rollWarningDeg": 8
+    }
+  },
+  "durationS": 600,
+  "controlSamples": 12000,
+  "nativeSamples": 323400,
+  "trainingWindowS": [
+    10,
+    580
+  ],
+  "structure": {
+    "delay_s": 1,
+    "k": 0.08123569611806045,
+    "kind": "fopdt",
+    "t_s": 213.82972294140308
+  },
+  "operatingPoint": {
+    "inputOrigin": 49.68813624189718,
+    "outputOrigin": 4.000039257207055,
+    "speedMps": 4,
+    "loadingRatio": 0.85,
+    "courseVersion": "seven-vessel-2026.11.14"
+  },
+  "identification": {
+    "algorithm": "student-model-fopdt",
+    "settings": {
+      "startS": 10,
+      "endS": 580,
+      "trainingFitPercent": 99.24401643838631
+    },
+    "identifiedOk": true,
+    "residualRms": 0.0004083877960323029,
+    "failureReason": null
+  },
+  "sampleDtS": 0.2,
+  "initialCheckpointSha256": "bbb29ce684fc6c393320db328dc9bd68034c9376d30a9d8d1ec62b8c380fbe67",
+  "completedCheckpointSha256": "1cb3300e33e328c4ffcbcfc1913edb0559b6d62cac2946dd0ccab94ed4cdb59a"
+}

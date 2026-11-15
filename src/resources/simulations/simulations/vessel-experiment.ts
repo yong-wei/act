@@ -70,6 +70,7 @@ export interface VesselCommand {
 }
 
 export interface VesselExperiment {
+  courseVersion?: string;
   key: string;
   originPrefix: string;
   vesselId: string;

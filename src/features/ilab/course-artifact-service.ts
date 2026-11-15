@@ -106,7 +106,28 @@ export async function saveVesselCourseArtifact(userId: string, input: VesselCour
       const opening = await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);
       const model = await tx.studentModelArtifact.findFirst({where:{clientRef:comparison.modelClientRef,userId,experimentKey}});
       const actuator = comparison.actuatorModelClientRef ? await tx.studentModelArtifact.findFirst({where:{clientRef:comparison.actuatorModelClientRef,userId,experimentKey}}) : null;
-      if (!model || (comparison.mode !== 'hull_model' && !actuator)) throw new IlabServiceError('所引用的冻结模型不存在。',404);
+      const io = model?.ioContract as {inputChannel?:string;outputChannel?:string;outputUnit?:string} | undefined;
+      const speedReference = ['lng','container'].includes(input.courseKey) && io?.inputChannel === 'ShaftReference0'
+        && io.outputChannel === 'SpeedLog' && (model?.structure as {kind?:string} | undefined)?.kind === 'fopdt';
+      if (input.courseKey === 'cruise' && io?.inputChannel === 'FinDifferential'
+        && (comparison.mode !== 'hull_model' || comparison.actuatorModelClientRef)) {
+        throw new IlabServiceError('横摇局部模型需要A模式的实际差动鳍量测对照。',400);
+      }
+      if (!model || (comparison.mode !== 'hull_model' && !speedReference && !actuator)) throw new IlabServiceError('所引用的冻结模型不存在。',404);
+      if (speedReference && (comparison.mode === 'hull_model' || comparison.actuatorModelClientRef
+        || comparison.outputChannel !== 'SpeedLog')) {
+        throw new IlabServiceError('轴速参考联合模型需要B或C对照及相同的航速输出通道。',400);
+      }
+      if ((comparison.outputChannel && comparison.outputChannel !== io?.outputChannel)
+        || (comparison.outputUnit && comparison.outputUnit !== io?.outputUnit)) {
+        throw new IlabServiceError('对照输出通道或单位与冻结模型不一致。',400);
+      }
+      if (speedReference && comparison.mode === 'independent_closed_loop'
+        && (!(opening.input.longitudinal || opening.input.containerSpeed)
+          || !(comparison.controllerInput?.longitudinal || comparison.controllerInput?.containerSpeed)
+          || contentHash(comparison.controllerInput) !== contentHash(opening.input))) {
+        throw new IlabServiceError('独立航速闭环需要本次物理运行的冻结控制器。',400);
+      }
       if (comparison.purpose === 'validation' && comparison.endS > summary.lastTimeS + 1e-7) throw new IlabServiceError('对照窗口超出已上传的原始采样。',400);
       const training = model.trainingRuns as Array<{runRef:string;startS:number;endS:number}>;
       if (comparison.purpose === 'validation' && training.some((window) => window.runRef === comparison.runRef && window.startS < comparison.endS && comparison.startS < window.endS)) {
@@ -195,21 +216,24 @@ async function assembleVesselReportEvidence(tx:Prisma.TransactionClient,userId:s
     const summary = vesselRunStorageSummary(run);
     const opening = await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);
     const end = run.completedAt ? await readSimulationTraceChunk<{appliedFinalInput?:VesselEvidenceOpening['input']}>(summary.lastCheckpointReference) : null;
+    const stored = run.summary as unknown as Partial<VesselReportEvidence['runs'][number]>;
     return {id:run.sourceRefId,stepSequence:summary.stepSequence,timeS:summary.lastTimeS,status:run.status,
       configuration:opening.configuration,input:end?.appliedFinalInput ?? opening.input,
       metrics:(run.summary as {metrics?:Record<string,number|null>}).metrics,
+      parameters:stored.parameters,voyage:stored.voyage ?? undefined,fuelKg:stored.fuelKg ?? undefined,
+      cruiseComfort:stored.cruiseComfort ?? undefined,
       fineStepMetrics:(run.summary as {fineStepMetrics?:VesselReportEvidence['runs'][number]['fineStepMetrics']}).fineStepMetrics};
   }));
   return {runs:runData,models:models.map((model)=> {
     const payload = studentModelSaveSchema.parse({experimentKey,lineageKey:model.lineageKey,
       structure:model.structure,ioContract:model.ioContract,operatingPoint:model.operatingPoint,
       identification:model.identification,trainingRuns:model.trainingRuns,validationRuns:model.validationRuns,sampleDt:model.sampleDt});
-    return {label:`本人模型 · 版本${model.version}`,payload,
+    return {id:model.clientRef ?? undefined,label:`本人模型 · 版本${model.version}`,payload,
       frozenAtMs:Number(payload.operatingPoint.clientFrozenAtMs ?? model.frozenAt.getTime())};
     }),
     comparisons:await Promise.all(comparisons.map(async (comparison)=> {
       const reference = comparison.curveRefs as {uri:string};
       const work = await readSimulationTraceChunk<NonNullable<VesselCourseArtifactInput['comparison']>>(reference.uri);
-      return {...work,runId:work.runRef};
+      return {...work,runId:work.runRef,modelId:work.modelClientRef,actuatorModelId:work.actuatorModelClientRef};
     }))};
 }

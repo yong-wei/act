@@ -64,6 +64,7 @@ function MarineFailurePanel({ kind, detail, backend }: { kind: GraphicsFailureKi
 export function MarineCanvas({ children, ...props }: Omit<CanvasProps, 'gl'>) {
   const [api, setApi] = useState<MarineGraphicsApi | null>(null);
   const [modelReady, setModelReady] = useState(false);
+  const [graphicsReady, setGraphicsReady] = useState<MarineGraphicsApi | null>(null);
   const [failure, setFailure] = useState<{ kind: GraphicsFailureKind; detail?: string; backend?: string | null } | null>(null);
   const [fallback, setFallback] = useState(false);
   const [explicit] = useState<MarineGraphicsApi | null>(() => {
@@ -74,8 +75,10 @@ export function MarineCanvas({ children, ...props }: Omit<CanvasProps, 'gl'>) {
 
   useEffect(() => {
     let active = true;
-    void probeModelCapability().then(() => {
-      if (active) setModelReady(true);
+    void probeModelCapability().then((result) => {
+      if (!active) return;
+      if (result.ok) setModelReady(true);
+      else setFailure({kind:'init-defect',detail:result.detail});
     });
     return () => { active = false; };
   }, []);
@@ -107,12 +110,13 @@ export function MarineCanvas({ children, ...props }: Omit<CanvasProps, 'gl'>) {
   const status = useMemo(() => {
     if (failure) return 'failed' as const;
     if (!modelReady) return 'preparing-model' as const;
-    if (!api) return 'preparing-graphics' as const;
+    if (!api || graphicsReady !== api) return 'preparing-graphics' as const;
     return 'runnable' as const;
-  }, [failure, modelReady, api]);
+  }, [failure, modelReady, api, graphicsReady]);
 
   useEffect(() => {
     publishMarineCanvasStatus(status);
+    return () => publishMarineCanvasStatus(null);
   }, [status]);
 
   if (failure) {
@@ -131,7 +135,10 @@ export function MarineCanvas({ children, ...props }: Omit<CanvasProps, 'gl'>) {
   return (
     <div className="h-full w-full" data-marine-graphics={api} data-marine-fallback={fallback} data-marine-status={status}>
       <RendererBoundary key={api} onFailure={(error) => failed(error)}>
-        <Canvas {...props} gl={async options => {
+        <Canvas {...props} onCreated={(state) => {
+          setGraphicsReady(api);
+          props.onCreated?.(state);
+        }} gl={async options => {
           try {
             const renderer = await createMarineRenderer(options.canvas as HTMLCanvasElement, api);
             renderer.onDeviceLost = () => failed(new Error('图形设备连接已中断。'), { deviceLost: true });

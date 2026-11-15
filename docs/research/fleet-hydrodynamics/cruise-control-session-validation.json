@@ -1,0 +1,227 @@
+{
+  "schema": "act.cruise-control-session-validation.v1",
+  "status": "passed",
+  "generator_sha256": "1fad27b22ce2fca464aec140fd31060960ef1bcb99a05f161831550c5b29e585",
+  "wasm_sha256": "2f8411cacefa665ea3cc1e7ec9e50f38748fce37e8894cf79e433144dd9cb196",
+  "configuration": {
+    "vessel": "cruise-adora",
+    "parameterVersion": "research-nominal-v2",
+    "noiseLevel": "N0",
+    "environment": "P0",
+    "initialWaterSpeedMps": 8,
+    "initialRollDeg": 2,
+    "cruise": {
+      "statisticsStartS": 1,
+      "statisticsEndS": 12,
+      "finFailureTimeS": null,
+      "failedFinIndex": null
+    }
+  },
+  "controller_fixture": "declared nominal interface fixture, not a student identification",
+  "controlled": {
+    "physicsTicks": 1440,
+    "controllerTicks": 240,
+    "feedback": {
+      "allocatedMomentNm": -792194.8427852297,
+      "anglesRad": [
+        -0.009834684600120838,
+        0.009834684600120838
+      ],
+      "availableMomentNm": 25116383.490304384,
+      "estimatedPitchRad": -0.00029311682462045694,
+      "estimatedRollRad": -0.002795573461679561,
+      "filteredRollRad": -0.0030734969355581754,
+      "filteredRollRateRadS": 0.0005734393308877646,
+      "initialized": true,
+      "lowSpeedAuthority": false,
+      "measurementGood": true,
+      "rateNotch": {
+        "configuration": {
+          "bandwidthHz": 0.06,
+          "centerHz": 0.2
+        },
+        "input": [
+          0.0005734393308877646,
+          0.0005485915329322403
+        ],
+        "output": [
+          0.0004293039259461809,
+          0.0003973808064132099
+        ]
+      },
+      "requestedMomentNm": -792194.8427852297,
+      "rollNotch": {
+        "configuration": {
+          "bandwidthHz": 0.06,
+          "centerHz": 0.2
+        },
+        "input": [
+          -0.0030734969355581754,
+          -0.0031009646628661616
+        ],
+        "output": [
+          -0.0032601359393764824,
+          -0.003280347496510888
+        ]
+      },
+      "samples": 240
+    },
+    "comfort": {
+      "comfortInterpretation": "teaching_proxy_unweighted",
+      "durationS": 11,
+      "finServoElectricWorkJ": 58754.64745456854,
+      "passengers": [
+        {
+          "accelerationBodyMps2": [
+            -0.0002560545189944186,
+            0.004191819757614225,
+            -0.0013936377487798624
+          ],
+          "accelerationNedMps2": [
+            -0.00023960946107422546,
+            0.004188606734079571,
+            -0.0014061663860417237
+          ],
+          "accelerationPeakMps2": 0.03995811049777503,
+          "accelerationRmsMps2": 0.01733400833732856,
+          "horizontalAccelerationPeakMps2": 0.03981541256381062,
+          "horizontalAccelerationRmsMps2": 0.017180146164682282,
+          "jerkRmsMps3": 0.008217376446187459,
+          "positionBodyM": [
+            0,
+            0,
+            -15
+          ],
+          "specificForceBodyMps2": [
+            -0.0029852089602386755,
+            0.033360077975935785,
+            -9.811349894757704
+          ]
+        },
+        {
+          "accelerationBodyMps2": [
+            -0.0002645614840556031,
+            0.009134387605999269,
+            -0.0025434471222658683
+          ],
+          "accelerationNedMps2": [
+            -0.00022885989862775368,
+            0.009127729065617108,
+            -0.0025706688294547006
+          ],
+          "accelerationPeakMps2": 0.05052222568445442,
+          "accelerationRmsMps2": 0.022188818888289955,
+          "horizontalAccelerationPeakMps2": 0.049089031236816856,
+          "horizontalAccelerationRmsMps2": 0.02121792214645002,
+          "jerkRmsMps3": 0.01173121058751435,
+          "positionBodyM": [
+            91.5,
+            0,
+            -15
+          ],
+          "specificForceBodyMps2": [
+            -0.0029937159252998603,
+            0.03830264582432083,
+            -9.81249970413119
+          ]
+        }
+      ],
+      "physicsSamples": 1320,
+      "positivePropulsionWorkJ": 259834513.81529257,
+      "rollPeakDeg": 1.9200684935023378,
+      "rollRatePeakDegS": 0.3610874913007437,
+      "rollRateRmsDegS": 0.23370327774681848,
+      "rollRmsDeg": 0.8785945920434489,
+      "sampleCadenceS": 0.008333333333333333,
+      "statisticsWindowS": [
+        1,
+        12
+      ]
+    },
+    "restored_future_bytes_identical": true,
+    "pause_bytes_identical": true
+  },
+  "fault": {
+    "activationTimeS": 180,
+    "observedTimeS": 181,
+    "actualFinAnglesRad": [
+      0,
+      0.08726646259971614
+    ],
+    "comfort": {
+      "comfortInterpretation": "teaching_proxy_unweighted",
+      "durationS": 61,
+      "finServoElectricWorkJ": 242000.0000002063,
+      "passengers": [
+        {
+          "accelerationBodyMps2": [
+            0.00010467044474984642,
+            -0.004150908670730323,
+            0.0005004103083133168
+          ],
+          "accelerationNedMps2": [
+            0.00003683270293393953,
+            -0.004152545436253795,
+            0.0004964060064673846
+          ],
+          "accelerationPeakMps2": 0.004442975051592979,
+          "accelerationRmsMps2": 0.0008161483788945427,
+          "horizontalAccelerationPeakMps2": 0.004383655186987696,
+          "horizontalAccelerationRmsMps2": 0.0008119373803690525,
+          "jerkRmsMps3": 0.0052031169128295965,
+          "positionBodyM": [
+            0,
+            0,
+            -15
+          ],
+          "specificForceBodyMps2": [
+            -0.002671219809864654,
+            -0.013683819069564118,
+            -9.809494565126313
+          ]
+        },
+        {
+          "accelerationBodyMps2": [
+            0.00010406149271505839,
+            -0.00488092186663427,
+            0.00037696713914837156
+          ],
+          "accelerationNedMps2": [
+            0.000024358946859441615,
+            -0.004882331961569636,
+            0.00037225333470078143
+          ],
+          "accelerationPeakMps2": 0.00493122543591975,
+          "accelerationRmsMps2": 0.0008851633564223732,
+          "horizontalAccelerationPeakMps2": 0.004912899017427307,
+          "horizontalAccelerationRmsMps2": 0.0008827073095674144,
+          "jerkRmsMps3": 0.005024263678463874,
+          "positionBodyM": [
+            91.5,
+            0,
+            -15
+          ],
+          "specificForceBodyMps2": [
+            -0.002671828761899442,
+            -0.014413832265468066,
+            -9.809618008295478
+          ]
+        }
+      ],
+      "physicsSamples": 7320,
+      "positivePropulsionWorkJ": 1445104546.4314137,
+      "rollPeakDeg": 0.07503556847861582,
+      "rollRatePeakDegS": 0.012953573533371728,
+      "rollRateRmsDegS": 0.004836687258515596,
+      "rollRmsDeg": 0.050441029671090064,
+      "sampleCadenceS": 0.008333333333333333,
+      "statisticsWindowS": [
+        120,
+        181
+      ]
+    },
+    "restored_future_bytes_identical": true
+  },
+  "complete_legacy_future_bytes_identical": true,
+  "scope": "Actual WASM mechanisms and recovery. Full 20-step page, wave-on performance and student-model provenance remain pending."
+}

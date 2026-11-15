@@ -1,5 +1,9 @@
 import { z } from 'zod';
 import { STEP_SCORE_DISTRIBUTION } from '@/resources/simulations/contracts/experiment-step';
+import { DESTROYER_COURSE_STEPS } from '@/resources/simulations/experiments/destroyer-course';
+import { LNG_COURSE_STEPS } from '@/resources/simulations/experiments/lng-course';
+import { CONTAINER_COURSE_STEPS } from '@/resources/simulations/experiments/container-course';
+import { CRUISE_COURSE_STEPS } from '@/resources/simulations/experiments/cruise-course';
 
 export const VESSEL_REPORT_STATUSES = {
   draft:'草稿', submitted:'已提交', 'pending-review':'复核中', 'revision-requested':'退回修改', reviewed:'已复核', finalized:'已确认最终成绩',
@@ -24,6 +28,14 @@ export function vesselStepReviewLimits(sequence:number, design:boolean) {
   const points = STEP_SCORE_DISTRIBUTION[sequence-1];
   const share = (ratio:number) => Math.round(points*ratio*100)/100;
   return {prediction:share(.3),operation:share(design ? .2 : .4),performance:share(design ? .2 : 0),interpretation:share(.3)};
+}
+
+export function vesselCourseStepReviewLimits(courseKey: string, sequence: number) {
+  const definition = courseKey === 'destroyer' ? DESTROYER_COURSE_STEPS[sequence - 1]
+    : courseKey === 'lng' ? LNG_COURSE_STEPS[sequence - 1]
+      : courseKey === 'container' ? CONTAINER_COURSE_STEPS[sequence - 1]
+        : courseKey === 'cruise' ? CRUISE_COURSE_STEPS[sequence - 1] : undefined;
+  return vesselStepReviewLimits(sequence, definition ? definition.rubric.kind === 'design' : sequence >= 9 && sequence < 20);
 }
 
 export function summarizeVesselReview(steps:VesselStepReview[]) {

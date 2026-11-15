@@ -16,17 +16,31 @@ const sensorSignal = z.union([
   z.object({ ShaftSpeed:z.number().int().min(0).max(15) }),
 ]);
 const tracePoint = z.object({
+  cruise:z.object({estimatedRollRad:finite,estimatedPitchRad:finite,filteredRollRad:finite,filteredRollRateRadS:finite,
+    requestedMomentNm:finite,availableMomentNm:finite,allocatedMomentNm:finite,anglesRad:z.tuple([finite,finite]),
+    measurementGood:z.boolean(),lowSpeedAuthority:z.boolean(),samples:finite}).optional(),
+  container:z.object({ticks:finite,requestedReferenceMps:finite,slewedReferenceMps:finite,
+    filteredWaterSpeedMps:finite.nullable(),filteredFeedbackMps:finite.nullable(),errorMps:finite,
+    modelWeights:z.tuple([finite,finite,finite]),outsideIdentifiedDomain:z.boolean(),
+    gains:z.object({kpRpmPerMps:finite,tiS:finite,lambdaS:finite,trackingTimeS:finite}),operatingReferenceRpm:finite,
+    integralRpm:finite,integralRateRpmPerS:finite,unsaturatedRpm:finite,commandRpm:finite,integralFrozen:z.boolean()}).optional(),
+  liquid:z.object({modeHeightsM:vector,cornerHeightsM:vector,withinSmallAmplitude:z.boolean()}).optional(),
+  longitudinal:z.object({referenceMps:finite.nullable(),filteredMeasurementMps:finite.nullable(),feedbackMps:finite.nullable(),
+    integralRpm:finite,unsaturatedRpm:finite,requestedRpm:finite,appliedRpm:finite,integralFrozen:z.boolean()}).optional(),
   timeS:finite.min(0),command:z.object({ headingDeg:finite,shaftRpm:vector,surfaceDeg:vector }),
   measurements:z.record(measurement),
-  estimate:z.object({ headingDeg:finite,yawRateDegS:finite,groundBodySpeedMps:finite,northM:finite,eastM:finite }),
+  estimate:z.object({ headingDeg:finite,yawRateDegS:finite,groundBodySpeedMps:finite,
+    groundBodyLateralSpeedMps:finite.optional(),northM:finite,eastM:finite }),
   dynamics:object.nullable().optional(),
   truth:z.object({ headingDeg:finite,yawRateDegS:finite,rollDeg:finite,pitchDeg:finite,
     rollRateDegS:finite.optional(),pitchRateDegS:finite.optional(),
     waterSpeedMps:finite,groundBodySpeedMps:finite,northM:finite,eastM:finite,
+    waterLateralSpeedMps:finite.optional(),
     shaftRpm:vector,surfaceDeg:vector,azimuthDeg:vector,windLoad:sixVector.nullable(),
     waveFirstLoad:sixVector.nullable(),waveSecondLoad:sixVector.nullable(),propellerWorkJ:vector,
     motorPowerW:vector,positiveMotorWorkJ:finite,fuelKg:finite.nullable(),
     positionNedM:z.tuple([finite,finite,finite]).optional(),quaternionWxyz:z.tuple([finite,finite,finite,finite]).optional(),
+    bowClearanceM:finite.optional(),
     bodyVelocitySi:sixVector.optional(),
   }),
 });
@@ -45,6 +59,7 @@ export const vesselEvidenceOpeningSchema = z.object({
   initialCheckpoint:z.string().min(1).max(3_000_000),
   prediction:z.string().trim().min(1).max(8000),startedAtMs:z.number().int().min(0).max(8_640_000_000_000_000),
   designStudentModelId:z.string().max(80).optional(),controllerSourceRunId:z.string().max(80).optional(),
+  courseSettings:object.optional(),
 });
 
 export type VesselEvidenceOpening = Omit<z.infer<typeof vesselEvidenceOpeningSchema>,'configuration' | 'input'> & {
@@ -71,7 +86,9 @@ export const vesselEvidenceCloseSchema = z.object({
   controlCount:z.number().int().nonnegative(),
   nativeCount:z.number().int().nonnegative(),
   fineCount:z.number().int().nonnegative().optional(),
-  reason:z.enum(['student','duration','arrival','time_limit','failure']),
+  durationS:finite.min(0).max(3600).optional(),
+  pendingChunks:z.array(z.string().regex(/^simulation-cas:(file|s3):sha256:[0-9a-f]{64}$/)).max(4096).optional(),
+  reason:z.enum(['checkpoint','student','duration','arrival','time_limit','failure']),
   failure:z.string().max(8000).nullable(),
 });
 export type VesselEvidenceClose = z.infer<typeof vesselEvidenceCloseSchema>;
