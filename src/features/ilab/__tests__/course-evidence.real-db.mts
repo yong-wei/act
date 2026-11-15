@@ -12,7 +12,7 @@ import { uploadVesselRunEvidence } from '@/features/simulations/evidence-upload'
 import { readVesselEvidenceJson } from '@/features/ilab/course-evidence-api';
 import { vesselEvidenceOpeningSchema, vesselTraceChunkSchema, vesselEvidenceCloseSchema } from '@/features/ilab/course-evidence-contract';
 import { openVesselEvidenceRun, findOwnedVesselRun } from '@/features/ilab/course-evidence-service';
-import { appendVesselEvidenceChunk, closeVesselEvidenceRun, stageVesselEvidenceChunk } from '@/features/ilab/course-evidence-chunks';
+import { appendVesselEvidenceChunk, closeVesselEvidenceRun, stageVesselEvidenceChunk, readVesselEvidenceChunk } from '@/features/ilab/course-evidence-chunks';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 import { LNG_COURSE_STEPS, lngCourseDefaultSettings, lngCourseInput } from '@/resources/simulations/experiments/lng-course';
 import {containerCourseConfiguration,containerCourseDefaultSettings,containerCourseInput} from '@/resources/simulations/experiments/container-course';
@@ -80,6 +80,16 @@ try {
   assert.equal(partial.fineCount,120);
   const partialRecovery = await loadCourseSessionRecovery({userId:user.id,courseKey:'destroyer',courseVersion:VESSEL_COURSE_VERSION});
   const recoveredPartial = partialRecovery.runs.find((item) => item.id === run.id)!;
+  const deferredRecovery = await loadCourseSessionRecovery({ userId:user.id,courseKey:'destroyer',
+    courseVersion:VESSEL_COURSE_VERSION,deferTraceChunks:true });
+  const deferred = deferredRecovery.runs.find((item) => item.id === run.id)!;
+  assert.equal(deferred.trace.length, 0);
+  assert.equal(deferred.nativeSensorSamples.length, 0);
+  assert.equal(deferred.traceManifest?.controlCount, 140);
+  assert.equal(deferred.checkpoint, run.checkpoint);
+  assert(deferred.resumable);
+  assert((await readVesselEvidenceChunk(user.id,run.id,0)).points.length > 0);
+  await assert.rejects(readVesselEvidenceChunk('unrelated-owner',run.id,0),/不存在/);
   const resumed = createServerVesselSession(run.configuration);
   try {
     resumed.restore(recoveredPartial.checkpoint);

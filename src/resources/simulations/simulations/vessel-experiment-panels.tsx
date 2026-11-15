@@ -39,11 +39,11 @@ export function VesselCourseEvidencePanel<Settings extends object>({session,defa
   return <div className="space-y-4">
     <SimPanelSection title="本机实验轮次">
       <div className="space-y-2"><select className="sim-hud-input" aria-label="本机实验轮次" value={course.scopeKey}
-        disabled={session.busy || !course.ready} onChange={(event)=>{void course.selectRound(event.target.value);}}>
+        disabled={session.busy || !course.canSelectRound} onChange={(event)=>{void course.selectRound(event.target.value);}}>
         {course.rounds.map((draft)=><option key={draft.scopeKey} value={draft.scopeKey}>
           {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步
         </option>)}</select>
-        <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || !course.ready}
+        <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || !course.canSelectRound}
           onClick={()=>{void session.restartIlabSession();}}>开启新一轮实验</Button>
       </div>
     </SimPanelSection>

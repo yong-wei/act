@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { readVesselEvidenceJson, requireVesselEvidenceAccount, vesselEvidenceErrorResponse } from '@/features/ilab/course-evidence-api';
 import { vesselEvidenceCloseSchema } from '@/features/ilab/course-evidence-contract';
 import { findOwnedVesselRun, vesselRunProgress } from '@/features/ilab/course-evidence-service';
-import { closeVesselEvidenceRun } from '@/features/ilab/course-evidence-chunks';
+import { closeVesselEvidenceRun, readVesselEvidenceChunk } from '@/features/ilab/course-evidence-chunks';
 import { IlabServiceError } from '@/features/ilab/run-lock';
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +13,14 @@ export async function GET(request: Request, context: Context) {
   try {
     const userId = await requireVesselEvidenceAccount(request);
     const { runRef } = await context.params;
+    const chunkParam = new URL(request.url).searchParams.get('chunkIndex');
+    if (chunkParam !== null) {
+      const chunkIndex = Number(chunkParam);
+      if (!/^\d+$/.test(chunkParam) || !Number.isInteger(chunkIndex) || chunkIndex > 4096) {
+        throw new IlabServiceError('采样分块序号无效。', 400);
+      }
+      return NextResponse.json(await readVesselEvidenceChunk(userId, runRef, chunkIndex));
+    }
     return NextResponse.json(vesselRunProgress(await findOwnedVesselRun(userId, runRef)));
   } catch (error) { return vesselEvidenceErrorResponse(error); }
 }

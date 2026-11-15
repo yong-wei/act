@@ -43,6 +43,7 @@ export async function recordSimulationKonlingAiUsage(input: {
   userId: string;
   courseId: string;
   stepId?: string | null;
+  originId?: string;
   model: string;
   provider: string;
   endpoint?: string;
@@ -71,8 +72,9 @@ export async function recordSimulationKonlingAiUsage(input: {
           userId: input.userId,
           vesselId,
           status: 2,
+          ...(input.originId ? { originId: input.originId } : {}),
         },
-        orderBy: { updatedAt: 'desc' },
+        orderBy: [{ startTimeMs: 'desc' }, { id: 'desc' }],
         select: {
           id: true,
           userId: true,
@@ -80,7 +82,7 @@ export async function recordSimulationKonlingAiUsage(input: {
         },
       });
 
-      if (!activeRun) {
+      if (!activeRun && !input.originId) {
         const ilabAccounts = await tx.account.findMany({
           where: {
             userId: input.userId,
@@ -101,7 +103,7 @@ export async function recordSimulationKonlingAiUsage(input: {
               vesselId,
               status: 2,
             },
-            orderBy: { updatedAt: 'desc' },
+            orderBy: [{ startTimeMs: 'desc' }, { id: 'desc' }],
             select: {
               id: true,
               userId: true,
@@ -139,7 +141,7 @@ export async function recordSimulationKonlingAiUsage(input: {
           aiLedger: nextLedger as unknown as Prisma.InputJsonValue,
         },
       });
-    });
+    }, { maxWait: 30_000, timeout: 30_000 });
   } catch (error) {
     console.warn('[ilab] 记录控灵实验 AI 用量失败（已忽略，不影响助教回复）:', error);
   }

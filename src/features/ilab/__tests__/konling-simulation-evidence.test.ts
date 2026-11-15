@@ -24,7 +24,7 @@ const point = {
 describe('控灵读取本次本人仿真证据', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.session.mockResolvedValue({ reportId: 'old-report', stepDrafts: { activeSeq: 3,
+    mocks.session.mockResolvedValue({ reportId: null, stepDrafts: { activeSeq: 3,
       courseState: { reportClientRef: 'current-round' }, bySeq: { '3': { prediction: 'private-answer-sentinel' } } } });
     mocks.report.mockResolvedValue({ id: 'current-report', clientRef: 'current-round' });
     mocks.attempts.mockResolvedValue([{ stepKey: 'cruise-step-1' }]);
@@ -59,6 +59,19 @@ describe('控灵读取本次本人仿真证据', () => {
     expect(text).not.toContain('999');
     expect(text).toContain('当前低来流下鳍控制能力不足');
     expect(point).toEqual(before);
+  });
+
+  it('历史轮次选择必须同时受本人身份约束，关联报告优先于草稿引用', async () => {
+    mocks.session.mockResolvedValue({ reportId: 'bound-report', stepDrafts: {
+      courseState: { reportClientRef: 'wrong-round' } } });
+    await loadSimulationKonlingEvidence('owner', 'cruise-comfort-experiment', 'cruise-comfort-step-2', 'historical-origin');
+    expect(mocks.session).toHaveBeenCalledWith(expect.objectContaining({ where: {
+      userId: 'owner', vesselId: 'fleet-cruise-adora', originId: 'historical-origin' } }));
+    expect(mocks.report).toHaveBeenCalledWith(expect.objectContaining({ where: {
+      userId: 'owner', id: 'bound-report', experimentKey: 'cruise' } }));
+    mocks.session.mockResolvedValue(null); mocks.report.mockClear();
+    await loadSimulationKonlingEvidence('another-user', 'cruise-comfort-experiment', 'cruise-comfort-step-2', 'historical-origin');
+    expect(mocks.report).not.toHaveBeenCalled();
   });
 
   it('新实验轮次没有报告时仅提供当前目标', async () => {

@@ -57,6 +57,7 @@ interface VesselSessionApiPayload {
   userId?: string | null;
   experimentVersion?: string;
   originId?: string;
+  reportClientRef?: string;
   displayName?: string;
   status?: number;
   uploadMode?: 'local-only' | 'dev-bypass' | 'ilab-remote';
@@ -134,6 +135,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const nativeCourse = experiment.key === courseAdapter.experimentKey && experiment.courseVersion === VESSEL_COURSE_VERSION;
   const [connectionReady, setConnectionReady] = useState(false);
   const [readyScope, setReadyScope] = useState('');
+  const [recoveryFailed, setRecoveryFailed] = useState(false);
   const [round, setRound] = useState<{base: string; scope: string} | null>(null);
   const effectiveUserId = ilabUserId ?? session?.user?.id;
   const canUseCloudEvidence = sessionStatus === 'authenticated' && (!ilabUserId || session?.user?.id === ilabUserId);
@@ -163,6 +165,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const workspace = useRef<VesselCourseWorkspace | null>(null);
   const activation = useRef(0);
   const reportRef = useRef('');
+  const roundOriginRef = useRef<{ scope: string; originId?: string }>({ scope: '' });
   const savedCourseReportId = useRef('');
   const plannedRunRef = useRef('');
   const courseUploads = useRef<Promise<unknown>>(Promise.resolve());
@@ -206,6 +209,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       completedSteps: [...new Set(live.attempts.filter((attempt) => attempt.scopeKey === current.plan.scopeKey
         && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))], updatedAtMs: Date.now(),
       answers: live.readings, plannedRunId: plannedRunRef.current, reportClientRef: reportRef.current,
+      originId: roundOriginRef.current.scope === current.plan.scopeKey ? roundOriginRef.current.originId : undefined,
       reportRunIds: live.reportRunIds, courseSettings: Object.fromEntries(Object.entries(live.settings)), designStudentModelId: live.designModelId});
     const nextRounds = await listExperimentDrafts(baseScopeRef.current);
     if (current.plan.scopeKey === scopeRef.current) setRounds(nextRounds);
@@ -247,13 +251,17 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     const token = ++activation.current;
     setCourseRunning(false);
     setReadyScope('');
+    setRecoveryFailed(false);
     const previous = workspace.current;
     await previous?.dispose();
     if (token !== activation.current || scopeRef.current !== scope) return;
     let draft = replacementSettings ? undefined : initial ? await readExperimentDraft(scope)
       : await readStepExperimentDraft(scope, sequence);
-    if (initial && !draft && scope === baseScopeRef.current && canUseCloudEvidence) {
-      const restored = await fetchCourseSessionRecovery(courseAdapter.courseKey, VESSEL_COURSE_VERSION);
+    if (initial && canUseCloudEvidence) {
+      const restored = await fetchCourseSessionRecovery(courseAdapter.courseKey, VESSEL_COURSE_VERSION,
+        draft ? { originId: draft.originId, reportClientRef: draft.reportClientRef }
+          : scope === baseScopeRef.current ? { originId: originIdRef.current || undefined }
+            : { reportClientRef: scope.slice(`${baseScopeRef.current}:round:`.length) });
       if (token !== activation.current || scopeRef.current !== scope) return;
       if (!restored.authenticated || restored.userId !== effectiveUserId || !restored.recovery) {
         throw new Error('账号或云端进度暂时无法恢复，请刷新重试。已保存的实验记录将继续保留。');
@@ -261,7 +269,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       if (restored.authenticated && restored.userId === effectiveUserId && restored.recovery) {
         const recovery = restored.recovery;
         if (recovery.ilabRun) {
-          stepDraftsRef.current = {...recovery.ilabRun.stepDrafts, ...stepDraftsRef.current};
+          stepDraftsRef.current = {...recovery.ilabRun.stepDrafts};
           setUploadFailed(recovery.ilabRun.retryableUpload);
         }
         savedCourseReportId.current = recovery.report?.id ?? '';
@@ -272,6 +280,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       }
     }
     if (token !== activation.current || scopeRef.current !== scope) return;
+    if (initial) roundOriginRef.current = { scope, originId: draft?.originId };
     if (initial) sequence = draft?.stepSequence ?? sequence;
     const previousPlan = courseAdapter.previousPlanSequence?.(sequence);
     const planDraft = draft ?? (previousPlan && !replacementSettings ? await readStepExperimentDraft(scope, previousPlan) : undefined);
@@ -309,7 +318,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
 
   useEffect(() => {
     if (!nativeCourse || !connectionReady || !accountReady || sessionStatus === 'loading' || readyRoundBase !== baseScope) return;
-    void activateCourseStep(1, scopeKey, true).catch((error: unknown) => setMessage(error instanceof Error ? error.message : '实验恢复失败。'));
+    void activateCourseStep(1, scopeKey, true).catch((error: unknown) => {
+      setRecoveryFailed(true);
+      setMessage(error instanceof Error ? error.message : '实验恢复失败。');
+    });
     return () => {
       activation.current += 1;
       const previous = workspace.current;
@@ -376,9 +388,11 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       activeSeq,
       bySeq: stepDraftsRef.current,
     });
-    if (!originId) return;
+    const draftOriginId = nativeCourse ? roundOriginRef.current.scope === scopeKey
+      ? roundOriginRef.current.originId : undefined : originId;
+    if (!draftOriginId) return;
     const timer = window.setTimeout(() => {
-      void fetch(`/api/ilab/vessel/session/${originId}`, {
+      void fetch(`/api/ilab/vessel/session/${draftOriginId}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -577,6 +591,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       learningObjectives: [step.goal],
       knowledgeType: 'X',
       simulationId: experiment.vesselId,
+      simulationOriginId: roundOriginRef.current.scope === scopeKey ? roundOriginRef.current.originId : undefined,
       routeProvenance: 'simulation-route',
       systemPromptExtension: vesselKonlingBrief(experiment, step, liveRef.current.time === undefined ? null : liveRef.current),
       quickQuestions: [{
@@ -584,7 +599,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
         question: `我在做${experiment.title}第 ${step.seq} 步「${step.title}」。请给出操作建议，不要替我填写读数，也不要打分。`,
       }],
     });
-  }, [experiment, hudBucket, step, updatePageContext]);
+  }, [experiment, hudBucket, step, updatePageContext, scopeKey, readyScope]);
 
   useEffect(() => () => {
     clearDynamicPageContext?.();
@@ -754,7 +769,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
           if (activeSeq === 20 && !problem) {
             const report = await saveVesselCourseReport(reportRef.current, courseAdapter.courseKey, readings as unknown as VesselReportSections, reportRunIds, 'submit');
             savedCourseReportId.current = report.id;
-            if (originId) await syncNativeCourseReport(report.id);
+            await syncNativeCourseReport(report.id);
             setReportRevision((value) => value + 1);
           }
         } catch (error) { uploadFailure = error instanceof Error ? error.message : '上传失败，本机证据已保留。'; }
@@ -803,6 +818,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     setBusy(true);
     try {
       await pauseCourseRun();
+      setReadyScope('');
       window.localStorage.setItem(`act-vessel-course-round:${baseScope}`, nextScope);
       setRound({base: baseScope, scope: nextScope});
     } catch (error) { courseFailure(error); }
@@ -1044,7 +1060,8 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function syncNativeCourseReport(reportId: string) {
-    const result = await triggerCourseReportIlabUpload(reportId, originId || null);
+    const result = await triggerCourseReportIlabUpload(reportId,
+      roundOriginRef.current.scope === scopeKey ? roundOriginRef.current.originId : null);
     savedCourseReportId.current = reportId;
     setUploadFailed(result.retryableUpload);
     setUploadMode(result.uploadMode);
@@ -1079,10 +1096,17 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       setBusy(true);
       try {
         await pauseCourseRun();
+        setReadyScope('');
         const response = await fetch('/api/ilab/vessel/session', {method:'POST',headers:{'content-type':'application/json'},
           body:JSON.stringify({experimentKey:experiment.key,experimentVersion:VESSEL_COURSE_VERSION,forceNew:true})});
         const body = await response.json() as VesselSessionApiPayload;
         if (!response.ok) throw new Error(body.error ?? '新一轮实验暂时无法建立，原记录已保留。');
+        const clientRef = body.reportClientRef ?? crypto.randomUUID();
+        const nextScope = `${baseScope}:round:${clientRef}`;
+        await saveExperimentDraft({scopeKey:nextScope,stepSequence:1,activeRunId:null,prediction:'',explanation:'',
+          durationS:courseAdapter.steps[0].runDurationS ?? 1200,checkpoint:null,runConfiguration:null,
+          completedSteps:[],updatedAtMs:Date.now(),reportClientRef:clientRef,originId:body.originId,
+          answers:{},reportRunIds:[],plannedRunId:crypto.randomUUID()});
         if (body.connected && body.originId) {
           window.sessionStorage.setItem(`act-vessel-origin:${experiment.key}`,body.originId);
           setOriginId(body.originId);
@@ -1091,7 +1115,8 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
         savedCourseReportId.current = '';
         stepDraftsRef.current = {};
         setSessionCompleted(false);setUploadFailed(false);setRecords([]);setReportHtml('');
-        await selectCourseRound(`${baseScope}:round:${crypto.randomUUID()}`);
+        window.localStorage.setItem(`act-vessel-course-round:${baseScope}`, nextScope);
+        setRound({base: baseScope, scope: nextScope});
       } catch (error) { courseFailure(error); }
       finally { setBusy(false); }
       return;
@@ -1177,6 +1202,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     ask: () => ai?.openSidebar(),
     course: nativeCourse ? {
       scopeKey, plannedRunId: plannedRunRef.current, ready: accountReady && readyScope === scopeKey, running: courseRunning,
+      canSelectRound: accountReady && connectionReady && (readyScope === scopeKey || recoveryFailed),
       rounds, selectRound: selectCourseRound,
       settings, setSettings, designModelId, setDesignModelId, reportRunIds, setReportRunIds,
       models: models.filter((model) => model.scopeKey === scopeKey),

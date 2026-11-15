@@ -14,6 +14,16 @@ import { IlabServiceError } from './run-lock';
 
 const hash = (value: unknown) => createHash('sha256').update(canonicalJson(value)).digest('hex');
 
+/** 按本人运行读取一个不可变采样分块，避免恢复完整实验时生成数GB的单次响应。 */
+export async function readVesselEvidenceChunk(userId: string, runRef: string, chunkIndex: number) {
+  const run = await findOwnedVesselRun(userId, runRef);
+  const chunk = await prisma.simulationTrace.findUnique({
+    where: { runId_chunkIndex: { runId: run.id, chunkIndex } }, select: { sampleStorageUri: true },
+  });
+  if (!chunk?.sampleStorageUri) throw new IlabServiceError('采样分块不存在。', 404);
+  return readSimulationTraceChunk<VesselTraceChunk>(chunk.sampleStorageUri);
+}
+
 /** 暂存不会推进数据库采样水位，网络中断后仍可恢复上一个完整检查点。 */
 export async function stageVesselEvidenceChunk(userId: string, chunk: VesselTraceChunk) {
   const run = await findOwnedVesselRun(userId, chunk.runRef);

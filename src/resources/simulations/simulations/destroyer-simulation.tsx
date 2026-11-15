@@ -1222,6 +1222,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   const [runtimeReady, setRuntimeReady] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const [readyDraftScope, setReadyDraftScope] = useState('');
+  const [recoveryFailed, setRecoveryFailed] = useState(false);
   const [derivativeFilterTauS, setDerivativeFilterTauS] = useState(0.2);
   const [integralTrackingEnabled, setIntegralTrackingEnabled] = useState(true);
   const [integralTrackingTimeS, setIntegralTrackingTimeS] = useState(1);
@@ -1232,6 +1233,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   const [loadedCourseAttempts, setCourseAttempts] = useState<VesselLocalStepAttempt[]>([]);
   const [reportRunIds, setReportRunIds] = useState<string[]>([]);
   const reportClientRef = useRef('');
+  const roundOriginRef = useRef<{ scope: string; originId?: string }>({ scope: '' });
   const uploadScopeRef = useRef('');
   const evidenceUploadsRef = useRef<Promise<unknown>>(Promise.resolve());
   const [evidenceUploadMessage, setEvidenceUploadMessage] = useState('');
@@ -1281,6 +1283,8 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [originId, setOriginId] = useState('');
+  const originIdRef = useRef(originId);
+  originIdRef.current = originId;
   const [sessionCompleted, setSessionCompleted] = useState(false);
   const [reportHtml, setReportHtml] = useState('');
   const [pastReports, setPastReports] = useState<Array<{ id: string; score: number; maxScore: number; createdAt: string }> | null>(null);
@@ -1607,6 +1611,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
     if (!sessionReady || !accountReady || sessionStatus === 'loading') return;
     let cancelled = false;
     setReadyDraftScope('');
+    setRecoveryFailed(false);
     setCourseReport(null);setEvidenceUploadMessage('');
     void (async () => {
       let [draft, attempts, models, comparisons, runs] = await Promise.all([
@@ -1617,9 +1622,11 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
         listRunEvidence(scopeKey),
       ]);
       if (cancelled) return;
-      if (scopeKey === baseScopeKey && experimentVersion === VESSEL_COURSE_VERSION && canUseCloudEvidence
-        && !draft && attempts.length === 0 && runs.length === 0 && models.length === 0) {
-        const recovered = await fetchCourseSessionRecovery('destroyer', experimentVersion);
+      if (experimentVersion === VESSEL_COURSE_VERSION && canUseCloudEvidence) {
+        const recovered = await fetchCourseSessionRecovery('destroyer', experimentVersion,
+          draft ? { originId: draft.originId, reportClientRef: draft.reportClientRef }
+            : scopeKey === baseScopeKey ? { originId: originIdRef.current || undefined }
+              : { reportClientRef: scopeKey.slice(`${baseScopeKey}:round:`.length) });
         if (cancelled) return;
         if (!recovered.authenticated || recovered.userId !== effectiveUserId || !recovered.recovery) {
           throw new Error('账号或云端进度暂时无法恢复，请刷新重试。已保存的实验记录将继续保留。');
@@ -1627,11 +1634,8 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
         const recovery = recovered?.recovery ?? null;
         if (recovery) {
           if (recovery.ilabRun) {
-            stepDraftsRef.current = { ...recovery.ilabRun.stepDrafts, ...stepDraftsRef.current };
+            stepDraftsRef.current = { ...recovery.ilabRun.stepDrafts };
             setIlabUploadFailed(Boolean(recovery.ilabRun.retryableUpload));
-            if (recovery.ilabRun.originId) {
-              setOriginId((prev) => prev || recovery.ilabRun!.originId);
-            }
           }
           if (recovery.report) {
             setCourseReport(recovery.report);
@@ -1656,6 +1660,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       setStudentModels(models); setModelComparisons(comparisons);
       setRunSummaries(runs);
       reportClientRef.current = draft?.reportClientRef ?? crypto.randomUUID();
+      roundOriginRef.current = { scope: scopeKey, originId: draft?.originId };
       if (experimentVersion !== VESSEL_COURSE_VERSION) {
         const savedDraft = stepDraftsRef.current[String(activeSeqRef.current)];
         if (savedDraft && Object.keys(savedDraft).length > 0 && Object.keys(readingsRef.current).length === 0) {
@@ -1694,15 +1699,20 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       setPredictionModelId('');setPredictionActuatorId('');
       setResetToken((previous) => previous+1);
       setReadyDraftScope(scopeKey);
-    })().catch((error:unknown) => {if (!cancelled) handleRuntimeFailure(error);});
+    })().catch((error:unknown) => {
+      if (cancelled) return;
+      setRecoveryFailed(true);
+      setMessage(error instanceof Error ? error.message : '实验恢复失败，本机记录已保留。');
+    });
     return () => { cancelled = true; };
-  }, [scopeKey, baseScopeKey, sessionReady, accountReady, sessionStatus, canUseCloudEvidence, effectiveUserId, experimentVersion, handleRuntimeFailure]);
+  }, [scopeKey, baseScopeKey, sessionReady, accountReady, sessionStatus, canUseCloudEvidence, effectiveUserId, experimentVersion]);
 
   const activeRunId = recorderRef.current?.run.id ?? null;
   const saveDraft = useCallback(() => saveExperimentDraft({ scopeKey, stepSequence: activeSeq, activeRunId,
     prediction: readings.prediction ?? '', explanation: readings.interpretation ?? '', durationS: motion.duration,
     checkpoint: null, runConfiguration: courseStep?.configuration ?? null, completedSteps: doneSeqs, updatedAtMs: Date.now(), answers: readings,
     plannedRunId, reportRunIds, reportClientRef: reportClientRef.current,
+    originId: roundOriginRef.current.scope === scopeKey ? roundOriginRef.current.originId : undefined,
     controls: { mode: controlMode === 'manual' || controlMode === 'p' || controlMode === 'pd' ? controlMode : 'pid', pid: pidGains,
       manualRudderDeg: manualRudder, derivativeFilterTauS, integralTrackingEnabled, integralTrackingTimeS, variants, controllerSourceRunId,designStudentModelId } }),
   [scopeKey, activeSeq, activeRunId, readings, motion.duration, courseStep, doneSeqs, controlMode, pidGains,
@@ -1761,14 +1771,16 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   }, [draftReady, courseStep, saveDraft, persistCurrentRun, handleRuntimeFailure]);
 
   useEffect(() => {
-    if (!sessionReady || !originId || sessionCompleted || (courseStep && !draftReady)) return;
+    const draftOriginId = courseStep ? roundOriginRef.current.scope === scopeKey
+      ? roundOriginRef.current.originId : undefined : originId;
+    if (!sessionReady || !draftOriginId || (courseStep ? !draftReady : sessionCompleted)) return;
     stepDraftsRef.current = { ...stepDraftsRef.current, [String(activeSeq)]: readings };
     const timer = window.setTimeout(() => {
       void (async () => {
         if (courseStep) await saveDraft();
         const draft = courseStep ? await readExperimentDraft(scopeKey) : undefined;
         if (courseStep && uploadScopeRef.current !== scopeKey) return;
-        await fetch(`/api/ilab/destroyer/session/${originId}`, {
+        await fetch(`/api/ilab/destroyer/session/${draftOriginId}`, {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ activeSeq, seq: activeSeq, readings, ...(draft ? {courseState:{
@@ -1989,6 +2001,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       learningObjectives: [step.goal],
       knowledgeType: 'X',
       simulationId: 'destroyer',
+      simulationOriginId: roundOriginRef.current.scope === scopeKey ? roundOriginRef.current.originId : undefined,
       routeProvenance: 'simulation-route',
       systemPromptExtension: destroyerKonlingBrief(step, {
         heading: hud.heading,
@@ -2004,7 +2017,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
         question: `我在做${DESTROYER_EXPERIMENT_TITLE}第 ${step.seq} 步「${step.title}」。请给出操作建议，不要替我填写读数，也不要打分。`,
       }],
     });
-  }, [updatePageContext, step, hudBucket, controlMode, manualRudder]);
+  }, [updatePageContext, step, hudBucket, controlMode, manualRudder, scopeKey, draftReady]);
 
   useEffect(() => () => {
     clearDynamicPageContext?.();
@@ -2102,8 +2115,8 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
               const report = await saveVesselCourseReport(reportClientRef.current,'destroyer',sections,reportRunIds,'submit',courseReport?.revision);
               setCourseReport(report);
               setReportRevision((value)=>value+1);
-              if (originId) {
-                const ilabResult = await triggerCourseReportIlabUpload(report.id, originId);
+              if (roundOriginRef.current.scope === scopeKey && roundOriginRef.current.originId) {
+                const ilabResult = await triggerCourseReportIlabUpload(report.id, roundOriginRef.current.originId);
                 setIlabUploadFailed(ilabResult.retryableUpload);
                 setEvidenceUploadMessage(ilabResult.message);
                 if (ilabResult.uploaded) {
@@ -2255,7 +2268,8 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           setMessage('请先提交第 20 步课程报告，再重新回传至实验空间。');
           return;
         }
-        const result = await triggerCourseReportIlabUpload(courseReport.id, originId || null);
+        const result = await triggerCourseReportIlabUpload(courseReport.id,
+          roundOriginRef.current.scope === scopeKey ? roundOriginRef.current.originId : null);
         setIlabUploadFailed(result.retryableUpload);
         setEvidenceUploadMessage(result.message);
         setMessage(result.message);
@@ -2283,24 +2297,28 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       setIlabUploadFailed(false);
       stepDraftsRef.current = {};
       if (courseStep) {
-        const clientRef = crypto.randomUUID();
-        const nextScope = `${baseScopeKey}:round:${clientRef}`;
-        await saveExperimentDraft({scopeKey:nextScope,stepSequence:1,activeRunId:null,prediction:'',explanation:'',
-          durationS:60,checkpoint:null,runConfiguration:steps[0].courseDefinition?.configuration,
-          completedSteps:[],updatedAtMs:Date.now(),reportClientRef:clientRef,answers:{},reportRunIds:[],plannedRunId:crypto.randomUUID()});
-        await selectCourseRound(nextScope);
-        setSessionCompleted(false);setRecords([]);setReportHtml('');setReportRunIds([]);
-        setActiveSeq(1);setViewSeq(1);setVariants({});setControllerSourceRunId('');setDesignStudentModelId('');
+        executionRef.current = false;
+        nativeSessionRef.current?.setPaused(true);
+        setIsRunning(false);
+        if (draftReady) {
+          await persistCurrentRun('student');
+          await saveDraft();
+        }
+        setReadyDraftScope('');
+        let clientRef = crypto.randomUUID();
+        let nextOriginId: string | undefined;
         if (originId || ticket || canUseCloudEvidence) {
-          window.sessionStorage.removeItem('act-destroyer-origin');
           const res = await fetch('/api/ilab/destroyer/session', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({ experimentVersion: VESSEL_COURSE_VERSION, forceNew: true }),
           });
           const body = await res.json().catch(() => null) as { connected?: boolean; originId?: string; status?: number;
-            uploadMode?: 'local-only' | 'dev-bypass' | 'ilab-remote' } | null;
+            reportClientRef?: string; error?: string; uploadMode?: 'local-only' | 'dev-bypass' | 'ilab-remote' } | null;
+          if (!res.ok) throw new Error(body?.error ?? '新一轮实验暂时无法建立，原记录已保留。');
           if (res.ok && body?.connected && body.originId) {
+            clientRef = body.reportClientRef ?? clientRef;
+            nextOriginId = body.originId;
             window.sessionStorage.setItem('act-destroyer-origin', body.originId);
             setOriginId(body.originId);
             setIlabConnectionStatus(describeIlabConnection(body.uploadMode ?? 'ilab-remote'));
@@ -2309,6 +2327,17 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
             setOriginId('');
           }
         }
+        const nextScope = `${baseScopeKey}:round:${clientRef}`;
+        await saveExperimentDraft({scopeKey:nextScope,stepSequence:1,activeRunId:null,prediction:'',explanation:'',
+          durationS:60,checkpoint:null,runConfiguration:steps[0].courseDefinition?.configuration,
+          completedSteps:[],updatedAtMs:Date.now(),reportClientRef:clientRef,originId:nextOriginId,
+          answers:{},reportRunIds:[],plannedRunId:crypto.randomUUID()});
+        recorderRef.current = null;restoredRunRef.current = null;
+        window.localStorage.setItem(`${baseScopeKey}:active-round`,nextScope);
+        uploadScopeRef.current = nextScope;
+        setSelectedRound({base:baseScopeKey,scope:nextScope});
+        setSessionCompleted(false);setRecords([]);setReportHtml('');setReportRunIds([]);
+        setActiveSeq(1);setViewSeq(1);setVariants({});setControllerSourceRunId('');setDesignStudentModelId('');
         setMessage('新一轮实验已开启，原运行、模型和各次尝试保留在历史中。');
         return;
       }
@@ -2343,6 +2372,9 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
         return;
       }
       setMessage(body.error || '已重置本机实验记录，请从第 1 步开始。');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '新一轮实验暂时无法建立，原记录已保留。');
+      setReadyDraftScope(scopeKey);
     } finally {
       setBusy(false);
     }
@@ -2600,7 +2632,11 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           {
             id: 'control',
             label: '控制',
-            content: (courseStep && !draftReady ? <p role="status" className="text-xs text-platform-fg-secondary">正在恢复本轮实验记录…</p> : (
+            content: (courseStep && !draftReady ? <div className="space-y-3">
+              <p role="status" className="text-xs text-platform-fg-secondary">{recoveryFailed ? message : '正在恢复本轮实验记录…'}</p>
+              {recoveryFailed && accountReady && sessionReady ? <button type="button" className={simulationUi.buttonOutline} disabled={busy}
+                onClick={()=>{void restartIlabSession();}}>开启新一轮实验</button> : null}
+            </div> : (
               <ExperimentStepAreas
                 seq={step.seq}
                 title={step.title}
@@ -2792,6 +2828,8 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                   postRun={recorderRef.current?.run.stoppedAtMs != null}
                   comparison={modelComparisons.filter((comparison) => comparison.runId === recorderRef.current?.run.id).at(-1)} /></SimPanelSection> : null}
                 {courseStep ? <SimPanelSection title="本机实验历史">
+                  <button type="button" className={simulationUi.buttonOutline} disabled={busy || !draftReady}
+                    onClick={()=>{void restartIlabSession();}}>开启新一轮实验</button>
                   <div className="space-y-2">{roundDrafts.filter((draft) => draft.scopeKey === baseScopeKey || draft.scopeKey.startsWith(`${baseScopeKey}:round:`)).map((draft)=><button type="button" key={draft.scopeKey}
                     disabled={draft.scopeKey === scopeKey || busy} className={simulationUi.buttonOutline}
                     onClick={()=>{void selectCourseRound(draft.scopeKey).catch(handleRuntimeFailure);}}>

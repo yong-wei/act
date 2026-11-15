@@ -20,6 +20,7 @@ import { vesselExperimentKey, vesselReportView } from '../course-artifact-servic
 import type { VesselEvidenceOpening, VesselTraceChunk } from '../course-evidence-contract';
 import { VESSEL_EVIDENCE_DOMAIN, vesselRunStorageSummary } from '../course-evidence-service';
 import { parseStepDrafts, resolveIlabUploadMode } from './ilab-session-lifecycle';
+import { IlabServiceError } from '../run-lock';
 
 const VESSEL_ID_BY_COURSE_KEY: Record<VesselCourseKey, string> = {
   destroyer: 'destroyer-055',
@@ -68,6 +69,9 @@ export async function loadCourseSessionRecovery(input: {
   userId: string;
   courseKey: VesselCourseKey;
   courseVersion?: string;
+  originId?: string;
+  reportClientRef?: string;
+  deferTraceChunks?: boolean;
 }): Promise<CourseSessionRecoveryPayload> {
   const course = findVesselCourse(input.courseKey);
   if (!course) {
@@ -76,59 +80,45 @@ export async function loadCourseSessionRecovery(input: {
   const courseVersion = input.courseVersion || VESSEL_COURSE_VERSION;
   const vesselId = VESSEL_ID_BY_COURSE_KEY[course.key];
 
-  const [draftReport, latestAnyReport, activeIlabRun] = await Promise.all([
-    prisma.virtualSimulationReport.findFirst({
-      where: {
-        userId: input.userId,
-        experimentKey: course.key,
-        experimentVersion: courseVersion,
-        clientRef: { not: null },
-        status: { in: ['draft', 'revision-requested'] },
-      },
-      orderBy: { updatedAt: 'desc' },
-    }),
-    prisma.virtualSimulationReport.findFirst({
-      where: {
-        userId: input.userId,
-        experimentKey: course.key,
-        experimentVersion: courseVersion,
-        clientRef: { not: null },
-      },
-      orderBy: { updatedAt: 'desc' },
-    }),
-    prisma.ilabExperimentRun.findFirst({
-      where: {
-        userId: input.userId,
-        vesselId,
-        experimentVersion: courseVersion,
+  const reportWhere = { userId: input.userId, experimentKey: course.key, experimentVersion: courseVersion };
+  const requestedReport = input.reportClientRef ? await prisma.virtualSimulationReport.findFirst({
+    where: { ...reportWhere, clientRef: input.reportClientRef },
+  }) : null;
+  const ilabRunForRecovery = await prisma.ilabExperimentRun.findFirst({
+    where: {
+      userId: input.userId, vesselId, experimentVersion: courseVersion,
+      ...(input.originId ? { originId: input.originId } : input.reportClientRef ? {
         OR: [
-          { status: 2 },
-          { uploadStatus: { in: ['failed', 'score-uploaded'] } },
+          ...(requestedReport ? [{ reportId: requestedReport.id }] : []),
+          { reportId: null, stepDrafts: { path: ['courseState', 'reportClientRef'], equals: input.reportClientRef } },
         ],
-      },
-      orderBy: { updatedAt: 'desc' },
-    }),
-  ]);
+      } : { OR: [{ status: 2 }, { uploadStatus: { in: ['failed', 'score-uploaded'] } }] }),
+    },
+    orderBy: [{ startTimeMs: input.reportClientRef && !input.originId ? 'asc' : 'desc' }, { id: 'desc' }],
+  });
+  if (input.originId && !ilabRunForRecovery) throw new IlabServiceError('实验记录不存在。', 404);
 
-  const activeCourseState = activeIlabRun ? parseStepDrafts(activeIlabRun.stepDrafts).courseState : undefined;
-  const activeReportRef = typeof activeCourseState?.reportClientRef === 'string' ? activeCourseState.reportClientRef : null;
-  const targetReport = activeReportRef
-    ? await prisma.virtualSimulationReport.findFirst({where:{userId:input.userId,experimentKey:course.key,
-        experimentVersion:courseVersion,clientRef:activeReportRef}})
-    : draftReport ?? latestAnyReport;
-
-  const ilabRunForRecovery = activeIlabRun ?? (
-    targetReport
-      ? await prisma.ilabExperimentRun.findFirst({
-          where: { userId: input.userId, reportId: targetReport.id },
-          orderBy: { updatedAt: 'desc' },
-        })
-      : null
-  );
+  const activeCourseState = ilabRunForRecovery ? parseStepDrafts(ilabRunForRecovery.stepDrafts).courseState : undefined;
+  const linkedReport = ilabRunForRecovery?.reportId ? await prisma.virtualSimulationReport.findFirst({
+    where: { ...reportWhere, id: ilabRunForRecovery.reportId },
+  }) : null;
+  const boundReportRef = linkedReport?.clientRef
+    ?? (typeof activeCourseState?.reportClientRef === 'string' ? activeCourseState.reportClientRef : null);
+  if (input.reportClientRef && boundReportRef && input.reportClientRef !== boundReportRef) {
+    throw new IlabServiceError('所选实验与报告的轮次不一致，请重新读取该轮进度。', 409);
+  }
+  const reportClientRef = input.reportClientRef ?? boundReportRef;
+  const targetReport = linkedReport ?? requestedReport ?? await prisma.virtualSimulationReport.findFirst({
+    where: { ...reportWhere, clientRef: reportClientRef ?? { not: null } },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+  });
 
   let ilabRunView: CourseSessionRecoveryPayload['ilabRun'] = null;
   if (ilabRunForRecovery) {
-    const drafts = parseStepDrafts(ilabRunForRecovery.stepDrafts);
+    const storedDrafts = parseStepDrafts(ilabRunForRecovery.stepDrafts);
+    const drafts = linkedReport?.clientRef && storedDrafts.courseState?.reportClientRef
+      && storedDrafts.courseState.reportClientRef !== linkedReport.clientRef
+      ? { bySeq: {}, courseState: { reportClientRef: linkedReport.clientRef } } : storedDrafts;
     const mode = resolveIlabUploadMode(ilabRunForRecovery);
     ilabRunView = {
       originId: ilabRunForRecovery.originId,
@@ -137,7 +127,7 @@ export async function loadCourseSessionRecovery(input: {
       retryableUpload: mode === 'ilab-remote' && (ilabRunForRecovery.uploadStatus === 'failed' || ilabRunForRecovery.uploadStatus === 'score-uploaded'),
       stepDrafts: drafts.bySeq,
       ...(drafts.activeSeq !== undefined ? { draftActiveSeq: drafts.activeSeq } : {}),
-      ...(drafts.courseState ? { courseState: drafts.courseState } : {}),
+      courseState: { ...drafts.courseState, ...(boundReportRef ? { reportClientRef: boundReportRef } : {}) },
       updatedAtMs: ilabRunForRecovery.updatedAt.getTime(),
     };
   }
@@ -145,7 +135,7 @@ export async function loadCourseSessionRecovery(input: {
   if (!targetReport?.clientRef) {
     return {
       report: null,
-      reportClientRef: null,
+      reportClientRef: reportClientRef ?? null,
       runs: [],
       models: [],
       comparisons: [],
@@ -192,7 +182,7 @@ export async function loadCourseSessionRecovery(input: {
     const fineStepSamples: NonNullable<VesselRunEvidence['fineStepSamples']> = [];
     const changes: Array<{ timeS: number; input: VesselSessionInput }> = [];
 
-    for (const traceRow of run.traces) {
+    for (const traceRow of input.deferTraceChunks ? [] : run.traces) {
       const chunk = await safeReadCas<VesselTraceChunk>(traceRow.sampleStorageUri);
       if (!chunk) continue;
       if (Array.isArray(chunk.points)) trace.push(...chunk.points);
@@ -216,8 +206,11 @@ export async function loadCourseSessionRecovery(input: {
 
     const stopReason = closeChunk?.reason === 'checkpoint' ? null
       : closeChunk?.reason ?? (run.status === 'failed' ? 'failure' : run.status === 'completed' ? 'duration' : null);
-    const resumable = closeChunk ? closeChunk.controlCount === trace.length
-      && closeChunk.nativeCount === nativeSensorSamples.length && (closeChunk.fineCount ?? 0) === fineStepSamples.length
+    const controlCount = input.deferTraceChunks ? summary.controlCount : trace.length;
+    const nativeCount = input.deferTraceChunks ? summary.nativeCount : nativeSensorSamples.length;
+    const fineCount = input.deferTraceChunks ? summary.fineCount ?? 0 : fineStepSamples.length;
+    const resumable = closeChunk ? closeChunk.controlCount === controlCount
+      && closeChunk.nativeCount === nativeCount && (closeChunk.fineCount ?? 0) === fineCount
       && Math.abs((closeChunk.endTimeS ?? 0)-summary.lastTimeS) < 1e-7 : summary.lastTimeS === 0;
 
     runs.push({
@@ -247,9 +240,10 @@ export async function loadCourseSessionRecovery(input: {
       nativeSensorSamples,
       fineStepSamples,
       changes,
+      ...(input.deferTraceChunks ? { traceManifest: { chunkCount: summary.chunkCount, controlCount, nativeCount, fineCount } } : {}),
       stopReason,
       failure: closeChunk?.failure ?? null,
-      ...(run.completedAt !== null
+      ...(resumable
         ? {
             uploadReceipt: {
               runRef: run.sourceRefId,
@@ -257,9 +251,9 @@ export async function loadCourseSessionRecovery(input: {
               experimentKey,
               status: run.status,
               chunkCount: summary.chunkCount,
-              controlCount: trace.length,
-              nativeCount: nativeSensorSamples.length,
-              fineCount: fineStepSamples.length,
+              controlCount,
+              nativeCount,
+              fineCount,
               lastTimeS: summary.lastTimeS,
               parameterHash: summary.parameterHash,
               reportClientRef: targetReport.clientRef,

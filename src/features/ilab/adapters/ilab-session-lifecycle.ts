@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 
 import type { IlabExperimentRun, Prisma } from '@prisma/client';
 
@@ -94,6 +94,12 @@ export function mergeStepDrafts(
   },
 ): StepDraftsPayload {
   const current = parseStepDrafts(currentRaw);
+  const currentReportRef = current.courseState?.reportClientRef;
+  const nextReportRef = patch.courseState?.reportClientRef;
+  if (typeof currentReportRef === 'string' && typeof nextReportRef === 'string'
+    && currentReportRef !== nextReportRef) {
+    throw new IlabServiceError('这份草稿属于另一轮实验，请重新读取该轮进度。', 409);
+  }
   const bySeq: Record<string, Record<string, string>> = { ...current.bySeq };
 
   if (patch.seq !== undefined && Number.isInteger(patch.seq) && patch.seq > 0 && patch.readings !== undefined) {
@@ -231,7 +237,7 @@ export async function findRecoverableIlabRun(input: {
       userId: input.actor.userId,
       ...baseFilter,
     },
-    orderBy: { updatedAt: 'desc' },
+    orderBy: [{ startTimeMs: 'desc' }, { id: 'desc' }],
   });
 
   if (!existing && input.actor.kind === 'ilab') {
@@ -241,7 +247,7 @@ export async function findRecoverableIlabRun(input: {
         ilabUsername: input.actor.grantToSet.username,
         ...baseFilter,
       },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: [{ startTimeMs: 'desc' }, { id: 'desc' }],
     });
   }
 
@@ -304,6 +310,9 @@ export async function openIlabRun(input: {
       startTimeMs: BigInt(startTimeMs),
       uploadStatus: actor.kind === 'ilab' ? 'pending' : 'local-only',
       steps: [],
+      ...(input.experimentVersion !== 'legacy-v1' ? { stepDrafts: {
+        activeSeq: 1, bySeq: {}, courseState: { reportClientRef: randomUUID() },
+      } } : {}),
       aiLedger: emptyAiLedger() as unknown as Prisma.InputJsonValue,
     } });
     return { run, resumed: false };
@@ -354,7 +363,18 @@ export async function saveIlabRunDraft(input: {
       throw new IlabServiceError('实验记录不存在。', 404);
     }
     await assertIlabRunAccess(existing, input.actor, true);
-    const nextDrafts = mergeStepDrafts(existing.stepDrafts, {
+    let currentDrafts = parseStepDrafts(existing.stepDrafts);
+    if (existing.reportId && input.courseState?.reportClientRef) {
+      const report = await tx.virtualSimulationReport.findUnique({ where: { id: existing.reportId }, select: { clientRef: true } });
+      if (report?.clientRef && report.clientRef !== input.courseState.reportClientRef) {
+        throw new IlabServiceError('这份草稿与实验报告的轮次不一致。', 409);
+      }
+      if (report?.clientRef && typeof currentDrafts.courseState?.reportClientRef === 'string'
+        && currentDrafts.courseState.reportClientRef !== report.clientRef) {
+        currentDrafts = { bySeq: {}, courseState: { reportClientRef: report.clientRef } };
+      }
+    }
+    const nextDrafts = mergeStepDrafts(currentDrafts, {
       activeSeq: input.activeSeq,
       seq: input.seq,
       readings: input.readings,

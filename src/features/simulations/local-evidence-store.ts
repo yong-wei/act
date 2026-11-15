@@ -19,6 +19,7 @@ export interface VesselExperimentDraft {
   plannedRunId?: string;
   reportRunIds?: string[];
   reportClientRef?: string;
+  originId?: string;
   lngSettings?: import('@/resources/simulations/experiments/lng-course').LngCourseSettings;
   courseSettings?: Record<string, unknown>;
   designStudentModelId?: string;
@@ -107,6 +108,10 @@ export function readExperimentDraft(scopeKey: string) {
 
 export function readStepExperimentDraft(scopeKey:string,stepSequence:number) {
   return read<VesselExperimentDraft>('step-drafts',[scopeKey,stepSequence]);
+}
+
+export function readRunEvidenceHeader(id: string) {
+  return read<StoredRun>('runs', id);
 }
 
 export async function listExperimentDrafts(baseScopeKey:string):Promise<VesselExperimentDraft[]> {

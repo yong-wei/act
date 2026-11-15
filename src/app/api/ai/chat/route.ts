@@ -498,7 +498,7 @@ export async function POST(request: Request) {
     let citationRepairServerContext: KonlingCitationRepairRequest['serverContext'] | null = null;
     let citationRepairPrivateValues: readonly string[] = [];
     let forceStructuredSmartPrepTool = false;
-    let ledgerTrackingTarget: { userId: string; courseId: string; stepId?: string | null } | null = null;
+    let ledgerTrackingTarget: { userId: string; courseId: string; stepId?: string | null; originId?: string } | null = null;
     let modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
       streaming: true,
@@ -971,8 +971,12 @@ export async function POST(request: Request) {
     }
 
     if (ledgerTrackingTarget) {
+      const requestedOrigin = pageContext?.simulationOriginId;
+      if (typeof requestedOrigin === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(requestedOrigin)) {
+        ledgerTrackingTarget.originId = requestedOrigin;
+      }
       const evidence = await loadSimulationKonlingEvidence(ledgerTrackingTarget.userId,
-        ledgerTrackingTarget.courseId, ledgerTrackingTarget.stepId);
+        ledgerTrackingTarget.courseId, ledgerTrackingTarget.stepId, ledgerTrackingTarget.originId);
       if (evidence) systemPrompt = `${systemPrompt}\n\n${evidence}`;
     }
 
@@ -1059,6 +1063,7 @@ export async function POST(request: Request) {
           userId: ledgerTrackingTarget.userId,
           courseId: ledgerTrackingTarget.courseId,
           stepId: ledgerTrackingTarget.stepId,
+          originId: ledgerTrackingTarget.originId,
           model: providerBinding?.model || responseModel.modelId || 'configured-model',
           provider: providerBinding?.provider || 'configured-provider',
           endpoint: providerBinding?.endpoint,

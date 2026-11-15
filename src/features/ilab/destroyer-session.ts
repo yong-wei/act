@@ -50,6 +50,7 @@ export interface DestroyerSessionView {
   draftActiveSeq?: number;
   reportReady: boolean;
   reportId: string | null;
+  reportClientRef?: string;
   reportHtml: string | null;
   stepDrafts: Record<string, Record<string, string>>;
   steps: Array<{
@@ -146,6 +147,7 @@ function viewOf(run: RunRecord): DestroyerSessionView {
     reportId: run.reportId,
     reportHtml: run.reportHtml,
     stepDrafts: drafts.bySeq,
+    ...(typeof drafts.courseState?.reportClientRef === 'string' ? { reportClientRef: drafts.courseState.reportClientRef } : {}),
     steps: steps.map((step) => ({
       seq: step.seq,
       title: step.title,

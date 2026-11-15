@@ -28,19 +28,20 @@ export function formatSimulationKonlingEvidence(point: VesselTraceChunk['points'
 }
 
 /** 只读取当前账号、当前实验轮次的已提交采样，不使用浏览器自由文本建立实验事实。 */
-export async function loadSimulationKonlingEvidence(userId: string, courseId: string, stepId?: string | null): Promise<string> {
+export async function loadSimulationKonlingEvidence(userId: string, courseId: string, stepId?: string | null, originId?: string): Promise<string> {
   const courseKey = resolveSimulationCourseKeyForAI(courseId);
   const vesselId = resolveSimulationVesselIdForCourse(courseId);
   const sequence = Number(/-step-(\d+)$/.exec(stepId ?? '')?.[1]);
   if (!courseKey || !vesselId || !Number.isInteger(sequence) || sequence < 1 || sequence > 20) return '';
-  const session = await prisma.ilabExperimentRun.findFirst({ where: { userId, vesselId }, orderBy: { updatedAt: 'desc' },
+  const session = await prisma.ilabExperimentRun.findFirst({ where: { userId, vesselId, ...(originId ? { originId } : {}) },
+    orderBy: [{ startTimeMs: 'desc' }, { id: 'desc' }],
     select: { stepDrafts: true, reportId: true } });
   const draft = parseStepDrafts(session?.stepDrafts);
   const reportClientRef = typeof draft.courseState?.reportClientRef === 'string' ? draft.courseState.reportClientRef : undefined;
-  const report = reportClientRef ? await prisma.virtualSimulationReport.findFirst({
-    where: { userId, clientRef: reportClientRef, experimentKey: courseKey }, select: { id: true, clientRef: true },
-  }) : session?.reportId ? await prisma.virtualSimulationReport.findFirst({
+  const report = session?.reportId ? await prisma.virtualSimulationReport.findFirst({
     where: { userId, id: session.reportId, experimentKey: courseKey }, select: { id: true, clientRef: true },
+  }) : reportClientRef ? await prisma.virtualSimulationReport.findFirst({
+    where: { userId, clientRef: reportClientRef, experimentKey: courseKey }, select: { id: true, clientRef: true },
   }) : null;
   const stepContext = SIMULATION_COURSE_AI_CONTEXTS[courseId]?.getStepContext(stepId ?? '');
   const heading = [

@@ -4,7 +4,7 @@ import type { VesselReportSections } from '@/features/ilab/course-artifact-contr
 import type { FrozenVesselStudentModel, VesselModelComparison } from '@/resources/simulations/experiments/student-analysis';
 import { requestVesselEvidence, uploadVesselRunEvidence, type VesselEvidenceProgress } from './evidence-upload';
 import {
-  listRunEvidence, readRunEvidence, saveRunEvidence, saveExperimentDraft,
+  listRunEvidence, readRunEvidence, readRunEvidenceHeader, saveRunEvidence, readExperimentDraft, saveExperimentDraft,
   type VesselExperimentDraft,
   listFrozenStudentModels, listModelComparisons, listLocalStepAttempts,
   saveFrozenStudentModel, saveModelComparison, saveLocalStepAttempt, saveRunUploadReceipt,
@@ -14,6 +14,7 @@ import type { VesselLocalStepAttempt, VesselRunEvidence } from './run-evidence';
 export interface CourseRecoveredRun extends VesselRunEvidence {
   uploadReceipt?: VesselEvidenceProgress & { reportClientRef: string };
   resumable?: boolean;
+  traceManifest?: Pick<VesselEvidenceProgress, 'chunkCount' | 'controlCount' | 'nativeCount' | 'fineCount'>;
 }
 
 export interface CourseSessionRecoveryPayload {
@@ -38,16 +39,92 @@ export interface CourseSessionRecoveryPayload {
 export async function fetchCourseSessionRecovery(
   courseKey: VesselCourseKey,
   courseVersion?: string,
+  round?: { originId?: string; reportClientRef?: string },
 ): Promise<{ authenticated: boolean; userId: string | null; recovery: CourseSessionRecoveryPayload | null }> {
   const params = new URLSearchParams({ courseKey });
   if (courseVersion) params.set('courseVersion', courseVersion);
+  if (round?.originId) params.set('originId', round.originId);
+  if (round?.reportClientRef) params.set('reportClientRef', round.reportClientRef);
   const response = await fetch(`/api/ilab/course-session-recovery?${params.toString()}`, {
     cache: 'no-store',
   });
   if (!response.ok) {
-    return { authenticated: false, userId: null, recovery: null };
+    const payload = await response.json() as { error?: string };
+    throw new Error(payload.error ?? '云端进度暂时无法读取，请稍后重试。');
   }
   return response.json() as Promise<{ authenticated: boolean; userId: string | null; recovery: CourseSessionRecoveryPayload | null }>;
+}
+
+function recoveredSampleMatches(local: unknown, remote: unknown): boolean {
+  if (local === remote) return true;
+  if (Array.isArray(remote)) return Array.isArray(local) && local.length === remote.length
+    && remote.every((item, index) => recoveredSampleMatches(local[index], item));
+  if (!remote || typeof remote !== 'object' || !local || typeof local !== 'object') return false;
+  const saved = remote as Record<string, unknown>;
+  const original = local as Record<string, unknown>;
+  // 服务端只持久化公开证据合同字段，本机诊断还可能携带滤波器内部状态。
+  return Object.entries(saved).every(([key, value]) => key === 'value' && saved.quality === 'Undefined'
+    ? original.quality === 'Undefined' : recoveredSampleMatches(original[key], value));
+}
+
+function recoveryConflict(): never {
+  throw new Error('这次运行在不同设备上产生了不同的记录。本机记录已保留，请选择原实验轮次或新建一轮实验。');
+}
+
+function assertRecoveryIdentity(local: Pick<VesselRunEvidence, 'scopeKey' | 'parameterHash' | 'initialCheckpoint' | 'stepSequence' | 'courseKey' | 'courseVersion'>,
+  remote: VesselRunEvidence, scopeKey: string) {
+  if (local.scopeKey !== scopeKey || local.parameterHash !== remote.parameterHash
+    || local.initialCheckpoint !== remote.initialCheckpoint || local.stepSequence !== remote.stepSequence
+    || local.courseKey !== remote.courseKey || local.courseVersion !== remote.courseVersion) recoveryConflict();
+}
+
+function assertRecoveryPrefix(local: VesselRunEvidence, remote: VesselRunEvidence, scopeKey: string) {
+  assertRecoveryIdentity(local, remote, scopeKey);
+  for (const [left, right] of [[local.trace, remote.trace], [local.nativeSensorSamples, remote.nativeSensorSamples],
+    [local.fineStepSamples ?? [], remote.fineStepSamples ?? []]]) {
+    for (let index = 0; index < Math.min(left.length, right.length); index++) {
+      if (!recoveredSampleMatches(left[index], right[index])) recoveryConflict();
+    }
+  }
+  const counts = (run: VesselRunEvidence) => [run.lastTimeS, run.trace.length, run.nativeSensorSamples.length, run.fineStepSamples?.length ?? 0];
+  const localCounts = counts(local);
+  const remoteCounts = counts(remote);
+  const localAhead = localCounts.some((count, index) => count > remoteCounts[index]);
+  const remoteAhead = remoteCounts.some((count, index) => count > localCounts[index]);
+  if ((localAhead && remoteAhead) || (!localAhead && !remoteAhead && local.checkpoint !== remote.checkpoint)
+    || (localAhead && remote.stoppedAtMs !== null) || (remoteAhead && local.stoppedAtMs !== null)) recoveryConflict();
+  return { localAhead, remoteAhead };
+}
+
+async function readRecoveredRunChunks(recovered: CourseRecoveredRun): Promise<CourseRecoveredRun> {
+  const { traceManifest, ...metadata } = recovered;
+  if (!traceManifest) return metadata;
+  const run = { ...metadata, trace: [] as VesselRunEvidence['trace'], nativeSensorSamples: [] as VesselRunEvidence['nativeSensorSamples'],
+    fineStepSamples: [] as NonNullable<VesselRunEvidence['fineStepSamples']>, changes: [] as VesselRunEvidence['changes'] };
+  for (let first = 0; first < traceManifest.chunkCount; first += 4) {
+    const chunks = await Promise.all(Array.from({ length: Math.min(4, traceManifest.chunkCount - first) }, async (_, offset) => {
+      const response = await fetch(`/api/ilab/experiment-runs/${encodeURIComponent(run.id)}?chunkIndex=${first + offset}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error('实验采样暂时无法恢复，本机记录已保留，请稍后重试。');
+      return response.json() as Promise<Pick<VesselEvidenceProgress, 'runRef' | 'parameterHash'> & {
+        chunkIndex: number; controlStart: number; nativeStart: number; fineStart?: number;
+        points: VesselRunEvidence['trace']; nativeSamples: VesselRunEvidence['nativeSensorSamples'];
+        fineSamples?: VesselRunEvidence['fineStepSamples']; changes: VesselRunEvidence['changes'];
+      }>;
+    }));
+    for (const [offset, chunk] of chunks.entries()) {
+      if (chunk.runRef !== run.id || chunk.chunkIndex !== first + offset || chunk.parameterHash !== run.parameterHash
+        || chunk.controlStart !== run.trace.length || chunk.nativeStart !== run.nativeSensorSamples.length
+        || (chunk.fineStart ?? 0) !== (run.fineStepSamples?.length ?? 0)) recoveryConflict();
+      run.trace.push(...chunk.points);
+      run.nativeSensorSamples.push(...chunk.nativeSamples);
+      run.fineStepSamples ??= [];
+      run.fineStepSamples.push(...(chunk.fineSamples ?? []));
+      run.changes.push(...chunk.changes);
+    }
+  }
+  if (run.trace.length !== traceManifest.controlCount || run.nativeSensorSamples.length !== traceManifest.nativeCount
+    || (run.fineStepSamples?.length ?? 0) !== (traceManifest.fineCount ?? 0)) recoveryConflict();
+  return run;
 }
 
 /** 将服务端恢复的运行证据、辨识模型、对照、步骤尝试及草稿写入当前 scopeKey 的 IndexedDB 缓存。 */
@@ -56,12 +133,42 @@ export async function hydrateRecoveredCourseSession(
   recovery: CourseSessionRecoveryPayload,
 ): Promise<{ hydratedCount: number }> {
   let hydratedCount = 0;
-
-  for (const recovered of recovery.runs) {
-    const existing = await readRunEvidence(recovered.id).catch(() => undefined);
-    if (!existing) {
+  const localDraft = await readExperimentDraft(scopeKey);
+  if (localDraft?.reportClientRef && recovery.reportClientRef && localDraft.reportClientRef !== recovery.reportClientRef) {
+    throw new Error('本机草稿与云端实验的轮次不一致，请重新选择该轮实验。');
+  }
+  const recoveredIds = new Set(recovery.runs.map((run) => run.id));
+  let hasLocalAdvance = (await listRunEvidence(scopeKey)).some((run) => !recoveredIds.has(run.id));
+  let hasRemoteAdvance = false;
+  // 按运行逐一恢复，已有相同恢复点仅同步回执，避免读取整份实验的全部采样。
+  for (const header of recovery.runs) {
+    const stored = header.traceManifest ? await readRunEvidenceHeader(header.id) : undefined;
+    if (header.resumable === false) { hasLocalAdvance ||= Boolean(stored); continue; }
+    if (stored && header.traceManifest) {
+      assertRecoveryIdentity(stored, header, scopeKey);
+      if (stored.lastTimeS === header.lastTimeS && stored.traceLength === header.traceManifest.controlCount
+        && stored.nativeSampleCount === header.traceManifest.nativeCount
+        && (stored.fineSampleCount ?? 0) === (header.traceManifest.fineCount ?? 0)) {
+        if (stored.checkpoint !== header.checkpoint) recoveryConflict();
+        const pendingLocalStop = stored.stoppedAtMs !== null && header.stoppedAtMs === null;
+        const endingMatches = (stored.stoppedAtMs === null) === (header.stoppedAtMs === null)
+          && stored.stopReason === header.stopReason && stored.failure === header.failure && stored.durationS === header.durationS;
+        hasLocalAdvance ||= pendingLocalStop;
+        if (pendingLocalStop || endingMatches) {
+          if (header.uploadReceipt) await saveRunUploadReceipt(header.id, header.uploadReceipt.reportClientRef, header.uploadReceipt);
+          continue;
+        }
+      }
+    }
+    const recovered = await readRecoveredRunChunks(header);
+    const existing = await readRunEvidence(recovered.id);
+    const progress = existing ? assertRecoveryPrefix(existing, recovered, scopeKey) : { localAhead: false, remoteAhead: true };
+    hasLocalAdvance ||= progress.localAhead;
+    hasRemoteAdvance ||= progress.remoteAhead;
+    if (!progress.localAhead) {
       const { uploadReceipt, resumable: _resumable, ...rawEvidence } = recovered;
-      await saveRunEvidence({ ...rawEvidence, scopeKey }, 0);
+      const pendingLocalStop = existing && existing.stoppedAtMs !== null && recovered.stoppedAtMs === null ? existing : {};
+      await saveRunEvidence({ ...rawEvidence, ...pendingLocalStop, scopeKey }, existing?.revision ?? 0);
       if (uploadReceipt) {
         await saveRunUploadReceipt(recovered.id, uploadReceipt.reportClientRef, uploadReceipt);
       }
@@ -89,6 +196,7 @@ export async function hydrateRecoveredCourseSession(
   for (const attempt of recovery.attempts) {
     if (!existingAttempts.has(attempt.id)) {
       await saveLocalStepAttempt({ ...attempt, scopeKey });
+      hasRemoteAdvance = true;
       hydratedCount += 1;
     }
   }
@@ -101,6 +209,8 @@ export async function hydrateRecoveredCourseSession(
     const stepRuns = recovery.runs.filter((run) => run.stepSequence === draftStep && run.resumable !== false);
     const savedRun = stepRuns.find((run) => run.id === courseState?.activeRunId)
       ?? stepRuns.filter((run) => run.stoppedAtMs === null).at(-1);
+    const preserveLocalDraft = localDraft && (hasLocalAdvance
+      || (!hasRemoteAdvance && localDraft.updatedAtMs > (recovery.ilabRun?.updatedAtMs ?? 0)));
     await saveExperimentDraft({
       scopeKey,
       stepSequence: draftStep,
@@ -119,6 +229,8 @@ export async function hydrateRecoveredCourseSession(
       courseSettings: courseState?.courseSettings ?? savedRun?.courseSettings,
       designStudentModelId: courseState?.designStudentModelId ?? savedRun?.designStudentModelId,
       controls: courseState?.controls,
+      ...(preserveLocalDraft ? localDraft : {}),
+      originId: recovery.ilabRun?.originId ?? localDraft?.originId,
     });
   }
 
