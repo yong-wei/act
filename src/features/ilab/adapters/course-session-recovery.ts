@@ -5,6 +5,7 @@ import type {
   CourseRecoveredRun,
   CourseSessionRecoveryPayload,
   VesselReportProgress,
+  VesselRunArchive,
 } from '@/features/simulations/course-artifact-upload';
 import type { VesselReportSections } from '@/features/ilab/course-artifact-contract';
 import type { VesselLocalStepAttempt, VesselRunEvidence, VesselTracePoint } from '@/features/simulations/run-evidence';
@@ -18,7 +19,7 @@ import type {
 
 import { vesselExperimentKey, vesselReportView } from '../course-artifact-service';
 import type { VesselEvidenceOpening, VesselTraceChunk } from '../course-evidence-contract';
-import { VESSEL_EVIDENCE_DOMAIN, vesselRunStorageSummary } from '../course-evidence-service';
+import { VESSEL_EVIDENCE_DOMAIN, findOwnedVesselRun, vesselRunStorageSummary } from '../course-evidence-service';
 import { parseStepDrafts, resolveIlabUploadMode } from './ilab-session-lifecycle';
 import { IlabServiceError } from '../run-lock';
 
@@ -72,6 +73,8 @@ export async function loadCourseSessionRecovery(input: {
   originId?: string;
   reportClientRef?: string;
   deferTraceChunks?: boolean;
+  lazyHistory?: boolean;
+  onlyRunRef?: string;
 }): Promise<CourseSessionRecoveryPayload> {
   const course = findVesselCourse(input.courseKey);
   if (!course) {
@@ -152,6 +155,7 @@ export async function loadCourseSessionRecovery(input: {
         ownerUserId: input.userId,
         sourceDomain: VESSEL_EVIDENCE_DOMAIN,
         summary: { path: ['reportId'], equals: targetReport.id },
+        ...(input.onlyRunRef ? { sourceRefId: input.onlyRunRef } : {}),
       },
       orderBy: { createdAt: 'asc' },
       include: { traces: { orderBy: { chunkIndex: 'asc' } } },
@@ -171,6 +175,10 @@ export async function loadCourseSessionRecovery(input: {
   ]);
 
   const runs: CourseRecoveredRun[] = [];
+  const archivedRuns: VesselRunArchive[] = [];
+  const activeRunRef = typeof activeCourseState?.activeRunId === 'string'
+    && dbRuns.some((run) => run.sourceRefId === activeCourseState.activeRunId && run.status === 'running') ? activeCourseState.activeRunId
+    : dbRuns.filter((run) => run.status === 'running').at(-1)?.sourceRefId;
   for (const run of dbRuns) {
     const summary = vesselRunStorageSummary(run);
     if (summary.reportId !== targetReport.id) continue;
@@ -201,6 +209,7 @@ export async function loadCourseSessionRecovery(input: {
           controlCount?: number;
           nativeCount?: number;
           fineCount?: number;
+          appliedFinalInput?: VesselSessionInput;
         }>(summary.lastCheckpointReference)
       : null;
 
@@ -212,6 +221,27 @@ export async function loadCourseSessionRecovery(input: {
     const resumable = closeChunk ? closeChunk.controlCount === controlCount
       && closeChunk.nativeCount === nativeCount && (closeChunk.fineCount ?? 0) === fineCount
       && Math.abs((closeChunk.endTimeS ?? 0)-summary.lastTimeS) < 1e-7 : summary.lastTimeS === 0;
+
+    if (input.lazyHistory && !input.onlyRunRef && run.sourceRefId !== activeRunRef) {
+      archivedRuns.push({
+        id: run.sourceRefId, scopeKey: '', courseKey: course.key, courseVersion,
+        stepSequence: summary.stepSequence, createdAtMs: opening.startedAtMs,
+        durationS: summary.lastTimeS, lastTimeS: summary.lastTimeS,
+        stoppedAtMs: run.completedAt?.getTime() ?? null, stopReason,
+        configuration: opening.configuration, initialInput: opening.input,
+        finalInput: closeChunk?.appliedFinalInput ?? opening.input,
+        controllerSourceRunId: opening.controllerSourceRunId, designStudentModelId: opening.designStudentModelId,
+        courseSettings: opening.courseSettings, parameterHash: summary.parameterHash,
+        sampleCount: controlCount,
+        remoteOnly: true,
+        ...(resumable ? { uploadReceipt: {
+          runRef: run.sourceRefId, reportId: targetReport.id, experimentKey, status: run.status,
+          chunkCount: summary.chunkCount, controlCount, nativeCount, fineCount, lastTimeS: summary.lastTimeS,
+          parameterHash: summary.parameterHash, reportClientRef: targetReport.clientRef,
+        }, uploadedToReportRef: run.completedAt ? targetReport.clientRef : undefined } : {}),
+      });
+      continue;
+    }
 
     runs.push({
       id: run.sourceRefId,
@@ -406,9 +436,26 @@ export async function loadCourseSessionRecovery(input: {
     report: reportView,
     reportClientRef: targetReport.clientRef,
     runs,
+    archivedRuns,
     models,
     comparisons,
     attempts,
     ilabRun: ilabRunView,
   };
+}
+
+export async function loadOwnedCourseRunRecovery(userId: string, runRef: string): Promise<CourseRecoveredRun> {
+  const run = await findOwnedVesselRun(userId, runRef);
+  const summary = vesselRunStorageSummary(run);
+  const report = await prisma.virtualSimulationReport.findFirst({
+    where: { id: summary.reportId, userId }, select: { clientRef: true },
+  });
+  if (!report?.clientRef || !findVesselCourse(summary.courseKey)) throw new IlabServiceError('实验运行记录不存在。', 404);
+  const recovery = await loadCourseSessionRecovery({
+    userId, courseKey: summary.courseKey as VesselCourseKey, courseVersion: summary.courseVersion,
+    reportClientRef: report.clientRef, onlyRunRef: runRef, deferTraceChunks: true,
+  });
+  const recovered = recovery.runs.find((item) => item.id === runRef);
+  if (!recovered) throw new IlabServiceError('实验恢复记录暂时不可用。', 409);
+  return recovered;
 }

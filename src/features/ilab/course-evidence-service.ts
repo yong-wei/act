@@ -148,8 +148,11 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
     const settings = input.courseSettings as unknown as DrillingCourseSettings;
     const control = input.input.semisubDp;
     const controlled = step.sequence >= 5 && step.sequence <= 19;
-    if (step.stepKind !== 'run' || validateDrillingCourseSettings(settings)
-      || canonicalJson(drillingCourseConfiguration(step.sequence, settings)) !== canonicalJson(input.configuration)
+    if (validateDrillingCourseSettings(settings)) throw new IlabServiceError('实际运行条件与本步课程约定不一致。', 409);
+    const expectedConfiguration = drillingCourseConfiguration(step.sequence, settings);
+    if (input.configuration.waveTableProfile === undefined) delete expectedConfiguration.waveTableProfile;
+    if (step.stepKind !== 'run'
+      || canonicalJson(expectedConfiguration) !== canonicalJson(input.configuration)
       || input.input.controlMode !== (controlled ? 'pid' : 'manual')
       || Boolean(control) !== controlled || input.input.cruiseFins || input.input.containerSpeed
       || input.input.longitudinal || input.input.berthPlan) {

@@ -6,6 +6,7 @@ const storage = vi.hoisted(() => ({
   runs: new Map<string, VesselRunEvidence & { revision: number }>(),
   drafts: new Map<string, VesselExperimentDraft>(),
   saveRun: vi.fn(), saveDraft: vi.fn(), receipt: vi.fn(),
+  archive: vi.fn(),
 }));
 vi.mock('@/features/simulations/local-evidence-store', () => ({
   readRunEvidence: async (id: string) => storage.runs.get(id),
@@ -16,6 +17,7 @@ vi.mock('@/features/simulations/local-evidence-store', () => ({
   },
   readExperimentDraft: async (scope: string) => storage.drafts.get(scope),
   saveRunEvidence: storage.saveRun, saveExperimentDraft: storage.saveDraft, saveRunUploadReceipt: storage.receipt,
+  saveRunArchive: storage.archive,
   listRunEvidence: async () => [...storage.runs.values()], listFrozenStudentModels: async () => [], listModelComparisons: async () => [],
   listLocalStepAttempts: async () => [], saveFrozenStudentModel: vi.fn(), saveModelComparison: vi.fn(), saveLocalStepAttempt: vi.fn(),
 }));
@@ -154,5 +156,34 @@ describe('本机与云端运行前缀对账', () => {
     storage.drafts.set('round-a', { ...draft(), updatedAtMs: 5 });
     await hydrateRecoveredCourseSession('round-a', remote);
     expect(storage.drafts.get('round-a')?.stepSequence).toBe(2);
+  });
+
+  it('30条历史仅保存摘要，当前运行照常恢复，进入时没有历史采样请求', async () => {
+    const remote = recovery(10);
+    remote.archivedRuns = Array.from({ length: 30 }, (_, index) => ({ ...run(600), id: `history-${index}`,
+      scopeKey: '', sampleCount: 12000, stoppedAtMs: 2, stopReason: 'duration', remoteOnly: true }));
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      await hydrateRecoveredCourseSession('round-a', remote);
+      expect(storage.archive).toHaveBeenCalledTimes(30);
+      expect(storage.archive).toHaveBeenCalledWith(expect.objectContaining({ id: 'history-0', scopeKey: 'round-a', remoteOnly: true }));
+      expect(fetchMock).not.toHaveBeenCalled();
+    } finally { vi.unstubAllGlobals(); }
+  });
+
+  it('本机旧运行已在另一设备结束并归档时仍先对账，保留新检查点', async () => {
+    const remote = recovery(20);
+    const updated = { ...remote.runs[0], stoppedAtMs: 2, stopReason: 'duration' as const };
+    remote.runs = [];
+    remote.archivedRuns = [{ ...updated, sampleCount: 20, remoteOnly: true,
+      uploadReceipt: { runRef: 'run-a', reportId: 'server-report', experimentKey: 'cruise:report-a',
+        status: 'completed', chunkCount: 1, controlCount: 20, nativeCount: 0, fineCount: 0,
+        lastTimeS: 20, parameterHash: 'parameters', reportClientRef: 'report-a' } }];
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => updated }));
+    try {
+      await hydrateRecoveredCourseSession('round-a', remote);
+      expect(storage.saveRun).toHaveBeenCalledWith(expect.objectContaining({ checkpoint: 'checkpoint-20', stoppedAtMs: 2 }), 7);
+    } finally { vi.unstubAllGlobals(); }
   });
 });

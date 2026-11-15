@@ -6,7 +6,7 @@ import path from 'node:path';
 export async function prepareVesselWaveAssets(root) {
   const manifest = JSON.parse(await readFile(path.join(root, 'src/lib/control-engine/semisub-wave-manifest.json'), 'utf8'));
   const prefix = 'model-releases/semisub-981-hydrodynamics/v5.0.0';
-  for (const entry of [manifest.first_order, manifest.full_difference]) {
+  for (const entry of [manifest.first_order, manifest.full_difference, manifest.teaching_difference]) {
     for (const [name, expected] of [[entry.metadata_file, entry.metadata_sha256], [entry.data_file, entry.data_sha256]]) {
       const key = `${prefix}/${entry.data_sha256}/${name}`;
       const destination = path.join(root, 'public/assets', key);

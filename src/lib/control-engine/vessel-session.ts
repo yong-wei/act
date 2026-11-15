@@ -20,6 +20,7 @@ export interface VesselSessionConfiguration {
   cruise?: { statisticsStartS:number;statisticsEndS:number;finFailureTimeS:number|null;failedFinIndex:number|null };
   regularWaveHeightM?: number;
   waveFrequencyBins?: 16 | 32 | 128;
+  waveTableProfile?: 'teaching-v1';
   courseEvidence?: { rollWarningDeg: number };
   seed?: number;
   noiseLevel?: 'N0' | 'N1' | 'N2';

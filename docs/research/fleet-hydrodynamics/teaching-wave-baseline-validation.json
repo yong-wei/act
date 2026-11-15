@@ -1,0 +1,97 @@
+{
+  "results": [
+    {
+      "profile": "full",
+      "qtfRms": [
+        4241.863223527449,
+        7796.23166375561,
+        5983.520147374044,
+        195157.98009061834,
+        155956.54076211186,
+        296070.53550407867
+      ],
+      "firstRms": [
+        214689.0815834469,
+        2680408.0822019307,
+        1521612.6352256434,
+        57800526.45431295,
+        20836685.364833836,
+        39620056.12739187
+      ],
+      "positionRmsM": 0.8280439462337589,
+      "headingRmsDeg": 0.13766897548299092,
+      "fineMetrics": {
+        "maximumPitchDeg": 0.8893502948370992,
+        "maximumPositiveSystemPowerW": 1805357.6089039068,
+        "maximumRollDeg": 3.2833052680706207,
+        "maximumShaftPowerW": 915489.4057905438,
+        "maximumSurfaceAngleDeg": 0,
+        "maximumSurfaceRateDegS": 0,
+        "maximumYawRateDegS": 0.056369604402773735,
+        "physicsSamples": 72000,
+        "positiveMotorWorkJ": 270063072.25213516,
+        "rollWarningDurationS": 0,
+        "shaftPowerViolationS": 0,
+        "shaftSpeedViolationS": 0,
+        "surfaceAngleViolationS": 0,
+        "surfaceRateViolationS": 0,
+        "surfaceSaturationDurationS": 0,
+        "systemPowerViolationS": 0
+      },
+      "restoreFutureExact": true,
+      "parameterHash": "fnv1a-ec3eb83de57a5b05"
+    },
+    {
+      "profile": "teaching",
+      "qtfRms": [
+        1414.1351779653705,
+        6426.062942236651,
+        4196.7533373963715,
+        179287.52145279152,
+        57065.617636910494,
+        145865.73881129088
+      ],
+      "firstRms": [
+        214765.54842724098,
+        2680647.8360392805,
+        1521898.699024736,
+        57807213.83422592,
+        20848378.72237984,
+        39621292.525477596
+      ],
+      "positionRmsM": 0.9167505801840293,
+      "headingRmsDeg": 0.19868764383812873,
+      "fineMetrics": {
+        "maximumPitchDeg": 0.9250001007352837,
+        "maximumPositiveSystemPowerW": 2003309.5635457712,
+        "maximumRollDeg": 3.3980218144000283,
+        "maximumShaftPowerW": 1099807.0353048597,
+        "maximumSurfaceAngleDeg": 0,
+        "maximumSurfaceRateDegS": 0,
+        "maximumYawRateDegS": 0.06148018218669941,
+        "physicsSamples": 72000,
+        "positiveMotorWorkJ": 286103225.69097453,
+        "rollWarningDurationS": 0,
+        "shaftPowerViolationS": 0,
+        "shaftSpeedViolationS": 0,
+        "surfaceAngleViolationS": 0,
+        "surfaceRateViolationS": 0,
+        "surfaceSaturationDurationS": 0,
+        "systemPowerViolationS": 0
+      },
+      "restoreFutureExact": true,
+      "parameterHash": "fnv1a-dcaae6eaa1f98e4a"
+    }
+  ],
+  "qtfRelativeError": [
+    0.6666240509307596,
+    0.1757475637735115,
+    0.5073277434954975
+  ],
+  "schema": "act.teaching-wave-baseline.v1",
+  "durationS": 600,
+  "seed": 20261106,
+  "motionAmplitudeTolerance": 0.5,
+  "sourceDataSha256": "2f1251e6c2ad163c4d6771ceec143edcc028445f7c77181ea8ff84b0fb17bb4b",
+  "teachingDataSha256": "7664c50fecf6cafabd4ada5e70be9794c9f3c6630033974cdf236976f1e4ecfa"
+}

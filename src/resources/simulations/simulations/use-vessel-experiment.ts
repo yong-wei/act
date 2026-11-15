@@ -166,6 +166,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const activation = useRef(0);
   const reportRef = useRef('');
   const roundOriginRef = useRef<{ scope: string; originId?: string }>({ scope: '' });
+  const roundWaveProfile = useRef({ scope: '', legacy: false });
   const savedCourseReportId = useRef('');
   const plannedRunRef = useRef('');
   const courseUploads = useRef<Promise<unknown>>(Promise.resolve());
@@ -257,6 +258,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     if (token !== activation.current || scopeRef.current !== scope) return;
     let draft = replacementSettings ? undefined : initial ? await readExperimentDraft(scope)
       : await readStepExperimentDraft(scope, sequence);
+    if (initial && courseAdapter.courseKey === 'drilling') {
+      const history = await listRunEvidence(scope);
+      roundWaveProfile.current = { scope, legacy: history.some((run) => run.configuration.waveTableProfile === undefined) };
+    }
     if (initial && canUseCloudEvidence) {
       const restored = await fetchCourseSessionRecovery(courseAdapter.courseKey, VESSEL_COURSE_VERSION,
         draft ? { originId: draft.originId, reportClientRef: draft.reportClientRef }
@@ -268,6 +273,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       }
       if (restored.authenticated && restored.userId === effectiveUserId && restored.recovery) {
         const recovery = restored.recovery;
+        if (courseAdapter.courseKey === 'drilling' && [...recovery.runs, ...(recovery.archivedRuns ?? [])]
+          .some((run) => run.configuration.waveTableProfile === undefined)) {
+          roundWaveProfile.current = { scope, legacy: true };
+        }
         if (recovery.ilabRun) {
           stepDraftsRef.current = {...recovery.ilabRun.stepDrafts};
           setUploadFailed(recovery.ilabRun.retryableUpload);
@@ -289,9 +298,11 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     const nativeSequence = courseAdapter.nativeSequence?.(sequence) ?? sequence;
     let run = planDraft?.activeRunId ? await readRunEvidence(planDraft.activeRunId) : undefined;
     if (run && (run.scopeKey !== scope || run.stepSequence !== nativeSequence)) run = undefined;
+    const configuration = courseAdapter.configuration(nativeSequence, restoredSettings);
+    if (roundWaveProfile.current.scope === scope && roundWaveProfile.current.legacy) delete configuration.waveTableProfile;
     const current = await VesselCourseWorkspace.open({scopeKey: scope, courseKey: courseAdapter.courseKey, courseVersion: VESSEL_COURSE_VERSION,
       stepSequence: nativeSequence, durationS: courseAdapter.steps[nativeSequence - 1].runDurationS ?? 1200,
-      configuration: courseAdapter.configuration(nativeSequence, restoredSettings), courseSettings: Object.fromEntries(Object.entries(restoredSettings))}, run);
+      configuration, courseSettings: Object.fromEntries(Object.entries(restoredSettings))}, run);
     if (token !== activation.current || scopeRef.current !== scope) { await current.dispose(); return; }
     workspace.current = current;
     if (initial) reportRef.current = draft?.reportClientRef ?? crypto.randomUUID();
@@ -787,6 +798,13 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   async function openCourseReport() {
     const reportWindow = window.open('', '_blank');
     try {
+      if (savedCourseReportId.current && doneSeqs.includes(20)) {
+        const response = await fetch(`/api/ilab/experiment-reports/${savedCourseReportId.current}`);
+        const report = await response.json() as { reportHtml?: string; error?: string };
+        if (!response.ok || !report.reportHtml) throw new Error(report.error ?? '这份报告暂时无法读取。');
+        if (reportWindow) reportWindow.location.href = URL.createObjectURL(new Blob([report.reportHtml], {type: 'text/html;charset=utf-8'}));
+        return;
+      }
       const [allRuns, allModels, allComparisons] = await Promise.all([
         listRunEvidence(scopeKey), listFrozenStudentModels(scopeKey), listModelComparisons(scopeKey)]);
       const selected = [];

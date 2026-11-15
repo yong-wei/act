@@ -89,6 +89,8 @@ pub struct SessionConfiguration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub wave_frequency_bins: Option<usize>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub wave_table_profile: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub course_evidence: Option<super::course_evidence::CourseEvidenceConfiguration>,
     pub seed: u64,
     pub noise_level: NoiseLevel,
@@ -129,6 +131,7 @@ impl Default for SessionConfiguration {
             cruise: None,
             regular_wave_height_m: None,
             wave_frequency_bins: None,
+            wave_table_profile: None,
             course_evidence: None,
             seed: 20261106,
             noise_level: NoiseLevel::N1,
@@ -398,6 +401,18 @@ impl FleetSimulation {
         let mut pack = embedded_vessel_pack_with_water_depth(&configuration.vessel,
             &configuration.parameter_version, configuration.loading_ratio, depth)
             .map_err(|error| format!("参数包无效 {error:?}"))?;
+        if let Some(profile) = configuration.wave_table_profile.as_deref() {
+            if profile != "teaching-v1" || configuration.vessel != "semisub-981"
+                || configuration.parameter_version != "research-nominal-v5" {
+                return Err("当前船型没有对应的教学波浪数据".into());
+            }
+            // 对应 semisub-wave-manifest.json 中冻结的16频率、9波向教学投影。
+            let metadata_hash = "fnv1a-c5239c4503c4e563";
+            let binding = pack.geometry.wave_model.as_mut().ok_or("参数包缺少波浪数据身份")?;
+            binding.full_difference_metadata_fnv1a64 = Some(metadata_hash.into());
+            let identity = format!("{}:{profile}:{metadata_hash}", pack.content_hash);
+            pack.content_hash = format!("fnv1a-{:016x}", super::model_pack::fnv1a(identity.as_bytes()));
+        }
         let assets = match assets {
             Some(assets) => Some(assets),
             None => super::vessel_wave::embedded_teaching_assets(&configuration.vessel,

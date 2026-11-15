@@ -3,6 +3,7 @@ import type { VesselSessionInput } from '@/lib/control-engine/vessel-session';
 import type { VesselFineStepPoint, VesselObservedSample } from '@/lib/control-engine/vessel-session';
 import type { FrozenVesselStudentModel, VesselModelComparison } from '@/resources/simulations/experiments/student-analysis';
 import type { VesselEvidenceProgress } from './evidence-upload';
+import { fetchRecoveredRunHeader, readRecoveredRunChunks } from './run-recovery';
 
 export interface VesselExperimentDraft {
   scopeKey: string;
@@ -41,13 +42,22 @@ export interface VesselRunSummary extends Pick<VesselRunEvidence, 'id' | 'scopeK
   sampleCount: number;
   finalInput?:VesselSessionInput;
   uploadedToReportRef?:string;
+  remoteOnly?: boolean;
   stopReason: VesselRunEvidence['stopReason'];
 }
+
+export interface VesselRunArchive extends VesselRunSummary {
+  courseKey: VesselRunEvidence['courseKey'];
+  parameterHash: string;
+  uploadReceipt?: VesselEvidenceProgress & { reportClientRef: string };
+}
+
+const pendingRecovery = new Map<string, Promise<(VesselRunEvidence & { revision: number }) | undefined>>();
 
 function database(): Promise<IDBDatabase> {
   if (databasePromise) return databasePromise;
   databasePromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open('act-vessel-experiment-v2', 6);
+    const request = indexedDB.open('act-vessel-experiment-v2', 7);
     request.onupgradeneeded = () => {
       if (!request.result.objectStoreNames.contains('runs')) {
         const runs = request.result.createObjectStore('runs', { keyPath: 'id' });
@@ -69,6 +79,9 @@ function database(): Promise<IDBDatabase> {
       }
       if (!request.result.objectStoreNames.contains('step-drafts')) {
         request.result.createObjectStore('step-drafts',{keyPath:['scopeKey','stepSequence']});
+      }
+      if (!request.result.objectStoreNames.contains('archived-runs')) {
+        request.result.createObjectStore('archived-runs', { keyPath: 'id' }).createIndex('scopeKey', 'scopeKey');
       }
     };
     request.onsuccess = () => {
@@ -114,6 +127,22 @@ export function readRunEvidenceHeader(id: string) {
   return read<StoredRun>('runs', id);
 }
 
+export function saveRunArchive(run: VesselRunArchive) {
+  return put('archived-runs', run);
+}
+
+async function recoverArchivedRun(archive: VesselRunArchive) {
+  const header = await fetchRecoveredRunHeader(archive.id);
+  if (header.id !== archive.id || header.courseKey !== archive.courseKey || header.parameterHash !== archive.parameterHash
+    || header.uploadReceipt?.reportClientRef !== archive.uploadReceipt?.reportClientRef || header.resumable === false) {
+    throw new Error('云端记录与所选实验不一致，请重新读取进度。');
+  }
+  const { uploadReceipt, resumable: _resumable, ...run } = await readRecoveredRunChunks(header);
+  const revision = await saveRunEvidence({ ...run, scopeKey: archive.scopeKey }, 0);
+  if (uploadReceipt) await saveRunUploadReceipt(run.id, uploadReceipt.reportClientRef, uploadReceipt);
+  return { ...run, scopeKey: archive.scopeKey, revision };
+}
+
 export async function listExperimentDrafts(baseScopeKey:string):Promise<VesselExperimentDraft[]> {
   const db = await database();
   return new Promise((resolve,reject)=> {
@@ -138,6 +167,16 @@ export async function saveExperimentDraft(draft: VesselExperimentDraft):Promise<
 }
 
 export async function readRunEvidence(id: string): Promise<(VesselRunEvidence & { revision: number }) | undefined> {
+  if (!await readRunEvidenceHeader(id)) {
+    const archive = await read<VesselRunArchive>('archived-runs', id);
+    if (!archive) return undefined;
+    let pending = pendingRecovery.get(id);
+    if (!pending) {
+      pending = recoverArchivedRun(archive).finally(() => pendingRecovery.delete(id));
+      pendingRecovery.set(id, pending);
+    }
+    return pending;
+  }
   const db = await database();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(['runs', 'trace-chunks', 'sensor-chunks','fine-step-chunks'], 'readonly');
@@ -204,9 +243,17 @@ export async function saveRunEvidence(run: VesselRunEvidence, expectedRevision: 
 
 export async function listRunEvidence(scopeKey: string): Promise<VesselRunSummary[]> {
   const db = await database();
+  const archives = await new Promise<VesselRunArchive[]>((resolve, reject) => {
+    const request = db.transaction('archived-runs', 'readonly').objectStore('archived-runs').index('scopeKey').getAll(scopeKey);
+    request.onsuccess = () => resolve(request.result as VesselRunArchive[]);
+    request.onerror = () => reject(request.error);
+  });
   return new Promise((resolve, reject) => {
     const request = db.transaction('runs', 'readonly').objectStore('runs').index('scopeKey').getAll(scopeKey);
-    request.onsuccess = () => resolve((request.result as StoredRun[]).map((run) => ({
+    request.onsuccess = () => {
+      const storedRuns = request.result as StoredRun[];
+      const storedIds = new Set(storedRuns.map((run) => run.id));
+      resolve([...archives.filter((run) => !storedIds.has(run.id)), ...storedRuns.map((run) => ({
       id: run.id, stepSequence: run.stepSequence, createdAtMs: run.createdAtMs, stoppedAtMs: run.stoppedAtMs,
       durationS: run.lastTimeS,
       sampleCount: run.traceLength, stopReason: run.stopReason,
@@ -218,7 +265,8 @@ export async function listRunEvidence(scopeKey: string): Promise<VesselRunSummar
         && ['completed','failed'].includes(run.uploadReceipt.status) && run.uploadReceipt.controlCount === run.traceLength
         && run.uploadReceipt.nativeCount === run.nativeSampleCount && (run.uploadReceipt.fineCount ?? 0) === (run.fineSampleCount ?? 0)
         && Math.abs(run.uploadReceipt.lastTimeS-run.lastTimeS) < 1e-7 ? run.uploadReceipt.reportClientRef : undefined,
-    })).sort((a, b) => b.createdAtMs - a.createdAtMs));
+      }))].sort((a, b) => b.createdAtMs - a.createdAtMs));
+    };
     request.onerror = () => reject(request.error);
   });
 }

@@ -91,7 +91,7 @@ export function DrillingCourseControls({ session, timeS }: {
         </SimField>)}</div> : null}
         <p className="text-xs leading-5 text-platform-fg-secondary">本实验围绕位置保持、推进分配与故障策略开展教学。船体六自由度响应、轴惯量、转向时间及功率限制共同决定实际运动。钻柱与隔水管结构安全需要专门分析。</p>
       </div>
-    <p className="text-xs leading-5 text-platform-fg-secondary">波浪采用已有一阶与完整差频表的16个代表频率、7个方向，保留原随机种子与总波能。代表频率与完整频谱在固定姿态600s比较中，纵向及艏摇一阶载荷均方根分别相差约39%与31%，适用于本课的低频定位和控制因果比较。具体误差随工况变化。</p>
+    <p className="text-xs leading-5 text-platform-fg-secondary">波浪复用已有计算结果，差频采用16个代表频率、9个波向的教学系数及插值。适用于低频定位和控制因果比较，幅值统计按50%教学容差验收。各次比较采用同一数据版本与随机种子。</p>
     </SimPanelSection>
     {[16, 19].includes(sequence) ? <SimPanelSection title="本人已冻结方案" icon={Navigation}>
       <SimField label="引用此前完整运行">

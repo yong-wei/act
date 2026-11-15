@@ -4,6 +4,7 @@ import { vesselEvidenceCloseSchema } from '@/features/ilab/course-evidence-contr
 import { findOwnedVesselRun, vesselRunProgress } from '@/features/ilab/course-evidence-service';
 import { closeVesselEvidenceRun, readVesselEvidenceChunk } from '@/features/ilab/course-evidence-chunks';
 import { IlabServiceError } from '@/features/ilab/run-lock';
+import { loadOwnedCourseRunRecovery } from '@/features/ilab/adapters/course-session-recovery';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -13,6 +14,9 @@ export async function GET(request: Request, context: Context) {
   try {
     const userId = await requireVesselEvidenceAccount(request);
     const { runRef } = await context.params;
+    if (new URL(request.url).searchParams.get('recovery') === '1') {
+      return NextResponse.json(await loadOwnedCourseRunRecovery(userId, runRef));
+    }
     const chunkParam = new URL(request.url).searchParams.get('chunkIndex');
     if (chunkParam !== null) {
       const chunkIndex = Number(chunkParam);

@@ -61,13 +61,15 @@ export interface VesselWaveAsset {
   path: string;
   sha256: string;
   bytes?: number;
+  localFirst?: boolean;
 }
 
 const prefix = '/model-releases/semisub-981-hydrodynamics/v5.0.0';
 const pending = new Map<string, Promise<Uint8Array<ArrayBuffer>>>();
 
 export async function fetchVesselWaveAsset(asset: VesselWaveAsset): Promise<Uint8Array<ArrayBuffer>> {
-  const urls = [`https://${STATIC_HOSTNAME}${asset.path}`, `/assets${asset.path}`];
+  const urls = asset.localFirst ? [`/assets${asset.path}`, `https://${STATIC_HOSTNAME}${asset.path}`]
+    : [`https://${STATIC_HOSTNAME}${asset.path}`, `/assets${asset.path}`];
   for (const url of urls) {
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
@@ -90,14 +92,14 @@ export async function validateVesselWaveAsset(asset: VesselWaveAsset, bytes: Uin
 }
 
 export async function loadVesselWaveAssets(
-  configuration: { vessel?: string; parameterVersion?: string; secondOrderEnabled?: boolean },
+  configuration: { vessel?: string; parameterVersion?: string; secondOrderEnabled?: boolean; waveTableProfile?: 'teaching-v1' },
   readAsset = fetchVesselWaveAsset,
 ): Promise<VesselWaveAssets | undefined> {
   if (configuration.vessel !== manifest.vessel || !['research-nominal-v4', manifest.model_version].includes(configuration.parameterVersion ?? '')) return undefined;
-  async function read(path: string, sha256: string, bytes?: number) {
+  async function read(path: string, sha256: string, bytes?: number, localFirst = false) {
     let promise = pending.get(sha256);
     if (!promise) {
-      const asset = { path, sha256, bytes };
+      const asset = { path, sha256, bytes, localFirst };
       promise = readAsset(asset).then(async (value) => {
         await validateVesselWaveAsset(asset, value);
         return value;
@@ -115,11 +117,12 @@ export async function loadVesselWaveAssets(
   ]);
   const assets: VesselWaveAssets = { firstOrderMetadata: new TextDecoder().decode(firstMetadata), firstOrderData: firstBytes };
   if (configuration.secondOrderEnabled) {
-    const second = manifest.full_difference;
+    const teaching = configuration.waveTableProfile === 'teaching-v1';
+    const second = teaching ? manifest.teaching_difference : manifest.full_difference;
     const secondPath = `${prefix}/${second.data_sha256}`;
     const [metadata, data] = await Promise.all([
-      read(`${secondPath}/${second.metadata_file}`, second.metadata_sha256),
-      read(`${secondPath}/${second.data_file}`, second.data_sha256, second.data_bytes),
+      read(`${secondPath}/${second.metadata_file}`, second.metadata_sha256, undefined, teaching),
+      read(`${secondPath}/${second.data_file}`, second.data_sha256, second.data_bytes, teaching),
     ]);
     assets.fullDifferenceMetadata = new TextDecoder().decode(metadata);
     assets.fullDifferenceData = data;

@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
       reportClientRef,
       originId,
       deferTraceChunks: true,
+      lazyHistory: true,
     });
     return NextResponse.json({
       authenticated: true,

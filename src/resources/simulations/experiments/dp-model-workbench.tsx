@@ -30,7 +30,7 @@ export function DpModelWorkbench({ scopeKey, runs, onArtifactsChange }: {
   const [message, setMessage] = useState('');
   const [evaluation, setEvaluation] = useState<{ step: number; metrics: VesselRunMetrics } | null>(null);
   const available = runs.filter((run) => run.scopeKey === scopeKey && run.stoppedAtMs !== null && run.sampleCount >= 20);
-  const visibleId = validationId || available[0]?.id || '';
+  const visibleId = validationId || available.find((run) => !run.remoteOnly)?.id || '';
   const ownModels = models.filter((model) => model.scopeKey === scopeKey && model.channel === 'dp-low-frequency');
   const selected = ownModels.find((model) => model.id === modelId);
   const comparison = comparisons.filter((item) => item.scopeKey === scopeKey && item.runId === validationId

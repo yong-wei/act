@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 import assert from 'node:assert/strict';
-import { randomBytes, randomUUID, createHash } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { chromium, expect } from '@playwright/test';
 import { prisma } from '@/lib/prisma';
@@ -30,11 +30,14 @@ await context.addInitScript(({ key, value }) => { localStorage.setItem(key, valu
 const page = await context.newPage();
 page.setDefaultTimeout(60000);
 let chunks = 0;
+const loadedRunIds = new Set<string>();
 let recovery: CourseSessionRecoveryPayload | null = null;
 let recoveryBytes = 0;
 page.on('response', (response) => {
   const url = new URL(response.url());
-  if (url.pathname.startsWith('/api/ilab/experiment-runs/') && url.searchParams.has('chunkIndex')) chunks++;
+  if (url.pathname.startsWith('/api/ilab/experiment-runs/') && url.searchParams.has('chunkIndex')) {
+    chunks++; loadedRunIds.add(url.pathname.split('/').at(-1)!);
+  }
 });
 
 async function waitForSavedReport() {
@@ -75,40 +78,52 @@ try {
   console.log(JSON.stringify({ phase: 'recovery-headers', bytes: recoveryBytes, runs: recovery.runs.length }));
   await waitForSavedReport();
   const payload = recovery as CourseSessionRecoveryPayload | null;
-  assert(payload && payload.runs.length >= 20);
-  assert(payload.runs.every((run) => run.trace.length === 0 && run.nativeSensorSamples.length === 0 && run.traceManifest));
-  assert(recoveryBytes < 32 * 1024 * 1024);
-  const stored = await page.evaluate(async (scope) => {
+  assert(payload && (payload.archivedRuns?.length ?? 0) >= 20);
+  assert.equal(payload.runs.length, 0, 'Completed histories must restore summaries without sampling');
+  assert(recoveryBytes < 8 * 1024 * 1024);
+  assert.equal(chunks, 0, 'Entering a completed report must not download historical runs');
+  await page.getByRole('tab', { name: '评估', exact: true }).click();
+  await page.getByLabel('本机实验轮次', { exact: true }).waitFor();
+  const selector = page.getByLabel(report.experimentKey === 'drilling' ? '三通道独立验证运行' : '分析运行记录', { exact: true });
+  await expect(selector).toBeVisible({ timeout: 60000 });
+  await expect.poll(() => selector.locator('option').count(), { timeout: 60000 }).toBeGreaterThan(20);
+  assert.equal(chunks, 0, 'Opening the existing workbench must not prefetch archive curves');
+  const available = await selector.locator('option').evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value));
+  const representative = payload.archivedRuns!.filter((run) => available.includes(run.id) && run.sampleCount >= 20)
+    .sort((left, right) => left.sampleCount - right.sampleCount)[0];
+  assert(representative, 'The original workbench must list archived runs');
+  await selector.selectOption(representative.id);
+  const header = await (await context.request.get(`${origin}/api/ilab/experiment-runs/${representative.id}?recovery=1`)).json();
+  await expect.poll(async () => page.evaluate(async (runId) => {
     const db = await new Promise<IDBDatabase>((resolve) => { const request = indexedDB.open('act-vessel-experiment-v2'); request.onsuccess = () => resolve(request.result); });
-    const rows = await new Promise<Array<{ id: string; checkpoint: string; traceLength: number; nativeSampleCount: number; fineSampleCount?: number }>>((resolve) => {
-      const request = db.transaction('runs').objectStore('runs').index('scopeKey').getAll(scope);
-      request.onsuccess = () => resolve(request.result);
+    const row = await new Promise<{ traceLength: number } | undefined>((resolve) => {
+      const request = db.transaction('runs').objectStore('runs').get(runId); request.onsuccess = () => resolve(request.result);
     });
-    db.close();
-    return Promise.all(rows.map(async (row) => ({ id: row.id, controlCount: row.traceLength, nativeCount: row.nativeSampleCount,
-      fineCount: row.fineSampleCount ?? 0, checkpointHash: Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(row.checkpoint))))
-        .map((byte) => byte.toString(16).padStart(2, '0')).join('') })));
-  }, scopeKey);
-  assert.equal(stored.length, payload.runs.length);
-  for (const run of payload.runs) {
-    const local = stored.find((row) => row.id === run.id)!;
-    assert(local);
-    assert.equal(local.controlCount, run.traceManifest!.controlCount);
-    assert.equal(local.nativeCount, run.traceManifest!.nativeCount);
-    assert.equal(local.fineCount, run.traceManifest!.fineCount ?? 0);
-    assert.equal(local.checkpointHash, createHash('sha256').update(run.checkpoint).digest('hex'));
-  }
-  const coldChunks = chunks;
-  assert(coldChunks > 100);
+    db.close(); return row?.traceLength ?? 0;
+  }, representative.id), { timeout: 120000 }).toBe(header.traceManifest.controlCount);
+  const stored = await page.evaluate(async (runId) => {
+    const db = await new Promise<IDBDatabase>((resolve) => { const request = indexedDB.open('act-vessel-experiment-v2'); request.onsuccess = () => resolve(request.result); });
+    const row = await new Promise<{ checkpoint: string; nativeSampleCount: number; fineSampleCount: number }>((resolve) => {
+      const request = db.transaction('runs').objectStore('runs').get(runId); request.onsuccess = () => resolve(request.result);
+    });
+    const count = await new Promise<number>((resolve) => { const request = db.transaction('runs').objectStore('runs').count(); request.onsuccess = () => resolve(request.result); });
+    db.close(); return { ...row, count };
+  }, representative.id);
+  assert.equal(stored.count, 1);
+  assert.equal(stored.checkpoint, header.checkpoint);
+  if (report.experimentKey === 'drilling') assert.equal(header.configuration.waveTableProfile, undefined);
+  assert.equal(stored.nativeSampleCount, header.traceManifest.nativeCount);
+  assert.equal(stored.fineSampleCount ?? 0, header.traceManifest.fineCount ?? 0);
+  assert.deepEqual([...loadedRunIds], [representative.id]);
+  const selectedChunks = chunks;
   chunks = 0;
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.getByRole('tab', { name: '评估', exact: true }).click();
-  await page.getByLabel('本机实验轮次', { exact: true }).waitFor();
   await expect(page.getByLabel('本机实验轮次', { exact: true })).toBeEnabled({ timeout: 60000 });
-  await expect(page.getByLabel('分析运行记录', { exact: true }).locator('option')).toHaveCount(payload.runs.length + 1, { timeout: 60000 });
-  assert.equal(chunks, 0, 'A matching cached report must reuse all local sampling chunks');
-  console.log(JSON.stringify({ status: 'passed', course: report.experimentKey, recoveredRuns: stored.length,
-    recoveryHeaderBytes: recoveryBytes, coldChunkRequests: coldChunks, hotChunkRequests: chunks, allCheckpointsExact: true }));
+  assert.equal(chunks, 0, 'A cached representative run must not be downloaded again');
+  console.log(JSON.stringify({ status: 'passed', course: report.experimentKey, archivedRuns: payload.archivedRuns!.length,
+    recoveryHeaderBytes: recoveryBytes, initialChunkRequests: 0, selectedRuns: stored.count,
+    selectedRunChunkRequests: selectedChunks, hotChunkRequests: chunks, checkpointExact: true }));
 } catch (error) {
   console.log(JSON.stringify({ phase: 'full-report-recovery-failed', course: report.experimentKey,
     chunks, recoveryHeaderBytes: recoveryBytes, message: (await page.locator('body').innerText()).slice(-1800) }));

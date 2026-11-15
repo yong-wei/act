@@ -75,7 +75,7 @@ function ScalarVesselModelWorkbench({ scopeKey, runs, onArtifactsChange, default
   useEffect(() => { void reload().catch((error: unknown) => setMessage(error instanceof Error ? error.message : '模型记录读取失败。')); }, [reload]);
   useEffect(() => {
     if (runId && eligibleRuns.some((run) => run.id === runId)) return;
-    const latest = eligibleRuns[0];
+    const latest = eligibleRuns.find((run) => !run.remoteOnly);
     setRunId(latest?.id ?? '');
     if (latest) setEndS(latest.durationS);
   }, [runId, eligibleRuns]);

@@ -14,7 +14,7 @@ import { readVesselEvidenceJson } from '../course-evidence-api';
 import { vesselEvidenceOpeningSchema, vesselTraceChunkSchema, vesselEvidenceCloseSchema } from '../course-evidence-contract';
 import { openVesselEvidenceRun } from '../course-evidence-service';
 import { appendVesselEvidenceChunk, closeVesselEvidenceRun, stageVesselEvidenceChunk } from '../course-evidence-chunks';
-import { loadCourseSessionRecovery } from '../adapters/course-session-recovery';
+import { loadCourseSessionRecovery, loadOwnedCourseRunRecovery } from '../adapters/course-session-recovery';
 import { drillingCourseConfiguration, drillingCourseDefaultSettings, drillingCourseInput } from '@/resources/simulations/experiments/drilling-course';
 import { VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 
@@ -72,6 +72,9 @@ try {
       assert.equal(receipt.controlCount, 40);
       const recovery = await loadCourseSessionRecovery({ userId: user.id, courseKey: 'drilling', courseVersion: VESSEL_COURSE_VERSION });
       const restored = recovery.runs.find((item) => item.id === run.id)!;
+      const selected = await loadOwnedCourseRunRecovery(user.id, run.id);
+      assert.equal(selected.checkpoint, run.checkpoint);
+      await assert.rejects(() => loadOwnedCourseRunRecovery('other-account', run.id), { status: 404 });
       assert.equal(restored.checkpoint, run.checkpoint);
       const canonicalTrace = vesselTraceChunkSchema.shape.points.parse(JSON.parse(JSON.stringify(run.trace)));
       const digest = (value: unknown) => createHash('sha256').update(canonicalJson(value)).digest('hex');
@@ -84,6 +87,11 @@ try {
       run.stoppedAtMs = Date.now();
       run.stopReason = 'student';
       await uploadVesselRunEvidence(reportClientRef, run);
+      const compactRecovery = await loadCourseSessionRecovery({ userId: user.id, courseKey: 'drilling',
+        reportClientRef, deferTraceChunks: true, lazyHistory: true });
+      assert.equal(compactRecovery.runs.length, 0);
+      assert.equal(compactRecovery.archivedRuns?.length, 1);
+      assert.equal(compactRecovery.archivedRuns?.[0].sampleCount, 40);
       console.log(JSON.stringify({ sequence, secondOrder: frame.waveModel?.secondOrderEnabled,
         restoredTimeS: restored.lastTimeS, controllerTicks: frame.dpController?.ticks, controls: run.trace.length }));
     } finally { native.free(); }
