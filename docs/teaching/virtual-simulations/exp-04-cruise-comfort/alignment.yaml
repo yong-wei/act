@@ -1,0 +1,405 @@
+courseVersion: seven-vessel-2026.11.14
+guideEdition: 2026.11.16
+experimentId: exp-04-cruise-comfort
+title: 邮轮转向、减摇与舒适性
+minutes:
+  preparation: 20
+  practice: 100
+  report: 30
+objectives:
+  - id: G1
+    text: 建立振荡、鳍效与仪器估计的联系
+    level: 分析
+    steps:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+  - id: G2
+    text: 辨析共振、航速与有限鳍控制能力
+    level: 分析与设计
+    steps:
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+      - 12
+  - id: G3
+    text: 比较滤波、操纵、舒适性和能量方案
+    level: 设计与评价
+    steps:
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+  - id: G4
+    text: 在新波谱及故障下评价方案和适用域
+    level: 评价与工程判断
+    steps:
+      - 19
+      - 20
+steps:
+  - id: cruise-step-1
+    sequence: 1
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-2
+    sequence: 2
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-3
+    sequence: 3
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-4
+    sequence: 4
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: validation
+  - id: cruise-step-5
+    sequence: 5
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-6
+    sequence: 6
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-7
+    sequence: 7
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-8
+    sequence: 8
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-9
+    sequence: 9
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-10
+    sequence: 10
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-11
+    sequence: 11
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-12
+    sequence: 12
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-13
+    sequence: 13
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-14
+    sequence: 14
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-15
+    sequence: 15
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-16
+    sequence: 16
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-17
+    sequence: 17
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training
+  - id: cruise-step-18
+    sequence: 18
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: validation
+  - id: cruise-step-19
+    sequence: 19
+    objectiveRefs:
+      - G4
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: validation
+  - id: cruise-step-20
+    sequence: 20
+    objectiveRefs:
+      - G4
+    cognitiveLevel: synthesize
+    evidence:
+      - five-own-runs
+      - report
+    measurementSignals:
+      - RollRate
+      - SpecificForceY
+      - SpecificForceZ
+      - SurfaceEncoder0
+      - SurfaceEncoder1
+      - Heading
+      - SpeedLog
+    trainValidationRole: training

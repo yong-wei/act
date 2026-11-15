@@ -1,0 +1,130 @@
+courseVersion: seven-vessel-2026.11.14
+guideEdition: 2026.11.16
+experimentId: exp-04-cruise-comfort
+total: 100
+finalStepLabels:
+  prediction: 模型假设
+  operation: 本人证据
+  performance: 方案比较
+  interpretation: 适用边界
+steps:
+  - id: cruise-step-1
+    sequence: 1
+    prediction: 0.9
+    operation: 1.2
+    performance: 0
+    interpretation: 0.9
+  - id: cruise-step-2
+    sequence: 2
+    prediction: 0.9
+    operation: 1.2
+    performance: 0
+    interpretation: 0.9
+  - id: cruise-step-3
+    sequence: 3
+    prediction: 0.9
+    operation: 1.2
+    performance: 0
+    interpretation: 0.9
+  - id: cruise-step-4
+    sequence: 4
+    prediction: 0.9
+    operation: 1.2
+    performance: 0
+    interpretation: 0.9
+  - id: cruise-step-5
+    sequence: 5
+    prediction: 1.2
+    operation: 1.6
+    performance: 0
+    interpretation: 1.2
+  - id: cruise-step-6
+    sequence: 6
+    prediction: 1.2
+    operation: 1.6
+    performance: 0
+    interpretation: 1.2
+  - id: cruise-step-7
+    sequence: 7
+    prediction: 1.2
+    operation: 1.6
+    performance: 0
+    interpretation: 1.2
+  - id: cruise-step-8
+    sequence: 8
+    prediction: 1.2
+    operation: 0.8
+    performance: 0.8
+    interpretation: 1.2
+  - id: cruise-step-9
+    sequence: 9
+    prediction: 1.5
+    operation: 1
+    performance: 1
+    interpretation: 1.5
+  - id: cruise-step-10
+    sequence: 10
+    prediction: 1.5
+    operation: 1
+    performance: 1
+    interpretation: 1.5
+  - id: cruise-step-11
+    sequence: 11
+    prediction: 1.5
+    operation: 1
+    performance: 1
+    interpretation: 1.5
+  - id: cruise-step-12
+    sequence: 12
+    prediction: 1.5
+    operation: 1
+    performance: 1
+    interpretation: 1.5
+  - id: cruise-step-13
+    sequence: 13
+    prediction: 1.8
+    operation: 1.2
+    performance: 1.2
+    interpretation: 1.8
+  - id: cruise-step-14
+    sequence: 14
+    prediction: 1.8
+    operation: 1.2
+    performance: 1.2
+    interpretation: 1.8
+  - id: cruise-step-15
+    sequence: 15
+    prediction: 1.8
+    operation: 1.2
+    performance: 1.2
+    interpretation: 1.8
+  - id: cruise-step-16
+    sequence: 16
+    prediction: 1.8
+    operation: 1.2
+    performance: 1.2
+    interpretation: 1.8
+  - id: cruise-step-17
+    sequence: 17
+    prediction: 1.8
+    operation: 1.2
+    performance: 1.2
+    interpretation: 1.8
+  - id: cruise-step-18
+    sequence: 18
+    prediction: 1.8
+    operation: 1.2
+    performance: 1.2
+    interpretation: 1.8
+  - id: cruise-step-19
+    sequence: 19
+    prediction: 1.8
+    operation: 1.2
+    performance: 1.2
+    interpretation: 1.8
+  - id: cruise-step-20
+    sequence: 20
+    prediction: 3
+    operation: 3
+    performance: 2
+    interpretation: 2

@@ -4,6 +4,8 @@ import type { VesselModelComparison } from '@/resources/simulations/experiments/
 import { studentModelFormula } from '@/resources/simulations/experiments/student-model-presentation';
 import { VESSEL_REPORT_SECTION_LABELS } from '@/features/ilab/course-artifact-contract';
 import type { VesselStepReview } from '@/features/ilab/course-report-review-contract';
+import { VESSEL_COURSES, VESSEL_GUIDE_EDITION } from '@/resources/simulations/experiments/course-catalog';
+import { VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 
 export interface VesselReportEvidence {
   runs:Array<{id:string;stepSequence:number;timeS:number;status:string;configuration:VesselSessionConfiguration;
@@ -21,6 +23,9 @@ const number = (value:number|null|undefined,digits = 3) => value === null || val
 
 /** 仅将已保存的本人证据排版，正文推理始终来自学生填写的六部分。 */
 export function buildVesselCourseReportHtml(title:string,sections:Record<string,string>,evidence?:VesselReportEvidence) {
+  const course = Object.values(VESSEL_COURSES).find((entry) => entry.vessel === evidence?.runs[0]?.configuration.vessel);
+  const guide = course ? `<p>课程版本 ${escapeHtml(VESSEL_COURSE_VERSION)}，指导书版本 ${escapeHtml(VESSEL_GUIDE_EDITION)}。
+    <a href="https://act.adapt-learn.online/supporting/${VESSEL_GUIDE_EDITION}/${course.guideFile}">查看本版实验指导书</a></p>` : '';
   const body = Object.entries(VESSEL_REPORT_SECTION_LABELS).map(([key,label]) =>
     `<section><h2>${label}</h2><p>${escapeHtml(sections[key] ?? '').replace(/\n/g,'<br>')}</p></section>`).join('\n');
   const runLabels = new Map(evidence?.runs.map((run,index)=>[run.id,`运行${index+1}（第${run.stepSequence}步）`]));
@@ -93,7 +98,7 @@ export function buildVesselCourseReportHtml(title:string,sections:Record<string,
   }).join('\n') ?? '';
   return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title>
     <style>body{font:16px/1.7 system-ui,sans-serif;color:#172b3a;max-width:1000px;margin:32px auto;padding:0 24px}h1,h2,h3{line-height:1.4}h2{border-bottom:1px solid #ccd6dd;padding-bottom:8px}article{break-inside:avoid;border:1px solid #dce3e8;border-radius:8px;padding:16px;margin:16px 0}pre{overflow:auto;white-space:pre-wrap}svg{width:100%;height:auto}section{margin:32px 0}.legend{font-size:13px}@media print{body{margin:0;max-width:none}article{break-inside:avoid}}</style></head>
-    <body><h1>${escapeHtml(title)}实验报告</h1><p>学生说明与本人已保存证据。待评分项由教师复核确认。</p>${body}
+    <body><h1>${escapeHtml(title)}实验报告</h1><p>学生说明与本人已保存证据。待评分项由教师复核确认。</p>${guide}${body}
     ${evidence ? `<section><h2>本人运行与确定性指标</h2>${runs}</section><section><h2>冻结模型与参数</h2>${models}</section><section><h2>预测、独立验证与曲线</h2>${comparisons}<p>报告曲线为显示摘要，原始20Hz记录、原生传感器序列及物理细步事件窗口随运行证据保存。</p></section>` : ''}</body></html>`;
 }
 

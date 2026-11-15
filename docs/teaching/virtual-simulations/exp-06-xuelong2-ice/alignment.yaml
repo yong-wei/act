@@ -1,0 +1,448 @@
+courseVersion: seven-vessel-2026.11.14
+guideEdition: 2026.11.16
+experimentId: exp-06-xuelong2-ice
+title: 雪龙2号吊舱与冰区控制
+minutes:
+  preparation: 25
+  practice: 120
+  report: 35
+objectives:
+  - id: G1
+    text: 辨识吊舱与开水局部响应并检验方向
+    level: 分析
+    steps:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+  - id: G2
+    text: 解释冰接触与工况模型失配
+    level: 分析与鲁棒设计
+    steps:
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+      - 12
+  - id: G3
+    text: 比较受限推进、调度与航向方案
+    level: 设计与评价
+    steps:
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+  - id: G4
+    text: 依据未见冰况和故障作出停止或继续的判断
+    level: 工程判断
+    steps:
+      - 19
+      - 20
+steps:
+  - id: icebreaker-step-1
+    sequence: 1
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-2
+    sequence: 2
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-3
+    sequence: 3
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-4
+    sequence: 4
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: validation
+  - id: icebreaker-step-5
+    sequence: 5
+    objectiveRefs:
+      - G1
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-6
+    sequence: 6
+    objectiveRefs:
+      - G1
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-7
+    sequence: 7
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-8
+    sequence: 8
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-9
+    sequence: 9
+    objectiveRefs:
+      - G2
+    cognitiveLevel: synthesize
+    evidence:
+      - six-own-runs
+      - frozen-model
+      - independent-validation
+      - report
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: none
+  - id: icebreaker-step-10
+    sequence: 10
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-11
+    sequence: 11
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-12
+    sequence: 12
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-13
+    sequence: 13
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-14
+    sequence: 14
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-15
+    sequence: 15
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-16
+    sequence: 16
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-17
+    sequence: 17
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-18
+    sequence: 18
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: training
+  - id: icebreaker-step-19
+    sequence: 19
+    objectiveRefs:
+      - G4
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: validation
+  - id: icebreaker-step-20
+    sequence: 20
+    objectiveRefs:
+      - G4
+    cognitiveLevel: synthesize
+    evidence:
+      - six-own-runs
+      - frozen-model
+      - independent-validation
+      - report
+    measurementSignals:
+      - AzimuthEncoder0
+      - AzimuthEncoder1
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - Heading
+      - YawRate
+      - SpeedLog
+      - North
+      - East
+    trainValidationRole: none

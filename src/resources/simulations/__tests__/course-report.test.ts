@@ -26,6 +26,15 @@ const evidence: VesselReportEvidence = {
 };
 
 describe('本人实验报告的对照来源', () => {
+  it('新版报告保留可从外部报告访问的固定版本指导书链接', () => {
+    const run = structuredClone(evidence.runs[0]);
+    run.configuration.vessel = 'dredger-tianjing';
+    const html = buildVesselCourseReportHtml('天鲸号', {}, {...evidence, runs: [run]});
+    expect(html).toContain('课程版本 seven-vessel-2026.11.14，指导书版本 2026.11.16');
+    expect(html).toContain('https://act.adapt-learn.online/supporting/2026.11.16/guide-07-dredger.pdf');
+    expect(buildVesselCourseReportHtml('旧报告', {})).not.toContain('查看本版实验指导书');
+  });
+
   it('同一次运行的不同模型对照显示相应模型序号与真实窗口', () => {
     const html = buildVesselCourseReportHtml('实验', { problem: '<script>夹具</script>' }, evidence);
     expect(html).toContain('计算模型 本人冻结模型1');

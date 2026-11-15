@@ -1,0 +1,387 @@
+courseVersion: seven-vessel-2026.11.14
+guideEdition: 2026.11.16
+experimentId: exp-07-tianjing-dredging
+title: 天鲸号工况切换与作业定位
+minutes:
+  preparation: 25
+  practice: 120
+  report: 35
+objectives:
+  - id: G1
+    text: 解释钢桩、锚缆、桥架与自航受力
+    level: 分析
+    steps:
+      - 1
+      - 2
+      - 3
+      - 4
+  - id: G2
+    text: 建立本人局部模型并独立验证
+    level: 分析与设计
+    steps:
+      - 5
+      - 6
+      - 7
+      - 8
+  - id: G3
+    text: 比较土层、横移PI、模式切换与实际能耗
+    level: 综合设计与评价
+    steps:
+      - 9
+      - 10
+      - 11
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+  - id: G4
+    text: 依据断缆和未见土层检验安全方案
+    level: 工程判断
+    steps:
+      - 18
+      - 19
+      - 20
+steps:
+  - id: dredger-step-1
+    sequence: 1
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-2
+    sequence: 2
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-3
+    sequence: 3
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-4
+    sequence: 4
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-5
+    sequence: 5
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-6
+    sequence: 6
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: validation
+  - id: dredger-step-7
+    sequence: 7
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-8
+    sequence: 8
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-9
+    sequence: 9
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-10
+    sequence: 10
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-11
+    sequence: 11
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-12
+    sequence: 12
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-13
+    sequence: 13
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-14
+    sequence: 14
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-15
+    sequence: 15
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-16
+    sequence: 16
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-17
+    sequence: 17
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-18
+    sequence: 18
+    objectiveRefs:
+      - G4
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: training
+  - id: dredger-step-19
+    sequence: 19
+    objectiveRefs:
+      - G4
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: validation
+  - id: dredger-step-20
+    sequence: 20
+    objectiveRefs:
+      - G4
+    cognitiveLevel: synthesize
+    evidence:
+      - six-own-runs
+      - frozen-model
+      - independent-validation
+      - report
+    measurementSignals:
+      - DredgerDepth
+      - DredgerSwaySpeed
+      - DredgerCutterRpm
+      - DredgerCableTension0
+      - DredgerCableTension1
+      - DredgerSpudForce
+    trainValidationRole: none
