@@ -27,7 +27,8 @@ import { drillingHysy981SceneVisual } from '../profiles/drilling-hysy981-scene';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { WaterHuggingLine } from '../scene/lines';
 import { computeThrusterWashActivity } from '../scene/wake/wake-physics';
-import { SimChip, SimMeter, SimNotice, SimPanelSection, SimPanelStack, SimReadout, SimReadoutGrid, SimStatusStrip, simToneText } from '../components/simulation-panels';
+import { SimChip, SimMeter, SimNotice, SimPanelSection, SimPanelStack, SimReadout, SimReadoutGrid, SimStatusStrip, SimSwitchInput, SimToggleRow, simToneText } from '../components/simulation-panels';
+import { DrillingThrusterRadar } from '../experiments/drilling-thruster-radar';
 import { HYSY981_PLATFORM_PARAMS, DRILLING_ETHICAL_THRESHOLDS, toRadians, toDegrees } from '../core/constants';
 import type { EthicalViolation, Vector2, ThrusterState } from '../core/types';
 import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
@@ -61,20 +62,74 @@ function DrillingPlatformModel(props: {
   simRef: MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
   frame: VesselSessionFrame | null;
+  t2FaultActive: boolean;
 }) {
   return (
-    <VersionedFleetShip
-      logicalId="drilling-rig"
-      simRef={props.simRef}
-      position={props.position}
-      waterY={-(props.frame?.truth.position_ned[2] ?? 0)}
-      extraEuler={{ x: toRadians(props.frame?.attitudeDeg.pitch ?? 0), z: toRadians(props.frame?.attitudeDeg.roll ?? 0) }}
-      headingRad={props.heading}
-      sceneLengthMeters={HYSY981_PLATFORM_PARAMS.LENGTH}
-      resetToken={props.resetToken}
-      legacyYawOffsetRad={Math.PI / 2}
-      fallbackDraftMeters={19}
-    />
+    <group>
+      <VersionedFleetShip
+        logicalId="drilling-rig"
+        simRef={props.simRef}
+        position={props.position}
+        waterY={-(props.frame?.truth.position_ned[2] ?? 0)}
+        extraEuler={{ x: toRadians(props.frame?.attitudeDeg.pitch ?? 0), z: toRadians(props.frame?.attitudeDeg.roll ?? 0) }}
+        headingRad={props.heading}
+        sceneLengthMeters={HYSY981_PLATFORM_PARAMS.LENGTH}
+        resetToken={props.resetToken}
+        legacyYawOffsetRad={Math.PI / 2}
+        fallbackDraftMeters={19}
+      />
+      {props.t2FaultActive ? (
+        <Html position={[props.position.x, 26, props.position.z]} center>
+          <div className="rounded border border-rose-400/60 bg-rose-600/90 px-2.5 py-1 text-xs font-semibold text-white whitespace-nowrap shadow">
+            T2 断桨故障 · 7 推力器重分配
+          </div>
+        </Html>
+      ) : null}
+    </group>
+  );
+}
+
+/** 井口 1.0m 绿 / 1.5m 黄 / 2.5m 红(EDS) 同心安全包络警戒圈 */
+function WellheadSafetyEnvelopeRings({
+  position,
+  visible,
+}: {
+  position: Vector2;
+  visible: boolean;
+}) {
+  if (!visible) return null;
+  return (
+    <group name="wellhead-safety-envelope" position={[position.x, 0.55, position.z]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0, 1.0, 48]} />
+        <meshBasicMaterial color={simulationScenePalette.success} side={THREE.DoubleSide} transparent opacity={0.3} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <ringGeometry args={[0.92, 1.04, 48]} />
+        <meshBasicMaterial color={simulationScenePalette.success} side={THREE.DoubleSide} transparent opacity={0.85} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+        <ringGeometry args={[1.04, 1.5, 48]} />
+        <meshBasicMaterial color={simulationScenePalette.warning} side={THREE.DoubleSide} transparent opacity={0.28} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]}>
+        <ringGeometry args={[1.44, 1.56, 48]} />
+        <meshBasicMaterial color={simulationScenePalette.warning} side={THREE.DoubleSide} transparent opacity={0.88} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <ringGeometry args={[1.56, 2.5, 48]} />
+        <meshBasicMaterial color={simulationScenePalette.danger} side={THREE.DoubleSide} transparent opacity={0.24} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]}>
+        <ringGeometry args={[2.42, 2.58, 48]} />
+        <meshBasicMaterial color={simulationScenePalette.danger} side={THREE.DoubleSide} transparent opacity={0.92} />
+      </mesh>
+      <Html position={[0, 8, 0]} center>
+        <div className="rounded border border-slate-500/40 bg-slate-950/80 px-2 py-0.5 text-[10px] font-medium text-slate-100 whitespace-nowrap shadow">
+          井口安全包络：1.0m 绿 · 1.5m 黄 · 2.5m 红(EDS 紧急解脱)
+        </div>
+      </Html>
+    </group>
   );
 }
 
@@ -222,6 +277,8 @@ function HUD({
   decouplingEnabled,
   frame,
   completed,
+  showWellheadEnvelope,
+  onToggleWellheadEnvelope,
 }: {
   metrics: SimulationMetrics;
   violations: EthicalViolation[];
@@ -230,6 +287,8 @@ function HUD({
   decouplingEnabled: boolean;
   frame: VesselSessionFrame | null;
   completed: boolean;
+  showWellheadEnvelope: boolean;
+  onToggleWellheadEnvelope: () => void;
 }) {
   // 确定警报级别
   const alertLevel = metrics.positionError > DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT
@@ -294,7 +353,26 @@ function HUD({
         </div> : null}
         <p className="mt-2 text-xs text-platform-fg-secondary">本实验分析位置保持与推进控制，钻柱和隔水管的结构安全需要专门评估。</p>
       </SimPanelSection>
+      <SimPanelSection title="井口 3D 安全包络警戒圈" icon={Target}>
+        <SimToggleRow
+          label="显示 1.0m 绿 / 1.5m 黄 / 2.5m 红(EDS) 警戒圈"
+          htmlFor="drilling-wellhead-envelope-toggle"
+          control={
+            <SimSwitchInput
+              id="drilling-wellhead-envelope-toggle"
+              checked={showWellheadEnvelope}
+              onChange={onToggleWellheadEnvelope}
+            />
+          }
+        />
+      </SimPanelSection>
       <ThrusterPanel thrusters={thrusters} />
+      <DrillingThrusterRadar
+        thrusters={thrusters}
+        totalPowerW={metrics.totalPower * 1000}
+        normalizedResidual={frame?.dpController?.allocation?.normalizedResidual}
+        timeS={metrics.time}
+      />
 
       {violations.length > 0 ? (
         <SimNotice tone="danger" title={`教学警戒 (${violations.length})`}>
@@ -398,6 +476,7 @@ export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
   const [trajectory, setTrajectory] = useState<Vector2[]>([]);
   const [cameraMode, setCameraMode] = useState('chase');
   const [showGrid, setShowGrid] = useState(true);
+  const [showWellheadEnvelope, setShowWellheadEnvelope] = useState(true);
   const [speedScale, setSpeedScale] = useState(8);
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
@@ -549,6 +628,9 @@ export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
           />
         ) : null}
 
+        {/* 井口 1.0m / 1.5m / 2.5m(EDS) 同心安全包络圈 */}
+        <WellheadSafetyEnvelopeRings position={config.targetPosition} visible={showWellheadEnvelope} />
+
         {/* 目标标记（教学标注门控，默认关闭；坐标在控制面板数值可读） */}
         <TeachingAnnotationsGate position={config.targetPosition} heading={config.targetHeading} />
 
@@ -567,6 +649,7 @@ export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
             simRef={bindingRef}
             resetToken={resetCount}
             frame={frame}
+            t2FaultActive={thrusters.some((item) => item.id === 2 && item.failed)}
           />
         </Suspense>
 
@@ -610,6 +693,8 @@ export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
             decouplingEnabled={config.decouplingEnabled}
             frame={frame}
             completed={Boolean(session.course?.completed)}
+            showWellheadEnvelope={showWellheadEnvelope}
+            onToggleWellheadEnvelope={() => setShowWellheadEnvelope((value) => !value)}
           />
         )}
         controls={(

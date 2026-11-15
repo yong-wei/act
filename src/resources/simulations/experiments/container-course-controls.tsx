@@ -6,6 +6,7 @@ import type { VesselExperimentController } from '../simulations/use-vessel-exper
 import { SimField, SimPanelSection, SimPanelStack, SimRunControls, SimSwitchInput, SimToggleRow } from '../components/simulation-panels';
 import { simulationUi } from '../components/simulation-ui';
 import { ModelComparisonCurve } from './model-comparison-curve';
+import { ContainerVoyageTradeoff } from './container-voyage-tradeoff';
 import { CONTAINER_COURSE_STEPS, type ContainerCourseSettings } from './container-course';
 
 export function ContainerCourseControls({session, timeS}: {
@@ -16,6 +17,13 @@ export function ContainerCourseControls({session, timeS}: {
   const step = CONTAINER_COURSE_STEPS[session.activeSeq - 1];
   const settings = course.settings;
   const locked = session.busy || course.running || timeS > 0;
+  const liveFrame = course.read();
+  const livePowerW = liveFrame
+    ? liveFrame.truth.actuator_states.motor_torques_nm.reduce(
+        (sum, torque, index) => sum + torque * (liveFrame.truth.actuator_states.propeller_shaft_speed_rad_s[index] ?? 0),
+        0,
+      )
+    : 0;
   const update = (patch: Partial<ContainerCourseSettings>) => course.setSettings((previous) => ({...previous, ...patch}));
   const models = course.models.filter((model) => model.channel === 'shaft-reference-to-speed' && model.payload.structure.kind === 'fopdt');
   const forecast = course.comparisons.filter((item) => item.purpose === 'forecast' && item.runId === course.plannedRunId).at(-1);
@@ -94,6 +102,16 @@ export function ContainerCourseControls({session, timeS}: {
           aria-label="LOS前视距离" min={200} max={800} step={50} disabled={locked} value={settings.losLookaheadM}
           onChange={(event) => update({losLookaheadM: Number(event.target.value)})} /></SimField> : null}
         <p className="text-xs leading-5 text-platform-fg-secondary">每段1500m，参考斜率上限0.05m/s²。实际到达时限900s，运行最长1200s，燃油比较还需核对末速8±0.3m/s、横偏和航向。</p>
+        <ContainerVoyageTradeoff
+          timeS={timeS}
+          positionX={liveFrame?.truth.position_ned[0] ?? 0}
+          speedMps={liveFrame?.waterVelocityBody[0] ?? settings.segmentSpeedsMps[0] ?? 8}
+          powerW={livePowerW}
+          fuelKg={liveFrame?.teachingFuel?.state.fuel_kg ?? 0}
+          rudderDeg={((liveFrame?.truth.actuator_states.control_surface_angles_rad[0] ?? 0) * 180) / Math.PI}
+          voyage={liveFrame?.containerVoyage}
+          compact
+        />
       </div>
     </SimPanelSection> : null}
     {step.speedControl ? <>

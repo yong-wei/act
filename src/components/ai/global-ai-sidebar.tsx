@@ -21,6 +21,7 @@ import {
   Plus,
   Search,
   Send,
+  ShieldAlert,
   Sparkles,
   Trash2,
   X,
@@ -126,6 +127,8 @@ export function GlobalAISidebar() {
     setStreamingOrComposing,
     pendingKonlingConversationId,
     clearPendingKonlingConversation,
+    simulationAnomalyContext,
+    clearSimulationAnomalyContext,
   } = useGlobalAI();
 
   useEffect(() => {
@@ -285,6 +288,25 @@ export function GlobalAISidebar() {
     || requestedAssistantBinding?.modeClientContextHints?.resourceKind === 'structured-textbook-unit'
     ? requestedAssistantBinding
     : activeAssistantBinding;
+  const anomalyGuardrailExtension = useMemo(() => {
+    if (!simulationAnomalyContext) return '';
+    return [
+      '',
+      '【仿真异常拐点启发模式 · 苏格拉底防代写护栏】',
+      `当前对象与异常点：${simulationAnomalyContext.title}（第 ${simulationAnomalyContext.stepSeq} 步 · t=${simulationAnomalyContext.timeS.toFixed(1)}s）`,
+      `物理现场快照：${simulationAnomalyContext.snapshotSummary}`,
+      '严格约束：',
+      '1. 采用苏格拉底式反问和分步物理机理拆解（惯性滞后、执行器限幅饱和、波频扰动、推力分配或水动力非线性）。',
+      '2. 严禁代写实验步骤结论、严禁直接输出标准整定参数或可直接提交的结论文本。',
+      '3. 先给出 1 条机理排查线索，再向学生提出 1~2 个可验证问题。',
+    ].join('\n');
+  }, [simulationAnomalyContext]);
+
+  const effectiveSystemPromptExtension = useMemo(() => {
+    const joined = `${systemPromptExtension ?? ''}${anomalyGuardrailExtension}`.trim();
+    return joined || undefined;
+  }, [systemPromptExtension, anomalyGuardrailExtension]);
+
   const chatBody = useMemo(() => ({
     pageContext,
     conversationId: activeConversationId ?? undefined,
@@ -293,12 +315,12 @@ export function GlobalAISidebar() {
     resourceId: sendAssistantBinding?.modeClientContextHints.resourceId,
     pathNodeId: sendAssistantBinding?.modeClientContextHints.pathNodeId,
     tools, // 传递可用工具列表，让后端过滤
-    systemPromptExtension,
+    systemPromptExtension: effectiveSystemPromptExtension,
     teachingAssistantModeId: sendAssistantBinding?.teachingAssistantModeId,
     agentSessionId: agentSessionId ?? undefined,
     modeClientContextHints: sendAssistantBinding?.modeClientContextHints,
     knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? sendAssistantBinding?.modeClientContextHints,
-  }), [pageContext, activeConversationId, conversationPageId, tools, systemPromptExtension, sendAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
+  }), [pageContext, activeConversationId, conversationPageId, tools, effectiveSystemPromptExtension, sendAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
 
   const {
     messages,
@@ -1346,6 +1368,49 @@ export function GlobalAISidebar() {
           )}
           <div ref={messagesEndRef} />
         </div>
+
+        {/* 仿真异常拐点快照与苏格拉底防代写护栏 */}
+        {simulationAnomalyContext ? (
+          <div
+            data-socratic-guardrail
+            className="mx-3 mb-2 shrink-0 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-950 dark:text-amber-100"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="flex items-center gap-1 font-semibold">
+                  <ShieldAlert className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                  <span>苏格拉底启发护栏已开启（屏蔽标准参数直出）</span>
+                </p>
+                <p className="font-medium text-foreground">
+                  {simulationAnomalyContext.title} · t={simulationAnomalyContext.timeS.toFixed(1)}s
+                </p>
+                <p className="text-[11px] leading-4 text-muted-foreground">
+                  {simulationAnomalyContext.snapshotSummary}
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="关闭拐点上下文"
+                onClick={() => clearSimulationAnomalyContext?.()}
+                className="rounded p-1 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+              >
+                <X className="size-3.5" aria-hidden="true" />
+              </button>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                data-send-anomaly-question
+                disabled={isLoading || isConversationLoading || isConversationMutating}
+                onClick={() => { void handleQuickQuestion(simulationAnomalyContext.question); }}
+                className="inline-flex items-center gap-1 rounded border border-cyan-500/45 bg-cyan-500/15 px-2 py-1 text-[11px] font-medium text-cyan-900 transition hover:bg-cyan-500/25 disabled:opacity-50 dark:text-cyan-100"
+              >
+                <Sparkles className="size-3" aria-hidden="true" />
+                <span>发送拐点追问</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {/* 输入区 */}
         <form onSubmit={handleConversationSubmit} className={`shrink-0 border-t p-4 ${styles.border}`}>

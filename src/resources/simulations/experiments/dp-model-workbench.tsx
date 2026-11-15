@@ -127,14 +127,14 @@ export function DpModelWorkbench({ scopeKey, runs, onArtifactsChange }: {
       </div> : null}
       <Button className={simulationUi.buttonPrimary} disabled={busy || !selected} onClick={() => { void analyze('compare'); }}>保存独立三通道对照</Button>
       {comparison ? <>
-        <p className="text-xs text-platform-fg-secondary">北向位置 / m</p><ModelComparisonCurve comparison={{ ...comparison,
+        <p className="text-xs text-platform-fg-secondary">北向位置 / m</p><ModelComparisonCurve studentModel={selected} comparison={{ ...comparison,
           actualHeadingDeg: undefined, predictedHeadingDeg: undefined }} />
-        <p className="text-xs text-platform-fg-secondary">东向位置 / m</p><ModelComparisonCurve comparison={{ ...comparison,
+        <p className="text-xs text-platform-fg-secondary">东向位置 / m</p><ModelComparisonCurve studentModel={selected} comparison={{ ...comparison,
           actual: comparison.actualEastM ?? [], predicted: comparison.predictedEastM ?? [], outputUnit: 'm',
           actualHeadingDeg: undefined, predictedHeadingDeg: undefined,
           metrics: { rmse: comparison.metrics.east_rmse ?? null, fit_percent: comparison.metrics.east_fit_percent ?? null,
             peak_error: comparison.metrics.east_peak_error ?? null } }} />
-        <p className="text-xs text-platform-fg-secondary">航向 / °</p><ModelComparisonCurve comparison={{ ...comparison,
+        <p className="text-xs text-platform-fg-secondary">航向 / °</p><ModelComparisonCurve studentModel={selected} comparison={{ ...comparison,
           actual: comparison.actualHeadingDeg?.map((value) => value ?? NaN) ?? [], predicted: comparison.predictedHeadingDeg ?? [], outputUnit: '°',
           actualHeadingDeg: undefined, predictedHeadingDeg: undefined,
           metrics: { rmse: comparison.metrics.heading_rmse == null ? null : comparison.metrics.heading_rmse * 180 / Math.PI,

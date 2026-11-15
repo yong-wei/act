@@ -418,3 +418,38 @@ export function forecastDestroyerClosedLoop(scopeKey: string, runId: string, ste
     factorFlags:vesselComparisonFactors(step.configuration,'independent_closed_loop'),
     purpose: 'forecast', controllerInput: structuredClone(controllerInput) };
 }
+
+
+/**
+ * Evaluate the open-loop linear response of a frozen student model via the WASM runtime.
+ * Returns null safely if the model uses a 3-DOF DP matrix or the browser runtime is not ready.
+ */
+export function evaluateLinearReferenceSeries(
+  model: FrozenVesselStudentModel | null | undefined,
+  timeS: number[],
+  inputSeries: number[],
+  outputOrigin = 0,
+): number[] | null {
+  if (!model || model.payload.structure.kind === 'dp_low_freq3') return null;
+  if (timeS.length < 2 || inputSeries.length !== timeS.length) return null;
+  const dtS = Math.max(0.01, timeS[1] - timeS[0]);
+  const inputOrigin = inputSeries[0] ?? 0;
+  try {
+    const result = computeVirtualSimulationStep<{ predicted?: number[] }>({
+      modelId: 'student_model_analysis',
+      operation: 'predict',
+      structure: model.payload.structure,
+      input: inputSeries,
+      output: new Array<number>(inputSeries.length).fill(outputOrigin),
+      dtS,
+      inputOrigin,
+      outputOrigin,
+    });
+    if (!Array.isArray(result.predicted) || result.predicted.length !== inputSeries.length) {
+      return null;
+    }
+    return result.predicted;
+  } catch {
+    return null;
+  }
+}

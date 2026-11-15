@@ -66,6 +66,7 @@ import type { ControlMode, Vector2 } from '../core/types';
 import { containerCourseExperiment as containerExperiment } from '../experiments/container-experiment';
 import { containerCourseAdapter, containerCourseTraceSamples } from '../experiments/container-course';
 import { ContainerCourseControls } from '../experiments/container-course-controls';
+import { ContainerVoyageTradeoff } from '../experiments/container-voyage-tradeoff';
 import { VesselModelWorkbench } from '../experiments/model-workbench';
 import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { Button } from '@/components/ui/button';
@@ -299,6 +300,15 @@ function HUD({ state }: { state: ContainerSimulationState }) {
         </p> : null}
         <p className="mt-2 text-xs text-platform-fg-secondary">燃油采用教学发动机曲线，实际轴功率积分保留推进、制动和怠速影响。</p>
       </SimPanelSection>
+      <ContainerVoyageTradeoff
+        timeS={state.time}
+        positionX={state.position.x}
+        speedMps={state.speed}
+        powerW={state.powerW}
+        fuelKg={state.fuelKg}
+        rudderDeg={state.rudder}
+        voyage={state.voyage}
+      />
       <SimPanelSection
         title="相对风量测"
         icon={Wind}

@@ -39,6 +39,17 @@ export interface CompanionBubblePresentation extends CompanionBubbleRequest {
   sessionId: string;
 }
 
+/** 仿真曲线异常拐点问控灵上下文（只读快照 + 苏格拉底防代写护栏）。 */
+export interface SimulationAnomalyInquiryContext {
+  title: string;
+  shipKey: string;
+  stepSeq: number;
+  timeS: number;
+  snapshotSummary: string;
+  question: string;
+  antiGhostwriting: true;
+}
+
 interface GlobalAIContextValue {
   /** 当前页面上下文 */
   pageContext: PageContext | null;
@@ -101,6 +112,13 @@ interface GlobalAIContextValue {
   /** 侧栏消费定位请求后清除 */
   clearPendingKonlingConversation: () => void;
   pendingKonlingConversationId: string | null;
+  /** 当前激活的仿真曲线拐点问控灵快照 */
+  simulationAnomalyContext?: SimulationAnomalyInquiryContext | null;
+  /** 从曲线异常点就近唤醒右下角唯一“控灵”侧栏并附带苏格拉底防代写护栏 */
+  triggerSimulationAnomalyInquiry?: (
+    payload: Omit<SimulationAnomalyInquiryContext, 'antiGhostwriting'>,
+  ) => void;
+  clearSimulationAnomalyContext?: () => void;
 }
 
 const GlobalAIContext = createContext<GlobalAIContextValue | null>(null);
@@ -154,6 +172,8 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
   const isStreamingOrComposingRef = useRef(false);
   const [companionBubble, setCompanionBubble] = useState<CompanionBubblePresentation | null>(null);
   const [pendingKonlingConversationId, setPendingKonlingConversationId] = useState<string | null>(null);
+  const [simulationAnomalyContext, setSimulationAnomalyContext] =
+    useState<SimulationAnomalyInquiryContext | null>(null);
   const assistantRequestIdRef = useRef(0);
   const assistantRequestCallbacksRef = useRef(new Map<number, {
     resolve: () => void;
@@ -194,6 +214,7 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     // 路由切换后旧页面的陪伴气泡不再展示（异步投递可能晚于导航返回）。
     setCompanionBubble(null);
     setPendingKonlingConversationId(null);
+    setSimulationAnomalyContext(null);
 
     // 路由变化时关闭侧边栏（可选，根据UX需求决定）
     // 保持开启可能更好，让用户可以在不同页面间保持对话上下文
@@ -320,6 +341,19 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     setPendingKonlingConversationId(null);
   }, []);
 
+  const triggerSimulationAnomalyInquiry = useCallback(
+    (payload: Omit<SimulationAnomalyInquiryContext, 'antiGhostwriting'>) => {
+      setSimulationAnomalyContext({ ...payload, antiGhostwriting: true });
+      setIsOpen(true);
+      setUnreadCount(0);
+    },
+    [],
+  );
+
+  const clearSimulationAnomalyContext = useCallback(() => {
+    setSimulationAnomalyContext(null);
+  }, []);
+
   const handleCompanionBubbleOpen = useCallback((request: CompanionBubbleRequest) => {
     setCompanionBubble(null);
     openSidebarAtConversation(request.sessionId);
@@ -396,6 +430,9 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     openSidebarAtConversation,
     clearPendingKonlingConversation,
     pendingKonlingConversationId,
+    simulationAnomalyContext,
+    triggerSimulationAnomalyInquiry,
+    clearSimulationAnomalyContext,
   };
 
   const companionUserId = session?.user?.id ?? '';

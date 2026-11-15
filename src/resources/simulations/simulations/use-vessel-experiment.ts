@@ -6,6 +6,12 @@ import { useSession } from 'next-auth/react';
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
 import { clearIlabOriginSessionStorage, describeIlabConnection, stripIlabUrlParams } from '@/features/ilab/client-grant';
 import { applyLocalSketchVerdict } from '@/features/ilab/sketch-client';
+import type { VesselAuditTelemetry } from '@/features/ilab/telemetry-redaction';
+import {
+  defaultTourNodeForVessel,
+  findHighlightTourNode,
+  type HighlightTourNodeId,
+} from '../experiments/highlight-tour';
 import { VesselCourseWorkspace } from '@/features/simulations/course-workspace';
 import { listRunEvidence, readRunEvidence, readExperimentDraft, readStepExperimentDraft, saveExperimentDraft,
   listFrozenStudentModels, listModelComparisons, saveModelComparison, listLocalStepAttempts,
@@ -65,6 +71,7 @@ interface VesselSessionApiPayload {
   currentSeq?: number;
   draftActiveSeq?: number;
   reportHtml?: string | null;
+  auditTelemetry?: VesselAuditTelemetry;
   stepDrafts?: Record<string, VesselReadings>;
   steps?: StoredStepRecord[];
   error?: string;
@@ -116,6 +123,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const [sessionCompleted, setSessionCompleted] = useState(false);
   const [uploadFailed, setUploadFailed] = useState(false);
   const [uploadMode, setUploadMode] = useState<'local-only' | 'dev-bypass' | 'ilab-remote'>('local-only');
+  const [auditTelemetry, setAuditTelemetry] = useState<VesselAuditTelemetry | null>(null);
+  const [tourNodeId, setTourNodeId] = useState<HighlightTourNodeId | null>(null);
+  const [tourReadingsMap, setTourReadingsMap] = useState<Record<string, VesselReadings>>({});
+  const preTourMessageRef = useRef<string | null>(null);
   const [reportHtml, setReportHtml] = useState('');
   const [pastReports, setPastReports] = useState<VesselReportSummary[] | null>(null);
   const [reportRevision, setReportRevision] = useState(0);
@@ -182,13 +193,66 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const courseLive = useRef({settings, models, designModelId, readings, activeSeq, reportRunIds, attempts});
   courseLive.current = {settings, models, designModelId, readings, activeSeq, reportRunIds, attempts};
 
-  const step = experiment.steps[activeSeq - 1] ?? experiment.steps[0];
-  const viewed = experiment.steps[viewSeq - 1] ?? step;
+  const activeTourNode = useMemo(
+    () => (tourNodeId ? findHighlightTourNode(tourNodeId) ?? defaultTourNodeForVessel(experiment.vesselId) : null),
+    [experiment.vesselId, tourNodeId],
+  );
+  const tourActive = Boolean(activeTourNode);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tour') !== '1') return;
+    const node = findHighlightTourNode(params.get('node')) ?? defaultTourNodeForVessel(experiment.vesselId);
+    setTourNodeId(node.id);
+  }, [experiment.vesselId]);
+
+  const enterHighlightTour = useCallback(
+    (nodeId?: HighlightTourNodeId) => {
+      if (!tourNodeId) {
+        preTourMessageRef.current = message;
+      }
+      const next = findHighlightTourNode(nodeId) ?? defaultTourNodeForVessel(experiment.vesselId);
+      setTourNodeId(next.id);
+      setMessage('已切换至只读高光工况导览模式：严禁正式提交与成绩回传。');
+    },
+    [experiment.vesselId, message, tourNodeId],
+  );
+
+  const exitHighlightTour = useCallback(() => {
+    setTourNodeId(null);
+    setTourReadingsMap({});
+    if (preTourMessageRef.current !== null) {
+      setMessage(preTourMessageRef.current);
+      preTourMessageRef.current = null;
+    } else {
+      setMessage('');
+    }
+    if (typeof window !== 'undefined' && window.location.search.includes('tour=')) {
+      const nextParams = new URLSearchParams(window.location.search);
+      nextParams.delete('tour');
+      nextParams.delete('node');
+      const query = nextParams.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+    }
+  }, []);
+
+  const displayActiveSeq = activeTourNode ? activeTourNode.stepSeq : activeSeq;
+  const displayViewSeq = activeTourNode ? activeTourNode.stepSeq : viewSeq;
+  const step = experiment.steps[displayActiveSeq - 1] ?? experiment.steps[0];
+  const viewed = experiment.steps[displayViewSeq - 1] ?? step;
   const doneSeqs = nativeCourse ? [...new Set(attempts.filter((attempt) => attempt.scopeKey === scopeKey
     && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))]
     : records.map((record) => record.seq);
   const viewedRecord = records.find((record) => record.seq === viewSeq);
-  const shownSamples = viewSeq === activeSeq ? samples : viewedRecord?.samples ?? [];
+  const shownSamples = activeTourNode
+    ? activeTourNode.samples
+    : viewSeq === activeSeq
+      ? samples
+      : viewedRecord?.samples ?? [];
+  const effectiveReadings = activeTourNode
+    ? (tourReadingsMap[activeTourNode.id] ?? activeTourNode.readings)
+    : readings;
   const reportEnabled = nativeCourse ? doneSeqs.includes(20)
     : records.some((record) => record.seq === experiment.steps.length) || Boolean(reportHtml);
 
@@ -235,7 +299,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }, [canUseCloudEvidence]);
 
   useEffect(() => {
-    if (!nativeCourse || !canUseCloudEvidence || readyScope !== scopeKey) return;
+    if (!nativeCourse || !canUseCloudEvidence || readyScope !== scopeKey || tourActive) return;
     let cancelled = false;
     let timer: number;
     const sync = async () => {
@@ -245,7 +309,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     };
     void sync();
     return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [nativeCourse, canUseCloudEvidence, readyScope, scopeKey, courseRunning, syncCurrentCourseRun]);
+  }, [nativeCourse, canUseCloudEvidence, readyScope, scopeKey, courseRunning, syncCurrentCourseRun, tourActive]);
 
   const activateCourseStep = useCallback(async (sequence: number, scope: string, initial = false,
     replacementSettings?: Settings) => {
@@ -393,6 +457,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }, [activeSeq, nativeCourse]);
 
   useEffect(() => {
+    if (tourActive) return;
     if (nativeCourse && (!accountReady || readyScope !== scopeKey)) return;
     stepDraftsRef.current = {...stepDraftsRef.current, [String(activeSeq)]: readings};
     writeLocalDraftStore(draftStorageKey, {
@@ -418,7 +483,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     }, 450);
     return () => window.clearTimeout(timer);
   }, [activeSeq, draftStorageKey, originId, readings, nativeCourse, accountReady, readyScope, scopeKey, settings,
-    designModelId, reportRunIds, courseRunning]);
+    designModelId, reportRunIds, courseRunning, tourActive]);
 
   useEffect(() => {
     setConnectionReady(false);
@@ -438,6 +503,9 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       sessionSyncTarget.current = '';
       const mode = body.uploadMode ?? 'ilab-remote';
       setUploadMode(mode);
+      if (body.auditTelemetry) {
+        setAuditTelemetry(body.auditTelemetry);
+      }
       setSessionCompleted(body.status === 1);
       setUploadFailed(Boolean(body.retryableUpload));
       if (body.reportHtml) {
@@ -735,6 +803,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function uploadCourseEvidence() {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览模式下严禁上传或回传正式证据。');
+      return;
+    }
     if (!canUseCloudEvidence) return;
     const reportClientRef = reportRef.current;
     if (scopeRef.current !== scopeKey) return;
@@ -748,6 +820,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function submitCourseStep() {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览模式下严禁正式提交或触发成绩回传，请先退出导览。');
+      return;
+    }
     setBusy(true);
     try {
       await workspace.current?.pause(); setCourseRunning(false);
@@ -823,6 +899,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function openStep(sequence: number) {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览中，请通过顶部导览节点切换或退出导览后进入正式步骤。');
+      return;
+    }
     if (!nativeCourse) { setViewSeq(sequence); setActiveSeq(sequence); return; }
     if (busy || readyScope !== scopeKey || assertVesselStepOrder(experiment.steps, doneSeqs, sequence)) return;
     setBusy(true);
@@ -844,7 +924,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function saveAccountReport(html: string, stored: typeof records): Promise<boolean> {
-    if (sessionStatus !== 'authenticated') return false;
+    if (activeTourNode || sessionStatus !== 'authenticated') return false;
     const response = await fetch('/api/simulations/reports', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -867,6 +947,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function submitStep() {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览模式下严禁正式提交或触发成绩回传，请先退出导览。');
+      return;
+    }
     const order = assertVesselStepOrder(experiment.steps, doneSeqs, step.seq);
     if (order) {
       setMessage(order);
@@ -1029,6 +1113,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function retryIlabUpload() {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览模式下严禁触发实验空间成绩回传。');
+      return;
+    }
     if (busy || !originId) return;
     setBusy(true);
     try {
@@ -1109,6 +1197,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function restartIlabSession() {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览模式下禁止新建正式实验轮次，请先退出导览。');
+      return;
+    }
     if (busy) return;
     if (nativeCourse) {
       setBusy(true);
@@ -1183,20 +1275,40 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   return {
     step,
     viewed,
-    activeSeq,
-    viewSeq,
+    activeSeq: displayActiveSeq,
+    viewSeq: displayViewSeq,
     openStep,
     samples,
     shownSamples,
     observe,
     trackLatest,
     clearSamples,
-    readings,
-    setReading: (key: string, value: string) => setReadings((prev) => {
-      const next = { ...prev, [key]: value };
-      stepDraftsRef.current = { ...stepDraftsRef.current, [String(activeSeq)]: next };
-      return next;
-    }),
+    readings: effectiveReadings,
+    setReading: (key: string, value: string) => {
+      if (activeTourNode) {
+        setTourReadingsMap((prev) => ({
+          ...prev,
+          [activeTourNode.id]: {
+            ...(prev[activeTourNode.id] ?? activeTourNode.readings),
+            [key]: value,
+          },
+        }));
+        return;
+      }
+      setReadings((prev) => {
+        const next = { ...prev, [key]: value };
+        stepDraftsRef.current = { ...stepDraftsRef.current, [String(activeSeq)]: next };
+        return next;
+      });
+    },
+    originId,
+    auditTelemetry,
+    tour: {
+      active: tourActive,
+      node: activeTourNode,
+      enter: enterHighlightTour,
+      exit: exitHighlightTour,
+    },
     message,
     connectionStatus: originId ? describeIlabConnection(uploadMode) : '',
     busy,
