@@ -39,10 +39,10 @@ export interface VesselCourseAdapter<Settings extends object> {
   nativeSequence?(sequence: number): number;
   previousPlanSequence?(sequence: number): number | undefined;
   forecastOnlySequence?: number;
-  requiresForecastSequence?: number;
+  requiresForecast?(sequence: number): boolean;
   forecast?(scopeKey: string, runId: string, sequence: number, configuration: VesselSessionConfiguration,
     durationS: number, input: VesselSessionInput, frame: VesselSessionFrame,
-    model: FrozenVesselStudentModel): VesselModelComparison;
+    model: FrozenVesselStudentModel, settings: Settings, models: FrozenVesselStudentModel[]): VesselModelComparison;
 }
 
 export const lngCourseAdapter: VesselCourseAdapter<LngCourseSettings> = {
@@ -64,7 +64,7 @@ export const lngCourseAdapter: VesselCourseAdapter<LngCourseSettings> = {
   validateEvidence: (step, evidence) => validateLngCourseEvidence(LNG_COURSE_STEPS[step.sequence - 1], evidence),
   nativeSequence: (sequence) => sequence === 7 ? 8 : sequence,
   previousPlanSequence: (sequence) => sequence === 8 ? 7 : undefined,
-  forecastOnlySequence: 7, requiresForecastSequence: 8,
+  forecastOnlySequence: 7, requiresForecast: (sequence) => sequence === 8,
   forecast: (scope, id, _sequence, configuration, duration, input, frame, model) =>
     forecastVesselSpeed(scope, id, configuration, duration, input, frame.parameters, model),
 };

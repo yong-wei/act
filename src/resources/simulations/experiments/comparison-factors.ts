@@ -11,6 +11,7 @@ export function activeVesselFactors(configuration:VesselSessionConfiguration,
   if (switches?.wave_enabled ?? ['V1','V2','V3','E1','E2'].includes(preset)) active.push('wave');
   if (switches?.current_enabled ?? ['C1','C2','E1','E2'].includes(preset)) active.push('current');
   if (configuration.noiseLevel && configuration.noiseLevel !== 'N0') active.push('measurement-noise');
+  if (configuration.ice) active.push('ice-contact');
   return active;
 }
 
@@ -27,4 +28,5 @@ export const VESSEL_FACTOR_LABELS:Record<string,string> = {
   'actuator-limits':'执行器约束','actuator-rate-limits':'执行器速率限制',wind:'风载',wave:'波浪',current:'海流',
   'measurement-noise':'量测误差','identified-local-model':'本人辨识的局部模型','measured-actuator-input':'实际执行器量测输入',
   'identified-actuator':'本人辨识的执行器模型','independent-controller':'独立控制器','replayed-input':'已记录输入重放',
+  'ice-contact':'冰板破坏、浮冰运动及摩擦',
 };

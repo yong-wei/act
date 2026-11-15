@@ -19,6 +19,7 @@ import { LngLiquidSpectrum } from './lng-liquid-spectrum';
 import { CruiseRollSpectrum } from './cruise-roll-spectrum';
 import { CruiseComfortReadout } from './cruise-comfort-readout';
 import { DpModelWorkbench } from './dp-model-workbench';
+import { IceContactEvidence } from './ice-contact-evidence';
 
 
 interface WorkbenchProps {
@@ -46,7 +47,7 @@ function ScalarVesselModelWorkbench({ scopeKey, runs, onArtifactsChange, default
   const [actuatorId, setActuatorId] = useState('');
   const [channel, setChannel] = useState<IdentificationChannel>(defaultChannel);
   const [kind, setKind] = useState<'nomoto1' | 'nomoto2' | 'fopdt' | 'roll_oscillator'>(defaultChannel === 'fin-to-roll'
-    ? 'roll_oscillator' : defaultChannel === 'rudder-to-yaw' ? 'nomoto1' : 'fopdt');
+    ? 'roll_oscillator' : ['rudder-to-yaw', 'azimuth-to-yaw'].includes(defaultChannel) ? 'nomoto1' : 'fopdt');
   const [freeDecayRunId,setFreeDecayRunId] = useState('');
   const [freeDecayStartS,setFreeDecayStartS] = useState(10);
   const [freeDecayEndS,setFreeDecayEndS] = useState(120);
@@ -77,7 +78,13 @@ function ScalarVesselModelWorkbench({ scopeKey, runs, onArtifactsChange, default
     if (runId && eligibleRuns.some((run) => run.id === runId)) return;
     const latest = eligibleRuns.find((run) => !run.remoteOnly);
     setRunId(latest?.id ?? '');
-    if (latest) setEndS(latest.durationS);
+    if (latest) {
+      if (latest.configuration.vessel === 'icebreaker-xuelong2' && latest.stepSequence === 3) {
+        setStartS(0); setEndS(Math.min(120, latest.lastTimeS));
+      } else {
+        setStartS(Math.min(10, latest.lastTimeS / 4)); setEndS(latest.lastTimeS);
+      }
+    }
   }, [runId, eligibleRuns]);
   useEffect(()=>{
     let cancelled = false;
@@ -127,8 +134,8 @@ function ScalarVesselModelWorkbench({ scopeKey, runs, onArtifactsChange, default
           <SimField label="窗口终点" value="s"><input type="number" min={0} step={0.05} className="sim-hud-input" aria-label="分析窗口终点" value={endS} onChange={(event) => setEndS(Number(event.target.value))} /></SimField>
         </div>
         {visibleRun ? <MeasurementWindow run={visibleRun} startS={startS} endS={endS}
-          signal={channel === 'fin-to-roll' ? 'EstimatedRoll' : channel === 'rudder-servo' ? 'SurfaceEncoder0' : channel.startsWith('shaft-') ? 'SpeedLog' : 'YawRate'}
-          unit={channel === 'fin-to-roll' || channel === 'rudder-servo' ? '°' : channel.startsWith('shaft-') ? 'm/s' : '°/s'}
+          signal={channel === 'fin-to-roll' ? 'EstimatedRoll' : channel === 'azimuth-servo' ? 'EquivalentAzimuth' : channel === 'rudder-servo' ? 'SurfaceEncoder0' : channel.startsWith('shaft-') ? 'SpeedLog' : 'YawRate'}
+          unit={channel === 'fin-to-roll' || channel.endsWith('-servo') ? '°' : channel.startsWith('shaft-') ? 'm/s' : '°/s'}
           onSelect={({start,end})=>{setStartS(start.timeS);setEndS(end.timeS);}} /> : null}
         {visibleRun?.courseKey === 'destroyer' ? <DestroyerRunEvaluation run={visibleRun} /> : null}
         {visibleRun?.courseKey === 'lng' ? <LngLiquidSpectrum run={visibleRun} startS={startS} endS={endS} /> : null}
@@ -139,17 +146,24 @@ function ScalarVesselModelWorkbench({ scopeKey, runs, onArtifactsChange, default
         <SimField label="量测通道">
           <select className="sim-hud-input" aria-label="辨识量测通道" value={channel} onChange={(event) => {
             const next = event.target.value as IdentificationChannel;
-            setChannel(next); setKind(next === 'fin-to-roll' ? 'roll_oscillator' : next === 'rudder-to-yaw' ? 'nomoto1' : 'fopdt');
+            setChannel(next); setKind(next === 'fin-to-roll' ? 'roll_oscillator' : next.endsWith('-to-yaw') ? 'nomoto1' : 'fopdt');
             if (next === 'shaft-reference-to-speed') setMode('command_to_output');
             if (next === 'fin-to-roll') setMode('hull_model');
           }}>
-            <option value="rudder-to-yaw">实际舵角 → 转艏速率</option>
-            <option value="rudder-servo">舵指令 → 实际舵角</option>
+            {visibleRun?.courseKey === 'icebreaker' ? <>
+              <option value="azimuth-to-yaw">双吊舱等效偏转 → 转艏速率</option>
+              <option value="azimuth-servo">等效偏转指令 → 实际偏转</option>
+            </> : <>
+              <option value="rudder-to-yaw">实际舵角 → 转艏速率</option>
+              <option value="rudder-servo">舵指令 → 实际舵角</option>
+            </>}
             <option value="shaft-to-speed">实际轴速 → 对水航速</option>
             <option value="shaft-reference-to-speed">轴速参考 → 对水航速</option>
             {visibleRun?.courseKey === 'cruise' ? <option value="fin-to-roll">实际差动鳍角 → 横摇姿态估计</option> : null}
           </select>
         </SimField>
+        {visibleRun?.configuration.ice ? <IceContactEvidence run={visibleRun} startS={startS} endS={endS}
+          onWindow={(start, end) => { setStartS(start); setEndS(end); }} /> : null}
         <SimField label="候选结构">
           <select className="sim-hud-input" aria-label="候选模型结构" value={kind} onChange={(event) => setKind(event.target.value as typeof kind)}>
             <option value="nomoto1">一阶模型</option><option value="nomoto2">二阶模型</option><option value="fopdt">一阶惯性与时延</option>
@@ -177,6 +191,8 @@ function ScalarVesselModelWorkbench({ scopeKey, runs, onArtifactsChange, default
           </select>
         </SimField>
         {selectedModel ? <p className="break-words text-xs leading-5 text-platform-fg-primary">{studentModelFormula(selectedModel.payload.structure)}</p> : null}
+        {selectedModel?.payload.structure.kind === 'nomoto1' && selectedModel.payload.structure.t_s < 0 ?
+          <p className="text-xs leading-5 text-platform-fg-secondary">该局部模型具有开环不稳定极点。PD设计需满足K·Kp/T大于0及(1+K·Kd)/T大于0，请结合本人窗口、残差与独立验证判断适用范围。</p> : null}
         {selectedModel ? <p className="text-xs text-platform-fg-secondary">
           训练窗口残差RMS {selectedModel.payload.identification.residualRms?.toPrecision(4) ?? '未获得有效值'} {selectedModel.payload.ioContract.outputUnit}
           {typeof selectedModel.payload.identification.settings.trainingFitPercent === 'number'
@@ -184,7 +200,7 @@ function ScalarVesselModelWorkbench({ scopeKey, runs, onArtifactsChange, default
         </p> : null}
         {models.some((model)=>model.payload.structure.kind === 'nomoto1') ? <div className="overflow-x-auto"><table className="w-full text-left text-xs text-platform-fg-secondary">
           <caption className="pb-1 text-left">本人冻结的一阶船体模型</caption><thead><tr><th>运行初始航速</th><th>K / s⁻¹</th><th>T / s</th></tr></thead><tbody>
-            {models.filter((model)=>model.channel === 'rudder-to-yaw' && model.payload.structure.kind === 'nomoto1').map((model)=>{
+            {models.filter((model)=>model.channel.endsWith('-to-yaw') && model.payload.structure.kind === 'nomoto1').map((model)=>{
               const structure = model.payload.structure;
               if (structure.kind !== 'nomoto1') return null;
               return <tr key={model.id}><td>{model.payload.operatingPoint.speedMps} m/s</td><td>{structure.k.toPrecision(4)}</td><td>{structure.t_s.toPrecision(4)}</td></tr>;
@@ -194,17 +210,17 @@ function ScalarVesselModelWorkbench({ scopeKey, runs, onArtifactsChange, default
           <select className="sim-hud-input" aria-label="模型对照方式" value={mode} onChange={(event) => setMode(event.target.value as ComparisonModeValue)}>
             <option value="hull_model">A · 实际执行器量测驱动船体模型</option>
             <option value="command_to_output" disabled={selectedModel?.channel === 'fin-to-roll'}>{selectedModel?.channel === 'shaft-reference-to-speed'
-              ? 'B · 轴速参考驱动联合惯性模型' : 'B · 指令经舵机模型驱动船体模型'}</option>
+              ? 'B · 轴速参考驱动联合惯性模型' : 'B · 指令经伺服模型驱动船体模型'}</option>
             <option value="independent_closed_loop" disabled={selectedModel?.channel === 'fin-to-roll'}>C · 学生模型独立闭环</option>
           </select>
         </SimField>
-        {mode !== 'hull_model' && selectedModel?.channel !== 'shaft-reference-to-speed' ? <SimField label="冻结的舵机模型">
-          <select className="sim-hud-input" aria-label="冻结的舵机模型" value={actuatorId} onChange={(event) => setActuatorId(event.target.value)}>
-            <option value="">选择舵机模型</option>{models.filter((model) => model.channel === 'rudder-servo').map((model,index) => <option key={model.id} value={model.id}>{model.label} · 版本{index+1}</option>)}
+        {mode !== 'hull_model' && selectedModel?.channel !== 'shaft-reference-to-speed' ? <SimField label={selectedModel?.channel === 'azimuth-to-yaw' ? '冻结的吊舱伺服模型' : '冻结的舵机模型'}>
+          <select className="sim-hud-input" aria-label={selectedModel?.channel === 'azimuth-to-yaw' ? '冻结的吊舱伺服模型' : '冻结的舵机模型'} value={actuatorId} onChange={(event) => setActuatorId(event.target.value)}>
+            <option value="">选择{selectedModel?.channel === 'azimuth-to-yaw' ? '吊舱伺服' : '舵机'}模型</option>{models.filter((model) => model.channel === (selectedModel?.channel === 'azimuth-to-yaw' ? 'azimuth-servo' : 'rudder-servo')).map((model,index) => <option key={model.id} value={model.id}>{model.label} · 版本{index+1}</option>)}
           </select>
         </SimField> : null}
-        <Button className={simulationUi.buttonOutline} size="sm" disabled={busy || !runId || !selectedModel || selectedModel.channel === 'rudder-servo'} onClick={() => { void analyze('compare'); }}>运行独立对照</Button>
-        {selectedModel?.channel === 'rudder-servo' ? <p className="text-xs text-platform-fg-secondary">已冻结舵机模型可在B/C对照或运行前闭环预测中作为执行器模型选用。</p> : null}
+        <Button className={simulationUi.buttonOutline} size="sm" disabled={busy || !runId || !selectedModel || selectedModel.channel.endsWith('-servo')} onClick={() => { void analyze('compare'); }}>运行独立对照</Button>
+        {selectedModel?.channel.endsWith('-servo') ? <p className="text-xs text-platform-fg-secondary">已冻结伺服模型可在B/C对照或运行前闭环预测中作为执行器模型选用。</p> : null}
         {selectedComparison ? (
           <ModelComparisonCurve comparison={selectedComparison} studentModel={selectedModel} />
         ) : null}

@@ -17,6 +17,7 @@ pub mod environment_state;
 pub mod observer;
 pub mod passive_observer;
 pub mod instrumentation;
+pub mod ice_contact;
 pub mod session;
 pub mod qtf;
 pub mod full_qtf;

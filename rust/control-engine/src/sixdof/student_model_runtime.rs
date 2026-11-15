@@ -36,6 +36,11 @@ struct DpMetricPoint {
 #[derive(Deserialize)]
 #[serde(tag = "operation", rename_all = "snake_case")]
 enum Request {
+    IceMetrics {
+        points: Vec<super::ice_contact::IceMetricPoint>,
+        #[serde(default, rename = "terminalPoint")]
+        terminal_point: Option<super::ice_contact::IceMetricPoint>,
+    },
     DpMetrics {
         points: Vec<DpMetricPoint>,
         #[serde(rename = "endTimeS")]
@@ -172,7 +177,7 @@ fn validate_structure(structure: &ModelStructure) -> Result<(), String> {
     let time = |value: f64| (0.2..=2000.0).contains(&value);
     let gain = |value: f64| value.is_finite() && value.abs() <= 1e9;
     let valid = match structure {
-        ModelStructure::Nomoto1 { k, t_s } => gain(*k) && time(*t_s),
+        ModelStructure::Nomoto1 { k, t_s } => gain(*k) && time(t_s.abs()),
         ModelStructure::Nomoto2 { k, t1_s, t2_s } => gain(*k) && time(*t1_s) && time(*t2_s),
         ModelStructure::Fopdt { k, t_s, delay_s } => gain(*k) && time(*t_s) && (0.0..=120.0).contains(delay_s),
         ModelStructure::RollOscillator { natural_freq_rad_s, damping, control_gain } =>
@@ -368,9 +373,9 @@ pub fn compute(request_json: &str) -> Result<String, String> {
         Request::HeadingDesign { structure } => {
             validate_structure(&structure)?;
             let ModelStructure::Nomoto1 { k,t_s } = structure else { return Err("航向设计初值需要本人辨识的一阶转艏率模型".into()); };
-            if k <= 0.0 { return Err("请核对量测通道与舵角方向，当前模型无法生成本实验的正增益设计初值".into()); }
+            if k / t_s <= 0.0 { return Err("请核对实际输入方向，当前K/T无法生成正增益航向设计初值".into()); }
             let damping = 0.8;
-            let frequency = (1.0/(damping*t_s)).max(0.03);
+            let frequency = (1.0/(damping*t_s.abs())).max(0.03);
             let kp = t_s*frequency*frequency/k;
             let kd = (2.0*damping*frequency*t_s-1.0)/k;
             if [kp,kd,3.0*kp,3.0*kd].iter().any(|value| !value.is_finite()) { return Err("当前模型的控制设计结果超出有限范围".into()); }
@@ -450,6 +455,7 @@ pub fn compute(request_json: &str) -> Result<String, String> {
             json!({ "schema": "act.student-model-analysis.v1", "structure": structure, "metrics": metrics,
                 "predicted": predicted.iter().map(|value| value+output_origin).collect::<Vec<_>>() })
         }
+        Request::IceMetrics { points, terminal_point } => super::ice_contact::run_metrics(&points, terminal_point.as_ref())?,
         Request::HeadingClosedLoop { structure, reference, input_origin, output_origin, initial_heading_deg, initial_yaw_rate_deg_s,
             dt_s, controller, controllers, output, actuator } => {
             validate_structure(&structure)?;
@@ -487,7 +493,10 @@ pub fn compute(request_json: &str) -> Result<String, String> {
                 headings.push(heading);
                 rates.push(plant.output()+output_origin);
                 let active_controller = controllers.as_ref().map(|inputs| &inputs[index]).unwrap_or(&controller);
-                let command = feedback.step_with_tracking(active_controller.control_mode, &active_controller.pid, *target,
+                let gains = active_controller.ice_heading_schedule
+                    .map(|schedule| schedule.gains(active_controller.pid))
+                    .unwrap_or(active_controller.pid);
+                let command = feedback.step_with_tracking(active_controller.control_mode, &gains, *target,
                     Some(heading), index as f64*dt_s, dt_s, active_controller.derivative_filter_tau_s,
                     active_controller.heading_integral_tracking.unwrap_or_default())?;
                 let surface = actuator_model.as_ref().map(|(state, _, origin)| state.output()+origin).unwrap_or(command);

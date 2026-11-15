@@ -11,7 +11,7 @@ export default async function IcebreakerSimulationPage({
   const ticket = firstQueryValue((await searchParams)?.ticket);
   return (
     <SimulationShell
-      title="雪龙号吊舱与冰区控制"
+      title="雪龙2号吊舱与冰区控制"
       subtitle="双吊舱 · 冰接触与约束控制"
       activeHref="/simulations/icebreaker"
       guideHref="/supporting/guide-06-icebreaker.pdf"
@@ -28,6 +28,6 @@ function firstQueryValue(value: string | string[] | null | undefined): string | 
 }
 
 export const metadata = {
-  title: '雪龙号吊舱与冰区控制 - 智控深蓝',
-  description: '使用Azipod推进器和冰阻力Stick-Slip模型的破冰船仿真，体验参数摄动对控制的影响',
+  title: '雪龙2号吊舱与冰区控制 - 智控深蓝',
+  description: '通过双吊舱、六自由度冰接触与局部模型辨识，研究冰厚、强度、功率约束和航向控制。',
 };

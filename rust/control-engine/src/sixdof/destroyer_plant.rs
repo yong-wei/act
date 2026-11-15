@@ -163,6 +163,7 @@ pub struct DestroyerSixDofPlant {
     vessel_wind: Option<std::sync::Arc<super::vessel_wind::VesselWindModel>>,
     compiled_waves: Option<std::sync::Arc<super::vessel_wave::CompiledVesselWaves>>,
     mean_wave_resistance: Option<super::mean_wave_resistance::ContainerMeanWaveResistance>,
+    ice: Option<super::ice_contact::IceContact>,
 }
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
@@ -171,6 +172,8 @@ pub struct PlantCheckpoint {
     time_s: f64,
     environment: Option<crate::sixdof::environment_state::EnvironmentState>,
     last_output: Option<DynamicsOutput>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    ice: Option<super::ice_contact::IceState>,
 }
 
 impl DestroyerSixDofPlant {
@@ -335,6 +338,7 @@ impl DestroyerSixDofPlant {
             vessel_wind: None,
             compiled_waves: None,
             mean_wave_resistance: None,
+            ice: None,
         }
     }
 
@@ -577,7 +581,8 @@ impl DestroyerSixDofPlant {
 
     pub fn checkpoint(&self) -> PlantCheckpoint {
         PlantCheckpoint { state: self.state.clone(), time_s: self.sim_time_s,
-            environment: self.environment_state.clone(), last_output: self.last_output }
+            environment: self.environment_state.clone(), last_output: self.last_output,
+            ice: self.ice.as_ref().map(|ice|ice.state.clone()) }
     }
 
     pub fn restore_checkpoint(&mut self, checkpoint: PlantCheckpoint) -> Result<(), String> {
@@ -593,6 +598,11 @@ impl DestroyerSixDofPlant {
         self.actuator_system.as_ref().ok_or("恢复点需要物理执行器组")?
             .validate_state(&state.actuator_states)?;
         if let Some(model) = &self.sloshing { model.validate_state(&state.specialist_states)?; }
+        match (&mut self.ice, checkpoint.ice) {
+            (Some(model),Some(state))=>model.restore(state)?,
+            (None,None)=>{},
+            _=>return Err("冰场恢复点与冻结配置不一致".into()),
+        }
         self.state = checkpoint.state;
         self.sim_time_s = checkpoint.time_s;
         self.environment_state = checkpoint.environment;
@@ -600,6 +610,14 @@ impl DestroyerSixDofPlant {
         self.motor_torque_actual_nm = self.state.actuator_states.motor_torques_nm.first().copied().unwrap_or(0.0);
         Ok(())
     }
+
+    pub fn configure_ice(&mut self, configuration: super::ice_contact::IceConfiguration) -> Result<(),String> {
+        let hull=self.hydrostatic_hull.as_deref().ok_or("冰接触需要源船形静水几何")?;
+        self.ice=Some(super::ice_contact::IceContact::new(configuration,hull)?);
+        Ok(())
+    }
+
+    pub fn ice(&self) -> Option<&super::ice_contact::IceContact> { self.ice.as_ref() }
 
     pub fn set_propeller_installation(
         &mut self,
@@ -720,6 +738,7 @@ impl DestroyerSixDofPlant {
 
         // 环境过程与积分状态在本次推进成功后一起写入。
         let mut env_state = self.environment_state.clone();
+        let mut ice = self.ice.clone();
         let mut motor_torque_actual_nm = self.motor_torque_actual_nm;
         // 推进语义：本调用推进 dt 时长；内部按 ≤NOMINAL_DT 细分子步
         let substeps = ((dt / NOMINAL_DT).ceil() as usize).max(1);
@@ -861,6 +880,15 @@ impl DestroyerSixDofPlant {
             };
 
             super::integrator::rk4_step(time, &mut y, substep_dt, derivs)?;
+            if let Some(model)=&mut ice {
+                let mut velocity=[y[7],y[8],y[9],y[10],y[11],y[12]];
+                let current=env_state.as_ref().filter(|environment|environment.switches.current_enabled)
+                    .map(|environment|[environment.current_ned[0],environment.current_ned[1],0.0]).unwrap_or([0.0;3]);
+                model.step(substep_dt,[y[0],y[1],y[2]],[y[3],y[4],y[5],y[6]],
+                    &mut velocity,self.physical_mass_matrix(),current)
+                    .map_err(IntegrationError::InvalidSpecialistState)?;
+                y[7..13].copy_from_slice(&velocity);
+            }
             if let Some(system) = &self.actuator_system {
                 system.enforce_motor_limits(&mut y[13 + radiation_len..specialist_offset])?;
             }
@@ -933,6 +961,7 @@ impl DestroyerSixDofPlant {
         external.tau_wave_1 = tau_wave_1;
         external.tau_wave_2 = tau_wave_2;
         external.tau_wind = tau_wind;
+        if let Some(model)=&ice { external.tau_special=model.state.last_load_body; }
         let restoring = self.hydrostatic_hull.as_deref().map_or_else(
             || restoring_force(&self.rp, delta_eta),
             |hull| hull.evaluate(&final_state, self.rb.mass_kg, SEA_WATER_DENSITY).restoring_body,
@@ -957,6 +986,7 @@ impl DestroyerSixDofPlant {
         self.sim_time_s = final_time_s;
         self.environment_state = env_state;
         self.motor_torque_actual_nm = motor_torque_actual_nm;
+        self.ice = ice;
         self.state = final_state;
         self.last_output = Some(final_output);
         Ok(())

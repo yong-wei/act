@@ -90,12 +90,14 @@ export class VesselCourseWorkspace {
     }
     const termination = this.frame.berth?.termination;
     const voyageTermination = this.frame.containerVoyage?.progress.termination;
-    if (termination || voyageTermination || this.frame.timeS >= this.plan.durationS - 1e-8) {
+    const iceArrival = this.plan.courseKey === 'icebreaker' && this.plan.stepSequence >= 8
+      && this.frame.truth.position_ned[0] >= 800;
+    if (termination || voyageTermination || iceArrival || this.frame.timeS >= this.plan.durationS - 1e-8) {
       this.running = false;
       this.session.setPaused(true);
       return { frame: this.frame, saved: this.recorder.save(this.session,
         termination?.reason === 'time_limit' || voyageTermination?.reason === 'time_limit' ? 'time_limit'
-          : termination || voyageTermination ? 'arrival' : 'duration') };
+          : termination || voyageTermination || iceArrival ? 'arrival' : 'duration') };
     }
     return { frame: this.frame, saved: this.recorder.saveIfDue(this.session) };
   }

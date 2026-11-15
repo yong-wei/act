@@ -180,6 +180,9 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
       || (frame.fineStepWindowSampleCount ?? 0) !== (input.fineCount ?? 0)) {
       throw new IlabServiceError('结束状态与已经接收的原始采样不一致。',409);
     }
+    if (summary.courseKey === 'icebreaker' && input.reason === 'arrival' && frame.truth.position_ned[0] < 800) {
+      throw new IlabServiceError('冰区任务尚未抵达北向800m，请保留实际停止原因。', 409);
+    }
   } catch (error) {
     if (error instanceof IlabServiceError) throw error;
     throw new IlabServiceError('结束状态无法恢复，请检查本机保存的运行。',400);
@@ -196,7 +199,10 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
     }
     for (const staged of pending) points.push(...staged.chunk.points);
     if (points.length !== input.controlCount) throw new IlabServiceError('原始控制采样数量不一致。',409);
-    metrics = calculateVesselRunMetrics(points, input.endTimeS, opening.configuration.initialHeadingDeg ?? 0);
+    metrics = calculateVesselRunMetrics(points, input.endTimeS, opening.configuration.initialHeadingDeg ?? 0,
+      frame.iceContact ? { timeS: input.endTimeS, northM: frame.truth.position_ned[0], eastM: frame.truth.position_ned[1],
+        positiveMotorWorkJ: frame.truth.actuator_states.positive_motor_work_j.reduce((sum, value) => sum + value, 0),
+        forwardRequested: frame.input.actuators.shafts.some((shaft) => shaft.speed_reference_rad_s > 0) } : undefined);
     metrics.positiveMotorWorkJ = frame.truth.actuator_states.positive_motor_work_j.reduce((sum,value)=>sum+value,0);
   }
   const checkpoint = await writeSimulationTraceChunk({ schema: 'act.vessel-run-close.v1', ...input,appliedFinalInput:frame.input });

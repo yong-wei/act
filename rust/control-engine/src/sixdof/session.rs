@@ -85,6 +85,8 @@ pub struct SessionConfiguration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cruise: Option<super::cruise_comfort::CruiseConfiguration>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub ice: Option<super::ice_contact::IceConfiguration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub regular_wave_height_m: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub wave_frequency_bins: Option<usize>,
@@ -129,6 +131,7 @@ impl Default for SessionConfiguration {
             berth: None,
             container_voyage: None,
             cruise: None,
+            ice: None,
             regular_wave_height_m: None,
             wave_frequency_bins: None,
             wave_table_profile: None,
@@ -185,6 +188,8 @@ pub struct SessionInput {
     pub cruise_fins: Option<super::cruise_control::CruiseFinInput>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub semisub_dp: Option<super::semisub_dp::SemisubDpInput>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ice_heading_schedule: Option<super::control_law::IceHeadingSchedule>,
 }
 
 fn default_derivative_filter_tau_s() -> f64 {
@@ -217,8 +222,9 @@ impl SessionInput {
             input.validate()?;
         }
         if let Some(input) = &self.longitudinal {
-            if vessel != "lng-changheng" || self.actuators.shafts.iter().any(|shaft| shaft.motor_torque_override_nm.is_some()) {
-                return Err("纵向PI仅用于LNG轴速控制，启用时需使用轴速命令".into());
+            if !["lng-changheng", "icebreaker-xuelong2"].contains(&vessel)
+                || self.actuators.shafts.iter().any(|shaft| shaft.motor_torque_override_nm.is_some()) {
+                return Err("纵向PI需要受支持船型的轴速命令".into());
             }
             input.validate(maximum_shaft_rpm(system)?)?;
         }
@@ -237,6 +243,13 @@ impl SessionInput {
         if let Some(input) = &self.cruise_fins {
             if vessel != "cruise-adora" {return Err("减摇鳍反馈只适用于邮轮".into());}
             input.validate()?;
+        }
+        if let Some(schedule)=&self.ice_heading_schedule {
+            if vessel!="icebreaker-xuelong2" || !schedule.declared_thickness_m.is_finite()
+                || !(0.0..=1.2).contains(&schedule.declared_thickness_m)
+                || [schedule.ice_gains.kp,schedule.ice_gains.ki,schedule.ice_gains.kd].iter()
+                    .any(|value|!value.is_finite() || *value<0.0)
+            {return Err("吊舱两工况调度参数无效".into());}
         }
         Ok(())
     }
@@ -309,6 +322,8 @@ struct ControlSample {
     estimated_control_load_body: Option<[f64;3]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     propulsor_thrust_n: Option<Vec<f64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ice: Option<super::ice_contact::IceDiagnostics>,
 }
 
 #[derive(Clone)]
@@ -457,6 +472,15 @@ impl FleetSimulation {
         let mut environment = configured_environment(&configuration, pack.geometry.wave_model.as_ref(),
             pack.geometry.hydrodynamic_depth_m)?;
         let mut plant = DestroyerSixDofPlant::from_model_pack(&pack, Default::default());
+        if let Some(ice)=&configuration.ice {
+            if configuration.vessel!="icebreaker-xuelong2" || environment.switches.wave_enabled {
+                return Err("冰接触需要雪龙2号，完整冰盖工况须关闭波浪".into());
+            }
+            plant.configure_ice(ice.clone())?;
+            let identity=format!("{}:{}:{}",pack.content_hash,super::ice_contact::DEFINITION,
+                serde_json::to_string(ice).map_err(|error|error.to_string())?);
+            pack.content_hash=format!("fnv1a-{:016x}",super::model_pack::fnv1a(identity.as_bytes()));
+        }
         if configuration.mean_wave_resistance_model.is_some() {
             if configuration.vessel != "container-msc" || configuration.second_order_enabled.unwrap_or(false) {
                 return Err("教学平均附加阻力仅用于集装箱船，且不能与完整二阶数据重复叠加".into());
@@ -664,6 +688,7 @@ impl FleetSimulation {
                 container_speed: None,
                 cruise_fins: None,
                 semisub_dp: None,
+                ice_heading_schedule: None,
             },
             held_commands: actuators,
             integral_deg_s: 0.0,
@@ -905,10 +930,13 @@ impl FleetSimulation {
             }
             return Ok(());
         }
+        let gains = self.input.ice_heading_schedule
+            .map(|schedule| schedule.gains(self.input.pid))
+            .unwrap_or(self.input.pid);
         let rudder_deg = if let Some(controller) = &mut self.heading_controller {
             let command = controller.step_with_tracking(
                 self.input.control_mode,
-                &self.input.pid,
+                &gains,
                 target_heading,
                 heading,
                 self.physics_ticks as f64 * NOMINAL_DT,
@@ -941,7 +969,7 @@ impl FleetSimulation {
             };
             let control = command_rudder_deg(
                 self.input.control_mode,
-                &self.input.pid,
+                &gains,
                 wrap_pi(target_heading.to_radians()).to_degrees(),
                 heading,
                 0.0,
@@ -1054,9 +1082,10 @@ impl FleetSimulation {
                 dp: self.course_evidence.as_ref().and_then(|_|self.dp_controller.clone()),
                 estimated_control_load_body: (self.configuration.vessel=="semisub-981"
                     && self.course_evidence.is_some()).then(||self.estimated_control_load()),
-                propulsor_thrust_n: if self.configuration.vessel=="semisub-981" && self.course_evidence.is_some() {
+                propulsor_thrust_n: if ["semisub-981","icebreaker-xuelong2"].contains(&self.configuration.vessel.as_str()) && self.course_evidence.is_some() {
                     Some(self.plant.propulsor_thrust_n(&self.held_commands)?)
                 } else {None},
+                ice: self.plant.ice().map(|ice|ice.diagnostics()),
             });
         }
         let mut commands = self.held_commands.clone();
@@ -1164,6 +1193,10 @@ impl FleetSimulation {
         if let Some(input) = &input {
             let system = self.plant.actuator_system().ok_or("缺少执行器组")?;
             input.validate(&self.configuration.vessel, system)?;
+            if input.ice_heading_schedule.as_ref().is_some_and(|schedule|
+                schedule.declared_thickness_m!=self.configuration.ice.as_ref().map(|ice|ice.thickness_m).unwrap_or(0.0)) {
+                return Err("调度冰厚须与本次已声明工况相同".into());
+            }
             if self.physics_ticks>0 && input.semisub_dp.is_some()!=self.input.semisub_dp.is_some() {
                 return Err("定位控制的启用状态在本次运行中已冻结".into());
             }
@@ -1271,8 +1304,12 @@ impl FleetSimulation {
         if let Some(controller) = &self.dp_controller {
             frame["dpController"] = serde_json::to_value(controller).map_err(|error|error.to_string())?;
         }
-        if self.configuration.vessel=="semisub-981" && self.course_evidence.is_some() {
+        if ["semisub-981","icebreaker-xuelong2"].contains(&self.configuration.vessel.as_str()) && self.course_evidence.is_some() {
             frame["propulsorThrustN"]=serde_json::json!(self.plant.propulsor_thrust_n(&self.held_commands)?);
+        }
+        if let Some(ice)=self.plant.ice() {
+            frame["iceContact"]=serde_json::json!(ice.diagnostics());
+            frame["iceScene"]=serde_json::json!(ice.scene(self.plant.state().position_ned));
         }
         if let Some(comfort) = &self.cruise_comfort {
             frame["cruiseComfort"] = comfort.diagnostics();
@@ -1416,7 +1453,8 @@ impl FleetSimulation {
             controller.validate_checkpoint(time_s)?;
         }
         if let Some(controller) = &saved.longitudinal_controller {
-            if saved.configuration.vessel != "lng-changheng" || saved.heading_controller.is_none() {
+            if !["lng-changheng", "icebreaker-xuelong2"].contains(&saved.configuration.vessel.as_str())
+                || saved.heading_controller.is_none() {
                 return Err("纵向控制恢复点的船型或会话版本不一致".into());
             }
             controller.validate_checkpoint(maximum_shaft_rpm(system)?, saved.controller_ticks)?;

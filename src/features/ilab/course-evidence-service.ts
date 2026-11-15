@@ -19,6 +19,8 @@ import {CRUISE_COURSE_STEPS,cruiseCourseConfiguration,validateCruiseCourseSettin
 
 import { DRILLING_COURSE_STEPS, drillingCourseConfiguration, validateDrillingCourseSettings,
   type DrillingCourseSettings } from '@/resources/simulations/experiments/drilling-course';
+import {ICEBREAKER_COURSE_STEPS,icebreakerConfiguration,icebreakerUsesSpeedPi,validateIcebreakerSettings,
+  type IcebreakerCourseSettings} from '@/resources/simulations/experiments/icebreaker-course';
 
 export const VESSEL_EVIDENCE_DOMAIN = 'ilab-course';
 export interface VesselRunStorageSummary {
@@ -167,6 +169,20 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
       || control.navigationLossStrategy !== settings.navigationLossStrategy
       || (settings.decoupling && (!input.designStudentModelId || !control.studentModel)))) {
       throw new IlabServiceError('请保存对应的本人低频模型和定位控制方案。', 409);
+    }
+  }
+  if (course.key === 'icebreaker') {
+    const step=ICEBREAKER_COURSE_STEPS[input.stepSequence-1];
+    const settings=input.courseSettings as unknown as IcebreakerCourseSettings;
+    if (step.stepKind!=='run' || validateIcebreakerSettings(settings)
+      || canonicalJson(icebreakerConfiguration(step.sequence,settings))!==canonicalJson(input.configuration)
+      || input.input.controlMode!==(step.closedLoop ? settings.integralEnabled ? 'pid' : 'pd' : 'manual')
+      || input.input.feedback!=='measurement' || input.input.derivativeFilterTauS!==settings.filterTauS
+      || Boolean(input.input.iceHeadingSchedule)!==(step.closedLoop && settings.scheduling)
+      || Boolean(input.input.longitudinal)!==icebreakerUsesSpeedPi(step.sequence)
+      || input.input.semisubDp || input.input.cruiseFins || input.input.containerSpeed || input.input.berthPlan
+      || (step.closedLoop && !input.designStudentModelId)) {
+      throw new IlabServiceError('实际吊舱运行条件与本步课程约定不一致。',409);
     }
   }
   const existingReport = await prisma.virtualSimulationReport.findUnique({ where:{ clientRef:input.reportClientRef } });

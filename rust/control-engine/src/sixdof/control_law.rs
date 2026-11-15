@@ -17,6 +17,25 @@ pub struct HeadingPidGains {
     pub kd: f64,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IceHeadingSchedule {
+    pub ice_gains: HeadingPidGains,
+    pub declared_thickness_m: f64,
+}
+
+impl IceHeadingSchedule {
+    /// 仅按已声明冰厚在两份局部模型间插值，物理闭环与独立预测共用。
+    pub fn gains(&self, open_water: HeadingPidGains) -> HeadingPidGains {
+        let weight = (self.declared_thickness_m / 0.6).clamp(0.0, 1.0);
+        HeadingPidGains {
+            kp: open_water.kp + (self.ice_gains.kp - open_water.kp) * weight,
+            ki: open_water.ki + (self.ice_gains.ki - open_water.ki) * weight,
+            kd: open_water.kd + (self.ice_gains.kd - open_water.kd) * weight,
+        }
+    }
+}
+
 /// 控制模式。serde 小写：manual / p / pd / pid。
 #[derive(Clone, Copy, Debug, Deserialize, serde::Serialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]

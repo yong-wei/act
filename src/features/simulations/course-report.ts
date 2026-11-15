@@ -46,10 +46,13 @@ export function buildVesselCourseReportHtml(title:string,sections:Record<string,
       ${run.cruiseComfort ? `<p>教学舒适性代理采用120Hz刚体运动，统计窗 ${number(run.cruiseComfort.statisticsWindowS[0],1)}至${number(run.cruiseComfort.statisticsWindowS[1],1)}s，实际统计${number(run.cruiseComfort.durationS,1)}s。横摇RMS/峰值 ${number(run.cruiseComfort.rollRmsDeg)}/${number(run.cruiseComfort.rollPeakDeg)}°，角速度RMS ${number(run.cruiseComfort.rollRateRmsDegS)}°/s。</p>
       <p>主推进正功 ${number(run.cruiseComfort.positivePropulsionWorkJ/1e6)}MJ，鳍伺服电能 ${number(run.cruiseComfort.finServoElectricWorkJ/1e6)}MJ。</p>
       ${run.cruiseComfort.passengers.map((point,index) => `<p>乘客点${index+1}，坐标(${point.positionBodyM.map((v)=>number(v,1)).join('，')})m，水平加速度RMS/峰值 ${number(point.horizontalAccelerationRmsMps2)}/${number(point.horizontalAccelerationPeakMps2)}m/s²，总加速度RMS/峰值 ${number(point.accelerationRmsMps2)}/${number(point.accelerationPeakMps2)}m/s²，jerk RMS ${number(point.jerkRmsMps3)}m/s³。</p>`).join('')}` : ''}
-      ${run.input.longitudinal ? `<p>纵向PI采用本人冻结的局部模型，Kp为IMC建议值的${number(run.input.longitudinal.kpMultiplier,2)}倍，Ti为模型时间常数的${number(run.input.longitudinal.tiMultiplier,2)}倍，量测滤波${number(run.input.longitudinal.filterTauS,2)} s，积分回算${run.input.longitudinal.antiWindup ? '开启' : '关闭'}，Smith结构${run.input.longitudinal.smithEnabled ? '开启' : '关闭'}，额外命令时延${number(run.input.longitudinal.additionalCommandDelayS,1)} s。</p>` : ''}
+      ${run.input.longitudinal ? `<p>纵向PI采用${run.configuration.vessel === 'icebreaker-xuelong2' ? 'T级推进平衡点与60秒标称时间尺度' : '本人冻结的局部模型'}，Kp为IMC建议值的${number(run.input.longitudinal.kpMultiplier,2)}倍，Ti为模型时间常数的${number(run.input.longitudinal.tiMultiplier,2)}倍，量测滤波${number(run.input.longitudinal.filterTauS,2)} s，积分回算${run.input.longitudinal.antiWindup ? '开启' : '关闭'}，Smith结构${run.input.longitudinal.smithEnabled ? '开启' : '关闭'}，额外命令时延${number(run.input.longitudinal.additionalCommandDelayS,1)} s。</p>` : ''}
+      ${run.configuration.ice ? `<p>平整无雪冰厚${number(run.configuration.ice.thicknessM,2)}m，抗弯强度${number(run.configuration.ice.flexuralStrengthPa/1e6,2)}MPa，摩擦系数${number(run.configuration.ice.frictionCoefficient,2)}。接触采用T级条带冰板与有限浮冰近似，省略浮冰间挤压与裂纹传播。</p>` : ''}
+      ${run.input.iceHeadingSchedule ? `<p>按已声明冰厚${number(run.input.iceHeadingSchedule.declaredThicknessM,2)}m，在本人开水与冰区两份局部模型的控制增益间插值。</p>` : ''}
+      ${metrics?.actualDistanceM !== undefined ? `<p>实际航程${number(metrics.actualDistanceM)}m，终点北向${number(metrics.finalNorthM)}m，${metrics.iceTaskCompleted == null ? '到达状态待核对' : metrics.iceTaskCompleted ? '已到达北向800m' : '尚未到达北向800m'}，最大横偏${number(metrics.maximumCrossTrackM)}m，最长前进停滞${number(metrics.stallDurationS)}s，单位实际航程能量${number(metrics.energyPerDistanceJPerM == null ? null : metrics.energyPerDistanceJPerM/1000)}kJ/m。${metrics.eligibleForEnergyComparison ? '已到达且保持通道，可结合响应与约束比较能耗。' : '保留观察与工程判断，本次结果不进入能耗排序。'}</p>` : ''}
       ${run.input.berthPlan ? `<p>减速起点${number(run.input.berthPlan.brakingDistanceM,1)} m，速度计划${run.input.berthPlan.nodes.map((node) => `${number(node.distanceM,1)} m处${number(node.speedMps,2)} m/s`).join('，')}。</p>
       ${run.input.berthPlan.headingNodes ? `<p>时序航向计划${run.input.berthPlan.headingNodes.map((node) => `${number(node.timeS,1)} s处${number(node.headingDeg,2)}°`).join('，')}，相邻节点线性过渡。</p>` : ''}` : ''}
-      ${metrics ? `<p>20Hz量测航向RMSE ${number(metrics.headingRmseDeg)}°，末120s平均绝对误差 ${number(metrics.final120sHeadingMaeDeg)}°，超调 ${number(metrics.headingOvershootPercent)}%，调节时间 ${metrics.settlingTimeS == null ? '末段尚未持续保持60s' : `${number(metrics.settlingTimeS)} s`}，舵角总变差 ${number(metrics.rudderTotalVariationDeg)}°</p>` : ''}
+      ${metrics ? `<p>20Hz量测航向RMSE ${number(metrics.headingRmseDeg)}°，末120s平均绝对误差 ${number(metrics.final120sHeadingMaeDeg)}°，超调 ${number(metrics.headingOvershootPercent)}%，调节时间 ${metrics.settlingTimeS == null ? '末段尚未持续保持60s' : `${number(metrics.settlingTimeS)} s`}，${run.configuration.vessel === 'icebreaker-xuelong2' ? '等效偏转' : '舵角'}总变差 ${number(metrics.rudderTotalVariationDeg)}°</p>` : ''}
       ${metrics?.positionRmsM !== undefined ? `<p>末180s实际位置RMS ${number(metrics.positionRmsM)}m，航向RMS ${number(metrics.headingRmsDeg)}°，最大位置误差 ${number(metrics.maximumPositionErrorM)}m，归一化分配残差RMS ${number(metrics.normalizedAllocationResidualRms)}。</p>` : ''}
       ${fine ? `<p>120Hz物理细步最大横摇 ${number(fine.values.maximumRollDeg)}°，超过${number(fine.rollWarningDeg,1)}°累计 ${number(fine.values.rollWarningDurationS)} s，单轴功率峰值 ${number(fine.values.maximumShaftPowerW/1e6)} MW，正机械功 ${number(fine.values.positiveMotorWorkJ/1e6)} MJ</p>
       <p>约束违反持续时间，操纵面角 ${number(fine.values.surfaceAngleViolationS,4)} s，操纵面速率 ${number(fine.values.surfaceRateViolationS,4)} s，轴速 ${number(fine.values.shaftSpeedViolationS,4)} s，单轴功率 ${number(fine.values.shaftPowerViolationS,4)} s，系统功率 ${number(fine.values.systemPowerViolationS,4)} s</p>
@@ -59,15 +62,18 @@ export function buildVesselCourseReportHtml(title:string,sections:Record<string,
   const models = evidence?.models.map((model,index)=>`<article><h3>本人冻结模型${index+1} · ${escapeHtml(model.label)}</h3>
     <p>${escapeHtml(studentModelFormula(model.payload.structure))}</p>
     <pre>${escapeHtml(JSON.stringify(model.payload.structure,null,2))}</pre>
+    ${model.payload.structure.kind === 'nomoto1' && model.payload.structure.t_s < 0 ? '<p>该局部模型具有开环不稳定极点。PD设计需满足K·Kp/T大于0及(1+K·Kd)/T大于0，适用范围由本人训练窗口、误差与独立验证确定。</p>' : ''}
     <p>冻结于 ${escapeHtml(new Date(model.frozenAtMs).toLocaleString('zh-CN'))}，输入输出单位 ${escapeHtml(model.payload.ioContract.inputUnit)} → ${escapeHtml(model.payload.ioContract.outputUnit)}</p>
     <p>训练窗口 ${model.payload.trainingRuns.map((window)=>`${escapeHtml(runLabels.get(window.runRef) ?? '本人训练运行')} ${number(window.startS,2)}–${number(window.endS,2)} s`).join('，')}</p>
     <p>${typeof model.payload.operatingPoint.speedMps === 'number' ? `辨识运行初始航速 ${number(model.payload.operatingPoint.speedMps)} m/s，窗口内实际航速及其变化以计程仪量测为依据。` : '采用本人已保存的辨识工作点'}</p></article>`).join('\n') ?? '';
   const comparisons = evidence?.comparisons.map((comparison,index)=> {
     const jointReferenceModel = evidence.models.some((model)=>model.id === comparison.modelId
       && model.payload.ioContract.inputChannel === 'ShaftReference0');
+    const azimuthModel = evidence.models.some((model)=>model.id === comparison.modelId
+      && model.payload.ioContract.inputChannel === 'EquivalentAzimuth');
     const modeLabel = comparison.mode === 'command_to_output' && jointReferenceModel
       ? 'B · 指令经联合模型驱动输出'
-      : {hull_model:'A · 实际执行器量测驱动船体模型',command_to_output:'B · 指令经舵机模型驱动船体模型',independent_closed_loop:'C · 独立闭环'}[comparison.mode];
+      : {hull_model:'A · 实际执行器量测驱动船体模型',command_to_output:`B · 指令经${azimuthModel ? '吊舱伺服' : '舵机'}模型驱动船体模型`,independent_closed_loop:'C · 独立闭环'}[comparison.mode];
     const fit = comparison.metrics.fit_percent == null ? '不适用' : `${number(comparison.metrics.fit_percent)}%`;
     return `<article><h3>独立对照${index+1} · ${escapeHtml(runLabels.get(comparison.runId) ?? '本人运行')}</h3>
     <p>${modeLabel}，${comparison.purpose === 'forecast' ? '运行前冻结预测' : '独立验证'}</p>

@@ -32,8 +32,17 @@ export function DestroyerRunEvaluation({run}:{run:VesselRunEvidence}) {
       <SimReadout label="末段平均绝对误差" value={measured(metrics.final120sHeadingMaeDeg)} unit="°" />
       <SimReadout label="航向超调" value={measured(metrics.headingOvershootPercent)} unit="%" />
       <SimReadout label="调节时间" value={metrics.settlingTimeS === null ? '尚未持续收敛' : metrics.settlingTimeS.toFixed(2)} unit={metrics.settlingTimeS === null ? '' : 's'} />
-      <SimReadout label="实际舵角总变差" value={metrics.rudderTotalVariationDeg.toFixed(2)} unit="°" />
+      <SimReadout label={run.courseKey === 'icebreaker' ? '实际等效偏转总变差' : '实际舵角总变差'} value={metrics.rudderTotalVariationDeg.toFixed(2)} unit="°" />
       <SimReadout label="正机械功" value={(metrics.positiveMotorWorkJ/1e6).toFixed(2)} unit="MJ" />
+      {metrics.actualDistanceM !== undefined ? <>
+        <SimReadout label="实际航程" value={metrics.actualDistanceM.toFixed(1)} unit="m" />
+        <SimReadout label="终点北向位置" value={(metrics.finalNorthM ?? 0).toFixed(1)} unit="m" />
+        <SimReadout label="最大横偏" value={(metrics.maximumCrossTrackM ?? 0).toFixed(2)} unit="m" />
+        <SimReadout label="最长前进停滞" value={(metrics.stallDurationS ?? 0).toFixed(2)} unit="s" tone={metrics.stalled ? 'warning' : 'neutral'} />
+        <SimReadout label="单位实际航程能量" value={metrics.energyPerDistanceJPerM == null ? '缺少有效航程'
+          : (metrics.energyPerDistanceJPerM / 1000).toFixed(2)} unit="kJ/m" />
+        <SimReadout label="能耗比较资格" value={metrics.eligibleForEnergyComparison ? '到达且保持通道' : '保留观察与判断'} />
+      </> : null}
       {fineStepMetrics ? <SimReadout label="物理细步最大横摇" value={fineStepMetrics.values.maximumRollDeg.toFixed(3)} unit="°"
         tone={fineStepMetrics.values.maximumRollDeg > fineStepMetrics.rollWarningDeg ? 'warning' : 'neutral'} /> : null}
       {fineStepMetrics ? <SimReadout label="横摇告警累计时间" value={fineStepMetrics.values.rollWarningDurationS.toFixed(3)} unit="s" /> : null}

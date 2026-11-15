@@ -18,6 +18,7 @@ export interface VesselSessionConfiguration {
   berth?: { stopLineNorthM: number; initialBowDistanceM: number };
   containerVoyage?: { segmentSpeedsMps: [number, number, number, number] };
   cruise?: { statisticsStartS:number;statisticsEndS:number;finFailureTimeS:number|null;failedFinIndex:number|null };
+  ice?: { thicknessM:number;flexuralStrengthPa:number;frictionCoefficient:number;contactSegments:64|128 };
   regularWaveHeightM?: number;
   waveFrequencyBins?: 16 | 32 | 128;
   waveTableProfile?: 'teaching-v1';
@@ -78,6 +79,7 @@ export interface VesselSessionInput {
   containerSpeed?: VesselContainerSpeedInput;
   cruiseFins?: VesselCruiseFinInput;
   semisubDp?: VesselSemisubDpInput;
+  iceHeadingSchedule?: {iceGains:{kp:number;ki:number;kd:number};declaredThicknessM:number};
 }
 
 export interface VesselSemisubDpInput {
@@ -265,6 +267,13 @@ export interface VesselObservedSample {
 }
 
 export interface VesselSessionFrame {
+  iceContact?: VesselIceDiagnostics;
+  iceScene?: {
+    frontsNorthM: number[];
+    thicknessM: number;
+    floes: Array<{ positionNed: [number, number, number]; quaternion: [number, number, number, number];
+      widthM: number; lengthM: number }>;
+  };
   dpController?: VesselDpDiagnostics;
   propulsorThrustN?: number[];
   liquidObservation?: VesselLiquidObservation;
@@ -474,6 +483,7 @@ export interface VesselLiquidObservation {
 }
 
 export interface VesselControlSample {
+  ice?: VesselIceDiagnostics;
   dp?: VesselDpDiagnostics;
   estimatedControlLoadBody?: [number, number, number];
   propulsorThrustN?: number[];
@@ -491,6 +501,20 @@ export interface VesselControlSample {
   heldCommands: VesselActuatorCommands;
   samples: VesselObservedSample[];
   dynamics: VesselSessionFrame['dynamics'];
+}
+
+export interface VesselIceDiagnostics {
+  brokenAreaM2:number;
+  floeCount:number;
+  loadBody:[number,number,number,number,number,number];
+  contactCount:number;
+  crushingWorkJ:number;
+  frictionWorkJ:number;
+  fractureWorkJ:number;
+  waterDissipationJ:number;
+  contactBodyWorkJ:number;
+  contactFloeWorkJ:number;
+  characteristicLengthM:number;
 }
 
 export interface VesselSession {

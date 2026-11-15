@@ -49,6 +49,32 @@ fn identification_fails_on_insufficient_data() {
 }
 
 #[test]
+fn local_directional_instability_is_identified_without_changing_its_pole() {
+    let dt = 0.05;
+    let input: Vec<f64> = (0..2401).map(|index| if index < 400 { 0.0 } else { 3.0 }).collect();
+    let structure = ModelStructure::Nomoto1 { k: -0.04, t_s: -100.0 };
+    let mut output = predict(&structure, &input, 0.0, dt);
+    output.truncate(input.len());
+    let fitted = identify_nomoto1(&input, &output, dt);
+    assert!(fitted.identified_ok, "{:?}", fitted.failure_reason);
+    let Some(ModelStructure::Nomoto1 { k, t_s }) = fitted.structure else { panic!("需要一阶模型"); };
+    assert!((k + 0.04).abs() < 1e-6);
+    assert!((t_s + 100.0).abs() < 1e-3);
+    assert!(fitted.residual_rms < 1e-6);
+}
+
+#[test]
+fn output_error_identification_rejects_boundary_and_unobservable_responses() {
+    let input: Vec<f64> = (0..500).map(|index| if index < 50 { 0.0 } else { 3.0 }).collect();
+    let mut boundary = predict(&ModelStructure::Nomoto1 { k: 0.1, t_s: 2000.0 }, &input, 0.0, 0.1);
+    boundary.truncate(input.len());
+    let result = identify_nomoto1(&input, &boundary, 0.1);
+    assert!(!result.identified_ok);
+    assert!(result.failure_reason.unwrap().contains("边界"));
+    assert!(!identify_nomoto1(&input, &vec![0.0; input.len()], 0.1).identified_ok);
+}
+
+#[test]
 fn fopdt_identification_recovers_delay() {
     let dt = 0.5f64;
     let k_true = 0.5f64;

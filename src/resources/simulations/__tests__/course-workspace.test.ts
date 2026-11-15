@@ -85,4 +85,20 @@ describe('原页面运行的释放与恢复', () => {
     expect(stored?.stoppedAtMs).not.toBeNull();
     await course.dispose();
   });
+
+  it('破冰任务以实际北向800m到达，600秒窗口不会被强行补齐', async () => {
+    const session = sessionFixture();
+    const frame = session.read();
+    mocks.create.mockResolvedValueOnce(session);
+    const course = await VesselCourseWorkspace.open({ ...plan, courseKey: 'icebreaker', stepSequence: 11, durationS: 600 });
+    await course.start('ice-run', '实际到达验证', input);
+    frame.timeS = 590;
+    frame.truth = { position_ned: [800, 0, 0] } as VesselSessionFrame['truth'];
+    const result = course.advance(1 / 60, input);
+    await result.saved;
+    expect(course.running).toBe(false);
+    expect(stored?.stopReason).toBe('arrival');
+    expect(stored?.lastTimeS).toBe(590);
+    await course.dispose();
+  });
 });

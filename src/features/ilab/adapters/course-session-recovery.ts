@@ -34,6 +34,8 @@ const VESSEL_ID_BY_COURSE_KEY: Record<VesselCourseKey, string> = {
 };
 
 function inferModelChannel(lineageKey: string, outputChannel: string, inputChannel: string): IdentificationChannel | 'dp-low-frequency' {
+  if (inputChannel === 'EquivalentAzimuth') return 'azimuth-to-yaw';
+  if (outputChannel === 'EquivalentAzimuth') return 'azimuth-servo';
   if (inputChannel === 'EstimatedTauBody3') return 'dp-low-frequency';
   if (outputChannel === 'EstimatedRoll') return 'fin-to-roll';
   if (inputChannel === 'ShaftReference0') return 'shaft-reference-to-speed';

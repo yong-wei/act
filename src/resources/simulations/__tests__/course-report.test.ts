@@ -73,4 +73,24 @@ describe('本人实验报告的对照来源', () => {
     expect(html).toContain('FIT 不适用');
     expect(html).not.toContain('不适用%');
   });
+
+  it('破冰船报告保留吊舱通道、冰区未完成状态及不稳定局部模型的适用条件', () => {
+    const run = structuredClone(evidence.runs[0]);
+    run.configuration.vessel = 'icebreaker-xuelong2';
+    run.configuration.ice = { thicknessM: .6, flexuralStrengthPa: 500000, frictionCoefficient: .1, contactSegments: 64 };
+    run.metrics = { headingRmseDeg: 4, rudderTotalVariationDeg: 30, actualDistanceM: 600,
+      iceTaskCompleted: 0, eligibleForEnergyComparison: 0, maximumCrossTrackM: 18, stallDurationS: 12,
+      energyPerDistanceJPerM: 100000 };
+    const model = { ...evidence.models[0], payload: { ...payload, structure: { kind: 'nomoto1' as const, k: -.03, t_s: -90 },
+      ioContract: { inputChannel: 'EquivalentAzimuth', outputChannel: 'YawRate', inputUnit: '°', outputUnit: '°/s' } } };
+    const html = buildVesselCourseReportHtml('雪龙2号', {}, { runs: [run], models: [model], comparisons: [
+      { ...comparison, mode: 'command_to_output', outputUnit: '°/s' },
+    ] });
+    expect(html).toContain('B · 指令经吊舱伺服模型驱动船体模型');
+    expect(html).toContain('等效偏转总变差 30.000°');
+    expect(html).toContain('该局部模型具有开环不稳定极点');
+    expect(html).toContain('尚未到达北向800m');
+    expect(html).toContain('本次结果不进入能耗排序');
+    expect(html).not.toContain('private-run');
+  });
 });

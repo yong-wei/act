@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import { Chart, registerables } from 'chart.js';
-import { sensorKey, type VesselRunEvidence } from '@/features/simulations/run-evidence';
+import { sensorKey, vesselEquivalentAzimuthSamples, type VesselRunEvidence } from '@/features/simulations/run-evidence';
 import { useSimulationChartTheme } from '../components/simulation-ui';
 
 Chart.register(...registerables);
@@ -23,6 +23,7 @@ export function MeasurementWindow({run,startS,endS,onSelect,signal='SurfaceEncod
   const timeLimit = run.lastTimeS;
   const samples = useMemo<MeasurementWindowPoint[]>(()=>signal === 'EstimatedRoll'
     ? trace.map((point) => ({timeS:point.timeS,value:point.cruise?.measurementGood ? point.cruise.estimatedRollRad*180/Math.PI : null}))
+    : signal === 'EquivalentAzimuth' ? vesselEquivalentAzimuthSamples({ nativeSensorSamples: nativeSamples, trace })
     : nativeSamples
     .filter((sample)=>sensorKey(sample.signal) === signal && sample.measurement.t_sample_s <= bucket+1)
     .map((sample)=>({timeS:sample.measurement.t_sample_s,value:sample.measurement.quality === 'Good' ? sample.measurement.value : null})),

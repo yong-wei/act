@@ -1,11 +1,12 @@
 import type { ModelStructureValue, StudentModelSaveInput, ComparisonModeValue } from '@/lib/student-model-artifact-contract';
-import { sensorKey, vesselRunMetricsRequest, vesselDpMetricsRequest, type VesselRunEvidence, type VesselRunMetrics } from '@/features/simulations/run-evidence';
+import { sensorKey, vesselEquivalentAzimuthSamples, vesselRunMetricsRequest, vesselDpMetricsRequest, vesselIceMetricsRequest, type VesselRunEvidence, type VesselRunMetrics } from '@/features/simulations/run-evidence';
 import { computeVirtualSimulationStep } from '../physics/simulation-engine-facade';
 import type { VesselSessionConfiguration, VesselSessionFrame, VesselSessionInput } from '@/lib/control-engine/vessel-session';
 import { destroyerCourseCommands, type DestroyerCourseStep } from './destroyer-course';
 import { vesselComparisonFactors,type VesselComparisonFactors } from './comparison-factors';
 
-export type IdentificationChannel = 'rudder-to-yaw' | 'rudder-servo' | 'shaft-to-speed' | 'shaft-reference-to-speed' | 'fin-to-roll';
+export type IdentificationChannel = 'rudder-to-yaw' | 'rudder-servo' | 'azimuth-to-yaw' | 'azimuth-servo'
+  | 'shaft-to-speed' | 'shaft-reference-to-speed' | 'fin-to-roll';
 export interface StudentHeadingDesign {
   kp: number; ki: number; kd: number;
   dampingRatio: number; naturalFrequencyRadS: number;
@@ -21,7 +22,8 @@ export function evaluateVesselHeadingRun(run:VesselRunEvidence) {
   }
   const checkpoint = JSON.parse(run.checkpoint) as {
     course_evidence?:{metrics:NonNullable<VesselSessionFrame['fineStepMetrics']>['values']};
-    plant?:{state?:{actuator_states?:{positive_motor_work_j?:number[];fuel?:{fuel_kg:number}}}};
+    plant?:{state?:{position_ned?:number[];actuator_states?:{positive_motor_work_j?:number[];fuel?:{fuel_kg:number}}}};
+    input?: VesselSessionInput;
     voyage_progress?: NonNullable<VesselSessionFrame['containerVoyage']>['progress'];
   };
   const values = checkpoint.course_evidence?.metrics;
@@ -31,6 +33,13 @@ export function evaluateVesselHeadingRun(run:VesselRunEvidence) {
   const storedWork = checkpoint.plant?.state?.actuator_states?.positive_motor_work_j;
   if (storedWork) metrics.positiveMotorWorkJ = storedWork.reduce((total,work)=>total+work,0);
   if (values) metrics.positiveMotorWorkJ = values.positiveMotorWorkJ;
+  if (run.courseKey === 'icebreaker' && run.trace.some((point) => point.ice)) {
+    const position = checkpoint.plant?.state?.position_ned;
+    const terminal = position && storedWork ? { timeS: run.lastTimeS, northM: position[0], eastM: position[1],
+      positiveMotorWorkJ: metrics.positiveMotorWorkJ!,
+      forwardRequested: checkpoint.input?.actuators.shafts.some((shaft) => shaft.speed_reference_rad_s > 0) ?? false } : undefined;
+    Object.assign(metrics, computeVirtualSimulationStep<Partial<VesselRunMetrics>>(vesselIceMetricsRequest(run.trace, terminal)));
+  }
   return {metrics,fineStepMetrics,parameters:run.parameters,cruiseComfort:run.cruiseComfort,
     voyage:checkpoint.voyage_progress, fuelKg:checkpoint.plant?.state?.actuator_states?.fuel?.fuel_kg};
 }
@@ -96,6 +105,8 @@ interface AnalysisResult {
 }
 
 function channelSignals(channel: IdentificationChannel) {
+  if (channel === 'azimuth-to-yaw') return {input:'EquivalentAzimuth',output:'YawRate',inputUnit:'°',outputUnit:'°/s'};
+  if (channel === 'azimuth-servo') return {input:'azimuth-command',output:'EquivalentAzimuth',inputUnit:'°',outputUnit:'°'};
   if (channel === 'fin-to-roll') return {input:'FinDifferential',output:'EstimatedRoll',inputUnit:'°',outputUnit:'°'};
   if (channel === 'rudder-servo') return { input: 'command', output: 'SurfaceEncoder0', inputUnit: '°', outputUnit: '°' };
   if (channel === 'shaft-to-speed') return { input: 'ShaftSpeed0', output: 'SpeedLog', inputUnit: 'r/min', outputUnit: 'm/s' };
@@ -132,6 +143,12 @@ export function measuredWindow(run: VesselRunEvidence, channel: IdentificationCh
       }
     }
   }
+  if (channel.startsWith('azimuth-')) {
+    const target=channel==='azimuth-servo' ? outputs : inputs;
+    for (const sample of vesselEquivalentAzimuthSamples(run)) {
+      target.set(Math.round(sample.timeS*1e6),sample.value);
+    }
+  }
   if (channel === 'fin-to-roll') {
     for (const [time,port] of finEncoders[0]) {
       const starboard = finEncoders[1].get(time);
@@ -162,7 +179,10 @@ export function measuredWindow(run: VesselRunEvidence, channel: IdentificationCh
     while (inputIndex+1 < inputSamples.length && inputSamples[inputIndex+1][0] <= time) inputIndex++;
     const measuredInput = inputSamples[inputIndex];
     const heldInput = measuredInput && measuredInput[0] <= time && time-measuredInput[0] <= 100001 ? measuredInput[1] : null;
-    const value = signals.input === 'ShaftReference0' || (commandInput && channel === 'shaft-to-speed')
+    const azimuthCommand=point.command.azimuthDeg?.length===2
+      ? -(point.command.azimuthDeg[0]+point.command.azimuthDeg[1])/2 : undefined;
+    const value = channel === 'azimuth-servo' || (commandInput && channel === 'azimuth-to-yaw') ? azimuthCommand
+      : signals.input === 'ShaftReference0' || (commandInput && channel === 'shaft-to-speed')
       ? point.command.shaftRpm[0]
       : channel === 'fin-to-roll' ? heldInput : commandInput || signals.input === 'command' ? point.command.surfaceDeg[0] : heldInput;
     const measuredOutput = outputs.get(time);
@@ -191,12 +211,16 @@ export function identifyVesselStudentModel(run: VesselRunEvidence, channel: Iden
   const decay = freeDecay ? measuredWindow(freeDecay.run,'fin-to-roll',freeDecay.startS,freeDecay.endS) : undefined;
   if (freeDecay && (freeDecay.run.scopeKey !== run.scopeKey || freeDecay.run.courseKey !== 'cruise'
     || Math.abs(decay!.dtS-window.dtS) > 1e-8)) throw new Error('请选择同一实验轮次、相同采样时钟的本人自由衰减记录。');
-  const inputOrigin = channel === 'fin-to-roll' ? 0 : window.input[0], outputOrigin = channel === 'fin-to-roll' ? 0 : window.output[0];
+  // 吊舱航向模型的直航工作点为零偏转、零转艏率。冰区截窗首帧可能仍在转弯，
+  // 该非稳态初值交给原生预测器推进，不能当作恒定平衡偏置扣除。
+  const zeroOrigin = channel === 'fin-to-roll' || channel === 'azimuth-to-yaw';
+  const inputOrigin = zeroOrigin ? 0 : window.input[0], outputOrigin = zeroOrigin ? 0 : window.output[0];
   const result = computeVirtualSimulationStep<AnalysisResult>({ modelId: 'student_model_analysis', operation: 'identify',
     structureKind: kind, input: window.input, output: window.output, dtS: window.dtS, inputOrigin, outputOrigin,
     ...(decay ? {freeDecayOutput:decay.output} : {}) });
   if (!result.identifiedOk || !result.structure) throw new Error(result.failureReason ?? '这次辨识未成功，请保留记录并调整激励或窗口。');
   const labels = { 'rudder-to-yaw': '舵角—转艏速率', 'rudder-servo': '舵机',
+    'azimuth-to-yaw':'双吊舱等效偏转—转艏速率','azimuth-servo':'双吊舱等效偏转伺服',
     'shaft-to-speed': '实际轴速—航速', 'shaft-reference-to-speed': '轴速参考—航速', 'fin-to-roll':'差动鳍角—横摇' };
   return { id: crypto.randomUUID(), scopeKey: run.scopeKey, label: `${labels[channel]} · 第${run.stepSequence}步`, channel,
     createdAtMs: Date.now(), serverId: null, contentHash: null,
@@ -205,6 +229,8 @@ export function identifyVesselStudentModel(run: VesselRunEvidence, channel: Iden
         inputUnit: window.signals.inputUnit, outputUnit: window.signals.outputUnit },
       operatingPoint: { inputOrigin, outputOrigin, speedMps: run.configuration.initialWaterSpeedMps ?? 0,
         loadingRatio: run.configuration.loadingRatio ?? 0, courseVersion: run.courseVersion,
+        ...(run.configuration.ice ? {iceThicknessM:run.configuration.ice.thicknessM,
+          iceStrengthPa:run.configuration.ice.flexuralStrengthPa} : {}),
         ...(channel === 'fin-to-roll' ? {rollInertiaKgM2:Number(run.parameters?.rollInertiaKgM2)} : {}) },
       identification: { algorithm: `student-model-${kind}`, settings: { startS, endS,
         ...(result.metrics?.fit_percent != null ? {trainingFitPercent:result.metrics.fit_percent} : {}) }, identifiedOk: true,
@@ -217,13 +243,14 @@ export function compareVesselStudentModel(run: VesselRunEvidence, model: FrozenV
   mode: ComparisonModeValue, startS: number, endS: number, actuator?: FrozenVesselStudentModel): VesselModelComparison {
   if (model.channel === 'dp-low-frequency') throw new Error('请在三通道模型工作台保存独立对照。');
   if (model.scopeKey !== run.scopeKey || (actuator && actuator.scopeKey !== run.scopeKey)) throw new Error('请选择本次实验的模型。');
-  if (model.channel === 'rudder-servo') throw new Error('请选择船体或航速模型执行对照，舵机模型用于执行器级联。');
+  if (['rudder-servo','azimuth-servo'].includes(model.channel)) throw new Error('请选择船体或航速模型执行对照，伺服模型用于执行器级联。');
   const speedReference = model.channel === 'shaft-reference-to-speed';
   const finModel = model.channel === 'fin-to-roll';
   if (finModel && mode !== 'hull_model') throw new Error('横摇局部模型请选择A模式，以实际差动鳍角独立验证。闭环设计初值在控制页签显示。');
   if (speedReference && mode === 'hull_model') throw new Error('轴速参考模型请选择B指令对照，实际轴速船体对照需要对应量测模型。');
-  if (!speedReference && mode !== 'hull_model' && (!actuator || actuator.channel !== 'rudder-servo')) throw new Error('请先选择本人辨识并冻结的舵机模型。');
-  if (!speedReference && mode !== 'hull_model' && model.channel !== 'rudder-to-yaw') throw new Error('舵机级联和独立航向闭环需要舵角—转艏速率模型。');
+  const actuatorChannel=model.channel==='azimuth-to-yaw' ? 'azimuth-servo' : 'rudder-servo';
+  if (!speedReference && mode !== 'hull_model' && (!actuator || actuator.channel !== actuatorChannel)) throw new Error('请先选择对应的本人冻结伺服模型。');
+  if (!speedReference && mode !== 'hull_model' && !['rudder-to-yaw','azimuth-to-yaw'].includes(model.channel)) throw new Error('伺服级联和独立航向闭环需要实际偏转—转艏速率模型。');
   const window = measuredWindow(run, model.channel, startS, endS, mode !== 'hull_model');
   const trainingOverlap = model.payload.trainingRuns.some((training) => training.runRef === run.id
     && training.startS < endS && startS < training.endS);

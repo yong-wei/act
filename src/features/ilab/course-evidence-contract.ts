@@ -16,6 +16,9 @@ const sensorSignal = z.union([
   z.object({ ShaftSpeed:z.number().int().min(0).max(15) }),
 ]);
 const tracePoint = z.object({
+  ice:z.object({brokenAreaM2:finite,floeCount:finite,loadBody:sixVector,contactCount:finite,
+    crushingWorkJ:finite,frictionWorkJ:finite,fractureWorkJ:finite,waterDissipationJ:finite,
+    contactBodyWorkJ:finite,contactFloeWorkJ:finite,characteristicLengthM:finite}).optional(),
   estimatedControlLoadBody:z.tuple([finite,finite,finite]).optional(),
   propulsorThrustN:vector.optional(),
   dp:z.object({ticks:finite,integralEarth:z.tuple([finite,finite,finite]),
@@ -41,7 +44,7 @@ const tracePoint = z.object({
   liquid:z.object({modeHeightsM:vector,cornerHeightsM:vector,withinSmallAmplitude:z.boolean()}).optional(),
   longitudinal:z.object({referenceMps:finite.nullable(),filteredMeasurementMps:finite.nullable(),feedbackMps:finite.nullable(),
     integralRpm:finite,unsaturatedRpm:finite,requestedRpm:finite,appliedRpm:finite,integralFrozen:z.boolean()}).optional(),
-  timeS:finite.min(0),command:z.object({ headingDeg:finite,shaftRpm:vector,surfaceDeg:vector }),
+  timeS:finite.min(0),command:z.object({ headingDeg:finite,shaftRpm:vector,surfaceDeg:vector,azimuthDeg:vector.optional() }),
   measurements:z.record(measurement),
   estimate:z.object({ headingDeg:finite,yawRateDegS:finite,groundBodySpeedMps:finite,
     groundBodyLateralSpeedMps:finite.optional(),northM:finite,eastM:finite }),
