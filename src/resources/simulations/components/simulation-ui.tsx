@@ -338,8 +338,8 @@ export function SimulationMissionTracker({
       className="sim-hud-tracker pointer-events-none absolute left-1/2 top-4 z-10 hidden w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 px-3.5 py-2.5 md:block"
       data-simulation-mission-tracker
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
           <span className="sim-hud-led" aria-hidden="true" />
           <span className="text-[10px] font-semibold tracking-[0.2em] text-platform-fg-muted">当前任务</span>
           <span className="sim-hud-value text-xs font-bold">{String(seq).padStart(2, '0')}/{String(total).padStart(2, '0')}</span>
