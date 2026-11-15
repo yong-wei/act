@@ -73,7 +73,7 @@ export const DredgerSimulation = dynamic(
   () => import('@/resources/simulations/simulations/dredger-simulation').then((module) => module.DredgerSimulation),
   {
     ssr: false,
-    loading: () => <SimulationBootScreen title="天鲸号挖泥船动力定位" detail="MMG 三自由度模型初始化中" />,
+    loading: () => <SimulationBootScreen title="天鲸号工况切换与作业定位" detail="正在准备钢桩、锚缆与切削机构" />,
   },
 );
 
@@ -81,6 +81,6 @@ export const IcebreakerSimulation = dynamic(
   () => import('@/resources/simulations/simulations/icebreaker-simulation'),
   {
     ssr: false,
-    loading: () => <SimulationBootScreen title="雪龙号吊舱与冰区控制" detail="吊舱推进与冰阻力模型初始化中" />,
+    loading: () => <SimulationBootScreen title="雪龙2号吊舱与冰区控制" detail="吊舱推进与冰阻力模型初始化中" />,
   },
 );

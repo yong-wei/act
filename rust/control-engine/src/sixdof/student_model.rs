@@ -179,119 +179,110 @@ pub fn settling_time(
 /// 采样约定（与 predict 一致）：output[k] 为施加 input[k] **之前**的状态采样，
 /// 即回归方程 output[k+1] = a·output[k] + b·input[k]。上游采集必须遵循同一约定，
 /// 否则快系统/快变激励下差一拍会破坏辨识。
-pub fn identify_nomoto1(
-    input: &[f64],
-    output: &[f64],
-    dt: f64,
-) -> IdentificationResult {
+pub fn identify_nomoto1(input: &[f64], output: &[f64], dt: f64) -> IdentificationResult {
+    let fail = |reason: &str| IdentificationResult {
+        structure: None, residual_rms: f64::NAN, identified_ok: false,
+        failure_reason: Some(reason.into()),
+    };
     if input.len() != output.len() || input.len() < 10 {
-        return IdentificationResult {
-            structure: None,
-            residual_rms: f64::NAN,
-            identified_ok: false,
-            failure_reason: Some("数据不足（需≥10 个样本）".into()),
-        };
+        return fail("数据不足（需≥10个等长样本）");
     }
-    // P2：非有限数值检查——NaN/Inf 输入或响应导致无效模型。
-    if input.iter().chain(output.iter()).any(|v| !v.is_finite()) {
-        return IdentificationResult {
-            structure: None,
-            residual_rms: f64::NAN,
-            identified_ok: false,
-            failure_reason: Some("输入/响应含非有限数值".into()),
-        };
+    if !dt.is_finite() || dt <= 0.0 || input.iter().chain(output).any(|value| !value.is_finite()) {
+        return fail("输入、响应或采样时间无效");
     }
-    // 激励检查：输入方差为零 → 失败。
-    let input_mean: f64 = input.iter().sum::<f64>() / input.len() as f64;
-    let input_var: f64 =
-        input.iter().map(|x| (x - input_mean).powi(2)).sum::<f64>() / input.len() as f64;
-    if input_var < 1e-12 {
-        return IdentificationResult {
-            structure: None,
-            residual_rms: f64::NAN,
-            identified_ok: false,
-            failure_reason: Some("输入激励不足（方差≈0）".into()),
-        };
+    let variance = |values: &[f64]| {
+        let mean = values.iter().sum::<f64>() / values.len() as f64;
+        values.iter().map(|value| (value - mean).powi(2)).sum::<f64>() / values.len() as f64
+    };
+    if variance(input) < 1e-12 { return fail("输入激励不足（方差≈0）"); }
+    if variance(output) < 1e-16 { return fail("输出响应不足，无法可靠识别"); }
+    let lower = 0.2f64.ln();
+    let upper = 2000.0f64.ln();
+    let evaluate = |log_time: f64, sign: f64| {
+        nomoto1_output_error(input, output, dt, sign * log_time.exp())
+    };
+    let mut best: Option<(f64, f64, f64)> = None;
+    // 正、负时间常数分别采用对数等距初值，再在各自最优邻域有界细化。
+    for sign in [1.0, -1.0] {
+        let grid: Vec<_> = (0..=32).map(|index| {
+            let time = lower + (upper - lower) * index as f64 / 32.0;
+            (time, evaluate(time, sign))
+        }).collect();
+        let Some((index, _)) = grid.iter().enumerate().filter(|(_, entry)| entry.1.is_some())
+            .min_by(|(_, a), (_, b)| a.1.unwrap().0.total_cmp(&b.1.unwrap().0)) else { continue; };
+        let mut left = grid[index.saturating_sub(1)].0;
+        let mut right = grid[(index + 1).min(32)].0;
+        let ratio = (5.0f64.sqrt() - 1.0) / 2.0;
+        let mut x1 = right - ratio * (right - left);
+        let mut x2 = left + ratio * (right - left);
+        let loss = |time| evaluate(time, sign).map(|value| value.0).unwrap_or(f64::INFINITY);
+        let mut f1 = loss(x1);
+        let mut f2 = loss(x2);
+        for _ in 0..40 {
+            if f1 <= f2 {
+                right = x2; x2 = x1; f2 = f1;
+                x1 = right - ratio * (right - left); f1 = loss(x1);
+            } else {
+                left = x1; x1 = x2; f1 = f2;
+                x2 = left + ratio * (right - left); f2 = loss(x2);
+            }
+        }
+        let optimum = (left + right) / 2.0;
+        if let Some((error, gain)) = evaluate(optimum, sign) {
+            if best.as_ref().is_none_or(|candidate| error < candidate.0) {
+                best = Some((error, gain, sign * optimum.exp()));
+            }
+        }
     }
-
-    // ARX(1)：r[k+1] = a·r[k] + b·d[k] + c，中心化回归消去 c。
-    let n = input.len();
-    let m = n - 1;
-    let m_f = m as f64;
-    let r_bar: f64 = (0..m).map(|k| output[k]).sum::<f64>() / m_f;
-    let d_bar: f64 = (0..m).map(|k| input[k]).sum::<f64>() / m_f;
-    let mut c_rr = 0.0; let mut c_rd = 0.0; let mut c_dr = 0.0; let mut c_dd = 0.0;
-    let mut c_rrn = 0.0; let mut c_ddn = 0.0;
-    for k in 0..m {
-        let rc = output[k] - r_bar;
-        let dc = input[k] - d_bar;
-        let rnc = output[k + 1] - r_bar; // approximate centering
-        c_rr += rc * rc;   c_rd += rc * dc;
-        c_dr += dc * rc;   c_dd += dc * dc;
-        c_rrn += rc * rnc; c_ddn += dc * rnc;
+    let Some((error, gain, time)) = best else { return fail("系统病态或超出有限数值范围"); };
+    if time.abs() <= 0.2 * (1.0 + 1e-5) || time.abs() >= 2000.0 * (1.0 - 1e-5) {
+        return fail("时间常数达到边界，未能可靠识别");
     }
-    let det = c_rr * c_dd - c_rd * c_dr;
-    if det.abs() < 1e-15 {
-        return IdentificationResult {
-            structure: None,
-            residual_rms: f64::NAN,
-            identified_ok: false,
-            failure_reason: Some("系统病态（输入/状态共线）".into()),
-        };
-    }
-    let a = (c_rrn * c_dd - c_ddn * c_rd) / det;
-    let b = (c_rr * c_ddn - c_rrn * c_dr) / det;
-
-    // P2：系数有限性检查。
-    if !a.is_finite() || !b.is_finite() {
-        return IdentificationResult {
-            structure: None,
-            residual_rms: f64::NAN,
-            identified_ok: false,
-            failure_reason: Some("辨识系数非有限".into()),
-        };
-    }
-    // 约束检查：0 < a < 1（稳定一阶）。
-    if a <= 0.0 || a >= 1.0 {
-        return IdentificationResult {
-            structure: None,
-            residual_rms: f64::NAN,
-            identified_ok: false,
-            failure_reason: Some(format!("a={a} 不在 (0,1) 稳定域")),
-        };
-    }
-    let t_s = -dt / a.ln();
-    let k = b / (1.0 - a);
-
-    // 约束边界检查。
-    if !(0.2..=2000.0).contains(&t_s) {
-        return IdentificationResult {
-            structure: None,
-            residual_rms: f64::NAN,
-            identified_ok: false,
-            failure_reason: Some(format!("T={t_s} 到达边界")),
-        };
-    }
-
-    // 残差计算（ZOH 推进）。
-    let mut residual_sum = 0.0;
-    let mut r = output[0];
-    for k in 0..n {
-        let pred = r;
-        residual_sum += (pred - output[k]).powi(2);
-        r = a * r + b * input[k];
-    }
-    let rms = (residual_sum / n as f64).sqrt();
-
     IdentificationResult {
-        structure: Some(ModelStructure::Nomoto1 { k, t_s }),
-        residual_rms: rms,
-        identified_ok: true,
-        failure_reason: None,
+        structure: Some(ModelStructure::Nomoto1 { k: gain, t_s: time }),
+        residual_rms: (error / input.len() as f64).sqrt(), identified_ok: true, failure_reason: None,
     }
 }
 
-// ---------- 辨识：Nomoto 二阶（§3 转艏率候选） ----------
+/// 固定T时，ZOH响应对K线性，解析消去K后以真实输出误差评价。
+fn nomoto1_output_error(input: &[f64], output: &[f64], dt: f64, time: f64) -> Option<(f64, f64)> {
+    let a = (-dt / time).exp();
+    let mut homogeneous = output[0];
+    let mut basis = 0.0;
+    let mut numerator = 0.0;
+    let mut denominator = 0.0;
+    for (&command, &measured) in input.iter().zip(output) {
+        numerator += basis * (measured - homogeneous);
+        denominator += basis * basis;
+        homogeneous *= a;
+        basis = a * basis + (1.0 - a) * command;
+    }
+    if !numerator.is_finite() || !denominator.is_finite() || denominator <= 1e-20 { return None; }
+    let gain = numerator / denominator;
+    if !gain.is_finite() || gain.abs() > 1e9 { return None; }
+    let mut predicted = output[0];
+    let mut error = 0.0;
+    let mut basis = 0.0;
+    let mut sensitivity = 0.0;
+    let mut information_kk = 0.0;
+    let mut information_tt = 0.0;
+    let mut information_kt = 0.0;
+    let da = a * dt / time;
+    for (&command, &measured) in input.iter().zip(output) {
+        error += (predicted - measured).powi(2);
+        information_kk += basis * basis;
+        information_tt += sensitivity * sensitivity;
+        information_kt += basis * sensitivity;
+        sensitivity = a * sensitivity + da * (predicted - gain * command);
+        basis = a * basis + (1.0 - a) * command;
+        predicted = a * predicted + gain * (1.0 - a) * command;
+    }
+    let information_scale = information_kk * information_tt;
+    let condition = 1.0 - information_kt.powi(2) / information_scale;
+    if !error.is_finite() || !information_scale.is_finite() || information_scale <= 0.0
+        || !condition.is_finite() || condition <= 1e-10 { return None; }
+    Some((error, gain))
+}
 
 /// 辨识 Nomoto 二阶：K/((T1·s+1)(T2·s+1))。
 ///
@@ -904,6 +895,7 @@ pub fn identify_fopdt(
 
         let result = identify_nomoto1(shifted_in, shifted_out, dt);
         if let Some(ModelStructure::Nomoto1 { k, t_s }) = result.structure {
+            if t_s <= 0.0 { continue; }
             let delay = d as f64 * dt;
             let candidate = (
                 result.residual_rms,

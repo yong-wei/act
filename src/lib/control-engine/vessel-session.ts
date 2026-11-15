@@ -18,6 +18,9 @@ export interface VesselSessionConfiguration {
   berth?: { stopLineNorthM: number; initialBowDistanceM: number };
   containerVoyage?: { segmentSpeedsMps: [number, number, number, number] };
   cruise?: { statisticsStartS:number;statisticsEndS:number;finFailureTimeS:number|null;failedFinIndex:number|null };
+  ice?: { thicknessM:number;flexuralStrengthPa:number;frictionCoefficient:number;contactSegments:64|128 };
+  dredger?: { soil: 'sand' | 'clay'; initialDepthM?: number | null; initialSpudDown: boolean;
+    initialCablesAttached: boolean; cableBreakTimeS?: number | null; brokenCableIndex: 0 | 1 };
   regularWaveHeightM?: number;
   waveFrequencyBins?: 16 | 32 | 128;
   waveTableProfile?: 'teaching-v1';
@@ -78,6 +81,83 @@ export interface VesselSessionInput {
   containerSpeed?: VesselContainerSpeedInput;
   cruiseFins?: VesselCruiseFinInput;
   semisubDp?: VesselSemisubDpInput;
+  iceHeadingSchedule?: {iceGains:{kp:number;ki:number;kd:number};declaredThicknessM:number};
+  dredger?: VesselDredgerInput;
+}
+
+export type VesselDredgerMode = 'transit' | 'prepare' | 'spud_hold' | 'cut_swing' | 'pause_cut' | 'recover' | 'exit';
+export interface VesselDredgerCommands {
+  spudDown: boolean;
+  cablesAttached: boolean;
+  winchSpeedMps: [number, number];
+  depthReferenceM: number;
+  ladderAngleReferenceDeg?: number | null;
+  cutterRpm: number;
+  carriageSpeedMps: number;
+}
+export interface VesselDredgerInput {
+  requestedMode: VesselDredgerMode;
+  commands: VesselDredgerCommands;
+  automaticSwing: boolean;
+  localModel: VesselSpeedPiInput['localModel']['structure'] | {kind: 'nomoto1'; k: number; t_s: number}
+    | {kind: 'nomoto2'; k: number; t1_s: number; t2_s: number} | null;
+  referenceMps: number;
+  halfAngleDeg: number;
+  reversalRampS: number;
+  kpMultiplier: number;
+  tiMultiplier: number;
+  entrySpeedMps: number;
+  entryHoldS: number;
+  safetyFraction: number;
+  integralPolicy: 'track' | 'freeze' | 'reset';
+  depthFilterTauS: number;
+  swayFilterTauS: number;
+}
+export interface VesselDredgerObservation {
+  depthM: number;
+  depthRateMps: number;
+  cutterEastM: number;
+  cutterSwaySpeedMps: number;
+  ladderAngleDeg: number;
+  ladderRateDegS: number;
+  cutterRpm: number;
+  cutterTorqueNm: number;
+  cutterPowerW: number;
+  cuttingPowerW: number;
+  cableTensionN: [number, number];
+  cableLengthM: [number, number];
+  winchSpeedMps: [number, number];
+  winchPowerW: [number, number];
+  spudContactFraction: number;
+  spudReactionN: number;
+  spudVerticalTravelM: number;
+  carriageM: number;
+  hydraulicForceN: number;
+  productionM3: number;
+  productionRateM3S: number;
+  cuttingWorkJ: number;
+  positiveWinchWorkJ: number;
+  positiveCutterWorkJ: number;
+  soilDomainExceeded: boolean;
+}
+export interface VesselDredgerSample {
+  signal: 'Depth' | 'SwaySpeed' | 'LadderAngle' | 'CutterRpm' | 'SpudForce' | 'SpudContact' | 'SpudTravel'
+    | {CableTension: number} | {WinchSpeed: number} | {CableLength: number};
+  measurement: VesselObservedSample['measurement'];
+}
+export interface VesselDredgerControlSample {
+  observation: VesselDredgerObservation;
+  commands: VesselDredgerCommands;
+  samples: VesselDredgerSample[];
+  mode: VesselDredgerMode;
+  referenceMps: number;
+  integralMps: number;
+  integralFrozen: boolean;
+  feedbackAvailable: boolean;
+  cableBroken: [boolean, boolean];
+  modeEventCount: number;
+  chatterEventCount: number;
+  reversalCount: number;
 }
 
 export interface VesselSemisubDpInput {
@@ -265,6 +345,24 @@ export interface VesselObservedSample {
 }
 
 export interface VesselSessionFrame {
+  dredgerFineMetrics?: {samples: number; durationS: number; hardViolationDurationS: number;
+    soilDomainViolationDurationS: number; maximumLadderRateDegS: number; maximumCutterRpm: number;
+    maximumCutterPowerW: number; maximumWinchPowerW: number; maximumCableTensionN: number;
+    maximumSpudReactionN: number};
+  dredger?: VesselDredgerControlSample;
+  dredgerEvents?: Array<{timeS: number; kind: string; component: number}>;
+  dredgerController?: {ticks: number; mode: VesselDredgerMode; tripLatched: boolean;
+    entryElapsedS: number; overloadElapsedS: number; invalidElapsedS: number;
+    filteredDepthM: number | null; filteredSwayMps: number | null;
+    events: Array<{timeS: number; kind: string; component: number}>} | null;
+  dredgerSamples?: VesselDredgerSample[];
+  iceContact?: VesselIceDiagnostics;
+  iceScene?: {
+    frontsNorthM: number[];
+    thicknessM: number;
+    floes: Array<{ positionNed: [number, number, number]; quaternion: [number, number, number, number];
+      widthM: number; lengthM: number }>;
+  };
   dpController?: VesselDpDiagnostics;
   propulsorThrustN?: number[];
   liquidObservation?: VesselLiquidObservation;
@@ -291,6 +389,9 @@ export interface VesselSessionFrame {
   fineStepMetrics?: {sampleCadenceS:number;algorithm:string;rollWarningDeg:number;
     eventWindowBeforeS:number;eventWindowAfterS:number;values:VesselFineStepMetrics};
   parameters: {
+    dredger?: {grade: 'T'; waterDepthM: number; soilLaw: string; ladderLengthM: number;
+      ladderEquivalentMassKg: number; cutterRadiusM: number; cutterPowerLimitW: number;
+      winchPowerLimitW: number; pumpEnergyIncluded: false; initialSwingRadiusM: number};
     windAreasM2?: {frontal: number; lateral: number};
     liquidModalFrequenciesHz?:number[];
     liquidDepthM?:number;
@@ -474,6 +575,8 @@ export interface VesselLiquidObservation {
 }
 
 export interface VesselControlSample {
+  dredger?: VesselDredgerControlSample;
+  ice?: VesselIceDiagnostics;
   dp?: VesselDpDiagnostics;
   estimatedControlLoadBody?: [number, number, number];
   propulsorThrustN?: number[];
@@ -491,6 +594,20 @@ export interface VesselControlSample {
   heldCommands: VesselActuatorCommands;
   samples: VesselObservedSample[];
   dynamics: VesselSessionFrame['dynamics'];
+}
+
+export interface VesselIceDiagnostics {
+  brokenAreaM2:number;
+  floeCount:number;
+  loadBody:[number,number,number,number,number,number];
+  contactCount:number;
+  crushingWorkJ:number;
+  frictionWorkJ:number;
+  fractureWorkJ:number;
+  waterDissipationJ:number;
+  contactBodyWorkJ:number;
+  contactFloeWorkJ:number;
+  characteristicLengthM:number;
 }
 
 export interface VesselSession {

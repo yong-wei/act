@@ -18,6 +18,10 @@ import {validateCruiseCourseEvidence} from '@/resources/simulations/experiments/
 
 import { DRILLING_COURSE_STEPS } from '@/resources/simulations/experiments/drilling-course';
 import { validateDrillingCourseEvidence } from '@/resources/simulations/experiments/drilling-evidence';
+import {ICEBREAKER_COURSE_STEPS} from '@/resources/simulations/experiments/icebreaker-course';
+import {validateIcebreakerEvidence} from '@/resources/simulations/experiments/icebreaker-evidence';
+import {DREDGER_COURSE_STEPS} from '@/resources/simulations/experiments/dredger-course';
+import {validateDredgerEvidence} from '@/resources/simulations/experiments/dredger-evidence';
 
 /** 从同一报告的实际运行和冻结工件重建验收引用，客户端反馈仅作作品保存。 */
 export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,userId:string,reportId:string,
@@ -45,6 +49,7 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
       lastTimeS:summary.lastTimeS,durationS:summary.lastTimeS,sampleCount:summary.controlCount,
       configuration:opening.configuration,initialInput:opening.input,controllerSourceRunId:opening.controllerSourceRunId,
       finalInput,
+      dredgerModeEvents:summary.dredgerModeEvents,
       designStudentModelId:opening.designStudentModelId,
       courseSettings:opening.courseSettings, stopReason});
   }
@@ -57,6 +62,10 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
     if (!payload.success) continue;
     models.push({id:model.clientRef,payload:payload.data,
       channel:payload.data.structure.kind === 'dp_low_freq3' ? 'dp-low-frequency'
+        : payload.data.ioContract.inputChannel === 'WinchReferenceDifferential' ? 'winch-reference-to-sway'
+        : payload.data.ioContract.inputChannel === 'WinchSpeedDifferential' ? 'winch-speed-to-sway'
+        : payload.data.ioContract.inputChannel === 'EquivalentAzimuth' ? 'azimuth-to-yaw'
+        : payload.data.ioContract.outputChannel === 'EquivalentAzimuth' ? 'azimuth-servo'
         : payload.data.ioContract.outputChannel === 'YawRate' ? 'rudder-to-yaw'
         : payload.data.ioContract.outputChannel === 'EstimatedRoll' ? 'fin-to-roll'
         : payload.data.ioContract.outputChannel.startsWith('SurfaceEncoder') ? 'rudder-servo'
@@ -66,10 +75,12 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
   const comparisons:DestroyerComparisonEvidence[] = [];
   for (const comparison of storedComparisons) {
     if (!comparison.clientRef || (!includeAllArtifacts && !attempt.comparisonClientRefs.includes(comparison.clientRef))) continue;
-    const reference = comparison.curveRefs as {purpose?:'forecast'|'validation';clientFrozenAtMs:number;modelClientRef:string;actuatorModelClientRef:string|null;actualSampleCount:number};
+    const reference = comparison.curveRefs as {uri?:string;purpose?:'forecast'|'validation';clientFrozenAtMs:number;modelClientRef:string;actuatorModelClientRef:string|null;actualSampleCount:number};
+    const curve = reference.purpose === 'forecast' && reference.uri
+      ? await readSimulationTraceChunk<{controllerInput?:VesselSessionInput}>(reference.uri) : undefined;
     comparisons.push({id:comparison.clientRef,modelId:reference.modelClientRef,actuatorModelId:reference.actuatorModelClientRef,
       runId:comparison.physicalRunRef,mode:comparison.mode as DestroyerComparisonEvidence['mode'],purpose:reference.purpose,
-      createdAtMs:reference.clientFrozenAtMs,actualSampleCount:reference.actualSampleCount});
+      createdAtMs:reference.clientFrozenAtMs,actualSampleCount:reference.actualSampleCount,controllerInput:curve?.controllerInput});
   }
   if (courseKey === 'destroyer') {
     const step = DESTROYER_COURSE_STEPS[attempt.stepSequence-1];
@@ -90,6 +101,12 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
     const feedback = validateLngCourseEvidence(step, {runs: selected, models, comparisons, answers: attempt.answers});
     return {feedback, outcome: feedback ? 'model_mismatch' : attempt.outcome};
   }
+  if (courseKey === 'dredger') {
+    const step = DREDGER_COURSE_STEPS[attempt.stepSequence - 1];
+    const selected = step.sequence === 20 ? runs.filter((run) => attempt.runRefs.includes(run.id)) : runs;
+    const feedback = validateDredgerEvidence(step, {runs: selected, models, comparisons, answers: attempt.answers});
+    return {feedback, outcome: feedback ? 'model_mismatch' : attempt.outcome};
+  }
   if (courseKey === 'container') {
     const step = CONTAINER_COURSE_STEPS[attempt.stepSequence - 1];
     const selected = step.sequence === 20 ? runs.filter((run) => attempt.runRefs.includes(run.id)) : runs;
@@ -107,6 +124,12 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
     const selected = step.sequence === 20 ? runs.filter((run) => attempt.runRefs.includes(run.id)) : runs;
     const feedback = validateDrillingCourseEvidence(step, {runs: selected, models, comparisons, answers: attempt.answers});
     return {feedback, outcome: feedback ? 'model_mismatch' : attempt.outcome};
+  }
+  if (courseKey === 'icebreaker') {
+    const step=ICEBREAKER_COURSE_STEPS[attempt.stepSequence-1];
+    const selected=step.sequence===20 ? runs.filter((run)=>attempt.runRefs.includes(run.id)) : runs;
+    const feedback=validateIcebreakerEvidence(step,{runs:selected,models,comparisons,answers:attempt.answers});
+    return {feedback,outcome:feedback ? 'model_mismatch' : attempt.outcome};
   }
   return {feedback:null,outcome:attempt.outcome};
 }

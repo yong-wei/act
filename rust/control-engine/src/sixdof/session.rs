@@ -85,6 +85,10 @@ pub struct SessionConfiguration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cruise: Option<super::cruise_comfort::CruiseConfiguration>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub ice: Option<super::ice_contact::IceConfiguration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dredger: Option<super::dredger_mechanism::DredgerConfiguration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub regular_wave_height_m: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub wave_frequency_bins: Option<usize>,
@@ -129,6 +133,8 @@ impl Default for SessionConfiguration {
             berth: None,
             container_voyage: None,
             cruise: None,
+            ice: None,
+            dredger: None,
             regular_wave_height_m: None,
             wave_frequency_bins: None,
             wave_table_profile: None,
@@ -185,6 +191,10 @@ pub struct SessionInput {
     pub cruise_fins: Option<super::cruise_control::CruiseFinInput>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub semisub_dp: Option<super::semisub_dp::SemisubDpInput>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ice_heading_schedule: Option<super::control_law::IceHeadingSchedule>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dredger: Option<super::dredger_control::DredgerInput>,
 }
 
 fn default_derivative_filter_tau_s() -> f64 {
@@ -217,8 +227,9 @@ impl SessionInput {
             input.validate()?;
         }
         if let Some(input) = &self.longitudinal {
-            if vessel != "lng-changheng" || self.actuators.shafts.iter().any(|shaft| shaft.motor_torque_override_nm.is_some()) {
-                return Err("纵向PI仅用于LNG轴速控制，启用时需使用轴速命令".into());
+            if !["lng-changheng", "icebreaker-xuelong2"].contains(&vessel)
+                || self.actuators.shafts.iter().any(|shaft| shaft.motor_torque_override_nm.is_some()) {
+                return Err("纵向PI需要受支持船型的轴速命令".into());
             }
             input.validate(maximum_shaft_rpm(system)?)?;
         }
@@ -237,6 +248,17 @@ impl SessionInput {
         if let Some(input) = &self.cruise_fins {
             if vessel != "cruise-adora" {return Err("减摇鳍反馈只适用于邮轮".into());}
             input.validate()?;
+        }
+        if let Some(input) = &self.dredger {
+            if vessel != "dredger-tianjing" { return Err("钢桩横移模式只适用于天鲸作业机构".into()); }
+            input.validate()?;
+        }
+        if let Some(schedule)=&self.ice_heading_schedule {
+            if vessel!="icebreaker-xuelong2" || !schedule.declared_thickness_m.is_finite()
+                || !(0.0..=1.2).contains(&schedule.declared_thickness_m)
+                || [schedule.ice_gains.kp,schedule.ice_gains.ki,schedule.ice_gains.kd].iter()
+                    .any(|value|!value.is_finite() || *value<0.0)
+            {return Err("吊舱两工况调度参数无效".into());}
         }
         Ok(())
     }
@@ -267,6 +289,10 @@ struct SessionCheckpoint {
     cruise_controller: Option<super::cruise_control::CruiseFinController>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     dp_controller: Option<super::semisub_dp::SemisubDpController>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    dredger_sensors: Option<super::dredger_sensors::DredgerSensors>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    dredger_controller: Option<super::dredger_control::DredgerController>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     cruise_comfort: Option<super::cruise_comfort::CruiseComfortState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -309,6 +335,27 @@ struct ControlSample {
     estimated_control_load_body: Option<[f64;3]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     propulsor_thrust_n: Option<Vec<f64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ice: Option<super::ice_contact::IceDiagnostics>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    dredger: Option<DredgerControlSample>,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DredgerControlSample {
+    observation: super::dredger_mechanism::DredgerObservation,
+    commands: super::dredger_mechanism::DredgerCommands,
+    samples: Vec<super::dredger_sensors::DredgerSample>,
+    mode: super::dredger_control::DredgerMode,
+    reference_mps: f64,
+    integral_mps: f64,
+    integral_frozen: bool,
+    feedback_available: bool,
+    cable_broken: [bool; 2],
+    mode_event_count: usize,
+    chatter_event_count: u64,
+    reversal_count: u64,
 }
 
 #[derive(Clone)]
@@ -334,6 +381,8 @@ pub struct FleetSimulation {
     container_controller: Option<ContainerSpeedController>,
     cruise_controller: Option<super::cruise_control::CruiseFinController>,
     dp_controller: Option<super::semisub_dp::SemisubDpController>,
+    dredger_sensors: Option<super::dredger_sensors::DredgerSensors>,
+    dredger_controller: Option<super::dredger_control::DredgerController>,
     cruise_comfort: Option<super::cruise_comfort::CruiseComfortState>,
     voyage_progress: Option<ContainerVoyageProgress>,
     berth_termination: Option<BerthTermination>,
@@ -457,6 +506,15 @@ impl FleetSimulation {
         let mut environment = configured_environment(&configuration, pack.geometry.wave_model.as_ref(),
             pack.geometry.hydrodynamic_depth_m)?;
         let mut plant = DestroyerSixDofPlant::from_model_pack(&pack, Default::default());
+        if let Some(ice)=&configuration.ice {
+            if configuration.vessel!="icebreaker-xuelong2" || environment.switches.wave_enabled {
+                return Err("冰接触需要雪龙2号，完整冰盖工况须关闭波浪".into());
+            }
+            plant.configure_ice(ice.clone())?;
+            let identity=format!("{}:{}:{}",pack.content_hash,super::ice_contact::DEFINITION,
+                serde_json::to_string(ice).map_err(|error|error.to_string())?);
+            pack.content_hash=format!("fnv1a-{:016x}",super::model_pack::fnv1a(identity.as_bytes()));
+        }
         if configuration.mean_wave_resistance_model.is_some() {
             if configuration.vessel != "container-msc" || configuration.second_order_enabled.unwrap_or(false) {
                 return Err("教学平均附加阻力仅用于集装箱船，且不能与完整二阶数据重复叠加".into());
@@ -581,6 +639,16 @@ impl FleetSimulation {
                 pressure_center_body: [4.0, 0.0, -6.0],
             },
         );
+        let dredger_sensors = if let Some(mechanism_configuration) = &configuration.dredger {
+            if configuration.vessel != "dredger-tianjing" { return Err("天鲸作业机构与船型不一致".into()); }
+            plant.configure_dredger(mechanism_configuration.clone())?;
+            let identity = format!("{}:{}:{}:{}:{}", pack.content_hash, super::dredger_mechanism::DEFINITION,
+                super::dredge_soil::DEFINITION, super::dredger_mechanism::DEFINITION_JSON,
+                serde_json::to_string(mechanism_configuration).map_err(|error| error.to_string())?);
+            pack.content_hash = format!("fnv1a-{:016x}", super::model_pack::fnv1a(identity.as_bytes()));
+            Some(super::dredger_sensors::DredgerSensors::new(configuration.seed,
+                configuration.noise_level, plant.dredger().expect("机构已配置").state.last_observation.clone()))
+        } else { None };
         let initial_truth = ObservationTruth {
             time_s: 0.0,
             state: plant.state().clone(),
@@ -618,6 +686,14 @@ impl FleetSimulation {
         });
         if configuration.cruise.is_some() {
             parameter_summary["rollInertiaKgM2"] = serde_json::json!(mass[3][3]);
+        }
+        if configuration.dredger.is_some() {
+            parameter_summary["dredger"] = serde_json::json!({ "grade": "T", "waterDepthM": 20.0,
+                "soilLaw": "Miedema 2019 §6.11 / §7.4", "ladderLengthM": 35.0,
+                "ladderEquivalentMassKg": 200000.0, "cutterRadiusM": 1.5,
+                "cutterPowerLimitW": 4200000.0, "winchPowerLimitW": 150000.0,
+                "pumpEnergyIncluded": false,
+                "initialSwingRadiusM": 99.0 + 35.0 * plant.state().specialist_states[super::dredger_mechanism::Q].cos() });
         }
         if configuration.course_evidence.is_some() {
             if let Some(super::vessel_wind::VesselWindModel::Fujiwara(geometry)) = &pack.geometry.wind_model {
@@ -664,6 +740,8 @@ impl FleetSimulation {
                 container_speed: None,
                 cruise_fins: None,
                 semisub_dp: None,
+                ice_heading_schedule: None,
+                dredger: None,
             },
             held_commands: actuators,
             integral_deg_s: 0.0,
@@ -673,6 +751,8 @@ impl FleetSimulation {
             container_controller: None,
             cruise_controller: None,
             dp_controller: None,
+            dredger_sensors,
+            dredger_controller: None,
             cruise_comfort,
             voyage_progress,
             berth_termination: None,
@@ -734,7 +814,33 @@ impl FleetSimulation {
         self.update_heading_controller(&previous_commands)?;
         self.update_longitudinal_controller(&previous_commands)?;
         self.update_container_controller(&previous_commands)?;
-        self.update_cruise_controller()
+        self.update_cruise_controller()?;
+        self.update_dredger_controller()
+    }
+
+    fn update_dredger_controller(&mut self) -> Result<(), String> {
+        let Some(input) = &self.input.dredger else { return Ok(()); };
+        let time = self.time_s();
+        let initial = self.configuration.dredger.as_ref().ok_or("当前运行没有天鲸作业机构")?;
+        let mechanism = self.plant.dredger().ok_or("缺少作业机构状态")?;
+        let initial_angle = self.plant.state().specialist_states[super::dredger_mechanism::Q_REFERENCE].to_degrees();
+        let controller = self.dredger_controller.get_or_insert_with(||
+            super::dredger_control::DredgerController::new(initial.initial_spud_down, initial_angle));
+        let ground_speed = self.initialized_axes.iter().all(|v| *v)
+            .then_some(self.observer.body_velocity[0].hypot(self.observer.body_velocity[1]));
+        let commands = controller.step(input, self.dredger_sensors.as_ref().ok_or("缺少作业量测")?, time,
+            ground_speed, self.sensors.valid_value(SensorSignal::Heading, time), mechanism.state.cable_broken)?;
+        use super::dredger_control::DredgerMode;
+        if controller.mode != DredgerMode::Transit {
+            let limit = if [DredgerMode::Prepare, DredgerMode::SpudHold].contains(&controller.mode) {
+                30.0 * std::f64::consts::PI / 30.0
+            } else { 0.0 };
+            for shaft in &mut self.held_commands.shafts {
+                shaft.speed_reference_rad_s = shaft.speed_reference_rad_s.clamp(-limit, limit);
+                shaft.motor_torque_override_nm = None;
+            }
+        }
+        self.plant.set_dredger_commands(commands)
     }
 
     fn update_dp_controller(&mut self, commands: ActuatorCommands) -> Result<(),String> {
@@ -905,10 +1011,13 @@ impl FleetSimulation {
             }
             return Ok(());
         }
+        let gains = self.input.ice_heading_schedule
+            .map(|schedule| schedule.gains(self.input.pid))
+            .unwrap_or(self.input.pid);
         let rudder_deg = if let Some(controller) = &mut self.heading_controller {
             let command = controller.step_with_tracking(
                 self.input.control_mode,
-                &self.input.pid,
+                &gains,
                 target_heading,
                 heading,
                 self.physics_ticks as f64 * NOMINAL_DT,
@@ -941,7 +1050,7 @@ impl FleetSimulation {
             };
             let control = command_rudder_deg(
                 self.input.control_mode,
-                &self.input.pid,
+                &gains,
                 wrap_pi(target_heading.to_radians()).to_degrees(),
                 heading,
                 0.0,
@@ -1054,9 +1163,11 @@ impl FleetSimulation {
                 dp: self.course_evidence.as_ref().and_then(|_|self.dp_controller.clone()),
                 estimated_control_load_body: (self.configuration.vessel=="semisub-981"
                     && self.course_evidence.is_some()).then(||self.estimated_control_load()),
-                propulsor_thrust_n: if self.configuration.vessel=="semisub-981" && self.course_evidence.is_some() {
+                propulsor_thrust_n: if ["semisub-981","icebreaker-xuelong2"].contains(&self.configuration.vessel.as_str()) && self.course_evidence.is_some() {
                     Some(self.plant.propulsor_thrust_n(&self.held_commands)?)
                 } else {None},
+                ice: self.plant.ice().map(|ice|ice.diagnostics()),
+                dredger: self.dredger_sample(),
             });
         }
         let mut commands = self.held_commands.clone();
@@ -1116,6 +1227,9 @@ impl FleetSimulation {
             self.plant.environment().ok_or("缺少会话环境")?,
         ));
         self.previous_truth = current;
+        if let (Some(sensors), Some(model)) = (&mut self.dredger_sensors, self.plant.dredger()) {
+            sensors.advance(self.physics_ticks as f64 * NOMINAL_DT, &model.state.last_observation);
+        }
         self.initialize_from_measurements();
         let values = self.navigation_measurement();
         let tuning=self.input.semisub_dp.as_ref().map(|input|(input.low_frequency_cutoff_hz,
@@ -1144,6 +1258,23 @@ impl FleetSimulation {
         Ok(())
     }
 
+    fn dredger_sample(&self) -> Option<DredgerControlSample> {
+        let model = self.plant.dredger()?;
+        let controller = self.dredger_controller.as_ref();
+        Some(DredgerControlSample { observation: model.state.last_observation.clone(),
+            commands: model.state.held_commands.clone(),
+            samples: self.dredger_sensors.as_ref()?.latest_samples(),
+            mode: controller.map_or(super::dredger_control::DredgerMode::Transit, |c| c.mode),
+            reference_mps: controller.map_or(0.0, |c| c.reference_mps),
+            integral_mps: controller.map_or(0.0, |c| c.integral_mps),
+            integral_frozen: controller.is_none_or(|c| c.integral_frozen),
+            feedback_available: controller.is_some_and(|c| c.feedback_available),
+            cable_broken: model.state.cable_broken,
+            mode_event_count: controller.map_or(0, |c| c.events.len()),
+            chatter_event_count: controller.map_or(0, |c| c.chatter_event_count),
+            reversal_count: controller.map_or(0, |c| c.reversal_count) })
+    }
+
     pub fn time_s(&self) -> f64 {
         self.physics_ticks as f64 * NOMINAL_DT
     }
@@ -1164,6 +1295,10 @@ impl FleetSimulation {
         if let Some(input) = &input {
             let system = self.plant.actuator_system().ok_or("缺少执行器组")?;
             input.validate(&self.configuration.vessel, system)?;
+            if input.ice_heading_schedule.as_ref().is_some_and(|schedule|
+                schedule.declared_thickness_m!=self.configuration.ice.as_ref().map(|ice|ice.thickness_m).unwrap_or(0.0)) {
+                return Err("调度冰厚须与本次已声明工况相同".into());
+            }
             if self.physics_ticks>0 && input.semisub_dp.is_some()!=self.input.semisub_dp.is_some() {
                 return Err("定位控制的启用状态在本次运行中已冻结".into());
             }
@@ -1175,6 +1310,10 @@ impl FleetSimulation {
             }
             if input.cruise_fins.is_some() && self.configuration.cruise.is_none() {
                 return Err("减摇反馈需要绑定客点统计和故障配置".into());
+            }
+            if let Some(dredger) = &input.dredger {
+                if self.configuration.dredger.is_none() { return Err("作业控制需要绑定天鲸机构初态".into()); }
+                if let Some(controller) = &self.dredger_controller { controller.validate_input(dredger)?; }
             }
             system.validate_commands(&input.actuators)?;
             if let Some(longitudinal) = &input.longitudinal {
@@ -1271,8 +1410,19 @@ impl FleetSimulation {
         if let Some(controller) = &self.dp_controller {
             frame["dpController"] = serde_json::to_value(controller).map_err(|error|error.to_string())?;
         }
-        if self.configuration.vessel=="semisub-981" && self.course_evidence.is_some() {
+        if ["semisub-981","icebreaker-xuelong2"].contains(&self.configuration.vessel.as_str()) && self.course_evidence.is_some() {
             frame["propulsorThrustN"]=serde_json::json!(self.plant.propulsor_thrust_n(&self.held_commands)?);
+        }
+        if let Some(ice)=self.plant.ice() {
+            frame["iceContact"]=serde_json::json!(ice.diagnostics());
+            frame["iceScene"]=serde_json::json!(ice.scene(self.plant.state().position_ned));
+        }
+        if let Some(model) = self.plant.dredger() {
+            frame["dredger"] = serde_json::json!(self.dredger_sample());
+            frame["dredgerEvents"] = serde_json::json!(model.state.events);
+            frame["dredgerFineMetrics"] = serde_json::json!(model.state.fine_metrics);
+            frame["dredgerController"] = serde_json::to_value(&self.dredger_controller).map_err(|error| error.to_string())?;
+            frame["dredgerSamples"] = serde_json::json!(self.dredger_sensors.as_ref().map(|sensors| sensors.latest_samples()));
         }
         if let Some(comfort) = &self.cruise_comfort {
             frame["cruiseComfort"] = comfort.diagnostics();
@@ -1357,6 +1507,8 @@ impl FleetSimulation {
             container_controller: self.container_controller.clone(),
             cruise_controller: self.cruise_controller.clone(),
             dp_controller: self.dp_controller.clone(),
+            dredger_sensors: self.dredger_sensors.clone(),
+            dredger_controller: self.dredger_controller.clone(),
             cruise_comfort: self.cruise_comfort.clone(),
             voyage_progress: self.voyage_progress.clone(),
             berth_termination: self.berth_termination.clone(),
@@ -1416,7 +1568,8 @@ impl FleetSimulation {
             controller.validate_checkpoint(time_s)?;
         }
         if let Some(controller) = &saved.longitudinal_controller {
-            if saved.configuration.vessel != "lng-changheng" || saved.heading_controller.is_none() {
+            if !["lng-changheng", "icebreaker-xuelong2"].contains(&saved.configuration.vessel.as_str())
+                || saved.heading_controller.is_none() {
                 return Err("纵向控制恢复点的船型或会话版本不一致".into());
             }
             controller.validate_checkpoint(maximum_shaft_rpm(system)?, saved.controller_ticks)?;
@@ -1443,6 +1596,18 @@ impl FleetSimulation {
             return Err("定位恢复点缺少10Hz控制状态或冻结输入".into());
         }
         if let Some(controller)=&saved.dp_controller {controller.validate_checkpoint(saved.controller_ticks)?;}
+        if saved.dredger_sensors.is_some() != saved.configuration.dredger.is_some()
+            || (saved.input.dredger.is_some() && saved.configuration.dredger.is_none())
+            || (saved.dredger_controller.is_some() && saved.configuration.dredger.is_none()) {
+            return Err("作业控制恢复点与天鲸机构配置不一致".into());
+        }
+        if let Some(sensors) = &saved.dredger_sensors {
+            sensors.validate_checkpoint(simulation.dredger_sensors.as_ref().ok_or("缺少作业传感器定义")?, time_s)?;
+        }
+        if let Some(controller) = &saved.dredger_controller {
+            controller.validate_checkpoint(saved.controller_ticks)?;
+            if let Some(input) = &saved.input.dredger { controller.validate_input(input)?; }
+        }
         if let Some(comfort) = &saved.cruise_comfort {
             comfort.validate(time_s,saved.configuration.cruise.as_ref().expect("客点统计已绑定配置"))?;
             let expected = simulation.cruise_comfort.as_ref().expect("邮轮统计已初始化");
@@ -1534,6 +1699,8 @@ impl FleetSimulation {
         simulation.container_controller = saved.container_controller;
         simulation.cruise_controller = saved.cruise_controller;
         simulation.dp_controller = saved.dp_controller;
+        simulation.dredger_sensors = saved.dredger_sensors;
+        simulation.dredger_controller = saved.dredger_controller;
         simulation.cruise_comfort = saved.cruise_comfort;
         simulation.voyage_progress = saved.voyage_progress;
         simulation.berth_termination = saved.berth_termination;

@@ -1992,6 +1992,10 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   useEffect(() => {
     if (!updatePageContext) return;
     const hud = hudRef.current;
+    const frame = restoredRunRef.current?.stepSequence === step.seq ? nativeSessionRef.current?.read() : undefined;
+    const point = frame ? recorderRef.current?.run.trace.at(-1) : undefined;
+    const observed = (key: string) => point?.measurements[key]?.quality === 'Good'
+      ? point.measurements[key].value ?? undefined : undefined;
     updatePageContext({
       courseId: 'destroyer-heading-experiment',
       courseTitle: DESTROYER_EXPERIMENT_TITLE,
@@ -2003,6 +2007,13 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       simulationId: 'destroyer',
       simulationOriginId: roundOriginRef.current.scope === scopeKey ? roundOriginRef.current.originId : undefined,
       routeProvenance: 'simulation-route',
+      simulationObservation: frame ? {
+        timeS: point?.timeS ?? frame.timeS,
+        effectiveGmM: frame.parameters.effectiveGmTransverseM ?? undefined,
+        windSideAreaM2: frame.parameters.windAreasM2?.lateral,
+        headingDeg: observed('Heading'), waterSpeedMps: observed('SpeedLog'),
+        northM: observed('North'), eastM: observed('East'),
+      } : undefined,
       systemPromptExtension: destroyerKonlingBrief(step, {
         heading: hud.heading,
         yawRate: hud.yawRate,

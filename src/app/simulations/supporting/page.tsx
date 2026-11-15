@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { AppShell } from '@/components/platform/app-shell';
+import { VESSEL_COURSES, VESSEL_GUIDE_EDITION, VESSEL_TEACHING_CARDS } from '@/resources/simulations/experiments/course-catalog';
+import guideManifest from '../../../../public/supporting/teaching-guides.json';
 
 interface SupportingMaterial {
   title: string;
@@ -8,18 +10,23 @@ interface SupportingMaterial {
   fileLabel?: string;
 }
 
+function guideFileLabel(name: string) {
+  const file = guideManifest.files.find((entry) => entry.name === name);
+  return file ? `PDF · ${file.pages} 页 · ${(file.bytes / 1_000_000).toFixed(1)} MB` : 'PDF';
+}
+
 const materials: SupportingMaterial[] = [
   {
     title: '实验指导书汇编',
-    note: '七个正式实验的完整指导书，覆盖实验目的、二十步操作步骤、读数方法、界面图解和注意事项。',
+    note: '七份课程卡与二十步指导书，包含本人模型、独立对照、操作条件、评分和版本迁移。',
     href: '/supporting/experiment-guide-compilation.pdf',
-    fileLabel: 'PDF · 7.7 MB',
+    fileLabel: guideFileLabel('experiment-guide-compilation.pdf'),
   },
   {
     title: '平台功能与操作说明',
-    note: '面向学生操作与评审查阅的平台说明，覆盖七个实验的通用二十步流程、真实界面与曲线读图。',
+    note: '原场景操作、量测与预测、账号与断点恢复、控灵和报告复核说明。',
     href: '/supporting/platform-operation-manual.pdf',
-    fileLabel: 'PDF · 8.4 MB',
+    fileLabel: guideFileLabel('platform-operation-manual.pdf'),
   },
   {
     title: '产业对接证明材料',
@@ -35,43 +42,12 @@ const materials: SupportingMaterial[] = [
   },
 ];
 
-const experimentGuides: Array<{ name: string; description: string; href: string }> = [
-  {
-    name: '实验01 · 055 型驱逐舰航向控制',
-    description: '直航、手操打舵、回中、小角度和直角转向，PID 参数观察。',
-    href: '/supporting/guide-01-destroyer.pdf',
-  },
-  {
-    name: '实验02 · 长恒号 LNG 大惯性操纵',
-    description: '大惯性液化气船的直航、打舵、回中与靠泊低速。',
-    href: '/supporting/guide-02-lng-carrier.pdf',
-  },
-  {
-    name: '实验03 · MSC 集装箱船航速与准点',
-    description: '高速与经济航速对比、空载横风扰动和准时到达。',
-    href: '/supporting/guide-03-container.pdf',
-  },
-  {
-    name: '实验04 · 爱达·魔都号邮轮舒适性操纵',
-    description: '减摇鳍开关对比、横摇与不适指数读数、航向保持。',
-    href: '/supporting/guide-04-cruise.pdf',
-  },
-  {
-    name: '实验05 · 海洋石油981动力定位',
-    description: '定点读数、解耦开关对比与重新守点。',
-    href: '/supporting/guide-05-drilling-platform.pdf',
-  },
-  {
-    name: '实验06 · 雪龙号吊舱与冰区控制',
-    description: '吊舱角度读数、开阔水域与冰区操纵对比。',
-    href: '/supporting/guide-06-icebreaker.pdf',
-  },
-  {
-    name: '实验07 · 天鲸号挖泥船工况切换',
-    description: '定位、疏浚作业与退出定位的船位保持。',
-    href: '/supporting/guide-07-dredger.pdf',
-  },
-];
+const experimentGuides = Object.values(VESSEL_COURSES).map((course) => ({
+  name: `实验${VESSEL_TEACHING_CARDS[course.key].number} · ${course.title}`,
+  description: VESSEL_TEACHING_CARDS[course.key].mechanism,
+  href: `/supporting/${course.guideFile}`,
+  fileLabel: guideFileLabel(course.guideFile),
+}));
 
 export default function SimulationSupportingPage() {
   return (
@@ -89,7 +65,7 @@ export default function SimulationSupportingPage() {
     >
       <main className="mx-auto max-w-5xl space-y-6">
         <p className="text-sm leading-6 text-subtle">
-          这里集中放置七个仿真实验的支撑材料：实验指导书汇编、平台操作说明和各实验的单独指导书均已接入正式文件。
+          指导书版本为 {VESSEL_GUIDE_EDITION}，包含七个实验各二十步及相应评分要求。产业与著作权材料可在此查阅。
         </p>
         <ul className="grid gap-3">
           {materials.map((item) => (
@@ -137,6 +113,7 @@ export default function SimulationSupportingPage() {
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground">{guide.name}</p>
                   <p className="mt-0.5 text-xs text-subtle">{guide.description}</p>
+                  <p className="mt-1 text-xs text-subtle">{guide.fileLabel}</p>
                 </div>
                 <a
                   href={guide.href}

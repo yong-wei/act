@@ -4,7 +4,7 @@ import type { FrozenVesselStudentModel, VesselModelComparison } from './student-
 import type { VesselSessionInput } from '@/lib/control-engine/vessel-session';
 
 export type DestroyerModelEvidence = Pick<FrozenVesselStudentModel,'id'|'channel'|'createdAtMs'|'payload'>;
-export type DestroyerComparisonEvidence = Pick<VesselModelComparison,'id'|'modelId'|'actuatorModelId'|'runId'|'mode'|'purpose'|'createdAtMs'> & {actualSampleCount:number};
+export type DestroyerComparisonEvidence = Pick<VesselModelComparison,'id'|'modelId'|'actuatorModelId'|'runId'|'mode'|'purpose'|'createdAtMs'|'controllerInput'> & {actualSampleCount:number};
 
 export function headingControllerSignature(input:VesselSessionInput) {
   return JSON.stringify([input.controlMode,input.pid.kp,input.controlMode === 'pid' ? input.pid.ki : 0,

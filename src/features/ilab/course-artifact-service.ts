@@ -109,6 +109,9 @@ export async function saveVesselCourseArtifact(userId: string, input: VesselCour
       const io = model?.ioContract as {inputChannel?:string;outputChannel?:string;outputUnit?:string} | undefined;
       const speedReference = ['lng','container'].includes(input.courseKey) && io?.inputChannel === 'ShaftReference0'
         && io.outputChannel === 'SpeedLog' && (model?.structure as {kind?:string} | undefined)?.kind === 'fopdt';
+      const winchReference = input.courseKey === 'dredger' && io?.inputChannel === 'WinchReferenceDifferential'
+        && io.outputChannel === 'DredgerSwaySpeed';
+      const jointReference = speedReference || winchReference;
       if (input.courseKey === 'cruise' && io?.inputChannel === 'FinDifferential'
         && (comparison.mode !== 'hull_model' || comparison.actuatorModelClientRef)) {
         throw new IlabServiceError('横摇局部模型需要A模式的实际差动鳍量测对照。',400);
@@ -118,10 +121,13 @@ export async function saveVesselCourseArtifact(userId: string, input: VesselCour
         || !comparison.actualEastM || !comparison.predictedEastM || !comparison.actualHeadingDeg || !comparison.predictedHeadingDeg)) {
         throw new IlabServiceError('三通道低频模型需要保存位置和航向的A模式独立对照。',400);
       }
-      if (!model || (comparison.mode !== 'hull_model' && !speedReference && !actuator)) throw new IlabServiceError('所引用的冻结模型不存在。',404);
+      if (!model || (comparison.mode !== 'hull_model' && !jointReference && !actuator)) throw new IlabServiceError('所引用的冻结模型不存在。',404);
       if (speedReference && (comparison.mode === 'hull_model' || comparison.actuatorModelClientRef
         || comparison.outputChannel !== 'SpeedLog')) {
         throw new IlabServiceError('轴速参考联合模型需要B或C对照及相同的航速输出通道。',400);
+      }
+      if (winchReference && (comparison.mode === 'hull_model' || comparison.actuatorModelClientRef)) {
+        throw new IlabServiceError('绞车指令联合模型需要B或C对照，A模式使用实际绞车速度模型。',400);
       }
       if ((comparison.outputChannel && comparison.outputChannel !== io?.outputChannel)
         || (comparison.outputUnit && comparison.outputUnit !== io?.outputUnit)) {
@@ -132,6 +138,11 @@ export async function saveVesselCourseArtifact(userId: string, input: VesselCour
           || !(comparison.controllerInput?.longitudinal || comparison.controllerInput?.containerSpeed)
           || contentHash(comparison.controllerInput) !== contentHash(opening.input))) {
         throw new IlabServiceError('独立航速闭环需要本次物理运行的冻结控制器。',400);
+      }
+      if (winchReference && comparison.mode === 'independent_closed_loop'
+        && (!opening.input.dredger || !comparison.controllerInput?.dredger
+          || contentHash(comparison.controllerInput) !== contentHash(opening.input))) {
+        throw new IlabServiceError('独立横移闭环需要本次物理运行的冻结控制器。',400);
       }
       if (comparison.purpose === 'validation' && comparison.endS > summary.lastTimeS + 1e-7) throw new IlabServiceError('对照窗口超出已上传的原始采样。',400);
       const training = model.trainingRuns as Array<{runRef:string;startS:number;endS:number}>;

@@ -45,6 +45,8 @@ export interface BindingTelemetrySource {
   }>;
   /** 绞吸挖泥船绞刀转速；缺省不驱动绞刀节点。 */
   readonly cutterRpm?: number;
+  readonly cutterPhaseRad?: number;
+  readonly ladderAngleRad?: number;
 }
 
 function createDemoPlayback() {
@@ -90,6 +92,10 @@ function resolveNodes(model: THREE.Object3D, names: readonly string[]): THREE.Ob
 }
 
 function readAzimuthRad(sim: BindingTelemetrySource, binding: LiveRotationBinding): number | null {
+  if (binding.ladder) {
+    const value = sim.ladderAngleRad;
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
   if (binding.azipodSlot) {
     const value = sim.azipod?.[binding.azipodSlot]?.azimuthRad;
     return typeof value === 'number' && Number.isFinite(value) ? value : null;
@@ -253,6 +259,10 @@ export function SemanticBindingsRig({
     }
     const spinDeltaScale = sim.advancing === false ? 0 : 1;
     for (const { binding, nodes } of liveSpin) {
+      if (binding.cutter && typeof sim.cutterPhaseRad === 'number' && Number.isFinite(sim.cutterPhaseRad)) {
+        for (const node of nodes) node.rotation[binding.axis] = sim.cutterPhaseRad * (binding.sign ?? 1);
+        continue;
+      }
       let rpm = readRpm(sim, binding);
       if (rpm === null && binding.rpmFromSpeed) {
         rpm = (binding.designRpm ?? 90)

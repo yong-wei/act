@@ -1,0 +1,430 @@
+courseVersion: seven-vessel-2026.11.14
+guideEdition: 2026.11.16
+experimentId: exp-02-lng-berthing
+title: 长恒系列LNG运输船大惯性操纵（教学代表船）
+minutes:
+  preparation: 20
+  practice: 100
+  report: 30
+objectives:
+  - id: G1
+    text: 解释大惯性、液舱、轴系与实际停车距离
+    level: 应用与分析
+    steps:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+  - id: G2
+    text: 设计本人靠泊速度与制动方案
+    level: 分析与设计
+    steps:
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+  - id: G3
+    text: 比较填充率、转向、环境和传感条件
+    level: 设计与评价
+    steps:
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+  - id: G4
+    text: 进行未见工况验证并论证靠泊边界
+    level: 工程判断
+    steps:
+      - 19
+      - 20
+steps:
+  - id: lng-step-1
+    sequence: 1
+    objectiveRefs:
+      - G1
+    cognitiveLevel: understand
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-2
+    sequence: 2
+    objectiveRefs:
+      - G1
+    cognitiveLevel: understand
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-3
+    sequence: 3
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - training-run
+      - measurement-window
+      - student-model
+      - fit-residual
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: none
+  - id: lng-step-4
+    sequence: 4
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: validation
+  - id: lng-step-5
+    sequence: 5
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-6
+    sequence: 6
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-7
+    sequence: 7
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - frozen-model
+      - braking-plan
+      - frozen-prediction
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: none
+  - id: lng-step-8
+    sequence: 8
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-9
+    sequence: 9
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-10
+    sequence: 10
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-11
+    sequence: 11
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-12
+    sequence: 12
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-13
+    sequence: 13
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-14
+    sequence: 14
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-15
+    sequence: 15
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-16
+    sequence: 16
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-17
+    sequence: 17
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-18
+    sequence: 18
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: training
+  - id: lng-step-19
+    sequence: 19
+    objectiveRefs:
+      - G4
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: validation
+  - id: lng-step-20
+    sequence: 20
+    objectiveRefs:
+      - G4
+    cognitiveLevel: synthesize
+    evidence:
+      - five-own-runs
+      - frozen-model
+      - independent-validation
+      - report
+    measurementSignals:
+      - ShaftSpeed0
+      - ShaftSpeed1
+      - SpeedLog
+      - Heading
+      - YawRate
+      - North
+      - East
+      - RollRate
+    trainValidationRole: none

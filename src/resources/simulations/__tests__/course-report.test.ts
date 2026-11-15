@@ -26,6 +26,15 @@ const evidence: VesselReportEvidence = {
 };
 
 describe('本人实验报告的对照来源', () => {
+  it('新版报告保留可从外部报告访问的固定版本指导书链接', () => {
+    const run = structuredClone(evidence.runs[0]);
+    run.configuration.vessel = 'dredger-tianjing';
+    const html = buildVesselCourseReportHtml('天鲸号', {}, {...evidence, runs: [run]});
+    expect(html).toContain('课程版本 seven-vessel-2026.11.14，指导书版本 2026.11.16');
+    expect(html).toContain('https://act.adapt-learn.online/supporting/2026.11.16/guide-07-dredger.pdf');
+    expect(buildVesselCourseReportHtml('旧报告', {})).not.toContain('查看本版实验指导书');
+  });
+
   it('同一次运行的不同模型对照显示相应模型序号与真实窗口', () => {
     const html = buildVesselCourseReportHtml('实验', { problem: '<script>夹具</script>' }, evidence);
     expect(html).toContain('计算模型 本人冻结模型1');
@@ -72,5 +81,25 @@ describe('本人实验报告的对照来源', () => {
     expect(html).toContain('B · 指令经联合模型驱动输出');
     expect(html).toContain('FIT 不适用');
     expect(html).not.toContain('不适用%');
+  });
+
+  it('破冰船报告保留吊舱通道、冰区未完成状态及不稳定局部模型的适用条件', () => {
+    const run = structuredClone(evidence.runs[0]);
+    run.configuration.vessel = 'icebreaker-xuelong2';
+    run.configuration.ice = { thicknessM: .6, flexuralStrengthPa: 500000, frictionCoefficient: .1, contactSegments: 64 };
+    run.metrics = { headingRmseDeg: 4, rudderTotalVariationDeg: 30, actualDistanceM: 600,
+      iceTaskCompleted: 0, eligibleForEnergyComparison: 0, maximumCrossTrackM: 18, stallDurationS: 12,
+      energyPerDistanceJPerM: 100000 };
+    const model = { ...evidence.models[0], payload: { ...payload, structure: { kind: 'nomoto1' as const, k: -.03, t_s: -90 },
+      ioContract: { inputChannel: 'EquivalentAzimuth', outputChannel: 'YawRate', inputUnit: '°', outputUnit: '°/s' } } };
+    const html = buildVesselCourseReportHtml('雪龙2号', {}, { runs: [run], models: [model], comparisons: [
+      { ...comparison, mode: 'command_to_output', outputUnit: '°/s' },
+    ] });
+    expect(html).toContain('B · 指令经吊舱伺服模型驱动船体模型');
+    expect(html).toContain('等效偏转总变差 30.000°');
+    expect(html).toContain('该局部模型具有开环不稳定极点');
+    expect(html).toContain('尚未到达北向800m');
+    expect(html).toContain('本次结果不进入能耗排序');
+    expect(html).not.toContain('private-run');
   });
 });

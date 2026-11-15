@@ -163,6 +163,8 @@ pub struct DestroyerSixDofPlant {
     vessel_wind: Option<std::sync::Arc<super::vessel_wind::VesselWindModel>>,
     compiled_waves: Option<std::sync::Arc<super::vessel_wave::CompiledVesselWaves>>,
     mean_wave_resistance: Option<super::mean_wave_resistance::ContainerMeanWaveResistance>,
+    ice: Option<super::ice_contact::IceContact>,
+    dredger: Option<super::dredger_mechanism::DredgerMechanism>,
 }
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
@@ -171,6 +173,10 @@ pub struct PlantCheckpoint {
     time_s: f64,
     environment: Option<crate::sixdof::environment_state::EnvironmentState>,
     last_output: Option<DynamicsOutput>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    ice: Option<super::ice_contact::IceState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    dredger: Option<super::dredger_mechanism::DredgerState>,
 }
 
 impl DestroyerSixDofPlant {
@@ -335,6 +341,8 @@ impl DestroyerSixDofPlant {
             vessel_wind: None,
             compiled_waves: None,
             mean_wave_resistance: None,
+            ice: None,
+            dredger: None,
         }
     }
 
@@ -577,7 +585,9 @@ impl DestroyerSixDofPlant {
 
     pub fn checkpoint(&self) -> PlantCheckpoint {
         PlantCheckpoint { state: self.state.clone(), time_s: self.sim_time_s,
-            environment: self.environment_state.clone(), last_output: self.last_output }
+            environment: self.environment_state.clone(), last_output: self.last_output,
+            ice: self.ice.as_ref().map(|ice|ice.state.clone()),
+            dredger: self.dredger.as_ref().map(|model|model.state.clone()) }
     }
 
     pub fn restore_checkpoint(&mut self, checkpoint: PlantCheckpoint) -> Result<(), String> {
@@ -593,11 +603,61 @@ impl DestroyerSixDofPlant {
         self.actuator_system.as_ref().ok_or("恢复点需要物理执行器组")?
             .validate_state(&state.actuator_states)?;
         if let Some(model) = &self.sloshing { model.validate_state(&state.specialist_states)?; }
+        match (&mut self.ice, checkpoint.ice) {
+            (Some(model),Some(state))=>model.restore(state)?,
+            (None,None)=>{},
+            _=>return Err("冰场恢复点与冻结配置不一致".into()),
+        }
+        match (&mut self.dredger, checkpoint.dredger) {
+            (Some(model), Some(saved)) => model.restore(saved, &state.specialist_states)?,
+            (None, None) => {},
+            _ => return Err("作业机构恢复点与冻结配置不一致".into()),
+        }
         self.state = checkpoint.state;
         self.sim_time_s = checkpoint.time_s;
         self.environment_state = checkpoint.environment;
         self.last_output = checkpoint.last_output;
         self.motor_torque_actual_nm = self.state.actuator_states.motor_torques_nm.first().copied().unwrap_or(0.0);
+        Ok(())
+    }
+
+    pub fn configure_ice(&mut self, configuration: super::ice_contact::IceConfiguration) -> Result<(),String> {
+        let hull=self.hydrostatic_hull.as_deref().ok_or("冰接触需要源船形静水几何")?;
+        self.ice=Some(super::ice_contact::IceContact::new(configuration,hull)?);
+        Ok(())
+    }
+
+    pub fn ice(&self) -> Option<&super::ice_contact::IceContact> { self.ice.as_ref() }
+
+    pub fn configure_dredger(&mut self, configuration: super::dredger_mechanism::DredgerConfiguration) -> Result<(), String> {
+        if self.sloshing.is_some() || self.ice.is_some() || self.dredger.is_some() {
+            return Err("天鲸作业机构与当前船型专属状态不相容".into());
+        }
+        let mut system = self.actuator_system.clone().ok_or("天鲸作业需要物理双轴双舵")?;
+        if system.propulsors.len() != 2 || system.surfaces.len() != 2
+            || system.propulsors.iter().any(|propulsor| propulsor.azimuth.is_some()) {
+            return Err("天鲸作业需要固定安装的双轴双舵".into());
+        }
+        // 新机构身份明确覆盖v3旧通用安装纵坐标，旧版恢复点仍沿用原包。
+        for propulsor in &mut system.propulsors { propulsor.installation.position_body_m[0] = -0.43 * self.config.length_m; }
+        for surface in &mut system.surfaces { surface.installation.position_body_m[0] = -0.48 * self.config.length_m; }
+        system.validate()?;
+        let (mut model, values) = super::dredger_mechanism::DredgerMechanism::new(configuration,
+            &self.state, self.physical_mass_matrix())?;
+        let current = self.environment_state.as_ref().filter(|environment| environment.switches.current_enabled)
+            .map(|environment| [environment.current_ned[0], environment.current_ned[1], 0.0]).unwrap_or([0.0; 3]);
+        model.state.last_observation = model.evaluate(&self.state, &values, current, [0.0; 6], NOMINAL_DT)?.observation;
+        self.actuator_system = Some(system);
+        self.state.specialist_states = values;
+        self.dredger = Some(model);
+        Ok(())
+    }
+
+    pub fn dredger(&self) -> Option<&super::dredger_mechanism::DredgerMechanism> { self.dredger.as_ref() }
+
+    pub fn set_dredger_commands(&mut self, commands: super::dredger_mechanism::DredgerCommands) -> Result<(), String> {
+        commands.validate()?;
+        self.dredger.as_mut().ok_or("当前运行没有天鲸作业机构")?.state.held_commands = commands;
         Ok(())
     }
 
@@ -720,6 +780,8 @@ impl DestroyerSixDofPlant {
 
         // 环境过程与积分状态在本次推进成功后一起写入。
         let mut env_state = self.environment_state.clone();
+        let mut ice = self.ice.clone();
+        let mut dredger = self.dredger.clone();
         let mut motor_torque_actual_nm = self.motor_torque_actual_nm;
         // 推进语义：本调用推进 dt 时长；内部按 ≤NOMINAL_DT 细分子步
         let substeps = ((dt / NOMINAL_DT).ceil() as usize).max(1);
@@ -771,6 +833,14 @@ impl DestroyerSixDofPlant {
             let vessel_wind = self.vessel_wind.as_deref();
             let compiled_waves = self.compiled_waves.as_deref();
             let mean_wave_resistance = self.mean_wave_resistance.as_ref();
+            let current_ned = real_env.filter(|environment| environment.switches.current_enabled)
+                .map(|environment| [environment.current_ned[0], environment.current_ned[1], 0.0]).unwrap_or([0.0; 3]);
+            if let Some(model) = &mut dredger {
+                let state = TruthState { position_ned: [y[0], y[1], y[2]],
+                    quaternion: [y[3], y[4], y[5], y[6]],
+                    body_velocity: std::array::from_fn(|i| y[7 + i]), ..Default::default() };
+                model.prepare_substep(time, &state, &y[specialist_offset..], substep_dt);
+            }
 
             let derivs = |t_sub: f64, y_slice: &[f64], dy: &mut [f64]| {
                 let position = [y_slice[0], y_slice[1], y_slice[2]];
@@ -850,6 +920,17 @@ impl DestroyerSixDofPlant {
                     out = dynamics_step_with_restoring(&state, &rb, &am, &current_field_local,
                         tau_radiation, restoring, &external);
                 }
+                if let Some(model) = &dredger {
+                    let evaluation = match model.evaluate(&state, &y_slice[specialist_offset..],
+                        current_ned, out.nu_dot, substep_dt) {
+                        Ok(value) => value,
+                        Err(_) => { dy.fill(f64::NAN); return; },
+                    };
+                    dy[specialist_offset..].copy_from_slice(&evaluation.derivatives);
+                    for axis in 0..6 { external.tau_special[axis] += evaluation.acceleration.reaction_body[axis]; }
+                    out = dynamics_step_with_restoring(&state, &rb, &am, &current_field_local,
+                        tau_radiation, restoring, &external);
+                }
                 dy[0] = out.position_dot_ned[0];
                 dy[1] = out.position_dot_ned[1];
                 dy[2] = out.position_dot_ned[2];
@@ -861,6 +942,23 @@ impl DestroyerSixDofPlant {
             };
 
             super::integrator::rk4_step(time, &mut y, substep_dt, derivs)?;
+            if let Some(model) = &mut dredger {
+                let state = TruthState { position_ned: [y[0], y[1], y[2]],
+                    quaternion: normalize_quaternion([y[3], y[4], y[5], y[6]]),
+                    body_velocity: std::array::from_fn(|i| y[7 + i]), ..Default::default() };
+                let evaluation = model.evaluate(&state, &y[specialist_offset..], current_ned,
+                    [0.0; 6], substep_dt).map_err(IntegrationError::InvalidSpecialistState)?;
+                model.commit_substep(evaluation, substep_dt);
+            }
+            if let Some(model)=&mut ice {
+                let mut velocity=[y[7],y[8],y[9],y[10],y[11],y[12]];
+                let current=env_state.as_ref().filter(|environment|environment.switches.current_enabled)
+                    .map(|environment|[environment.current_ned[0],environment.current_ned[1],0.0]).unwrap_or([0.0;3]);
+                model.step(substep_dt,[y[0],y[1],y[2]],[y[3],y[4],y[5],y[6]],
+                    &mut velocity,self.physical_mass_matrix(),current)
+                    .map_err(IntegrationError::InvalidSpecialistState)?;
+                y[7..13].copy_from_slice(&velocity);
+            }
             if let Some(system) = &self.actuator_system {
                 system.enforce_motor_limits(&mut y[13 + radiation_len..specialist_offset])?;
             }
@@ -933,6 +1031,7 @@ impl DestroyerSixDofPlant {
         external.tau_wave_1 = tau_wave_1;
         external.tau_wave_2 = tau_wave_2;
         external.tau_wind = tau_wind;
+        if let Some(model)=&ice { external.tau_special=model.state.last_load_body; }
         let restoring = self.hydrostatic_hull.as_deref().map_or_else(
             || restoring_force(&self.rp, delta_eta),
             |hull| hull.evaluate(&final_state, self.rb.mass_kg, SEA_WATER_DENSITY).restoring_body,
@@ -948,6 +1047,15 @@ impl DestroyerSixDofPlant {
             final_output = dynamics_step_with_restoring(&final_state, &self.rb, &self.am,
                 &current_field, tau_rad, restoring, &external);
         }
+        if let Some(model) = &dredger {
+            let current_ned = env_state.as_ref().filter(|environment| environment.switches.current_enabled)
+                .map(|environment| [environment.current_ned[0], environment.current_ned[1], 0.0]).unwrap_or([0.0; 3]);
+            let evaluation = model.evaluate(&final_state, &final_state.specialist_states,
+                current_ned, final_output.nu_dot, substep_dt).map_err(IntegrationError::InvalidSpecialistState)?;
+            for axis in 0..6 { external.tau_special[axis] += evaluation.acceleration.reaction_body[axis]; }
+            final_output = dynamics_step_with_restoring(&final_state, &self.rb, &self.am,
+                &current_field, tau_rad, restoring, &external);
+        }
         if let Some(index) = final_output.nu_dot.iter().position(|value| !value.is_finite()) {
             return Err(IntegrationError::NonFiniteState { stage: "final-dynamics", index });
         }
@@ -957,6 +1065,8 @@ impl DestroyerSixDofPlant {
         self.sim_time_s = final_time_s;
         self.environment_state = env_state;
         self.motor_torque_actual_nm = motor_torque_actual_nm;
+        self.ice = ice;
+        self.dredger = dredger;
         self.state = final_state;
         self.last_output = Some(final_output);
         Ok(())

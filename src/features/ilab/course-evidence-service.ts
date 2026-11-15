@@ -19,6 +19,11 @@ import {CRUISE_COURSE_STEPS,cruiseCourseConfiguration,validateCruiseCourseSettin
 
 import { DRILLING_COURSE_STEPS, drillingCourseConfiguration, validateDrillingCourseSettings,
   type DrillingCourseSettings } from '@/resources/simulations/experiments/drilling-course';
+import {ICEBREAKER_COURSE_STEPS,icebreakerConfiguration,icebreakerUsesSpeedPi,validateIcebreakerSettings,
+  type IcebreakerCourseSettings} from '@/resources/simulations/experiments/icebreaker-course';
+import {DREDGER_COURSE_STEPS, dredgerConfiguration, dredgerCourseControl, validateDredgerSettings,
+  type DredgerCourseSettings} from '@/resources/simulations/experiments/dredger-course';
+import type {VesselDredgerInput} from '@/lib/control-engine/vessel-session';
 
 export const VESSEL_EVIDENCE_DOMAIN = 'ilab-course';
 export interface VesselRunStorageSummary {
@@ -42,6 +47,7 @@ export interface VesselRunStorageSummary {
   nativeWatermarks:Record<string,number>;
   validationRuntimeVersion?:string;
   appliedFactors?:string[];
+  dredgerModeEvents?:VesselSessionFrame['dredgerEvents'];
 }
 
 export function vesselRunStorageSummary(run: SimulationRun): VesselRunStorageSummary {
@@ -167,6 +173,52 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
       || control.navigationLossStrategy !== settings.navigationLossStrategy
       || (settings.decoupling && (!input.designStudentModelId || !control.studentModel)))) {
       throw new IlabServiceError('请保存对应的本人低频模型和定位控制方案。', 409);
+    }
+  }
+  if (course.key === 'icebreaker') {
+    const step=ICEBREAKER_COURSE_STEPS[input.stepSequence-1];
+    const settings=input.courseSettings as unknown as IcebreakerCourseSettings;
+    if (step.stepKind!=='run' || validateIcebreakerSettings(settings)
+      || canonicalJson(icebreakerConfiguration(step.sequence,settings))!==canonicalJson(input.configuration)
+      || input.input.controlMode!==(step.closedLoop ? settings.integralEnabled ? 'pid' : 'pd' : 'manual')
+      || input.input.feedback!=='measurement' || input.input.derivativeFilterTauS!==settings.filterTauS
+      || Boolean(input.input.iceHeadingSchedule)!==(step.closedLoop && settings.scheduling)
+      || Boolean(input.input.longitudinal)!==icebreakerUsesSpeedPi(step.sequence)
+      || input.input.semisubDp || input.input.cruiseFins || input.input.containerSpeed || input.input.berthPlan
+      || (step.closedLoop && !input.designStudentModelId)) {
+      throw new IlabServiceError('实际吊舱运行条件与本步课程约定不一致。',409);
+    }
+  }
+  if (course.key === 'dredger') {
+    const step = DREDGER_COURSE_STEPS[input.stepSequence - 1];
+    const settings = input.courseSettings as unknown as DredgerCourseSettings;
+    if (step.stepKind !== 'run' || !settings || validateDredgerSettings(settings)
+      || canonicalJson(dredgerConfiguration(step.sequence, settings)) !== canonicalJson(input.configuration)
+      || input.input.controlMode !== 'manual' || input.input.feedback !== 'measurement'
+      || input.input.targetHeadingDeg !== 0 || input.input.longitudinal || input.input.berthPlan
+      || input.input.containerSpeed || input.input.cruiseFins || input.input.semisubDp || input.input.iceHeadingSchedule
+      || !Array.isArray(input.input.actuators?.shafts) || !Array.isArray(input.input.actuators?.surfaces)
+      || input.input.actuators.shafts.some((shaft) => shaft?.motor_torque_override_nm !== null
+        || shaft.speed_reference_rad_s !== (step.sequence === 2 ? settings.transitRpm : 0) * Math.PI / 30)
+      || input.input.actuators.surfaces.some((surface) => surface?.angle_rad !== settings.rudderDeg * Math.PI / 180)) {
+      throw new IlabServiceError('实际机构、土层或模式方案与本步课程约定不一致。', 409);
+    }
+    let localModel: VesselDredgerInput['localModel'] = null;
+    if (step.closedLoop) {
+      const model = await prisma.studentModelArtifact.findFirst({where: {
+        clientRef: input.designStudentModelId ?? '', userId,
+        experimentKey: `${course.key}:${input.reportClientRef}`,
+      }});
+      const io = model?.ioContract as {inputChannel?: string; outputChannel?: string} | undefined;
+      const structure = model?.structure as VesselDredgerInput['localModel'];
+      if (!structure || !['nomoto1', 'nomoto2', 'fopdt'].includes(structure.kind)
+        || io?.inputChannel !== 'WinchReferenceDifferential' || io.outputChannel !== 'DredgerSwaySpeed') {
+        throw new IlabServiceError('请选择本轮本人冻结的绞车指令—横移速度联合模型。', 409);
+      }
+      localModel = structure;
+    }
+    if (canonicalJson(input.input.dredger) !== canonicalJson(dredgerCourseControl(step.sequence, settings, 0, localModel))) {
+      throw new IlabServiceError('实际横移模型或运行前控制方案与保存记录不一致。', 409);
     }
   }
   const existingReport = await prisma.virtualSimulationReport.findUnique({ where:{ clientRef:input.reportClientRef } });

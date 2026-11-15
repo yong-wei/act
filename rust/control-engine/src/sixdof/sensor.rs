@@ -68,6 +68,12 @@ const SPECS: &[(&str, ChannelSpec)] = &[
     ("wind_speed", ChannelSpec { rate_hz: 2.0, white_sigma: 0.3, bias_sigma: 0.1, bias_tau_s: 300.0, delay_s: 0.5, quant: 0.1 }),
     ("wind_direction", ChannelSpec { rate_hz: 2.0, white_sigma: 1.0, bias_sigma: 0.3, bias_tau_s: 300.0, delay_s: 0.5, quant: 0.1 }),
     ("shaft_speed", ChannelSpec { rate_hz: 20.0, white_sigma: 0.2, bias_sigma: 0.0, bias_tau_s: 300.0, delay_s: 0.05, quant: 0.1 }),
+    ("dredge_depth", ChannelSpec { rate_hz: 20.0, white_sigma: 0.02, bias_sigma: 0.005, bias_tau_s: 300.0, delay_s: 0.10, quant: 0.005 }),
+    ("dredge_sway", ChannelSpec { rate_hz: 20.0, white_sigma: 0.005, bias_sigma: 0.002, bias_tau_s: 300.0, delay_s: 0.10, quant: 0.001 }),
+    ("dredge_tension", ChannelSpec { rate_hz: 20.0, white_sigma: 2000.0, bias_sigma: 1000.0, bias_tau_s: 300.0, delay_s: 0.10, quant: 100.0 }),
+    ("dredge_spud_force", ChannelSpec { rate_hz: 20.0, white_sigma: 5000.0, bias_sigma: 1000.0, bias_tau_s: 300.0, delay_s: 0.10, quant: 100.0 }),
+    ("dredge_contact", ChannelSpec { rate_hz: 20.0, white_sigma: 0.0, bias_sigma: 0.0, bias_tau_s: 300.0, delay_s: 0.10, quant: 0.0 }),
+    ("dredge_length", ChannelSpec { rate_hz: 20.0, white_sigma: 0.005, bias_sigma: 0.0, bias_tau_s: 300.0, delay_s: 0.10, quant: 0.001 }),
 ];
 
 /// 单传感器通道：采样、误差链与时延队列。

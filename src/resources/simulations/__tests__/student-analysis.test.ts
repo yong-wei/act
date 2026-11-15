@@ -60,6 +60,41 @@ describe('学生模型量测窗口', () => {
     expect(() => measuredWindow(evidence(true),'rudder-to-yaw',0,2)).toThrow('不连续采样');
   });
 
+  it('双吊舱伺服保持50Hz原生编码器时钟，20Hz显示记录不替代辨识输入', () => {
+    const run = evidence();
+    run.courseKey = 'icebreaker';
+    run.nativeSensorSamples = Array.from({ length: 101 }, (_, tick) => [0, 1].map((index) => ({
+      signal: { AzimuthEncoder: index }, measurement: {
+        t_sample_s: tick * .02, t_arrive_s: tick * .02, value: -tick * .02, quality: 'Good' as const,
+      },
+    }))).flat();
+    run.trace = run.trace.map((point) => ({ ...point, command: { ...point.command, azimuthDeg: [-3, -3] },
+      measurements: { EquivalentAzimuth: { value: 999, quality: 'Good', sampledAtS: Math.floor(point.timeS / .02) * .02, arrivedAtS: point.timeS } } }));
+    const window = measuredWindow(run, 'azimuth-servo', 0, 2);
+    expect(window.timeS).toHaveLength(101);
+    expect(window.dtS).toBeCloseTo(.02, 12);
+    expect(window.output[1]).toBeCloseTo(.02, 12);
+    expect(window.input.every((value) => value === 3)).toBe(true);
+    expect(window.output).not.toContain(999);
+  });
+
+  it('冰区航向辨识保留非稳态窗口初值，直航工作点保持零偏转和零转艏率', () => {
+    const run = evidence();
+    run.courseKey = 'icebreaker';
+    run.nativeSensorSamples.push(...Array.from({ length: 101 }, (_, tick) => [0, 1].map((index) => ({
+      signal: { AzimuthEncoder: index }, measurement: {
+        t_sample_s: tick * .02, t_arrive_s: tick * .02, value: -5 - tick * .02, quality: 'Good' as const,
+      },
+    }))).flat());
+    vi.mocked(computeVirtualSimulationStep).mockReturnValue({ identifiedOk: true,
+      structure: { kind: 'nomoto1', k: .02, t_s: 75 }, predicted: [], metrics: { rmse: .02 } });
+    const model = identifyVesselStudentModel(run, 'azimuth-to-yaw', 'nomoto1', .5, 2);
+    expect(vi.mocked(computeVirtualSimulationStep).mock.lastCall?.[0]).toMatchObject({ inputOrigin: 0, outputOrigin: 0 });
+    expect(model.payload.operatingPoint).toMatchObject({ inputOrigin: 0, outputOrigin: 0 });
+    expect(model.payload.trainingRuns).toEqual([{ runRef: run.id, startS: .5, endS: 2 }]);
+    expect(measuredWindow(run, 'azimuth-to-yaw', .5, 2).output[0]).toBe(1);
+  });
+
   it('分别保留轴速参考和实际轴速，LNG联合模型使用参考命令及5Hz计程仪', () => {
     const run = evidence();
     run.lastTimeS = 4;
@@ -105,6 +140,19 @@ describe('学生运行评价', () => {
     const run = evidence();
     run.stoppedAtMs = null;
     expect(() => evaluateVesselHeadingRun(run)).toThrow('运行结束后');
+  });
+
+  it('冰区到达评价补入真实结束状态，覆盖最后一帧采样之前的过线', () => {
+    const run = evidence();
+    run.courseKey = 'icebreaker';
+    run.trace[0].ice = { brokenAreaM2: 0 } as NonNullable<typeof run.trace[0]['ice']>;
+    run.checkpoint = JSON.stringify({ plant: { state: { position_ned: [800.01, 2, 0],
+      actuator_states: { positive_motor_work_j: [7, 11] } } }, input: run.initialInput });
+    vi.mocked(computeVirtualSimulationStep).mockReturnValue({ positiveMotorWorkJ: 4 });
+    evaluateVesselHeadingRun(run);
+    expect(vi.mocked(computeVirtualSimulationStep).mock.lastCall?.[0]).toMatchObject({
+      operation: 'ice_metrics', terminalPoint: { timeS: 2.1, northM: 800.01, eastM: 2, positiveMotorWorkJ: 18 },
+    });
   });
 });
 

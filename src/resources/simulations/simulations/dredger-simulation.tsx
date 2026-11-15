@@ -1,135 +1,48 @@
 'use client';
-import { MarineGrid as Grid } from '../scene/lines/marine-grid';
+import {MarineGrid as Grid} from '../scene/lines/marine-grid';
 
-/**
- * 天鲸号挖泥船动力定位仿真
- * 使用 MMG 3-DOF 高保真模型和 DP 控制器
- */
-
-import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type RefObject } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
-import {
-  OrbitControls,
-  Html,
-  PerspectiveCamera,
-  Line,
-} from '@react-three/drei';
-import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+/** 天鲸原场景承载钢桩、锚缆、桥架和切削的常驻物理会话。 */
+import {Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type RefObject} from 'react';
+import {useFrame} from '@react-three/fiber';
+import {OrbitControls, Html, PerspectiveCamera} from '@react-three/drei';
+import type {OrbitControls as OrbitControlsImpl} from 'three-stdlib';
 import * as THREE from 'three';
-import { MarineCanvas } from '../scene/marine-canvas';
-import { MarineWater } from '../scene/water/marine-water';
-import { SimulationClock } from '@/lib/simulation';
-import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
-import { type BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
-import { RightClickFreeModeBridge } from '../components/camera-controller';
-import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
-import { CameraViewSwitcher } from '../components/camera-view-switcher';
-import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
-import { SimulationTopBar, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
-import { createDredgerDrive } from './vessel-drives';
-import { dredgerExperiment } from './vessel-experiments';
-import { takeVesselSubstep, vesselSampleMark, vesselValue } from './vessel-experiment';
-import { VesselExperimentDocks } from './vessel-experiment-panels';
-import { useVesselExperiment } from './use-vessel-experiment';
-import { useSimulationSceneTheme, simulationScenePalette } from '../components/simulation-theme';
-import {
-  EnvironmentScene,
-  MARINE_SCENE_LAYOUTS,
-  marineLayoutSedimentPlume,
-  MarineSceneLayoutObjects,
-  shorelineAmplitudeAttenuation,
-  SceneEnvironmentProvider,
-  useEnvironmentWaterColors,
-  useSceneEnvironment,
-} from '../scene/environment';
-import { createNearFieldSurfaceQuery, GERSTNER_WATER_BASE_Y, gerstnerAmplitudeScale, useNearFieldWaterHeight } from '../scene/water';
-import {
-  SceneSoundscapeProvider,
-  SoundscapeAmbienceDriver,
-} from '../scene/audio';
-import {
-  TeachingAnnotationsProvider,
-  useTeachingAnnotations,
-} from '../scene/annotations';
-import {
-  SceneQualityDriver,
-  SceneQualityProvider,
-  useSceneQuality,
-  MarinePerformanceEvidenceProbe,
-} from '../scene/quality';
-import { ScenePostEffects } from '../scene/post';
-import { dredgerTianjingSceneVisual } from '../profiles/dredger-tianjing-scene';
-import { platformHeadingToSceneRad } from '../scene/heading';
-import { WaterHuggingLine } from '../scene/lines';
-import { advanceStationKeepAttainment } from '../lib/heading-attainment';
-import { Anchor, ArrowDownFromLine, Compass, Crosshair, Navigation, Orbit, Settings, Video, Waves, type LucideIcon } from 'lucide-react';
+import {MarineCanvas} from '../scene/marine-canvas';
+import {MarineWater} from '../scene/water/marine-water';
+import {SimulationClock} from '@/lib/simulation';
+import {VersionedFleetShip} from '../components/versioned-fleet-ship';
+import type {BindingTelemetrySource} from '../components/semantic-bindings-rig';
+import {RightClickFreeModeBridge} from '../components/camera-controller';
+import {SCENE_CAMERA_SHOTS, StayPutCameraController} from '../scene/camera';
+import {CameraViewSwitcher} from '../components/camera-view-switcher';
+import {ModelLoadingPlaceholder} from '../components/model-loading-placeholder';
+import {SimulationTopBar, simulationUi} from '../components/simulation-ui';
+import {dredgerCourseExperiment as dredgerExperiment, dredgerTraceSamples, DREDGER_MODE_LABELS} from '../experiments/dredger-experiment';
+import {dredgerCourseAdapter} from '../experiments/dredger-course-adapter';
+import {DredgerCourseControls} from '../experiments/dredger-course-controls';
+import {VesselModelWorkbench} from '../experiments/model-workbench';
+import {vesselSampleMark} from './vessel-experiment';
+import {VesselExperimentDocks} from './vessel-experiment-panels';
+import {useVesselExperiment} from './use-vessel-experiment';
+import type {VesselSessionFrame} from '@/lib/control-engine/vessel-session';
+import {useSimulationSceneTheme, simulationScenePalette} from '../components/simulation-theme';
+import {EnvironmentScene, MARINE_SCENE_LAYOUTS, marineLayoutSedimentPlume, MarineSceneLayoutObjects,
+  SceneEnvironmentProvider, useEnvironmentWaterColors} from '../scene/environment';
+import {GERSTNER_WATER_BASE_Y} from '../scene/water';
+import {SceneSoundscapeProvider, SoundscapeAmbienceDriver} from '../scene/audio';
+import {TeachingAnnotationsProvider, useTeachingAnnotations} from '../scene/annotations';
+import {SceneQualityDriver, SceneQualityProvider, useSceneQuality, MarinePerformanceEvidenceProbe} from '../scene/quality';
+import {ScenePostEffects} from '../scene/post';
+import {dredgerTianjingSceneVisual} from '../profiles/dredger-tianjing-scene';
+import {platformHeadingToSceneRad} from '../scene/heading';
+import {WaterHuggingLine} from '../scene/lines';
+import {ArrowDownFromLine, Compass, Crosshair, Orbit, Video} from 'lucide-react';
+import {SimNotice, SimPanelSection, SimPanelStack, SimReadout, SimReadoutGrid, SimStatusStrip} from '../components/simulation-panels';
+import type {Vector2} from '../core/types';
+import {toRadians, toDegrees, TIANJING_DREDGER_PARAMS} from '../core/constants';
+import {SIMULATION_FIXED_STEP_SECONDS, SIMULATION_MAX_SUB_STEPS, getSimulationDeltaFromMilliseconds} from '../lib/simulation-timing';
 
-import { Slider } from '@/components/ui/slider';
-import {
-  SimField,
-  SimLockedChip,
-  SimNotice,
-  SimPanelSection,
-  SimPanelStack,
-  SimReadout,
-  SimReadoutGrid,
-  SimRunControls,
-  SimSegmented,
-  SimStatusStrip,
-  SimToggleRow,
-} from '../components/simulation-panels';
-
-import { getDredgerDefaultConfig } from '../profiles/dredger-tianjing';
-import {
-  createMMG3DOFState,
-  preloadVirtualSimulationRuntime,
-  isVirtualSimulationRuntimeReady,
-  type MMG3DOFState,
-} from '../physics/simulation-engine-facade';
-import type { ControlMode, Vector2 } from '../core/types';
-import { toRadians, toDegrees, TIANJING_DREDGER_PARAMS } from '../core/constants';
-import {
-  SIMULATION_FIXED_STEP_SECONDS,
-  SIMULATION_MAX_SUB_STEPS,
-  getSimulationDeltaFromMilliseconds,
-} from '../lib/simulation-timing';
-
-// ============ 类型定义 ============
-
-interface SimulationConfig {
-  controlMode: ControlMode;
-  targetPosition: Vector2;
-  targetHeading: number;
-  dredgingEnabled: boolean;
-  currentSpeed: number;
-  currentDirection: number;
-  windSpeed: number;
-  windDirection: number;
-}
-
-interface SimulationMetrics {
-  positionError: number;
-  headingError: number;
-  surgeError: number;
-  swayError: number;
-  speed: number;
-  rudderAngle: number;
-  time: number;
-  totalPowerKW: number;
-}
-
-/**
- * 定位精度告警（issue 1944）：与伦理红线解耦的独立告警通道——误差持续超限才触发，
- * 恢复到清理阈值后自动解除（滞回），HUD 不再显示「伦理违规」。
- */
-const POSITION_ALARM_THRESHOLD_M = 0.1;
-const POSITION_ALARM_CLEAR_M = 0.05;
-const POSITION_ALARM_HOLD_SECONDS = 10;
-
-
-// ============ 着色器材质 ============
-
-
+interface DredgerScenePose {x: number; y: number; psi: number; u: number; v: number}
 
 // ============ 3D 组件 ============
 
@@ -139,20 +52,17 @@ function DredgerModel(props: {
   heading: number;
   simRef: MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
+  heaveM: number;
+  rollRad: number;
+  pitchRad: number;
 }) {
-  // 水线参考（#2117）：共享波面采样（与 GPU 同表面定义），替代隐含 waterY=0。
-  const waterHeight = useNearFieldWaterHeight({
-    positionSampler: () => props.position,
-    seaState: 3,
-      shoreSegments: MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments,
-  });
-
   return (
     <VersionedFleetShip
       logicalId="dredger"
       simRef={props.simRef}
       position={props.position}
-      waterYSampler={() => waterHeight(props.position.x, props.position.z)}
+      waterYSampler={() => GERSTNER_WATER_BASE_Y + props.heaveM}
+      extraEuler={{x: props.pitchRad, z: props.rollRad}}
       headingRad={props.heading}
       sceneLengthMeters={120}
       resetToken={props.resetToken}
@@ -187,7 +97,7 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
       {/* 标签 */}
       <Html position={[0, 15, 0]} center>
         <div className="rounded bg-[hsl(var(--platform-brand-success)/0.78)] px-2 py-1 text-xs text-platform-fg-inverse">
-          目标位置
+          作业参考
         </div>
       </Html>
     </group>
@@ -205,189 +115,43 @@ function TrajectoryLine({ points, waterOriginSampler, }: { points: Vector2[]; wa
 // ============ UI 组件 ============
 
 /** HUD 显示 */
-function HUD({
-  metrics,
-  positionAlarm,
-  isRunning,
-}: {
-  metrics: SimulationMetrics;
-  positionAlarm: string | null;
-  isRunning: boolean;
-}) {
-  return (
-    <SimPanelStack>
-      <SimStatusStrip state={isRunning ? 'running' : metrics.time > 0 ? 'paused' : 'idle'} time={`${metrics.time.toFixed(1)}s`} />
-
-      <SimPanelSection title="定位状态" icon={Crosshair} tone={positionAlarm ? 'warning' : 'neutral'}>
-        <SimReadoutGrid>
-          <SimReadout
-            label="位置误差"
-            value={metrics.positionError.toFixed(3)}
-            unit="m"
-            size="lg"
-            tone={metrics.positionError > POSITION_ALARM_THRESHOLD_M ? 'danger' : 'success'}
-          />
-          <SimReadout label="航向误差" value={metrics.headingError.toFixed(2)} unit="°" size="lg" tone={metrics.headingError > 1 ? 'warning' : 'success'} />
-          <SimReadout label="航速" value={metrics.speed.toFixed(2)} unit="m/s" />
-          <SimReadout label="舵角" value={metrics.rudderAngle.toFixed(1)} unit="°" />
-          <SimReadout
-            label="总功率"
-            value={(metrics.totalPowerKW / 1000).toFixed(1)}
-            unit="MW"
-            span
-            tone={metrics.totalPowerKW > 14000 ? 'warning' : 'neutral'}
-          />
-        </SimReadoutGrid>
-      </SimPanelSection>
-
-      {/* 定位精度告警（与伦理红线解耦，issue 1944） */}
-      {positionAlarm ? (
-        <SimNotice tone="warning" title="定位精度告警">{positionAlarm}</SimNotice>
-      ) : null}
-    </SimPanelStack>
-  );
-}
-
-const DREDGER_MODE_ICON: Partial<Record<ControlMode, LucideIcon>> = { dp: Anchor, pid: Navigation };
-
-/** 控制面板 */
-function ControlPanel({
-  config,
-  onConfigChange,
-  onStart,
-  onPause,
-  onReset,
-  isRunning,
-  inputsEnabled = true,
-}: {
-  config: SimulationConfig;
-  onConfigChange: (config: Partial<SimulationConfig>) => void;
-  onStart: () => void;
-  onPause: () => void;
-  onReset: () => void;
-  isRunning: boolean;
-  inputsEnabled?: boolean;
-}) {
-  return (
-    <SimPanelStack>
-      <SimRunControls
-        running={isRunning}
-        primaryLabel={isRunning ? '暂停' : '开始'}
-        onPrimary={isRunning ? onPause : onStart}
-        onReset={onReset}
-      />
-
-      <SimPanelSection title="控制模式" icon={Settings} aside={<SimLockedChip locked={!inputsEnabled} />}>
-        <SimSegmented
-          ariaLabel="控制模式"
-          value={config.controlMode}
-          disabled={!inputsEnabled}
-          onChange={(mode) => onConfigChange({ controlMode: mode })}
-          options={(['dp', 'pid', 'manual'] as ControlMode[]).map((mode) => {
-            const Icon = DREDGER_MODE_ICON[mode];
-            return {
-              value: mode,
-              label: (
-                <span className="inline-flex items-center justify-center gap-1">
-                  {Icon ? <Icon className="h-3 w-3" aria-hidden="true" /> : null}
-                  {mode.toUpperCase()}
-                </span>
-              ),
-            };
-          })}
-        />
-      </SimPanelSection>
-
-      <SimPanelSection title="定位目标" icon={Crosshair}>
-        <div className="space-y-3">
-          <SimField label="目标 X" value={`${config.targetPosition.x} m`}>
-            <Slider
-              aria-label="目标 X"
-              disabled={!inputsEnabled}
-              className={simulationUi.slider}
-              value={[config.targetPosition.x]}
-              min={-500}
-              max={500}
-              step={10}
-              onValueChange={([v]) =>
-                onConfigChange({ targetPosition: { ...config.targetPosition, x: v } })
-              }
-            />
-          </SimField>
-          <SimField label="目标 Z" value={`${config.targetPosition.z} m`}>
-            <Slider
-              aria-label="目标 Z"
-              disabled={!inputsEnabled}
-              className={simulationUi.slider}
-              value={[config.targetPosition.z]}
-              min={-500}
-              max={500}
-              step={10}
-              onValueChange={([v]) =>
-                onConfigChange({ targetPosition: { ...config.targetPosition, z: v } })
-              }
-            />
-          </SimField>
-          <SimField label="目标航向" value={`${config.targetHeading}°`}>
-            <Slider
-              aria-label="目标航向"
-              disabled={!inputsEnabled}
-              className={simulationUi.slider}
-              value={[config.targetHeading]}
-              min={-180}
-              max={180}
-              step={5}
-              onValueChange={([v]) => onConfigChange({ targetHeading: v })}
-            />
-          </SimField>
-        </div>
-      </SimPanelSection>
-
-      <SimPanelSection title="作业扰动" icon={Waves}>
-        <div className="space-y-3">
-          <SimToggleRow
-            label="挖掘扰动"
-            description="绞刀切削产生的周期性横向力"
-            control={(
-              <button
-                type="button"
-                disabled={!inputsEnabled}
-                className="sim-chip disabled:cursor-not-allowed"
-                data-sim-tone={config.dredgingEnabled ? 'success' : 'neutral'}
-                onClick={() => onConfigChange({ dredgingEnabled: !config.dredgingEnabled })}
-              >
-                {config.dredgingEnabled ? '已启用' : '已禁用'}
-              </button>
-            )}
-          />
-          <SimField label="海流速度" value={`${config.currentSpeed.toFixed(1)} m/s`}>
-            <Slider
-              aria-label="海流速度"
-              disabled={!inputsEnabled}
-              className={simulationUi.slider}
-              value={[config.currentSpeed]}
-              min={0}
-              max={2}
-              step={0.1}
-              onValueChange={([v]) => onConfigChange({ currentSpeed: v })}
-            />
-          </SimField>
-          <SimField label="风速" value={`${config.windSpeed} m/s`}>
-            <Slider
-              aria-label="风速"
-              disabled={!inputsEnabled}
-              className={simulationUi.slider}
-              value={[config.windSpeed]}
-              min={0}
-              max={20}
-              step={1}
-              onValueChange={([v]) => onConfigChange({ windSpeed: v })}
-            />
-          </SimField>
-        </div>
-      </SimPanelSection>
-    </SimPanelStack>
-  );
+function HUD({frame, isRunning}: {frame: VesselSessionFrame | null; isRunning: boolean}) {
+  const point = frame?.dredger;
+  const observation = point?.observation;
+  const reading = (name: string, scale = 1, digits = 3) => {
+    const sample = point?.samples.find((sample) => {
+      const signal = typeof sample.signal === 'string' ? sample.signal
+        : Object.entries(sample.signal).map(([key, index]) => `${key}${index}`)[0];
+      return signal === name;
+    })?.measurement;
+    return sample?.quality === 'Good' && sample.value !== null ? (sample.value / scale).toFixed(digits) : '待量测';
+  };
+  const propulsionPower = frame?.truth.actuator_states.motor_torques_nm.reduce((sum, torque, index) =>
+    sum + Math.max(0, torque * frame.truth.actuator_states.propeller_shaft_speed_rad_s[index]), 0) ?? 0;
+  const power = propulsionPower + Math.max(0, observation?.cutterPowerW ?? 0)
+    + (observation?.winchPowerW.reduce((sum, value) => sum + Math.max(0, value), 0) ?? 0);
+  return <SimPanelStack>
+    <SimStatusStrip state={isRunning ? 'running' : (frame?.timeS ?? 0) > 0 ? 'paused' : 'idle'}
+      time={`${(frame?.timeS ?? 0).toFixed(1)}s`} />
+    <SimPanelSection title="作业状态" icon={Crosshair} tone={frame?.dredgerController?.tripLatched ? 'warning' : 'neutral'}>
+      <SimReadoutGrid>
+        <SimReadout label="当前模式" value={point ? DREDGER_MODE_LABELS[point.mode] : '准备中'} span />
+        <SimReadout label="横移速度量测" value={reading('SwaySpeed')} unit="m/s" />
+        <SimReadout label="横移参考" value={(point?.referenceMps ?? 0).toFixed(3)} unit="m/s" />
+        <SimReadout label="刀位深度量测" value={reading('Depth')} unit="m" />
+        <SimReadout label="绞刀转速量测" value={reading('CutterRpm', 1, 2)} unit="rpm" />
+        <SimReadout label="左缆张力量测" value={reading('CableTension0', 1000, 1)} unit="kN" />
+        <SimReadout label="右缆张力量测" value={reading('CableTension1', 1000, 1)} unit="kN" />
+        <SimReadout label="钢桩反力量测" value={reading('SpudForce', 1000, 1)} unit="kN" />
+        <SimReadout label="台车行程" value={(observation?.carriageM ?? 0).toFixed(2)} unit="m" />
+        <SimReadout label="实际移除体积" value={(observation?.productionM3 ?? 0).toFixed(3)} unit="m³" />
+        <SimReadout label="正机械功率" value={(power / 1e6).toFixed(3)} unit="MW" />
+      </SimReadoutGrid>
+    </SimPanelSection>
+    {frame?.dredgerController?.tripLatched ? <SimNotice tone="warning" title="作业保护已触发">
+      已执行停止切削与抬刀保护，请根据实际张力、刀位和事件记录解释后续安全保持。
+    </SimNotice> : null}
+  </SimPanelStack>;
 }
 
 // ============ 管线桥接组件 ============
@@ -416,11 +180,11 @@ function SceneQualityAttributes() {
 
 /** 海面颜色随环境预设、细分随质量档位的桥接组件（船位直读 ref）。 */
 function DredgerWater({
-  mmgStateRef,
+  poseRef,
   resetToken,
   playing,
 }: {
-  mmgStateRef: RefObject<MMG3DOFState>;
+  poseRef: RefObject<DredgerScenePose>;
   resetToken: number;
   playing: boolean;
 }) {
@@ -428,12 +192,12 @@ function DredgerWater({
   const { params } = useSceneQuality();
   return (
     <MarineWater
-      worldSpeedSampler={() => playing ? Math.hypot(mmgStateRef.current.u, mmgStateRef.current.v) : 0}
+      worldSpeedSampler={() => playing ? Math.hypot(poseRef.current.u, poseRef.current.v) : 0}
       vesselLengthMeters={127.5} vesselBeamMeters={23}
       resetToken={resetToken}
       tier={params.waterTier}
-      positionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })}
-      shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi))}
+      positionSampler={() => ({ x: poseRef.current.x, z: poseRef.current.y })}
+      shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(poseRef.current.psi))}
       shoreSegments={MARINE_SCENE_LAYOUTS['shallow-construction-site'].shoreSegments}
       sedimentPlume={marineLayoutSedimentPlume('shallow-construction-site')}
       waterColor={water.waterColor}
@@ -462,290 +226,86 @@ function TeachingAnnotationsGate({
 
 // ============ 主组件 ============
 
-export function DredgerSimulation({ ticket = '' }: { ticket?: string }) {
-  const session = useVesselExperiment(dredgerExperiment, ticket);
+export function DredgerSimulation({ticket = ''}: {ticket?: string}) {
+  const session = useVesselExperiment(dredgerExperiment, ticket, dredgerCourseAdapter);
   const sessionRef = useRef(session);
   sessionRef.current = session;
-  const driveRef = useRef<ReturnType<typeof createDredgerDrive> | null>(null);
+  const poseRef = useRef<DredgerScenePose>({x: 0, y: 0, psi: 0, u: 0, v: 0});
+  const bindingRef = useRef<BindingTelemetrySource>({rudderDeg: 0, speedMps: 0, attainedCount: 0, advancing: false, cutterRpm: 0});
+  const animationRef = useRef<number | null>(null);
+  const lastTimeRef = useRef(0);
+  const lastHudRef = useRef(0);
+  const lastTrailRef = useRef(0);
   const markRef = useRef(-1);
-  const timeRef = useRef(0);
-  // 配置状态
-  const defaultConfig = getDredgerDefaultConfig();
-  const [config, setConfig] = useState<SimulationConfig>({
-    controlMode: defaultConfig.controlMode,
-    targetPosition: defaultConfig.targetPosition,
-    targetHeading: defaultConfig.targetHeading,
-    dredgingEnabled: defaultConfig.dredgingEnabled,
-    currentSpeed: defaultConfig.seaState.currentSpeed,
-    currentDirection: defaultConfig.seaState.currentDirection,
-    windSpeed: defaultConfig.seaState.windSpeed,
-    windDirection: defaultConfig.seaState.windDirection,
-  });
-
-  // 仿真状态
-  const [isRunning, setIsRunning] = useState(false);
-  const [metrics, setMetrics] = useState<SimulationMetrics>({
-    positionError: 0,
-    headingError: 0,
-    surgeError: 0,
-    swayError: 0,
-    speed: 0,
-    rudderAngle: 0,
-    time: 0,
-    totalPowerKW: 0,
-  });
-  const [trajectory, setTrajectory] = useState<Vector2[]>([]);
-  const [positionAlarm, setPositionAlarm] = useState<string | null>(null);
-  const positionAlarmRef = useRef({ since: null as number | null, active: false });
-
-  // 引用
-  const mmgStateRef = useRef<MMG3DOFState>(createMMG3DOFState(0, 0, 0, 0));
-  const animationFrameRef = useRef<number | undefined>(undefined);
-  const lastUpdateRef = useRef(performance.now());
-  const clockRef = useRef(
-    new SimulationClock({
-      dt: SIMULATION_FIXED_STEP_SECONDS,
-      maxSubSteps: SIMULATION_MAX_SUB_STEPS,
-    })
-  );
+  const speedScaleRef = useRef(8);
+  const clockRef = useRef(new SimulationClock({dt: SIMULATION_FIXED_STEP_SECONDS, maxSubSteps: SIMULATION_MAX_SUB_STEPS}));
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  const [cameraMode, setCameraMode] = useState<string>('chase');
+  const [frame, setFrame] = useState<VesselSessionFrame | null>(null);
+  const [trajectory, setTrajectory] = useState<Vector2[]>([]);
+  const [cameraMode, setCameraMode] = useState('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(8);
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
-  const bindingRef = useRef<BindingTelemetrySource>({
-    rudderDeg: 0,
-    speedMps: 0,
-    attainedCount: 0,
-    advancing: false,
-    cutterRpm: 0,
-  });
-  const stationKeepRef = useRef({ dwell: 0, armed: true });
-
-  const resetPose = useCallback((clearCurve: boolean) => {
-    const drive = driveRef.current;
-    if (!drive) return;
-    const command = dredgerExperiment.command(sessionRef.current.step, 0);
-    drive.reset(command);
-    const mmg = drive.mmg();
-    mmgStateRef.current = mmg;
-    markRef.current = -1;
-    timeRef.current = 0;
-    if (clearCurve) sessionRef.current.clearSamples();
-    lastUpdateRef.current = performance.now();
-    clockRef.current.reset();
-    setIsRunning(false);
-    setTrajectory([]);
-    positionAlarmRef.current = { since: null, active: false };
-    setPositionAlarm(null);
-    stationKeepRef.current = { dwell: 0, armed: true };
-    const speed = Math.hypot(mmg.u, mmg.v);
-    const drift = Math.hypot(mmg.x - command.targetX, mmg.y - command.targetZ);
-    bindingRef.current = {
-      rudderDeg: toDegrees(mmg.rudderAngle),
-      speedMps: speed,
-      attainedCount: 0,
-      advancing: false,
-      cutterRpm: 0,
-    };
-    setMetrics({
-      positionError: drift,
-      headingError: Math.abs(toDegrees(mmg.psi) - command.targetHeading),
-      surgeError: 0,
-      swayError: 0,
-      speed,
-      rudderAngle: toDegrees(mmg.rudderAngle),
-      time: 0,
-      totalPowerKW: 0,
-    });
-    setConfig((prev) => {
-      const next: SimulationConfig = {
-        ...prev,
-        controlMode: command.dp ? 'dp' : 'manual',
-        dredgingEnabled: command.dredging,
-        targetPosition: { x: command.targetX, z: command.targetZ },
-        targetHeading: command.targetHeading,
-        currentSpeed: 0.5,
-        currentDirection: 45,
-        windSpeed: 8,
-        windDirection: 45,
-      };
-      if (
-        prev.controlMode === next.controlMode
-        && prev.dredgingEnabled === next.dredgingEnabled
-        && prev.targetHeading === next.targetHeading
-        && prev.targetPosition.x === next.targetPosition.x
-        && prev.targetPosition.z === next.targetPosition.z
-        && prev.currentSpeed === next.currentSpeed
-        && prev.currentDirection === next.currentDirection
-        && prev.windSpeed === next.windSpeed
-        && prev.windDirection === next.windDirection
-      ) return prev;
-      return next;
-    });
-    setResetCount((previous) => previous + 1);
+  const projectFrame = useCallback((next: VesselSessionFrame) => {
+    const actual = next.truth.actuator_states;
+    poseRef.current = {x: next.truth.position_ned[0], y: next.truth.position_ned[1],
+      psi: next.attitudeDeg.heading * Math.PI / 180, u: next.waterVelocityBody[0], v: next.waterVelocityBody[1]};
+    bindingRef.current = {rudderDeg: (actual.control_surface_angles_rad[0] ?? 0) * 180 / Math.PI,
+      speedMps: Math.hypot(next.waterVelocityBody[0], next.waterVelocityBody[1]), attainedCount: 0,
+      advancing: sessionRef.current.course?.running ?? false, cutterRpm: next.dredger?.observation.cutterRpm ?? 0,
+      cutterPhaseRad: next.truth.specialist_states[2] ?? 0, ladderAngleRad: next.truth.specialist_states[0] ?? 0};
   }, []);
-
   useEffect(() => {
-    let cancelled = false;
-    preloadVirtualSimulationRuntime().catch(console.error);
-    driveRef.current = createDredgerDrive();
-    if (!cancelled) resetPose(false);
-    return () => {
-      cancelled = true;
-    };
-  }, [resetPose]);
-
+    const initial = sessionRef.current.course?.ready ? sessionRef.current.course.read() : null;
+    if (!initial) return;
+    projectFrame(initial); setFrame(initial); setTrajectory([]); setResetCount((value) => value + 1);
+    clockRef.current.reset(); lastTimeRef.current = 0; lastHudRef.current = initial.timeS;
+    lastTrailRef.current = initial.timeS; markRef.current = vesselSampleMark(initial.timeS);
+  }, [session.course?.ready, session.activeSeq, projectFrame]);
+  const loop = useCallback((timestamp: number) => {
+    const current = sessionRef.current;
+    const course = current.course;
+    if (!course?.ready || !course.running) return;
+    const elapsed = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScaleRef.current);
+    lastTimeRef.current = timestamp;
+    let next = course.read();
+    clockRef.current.advance(elapsed, (dt) => {
+      next = course.advance(dt);
+      if (!next) return;
+      projectFrame(next);
+      const point = course.latestPoint();
+      if (point) {
+        const sample = dredgerTraceSamples([point])[0];
+        current.trackLatest(sample);
+        const mark = vesselSampleMark(next.timeS);
+        if (mark > markRef.current) { markRef.current = mark; current.observe(sample); }
+      }
+    });
+    if (next && (next.timeS - lastHudRef.current >= 0.1 || next.paused)) { setFrame(next); lastHudRef.current = next.timeS; }
+    if (next && next.timeS - lastTrailRef.current >= 0.5) {
+      lastTrailRef.current = next.timeS;
+      const point = {x: next.truth.position_ned[0], z: next.truth.position_ned[1]};
+      setTrajectory((previous) => [...previous.slice(-1200), point]);
+    }
+    if (course.running) animationRef.current = requestAnimationFrame(loop);
+  }, [projectFrame]);
+  useEffect(() => { speedScaleRef.current = speedScale; }, [speedScale]);
   useEffect(() => {
-    resetPose(false);
-  }, [session.activeSeq, resetPose]);
-
-  // 仿真主循环
-  const simulate = useCallback(() => {
-    if (!isRunning) return;
-
-    if (!isVirtualSimulationRuntimeReady()) {
-      lastUpdateRef.current = performance.now();
-      animationFrameRef.current = requestAnimationFrame(simulate);
-      return;
+    if (session.course?.running) {
+      clockRef.current.reset(); lastTimeRef.current = performance.now();
+      animationRef.current = requestAnimationFrame(loop);
+    } else {
+      const next = sessionRef.current.course?.read();
+      if (next) { projectFrame(next); setFrame(next); }
+      bindingRef.current = {...bindingRef.current, advancing: false};
     }
-
-    const now = performance.now();
-    const frameDt = getSimulationDeltaFromMilliseconds(now, lastUpdateRef.current, speedScale);
-    lastUpdateRef.current = now;
-
-    const stepSimulation = (dt: number) => {
-      const drive = driveRef.current;
-      if (!drive) return;
-      const moved = takeVesselSubstep(
-        sessionRef.current.step,
-        (time) => dredgerExperiment.command(sessionRef.current.step, time),
-        (command, stepDt, time) => drive.step(command, stepDt, time),
-        timeRef.current,
-        dt,
-      );
-      timeRef.current = moved.time;
-      if (!moved.sample) return;
-      const mmg = drive.mmg();
-      mmgStateRef.current = mmg;
-      sessionRef.current.trackLatest(moved.sample);
-      const mark = vesselSampleMark(moved.sample.time);
-      if (mark > markRef.current) {
-        markRef.current = mark;
-        sessionRef.current.observe(moved.sample);
-      }
-      const positionError = vesselValue(moved.sample, 'position');
-      const headingError = vesselValue(moved.sample, 'headingError');
-      const speed = vesselValue(moved.sample, 'speed');
-      if (moved.command.dp) {
-        const alarm = positionAlarmRef.current;
-        if (positionError > POSITION_ALARM_THRESHOLD_M) {
-          alarm.since ??= timeRef.current;
-          if (!alarm.active && timeRef.current - alarm.since >= POSITION_ALARM_HOLD_SECONDS) {
-            alarm.active = true;
-            setPositionAlarm(
-              `定位误差持续超过 ${POSITION_ALARM_THRESHOLD_M} m 阈值达 ${POSITION_ALARM_HOLD_SECONDS} 秒，请检查扰动设置与控制模式`
-            );
-          }
-        } else if (!alarm.active || positionError < POSITION_ALARM_CLEAR_M) {
-          alarm.since = null;
-          if (alarm.active && positionError < POSITION_ALARM_CLEAR_M) {
-            alarm.active = false;
-            setPositionAlarm(null);
-          }
-        }
-      } else {
-        const alarm = positionAlarmRef.current;
-        if (alarm.since !== null || alarm.active) {
-          positionAlarmRef.current = { since: null, active: false };
-          setPositionAlarm(null);
-        }
-      }
-      const insideDeadzone =
-        positionError <= POSITION_ALARM_THRESHOLD_M
-        && headingError <= 5;
-      let attainedCount = bindingRef.current.attainedCount;
-      if (advanceStationKeepAttainment(stationKeepRef.current, insideDeadzone, dt)) {
-        attainedCount += 1;
-      }
-      bindingRef.current = {
-        rudderDeg: toDegrees(mmg.rudderAngle),
-        speedMps: speed,
-        attainedCount,
-        advancing: true,
-        cutterRpm: moved.command.dredging ? 36 : 0,
-      };
-      setMetrics({
-        positionError,
-        headingError,
-        surgeError: 0,
-        swayError: 0,
-        speed,
-        rudderAngle: toDegrees(mmg.rudderAngle),
-        time: moved.sample.time,
-        totalPowerKW: 0,
-      });
-      setTrajectory((prev) => {
-        const newPoint = { x: mmg.x, z: mmg.y };
-        if (prev.length === 0) return [newPoint];
-        const last = prev[prev.length - 1];
-        const dist = Math.sqrt(
-          (newPoint.x - last.x) ** 2 + (newPoint.z - last.z) ** 2
-        );
-        if (dist > 2) {
-          return [...prev.slice(-200), newPoint];
-        }
-        return prev;
-      });
-    };
-
-    clockRef.current.advance(frameDt, stepSimulation);
-
-    animationFrameRef.current = requestAnimationFrame(simulate);
-  }, [isRunning, speedScale]);
-
-  // 启动/停止仿真
-  useEffect(() => {
-    if (isRunning) {
-      clockRef.current.reset();
-      lastUpdateRef.current = performance.now();
-      animationFrameRef.current = requestAnimationFrame(simulate);
-    }
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [isRunning, simulate]);
-
-  // 控制函数
-  const handleStart = () => setIsRunning(true);
-  const handlePause = () => {
-    bindingRef.current = { ...bindingRef.current, advancing: false, cutterRpm: 0 };
-    setIsRunning(false);
-  };
-  const handleReset = () => {
-    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    bindingRef.current = { ...bindingRef.current, advancing: false, cutterRpm: 0 };
-    resetPose(true);
-  };
-
-  const handleConfigChange = (updates: Partial<SimulationConfig>) => {
-    setConfig((prev) => ({ ...prev, ...updates }));
-    if (updates.controlMode && updates.controlMode !== 'dp') {
-      positionAlarmRef.current = { since: null, active: false };
-      setPositionAlarm(null);
-    }
-  };
-
-  // 当前船舶位置
-  const shipPosition = {
-    x: mmgStateRef.current.x,
-    z: mmgStateRef.current.y,
-  };
-  const shipHeading = mmgStateRef.current.psi;
+    return () => { if (animationRef.current !== null) cancelAnimationFrame(animationRef.current); };
+  }, [session.course?.running, loop, projectFrame]);
+  const isRunning = session.course?.running ?? false;
+  const shipPosition = {x: poseRef.current.x, z: poseRef.current.y};
+  const shipHeading = poseRef.current.psi;
 
   return (
     <SceneEnvironmentProvider>
@@ -769,14 +329,14 @@ export function DredgerSimulation({ ticket = '' }: { ticket?: string }) {
         <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
 
         <Suspense fallback={null}>
-          <EnvironmentScene subjectPositionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })} />
+          <EnvironmentScene subjectPositionSampler={() => ({ x: poseRef.current.x, z: poseRef.current.y })} />
         <MarineSceneLayoutObjects layoutId="shallow-construction-site" />
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />
         <MarinePerformanceEvidenceProbe contextInput={() => ({ vesselId: 'dredger', cameraView: String(cameraMode), seaState: 3 })} />
         <Suspense fallback={null}>
-          <DredgerWater playing={isRunning} mmgStateRef={mmgStateRef} resetToken={resetCount} />
+          <DredgerWater playing={isRunning} poseRef={poseRef} resetToken={resetCount} />
         </Suspense>
 
         {/* 网格 */}
@@ -796,7 +356,7 @@ export function DredgerSimulation({ ticket = '' }: { ticket?: string }) {
         ) : null}
 
         {/* 目标标记（教学标注门控，默认关闭；坐标在控制面板数值可读） */}
-        <TeachingAnnotationsGate position={config.targetPosition} heading={config.targetHeading} />
+        <TeachingAnnotationsGate position={{x: 0, z: 0}} heading={0} />
 
         {/* 挖泥船 */}
         <Suspense
@@ -812,17 +372,20 @@ export function DredgerSimulation({ ticket = '' }: { ticket?: string }) {
             heading={shipHeading}
             simRef={bindingRef}
             resetToken={resetCount}
+            heaveM={-(frame?.truth.position_ned[2] ?? 0)}
+            rollRad={(frame?.attitudeDeg.roll ?? 0) * Math.PI / 180}
+            pitchRad={(frame?.attitudeDeg.pitch ?? 0) * Math.PI / 180}
           />
         </Suspense>
 
         {/* 航迹 */}
-        {trajectory.length > 1 && <TrajectoryLine points={trajectory} waterOriginSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })} />}
+        {trajectory.length > 1 && <TrajectoryLine points={trajectory} waterOriginSampler={() => ({ x: poseRef.current.x, z: poseRef.current.y })} />}
 
 
         <StayPutCameraController
           view={cameraMode}
-          positionSampler={() => ({ x: mmgStateRef.current.x, z: mmgStateRef.current.y })}
-          headingSampler={() => platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi))}
+          positionSampler={() => ({ x: poseRef.current.x, z: poseRef.current.y })}
+          headingSampler={() => platformHeadingToSceneRad(toDegrees(poseRef.current.psi))}
           shipLength={dredgerTianjingSceneVisual.shipLengthMeters}
           controlsRef={controlsRef}
         resetSignal={viewResetCount}
@@ -846,35 +409,17 @@ export function DredgerSimulation({ ticket = '' }: { ticket?: string }) {
       <VesselExperimentDocks
         experiment={dredgerExperiment}
         session={session}
-        status={<HUD metrics={metrics} positionAlarm={positionAlarm} isRunning={isRunning} />}
-        controls={(
-          <ControlPanel
-            config={config}
-            onConfigChange={handleConfigChange}
-            onStart={handleStart}
-            onPause={handlePause}
-            onReset={handleReset}
-            isRunning={isRunning}
-            inputsEnabled={false}
-          />
-        )}
-        assessment={(
-          <SimulationAssessmentPanel
-            title="定位精度评估"
-            metrics={[
-              { id: 'position', label: '位置误差', value: metrics.positionError, max: 2, better: 'lower', unit: 'm', precision: 3 },
-              { id: 'heading', label: '航向误差', value: metrics.headingError, max: 20, better: 'lower', unit: '°', precision: 2 },
-              { id: 'speed', label: '航速稳定', value: metrics.speed, max: 4, better: 'lower', unit: 'm/s', precision: 2 },
-              { id: 'rudder', label: '舵角幅值', value: Math.abs(metrics.rudderAngle), max: 35, better: 'lower', unit: '°', precision: 1 },
-            ]}
-          />
-        )}
+        status={<HUD frame={frame} isRunning={isRunning} />}
+        controls={<DredgerCourseControls session={session} timeS={frame?.timeS ?? 0} />}
+        assessment={session.course && !session.tour.active ? <VesselModelWorkbench scopeKey={session.course.scopeKey}
+          runs={session.course.runs} onArtifactsChange={session.course.onArtifactsChange}
+          defaultChannel="winch-reference-to-sway" /> : null}
       />
 
       <SimulationTopBar
-        title="天鲸号挖泥船动力定位"
-        subtitle="MMG 3-DOF 高保真模型 · 定位精度 < 0.1m"
-        badge="Dredger / OBE"
+        title="天鲸号工况切换与作业定位"
+        subtitle="钢桩与弹性锚缆 · 桥架、绞刀及六自由度耦合"
+        badge="天鲸号"
       />
     </div>
     </SceneQualityProvider>

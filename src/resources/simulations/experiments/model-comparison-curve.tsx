@@ -44,6 +44,8 @@ export function ModelComparisonCurve({
       ? '船艏剩余距离'
       : comparison.outputChannel === 'SpeedLog'
         ? '对水航速'
+        : comparison.outputChannel === 'DredgerSwaySpeed'
+          ? '刀位横移速度'
         : comparison.outputChannel === 'EstimatedRoll'
           ? '横摇姿态'
           : '模型对照输出';

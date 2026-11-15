@@ -1,0 +1,428 @@
+courseVersion: seven-vessel-2026.11.14
+guideEdition: 2026.11.16
+experimentId: exp-01-055-heading
+title: 055型驱逐舰航向控制
+minutes:
+  preparation: 15
+  practice: 80
+  report: 25
+objectives:
+  - id: G1
+    text: 解释指令、执行器、量测与船体运动的因果链
+    level: 理解与分析
+    steps:
+      - 1
+      - 2
+      - 3
+  - id: G2
+    text: 建立局部模型并以独立记录检验适用域
+    level: 应用与分析
+    steps:
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+  - id: G3
+    text: 比较控制方案、饱和和现实因素下的性能
+    level: 设计与评价
+    steps:
+      - 9
+      - 10
+      - 11
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+  - id: G4
+    text: 在未见条件中验证并形成有证据的工程结论
+    level: 评价与工程判断
+    steps:
+      - 19
+      - 20
+steps:
+  - id: destroyer-step-1
+    sequence: 1
+    objectiveRefs:
+      - G1
+    cognitiveLevel: understand
+    evidence:
+      - prediction
+      - run
+      - signal-annotations
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-2
+    sequence: 2
+    objectiveRefs:
+      - G1
+    cognitiveLevel: understand
+    evidence:
+      - prediction
+      - run
+      - actuator-time-constant
+      - measurement-window
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-3
+    sequence: 3
+    objectiveRefs:
+      - G1
+    cognitiveLevel: understand
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-4
+    sequence: 4
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - training-run
+      - measurement-window
+      - student-model
+      - fit-residual
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: none
+  - id: destroyer-step-5
+    sequence: 5
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - frozen-model
+      - independent-validation
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: validation
+  - id: destroyer-step-6
+    sequence: 6
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - frozen-model
+      - comparison
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-7
+    sequence: 7
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - two-operating-point-runs
+      - student-models
+      - parameter-table
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-8
+    sequence: 8
+    objectiveRefs:
+      - G2
+    cognitiveLevel: analyze
+    evidence:
+      - frozen-model
+      - sketch
+      - model-characteristics
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: none
+  - id: destroyer-step-9
+    sequence: 9
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-10
+    sequence: 10
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - frozen-model
+      - independent-closed-loop
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-11
+    sequence: 11
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-12
+    sequence: 12
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-13
+    sequence: 13
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-14
+    sequence: 14
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-15
+    sequence: 15
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-16
+    sequence: 16
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-17
+    sequence: 17
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - frozen-controller
+      - fair-comparison
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: training
+  - id: destroyer-step-18
+    sequence: 18
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - frozen-controller
+      - unseen-validation
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: validation
+  - id: destroyer-step-19
+    sequence: 19
+    objectiveRefs:
+      - G4
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - constraint-check
+      - boundary-judgment
+      - interpretation
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: validation
+  - id: destroyer-step-20
+    sequence: 20
+    objectiveRefs:
+      - G4
+    cognitiveLevel: synthesize
+    evidence:
+      - model-assumptions
+      - four-own-runs
+      - controller-comparison
+      - applicability-boundary
+      - report
+    measurementSignals:
+      - Heading
+      - YawRate
+      - SpeedLog
+      - SurfaceEncoder
+      - ShaftSpeed
+      - North
+      - East
+    trainValidationRole: none

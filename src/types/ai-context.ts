@@ -64,6 +64,24 @@ export interface PageContext {
   simulationId?: string;
   /** 浏览器选择的实验轮次引用，仅用于服务端校验归属后查询证据。 */
   simulationOriginId?: string;
+  /** 当前页面的数值观察，仅以尚未由服务端复算的浏览器报告进入用户回合。 */
+  simulationObservation?: {
+    timeS: number;
+    loadingRatio?: number;
+    effectiveGmM?: number;
+    windSideAreaM2?: number;
+    headingDeg?: number;
+    waterSpeedMps?: number;
+    northM?: number;
+    eastM?: number;
+    dredgerMode?: 'transit' | 'prepare' | 'spud_hold' | 'cut_swing' | 'pause_cut' | 'recover' | 'exit';
+    dredgerDepthM?: number;
+    dredgerSwayMps?: number;
+    dredgerCutterRpm?: number;
+    dredgerPortTensionN?: number;
+    dredgerStarboardTensionN?: number;
+    dredgerSpudForceN?: number;
+  };
   /** 仿真上下文来源 */
   routeProvenance?: 'simulation-route';
   /** 运行摘要可用性 */

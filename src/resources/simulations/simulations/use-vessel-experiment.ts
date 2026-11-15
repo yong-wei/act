@@ -713,6 +713,11 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const hudBucket = Math.floor((liveRef.current.time ?? 0) / 5);
   useEffect(() => {
     if (!updatePageContext) return;
+    const current = workspace.current;
+    const frame = nativeCourse && !tourActive && current?.plan.stepSequence === step.seq ? current.read() : undefined;
+    const point = frame ? current?.run()?.trace.at(-1) : undefined;
+    const observed = (key: string) => point?.measurements[key]?.quality === 'Good'
+      ? point.measurements[key].value ?? undefined : undefined;
     updatePageContext({
       courseId: experiment.courseId,
       courseTitle: experiment.title,
@@ -729,13 +734,27 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
         originId ||
         undefined,
       routeProvenance: 'simulation-route',
+      simulationObservation: frame ? {
+        timeS: point?.timeS ?? frame.timeS,
+        loadingRatio: current?.plan.configuration.loadingRatio,
+        effectiveGmM: frame.parameters.effectiveGmTransverseM ?? undefined,
+        windSideAreaM2: frame.parameters.windAreasM2?.lateral,
+        headingDeg: observed('Heading'), waterSpeedMps: observed('SpeedLog'),
+        northM: observed('North'), eastM: observed('East'),
+        dredgerMode: frame.dredger?.mode,
+        dredgerDepthM: observed('DredgerDepth'), dredgerSwayMps: observed('DredgerSwaySpeed'),
+        dredgerCutterRpm: observed('DredgerCutterRpm'),
+        dredgerPortTensionN: observed('DredgerCableTension0'),
+        dredgerStarboardTensionN: observed('DredgerCableTension1'),
+        dredgerSpudForceN: observed('DredgerSpudForce'),
+      } : undefined,
       systemPromptExtension: vesselKonlingBrief(experiment, step, liveRef.current.time === undefined ? null : liveRef.current),
       quickQuestions: [{
         label: '这一步怎么做',
         question: `我在做${experiment.title}第 ${step.seq} 步「${step.title}」。请给出操作建议，不要替我填写读数，也不要打分。`,
       }],
     });
-  }, [experiment, hudBucket, step, updatePageContext, scopeKey, readyScope, originId, nativeCourse]);
+  }, [experiment, hudBucket, step, updatePageContext, scopeKey, readyScope, originId, nativeCourse, tourActive]);
 
   const aiTurnSeq = ai?.aiTurnSeq ?? 0;
   useEffect(() => {
@@ -792,7 +811,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       }
       const input = current.run() ? courseInput(current) : current.previewInput(courseInput(current));
       const openingInput = current.run()?.initialInput ?? input;
-      if (activeSeq === courseAdapter.requiresForecastSequence && !(await listModelComparisons(scopeKey)).some((comparison) =>
+      if (courseAdapter.requiresForecast?.(activeSeq) && !(await listModelComparisons(scopeKey)).some((comparison) =>
         comparison.runId === plannedRunRef.current && comparison.purpose === 'forecast'
         && comparison.modelId === designModelId && JSON.stringify(comparison.controllerInput) === JSON.stringify(openingInput))) {
         throw new Error('请先冻结与本次方案一致的本人模型预测，再执行本步。');
@@ -827,12 +846,16 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     }
     const current = workspace.current;
     const run = current?.run();
-    if (busy || !current?.plan.configuration.berth || current.read().timeS < 60 || !run
+    const canFinish = current && ((current.plan.configuration.berth && current.read().timeS >= 60)
+      || (current.plan.configuration.ice && current.plan.configuration.azimuthJamFault && current.read().timeS >= 180));
+    if (busy || !canFinish || !current || !run
       || run.stoppedAtMs !== null) return;
     setBusy(true); setCourseRunning(false);
     try {
       await current.pause('student'); await saveCourseDraft(); await reloadCourseEvidence();
-      setMessage('本次靠泊已按实际时刻结束，请核对停止距离、对地航速、末60秒横偏、航向和液面适用域。');
+      setMessage(current.plan.configuration.ice
+        ? '本次故障工况已按实际时刻结束，请解释停桨、停滞、通道与能量记录。'
+        : '本次靠泊已按实际时刻结束，请核对停止距离、对地航速、末60秒横偏、航向和液面适用域。');
     } catch (error) { courseFailure(error); }
     finally { setBusy(false); }
   }
@@ -875,14 +898,14 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       }
       const current = workspace.current!;
       const model = courseLive.current.models.find((item) => item.id === courseLive.current.designModelId);
-      if (!model) throw new Error('请选择本人冻结的航速模型。');
+      if (!model) throw new Error('请选择本人冻结的局部模型。');
       if (!courseAdapter.forecast) throw new Error('请在评估页签中保存本步骤需要的分析工件。');
       const forecast = courseAdapter.forecast(scopeKey, plannedRunRef.current, current.plan.stepSequence, current.plan.configuration,
-        current.plan.durationS, current.previewInput(courseInput(current)), current.read(), model);
+        current.plan.durationS, current.previewInput(courseInput(current)), current.read(), model, settings, courseLive.current.models);
       await saveModelComparison(forecast);
       await saveCourseDraft();
       await reloadCourseEvidence();
-      setMessage('速度与船艏距离预测已冻结，开始对应的独立运行后可上传证据。');
+      setMessage('本人模型预测已冻结，开始对应的独立运行后可上传证据。');
     } catch (error) { courseFailure(error); }
     finally { setBusy(false); }
   }
@@ -1483,7 +1506,8 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
             runs: runs.filter((run) => run.scopeKey === scopeKey), onArtifactsChange,
             hasStarted: Boolean(workspace.current?.run()),
             completed: workspace.current?.run()?.stoppedAtMs != null,
-            canFinish: Boolean(workspace.current?.plan.configuration.berth && workspace.current.read().timeS >= 60
+            canFinish: Boolean(workspace.current && ((workspace.current.plan.configuration.berth && workspace.current.read().timeS >= 60)
+              || (workspace.current.plan.configuration.ice && workspace.current.plan.configuration.azimuthJamFault && workspace.current.read().timeS >= 180))
               && workspace.current.run()?.stoppedAtMs === null), finish: finishCourseRun,
             read: (): ReturnType<VesselCourseWorkspace['read']> | null => workspace.current?.read() ?? null,
             latestPoint: (): VesselRunEvidence['trace'][number] | undefined => workspace.current?.run()?.trace.at(-1),

@@ -1,0 +1,365 @@
+courseVersion: seven-vessel-2026.11.14
+guideEdition: 2026.11.16
+experimentId: exp-03-container-schedule
+title: 集装箱船航速、准点与燃油
+minutes:
+  preparation: 15
+  practice: 80
+  report: 25
+objectives:
+  - id: G1
+    text: 解释装载、工作点与推进响应
+    level: 应用与分析
+    steps:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+  - id: G2
+    text: 建立三点模型并比较调度与无扰切换
+    level: 分析与设计
+    steps:
+      - 7
+      - 8
+      - 9
+      - 10
+  - id: G3
+    text: 在相同实际航程下比较准点、燃油与环境影响
+    level: 设计与评价
+    steps:
+      - 11
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+  - id: G4
+    text: 以未见条件检验完整航次方案
+    level: 评价与工程判断
+    steps:
+      - 19
+      - 20
+steps:
+  - id: container-step-1
+    sequence: 1
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-2
+    sequence: 2
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-3
+    sequence: 3
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-4
+    sequence: 4
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: validation
+  - id: container-step-5
+    sequence: 5
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-6
+    sequence: 6
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-7
+    sequence: 7
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-8
+    sequence: 8
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-9
+    sequence: 9
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-10
+    sequence: 10
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-11
+    sequence: 11
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-12
+    sequence: 12
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-13
+    sequence: 13
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-14
+    sequence: 14
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-15
+    sequence: 15
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-16
+    sequence: 16
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-17
+    sequence: 17
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-18
+    sequence: 18
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training
+  - id: container-step-19
+    sequence: 19
+    objectiveRefs:
+      - G4
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: validation
+  - id: container-step-20
+    sequence: 20
+    objectiveRefs:
+      - G4
+    cognitiveLevel: synthesize
+    evidence:
+      - five-own-runs
+      - report
+    measurementSignals:
+      - ShaftSpeed0
+      - SpeedLog
+      - Heading
+      - North
+      - East
+    trainValidationRole: training

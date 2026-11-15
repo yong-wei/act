@@ -61,6 +61,7 @@ export interface LiveRotationBinding {
   readonly axis: 'x' | 'y' | 'z';
   readonly azipodSlot?: 'P' | 'S';
   readonly thrusterId?: number;
+  readonly ladder?: boolean;
   readonly sign?: 1 | -1;
 }
 

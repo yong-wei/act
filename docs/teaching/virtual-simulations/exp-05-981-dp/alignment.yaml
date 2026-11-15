@@ -1,0 +1,383 @@
+courseVersion: seven-vessel-2026.11.14
+guideEdition: 2026.11.16
+experimentId: exp-05-981-dp
+title: 海洋石油981动力定位
+minutes:
+  preparation: 25
+  practice: 120
+  report: 35
+objectives:
+  - id: G1
+    text: 辨析推进器符号、耦合和量测分离
+    level: 分析
+    steps:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+  - id: G2
+    text: 用本人模型比较定位与前馈方案
+    level: 综合设计
+    steps:
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+  - id: G3
+    text: 评价分配、功率、观测与失效可行性
+    level: 设计与评价
+    steps:
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+  - id: G4
+    text: 在未见环境中评价完整定位方案
+    level: 工程判断
+    steps:
+      - 19
+      - 20
+steps:
+  - id: drilling-step-1
+    sequence: 1
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-2
+    sequence: 2
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-3
+    sequence: 3
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-4
+    sequence: 4
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - student-model
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-5
+    sequence: 5
+    objectiveRefs:
+      - G1
+    cognitiveLevel: analyze
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: validation
+  - id: drilling-step-6
+    sequence: 6
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-7
+    sequence: 7
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-8
+    sequence: 8
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-9
+    sequence: 9
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-10
+    sequence: 10
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-11
+    sequence: 11
+    objectiveRefs:
+      - G2
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-12
+    sequence: 12
+    objectiveRefs:
+      - G3
+    cognitiveLevel: design
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-13
+    sequence: 13
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-14
+    sequence: 14
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-15
+    sequence: 15
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-16
+    sequence: 16
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-17
+    sequence: 17
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-18
+    sequence: 18
+    objectiveRefs:
+      - G3
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training
+  - id: drilling-step-19
+    sequence: 19
+    objectiveRefs:
+      - G4
+    cognitiveLevel: evaluate
+    evidence:
+      - prediction
+      - run
+      - interpretation
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: validation
+  - id: drilling-step-20
+    sequence: 20
+    objectiveRefs:
+      - G4
+    cognitiveLevel: synthesize
+    evidence:
+      - six-own-runs
+      - report
+    measurementSignals:
+      - North
+      - East
+      - Heading
+      - YawRate
+      - WindSpeed
+      - WindDirection
+    trainValidationRole: training

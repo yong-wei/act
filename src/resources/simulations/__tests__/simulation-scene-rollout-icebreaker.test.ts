@@ -53,7 +53,7 @@ describe('icebreaker pipeline integration', () => {
     expect(rig).toContain('worldSpeedSampler');
     expect(rig).toContain('playing ? speed : 0');
     expect(rig).toContain('resetToken={resetToken}');
-    expect(source).toContain('speed={metrics.speed}');
+    expect(source).toContain('speed={frame?.waterVelocityBody[0] ?? 0}');
   });
 
   it('wires the optimized model with error boundary and culling workaround', () => {
