@@ -205,7 +205,9 @@ function ScalarVesselModelWorkbench({ scopeKey, runs, onArtifactsChange, default
         </SimField> : null}
         <Button className={simulationUi.buttonOutline} size="sm" disabled={busy || !runId || !selectedModel || selectedModel.channel === 'rudder-servo'} onClick={() => { void analyze('compare'); }}>运行独立对照</Button>
         {selectedModel?.channel === 'rudder-servo' ? <p className="text-xs text-platform-fg-secondary">已冻结舵机模型可在B/C对照或运行前闭环预测中作为执行器模型选用。</p> : null}
-        {selectedComparison ? <ModelComparisonCurve comparison={selectedComparison} /> : null}
+        {selectedComparison ? (
+          <ModelComparisonCurve comparison={selectedComparison} studentModel={selectedModel} />
+        ) : null}
         {message ? <p role="status" className="text-xs leading-5 text-platform-fg-secondary">{message}</p> : null}
       </div>
     </SimPanelSection>

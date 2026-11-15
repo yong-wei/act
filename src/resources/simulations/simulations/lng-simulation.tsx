@@ -711,17 +711,21 @@ export function LNGSimulation({ ticket = '' }: { ticket?: string }) {
           <div className="space-y-4">
           {session.course ? <SimPanelSection title="本机实验轮次" icon={Timer}>
             <div className="space-y-2"><select className="sim-hud-input" aria-label="本机实验轮次" value={session.course.scopeKey}
-              disabled={session.busy || !session.course.ready} onChange={(event) => {void session.course?.selectRound(event.target.value);}}>
+              disabled={session.busy || session.tour.active || !session.course.ready} onChange={(event) => {void session.course?.selectRound(event.target.value);}}>
               {session.course.rounds.map((draft, index) => <option key={draft.scopeKey} value={draft.scopeKey}>
                 {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步{index === 0 ? ' · 最近' : ''}
               </option>)}</select>
-              <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || !session.course.ready}
+              <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || session.tour.active || !session.course.ready}
                 onClick={() => {void session.restartIlabSession();}}>开启新一轮实验</Button></div>
           </SimPanelSection> : null}
-          {session.course ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy}
-            onClick={() => { void session.course?.upload(); }}>上传或重试保存本人证据</Button> : null}
-          {session.course ? <VesselModelWorkbench scopeKey={session.course.scopeKey} runs={session.course.runs}
-            onArtifactsChange={session.course.onArtifactsChange} defaultChannel="shaft-reference-to-speed" /> : null}
+          {session.course ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || session.tour.active}
+            onClick={() => { void session.course?.upload(); }}>{session.tour.active ? '导览只读禁止上传' : '上传或重试保存本人证据'}</Button> : null}
+          {session.course ? (session.tour.active ? (
+            <div className="sim-hud-tile p-2.5 text-xs text-platform-fg-secondary" data-tour-workbench-locked>
+              只读高光导览中：已隔离本机实验轮次与模型辨识库，退出导览后可继续编辑本人模型。
+            </div>
+          ) : <VesselModelWorkbench scopeKey={session.course.scopeKey} runs={session.course.runs}
+            onArtifactsChange={session.course.onArtifactsChange} defaultChannel="shaft-reference-to-speed" />) : null}
           <SimulationAssessmentPanel
             title="运行质量评估"
             pendingReview

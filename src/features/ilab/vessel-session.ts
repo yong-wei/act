@@ -16,6 +16,7 @@ import { findVesselExperiment, VESSEL_EXPERIMENTS } from '@/resources/simulation
 import { VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 
 import { emptyAiLedger, isAiUsageLedger, recordAiCall, type AiUsageLedger } from './ai-data';
+import { buildAuditTelemetry, maskOriginId, type VesselAuditTelemetry } from './telemetry-redaction';
 import type { IlabGrantPayload } from './grant-cookie';
 import { recognizeSketch } from './sketch-recognition';
 import { ILAB_PROJECT_TITLE, buildIlabUploadBody, type IlabUploadBody, type StoredIlabStep } from './payload';
@@ -32,7 +33,7 @@ import {
   resolveUnifiedSessionActor,
 } from './adapters/ilab-session-lifecycle';
 
-export { toIlabHttpError };
+export { toIlabHttpError, maskOriginId, type VesselAuditTelemetry };
 
 export interface VesselSessionView {
   userId: string | null;
@@ -50,6 +51,7 @@ export interface VesselSessionView {
   reportId: string | null;
   reportClientRef?: string;
   reportHtml: string | null;
+  auditTelemetry: VesselAuditTelemetry;
   stepDrafts: Record<string, Record<string, string>>;
   steps: Array<{
     seq: number;
@@ -151,6 +153,14 @@ function viewOf(experiment: VesselExperiment, run: RunRecord): VesselSessionView
     reportReady: Boolean(run.reportHtml),
     reportId: run.reportId,
     reportHtml: run.reportHtml,
+    auditTelemetry: buildAuditTelemetry({
+      originId: run.originId,
+      uploadMode,
+      uploadStatus: run.uploadStatus,
+      completedStepCount: steps.length,
+      totalSamplePoints: steps.reduce((sum, step) => sum + step.samples.length, 0),
+      ledgerValue: run.aiLedger,
+    }),
     stepDrafts: drafts.bySeq,
     ...(typeof drafts.courseState?.reportClientRef === 'string' ? { reportClientRef: drafts.courseState.reportClientRef } : {}),
     steps: steps.map((step) => ({
@@ -233,7 +243,37 @@ export async function readVesselSession(
   if (actor) {
     await assertIlabRunAccess(run, actor);
   }
-  return viewOf(experiment, run);
+  const view = viewOf(experiment, run);
+  if (run.experimentVersion === VESSEL_COURSE_VERSION && run.userId) {
+    const drafts = parseStepDrafts(run.stepDrafts);
+    const clientRef = drafts.courseState?.reportClientRef;
+    const report = run.reportId || typeof clientRef === 'string'
+      ? await prisma.virtualSimulationReport.findFirst({
+        where: {userId: run.userId, experimentKey: experiment.route.split('/').at(-1),
+          experimentVersion: VESSEL_COURSE_VERSION,
+          ...(run.reportId ? {id: run.reportId} : {clientRef: String(clientRef)})},
+        select: {id: true, clientRef: true, experimentKey: true},
+      }) : null;
+    const [recordedRuns, attempts] = report ? await Promise.all([
+      prisma.simulationRun.findMany({where: {ownerUserId: run.userId, sourceDomain: 'ilab-course',
+        summary: {path: ['reportId'], equals: report.id}}, select: {summary: true}}),
+      prisma.stepSubmissionAttempt.findMany({where: {userId: run.userId,
+        experimentKey: `${report.experimentKey}:${report.clientRef}`,
+        status: {notIn: ['invalid_run', 'model_mismatch']}}, select: {stepKey: true}, distinct: ['stepKey']}),
+    ]) : [[], []];
+    const totals = recordedRuns.reduce((sum, record) => {
+      const summary = record.summary as {controlCount: number; chunkCount: number};
+      return {points: sum.points + summary.controlCount, chunks: sum.chunks + summary.chunkCount};
+    }, {points: 0, chunks: 0});
+    view.auditTelemetry = {
+      ...view.auditTelemetry,
+      completedStepCount: attempts.length,
+      totalSamplePoints: totals.points,
+      persistedChunkCount: totals.chunks,
+      controlSampleCadenceS: .05,
+    };
+  }
+  return view;
 }
 
 export async function submitVesselStep(originId: string, input: {

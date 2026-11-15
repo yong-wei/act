@@ -9,7 +9,7 @@
 import { consumeStream, createUIMessageStreamResponse, generateText, streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel, getConfiguredAIProviderBinding, isConfiguredAIServiceAvailable } from '@/lib/ai/provider-runtime';
 import { recordSimulationKonlingAiUsage } from '@/features/ilab/adapters/konling-ai-ledger';
-import { loadSimulationKonlingEvidence } from '@/features/ilab/adapters/konling-simulation-evidence';
+import { attachSimulationKonlingContext, loadSimulationKonlingEvidence } from '@/features/ilab/adapters/konling-simulation-evidence';
 import { SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai/lesson-prompts';
 import { resolveServerOwnedChatPageContext } from '@/lib/ai/chat-context-boundary';
 import { requestsLearningPathGeneration } from '@/lib/ai/path-generation-intent';
@@ -499,6 +499,7 @@ export async function POST(request: Request) {
     let citationRepairPrivateValues: readonly string[] = [];
     let forceStructuredSmartPrepTool = false;
     let ledgerTrackingTarget: { userId: string; courseId: string; stepId?: string | null; originId?: string } | null = null;
+    let simulationTurnContext = '';
     let modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
       streaming: true,
@@ -977,7 +978,10 @@ export async function POST(request: Request) {
       }
       const evidence = await loadSimulationKonlingEvidence(ledgerTrackingTarget.userId,
         ledgerTrackingTarget.courseId, ledgerTrackingTarget.stepId, ledgerTrackingTarget.originId);
-      if (evidence) systemPrompt = `${systemPrompt}\n\n${evidence}`;
+      if (evidence) {
+        systemPrompt = `${systemPrompt}\n\n${evidence}`;
+        simulationTurnContext = evidence;
+      }
     }
 
     if (lessonContext?.stage === 'interactive') {
@@ -1020,8 +1024,9 @@ export async function POST(request: Request) {
       : Promise.resolve(null);
     const responseModel = await getConfiguredAIModel(undefined, modelRequirements);
     const providerBinding = await providerBindingPromise;
-    const frozenModelMessages = (await toModelMessages(uiMessages)).filter(
-      (message) => (message as { role?: string }).role !== 'system',
+    const frozenModelMessages = attachSimulationKonlingContext(
+      (await toModelMessages(uiMessages)).filter((message) => message.role !== 'system'),
+      simulationTurnContext,
     );
     const effectiveUserMessage = [...messages].reverse().find((message) => message.role === 'user');
     const precomputedMath = effectiveUserMessage

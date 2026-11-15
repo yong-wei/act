@@ -66,6 +66,7 @@ import type { ControlMode, Vector2 } from '../core/types';
 import { containerCourseExperiment as containerExperiment } from '../experiments/container-experiment';
 import { containerCourseAdapter, containerCourseTraceSamples } from '../experiments/container-course';
 import { ContainerCourseControls } from '../experiments/container-course-controls';
+import { ContainerVoyageTradeoff } from '../experiments/container-voyage-tradeoff';
 import { VesselModelWorkbench } from '../experiments/model-workbench';
 import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { Button } from '@/components/ui/button';
@@ -299,6 +300,15 @@ function HUD({ state }: { state: ContainerSimulationState }) {
         </p> : null}
         <p className="mt-2 text-xs text-platform-fg-secondary">燃油采用教学发动机曲线，实际轴功率积分保留推进、制动和怠速影响。</p>
       </SimPanelSection>
+      <ContainerVoyageTradeoff
+        timeS={state.time}
+        positionX={state.position.x}
+        speedMps={state.speed}
+        powerW={state.powerW}
+        fuelKg={state.fuelKg}
+        rudderDeg={state.rudder}
+        voyage={state.voyage}
+      />
       <SimPanelSection
         title="相对风量测"
         icon={Wind}
@@ -647,17 +657,21 @@ export default function ContainerSimulation({ ticket = '' }: { ticket?: string }
           <div className="space-y-4">
           {session.course ? <SimPanelSection title="本机实验轮次" icon={Gauge}>
             <div className="space-y-2"><select className="sim-hud-input" aria-label="本机实验轮次" value={session.course.scopeKey}
-              disabled={session.busy || !session.course.ready} onChange={(event) => {void session.course?.selectRound(event.target.value);}}>
+              disabled={session.busy || session.tour.active || !session.course.ready} onChange={(event) => {void session.course?.selectRound(event.target.value);}}>
               {session.course.rounds.map((draft) => <option key={draft.scopeKey} value={draft.scopeKey}>
                 {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步
               </option>)}</select>
-              <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || !session.course.ready}
+              <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || session.tour.active || !session.course.ready}
                 onClick={() => {void session.restartIlabSession();}}>开启新一轮实验</Button></div>
           </SimPanelSection> : null}
-          {session.course ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy}
-            onClick={() => {void session.course?.upload();}}>上传或重试保存本人证据</Button> : null}
-          {session.course ? <VesselModelWorkbench scopeKey={session.course.scopeKey} runs={session.course.runs}
-            onArtifactsChange={session.course.onArtifactsChange} defaultChannel="shaft-reference-to-speed" /> : null}
+          {session.course ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || session.tour.active}
+            onClick={() => {void session.course?.upload();}}>{session.tour.active ? '导览只读禁止上传' : '上传或重试保存本人证据'}</Button> : null}
+          {session.course ? (session.tour.active ? (
+            <div className="sim-hud-tile p-2.5 text-xs text-platform-fg-secondary" data-tour-workbench-locked>
+              只读高光导览中：已隔离本机实验轮次与模型辨识库，退出导览后可继续编辑本人模型。
+            </div>
+          ) : <VesselModelWorkbench scopeKey={session.course.scopeKey} runs={session.course.runs}
+            onArtifactsChange={session.course.onArtifactsChange} defaultChannel="shaft-reference-to-speed" />) : null}
           <SimulationAssessmentPanel
             pendingReview
             title="航线控制评估"

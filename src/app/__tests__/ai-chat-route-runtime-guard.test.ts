@@ -144,6 +144,14 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).not.toContain('StreamingTextResponse');
   });
 
+  it('attaches server-owned simulation page facts after model system-message filtering', () => {
+    const projection = chatRouteSource.indexOf('const frozenModelMessages = attachSimulationKonlingContext(');
+    expect(projection).toBeGreaterThan(chatRouteSource.indexOf('await loadSimulationKonlingEvidence('));
+    expect(projection).toBeLessThan(chatRouteSource.indexOf('const result = await streamText('));
+    expect(chatRouteSource).toContain("(await toModelMessages(uiMessages)).filter((message) => message.role !== 'system')");
+    expect(chatRouteSource).toContain('simulationTurnContext = evidence;');
+  });
+
   it('normalizes structured action streams before rendering and reuses same-message correction', () => {
     const normalization = chatRouteSource.indexOf('createKonlingStructuredActionStream({');
     const response = chatRouteSource.indexOf('createUIMessageStreamResponse({');

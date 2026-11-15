@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import type { ModelMessage } from 'ai';
 import { readSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
 import { SIMULATION_COURSE_AI_CONTEXTS, resolveSimulationCourseKeyForAI, resolveSimulationVesselIdForCourse } from '@/resources/simulations/experiments/simulation-ai-contexts';
 import { parseStepDrafts } from './ilab-session-lifecycle';
@@ -10,6 +11,25 @@ const measurements = [
   ['North', '北向位置', 'm'], ['East', '东向位置', 'm'], ['SpeedLog', '对水航速', 'm/s'],
   ['RollRate', '横摇角速度', '°/s'], ['WindSpeed', '相对风速', 'm/s'], ['WindDirection', '相对风向', '°'],
 ] as const;
+
+/** 将服务端页面资料附于本次模型请求，避免历史对话中的步骤指代覆盖当前页面。 */
+export function attachSimulationKonlingContext(messages: ModelMessage[], context: string): ModelMessage[] {
+  if (!context) return messages;
+  const lastUserIndex = messages.map((message) => message.role).lastIndexOf('user');
+  return messages.map((message, index) => {
+    if (index !== lastUserIndex || message.role !== 'user') return message;
+    const content = typeof message.content === 'string'
+      ? [{ type: 'text' as const, text: message.content }]
+      : message.content;
+    return {
+      ...message,
+      content: [...content, {
+        type: 'text' as const,
+        text: `[服务端当前实验页面资料]\n当前船型、提问步骤和已保存进度以本条资料为准。涉及历史对话时注明其当时的船型和步骤。\n${context}`,
+      }],
+    };
+  });
+}
 
 export function formatSimulationKonlingEvidence(point: VesselTraceChunk['points'][number]): string {
   const lines = [`采样时刻为实验时间${point.timeS.toFixed(2)}s，航向指令${point.command.headingDeg.toFixed(3)}°。`];
@@ -47,6 +67,9 @@ export async function loadSimulationKonlingEvidence(userId: string, courseId: st
   const heading = [
     `当前学习目标是本页船舶实验第${sequence}步，请围绕本步操作、响应和因果关系指导。`,
     stepContext?.systemPromptExtension,
+    draft.activeSeq === undefined
+      ? '服务端尚未保存当前操作步骤。'
+      : `服务端保存的当前操作步骤为第${draft.activeSeq}步。`,
   ].filter(Boolean).join('\n');
   if (!report?.clientRef) return `${heading}\n本轮尚无已保存的服务端实验证据，请依据步骤目标指导观察。`;
   const [attempts, run] = await Promise.all([
@@ -56,7 +79,7 @@ export async function loadSimulationKonlingEvidence(userId: string, courseId: st
       AND: [{ summary: { path: ['reportId'], equals: report.id } }, { summary: { path: ['stepSequence'], equals: sequence } }] },
       orderBy: { updatedAt: 'desc' }, select: { traces: { orderBy: { chunkIndex: 'desc' }, take: 1, select: { sampleStorageUri: true } } } }),
   ]);
-  const progress = `${heading}\n本轮已保存${attempts.length}步有效提交，服务端保存的当前操作步骤为第${draft.activeSeq ?? sequence}步。`;
+  const progress = `${heading}\n本轮已保存${attempts.length}步有效提交。`;
   const reference = run?.traces[0]?.sampleStorageUri;
   if (!reference) return `${progress}\n当前提问步骤尚无服务端采样，先引导学生完成运行和保存。`;
   try {

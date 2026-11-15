@@ -2,7 +2,7 @@ import {config} from 'dotenv';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
 import bcrypt from 'bcryptjs';
-import {chromium,expect,type BrowserContext,type Page} from '@playwright/test';
+import {chromium,expect,type BrowserContext,type Page,type Request as PlaywrightRequest} from '@playwright/test';
 import {prisma} from '@/lib/prisma';
 import {readSimulationTraceChunk} from '@/lib/data-governance/simulation-trace-cas';
 import {vesselRunStorageSummary} from '@/features/ilab/course-evidence-service';
@@ -101,6 +101,41 @@ try {
   assert.equal(saved.completedAt,null);
   const remote=await readSimulationTraceChunk<{checkpoint:string}>(summary.lastCheckpointReference);
   assert.equal(remote.checkpoint,local.checkpoint);
+  if (courseKey!=='destroyer') {
+    const auditOrigin=await page.evaluate((key)=>sessionStorage.getItem(key),storageKey);
+    assert(auditOrigin);
+    const response=await page.request.get(`${origin}/api/ilab/vessel/session/${encodeURIComponent(auditOrigin)}`);
+    assert.equal(response.status(),200);
+    const audit=await response.json();
+    assert.equal(audit.auditTelemetry.controlSampleCadenceS,.05);
+    assert.equal(audit.auditTelemetry.totalSamplePoints,summary.controlCount);
+    assert.equal(audit.auditTelemetry.persistedChunkCount,summary.chunkCount);
+    if (['cruise','container','drilling'].includes(courseKey)) {
+      const tourWrites:string[]=[];
+      const capture=(request:PlaywrightRequest)=>{
+        if (['POST','PATCH','PUT','DELETE'].includes(request.method()) && new URL(request.url()).pathname.startsWith('/api/ilab/')) {
+          tourWrites.push(new URL(request.url()).pathname);
+        }
+      };
+      await page.locator('[data-highlight-tour-toggle]').click();
+      await page.locator('[data-highlight-tour-banner]').waitFor();
+      const expectedNode={cruise:'node-mismatch',container:'node-container',drilling:'node-drilling'}[courseKey]!;
+      await expect(page.locator(`button[data-tour-node-pill="${expectedNode}"]`)).toBeVisible();
+      page.on('request',capture);
+      await page.getByLabel(predictionLabel,{exact:true}).fill('只读导览临时输入，不应进入本人实验。');
+      await expect(page.getByRole('button',{name:'导览只读锁定',exact:true})).toBeDisabled();
+      await page.waitForTimeout(1600);
+      page.off('request',capture);
+      assert.deepEqual(tourWrites,[],'Read-only tour must not write formal experiment state');
+      await page.locator('[data-highlight-tour-exit]').click();
+      await page.locator('[data-highlight-tour-banner]').waitFor({state:'hidden'});
+      await expect(page.getByLabel(predictionLabel,{exact:true})).toHaveValue(prediction);
+      const returnedFromTour=await activeLocalRun(page);
+      assert.equal(returnedFromTour.id,local.id);
+      assert.equal(returnedFromTour.checkpoint,local.checkpoint);
+      assert.equal(await page.evaluate((key)=>sessionStorage.getItem(key),storageKey),auditOrigin);
+    }
+  }
   console.log(JSON.stringify({courseKey,phase:'first-browser-saved',timeS:local.lastTimeS}));
 
   second=await browser.newContext({viewport:{width:1801,height:867}});
@@ -169,6 +204,12 @@ try {
   assert.equal(await emptyRoundPage.getByLabel(predictionLabel,{exact:true}).inputValue(),'New round B prediction');
   assert.equal(await emptyRoundPage.evaluate((key)=>sessionStorage.getItem(key),storageKey),newOrigin);
   assert(!(await activeLocalRun(emptyRoundPage)),'An empty new round must not hydrate the earlier physical run');
+  if (courseKey!=='destroyer') {
+    const response=await emptyRoundPage.request.get(`${origin}/api/ilab/vessel/session/${encodeURIComponent(newOrigin)}`);
+    assert.equal(response.status(),200);
+    const body=await response.json();
+    assert.equal(body.auditTelemetry.totalSamplePoints,0,'New-round audit must exclude historical records');
+  }
   if(courseKey==='cruise') {
     await recoveredPage.close();
     const branchPage=await second.newPage();debugPage=branchPage;
