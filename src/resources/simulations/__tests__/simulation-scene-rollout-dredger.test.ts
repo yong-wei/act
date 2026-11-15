@@ -50,7 +50,7 @@ describe('dredger pipeline integration', () => {
     const rigEnd = source.indexOf('\n}\n', rigStart);
     const rig = source.slice(rigStart, rigEnd > rigStart ? rigEnd : rigStart + 1600);
     expect(rig).toContain('worldSpeedSampler');
-    expect(rig).toContain('Math.hypot(mmgStateRef.current.u, mmgStateRef.current.v)');
+    expect(rig).toContain('Math.hypot(poseRef.current.u, poseRef.current.v)');
     expect(rig).toContain('resetToken={resetToken}');
   });
 
@@ -82,8 +82,8 @@ describe('dredger pipeline integration', () => {
 describe('dredger heading convention adaptation', () => {
   it('feeds wake and camera samplers through the adapter on psi radians', () => {
     const source = read(DREDGER);
-    expect(source).toContain('shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi))}');
-    expect(source).toContain('headingSampler={() => platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi))}');
+    expect(source).toContain('shipHeadingSampler={() => platformHeadingToSceneRad(toDegrees(poseRef.current.psi))}');
+    expect(source).toContain('headingSampler={() => platformHeadingToSceneRad(toDegrees(poseRef.current.psi))}');
     expect(source).not.toContain('headingSampler={() => toRadians(');
   });
 });

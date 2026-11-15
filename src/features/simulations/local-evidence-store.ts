@@ -37,7 +37,7 @@ interface TraceChunk { runId: string; start: number; points: VesselRunEvidence['
 interface SensorChunk { runId: string; start: number; points: VesselObservedSample[] }
 interface FineStepChunk { runId:string;start:number;points:VesselFineStepPoint[] }
 export interface VesselRunSummary extends Pick<VesselRunEvidence, 'id' | 'scopeKey' | 'courseVersion' | 'stepSequence' |
-  'createdAtMs' | 'stoppedAtMs' | 'lastTimeS' | 'configuration' | 'initialInput' | 'stopReason' | 'controllerSourceRunId' | 'designStudentModelId' | 'courseSettings'> {
+  'createdAtMs' | 'stoppedAtMs' | 'lastTimeS' | 'configuration' | 'initialInput' | 'stopReason' | 'controllerSourceRunId' | 'designStudentModelId' | 'courseSettings' | 'dredgerModeEvents'> {
   durationS: number;
   sampleCount: number;
   finalInput?:VesselSessionInput;
@@ -261,6 +261,7 @@ export async function listRunEvidence(scopeKey: string): Promise<VesselRunSummar
       scopeKey: run.scopeKey, courseVersion: run.courseVersion, lastTimeS: run.lastTimeS,
       configuration: run.configuration, initialInput: run.initialInput, controllerSourceRunId: run.controllerSourceRunId,designStudentModelId:run.designStudentModelId,
       courseSettings:run.courseSettings,
+      dredgerModeEvents:run.dredgerModeEvents,
       uploadedToReportRef:run.stoppedAtMs !== null && run.uploadReceipt
         && ['completed','failed'].includes(run.uploadReceipt.status) && run.uploadReceipt.controlCount === run.traceLength
         && run.uploadReceipt.nativeCount === run.nativeSampleCount && (run.uploadReceipt.fineCount ?? 0) === (run.fineSampleCount ?? 0)

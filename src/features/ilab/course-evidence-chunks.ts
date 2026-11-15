@@ -6,7 +6,7 @@ import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generat
 import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 import { readSimulationTraceChunk, writeSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
-import { sensorKey, type VesselTracePoint } from '@/features/simulations/run-evidence';
+import { sensorKey, vesselDredgerMetricPoint, vesselDredgerFineMetrics, vesselDredgerModeEvents, type VesselTracePoint } from '@/features/simulations/run-evidence';
 import { vesselTraceChunkSchema, type VesselEvidenceClose, type VesselEvidenceOpening, type VesselTraceChunk } from './course-evidence-contract';
 import { findOwnedVesselRun, vesselRunProgress, vesselRunStorageSummary, type VesselRunStorageSummary } from './course-evidence-service';
 import { calculateVesselRunMetrics } from './course-run-metrics';
@@ -202,8 +202,11 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
     metrics = calculateVesselRunMetrics(points, input.endTimeS, opening.configuration.initialHeadingDeg ?? 0,
       frame.iceContact ? { timeS: input.endTimeS, northM: frame.truth.position_ned[0], eastM: frame.truth.position_ned[1],
         positiveMotorWorkJ: frame.truth.actuator_states.positive_motor_work_j.reduce((sum, value) => sum + value, 0),
-        forwardRequested: frame.input.actuators.shafts.some((shaft) => shaft.speed_reference_rad_s > 0) } : undefined);
+        forwardRequested: frame.input.actuators.shafts.some((shaft) => shaft.speed_reference_rad_s > 0) } : undefined,
+      frame.dredger ? vesselDredgerMetricPoint(frame.timeS, frame.dredger,
+        frame.truth.actuator_states.positive_motor_work_j.reduce((sum, value) => sum + value, 0)) : undefined);
     metrics.positiveMotorWorkJ = frame.truth.actuator_states.positive_motor_work_j.reduce((sum,value)=>sum+value,0);
+    if (frame.dredgerFineMetrics) Object.assign(metrics, vesselDredgerFineMetrics(frame.dredgerFineMetrics));
   }
   const checkpoint = await writeSimulationTraceChunk({ schema: 'act.vessel-run-close.v1', ...input,appliedFinalInput:frame.input });
   return prisma.$transaction(async (tx) => {
@@ -236,6 +239,7 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
         parameters:frame.parameters,voyage:frame.containerVoyage?.progress ?? null,
         fuelKg:frame.teachingFuel?.state.fuel_kg ?? null,
         cruiseComfort:frame.cruiseComfort ?? null,
+        ...(frame.dredger ? {dredgerModeEvents:vesselDredgerModeEvents(frame)} : {}),
         metricsRuntimeVersion:CONTROL_ENGINE_BUILD_HASH,stopReason: isCheckpoint ? null : input.reason } as unknown as Prisma.InputJsonValue,
     } });
     if (isCheckpoint) return vesselRunProgress(saved);

@@ -1,6 +1,6 @@
 import type { VesselSession, VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { saveRunEvidence } from './local-evidence-store';
-import { collectVesselTracePoint, type VesselRunEvidence } from './run-evidence';
+import { collectVesselTracePoint, vesselDredgerModeEvents, type VesselRunEvidence } from './run-evidence';
 
 /** 每次实际运行独立保存，写入按版本顺序串行提交。 */
 export class VesselRunRecorder {
@@ -31,6 +31,7 @@ export class VesselRunRecorder {
     }
     this.run.lastTimeS = frame.timeS;
     if (frame.cruiseComfort) this.run.cruiseComfort = frame.cruiseComfort;
+    if (frame.dredger) this.run.dredgerModeEvents = vesselDredgerModeEvents(frame);
     this.run.nativeSensorSamples.push(...frame.samples);
     if (frame.fineStepSamples) {
       this.run.fineStepSamples ??= [];

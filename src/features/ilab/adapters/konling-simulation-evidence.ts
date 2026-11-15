@@ -5,17 +5,24 @@ import { SIMULATION_COURSE_AI_CONTEXTS, resolveSimulationCourseKeyForAI, resolve
 import { parseStepDrafts } from './ilab-session-lifecycle';
 import { VESSEL_EVIDENCE_DOMAIN } from '../course-evidence-service';
 import type { VesselTraceChunk } from '../course-evidence-contract';
+import {DREDGER_MODE_LABELS} from '@/resources/simulations/experiments/dredger-experiment';
 
 const measurements = [
   ['Heading', '航向', '°'], ['YawRate', '转艏角速度', '°/s'],
   ['North', '北向位置', 'm'], ['East', '东向位置', 'm'], ['SpeedLog', '对水航速', 'm/s'],
   ['RollRate', '横摇角速度', '°/s'], ['WindSpeed', '相对风速', 'm/s'], ['WindDirection', '相对风向', '°'],
+  ['DredgerDepth', '刀位包络深度', 'm'], ['DredgerSwaySpeed', '刀位横移速度', 'm/s'],
+  ['DredgerCutterRpm', '绞刀转速', 'r/min'], ['DredgerCableTension0', '左锚缆张力', 'N'],
+  ['DredgerCableTension1', '右锚缆张力', 'N'], ['DredgerSpudForce', '钢桩反力', 'N'],
 ] as const;
 
 const pageObservationFields = [
   ['loadingRatio', '装载率', ''], ['effectiveGmM', '有效横稳心高', 'm'],
   ['windSideAreaM2', '侧向风面积', 'm²'], ['headingDeg', '航向量测', '°'],
   ['waterSpeedMps', '对水航速量测', 'm/s'], ['northM', '北向位置量测', 'm'], ['eastM', '东向位置量测', 'm'],
+  ['dredgerDepthM', '刀位包络深度量测', 'm'], ['dredgerSwayMps', '刀位横移速度量测', 'm/s'],
+  ['dredgerCutterRpm', '绞刀转速量测', 'r/min'], ['dredgerPortTensionN', '左锚缆张力量测', 'N'],
+  ['dredgerStarboardTensionN', '右锚缆张力量测', 'N'], ['dredgerSpudForceN', '钢桩反力量测', 'N'],
 ] as const;
 
 /** 浏览器只能补充有界数值观察，来源说明与系统指令由服务端固定。 */
@@ -29,6 +36,9 @@ export function formatSimulationPageObservation(value: unknown): string {
     return typeof reading === 'number' && Number.isFinite(reading) && Math.abs(reading) <= 1e9
       ? [`${label}${reading.toFixed(4)}${unit}。`] : [];
   });
+  if (typeof observation.dredgerMode === 'string' && Object.hasOwn(DREDGER_MODE_LABELS, observation.dredgerMode)) {
+    readings.push(`当前模式为${DREDGER_MODE_LABELS[observation.dredgerMode as keyof typeof DREDGER_MODE_LABELS]}。`);
+  }
   return readings.length ? `[浏览器当前页面观察]\n页面报告实验时刻${time.toFixed(2)}s，以下数值尚未由服务端复算，仅用于讨论当前观察。\n${readings.join('\n')}` : '';
 }
 
@@ -65,6 +75,13 @@ export function formatSimulationKonlingEvidence(point: VesselTraceChunk['points'
   if (point.dp) lines.push(`定位参考北/东${point.dp.targetPositionM.map((value) => value.toFixed(3)).join('/')}m，参考航向${point.dp.targetHeadingDeg.toFixed(3)}°，${point.dp.navigationGood ? '导航量测可用' : '导航量测缺失'}，${point.dp.integralFrozen ? '积分已冻结' : '积分正常更新'}。`);
   if (point.container) lines.push(`受限航速参考${point.container.slewedReferenceMps.toFixed(3)}m/s，轴速指令${point.container.commandRpm.toFixed(3)}r/min，${point.container.outsideIdentifiedDomain ? '已经超出本人模型工作域' : '处于本人模型工作域'}。`);
   if (point.cruise) lines.push(`减摇鳍请求/已分配横摇力矩${point.cruise.requestedMomentNm.toFixed(1)}/${point.cruise.allocatedMomentNm.toFixed(1)}N·m，${point.cruise.lowSpeedAuthority ? '当前低来流下鳍控制能力不足' : '当前来流达到常规鳍控制范围'}。`);
+  if (point.dredger) {
+    const dredger = point.dredger;
+    lines.push(`当前作业模式为${DREDGER_MODE_LABELS[dredger.mode]}，横移参考${dredger.referenceMps.toFixed(4)}m/s，`
+      + `目标深度${dredger.commands.depthReferenceM.toFixed(3)}m，${dredger.integralFrozen ? '积分已冻结' : '积分正常更新'}。`);
+    lines.push(`实际机构账本累计新移除体积${dredger.observation.productionM3.toFixed(4)}m³，`
+      + `左/右锚缆${dredger.cableBroken.map((broken) => broken ? '已断开' : '保持连接').join('/')}。`);
+  }
   return lines.join('\n');
 }
 

@@ -11,11 +11,11 @@ export default async function DredgerSimulationPage({
   const ticket = firstQueryValue((await searchParams)?.ticket);
   return (
     <SimulationShell
-      title="天鲸号挖泥船动力定位"
+      title="天鲸号工况切换与作业定位"
       subtitle="钢桩、绞车、桥架与切削控制"
       activeHref="/simulations/dredger"
       guideHref="/supporting/guide-07-dredger.pdf"
-      localToolTemplate="dp-positioning"
+      localToolTemplate="dredger-operation"
     >
       <DredgerSimulation ticket={ticket} />
     </SimulationShell>
@@ -28,6 +28,6 @@ function firstQueryValue(value: string | string[] | null | undefined): string | 
 }
 
 export const metadata = {
-  title: '天鲸号挖泥船动力定位 - 智控深蓝',
-  description: '使用MMG三自由度高保真模型的挖泥船动力定位仿真，体验精确定位控制技术',
+  title: '天鲸号工况切换与作业定位 - 智控深蓝',
+  description: '通过钢桩、弹性锚缆、桥架与绞刀的实际受力，研究横移控制、土层失配和安全模式切换。',
 };

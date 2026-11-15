@@ -12,13 +12,15 @@ export function activeVesselFactors(configuration:VesselSessionConfiguration,
   if (switches?.current_enabled ?? ['C1','C2','E1','E2'].includes(preset)) active.push('current');
   if (configuration.noiseLevel && configuration.noiseLevel !== 'N0') active.push('measurement-noise');
   if (configuration.ice) active.push('ice-contact');
+  if (configuration.dredger) active.push('dredge-soil', 'spud-mooring', 'mode-transitions');
   return active;
 }
 
 export function vesselComparisonFactors(configuration:VesselSessionConfiguration,mode:ComparisonModeValue,
   active = activeVesselFactors(configuration)):VesselComparisonFactors {
   return {physical:['sixdof-coupling','nonlinear-hull','actuator-dynamics','actuator-limits',...active],
-    student:['identified-local-model',mode === 'hull_model' ? 'measured-actuator-input' : 'identified-actuator',
+    student:['identified-local-model',mode === 'hull_model' ? 'measured-actuator-input'
+      : configuration.dredger ? 'identified-joint-response' : 'identified-actuator',
       mode === 'independent_closed_loop' ? 'independent-controller' : 'replayed-input'],
     unmodeled:['sixdof-coupling','nonlinear-hull',...(mode === 'hull_model' ? [] : ['actuator-rate-limits']),...active]};
 }
@@ -29,4 +31,6 @@ export const VESSEL_FACTOR_LABELS:Record<string,string> = {
   'measurement-noise':'量测误差','identified-local-model':'本人辨识的局部模型','measured-actuator-input':'实际执行器量测输入',
   'identified-actuator':'本人辨识的执行器模型','independent-controller':'独立控制器','replayed-input':'已记录输入重放',
   'ice-contact':'冰板破坏、浮冰运动及摩擦',
+  'dredge-soil':'砂/黏土切削及床面移除','spud-mooring':'有限钢桩与单边弹性锚缆',
+  'mode-transitions':'作业进入、退出及安全保护','identified-joint-response':'本人辨识的执行器与船体联合局部响应',
 };

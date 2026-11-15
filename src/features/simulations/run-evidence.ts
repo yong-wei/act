@@ -2,6 +2,7 @@ import type { VesselControlSample, VesselFineStepPoint, VesselObservedSample, Ve
 import type { VesselCourseKey } from '@/resources/simulations/experiments/course-catalog';
 
 export interface VesselTracePoint {
+  dredger?: Omit<NonNullable<VesselControlSample['dredger']>, 'samples'>;
   ice?: VesselSessionFrame['iceContact'];
   dp?: VesselSessionFrame['dpController'];
   estimatedControlLoadBody?: [number, number, number];
@@ -33,6 +34,26 @@ export interface VesselTracePoint {
 }
 
 export type VesselRunMetrics = {
+  dredgerSwayRmsMps?: number | null;
+  dredgerDepthRmsM?: number | null;
+  dredgerCutDurationS?: number;
+  dredgerOverloadedCutDurationS?: number;
+  dredgerProductionM3?: number;
+  dredgerMechanicalWorkJ?: number;
+  dredgerSpecificEnergyJPerM3?: number | null;
+  dredgerModeChangeCount?: number;
+  dredgerChatterEventCount?: number;
+  dredgerReversalCount?: number;
+  dredgerStopCommandAfterFaultS?: number | null;
+  dredgerLiftAfterFaultS?: number | null;
+  dredgerHardViolationDurationS?: number;
+  dredgerSoilDomainViolationDurationS?: number;
+  dredgerMaximumLadderRateDegS?: number;
+  dredgerMaximumCutterRpm?: number;
+  dredgerMaximumCutterPowerW?: number;
+  dredgerMaximumWinchPowerW?: number;
+  dredgerMaximumCableTensionN?: number;
+  dredgerMaximumSpudReactionN?: number;
   sampleCadenceS:number;
   validHeadingSamples:number;
   missingHeadingSamples:number;
@@ -61,6 +82,7 @@ export type VesselRunMetrics = {
 };
 
 export interface VesselRunEvidence {
+  dredgerModeEvents?: VesselSessionFrame['dredgerEvents'];
   cruiseComfort?: VesselSessionFrame['cruiseComfort'];
   id: string;
   scopeKey: string;
@@ -112,6 +134,39 @@ export function vesselDpMetricsRequest(points: VesselTracePoint[], endTimeS: num
       normalizedAllocationResidual: point.dp?.allocation?.normalizedResidual ?? 0 })) };
 }
 
+export function vesselDredgerMetricPoint(timeS: number, point: NonNullable<VesselTracePoint['dredger']>,
+  propulsionWorkJ: number) {
+  const observed = point.observation;
+  return {timeS, mode: point.mode, swayMps: observed.cutterSwaySpeedMps, referenceMps: point.referenceMps,
+    depthM: observed.depthM, depthReferenceM: point.commands.depthReferenceM, productionM3: observed.productionM3,
+    mechanicalWorkJ: observed.positiveCutterWorkJ + observed.positiveWinchWorkJ + propulsionWorkJ,
+    cutPowerW: observed.cuttingPowerW, cableTensionN: observed.cableTensionN, spudReactionN: observed.spudReactionN,
+    cutterRpm: observed.cutterRpm, cutterReferenceRpm: point.commands.cutterRpm, cableBroken: point.cableBroken,
+    modeEventCount: point.modeEventCount, chatterEventCount: point.chatterEventCount, reversalCount: point.reversalCount};
+}
+
+export function vesselDredgerModeEvents(frame: Pick<VesselSessionFrame, 'dredgerEvents' | 'dredgerController'>) {
+  return [...(frame.dredgerEvents ?? []), ...(frame.dredgerController?.events ?? [])]
+    .sort((first, second) => first.timeS - second.timeS);
+}
+export type VesselDredgerMetricPoint = ReturnType<typeof vesselDredgerMetricPoint>;
+
+export function vesselDredgerMetricsRequest(points: VesselTracePoint[], endTimeS: number, terminalPoint?: VesselDredgerMetricPoint) {
+  return {modelId: 'student_model_analysis', operation: 'dredger_metrics', endTimeS, terminalPoint,
+    points: points.map((point) => {
+      if (!point.dredger) throw new Error('本次作业记录缺少连续的机构采样。');
+      return vesselDredgerMetricPoint(point.timeS, point.dredger, point.truth.positiveMotorWorkJ);
+    })};
+}
+
+export function vesselDredgerFineMetrics(fine: NonNullable<VesselSessionFrame['dredgerFineMetrics']>) {
+  return {dredgerHardViolationDurationS: fine.hardViolationDurationS,
+    dredgerSoilDomainViolationDurationS: fine.soilDomainViolationDurationS,
+    dredgerMaximumLadderRateDegS: fine.maximumLadderRateDegS, dredgerMaximumCutterRpm: fine.maximumCutterRpm,
+    dredgerMaximumCutterPowerW: fine.maximumCutterPowerW, dredgerMaximumWinchPowerW: fine.maximumWinchPowerW,
+    dredgerMaximumCableTensionN: fine.maximumCableTensionN, dredgerMaximumSpudReactionN: fine.maximumSpudReactionN};
+}
+
 export interface VesselIceMetricPoint {
   timeS: number;
   northM: number;
@@ -161,6 +216,21 @@ export function collectVesselTracePoint(frame: VesselControlSample,
     measurements[sensorKey(sample.signal)] = { value: reading.value,
       sampledAtS: reading.t_sample_s, arrivedAtS: reading.t_arrive_s, quality: reading.quality };
   }
+  for (const sample of frame.dredger?.samples ?? []) {
+    const reading = sample.measurement;
+    const signal = typeof sample.signal === 'string' ? sample.signal
+      : Object.entries(sample.signal).map(([name, index]) => `${name}${index}`)[0];
+    measurements[`Dredger${signal}`] = {value: reading.value, sampledAtS: reading.t_sample_s,
+      arrivedAtS: reading.t_arrive_s, quality: reading.quality};
+  }
+  const mechanical = frame.dredger;
+  const dredger: VesselTracePoint['dredger'] = mechanical ? {
+    observation: mechanical.observation, commands: mechanical.commands, mode: mechanical.mode,
+    referenceMps: mechanical.referenceMps, integralMps: mechanical.integralMps,
+    integralFrozen: mechanical.integralFrozen, feedbackAvailable: mechanical.feedbackAvailable,
+    cableBroken: mechanical.cableBroken, modeEventCount: mechanical.modeEventCount,
+    chatterEventCount: mechanical.chatterEventCount, reversalCount: mechanical.reversalCount,
+  } : undefined;
   const actual = frame.truth.actuator_states;
   const power = actual.motor_torques_nm.map((torque, index) => torque * actual.propeller_shaft_speed_rad_s[index]);
   const loads = frame.dynamics?.external_components;
@@ -174,6 +244,7 @@ export function collectVesselTracePoint(frame: VesselControlSample,
       arrivedAtS:Math.max(port.arrivedAtS,starboard.arrivedAtS)};
   }
   return { timeS: frame.timeS,
+    ...(dredger ? {dredger} : {}),
     ...(frame.ice ? {ice:frame.ice} : {}),
     ...(frame.dp ? {dp: frame.dp} : {}),
     ...(frame.estimatedControlLoadBody ? {estimatedControlLoadBody: frame.estimatedControlLoadBody} : {}),

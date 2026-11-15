@@ -6,7 +6,7 @@ import { preloadVirtualSimulationRuntime } from '../physics/simulation-engine-fa
 import { SimPanelSection, SimReadout, SimReadoutGrid } from '../components/simulation-panels';
 import { evaluateVesselHeadingRun } from './student-analysis';
 
-const measured = (value:number | null) => value === null ? '缺少有效量测' : value.toFixed(3);
+const measured = (value:number | null | undefined) => value == null ? '缺少有效量测' : value.toFixed(3);
 
 export function DestroyerRunEvaluation({run}:{run:VesselRunEvidence}) {
   const [evaluation,setEvaluation] = useState<ReturnType<typeof evaluateVesselHeadingRun> | null>(null);
@@ -26,6 +26,30 @@ export function DestroyerRunEvaluation({run}:{run:VesselRunEvidence}) {
   if (run.stoppedAtMs === null) return <p className="text-xs text-platform-fg-secondary">运行结束后可查看量测评价与安全指标。</p>;
   if (!evaluation) return <p role="status" className="text-xs text-platform-fg-secondary">{message || '正在读取运行评价…'}</p>;
   const {metrics,fineStepMetrics} = evaluation;
+  if (run.courseKey === 'dredger') return <SimPanelSection title="作业与安全评价">
+    <SimReadoutGrid>
+      <SimReadout label="末段切削横移RMS" value={measured(metrics.dredgerSwayRmsMps)} unit="m/s"
+        tone={(metrics.dredgerSwayRmsMps ?? 0) > 0.02 ? 'warning' : 'neutral'} />
+      <SimReadout label="末段切削深度RMS" value={measured(metrics.dredgerDepthRmsM)} unit="m"
+        tone={(metrics.dredgerDepthRmsM ?? 0) > 0.15 ? 'warning' : 'neutral'} />
+      <SimReadout label="实际移除体积" value={measured(metrics.dredgerProductionM3)} unit="m³" />
+      <SimReadout label="机械能耗" value={measured((metrics.dredgerMechanicalWorkJ ?? 0) / 1e6)} unit="MJ" />
+      <SimReadout label="单位实际产量能耗" value={metrics.dredgerSpecificEnergyJPerM3 == null ? '待形成实际产量'
+        : (metrics.dredgerSpecificEnergyJPerM3 / 1e6).toFixed(3)} unit="MJ/m³" />
+      <SimReadout label="实际切削模式时长" value={measured(metrics.dredgerCutDurationS)} unit="s" />
+      <SimReadout label="钢桩反力峰值" value={measured((metrics.dredgerMaximumSpudReactionN ?? 0) / 1000)} unit="kN" />
+      <SimReadout label="锚缆张力峰值" value={measured((metrics.dredgerMaximumCableTensionN ?? 0) / 1000)} unit="kN" />
+      <SimReadout label="机构硬约束违反" value={measured(metrics.dredgerHardViolationDurationS)} unit="s"
+        tone={metrics.dredgerHardViolationDurationS ? 'warning' : 'neutral'} />
+      <SimReadout label="切削模型越域" value={measured(metrics.dredgerSoilDomainViolationDurationS)} unit="s" />
+      <SimReadout label="实际换向次数" value={String(metrics.dredgerReversalCount ?? 0)} />
+      <SimReadout label="反复切换事件" value={String(metrics.dredgerChatterEventCount ?? 0)} />
+      {metrics.dredgerStopCommandAfterFaultS != null ? <SimReadout label="断缆后停止指令" value={measured(metrics.dredgerStopCommandAfterFaultS)} unit="s" /> : null}
+      {metrics.dredgerLiftAfterFaultS != null ? <SimReadout label="断缆后安全抬刀" value={measured(metrics.dredgerLiftAfterFaultS)} unit="s" /> : null}
+    </SimReadoutGrid>
+    <p className="mt-2 text-xs leading-5 text-platform-fg-secondary">横移与深度目标分别为0.02m/s、0.15m，采用末180秒中实际切削模式的样本。
+      峰值及硬约束来自物理细步，能耗覆盖绞刀、横移绞车和推进轴系。未达目标的方案保留实际证据与解释。</p>
+  </SimPanelSection>;
   return <SimPanelSection title="运行评价">
     <SimReadoutGrid>
       <SimReadout label="航向RMSE" value={measured(metrics.headingRmseDeg)} unit="°" />

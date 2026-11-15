@@ -63,6 +63,22 @@ describe('控灵读取本次本人仿真证据', () => {
     expect(point).toEqual(before);
   });
 
+  it('挖泥船读取当前作业量测、模式及实际产量，浏览器模式采用固定中文名称', () => {
+    const actual = {...point, measurements: {...point.measurements,
+      DredgerDepth: {value: 20.3, quality: 'Good', sampledAtS: 59.9, arrivedAtS: 60},
+      DredgerSwaySpeed: {value: 0.06, quality: 'Good', sampledAtS: 59.9, arrivedAtS: 60}},
+      dredger: {mode: 'pause_cut', referenceMps: 0, commands: {depthReferenceM: 19.5}, integralFrozen: true,
+        observation: {productionM3: 5.03}, cableBroken: [false, true]}} as unknown as VesselTracePoint;
+    const text = formatSimulationKonlingEvidence(actual);
+    expect(text).toContain('刀位包络深度量测20.3000m');
+    expect(text).toContain('当前作业模式为停止切削');
+    expect(text).toContain('保持连接/已断开');
+    expect(text).toContain('新移除体积5.0300m³');
+    expect(formatSimulationPageObservation({timeS: 60, dredgerMode: 'recover', dredgerDepthM: 19.5}))
+      .toContain('抬刀安全保持');
+    expect(formatSimulationPageObservation({timeS: 60, dredgerMode: 'private-instruction-sentinel'})).toBe('');
+  });
+
   it('历史轮次选择必须同时受本人身份约束，关联报告优先于草稿引用', async () => {
     mocks.session.mockResolvedValue({ reportId: 'bound-report', stepDrafts: {
       courseState: { reportClientRef: 'wrong-round' } } });

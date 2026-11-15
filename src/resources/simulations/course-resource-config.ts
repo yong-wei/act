@@ -43,7 +43,7 @@ export const ELIGIBLE_SIMULATION_SCENES: Record<string, SimulationSceneCourseEnt
   },
   dredger: {
     id: 'dredger',
-    label: '天鲸号挖泥船动力定位',
+    label: '天鲸号工况切换与作业定位',
     href: '/simulations/dredger',
     objectId: 'ship-dredger-tianjing',
   },
@@ -55,7 +55,7 @@ export const ELIGIBLE_SIMULATION_SCENES: Record<string, SimulationSceneCourseEnt
   },
   icebreaker: {
     id: 'icebreaker',
-    label: '雪龙号吊舱与冰区控制',
+    label: '雪龙2号吊舱与冰区控制',
     href: '/simulations/icebreaker',
     objectId: 'ship-icebreaker-xuelong',
   },

@@ -1,12 +1,13 @@
 import type { ModelStructureValue, StudentModelSaveInput, ComparisonModeValue } from '@/lib/student-model-artifact-contract';
-import { sensorKey, vesselEquivalentAzimuthSamples, vesselRunMetricsRequest, vesselDpMetricsRequest, vesselIceMetricsRequest, type VesselRunEvidence, type VesselRunMetrics } from '@/features/simulations/run-evidence';
+import { sensorKey, vesselEquivalentAzimuthSamples, vesselRunMetricsRequest, vesselDpMetricsRequest, vesselIceMetricsRequest,
+  vesselDredgerMetricPoint, vesselDredgerMetricsRequest, vesselDredgerFineMetrics, type VesselRunEvidence, type VesselRunMetrics } from '@/features/simulations/run-evidence';
 import { computeVirtualSimulationStep } from '../physics/simulation-engine-facade';
 import type { VesselSessionConfiguration, VesselSessionFrame, VesselSessionInput } from '@/lib/control-engine/vessel-session';
 import { destroyerCourseCommands, type DestroyerCourseStep } from './destroyer-course';
 import { vesselComparisonFactors,type VesselComparisonFactors } from './comparison-factors';
 
 export type IdentificationChannel = 'rudder-to-yaw' | 'rudder-servo' | 'azimuth-to-yaw' | 'azimuth-servo'
-  | 'shaft-to-speed' | 'shaft-reference-to-speed' | 'fin-to-roll';
+  | 'shaft-to-speed' | 'shaft-reference-to-speed' | 'fin-to-roll' | 'winch-speed-to-sway' | 'winch-reference-to-sway';
 export interface StudentHeadingDesign {
   kp: number; ki: number; kd: number;
   dampingRatio: number; naturalFrequencyRadS: number;
@@ -22,7 +23,8 @@ export function evaluateVesselHeadingRun(run:VesselRunEvidence) {
   }
   const checkpoint = JSON.parse(run.checkpoint) as {
     course_evidence?:{metrics:NonNullable<VesselSessionFrame['fineStepMetrics']>['values']};
-    plant?:{state?:{position_ned?:number[];actuator_states?:{positive_motor_work_j?:number[];fuel?:{fuel_kg:number}}}};
+    plant?:{state?:{position_ned?:number[];actuator_states?:{positive_motor_work_j?:number[];fuel?:{fuel_kg:number}}};
+      dredger?:{lastObservation: NonNullable<VesselSessionFrame['dredger']>['observation']; fineMetrics: NonNullable<VesselSessionFrame['dredgerFineMetrics']>}};
     input?: VesselSessionInput;
     voyage_progress?: NonNullable<VesselSessionFrame['containerVoyage']>['progress'];
   };
@@ -39,6 +41,14 @@ export function evaluateVesselHeadingRun(run:VesselRunEvidence) {
       positiveMotorWorkJ: metrics.positiveMotorWorkJ!,
       forwardRequested: checkpoint.input?.actuators.shafts.some((shaft) => shaft.speed_reference_rad_s > 0) ?? false } : undefined;
     Object.assign(metrics, computeVirtualSimulationStep<Partial<VesselRunMetrics>>(vesselIceMetricsRequest(run.trace, terminal)));
+  }
+  if (run.courseKey === 'dredger' && run.trace.some((point) => point.dredger)) {
+    const final = checkpoint.plant?.dredger;
+    const last = run.trace.at(-1)?.dredger;
+    const terminal = final && last ? vesselDredgerMetricPoint(run.lastTimeS,
+      {...last, observation: final.lastObservation}, metrics.positiveMotorWorkJ ?? 0) : undefined;
+    Object.assign(metrics, computeVirtualSimulationStep<Partial<VesselRunMetrics>>(vesselDredgerMetricsRequest(run.trace, run.lastTimeS, terminal)));
+    if (final) Object.assign(metrics, vesselDredgerFineMetrics(final.fineMetrics));
   }
   return {metrics,fineStepMetrics,parameters:run.parameters,cruiseComfort:run.cruiseComfort,
     voyage:checkpoint.voyage_progress, fuelKg:checkpoint.plant?.state?.actuator_states?.fuel?.fuel_kg};
@@ -89,6 +99,7 @@ export interface VesselModelComparison {
 }
 
 interface AnalysisResult {
+  commandsMps?: number[];
   idealArrivalS?: number | null;
   idealFuelKg?: number | null;
   identifiedOk?: boolean;
@@ -105,6 +116,8 @@ interface AnalysisResult {
 }
 
 function channelSignals(channel: IdentificationChannel) {
+  if (channel === 'winch-speed-to-sway') return {input: 'WinchSpeedDifferential', output: 'DredgerSwaySpeed', inputUnit: 'm/s', outputUnit: 'm/s'};
+  if (channel === 'winch-reference-to-sway') return {input: 'WinchReferenceDifferential', output: 'DredgerSwaySpeed', inputUnit: 'm/s', outputUnit: 'm/s'};
   if (channel === 'azimuth-to-yaw') return {input:'EquivalentAzimuth',output:'YawRate',inputUnit:'°',outputUnit:'°/s'};
   if (channel === 'azimuth-servo') return {input:'azimuth-command',output:'EquivalentAzimuth',inputUnit:'°',outputUnit:'°'};
   if (channel === 'fin-to-roll') return {input:'FinDifferential',output:'EstimatedRoll',inputUnit:'°',outputUnit:'°'};
@@ -116,7 +129,7 @@ function channelSignals(channel: IdentificationChannel) {
 
 /** 离线窗口按仪器采样时间对齐，辨识输入仅取仪器或已记录指令。 */
 export function measuredWindow(run: VesselRunEvidence, channel: IdentificationChannel, startS: number, endS: number,
-  commandInput = false) {
+  commandInput = false, allowMixedDredgerModes = false) {
   if (!Number.isFinite(startS) || !Number.isFinite(endS) || startS < 0 || endS <= startS || endS > run.lastTimeS+1e-8) {
     throw new Error('请选择这次运行范围内的分析窗口。');
   }
@@ -147,6 +160,23 @@ export function measuredWindow(run: VesselRunEvidence, channel: IdentificationCh
     const target=channel==='azimuth-servo' ? outputs : inputs;
     for (const sample of vesselEquivalentAzimuthSamples(run)) {
       target.set(Math.round(sample.timeS*1e6),sample.value);
+    }
+  }
+  if (channel.startsWith('winch-')) {
+    const modes = new Set(run.trace.filter((point) => point.timeS >= startS && point.timeS <= endS)
+      .map((point) => point.dredger?.mode));
+    if (!allowMixedDredgerModes && (modes.size !== 1 || ![...modes].every((mode) => mode === 'spud_hold' || mode === 'cut_swing'))) {
+      throw new Error('请选择单一钢桩保持或横移切削模式内的连续窗口，跨模式记录不适用同一个局部模型。');
+    }
+    for (const point of run.trace) {
+      const output = point.measurements.DredgerSwaySpeed;
+      if (output) outputs.set(Math.round(output.sampledAtS * 1e6), output.quality === 'Good' ? output.value : null);
+      const port = point.measurements.DredgerWinchSpeed0, starboard = point.measurements.DredgerWinchSpeed1;
+      if (port && starboard && Math.abs(port.sampledAtS - starboard.sampledAtS) < 1e-8) {
+        const value = port.quality === 'Good' && starboard.quality === 'Good' && port.value !== null && starboard.value !== null
+          ? (port.value - starboard.value) / 2 : null;
+        inputs.set(Math.round(port.sampledAtS * 1e6), value);
+      }
     }
   }
   if (channel === 'fin-to-roll') {
@@ -181,7 +211,10 @@ export function measuredWindow(run: VesselRunEvidence, channel: IdentificationCh
     const heldInput = measuredInput && measuredInput[0] <= time && time-measuredInput[0] <= 100001 ? measuredInput[1] : null;
     const azimuthCommand=point.command.azimuthDeg?.length===2
       ? -(point.command.azimuthDeg[0]+point.command.azimuthDeg[1])/2 : undefined;
-    const value = channel === 'azimuth-servo' || (commandInput && channel === 'azimuth-to-yaw') ? azimuthCommand
+    const winchCommand = point.dredger ? (point.dredger.commands.winchSpeedMps[0] - point.dredger.commands.winchSpeedMps[1]) / 2 : undefined;
+    const value = channel === 'winch-reference-to-sway' ? winchCommand
+      : channel === 'winch-speed-to-sway' ? heldInput
+      : channel === 'azimuth-servo' || (commandInput && channel === 'azimuth-to-yaw') ? azimuthCommand
       : signals.input === 'ShaftReference0' || (commandInput && channel === 'shaft-to-speed')
       ? point.command.shaftRpm[0]
       : channel === 'fin-to-roll' ? heldInput : commandInput || signals.input === 'command' ? point.command.surfaceDeg[0] : heldInput;
@@ -203,7 +236,7 @@ export function measuredWindow(run: VesselRunEvidence, channel: IdentificationCh
 }
 
 export function identifyVesselStudentModel(run: VesselRunEvidence, channel: IdentificationChannel,
-  kind: 'nomoto1' | 'nomoto2' | 'fopdt' | 'roll_oscillator', startS: number, endS: number,
+  kind: 'nomoto1' | 'nomoto2' | 'fopdt' | 'roll_oscillator' | 'dredge', startS: number, endS: number,
   freeDecay?:{run:VesselRunEvidence;startS:number;endS:number}): FrozenVesselStudentModel {
   const window = measuredWindow(run, channel, startS, endS);
   if (channel === 'fin-to-roll' && (!Number.isFinite(run.parameters?.rollInertiaKgM2)
@@ -213,21 +246,24 @@ export function identifyVesselStudentModel(run: VesselRunEvidence, channel: Iden
     || Math.abs(decay!.dtS-window.dtS) > 1e-8)) throw new Error('请选择同一实验轮次、相同采样时钟的本人自由衰减记录。');
   // 吊舱航向模型的直航工作点为零偏转、零转艏率。冰区截窗首帧可能仍在转弯，
   // 该非稳态初值交给原生预测器推进，不能当作恒定平衡偏置扣除。
-  const zeroOrigin = channel === 'fin-to-roll' || channel === 'azimuth-to-yaw';
+  const zeroOrigin = channel === 'fin-to-roll' || channel === 'azimuth-to-yaw' || channel.startsWith('winch-');
   const inputOrigin = zeroOrigin ? 0 : window.input[0], outputOrigin = zeroOrigin ? 0 : window.output[0];
   const result = computeVirtualSimulationStep<AnalysisResult>({ modelId: 'student_model_analysis', operation: 'identify',
-    structureKind: kind, input: window.input, output: window.output, dtS: window.dtS, inputOrigin, outputOrigin,
+    structureKind: channel.startsWith('winch-') ? 'dredge' : kind, input: window.input, output: window.output, dtS: window.dtS, inputOrigin, outputOrigin,
     ...(decay ? {freeDecayOutput:decay.output} : {}) });
   if (!result.identifiedOk || !result.structure) throw new Error(result.failureReason ?? '这次辨识未成功，请保留记录并调整激励或窗口。');
   const labels = { 'rudder-to-yaw': '舵角—转艏速率', 'rudder-servo': '舵机',
     'azimuth-to-yaw':'双吊舱等效偏转—转艏速率','azimuth-servo':'双吊舱等效偏转伺服',
-    'shaft-to-speed': '实际轴速—航速', 'shaft-reference-to-speed': '轴速参考—航速', 'fin-to-roll':'差动鳍角—横摇' };
+    'shaft-to-speed': '实际轴速—航速', 'shaft-reference-to-speed': '轴速参考—航速', 'fin-to-roll':'差动鳍角—横摇',
+    'winch-speed-to-sway': '实际绞车速度—横移速度', 'winch-reference-to-sway': '绞车指令—横移速度' };
   return { id: crypto.randomUUID(), scopeKey: run.scopeKey, label: `${labels[channel]} · 第${run.stepSequence}步`, channel,
     createdAtMs: Date.now(), serverId: null, contentHash: null,
     payload: { experimentKey: run.courseKey, lineageKey: `${channel}@${run.configuration.initialWaterSpeedMps ?? 0}`,
       structure: result.structure, ioContract: { inputChannel: window.signals.input, outputChannel: window.signals.output,
         inputUnit: window.signals.inputUnit, outputUnit: window.signals.outputUnit },
       operatingPoint: { inputOrigin, outputOrigin, speedMps: run.configuration.initialWaterSpeedMps ?? 0,
+        ...(channel.startsWith('winch-') ? {dredgerMode: run.trace.find((point) => point.timeS >= startS)?.dredger?.mode ?? '',
+          dredgerSoil: run.configuration.dredger?.soil ?? ''} : {}),
         loadingRatio: run.configuration.loadingRatio ?? 0, courseVersion: run.courseVersion,
         ...(run.configuration.ice ? {iceThicknessM:run.configuration.ice.thicknessM,
           iceStrengthPa:run.configuration.ice.flexuralStrengthPa} : {}),
@@ -245,25 +281,42 @@ export function compareVesselStudentModel(run: VesselRunEvidence, model: FrozenV
   if (model.scopeKey !== run.scopeKey || (actuator && actuator.scopeKey !== run.scopeKey)) throw new Error('请选择本次实验的模型。');
   if (['rudder-servo','azimuth-servo'].includes(model.channel)) throw new Error('请选择船体或航速模型执行对照，伺服模型用于执行器级联。');
   const speedReference = model.channel === 'shaft-reference-to-speed';
+  const winchReference = model.channel === 'winch-reference-to-sway';
+  const jointReference = speedReference || winchReference;
   const finModel = model.channel === 'fin-to-roll';
   if (finModel && mode !== 'hull_model') throw new Error('横摇局部模型请选择A模式，以实际差动鳍角独立验证。闭环设计初值在控制页签显示。');
   if (speedReference && mode === 'hull_model') throw new Error('轴速参考模型请选择B指令对照，实际轴速船体对照需要对应量测模型。');
+  if (winchReference && mode === 'hull_model') throw new Error('绞车指令联合模型请选择B或C对照，A模式使用实际绞车速度模型。');
+  if (model.channel === 'winch-speed-to-sway' && mode !== 'hull_model') throw new Error('实际绞车速度模型请选择A模式。B或C使用对应的指令联合模型。');
   const actuatorChannel=model.channel==='azimuth-to-yaw' ? 'azimuth-servo' : 'rudder-servo';
-  if (!speedReference && mode !== 'hull_model' && (!actuator || actuator.channel !== actuatorChannel)) throw new Error('请先选择对应的本人冻结伺服模型。');
-  if (!speedReference && mode !== 'hull_model' && !['rudder-to-yaw','azimuth-to-yaw'].includes(model.channel)) throw new Error('伺服级联和独立航向闭环需要实际偏转—转艏速率模型。');
-  const window = measuredWindow(run, model.channel, startS, endS, mode !== 'hull_model');
+  if (!jointReference && mode !== 'hull_model' && (!actuator || actuator.channel !== actuatorChannel)) throw new Error('请先选择对应的本人冻结伺服模型。');
+  if (!jointReference && mode !== 'hull_model' && !['rudder-to-yaw','azimuth-to-yaw'].includes(model.channel)) throw new Error('伺服级联和独立航向闭环需要实际偏转—转艏速率模型。');
+  const window = measuredWindow(run, model.channel, startS, endS, mode !== 'hull_model', winchReference && mode === 'independent_closed_loop');
   const trainingOverlap = model.payload.trainingRuns.some((training) => training.runRef === run.id
     && training.startS < endS && startS < training.endS);
   if (trainingOverlap) throw new Error('独立验证窗口需要与该模型的训练窗口分开。');
-  if (!speedReference && mode !== 'hull_model' && window.initialMeasuredInput === undefined) throw new Error('比较窗口缺少初始实际舵角量测。');
-  const actuatorPrediction = !speedReference && actuator ? { structure: actuator.payload.structure,
+  if (!jointReference && mode !== 'hull_model' && window.initialMeasuredInput === undefined) throw new Error('比较窗口缺少初始实际舵角量测。');
+  const actuatorPrediction = !jointReference && actuator ? { structure: actuator.payload.structure,
     inputOrigin: Number(actuator.payload.operatingPoint.inputOrigin), outputOrigin: Number(actuator.payload.operatingPoint.outputOrigin),
     initialOutput: window.initialMeasuredInput } : undefined;
   const request = { modelId: 'student_model_analysis', structure: model.payload.structure, dtS: window.dtS,
     inputOrigin: Number(model.payload.operatingPoint.inputOrigin), outputOrigin: Number(model.payload.operatingPoint.outputOrigin),
-    ...(mode === 'hull_model' || speedReference ? {} : { actuator: actuatorPrediction }) };
+    ...(mode === 'hull_model' || jointReference ? {} : { actuator: actuatorPrediction }) };
   let result: AnalysisResult;
-  if (mode === 'independent_closed_loop' && speedReference && run.initialInput.containerSpeed) {
+  if (mode === 'independent_closed_loop' && winchReference) {
+    const controller = run.initialInput.dredger;
+    const radius = run.parameters?.dredger?.initialSwingRadiusM;
+    if (startS > 1e-7 || !controller || !radius || window.timeS[0] > 1e-7) {
+      throw new Error('天鲸独立闭环需要从0s初态开始，并保留本次冻结控制器与横移几何。');
+    }
+    if (run.changes.some((change) => JSON.stringify(change.input.dredger) !== JSON.stringify(controller))) {
+      throw new Error('这次运行包含模式或控制输入修改，请为固定模式独立闭环选择方案固定的运行。');
+    }
+    result = computeVirtualSimulationStep<AnalysisResult>({...request, operation: 'dredger_closed_loop',
+      initialSpeedMps: 0, initialHeadingDeg: run.configuration.initialHeadingDeg ?? 0,
+      swingRadiusM: radius, durationS: window.timeS.at(-1), assumedCutStartS: controller.entryHoldS + 8,
+      controller, output: window.output});
+  } else if (mode === 'independent_closed_loop' && speedReference && run.initialInput.containerSpeed) {
     const controller = run.initialInput.containerSpeed;
     if (startS > 1e-7) throw new Error('集装箱船独立闭环需要从已记录的0s初态开始。');
     if (run.changes.some((change) => JSON.stringify({...change.input.containerSpeed, referenceMps: 0})
@@ -342,9 +395,9 @@ export function compareVesselStudentModel(run: VesselRunEvidence, model: FrozenV
       return run.trace[traceIndex].truth.bowClearanceM!;
     });
   }
-  return { id: crypto.randomUUID(), scopeKey: run.scopeKey, modelId: model.id, actuatorModelId: speedReference ? null : actuator?.id ?? null,
+  return { id: crypto.randomUUID(), scopeKey: run.scopeKey, modelId: model.id, actuatorModelId: jointReference ? null : actuator?.id ?? null,
     runId: run.id, mode, startS, endS, timeS: window.timeS, actual: window.output, predicted: result.predicted,
-    measuredInput: window.input, predictedInput: result.commandsRpm ?? result.commandsDeg ?? null,
+    measuredInput: window.input, predictedInput: result.commandsMps ?? result.commandsRpm ?? result.commandsDeg ?? null,
     metrics: { ...result.metrics, ...(result.outsideLocalSpeedDomain === undefined ? {}
       : { outside_local_speed_domain:result.outsideLocalSpeedDomain ? 1 : 0 }) }, createdAtMs: Date.now(), serverId: null,
     outputUnit:window.signals.outputUnit,outputChannel:window.signals.output,

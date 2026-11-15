@@ -16,6 +16,19 @@ const sensorSignal = z.union([
   z.object({ ShaftSpeed:z.number().int().min(0).max(15) }),
 ]);
 const tracePoint = z.object({
+  dredger:z.object({
+    observation:z.object({depthM:finite,depthRateMps:finite,cutterEastM:finite,cutterSwaySpeedMps:finite,
+      ladderAngleDeg:finite,ladderRateDegS:finite,cutterRpm:finite,cutterTorqueNm:finite,cutterPowerW:finite,cuttingPowerW:finite,
+      cableTensionN:z.tuple([finite,finite]),cableLengthM:z.tuple([finite,finite]),winchSpeedMps:z.tuple([finite,finite]),
+      winchPowerW:z.tuple([finite,finite]),spudContactFraction:finite,spudReactionN:finite,spudVerticalTravelM:finite,
+      carriageM:finite,hydraulicForceN:finite,productionM3:finite,productionRateM3S:finite,cuttingWorkJ:finite,
+      positiveWinchWorkJ:finite,positiveCutterWorkJ:finite,soilDomainExceeded:z.boolean()}),
+    commands:z.object({spudDown:z.boolean(),cablesAttached:z.boolean(),winchSpeedMps:z.tuple([finite,finite]),
+      depthReferenceM:finite,ladderAngleReferenceDeg:finite.nullable().optional(),cutterRpm:finite,carriageSpeedMps:finite}),
+    mode:z.enum(['transit','prepare','spud_hold','cut_swing','pause_cut','recover','exit']),
+    referenceMps:finite,integralMps:finite,integralFrozen:z.boolean(),feedbackAvailable:z.boolean(),
+    cableBroken:z.tuple([z.boolean(),z.boolean()]),modeEventCount:finite,chatterEventCount:finite,reversalCount:finite,
+  }).optional(),
   ice:z.object({brokenAreaM2:finite,floeCount:finite,loadBody:sixVector,contactCount:finite,
     crushingWorkJ:finite,frictionWorkJ:finite,fractureWorkJ:finite,waterDissipationJ:finite,
     contactBodyWorkJ:finite,contactFloeWorkJ:finite,characteristicLengthM:finite}).optional(),

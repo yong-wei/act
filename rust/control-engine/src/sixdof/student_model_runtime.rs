@@ -15,7 +15,7 @@ struct ActuatorPrediction {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "snake_case")]
-enum StructureKind { Nomoto1, Nomoto2, Fopdt, RollOscillator }
+enum StructureKind { Nomoto1, Nomoto2, Fopdt, RollOscillator, Dredge }
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -36,6 +36,13 @@ struct DpMetricPoint {
 #[derive(Deserialize)]
 #[serde(tag = "operation", rename_all = "snake_case")]
 enum Request {
+    DredgerMetrics {
+        points: Vec<super::dredger_metrics::DredgerMetricPoint>,
+        #[serde(default, rename = "terminalPoint")]
+        terminal_point: Option<super::dredger_metrics::DredgerMetricPoint>,
+        #[serde(rename = "endTimeS")]
+        end_time_s: f64,
+    },
     IceMetrics {
         points: Vec<super::ice_contact::IceMetricPoint>,
         #[serde(default, rename = "terminalPoint")]
@@ -93,6 +100,10 @@ enum Request {
     ContainerClosedLoop {
         #[serde(flatten)]
         request: super::student_speed_forecast::ContainerForecast,
+    },
+    DredgerClosedLoop {
+        #[serde(flatten)]
+        request: super::student_dredger_forecast::DredgerForecast,
     },
     SpeedOpenLoop {
         #[serde(flatten)]
@@ -206,6 +217,7 @@ fn identify(kind: StructureKind, input: &[f64], output: &[f64], dt: f64,
         StructureKind::Nomoto1 => student_model::identify_nomoto1(input, output, dt),
         StructureKind::Nomoto2 => student_model::identify_nomoto2(input, output, dt),
         StructureKind::Fopdt => student_model::identify_fopdt(input, output, dt),
+        StructureKind::Dredge => student_model::identify_dredge_channel(input, output, dt),
         StructureKind::RollOscillator => {
             if let Some(free_decay) = free_decay_output {
                 student_model::identify_roll_oscillator(free_decay, dt, Some((input, output)))
@@ -411,6 +423,7 @@ pub fn compute(request_json: &str) -> Result<String, String> {
                 "dampingRatio":ratio,"assumptions":"linear_roll_unlimited_moment_no_measurement_delay","bins":bins})
         }
         Request::ContainerClosedLoop { request } => super::student_speed_forecast::container_closed_loop(request)?,
+        Request::DredgerClosedLoop { request } => super::student_dredger_forecast::closed_loop(request)?,
         Request::SpeedOpenLoop { request, input_rpm } => {
             super::student_speed_forecast::open_loop(request, input_rpm)?
         }
@@ -456,6 +469,8 @@ pub fn compute(request_json: &str) -> Result<String, String> {
                 "predicted": predicted.iter().map(|value| value+output_origin).collect::<Vec<_>>() })
         }
         Request::IceMetrics { points, terminal_point } => super::ice_contact::run_metrics(&points, terminal_point.as_ref())?,
+        Request::DredgerMetrics { points, terminal_point, end_time_s } =>
+            super::dredger_metrics::run_metrics(&points, terminal_point.as_ref(), end_time_s)?,
         Request::HeadingClosedLoop { structure, reference, input_origin, output_origin, initial_heading_deg, initial_yaw_rate_deg_s,
             dt_s, controller, controllers, output, actuator } => {
             validate_structure(&structure)?;

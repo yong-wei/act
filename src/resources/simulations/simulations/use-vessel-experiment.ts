@@ -741,6 +741,12 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
         windSideAreaM2: frame.parameters.windAreasM2?.lateral,
         headingDeg: observed('Heading'), waterSpeedMps: observed('SpeedLog'),
         northM: observed('North'), eastM: observed('East'),
+        dredgerMode: frame.dredger?.mode,
+        dredgerDepthM: observed('DredgerDepth'), dredgerSwayMps: observed('DredgerSwaySpeed'),
+        dredgerCutterRpm: observed('DredgerCutterRpm'),
+        dredgerPortTensionN: observed('DredgerCableTension0'),
+        dredgerStarboardTensionN: observed('DredgerCableTension1'),
+        dredgerSpudForceN: observed('DredgerSpudForce'),
       } : undefined,
       systemPromptExtension: vesselKonlingBrief(experiment, step, liveRef.current.time === undefined ? null : liveRef.current),
       quickQuestions: [{

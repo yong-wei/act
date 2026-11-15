@@ -10,6 +10,7 @@ export type SimulationLocalToolTemplateId =
   | 'heading-control'
   | 'lng-berthing'
   | 'dp-positioning'
+  | 'dredger-operation'
   | 'comfort-frequency'
   | 'ice-propulsion';
 
@@ -28,6 +29,14 @@ interface SimulationLocalToolTemplate {
 }
 
 const simulationLocalToolTemplates: Record<SimulationLocalToolTemplateId, SimulationLocalToolTemplate> = {
+  'dredger-operation': {
+    id: 'dredger-operation', family: '横移切削与模式切换',
+    leftPanel: {title: '机构与作业状态', summary: '按量测读取刀深、横移速度、缆张力与钢桩反力。',
+      items: ['刀深与绞刀转速', '锚缆与钢桩支承', '实际产量与机械功']},
+    rightPanel: {title: '横移与安全方案', summary: '用本人局部模型设计横移PI与模式进入条件。',
+      items: ['本人模型与独立预测', '换向斜坡与积分跟踪', '断缆后的停刀与抬刀']},
+    hints: ['同时观察作业模式、实际刀位和支承负载，保留安全退出和未达目标的记录。'],
+  },
   'lng-berthing': {
     id: 'lng-berthing', family: '大惯性靠泊',
     leftPanel: {title: '推进与液舱状态', summary: '结合轴速、航速、距离及液面响应读取因果关系。',

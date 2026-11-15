@@ -34,6 +34,8 @@ const VESSEL_ID_BY_COURSE_KEY: Record<VesselCourseKey, string> = {
 };
 
 function inferModelChannel(lineageKey: string, outputChannel: string, inputChannel: string): IdentificationChannel | 'dp-low-frequency' {
+  if (inputChannel === 'WinchReferenceDifferential') return 'winch-reference-to-sway';
+  if (inputChannel === 'WinchSpeedDifferential') return 'winch-speed-to-sway';
   if (inputChannel === 'EquivalentAzimuth') return 'azimuth-to-yaw';
   if (outputChannel === 'EquivalentAzimuth') return 'azimuth-servo';
   if (inputChannel === 'EstimatedTauBody3') return 'dp-low-frequency';
@@ -235,6 +237,7 @@ export async function loadCourseSessionRecovery(input: {
         controllerSourceRunId: opening.controllerSourceRunId, designStudentModelId: opening.designStudentModelId,
         courseSettings: opening.courseSettings, parameterHash: summary.parameterHash,
         sampleCount: controlCount,
+        dredgerModeEvents: summary.dredgerModeEvents,
         remoteOnly: true,
         ...(resumable ? { uploadReceipt: {
           runRef: run.sourceRefId, reportId: targetReport.id, experimentKey, status: run.status,
@@ -263,6 +266,7 @@ export async function loadCourseSessionRecovery(input: {
       courseSettings: opening.courseSettings,
       parameters: (run.summary as {parameters?: VesselRunEvidence['parameters']}).parameters,
       cruiseComfort: (run.summary as {cruiseComfort?: VesselRunEvidence['cruiseComfort']}).cruiseComfort,
+      dredgerModeEvents: summary.dredgerModeEvents,
       parameterHash: summary.parameterHash,
       runtimeVersion: run.runtimeVersion,
       initialCheckpoint: opening.initialCheckpoint,

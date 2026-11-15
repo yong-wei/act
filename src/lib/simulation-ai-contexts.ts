@@ -99,24 +99,24 @@ export const SIMULATION_AI_CONTEXTS: Record<string, AIContextConfig> = {
   dredger: {
     enabled: true,
     courseId: SIMULATION_COURSE_META.courseId,
-    courseTitle: '天鲸号挖泥船动力定位',
+    courseTitle: '天鲸号工况切换与作业定位',
     pageType: 'workspace',
     stepId: 'dredger',
-    topic: '挖泥船动力定位控制',
+    topic: '钢桩、弹性锚缆与横移切削控制',
     learningObjectives: [
-      '理解动力定位（DP）系统的基本原理',
-      '掌握扰动补偿控制方法',
-      '分析外部力（潮流、风力）对定位精度的影响',
+      '理解钢桩和单向受拉锚缆的实际支承作用',
+      '用本人局部模型设计横移PI和模式转换条件',
+      '分析土层、风浪流及断缆对刀位和负载的影响',
     ],
     knowledgeType: 'X',
     tools: ['get_simulation_status', 'set_simulation_params', 'analyze_result'],
     quickQuestions: [
-      { label: '动力定位', question: '什么是动力定位系统？' },
-      { label: '扰动补偿', question: '如何进行扰动补偿控制？' },
-      { label: '外部力影响', question: '外部力如何影响定位精度？' },
+      { label: '作业受力', question: '钢桩和两条锚缆怎样影响横移？' },
+      { label: '局部模型', question: '怎样选择固定作业模式的辨识窗口？' },
+      { label: '安全切换', question: '断缆后怎样根据量测停止切削并抬刀？' },
     ],
     systemPromptExtension:
-      '当前是挖泥船动力定位仿真场景。挖泥船需要在作业点精确定位，抵抗潮流和风力的扰动。引导学生理解：1)动力定位系统的组成；2)前馈补偿与反馈控制的结合；3)扰动估计与补偿策略。',
+      '当前是天鲸号工况切换与作业定位实验。钢桩提供有限支承，横移绞车改变弹性锚缆长度，桥架和绞刀切削载荷回到船体。引导学生从固定模式量测辨识局部模型，比较横移PI、换向与积分跟踪，并以停刀、抬刀和支承余量判断故障后的安全退出。',
   },
 
   // 钻井平台

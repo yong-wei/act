@@ -330,6 +330,14 @@ export const DREDGER_TIANJING_V120: VersionedModelPackageDescriptor = {
       axis: 'x',
       cutter: true,
     },
+    {
+      id: 'ladder-pitch',
+      drive: 'live-rotation',
+      nodes: ['TJ_LADDER'],
+      axis: 'z',
+      ladder: true,
+      sign: -1,
+    },
   ] satisfies readonly SemanticAnimationBinding[],
   easterEgg: {
     patrolClips: [],

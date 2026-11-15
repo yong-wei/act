@@ -74,6 +74,13 @@ export interface PageContext {
     waterSpeedMps?: number;
     northM?: number;
     eastM?: number;
+    dredgerMode?: 'transit' | 'prepare' | 'spud_hold' | 'cut_swing' | 'pause_cut' | 'recover' | 'exit';
+    dredgerDepthM?: number;
+    dredgerSwayMps?: number;
+    dredgerCutterRpm?: number;
+    dredgerPortTensionN?: number;
+    dredgerStarboardTensionN?: number;
+    dredgerSpudForceN?: number;
   };
   /** 仿真上下文来源 */
   routeProvenance?: 'simulation-route';
