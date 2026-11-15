@@ -6,11 +6,17 @@ import { useSession } from 'next-auth/react';
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
 import { clearIlabOriginSessionStorage, describeIlabConnection, stripIlabUrlParams } from '@/features/ilab/client-grant';
 import { applyLocalSketchVerdict } from '@/features/ilab/sketch-client';
+import type { VesselAuditTelemetry } from '@/features/ilab/telemetry-redaction';
+import {
+  defaultTourNodeForVessel,
+  findHighlightTourNode,
+  type HighlightTourNodeId,
+} from '../experiments/highlight-tour';
 import { VesselCourseWorkspace } from '@/features/simulations/course-workspace';
 import { listRunEvidence, readRunEvidence, readExperimentDraft, readStepExperimentDraft, saveExperimentDraft,
   listFrozenStudentModels, listModelComparisons, saveModelComparison, listLocalStepAttempts,
   saveLocalStepAttempt, listExperimentDrafts, type VesselExperimentDraft, type VesselRunSummary } from '@/features/simulations/local-evidence-store';
-import type { VesselLocalStepAttempt } from '@/features/simulations/run-evidence';
+import type { VesselLocalStepAttempt, VesselRunEvidence } from '@/features/simulations/run-evidence';
 import { uploadVesselCourseArtifacts, uploadVesselCourseRun, saveVesselCourseReport, fetchCourseSessionRecovery,
   hydrateRecoveredCourseSession, triggerCourseReportIlabUpload } from '@/features/simulations/course-artifact-upload';
 import { buildVesselCourseReportHtml } from '@/features/simulations/course-report';
@@ -65,6 +71,7 @@ interface VesselSessionApiPayload {
   currentSeq?: number;
   draftActiveSeq?: number;
   reportHtml?: string | null;
+  auditTelemetry?: VesselAuditTelemetry;
   stepDrafts?: Record<string, VesselReadings>;
   steps?: StoredStepRecord[];
   error?: string;
@@ -116,6 +123,14 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const [sessionCompleted, setSessionCompleted] = useState(false);
   const [uploadFailed, setUploadFailed] = useState(false);
   const [uploadMode, setUploadMode] = useState<'local-only' | 'dev-bypass' | 'ilab-remote'>('local-only');
+  const [auditTelemetry, setAuditTelemetry] = useState<VesselAuditTelemetry | null>(null);
+  const [tourNodeId, setTourNodeId] = useState<HighlightTourNodeId | null>(null);
+  const [tourReadingsMap, setTourReadingsMap] = useState<Record<string, VesselReadings>>({});
+  const preTourMessageRef = useRef<string | null>(null);
+  const tourActiveRef = useRef(false);
+  const [tourSettings, setTourSettings] = useState<Settings>(() => courseAdapter.defaultSettings(1));
+  const [tourDesignModelId, setTourDesignModelId] = useState('');
+  const [tourReportRunIds, setTourReportRunIds] = useState<string[]>([]);
   const [reportHtml, setReportHtml] = useState('');
   const [pastReports, setPastReports] = useState<VesselReportSummary[] | null>(null);
   const [reportRevision, setReportRevision] = useState(0);
@@ -182,13 +197,81 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const courseLive = useRef({settings, models, designModelId, readings, activeSeq, reportRunIds, attempts});
   courseLive.current = {settings, models, designModelId, readings, activeSeq, reportRunIds, attempts};
 
-  const step = experiment.steps[activeSeq - 1] ?? experiment.steps[0];
-  const viewed = experiment.steps[viewSeq - 1] ?? step;
+  const activeTourNode = useMemo(
+    () => (tourNodeId ? findHighlightTourNode(tourNodeId) ?? defaultTourNodeForVessel(experiment.vesselId) : null),
+    [experiment.vesselId, tourNodeId],
+  );
+  const tourActive = Boolean(activeTourNode);
+  tourActiveRef.current = tourActive;
+
+  useEffect(() => {
+    if (!activeTourNode) return;
+    setTourSettings(courseAdapter.defaultSettings(activeTourNode.stepSeq));
+    setTourDesignModelId(activeTourNode.models[0]?.id ?? '');
+    setTourReportRunIds(activeTourNode.runs.map((item) => item.id));
+  }, [activeTourNode, courseAdapter]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tour') !== '1') return;
+    const node = findHighlightTourNode(params.get('node')) ?? defaultTourNodeForVessel(experiment.vesselId);
+    tourActiveRef.current = true;
+    setTourNodeId(node.id);
+  }, [experiment.vesselId]);
+
+  const enterHighlightTour = useCallback(
+    (nodeId?: HighlightTourNodeId) => {
+      if (!tourNodeId) {
+        preTourMessageRef.current = message;
+        if (courseRunning || workspace.current?.running) {
+          setCourseRunning(false);
+          void workspace.current?.pause().catch(() => undefined);
+        }
+      }
+      const next = findHighlightTourNode(nodeId) ?? defaultTourNodeForVessel(experiment.vesselId);
+      tourActiveRef.current = true;
+      setTourNodeId(next.id);
+      setMessage('已切换至只读高光工况导览模式：严禁正式提交与成绩回传。');
+    },
+    [courseRunning, experiment.vesselId, message, tourNodeId],
+  );
+
+  const exitHighlightTour = useCallback(() => {
+    tourActiveRef.current = false;
+    setTourNodeId(null);
+    setTourReadingsMap({});
+    if (preTourMessageRef.current !== null) {
+      setMessage(preTourMessageRef.current);
+      preTourMessageRef.current = null;
+    } else {
+      setMessage('');
+    }
+    if (typeof window !== 'undefined' && window.location.search.includes('tour=')) {
+      const nextParams = new URLSearchParams(window.location.search);
+      nextParams.delete('tour');
+      nextParams.delete('node');
+      const query = nextParams.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+    }
+  }, []);
+
+  const displayActiveSeq = activeTourNode ? activeTourNode.stepSeq : activeSeq;
+  const displayViewSeq = activeTourNode ? activeTourNode.stepSeq : viewSeq;
+  const step = experiment.steps[displayActiveSeq - 1] ?? experiment.steps[0];
+  const viewed = experiment.steps[displayViewSeq - 1] ?? step;
   const doneSeqs = nativeCourse ? [...new Set(attempts.filter((attempt) => attempt.scopeKey === scopeKey
     && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))]
     : records.map((record) => record.seq);
   const viewedRecord = records.find((record) => record.seq === viewSeq);
-  const shownSamples = viewSeq === activeSeq ? samples : viewedRecord?.samples ?? [];
+  const shownSamples = activeTourNode
+    ? activeTourNode.samples
+    : viewSeq === activeSeq
+      ? samples
+      : viewedRecord?.samples ?? [];
+  const effectiveReadings = activeTourNode
+    ? (tourReadingsMap[activeTourNode.id] ?? activeTourNode.readings)
+    : readings;
   const reportEnabled = nativeCourse ? doneSeqs.includes(20)
     : records.some((record) => record.seq === experiment.steps.length) || Boolean(reportHtml);
 
@@ -200,6 +283,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }, []);
 
   const saveCourseDraft = useCallback(async () => {
+    if (tourActiveRef.current) return;
     const current = workspace.current;
     if (!current || current.plan.scopeKey !== scopeRef.current) return;
     const live = courseLive.current;
@@ -235,7 +319,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }, [canUseCloudEvidence]);
 
   useEffect(() => {
-    if (!nativeCourse || !canUseCloudEvidence || readyScope !== scopeKey) return;
+    if (!nativeCourse || !canUseCloudEvidence || readyScope !== scopeKey || tourActive) return;
     let cancelled = false;
     let timer: number;
     const sync = async () => {
@@ -245,7 +329,29 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     };
     void sync();
     return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [nativeCourse, canUseCloudEvidence, readyScope, scopeKey, courseRunning, syncCurrentCourseRun]);
+  }, [nativeCourse, canUseCloudEvidence, readyScope, scopeKey, courseRunning, syncCurrentCourseRun, tourActive]);
+
+  const refreshAuditTelemetry = useCallback(async (explicitOriginId?: string) => {
+    if (tourActiveRef.current) return;
+    const activeOrigin = explicitOriginId
+      ?? ((nativeCourse && roundOriginRef.current.scope === scopeRef.current
+        ? roundOriginRef.current.originId
+        : undefined)
+        || originIdRef.current);
+    if (!activeOrigin) return;
+    try {
+      const response = await fetch(`/api/ilab/vessel/session/${encodeURIComponent(activeOrigin)}`, {
+        cache: 'no-store',
+      });
+      if (!response.ok || tourActiveRef.current) return;
+      const body = await response.json() as VesselSessionApiPayload;
+      if (body.auditTelemetry) {
+        setAuditTelemetry(body.auditTelemetry);
+      }
+    } catch {
+      // 网络波动时保留最近一次已取得的脱敏审计遥测
+    }
+  }, [nativeCourse]);
 
   const activateCourseStep = useCallback(async (sequence: number, scope: string, initial = false,
     replacementSettings?: Settings) => {
@@ -317,7 +423,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       readings: restoredAnswers, activeSeq: sequence};
     await reloadCourseEvidence(scope);
     if (token === activation.current) setReadyScope(scope);
-  }, [reloadCourseEvidence, courseAdapter, canUseCloudEvidence, effectiveUserId]);
+    if (initial && (draft?.originId || originIdRef.current)) {
+      void refreshAuditTelemetry(draft?.originId);
+    }
+  }, [reloadCourseEvidence, courseAdapter, canUseCloudEvidence, effectiveUserId, refreshAuditTelemetry]);
 
   useEffect(() => {
     if (!nativeCourse || !connectionReady || !accountReady || sessionStatus === 'loading') return;
@@ -341,15 +450,16 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }, [nativeCourse, connectionReady, accountReady, sessionStatus, scopeKey, baseScope, readyRoundBase, activateCourseStep]);
 
   useEffect(() => {
-    if (!nativeCourse || readyScope !== scopeKey) return;
+    if (!nativeCourse || readyScope !== scopeKey || tourActive) return;
     const timer = window.setTimeout(() => { void saveCourseDraft().catch((error: unknown) =>
       setMessage(error instanceof Error ? error.message : '草稿保存失败。')); }, 200);
     return () => window.clearTimeout(timer);
-  }, [nativeCourse, readyScope, scopeKey, activeSeq, readings, settings, designModelId, reportRunIds, attempts, saveCourseDraft]);
+  }, [nativeCourse, readyScope, scopeKey, tourActive, activeSeq, readings, settings, designModelId, reportRunIds, attempts, saveCourseDraft]);
 
   useEffect(() => {
     if (!nativeCourse) return;
     const persist = () => {
+      if (tourActiveRef.current) return;
       const current = workspace.current;
       if (!current) return;
       setCourseRunning(false);
@@ -362,6 +472,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }, [nativeCourse, saveCourseDraft]);
 
   const clearSamples = useCallback(() => {
+    if (tourActiveRef.current) return;
     setSamples([]);
     latestSampleRef.current = null;
     stepStartedAt.current = Date.now();
@@ -369,11 +480,13 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
 
   /** 每个子步调用；曲线按整秒抽样，交卷时用最新时刻补齐曲线终点。 */
   const trackLatest = useCallback((sample: VesselSample) => {
+    if (tourActiveRef.current) return;
     if (sample.time > step.duration + 0.05) return;
     latestSampleRef.current = sample;
   }, [step.duration]);
 
   const observe = useCallback((sample: VesselSample) => {
+    if (tourActiveRef.current) return;
     liveRef.current = { time: sample.time, ...sample.values };
     setSamples((prev) => {
       const last = prev[prev.length - 1];
@@ -393,6 +506,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }, [activeSeq, nativeCourse]);
 
   useEffect(() => {
+    if (tourActive) return;
     if (nativeCourse && (!accountReady || readyScope !== scopeKey)) return;
     stepDraftsRef.current = {...stepDraftsRef.current, [String(activeSeq)]: readings};
     writeLocalDraftStore(draftStorageKey, {
@@ -418,7 +532,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     }, 450);
     return () => window.clearTimeout(timer);
   }, [activeSeq, draftStorageKey, originId, readings, nativeCourse, accountReady, readyScope, scopeKey, settings,
-    designModelId, reportRunIds, courseRunning]);
+    designModelId, reportRunIds, courseRunning, tourActive]);
 
   useEffect(() => {
     setConnectionReady(false);
@@ -438,6 +552,9 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       sessionSyncTarget.current = '';
       const mode = body.uploadMode ?? 'ilab-remote';
       setUploadMode(mode);
+      if (body.auditTelemetry) {
+        setAuditTelemetry(body.auditTelemetry);
+      }
       setSessionCompleted(body.status === 1);
       setUploadFailed(Boolean(body.retryableUpload));
       if (body.reportHtml) {
@@ -602,7 +719,12 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       learningObjectives: [step.goal],
       knowledgeType: 'X',
       simulationId: experiment.vesselId,
-      simulationOriginId: roundOriginRef.current.scope === scopeKey ? roundOriginRef.current.originId : undefined,
+      simulationOriginId:
+        (nativeCourse && roundOriginRef.current.scope === scopeKey
+          ? roundOriginRef.current.originId
+          : undefined) ||
+        originId ||
+        undefined,
       routeProvenance: 'simulation-route',
       systemPromptExtension: vesselKonlingBrief(experiment, step, liveRef.current.time === undefined ? null : liveRef.current),
       quickQuestions: [{
@@ -610,7 +732,17 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
         question: `我在做${experiment.title}第 ${step.seq} 步「${step.title}」。请给出操作建议，不要替我填写读数，也不要打分。`,
       }],
     });
-  }, [experiment, hudBucket, step, updatePageContext, scopeKey, readyScope]);
+  }, [experiment, hudBucket, step, updatePageContext, scopeKey, readyScope, originId, nativeCourse]);
+
+  const aiTurnSeq = ai?.aiTurnSeq ?? 0;
+  useEffect(() => {
+    if (aiTurnSeq <= 0 || tourActive) return;
+    void refreshAuditTelemetry();
+    const timer = window.setTimeout(() => {
+      void refreshAuditTelemetry();
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [aiTurnSeq, tourActive, refreshAuditTelemetry]);
 
   useEffect(() => () => {
     clearDynamicPageContext?.();
@@ -631,6 +763,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function pauseCourseRun() {
+    if (tourActiveRef.current) return;
     setCourseRunning(false);
     await workspace.current?.pause();
     await saveCourseDraft();
@@ -638,6 +771,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function startCourseRun() {
+    if (tourActiveRef.current) {
+      setMessage('只读高光工况导览模式下严禁运行正式实验工作区，请先退出导览。');
+      return;
+    }
     if (!nativeCourse || readyScope !== scopeKey || busy || courseAdapter.steps[activeSeq - 1].stepKind === 'analysis') return;
     if (getMarineCanvasStatus() !== 'runnable') { setMessage('请等待三维画面就绪后开始。'); return; }
     setBusy(true); setMessage('');
@@ -665,6 +802,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function resetCourseRun() {
+    if (tourActiveRef.current) {
+      setMessage('只读高光工况导览模式下严禁重置正式实验工作区，请先退出导览。');
+      return;
+    }
     if (busy) return;
     setBusy(true);
     try {
@@ -677,6 +818,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function finishCourseRun() {
+    if (tourActiveRef.current) {
+      setMessage('只读高光工况导览模式下严禁结束或写入正式实验工作区，请先退出导览。');
+      return;
+    }
     const current = workspace.current;
     const run = current?.run();
     if (busy || !current?.plan.configuration.berth || current.read().timeS < 60 || !run
@@ -690,6 +835,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   function advanceCourse(seconds: number) {
+    if (tourActiveRef.current) return null;
     const current = workspace.current;
     if (!current || !current.running) return current?.read() ?? null;
     try {
@@ -714,6 +860,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function freezeCoursePrediction() {
+    if (tourActiveRef.current) {
+      setMessage('只读高光工况导览模式下严禁冻结或修改正式预测工件，请先退出导览。');
+      return;
+    }
     if (busy || !workspace.current || workspace.current.read().timeS > 0) return;
     setBusy(true);
     try {
@@ -735,6 +885,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function uploadCourseEvidence() {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览模式下严禁上传或回传正式证据。');
+      return;
+    }
     if (!canUseCloudEvidence) return;
     const reportClientRef = reportRef.current;
     if (scopeRef.current !== scopeKey) return;
@@ -745,9 +899,14 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     if (scopeRef.current !== scopeKey) return;
     await reloadCourseEvidence();
     setMessage(result.pendingCount ? '已上传可用证据。运行前预测及相应尝试将在对应运行开始后上传。' : '运行、模型、对照及各次提交已上传。');
+    void refreshAuditTelemetry();
   }
 
   async function submitCourseStep() {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览模式下严禁正式提交或触发成绩回传，请先退出导览。');
+      return;
+    }
     setBusy(true);
     try {
       await workspace.current?.pause(); setCourseRunning(false);
@@ -786,6 +945,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
         } catch (error) { uploadFailure = error instanceof Error ? error.message : '上传失败，本机证据已保留。'; }
       }
       if (problem) { setMessage(`这次尝试已保留。${problem}`); return; }
+      void refreshAuditTelemetry();
       setMessage(`本步证据已保存，各次尝试均会保留，成绩由教师复核。${uploadFailure ? `上传尚未完成。${uploadFailure}` : ''}`);
       if (!doneSeqs.includes(activeSeq) && activeSeq < 20) {
         await activateCourseStep(activeSeq + 1, scopeKey);
@@ -823,6 +983,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function openStep(sequence: number) {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览中，请通过顶部导览节点切换或退出导览后进入正式步骤。');
+      return;
+    }
     if (!nativeCourse) { setViewSeq(sequence); setActiveSeq(sequence); return; }
     if (busy || readyScope !== scopeKey || assertVesselStepOrder(experiment.steps, doneSeqs, sequence)) return;
     setBusy(true);
@@ -832,6 +996,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function selectCourseRound(nextScope: string) {
+    if (tourActiveRef.current) {
+      setMessage('只读高光工况导览模式下严禁切换正式实验轮次，请先退出导览。');
+      return;
+    }
     if (busy || (nextScope !== baseScope && !nextScope.startsWith(`${baseScope}:round:`))) return;
     setBusy(true);
     try {
@@ -844,7 +1012,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function saveAccountReport(html: string, stored: typeof records): Promise<boolean> {
-    if (sessionStatus !== 'authenticated') return false;
+    if (activeTourNode || sessionStatus !== 'authenticated') return false;
     const response = await fetch('/api/simulations/reports', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -867,6 +1035,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function submitStep() {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览模式下严禁正式提交或触发成绩回传，请先退出导览。');
+      return;
+    }
     const order = assertVesselStepOrder(experiment.steps, doneSeqs, step.seq);
     if (order) {
       setMessage(order);
@@ -934,6 +1106,9 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       });
       setReportHtml(html);
       setRecords(finalSteps);
+      if (doneBody.session?.auditTelemetry) {
+        setAuditTelemetry(doneBody.session.auditTelemetry);
+      }
       const retryable = Boolean(doneBody.retryableUpload);
       setUploadFailed(retryable);
       if (doneBody.session?.status === 1) {
@@ -969,10 +1144,16 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
           error?: string;
           retryReport?: boolean;
           steps?: StoredStepRecord[];
+          auditTelemetry?: VesselAuditTelemetry;
         };
         if (!response.ok && response.status !== 409) {
           setMessage(body.error || '本步保存失败。');
           return;
+        }
+        if (body.auditTelemetry) {
+          setAuditTelemetry(body.auditTelemetry);
+        } else if (response.ok) {
+          void refreshAuditTelemetry();
         }
         if (response.ok && body.steps) {
           nextRecords.splice(0, nextRecords.length, ...body.steps);
@@ -1029,6 +1210,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function retryIlabUpload() {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览模式下严禁触发实验空间成绩回传。');
+      return;
+    }
     if (busy || !originId) return;
     setBusy(true);
     try {
@@ -1063,6 +1248,11 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       if (doneBody.session?.reportHtml) {
         setReportHtml(doneBody.session.reportHtml);
       }
+      if (doneBody.session?.auditTelemetry) {
+        setAuditTelemetry(doneBody.session.auditTelemetry);
+      } else {
+        void refreshAuditTelemetry();
+      }
       const retryable = Boolean(doneBody.retryableUpload);
       setUploadFailed(retryable);
       if (doneBody.session?.status === 1) {
@@ -1085,6 +1275,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     setUploadMode(result.uploadMode);
     if (result.uploaded) setSessionCompleted(true);
     setMessage(result.message);
+    void refreshAuditTelemetry(result.originId ?? undefined);
   }
 
   function openReport() {
@@ -1109,6 +1300,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }
 
   async function restartIlabSession() {
+    if (activeTourNode) {
+      setMessage('只读高光工况导览模式下禁止新建正式实验轮次，请先退出导览。');
+      return;
+    }
     if (busy) return;
     if (nativeCourse) {
       setBusy(true);
@@ -1130,6 +1325,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
           setOriginId(body.originId);
           setUploadMode(body.uploadMode ?? 'local-only');
         }
+        setAuditTelemetry(body.auditTelemetry ?? null);
         savedCourseReportId.current = '';
         stepDraftsRef.current = {};
         setSessionCompleted(false);setUploadFailed(false);setRecords([]);setReportHtml('');
@@ -1163,11 +1359,13 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
         window.sessionStorage.setItem(`act-vessel-origin:${experiment.key}`, body.originId);
         setOriginId(body.originId);
         setUploadMode(body.uploadMode ?? 'ilab-remote');
+        setAuditTelemetry(body.auditTelemetry ?? null);
         setSessionCompleted(body.status === 1);
         setUploadFailed(Boolean(body.retryableUpload));
         setMessage(`已开启新一轮实验（学生 ${body.displayName ?? ''}），请从第 1 步开始。`);
         return;
       }
+      setAuditTelemetry(null);
       setMessage(body.error || '已重置本机实验记录，请从第 1 步开始。');
     } finally {
       setBusy(false);
@@ -1176,27 +1374,48 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
 
   const command = useMemo(() => experiment.command(step, 0), [experiment, step]);
   const onArtifactsChange = useCallback((nextModels: FrozenVesselStudentModel[], nextComparisons: VesselModelComparison[], scope: string) => {
-    if (scopeRef.current !== scope) return;
+    if (tourActiveRef.current || scopeRef.current !== scope) return;
     setModels(nextModels); setComparisons(nextComparisons);
   }, []);
 
   return {
     step,
     viewed,
-    activeSeq,
-    viewSeq,
+    activeSeq: displayActiveSeq,
+    viewSeq: displayViewSeq,
     openStep,
     samples,
     shownSamples,
     observe,
     trackLatest,
     clearSamples,
-    readings,
-    setReading: (key: string, value: string) => setReadings((prev) => {
-      const next = { ...prev, [key]: value };
-      stepDraftsRef.current = { ...stepDraftsRef.current, [String(activeSeq)]: next };
-      return next;
-    }),
+    readings: effectiveReadings,
+    setReading: (key: string, value: string) => {
+      if (activeTourNode) {
+        setTourReadingsMap((prev) => ({
+          ...prev,
+          [activeTourNode.id]: {
+            ...(prev[activeTourNode.id] ?? activeTourNode.readings),
+            [key]: value,
+          },
+        }));
+        return;
+      }
+      setReadings((prev) => {
+        const next = { ...prev, [key]: value };
+        stepDraftsRef.current = { ...stepDraftsRef.current, [String(activeSeq)]: next };
+        return next;
+      });
+    },
+    originId,
+    auditTelemetry,
+    refreshAuditTelemetry,
+    tour: {
+      active: tourActive,
+      node: activeTourNode,
+      enter: enterHighlightTour,
+      exit: exitHighlightTour,
+    },
     message,
     connectionStatus: originId ? describeIlabConnection(uploadMode) : '',
     busy,
@@ -1218,23 +1437,57 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     command,
     liveRef,
     ask: () => ai?.openSidebar(),
-    course: nativeCourse ? {
-      scopeKey, plannedRunId: plannedRunRef.current, ready: accountReady && readyScope === scopeKey, running: courseRunning,
-      canSelectRound: accountReady && connectionReady && (readyScope === scopeKey || recoveryFailed),
-      rounds, selectRound: selectCourseRound,
-      settings, setSettings, designModelId, setDesignModelId, reportRunIds, setReportRunIds,
-      models: models.filter((model) => model.scopeKey === scopeKey),
-      comparisons: comparisons.filter((comparison) => comparison.scopeKey === scopeKey),
-      runs: runs.filter((run) => run.scopeKey === scopeKey), onArtifactsChange,
-      hasStarted: Boolean(workspace.current?.run()),
-      completed: workspace.current?.run()?.stoppedAtMs != null,
-      canFinish: Boolean(workspace.current?.plan.configuration.berth && workspace.current.read().timeS >= 60
-        && workspace.current.run()?.stoppedAtMs === null), finish: finishCourseRun,
-      read: () => workspace.current?.read() ?? null,
-      latestPoint: () => workspace.current?.run()?.trace.at(-1),
-      start: startCourseRun, pause: () => pauseCourseRun().catch(courseFailure), reset: resetCourseRun, advance: advanceCourse,
-      freezePrediction: freezeCoursePrediction, upload: () => uploadCourseEvidence().catch(courseFailure),
-    } : undefined,
+    course: nativeCourse
+      ? activeTourNode
+        ? {
+            scopeKey: `tour-readonly:${activeTourNode.id}`,
+            plannedRunId: 'tour-planned-run',
+            ready: false,
+            running: false,
+            canSelectRound: false,
+            rounds: [] as VesselExperimentDraft[],
+            selectRound: selectCourseRound,
+            settings: tourSettings,
+            setSettings: setTourSettings,
+            designModelId: tourDesignModelId,
+            setDesignModelId: setTourDesignModelId,
+            reportRunIds: tourReportRunIds,
+            setReportRunIds: setTourReportRunIds,
+            models: activeTourNode.models,
+            comparisons: activeTourNode.comparisons,
+            runs: [] as VesselRunSummary[],
+            onArtifactsChange,
+            hasStarted: false,
+            completed: false,
+            canFinish: false,
+            finish: finishCourseRun,
+            read: (): ReturnType<VesselCourseWorkspace['read']> | null => null,
+            latestPoint: (): VesselRunEvidence['trace'][number] | undefined => undefined,
+            start: startCourseRun,
+            pause: async () => undefined,
+            reset: resetCourseRun,
+            advance: (_seconds: number): ReturnType<typeof advanceCourse> => null,
+            freezePrediction: freezeCoursePrediction,
+            upload: () => uploadCourseEvidence().catch(courseFailure),
+          }
+        : {
+            scopeKey, plannedRunId: plannedRunRef.current, ready: accountReady && readyScope === scopeKey, running: courseRunning,
+            canSelectRound: accountReady && connectionReady && (readyScope === scopeKey || recoveryFailed),
+            rounds, selectRound: selectCourseRound,
+            settings, setSettings, designModelId, setDesignModelId, reportRunIds, setReportRunIds,
+            models: models.filter((model) => model.scopeKey === scopeKey),
+            comparisons: comparisons.filter((comparison) => comparison.scopeKey === scopeKey),
+            runs: runs.filter((run) => run.scopeKey === scopeKey), onArtifactsChange,
+            hasStarted: Boolean(workspace.current?.run()),
+            completed: workspace.current?.run()?.stoppedAtMs != null,
+            canFinish: Boolean(workspace.current?.plan.configuration.berth && workspace.current.read().timeS >= 60
+              && workspace.current.run()?.stoppedAtMs === null), finish: finishCourseRun,
+            read: (): ReturnType<VesselCourseWorkspace['read']> | null => workspace.current?.read() ?? null,
+            latestPoint: (): VesselRunEvidence['trace'][number] | undefined => workspace.current?.run()?.trace.at(-1),
+            start: startCourseRun, pause: () => pauseCourseRun().catch(courseFailure), reset: resetCourseRun, advance: advanceCourse,
+            freezePrediction: freezeCoursePrediction, upload: () => uploadCourseEvidence().catch(courseFailure),
+          }
+      : undefined,
   };
 }
 

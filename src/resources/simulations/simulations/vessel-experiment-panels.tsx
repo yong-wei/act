@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Chart, registerables } from 'chart.js';
-import { CheckCircle2, FileText, Lock, Radio } from 'lucide-react';
+import { CheckCircle2, Crosshair, FileText, Lock, Radio, Sparkles } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
 import { cn } from '@/lib/utils';
+import type { VesselReportSectionKey } from '../experiments/step20-evidence-workbench';
 import { simulationScenePalette } from '../components/simulation-theme';
 import {
   ExperimentStepAreas,
@@ -25,9 +27,15 @@ import {
 } from './vessel-experiment';
 import { SketchPad } from './sketch-pad';
 import type { VesselExperimentController } from './use-vessel-experiment';
-import {VesselModelWorkbench} from '../experiments/model-workbench';
-import type {IdentificationChannel} from '../experiments/student-analysis';
-import {SimPanelSection} from '../components/simulation-panels';
+import { VesselModelWorkbench } from '../experiments/model-workbench';
+import { ThreeLayerTopology } from '../experiments/three-layer-topology';
+import { computeResidualDiagnostics } from '../experiments/mismatch-diagnostics';
+import { detectVesselCurveAnomalies } from '../experiments/curve-anomaly-detector';
+import { IlabTelemetryDrawer, IlabTelemetryToggleButton } from '../experiments/ilab-telemetry-inspector';
+import { HighlightTourBanner, HighlightTourToggleButton } from '../experiments/highlight-tour-bar';
+import { Step20EvidenceWorkbench, type Step20RunSummary } from '../experiments/step20-evidence-workbench';
+import type { FrozenVesselStudentModel, IdentificationChannel, VesselModelComparison } from '../experiments/student-analysis';
+import { SimPanelSection } from '../components/simulation-panels';
 
 Chart.register(...registerables);
 
@@ -35,21 +43,28 @@ export function VesselCourseEvidencePanel<Settings extends object>({session,defa
   session:VesselExperimentController<Settings>;defaultChannel:IdentificationChannel | 'dp-low-frequency';
 }) {
   const course=session.course;
+  const tourActive = Boolean(session.tour?.active);
   if (!course) return null;
   return <div className="space-y-4">
     <SimPanelSection title="本机实验轮次">
       <div className="space-y-2"><select className="sim-hud-input" aria-label="本机实验轮次" value={course.scopeKey}
-        disabled={session.busy || !course.canSelectRound} onChange={(event)=>{void course.selectRound(event.target.value);}}>
+        disabled={session.busy || tourActive || !course.canSelectRound} onChange={(event)=>{void course.selectRound(event.target.value);}}>
         {course.rounds.map((draft)=><option key={draft.scopeKey} value={draft.scopeKey}>
           {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步
         </option>)}</select>
-        <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || !course.canSelectRound}
+        <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || tourActive || !course.canSelectRound}
           onClick={()=>{void session.restartIlabSession();}}>开启新一轮实验</Button>
       </div>
     </SimPanelSection>
-    <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy}
-      onClick={()=>{void course.upload();}}>上传或重试保存本人证据</Button>
-    <VesselModelWorkbench scopeKey={course.scopeKey} runs={course.runs} onArtifactsChange={course.onArtifactsChange} defaultChannel={defaultChannel} />
+    <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || tourActive}
+      onClick={()=>{void course.upload();}}>{tourActive ? '导览只读禁止上传' : '上传或重试保存本人证据'}</Button>
+    {tourActive ? (
+      <div className="sim-hud-tile p-2.5 text-xs text-platform-fg-secondary" data-tour-workbench-locked>
+        只读高光导览中：已隔离本机实验轮次与模型辨识库，退出导览后可继续编辑本人模型。
+      </div>
+    ) : (
+      <VesselModelWorkbench scopeKey={course.scopeKey} runs={course.runs} onArtifactsChange={course.onArtifactsChange} defaultChannel={defaultChannel} />
+    )}
   </div>;
 }
 
@@ -160,16 +175,65 @@ export function VesselCurve({
   samples,
   visible,
   onToggle,
+  stepSeq = 1,
+  stepTitle = '',
+  predictionTarget = null,
+  comparison = null,
+  onPickSample,
 }: {
   experiment: VesselExperiment;
   samples: VesselSample[];
   visible: Record<string, boolean>;
   onToggle: (id: string) => void;
+  stepSeq?: number;
+  stepTitle?: string;
+  predictionTarget?: number | null;
+  comparison?: VesselModelComparison | null;
+  onPickSample?: (snippet: string) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
   const chartTheme = useSimulationChartTheme();
+  const globalAi = useOptionalGlobalAI();
   const last = samples[samples.length - 1];
+  const primarySeries =
+    experiment.series.find((item) => visible[item.id] !== false) ?? experiment.series[0];
+  const [pickedHint, setPickedHint] = useState('');
+
+  const samplesRef = useRef(samples);
+  const primarySeriesRef = useRef(primarySeries);
+  const onPickSampleRef = useRef(onPickSample);
+  samplesRef.current = samples;
+  primarySeriesRef.current = primarySeries;
+  onPickSampleRef.current = onPickSample;
+
+  const anomalies = useMemo(
+    () =>
+      primarySeries
+        ? detectVesselCurveAnomalies({
+            shipKey: experiment.vesselId,
+            stepSeq,
+            stepTitle: stepTitle || experiment.title,
+            samples,
+            targetValue: predictionTarget,
+            primarySignalKey: primarySeries.id,
+            primaryLabel: primarySeries.label,
+            unit: primarySeries.label.split(' ').at(-1) ?? '',
+          })
+        : [],
+    [experiment.title, experiment.vesselId, predictionTarget, primarySeries, samples, stepSeq, stepTitle],
+  );
+
+  const comparisonDiagnostics = useMemo(() => {
+    if (!comparison || comparison.actual.length === 0 || comparison.predicted.length === 0) return null;
+    return computeResidualDiagnostics({
+      actual: comparison.actual,
+      predicted: comparison.predicted,
+      timeS: comparison.timeS,
+      outputChannel: comparison.outputChannel,
+      outputUnit: comparison.outputUnit,
+    });
+  }, [comparison]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -181,6 +245,19 @@ export function VesselCurve({
         responsive: true,
         maintainAspectRatio: false,
         animation: false,
+        interaction: { mode: 'nearest', intersect: false },
+        onClick: (_event, elements) => {
+          const idx = elements[0]?.index;
+          const seriesItem = primarySeriesRef.current;
+          const sampleList = samplesRef.current;
+          if (idx == null || !seriesItem || !sampleList[idx] || !onPickSampleRef.current) return;
+          const sample = sampleList[idx];
+          const val = vesselValue(sample, seriesItem.id);
+          if (!Number.isFinite(val)) return;
+          const text = `[实测 t=${sample.time.toFixed(1)}s: ${seriesItem.label}=${val.toFixed(seriesItem.digits ?? 2)}]`;
+          onPickSampleRef.current(text);
+          setPickedHint(text);
+        },
         plugins: { legend: { display: false } },
         scales: {
           x: { ticks: { maxTicksLimit: 6, font: { size: 10 } }, grid: {}, border: { display: false } },
@@ -197,7 +274,17 @@ export function VesselCurve({
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
-    const datasets = experiment.series
+    const datasets: Array<{
+      label: string;
+      data: number[];
+      borderColor: string;
+      backgroundColor?: string;
+      borderDash?: number[];
+      pointRadius: number;
+      borderWidth: number;
+      tension: number;
+      fill: boolean | string;
+    }> = experiment.series
       .map((series, index) => ({ series, color: seriesColor(index) }))
       .filter(({ series }) => visible[series.id] !== false)
       .map(({ series, color }) => ({
@@ -209,6 +296,20 @@ export function VesselCurve({
         tension: 0.25,
         fill: false,
       }));
+
+    if (typeof predictionTarget === 'number' && Number.isFinite(predictionTarget) && samples.length > 0) {
+      datasets.push({
+        label: `预估靶标 (${predictionTarget.toFixed(2)})`,
+        data: samples.map(() => predictionTarget),
+        borderColor: '#f59e0b',
+        borderDash: [6, 4],
+        pointRadius: 0,
+        borderWidth: 1.5,
+        tension: 0,
+        fill: false,
+      });
+    }
+
     const values = datasets.flatMap((dataset) => dataset.data).filter((value) => Number.isFinite(value));
     let min = 0;
     let max = 1;
@@ -238,13 +339,41 @@ export function VesselCurve({
       if (y.grid) y.grid.color = chartTheme.grid;
     }
     chart.update('none');
-  }, [experiment.series, samples, visible, chartTheme]);
+  }, [experiment.series, predictionTarget, samples, visible, chartTheme]);
+
+  const handlePickExtrema = (mode: 'peak' | 'steady') => {
+    if (!primarySeries || samples.length === 0 || !onPickSample) return;
+    const valid = samples
+      .map((item) => ({ t: item.time, v: vesselValue(item, primarySeries.id) }))
+      .filter((item) => Number.isFinite(item.v));
+    if (valid.length === 0) return;
+    let chosen = valid[valid.length - 1];
+    if (mode === 'peak') {
+      chosen = valid.reduce((best, item) => (Math.abs(item.v) >= Math.abs(best.v) ? item : best), valid[0]);
+    }
+    const label = mode === 'peak' ? '峰值' : '稳态';
+    const text = `[实测 t=${chosen.t.toFixed(1)}s ${label}: ${primarySeries.label}=${chosen.v.toFixed(primarySeries.digits ?? 2)}]`;
+    onPickSample(text);
+    setPickedHint(text);
+  };
+
+  const topAnomaly = anomalies[0] ?? null;
 
   return (
     <div className="w-full min-w-0 space-y-2">
-      <p className={simulationUi.sectionTitle}>
-        <span className="flex items-center gap-1.5"><Radio className="h-3 w-3" aria-hidden="true" />实时曲线</span>
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-1.5">
+        <p className={simulationUi.sectionTitle}>
+          <span className="flex items-center gap-1.5"><Radio className="h-3 w-3" aria-hidden="true" />实时曲线</span>
+        </p>
+        {typeof predictionTarget === 'number' && Number.isFinite(predictionTarget) ? (
+          <span
+            className="rounded border border-amber-500/40 bg-amber-500/12 px-1.5 py-0.5 font-mono text-[10px] text-amber-800 dark:text-amber-200"
+            data-prediction-target-badge
+          >
+            黄虚线预估靶标: {predictionTarget.toFixed(2)}
+          </span>
+        ) : null}
+      </div>
       <div className="flex flex-wrap gap-1.5" data-vessel-series>
         {experiment.series.map((series, index) => {
           const on = visible[series.id] !== false;
@@ -269,6 +398,70 @@ export function VesselCurve({
       <div className="sim-hud-tile h-44 w-full p-1.5">
         <canvas ref={canvasRef} />
       </div>
+      {comparisonDiagnostics?.isExceeded ? (
+        <div
+          className="rounded border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-900 dark:text-amber-200"
+          data-vessel-curve-mismatch
+        >
+          线性模型失配区（|Truth - StudentModel| RMSE {comparisonDiagnostics.rmse.toFixed(3)} {comparisonDiagnostics.thresholds.unitLabel} 超阈值）
+        </div>
+      ) : null}
+      {onPickSample && samples.length > 0 && stepSeq <= 18 ? (
+        <div className="flex flex-wrap items-center justify-between gap-1.5 text-[11px]">
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => handlePickExtrema('peak')}
+              data-curve-pick-peak
+              className="inline-flex items-center gap-1 rounded border border-platform-border-subtle bg-platform-surface/80 px-2 py-0.5 text-platform-fg-primary hover:border-primary/50"
+            >
+              <Crosshair className="h-3 w-3" aria-hidden="true" />
+              <span>拾取峰值</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handlePickExtrema('steady')}
+              data-curve-pick-steady
+              className="inline-flex items-center gap-1 rounded border border-platform-border-subtle bg-platform-surface/80 px-2 py-0.5 text-platform-fg-primary hover:border-primary/50"
+            >
+              <Crosshair className="h-3 w-3" aria-hidden="true" />
+              <span>拾取末态</span>
+            </button>
+          </div>
+          {pickedHint ? (
+            <span className="truncate font-mono text-[10px] text-emerald-700 dark:text-emerald-300" data-picked-sample-hint>
+              已回填：{pickedHint}
+            </span>
+          ) : (
+            <span className="text-[10px] text-platform-fg-muted">点击曲线点或按钮回填带时间戳实测值</span>
+          )}
+        </div>
+      ) : null}
+      {topAnomaly ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-500/35 bg-amber-500/10 px-2 py-1.5 text-[11px]">
+          <span className="text-platform-fg-primary">
+            <strong>{topAnomaly.badgeLabel}</strong> · t={topAnomaly.timeS.toFixed(1)}s（{topAnomaly.valueLabel}）
+          </span>
+          <button
+            type="button"
+            data-anomaly-ask-konling
+            onClick={() => {
+              globalAi?.triggerSimulationAnomalyInquiry?.({
+                title: `${experiment.title} · ${topAnomaly.badgeLabel}`,
+                shipKey: experiment.vesselId,
+                stepSeq,
+                timeS: topAnomaly.timeS,
+                snapshotSummary: topAnomaly.snapshotSummary,
+                question: topAnomaly.socraticQuestion,
+              });
+            }}
+            className="inline-flex items-center gap-1 rounded border border-amber-500/50 bg-amber-500/20 px-2 py-0.5 font-medium text-amber-900 hover:bg-amber-500/30 dark:text-amber-100"
+          >
+            <Sparkles className="h-3 w-3" aria-hidden="true" />
+            <span>⚡ 异常拐点：问控灵成因</span>
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -296,6 +489,14 @@ export function VesselStepForm({
   showRestart = false,
   showRetryUpload = false,
   connectionStatus = '',
+  studentModel = null,
+  models = [],
+  comparisons = [],
+  runs = [],
+  samples,
+  courseRunning = false,
+  stepDone = false,
+  tourActive = false,
   onChange,
   onSubmit,
   onReport,
@@ -312,6 +513,14 @@ export function VesselStepForm({
   showRestart?: boolean;
   showRetryUpload?: boolean;
   connectionStatus?: string;
+  studentModel?: FrozenVesselStudentModel | null;
+  models?: FrozenVesselStudentModel[];
+  comparisons?: VesselModelComparison[];
+  runs?: Step20RunSummary[];
+  samples?: VesselSample[];
+  courseRunning?: boolean;
+  stepDone?: boolean;
+  tourActive?: boolean;
   onChange: (key: string, value: string) => void;
   onSubmit: () => void;
   onReport: () => void;
@@ -319,8 +528,35 @@ export function VesselStepForm({
   onRestart?: () => void;
   onRetryUpload?: () => void;
 }) {
+  const [step20Section, setStep20Section] = useState<VesselReportSectionKey>('problem');
+  const hasExplicitSketchField = step.fields.some((field) => field.kind === 'sketch');
+  const latestSampleTime = samples && samples.length > 0 ? samples[samples.length - 1].time : null;
+  const requiredWindowS =
+    step.seq === 19 && step.minRunS >= 180 ? 180 : Math.min(step.minRunS || 0, 15);
+  const windowBlockedReason =
+    !tourActive &&
+    !stepDone &&
+    step.seq < 20 &&
+    requiredWindowS > 0 &&
+    ((courseRunning && (latestSampleTime === null || latestSampleTime < requiredWindowS)) ||
+      (latestSampleTime !== null && latestSampleTime > 0 && latestSampleTime < requiredWindowS))
+      ? `尚未到达有效稳态/故障观测窗口（当前 ${(latestSampleTime ?? 0).toFixed(1)}s，需运行至 ≥${requiredWindowS}s），暂不可正式提交。`
+      : null;
+  const submitDisabled = busy || tourActive || Boolean(windowBlockedReason);
+
   return (
     <div className="w-full space-y-2.5">
+      {step.seq === 20 ? (
+        <Step20EvidenceWorkbench
+          readings={readings}
+          activeSection={step20Section}
+          onSelectSection={setStep20Section}
+          onInsertSnippet={(section, nextText) => onChange(section, nextText)}
+          models={models}
+          comparisons={comparisons}
+          runs={runs}
+        />
+      ) : null}
       {step.fields.map((field) => (
         <label key={field.key} className="block space-y-1 text-xs text-platform-fg-secondary">
           <span className="flex items-baseline justify-between gap-2">
@@ -343,21 +579,54 @@ export function VesselStepForm({
             </span>
           ) : null}
           {field.kind === 'sketch' ? (
-            <SketchPad label={field.label} hint="画出奈奎斯特图、伯德图、根轨迹图或时域响应图。" onChange={(dataUrl) => onChange('sketchImage', dataUrl)} />
+            <SketchPad
+              label={field.label}
+              hint="画出奈奎斯特图、伯德图、根轨迹图或时域响应图。"
+              value={readings.sketchImage}
+              studentModel={studentModel}
+              onChange={(dataUrl) => onChange('sketchImage', dataUrl)}
+            />
           ) : null}
         </label>
       ))}
+      {step.seq === 19 && !hasExplicitSketchField ? (
+        <SketchPad
+          label="第 19 步手绘机理草图与本人模型解析叠合"
+          hint="完成草图识别后可叠加本人冻结模型理论参考线，辅助图层不计入识图图像流。"
+          value={readings.sketchImage}
+          studentModel={studentModel}
+          onChange={(dataUrl) => onChange('sketchImage', dataUrl)}
+        />
+      ) : null}
+      {tourActive ? (
+        <p
+          className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-900 dark:text-amber-200"
+          data-tour-submit-locked="true"
+        >
+          只读高光工况导览模式下严禁正式提交或向实验空间回传成绩，请先退出导览。
+        </p>
+      ) : null}
+      {windowBlockedReason ? (
+        <p
+          className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-900 dark:text-amber-200"
+          data-window-gate-notice
+        >
+          {windowBlockedReason}
+        </p>
+      ) : null}
       <div className="grid grid-cols-2 gap-2">
-        <Button type="button" size="sm" disabled={busy} onClick={onSubmit} data-vessel-submit className={cn(simulationUi.buttonPrimary, 'col-span-2 h-9')}>提交本步</Button>
+        <Button type="button" size="sm" disabled={submitDisabled} onClick={onSubmit} data-vessel-submit className={cn(simulationUi.buttonPrimary, 'col-span-2 h-9')}>
+          {tourActive ? '导览只读锁定' : '提交本步'}
+        </Button>
         <Button type="button" size="sm" variant="outline" onClick={onAsk} className={cn(simulationUi.buttonOutline, showReport ? '' : 'col-span-2')}>问控灵这一步</Button>
         {showReport ? (
-          <Button type="button" size="sm" variant="outline" disabled={!reportEnabled} onClick={onReport} data-vessel-report className={simulationUi.buttonOutline}>查看实验报告</Button>
+          <Button type="button" size="sm" variant="outline" disabled={!reportEnabled || tourActive} onClick={onReport} data-vessel-report className={simulationUi.buttonOutline}>查看实验报告</Button>
         ) : null}
         {showRetryUpload && onRetryUpload ? (
-          <Button type="button" size="sm" variant="outline" disabled={busy} onClick={onRetryUpload} data-vessel-retry-upload className={cn(simulationUi.buttonPrimary, 'col-span-2')}>重新回传实验空间</Button>
+          <Button type="button" size="sm" variant="outline" disabled={busy || tourActive} onClick={onRetryUpload} data-vessel-retry-upload className={cn(simulationUi.buttonPrimary, 'col-span-2')}>重新回传实验空间</Button>
         ) : null}
         {showRestart && onRestart ? (
-          <Button type="button" size="sm" variant="outline" disabled={busy} onClick={onRestart} data-vessel-restart className={cn(simulationUi.buttonOutline, 'col-span-2')}>开启新一轮实验</Button>
+          <Button type="button" size="sm" variant="outline" disabled={busy || tourActive} onClick={onRestart} data-vessel-restart className={cn(simulationUi.buttonOutline, 'col-span-2')}>开启新一轮实验</Button>
         ) : null}
       </div>
       {connectionStatus ? <p className="text-xs leading-5 text-platform-fg-secondary" data-ilab-connection-status>{connectionStatus}</p> : null}
@@ -409,16 +678,124 @@ export function VesselExperimentDocks<Settings extends object>({
   controls: ReactNode;
   assessment?: ReactNode;
 }) {
+  const [telemetryOpen, setTelemetryOpen] = useState(false);
   const last = session.shownSamples[session.shownSamples.length - 1];
+  const tourActive = Boolean(session.tour?.active);
+  const effectiveModels: FrozenVesselStudentModel[] =
+    tourActive && session.tour?.node
+      ? session.tour.node.models
+      : (session.course?.models ?? []);
+  const effectiveComparisons: VesselModelComparison[] =
+    tourActive && session.tour?.node
+      ? session.tour.node.comparisons
+      : (session.course?.comparisons ?? []);
+  const effectiveRuns: Step20RunSummary[] =
+    tourActive && session.tour?.node
+      ? session.tour.node.runs
+      : (session.course?.runs ?? []).map((run) => ({
+          id: run.id,
+          stepSequence: run.stepSequence,
+          lastTimeS: run.lastTimeS,
+          stopReason: run.stopReason,
+          createdAtMs: run.createdAtMs,
+          configuration: run.configuration,
+        }));
+  const latestModel = effectiveModels.at(-1) ?? null;
+  const latestComparison = effectiveComparisons.at(-1) ?? null;
+  const latestDiagnostics = useMemo(() => {
+    if (!latestComparison || latestComparison.actual.length === 0 || latestComparison.predicted.length === 0) {
+      return null;
+    }
+    return computeResidualDiagnostics({
+      actual: latestComparison.actual,
+      predicted: latestComparison.predicted,
+      timeS: latestComparison.timeS,
+      outputChannel: latestComparison.outputChannel,
+      outputUnit: latestComparison.outputUnit,
+    });
+  }, [latestComparison]);
+
+  const predictionMatch =
+    typeof session.readings.prediction === 'string'
+      ? /-?\d+(?:\.\d+)?/.exec(session.readings.prediction)
+      : null;
+  const predictionTarget =
+    session.step.seq <= 18 && predictionMatch && Number.isFinite(Number(predictionMatch[0]))
+      ? Number(predictionMatch[0])
+      : null;
+
+  const handlePickSample = (snippet: string) => {
+    const obsField =
+      session.step.fields.find((field) => field.key === 'observation') ??
+      session.step.fields.find((field) => field.kind === 'text') ??
+      session.step.fields[0];
+    if (!obsField) return;
+    const prev = session.readings[obsField.key]?.trim() ?? '';
+    session.setReading(obsField.key, prev ? `${prev}\n${snippet}` : snippet);
+  };
+
+  const chunkCount = Math.max(
+    session.shownSamples.length > 0 ? 1 : 0,
+    Math.ceil(session.shownSamples.length / 200),
+  );
+
   return (
     <>
       <SimulationMissionTracker
-          seq={session.activeSeq}
-          total={experiment.steps.length}
-          title={session.step.title}
-          doneSeqs={session.doneSeqs}
-          earnedPoints={session.earnedPoints}
-          maxPoints={session.maxPoints}
+        seq={session.activeSeq}
+        total={experiment.steps.length}
+        title={session.step.title}
+        doneSeqs={session.doneSeqs}
+        earnedPoints={session.earnedPoints}
+        maxPoints={session.maxPoints}
+        actions={
+          <>
+            <HighlightTourToggleButton
+              active={tourActive}
+              onToggle={() => {
+                if (tourActive) {
+                  session.tour?.exit();
+                } else {
+                  session.tour?.enter();
+                }
+              }}
+            />
+            <IlabTelemetryToggleButton
+              open={telemetryOpen}
+              onToggle={() => {
+                if (!telemetryOpen && !tourActive) {
+                  void session.refreshAuditTelemetry();
+                }
+                setTelemetryOpen((open) => !open);
+              }}
+              aiCallCount={session.auditTelemetry?.aiData.ai_call_count ?? 0}
+              chunkCount={chunkCount}
+            />
+          </>
+        }
+        banner={
+          tourActive && session.tour?.node ? (
+            <HighlightTourBanner
+              activeNode={session.tour.node}
+              currentVesselId={experiment.vesselId}
+              onSelectNode={(node) => session.tour?.enter(node.id)}
+              onExit={() => session.tour?.exit()}
+            />
+          ) : null
+        }
+        drawer={
+          telemetryOpen ? (
+            <IlabTelemetryDrawer
+              auditTelemetry={session.auditTelemetry}
+              originId={session.originId}
+              doneSeqs={new Set(session.doneSeqs)}
+              samples={session.shownSamples}
+              models={effectiveModels}
+              tourActive={tourActive}
+              onRefresh={!tourActive ? () => { void session.refreshAuditTelemetry(); } : undefined}
+            />
+          ) : null
+        }
       />
       <SimulationDock
         side="left"
@@ -444,6 +821,13 @@ export function VesselExperimentDocks<Settings extends object>({
             label: '状态',
             content: (
               <div className="w-full min-w-0 space-y-4">
+                <ThreeLayerTopology
+                  truthActive={Boolean(session.course?.running || session.shownSamples.length > 0)}
+                  observerActive={session.shownSamples.length > 0}
+                  studentModelLabel={latestModel?.label ?? null}
+                  studentModelActive={Boolean(latestModel)}
+                  diagnostics={latestDiagnostics}
+                />
                 {status ? <div className="sim-hud-tile p-2.5">{status}</div> : null}
                 <div className="space-y-2">
                   <p className={simulationUi.sectionTitle}>关键读数</p>
@@ -462,6 +846,11 @@ export function VesselExperimentDocks<Settings extends object>({
                   samples={session.shownSamples}
                   visible={session.seriesVisible}
                   onToggle={session.toggleSeries}
+                  stepSeq={session.step.seq}
+                  stepTitle={session.step.title}
+                  predictionTarget={predictionTarget}
+                  comparison={latestComparison}
+                  onPickSample={handlePickSample}
                 />
               </div>
             ),
@@ -485,24 +874,35 @@ export function VesselExperimentDocks<Settings extends object>({
                 hint={session.step.suggestion}
                 controls={controls}
                 submission={(
-                  <fieldset className="m-0 min-w-0 border-0 p-0" disabled={Boolean(session.course && !session.course.ready)}>
-                  <VesselStepForm
-                    step={session.step}
-                    readings={session.readings}
-                    message={session.message}
-                    connectionStatus={session.connectionStatus}
-                    busy={session.busy || Boolean(session.course && !session.course.ready)}
-                    reportEnabled={session.reportEnabled}
-                    showReport={session.step.seq === experiment.steps.length}
-                    showRestart={session.sessionCompleted || Boolean(session.course && session.reportEnabled)}
-                    showRetryUpload={session.uploadFailed}
-                    onChange={session.setReading}
-                    onSubmit={() => { void session.submitStep(); }}
-                    onReport={session.openReport}
-                    onAsk={session.ask}
-                    onRestart={() => { void session.restartIlabSession(); }}
-                    onRetryUpload={() => { void session.retryIlabUpload(); }}
-                  />
+                  <fieldset
+                    className="m-0 min-w-0 border-0 p-0"
+                    disabled={Boolean(!tourActive && session.course && !session.course.ready)}
+                  >
+                    <VesselStepForm
+                      step={session.step}
+                      readings={session.readings}
+                      message={session.message}
+                      connectionStatus={session.connectionStatus}
+                      busy={session.busy || Boolean(!tourActive && session.course && !session.course.ready)}
+                      reportEnabled={session.reportEnabled}
+                      showReport={session.step.seq === experiment.steps.length}
+                      showRestart={session.sessionCompleted || Boolean(session.course && session.reportEnabled)}
+                      showRetryUpload={session.uploadFailed}
+                      studentModel={latestModel}
+                      models={effectiveModels}
+                      comparisons={effectiveComparisons}
+                      runs={effectiveRuns}
+                      samples={session.shownSamples}
+                      courseRunning={Boolean(session.course?.running)}
+                      stepDone={session.doneSeqs.includes(session.step.seq)}
+                      tourActive={tourActive}
+                      onChange={session.setReading}
+                      onSubmit={() => { void session.submitStep(); }}
+                      onReport={session.openReport}
+                      onAsk={session.ask}
+                      onRestart={() => { void session.restartIlabSession(); }}
+                      onRetryUpload={() => { void session.retryIlabUpload(); }}
+                    />
                   </fieldset>
                 )}
               />

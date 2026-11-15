@@ -9,7 +9,7 @@ import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-l
 
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Html } from '@react-three/drei';
 import { useSearchParams } from 'next/navigation';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
@@ -33,6 +33,8 @@ import {
   SimReadout,
   SimReadoutGrid,
   SimStatusStrip,
+  SimSwitchInput,
+  SimToggleRow,
 } from '../components/simulation-panels';
 import {
   useSimulationSceneTheme,
@@ -390,7 +392,107 @@ function CruiseActuatorDiagram({ state }: { state: CruiseSimulationState }) {
   );
 }
 
-function HUD({ state }: { state: CruiseSimulationState }) {
+function CruiseForceVectors({
+  state,
+  visible,
+  finFaultLocked,
+}: {
+  state: CruiseSimulationState;
+  visible: boolean;
+  finFaultLocked: boolean;
+}) {
+  if (!visible) return null;
+  const psi = toRadians(state.heading);
+  const cosPsi = Math.cos(psi);
+  const sinPsi = Math.sin(psi);
+  const toWorld = (fwd: number, lat: number, y = 3.2): [number, number, number] => [
+    state.position.x + fwd * cosPsi - lat * sinPsi,
+    y,
+    state.position.z + fwd * sinPsi + lat * cosPsi,
+  ];
+  const podArrowLen = Math.max(26, Math.min(72, 26 + Math.abs(state.speed) * 4.2));
+  const pods = [
+    { key: 'port-pod', start: toWorld(-137.25, -8.184, 3.2), angleRad: psi + toRadians(state.portPodDeg) },
+    { key: 'stbd-pod', start: toWorld(-137.25, 8.184, 3.2), angleRad: psi + toRadians(state.starboardPodDeg) },
+  ];
+  const fins = [
+    {
+      key: 'port-fin',
+      start: toWorld(-15.25, -15, 2.8),
+      angleDeg: state.portFinAngle,
+      faulted: finFaultLocked,
+      sideSign: -1,
+    },
+    {
+      key: 'stbd-fin',
+      start: toWorld(-15.25, 15, 2.8),
+      angleDeg: state.starboardFinAngle,
+      faulted: false,
+      sideSign: 1,
+    },
+  ];
+
+  return (
+    <group name="cruise-force-vectors">
+      {pods.map((pod) => {
+        const end: [number, number, number] = [
+          pod.start[0] + podArrowLen * Math.cos(pod.angleRad),
+          pod.start[1],
+          pod.start[2] + podArrowLen * Math.sin(pod.angleRad),
+        ];
+        return (
+          <DirectionArrow
+            key={pod.key}
+            start={pod.start}
+            end={end}
+            color={simulationScenePalette.cruiseHeadingPrimary}
+            lineWidth={3}
+          />
+        );
+      })}
+      {fins.map((fin) => {
+        const liftLen = Math.max(12, (Math.abs(fin.angleDeg) / 25) * 44) * (fin.angleDeg >= 0 ? 1 : -1) * fin.sideSign;
+        const end: [number, number, number] = [
+          fin.start[0] - liftLen * sinPsi,
+          fin.start[1] + Math.max(4, (Math.abs(fin.angleDeg) / 25) * 14),
+          fin.start[2] + liftLen * cosPsi,
+        ];
+        const stalled = Math.abs(fin.angleDeg) >= 22.5 || fin.faulted;
+        return (
+          <group key={fin.key}>
+            <DirectionArrow
+              start={fin.start}
+              end={end}
+              color={stalled ? simulationScenePalette.danger : simulationScenePalette.success}
+              lineWidth={stalled ? 3.4 : 2.6}
+            />
+            {fin.faulted ? (
+              <Html position={fin.start} center>
+                <div className="rounded bg-rose-600/90 px-2 py-0.5 text-[11px] font-medium text-white whitespace-nowrap shadow">
+                  左减摇鳍冻结（t≥180s）
+                </div>
+              </Html>
+            ) : null}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+function HUD({
+  state,
+  finWearIntegralDeg,
+  finFaultLocked,
+  showForceVectors,
+  onToggleForceVectors,
+}: {
+  state: CruiseSimulationState;
+  finWearIntegralDeg: number;
+  finFaultLocked: boolean;
+  showForceVectors: boolean;
+  onToggleForceVectors: () => void;
+}) {
   const error = ((state.targetHeading - state.heading + 540) % 360) - 180;
   const roll = toDegrees(state.rollAngle);
   return (
@@ -403,6 +505,19 @@ function HUD({ state }: { state: CruiseSimulationState }) {
       >
         <SimChip icon={Timer}>剩余{Math.max(0, state.runDurationSec - state.time).toFixed(1)}s</SimChip>
       </SimStatusStrip>
+      <SimPanelSection title="3D 执行器推力与鳍升力矢量" icon={Navigation}>
+        <SimToggleRow
+          label="显示吊舱推力与减摇鳍升力矢量"
+          htmlFor="cruise-force-vectors-toggle"
+          control={
+            <SimSwitchInput
+              id="cruise-force-vectors-toggle"
+              checked={showForceVectors}
+              onChange={onToggleForceVectors}
+            />
+          }
+        />
+      </SimPanelSection>
       <CruiseActuatorDiagram state={state} />
       <SimPanelSection title="航向与双吊舱" icon={Compass}>
         <SimReadoutGrid>
@@ -440,7 +555,12 @@ function HUD({ state }: { state: CruiseSimulationState }) {
           <SimNotice tone="warning">当前来流下鳍控制能力下降，请结合实际力矩评价。</SimNotice>
         ) : null}
       </SimPanelSection>
-      <CruiseComfortReadout comfort={state.comfort} />
+      <CruiseComfortReadout comfort={state.comfort}
+        finAnglesDeg={[state.portFinAngle, state.starboardFinAngle]}
+        timeS={state.time}
+        finWearIntegralDeg={finWearIntegralDeg}
+        finFaultLocked={finFaultLocked}
+      />
     </SimPanelStack>
   );
 }
@@ -546,6 +666,8 @@ function TeachingAnnotationsGate({
 function VisualizationLayer({
   state,
   showGrid,
+  showForceVectors,
+  finFaultLocked,
   sceneTheme,
   desiredRoutePoints,
   trajectoryPoints,
@@ -558,6 +680,8 @@ function VisualizationLayer({
 }: {
   state: CruiseSimulationState;
   showGrid: boolean;
+  showForceVectors: boolean;
+  finFaultLocked: boolean;
   sceneTheme: SimulationSceneTheme;
   desiredRoutePoints: Vector2[];
   trajectoryPoints: Vector2[];
@@ -628,6 +752,7 @@ function VisualizationLayer({
         points={trajectoryPoints}
         waterOriginSampler={() => ({ x: state.position.x, z: state.position.z })}
       />
+      <CruiseForceVectors state={state} visible={showForceVectors} finFaultLocked={finFaultLocked} />
       <TeachingAnnotationsGate
         position={state.position}
         targetHeading={state.targetHeading}
@@ -712,6 +837,9 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
   });
   const [cameraMode, setCameraMode] = useState('chase');
   const [showGrid, setShowGrid] = useState(true);
+  const [showForceVectors, setShowForceVectors] = useState(true);
+  const [finWearIntegralDeg, setFinWearIntegralDeg] = useState(0);
+  const finWearRef = useRef({ lastPort: 0, lastStbd: 0, total: 0 });
   const [speedScale, setSpeedScale] = useState(8);
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
@@ -765,6 +893,12 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
     lastHudUpdateRef.current = frame.timeS;
     lastTrajectoryTime.current = frame.timeS;
     markRef.current = vesselSampleMark(frame.timeS);
+    finWearRef.current = {
+      lastPort: ((frame.truth.actuator_states.control_surface_angles_rad[0] ?? 0) * 180) / Math.PI,
+      lastStbd: ((frame.truth.actuator_states.control_surface_angles_rad[1] ?? 0) * 180) / Math.PI,
+      total: 0,
+    };
+    setFinWearIntegralDeg(0);
     setTrajectory([]);
     setResetCount((value) => value + 1);
   }, [session.course?.ready, session.activeSeq]);
@@ -779,6 +913,13 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
     clockRef.current.advance(elapsed, (dt) => {
       frame = course.advance(dt);
       if (!frame) return;
+      const portDeg = ((frame.truth.actuator_states.control_surface_angles_rad[0] ?? 0) * 180) / Math.PI;
+      const stbdDeg = ((frame.truth.actuator_states.control_surface_angles_rad[1] ?? 0) * 180) / Math.PI;
+      finWearRef.current.total +=
+        Math.abs(portDeg - finWearRef.current.lastPort) +
+        Math.abs(stbdDeg - finWearRef.current.lastStbd);
+      finWearRef.current.lastPort = portDeg;
+      finWearRef.current.lastStbd = stbdDeg;
       const point = course.latestPoint();
       if (point) {
         const sample = cruiseCourseTraceSamples([point])[0];
@@ -807,6 +948,7 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
       };
     });
     if (frame && (frame.timeS - lastHudUpdateRef.current >= 0.1 || frame.paused)) {
+      setFinWearIntegralDeg(finWearRef.current.total);
       setState(
         cruiseStateFromFrame(
           frame,
@@ -852,6 +994,8 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
     };
   }, [session.course?.running, simulate]);
 
+  const finFaultLocked = Boolean(state.time >= 180 && session.activeSeq === 19);
+
   return (
     <SceneEnvironmentProvider>
       <SceneSoundscapeProvider>
@@ -862,6 +1006,8 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
               <VisualizationLayer
                 state={state}
                 showGrid={showGrid}
+                showForceVectors={showForceVectors}
+                finFaultLocked={finFaultLocked}
                 sceneTheme={sceneTheme}
                 desiredRoutePoints={desiredRoutePoints}
                 trajectoryPoints={trajectory}
@@ -887,7 +1033,15 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
               <VesselExperimentDocks
                 experiment={cruiseExperiment}
                 session={session}
-                status={<HUD state={state} />}
+                status={
+                  <HUD
+                    state={state}
+                    finWearIntegralDeg={finWearIntegralDeg}
+                    finFaultLocked={finFaultLocked}
+                    showForceVectors={showForceVectors}
+                    onToggleForceVectors={() => setShowForceVectors((v) => !v)}
+                  />
+                }
                 controls={<CruiseCourseControls session={session} timeS={state.time} />}
                 assessment={<VesselCourseEvidencePanel session={session} defaultChannel="fin-to-roll" />}
               />

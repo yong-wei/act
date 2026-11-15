@@ -318,6 +318,9 @@ export function SimulationMissionTracker({
   doneSeqs,
   earnedPoints,
   maxPoints,
+  actions,
+  drawer,
+  banner,
 }: {
   seq: number;
   total: number;
@@ -325,28 +328,34 @@ export function SimulationMissionTracker({
   doneSeqs: number[];
   earnedPoints: number | null;
   maxPoints: number;
+  actions?: ReactNode;
+  drawer?: ReactNode;
+  banner?: ReactNode;
 }) {
   const ticks = Array.from({ length: total }, (_, index) => index + 1);
   return (
     <div
-      className="sim-hud-tracker pointer-events-none absolute left-1/2 top-4 z-10 hidden w-[min(25rem,calc(100%-2rem))] -translate-x-1/2 px-3.5 py-2.5 md:block"
+      className="sim-hud-tracker pointer-events-none absolute left-1/2 top-4 z-10 hidden w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 px-3.5 py-2.5 md:block"
       data-simulation-mission-tracker
-      aria-hidden="true"
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="sim-hud-led" />
+          <span className="sim-hud-led" aria-hidden="true" />
           <span className="text-[10px] font-semibold tracking-[0.2em] text-platform-fg-muted">当前任务</span>
           <span className="sim-hud-value text-xs font-bold">{String(seq).padStart(2, '0')}/{String(total).padStart(2, '0')}</span>
         </div>
-        <span className="flex shrink-0 items-center gap-1 text-[11px] text-platform-fg-secondary">
-          <Trophy className="h-3.5 w-3.5 text-[hsl(var(--platform-brand-evidence))]" />
-          <span className="sim-hud-value font-semibold">{earnedPoints ?? '待复核'}</span>
-          <span className="text-platform-fg-muted">/ {maxPoints}</span>
-        </span>
+        <div className="pointer-events-auto flex shrink-0 items-center gap-2">
+          {actions}
+          <span className="flex shrink-0 items-center gap-1 text-[11px] text-platform-fg-secondary">
+            <Trophy className="h-3.5 w-3.5 text-[hsl(var(--platform-brand-evidence))]" aria-hidden="true" />
+            <span className="sim-hud-value font-semibold">{earnedPoints ?? '待复核'}</span>
+            <span className="text-platform-fg-muted">/ {maxPoints}</span>
+          </span>
+        </div>
       </div>
+      {banner ? <div className="pointer-events-auto mt-1.5">{banner}</div> : null}
       <p className="mt-1 truncate text-sm font-semibold text-platform-fg-primary">{seq}. {title}</p>
-      <div className="mt-2 flex gap-[3px]">
+      <div className="mt-2 flex gap-[3px]" aria-hidden="true">
         {ticks.map((tick) => {
           const done = doneSeqs.includes(tick);
           const current = tick === seq;
@@ -365,11 +374,13 @@ export function SimulationMissionTracker({
           );
         })}
       </div>
+      {drawer ? <div className="pointer-events-auto mt-2">{drawer}</div> : null}
     </div>
   );
 }
 
 export interface SimulationChartTheme {
+  mode: 'light' | 'dark';
   tick: string;
   grid: string;
   gridFaint: string;
@@ -383,7 +394,12 @@ export function formatAxisTick(value: number): string {
 export function useSimulationChartTheme(): SimulationChartTheme {
   const sceneTheme = useSimulationSceneTheme();
   return useMemo(
-    () => ({ tick: sceneTheme.chartTick, grid: sceneTheme.chartGrid, gridFaint: sceneTheme.chartGridFaint }),
+    () => ({
+      mode: sceneTheme.mode,
+      tick: sceneTheme.chartTick,
+      grid: sceneTheme.chartGrid,
+      gridFaint: sceneTheme.chartGridFaint,
+    }),
     [sceneTheme],
   );
 }

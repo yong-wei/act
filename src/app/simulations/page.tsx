@@ -26,6 +26,7 @@ import { AppShell } from '@/components/platform/app-shell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { HighlightTourCatalogSection } from '@/resources/simulations/experiments/highlight-tour-bar';
 
 // ============ 仿真数据定义 ============
 
@@ -511,6 +512,8 @@ export default function SimulationsPage() {
             </div>
           </div>
         </section>
+
+        <HighlightTourCatalogSection />
 
         <section className="surface-card rounded-lg p-4" aria-label="筛选仿真目录">
           <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_220px_160px]">
