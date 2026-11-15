@@ -11,9 +11,10 @@ config({path:'.env.local',quiet:true});
 config({quiet:true});
 const origin=process.env.VESSEL_BROWSER_ORIGIN ?? 'http://127.0.0.1:3002';
 const courseKey=process.env.VESSEL_RECOVERY_COURSE ?? 'cruise';
-assert(['cruise','container','drilling','destroyer'].includes(courseKey));
-const experimentKey={cruise:'cruise-comfort',container:'container-voyage',drilling:'drilling-dp',destroyer:'destroyer'}[courseKey]!;
-const predictionLabel=courseKey==='destroyer' ? '运行前预测与理由' : '运行前预测与方案依据';
+assert(['cruise','container','drilling','destroyer','lng'].includes(courseKey));
+const experimentKey={cruise:'cruise-comfort',container:'container-voyage',drilling:'drilling-dp',destroyer:'destroyer',lng:'lng-berthing'}[courseKey]!;
+const predictionLabel=courseKey==='destroyer' ? '运行前预测与理由'
+  : courseKey==='lng' ? '运行或分析前的预测' : '运行前预测与方案依据';
 const storageKey=courseKey==='destroyer' ? 'act-destroyer-origin' : `act-vessel-origin:${experimentKey}`;
 assert(['127.0.0.1','localhost'].includes(new URL(origin).hostname));
 assert(['127.0.0.1','localhost'].includes(new URL(process.env.DATABASE_URL!).hostname));
@@ -104,10 +105,7 @@ try {
 
   second=await browser.newContext({viewport:{width:1801,height:867}});
   const recoveredPage=await enter(second);
-  await recoveredPage.waitForFunction((expected)=>{
-    const text=document.querySelector<HTMLTextAreaElement>('[aria-label^="运行前预测与"]')?.value;
-    return text===expected;
-  },prediction);
+  await expect(recoveredPage.getByLabel(predictionLabel,{exact:true})).toHaveValue(prediction);
   const recovered=await activeLocalRun(recoveredPage);
   assert.equal(recovered.id,local.id);
   assert.equal(recovered.lastTimeS,local.lastTimeS);
@@ -138,11 +136,11 @@ try {
   await recoveredPage.getByRole('tab',{name:'评估',exact:true}).click();
   await recoveredPage.getByRole('button',{name:'开启新一轮实验',exact:true}).click();
   await recoveredPage.getByRole('tab',{name:'控制',exact:true}).click();
-  await recoveredPage.waitForFunction(({previous,key})=>{
+  await recoveredPage.waitForFunction(({previous,key,label})=>{
     const current=sessionStorage.getItem(key);
-    const answer=document.querySelector<HTMLTextAreaElement>('[aria-label^="运行前预测与"]');
+    const answer=document.querySelector<HTMLTextAreaElement>(`textarea[aria-label="${label}"]`);
     return current && current!==previous && answer?.value==='';
-  },{previous:oldOrigin,key:storageKey});
+  },{previous:oldOrigin,key:storageKey,label:predictionLabel});
   const newOrigin=await recoveredPage.evaluate((key)=>sessionStorage.getItem(key),storageKey);
   assert(newOrigin && newOrigin!==oldOrigin);
   await recoveredPage.getByLabel(predictionLabel,{exact:true}).fill('New round B prediction');
@@ -157,7 +155,7 @@ try {
     assert(oldScope); await selector.selectOption(oldScope);
   }
   await recoveredPage.getByRole('tab',{name:'控制',exact:true}).click();
-  await recoveredPage.waitForFunction(()=>document.querySelector<HTMLTextAreaElement>('[aria-label^="运行前预测与"]')?.value!=='New round B prediction');
+  await expect(recoveredPage.getByLabel(predictionLabel,{exact:true})).not.toHaveValue('New round B prediction');
   await recoveredPage.getByLabel(courseKey==='destroyer' ? '证据解释与适用边界' : predictionLabel,{exact:true}).fill('Historical round A edited');
   await recoveredPage.waitForTimeout(1500);
   const after=await prisma.ilabExperimentRun.findUniqueOrThrow({where:{originId:newOrigin}});
@@ -167,10 +165,7 @@ try {
   assert.equal(historicalAnswers[courseKey==='destroyer' ? 'interpretation' : 'prediction'],'Historical round A edited');
   third=await browser.newContext({viewport:{width:1801,height:867}});
   const emptyRoundPage=await enter(third);
-  await emptyRoundPage.waitForFunction(()=>{
-    const answer=document.querySelector<HTMLTextAreaElement>('[aria-label^="运行前预测与"]');
-    return answer && !answer.matches(':disabled');
-  });
+  await expect(emptyRoundPage.getByLabel(predictionLabel,{exact:true})).toBeEnabled();
   assert.equal(await emptyRoundPage.getByLabel(predictionLabel,{exact:true}).inputValue(),'New round B prediction');
   assert.equal(await emptyRoundPage.evaluate((key)=>sessionStorage.getItem(key),storageKey),newOrigin);
   assert(!(await activeLocalRun(emptyRoundPage)),'An empty new round must not hydrate the earlier physical run');
