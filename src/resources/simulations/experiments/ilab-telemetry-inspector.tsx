@@ -1,6 +1,6 @@
 'use client';
 
-import { ShieldCheck, Activity, Database } from 'lucide-react';
+import { ShieldCheck, Activity, Database, RefreshCw } from 'lucide-react';
 import { ILAB_AI_DATA_KEYS } from '@/features/ilab/ai-data';
 import { maskOriginId, type VesselAuditTelemetry } from '@/features/ilab/telemetry-redaction';
 import { STEP_SCORE_DISTRIBUTION } from '../contracts/experiment-step';
@@ -59,6 +59,7 @@ export function IlabTelemetryDrawer({
   samples,
   models,
   tourActive = false,
+  onRefresh,
 }: {
   auditTelemetry?: VesselAuditTelemetry | null;
   originId?: string;
@@ -66,6 +67,7 @@ export function IlabTelemetryDrawer({
   samples: VesselSample[];
   models: FrozenVesselStudentModel[];
   tourActive?: boolean;
+  onRefresh?: () => void;
 }) {
   const maskedOrigin = auditTelemetry?.maskedOriginId ?? maskOriginId(originId ?? 'local');
   const aiData = auditTelemetry?.aiData ?? {
@@ -92,11 +94,24 @@ export function IlabTelemetryDrawer({
           <Database className="h-3.5 w-3.5 text-sky-500" />
           <span>实验追溯与审计实时透视镜（只读脱敏）</span>
         </div>
-        <span className="rounded bg-slate-500/15 px-2 py-0.5 font-mono text-[10px] text-platform-fg-secondary">
-          {tourActive
-            ? '只读导览模式（禁止回传）'
-            : UPLOAD_MODE_LABELS[auditTelemetry?.uploadMode ?? 'local-only']}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {onRefresh && !tourActive ? (
+            <button
+              type="button"
+              onClick={onRefresh}
+              data-ilab-telemetry-refresh
+              className="inline-flex items-center gap-1 rounded border border-platform-border-subtle bg-platform-canvas/60 px-1.5 py-0.5 text-[10px] font-medium text-platform-fg-secondary transition hover:border-platform-accent/60 hover:text-platform-fg-primary"
+            >
+              <RefreshCw className="h-2.5 w-2.5" aria-hidden="true" />
+              <span>刷新</span>
+            </button>
+          ) : null}
+          <span className="rounded bg-slate-500/15 px-2 py-0.5 font-mono text-[10px] text-platform-fg-secondary">
+            {tourActive
+              ? '只读导览模式（禁止回传）'
+              : UPLOAD_MODE_LABELS[auditTelemetry?.uploadMode ?? 'local-only']}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

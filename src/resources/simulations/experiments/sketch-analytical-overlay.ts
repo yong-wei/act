@@ -4,6 +4,8 @@ import { studentModelFormula } from './student-model-presentation';
 
 export interface SketchAnalyticalOverlaySpec {
   plotId: SketchPlotId;
+  supported: boolean;
+  unsupportedReason?: string;
   modelLabel: string;
   formula: string;
   viewBox: string;
@@ -39,6 +41,39 @@ export function buildSketchAnalyticalOverlay(
   const formula = structure ? studentModelFormula(structure) : '待冻结本人低阶模型';
   const modelLabel = studentModel?.label ?? '理论坐标参考';
 
+  if (!structure) {
+    return {
+      plotId,
+      supported: false,
+      unsupportedReason: '尚未冻结本人低阶辨识模型，完成前序辨识并冻结模型后可叠加解析参考。',
+      modelLabel,
+      formula,
+      viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
+      paths: [],
+      markers: [],
+      referenceNotes: ['尚未冻结本人低阶辨识模型，暂不叠加解析参考线。'],
+    };
+  }
+
+  if (
+    structure.kind !== 'nomoto1' &&
+    structure.kind !== 'nomoto2' &&
+    structure.kind !== 'fopdt' &&
+    structure.kind !== 'roll_oscillator'
+  ) {
+    return {
+      plotId,
+      supported: false,
+      unsupportedReason: '当前冻结模型为三自由度多变量耦合结构，不支持单回路解析参考线叠合。',
+      modelLabel,
+      formula,
+      viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
+      paths: [],
+      markers: [],
+      referenceNotes: ['三自由度耦合模型不适用单回路解析叠加，请聚焦主航路/DP 频域物理分析。'],
+    };
+  }
+
   // Extract representative scalar gain & time constants if available.
   let gain = 0.2;
   let t1 = 6;
@@ -47,21 +82,21 @@ export function buildSketchAnalyticalOverlay(
   let wn = 0.6;
   let zeta = 0.25;
 
-  if (structure?.kind === 'nomoto1') {
+  if (structure.kind === 'nomoto1') {
     gain = Math.max(0.01, Math.abs(structure.k));
     t1 = Math.max(0.1, Math.abs(structure.t_s));
-  } else if (structure?.kind === 'nomoto2') {
+  } else if (structure.kind === 'nomoto2') {
     gain = Math.max(0.01, Math.abs(structure.k));
     t1 = Math.max(0.1, Math.abs(structure.t1_s));
     t2 = Math.max(0.05, Math.abs(structure.t2_s));
-  } else if (structure?.kind === 'fopdt') {
+  } else if (structure.kind === 'fopdt') {
     gain = Math.max(0.01, Math.abs(structure.k));
     t1 = Math.max(0.1, Math.abs(structure.t_s));
     delay = Math.max(0, structure.delay_s);
-  } else if (structure?.kind === 'roll_oscillator') {
+  } else if (structure.kind === 'roll_oscillator') {
     gain = Math.max(0.05, Math.abs(structure.control_gain));
     wn = Math.max(0.1, structure.natural_freq_rad_s);
-    zeta = Math.max(0.02, Math.min(1.5, structure.damping));
+    zeta = Math.max(0.01, structure.damping);
   }
 
   if (plotId === 'nyquist') {
@@ -76,7 +111,7 @@ export function buildSketchAnalyticalOverlay(
       const w = (omegaMax * i) / steps;
       let re = 0;
       let im = 0;
-      if (structure?.kind === 'roll_oscillator') {
+      if (structure.kind === 'roll_oscillator') {
         const denomRe = wn * wn - w * w;
         const denomIm = 2 * zeta * wn * w;
         const d2 = Math.max(1e-6, denomRe * denomRe + denomIm * denomIm);
@@ -97,6 +132,7 @@ export function buildSketchAnalyticalOverlay(
     }
     return {
       plotId,
+      supported: true,
       modelLabel,
       formula,
       viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
@@ -117,10 +153,11 @@ export function buildSketchAnalyticalOverlay(
   }
 
   if (plotId === 'bode') {
-    const cornerFreq = structure?.kind === 'roll_oscillator' ? wn : 1 / Math.max(0.1, t1);
+    const cornerFreq = structure.kind === 'roll_oscillator' ? wn : 1 / Math.max(0.1, t1);
     const cornerX = Math.max(70, Math.min(200, 140 + Math.log10(Math.max(0.02, cornerFreq)) * 35));
     return {
       plotId,
+      supported: true,
       modelLabel,
       formula,
       viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
@@ -129,13 +166,13 @@ export function buildSketchAnalyticalOverlay(
         { id: 'minus-180', d: `M20,136 H${VIEW_W - 14}`, stroke: '#ef4444', dashed: true, label: '-180° 相位线' },
         {
           id: 'asymp-mag',
-          d: `M24,36 L${cornerX.toFixed(1)},36 L${VIEW_W - 20},${structure?.kind === 'roll_oscillator' || t2 > 0 ? '92' : '78'}`,
+          d: `M24,36 L${cornerX.toFixed(1)},36 L${VIEW_W - 20},${structure.kind === 'roll_oscillator' || t2 > 0 ? '92' : '78'}`,
           stroke: '#f59e0b',
           label: '渐近幅频折线',
         },
         {
           id: 'asymp-phase',
-          d: `M24,102 C${(cornerX - 24).toFixed(1)},104 ${(cornerX + 24).toFixed(1)},136 ${VIEW_W - 20},${structure?.kind === 'roll_oscillator' || delay > 0 || t2 > 0 ? '146' : '128'}`,
+          d: `M24,102 C${(cornerX - 24).toFixed(1)},104 ${(cornerX + 24).toFixed(1)},136 ${VIEW_W - 20},${structure.kind === 'roll_oscillator' || delay > 0 || t2 > 0 ? '146' : '128'}`,
           stroke: '#06b6d4',
           dashed: true,
           label: '理论相频趋势',
@@ -146,41 +183,190 @@ export function buildSketchAnalyticalOverlay(
       ],
       referenceNotes: [
         `参考模型：${formula}`,
-        `转折频率参考：ωc ≈ ${cornerFreq.toFixed(2)} rad/s（高频斜率 ${structure?.kind === 'roll_oscillator' || t2 > 0 ? '-40' : '-20'} dB/dec）。`,
+        `转折频率参考：ωc ≈ ${cornerFreq.toFixed(2)} rad/s（高频斜率 ${structure.kind === 'roll_oscillator' || t2 > 0 ? '-40' : '-20'} dB/dec）。`,
         delay > 0 ? `存在 τ=${delay.toFixed(2)}s 时滞，高频相位将迅速跌破 -180°。` : '核对幅值穿越 0 dB 处的相位裕度与相频拐点频率。',
       ],
     };
   }
 
   if (plotId === 'root-locus') {
-    const imX = 188;
+    const imX = 196;
     const cy = 80;
-    const pole1X = Math.max(36, imX - 38);
-    const pole2X = t2 > 0 ? Math.max(24, imX - 88) : null;
-    const markers = [
-      { id: 'p0', x: pole1X, y: cy, color: '#f59e0b', label: structure?.kind === 'roll_oscillator' ? `极点实部 -ζωn=-${(zeta * wn).toFixed(2)}` : `p1=-${(1 / t1).toFixed(2)}` },
-    ];
-    if (pole2X !== null) {
-      markers.push({ id: 'p2', x: pole2X, y: cy, color: '#06b6d4', label: `p2=-${(1 / t2).toFixed(2)}` });
-    } else if (structure?.kind === 'roll_oscillator') {
-      markers.push({ id: 'wn1', x: imX - 38, y: cy - 34, color: '#f59e0b', label: '共轭极点' });
-      markers.push({ id: 'wn2', x: imX - 38, y: cy + 34, color: '#f59e0b', label: '共轭极点' });
+    const axesPath = {
+      id: 's-plane',
+      d: `M18,${cy} H${VIEW_W - 14} M${imX},12 V${VIEW_H - 12}`,
+      stroke: '#64748b',
+      dashed: true,
+      label: 's 平面与虚轴稳定边界',
+    };
+
+    if (structure.kind === 'fopdt' && delay > 1e-3) {
+      return {
+        plotId,
+        supported: false,
+        unsupportedReason: `当前冻结模型含纯时滞 τ=${delay.toFixed(2)}s（超越项对应无穷多条根轨迹分支），请改用伯德图或奈奎斯特图核验相位裕度。`,
+        modelLabel,
+        formula,
+        viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
+        paths: [],
+        markers: [],
+        referenceNotes: [
+          `参考模型：${formula}`,
+          `含纯时滞 e^(-${delay.toFixed(2)}s·s) 的超越特征方程不适用有限维实/复根轨迹渐近参考，请切换至伯德图或奈奎斯特图。`,
+        ],
+      };
     }
-    const sigmaA = pole2X !== null ? (pole1X + pole2X) / 2 : imX - 24;
+
+    if (structure.kind === 'nomoto1' || (structure.kind === 'fopdt' && delay <= 1e-3)) {
+      const p1 = -1 / t1;
+      const scale = 120 / Math.max(Math.abs(p1), 0.05);
+      const p1X = Math.max(36, Math.min(imX - 16, imX + p1 * scale));
+      return {
+        plotId,
+        supported: true,
+        modelLabel,
+        formula,
+        viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
+        paths: [
+          axesPath,
+          {
+            id: 'locus-real-ray',
+            d: `M${p1X.toFixed(1)},${cy} H22`,
+            stroke: '#f59e0b',
+            label: '一阶负实轴根轨迹射线（无垂直渐近线）',
+          },
+        ],
+        markers: [
+          { id: 'p1', x: p1X, y: cy, color: '#f59e0b', label: `p1=${p1.toFixed(2)}` },
+        ],
+        referenceNotes: [
+          `参考模型：${formula}`,
+          `一阶模型仅含单个负实极点 p1=${p1.toFixed(3)}，随比例增益增大沿负实轴单调向左移动，不存在垂直渐近分支。`,
+          '虚轴（Re(s)=0）为稳定边界，注意核对闭环响应快慢与增益饱和权衡。',
+        ],
+      };
+    }
+
+    if (structure.kind === 'nomoto2') {
+      const p1 = -1 / t1;
+      const p2 = -1 / t2;
+      const sigmaB = (p1 + p2) / 2;
+      const scale = 130 / Math.max(Math.abs(p1), Math.abs(p2), 0.05);
+      const p1X = Math.max(28, Math.min(imX - 12, imX + p1 * scale));
+      const p2X = Math.max(24, Math.min(imX - 12, imX + p2 * scale));
+      const breakX = (p1X + p2X) / 2;
+      const leftX = Math.min(p1X, p2X);
+      const rightX = Math.max(p1X, p2X);
+      return {
+        plotId,
+        supported: true,
+        modelLabel,
+        formula,
+        viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
+        paths: [
+          axesPath,
+          {
+            id: 'locus-real-segment',
+            d: `M${leftX.toFixed(1)},${cy} H${rightX.toFixed(1)}`,
+            stroke: '#f59e0b',
+            label: '两实极点间实轴根轨迹段',
+          },
+          {
+            id: 'locus-vertical-asymptote',
+            d: `M${breakX.toFixed(1)},16 V${VIEW_H - 16}`,
+            stroke: '#f59e0b',
+            dashed: true,
+            label: '±90° 渐近垂直根轨迹分支',
+          },
+        ],
+        markers: [
+          { id: 'p1', x: p1X, y: cy, color: '#f59e0b', label: `p1=${p1.toFixed(2)}` },
+          { id: 'p2', x: p2X, y: cy, color: '#06b6d4', label: `p2=${p2.toFixed(2)}` },
+          { id: 'break', x: breakX, y: cy, color: '#10b981', label: `σb=${sigmaB.toFixed(2)}` },
+        ],
+        referenceNotes: [
+          `参考模型：${formula}`,
+          `两负实极点 p1=${p1.toFixed(3)}、p2=${p2.toFixed(3)} 于分离点 σb=${sigmaB.toFixed(3)} 汇合并沿 ±90° 垂直分支发展。`,
+          '高增益时闭环阻尼比下降但保持左半平面分布（未计高阶滞后前不穿虚轴）。',
+        ],
+      };
+    }
+
+    // roll_oscillator: s^2 + 2*zeta*wn*s + wn^2 = 0
+    if (zeta < 1) {
+      const sigma = -zeta * wn;
+      const wd = wn * Math.sqrt(1 - zeta * zeta);
+      const scaleRe = 120 / Math.max(wn, 0.05);
+      const scaleIm = 56 / Math.max(wn, 0.05);
+      const poleX = Math.max(36, Math.min(imX - 10, imX + sigma * scaleRe));
+      const offsetY = Math.max(12, Math.min(58, wd * scaleIm));
+      return {
+        plotId,
+        supported: true,
+        modelLabel,
+        formula,
+        viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
+        paths: [
+          axesPath,
+          {
+            id: 'locus-conjugate-branches',
+            d: `M${poleX.toFixed(1)},${(cy - offsetY).toFixed(1)} V14 M${poleX.toFixed(1)},${(cy + offsetY).toFixed(1)} V${VIEW_H - 14}`,
+            stroke: '#f59e0b',
+            dashed: true,
+            label: '共轭极点 ±90° 垂直离心分支',
+          },
+        ],
+        markers: [
+          { id: 'conj-upper', x: poleX, y: cy - offsetY, color: '#f59e0b', label: `${sigma.toFixed(2)}+j${wd.toFixed(2)}` },
+          { id: 'conj-lower', x: poleX, y: cy + offsetY, color: '#f59e0b', label: `${sigma.toFixed(2)}-j${wd.toFixed(2)}` },
+        ],
+        referenceNotes: [
+          `参考模型：${formula}`,
+          `欠阻尼二阶振子（ζ=${zeta.toFixed(2)} < 1）开环仅有一对共轭复极点 (${sigma.toFixed(2)} ± j${wd.toFixed(2)})，不存在实轴极点。`,
+          '比例增益增大时两共轭分支沿 Re(s)=-ζωn 垂直远离实轴，衰减时间常数近似不变但振荡频率升高。',
+        ],
+      };
+    }
+
+    const radical = Math.sqrt(Math.max(0, zeta * zeta - 1));
+    const p1 = wn * (-zeta + radical);
+    const p2 = wn * (-zeta - radical);
+    const sigmaB = -zeta * wn;
+    const scale = 130 / Math.max(Math.abs(p2), 0.05);
+    const p1X = Math.max(28, Math.min(imX - 12, imX + p1 * scale));
+    const p2X = Math.max(24, Math.min(imX - 12, imX + p2 * scale));
+    const breakX = Math.max(26, Math.min(imX - 12, imX + sigmaB * scale));
     return {
       plotId,
+      supported: true,
       modelLabel,
       formula,
       viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
       paths: [
-        { id: 's-plane', d: `M18,${cy} H${VIEW_W - 14} M${imX},12 V${VIEW_H - 12}`, stroke: '#64748b', dashed: true, label: 's 平面与虚轴稳定边界' },
-        { id: 'locus-branch', d: `M${pole1X},${cy} H${sigmaA.toFixed(1)} M${sigmaA.toFixed(1)},16 V${VIEW_H - 16}`, stroke: '#f59e0b', dashed: true, label: '渐近根轨迹参考分支' },
+        axesPath,
+        {
+          id: 'locus-real-segment',
+          d: `M${p2X.toFixed(1)},${cy} H${p1X.toFixed(1)}`,
+          stroke: '#f59e0b',
+          label: '过阻尼实轴根轨迹段',
+        },
+        {
+          id: 'locus-vertical-asymptote',
+          d: `M${breakX.toFixed(1)},16 V${VIEW_H - 16}`,
+          stroke: '#f59e0b',
+          dashed: true,
+          label: '±90° 渐近垂直根轨迹分支',
+        },
       ],
-      markers,
+      markers: [
+        { id: 'p1', x: p1X, y: cy, color: '#f59e0b', label: `p1=${p1.toFixed(2)}` },
+        { id: 'p2', x: p2X, y: cy, color: '#06b6d4', label: `p2=${p2.toFixed(2)}` },
+        { id: 'break', x: breakX, y: cy, color: '#10b981', label: `σb=${sigmaB.toFixed(2)}` },
+      ],
       referenceNotes: [
         `参考模型：${formula}`,
-        `虚轴（Re(s)=0）为稳定边界，右半平面根意味闭环发散失稳。`,
-        `核对实轴分离点与高增益穿越虚轴的趋势方向。`,
+        `过阻尼二阶振子（ζ=${zeta.toFixed(2)} ≥ 1）含两负实极点 p1=${p1.toFixed(2)}、p2=${p2.toFixed(2)}，在 σb=${sigmaB.toFixed(2)} 处分离为 ±90° 共轭垂直分支。`,
+        '虚轴（Re(s)=0）为稳定边界，右半平面根意味闭环发散失稳。',
       ],
     };
   }
@@ -189,15 +375,16 @@ export function buildSketchAnalyticalOverlay(
   const settleY = 50;
   const bandTopY = 44;
   const bandBotY = 56;
-  const overshootPct = structure?.kind === 'roll_oscillator' && zeta < 1
+  const overshootPct = structure.kind === 'roll_oscillator' && zeta < 1
     ? Math.exp((-Math.PI * zeta) / Math.sqrt(Math.max(0.05, 1 - zeta * zeta))) * 100
     : 0;
   const peakY = Math.max(18, settleY - Math.round((overshootPct / 100) * 80));
-  const peakX = structure?.kind === 'roll_oscillator' ? 105 : 185;
+  const peakX = structure.kind === 'roll_oscillator' ? 105 : 185;
   const delayPx = Math.min(55, delay * 16);
 
   return {
     plotId,
+    supported: true,
     modelLabel,
     formula,
     viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,

@@ -129,6 +129,7 @@ export function GlobalAISidebar() {
     clearPendingKonlingConversation,
     simulationAnomalyContext,
     clearSimulationAnomalyContext,
+    notifyAiTurnCompleted,
   } = useGlobalAI();
 
   useEffect(() => {
@@ -344,6 +345,7 @@ export function GlobalAISidebar() {
         refreshConversations(),
         refreshActiveConversation(),
       ]).catch(() => undefined);
+      notifyAiTurnCompleted();
       if (sendAssistantBinding?.teachingAssistantModeId === 'path-advisor') {
         window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
           detail: {

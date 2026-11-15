@@ -131,7 +131,10 @@ export function SketchPad({
       setVerdict(nextVerdict);
       if (nextVerdict.sketchKind !== 'other' && !nextVerdict.sketchBlank) {
         setSelectedPlotId(nextVerdict.sketchKind);
-        setShowOverlay(true);
+        const nextSpec = buildSketchAnalyticalOverlay(nextVerdict.sketchKind, studentModel);
+        setShowOverlay(nextSpec.supported);
+      } else {
+        setShowOverlay(false);
       }
       onRecognized?.(nextVerdict);
     } catch {
@@ -201,7 +204,7 @@ export function SketchPad({
           onPointerUp={publish}
         />
 
-        {overlaySpec && showOverlay ? (
+        {overlaySpec?.supported && showOverlay ? (
           <svg
             viewBox={overlaySpec.viewBox}
             className="pointer-events-none absolute inset-0 h-full w-full"
@@ -275,18 +278,37 @@ export function SketchPad({
         </Button>
 
         {overlaySpec ? (
-          <label className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-amber-700 dark:text-amber-300">
+          <label
+            className={`inline-flex items-center gap-1 text-[11px] ${
+              overlaySpec.supported
+                ? 'cursor-pointer text-amber-700 dark:text-amber-300'
+                : 'cursor-not-allowed text-platform-fg-muted opacity-70'
+            }`}
+          >
             <input
               type="checkbox"
               data-sketch-overlay-toggle
-              checked={showOverlay}
-              onChange={(event) => setShowOverlay(event.target.checked)}
+              disabled={!overlaySpec.supported}
+              checked={overlaySpec.supported && showOverlay}
+              onChange={(event) => {
+                if (!overlaySpec.supported) return;
+                setShowOverlay(event.target.checked);
+              }}
             />
             <Layers className="size-3" aria-hidden="true" />
-            <span>叠加本人模型参考特征</span>
+            <span>{overlaySpec.supported ? '叠加本人模型参考特征' : '当前结构不支持参考叠加'}</span>
           </label>
         ) : null}
       </div>
+
+      {overlaySpec && !overlaySpec.supported && overlaySpec.unsupportedReason ? (
+        <p
+          data-sketch-overlay-unsupported
+          className="text-[11px] text-amber-700 dark:text-amber-300"
+        >
+          {overlaySpec.unsupportedReason}
+        </p>
+      ) : null}
 
       {recognizeError ? (
         <p role="alert" className="text-[11px] text-rose-600 dark:text-rose-300">

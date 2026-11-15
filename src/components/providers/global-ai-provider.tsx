@@ -119,6 +119,9 @@ interface GlobalAIContextValue {
     payload: Omit<SimulationAnomalyInquiryContext, 'antiGhostwriting'>,
   ) => void;
   clearSimulationAnomalyContext?: () => void;
+  /** 控灵对话回复完成序号，用于触发关联仿真会话审计账本刷新 */
+  aiTurnSeq: number;
+  notifyAiTurnCompleted: () => void;
 }
 
 const GlobalAIContext = createContext<GlobalAIContextValue | null>(null);
@@ -174,6 +177,7 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
   const [pendingKonlingConversationId, setPendingKonlingConversationId] = useState<string | null>(null);
   const [simulationAnomalyContext, setSimulationAnomalyContext] =
     useState<SimulationAnomalyInquiryContext | null>(null);
+  const [aiTurnSeq, setAiTurnSeq] = useState(0);
   const assistantRequestIdRef = useRef(0);
   const assistantRequestCallbacksRef = useRef(new Map<number, {
     resolve: () => void;
@@ -354,6 +358,10 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     setSimulationAnomalyContext(null);
   }, []);
 
+  const notifyAiTurnCompleted = useCallback(() => {
+    setAiTurnSeq((value) => value + 1);
+  }, []);
+
   const handleCompanionBubbleOpen = useCallback((request: CompanionBubbleRequest) => {
     setCompanionBubble(null);
     openSidebarAtConversation(request.sessionId);
@@ -433,6 +441,8 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     simulationAnomalyContext,
     triggerSimulationAnomalyInquiry,
     clearSimulationAnomalyContext,
+    aiTurnSeq,
+    notifyAiTurnCompleted,
   };
 
   const companionUserId = session?.user?.id ?? '';

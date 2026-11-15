@@ -58,7 +58,13 @@ export function VesselCourseEvidencePanel<Settings extends object>({session,defa
     </SimPanelSection>
     <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || tourActive}
       onClick={()=>{void course.upload();}}>{tourActive ? '导览只读禁止上传' : '上传或重试保存本人证据'}</Button>
-    <VesselModelWorkbench scopeKey={course.scopeKey} runs={course.runs} onArtifactsChange={course.onArtifactsChange} defaultChannel={defaultChannel} />
+    {tourActive ? (
+      <div className="sim-hud-tile p-2.5 text-xs text-platform-fg-secondary" data-tour-workbench-locked>
+        只读高光导览中：已隔离本机实验轮次与模型辨识库，退出导览后可继续编辑本人模型。
+      </div>
+    ) : (
+      <VesselModelWorkbench scopeKey={course.scopeKey} runs={course.runs} onArtifactsChange={course.onArtifactsChange} defaultChannel={defaultChannel} />
+    )}
   </div>;
 }
 
@@ -692,6 +698,7 @@ export function VesselExperimentDocks<Settings extends object>({
           lastTimeS: run.lastTimeS,
           stopReason: run.stopReason,
           createdAtMs: run.createdAtMs,
+          configuration: run.configuration,
         }));
   const latestModel = effectiveModels.at(-1) ?? null;
   const latestComparison = effectiveComparisons.at(-1) ?? null;
@@ -755,7 +762,12 @@ export function VesselExperimentDocks<Settings extends object>({
             />
             <IlabTelemetryToggleButton
               open={telemetryOpen}
-              onToggle={() => setTelemetryOpen((open) => !open)}
+              onToggle={() => {
+                if (!telemetryOpen && !tourActive) {
+                  void session.refreshAuditTelemetry();
+                }
+                setTelemetryOpen((open) => !open);
+              }}
               aiCallCount={session.auditTelemetry?.aiData.ai_call_count ?? 0}
               chunkCount={chunkCount}
             />
@@ -780,6 +792,7 @@ export function VesselExperimentDocks<Settings extends object>({
               samples={session.shownSamples}
               models={effectiveModels}
               tourActive={tourActive}
+              onRefresh={!tourActive ? () => { void session.refreshAuditTelemetry(); } : undefined}
             />
           ) : null
         }

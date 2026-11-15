@@ -555,8 +555,7 @@ function HUD({
           <SimNotice tone="warning">当前来流下鳍控制能力下降，请结合实际力矩评价。</SimNotice>
         ) : null}
       </SimPanelSection>
-      <CruiseComfortReadout
-        comfort={state.comfort}
+      <CruiseComfortReadout comfort={state.comfort}
         finAnglesDeg={[state.portFinAngle, state.starboardFinAngle]}
         timeS={state.time}
         finWearIntegralDeg={finWearIntegralDeg}

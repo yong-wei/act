@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { CheckCircle2, ClipboardCheck, PlusCircle } from 'lucide-react';
 import { VESSEL_REPORT_SECTION_LABELS, type VesselReportSections } from '@/features/ilab/course-artifact-contract';
+import type { VesselSessionConfiguration } from '@/lib/control-engine/vessel-session';
 
 export type VesselReportSectionKey = keyof VesselReportSections;
 import type { FrozenVesselStudentModel, VesselModelComparison } from './student-analysis';
@@ -14,6 +15,53 @@ export interface Step20RunSummary {
   lastTimeS: number;
   stopReason: string | null;
   createdAtMs: number;
+  configuration?: VesselSessionConfiguration | null;
+  faultOccurred?: boolean;
+  faultSummary?: string | null;
+}
+
+export function resolveRunFaultEvidence(run: Step20RunSummary): {
+  isFault: boolean;
+  detail: string | null;
+} {
+  if (typeof run.faultOccurred === 'boolean') {
+    return {
+      isFault: run.faultOccurred,
+      detail: run.faultOccurred ? (run.faultSummary ?? '含故障注入工况验证') : null,
+    };
+  }
+  const cfg = run.configuration;
+  if (cfg?.cruise?.finFailureTimeS != null && run.lastTimeS >= cfg.cruise.finFailureTimeS) {
+    return {
+      isFault: true,
+      detail: `含 t≥${cfg.cruise.finFailureTimeS}s 减摇鳍卡阻故障段验证`,
+    };
+  }
+  if (cfg?.driveCutFault && run.lastTimeS >= 180) {
+    return {
+      isFault: true,
+      detail: '含 t≥180s 推进器断桨故障重分配验证',
+    };
+  }
+  if (cfg?.gnssOutageFault && run.lastTimeS >= 60) {
+    return {
+      isFault: true,
+      detail: '含卫导中断降级观测验证',
+    };
+  }
+  if ((cfg?.headingBiasFault || cfg?.azimuthJamFault) && run.lastTimeS > 0) {
+    return {
+      isFault: true,
+      detail: '含传感器偏置/全回转卡滞故障验证',
+    };
+  }
+  if (run.stopReason === 'failure') {
+    return {
+      isFault: true,
+      detail: '运行触发故障保护终止',
+    };
+  }
+  return { isFault: false, detail: null };
 }
 
 export interface EvidenceCapsule {
@@ -80,13 +128,13 @@ export function buildStep20EvidenceCapsules({
   }
 
   for (const run of runs) {
-    const isFault = run.lastTimeS >= 180 || run.stopReason === 'failure';
+    const faultEvidence = resolveRunFaultEvidence(run);
     capsules.push({
       id: `run-${run.id}`,
-      category: isFault ? 'fault_run' : 'run',
-      badge: isFault ? 't≥180s/异常工况' : '实测运行',
+      category: faultEvidence.isFault ? 'fault_run' : 'run',
+      badge: faultEvidence.isFault ? '故障/异常工况' : '实测运行',
       summary: `第 ${run.stepSequence} 步 · ${run.lastTimeS.toFixed(1)} s`,
-      snippet: `[第${run.stepSequence}步实测] 运行时长 ${run.lastTimeS.toFixed(1)}s${isFault ? '（含 t≥180s 工况突变/故障段验证）' : ''}。`,
+      snippet: `[第${run.stepSequence}步实测] 运行时长 ${run.lastTimeS.toFixed(1)}s${faultEvidence.detail ? `（${faultEvidence.detail}）` : ''}。`,
     });
   }
 

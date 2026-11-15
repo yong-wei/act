@@ -220,9 +220,17 @@ const DEMO_REPORT_SECTIONS: VesselReportSections = {
 };
 
 const DEMO_RUNS: Step20RunSummary[] = [
-  { id: 'tour-run-6', stepSequence: 6, lastTimeS: 180, stopReason: 'completed', createdAtMs: 1700000001000 },
-  { id: 'tour-run-12', stepSequence: 12, lastTimeS: 240, stopReason: 'completed', createdAtMs: 1700000002000 },
-  { id: 'tour-run-19', stepSequence: 19, lastTimeS: 300, stopReason: 'completed', createdAtMs: 1700000003000 },
+  { id: 'tour-run-6', stepSequence: 6, lastTimeS: 180, stopReason: 'completed', createdAtMs: 1700000001000, faultOccurred: false },
+  { id: 'tour-run-12', stepSequence: 12, lastTimeS: 240, stopReason: 'completed', createdAtMs: 1700000002000, faultOccurred: false },
+  {
+    id: 'tour-run-19',
+    stepSequence: 19,
+    lastTimeS: 300,
+    stopReason: 'completed',
+    createdAtMs: 1700000003000,
+    faultOccurred: true,
+    faultSummary: '含 t≥180s 左减摇鳍卡阻故障段验证',
+  },
 ];
 
 export const HIGHLIGHT_TOUR_NODES: readonly HighlightTourNode[] = [
@@ -276,7 +284,7 @@ export const HIGHLIGHT_TOUR_NODES: readonly HighlightTourNode[] = [
     models: [DEMO_CONTAINER_MODEL],
     comparisons: [],
     runs: [
-      { id: 'tour-container-run-18', stepSequence: 18, lastTimeS: 230, stopReason: 'completed', createdAtMs: 1700000004000 },
+      { id: 'tour-container-run-18', stepSequence: 18, lastTimeS: 230, stopReason: 'completed', createdAtMs: 1700000004000, faultOccurred: false },
     ],
   },
   {
@@ -295,7 +303,15 @@ export const HIGHLIGHT_TOUR_NODES: readonly HighlightTourNode[] = [
     models: [DEMO_DRILLING_MODEL],
     comparisons: [],
     runs: [
-      { id: 'tour-drilling-run-19', stepSequence: 19, lastTimeS: 230, stopReason: 'completed', createdAtMs: 1700000005000 },
+      {
+        id: 'tour-drilling-run-19',
+        stepSequence: 19,
+        lastTimeS: 230,
+        stopReason: 'completed',
+        createdAtMs: 1700000005000,
+        faultOccurred: true,
+        faultSummary: '含 t≥180s T2 推进器断桨故障重分配验证',
+      },
     ],
   },
   {
