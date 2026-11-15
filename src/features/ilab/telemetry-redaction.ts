@@ -6,6 +6,8 @@ export interface VesselAuditTelemetry {
   uploadStatus: string;
   completedStepCount: number;
   totalSamplePoints: number;
+  controlSampleCadenceS?: number;
+  persistedChunkCount?: number;
   aiData: IlabAiData;
 }
 

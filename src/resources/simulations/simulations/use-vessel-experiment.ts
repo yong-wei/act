@@ -148,6 +148,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   originIdRef.current = originId;
   const draftStorageKey = `act-vessel-drafts:${experiment.key}`;
   const nativeCourse = experiment.key === courseAdapter.experimentKey && experiment.courseVersion === VESSEL_COURSE_VERSION;
+  const tourVesselId = experiment.route.split('/').at(-1) ?? experiment.vesselId;
   const [connectionReady, setConnectionReady] = useState(false);
   const [readyScope, setReadyScope] = useState('');
   const [recoveryFailed, setRecoveryFailed] = useState(false);
@@ -198,8 +199,8 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   courseLive.current = {settings, models, designModelId, readings, activeSeq, reportRunIds, attempts};
 
   const activeTourNode = useMemo(
-    () => (tourNodeId ? findHighlightTourNode(tourNodeId) ?? defaultTourNodeForVessel(experiment.vesselId) : null),
-    [experiment.vesselId, tourNodeId],
+    () => (tourNodeId ? findHighlightTourNode(tourNodeId) ?? defaultTourNodeForVessel(tourVesselId) : null),
+    [tourVesselId, tourNodeId],
   );
   const tourActive = Boolean(activeTourNode);
   tourActiveRef.current = tourActive;
@@ -215,10 +216,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('tour') !== '1') return;
-    const node = findHighlightTourNode(params.get('node')) ?? defaultTourNodeForVessel(experiment.vesselId);
+    const node = findHighlightTourNode(params.get('node')) ?? defaultTourNodeForVessel(tourVesselId);
     tourActiveRef.current = true;
     setTourNodeId(node.id);
-  }, [experiment.vesselId]);
+  }, [tourVesselId]);
 
   const enterHighlightTour = useCallback(
     (nodeId?: HighlightTourNodeId) => {
@@ -229,12 +230,12 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
           void workspace.current?.pause().catch(() => undefined);
         }
       }
-      const next = findHighlightTourNode(nodeId) ?? defaultTourNodeForVessel(experiment.vesselId);
+      const next = findHighlightTourNode(nodeId) ?? defaultTourNodeForVessel(tourVesselId);
       tourActiveRef.current = true;
       setTourNodeId(next.id);
       setMessage('已切换至只读高光工况导览模式：严禁正式提交与成绩回传。');
     },
-    [courseRunning, experiment.vesselId, message, tourNodeId],
+    [courseRunning, tourVesselId, message, tourNodeId],
   );
 
   const exitHighlightTour = useCallback(() => {
@@ -300,37 +301,6 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     if (current.plan.scopeKey === scopeRef.current) setRounds(nextRounds);
   }, []);
 
-  const syncCurrentCourseRun = useCallback(async () => {
-    const current = workspace.current;
-    const runId = current?.run()?.id;
-    if (!canUseCloudEvidence || !runId || current.plan.scopeKey !== scopeRef.current) return;
-    const scope = current.plan.scopeKey;
-    const report = reportRef.current;
-    courseUploads.current = courseUploads.current.catch(() => undefined).then(async () => {
-      if (scopeRef.current !== scope || !report) return;
-      const saved = await readRunEvidence(runId);
-      if (!saved || saved.scopeKey !== scope) return;
-      const checkpointKey = `${report}:${runId}:${saved.lastTimeS}:${saved.stoppedAtMs}`;
-      if (lastCloudCheckpoint.current === checkpointKey) return;
-      await uploadVesselCourseRun(report, saved);
-      lastCloudCheckpoint.current = checkpointKey;
-    });
-    await courseUploads.current;
-  }, [canUseCloudEvidence]);
-
-  useEffect(() => {
-    if (!nativeCourse || !canUseCloudEvidence || readyScope !== scopeKey || tourActive) return;
-    let cancelled = false;
-    let timer: number;
-    const sync = async () => {
-      try { await syncCurrentCourseRun(); }
-      catch (error) { if (!cancelled) setMessage(error instanceof Error ? error.message : '云端保存未完成，本机记录已保留。'); }
-      if (!cancelled) timer = window.setTimeout(() => { void sync(); }, 5000);
-    };
-    void sync();
-    return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [nativeCourse, canUseCloudEvidence, readyScope, scopeKey, courseRunning, syncCurrentCourseRun, tourActive]);
-
   const refreshAuditTelemetry = useCallback(async (explicitOriginId?: string) => {
     if (tourActiveRef.current) return;
     const activeOrigin = explicitOriginId
@@ -352,6 +322,39 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       // 网络波动时保留最近一次已取得的脱敏审计遥测
     }
   }, [nativeCourse]);
+
+  const syncCurrentCourseRun = useCallback(async () => {
+    const current = workspace.current;
+    const runId = current?.run()?.id;
+    if (!canUseCloudEvidence || !runId || current.plan.scopeKey !== scopeRef.current) return;
+    const scope = current.plan.scopeKey;
+    const report = reportRef.current;
+    courseUploads.current = courseUploads.current.catch(() => undefined).then(async () => {
+      if (scopeRef.current !== scope || !report) return;
+      const saved = await readRunEvidence(runId);
+      if (!saved || saved.scopeKey !== scope) return;
+      const checkpointKey = `${report}:${runId}:${saved.lastTimeS}:${saved.stoppedAtMs}`;
+      if (lastCloudCheckpoint.current === checkpointKey) return;
+      await uploadVesselCourseRun(report, saved);
+      lastCloudCheckpoint.current = checkpointKey;
+      void refreshAuditTelemetry();
+    });
+    await courseUploads.current;
+  }, [canUseCloudEvidence, refreshAuditTelemetry]);
+
+  useEffect(() => {
+    if (!nativeCourse || !canUseCloudEvidence || readyScope !== scopeKey || tourActive) return;
+    let cancelled = false;
+    let timer: number;
+    const sync = async () => {
+      try { await syncCurrentCourseRun(); }
+      catch (error) { if (!cancelled) setMessage(error instanceof Error ? error.message : '云端保存未完成，本机记录已保留。'); }
+      if (!cancelled) timer = window.setTimeout(() => { void sync(); }, 5000);
+    };
+    void sync();
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [nativeCourse, canUseCloudEvidence, readyScope, scopeKey, courseRunning, syncCurrentCourseRun, tourActive]);
+
 
   const activateCourseStep = useCallback(async (sequence: number, scope: string, initial = false,
     replacementSettings?: Settings) => {

@@ -58,6 +58,7 @@ export function IlabTelemetryDrawer({
   doneSeqs,
   samples,
   models,
+  controlSampleCount,
   tourActive = false,
   onRefresh,
 }: {
@@ -66,6 +67,7 @@ export function IlabTelemetryDrawer({
   doneSeqs: Set<number>;
   samples: VesselSample[];
   models: FrozenVesselStudentModel[];
+  controlSampleCount?: number;
   tourActive?: boolean;
   onRefresh?: () => void;
 }) {
@@ -78,7 +80,7 @@ export function IlabTelemetryDrawer({
     ai_output_token_count: 0,
     ai_remark: '当前会话尚未产生可审计的服务端调用记录。',
   };
-  const chunkCount = Math.max(samples.length > 0 ? 1 : 0, Math.ceil(samples.length / 200));
+  const chunkCount = auditTelemetry?.persistedChunkCount;
   const weightSum = STEP_SCORE_DISTRIBUTION.reduce(
     (sum, weight, idx) => (doneSeqs.has(idx + 1) ? sum + weight : sum),
     0,
@@ -122,9 +124,10 @@ export function IlabTelemetryDrawer({
           </div>
         </div>
         <div className="rounded border border-platform-border-subtle/80 bg-platform-canvas/45 p-2">
-          <div className="text-[10px] text-platform-fg-secondary">20Hz 分块进度</div>
+          <div className="text-[10px] text-platform-fg-secondary">{controlSampleCount !== undefined ? '本轮20Hz采样进度' : '曲线摘要采样'}</div>
           <div className="mt-0.5 font-mono font-semibold text-platform-fg-primary">
-            {samples.length} 点 · {chunkCount} 块（已存 {auditTelemetry?.totalSamplePoints ?? 0}）
+            {controlSampleCount ?? samples.length} 点 · 已存 {auditTelemetry?.totalSamplePoints ?? 0} 点
+            {chunkCount !== undefined ? ` · ${chunkCount} 块` : ''}
           </div>
         </div>
         <div className="rounded border border-platform-border-subtle/80 bg-platform-canvas/45 p-2">

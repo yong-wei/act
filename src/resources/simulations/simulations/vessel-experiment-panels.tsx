@@ -734,10 +734,15 @@ export function VesselExperimentDocks<Settings extends object>({
     session.setReading(obsField.key, prev ? `${prev}\n${snippet}` : snippet);
   };
 
-  const chunkCount = Math.max(
-    session.shownSamples.length > 0 ? 1 : 0,
-    Math.ceil(session.shownSamples.length / 200),
-  );
+  const chunkCount = session.auditTelemetry?.persistedChunkCount ?? 0;
+  const currentRunId = session.course?.plannedRunId;
+  const liveControlCount = session.course?.ready && session.course.hasStarted
+    ? session.course.read()?.controllerTicks ?? 0 : 0;
+  const activeStoredRun = session.course?.runs.find((run) => run.id === currentRunId);
+  const controlSampleCount = session.course && !tourActive
+    ? session.course.runs.reduce((total, run) => total + (run.id === currentRunId
+      ? Math.max(run.sampleCount, liveControlCount) : run.sampleCount), 0) + (activeStoredRun ? 0 : liveControlCount)
+    : undefined;
 
   return (
     <>
@@ -777,7 +782,7 @@ export function VesselExperimentDocks<Settings extends object>({
           tourActive && session.tour?.node ? (
             <HighlightTourBanner
               activeNode={session.tour.node}
-              currentVesselId={experiment.vesselId}
+              currentVesselId={experiment.route.split('/').at(-1) ?? experiment.vesselId}
               onSelectNode={(node) => session.tour?.enter(node.id)}
               onExit={() => session.tour?.exit()}
             />
@@ -790,6 +795,7 @@ export function VesselExperimentDocks<Settings extends object>({
               originId={session.originId}
               doneSeqs={new Set(session.doneSeqs)}
               samples={session.shownSamples}
+              controlSampleCount={controlSampleCount}
               models={effectiveModels}
               tourActive={tourActive}
               onRefresh={!tourActive ? () => { void session.refreshAuditTelemetry(); } : undefined}

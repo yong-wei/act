@@ -243,7 +243,37 @@ export async function readVesselSession(
   if (actor) {
     await assertIlabRunAccess(run, actor);
   }
-  return viewOf(experiment, run);
+  const view = viewOf(experiment, run);
+  if (run.experimentVersion === VESSEL_COURSE_VERSION && run.userId) {
+    const drafts = parseStepDrafts(run.stepDrafts);
+    const clientRef = drafts.courseState?.reportClientRef;
+    const report = run.reportId || typeof clientRef === 'string'
+      ? await prisma.virtualSimulationReport.findFirst({
+        where: {userId: run.userId, experimentKey: experiment.route.split('/').at(-1),
+          experimentVersion: VESSEL_COURSE_VERSION,
+          ...(run.reportId ? {id: run.reportId} : {clientRef: String(clientRef)})},
+        select: {id: true, clientRef: true, experimentKey: true},
+      }) : null;
+    const [recordedRuns, attempts] = report ? await Promise.all([
+      prisma.simulationRun.findMany({where: {ownerUserId: run.userId, sourceDomain: 'ilab-course',
+        summary: {path: ['reportId'], equals: report.id}}, select: {summary: true}}),
+      prisma.stepSubmissionAttempt.findMany({where: {userId: run.userId,
+        experimentKey: `${report.experimentKey}:${report.clientRef}`,
+        status: {notIn: ['invalid_run', 'model_mismatch']}}, select: {stepKey: true}, distinct: ['stepKey']}),
+    ]) : [[], []];
+    const totals = recordedRuns.reduce((sum, record) => {
+      const summary = record.summary as {controlCount: number; chunkCount: number};
+      return {points: sum.points + summary.controlCount, chunks: sum.chunks + summary.chunkCount};
+    }, {points: 0, chunks: 0});
+    view.auditTelemetry = {
+      ...view.auditTelemetry,
+      completedStepCount: attempts.length,
+      totalSamplePoints: totals.points,
+      persistedChunkCount: totals.chunks,
+      controlSampleCadenceS: .05,
+    };
+  }
+  return view;
 }
 
 export async function submitVesselStep(originId: string, input: {
