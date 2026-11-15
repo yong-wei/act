@@ -33,4 +33,11 @@ const storageBranch = deploy.match(/APP_STORAGE_ENV_ARGS=\(\)\nSCANNER_ENV_ARGS=
 assert.ok(storageBranch, 'runtime cutover must construct storage arguments before its zero-database-write branch');
 assert.doesNotMatch(storageBranch, /RUNTIME_CUTOVER_APP_ONLY/, 'runtime cutover must retain app, scanner, and GC storage credentials');
 
+assert.match(deploy, /podman volume exists "\$SIMULATION_EVIDENCE_VOLUME"/, 'simulation evidence must use a retained named volume');
+assert.match(deploy, /podman volume create "\$SIMULATION_EVIDENCE_VOLUME"/, 'a new installation must create the evidence volume');
+assert.equal((deploy.match(/SIMULATION_EVIDENCE_VOLUME}:\/app\/data\/simulation-evidence:U/g) ?? []).length, 2,
+  'app and worker must share persistent evidence with the image user ownership');
+assert.equal((deploy.match(/-e SIMULATION_EVIDENCE_ROOT=\/app\/data\/simulation-evidence/g) ?? []).length, 2,
+  'both processes must resolve private file references to the mounted directory');
+
 console.log('runtime cutover app-only contract passed');
