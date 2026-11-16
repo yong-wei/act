@@ -33,6 +33,19 @@ const VESSEL_ID_BY_COURSE_KEY: Record<VesselCourseKey, string> = {
   dredger: 'fleet-dredger-tianjing',
 };
 
+const RECOVERY_STATE_BATCH_SIZE = 4;
+type RecoveryCheckpoint = {
+  checkpoint?: string;
+  reason?: VesselRunEvidence['stopReason'] | 'checkpoint';
+  failure?: string | null;
+  durationS?: number;
+  endTimeS?: number;
+  controlCount?: number;
+  nativeCount?: number;
+  fineCount?: number;
+  appliedFinalInput?: VesselSessionInput;
+};
+
 function inferModelChannel(lineageKey: string, outputChannel: string, inputChannel: string): IdentificationChannel | 'dp-low-frequency' {
   if (inputChannel === 'WinchReferenceDifferential') return 'winch-reference-to-sway';
   if (inputChannel === 'WinchSpeedDifferential') return 'winch-speed-to-sway';
@@ -162,7 +175,7 @@ export async function loadCourseSessionRecovery(input: {
         ...(input.onlyRunRef ? { sourceRefId: input.onlyRunRef } : {}),
       },
       orderBy: { createdAt: 'asc' },
-      include: { traces: { orderBy: { chunkIndex: 'asc' } } },
+      include: { traces: input.deferTraceChunks ? false : { orderBy: { chunkIndex: 'asc' } } },
     }),
     prisma.studentModelArtifact.findMany({
       where: { userId: input.userId, experimentKey },
@@ -183,120 +196,117 @@ export async function loadCourseSessionRecovery(input: {
   const activeRunRef = typeof activeCourseState?.activeRunId === 'string'
     && dbRuns.some((run) => run.sourceRefId === activeCourseState.activeRunId && run.status === 'running') ? activeCourseState.activeRunId
     : dbRuns.filter((run) => run.status === 'running').at(-1)?.sourceRefId;
-  for (const run of dbRuns) {
-    const summary = vesselRunStorageSummary(run);
-    if (summary.reportId !== targetReport.id) continue;
-    const opening = await safeReadCas<VesselEvidenceOpening>(summary.openingReference);
-    if (!opening) continue;
+  for (let offset = 0; offset < dbRuns.length; offset += RECOVERY_STATE_BATCH_SIZE) {
+    const states = await Promise.all(dbRuns.slice(offset, offset + RECOVERY_STATE_BATCH_SIZE).map(async (run) => {
+      const summary = vesselRunStorageSummary(run);
+      if (summary.reportId !== targetReport.id) return null;
+      const [opening, closeChunk] = await Promise.all([
+        safeReadCas<VesselEvidenceOpening>(summary.openingReference),
+        summary.lastCheckpointReference && summary.lastCheckpointReference !== summary.openingReference
+          ? safeReadCas<RecoveryCheckpoint>(summary.lastCheckpointReference)
+          : Promise.resolve(null),
+      ]);
+      return { run, summary, opening, closeChunk };
+    }));
+    for (const state of states) {
+      if (!state?.opening) continue;
+      const { run, summary, opening, closeChunk } = state;
 
-    const trace: VesselTracePoint[] = [];
-    const nativeSensorSamples: VesselObservedSample[] = [];
-    const fineStepSamples: NonNullable<VesselRunEvidence['fineStepSamples']> = [];
-    const changes: Array<{ timeS: number; input: VesselSessionInput }> = [];
+      const trace: VesselTracePoint[] = [];
+      const nativeSensorSamples: VesselObservedSample[] = [];
+      const fineStepSamples: NonNullable<VesselRunEvidence['fineStepSamples']> = [];
+      const changes: Array<{ timeS: number; input: VesselSessionInput }> = [];
 
-    for (const traceRow of input.deferTraceChunks ? [] : run.traces) {
-      const chunk = await safeReadCas<VesselTraceChunk>(traceRow.sampleStorageUri);
-      if (!chunk) continue;
-      if (Array.isArray(chunk.points)) trace.push(...chunk.points);
-      if (Array.isArray(chunk.nativeSamples)) nativeSensorSamples.push(...chunk.nativeSamples);
-      if (Array.isArray(chunk.fineSamples)) fineStepSamples.push(...chunk.fineSamples);
-      if (Array.isArray(chunk.changes)) changes.push(...chunk.changes);
-    }
+      for (const traceRow of input.deferTraceChunks ? [] : run.traces) {
+        const chunk = await safeReadCas<VesselTraceChunk>(traceRow.sampleStorageUri);
+        if (!chunk) continue;
+        if (Array.isArray(chunk.points)) trace.push(...chunk.points);
+        if (Array.isArray(chunk.nativeSamples)) nativeSensorSamples.push(...chunk.nativeSamples);
+        if (Array.isArray(chunk.fineSamples)) fineStepSamples.push(...chunk.fineSamples);
+        if (Array.isArray(chunk.changes)) changes.push(...chunk.changes);
+      }
 
-    const closeChunk = summary.lastCheckpointReference && summary.lastCheckpointReference !== summary.openingReference
-      ? await safeReadCas<{
-          checkpoint?: string;
-          reason?: VesselRunEvidence['stopReason'] | 'checkpoint';
-          failure?: string | null;
-          durationS?: number;
-          endTimeS?: number;
-          controlCount?: number;
-          nativeCount?: number;
-          fineCount?: number;
-          appliedFinalInput?: VesselSessionInput;
-        }>(summary.lastCheckpointReference)
-      : null;
+      const stopReason = closeChunk?.reason === 'checkpoint' ? null
+        : closeChunk?.reason ?? (run.status === 'failed' ? 'failure' : run.status === 'completed' ? 'duration' : null);
+      const controlCount = input.deferTraceChunks ? summary.controlCount : trace.length;
+      const nativeCount = input.deferTraceChunks ? summary.nativeCount : nativeSensorSamples.length;
+      const fineCount = input.deferTraceChunks ? summary.fineCount ?? 0 : fineStepSamples.length;
+      const resumable = closeChunk ? closeChunk.controlCount === controlCount
+        && closeChunk.nativeCount === nativeCount && (closeChunk.fineCount ?? 0) === fineCount
+        && Math.abs((closeChunk.endTimeS ?? 0)-summary.lastTimeS) < 1e-7 : summary.lastTimeS === 0;
 
-    const stopReason = closeChunk?.reason === 'checkpoint' ? null
-      : closeChunk?.reason ?? (run.status === 'failed' ? 'failure' : run.status === 'completed' ? 'duration' : null);
-    const controlCount = input.deferTraceChunks ? summary.controlCount : trace.length;
-    const nativeCount = input.deferTraceChunks ? summary.nativeCount : nativeSensorSamples.length;
-    const fineCount = input.deferTraceChunks ? summary.fineCount ?? 0 : fineStepSamples.length;
-    const resumable = closeChunk ? closeChunk.controlCount === controlCount
-      && closeChunk.nativeCount === nativeCount && (closeChunk.fineCount ?? 0) === fineCount
-      && Math.abs((closeChunk.endTimeS ?? 0)-summary.lastTimeS) < 1e-7 : summary.lastTimeS === 0;
+      if (input.lazyHistory && !input.onlyRunRef && run.sourceRefId !== activeRunRef) {
+        archivedRuns.push({
+          id: run.sourceRefId, scopeKey: '', courseKey: course.key, courseVersion,
+          stepSequence: summary.stepSequence, createdAtMs: opening.startedAtMs,
+          durationS: summary.lastTimeS, lastTimeS: summary.lastTimeS,
+          stoppedAtMs: run.completedAt?.getTime() ?? null, stopReason,
+          configuration: opening.configuration, initialInput: opening.input,
+          finalInput: closeChunk?.appliedFinalInput ?? opening.input,
+          controllerSourceRunId: opening.controllerSourceRunId, designStudentModelId: opening.designStudentModelId,
+          courseSettings: opening.courseSettings, parameterHash: summary.parameterHash,
+          sampleCount: controlCount,
+          dredgerModeEvents: summary.dredgerModeEvents,
+          remoteOnly: true,
+          ...(resumable ? { uploadReceipt: {
+            runRef: run.sourceRefId, reportId: targetReport.id, experimentKey, status: run.status,
+            chunkCount: summary.chunkCount, controlCount, nativeCount, fineCount, lastTimeS: summary.lastTimeS,
+            parameterHash: summary.parameterHash, reportClientRef: targetReport.clientRef,
+          }, uploadedToReportRef: run.completedAt ? targetReport.clientRef : undefined } : {}),
+        });
+        continue;
+      }
 
-    if (input.lazyHistory && !input.onlyRunRef && run.sourceRefId !== activeRunRef) {
-      archivedRuns.push({
-        id: run.sourceRefId, scopeKey: '', courseKey: course.key, courseVersion,
-        stepSequence: summary.stepSequence, createdAtMs: opening.startedAtMs,
-        durationS: summary.lastTimeS, lastTimeS: summary.lastTimeS,
-        stoppedAtMs: run.completedAt?.getTime() ?? null, stopReason,
-        configuration: opening.configuration, initialInput: opening.input,
-        finalInput: closeChunk?.appliedFinalInput ?? opening.input,
-        controllerSourceRunId: opening.controllerSourceRunId, designStudentModelId: opening.designStudentModelId,
-        courseSettings: opening.courseSettings, parameterHash: summary.parameterHash,
-        sampleCount: controlCount,
+      runs.push({
+        id: run.sourceRefId,
+        scopeKey: '',
+        courseKey: course.key,
+        courseVersion,
+        stepSequence: summary.stepSequence,
+        prediction: opening.prediction ?? '',
+        durationS: closeChunk?.durationS ?? summary.lastTimeS,
+        createdAtMs: opening.startedAtMs,
+        lastTimeS: summary.lastTimeS,
+        stoppedAtMs: run.completedAt ? run.completedAt.getTime() : null,
+        configuration: opening.configuration,
+        initialInput: opening.input,
+        controllerSourceRunId: opening.controllerSourceRunId,
+        designStudentModelId: opening.designStudentModelId,
+        courseSettings: opening.courseSettings,
+        parameters: (run.summary as {parameters?: VesselRunEvidence['parameters']}).parameters,
+        cruiseComfort: (run.summary as {cruiseComfort?: VesselRunEvidence['cruiseComfort']}).cruiseComfort,
         dredgerModeEvents: summary.dredgerModeEvents,
-        remoteOnly: true,
-        ...(resumable ? { uploadReceipt: {
-          runRef: run.sourceRefId, reportId: targetReport.id, experimentKey, status: run.status,
-          chunkCount: summary.chunkCount, controlCount, nativeCount, fineCount, lastTimeS: summary.lastTimeS,
-          parameterHash: summary.parameterHash, reportClientRef: targetReport.clientRef,
-        }, uploadedToReportRef: run.completedAt ? targetReport.clientRef : undefined } : {}),
+        parameterHash: summary.parameterHash,
+        runtimeVersion: run.runtimeVersion,
+        initialCheckpoint: opening.initialCheckpoint,
+        checkpoint: closeChunk?.checkpoint ?? opening.initialCheckpoint,
+        resumable,
+        trace,
+        nativeSensorSamples,
+        fineStepSamples,
+        changes,
+        ...(input.deferTraceChunks ? { traceManifest: { chunkCount: summary.chunkCount, controlCount, nativeCount, fineCount } } : {}),
+        stopReason,
+        failure: closeChunk?.failure ?? null,
+        ...(resumable
+          ? {
+              uploadReceipt: {
+                runRef: run.sourceRefId,
+                reportId: targetReport.id,
+                experimentKey,
+                status: run.status,
+                chunkCount: summary.chunkCount,
+                controlCount,
+                nativeCount,
+                fineCount,
+                lastTimeS: summary.lastTimeS,
+                parameterHash: summary.parameterHash,
+                reportClientRef: targetReport.clientRef,
+              },
+            }
+          : {}),
       });
-      continue;
     }
-
-    runs.push({
-      id: run.sourceRefId,
-      scopeKey: '',
-      courseKey: course.key,
-      courseVersion,
-      stepSequence: summary.stepSequence,
-      prediction: opening.prediction ?? '',
-      durationS: closeChunk?.durationS ?? summary.lastTimeS,
-      createdAtMs: opening.startedAtMs,
-      lastTimeS: summary.lastTimeS,
-      stoppedAtMs: run.completedAt ? run.completedAt.getTime() : null,
-      configuration: opening.configuration,
-      initialInput: opening.input,
-      controllerSourceRunId: opening.controllerSourceRunId,
-      designStudentModelId: opening.designStudentModelId,
-      courseSettings: opening.courseSettings,
-      parameters: (run.summary as {parameters?: VesselRunEvidence['parameters']}).parameters,
-      cruiseComfort: (run.summary as {cruiseComfort?: VesselRunEvidence['cruiseComfort']}).cruiseComfort,
-      dredgerModeEvents: summary.dredgerModeEvents,
-      parameterHash: summary.parameterHash,
-      runtimeVersion: run.runtimeVersion,
-      initialCheckpoint: opening.initialCheckpoint,
-      checkpoint: closeChunk?.checkpoint ?? opening.initialCheckpoint,
-      resumable,
-      trace,
-      nativeSensorSamples,
-      fineStepSamples,
-      changes,
-      ...(input.deferTraceChunks ? { traceManifest: { chunkCount: summary.chunkCount, controlCount, nativeCount, fineCount } } : {}),
-      stopReason,
-      failure: closeChunk?.failure ?? null,
-      ...(resumable
-        ? {
-            uploadReceipt: {
-              runRef: run.sourceRefId,
-              reportId: targetReport.id,
-              experimentKey,
-              status: run.status,
-              chunkCount: summary.chunkCount,
-              controlCount,
-              nativeCount,
-              fineCount,
-              lastTimeS: summary.lastTimeS,
-              parameterHash: summary.parameterHash,
-              reportClientRef: targetReport.clientRef,
-            },
-          }
-        : {}),
-    });
   }
 
   const modelsByServerId = new Map<string, string>();

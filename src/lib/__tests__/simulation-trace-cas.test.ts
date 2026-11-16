@@ -1,12 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import os from 'node:os';
-import { gzipSync } from 'node:zlib';
+import { gunzip, gzip, gzipSync } from 'node:zlib';
 import { readSimulationTraceChunk, writeSimulationTraceChunk } from '../data-governance/simulation-trace-cas';
+
+vi.mock('node:zlib', async (importOriginal) => {
+  const original = await importOriginal<typeof import('node:zlib')>();
+  return { ...original, gzip: vi.fn(original.gzip), gunzip: vi.fn(original.gunzip) };
+});
 
 let root: string;
 beforeEach(async () => {
+  vi.clearAllMocks();
   root = await mkdtemp(path.join(os.tmpdir(),'act-simulation-trace-'));
   vi.stubEnv('SIMULATION_EVIDENCE_ROOT',root);
   for (const key of ['SUBMISSION_S3_ENDPOINT','SUBMISSION_S3_BUCKET','SUBMISSION_S3_ACCESS_KEY','SUBMISSION_S3_SECRET_KEY']) vi.stubEnv(key,'');
@@ -30,5 +37,32 @@ describe('SimulationTrace私有内容寻址分块', () => {
     await writeFile(file,gzipSync(Buffer.from('{"samples":[9]}')));
     await expect(readSimulationTraceChunk(stored.uri)).rejects.toThrow('校验失败');
     await expect(readSimulationTraceChunk('simulation-cas:file:sha256:../../private')).rejects.toThrow('引用无效');
+  });
+
+  it('异步压缩保留旧规范序分块的内容身份和实际字节', async () => {
+    const legacyText = '{"schema":"test","units":"°/s","values":[1,2,null,4]}';
+    const checksum = createHash('sha256').update(legacyText).digest('hex');
+    const reference = `simulation-cas:file:sha256:${checksum}`;
+    const file = path.join(root, 'sha256', checksum.slice(0, 2), `${checksum}.json.gz`);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, gzipSync(legacyText));
+    const data = { values: [1, 2, null, 4], units: '°/s', schema: 'test' };
+
+    expect(await readSimulationTraceChunk(reference)).toEqual(data);
+    const stored = await writeSimulationTraceChunk(data);
+    expect(stored.uri).toBe(reference);
+    expect(await readFile(file)).toEqual(gzipSync(legacyText));
+    expect(gzip).toHaveBeenCalledOnce();
+    expect(gunzip).toHaveBeenCalledOnce();
+  });
+
+  it('异步解压继续拒绝超过原文大小上限的压缩分块', async () => {
+    const text = JSON.stringify({ value: 'x'.repeat(4 * 1024 * 1024) });
+    const checksum = createHash('sha256').update(text).digest('hex');
+    const file = path.join(root, 'sha256', checksum.slice(0, 2), `${checksum}.json.gz`);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, gzipSync(text));
+
+    await expect(readSimulationTraceChunk(`simulation-cas:file:sha256:${checksum}`)).rejects.toThrow();
   });
 });
