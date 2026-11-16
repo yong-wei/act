@@ -27,7 +27,16 @@ export async function readVesselEvidenceChunk(userId: string, runRef: string, ch
 /** 暂存不会推进数据库采样水位，网络中断后仍可恢复上一个完整检查点。 */
 export async function stageVesselEvidenceChunk(userId: string, chunk: VesselTraceChunk) {
   const run = await findOwnedVesselRun(userId, chunk.runRef);
-  if (run.status !== 'running') throw new IlabServiceError('这次运行已经结束。',409);
+  if (run.status !== 'running') {
+    const existing = await prisma.simulationTrace.findUnique({
+      where: { runId_chunkIndex: { runId: run.id, chunkIndex: chunk.chunkIndex } },
+      select: { checksum: true, sampleStorageUri: true },
+    });
+    if (existing?.sampleStorageUri && existing.checksum === hash(chunk)) {
+      return { reference: existing.sampleStorageUri };
+    }
+    throw new IlabServiceError('这次运行已经结束。',409);
+  }
   const stored = await writeSimulationTraceChunk(chunk);
   return {reference:stored.uri};
 }
