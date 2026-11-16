@@ -315,6 +315,13 @@ function main() {
     'Dockerfile 必须复用 scripts/build.sh 已预生成的控制分析 Wasm 产物，避免容器内重复访问 crates.io'
   );
 
+  for (const filename of ['identity.json', '.build-hash']) {
+    assert.ok(dockerignore.split('\n').includes(`src/resources/control-system/wasm/control_engine/${filename}`),
+      'Docker 构建上下文必须排除可能跨分支残留的可选数值模块元数据');
+  }
+  assert.match(dockerfile, /RUN .*tsx -e .*readGeneratedPackageIdentity\(\)/,
+    'Docker builder 必须通过正式入口验证提交的数值模块及其身份');
+
   assert.ok(
     !/cargo install wasm-pack/.test(dockerfile),
     'Dockerfile 不得在容器内 cargo install wasm-pack，避免部署构建依赖 crates.io 网络'

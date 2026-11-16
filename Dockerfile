@@ -77,6 +77,7 @@ ARG APP_REVISION
 ARG NODE_MAX_OLD_SPACE_SIZE=12288
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN ./node_modules/.bin/tsx -e "import { readGeneratedPackageIdentity } from './src/lib/control-engine/identity'; readGeneratedPackageIdentity();"
 # Ensure Authority / Teaching Projection store roots exist for runner packaging
 # even when the build context has not activated a gate output yet (#1274).
 RUN mkdir -p \
