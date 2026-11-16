@@ -2,11 +2,14 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { gunzipSync, gzipSync } from 'node:zlib';
+import { promisify } from 'node:util';
+import { gunzip, gzip } from 'node:zlib';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 
 const MAX_CHUNK_BYTES = 4*1024*1024;
 const referencePattern = /^simulation-cas:(file|s3):sha256:([0-9a-f]{64})$/;
+const compress = promisify(gzip);
+const decompress = promisify(gunzip);
 
 function privateS3() {
   const endpoint = process.env.SUBMISSION_S3_ENDPOINT;
@@ -30,7 +33,7 @@ export async function writeSimulationTraceChunk(value: unknown) {
   const bytes = Buffer.from(canonicalJson(value),'utf8');
   if (bytes.byteLength > MAX_CHUNK_BYTES) throw new Error('原始采样分块过大，请缩短单次上传区间。');
   const hash = createHash('sha256').update(bytes).digest('hex');
-  const compressed = gzipSync(bytes);
+  const compressed = await compress(bytes);
   const storage = privateS3();
   if (storage) {
     try {
@@ -65,7 +68,7 @@ export async function readSimulationTraceChunk<T>(reference: string): Promise<T>
     } finally { storage.client.destroy(); }
   } else { compressed = await readFile(filePath(hash)); }
   if (compressed.byteLength > MAX_CHUNK_BYTES) throw new Error('原始采样分块大小无效。');
-  const bytes = gunzipSync(compressed,{ maxOutputLength:MAX_CHUNK_BYTES });
+  const bytes = await decompress(compressed,{ maxOutputLength:MAX_CHUNK_BYTES });
   if (createHash('sha256').update(bytes).digest('hex') !== hash) throw new Error('原始采样分块校验失败。');
   return JSON.parse(bytes.toString('utf8')) as T;
 }
