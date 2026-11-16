@@ -1,4 +1,4 @@
-import { gunzip } from 'node:zlib';
+import { gunzip, gzip } from 'node:zlib';
 import { promisify } from 'node:util';
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
@@ -6,6 +6,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { IlabServiceError, toIlabHttpError } from './run-lock';
 
 const decompress = promisify(gunzip);
+const compress = promisify(gzip);
 const MAX_ENCODED_BYTES = 4*1024*1024;
 
 export async function requireVesselEvidenceAccount(request: Request) {
@@ -47,4 +48,28 @@ export function vesselEvidenceErrorResponse(error: unknown) {
   rethrowIfNextDynamicError(error);
   const failure = toIlabHttpError(error);
   return NextResponse.json({ error:failure.message },{ status:failure.status });
+}
+
+/** 本人恢复点和原始分块按客户端声明压缩，私有响应保持逐请求读取。 */
+export async function vesselEvidenceJsonResponse(request: Request, value: unknown) {
+  const encodings = new Map<string, number>();
+  for (const part of (request.headers.get('accept-encoding') ?? '').split(',')) {
+    const [name, ...parameters] = part.trim().toLowerCase().split(';');
+    const quality = parameters.map((parameter) => parameter.trim()).find((parameter) => parameter.startsWith('q='));
+    const weight = quality === undefined ? 1 : Number(quality.slice(2));
+    encodings.set(name, Number.isFinite(weight) && weight >= 0 && weight <= 1 ? weight : 0);
+  }
+  const acceptsGzip = (encodings.get('gzip') ?? encodings.get('*') ?? 0) > 0;
+  const headers = new Headers({
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'private, no-store',
+    Vary: 'Accept-Encoding',
+  });
+  let bytes = Buffer.from(JSON.stringify(value));
+  if (acceptsGzip && bytes.byteLength >= 1024) {
+    bytes = await compress(bytes);
+    headers.set('Content-Encoding', 'gzip');
+  }
+  headers.set('Content-Length', String(bytes.byteLength));
+  return new NextResponse(new Uint8Array(bytes), {headers});
 }

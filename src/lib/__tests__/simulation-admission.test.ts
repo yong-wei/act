@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AdmissionGate } from '@/lib/simulation-admission';
 
-describe('仿真在线名额', () => {
+describe('仿真连接抽查的独立计数', () => {
   it('名额未满时放行，超过后按到达顺序排队', () => {
     const gate = new AdmissionGate(2, 1000);
     expect(gate.request('a', 0).status).toBe('admitted');
@@ -11,6 +11,7 @@ describe('仿真在线名额', () => {
     expect(first).toMatchObject({ status: 'queued', position: 1, waiting: 1 });
     expect(second).toMatchObject({ status: 'queued', position: 2, waiting: 2 });
     expect(first.message).toContain('按班级分批');
+    expect(first.message).toContain('连接抽查记录');
   });
 
   it('名额到期后按排队顺序补入', () => {

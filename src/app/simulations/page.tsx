@@ -488,7 +488,7 @@ export default function SimulationsPage() {
               </dl>
               <div className="mt-5 flex flex-wrap gap-4">
                 <Link href="/simulations/network-check" className="inline-flex text-sm text-primary hover:underline" data-network-check-entry>
-                  进入实验前检查网络带宽和在线名额
+                进入实验前检查网络连接
                 </Link>
                 <Link href="/simulations/supporting" className="inline-flex text-sm text-primary hover:underline" data-supporting-entry>
                   支撑材料

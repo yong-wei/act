@@ -5,6 +5,7 @@ import { resolveCurrentActorContext } from '@/features/ilab/adapters/ilab-sessio
 import { readIlabGrantFromRequest } from '@/features/ilab/grant-cookie';
 import { IlabServiceError, toIlabHttpError } from '@/features/ilab/run-lock';
 import { findVesselCourse } from '@/resources/simulations/experiments/course-catalog';
+import { vesselEvidenceJsonResponse } from '@/features/ilab/course-evidence-api';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
       deferTraceChunks: true,
       lazyHistory: true,
     });
-    return NextResponse.json({
+    return await vesselEvidenceJsonResponse(request, {
       authenticated: true,
       userId: actor.userId,
       recovery,
