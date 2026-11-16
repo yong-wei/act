@@ -1,0 +1,4358 @@
+{
+  "schema": "act.simulation-capacity-results.v1",
+  "version": "0.7.49",
+  "revision": "c378178ad79495b777469e0e766f0808cead4063",
+  "wasmBuildHash": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d",
+  "wasmBinarySha256": "4222ca05350036b55273528d24b63eab67875862f495019d581dccd0bcb87075",
+  "capturedAt": "2026-11-16T04:31:52.332442+00:00",
+  "origin": "https://act.adapt-learn.online",
+  "byCourse": {
+    "destroyer": [
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI32.png&w=32&q=75",
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI64.png&w=48&q=75",
+      "https://act.adapt-learn.online/_next/static/chunks/0-4srap-ffvu1.js",
+      "https://act.adapt-learn.online/_next/static/chunks/07f_-oqx0co14.js",
+      "https://act.adapt-learn.online/_next/static/chunks/07m5i8_15jexa.css",
+      "https://act.adapt-learn.online/_next/static/chunks/08vptm3iq9b2_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c12cm5nxamtp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c23r3jlqsnwl.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0d2ucvw527wgg.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0dr3wbb8-9_tc.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0nam9706mfpob.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tbhf_jkkflxf.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tt2hysmvdf9y.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0xtj2itcqfufv.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11c4jt0ktjm6k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11ryhr3-dynr-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/16cepkbwytjzt.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_icow002h_1i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b17eagcsilc_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b_wi--q1489k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1dnbjv5-5o1cd.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1edfvwc5_eck-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1njo58af2rzmb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1p_leio1ehi1v.js",
+      "https://act.adapt-learn.online/_next/static/chunks/204ibgxrci757.js",
+      "https://act.adapt-learn.online/_next/static/chunks/25lsin4jjq1n0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/26g4tn5b226u5.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2ct7qqddp6p1k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2v6kxp0d-edet.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2z5lv6uews733.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2zx3q7e7c69qs.js",
+      "https://act.adapt-learn.online/_next/static/chunks/31_xshtsfxtl0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/33rc_7lkhz3xo.js",
+      "https://act.adapt-learn.online/_next/static/chunks/35uzr6qppbi8-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/38-cqgyaphiuk.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3acng26mz1z0j.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3b8-ikjlo93yh.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3c4-ozf1dxam2.css",
+      "https://act.adapt-learn.online/_next/static/chunks/3d09zo0q9lobb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3eqyjytld0r_o.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3ksk74-1h5k3i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3l6bwn061vy22.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3uxn1cw6-8418.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3vrpii27lr_ge.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3xenbtqktawh7.js",
+      "https://act.adapt-learn.online/_next/static/chunks/turbopack-0fbtbhi2cql9n.js",
+      "https://act.adapt-learn.online/_next/static/media/index_bg.3vh7rj01drfyh.wasm",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/cloud-soft-layer-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/env-island-chain-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/sky-clear-day.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/textures/ocean-foam-noise-alpha.png",
+      "https://act.adapt-learn.online/favicon.ico?favicon.0-st5vfcw2tvh.ico",
+      "https://static.adapt-learn.online/model-releases/type055-nanchang-101/v2.3.0/models/type055-nanchang-101-ship-lod2.glb",
+      "https://static.adapt-learn.online/model-releases/type055-nanchang-101/v2.3.0/models/type055-nanchang-101-ship-proxy.glb",
+      "https://static.adapt-learn.online/model-releases/type055-nanchang-101/v2.3.0/textures/74325ec305c00c026dfdda2583baec866a48a8f8af2a9127b2fb3b1e21b738ec.png",
+      "https://static.adapt-learn.online/model-releases/type055-nanchang-101/v2.3.0/textures/e2f85f4791231d8634dd447899eff9da7c6137010ee9646558f50933692f4fe0.png"
+    ],
+    "lng": [
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI32.png&w=32&q=75",
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI64.png&w=48&q=75",
+      "https://act.adapt-learn.online/_next/static/chunks/0-4srap-ffvu1.js",
+      "https://act.adapt-learn.online/_next/static/chunks/07m5i8_15jexa.css",
+      "https://act.adapt-learn.online/_next/static/chunks/08cv6zt9sj2il.js",
+      "https://act.adapt-learn.online/_next/static/chunks/08vptm3iq9b2_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c12cm5nxamtp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c23r3jlqsnwl.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0d2ucvw527wgg.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0dr3wbb8-9_tc.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0nam9706mfpob.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tbhf_jkkflxf.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tt2hysmvdf9y.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11c4jt0ktjm6k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11ryhr3-dynr-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/16cepkbwytjzt.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_5e4k_t5f4ji.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_icow002h_1i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b17eagcsilc_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b_wi--q1489k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1dnbjv5-5o1cd.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1edfvwc5_eck-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1njo58af2rzmb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1p_leio1ehi1v.js",
+      "https://act.adapt-learn.online/_next/static/chunks/204ibgxrci757.js",
+      "https://act.adapt-learn.online/_next/static/chunks/25lsin4jjq1n0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/26g4tn5b226u5.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2ct7qqddp6p1k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2v6kxp0d-edet.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2zx3q7e7c69qs.js",
+      "https://act.adapt-learn.online/_next/static/chunks/31_xshtsfxtl0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/33rc_7lkhz3xo.js",
+      "https://act.adapt-learn.online/_next/static/chunks/35uzr6qppbi8-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/38-cqgyaphiuk.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3acng26mz1z0j.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3b8-ikjlo93yh.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3c4-ozf1dxam2.css",
+      "https://act.adapt-learn.online/_next/static/chunks/3d09zo0q9lobb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3eqyjytld0r_o.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3j4xfl1kz6ex1.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3ksk74-1h5k3i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3l6bwn061vy22.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3o5g3ny59e3cp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3vrpii27lr_ge.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3xenbtqktawh7.js",
+      "https://act.adapt-learn.online/_next/static/chunks/42ucn9qv8a_lz.js",
+      "https://act.adapt-learn.online/_next/static/chunks/turbopack-0fbtbhi2cql9n.js",
+      "https://act.adapt-learn.online/_next/static/media/index_bg.3vh7rj01drfyh.wasm",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/cloud-soft-layer-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/env-island-chain-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/sky-clear-day.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/textures/ocean-foam-noise-alpha.png",
+      "https://act.adapt-learn.online/favicon.ico?favicon.0-st5vfcw2tvh.ico",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/models/lng-changheng-ship-lod2.glb",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/models/lng-changheng-ship-proxy.glb",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/0c95b11471f700ccfc4263b94bb6a212ee35f25f9de91f2a037215c80cd92ba2.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/1b79074fa94f330f12e506d0b737828be22f4a8d7e2e3af76ee5a54e6e31a83b.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/1bfcaaea6dde8a90ffc0fd9d23e47935d175e5d6d41c82ea3a6f56df4c6f6b0c.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/269ab8cd8fefa295a07826999f5f1d29e74404b4f8c7f4c6b0e739e84430193f.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/372ce89f6f66488da4c9713c8eb34dc71f426e47710f63bfe2780edd42808625.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/43358acd276197c1afe64e495b188c6500d50b651fefc84ec293f7865fa7924b.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/77c1c9b871321ed489043e76a6d1f9f65d78d968acb6e9423d2429a6616ed806.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/84cf8ed5db3b3dc21048076cad469263f405da6c101adbe2e1d4b0fad83e9e62.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/851b97be2084f5e49482a4f935ad6cf40a8e7a21e5d4d893ae9f95aec575107d.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/9d63d036625be18bb59f2a6fc895773c2fe726f81cb52bf9ba8d98dd82d063d3.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/afb2b76fab9549b209d5e87a1288f35e0a60954b3b17d53b63ff258c4f32d807.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/b108acc4e735fa670d68688577f7750e6dfe60f6cbf58ce9569be134787ddab8.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/d1bf31f69f5802474bc5633dc68fdb9e7183cbf6201204fcebe80d6749c5cb7c.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/d97f005f7c9ce5af86456cb3dea7309c88d124cba364bad48be0377b3e39738c.png",
+      "https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/textures/e807a3ba9ad14c295708cf3a7380afda06b5054faeacadef67b4fdc49718f9dd.png"
+    ],
+    "container": [
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI32.png&w=32&q=75",
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI64.png&w=48&q=75",
+      "https://act.adapt-learn.online/_next/static/chunks/0-4srap-ffvu1.js",
+      "https://act.adapt-learn.online/_next/static/chunks/07m5i8_15jexa.css",
+      "https://act.adapt-learn.online/_next/static/chunks/08cv6zt9sj2il.js",
+      "https://act.adapt-learn.online/_next/static/chunks/08vptm3iq9b2_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c12cm5nxamtp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c23r3jlqsnwl.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0d2ucvw527wgg.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0dr3wbb8-9_tc.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0nam9706mfpob.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tbhf_jkkflxf.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tt2hysmvdf9y.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11c4jt0ktjm6k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11ryhr3-dynr-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/16cepkbwytjzt.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_5e4k_t5f4ji.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_icow002h_1i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b17eagcsilc_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b_wi--q1489k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1dk6hc3b51szy.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1dnbjv5-5o1cd.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1edfvwc5_eck-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1njo58af2rzmb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1p_leio1ehi1v.js",
+      "https://act.adapt-learn.online/_next/static/chunks/204ibgxrci757.js",
+      "https://act.adapt-learn.online/_next/static/chunks/25lsin4jjq1n0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/26g4tn5b226u5.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2ct7qqddp6p1k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2fbjuzcr7_qo7.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2v6kxp0d-edet.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2zx3q7e7c69qs.js",
+      "https://act.adapt-learn.online/_next/static/chunks/31_xshtsfxtl0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/33rc_7lkhz3xo.js",
+      "https://act.adapt-learn.online/_next/static/chunks/35uzr6qppbi8-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/38-cqgyaphiuk.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3acng26mz1z0j.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3b8-ikjlo93yh.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3c4-ozf1dxam2.css",
+      "https://act.adapt-learn.online/_next/static/chunks/3d09zo0q9lobb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3eqyjytld0r_o.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3ksk74-1h5k3i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3l6bwn061vy22.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3o5g3ny59e3cp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3us8of_jl6em6.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3vrpii27lr_ge.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3xenbtqktawh7.js",
+      "https://act.adapt-learn.online/_next/static/chunks/42ucn9qv8a_lz.js",
+      "https://act.adapt-learn.online/_next/static/chunks/turbopack-0fbtbhi2cql9n.js",
+      "https://act.adapt-learn.online/_next/static/media/index_bg.3vh7rj01drfyh.wasm",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/cloud-soft-layer-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/env-island-chain-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/sky-clear-day.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/textures/ocean-foam-noise-alpha.png",
+      "https://act.adapt-learn.online/favicon.ico?favicon.0-st5vfcw2tvh.ico",
+      "https://static.adapt-learn.online/model-releases/msc-tessa/v1.2.0/models/msc-tessa-ship-lod2.glb",
+      "https://static.adapt-learn.online/model-releases/msc-tessa/v1.2.0/models/msc-tessa-ship-proxy.glb"
+    ],
+    "cruise": [
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI32.png&w=32&q=75",
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI64.png&w=48&q=75",
+      "https://act.adapt-learn.online/_next/static/chunks/0-4srap-ffvu1.js",
+      "https://act.adapt-learn.online/_next/static/chunks/07m5i8_15jexa.css",
+      "https://act.adapt-learn.online/_next/static/chunks/08vptm3iq9b2_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c12cm5nxamtp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c23r3jlqsnwl.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0d2ucvw527wgg.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0dr3wbb8-9_tc.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0nam9706mfpob.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tbhf_jkkflxf.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tt2hysmvdf9y.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0y_0vunafm4rj.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11c4jt0ktjm6k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11ryhr3-dynr-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/16cepkbwytjzt.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_5e4k_t5f4ji.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_icow002h_1i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b17eagcsilc_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b_wi--q1489k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1edfvwc5_eck-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1njo58af2rzmb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1p_leio1ehi1v.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1zxpgqhy39z11.js",
+      "https://act.adapt-learn.online/_next/static/chunks/204ibgxrci757.js",
+      "https://act.adapt-learn.online/_next/static/chunks/25lsin4jjq1n0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/26g4tn5b226u5.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2co5lx-chpr2s.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2ct7qqddp6p1k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2sin6gp8vlpw3.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2v6kxp0d-edet.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2zx3q7e7c69qs.js",
+      "https://act.adapt-learn.online/_next/static/chunks/31_xshtsfxtl0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/33rc_7lkhz3xo.js",
+      "https://act.adapt-learn.online/_next/static/chunks/35uzr6qppbi8-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/38-cqgyaphiuk.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3acng26mz1z0j.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3b8-ikjlo93yh.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3c4-ozf1dxam2.css",
+      "https://act.adapt-learn.online/_next/static/chunks/3d09zo0q9lobb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3eqyjytld0r_o.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3gct3y7_j-ui0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3ii83wqsw9pwp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3l6bwn061vy22.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3o5g3ny59e3cp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3vrpii27lr_ge.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3xenbtqktawh7.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3xhq5zvf1r22h.js",
+      "https://act.adapt-learn.online/_next/static/chunks/42ucn9qv8a_lz.js",
+      "https://act.adapt-learn.online/_next/static/chunks/turbopack-0fbtbhi2cql9n.js",
+      "https://act.adapt-learn.online/_next/static/media/index_bg.3vh7rj01drfyh.wasm",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/cloud-soft-layer-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/env-island-chain-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/sky-clear-day.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/textures/ocean-foam-noise-alpha.png",
+      "https://act.adapt-learn.online/favicon.ico?favicon.0-st5vfcw2tvh.ico",
+      "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-lod0.glb",
+      "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-lod2.glb",
+      "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-proxy.glb",
+      "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1.png",
+      "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba.png",
+      "https://static.adapt-learn.online/model-releases/adora-magic-city/v1.1.0/textures/ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220.png"
+    ],
+    "drilling": [
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI32.png&w=32&q=75",
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI64.png&w=48&q=75",
+      "https://act.adapt-learn.online/_next/static/chunks/0-4srap-ffvu1.js",
+      "https://act.adapt-learn.online/_next/static/chunks/07m5i8_15jexa.css",
+      "https://act.adapt-learn.online/_next/static/chunks/08vptm3iq9b2_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c12cm5nxamtp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c23r3jlqsnwl.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0d2ucvw527wgg.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0dr3wbb8-9_tc.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0nam9706mfpob.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tbhf_jkkflxf.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tt2hysmvdf9y.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11c4jt0ktjm6k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11ryhr3-dynr-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/16cepkbwytjzt.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_5e4k_t5f4ji.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_icow002h_1i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b17eagcsilc_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b_wi--q1489k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1dnbjv5-5o1cd.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1edfvwc5_eck-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1njo58af2rzmb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1p_leio1ehi1v.js",
+      "https://act.adapt-learn.online/_next/static/chunks/204ibgxrci757.js",
+      "https://act.adapt-learn.online/_next/static/chunks/25lsin4jjq1n0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/26g4tn5b226u5.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2ct7qqddp6p1k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2j-sz8n5d7iai.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2v6kxp0d-edet.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2zx3q7e7c69qs.js",
+      "https://act.adapt-learn.online/_next/static/chunks/31_xshtsfxtl0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/33rc_7lkhz3xo.js",
+      "https://act.adapt-learn.online/_next/static/chunks/34pce3rz_4nvq.js",
+      "https://act.adapt-learn.online/_next/static/chunks/35uzr6qppbi8-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/38-cqgyaphiuk.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3acng26mz1z0j.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3b8-ikjlo93yh.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3c4-ozf1dxam2.css",
+      "https://act.adapt-learn.online/_next/static/chunks/3d09zo0q9lobb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3eqyjytld0r_o.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3ksk74-1h5k3i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3l6bwn061vy22.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3o5g3ny59e3cp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3uxn1cw6-8418.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3vrpii27lr_ge.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3xenbtqktawh7.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3y6x2mvfk7d7h.js",
+      "https://act.adapt-learn.online/_next/static/chunks/42ucn9qv8a_lz.js",
+      "https://act.adapt-learn.online/_next/static/chunks/turbopack-0fbtbhi2cql9n.js",
+      "https://act.adapt-learn.online/_next/static/media/index_bg.3vh7rj01drfyh.wasm",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/cloud-soft-layer-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/env-island-chain-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/sky-clear-day.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/textures/ocean-foam-noise-alpha.png",
+      "https://act.adapt-learn.online/favicon.ico?favicon.0-st5vfcw2tvh.ico",
+      "https://static.adapt-learn.online/model-releases/hysy-981/v1.2.0/models/hysy-981-ship-lod2.glb",
+      "https://static.adapt-learn.online/model-releases/hysy-981/v1.2.0/models/hysy-981-ship-proxy.glb",
+      "https://static.adapt-learn.online/model-releases/hysy-981/v1.2.0/textures/0833a3617fa8fd8c75270be71e1a9edccf6441097c50ded206035d6b5d5c9c4a.png",
+      "https://static.adapt-learn.online/model-releases/hysy-981/v1.2.0/textures/152b32af8ec26662d7d580f1499c99e053a6f133d8ee5ca5c783cad34deb272d.png",
+      "https://static.adapt-learn.online/model-releases/hysy-981/v1.2.0/textures/2f5b745109c959127d050a566aa452bcfeec6dc7cfc4c1ff0e18a57baef044f0.png",
+      "https://static.adapt-learn.online/model-releases/hysy-981/v1.2.0/textures/4b16b738857d3b9af251019f570c545a80f08ee3f51d87bbcfb555542703bf69.png",
+      "https://static.adapt-learn.online/model-releases/hysy-981/v1.2.0/textures/4cb9219a18b99a69c84e187a4b72b70a4e5dedb22d27c1ab5612262e768cb018.png",
+      "https://static.adapt-learn.online/model-releases/hysy-981/v1.2.0/textures/4da43595bd20d97be1112a67b7bdd00380b3eccd9cf1e56c483ce5388ccf541b.png",
+      "https://static.adapt-learn.online/model-releases/hysy-981/v1.2.0/textures/8a71d61261b85223cf49fc3c32fdccb1a4b603b4721d517140c8889dc7195964.png",
+      "https://static.adapt-learn.online/model-releases/semisub-981-hydrodynamics/v5.0.0/0a778224435e9577354b7ddc96a964da31fba561ba658744ac7ea199ae27bc71/excitation-f32le.bin",
+      "https://static.adapt-learn.online/model-releases/semisub-981-hydrodynamics/v5.0.0/0a778224435e9577354b7ddc96a964da31fba561ba658744ac7ea199ae27bc71/first-order-wave.json"
+    ],
+    "icebreaker": [
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI32.png&w=32&q=75",
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI64.png&w=48&q=75",
+      "https://act.adapt-learn.online/_next/static/chunks/0-4srap-ffvu1.js",
+      "https://act.adapt-learn.online/_next/static/chunks/07m5i8_15jexa.css",
+      "https://act.adapt-learn.online/_next/static/chunks/08cv6zt9sj2il.js",
+      "https://act.adapt-learn.online/_next/static/chunks/08vptm3iq9b2_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c12cm5nxamtp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c23r3jlqsnwl.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0d2ucvw527wgg.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0dr3wbb8-9_tc.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0fyghbh_w5hq3.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0nam9706mfpob.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tbhf_jkkflxf.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tt2hysmvdf9y.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11c4jt0ktjm6k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11ryhr3-dynr-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/16cepkbwytjzt.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_5e4k_t5f4ji.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_icow002h_1i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b17eagcsilc_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b_wi--q1489k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1dnbjv5-5o1cd.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1edfvwc5_eck-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1njo58af2rzmb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1p_leio1ehi1v.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1y8s-qwayqnpu.js",
+      "https://act.adapt-learn.online/_next/static/chunks/204ibgxrci757.js",
+      "https://act.adapt-learn.online/_next/static/chunks/25lsin4jjq1n0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/26g4tn5b226u5.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2ct7qqddp6p1k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2v6kxp0d-edet.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2zx3q7e7c69qs.js",
+      "https://act.adapt-learn.online/_next/static/chunks/31_xshtsfxtl0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/33rc_7lkhz3xo.js",
+      "https://act.adapt-learn.online/_next/static/chunks/35uzr6qppbi8-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/38-cqgyaphiuk.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3acng26mz1z0j.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3b8-ikjlo93yh.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3c4-ozf1dxam2.css",
+      "https://act.adapt-learn.online/_next/static/chunks/3d09zo0q9lobb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3eqyjytld0r_o.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3ksk74-1h5k3i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3l6bwn061vy22.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3o5g3ny59e3cp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3vrpii27lr_ge.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3xenbtqktawh7.js",
+      "https://act.adapt-learn.online/_next/static/chunks/42ucn9qv8a_lz.js",
+      "https://act.adapt-learn.online/_next/static/chunks/turbopack-0fbtbhi2cql9n.js",
+      "https://act.adapt-learn.online/_next/static/media/index_bg.3vh7rj01drfyh.wasm",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/cloud-soft-layer-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/env-island-chain-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/sky-clear-day.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/textures/ocean-foam-noise-alpha.png",
+      "https://act.adapt-learn.online/favicon.ico?favicon.0-st5vfcw2tvh.ico",
+      "https://static.adapt-learn.online/model-releases/xue-long-2/v1.1.0/models/xue-long-2-ship-lod0.glb",
+      "https://static.adapt-learn.online/model-releases/xue-long-2/v1.1.0/models/xue-long-2-ship-lod2.glb",
+      "https://static.adapt-learn.online/model-releases/xue-long-2/v1.1.0/models/xue-long-2-ship-proxy.glb",
+      "https://static.adapt-learn.online/model-releases/xue-long-2/v1.1.0/textures/28520c96f744b6d34e5d31c0ce42034c6f624bc65e221bd105de041abbd29bc8.png",
+      "https://static.adapt-learn.online/model-releases/xue-long-2/v1.1.0/textures/3ffa25b07926ce881dc85cf18953ceca0738103d9b7db0413e7e11ccf2b61506.png",
+      "https://static.adapt-learn.online/model-releases/xue-long-2/v1.1.0/textures/a558c4030cccaa8adee4c61faca73efe01c8f7095825fd50c11f4a89c75d7695.png",
+      "https://static.adapt-learn.online/model-releases/xue-long-2/v1.1.0/textures/e991e4d35b013b2c80f35358a94563b2bf34c4c156ae479a5fee7262fb09bd8b.png",
+      "https://static.adapt-learn.online/model-releases/xue-long-2/v1.1.0/textures/f7a2f4036b61f52dc55d590a21cb1fadd764365f75de1fb80b607a5040b29825.png"
+    ],
+    "dredger": [
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI32.png&w=32&q=75",
+      "https://act.adapt-learn.online/_next/image?url=%2Fimages%2FAI64.png&w=48&q=75",
+      "https://act.adapt-learn.online/_next/static/chunks/0-4srap-ffvu1.js",
+      "https://act.adapt-learn.online/_next/static/chunks/07m5i8_15jexa.css",
+      "https://act.adapt-learn.online/_next/static/chunks/08cv6zt9sj2il.js",
+      "https://act.adapt-learn.online/_next/static/chunks/08vptm3iq9b2_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c12cm5nxamtp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0c23r3jlqsnwl.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0d2ucvw527wgg.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0dr3wbb8-9_tc.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0nam9706mfpob.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tbhf_jkkflxf.js",
+      "https://act.adapt-learn.online/_next/static/chunks/0tt2hysmvdf9y.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1-r39hmkxzku4.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11c4jt0ktjm6k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/11ryhr3-dynr-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/16cepkbwytjzt.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_5e4k_t5f4ji.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1_icow002h_1i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b17eagcsilc_.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1b_wi--q1489k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1dnbjv5-5o1cd.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1edfvwc5_eck-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1njo58af2rzmb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/1p_leio1ehi1v.js",
+      "https://act.adapt-learn.online/_next/static/chunks/204ibgxrci757.js",
+      "https://act.adapt-learn.online/_next/static/chunks/25lsin4jjq1n0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/26g4tn5b226u5.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2ct7qqddp6p1k.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2v6kxp0d-edet.js",
+      "https://act.adapt-learn.online/_next/static/chunks/2zx3q7e7c69qs.js",
+      "https://act.adapt-learn.online/_next/static/chunks/31_xshtsfxtl0.js",
+      "https://act.adapt-learn.online/_next/static/chunks/33rc_7lkhz3xo.js",
+      "https://act.adapt-learn.online/_next/static/chunks/35uzr6qppbi8-.js",
+      "https://act.adapt-learn.online/_next/static/chunks/38-cqgyaphiuk.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3acng26mz1z0j.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3b8-ikjlo93yh.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3c4-ozf1dxam2.css",
+      "https://act.adapt-learn.online/_next/static/chunks/3d09zo0q9lobb.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3eqyjytld0r_o.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3ksk74-1h5k3i.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3l6bwn061vy22.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3o5g3ny59e3cp.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3vrpii27lr_ge.js",
+      "https://act.adapt-learn.online/_next/static/chunks/3xenbtqktawh7.js",
+      "https://act.adapt-learn.online/_next/static/chunks/42ucn9qv8a_lz.js",
+      "https://act.adapt-learn.online/_next/static/chunks/turbopack-0fbtbhi2cql9n.js",
+      "https://act.adapt-learn.online/_next/static/media/index_bg.3vh7rj01drfyh.wasm",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/cloud-soft-layer-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/env-island-chain-alpha.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/environment/sky-clear-day.png",
+      "https://act.adapt-learn.online/assets/simulation-scene/textures/ocean-foam-noise-alpha.png",
+      "https://act.adapt-learn.online/favicon.ico?favicon.0-st5vfcw2tvh.ico",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/models/dredger-tianjing-ship-lod2.glb",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/models/dredger-tianjing-ship-proxy.glb",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/13aae20a81a51cb9b46f808b1c7b1161b6096f24e974db3225642f0bcc36b762.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/1e8274b8094da8a7399ee4e9b0f693198d28868da9bd5993db7d710e939cfd4d.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/3767fa029ee897074f460c2c256e2d7a6020247cd3923bcfea50bfb41149a91e.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/65f66139a63ccbea1ec452f12788152c2e05e96694fcbe3334b3c776c3300205.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/7d3fd2f21c4baf43cb00734418d77dab6d1c75f46db58ce4a6b317f792b33e19.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/9580aea8924d0a802c967d40cbca562c1cf64d5806333de677fcce340af9bbd2.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/b0d5ed88c87034ee1d5e6528861474490b364ebe47d9f9dffcc339f6d694564f.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/bd605b919c320bc9764122456ee2fcb31e84583f86fa4986ffbb30b848d4c424.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/be915e45f04f797beb3ba3e7e5da82415862de4c2cd572929a1c3e8c89482b1b.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/cf1bc34ae5519db8ed27b9ef59a16bd15abd9e2ca199ddcc349bbd12dd3888cb.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/d38c7f183231cd85dd4d29bb8fdce425a987f6b6ac5b22c154fa6cd945992043.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/d64d46c4fe5d1f3539c883700702b749fa14b2958e294d1b35f31987d7678ec2.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/d69dd29a65ac65e8e21dacfa866ae5a7667c5999eeee2ad9ddd0563714dbc538.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/dcc9a5ce7843389af4498f5d983100bff72aa48ad25cce1988e663d41e2d1a3a.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/ea63d028da1706076cb12b24f81f9f76384e12af7e3758b45cd7dad9bc19ab77.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/f358530e1f462a2d62384b7a31988b84e892911f2d8e1fbf1c4208c4a90c866a.png",
+      "https://static.adapt-learn.online/model-releases/dredger-tianjing/v1.2.0/textures/f966c3c7a27eb73a96b14ff2ffc30c9edd5b6e1abc17f55df2cef486ecf8409c.png"
+    ]
+  },
+  "deployment": {
+    "vcpus": 2,
+    "memoryBytes": 7826014208,
+    "applicationContainerQuota": false,
+    "image": "localhost/act-obe-platform:0.7.49-c378178",
+    "ciRun": "43789982197"
+  },
+  "coverage": {
+    "timeScale": 8,
+    "wallUploadBatchSeconds": 5,
+    "fixture": "one real native first-step trajectory per vessel",
+    "stressIdentitySource": "dedicated PLATFORM QA students",
+    "externalIlabCalls": 0,
+    "aiProviderCalls": 0,
+    "mixedSevenVesselFiveMinuteConcurrency": 10,
+    "sustainedVessels": [
+      "destroyer",
+      "lng"
+    ],
+    "verifiedThirtyMinuteConcurrencyForThisProfile": 2,
+    "nextFiveMinuteFailedConcurrency": 3,
+    "latencyGoalPassed": false,
+    "unrunConcurrencyLevels": [
+      25,
+      50,
+      100,
+      120,
+      160,
+      200
+    ],
+    "coldGraphics": "WebGL, automatic quality",
+    "browserCacheModes": [
+      "cold",
+      "reload"
+    ],
+    "cloudClientSamplingRatePercent": 100
+  },
+  "stages": [
+    {
+      "label": "v0749-8x-n1-s300",
+      "concurrency": 1,
+      "configuredDurationS": 300,
+      "elapsedS": 304.927,
+      "startedAt": "2026-11-16T03:00:12.424Z",
+      "capturedAt": "2026-11-16T03:05:17.352Z",
+      "requests": 675,
+      "rps": 2.21364457722668,
+      "uploadBytes": 73016469,
+      "downloadBytes": 1228878,
+      "groups": {
+        "run-open": {
+          "requests": 79,
+          "errors": 0,
+          "p50Ms": 117.35166599997319,
+          "p95Ms": 212.70170800000778,
+          "p99Ms": 523.5215410000001,
+          "uploadBytes": 2020945,
+          "downloadBytes": 23182,
+          "statuses": {
+            "200": 79
+          }
+        },
+        "trace-stage": {
+          "requests": 476,
+          "errors": 0,
+          "p50Ms": 158.51245899999049,
+          "p95Ms": 328.2782920000027,
+          "p99Ms": 524.4389170000068,
+          "uploadBytes": 67363242,
+          "downloadBytes": 50932,
+          "statuses": {
+            "200": 476
+          }
+        },
+        "checkpoint": {
+          "requests": 79,
+          "errors": 0,
+          "p50Ms": 983.8579579999932,
+          "p95Ms": 1766.7927500000005,
+          "p99Ms": 2445.0525,
+          "uploadBytes": 3628076,
+          "downloadBytes": 23698,
+          "statuses": {
+            "200": 79
+          }
+        },
+        "draft": {
+          "requests": 18,
+          "errors": 0,
+          "p50Ms": 44.65112500000396,
+          "p95Ms": 186.06629099999554,
+          "p99Ms": 186.06629099999554,
+          "uploadBytes": 2733,
+          "downloadBytes": 1689,
+          "statuses": {
+            "200": 18
+          }
+        },
+        "recovery": {
+          "requests": 11,
+          "errors": 0,
+          "p50Ms": 375.54766599999857,
+          "p95Ms": 1081.769208999991,
+          "p99Ms": 1081.769208999991,
+          "uploadBytes": 0,
+          "downloadBytes": 799579,
+          "statuses": {
+            "200": 11
+          }
+        },
+        "page-refresh": {
+          "requests": 5,
+          "errors": 0,
+          "p50Ms": 88.11912499999744,
+          "p95Ms": 111.16370899999947,
+          "p99Ms": 111.16370899999947,
+          "uploadBytes": 0,
+          "downloadBytes": 50618,
+          "statuses": {
+            "200": 5
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 4,
+          "errors": 0,
+          "p50Ms": 117.67408400001295,
+          "p95Ms": 231.73616700002458,
+          "p99Ms": 231.73616700002458,
+          "uploadBytes": 0,
+          "downloadBytes": 277622,
+          "statuses": {
+            "200": 4
+          }
+        },
+        "step-submit": {
+          "requests": 1,
+          "errors": 0,
+          "p50Ms": 390.54441700002644,
+          "p95Ms": 390.54441700002644,
+          "p99Ms": 390.54441700002644,
+          "uploadBytes": 514,
+          "downloadBytes": 98,
+          "statuses": {
+            "200": 1
+          }
+        },
+        "report-save": {
+          "requests": 1,
+          "errors": 0,
+          "p50Ms": 95.70416600001045,
+          "p95Ms": 95.70416600001045,
+          "p99Ms": 95.70416600001045,
+          "uploadBytes": 479,
+          "downloadBytes": 1395,
+          "statuses": {
+            "200": 1
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 1,
+          "errors": 0,
+          "p50Ms": 55.289042000018526,
+          "p95Ms": 55.289042000018526,
+          "p99Ms": 55.289042000018526,
+          "uploadBytes": 480,
+          "downloadBytes": 65,
+          "statuses": {
+            "400": 1
+          }
+        }
+      },
+      "clientCpuSeconds": 11.585553,
+      "eventLoopP95Ms": 22.102015,
+      "eventLoopMaximumMs": 75.694079,
+      "clientRssBytes": 367738880,
+      "criteria": {
+        "maximumErrorRate": 0.01,
+        "readP95Ms": 1500,
+        "saveP95Ms": 1500,
+        "minimumPacingFraction": 0.8
+      },
+      "actualErrorRate": 0,
+      "minimumPacingFraction": 0.9916666666666667,
+      "correctnessAndPacingPassed": true,
+      "latencyGoalPassed": false,
+      "status": "failed",
+      "clients": [
+        {
+          "course": "destroyer",
+          "completedPackets": 476,
+          "completedRuns": 39,
+          "attemptStatus": "submitted"
+        }
+      ],
+      "httpErrorCount": 0,
+      "stateFailureCount": 0,
+      "host": {
+        "sampleCount": 10,
+        "cpuMeanPercent": 42.49197074250526,
+        "cpuMaximumPercent": 45.6370534302877,
+        "minimumAvailableMemoryBytes": 3379044352,
+        "maximumDatabaseConnections": 7,
+        "maximumDatabaseLockWaits": 0,
+        "meanNicRxMbps": 2.068894985637177,
+        "meanNicTxMbps": 0.07515925510461971
+      },
+      "rawReceiptSha256": "44cb3ae74836381554bc8e9cdaaa68b9b4797e0b849fe14638d026bc520663a7"
+    },
+    {
+      "label": "v0749-8x-n10-s300",
+      "concurrency": 10,
+      "configuredDurationS": 300,
+      "elapsedS": 316.495,
+      "startedAt": "2026-11-16T03:05:20.002Z",
+      "capturedAt": "2026-11-16T03:10:36.498Z",
+      "requests": 1553,
+      "rps": 4.906870566675619,
+      "uploadBytes": 156538422,
+      "downloadBytes": 7320210,
+      "groups": {
+        "run-open": {
+          "requests": 144,
+          "errors": 0,
+          "p50Ms": 710.637999999999,
+          "p95Ms": 1467.3896250000107,
+          "p99Ms": 1800.5750000000116,
+          "uploadBytes": 3503020,
+          "downloadBytes": 42108,
+          "statuses": {
+            "200": 144
+          }
+        },
+        "trace-stage": {
+          "requests": 968,
+          "errors": 0,
+          "p50Ms": 2046.826457999996,
+          "p95Ms": 3565.9179580000055,
+          "p99Ms": 4137.2362079999875,
+          "uploadBytes": 146185485,
+          "downloadBytes": 103576,
+          "statuses": {
+            "200": 968
+          }
+        },
+        "checkpoint": {
+          "requests": 144,
+          "errors": 0,
+          "p50Ms": 3596.7554579999996,
+          "p95Ms": 6081.481250000012,
+          "p99Ms": 7364.019583999994,
+          "uploadBytes": 6816762,
+          "downloadBytes": 42981,
+          "statuses": {
+            "200": 144
+          }
+        },
+        "draft": {
+          "requests": 125,
+          "errors": 0,
+          "p50Ms": 417.9339170000021,
+          "p95Ms": 904.7172500000161,
+          "p99Ms": 1031.7592080000031,
+          "uploadBytes": 18911,
+          "downloadBytes": 11661,
+          "statuses": {
+            "200": 125
+          }
+        },
+        "recovery": {
+          "requests": 86,
+          "errors": 0,
+          "p50Ms": 1769.9138750000275,
+          "p95Ms": 11339.326375000004,
+          "p99Ms": 14379.352167000005,
+          "uploadBytes": 0,
+          "downloadBytes": 5934698,
+          "statuses": {
+            "200": 86
+          }
+        },
+        "page-refresh": {
+          "requests": 46,
+          "errors": 0,
+          "p50Ms": 527.7237920000043,
+          "p95Ms": 1074.5167079999992,
+          "p99Ms": 1771.563083999994,
+          "uploadBytes": 0,
+          "downloadBytes": 472582,
+          "statuses": {
+            "200": 46
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 615.7350000000006,
+          "p95Ms": 1424.4716250000056,
+          "p99Ms": 1424.4716250000056,
+          "uploadBytes": 0,
+          "downloadBytes": 697188,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "step-submit": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 772.8439590000198,
+          "p95Ms": 1200.6876250000205,
+          "p99Ms": 1200.6876250000205,
+          "uploadBytes": 5112,
+          "downloadBytes": 980,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "report-save": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 301.0833749999874,
+          "p95Ms": 425.08887500001583,
+          "p99Ms": 425.08887500001583,
+          "uploadBytes": 4555,
+          "downloadBytes": 13646,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 196.75958299997728,
+          "p95Ms": 294.76149999996414,
+          "p99Ms": 294.76149999996414,
+          "uploadBytes": 4577,
+          "downloadBytes": 790,
+          "statuses": {
+            "400": 10
+          }
+        }
+      },
+      "clientCpuSeconds": 25.776795,
+      "eventLoopP95Ms": 22.102015,
+      "eventLoopMaximumMs": 41.222143,
+      "clientRssBytes": 406667264,
+      "criteria": {
+        "maximumErrorRate": 0.01,
+        "readP95Ms": 1500,
+        "saveP95Ms": 1500,
+        "minimumPacingFraction": 0.8
+      },
+      "actualErrorRate": 0,
+      "minimumPacingFraction": 0.16666666666666666,
+      "correctnessAndPacingPassed": false,
+      "latencyGoalPassed": false,
+      "status": "failed",
+      "clients": [
+        {
+          "course": "destroyer",
+          "completedPackets": 80,
+          "completedRuns": 6,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "lng",
+          "completedPackets": 104,
+          "completedRuns": 4,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "container",
+          "completedPackets": 104,
+          "completedRuns": 8,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "cruise",
+          "completedPackets": 96,
+          "completedRuns": 8,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "drilling",
+          "completedPackets": 88,
+          "completedRuns": 3,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "icebreaker",
+          "completedPackets": 104,
+          "completedRuns": 8,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "dredger",
+          "completedPackets": 88,
+          "completedRuns": 3,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "destroyer",
+          "completedPackets": 96,
+          "completedRuns": 8,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "lng",
+          "completedPackets": 104,
+          "completedRuns": 4,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "container",
+          "completedPackets": 104,
+          "completedRuns": 8,
+          "attemptStatus": "submitted"
+        }
+      ],
+      "httpErrorCount": 0,
+      "stateFailureCount": 0,
+      "host": {
+        "sampleCount": 10,
+        "cpuMeanPercent": 75.58424688719018,
+        "cpuMaximumPercent": 77.13216145833334,
+        "minimumAvailableMemoryBytes": 3348697088,
+        "maximumDatabaseConnections": 10,
+        "maximumDatabaseLockWaits": 0,
+        "meanNicRxMbps": 4.193039653969664,
+        "meanNicTxMbps": 0.28671960385953704
+      },
+      "rawReceiptSha256": "a60dbb5a49ccb6a6edac0d30e6333dcd05473348dd3dbdd931e3057f54f9fc50"
+    },
+    {
+      "label": "v0749-8x-n5-s300",
+      "concurrency": 5,
+      "configuredDurationS": 300,
+      "elapsedS": 308.432,
+      "startedAt": "2026-11-16T03:10:38.254Z",
+      "capturedAt": "2026-11-16T03:15:46.687Z",
+      "requests": 1368,
+      "rps": 4.435337448773149,
+      "uploadBytes": 149901261,
+      "downloadBytes": 4092794,
+      "groups": {
+        "run-open": {
+          "requests": 138,
+          "errors": 0,
+          "p50Ms": 368.5864580000052,
+          "p95Ms": 1033.6907920000085,
+          "p99Ms": 1379.6150000000052,
+          "uploadBytes": 3156668,
+          "downloadBytes": 40326,
+          "statuses": {
+            "200": 138
+          }
+        },
+        "trace-stage": {
+          "requests": 924,
+          "errors": 0,
+          "p50Ms": 900.8304169999901,
+          "p95Ms": 2065.9862910000084,
+          "p99Ms": 2601.295167,
+          "uploadBytes": 140328552,
+          "downloadBytes": 98868,
+          "statuses": {
+            "200": 924
+          }
+        },
+        "checkpoint": {
+          "requests": 138,
+          "errors": 0,
+          "p50Ms": 2089.1589999999997,
+          "p95Ms": 4155.619542,
+          "p99Ms": 4930.700749999989,
+          "uploadBytes": 6397755,
+          "downloadBytes": 41155,
+          "statuses": {
+            "200": 138
+          }
+        },
+        "draft": {
+          "requests": 72,
+          "errors": 0,
+          "p50Ms": 205.5643749999872,
+          "p95Ms": 599.6419579999929,
+          "p99Ms": 1484.3430830000143,
+          "uploadBytes": 10919,
+          "downloadBytes": 6743,
+          "statuses": {
+            "200": 72
+          }
+        },
+        "recovery": {
+          "requests": 47,
+          "errors": 0,
+          "p50Ms": 1996.5353749999995,
+          "p95Ms": 6231.953125,
+          "p99Ms": 8569.191458999994,
+          "uploadBytes": 0,
+          "downloadBytes": 3257030,
+          "statuses": {
+            "200": 47
+          }
+        },
+        "page-refresh": {
+          "requests": 25,
+          "errors": 0,
+          "p50Ms": 293.91629199999807,
+          "p95Ms": 649.0214579999738,
+          "p99Ms": 719.9525830000002,
+          "uploadBytes": 0,
+          "downloadBytes": 260170,
+          "statuses": {
+            "200": 25
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 9,
+          "errors": 0,
+          "p50Ms": 287.72287500003586,
+          "p95Ms": 982.1117919999961,
+          "p99Ms": 982.1117919999961,
+          "uploadBytes": 0,
+          "downloadBytes": 380674,
+          "statuses": {
+            "200": 9
+          }
+        },
+        "step-submit": {
+          "requests": 5,
+          "errors": 0,
+          "p50Ms": 634.6805830000085,
+          "p95Ms": 902.7387079999899,
+          "p99Ms": 902.7387079999899,
+          "uploadBytes": 2557,
+          "downloadBytes": 490,
+          "statuses": {
+            "200": 5
+          }
+        },
+        "report-save": {
+          "requests": 5,
+          "errors": 0,
+          "p50Ms": 202.20716700004414,
+          "p95Ms": 234.37150000000838,
+          "p99Ms": 234.37150000000838,
+          "uploadBytes": 2400,
+          "downloadBytes": 7013,
+          "statuses": {
+            "200": 5
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 5,
+          "errors": 0,
+          "p50Ms": 121.0126670000027,
+          "p95Ms": 160.11545899999328,
+          "p99Ms": 160.11545899999328,
+          "uploadBytes": 2410,
+          "downloadBytes": 325,
+          "statuses": {
+            "400": 5
+          }
+        }
+      },
+      "clientCpuSeconds": 24.218917,
+      "eventLoopP95Ms": 22.102015,
+      "eventLoopMaximumMs": 38.404095,
+      "clientRssBytes": 396394496,
+      "criteria": {
+        "maximumErrorRate": 0.01,
+        "readP95Ms": 1500,
+        "saveP95Ms": 1500,
+        "minimumPacingFraction": 0.8
+      },
+      "actualErrorRate": 0,
+      "minimumPacingFraction": 0.35,
+      "correctnessAndPacingPassed": false,
+      "latencyGoalPassed": false,
+      "status": "failed",
+      "clients": [
+        {
+          "course": "destroyer",
+          "completedPackets": 176,
+          "completedRuns": 14,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "lng",
+          "completedPackets": 200,
+          "completedRuns": 8,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "container",
+          "completedPackets": 200,
+          "completedRuns": 16,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "cruise",
+          "completedPackets": 180,
+          "completedRuns": 15,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "drilling",
+          "completedPackets": 168,
+          "completedRuns": 7,
+          "attemptStatus": "submitted"
+        }
+      ],
+      "httpErrorCount": 0,
+      "stateFailureCount": 0,
+      "host": {
+        "sampleCount": 10,
+        "cpuMeanPercent": 74.5476871573328,
+        "cpuMaximumPercent": 75.42634399870066,
+        "minimumAvailableMemoryBytes": 3271286784,
+        "maximumDatabaseConnections": 9,
+        "maximumDatabaseLockWaits": 0,
+        "meanNicRxMbps": 4.1767309600814,
+        "meanNicTxMbps": 0.18820097877144493
+      },
+      "rawReceiptSha256": "4c00ea929dd30ae92b1628b7b5715475d16ec421e8c26ab66c7f6fe4f9068b34"
+    },
+    {
+      "label": "v0749-8x-n3-s300",
+      "concurrency": 3,
+      "configuredDurationS": 300,
+      "elapsedS": 305.769,
+      "startedAt": "2026-11-16T03:15:48.163Z",
+      "capturedAt": "2026-11-16T03:20:53.933Z",
+      "requests": 1418,
+      "rps": 4.637487776720334,
+      "uploadBytes": 160627335,
+      "downloadBytes": 3406279,
+      "groups": {
+        "run-open": {
+          "requests": 152,
+          "errors": 0,
+          "p50Ms": 237.57470900000772,
+          "p95Ms": 756.0724999999802,
+          "p99Ms": 880.6282079999946,
+          "uploadBytes": 3911993,
+          "downloadBytes": 44439,
+          "statuses": {
+            "200": 152
+          }
+        },
+        "trace-stage": {
+          "requests": 1000,
+          "errors": 0,
+          "p50Ms": 362.8898329999938,
+          "p95Ms": 1166.9836249999935,
+          "p99Ms": 1571.54237499999,
+          "uploadBytes": 149288847,
+          "downloadBytes": 107000,
+          "statuses": {
+            "200": 1000
+          }
+        },
+        "checkpoint": {
+          "requests": 152,
+          "errors": 0,
+          "p50Ms": 1531.651457999993,
+          "p95Ms": 2735.6993749999965,
+          "p99Ms": 3375.8102079999517,
+          "uploadBytes": 7414488,
+          "downloadBytes": 45348,
+          "statuses": {
+            "200": 152
+          }
+        },
+        "draft": {
+          "requests": 50,
+          "errors": 0,
+          "p50Ms": 144.70516599999974,
+          "p95Ms": 364.53008299999055,
+          "p99Ms": 539.1742499999818,
+          "uploadBytes": 7589,
+          "downloadBytes": 4689,
+          "statuses": {
+            "200": 50
+          }
+        },
+        "recovery": {
+          "requests": 30,
+          "errors": 0,
+          "p50Ms": 2486.756165999999,
+          "p95Ms": 6442.579625000013,
+          "p99Ms": 6892.93304199999,
+          "uploadBytes": 0,
+          "downloadBytes": 2314930,
+          "statuses": {
+            "200": 30
+          }
+        },
+        "page-refresh": {
+          "requests": 15,
+          "errors": 0,
+          "p50Ms": 176.2711249999993,
+          "p95Ms": 708.8676249999844,
+          "p99Ms": 708.8676249999844,
+          "uploadBytes": 0,
+          "downloadBytes": 152450,
+          "statuses": {
+            "200": 15
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 141.76499999998487,
+          "p95Ms": 352.02283400000306,
+          "p99Ms": 352.02283400000306,
+          "uploadBytes": 0,
+          "downloadBytes": 732713,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "step-submit": {
+          "requests": 3,
+          "errors": 0,
+          "p50Ms": 793.094625000027,
+          "p95Ms": 856.9955830000108,
+          "p99Ms": 856.9955830000108,
+          "uploadBytes": 1532,
+          "downloadBytes": 294,
+          "statuses": {
+            "200": 3
+          }
+        },
+        "report-save": {
+          "requests": 3,
+          "errors": 0,
+          "p50Ms": 134.31004199996823,
+          "p95Ms": 151.39191700000083,
+          "p99Ms": 151.39191700000083,
+          "uploadBytes": 1439,
+          "downloadBytes": 4221,
+          "statuses": {
+            "200": 3
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 3,
+          "errors": 0,
+          "p50Ms": 62.93991700001061,
+          "p95Ms": 88.80695900000865,
+          "p99Ms": 88.80695900000865,
+          "uploadBytes": 1447,
+          "downloadBytes": 195,
+          "statuses": {
+            "400": 3
+          }
+        }
+      },
+      "clientCpuSeconds": 24.606997,
+      "eventLoopP95Ms": 22.118399,
+      "eventLoopMaximumMs": 54.034431,
+      "clientRssBytes": 384925696,
+      "criteria": {
+        "maximumErrorRate": 0.01,
+        "readP95Ms": 1500,
+        "saveP95Ms": 1500,
+        "minimumPacingFraction": 0.8
+      },
+      "actualErrorRate": 0,
+      "minimumPacingFraction": 0.625,
+      "correctnessAndPacingPassed": false,
+      "latencyGoalPassed": false,
+      "status": "failed",
+      "clients": [
+        {
+          "course": "destroyer",
+          "completedPackets": 300,
+          "completedRuns": 25,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "lng",
+          "completedPackets": 352,
+          "completedRuns": 14,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "container",
+          "completedPackets": 348,
+          "completedRuns": 29,
+          "attemptStatus": "submitted"
+        }
+      ],
+      "httpErrorCount": 0,
+      "stateFailureCount": 0,
+      "host": {
+        "sampleCount": 10,
+        "cpuMeanPercent": 73.7832428705638,
+        "cpuMaximumPercent": 75.20193861066235,
+        "minimumAvailableMemoryBytes": 3297386496,
+        "maximumDatabaseConnections": 8,
+        "maximumDatabaseLockWaits": 0,
+        "meanNicRxMbps": 4.508179355932081,
+        "meanNicTxMbps": 0.17568906023787398
+      },
+      "rawReceiptSha256": "d7d14784fee84b87928e98ee8b4807c103b6b6dffc81b272c5b3dc8c44603620"
+    },
+    {
+      "label": "v0749-8x-n2-s300",
+      "concurrency": 2,
+      "configuredDurationS": 300,
+      "elapsedS": 305.422,
+      "startedAt": "2026-11-16T03:26:45.531Z",
+      "capturedAt": "2026-11-16T03:31:50.954Z",
+      "requests": 1177,
+      "rps": 3.8536844104223005,
+      "uploadBytes": 139729859,
+      "downloadBytes": 2469273,
+      "groups": {
+        "run-open": {
+          "requests": 123,
+          "errors": 0,
+          "p50Ms": 134.36958299999242,
+          "p95Ms": 598.2264579999901,
+          "p99Ms": 847.4089579999854,
+          "uploadBytes": 3166494,
+          "downloadBytes": 35877,
+          "statuses": {
+            "200": 123
+          }
+        },
+        "trace-stage": {
+          "requests": 852,
+          "errors": 0,
+          "p50Ms": 258.1657500000001,
+          "p95Ms": 833.4537920000002,
+          "p99Ms": 1283.1273749999964,
+          "uploadBytes": 130347522,
+          "downloadBytes": 91164,
+          "statuses": {
+            "200": 852
+          }
+        },
+        "checkpoint": {
+          "requests": 123,
+          "errors": 0,
+          "p50Ms": 1173.9629999999888,
+          "p95Ms": 2361.698000000033,
+          "p99Ms": 3296.528416999994,
+          "uploadBytes": 6207591,
+          "downloadBytes": 36578,
+          "statuses": {
+            "200": 123
+          }
+        },
+        "draft": {
+          "requests": 35,
+          "errors": 0,
+          "p50Ms": 73.70958399999654,
+          "p95Ms": 229.13358400001016,
+          "p99Ms": 261.9321249999921,
+          "uploadBytes": 5314,
+          "downloadBytes": 3284,
+          "statuses": {
+            "200": 35
+          }
+        },
+        "recovery": {
+          "requests": 20,
+          "errors": 0,
+          "p50Ms": 2320.8224580000388,
+          "p95Ms": 4278.0303749999875,
+          "p99Ms": 4594.741666999999,
+          "uploadBytes": 0,
+          "downloadBytes": 1629212,
+          "statuses": {
+            "200": 20
+          }
+        },
+        "page-refresh": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 91.22916700001224,
+          "p95Ms": 281.9277090000105,
+          "p99Ms": 281.9277090000105,
+          "uploadBytes": 0,
+          "downloadBytes": 101954,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 8,
+          "errors": 0,
+          "p50Ms": 147.38562499999534,
+          "p95Ms": 1124.7704169999924,
+          "p99Ms": 1124.7704169999924,
+          "uploadBytes": 0,
+          "downloadBytes": 568061,
+          "statuses": {
+            "200": 8
+          }
+        },
+        "step-submit": {
+          "requests": 2,
+          "errors": 0,
+          "p50Ms": 663.2444160000305,
+          "p95Ms": 956.6901669999934,
+          "p99Ms": 956.6901669999934,
+          "uploadBytes": 1021,
+          "downloadBytes": 196,
+          "statuses": {
+            "200": 2
+          }
+        },
+        "report-save": {
+          "requests": 2,
+          "errors": 0,
+          "p50Ms": 84.85666699998546,
+          "p95Ms": 126.25354199996218,
+          "p99Ms": 126.25354199996218,
+          "uploadBytes": 957,
+          "downloadBytes": 2817,
+          "statuses": {
+            "200": 2
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 2,
+          "errors": 0,
+          "p50Ms": 53.08037500001956,
+          "p95Ms": 90.72183299995959,
+          "p99Ms": 90.72183299995959,
+          "uploadBytes": 960,
+          "downloadBytes": 130,
+          "statuses": {
+            "400": 2
+          }
+        }
+      },
+      "clientCpuSeconds": 21.510343,
+      "eventLoopP95Ms": 22.102015,
+      "eventLoopMaximumMs": 60.817407,
+      "clientRssBytes": 375619584,
+      "criteria": {
+        "maximumErrorRate": 0.01,
+        "readP95Ms": 1500,
+        "saveP95Ms": 1500,
+        "minimumPacingFraction": 0.8
+      },
+      "actualErrorRate": 0,
+      "minimumPacingFraction": 0.8416666666666667,
+      "correctnessAndPacingPassed": true,
+      "latencyGoalPassed": false,
+      "status": "failed",
+      "clients": [
+        {
+          "course": "destroyer",
+          "completedPackets": 404,
+          "completedRuns": 33,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "lng",
+          "completedPackets": 448,
+          "completedRuns": 18,
+          "attemptStatus": "submitted"
+        }
+      ],
+      "httpErrorCount": 0,
+      "stateFailureCount": 0,
+      "host": {
+        "sampleCount": 10,
+        "cpuMeanPercent": 69.24562070397425,
+        "cpuMaximumPercent": 73.62318840579711,
+        "minimumAvailableMemoryBytes": 3311542272,
+        "maximumDatabaseConnections": 8,
+        "maximumDatabaseLockWaits": 0,
+        "meanNicRxMbps": 3.9440287857473697,
+        "meanNicTxMbps": 0.1387083415667538
+      },
+      "rawReceiptSha256": "fea7c5dbcd9baeaa77393cdbf3ec5aa608adfa30b68a99db4a2d26eb0efe8b0a"
+    },
+    {
+      "label": "v0749-8x-n2-s1800",
+      "concurrency": 2,
+      "configuredDurationS": 1800,
+      "elapsedS": 1812.089,
+      "startedAt": "2026-11-16T03:31:52.296Z",
+      "capturedAt": "2026-11-16T04:02:04.392Z",
+      "requests": 6977,
+      "rps": 3.850252388265698,
+      "uploadBytes": 832343408,
+      "downloadBytes": 14787254,
+      "groups": {
+        "run-open": {
+          "requests": 735,
+          "errors": 0,
+          "p50Ms": 139.67829199996777,
+          "p95Ms": 505.6063749999739,
+          "p99Ms": 717.654749999987,
+          "uploadBytes": 18920983,
+          "downloadBytes": 214446,
+          "statuses": {
+            "200": 735
+          }
+        },
+        "trace-stage": {
+          "requests": 5076,
+          "errors": 0,
+          "p50Ms": 247.68491599988192,
+          "p95Ms": 833.1592500000261,
+          "p99Ms": 1166.0867080000462,
+          "uploadBytes": 776294178,
+          "downloadBytes": 543132,
+          "statuses": {
+            "200": 5076
+          }
+        },
+        "checkpoint": {
+          "requests": 735,
+          "errors": 0,
+          "p50Ms": 1098.0012910000514,
+          "p95Ms": 2273.8368750000373,
+          "p99Ms": 2750.9917920000153,
+          "uploadBytes": 37093851,
+          "downloadBytes": 218613,
+          "statuses": {
+            "200": 735
+          }
+        },
+        "draft": {
+          "requests": 206,
+          "errors": 0,
+          "p50Ms": 58.17262499999924,
+          "p95Ms": 340.169041999965,
+          "p99Ms": 425.4313330000732,
+          "uploadBytes": 31454,
+          "downloadBytes": 19506,
+          "statuses": {
+            "200": 206
+          }
+        },
+        "recovery": {
+          "requests": 103,
+          "errors": 0,
+          "p50Ms": 3739.442374999984,
+          "p95Ms": 6028.943292000098,
+          "p99Ms": 7317.938916000072,
+          "uploadBytes": 0,
+          "downloadBytes": 8890458,
+          "statuses": {
+            "200": 103
+          }
+        },
+        "page-refresh": {
+          "requests": 58,
+          "errors": 0,
+          "p50Ms": 98.8056660000002,
+          "p95Ms": 423.90962500008754,
+          "p99Ms": 3477.0397079999093,
+          "uploadBytes": 0,
+          "downloadBytes": 591298,
+          "statuses": {
+            "200": 58
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 58,
+          "errors": 0,
+          "p50Ms": 166.68987500004005,
+          "p95Ms": 513.2023750001099,
+          "p99Ms": 1489.9456670000218,
+          "uploadBytes": 0,
+          "downloadBytes": 4306657,
+          "statuses": {
+            "200": 58
+          }
+        },
+        "step-submit": {
+          "requests": 2,
+          "errors": 0,
+          "p50Ms": 1862.6238749998156,
+          "p95Ms": 2411.2714579999447,
+          "p99Ms": 2411.2714579999447,
+          "uploadBytes": 1021,
+          "downloadBytes": 196,
+          "statuses": {
+            "200": 2
+          }
+        },
+        "report-save": {
+          "requests": 2,
+          "errors": 0,
+          "p50Ms": 110.89387500006706,
+          "p95Ms": 156.74083400005475,
+          "p99Ms": 156.74083400005475,
+          "uploadBytes": 958,
+          "downloadBytes": 2818,
+          "statuses": {
+            "200": 2
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 2,
+          "errors": 0,
+          "p50Ms": 56.93270800006576,
+          "p95Ms": 77.49229199998081,
+          "p99Ms": 77.49229199998081,
+          "uploadBytes": 963,
+          "downloadBytes": 130,
+          "statuses": {
+            "400": 2
+          }
+        }
+      },
+      "clientCpuSeconds": 146.476647,
+      "eventLoopP95Ms": 21.577727,
+      "eventLoopMaximumMs": 70.713343,
+      "clientRssBytes": 306987008,
+      "criteria": {
+        "maximumErrorRate": 0.01,
+        "readP95Ms": 1500,
+        "saveP95Ms": 1500,
+        "minimumPacingFraction": 0.8
+      },
+      "actualErrorRate": 0,
+      "minimumPacingFraction": 0.8375,
+      "correctnessAndPacingPassed": true,
+      "latencyGoalPassed": false,
+      "status": "failed",
+      "clients": [
+        {
+          "course": "destroyer",
+          "completedPackets": 2412,
+          "completedRuns": 201,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "lng",
+          "completedPackets": 2664,
+          "completedRuns": 111,
+          "attemptStatus": "submitted"
+        }
+      ],
+      "httpErrorCount": 0,
+      "stateFailureCount": 0,
+      "host": {
+        "sampleCount": 58,
+        "cpuMeanPercent": 67.68086591214775,
+        "cpuMaximumPercent": 71.63524057217165,
+        "minimumAvailableMemoryBytes": 3255840768,
+        "maximumDatabaseConnections": 8,
+        "maximumDatabaseLockWaits": 0,
+        "meanNicRxMbps": 3.912367568601103,
+        "meanNicTxMbps": 0.15394228413853295
+      },
+      "rawReceiptSha256": "e825a5c529ba68d9a1a2008019d0375aaaaa9f8d386331a50e639666474b9354"
+    }
+  ],
+  "browser": [
+    {
+      "course": "destroyer",
+      "readyMs": 45263.480042,
+      "pageErrors": 0,
+      "modes": {
+        "cold": {
+          "requests": 81,
+          "observedWireBytes": 9411941,
+          "cacheResponses": 0
+        },
+        "hot": {
+          "requests": 82,
+          "observedWireBytes": 1109225,
+          "cacheResponses": 5
+        }
+      },
+      "modelPackagesObserved": [
+        "type055-nanchang-101/v2.3.0"
+      ]
+    },
+    {
+      "course": "lng",
+      "readyMs": 18480.039333,
+      "pageErrors": 0,
+      "modes": {
+        "cold": {
+          "requests": 79,
+          "observedWireBytes": 9059558,
+          "cacheResponses": 0
+        },
+        "hot": {
+          "requests": 91,
+          "observedWireBytes": 503860,
+          "cacheResponses": 3
+        }
+      },
+      "modelPackagesObserved": [
+        "lng-changheng/v1.2.0"
+      ]
+    },
+    {
+      "course": "container",
+      "readyMs": 16936.34262499999,
+      "pageErrors": 0,
+      "modes": {
+        "cold": {
+          "requests": 78,
+          "observedWireBytes": 7561886,
+          "cacheResponses": 0
+        },
+        "hot": {
+          "requests": 78,
+          "observedWireBytes": 414324,
+          "cacheResponses": 2
+        }
+      },
+      "modelPackagesObserved": [
+        "msc-tessa/v1.2.0"
+      ]
+    },
+    {
+      "course": "cruise",
+      "readyMs": 16822.801083,
+      "pageErrors": 0,
+      "modes": {
+        "cold": {
+          "requests": 83,
+          "observedWireBytes": 10546846,
+          "cacheResponses": 0
+        },
+        "hot": {
+          "requests": 84,
+          "observedWireBytes": 458321,
+          "cacheResponses": 6
+        }
+      },
+      "modelPackagesObserved": [
+        "adora-magic-city/v1.1.0"
+      ]
+    },
+    {
+      "course": "drilling",
+      "readyMs": 17454.297541000007,
+      "pageErrors": 0,
+      "modes": {
+        "cold": {
+          "requests": 79,
+          "observedWireBytes": 8730370,
+          "cacheResponses": 0
+        },
+        "hot": {
+          "requests": 88,
+          "observedWireBytes": 348478,
+          "cacheResponses": 5
+        }
+      },
+      "modelPackagesObserved": [
+        "hysy-981/v1.2.0",
+        "semisub-981-hydrodynamics/v5.0.0"
+      ]
+    },
+    {
+      "course": "icebreaker",
+      "readyMs": 17643.662249999994,
+      "pageErrors": 0,
+      "modes": {
+        "cold": {
+          "requests": 81,
+          "observedWireBytes": 10342749,
+          "cacheResponses": 0
+        },
+        "hot": {
+          "requests": 90,
+          "observedWireBytes": 1282085,
+          "cacheResponses": 8
+        }
+      },
+      "modelPackagesObserved": [
+        "xue-long-2/v1.1.0"
+      ]
+    },
+    {
+      "course": "dredger",
+      "readyMs": 18676.750459000003,
+      "pageErrors": 0,
+      "modes": {
+        "cold": {
+          "requests": 98,
+          "observedWireBytes": 13470973,
+          "cacheResponses": 0
+        },
+        "hot": {
+          "requests": 95,
+          "observedWireBytes": 191709,
+          "cacheResponses": 20
+        }
+      },
+      "modelPackagesObserved": [
+        "dredger-tianjing/v1.2.0"
+      ]
+    }
+  ],
+  "staticResourceLoads": [
+    {
+      "label": "cold-v0749-n7",
+      "concurrency": 7,
+      "fallback": false,
+      "startedAt": "2026-11-16T04:04:08.358Z",
+      "elapsedS": 145.407,
+      "bytes": 112168941,
+      "combinedMbps": 6.171309001629908,
+      "completedEntriesPerMinute": 2.8884441601848603,
+      "byHost": {
+        "act.adapt-learn.online": {
+          "requests": 387,
+          "bytes": 59121235,
+          "mbps": 3.2527311614984145
+        },
+        "static.adapt-learn.online": {
+          "requests": 67,
+          "bytes": 53047706,
+          "mbps": 2.918577840131493
+        }
+      },
+      "clients": [
+        {
+          "course": "lng",
+          "ms": 137678.380667,
+          "bytes": 13447888
+        },
+        {
+          "course": "cruise",
+          "ms": 140111.66695800002,
+          "bytes": 34497757
+        },
+        {
+          "course": "destroyer",
+          "ms": 140188.821834,
+          "bytes": 9615544
+        },
+        {
+          "course": "container",
+          "ms": 142593.77925,
+          "bytes": 11878868
+        },
+        {
+          "course": "drilling",
+          "ms": 144770.49800000002,
+          "bytes": 10510392
+        },
+        {
+          "course": "icebreaker",
+          "ms": 145151.532083,
+          "bytes": 19424437
+        },
+        {
+          "course": "dredger",
+          "ms": 145373.30525,
+          "bytes": 12794055
+        }
+      ],
+      "requests": 454,
+      "peakOneSecondMbps": 49.21732,
+      "peakSustained10SecondMbps": 24.1244616,
+      "unrecoveredErrors": 0,
+      "byteScope": "encoded HTTP entity bodies sampled as received; app plus ESA, headers/TLS excluded; OSS origin not added",
+      "series": [
+        {
+          "second": 0,
+          "byHost": {
+            "act.adapt-learn.online": 486108
+          }
+        },
+        {
+          "second": 1,
+          "byHost": {
+            "act.adapt-learn.online": 361697
+          }
+        },
+        {
+          "second": 2,
+          "byHost": {
+            "act.adapt-learn.online": 384077
+          }
+        },
+        {
+          "second": 3,
+          "byHost": {
+            "act.adapt-learn.online": 401222
+          }
+        },
+        {
+          "second": 4,
+          "byHost": {
+            "act.adapt-learn.online": 387255
+          }
+        },
+        {
+          "second": 5,
+          "byHost": {
+            "act.adapt-learn.online": 395839
+          }
+        },
+        {
+          "second": 6,
+          "byHost": {
+            "act.adapt-learn.online": 399552
+          }
+        },
+        {
+          "second": 7,
+          "byHost": {
+            "act.adapt-learn.online": 382385
+          }
+        },
+        {
+          "second": 8,
+          "byHost": {
+            "act.adapt-learn.online": 400454
+          }
+        },
+        {
+          "second": 9,
+          "byHost": {
+            "act.adapt-learn.online": 399352
+          }
+        },
+        {
+          "second": 10,
+          "byHost": {
+            "act.adapt-learn.online": 397686
+          }
+        },
+        {
+          "second": 11,
+          "byHost": {
+            "act.adapt-learn.online": 410709
+          }
+        },
+        {
+          "second": 12,
+          "byHost": {
+            "act.adapt-learn.online": 394718
+          }
+        },
+        {
+          "second": 13,
+          "byHost": {
+            "act.adapt-learn.online": 376321
+          }
+        },
+        {
+          "second": 14,
+          "byHost": {
+            "act.adapt-learn.online": 417226
+          }
+        },
+        {
+          "second": 15,
+          "byHost": {
+            "act.adapt-learn.online": 406106
+          }
+        },
+        {
+          "second": 16,
+          "byHost": {
+            "act.adapt-learn.online": 414090
+          }
+        },
+        {
+          "second": 17,
+          "byHost": {
+            "act.adapt-learn.online": 386175
+          }
+        },
+        {
+          "second": 18,
+          "byHost": {
+            "act.adapt-learn.online": 404571
+          }
+        },
+        {
+          "second": 19,
+          "byHost": {
+            "act.adapt-learn.online": 397815
+          }
+        },
+        {
+          "second": 20,
+          "byHost": {
+            "act.adapt-learn.online": 399786
+          }
+        },
+        {
+          "second": 21,
+          "byHost": {
+            "act.adapt-learn.online": 400600
+          }
+        },
+        {
+          "second": 22,
+          "byHost": {
+            "act.adapt-learn.online": 401594
+          }
+        },
+        {
+          "second": 23,
+          "byHost": {
+            "act.adapt-learn.online": 384630
+          }
+        },
+        {
+          "second": 24,
+          "byHost": {
+            "act.adapt-learn.online": 387033
+          }
+        },
+        {
+          "second": 25,
+          "byHost": {
+            "act.adapt-learn.online": 399939
+          }
+        },
+        {
+          "second": 26,
+          "byHost": {
+            "act.adapt-learn.online": 421526
+          }
+        },
+        {
+          "second": 27,
+          "byHost": {
+            "act.adapt-learn.online": 410007,
+            "static.adapt-learn.online": 58131
+          }
+        },
+        {
+          "second": 28,
+          "byHost": {
+            "static.adapt-learn.online": 1436338,
+            "act.adapt-learn.online": 397568
+          }
+        },
+        {
+          "second": 29,
+          "byHost": {
+            "static.adapt-learn.online": 3756164,
+            "act.adapt-learn.online": 398244
+          }
+        },
+        {
+          "second": 30,
+          "byHost": {
+            "act.adapt-learn.online": 419136,
+            "static.adapt-learn.online": 3032064
+          }
+        },
+        {
+          "second": 31,
+          "byHost": {
+            "act.adapt-learn.online": 402834,
+            "static.adapt-learn.online": 2429200
+          }
+        },
+        {
+          "second": 32,
+          "byHost": {
+            "static.adapt-learn.online": 1932000,
+            "act.adapt-learn.online": 402404
+          }
+        },
+        {
+          "second": 33,
+          "byHost": {
+            "static.adapt-learn.online": 2336832,
+            "act.adapt-learn.online": 414005
+          }
+        },
+        {
+          "second": 34,
+          "byHost": {
+            "act.adapt-learn.online": 402994,
+            "static.adapt-learn.online": 3136448
+          }
+        },
+        {
+          "second": 35,
+          "byHost": {
+            "act.adapt-learn.online": 406747,
+            "static.adapt-learn.online": 2467968
+          }
+        },
+        {
+          "second": 36,
+          "byHost": {
+            "static.adapt-learn.online": 3117008,
+            "act.adapt-learn.online": 398069
+          }
+        },
+        {
+          "second": 37,
+          "byHost": {
+            "static.adapt-learn.online": 2475104,
+            "act.adapt-learn.online": 394450
+          }
+        },
+        {
+          "second": 38,
+          "byHost": {
+            "act.adapt-learn.online": 401726,
+            "static.adapt-learn.online": 934900
+          }
+        },
+        {
+          "second": 39,
+          "byHost": {
+            "act.adapt-learn.online": 406732
+          }
+        },
+        {
+          "second": 40,
+          "byHost": {
+            "act.adapt-learn.online": 414414
+          }
+        },
+        {
+          "second": 41,
+          "byHost": {
+            "act.adapt-learn.online": 399493
+          }
+        },
+        {
+          "second": 42,
+          "byHost": {
+            "act.adapt-learn.online": 441574,
+            "static.adapt-learn.online": 539131
+          }
+        },
+        {
+          "second": 43,
+          "byHost": {
+            "act.adapt-learn.online": 415172,
+            "static.adapt-learn.online": 5332648
+          }
+        },
+        {
+          "second": 44,
+          "byHost": {
+            "act.adapt-learn.online": 379498,
+            "static.adapt-learn.online": 5772667
+          }
+        },
+        {
+          "second": 45,
+          "byHost": {
+            "static.adapt-learn.online": 5226741,
+            "act.adapt-learn.online": 428502
+          }
+        },
+        {
+          "second": 46,
+          "byHost": {
+            "act.adapt-learn.online": 422731,
+            "static.adapt-learn.online": 3563828
+          }
+        },
+        {
+          "second": 47,
+          "byHost": {
+            "act.adapt-learn.online": 397025,
+            "static.adapt-learn.online": 979699
+          }
+        },
+        {
+          "second": 48,
+          "byHost": {
+            "act.adapt-learn.online": 402058,
+            "static.adapt-learn.online": 743609
+          }
+        },
+        {
+          "second": 49,
+          "byHost": {
+            "act.adapt-learn.online": 433202,
+            "static.adapt-learn.online": 2038124
+          }
+        },
+        {
+          "second": 50,
+          "byHost": {
+            "act.adapt-learn.online": 408366,
+            "static.adapt-learn.online": 1739102
+          }
+        },
+        {
+          "second": 51,
+          "byHost": {
+            "act.adapt-learn.online": 403821
+          }
+        },
+        {
+          "second": 52,
+          "byHost": {
+            "act.adapt-learn.online": 402378
+          }
+        },
+        {
+          "second": 53,
+          "byHost": {
+            "act.adapt-learn.online": 424132
+          }
+        },
+        {
+          "second": 54,
+          "byHost": {
+            "act.adapt-learn.online": 401468
+          }
+        },
+        {
+          "second": 55,
+          "byHost": {
+            "act.adapt-learn.online": 421676
+          }
+        },
+        {
+          "second": 56,
+          "byHost": {
+            "act.adapt-learn.online": 405256
+          }
+        },
+        {
+          "second": 57,
+          "byHost": {
+            "act.adapt-learn.online": 405563
+          }
+        },
+        {
+          "second": 58,
+          "byHost": {
+            "act.adapt-learn.online": 409373
+          }
+        },
+        {
+          "second": 59,
+          "byHost": {
+            "act.adapt-learn.online": 405302
+          }
+        },
+        {
+          "second": 60,
+          "byHost": {
+            "act.adapt-learn.online": 406477
+          }
+        },
+        {
+          "second": 61,
+          "byHost": {
+            "act.adapt-learn.online": 392098
+          }
+        },
+        {
+          "second": 62,
+          "byHost": {
+            "act.adapt-learn.online": 416914
+          }
+        },
+        {
+          "second": 63,
+          "byHost": {
+            "act.adapt-learn.online": 408449
+          }
+        },
+        {
+          "second": 64,
+          "byHost": {
+            "act.adapt-learn.online": 405261
+          }
+        },
+        {
+          "second": 65,
+          "byHost": {
+            "act.adapt-learn.online": 413450
+          }
+        },
+        {
+          "second": 66,
+          "byHost": {
+            "act.adapt-learn.online": 404621
+          }
+        },
+        {
+          "second": 67,
+          "byHost": {
+            "act.adapt-learn.online": 403784
+          }
+        },
+        {
+          "second": 68,
+          "byHost": {
+            "act.adapt-learn.online": 419594
+          }
+        },
+        {
+          "second": 69,
+          "byHost": {
+            "act.adapt-learn.online": 401129
+          }
+        },
+        {
+          "second": 70,
+          "byHost": {
+            "act.adapt-learn.online": 425697
+          }
+        },
+        {
+          "second": 71,
+          "byHost": {
+            "act.adapt-learn.online": 388893
+          }
+        },
+        {
+          "second": 72,
+          "byHost": {
+            "act.adapt-learn.online": 425949
+          }
+        },
+        {
+          "second": 73,
+          "byHost": {
+            "act.adapt-learn.online": 409306
+          }
+        },
+        {
+          "second": 74,
+          "byHost": {
+            "act.adapt-learn.online": 401087
+          }
+        },
+        {
+          "second": 75,
+          "byHost": {
+            "act.adapt-learn.online": 415584
+          }
+        },
+        {
+          "second": 76,
+          "byHost": {
+            "act.adapt-learn.online": 413343
+          }
+        },
+        {
+          "second": 77,
+          "byHost": {
+            "act.adapt-learn.online": 396985
+          }
+        },
+        {
+          "second": 78,
+          "byHost": {
+            "act.adapt-learn.online": 413347
+          }
+        },
+        {
+          "second": 79,
+          "byHost": {
+            "act.adapt-learn.online": 417497
+          }
+        },
+        {
+          "second": 80,
+          "byHost": {
+            "act.adapt-learn.online": 393150
+          }
+        },
+        {
+          "second": 81,
+          "byHost": {
+            "act.adapt-learn.online": 421570
+          }
+        },
+        {
+          "second": 82,
+          "byHost": {
+            "act.adapt-learn.online": 397024
+          }
+        },
+        {
+          "second": 83,
+          "byHost": {
+            "act.adapt-learn.online": 412598
+          }
+        },
+        {
+          "second": 84,
+          "byHost": {
+            "act.adapt-learn.online": 417440
+          }
+        },
+        {
+          "second": 85,
+          "byHost": {
+            "act.adapt-learn.online": 405153
+          }
+        },
+        {
+          "second": 86,
+          "byHost": {
+            "act.adapt-learn.online": 405168
+          }
+        },
+        {
+          "second": 87,
+          "byHost": {
+            "act.adapt-learn.online": 405146
+          }
+        },
+        {
+          "second": 88,
+          "byHost": {
+            "act.adapt-learn.online": 405193
+          }
+        },
+        {
+          "second": 89,
+          "byHost": {
+            "act.adapt-learn.online": 413350
+          }
+        },
+        {
+          "second": 90,
+          "byHost": {
+            "act.adapt-learn.online": 401086
+          }
+        },
+        {
+          "second": 91,
+          "byHost": {
+            "act.adapt-learn.online": 409263
+          }
+        },
+        {
+          "second": 92,
+          "byHost": {
+            "act.adapt-learn.online": 405167
+          }
+        },
+        {
+          "second": 93,
+          "byHost": {
+            "act.adapt-learn.online": 409264
+          }
+        },
+        {
+          "second": 94,
+          "byHost": {
+            "act.adapt-learn.online": 405175
+          }
+        },
+        {
+          "second": 95,
+          "byHost": {
+            "act.adapt-learn.online": 413357
+          }
+        },
+        {
+          "second": 96,
+          "byHost": {
+            "act.adapt-learn.online": 413369
+          }
+        },
+        {
+          "second": 97,
+          "byHost": {
+            "act.adapt-learn.online": 413332
+          }
+        },
+        {
+          "second": 98,
+          "byHost": {
+            "act.adapt-learn.online": 405178
+          }
+        },
+        {
+          "second": 99,
+          "byHost": {
+            "act.adapt-learn.online": 405178
+          }
+        },
+        {
+          "second": 100,
+          "byHost": {
+            "act.adapt-learn.online": 401104
+          }
+        },
+        {
+          "second": 101,
+          "byHost": {
+            "act.adapt-learn.online": 417447
+          }
+        },
+        {
+          "second": 102,
+          "byHost": {
+            "act.adapt-learn.online": 417447
+          }
+        },
+        {
+          "second": 103,
+          "byHost": {
+            "act.adapt-learn.online": 409266
+          }
+        },
+        {
+          "second": 104,
+          "byHost": {
+            "act.adapt-learn.online": 405213
+          }
+        },
+        {
+          "second": 105,
+          "byHost": {
+            "act.adapt-learn.online": 405242
+          }
+        },
+        {
+          "second": 106,
+          "byHost": {
+            "act.adapt-learn.online": 405203
+          }
+        },
+        {
+          "second": 107,
+          "byHost": {
+            "act.adapt-learn.online": 397028
+          }
+        },
+        {
+          "second": 108,
+          "byHost": {
+            "act.adapt-learn.online": 413411
+          }
+        },
+        {
+          "second": 109,
+          "byHost": {
+            "act.adapt-learn.online": 413411
+          }
+        },
+        {
+          "second": 110,
+          "byHost": {
+            "act.adapt-learn.online": 392926
+          }
+        },
+        {
+          "second": 111,
+          "byHost": {
+            "act.adapt-learn.online": 409348
+          }
+        },
+        {
+          "second": 112,
+          "byHost": {
+            "act.adapt-learn.online": 401132
+          }
+        },
+        {
+          "second": 113,
+          "byHost": {
+            "act.adapt-learn.online": 417526
+          }
+        },
+        {
+          "second": 114,
+          "byHost": {
+            "act.adapt-learn.online": 409312
+          }
+        },
+        {
+          "second": 115,
+          "byHost": {
+            "act.adapt-learn.online": 405247
+          }
+        },
+        {
+          "second": 116,
+          "byHost": {
+            "act.adapt-learn.online": 397049
+          }
+        },
+        {
+          "second": 117,
+          "byHost": {
+            "act.adapt-learn.online": 429815
+          }
+        },
+        {
+          "second": 118,
+          "byHost": {
+            "act.adapt-learn.online": 397035
+          }
+        },
+        {
+          "second": 119,
+          "byHost": {
+            "act.adapt-learn.online": 417539
+          }
+        },
+        {
+          "second": 120,
+          "byHost": {
+            "act.adapt-learn.online": 397044
+          }
+        },
+        {
+          "second": 121,
+          "byHost": {
+            "act.adapt-learn.online": 421624
+          }
+        },
+        {
+          "second": 122,
+          "byHost": {
+            "act.adapt-learn.online": 397060
+          }
+        },
+        {
+          "second": 123,
+          "byHost": {
+            "act.adapt-learn.online": 392964
+          }
+        },
+        {
+          "second": 124,
+          "byHost": {
+            "act.adapt-learn.online": 417522
+          }
+        },
+        {
+          "second": 125,
+          "byHost": {
+            "act.adapt-learn.online": 405252
+          }
+        },
+        {
+          "second": 126,
+          "byHost": {
+            "act.adapt-learn.online": 405245
+          }
+        },
+        {
+          "second": 127,
+          "byHost": {
+            "act.adapt-learn.online": 417523
+          }
+        },
+        {
+          "second": 128,
+          "byHost": {
+            "act.adapt-learn.online": 405257
+          }
+        },
+        {
+          "second": 129,
+          "byHost": {
+            "act.adapt-learn.online": 401159
+          }
+        },
+        {
+          "second": 130,
+          "byHost": {
+            "act.adapt-learn.online": 409337
+          }
+        },
+        {
+          "second": 131,
+          "byHost": {
+            "act.adapt-learn.online": 392975
+          }
+        },
+        {
+          "second": 132,
+          "byHost": {
+            "act.adapt-learn.online": 425748
+          }
+        },
+        {
+          "second": 133,
+          "byHost": {
+            "act.adapt-learn.online": 409316
+          }
+        },
+        {
+          "second": 134,
+          "byHost": {
+            "act.adapt-learn.online": 405247
+          }
+        },
+        {
+          "second": 135,
+          "byHost": {
+            "act.adapt-learn.online": 417534
+          }
+        },
+        {
+          "second": 136,
+          "byHost": {
+            "act.adapt-learn.online": 397050
+          }
+        },
+        {
+          "second": 137,
+          "byHost": {
+            "act.adapt-learn.online": 409214
+          }
+        },
+        {
+          "second": 138,
+          "byHost": {
+            "act.adapt-learn.online": 417541
+          }
+        },
+        {
+          "second": 139,
+          "byHost": {
+            "act.adapt-learn.online": 401123
+          }
+        },
+        {
+          "second": 140,
+          "byHost": {
+            "act.adapt-learn.online": 411397
+          }
+        },
+        {
+          "second": 141,
+          "byHost": {
+            "act.adapt-learn.online": 421622
+          }
+        },
+        {
+          "second": 142,
+          "byHost": {
+            "act.adapt-learn.online": 405117
+          }
+        },
+        {
+          "second": 143,
+          "byHost": {
+            "act.adapt-learn.online": 417530
+          }
+        },
+        {
+          "second": 144,
+          "byHost": {
+            "act.adapt-learn.online": 417381
+          }
+        },
+        {
+          "second": 145,
+          "byHost": {
+            "act.adapt-learn.online": 130740
+          }
+        }
+      ],
+      "transientFailures": 2,
+      "rawReceiptSha256": "d56b1ad3fbe20d08076596d5cc0311666ffad8519fd23affdba703d6c5f3a66c"
+    },
+    {
+      "label": "fallback-v0749-n7",
+      "concurrency": 7,
+      "fallback": true,
+      "startedAt": "2026-11-16T04:07:30.713Z",
+      "elapsedS": 200.623,
+      "bytes": 81412670,
+      "combinedMbps": 3.246394281812155,
+      "completedEntriesPerMinute": 2.09347881349596,
+      "byHost": {
+        "act.adapt-learn.online": {
+          "requests": 453,
+          "bytes": 81412670,
+          "mbps": 3.246394281812155
+        }
+      },
+      "clients": [
+        {
+          "course": "lng",
+          "ms": 166705.243667,
+          "bytes": 10265386
+        },
+        {
+          "course": "drilling",
+          "ms": 181416.103834,
+          "bytes": 9388632
+        },
+        {
+          "course": "dredger",
+          "ms": 182668.165084,
+          "bytes": 11260186
+        },
+        {
+          "course": "destroyer",
+          "ms": 188010.615875,
+          "bytes": 9009974
+        },
+        {
+          "course": "container",
+          "ms": 188699.951042,
+          "bytes": 9113290
+        },
+        {
+          "course": "icebreaker",
+          "ms": 191775.55925000002,
+          "bytes": 13516647
+        },
+        {
+          "course": "cruise",
+          "ms": 200582.57579200002,
+          "bytes": 18858555
+        }
+      ],
+      "requests": 453,
+      "peakOneSecondMbps": 3.777112,
+      "peakSustained10SecondMbps": 3.3003848,
+      "unrecoveredErrors": 0,
+      "byteScope": "encoded HTTP entity bodies sampled as received; app plus ESA, headers/TLS excluded; OSS origin not added",
+      "series": [
+        {
+          "second": 0,
+          "byHost": {
+            "act.adapt-learn.online": 472139
+          }
+        },
+        {
+          "second": 1,
+          "byHost": {
+            "act.adapt-learn.online": 371951
+          }
+        },
+        {
+          "second": 2,
+          "byHost": {
+            "act.adapt-learn.online": 396499
+          }
+        },
+        {
+          "second": 3,
+          "byHost": {
+            "act.adapt-learn.online": 389728
+          }
+        },
+        {
+          "second": 4,
+          "byHost": {
+            "act.adapt-learn.online": 347328
+          }
+        },
+        {
+          "second": 5,
+          "byHost": {
+            "act.adapt-learn.online": 437365
+          }
+        },
+        {
+          "second": 6,
+          "byHost": {
+            "act.adapt-learn.online": 408493
+          }
+        },
+        {
+          "second": 7,
+          "byHost": {
+            "act.adapt-learn.online": 389042
+          }
+        },
+        {
+          "second": 8,
+          "byHost": {
+            "act.adapt-learn.online": 420699
+          }
+        },
+        {
+          "second": 9,
+          "byHost": {
+            "act.adapt-learn.online": 378558
+          }
+        },
+        {
+          "second": 10,
+          "byHost": {
+            "act.adapt-learn.online": 394575
+          }
+        },
+        {
+          "second": 11,
+          "byHost": {
+            "act.adapt-learn.online": 382152
+          }
+        },
+        {
+          "second": 12,
+          "byHost": {
+            "act.adapt-learn.online": 406797
+          }
+        },
+        {
+          "second": 13,
+          "byHost": {
+            "act.adapt-learn.online": 401211
+          }
+        },
+        {
+          "second": 14,
+          "byHost": {
+            "act.adapt-learn.online": 386796
+          }
+        },
+        {
+          "second": 15,
+          "byHost": {
+            "act.adapt-learn.online": 388964
+          }
+        },
+        {
+          "second": 16,
+          "byHost": {
+            "act.adapt-learn.online": 403844
+          }
+        },
+        {
+          "second": 17,
+          "byHost": {
+            "act.adapt-learn.online": 396490
+          }
+        },
+        {
+          "second": 18,
+          "byHost": {
+            "act.adapt-learn.online": 418896
+          }
+        },
+        {
+          "second": 19,
+          "byHost": {
+            "act.adapt-learn.online": 378219
+          }
+        },
+        {
+          "second": 20,
+          "byHost": {
+            "act.adapt-learn.online": 409323
+          }
+        },
+        {
+          "second": 21,
+          "byHost": {
+            "act.adapt-learn.online": 403066
+          }
+        },
+        {
+          "second": 22,
+          "byHost": {
+            "act.adapt-learn.online": 409980
+          }
+        },
+        {
+          "second": 23,
+          "byHost": {
+            "act.adapt-learn.online": 409909
+          }
+        },
+        {
+          "second": 24,
+          "byHost": {
+            "act.adapt-learn.online": 423894
+          }
+        },
+        {
+          "second": 25,
+          "byHost": {
+            "act.adapt-learn.online": 415879
+          }
+        },
+        {
+          "second": 26,
+          "byHost": {
+            "act.adapt-learn.online": 381473
+          }
+        },
+        {
+          "second": 27,
+          "byHost": {
+            "act.adapt-learn.online": 392724
+          }
+        },
+        {
+          "second": 28,
+          "byHost": {
+            "act.adapt-learn.online": 415835
+          }
+        },
+        {
+          "second": 29,
+          "byHost": {
+            "act.adapt-learn.online": 387883
+          }
+        },
+        {
+          "second": 30,
+          "byHost": {
+            "act.adapt-learn.online": 410537
+          }
+        },
+        {
+          "second": 31,
+          "byHost": {
+            "act.adapt-learn.online": 396429
+          }
+        },
+        {
+          "second": 32,
+          "byHost": {
+            "act.adapt-learn.online": 408177
+          }
+        },
+        {
+          "second": 33,
+          "byHost": {
+            "act.adapt-learn.online": 417786
+          }
+        },
+        {
+          "second": 34,
+          "byHost": {
+            "act.adapt-learn.online": 399424
+          }
+        },
+        {
+          "second": 35,
+          "byHost": {
+            "act.adapt-learn.online": 400219
+          }
+        },
+        {
+          "second": 36,
+          "byHost": {
+            "act.adapt-learn.online": 404958
+          }
+        },
+        {
+          "second": 37,
+          "byHost": {
+            "act.adapt-learn.online": 391077
+          }
+        },
+        {
+          "second": 38,
+          "byHost": {
+            "act.adapt-learn.online": 422132
+          }
+        },
+        {
+          "second": 39,
+          "byHost": {
+            "act.adapt-learn.online": 343793
+          }
+        },
+        {
+          "second": 40,
+          "byHost": {
+            "act.adapt-learn.online": 447677
+          }
+        },
+        {
+          "second": 41,
+          "byHost": {
+            "act.adapt-learn.online": 416513
+          }
+        },
+        {
+          "second": 42,
+          "byHost": {
+            "act.adapt-learn.online": 390487
+          }
+        },
+        {
+          "second": 43,
+          "byHost": {
+            "act.adapt-learn.online": 426656
+          }
+        },
+        {
+          "second": 44,
+          "byHost": {
+            "act.adapt-learn.online": 393748
+          }
+        },
+        {
+          "second": 45,
+          "byHost": {
+            "act.adapt-learn.online": 405388
+          }
+        },
+        {
+          "second": 46,
+          "byHost": {
+            "act.adapt-learn.online": 399124
+          }
+        },
+        {
+          "second": 47,
+          "byHost": {
+            "act.adapt-learn.online": 416403
+          }
+        },
+        {
+          "second": 48,
+          "byHost": {
+            "act.adapt-learn.online": 408073
+          }
+        },
+        {
+          "second": 49,
+          "byHost": {
+            "act.adapt-learn.online": 396495
+          }
+        },
+        {
+          "second": 50,
+          "byHost": {
+            "act.adapt-learn.online": 389292
+          }
+        },
+        {
+          "second": 51,
+          "byHost": {
+            "act.adapt-learn.online": 424909
+          }
+        },
+        {
+          "second": 52,
+          "byHost": {
+            "act.adapt-learn.online": 402189
+          }
+        },
+        {
+          "second": 53,
+          "byHost": {
+            "act.adapt-learn.online": 384329
+          }
+        },
+        {
+          "second": 54,
+          "byHost": {
+            "act.adapt-learn.online": 413102
+          }
+        },
+        {
+          "second": 55,
+          "byHost": {
+            "act.adapt-learn.online": 392047
+          }
+        },
+        {
+          "second": 56,
+          "byHost": {
+            "act.adapt-learn.online": 416277
+          }
+        },
+        {
+          "second": 57,
+          "byHost": {
+            "act.adapt-learn.online": 421680
+          }
+        },
+        {
+          "second": 58,
+          "byHost": {
+            "act.adapt-learn.online": 404336
+          }
+        },
+        {
+          "second": 59,
+          "byHost": {
+            "act.adapt-learn.online": 411034
+          }
+        },
+        {
+          "second": 60,
+          "byHost": {
+            "act.adapt-learn.online": 422808
+          }
+        },
+        {
+          "second": 61,
+          "byHost": {
+            "act.adapt-learn.online": 383651
+          }
+        },
+        {
+          "second": 62,
+          "byHost": {
+            "act.adapt-learn.online": 404679
+          }
+        },
+        {
+          "second": 63,
+          "byHost": {
+            "act.adapt-learn.online": 378048
+          }
+        },
+        {
+          "second": 64,
+          "byHost": {
+            "act.adapt-learn.online": 400469
+          }
+        },
+        {
+          "second": 65,
+          "byHost": {
+            "act.adapt-learn.online": 426397
+          }
+        },
+        {
+          "second": 66,
+          "byHost": {
+            "act.adapt-learn.online": 366945
+          }
+        },
+        {
+          "second": 67,
+          "byHost": {
+            "act.adapt-learn.online": 410465
+          }
+        },
+        {
+          "second": 68,
+          "byHost": {
+            "act.adapt-learn.online": 425005
+          }
+        },
+        {
+          "second": 69,
+          "byHost": {
+            "act.adapt-learn.online": 395329
+          }
+        },
+        {
+          "second": 70,
+          "byHost": {
+            "act.adapt-learn.online": 430757
+          }
+        },
+        {
+          "second": 71,
+          "byHost": {
+            "act.adapt-learn.online": 404327
+          }
+        },
+        {
+          "second": 72,
+          "byHost": {
+            "act.adapt-learn.online": 397232
+          }
+        },
+        {
+          "second": 73,
+          "byHost": {
+            "act.adapt-learn.online": 409555
+          }
+        },
+        {
+          "second": 74,
+          "byHost": {
+            "act.adapt-learn.online": 411746
+          }
+        },
+        {
+          "second": 75,
+          "byHost": {
+            "act.adapt-learn.online": 413446
+          }
+        },
+        {
+          "second": 76,
+          "byHost": {
+            "act.adapt-learn.online": 406252
+          }
+        },
+        {
+          "second": 77,
+          "byHost": {
+            "act.adapt-learn.online": 397778
+          }
+        },
+        {
+          "second": 78,
+          "byHost": {
+            "act.adapt-learn.online": 413244
+          }
+        },
+        {
+          "second": 79,
+          "byHost": {
+            "act.adapt-learn.online": 392882
+          }
+        },
+        {
+          "second": 80,
+          "byHost": {
+            "act.adapt-learn.online": 413430
+          }
+        },
+        {
+          "second": 81,
+          "byHost": {
+            "act.adapt-learn.online": 417601
+          }
+        },
+        {
+          "second": 82,
+          "byHost": {
+            "act.adapt-learn.online": 391303
+          }
+        },
+        {
+          "second": 83,
+          "byHost": {
+            "act.adapt-learn.online": 420059
+          }
+        },
+        {
+          "second": 84,
+          "byHost": {
+            "act.adapt-learn.online": 409724
+          }
+        },
+        {
+          "second": 85,
+          "byHost": {
+            "act.adapt-learn.online": 399042
+          }
+        },
+        {
+          "second": 86,
+          "byHost": {
+            "act.adapt-learn.online": 402127
+          }
+        },
+        {
+          "second": 87,
+          "byHost": {
+            "act.adapt-learn.online": 405269
+          }
+        },
+        {
+          "second": 88,
+          "byHost": {
+            "act.adapt-learn.online": 372868
+          }
+        },
+        {
+          "second": 89,
+          "byHost": {
+            "act.adapt-learn.online": 426024
+          }
+        },
+        {
+          "second": 90,
+          "byHost": {
+            "act.adapt-learn.online": 393469
+          }
+        },
+        {
+          "second": 91,
+          "byHost": {
+            "act.adapt-learn.online": 423855
+          }
+        },
+        {
+          "second": 92,
+          "byHost": {
+            "act.adapt-learn.online": 410430
+          }
+        },
+        {
+          "second": 93,
+          "byHost": {
+            "act.adapt-learn.online": 394109
+          }
+        },
+        {
+          "second": 94,
+          "byHost": {
+            "act.adapt-learn.online": 417637
+          }
+        },
+        {
+          "second": 95,
+          "byHost": {
+            "act.adapt-learn.online": 409140
+          }
+        },
+        {
+          "second": 96,
+          "byHost": {
+            "act.adapt-learn.online": 401095
+          }
+        },
+        {
+          "second": 97,
+          "byHost": {
+            "act.adapt-learn.online": 411937
+          }
+        },
+        {
+          "second": 98,
+          "byHost": {
+            "act.adapt-learn.online": 417571
+          }
+        },
+        {
+          "second": 99,
+          "byHost": {
+            "act.adapt-learn.online": 424986
+          }
+        },
+        {
+          "second": 100,
+          "byHost": {
+            "act.adapt-learn.online": 376613
+          }
+        },
+        {
+          "second": 101,
+          "byHost": {
+            "act.adapt-learn.online": 433156
+          }
+        },
+        {
+          "second": 102,
+          "byHost": {
+            "act.adapt-learn.online": 383293
+          }
+        },
+        {
+          "second": 103,
+          "byHost": {
+            "act.adapt-learn.online": 429716
+          }
+        },
+        {
+          "second": 104,
+          "byHost": {
+            "act.adapt-learn.online": 401091
+          }
+        },
+        {
+          "second": 105,
+          "byHost": {
+            "act.adapt-learn.online": 417428
+          }
+        },
+        {
+          "second": 106,
+          "byHost": {
+            "act.adapt-learn.online": 405180
+          }
+        },
+        {
+          "second": 107,
+          "byHost": {
+            "act.adapt-learn.online": 392891
+          }
+        },
+        {
+          "second": 108,
+          "byHost": {
+            "act.adapt-learn.online": 409247
+          }
+        },
+        {
+          "second": 109,
+          "byHost": {
+            "act.adapt-learn.online": 405177
+          }
+        },
+        {
+          "second": 110,
+          "byHost": {
+            "act.adapt-learn.online": 401080
+          }
+        },
+        {
+          "second": 111,
+          "byHost": {
+            "act.adapt-learn.online": 412357
+          }
+        },
+        {
+          "second": 112,
+          "byHost": {
+            "act.adapt-learn.online": 413353
+          }
+        },
+        {
+          "second": 113,
+          "byHost": {
+            "act.adapt-learn.online": 417457
+          }
+        },
+        {
+          "second": 114,
+          "byHost": {
+            "act.adapt-learn.online": 384704
+          }
+        },
+        {
+          "second": 115,
+          "byHost": {
+            "act.adapt-learn.online": 421530
+          }
+        },
+        {
+          "second": 116,
+          "byHost": {
+            "act.adapt-learn.online": 401088
+          }
+        },
+        {
+          "second": 117,
+          "byHost": {
+            "act.adapt-learn.online": 396975
+          }
+        },
+        {
+          "second": 118,
+          "byHost": {
+            "act.adapt-learn.online": 421551
+          }
+        },
+        {
+          "second": 119,
+          "byHost": {
+            "act.adapt-learn.online": 405139
+          }
+        },
+        {
+          "second": 120,
+          "byHost": {
+            "act.adapt-learn.online": 409273
+          }
+        },
+        {
+          "second": 121,
+          "byHost": {
+            "act.adapt-learn.online": 405166
+          }
+        },
+        {
+          "second": 122,
+          "byHost": {
+            "act.adapt-learn.online": 405198
+          }
+        },
+        {
+          "second": 123,
+          "byHost": {
+            "act.adapt-learn.online": 392897
+          }
+        },
+        {
+          "second": 124,
+          "byHost": {
+            "act.adapt-learn.online": 409280
+          }
+        },
+        {
+          "second": 125,
+          "byHost": {
+            "act.adapt-learn.online": 401053
+          }
+        },
+        {
+          "second": 126,
+          "byHost": {
+            "act.adapt-learn.online": 409294
+          }
+        },
+        {
+          "second": 127,
+          "byHost": {
+            "act.adapt-learn.online": 409273
+          }
+        },
+        {
+          "second": 128,
+          "byHost": {
+            "act.adapt-learn.online": 405198
+          }
+        },
+        {
+          "second": 129,
+          "byHost": {
+            "act.adapt-learn.online": 397000
+          }
+        },
+        {
+          "second": 130,
+          "byHost": {
+            "act.adapt-learn.online": 394811
+          }
+        },
+        {
+          "second": 131,
+          "byHost": {
+            "act.adapt-learn.online": 421558
+          }
+        },
+        {
+          "second": 132,
+          "byHost": {
+            "act.adapt-learn.online": 417472
+          }
+        },
+        {
+          "second": 133,
+          "byHost": {
+            "act.adapt-learn.online": 405183
+          }
+        },
+        {
+          "second": 134,
+          "byHost": {
+            "act.adapt-learn.online": 409296
+          }
+        },
+        {
+          "second": 135,
+          "byHost": {
+            "act.adapt-learn.online": 405184
+          }
+        },
+        {
+          "second": 136,
+          "byHost": {
+            "act.adapt-learn.online": 409285
+          }
+        },
+        {
+          "second": 137,
+          "byHost": {
+            "act.adapt-learn.online": 409279
+          }
+        },
+        {
+          "second": 138,
+          "byHost": {
+            "act.adapt-learn.online": 413385
+          }
+        },
+        {
+          "second": 139,
+          "byHost": {
+            "act.adapt-learn.online": 401097
+          }
+        },
+        {
+          "second": 140,
+          "byHost": {
+            "act.adapt-learn.online": 401112
+          }
+        },
+        {
+          "second": 141,
+          "byHost": {
+            "act.adapt-learn.online": 409289
+          }
+        },
+        {
+          "second": 142,
+          "byHost": {
+            "act.adapt-learn.online": 405199
+          }
+        },
+        {
+          "second": 143,
+          "byHost": {
+            "act.adapt-learn.online": 409331
+          }
+        },
+        {
+          "second": 144,
+          "byHost": {
+            "act.adapt-learn.online": 417491
+          }
+        },
+        {
+          "second": 145,
+          "byHost": {
+            "act.adapt-learn.online": 388840
+          }
+        },
+        {
+          "second": 146,
+          "byHost": {
+            "act.adapt-learn.online": 413405
+          }
+        },
+        {
+          "second": 147,
+          "byHost": {
+            "act.adapt-learn.online": 376565
+          }
+        },
+        {
+          "second": 148,
+          "byHost": {
+            "act.adapt-learn.online": 429788
+          }
+        },
+        {
+          "second": 149,
+          "byHost": {
+            "act.adapt-learn.online": 417539
+          }
+        },
+        {
+          "second": 150,
+          "byHost": {
+            "act.adapt-learn.online": 397003
+          }
+        },
+        {
+          "second": 151,
+          "byHost": {
+            "act.adapt-learn.online": 397033
+          }
+        },
+        {
+          "second": 152,
+          "byHost": {
+            "act.adapt-learn.online": 421585
+          }
+        },
+        {
+          "second": 153,
+          "byHost": {
+            "act.adapt-learn.online": 405231
+          }
+        },
+        {
+          "second": 154,
+          "byHost": {
+            "act.adapt-learn.online": 405215
+          }
+        },
+        {
+          "second": 155,
+          "byHost": {
+            "act.adapt-learn.online": 413378
+          }
+        },
+        {
+          "second": 156,
+          "byHost": {
+            "act.adapt-learn.online": 397053
+          }
+        },
+        {
+          "second": 157,
+          "byHost": {
+            "act.adapt-learn.online": 417502
+          }
+        },
+        {
+          "second": 158,
+          "byHost": {
+            "act.adapt-learn.online": 392943
+          }
+        },
+        {
+          "second": 159,
+          "byHost": {
+            "act.adapt-learn.online": 392963
+          }
+        },
+        {
+          "second": 160,
+          "byHost": {
+            "act.adapt-learn.online": 413423
+          }
+        },
+        {
+          "second": 161,
+          "byHost": {
+            "act.adapt-learn.online": 421609
+          }
+        },
+        {
+          "second": 162,
+          "byHost": {
+            "act.adapt-learn.online": 405241
+          }
+        },
+        {
+          "second": 163,
+          "byHost": {
+            "act.adapt-learn.online": 405227
+          }
+        },
+        {
+          "second": 164,
+          "byHost": {
+            "act.adapt-learn.online": 409324
+          }
+        },
+        {
+          "second": 165,
+          "byHost": {
+            "act.adapt-learn.online": 412018
+          }
+        },
+        {
+          "second": 166,
+          "byHost": {
+            "act.adapt-learn.online": 413280
+          }
+        },
+        {
+          "second": 167,
+          "byHost": {
+            "act.adapt-learn.online": 401132
+          }
+        },
+        {
+          "second": 168,
+          "byHost": {
+            "act.adapt-learn.online": 401158
+          }
+        },
+        {
+          "second": 169,
+          "byHost": {
+            "act.adapt-learn.online": 417512
+          }
+        },
+        {
+          "second": 170,
+          "byHost": {
+            "act.adapt-learn.online": 405248
+          }
+        },
+        {
+          "second": 171,
+          "byHost": {
+            "act.adapt-learn.online": 405233
+          }
+        },
+        {
+          "second": 172,
+          "byHost": {
+            "act.adapt-learn.online": 376589
+          }
+        },
+        {
+          "second": 173,
+          "byHost": {
+            "act.adapt-learn.online": 417541
+          }
+        },
+        {
+          "second": 174,
+          "byHost": {
+            "act.adapt-learn.online": 425696
+          }
+        },
+        {
+          "second": 175,
+          "byHost": {
+            "act.adapt-learn.online": 409333
+          }
+        },
+        {
+          "second": 176,
+          "byHost": {
+            "act.adapt-learn.online": 397035
+          }
+        },
+        {
+          "second": 177,
+          "byHost": {
+            "act.adapt-learn.online": 392957
+          }
+        },
+        {
+          "second": 178,
+          "byHost": {
+            "act.adapt-learn.online": 425710
+          }
+        },
+        {
+          "second": 179,
+          "byHost": {
+            "act.adapt-learn.online": 392971
+          }
+        },
+        {
+          "second": 180,
+          "byHost": {
+            "act.adapt-learn.online": 409326
+          }
+        },
+        {
+          "second": 181,
+          "byHost": {
+            "act.adapt-learn.online": 419685
+          }
+        },
+        {
+          "second": 182,
+          "byHost": {
+            "act.adapt-learn.online": 401015
+          }
+        },
+        {
+          "second": 183,
+          "byHost": {
+            "act.adapt-learn.online": 417511
+          }
+        },
+        {
+          "second": 184,
+          "byHost": {
+            "act.adapt-learn.online": 388876
+          }
+        },
+        {
+          "second": 185,
+          "byHost": {
+            "act.adapt-learn.online": 425727
+          }
+        },
+        {
+          "second": 186,
+          "byHost": {
+            "act.adapt-learn.online": 397045
+          }
+        },
+        {
+          "second": 187,
+          "byHost": {
+            "act.adapt-learn.online": 409302
+          }
+        },
+        {
+          "second": 188,
+          "byHost": {
+            "act.adapt-learn.online": 429584
+          }
+        },
+        {
+          "second": 189,
+          "byHost": {
+            "act.adapt-learn.online": 409317
+          }
+        },
+        {
+          "second": 190,
+          "byHost": {
+            "act.adapt-learn.online": 401141
+          }
+        },
+        {
+          "second": 191,
+          "byHost": {
+            "act.adapt-learn.online": 417374
+          }
+        },
+        {
+          "second": 192,
+          "byHost": {
+            "act.adapt-learn.online": 392815
+          }
+        },
+        {
+          "second": 193,
+          "byHost": {
+            "act.adapt-learn.online": 433865
+          }
+        },
+        {
+          "second": 194,
+          "byHost": {
+            "act.adapt-learn.online": 409311
+          }
+        },
+        {
+          "second": 195,
+          "byHost": {
+            "act.adapt-learn.online": 405206
+          }
+        },
+        {
+          "second": 196,
+          "byHost": {
+            "act.adapt-learn.online": 405214
+          }
+        },
+        {
+          "second": 197,
+          "byHost": {
+            "act.adapt-learn.online": 409308
+          }
+        },
+        {
+          "second": 198,
+          "byHost": {
+            "act.adapt-learn.online": 397032
+          }
+        },
+        {
+          "second": 199,
+          "byHost": {
+            "act.adapt-learn.online": 429796
+          }
+        },
+        {
+          "second": 200,
+          "byHost": {
+            "act.adapt-learn.online": 261616
+          }
+        }
+      ],
+      "transientFailures": 1,
+      "rawReceiptSha256": "fe10a2652ede498cf6ac5a609508ae93cc9bf85f8b7d5b883f941c51e72b833b"
+    }
+  ],
+  "cloud": {
+    "startTime": "2026-11-16T04:04:00Z",
+    "endTime": "2026-11-16T04:07:00Z",
+    "periodS": 60,
+    "oss": [
+      {
+        "bucket": "act-course-models",
+        "metric": "CdnSend",
+        "success": true,
+        "points": [
+          {
+            "timestamp": 1794801960000,
+            "Value": 51756250.0
+          }
+        ]
+      },
+      {
+        "bucket": "act-course-models",
+        "metric": "InternetSend",
+        "success": true,
+        "points": [
+          {
+            "timestamp": 1794801960000,
+            "Value": 0.0
+          }
+        ]
+      },
+      {
+        "bucket": "act-course-models",
+        "metric": "IntranetSend",
+        "success": true,
+        "points": [
+          {
+            "timestamp": 1794801960000,
+            "Value": 0.0
+          }
+        ]
+      },
+      {
+        "bucket": "act-course-models",
+        "metric": "TotalSendBandwidth",
+        "success": true,
+        "points": [
+          {
+            "timestamp": 1794801960000,
+            "Value": 6900833.333
+          }
+        ]
+      },
+      {
+        "bucket": "act-course-models",
+        "metric": "GetObjectCount",
+        "success": true,
+        "points": [
+          {
+            "timestamp": 1794801960000,
+            "Value": 61.0
+          }
+        ]
+      },
+      {
+        "bucket": "act-course-assets",
+        "metric": "CdnSend",
+        "success": true,
+        "points": []
+      },
+      {
+        "bucket": "act-course-assets",
+        "metric": "InternetSend",
+        "success": true,
+        "points": []
+      },
+      {
+        "bucket": "act-course-assets",
+        "metric": "IntranetSend",
+        "success": true,
+        "points": []
+      },
+      {
+        "bucket": "act-course-assets",
+        "metric": "TotalSendBandwidth",
+        "success": true,
+        "points": []
+      },
+      {
+        "bucket": "act-course-assets",
+        "metric": "GetObjectCount",
+        "success": true,
+        "points": []
+      }
+    ],
+    "esa": [
+      {
+        "StartTime": "2026-11-16T04:04:00Z",
+        "EndTime": "2026-11-16T04:07:00Z",
+        "Interval": 60,
+        "SamplingRate": 100,
+        "Data": [
+          {
+            "DetailData": [
+              {
+                "TimeStamp": "2026-11-16T04:04:00Z",
+                "Value": 53135443
+              },
+              {
+                "TimeStamp": "2026-11-16T04:05:00Z",
+                "Value": 0
+              },
+              {
+                "TimeStamp": "2026-11-16T04:06:00Z",
+                "Value": 0
+              }
+            ],
+            "DimensionName": "ClientRequestHost",
+            "DimensionValue": "static.adapt-learn.online",
+            "FieldName": "Traffic"
+          }
+        ],
+        "SummarizedData": [
+          {
+            "AggMethod": "sum",
+            "DimensionName": "ClientRequestHost",
+            "DimensionValue": "static.adapt-learn.online",
+            "FieldName": "Traffic",
+            "Value": 53135443
+          }
+        ]
+      },
+      {
+        "StartTime": "2026-11-16T04:04:00Z",
+        "EndTime": "2026-11-16T04:07:00Z",
+        "Interval": 60,
+        "SamplingRate": 100,
+        "Data": [
+          {
+            "DetailData": [
+              {
+                "TimeStamp": "2026-11-16T04:04:00Z",
+                "Value": 51836089
+              },
+              {
+                "TimeStamp": "2026-11-16T04:05:00Z",
+                "Value": 0
+              },
+              {
+                "TimeStamp": "2026-11-16T04:06:00Z",
+                "Value": 0
+              }
+            ],
+            "DimensionName": "EdgeCacheStatus",
+            "DimensionValue": "MISS",
+            "FieldName": "Traffic"
+          },
+          {
+            "DetailData": [
+              {
+                "TimeStamp": "2026-11-16T04:04:00Z",
+                "Value": 1299354
+              },
+              {
+                "TimeStamp": "2026-11-16T04:05:00Z",
+                "Value": 0
+              },
+              {
+                "TimeStamp": "2026-11-16T04:06:00Z",
+                "Value": 0
+              }
+            ],
+            "DimensionName": "EdgeCacheStatus",
+            "DimensionValue": "HIT",
+            "FieldName": "Traffic"
+          }
+        ],
+        "SummarizedData": [
+          {
+            "AggMethod": "sum",
+            "DimensionName": "EdgeCacheStatus",
+            "DimensionValue": "MISS",
+            "FieldName": "Traffic",
+            "Value": 51836089
+          },
+          {
+            "AggMethod": "sum",
+            "DimensionName": "EdgeCacheStatus",
+            "DimensionValue": "HIT",
+            "FieldName": "Traffic",
+            "Value": 1299354
+          }
+        ]
+      },
+      {
+        "StartTime": "2026-11-16T04:04:00Z",
+        "EndTime": "2026-11-16T04:07:00Z",
+        "Interval": 60,
+        "SamplingRate": 100,
+        "Data": [
+          {
+            "DetailData": [
+              {
+                "TimeStamp": "2026-11-16T04:04:00Z",
+                "Value": 6
+              },
+              {
+                "TimeStamp": "2026-11-16T04:05:00Z",
+                "Value": 0
+              },
+              {
+                "TimeStamp": "2026-11-16T04:06:00Z",
+                "Value": 0
+              }
+            ],
+            "DimensionName": "EdgeCacheStatus",
+            "DimensionValue": "HIT",
+            "FieldName": "Requests"
+          },
+          {
+            "DetailData": [
+              {
+                "TimeStamp": "2026-11-16T04:04:00Z",
+                "Value": 61
+              },
+              {
+                "TimeStamp": "2026-11-16T04:05:00Z",
+                "Value": 0
+              },
+              {
+                "TimeStamp": "2026-11-16T04:06:00Z",
+                "Value": 0
+              }
+            ],
+            "DimensionName": "EdgeCacheStatus",
+            "DimensionValue": "MISS",
+            "FieldName": "Requests"
+          }
+        ],
+        "SummarizedData": [
+          {
+            "AggMethod": "sum",
+            "DimensionName": "EdgeCacheStatus",
+            "DimensionValue": "HIT",
+            "FieldName": "Requests",
+            "Value": 6
+          },
+          {
+            "AggMethod": "sum",
+            "DimensionName": "EdgeCacheStatus",
+            "DimensionValue": "MISS",
+            "FieldName": "Requests",
+            "Value": 61
+          }
+        ]
+      }
+    ]
+  },
+  "networkPage": {
+    "bandwidthText": "平台与船模综合带宽\n\n平台负责登录和实验记录，船模通过公开资源通道读取。测试同时下载两路样本，帮助检查当前网络的实际读取速度。船舶运动由学生浏览器计算。\n\n测试当前连接\n\n平台下载\n\n3.3 Mbps\n\n船模下载\n\n49.6 Mbps\n\n综合下载\n\n6.6 Mbps\n\n显示三次有效取样的中位数，本次合计读取 4194304 字节，船模来源为ESA。综合值按同一时间窗的两路下载字节计算。",
+    "connectionText": "8 路连接中 8 路就绪，最慢 140 ms。\n\n数据库、缓存与课程内容就绪。\n\n1. 服务就绪 · 37 ms\n2. 服务就绪 · 62 ms\n3. 服务就绪 · 64 ms\n4. 服务就绪 · 84 ms\n5. 服务就绪 · 92 ms\n6. 服务就绪 · 117 ms\n7. 服务就绪 · 126 ms\n8. 服务就绪 · 140 ms",
+    "pageErrors": 0
+  },
+  "cliReadOnly": {
+    "checkedAt": "2026-11-16T04:02:24.171848+00:00",
+    "profile": "act-readonly",
+    "principal": "act-runtime-dev-read",
+    "mode": "External",
+    "credentialSource": "existing local managed read-only environment",
+    "policiesAdded": [
+      "AliyunCloudMonitorReadOnlyAccess",
+      "AliyunESAReadOnlyAccess",
+      "AliyunOSSReadOnlyAccess"
+    ],
+    "policyScope": "account-level read-only for OSS, ESA and CloudMonitor",
+    "checks": {
+      "identity": {
+        "exitCode": 0,
+        "value": "RAMUser"
+      },
+      "oss": {
+        "exitCode": 0,
+        "value": "act-course-models"
+      },
+      "cloudMonitor": {
+        "exitCode": 0,
+        "value": true
+      },
+      "esa": {
+        "exitCode": 0,
+        "value": 1
+      }
+    }
+  },
+  "reproductionToolSha256": {
+    "scripts/simulations/http-load.mjs": "98e19a5dc5e0f1fb87b25d10589d72c6992a7ef6476353b33da84d1e84c6dc97",
+    "scripts/simulations/generate-load-fixtures.mts": "d6bc19aa5318fab9106588a5fdbfff1e8ea67bc392ce29c0be956e57871f3526",
+    "scripts/simulations/cold-entry-load.mjs": "1269a452816450c042d6759c6745f8e47028f52ba5e5610072c59d0efe3f5d69"
+  },
+  "reproductionVerification": {
+    "elapsedS": 38.888,
+    "requests": 73,
+    "actualErrorRate": 0,
+    "minimumPacingFraction": 1,
+    "correctnessAndPacingPassed": true,
+    "latencyGoalPassed": false,
+    "clients": [
+      {
+        "course": "destroyer",
+        "completedPackets": 48,
+        "completedRuns": 4,
+        "attemptStatus": "submitted"
+      }
+    ]
+  },
+  "remainingCoverage": [
+    "independent ILAB identities under sustained pressure",
+    "AI provider and controlled upstream batch load",
+    "seven-vessel mixed thirty-minute accepted phase",
+    "1x simulation capacity",
+    "full graphics-quality matrix",
+    "independent load-generator network cross-check",
+    "OSS asset bucket returned no monitoring points",
+    "seven complete formal upstream course reports",
+    "real teaching and cross-grading evidence"
+  ],
+  "identityCleanup": {
+    "target": "production",
+    "users": 210,
+    "runs": 664,
+    "reports": 15,
+    "localExperimentRounds": 17
+  },
+  "privateCasCleanup": {
+    "removed": 12018,
+    "missing": 0,
+    "shared": 0,
+    "bytes": 1532178989
+  },
+  "cleanupVerification": {
+    "users": 0,
+    "runs": 0,
+    "reports": 0,
+    "rounds": 0
+  },
+  "postLoadReady": {
+    "checkedAt": "2026-11-16T04:26:53.078787+00:00",
+    "http": 200,
+    "app": true,
+    "db": true,
+    "redis": true
+  }
+}
