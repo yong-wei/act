@@ -1,4 +1,4 @@
-/** 2026-10-26 本机对 /api/health 的并发抽查：120 与 160 路同时请求均全部返回。名额取 120，留出余量。 */
+/** 历史连接抽查使用的独立内存计数参数。 */
 export const SIMULATION_ONLINE_CAPACITY = 120;
 export const ADMISSION_HOLD_MS = 10 * 60 * 1000;
 
@@ -70,8 +70,8 @@ export class AdmissionGate {
       position: null,
       suggestedWaitMinutes: null,
       message: this.holds.has(id)
-        ? `可以进入。当前在线 ${this.holds.size} / ${this.capacity}。`
-        : '可以进入。',
+        ? `已登记本次连接抽查。当前抽查记录 ${this.holds.size} / ${this.capacity}。`
+        : '已登记本次连接抽查。',
     };
   }
 
@@ -83,7 +83,7 @@ export class AdmissionGate {
       waiting: this.queue.length,
       position,
       suggestedWaitMinutes: Math.max(5, position),
-      message: `当前同时在线已满（${this.holds.size} / ${this.capacity}）。你排在第 ${position} 位。请等待约 ${Math.max(5, position)} 分钟，或按班级分批进入，错开同一时刻集中打开实验。`,
+      message: `当前连接抽查记录已满（${this.holds.size} / ${this.capacity}），本次抽查排在第 ${position} 位。按班级分批的安排需参考持续负载实测。`,
     };
   }
 }

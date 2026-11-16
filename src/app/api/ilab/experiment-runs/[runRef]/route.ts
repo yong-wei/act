@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readVesselEvidenceJson, requireVesselEvidenceAccount, vesselEvidenceErrorResponse } from '@/features/ilab/course-evidence-api';
+import { readVesselEvidenceJson, requireVesselEvidenceAccount, vesselEvidenceErrorResponse, vesselEvidenceJsonResponse } from '@/features/ilab/course-evidence-api';
 import { vesselEvidenceCloseSchema } from '@/features/ilab/course-evidence-contract';
 import { findOwnedVesselRun, vesselRunProgress } from '@/features/ilab/course-evidence-service';
 import { closeVesselEvidenceRun, readVesselEvidenceChunk } from '@/features/ilab/course-evidence-chunks';
@@ -15,7 +15,7 @@ export async function GET(request: Request, context: Context) {
     const userId = await requireVesselEvidenceAccount(request);
     const { runRef } = await context.params;
     if (new URL(request.url).searchParams.get('recovery') === '1') {
-      return NextResponse.json(await loadOwnedCourseRunRecovery(userId, runRef));
+      return await vesselEvidenceJsonResponse(request, await loadOwnedCourseRunRecovery(userId, runRef));
     }
     const chunkParam = new URL(request.url).searchParams.get('chunkIndex');
     if (chunkParam !== null) {
@@ -23,7 +23,7 @@ export async function GET(request: Request, context: Context) {
       if (!/^\d+$/.test(chunkParam) || !Number.isInteger(chunkIndex) || chunkIndex > 4096) {
         throw new IlabServiceError('采样分块序号无效。', 400);
       }
-      return NextResponse.json(await readVesselEvidenceChunk(userId, runRef, chunkIndex));
+      return await vesselEvidenceJsonResponse(request, await readVesselEvidenceChunk(userId, runRef, chunkIndex));
     }
     return NextResponse.json(vesselRunProgress(await findOwnedVesselRun(userId, runRef)));
   } catch (error) { return vesselEvidenceErrorResponse(error); }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
-import { readVesselEvidenceJson, vesselEvidenceErrorResponse } from '@/features/ilab/course-evidence-api';
+import { readVesselEvidenceJson, vesselEvidenceErrorResponse, vesselEvidenceJsonResponse } from '@/features/ilab/course-evidence-api';
 import { readVesselReportEvidence, readVesselReportWork, reviewVesselCourseReport } from '@/features/ilab/course-report-review';
 import { vesselReportReviewSchema } from '@/features/ilab/course-report-review-contract';
 import { IlabServiceError } from '@/features/ilab/run-lock';
@@ -16,8 +16,8 @@ export async function GET(request:NextRequest, context:Context) {
     const {id} = await context.params;
     const kind = request.nextUrl.searchParams.get('kind');
     const workId = request.nextUrl.searchParams.get('workId');
-    if (kind && workId) return NextResponse.json(await readVesselReportWork(session.user,id,kind,workId));
-    return NextResponse.json(await readVesselReportEvidence(session.user,id));
+    if (kind && workId) return await vesselEvidenceJsonResponse(request, await readVesselReportWork(session.user,id,kind,workId));
+    return await vesselEvidenceJsonResponse(request, await readVesselReportEvidence(session.user,id));
   } catch (error) { return vesselEvidenceErrorResponse(error); }
 }
 
