@@ -33,7 +33,8 @@ export async function writeSimulationTraceChunk(value: unknown) {
   const bytes = Buffer.from(canonicalJson(value),'utf8');
   if (bytes.byteLength > MAX_CHUNK_BYTES) throw new Error('原始采样分块过大，请缩短单次上传区间。');
   const hash = createHash('sha256').update(bytes).digest('hex');
-  const compressed = await compress(bytes);
+  // 代表曲线的三级压缩显著减少CPU时间，规范序正文及内容哈希保持不变。
+  const compressed = await compress(bytes,{ level:3 });
   const storage = privateS3();
   if (storage) {
     try {

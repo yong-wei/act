@@ -41,11 +41,11 @@ export async function stageVesselEvidenceChunk(userId: string, chunk: VesselTrac
   return {reference:stored.uri};
 }
 
-async function appendStoredChunk(tx: Prisma.TransactionClient, run: SimulationRun,
-  chunk: VesselTraceChunk, stored: {uri:string;checksum:string;uncompressedBytes?:number;storedBytes?:number}) {
-  const latest = vesselRunStorageSummary(run);
-  const watermarks = validateChunkPrefix(latest, chunk);
-  await tx.simulationTrace.create({ data: {
+type StoredChunk = {uri:string;checksum:string;uncompressedBytes?:number;storedBytes?:number};
+
+function storedTraceData(run: SimulationRun, latest: VesselRunStorageSummary,
+  chunk: VesselTraceChunk, stored: StoredChunk): Prisma.SimulationTraceCreateManyInput {
+  return {
     runId: run.id, chunkIndex: chunk.chunkIndex, protocolVersion: 'act.vessel-trace-chunk.v1',
     runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion, seed: run.seed,
     checksum: stored.checksum, sampleStorageUri: stored.uri, sampleCadence: .05,
@@ -55,7 +55,11 @@ async function appendStoredChunk(tx: Prisma.TransactionClient, run: SimulationRu
       fineStart:chunk.fineStart ?? 0,fineCount:chunk.fineSamples?.length ?? 0,
       ...(stored.uncompressedBytes !== undefined ? {uncompressedBytes:stored.uncompressedBytes} : {}),
       ...(stored.storedBytes !== undefined ? {storedBytes:stored.storedBytes} : {}) },
-  } });
+  };
+}
+
+function advanceStoredSummary(latest: VesselRunStorageSummary, chunk: VesselTraceChunk,
+  watermarks: Record<string, number>): VesselRunStorageSummary {
   const next: VesselRunStorageSummary = { ...latest, chunkCount: latest.chunkCount + 1,
     controlCount: latest.controlCount + chunk.points.length, nativeCount: latest.nativeCount + chunk.nativeSamples.length,
     lastTimeS: chunk.endTimeS, nativeWatermarks: watermarks };
@@ -63,6 +67,15 @@ async function appendStoredChunk(tx: Prisma.TransactionClient, run: SimulationRu
     next.fineCount = (latest.fineCount ?? 0)+chunk.fineSamples.length;
     next.fineLastTimeS = chunk.fineSamples.at(-1)?.timeS ?? latest.fineLastTimeS;
   }
+  return next;
+}
+
+async function appendStoredChunk(tx: Prisma.TransactionClient, run: SimulationRun,
+  chunk: VesselTraceChunk, stored: StoredChunk) {
+  const latest = vesselRunStorageSummary(run);
+  const watermarks = validateChunkPrefix(latest, chunk);
+  await tx.simulationTrace.create({ data: storedTraceData(run, latest, chunk, stored) });
+  const next = advanceStoredSummary(latest, chunk, watermarks);
   const saved = await tx.simulationRun.update({ where: { id: run.id }, data: { summary: next as unknown as Prisma.InputJsonValue } });
   if (latest.controlCount === 0 && chunk.points.length) {
     await tx.appliedRunEnvelope.update({ where: { runRef: chunk.runRef }, data: {
@@ -161,18 +174,17 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
     return vesselRunProgress(run);
   }
   if (previousCheckpoint === closeHash) return vesselRunProgress(run);
-  const pending: Array<{chunk:VesselTraceChunk;reference:string;checksum:string}> = [];
+  const pending: Array<{chunk:VesselTraceChunk;trace:Prisma.SimulationTraceCreateManyInput;watermarks:Record<string,number>}> = [];
   let projected = summary;
   for (const reference of input.pendingChunks ?? []) {
     const parsed = vesselTraceChunkSchema.safeParse(await readSimulationTraceChunk(reference));
     if (!parsed.success || parsed.data.runRef !== runRef) throw new IlabServiceError('暂存采样与当前运行不一致。',409);
     const chunk = parsed.data as unknown as VesselTraceChunk;
     const watermarks = validateChunkPrefix(projected, chunk);
-    projected = {...projected,chunkCount:projected.chunkCount+1,controlCount:projected.controlCount+chunk.points.length,
-      nativeCount:projected.nativeCount+chunk.nativeSamples.length,lastTimeS:chunk.endTimeS,nativeWatermarks:watermarks,
-      fineCount:(projected.fineCount ?? 0)+(chunk.fineSamples?.length ?? 0),
-      fineLastTimeS:chunk.fineSamples?.at(-1)?.timeS ?? projected.fineLastTimeS};
-    pending.push({chunk,reference,checksum:reference.slice(reference.lastIndexOf(':')+1)});
+    const trace = storedTraceData(run, projected, chunk,
+      {uri:reference,checksum:reference.slice(reference.lastIndexOf(':')+1)});
+    projected = advanceStoredSummary(projected, chunk, watermarks);
+    pending.push({chunk,trace,watermarks});
   }
   if (input.controlCount !== projected.controlCount || input.nativeCount !== projected.nativeCount
     || (input.fineCount ?? 0) !== (projected.fineCount ?? 0)
@@ -236,10 +248,16 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
       || currentCheckpoint !== previousCheckpoint) {
       throw new IlabServiceError('实验进度已经变化，请读取保存状态后重试。',409);
     }
-    let appended = current;
-    for (const staged of pending) appended = await appendStoredChunk(tx, appended, staged.chunk,
-      {uri:staged.reference,checksum:staged.checksum});
-    const committed = vesselRunStorageSummary(appended);
+    // 锁内确认采样前缀及恢复点未变后，整批写入并只更新一次累计进度。
+    // 不忽略唯一键冲突，任一分块失败均由同一事务回滚。
+    if (pending.length) await tx.simulationTrace.createMany({ data: pending.map((staged) => staged.trace) });
+    let committed = latest;
+    for (const staged of pending) committed = advanceStoredSummary(committed, staged.chunk, staged.watermarks);
+    const firstPoint = latest.controlCount === 0
+      ? pending.find((staged) => staged.chunk.points.length)?.chunk.points[0] : undefined;
+    if (firstPoint) await tx.appliedRunEnvelope.update({ where: { runRef }, data: {
+      firstSampleReceipt: hash(firstPoint), quality: { status: 'recording', source: 'native-session' },
+    } });
     const saved = await tx.simulationRun.update({ where: { id: run.id }, data: {
       status: isCheckpoint ? 'running' : input.reason === 'failure' ? 'failed' : 'completed',
       completedAt: isCheckpoint ? null : new Date(),

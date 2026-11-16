@@ -108,6 +108,40 @@ try {
     closeVesselEvidenceRun(user.id,run.id,checkpointInput),
   ]);
   assert.deepEqual(repeatedCheckpoints,[partial,partial]);
+  const batchRunRef = randomUUID();
+  const openingRequest = captured.find((item) => item.url === '/api/ilab/experiment-runs')!;
+  await openVesselEvidenceRun(user.id,vesselEvidenceOpeningSchema.parse({
+    ...(openingRequest.data as Record<string,unknown>),runRef:batchRunRef,
+  }));
+  const batchRun = await findOwnedVesselRun(user.id,batchRunRef);
+  try {
+    const pendingChunks:string[] = [];
+    for (const request of captured.filter((item) => item.url.includes('/chunks'))) {
+      const staged = await stageVesselEvidenceChunk(user.id,vesselTraceChunkSchema.parse({
+        ...(request.data as Record<string,unknown>),runRef:batchRunRef,
+      }));
+      pendingChunks.push(staged.reference);
+    }
+    assert.equal(pendingChunks.length,2);
+    const originalRun = await findOwnedVesselRun(user.id,run.id);
+    const collision = await prisma.simulationTrace.findFirstOrThrow({where:{runId:originalRun.id,chunkIndex:1}});
+    await prisma.simulationTrace.create({data:{...collision,id:undefined,runId:batchRun.id,
+      sampleStorageUri:pendingChunks[1],checksum:pendingChunks[1].split(':').at(-1)!}});
+    const batchInput = {...checkpointInput,pendingChunks};
+    await assert.rejects(closeVesselEvidenceRun(user.id,batchRunRef,batchInput),{code:'P2002'});
+    assert.deepEqual((await findOwnedVesselRun(user.id,batchRunRef)).summary,batchRun.summary);
+    assert.deepEqual((await prisma.simulationTrace.findMany({where:{runId:batchRun.id}})).map((trace)=>trace.chunkIndex),[1]);
+    assert.equal((await prisma.appliedRunEnvelope.findUniqueOrThrow({where:{runRef:batchRunRef}})).firstSampleReceipt,null);
+    await prisma.simulationTrace.deleteMany({where:{runId:batchRun.id}});
+    const batchSaved = await closeVesselEvidenceRun(user.id,batchRunRef,batchInput);
+    assert.equal(batchSaved.controlCount,partial.controlCount);
+    assert.equal(batchSaved.nativeCount,partial.nativeCount);
+    assert.equal(batchSaved.fineCount,partial.fineCount);
+    assert.deepEqual(await closeVesselEvidenceRun(user.id,batchRunRef,batchInput),batchSaved);
+    const rows = await prisma.simulationTrace.findMany({where:{runId:batchRun.id},orderBy:{chunkIndex:'asc'}});
+    assert.deepEqual(rows.map((trace)=>trace.sampleStorageUri),pendingChunks);
+    assert(rows.every((trace)=>trace.summaryMetrics !== null));
+  } finally { await prisma.simulationRun.delete({where:{id:batchRun.id}}); }
   await assert.rejects(stageVesselEvidenceChunk('unrelated-owner',vesselTraceChunkSchema.parse(
     captured.find((item)=>item.url.includes('/chunks'))!.data)),/不存在/);
   const beforeRetry = await prisma.simulationTrace.count({where:{runId:(await findOwnedVesselRun(user.id,run.id)).id}});
@@ -414,6 +448,7 @@ try {
   console.log(JSON.stringify({status:'passed',controlSamples:completed.controlCount,nativeSamples:completed.nativeCount,
     chunks:completed.chunkCount,fineWindowSamples:completed.fineCount,reviewStateFixtureScore:report.score,
     checks:['gzip-bound','opening-identity','pause-prefix','exact-running-checkpoint','atomic-interrupted-upload',
+      'atomic-batch-unique-conflict','atomic-batch-rollback','atomic-batch-retry',
       'concurrent-checkpoint-retry','concurrent-retry','conflict-409','foreign-404','append-resume','native-close','terminal-retry','closed-chunk-retry','closed-chunk-conflict','closed-chunk-owner',
       'receipt-time','model-freeze','comparison','server-attempt-validation','report-minimum','escaped-html',
       'review-authorization','pending-score-null','fixed-rubric','finalization-freeze']}));
