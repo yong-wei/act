@@ -1,6 +1,6 @@
 {
   "schema": "act.simulation-software-second-pass.v1",
-  "scope": "Local measurements, before production deployment; same native representative inputs; no real ILAB or AI upstream pressure calls",
+  "scope": "Local same-input comparisons and deployed Alibaba v0.7.52 persistence/recovery protocol pressure; dedicated PLATFORM QA; no real ILAB or AI upstream pressure",
   "storage": {
     "schema": "act.evidence-storage-benchmark.v1",
     "baselineRevision": "5c3ecaaf5a6be34f4b987b24737ffc881e3a3237",
@@ -335,12 +335,2062 @@
       "nodeHeapMiB": 8192
     },
     "focusedTestAndBenchmarkTypes": "passed, ES2022 target for the existing Node runtime",
-    "fullTestTypeGraph": "not passed; repository-wide test and tool diagnostics remain"
+    "fullTestTypeGraph": "not passed; repository-wide test and tool diagnostics remain",
+    "standardTests": "257 passed, plus Smoke/Arena",
+    "productionBrowserRecovery": {
+      "status": "passed",
+      "course": "destroyer",
+      "checkpointTime": "6.383333",
+      "continuedTime": "7.966667",
+      "separateContexts": true
+    },
+    "codexReview": {
+      "pr": 2209,
+      "reviewedCommit": "ffdce4f66fc917ee78d92459a35a1b32b50ca190",
+      "completedAt": "2026-11-16T13:39:25Z",
+      "findings": 0
+    },
+    "ci": {
+      "run": 43878963775,
+      "conclusion": "success"
+    }
   },
   "sourceCodeSha256": {
     "src/features/ilab/course-evidence-chunks.ts": "63aa1cd1a2d5a8cb1f7b1ffdebacb3ec00c76daebf06b1b8147915dced27437c",
     "src/features/ilab/course-evidence-api.ts": "b51afe059c193c607b6cc7fa85312f24de6c15784865c149917f67f89efd99a1",
     "src/lib/data-governance/simulation-trace-cas.ts": "984e837d3e23e617605d8ea6e72b6b76be419612f2eb4dcf8f47efe37f7d7536",
     "src/lib/student-model-artifact-contract/server-hash.ts": "499127415ab3addefbd23c78c57708a651e7c65f6625498b54b81c577a4b8a18"
+  },
+  "deployment": {
+    "revision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+    "version": "0.7.52",
+    "image": "localhost/act-obe-platform:0.7.52-ba2e1da",
+    "bytes": 831160320,
+    "sha256": "8520debae793920e77204df2e249a65fefaf5a75c0bb81a785072cb16704819f",
+    "target": "Alibaba only",
+    "release": "https://github.com/yong-wei/act/releases/tag/v0.7.52",
+    "persistentContainersUnchanged": true,
+    "runtimeIdentityUnchanged": true,
+    "runtimeIdentity": "runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752",
+    "chromium": "151.0.7922.173 Debian 12"
+  },
+  "production": {
+    "scope": "Native representative first-step trajectories; persistence every five real seconds, drafts every fifteen, recovery every thirty, page refresh every sixty; no idle-user or full twenty-step-course capacity claim",
+    "staircaseStatus": "complete",
+    "freshBaseline": {
+      "label": "v0751-fresh-1x-n10-s300",
+      "revision": "32bb1c61ad80bb3fc2edcd82eaa81a4e7f3feac8",
+      "runtimeVersion": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d",
+      "concurrency": 10,
+      "configuredDurationS": 300,
+      "timeScale": 1,
+      "startedAt": "2026-11-16T13:42:08.194Z",
+      "capturedAt": "2026-11-16T13:47:16.226Z",
+      "elapsedS": 308.031,
+      "requests": 1754,
+      "rps": 5.694232074044495,
+      "groups": {
+        "run-open": {
+          "requests": 467,
+          "errors": 0,
+          "p50Ms": 340.18233399999735,
+          "p95Ms": 1093.827333000023,
+          "p99Ms": 1555.9730829999899,
+          "uploadBytes": 11224782,
+          "downloadBytes": 138262,
+          "statuses": {
+            "200": 467
+          }
+        },
+        "trace-stage": {
+          "requests": 467,
+          "errors": 0,
+          "p50Ms": 1403.291750000004,
+          "p95Ms": 3092.519082999992,
+          "p99Ms": 4354.7717910000065,
+          "uploadBytes": 70446957,
+          "downloadBytes": 49969,
+          "statuses": {
+            "200": 467
+          }
+        },
+        "checkpoint": {
+          "requests": 467,
+          "errors": 3,
+          "p50Ms": 2201.3762919999863,
+          "p95Ms": 11378.410208000001,
+          "p99Ms": 27482.441250000003,
+          "uploadBytes": 21784979,
+          "downloadBytes": 137781,
+          "statuses": {
+            "0": 3,
+            "200": 464
+          }
+        },
+        "draft": {
+          "requests": 152,
+          "errors": 0,
+          "p50Ms": 246.6500420000084,
+          "p95Ms": 886.7041250000038,
+          "p99Ms": 1434.8029589999933,
+          "uploadBytes": 23073,
+          "downloadBytes": 14257,
+          "statuses": {
+            "200": 152
+          }
+        },
+        "recovery": {
+          "requests": 96,
+          "errors": 0,
+          "p50Ms": 677.7877500000031,
+          "p95Ms": 1562.5494590000017,
+          "p99Ms": 2425.821083000017,
+          "uploadBytes": 0,
+          "downloadBytes": 4827046,
+          "statuses": {
+            "200": 96
+          }
+        },
+        "page-refresh": {
+          "requests": 48,
+          "errors": 0,
+          "p50Ms": 399.946082999988,
+          "p95Ms": 873.4364169999899,
+          "p99Ms": 1168.6557500000054,
+          "uploadBytes": 0,
+          "downloadBytes": 494159,
+          "statuses": {
+            "200": 48
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 27,
+          "errors": 0,
+          "p50Ms": 628.8879170000437,
+          "p95Ms": 1761.9424160000053,
+          "p99Ms": 1943.7329160000081,
+          "uploadBytes": 0,
+          "downloadBytes": 1894437,
+          "statuses": {
+            "200": 27
+          }
+        },
+        "step-submit": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 1069.79925000004,
+          "p95Ms": 1379.8654170000227,
+          "p99Ms": 1379.8654170000227,
+          "uploadBytes": 5117,
+          "downloadBytes": 980,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "report-save": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 351.3077500000363,
+          "p95Ms": 411.55387499998324,
+          "p99Ms": 411.55387499998324,
+          "uploadBytes": 3988,
+          "downloadBytes": 12749,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 134.71770799998194,
+          "p95Ms": 197.87045799999032,
+          "p99Ms": 197.87045799999032,
+          "uploadBytes": 4015,
+          "downloadBytes": 965,
+          "statuses": {
+            "400": 10
+          }
+        }
+      },
+      "clientCpuSeconds": 19.339435,
+      "eventLoopP95Ms": 22.085631,
+      "eventLoopMaximumMs": 41.549823,
+      "clientRssBytes": 386236416,
+      "uploadBytes": 103492911,
+      "downloadBytes": 7570605,
+      "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+      "externalIlabCalls": 0,
+      "aiProviderCalls": 0,
+      "criteria": {
+        "maximumErrorRate": 0.01,
+        "readP95Ms": 1500,
+        "saveP95Ms": 1500,
+        "minimumPacingFraction": 0.8
+      },
+      "actualErrorRate": 0.0017103762827822121,
+      "minimumPacingFraction": 0.7,
+      "correctnessAndPacingPassed": false,
+      "latencyGoalPassed": false,
+      "clients": [
+        {
+          "course": "destroyer",
+          "completedPackets": 48,
+          "completedRuns": 4,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "lng",
+          "completedPackets": 48,
+          "completedRuns": 2,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "container",
+          "completedPackets": 48,
+          "completedRuns": 4,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "cruise",
+          "completedPackets": 47,
+          "completedRuns": 3,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "drilling",
+          "completedPackets": 42,
+          "completedRuns": 1,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "icebreaker",
+          "completedPackets": 48,
+          "completedRuns": 4,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "dredger",
+          "completedPackets": 42,
+          "completedRuns": 1,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "destroyer",
+          "completedPackets": 46,
+          "completedRuns": 3,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "lng",
+          "completedPackets": 47,
+          "completedRuns": 1,
+          "attemptStatus": "submitted"
+        },
+        {
+          "course": "container",
+          "completedPackets": 48,
+          "completedRuns": 4,
+          "attemptStatus": "submitted"
+        }
+      ],
+      "requestErrorCount": 3,
+      "stateFailureCount": 0,
+      "coveredCourses": [
+        "container",
+        "cruise",
+        "destroyer",
+        "dredger",
+        "drilling",
+        "icebreaker",
+        "lng"
+      ],
+      "meanUploadBodyMbps": 2.6878570273771145,
+      "meanDownloadBodyMbps": 0.19661930130408953,
+      "host": {
+        "samples": 10,
+        "cpuPercentExcludesIowait": true,
+        "cpuBusyPercent": 85.05091232146518,
+        "cpuIowaitPercent": 6.184651131005262,
+        "cpuBusyMaximumPercent": 92.73166800966962,
+        "minimumAvailableMemoryBytes": 3271688192,
+        "minimumDiskAvailableBytes": 12972253184,
+        "maximumPostgresConnections": 11,
+        "maximumPostgresLockWaiters": 0,
+        "meanHostNicRxMbps": 8.225635584602324,
+        "meanHostNicTxMbps": 0.2893621208518435
+      },
+      "initialQaHistory": {
+        "capturedAt": "2026-11-16T13:42:05.290Z",
+        "concurrency": 10,
+        "byCourse": []
+      }
+    },
+    "phases": [
+      {
+        "label": "v0752-1x-n10-s300",
+        "revision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+        "runtimeVersion": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d",
+        "concurrency": 10,
+        "configuredDurationS": 300,
+        "timeScale": 1,
+        "startedAt": "2026-11-16T14:42:01.478Z",
+        "capturedAt": "2026-11-16T14:47:08.947Z",
+        "elapsedS": 307.466,
+        "requests": 2085,
+        "rps": 6.781237600254987,
+        "groups": {
+          "run-open": {
+            "requests": 576,
+            "errors": 0,
+            "p50Ms": 147.1229170000006,
+            "p95Ms": 566.7663329999777,
+            "p99Ms": 1268.4716670000053,
+            "uploadBytes": 13787081,
+            "downloadBytes": 170494,
+            "statuses": {
+              "200": 576
+            }
+          },
+          "trace-stage": {
+            "requests": 576,
+            "errors": 0,
+            "p50Ms": 500.25887499999953,
+            "p95Ms": 1536.7984580000011,
+            "p99Ms": 2359.748875000005,
+            "uploadBytes": 86940418,
+            "downloadBytes": 61632,
+            "statuses": {
+              "200": 576
+            }
+          },
+          "checkpoint": {
+            "requests": 576,
+            "errors": 0,
+            "p50Ms": 741.1417079999992,
+            "p95Ms": 3533.5178750000196,
+            "p99Ms": 8700.003958000001,
+            "uploadBytes": 26783793,
+            "downloadBytes": 171026,
+            "statuses": {
+              "200": 576
+            }
+          },
+          "draft": {
+            "requests": 166,
+            "errors": 0,
+            "p50Ms": 127.29341699997894,
+            "p95Ms": 459.1998329999915,
+            "p99Ms": 864.44175,
+            "uploadBytes": 25202,
+            "downloadBytes": 15574,
+            "statuses": {
+              "200": 166
+            }
+          },
+          "recovery": {
+            "requests": 103,
+            "errors": 0,
+            "p50Ms": 359.40312500001164,
+            "p95Ms": 1109.2406659999997,
+            "p99Ms": 1417.6350000000002,
+            "uploadBytes": 0,
+            "downloadBytes": 7128171,
+            "statuses": {
+              "200": 103
+            }
+          },
+          "page-refresh": {
+            "requests": 50,
+            "errors": 0,
+            "p50Ms": 245.14695799999754,
+            "p95Ms": 1219.588042000003,
+            "p99Ms": 1281.5226249999996,
+            "uploadBytes": 0,
+            "downloadBytes": 514445,
+            "statuses": {
+              "200": 50
+            }
+          },
+          "selected-run-recovery": {
+            "requests": 8,
+            "errors": 0,
+            "p50Ms": 525.5676659999881,
+            "p95Ms": 929.0503750000207,
+            "p99Ms": 929.0503750000207,
+            "uploadBytes": 0,
+            "downloadBytes": 590470,
+            "statuses": {
+              "200": 8
+            }
+          },
+          "step-submit": {
+            "requests": 10,
+            "errors": 0,
+            "p50Ms": 1074.2678750000196,
+            "p95Ms": 1169.358292000019,
+            "p99Ms": 1169.358292000019,
+            "uploadBytes": 5103,
+            "downloadBytes": 980,
+            "statuses": {
+              "200": 10
+            }
+          },
+          "report-save": {
+            "requests": 10,
+            "errors": 0,
+            "p50Ms": 326.47287499997765,
+            "p95Ms": 401.9716250000056,
+            "p99Ms": 401.9716250000056,
+            "uploadBytes": 4157,
+            "downloadBytes": 13022,
+            "statuses": {
+              "200": 10
+            }
+          },
+          "incomplete-report-submit": {
+            "requests": 10,
+            "errors": 0,
+            "p50Ms": 152.88099999999395,
+            "p95Ms": 202.48941699997522,
+            "p99Ms": 202.48941699997522,
+            "uploadBytes": 4176,
+            "downloadBytes": 895,
+            "statuses": {
+              "400": 10
+            }
+          }
+        },
+        "clientCpuSeconds": 27.015126,
+        "eventLoopP95Ms": 22.102015,
+        "eventLoopMaximumMs": 40.173567,
+        "clientRssBytes": 380223488,
+        "uploadBytes": 127549930,
+        "downloadBytes": 8666709,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "criteria": {
+          "maximumErrorRate": 0.01,
+          "readP95Ms": 1500,
+          "saveP95Ms": 1500,
+          "minimumPacingFraction": 0.8
+        },
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.9,
+        "correctnessAndPacingPassed": true,
+        "latencyGoalPassed": false,
+        "clients": [
+          {
+            "course": "destroyer",
+            "completedPackets": 60,
+            "completedRuns": 5,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 58,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "container",
+            "completedPackets": 60,
+            "completedRuns": 5,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "cruise",
+            "completedPackets": 59,
+            "completedRuns": 4,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "drilling",
+            "completedPackets": 56,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "icebreaker",
+            "completedPackets": 59,
+            "completedRuns": 4,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "dredger",
+            "completedPackets": 54,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "destroyer",
+            "completedPackets": 57,
+            "completedRuns": 4,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 55,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "container",
+            "completedPackets": 58,
+            "completedRuns": 4,
+            "attemptStatus": "submitted"
+          }
+        ],
+        "requestErrorCount": 0,
+        "stateFailureCount": 0,
+        "coveredCourses": [
+          "container",
+          "cruise",
+          "destroyer",
+          "dredger",
+          "drilling",
+          "icebreaker",
+          "lng"
+        ],
+        "meanUploadBodyMbps": 3.31873911261733,
+        "meanDownloadBodyMbps": 0.22550028946289996,
+        "host": {
+          "samples": 10,
+          "cpuPercentExcludesIowait": true,
+          "cpuBusyPercent": 71.18205814224919,
+          "cpuIowaitPercent": 1.0953295864681907,
+          "cpuBusyMaximumPercent": 76.52748669998388,
+          "minimumAvailableMemoryBytes": 3334287360,
+          "minimumDiskAvailableBytes": 11757768704,
+          "maximumPostgresConnections": 11,
+          "maximumPostgresLockWaiters": 0,
+          "meanHostNicRxMbps": 3.6639894221947062,
+          "meanHostNicTxMbps": 0.29021453831611804
+        },
+        "componentCpu": {
+          "scope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+          "elapsedSeconds": 313.1318039894104,
+          "averageCpuCores": {
+            "act-obe-app": 0.983956129893531,
+            "act-obe-worker": 0.01052026002478945,
+            "act-obe-postgres": 0.05094106953294161,
+            "act-obe-redis": 0.009239198839405783
+          }
+        },
+        "initialQaHistory": {
+          "capturedAt": "2026-11-16T14:41:58.511Z",
+          "concurrency": 10,
+          "byCourse": []
+        }
+      },
+      {
+        "label": "v0752-8x-n3-s300",
+        "revision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+        "runtimeVersion": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d",
+        "concurrency": 3,
+        "configuredDurationS": 300,
+        "timeScale": 8,
+        "startedAt": "2026-11-16T14:49:32.760Z",
+        "capturedAt": "2026-11-16T14:54:39.650Z",
+        "elapsedS": 306.889,
+        "requests": 1470,
+        "rps": 4.790005506877079,
+        "groups": {
+          "run-open": {
+            "requests": 158,
+            "errors": 0,
+            "p50Ms": 199.41037500000675,
+            "p95Ms": 507.3251659999951,
+            "p99Ms": 702.7615420000002,
+            "uploadBytes": 4065026,
+            "downloadBytes": 46203,
+            "statuses": {
+              "200": 158
+            }
+          },
+          "trace-stage": {
+            "requests": 1036,
+            "errors": 0,
+            "p50Ms": 340.88320800001384,
+            "p95Ms": 847.2181659999769,
+            "p99Ms": 1069.9701250000217,
+            "uploadBytes": 154038198,
+            "downloadBytes": 110852,
+            "statuses": {
+              "200": 1036
+            }
+          },
+          "checkpoint": {
+            "requests": 158,
+            "errors": 0,
+            "p50Ms": 2324.2551669999957,
+            "p95Ms": 5242.378208000009,
+            "p99Ms": 6316.157208000019,
+            "uploadBytes": 7673031,
+            "downloadBytes": 47158,
+            "statuses": {
+              "200": 158
+            }
+          },
+          "draft": {
+            "requests": 51,
+            "errors": 0,
+            "p50Ms": 117.4127499999995,
+            "p95Ms": 249.13570799998706,
+            "p99Ms": 425.7537500000326,
+            "uploadBytes": 7742,
+            "downloadBytes": 4784,
+            "statuses": {
+              "200": 51
+            }
+          },
+          "recovery": {
+            "requests": 32,
+            "errors": 0,
+            "p50Ms": 461.5764579999959,
+            "p95Ms": 903.2930000000051,
+            "p99Ms": 965.5257090000086,
+            "uploadBytes": 0,
+            "downloadBytes": 1685629,
+            "statuses": {
+              "200": 32
+            }
+          },
+          "page-refresh": {
+            "requests": 15,
+            "errors": 0,
+            "p50Ms": 162.14541700005066,
+            "p95Ms": 273.0903330000001,
+            "p99Ms": 273.0903330000001,
+            "uploadBytes": 0,
+            "downloadBytes": 152418,
+            "statuses": {
+              "200": 15
+            }
+          },
+          "selected-run-recovery": {
+            "requests": 11,
+            "errors": 0,
+            "p50Ms": 196.97037500000442,
+            "p95Ms": 338.55012500000885,
+            "p99Ms": 338.55012500000885,
+            "uploadBytes": 0,
+            "downloadBytes": 892287,
+            "statuses": {
+              "200": 11
+            }
+          },
+          "step-submit": {
+            "requests": 3,
+            "errors": 0,
+            "p50Ms": 972.7847499999916,
+            "p95Ms": 999.1700829999754,
+            "p99Ms": 999.1700829999754,
+            "uploadBytes": 1534,
+            "downloadBytes": 294,
+            "statuses": {
+              "200": 3
+            }
+          },
+          "report-save": {
+            "requests": 3,
+            "errors": 0,
+            "p50Ms": 169.50745899998583,
+            "p95Ms": 169.81837500003166,
+            "p99Ms": 169.81837500003166,
+            "uploadBytes": 1441,
+            "downloadBytes": 4221,
+            "statuses": {
+              "200": 3
+            }
+          },
+          "incomplete-report-submit": {
+            "requests": 3,
+            "errors": 0,
+            "p50Ms": 99.01020900002914,
+            "p95Ms": 109.64566700003343,
+            "p99Ms": 109.64566700003343,
+            "uploadBytes": 1447,
+            "downloadBytes": 195,
+            "statuses": {
+              "400": 3
+            }
+          }
+        },
+        "clientCpuSeconds": 28.241836,
+        "eventLoopP95Ms": 22.085631,
+        "eventLoopMaximumMs": 47.316991,
+        "clientRssBytes": 372785152,
+        "uploadBytes": 165788419,
+        "downloadBytes": 2944041,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "criteria": {
+          "maximumErrorRate": 0.01,
+          "readP95Ms": 1500,
+          "saveP95Ms": 1500,
+          "minimumPacingFraction": 0.8
+        },
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.7,
+        "correctnessAndPacingPassed": false,
+        "latencyGoalPassed": false,
+        "clients": [
+          {
+            "course": "destroyer",
+            "completedPackets": 344,
+            "completedRuns": 28,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 336,
+            "completedRuns": 14,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "container",
+            "completedPackets": 356,
+            "completedRuns": 29,
+            "attemptStatus": "submitted"
+          }
+        ],
+        "requestErrorCount": 0,
+        "stateFailureCount": 0,
+        "coveredCourses": [
+          "container",
+          "destroyer",
+          "lng"
+        ],
+        "meanUploadBodyMbps": 4.321781986320787,
+        "meanDownloadBodyMbps": 0.07674542912909879,
+        "host": {
+          "samples": 9,
+          "cpuPercentExcludesIowait": true,
+          "cpuBusyPercent": 76.36129136270202,
+          "cpuIowaitPercent": 1.3723751561807263,
+          "cpuBusyMaximumPercent": 77.42038216560509,
+          "minimumAvailableMemoryBytes": 3348951040,
+          "minimumDiskAvailableBytes": 11589705728,
+          "maximumPostgresConnections": 7,
+          "maximumPostgresLockWaiters": 0,
+          "meanHostNicRxMbps": 4.6569198655784305,
+          "meanHostNicTxMbps": 0.15556800313039648
+        },
+        "componentCpu": {
+          "scope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+          "elapsedSeconds": 312.5798599720001,
+          "averageCpuCores": {
+            "act-obe-app": 1.10241872278933,
+            "act-obe-worker": 0.010185077184068036,
+            "act-obe-postgres": 0.03192851580678933,
+            "act-obe-redis": 0.009229331026824378
+          }
+        },
+        "initialQaHistory": {
+          "capturedAt": "2026-11-16T14:49:30.929Z",
+          "concurrency": 3,
+          "byCourse": []
+        }
+      },
+      {
+        "label": "v0752-8x-n2-s300",
+        "revision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+        "runtimeVersion": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d",
+        "concurrency": 2,
+        "configuredDurationS": 300,
+        "timeScale": 8,
+        "startedAt": "2026-11-16T14:54:45.911Z",
+        "capturedAt": "2026-11-16T14:59:51.060Z",
+        "elapsedS": 305.148,
+        "requests": 1189,
+        "rps": 3.89646990968317,
+        "groups": {
+          "run-open": {
+            "requests": 125,
+            "errors": 0,
+            "p50Ms": 116.1174170000013,
+            "p95Ms": 373.8493749999907,
+            "p99Ms": 519.3508750000037,
+            "uploadBytes": 3216953,
+            "downloadBytes": 36476,
+            "statuses": {
+              "200": 125
+            }
+          },
+          "trace-stage": {
+            "requests": 860,
+            "errors": 0,
+            "p50Ms": 238.00108399998862,
+            "p95Ms": 591.7255000000005,
+            "p99Ms": 846.0203339999971,
+            "uploadBytes": 131111982,
+            "downloadBytes": 92020,
+            "statuses": {
+              "200": 860
+            }
+          },
+          "checkpoint": {
+            "requests": 125,
+            "errors": 0,
+            "p50Ms": 1465.1658340000013,
+            "p95Ms": 3260.7782909999987,
+            "p99Ms": 4810.545957999999,
+            "uploadBytes": 6282198,
+            "downloadBytes": 37192,
+            "statuses": {
+              "200": 125
+            }
+          },
+          "draft": {
+            "requests": 35,
+            "errors": 0,
+            "p50Ms": 67.00508299999638,
+            "p95Ms": 250.1363330000022,
+            "p99Ms": 351.1948750000156,
+            "uploadBytes": 5313,
+            "downloadBytes": 3283,
+            "statuses": {
+              "200": 35
+            }
+          },
+          "recovery": {
+            "requests": 21,
+            "errors": 0,
+            "p50Ms": 574.6653339999903,
+            "p95Ms": 1232.2930829999968,
+            "p99Ms": 1716.7882079999545,
+            "uploadBytes": 0,
+            "downloadBytes": 1588666,
+            "statuses": {
+              "200": 21
+            }
+          },
+          "page-refresh": {
+            "requests": 10,
+            "errors": 0,
+            "p50Ms": 102.15029200000572,
+            "p95Ms": 268.59204200000386,
+            "p99Ms": 268.59204200000386,
+            "uploadBytes": 0,
+            "downloadBytes": 101937,
+            "statuses": {
+              "200": 10
+            }
+          },
+          "selected-run-recovery": {
+            "requests": 7,
+            "errors": 0,
+            "p50Ms": 99.46624999999767,
+            "p95Ms": 541.5267499999973,
+            "p99Ms": 541.5267499999973,
+            "uploadBytes": 0,
+            "downloadBytes": 552010,
+            "statuses": {
+              "200": 7
+            }
+          },
+          "step-submit": {
+            "requests": 2,
+            "errors": 0,
+            "p50Ms": 1587.397416999971,
+            "p95Ms": 1634.6299590000417,
+            "p99Ms": 1634.6299590000417,
+            "uploadBytes": 1021,
+            "downloadBytes": 196,
+            "statuses": {
+              "200": 2
+            }
+          },
+          "report-save": {
+            "requests": 2,
+            "errors": 0,
+            "p50Ms": 111.11129199998686,
+            "p95Ms": 125.3719169999822,
+            "p99Ms": 125.3719169999822,
+            "uploadBytes": 958,
+            "downloadBytes": 2817,
+            "statuses": {
+              "200": 2
+            }
+          },
+          "incomplete-report-submit": {
+            "requests": 2,
+            "errors": 0,
+            "p50Ms": 60.06820899999002,
+            "p95Ms": 60.756457999988925,
+            "p99Ms": 60.756457999988925,
+            "uploadBytes": 961,
+            "downloadBytes": 130,
+            "statuses": {
+              "400": 2
+            }
+          }
+        },
+        "clientCpuSeconds": 23.836046,
+        "eventLoopP95Ms": 21.135359,
+        "eventLoopMaximumMs": 61.603839,
+        "clientRssBytes": 390742016,
+        "uploadBytes": 140619386,
+        "downloadBytes": 2414727,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "criteria": {
+          "maximumErrorRate": 0.01,
+          "readP95Ms": 1500,
+          "saveP95Ms": 1500,
+          "minimumPacingFraction": 0.8
+        },
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.8916666666666667,
+        "correctnessAndPacingPassed": true,
+        "latencyGoalPassed": false,
+        "clients": [
+          {
+            "course": "destroyer",
+            "completedPackets": 428,
+            "completedRuns": 35,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 432,
+            "completedRuns": 18,
+            "attemptStatus": "submitted"
+          }
+        ],
+        "requestErrorCount": 0,
+        "stateFailureCount": 0,
+        "coveredCourses": [
+          "destroyer",
+          "lng"
+        ],
+        "meanUploadBodyMbps": 3.686588435775427,
+        "meanDownloadBodyMbps": 0.06330638247669983,
+        "host": {
+          "samples": 9,
+          "cpuPercentExcludesIowait": true,
+          "cpuBusyPercent": 72.22177386813009,
+          "cpuIowaitPercent": 2.261722217738681,
+          "cpuBusyMaximumPercent": 81.72638436482085,
+          "minimumAvailableMemoryBytes": 3211825152,
+          "minimumDiskAvailableBytes": 11434582016,
+          "maximumPostgresConnections": 8,
+          "maximumPostgresLockWaiters": 0,
+          "meanHostNicRxMbps": 4.083713648922735,
+          "meanHostNicTxMbps": 0.15847451842433627
+        },
+        "componentCpu": {
+          "scope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+          "elapsedSeconds": 309.59273624420166,
+          "averageCpuCores": {
+            "act-obe-app": 0.9419810087855764,
+            "act-obe-worker": 0.010256593996751018,
+            "act-obe-postgres": 0.028641689425832177,
+            "act-obe-redis": 0.009107161344302393
+          }
+        },
+        "initialQaHistory": {
+          "capturedAt": "2026-11-16T14:54:44.685Z",
+          "concurrency": 2,
+          "byCourse": [
+            {
+              "course": "destroyer",
+              "runs": 29,
+              "completed": 28,
+              "chunks": 344
+            },
+            {
+              "course": "lng",
+              "runs": 14,
+              "completed": 14,
+              "chunks": 336
+            }
+          ]
+        }
+      },
+      {
+        "label": "v0752-1x-n20-s300",
+        "revision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+        "runtimeVersion": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d",
+        "concurrency": 20,
+        "configuredDurationS": 300,
+        "timeScale": 1,
+        "startedAt": "2026-11-16T15:00:01.382Z",
+        "capturedAt": "2026-11-16T15:05:16.526Z",
+        "elapsedS": 315.142,
+        "requests": 2514,
+        "rps": 7.977356239409536,
+        "groups": {
+          "run-open": {
+            "requests": 626,
+            "errors": 0,
+            "p50Ms": 622.8166249999776,
+            "p95Ms": 1353.335957999996,
+            "p99Ms": 1900.9354590000003,
+            "uploadBytes": 14539527,
+            "downloadBytes": 185409,
+            "statuses": {
+              "200": 626
+            }
+          },
+          "trace-stage": {
+            "requests": 618,
+            "errors": 0,
+            "p50Ms": 2859.8747090000033,
+            "p95Ms": 4052.620082999987,
+            "p99Ms": 4535.761625,
+            "uploadBytes": 92839334,
+            "downloadBytes": 66126,
+            "statuses": {
+              "200": 618
+            }
+          },
+          "checkpoint": {
+            "requests": 618,
+            "errors": 16,
+            "p50Ms": 4041.46312499998,
+            "p95Ms": 19130.109582999998,
+            "p99Ms": 30001.559749999986,
+            "uploadBytes": 28288607,
+            "downloadBytes": 178834,
+            "statuses": {
+              "0": 16,
+              "200": 602
+            }
+          },
+          "draft": {
+            "requests": 291,
+            "errors": 0,
+            "p50Ms": 444.99620799999684,
+            "p95Ms": 948.3887080000022,
+            "p99Ms": 1227.1802499999994,
+            "uploadBytes": 44138,
+            "downloadBytes": 27260,
+            "statuses": {
+              "200": 291
+            }
+          },
+          "recovery": {
+            "requests": 181,
+            "errors": 0,
+            "p50Ms": 1481.7168749999983,
+            "p95Ms": 2654.09487500001,
+            "p99Ms": 3344.2699169999687,
+            "uploadBytes": 0,
+            "downloadBytes": 12497154,
+            "statuses": {
+              "200": 181
+            }
+          },
+          "page-refresh": {
+            "requests": 97,
+            "errors": 0,
+            "p50Ms": 590.1607089999889,
+            "p95Ms": 1286.0299579999992,
+            "p99Ms": 2050.5470000000205,
+            "uploadBytes": 0,
+            "downloadBytes": 1003907,
+            "statuses": {
+              "200": 97
+            }
+          },
+          "selected-run-recovery": {
+            "requests": 23,
+            "errors": 0,
+            "p50Ms": 1461.1010419999948,
+            "p95Ms": 2066.30245800002,
+            "p99Ms": 2399.9234580000048,
+            "uploadBytes": 0,
+            "downloadBytes": 1696556,
+            "statuses": {
+              "200": 23
+            }
+          },
+          "step-submit": {
+            "requests": 20,
+            "errors": 0,
+            "p50Ms": 1528.7505419999943,
+            "p95Ms": 2317.1194999999716,
+            "p99Ms": 2389.4006250000093,
+            "uploadBytes": 10211,
+            "downloadBytes": 1960,
+            "statuses": {
+              "200": 20
+            }
+          },
+          "report-save": {
+            "requests": 20,
+            "errors": 0,
+            "p50Ms": 372.7484579999582,
+            "p95Ms": 875.866417000012,
+            "p99Ms": 914.7578750000102,
+            "uploadBytes": 7414,
+            "downloadBytes": 24650,
+            "statuses": {
+              "200": 20
+            }
+          },
+          "incomplete-report-submit": {
+            "requests": 20,
+            "errors": 0,
+            "p50Ms": 169.8445420000353,
+            "p95Ms": 577.2737080000225,
+            "p99Ms": 598.9258339999942,
+            "uploadBytes": 7453,
+            "downloadBytes": 2000,
+            "statuses": {
+              "400": 20
+            }
+          }
+        },
+        "clientCpuSeconds": 27.205528,
+        "eventLoopP95Ms": 21.250047,
+        "eventLoopMaximumMs": 93.716479,
+        "clientRssBytes": 415432704,
+        "uploadBytes": 135736684,
+        "downloadBytes": 15683856,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "criteria": {
+          "maximumErrorRate": 0.01,
+          "readP95Ms": 1500,
+          "saveP95Ms": 1500,
+          "minimumPacingFraction": 0.8
+        },
+        "actualErrorRate": 0.006364359586316627,
+        "minimumPacingFraction": 0.4166666666666667,
+        "correctnessAndPacingPassed": false,
+        "latencyGoalPassed": false,
+        "clients": [
+          {
+            "course": "destroyer",
+            "completedPackets": 33,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 28,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "container",
+            "completedPackets": 35,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "cruise",
+            "completedPackets": 31,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "drilling",
+            "completedPackets": 26,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "icebreaker",
+            "completedPackets": 34,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "dredger",
+            "completedPackets": 25,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "destroyer",
+            "completedPackets": 32,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 27,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "container",
+            "completedPackets": 35,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "cruise",
+            "completedPackets": 31,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "drilling",
+            "completedPackets": 26,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "icebreaker",
+            "completedPackets": 35,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "dredger",
+            "completedPackets": 25,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "destroyer",
+            "completedPackets": 32,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 27,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "container",
+            "completedPackets": 36,
+            "completedRuns": 3,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "cruise",
+            "completedPackets": 31,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "drilling",
+            "completedPackets": 26,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "icebreaker",
+            "completedPackets": 35,
+            "completedRuns": 2,
+            "attemptStatus": "submitted"
+          }
+        ],
+        "requestErrorCount": 16,
+        "stateFailureCount": 0,
+        "coveredCourses": [
+          "container",
+          "cruise",
+          "destroyer",
+          "dredger",
+          "drilling",
+          "icebreaker",
+          "lng"
+        ],
+        "meanUploadBodyMbps": 3.445727551389532,
+        "meanDownloadBodyMbps": 0.3981406730933991,
+        "host": {
+          "samples": 10,
+          "cpuPercentExcludesIowait": true,
+          "cpuBusyPercent": 81.04308633363739,
+          "cpuIowaitPercent": 1.3449947237574,
+          "cpuBusyMaximumPercent": 82.8453214513049,
+          "minimumAvailableMemoryBytes": 3200163840,
+          "minimumDiskAvailableBytes": 11289440256,
+          "maximumPostgresConnections": 13,
+          "maximumPostgresLockWaiters": 0,
+          "meanHostNicRxMbps": 3.756531480495802,
+          "meanHostNicTxMbps": 0.45194706019720166
+        },
+        "componentCpu": {
+          "scope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+          "elapsedSeconds": 322.979617357254,
+          "averageCpuCores": {
+            "act-obe-app": 1.156087316144731,
+            "act-obe-worker": 0.010819379342241071,
+            "act-obe-postgres": 0.06514173919751676,
+            "act-obe-redis": 0.009395942768249867
+          }
+        },
+        "initialQaHistory": {
+          "capturedAt": "2026-11-16T14:59:56.849Z",
+          "concurrency": 20,
+          "byCourse": [
+            {
+              "course": "container",
+              "runs": 10,
+              "completed": 9,
+              "chunks": 118
+            },
+            {
+              "course": "cruise",
+              "runs": 5,
+              "completed": 4,
+              "chunks": 59
+            },
+            {
+              "course": "destroyer",
+              "runs": 10,
+              "completed": 9,
+              "chunks": 117
+            },
+            {
+              "course": "dredger",
+              "runs": 3,
+              "completed": 2,
+              "chunks": 54
+            },
+            {
+              "course": "drilling",
+              "runs": 3,
+              "completed": 2,
+              "chunks": 56
+            },
+            {
+              "course": "icebreaker",
+              "runs": 5,
+              "completed": 4,
+              "chunks": 59
+            },
+            {
+              "course": "lng",
+              "runs": 6,
+              "completed": 4,
+              "chunks": 113
+            }
+          ]
+        }
+      },
+      {
+        "label": "v0752-1x-n15-s300",
+        "revision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+        "runtimeVersion": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d",
+        "concurrency": 15,
+        "configuredDurationS": 300,
+        "timeScale": 1,
+        "startedAt": "2026-11-16T15:05:24.619Z",
+        "capturedAt": "2026-11-16T15:10:34.225Z",
+        "elapsedS": 309.603,
+        "requests": 2442,
+        "rps": 7.887520469762889,
+        "groups": {
+          "run-open": {
+            "requests": 646,
+            "errors": 0,
+            "p50Ms": 461.25212499999907,
+            "p95Ms": 1019.3325409999816,
+            "p99Ms": 1367.8577499999956,
+            "uploadBytes": 15192370,
+            "downloadBytes": 191337,
+            "statuses": {
+              "200": 646
+            }
+          },
+          "trace-stage": {
+            "requests": 642,
+            "errors": 0,
+            "p50Ms": 2017.2711249999993,
+            "p95Ms": 2980.4840829999957,
+            "p99Ms": 3295.7844999999943,
+            "uploadBytes": 96778206,
+            "downloadBytes": 68694,
+            "statuses": {
+              "200": 642
+            }
+          },
+          "checkpoint": {
+            "requests": 642,
+            "errors": 8,
+            "p50Ms": 2899.1077500000247,
+            "p95Ms": 12589.524959000002,
+            "p99Ms": 30000.632249999995,
+            "uploadBytes": 29588066,
+            "downloadBytes": 188317,
+            "statuses": {
+              "0": 8,
+              "200": 634
+            }
+          },
+          "draft": {
+            "requests": 229,
+            "errors": 0,
+            "p50Ms": 333.8731659999976,
+            "p95Ms": 694.1979159999973,
+            "p99Ms": 904.9440000000177,
+            "uploadBytes": 34748,
+            "downloadBytes": 21466,
+            "statuses": {
+              "200": 229
+            }
+          },
+          "recovery": {
+            "requests": 139,
+            "errors": 0,
+            "p50Ms": 1610.8774170000106,
+            "p95Ms": 2705.554333,
+            "p99Ms": 2880.2455410000402,
+            "uploadBytes": 0,
+            "downloadBytes": 10457442,
+            "statuses": {
+              "200": 139
+            }
+          },
+          "page-refresh": {
+            "requests": 75,
+            "errors": 0,
+            "p50Ms": 384.6568750000006,
+            "p95Ms": 725.7292910000015,
+            "p99Ms": 930.383084000001,
+            "uploadBytes": 0,
+            "downloadBytes": 774627,
+            "statuses": {
+              "200": 75
+            }
+          },
+          "selected-run-recovery": {
+            "requests": 24,
+            "errors": 0,
+            "p50Ms": 1038.5450000000128,
+            "p95Ms": 1839.2495000000054,
+            "p99Ms": 2045.508124999993,
+            "uploadBytes": 0,
+            "downloadBytes": 1776159,
+            "statuses": {
+              "200": 24
+            }
+          },
+          "step-submit": {
+            "requests": 15,
+            "errors": 0,
+            "p50Ms": 1564.784875000012,
+            "p95Ms": 2143.7312909999746,
+            "p99Ms": 2143.7312909999746,
+            "uploadBytes": 7662,
+            "downloadBytes": 1470,
+            "statuses": {
+              "200": 15
+            }
+          },
+          "report-save": {
+            "requests": 15,
+            "errors": 0,
+            "p50Ms": 332.2721249999595,
+            "p95Ms": 746.3782500000088,
+            "p99Ms": 746.3782500000088,
+            "uploadBytes": 5804,
+            "downloadBytes": 18802,
+            "statuses": {
+              "200": 15
+            }
+          },
+          "incomplete-report-submit": {
+            "requests": 15,
+            "errors": 0,
+            "p50Ms": 190.07954200002132,
+            "p95Ms": 411.90158399997745,
+            "p99Ms": 411.90158399997745,
+            "uploadBytes": 5835,
+            "downloadBytes": 1500,
+            "statuses": {
+              "400": 15
+            }
+          }
+        },
+        "clientCpuSeconds": 27.11287,
+        "eventLoopP95Ms": 21.168127,
+        "eventLoopMaximumMs": 33.652735,
+        "clientRssBytes": 425361408,
+        "uploadBytes": 141612691,
+        "downloadBytes": 13499814,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "criteria": {
+          "maximumErrorRate": 0.01,
+          "readP95Ms": 1500,
+          "saveP95Ms": 1500,
+          "minimumPacingFraction": 0.8
+        },
+        "actualErrorRate": 0.003276003276003276,
+        "minimumPacingFraction": 0.5833333333333334,
+        "correctnessAndPacingPassed": false,
+        "latencyGoalPassed": false,
+        "clients": [
+          {
+            "course": "destroyer",
+            "completedPackets": 45,
+            "completedRuns": 3,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 46,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "container",
+            "completedPackets": 47,
+            "completedRuns": 3,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "cruise",
+            "completedPackets": 42,
+            "completedRuns": 3,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "drilling",
+            "completedPackets": 37,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "icebreaker",
+            "completedPackets": 46,
+            "completedRuns": 3,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "dredger",
+            "completedPackets": 35,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "destroyer",
+            "completedPackets": 44,
+            "completedRuns": 3,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 45,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "container",
+            "completedPackets": 46,
+            "completedRuns": 3,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "cruise",
+            "completedPackets": 43,
+            "completedRuns": 3,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "drilling",
+            "completedPackets": 36,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "icebreaker",
+            "completedPackets": 46,
+            "completedRuns": 3,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "dredger",
+            "completedPackets": 35,
+            "completedRuns": 1,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "destroyer",
+            "completedPackets": 45,
+            "completedRuns": 3,
+            "attemptStatus": "submitted"
+          }
+        ],
+        "requestErrorCount": 8,
+        "stateFailureCount": 0,
+        "coveredCourses": [
+          "container",
+          "cruise",
+          "destroyer",
+          "dredger",
+          "drilling",
+          "icebreaker",
+          "lng"
+        ],
+        "meanUploadBodyMbps": 3.6592072040645602,
+        "meanDownloadBodyMbps": 0.34882902297458357,
+        "host": {
+          "samples": 10,
+          "cpuPercentExcludesIowait": true,
+          "cpuBusyPercent": 80.31137167983412,
+          "cpuIowaitPercent": 1.2726557752118113,
+          "cpuBusyMaximumPercent": 82.08740195293741,
+          "minimumAvailableMemoryBytes": 3280113664,
+          "minimumDiskAvailableBytes": 11151978496,
+          "maximumPostgresConnections": 12,
+          "maximumPostgresLockWaiters": 0,
+          "meanHostNicRxMbps": 4.00057624953564,
+          "meanHostNicTxMbps": 0.3958925244339763
+        },
+        "componentCpu": {
+          "scope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+          "elapsedSeconds": 316.0013175010681,
+          "averageCpuCores": {
+            "act-obe-app": 1.1406540005922021,
+            "act-obe-worker": 0.009937610465783535,
+            "act-obe-postgres": 0.06333540049222217,
+            "act-obe-redis": 0.009369793212934917
+          }
+        },
+        "initialQaHistory": {
+          "capturedAt": "2026-11-16T15:05:21.479Z",
+          "concurrency": 15,
+          "byCourse": [
+            {
+              "course": "container",
+              "runs": 16,
+              "completed": 13,
+              "chunks": 188
+            },
+            {
+              "course": "cruise",
+              "runs": 11,
+              "completed": 8,
+              "chunks": 121
+            },
+            {
+              "course": "destroyer",
+              "runs": 19,
+              "completed": 15,
+              "chunks": 214
+            },
+            {
+              "course": "dredger",
+              "runs": 7,
+              "completed": 4,
+              "chunks": 104
+            },
+            {
+              "course": "drilling",
+              "runs": 7,
+              "completed": 4,
+              "chunks": 108
+            },
+            {
+              "course": "icebreaker",
+              "runs": 11,
+              "completed": 8,
+              "chunks": 128
+            },
+            {
+              "course": "lng",
+              "runs": 10,
+              "completed": 6,
+              "chunks": 168
+            }
+          ]
+        }
+      },
+      {
+        "label": "v0752-1x-n10-s1800",
+        "revision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+        "runtimeVersion": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d",
+        "concurrency": 10,
+        "configuredDurationS": 1800,
+        "timeScale": 1,
+        "startedAt": "2026-11-16T15:10:41.634Z",
+        "capturedAt": "2026-11-16T15:40:52.113Z",
+        "elapsedS": 1810.468,
+        "requests": 11122,
+        "rps": 6.143162983272833,
+        "groups": {
+          "run-open": {
+            "requests": 3094,
+            "errors": 0,
+            "p50Ms": 204.08412500005215,
+            "p95Ms": 783.0545409999322,
+            "p99Ms": 1346.9514999999665,
+            "uploadBytes": 74154343,
+            "downloadBytes": 916212,
+            "statuses": {
+              "200": 3094
+            }
+          },
+          "trace-stage": {
+            "requests": 3090,
+            "errors": 0,
+            "p50Ms": 681.765417000046,
+            "p95Ms": 2576.7838749999646,
+            "p99Ms": 3902.802665999974,
+            "uploadBytes": 466225584,
+            "downloadBytes": 330630,
+            "statuses": {
+              "200": 3090
+            }
+          },
+          "checkpoint": {
+            "requests": 3090,
+            "errors": 10,
+            "p50Ms": 1058.9945420000004,
+            "p95Ms": 4934.479833999998,
+            "p99Ms": 18148.71312500001,
+            "uploadBytes": 143948425,
+            "downloadBytes": 914804,
+            "statuses": {
+              "0": 10,
+              "200": 3080
+            }
+          },
+          "draft": {
+            "requests": 945,
+            "errors": 0,
+            "p50Ms": 155.36954200000037,
+            "p95Ms": 636.0184169999557,
+            "p99Ms": 1141.658792000031,
+            "uploadBytes": 144209,
+            "downloadBytes": 89399,
+            "statuses": {
+              "200": 945
+            }
+          },
+          "recovery": {
+            "requests": 515,
+            "errors": 0,
+            "p50Ms": 1473.813124999986,
+            "p95Ms": 4632.034583000001,
+            "p99Ms": 5941.5879589999095,
+            "uploadBytes": 0,
+            "downloadBytes": 40045788,
+            "statuses": {
+              "200": 515
+            }
+          },
+          "page-refresh": {
+            "requests": 282,
+            "errors": 0,
+            "p50Ms": 213.83625000005122,
+            "p95Ms": 688.4250420000171,
+            "p99Ms": 1614.0611250000075,
+            "uploadBytes": 0,
+            "downloadBytes": 2901126,
+            "statuses": {
+              "200": 282
+            }
+          },
+          "selected-run-recovery": {
+            "requests": 76,
+            "errors": 0,
+            "p50Ms": 668.9392080000252,
+            "p95Ms": 1887.3190000000177,
+            "p99Ms": 3225.560999999987,
+            "uploadBytes": 0,
+            "downloadBytes": 5652358,
+            "statuses": {
+              "200": 76
+            }
+          },
+          "step-submit": {
+            "requests": 10,
+            "errors": 0,
+            "p50Ms": 3032.138874999946,
+            "p95Ms": 3202.631250000093,
+            "p99Ms": 3202.631250000093,
+            "uploadBytes": 5105,
+            "downloadBytes": 980,
+            "statuses": {
+              "200": 10
+            }
+          },
+          "report-save": {
+            "requests": 10,
+            "errors": 0,
+            "p50Ms": 293.63141699996777,
+            "p95Ms": 315.14091700012796,
+            "p99Ms": 315.14091700012796,
+            "uploadBytes": 4800,
+            "downloadBytes": 14036,
+            "statuses": {
+              "200": 10
+            }
+          },
+          "incomplete-report-submit": {
+            "requests": 10,
+            "errors": 0,
+            "p50Ms": 108.09879199997522,
+            "p95Ms": 173.22787500009872,
+            "p99Ms": 173.22787500009872,
+            "uploadBytes": 4818,
+            "downloadBytes": 650,
+            "statuses": {
+              "400": 10
+            }
+          }
+        },
+        "clientCpuSeconds": 143.699938,
+        "eventLoopP95Ms": 22.069247,
+        "eventLoopMaximumMs": 74.252287,
+        "clientRssBytes": 405504000,
+        "uploadBytes": 684487284,
+        "downloadBytes": 50865983,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "criteria": {
+          "maximumErrorRate": 0.01,
+          "readP95Ms": 1500,
+          "saveP95Ms": 1500,
+          "minimumPacingFraction": 0.8
+        },
+        "actualErrorRate": 0.0008991188635137566,
+        "minimumPacingFraction": 0.8138888888888889,
+        "correctnessAndPacingPassed": true,
+        "latencyGoalPassed": false,
+        "clients": [
+          {
+            "course": "destroyer",
+            "completedPackets": 312,
+            "completedRuns": 26,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 308,
+            "completedRuns": 12,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "container",
+            "completedPackets": 316,
+            "completedRuns": 26,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "cruise",
+            "completedPackets": 310,
+            "completedRuns": 25,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "drilling",
+            "completedPackets": 293,
+            "completedRuns": 12,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "icebreaker",
+            "completedPackets": 314,
+            "completedRuns": 26,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "dredger",
+            "completedPackets": 294,
+            "completedRuns": 12,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "destroyer",
+            "completedPackets": 312,
+            "completedRuns": 26,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "lng",
+            "completedPackets": 309,
+            "completedRuns": 12,
+            "attemptStatus": "submitted"
+          },
+          {
+            "course": "container",
+            "completedPackets": 316,
+            "completedRuns": 26,
+            "attemptStatus": "submitted"
+          }
+        ],
+        "requestErrorCount": 10,
+        "stateFailureCount": 0,
+        "coveredCourses": [
+          "container",
+          "cruise",
+          "destroyer",
+          "dredger",
+          "drilling",
+          "icebreaker",
+          "lng"
+        ],
+        "meanUploadBodyMbps": 3.0245761162307203,
+        "meanDownloadBodyMbps": 0.22476390855845005,
+        "host": {
+          "samples": 58,
+          "cpuPercentExcludesIowait": true,
+          "cpuBusyPercent": 79.20286123515987,
+          "cpuIowaitPercent": 2.6192345464317572,
+          "cpuBusyMaximumPercent": 99.96834942237696,
+          "minimumAvailableMemoryBytes": 3153842176,
+          "minimumDiskAvailableBytes": 8165896192,
+          "maximumPostgresConnections": 13,
+          "maximumPostgresLockWaiters": 0,
+          "meanHostNicRxMbps": 3.401480878442644,
+          "meanHostNicTxMbps": 0.34891985655928404
+        },
+        "componentCpu": {
+          "scope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+          "elapsedSeconds": 1816.037923336029,
+          "averageCpuCores": {
+            "act-obe-app": 0.9757198036619028,
+            "act-obe-worker": 0.011150304594301786,
+            "act-obe-postgres": 0.049257501096494474,
+            "act-obe-redis": 0.009260735573795682
+          }
+        },
+        "initialQaHistory": {
+          "capturedAt": "2026-11-16T15:10:39.042Z",
+          "concurrency": 10,
+          "byCourse": [
+            {
+              "course": "container",
+              "runs": 24,
+              "completed": 19,
+              "chunks": 281
+            },
+            {
+              "course": "cruise",
+              "runs": 12,
+              "completed": 9,
+              "chunks": 132
+            },
+            {
+              "course": "destroyer",
+              "runs": 24,
+              "completed": 19,
+              "chunks": 271
+            },
+            {
+              "course": "dredger",
+              "runs": 7,
+              "completed": 4,
+              "chunks": 114
+            },
+            {
+              "course": "drilling",
+              "runs": 7,
+              "completed": 4,
+              "chunks": 119
+            },
+            {
+              "course": "icebreaker",
+              "runs": 12,
+              "completed": 9,
+              "chunks": 139
+            },
+            {
+              "course": "lng",
+              "runs": 14,
+              "completed": 8,
+              "chunks": 259
+            }
+          ]
+        }
+      }
+    ],
+    "fiveMinuteVerifiedNormalConcurrency": 10,
+    "verifiedSustainedNormalConcurrency": 10,
+    "unexecutedNormalConcurrency": [
+      30,
+      60,
+      120
+    ],
+    "externalIlabCalls": 0,
+    "aiProviderCalls": 0,
+    "bandwidthScope": "HTTP encoded API entity bodies only; excludes headers/TLS, OSS/ESA public models and cold starts; host NIC includes all other services",
+    "freshComparison": {
+      "checkpointP95ImprovementPercent": 68.9454167110652,
+      "recoveryP95ImprovementPercent": 29.010844449692485,
+      "sameHardware": true,
+      "bothInitialHistoryEmpty": true,
+      "sharedHostAndSeparateTimeWindows": true
+    }
+  },
+  "cleanup": {
+    "database": {
+      "target": "production",
+      "users": 130,
+      "runs": 513,
+      "reports": 34,
+      "localExperimentRounds": 34
+    },
+    "privateCas": {
+      "removed": 13441,
+      "missing": 0,
+      "shared": 0,
+      "bytes": 1464104768
+    },
+    "verifiedRemaining": {
+      "verifiedDedicatedAccounts": 130,
+      "capturedRuns": 513,
+      "remaining": {
+        "User": 0,
+        "IlabExperimentRun": 0,
+        "VirtualSimulationReport": 0,
+        "StudentModelArtifact": 0,
+        "ComparisonArtifact": 0,
+        "AppliedRunEnvelope": 0,
+        "StepSubmissionAttempt": 0,
+        "KonlingSession": 0,
+        "Account": 0,
+        "Session": 0,
+        "SimulationRun": 0,
+        "SimulationTrace": 0,
+        "capturedRunsById": 0
+      },
+      "allScopedCountsZero": true,
+      "capturedAt": "2026-11-16T15:43:28.176Z"
+    },
+    "privateFiles": {
+      "capturedAt": "2026-11-16T15:45:24.729126+00:00",
+      "removedIdentityFiles": 4,
+      "removedReferenceJournals": 8,
+      "removedPrivateCasIndexes": 1,
+      "verifiedAbsent": true
+    },
+    "finalHealth": {
+      "capturedAt": "2026-11-16T15:45:34.738399+00:00",
+      "versions": {
+        "act-obe-app": {
+          "revision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+          "version": "0.7.52"
+        },
+        "act-obe-worker": {
+          "revision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+          "version": "0.7.52"
+        }
+      },
+      "persistentContainersUnchanged": true,
+      "runtimeIdentityUnchanged": true,
+      "runtimeIdentity": {
+        "schemaVersion": "act-runtime-release.v2",
+        "releaseId": "runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752",
+        "manifestSha256": "cdd2f4bec3232beaa0cf4932246349d0ad2bddf4f752e7a2dce3db961aafd54f",
+        "treeSha256": "e7fb21aad6915d487b0aa7cb5f50ae9cd8b50c91329c4f88f12b230cccf895e0"
+      },
+      "healthy": true,
+      "host": {
+        "cpuCount": 2,
+        "memoryBytes": 7826014208,
+        "diskAvailableBytes": 12010049536
+      }
+    }
   }
 }
