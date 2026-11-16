@@ -154,6 +154,11 @@ try {
   assert.equal(completedSummary.fineStepMetrics.values.physicsSamples,1320);
   assert.deepEqual(await uploadVesselRunEvidence(reportClientRef,run),completed);
   await assert.rejects(uploadVesselRunEvidence(reportClientRef,{...run,trace:[...run.trace,run.trace.at(-1)!]}),/后续记录/);
+  const savedChunk = vesselTraceChunkSchema.parse(captured.find((item) => item.url.includes('/chunks'))!.data);
+  const storedChunk = await prisma.simulationTrace.findUniqueOrThrow({where:{runId_chunkIndex:{runId:interruptedRun.id,chunkIndex:savedChunk.chunkIndex}}});
+  assert.deepEqual(await stageVesselEvidenceChunk(user.id,savedChunk),{reference:storedChunk.sampleStorageUri});
+  await assert.rejects(stageVesselEvidenceChunk(user.id,{...savedChunk,endTimeS:savedChunk.endTimeS+1}),/已经结束/);
+  await assert.rejects(stageVesselEvidenceChunk('unrelated-owner',savedChunk),/不存在/);
   const envelope = await prisma.appliedRunEnvelope.findUniqueOrThrow({where:{runRef:run.id}});
   assert.match(envelope.firstSampleReceipt!,/^[a-f0-9]{64}$/);
   assert.equal(Number(envelope.simulationEndMs! - envelope.simulationStartMs),11000);
@@ -409,7 +414,7 @@ try {
   console.log(JSON.stringify({status:'passed',controlSamples:completed.controlCount,nativeSamples:completed.nativeCount,
     chunks:completed.chunkCount,fineWindowSamples:completed.fineCount,reviewStateFixtureScore:report.score,
     checks:['gzip-bound','opening-identity','pause-prefix','exact-running-checkpoint','atomic-interrupted-upload',
-      'concurrent-checkpoint-retry','concurrent-retry','conflict-409','foreign-404','append-resume','native-close','terminal-retry',
+      'concurrent-checkpoint-retry','concurrent-retry','conflict-409','foreign-404','append-resume','native-close','terminal-retry','closed-chunk-retry','closed-chunk-conflict','closed-chunk-owner',
       'receipt-time','model-freeze','comparison','server-attempt-validation','report-minimum','escaped-html',
       'review-authorization','pending-score-null','fixed-rubric','finalization-freeze']}));
 } finally {
