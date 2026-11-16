@@ -206,3 +206,7 @@ aliyunssh
 aliyunssh.pub
 rust/control-engine/target
 unit41-step*.png
+# Local optional WASM metadata can outlive a branch checkout. The committed
+# identity.generated.ts supplies the sealed identity used by the image.
+src/resources/control-system/wasm/control_engine/identity.json
+src/resources/control-system/wasm/control_engine/.build-hash

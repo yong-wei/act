@@ -56,16 +56,28 @@ describe('仿真网络检查的实际传输口径', () => {
     expect(fetch).toHaveBeenCalledTimes(12);
   });
 
-  it('八路抽查直接核验服务状态并显示失败数量', async () => {
+  it('八路应用连接与一次完整依赖核验分别计数', async () => {
     let calls = 0;
-    const fetch = vi.fn(async (_input: RequestInfo | URL) => {
+    const fetch = vi.fn(async (input: RequestInfo | URL) => {
+      if (input === '/api/readyz') return Response.json({app: true, db: true, redis: true});
       calls++;
-      return Response.json({app: calls > 2, db: true, redis: true});
+      return Response.json({status: calls > 2 ? 'ok' : 'unavailable'});
     });
     vi.stubGlobal('fetch', fetch);
     await clickAndRead('检查八路连接', '8 路连接中 6 路就绪');
-    expect(fetch).toHaveBeenCalledTimes(8);
-    expect(fetch.mock.calls.every((call) => call[0] === '/api/readyz')).toBe(true);
+    expect(fetch).toHaveBeenCalledTimes(9);
+    expect(fetch.mock.calls.filter(([url]) => url === '/api/readyz')).toHaveLength(1);
+    expect(fetch.mock.calls.filter(([url]) => url === '/api/health')).toHaveLength(8);
+    expect(host.textContent).toContain('数据库、缓存与课程内容就绪');
+  });
+
+  it('依赖核验超时仍显示应用连接的实际结果', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      if (input === '/api/readyz') throw new DOMException('timeout', 'TimeoutError');
+      return Response.json({status: 'ok'});
+    }));
+    await clickAndRead('检查八路连接', '8 路连接中 8 路就绪');
+    expect(host.textContent).toContain('依赖就绪检查未通过');
   });
 
   it('带宽样本保留真实体积并要求传输层保留原始表示', async () => {

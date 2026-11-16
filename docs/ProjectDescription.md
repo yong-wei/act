@@ -381,3 +381,7 @@ rtk npm run runtime:activate -- --store-dir /home/projects/act/data/runtime/cas-
 - 数据模型：`prisma/schema.prisma`
 
 修改核心功能后，应按改动范围运行定向测试、`rtk npm run lint`、`rtk npm run test`、`rtk npm run test:unit` 和 `rtk npm run build`。涉及 Rust/WASM、Prisma schema、课堂同步、数据治理、Arena、课程 runtime 或 OpenSpec 的变更，还应补充对应的定向 Vitest、脚本测试、Playwright 验收或 `rtk openspec validate --changes --strict`。
+
+## 2026-11-16 仿真发布校验补充
+
+0.7.49修正独立构建树的可选数值模块元数据跨分支残留问题。镜像使用提交的身份清单并校验实际模块文件，完整运行结束后的评价与保存纳入生产复验。网络检查分别显示八路应用连接及单次依赖就绪结果。持续并发与综合带宽结果继续按实际负载记录。

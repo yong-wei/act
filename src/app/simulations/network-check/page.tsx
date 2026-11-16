@@ -55,6 +55,7 @@ export default function NetworkCheckPage() {
   const [bandwidth, setBandwidth] = useState<BandwidthResult | null>(null);
   const [bandwidthNote, setBandwidthNote] = useState('尚未测试');
   const [probe, setProbe] = useState<ProbeRow[]>([]);
+  const [dependenciesReady, setDependenciesReady] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function runBandwidth() {
@@ -75,16 +76,23 @@ export default function NetworkCheckPage() {
   async function runProbe(total: number) {
     setBusy(true);
     setProbe([]);
+    setDependenciesReady(null);
     try {
+      const dependencies = fetch('/api/readyz', { cache: 'no-store', signal: AbortSignal.timeout(15000) })
+        .then(async (response) => {
+          const value = await response.json() as { app?: boolean; db?: boolean; redis?: boolean };
+          return response.ok && Boolean(value.app && value.db && value.redis);
+        }).catch(() => false);
       const rows = await Promise.all(Array.from({ length: total }, async () => {
         const started = performance.now();
         try {
-          const response = await fetch('/api/readyz', { cache: 'no-store', signal: AbortSignal.timeout(15000) });
-          const value = await response.json() as { app?: boolean; db?: boolean; redis?: boolean };
-          return { status: response.status, ready: response.ok && Boolean(value.app && value.db && value.redis), ms: Math.round(performance.now() - started) };
+          const response = await fetch('/api/health', { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+          const value = await response.json() as { status?: string };
+          return { status: response.status, ready: response.ok && value.status === 'ok', ms: Math.round(performance.now() - started) };
         } catch { return { status: 0, ready: false, ms: Math.round(performance.now() - started) }; }
       }));
       setProbe(rows);
+      setDependenciesReady(await dependencies);
     } finally { setBusy(false); }
   }
 
@@ -123,7 +131,7 @@ export default function NetworkCheckPage() {
         <section className="surface-card rounded-lg p-5" data-network-concurrency>
           <h2 className="text-xl font-semibold">服务连接</h2>
           <p className="mt-2 text-sm leading-6 text-subtle">
-            检查应用、数据库和缓存连接。八路短请求用于查看连接响应，班级集中进入的安排需结合交付版本的持续负载实测。
+            八路短请求检查应用连接，同时单次核验数据库、缓存与课程内容就绪状态。班级集中进入的安排需结合交付版本的持续负载实测。
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <button type="button" className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60" onClick={() => { void runProbe(1); }} disabled={busy}>
@@ -136,6 +144,7 @@ export default function NetworkCheckPage() {
           </div>
           {probe.length ? <div className="mt-4 text-sm" data-concurrency-summary role="status">
             <p>{probe.length} 路连接中 {available} 路就绪，最慢 {slowest} ms。</p>
+            {dependenciesReady !== null ? <p>{dependenciesReady ? '数据库、缓存与课程内容就绪。' : '依赖就绪检查未通过，请稍后重试。'}</p> : null}
             <ul className="mt-2 space-y-1">
               {probe.map((row, index) => <li key={index}>{index + 1}. {row.ready ? '服务就绪' : `暂时不可用（${row.status || '连接失败'}）`} · {row.ms} ms</li>)}
             </ul>
