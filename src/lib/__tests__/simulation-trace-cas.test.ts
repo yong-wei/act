@@ -39,7 +39,7 @@ describe('SimulationTrace私有内容寻址分块', () => {
     await expect(readSimulationTraceChunk('simulation-cas:file:sha256:../../private')).rejects.toThrow('引用无效');
   });
 
-  it('异步压缩保留旧规范序分块的内容身份和实际字节', async () => {
+  it('读取旧分块并以相同内容身份保存快速压缩分块', async () => {
     const legacyText = '{"schema":"test","units":"°/s","values":[1,2,null,4]}';
     const checksum = createHash('sha256').update(legacyText).digest('hex');
     const reference = `simulation-cas:file:sha256:${checksum}`;
@@ -51,7 +51,7 @@ describe('SimulationTrace私有内容寻址分块', () => {
     expect(await readSimulationTraceChunk(reference)).toEqual(data);
     const stored = await writeSimulationTraceChunk(data);
     expect(stored.uri).toBe(reference);
-    expect(await readFile(file)).toEqual(gzipSync(legacyText));
+    expect(await readFile(file)).toEqual(gzipSync(legacyText,{ level:3 }));
     expect(gzip).toHaveBeenCalledOnce();
     expect(gunzip).toHaveBeenCalledOnce();
   });

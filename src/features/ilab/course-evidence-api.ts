@@ -67,7 +67,7 @@ export async function vesselEvidenceJsonResponse(request: Request, value: unknow
   });
   let bytes = Buffer.from(JSON.stringify(value));
   if (acceptsGzip && bytes.byteLength >= 1024) {
-    bytes = await compress(bytes);
+    bytes = await compress(bytes,{ level:3 });
     headers.set('Content-Encoding', 'gzip');
   }
   headers.set('Content-Length', String(bytes.byteLength));

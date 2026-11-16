@@ -8,27 +8,38 @@ import { createHash } from 'node:crypto';
 
 /** 规范序 JSON 文本：键字典序、数字经 Number() 归一（-0 → 0）。 */
 export function canonicalJson(value: unknown): string {
-  if (value === null || typeof value === 'string' || typeof value === 'boolean') {
-    return JSON.stringify(value);
-  }
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) {
-      throw new Error('规范序序列化遇到非有限数值');
+  // 同一曲线中仪器字段高度重复。只在本次调用内复用键文本，避免为每个
+  // 样本分配 entries/filter/sort/map 的中间数组，不保留任何记录正文。
+  const keyTexts = new Map<string, string>();
+  function serialize(value: unknown): string {
+    if (value === null) return 'null';
+    if (typeof value === 'string') return JSON.stringify(value);
+    if (typeof value === 'boolean') return value ? 'true' : 'false';
+    if (typeof value === 'number') {
+      if (!Number.isFinite(value)) throw new Error('规范序序列化遇到非有限数值');
+      return String(value);
     }
-    const normalized = Object.is(value, -0) ? 0 : value;
-    return JSON.stringify(normalized);
+    if (Array.isArray(value)) return `[${value.map(serialize).join(',')}]`;
+    if (typeof value === 'object') {
+      const object = value as Record<string, unknown>;
+      let text = '{';
+      let separator = '';
+      for (const key of Object.keys(object).sort()) {
+        const entry = object[key];
+        if (entry === undefined) continue;
+        let keyText = keyTexts.get(key);
+        if (keyText === undefined) {
+          keyText = JSON.stringify(key);
+          keyTexts.set(key, keyText);
+        }
+        text += `${separator}${keyText}:${serialize(entry)}`;
+        separator = ',';
+      }
+      return `${text}}`;
+    }
+    throw new Error(`规范序序列化遇到不支持类型：${typeof value}`);
   }
-  if (Array.isArray(value)) {
-    return `[${value.map((v) => canonicalJson(v)).join(',')}]`;
-  }
-  if (typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>)
-      .filter(([, v]) => v !== undefined)
-      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-      .map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`);
-    return `{${entries.join(',')}}`;
-  }
-  throw new Error(`规范序序列化遇到不支持类型：${typeof value}`);
+  return serialize(value);
 }
 
 /** 学生辨识工件内容哈希（sha256 hex，64 位小写）。

@@ -1,0 +1,346 @@
+{
+  "schema": "act.simulation-software-second-pass.v1",
+  "scope": "Local measurements, before production deployment; same native representative inputs; no real ILAB or AI upstream pressure calls",
+  "storage": {
+    "schema": "act.evidence-storage-benchmark.v1",
+    "baselineRevision": "5c3ecaaf5a6be34f4b987b24737ffc881e3a3237",
+    "inputDigest": "bc6991438df5432b78ac1c3560e411f50d04e539cf3b9c4a833394475e5878cf",
+    "scope": "Local file-backed storage; seven representative native chunks; 70 operations per round; ten concurrent writes/reads; five alternating rounds after warm-up",
+    "roundTripExact": true,
+    "referencesExact": true,
+    "samples": [
+      {
+        "label": "baseline",
+        "round": 0,
+        "elapsedMs": 1191.017084,
+        "cpuMs": 2280.294,
+        "eventLoopP95Ms": 12.427263,
+        "eventLoopMaximumMs": 144.572415,
+        "storedBytes": 11933160
+      },
+      {
+        "label": "current",
+        "round": 0,
+        "elapsedMs": 940.6425420000005,
+        "cpuMs": 1643.346,
+        "eventLoopP95Ms": 24.248319,
+        "eventLoopMaximumMs": 119.341055,
+        "storedBytes": 13467978
+      },
+      {
+        "label": "current",
+        "round": 1,
+        "elapsedMs": 1022.4447089999994,
+        "cpuMs": 1631.978,
+        "eventLoopP95Ms": 16.302079,
+        "eventLoopMaximumMs": 159.252479,
+        "storedBytes": 13467978
+      },
+      {
+        "label": "baseline",
+        "round": 1,
+        "elapsedMs": 1123.5534159999997,
+        "cpuMs": 2228.49,
+        "eventLoopP95Ms": 11.935743,
+        "eventLoopMaximumMs": 132.251647,
+        "storedBytes": 11933160
+      },
+      {
+        "label": "baseline",
+        "round": 2,
+        "elapsedMs": 1131.7533329999997,
+        "cpuMs": 2218.201,
+        "eventLoopP95Ms": 15.015935,
+        "eventLoopMaximumMs": 168.034303,
+        "storedBytes": 11933160
+      },
+      {
+        "label": "current",
+        "round": 2,
+        "elapsedMs": 922.2277089999989,
+        "cpuMs": 1607.896,
+        "eventLoopP95Ms": 26.886143,
+        "eventLoopMaximumMs": 139.460607,
+        "storedBytes": 13467978
+      },
+      {
+        "label": "current",
+        "round": 3,
+        "elapsedMs": 938.3896249999998,
+        "cpuMs": 1618.736,
+        "eventLoopP95Ms": 31.129599,
+        "eventLoopMaximumMs": 115.212287,
+        "storedBytes": 13467978
+      },
+      {
+        "label": "baseline",
+        "round": 3,
+        "elapsedMs": 1122.4797909999998,
+        "cpuMs": 2210.975,
+        "eventLoopP95Ms": 12.460031,
+        "eventLoopMaximumMs": 133.496831,
+        "storedBytes": 11933160
+      },
+      {
+        "label": "baseline",
+        "round": 4,
+        "elapsedMs": 1127.1559579999994,
+        "cpuMs": 2198.651,
+        "eventLoopP95Ms": 11.526143,
+        "eventLoopMaximumMs": 141.295615,
+        "storedBytes": 11933160
+      },
+      {
+        "label": "current",
+        "round": 4,
+        "elapsedMs": 906.4830839999995,
+        "cpuMs": 1572.282,
+        "eventLoopP95Ms": 18.481151,
+        "eventLoopMaximumMs": 136.708095,
+        "storedBytes": 13467978
+      }
+    ],
+    "summary": {
+      "baseline": {
+        "elapsedMs": 1127.1559579999994,
+        "cpuMs": 2218.201,
+        "eventLoopP95Ms": 12.427263,
+        "storedBytes": 11933160
+      },
+      "current": {
+        "elapsedMs": 938.3896249999998,
+        "cpuMs": 1618.736,
+        "eventLoopP95Ms": 24.248319,
+        "storedBytes": 13467978
+      }
+    }
+  },
+  "checkpoint": {
+    "scope": "Local PostgreSQL and file-backed CAS; alternating same 40-second 055 input; eight pending chunks; warm-up excluded",
+    "samples": [
+      {
+        "iteration": 0,
+        "label": "before",
+        "ms": 115.315875,
+        "cpuMs": 130.833
+      },
+      {
+        "iteration": 0,
+        "label": "after",
+        "ms": 100.06483299999991,
+        "cpuMs": 121.756
+      },
+      {
+        "iteration": 1,
+        "label": "after",
+        "ms": 98.78208399999994,
+        "cpuMs": 127.591
+      },
+      {
+        "iteration": 1,
+        "label": "before",
+        "ms": 108.24383399999988,
+        "cpuMs": 125.875
+      },
+      {
+        "iteration": 2,
+        "label": "before",
+        "ms": 131.60891600000014,
+        "cpuMs": 213.904
+      },
+      {
+        "iteration": 2,
+        "label": "after",
+        "ms": 99.51133299999992,
+        "cpuMs": 111.692
+      },
+      {
+        "iteration": 3,
+        "label": "after",
+        "ms": 96.96933399999989,
+        "cpuMs": 110.389
+      },
+      {
+        "iteration": 3,
+        "label": "before",
+        "ms": 136.24833299999955,
+        "cpuMs": 210.886
+      },
+      {
+        "iteration": 4,
+        "label": "before",
+        "ms": 113.26858300000004,
+        "cpuMs": 128.683
+      },
+      {
+        "iteration": 4,
+        "label": "after",
+        "ms": 108.98524999999972,
+        "cpuMs": 121.714
+      }
+    ],
+    "medianMs": {
+      "before": 115.315875,
+      "after": 99.51133299999992
+    },
+    "medianCpuMs": {
+      "before": 130.833,
+      "after": 121.714
+    },
+    "checkpointExact": true,
+    "tracesExact": true,
+    "idempotentExact": true
+  },
+  "compression": {
+    "scope": "Local seven representative native first-step chunks; 70 compressions per level and round; exact decoded bytes",
+    "rows": [
+      {
+        "round": 0,
+        "level": 6,
+        "elapsedMs": 283.94670800000006,
+        "cpuMs": 888.617,
+        "storedBytes": 11934400
+      },
+      {
+        "round": 0,
+        "level": 3,
+        "elapsedMs": 129.12020799999993,
+        "cpuMs": 379.368,
+        "storedBytes": 13469150
+      },
+      {
+        "round": 0,
+        "level": 1,
+        "elapsedMs": 94.753917,
+        "cpuMs": 279.884,
+        "storedBytes": 14524800
+      },
+      {
+        "round": 1,
+        "level": 1,
+        "elapsedMs": 94.54308300000002,
+        "cpuMs": 268.313,
+        "storedBytes": 14524800
+      },
+      {
+        "round": 1,
+        "level": 3,
+        "elapsedMs": 129.9689159999998,
+        "cpuMs": 383.354,
+        "storedBytes": 13469150
+      },
+      {
+        "round": 1,
+        "level": 6,
+        "elapsedMs": 283.257875,
+        "cpuMs": 859.579,
+        "storedBytes": 11934400
+      },
+      {
+        "round": 2,
+        "level": 6,
+        "elapsedMs": 270.47083299999986,
+        "cpuMs": 831.758,
+        "storedBytes": 11934400
+      },
+      {
+        "round": 2,
+        "level": 3,
+        "elapsedMs": 122.73954200000003,
+        "cpuMs": 371.225,
+        "storedBytes": 13469150
+      },
+      {
+        "round": 2,
+        "level": 1,
+        "elapsedMs": 90.7328749999997,
+        "cpuMs": 272.721,
+        "storedBytes": 14524800
+      },
+      {
+        "round": 3,
+        "level": 1,
+        "elapsedMs": 91.93616599999996,
+        "cpuMs": 270.613,
+        "storedBytes": 14524800
+      },
+      {
+        "round": 3,
+        "level": 3,
+        "elapsedMs": 122.04358300000013,
+        "cpuMs": 369.51,
+        "storedBytes": 13469150
+      },
+      {
+        "round": 3,
+        "level": 6,
+        "elapsedMs": 272.4584169999998,
+        "cpuMs": 837.327,
+        "storedBytes": 11934400
+      },
+      {
+        "round": 4,
+        "level": 6,
+        "elapsedMs": 305.57854099999986,
+        "cpuMs": 912.758,
+        "storedBytes": 11934400
+      },
+      {
+        "round": 4,
+        "level": 3,
+        "elapsedMs": 131.11625000000004,
+        "cpuMs": 377.301,
+        "storedBytes": 13469150
+      },
+      {
+        "round": 4,
+        "level": 1,
+        "elapsedMs": 92.43662500000028,
+        "cpuMs": 274.184,
+        "storedBytes": 14524800
+      }
+    ],
+    "summary": [
+      {
+        "level": 6,
+        "medianMs": 283.257875,
+        "medianCpuMs": 859.579,
+        "storedBytes": 11934400
+      },
+      {
+        "level": 3,
+        "medianMs": 129.12020799999993,
+        "medianCpuMs": 377.301,
+        "storedBytes": 13469150
+      },
+      {
+        "level": 1,
+        "medianMs": 92.43662500000028,
+        "medianCpuMs": 272.721,
+        "storedBytes": 14524800
+      }
+    ],
+    "roundTripExact": true
+  },
+  "verification": {
+    "unitFiles": 14,
+    "unitTests": 116,
+    "eslint": "passed",
+    "realDatabaseEvidence": "passed, including batch uniqueness failure, rollback, and retry",
+    "browserRecovery": "passed, original 055 page, normal login, separate contexts, exact checkpoint, continued same run, old-round isolation",
+    "productionTypecheck": {
+      "status": "passed",
+      "webFiles": 2962,
+      "workerFiles": 557,
+      "nodeHeapMiB": 8192
+    },
+    "focusedTestAndBenchmarkTypes": "passed, ES2022 target for the existing Node runtime",
+    "fullTestTypeGraph": "not passed; repository-wide test and tool diagnostics remain"
+  },
+  "sourceCodeSha256": {
+    "src/features/ilab/course-evidence-chunks.ts": "63aa1cd1a2d5a8cb1f7b1ffdebacb3ec00c76daebf06b1b8147915dced27437c",
+    "src/features/ilab/course-evidence-api.ts": "b51afe059c193c607b6cc7fa85312f24de6c15784865c149917f67f89efd99a1",
+    "src/lib/data-governance/simulation-trace-cas.ts": "984e837d3e23e617605d8ea6e72b6b76be419612f2eb4dcf8f47efe37f7d7536",
+    "src/lib/student-model-artifact-contract/server-hash.ts": "499127415ab3addefbd23c78c57708a651e7c65f6625498b54b81c577a4b8a18"
+  }
+}
