@@ -6,13 +6,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { prisma } from '@/lib/prisma';
 import { createServerVesselSession } from '@/lib/control-engine/wasm-server';
+import { closeEvidenceCpuPool } from '@/lib/control-engine/evidence-cpu-pool';
 import { collectVesselTracePoint, type VesselRunEvidence } from '@/features/simulations/run-evidence';
 import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { uploadVesselRunEvidence } from '@/features/simulations/evidence-upload';
 import { readVesselEvidenceJson } from '@/features/ilab/course-evidence-api';
 import { vesselEvidenceOpeningSchema, vesselTraceChunkSchema, vesselEvidenceCloseSchema } from '@/features/ilab/course-evidence-contract';
 import { openVesselEvidenceRun, findOwnedVesselRun } from '@/features/ilab/course-evidence-service';
-import { appendVesselEvidenceChunk, closeVesselEvidenceRun, stageVesselEvidenceChunk, readVesselEvidenceChunk } from '@/features/ilab/course-evidence-chunks';
+import { appendVesselEvidenceChunk, closeVesselEvidenceRun, stageVesselEvidenceChunk, stageVesselEvidenceBytes, readVesselEvidenceChunk } from '@/features/ilab/course-evidence-chunks';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 import { LNG_COURSE_STEPS, lngCourseDefaultSettings, lngCourseInput } from '@/resources/simulations/experiments/lng-course';
 import {containerCourseConfiguration,containerCourseDefaultSettings,containerCourseInput} from '@/resources/simulations/experiments/container-course';
@@ -56,7 +57,7 @@ try {
     captured.push({ url:String(url), data });
     let result;
     if (String(url).includes('/chunks')) result = String(url).endsWith('?stage=1')
-      ? await stageVesselEvidenceChunk(user.id,vesselTraceChunkSchema.parse(data))
+      ? await stageVesselEvidenceBytes(user.id,run.id,Buffer.from(JSON.stringify(data)))
       : await appendVesselEvidenceChunk(user.id,vesselTraceChunkSchema.parse(data));
     else if (options?.method === 'PUT') {
       if (interruptCheckpointCommit) throw new Error('Interrupted before atomic checkpoint commit');
@@ -455,6 +456,7 @@ try {
 } finally {
   globalThis.fetch = fetchOriginal;
   native.free();
+  await closeEvidenceCpuPool();
   await prisma.simulationRun.deleteMany({where:{ownerUserId:user.id}});
   await prisma.user.delete({where:{id:user.id}});
   await prisma.user.delete({where:{id:reviewer.id}});

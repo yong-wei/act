@@ -1,12 +1,22 @@
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { readVesselEvidenceJson, requireVesselEvidenceAccount, vesselEvidenceJsonResponse } from '../course-evidence-api';
+import { readVesselEvidenceJson, requireVesselEvidenceAccount, vesselEvidenceJsonResponse, vesselEvidenceErrorResponse } from '../course-evidence-api';
+import { EvidenceCpuError } from '@/lib/control-engine/evidence-cpu-pool';
 import { getServerAuthSession } from '@/lib/auth';
 
 vi.mock('@/lib/auth',()=>({getServerAuthSession:vi.fn()}));
 beforeEach(()=>vi.clearAllMocks());
 
 describe('实验原始证据入口',()=>{
+  it('计算服务繁忙与校验错误保留可恢复状态，未知内部错误继续隐藏',async()=>{
+    const busy = vesselEvidenceErrorResponse(new EvidenceCpuError('保存服务暂时繁忙，请稍后重试。',503));
+    expect(busy.status).toBe(503);
+    expect(await busy.json()).toEqual({error:'保存服务暂时繁忙，请稍后重试。'});
+    expect(vesselEvidenceErrorResponse(new EvidenceCpuError('正文无效',400)).status).toBe(400);
+    const unknown = vesselEvidenceErrorResponse(new Error('internal secret'));
+    expect(unknown.status).toBe(500);
+    expect(JSON.stringify(await unknown.json())).not.toContain('internal secret');
+  });
   it('普通本人会话可保存，显式预览拒绝写入',async()=>{
     vi.mocked(getServerAuthSession).mockResolvedValue({user:{id:'test-owner',role:'TEACHER'}} as Awaited<ReturnType<typeof getServerAuthSession>>);
     expect(await requireVesselEvidenceAccount(new Request('http://localhost'))).toBe('test-owner');

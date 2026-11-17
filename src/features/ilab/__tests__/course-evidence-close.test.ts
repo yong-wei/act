@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { prisma } from '@/lib/prisma';
 import { createServerVesselSessionWithAssets } from '@/lib/control-engine/wasm-server';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
@@ -50,6 +50,7 @@ const records = new Map<string, unknown>();
 const native = { restore: vi.fn(), read: vi.fn(), snapshot: vi.fn(), free: vi.fn() };
 
 beforeEach(() => {
+  vi.stubEnv('SIMULATION_CPU_WORKERS', '0');
   vi.resetAllMocks();
   records.clear();
   records.set('opening', { configuration: {} });
@@ -69,6 +70,8 @@ beforeEach(() => {
   tx.simulationRun.update.mockImplementation(async ({ data }) => ({ ...run, ...data }));
   vi.mocked(prisma.$transaction).mockImplementation((async (work: (client: typeof tx) => unknown) => work(tx)) as never);
 });
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe('采样批次与恢复点的原子提交', () => {
   it('多份已校验分块批量入库，累计进度与恢复点只写一次', async () => {

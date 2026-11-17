@@ -1,16 +1,15 @@
 import { createHash } from 'node:crypto';
 import type { Prisma, SimulationRun } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { createServerVesselSessionWithAssets } from '@/lib/control-engine/wasm-server';
+import { evidenceCpuWorkersEnabled, runEvidenceCpuTask } from '@/lib/control-engine/evidence-cpu-pool';
+import { prepareVesselEvidenceOpening, type PreparedVesselOpening } from './course-evidence-compute';
 import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generated';
-import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 import { writeSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
 import { findVesselCourse } from '@/resources/simulations/experiments/course-catalog';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION, destroyerCourseVariants } from '@/resources/simulations/experiments/destroyer-course';
 import { IlabServiceError } from './run-lock';
-import { activeVesselFactors } from '@/resources/simulations/experiments/comparison-factors';
-import type { VesselEvidenceOpening } from './course-evidence-contract';
+import type { VesselEvidenceOpening, VesselRunStorageSummary } from './course-evidence-contract';
 import { LNG_COURSE_STEPS, lngCourseConfiguration, validateLngCourseSettings, type LngCourseSettings } from '@/resources/simulations/experiments/lng-course';
 import { CONTAINER_COURSE_STEPS, containerCourseConfiguration, validateContainerCourseSettings,
   type ContainerCourseSettings } from '@/resources/simulations/experiments/container-course';
@@ -26,29 +25,7 @@ import {DREDGER_COURSE_STEPS, dredgerConfiguration, dredgerCourseControl, valida
 import type {VesselDredgerInput} from '@/lib/control-engine/vessel-session';
 
 export const VESSEL_EVIDENCE_DOMAIN = 'ilab-course';
-export interface VesselRunStorageSummary {
-  schema:'act.vessel-run-storage.v1';
-  reportId:string;
-  experimentKey:string;
-  openingHash:string;
-  openingReference:string;
-  configurationHash:string;
-  parameterHash:string;
-  courseKey:string;
-  courseVersion:string;
-  stepSequence:number;
-  chunkCount:number;
-  controlCount:number;
-  nativeCount:number;
-  fineCount?:number;
-  fineLastTimeS?:number;
-  lastTimeS:number;
-  lastCheckpointReference:string;
-  nativeWatermarks:Record<string,number>;
-  validationRuntimeVersion?:string;
-  appliedFactors?:string[];
-  dredgerModeEvents?:VesselSessionFrame['dredgerEvents'];
-}
+export type { VesselRunStorageSummary } from './course-evidence-contract';
 
 export function vesselRunStorageSummary(run: SimulationRun): VesselRunStorageSummary {
   const summary = run.summary as unknown as VesselRunStorageSummary;
@@ -238,36 +215,10 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
   if (existingReport && !['draft','revision-requested'].includes(existingReport.status)) {
     throw new IlabServiceError('这份报告正在复核或已经完成，请先读取报告状态。',409);
   }
-  let native: Awaited<ReturnType<typeof createServerVesselSessionWithAssets>>;
-  try { native = await createServerVesselSessionWithAssets(input.configuration); }
-  catch { throw new IlabServiceError('船型初态或环境配置无法建立有效运行。',400); }
-  let frame: VesselSessionFrame;
-  let configurationHash: string;
-  let appliedFactors:string[];
-  let appliedEnvironment:string;
-  try {
-    frame = JSON.parse(native.advance(0,JSON.stringify(input.input))) as VesselSessionFrame;
-    const checkpoint = native.snapshot();
-    native.restore(input.initialCheckpoint);
-    const restoredCheckpoint = native.snapshot();
-    // 历史静风记录曾保留未定义风向的数值，当前格式将该值保存为空。
-    const withoutUndefinedDirection = (value: string) => JSON.stringify(JSON.parse(value), (_key, entry) =>
-      entry?.quality === 'Undefined' ? { ...entry, value: null } : entry);
-    if (frame.parameterHash !== input.parameterHash || (restoredCheckpoint !== checkpoint
-      && withoutUndefinedDirection(restoredCheckpoint) !== withoutUndefinedDirection(checkpoint))) {
-      throw new IlabServiceError('实际初态、控制参数或参数包与本次运行不一致。',409);
-    }
-    const actual = JSON.parse(checkpoint);
-    configurationHash = createHash('sha256').update(canonicalJson(actual.configuration)).digest('hex');
-    const environment = actual.plant.environment;
-    if (!environment?.switches) throw new IlabServiceError('实际环境回执尚未就绪。',503);
-    appliedFactors = activeVesselFactors(input.configuration,environment.switches);
-    appliedEnvironment = canonicalJson({switches:environment.switches,wave:environment.wave.condition,
-      wind:environment.wind.true_wind,currentNed:environment.current_ned});
-  } catch (error) {
-    if (error instanceof IlabServiceError) throw error;
-    throw new IlabServiceError('这次运行的控制配置无效。',400);
-  } finally { native.free(); }
+  const prepared = evidenceCpuWorkersEnabled()
+    ? await runEvidenceCpuTask('open-prepare', input) as PreparedVesselOpening
+    : await prepareVesselEvidenceOpening(input);
+  const { frame, configurationHash, appliedFactors, appliedEnvironment } = prepared;
   const occupied = await prisma.appliedRunEnvelope.findUnique({ where:{ runRef:input.runRef },select:{ userId:true } });
   if (occupied) {
     if (occupied.userId !== userId) throw new IlabServiceError('实验运行记录不存在。',404);

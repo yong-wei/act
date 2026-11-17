@@ -1,16 +1,15 @@
 import { createHash } from 'node:crypto';
 import type { Prisma, SimulationRun } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { createServerVesselSessionWithAssets } from '@/lib/control-engine/wasm-server';
-import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generated';
-import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
+import { evidenceCpuWorkersEnabled, runEvidenceCpuTask } from '@/lib/control-engine/evidence-cpu-pool';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
-import { readSimulationTraceChunk, writeSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
-import { sensorKey, vesselDredgerMetricPoint, vesselDredgerFineMetrics, vesselDredgerModeEvents, type VesselTracePoint } from '@/features/simulations/run-evidence';
-import { vesselTraceChunkSchema, type VesselEvidenceClose, type VesselEvidenceOpening, type VesselTraceChunk } from './course-evidence-contract';
-import { findOwnedVesselRun, vesselRunProgress, vesselRunStorageSummary, type VesselRunStorageSummary } from './course-evidence-service';
-import { calculateVesselRunMetrics } from './course-run-metrics';
+import { readSimulationTraceChunk, writeSimulationTraceChunk, storeEncodedSimulationTrace } from '@/lib/data-governance/simulation-trace-cas';
+import { vesselTraceChunkSchema, type VesselEvidenceClose, type VesselTraceChunk } from './course-evidence-contract';
+import { findOwnedVesselRun, vesselRunProgress, vesselRunStorageSummary } from './course-evidence-service';
+import { prepareVesselEvidenceClose, type PreparedVesselClose } from './course-evidence-compute';
 import { IlabServiceError } from './run-lock';
+import { storedTraceData, advanceStoredSummary, validateChunkPrefix, type StoredChunk } from './course-evidence-prefix';
+export { validateChunkPrefix } from './course-evidence-prefix';
 
 const hash = (value: unknown) => createHash('sha256').update(canonicalJson(value)).digest('hex');
 
@@ -41,33 +40,31 @@ export async function stageVesselEvidenceChunk(userId: string, chunk: VesselTrac
   return {reference:stored.uri};
 }
 
-type StoredChunk = {uri:string;checksum:string;uncompressedBytes?:number;storedBytes?:number};
-
-function storedTraceData(run: SimulationRun, latest: VesselRunStorageSummary,
-  chunk: VesselTraceChunk, stored: StoredChunk): Prisma.SimulationTraceCreateManyInput {
-  return {
-    runId: run.id, chunkIndex: chunk.chunkIndex, protocolVersion: 'act.vessel-trace-chunk.v1',
-    runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion, seed: run.seed,
-    checksum: stored.checksum, sampleStorageUri: stored.uri, sampleCadence: .05,
-    sampleCount: chunk.points.length,
-    summaryMetrics: { startTimeS: latest.lastTimeS, endTimeS: chunk.endTimeS,
-      controlStart: chunk.controlStart, nativeStart: chunk.nativeStart, nativeCount: chunk.nativeSamples.length,
-      fineStart:chunk.fineStart ?? 0,fineCount:chunk.fineSamples?.length ?? 0,
-      ...(stored.uncompressedBytes !== undefined ? {uncompressedBytes:stored.uncompressedBytes} : {}),
-      ...(stored.storedBytes !== undefined ? {storedBytes:stored.storedBytes} : {}) },
-  };
-}
-
-function advanceStoredSummary(latest: VesselRunStorageSummary, chunk: VesselTraceChunk,
-  watermarks: Record<string, number>): VesselRunStorageSummary {
-  const next: VesselRunStorageSummary = { ...latest, chunkCount: latest.chunkCount + 1,
-    controlCount: latest.controlCount + chunk.points.length, nativeCount: latest.nativeCount + chunk.nativeSamples.length,
-    lastTimeS: chunk.endTimeS, nativeWatermarks: watermarks };
-  if (chunk.fineSamples) {
-    next.fineCount = (latest.fineCount ?? 0)+chunk.fineSamples.length;
-    next.fineLastTimeS = chunk.fineSamples.at(-1)?.timeS ?? latest.fineLastTimeS;
+/** 将原始请求的解析、校验与编码合并在同一次计算任务中。 */
+export async function stageVesselEvidenceBytes(userId: string, runRef: string, bytes: Uint8Array) {
+  if (!evidenceCpuWorkersEnabled()) {
+    let value: unknown;
+    try { value = JSON.parse(Buffer.from(bytes).toString('utf8')); }
+    catch { throw new IlabServiceError('实验数据内容无法解析。',400); }
+    const parsed = vesselTraceChunkSchema.safeParse(value);
+    if (!parsed.success || parsed.data.runRef !== runRef) throw new IlabServiceError('原始采样分块内容不完整。',400);
+    return stageVesselEvidenceChunk(userId, parsed.data as unknown as VesselTraceChunk);
   }
-  return next;
+  const prepared = await runEvidenceCpuTask('trace-stage', bytes);
+  if (prepared.runRef !== runRef) throw new IlabServiceError('原始采样分块内容不完整。',400);
+  const run = await findOwnedVesselRun(userId, runRef);
+  if (run.status !== 'running') {
+    const existing = await prisma.simulationTrace.findUnique({
+      where: { runId_chunkIndex: { runId: run.id, chunkIndex: prepared.chunkIndex } },
+      select: { checksum: true, sampleStorageUri: true },
+    });
+    if (existing?.sampleStorageUri && existing.checksum === prepared.encoded.checksum) {
+      return { reference: existing.sampleStorageUri };
+    }
+    throw new IlabServiceError('这次运行已经结束。',409);
+  }
+  const stored = await storeEncodedSimulationTrace(prepared.encoded);
+  return { reference: stored.uri };
 }
 
 async function appendStoredChunk(tx: Prisma.TransactionClient, run: SimulationRun,
@@ -115,53 +112,6 @@ export async function appendVesselEvidenceChunk(userId: string, chunk: VesselTra
   });
 }
 
-export function validateChunkPrefix(summary: VesselRunStorageSummary, chunk: VesselTraceChunk) {
-  if (chunk.parameterHash !== summary.parameterHash || chunk.chunkIndex !== summary.chunkCount
-    || chunk.controlStart !== summary.controlCount || chunk.nativeStart !== summary.nativeCount
-    || (chunk.fineStart ?? 0) !== (summary.fineCount ?? 0)
-    || chunk.endTimeS < summary.lastTimeS || (!chunk.points.length && !chunk.nativeSamples.length && !chunk.fineSamples?.length)) {
-    throw new IlabServiceError('采样顺序或运行参数不一致，请读取已保存进度后重试。',409);
-  }
-  let fineTime = summary.fineLastTimeS ?? -1;
-  for (const point of chunk.fineSamples ?? []) {
-    if (point.timeS <= fineTime || point.timeS > chunk.endTimeS+1e-7
-      || Math.abs(point.timeS*120-Math.round(point.timeS*120)) > 1e-6) {
-      throw new IlabServiceError('物理细步事件窗口的时间或顺序不一致。',400);
-    }
-    fineTime = point.timeS;
-  }
-  for (let index = 0; index < chunk.points.length; index++) {
-    const point = chunk.points[index];
-    if (Math.abs(point.timeS - (chunk.controlStart + index) * .05) > 1e-6 || point.timeS > chunk.endTimeS + 1e-7) {
-      throw new IlabServiceError('控制采样时间不连续。',400);
-    }
-    for (const reading of Object.values(point.measurements)) {
-      if (reading.sampledAtS > reading.arrivedAtS + 1e-7 || reading.arrivedAtS > point.timeS + 1e-7
-        || (reading.quality === 'Good') !== (reading.value !== null)) {
-        throw new IlabServiceError('仪器采样时间或缺测状态不一致。',400);
-      }
-    }
-  }
-  const watermarks = { ...summary.nativeWatermarks };
-  for (const sample of chunk.nativeSamples) {
-    const key = sensorKey(sample.signal);
-    const reading = sample.measurement;
-    const arrivalKey = `${key}:arrival`;
-    if (reading.t_sample_s < (watermarks[key] ?? -1) - 1e-7
-      || reading.t_arrive_s < (watermarks[arrivalKey] ?? -1) - 1e-7
-      || reading.t_sample_s > reading.t_arrive_s + 1e-7 || reading.t_arrive_s > chunk.endTimeS + 1e-7
-      || (reading.quality === 'Good') !== (reading.value !== null)) {
-      throw new IlabServiceError('原生仪器记录顺序或缺测状态不一致。',400);
-    }
-    watermarks[key] = reading.t_sample_s;
-    watermarks[arrivalKey] = reading.t_arrive_s;
-  }
-  if (chunk.changes.some((change) => change.timeS < summary.lastTimeS - 1e-7 || change.timeS > chunk.endTimeS + 1e-7)) {
-    throw new IlabServiceError('控制器修改时间超出当前采样分块。',400);
-  }
-  return watermarks;
-}
-
 /** 同一事务提交原始采样和恢复点，结束时再生成可复核的评价。 */
 export async function closeVesselEvidenceRun(userId: string, runRef: string, input: VesselEvidenceClose) {
   const run = await findOwnedVesselRun(userId, runRef);
@@ -174,62 +124,15 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
     return vesselRunProgress(run);
   }
   if (previousCheckpoint === closeHash) return vesselRunProgress(run);
-  const pending: Array<{chunk:VesselTraceChunk;trace:Prisma.SimulationTraceCreateManyInput;watermarks:Record<string,number>}> = [];
-  let projected = summary;
-  for (const reference of input.pendingChunks ?? []) {
-    const parsed = vesselTraceChunkSchema.safeParse(await readSimulationTraceChunk(reference));
-    if (!parsed.success || parsed.data.runRef !== runRef) throw new IlabServiceError('暂存采样与当前运行不一致。',409);
-    const chunk = parsed.data as unknown as VesselTraceChunk;
-    const watermarks = validateChunkPrefix(projected, chunk);
-    const trace = storedTraceData(run, projected, chunk,
-      {uri:reference,checksum:reference.slice(reference.lastIndexOf(':')+1)});
-    projected = advanceStoredSummary(projected, chunk, watermarks);
-    pending.push({chunk,trace,watermarks});
-  }
-  if (input.controlCount !== projected.controlCount || input.nativeCount !== projected.nativeCount
-    || (input.fineCount ?? 0) !== (projected.fineCount ?? 0)
-    || input.endTimeS < projected.lastTimeS - 1e-7) throw new IlabServiceError('原始采样尚未完整接收，请继续上传。',409);
-  const opening = await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);
-  const native = await createServerVesselSessionWithAssets(opening.configuration);
-  let frame: VesselSessionFrame;
-  try {
-    native.restore(input.checkpoint);
-    frame = JSON.parse(native.read()) as VesselSessionFrame;
-    const savedConfiguration = JSON.parse(native.snapshot()).configuration;
-    if (hash(savedConfiguration) !== summary.configurationHash || frame.parameterHash !== summary.parameterHash
-      || frame.controllerTicks !== input.controlCount || Math.abs(frame.timeS - input.endTimeS) > 1e-7
-      || (frame.fineStepWindowSampleCount ?? 0) !== (input.fineCount ?? 0)) {
-      throw new IlabServiceError('结束状态与已经接收的原始采样不一致。',409);
-    }
-    if (summary.courseKey === 'icebreaker' && input.reason === 'arrival' && frame.truth.position_ned[0] < 800) {
-      throw new IlabServiceError('冰区任务尚未抵达北向800m，请保留实际停止原因。', 409);
-    }
-  } catch (error) {
-    if (error instanceof IlabServiceError) throw error;
-    throw new IlabServiceError('结束状态无法恢复，请检查本机保存的运行。',400);
-  } finally { native.free(); }
   const isCheckpoint = input.reason === 'checkpoint';
-  let metrics: ReturnType<typeof calculateVesselRunMetrics> | null = null;
-  if (!isCheckpoint) {
-    const traces = await prisma.simulationTrace.findMany({ where: { runId: run.id }, orderBy: { chunkIndex: 'asc' } });
-    const points: VesselTracePoint[] = [];
-    for (const trace of traces) {
-      if (!trace.sampleStorageUri) throw new IlabServiceError('原始采样引用缺失。',409);
-      const chunk = await readSimulationTraceChunk<VesselTraceChunk>(trace.sampleStorageUri);
-      points.push(...chunk.points);
-    }
-    for (const staged of pending) points.push(...staged.chunk.points);
-    if (points.length !== input.controlCount) throw new IlabServiceError('原始控制采样数量不一致。',409);
-    metrics = calculateVesselRunMetrics(points, input.endTimeS, opening.configuration.initialHeadingDeg ?? 0,
-      frame.iceContact ? { timeS: input.endTimeS, northM: frame.truth.position_ned[0], eastM: frame.truth.position_ned[1],
-        positiveMotorWorkJ: frame.truth.actuator_states.positive_motor_work_j.reduce((sum, value) => sum + value, 0),
-        forwardRequested: frame.input.actuators.shafts.some((shaft) => shaft.speed_reference_rad_s > 0) } : undefined,
-      frame.dredger ? vesselDredgerMetricPoint(frame.timeS, frame.dredger,
-        frame.truth.actuator_states.positive_motor_work_j.reduce((sum, value) => sum + value, 0)) : undefined);
-    metrics.positiveMotorWorkJ = frame.truth.actuator_states.positive_motor_work_j.reduce((sum,value)=>sum+value,0);
-    if (frame.dredgerFineMetrics) Object.assign(metrics, vesselDredgerFineMetrics(frame.dredgerFineMetrics));
-  }
-  const checkpoint = await writeSimulationTraceChunk({ schema: 'act.vessel-run-close.v1', ...input,appliedFinalInput:frame.input });
+  const traces = isCheckpoint ? [] : await prisma.simulationTrace.findMany({
+    where: { runId: run.id }, orderBy: { chunkIndex: 'asc' }, select: { sampleStorageUri: true },
+  });
+  const task = { run: { id: run.id, runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion, seed: run.seed },
+    runRef, summary, input, closeHash, traces };
+  const prepared = evidenceCpuWorkersEnabled()
+    ? await runEvidenceCpuTask('close-prepare', task) as PreparedVesselClose
+    : await prepareVesselEvidenceClose(task);
   return prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT "id" FROM "VirtualSimulationReport" WHERE "id" = ${summary.reportId} FOR UPDATE`;
     await tx.$queryRaw`SELECT "id" FROM "SimulationRun" WHERE "id" = ${run.id} FOR UPDATE`;
@@ -250,33 +153,21 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
     }
     // 锁内确认采样前缀及恢复点未变后，整批写入并只更新一次累计进度。
     // 不忽略唯一键冲突，任一分块失败均由同一事务回滚。
-    if (pending.length) await tx.simulationTrace.createMany({ data: pending.map((staged) => staged.trace) });
-    let committed = latest;
-    for (const staged of pending) committed = advanceStoredSummary(committed, staged.chunk, staged.watermarks);
-    const firstPoint = latest.controlCount === 0
-      ? pending.find((staged) => staged.chunk.points.length)?.chunk.points[0] : undefined;
-    if (firstPoint) await tx.appliedRunEnvelope.update({ where: { runRef }, data: {
-      firstSampleReceipt: hash(firstPoint), quality: { status: 'recording', source: 'native-session' },
-    } });
+    if (prepared.traces.length) await tx.simulationTrace.createMany({ data: prepared.traces });
+    if (latest.controlCount === 0 && prepared.firstSampleReceipt) {
+      await tx.appliedRunEnvelope.update({ where: { runRef }, data: {
+        firstSampleReceipt: prepared.firstSampleReceipt, quality: { status: 'recording', source: 'native-session' },
+      } });
+    }
     const saved = await tx.simulationRun.update({ where: { id: run.id }, data: {
       status: isCheckpoint ? 'running' : input.reason === 'failure' ? 'failed' : 'completed',
       completedAt: isCheckpoint ? null : new Date(),
-      summary: { ...committed, lastTimeS: input.endTimeS, lastCheckpointReference: checkpoint.uri,
-        ...(isCheckpoint ? {checkpointHash:closeHash} : {closeHash,metrics}), fineStepMetrics:frame.fineStepMetrics ?? null,
-        parameters:frame.parameters,voyage:frame.containerVoyage?.progress ?? null,
-        fuelKg:frame.teachingFuel?.state.fuel_kg ?? null,
-        cruiseComfort:frame.cruiseComfort ?? null,
-        ...(frame.dredger ? {dredgerModeEvents:vesselDredgerModeEvents(frame)} : {}),
-        metricsRuntimeVersion:CONTROL_ENGINE_BUILD_HASH,stopReason: isCheckpoint ? null : input.reason } as unknown as Prisma.InputJsonValue,
+      summary: { ...latest, ...prepared.progress, ...prepared.summaryUpdates } as unknown as Prisma.InputJsonValue,
     } });
     if (isCheckpoint) return vesselRunProgress(saved);
     await tx.appliedRunEnvelope.update({ where: { runRef }, data: {
-      simulationEndMs: BigInt(opening.startedAtMs + Math.round(input.endTimeS * 1000)),
-      terminationReason: input.reason, quality: { status: input.reason === 'failure' ? 'failed' : 'complete',
-        controlSamples: input.controlCount, nativeSamples: input.nativeCount, metrics: { ...metrics },
-        fineStepSamples:input.fineCount ?? 0,fineStepMetrics:frame.fineStepMetrics
-          ? {...frame.fineStepMetrics,values:{...frame.fineStepMetrics.values}} : null,
-        failureReference: input.failure ? checkpoint.uri : null },
+      simulationEndMs: BigInt(prepared.simulationEndMs),
+      terminationReason: input.reason, quality: prepared.quality as unknown as Prisma.InputJsonValue,
     } });
     return vesselRunProgress(saved);
   }, {timeout:30_000});

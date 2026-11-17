@@ -14,6 +14,7 @@ vi.mock('node:zlib', async (importOriginal) => {
 let root: string;
 beforeEach(async () => {
   vi.clearAllMocks();
+  vi.stubEnv('SIMULATION_CPU_WORKERS', '0');
   root = await mkdtemp(path.join(os.tmpdir(),'act-simulation-trace-'));
   vi.stubEnv('SIMULATION_EVIDENCE_ROOT',root);
   for (const key of ['SUBMISSION_S3_ENDPOINT','SUBMISSION_S3_BUCKET','SUBMISSION_S3_ACCESS_KEY','SUBMISSION_S3_SECRET_KEY']) vi.stubEnv(key,'');
