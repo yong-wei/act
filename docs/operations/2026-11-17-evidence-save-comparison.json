@@ -1,0 +1,1040 @@
+{
+  "schema": "act.evidence-save-comparison.v1",
+  "scope": "同一阿里云2核8GiB服务器，计算线程数0，七船既有代表输入与原采样、五秒分块保持一致。固定HTTP对照采用常速、每30秒恢复和每60秒刷新，各组10路至少5分钟。",
+  "baseline": {
+    "capturedAt": "2026-11-17T12:14:26.047Z",
+    "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+    "sourceFingerprint": "c5a3c4eee71400d8a960ab093e5763525dcb9a07e8a6b56e526aedea2bc770a3",
+    "toolFingerprint": "c33ec1a54d0328b4fba77b5f912a4f4409ab46ff62fd3d7d39e2f4c9db1222ff",
+    "node": "v20.20.2",
+    "inputDigest": "bac5fb3be3caab013797b64c6eea7b9f234c17d567f77d90b9cd7de20eaf2e58",
+    "runtimeVersion": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d"
+  },
+  "leanSave": {
+    "capturedAt": "2026-11-17T15:06:57.546Z",
+    "revision": "7a0aee3f32f3ea3e3fe1a02e7869cb2e4cd3ed45",
+    "sourceFingerprint": "68e51035beba7fc9b67562d75f4b3aae0694e08490481a2303ea5bbaec35a743",
+    "toolFingerprint": "8d3eab1c5cc6142e230da1705a8acc49ca9b57b8997db94e6d696039d2cbe489",
+    "node": "v20.20.2",
+    "inputDigest": "bac5fb3be3caab013797b64c6eea7b9f234c17d567f77d90b9cd7de20eaf2e58",
+    "runtimeVersion": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d"
+  },
+  "measurementScope": "Sequential real database and evidence service calls with actual request decoding and response encoding; fixed dedicated identity; session authentication and network latency measured separately by HTTP/browser tests",
+  "cpuScope": "Application process user+system CPU including asynchronous codec threads; database statement duration is reported separately",
+  "countingScope": "Native allocation via synchronous factory/__wrap, plus restore/free V8 counts in a separate pass; delegated builtin IO/codec/JSON entry counters and physical pg SQL entry counts including transaction control. Prisma query duration excludes control statements",
+  "sampling": {
+    "warmupCourses": 7,
+    "rounds": 5,
+    "ordinarySaves": 105,
+    "selectedRunRecoveries": 112,
+    "formalConfirmations": 7,
+    "fixturePacketCounts": {
+      "destroyer": 12,
+      "lng": 24,
+      "container": 12,
+      "cruise": 12,
+      "drilling": 24,
+      "icebreaker": 12,
+      "dredger": 24
+    }
+  },
+  "toolCompatibility": "相同计时函数、负载与SQL/编码/解析计数方法。新版工具额外覆盖新适配器的源指纹，并在计时结束后断言普通保存的数值实例及重复正文读取为0。事务计数断言接受成对控制语句。",
+  "costComparison": [
+    {
+      "kind": "initial-open",
+      "baseline": {
+        "kind": "initial-open",
+        "count": 42,
+        "cpuMedianMs": 88.528,
+        "cpuP95Ms": 203.523,
+        "cpuP99Ms": 719.631,
+        "latencyMedianMs": 91.34119600000122,
+        "latencyP95Ms": 225.3177680000008,
+        "latencyP99Ms": 434.92439999999624,
+        "meanRequests": 1,
+        "meanRequestBytes": 136127.14285714287,
+        "meanRequestEncodedBytes": 22188.35714285714,
+        "meanResponseBytes": 287.42857142857144,
+        "meanResponseEncodedBytes": 287.42857142857144,
+        "meanSqlStatements": 10,
+        "meanPrivateObjectReads": 0,
+        "meanGzipCalls": 1,
+        "meanGunzipCalls": 1,
+        "meanJsonParses": 14,
+        "meanDatabaseOperations": {
+          "total": 10,
+          "reads": 5,
+          "writes": 2,
+          "locks": 1,
+          "transactionStatements": 2,
+          "other": 0,
+          "prismaDurationMs": 18.739103023809765
+        }
+      },
+      "leanSave": {
+        "kind": "initial-open",
+        "count": 42,
+        "cpuMedianMs": 97.746,
+        "cpuP95Ms": 228.674,
+        "cpuP99Ms": 348.521,
+        "latencyMedianMs": 101.91452800000116,
+        "latencyP95Ms": 271.00277500000084,
+        "latencyP99Ms": 323.9629369999893,
+        "meanRequests": 1,
+        "meanRequestBytes": 136127.14285714287,
+        "meanRequestEncodedBytes": 22188.214285714286,
+        "meanResponseBytes": 335.42857142857144,
+        "meanResponseEncodedBytes": 335.42857142857144,
+        "meanSqlStatements": 10,
+        "meanPrivateObjectReads": 0,
+        "meanGzipCalls": 1,
+        "meanGunzipCalls": 1,
+        "meanJsonParses": 14,
+        "meanDatabaseOperations": {
+          "total": 10,
+          "reads": 5,
+          "writes": 2,
+          "locks": 1,
+          "transactionStatements": 2,
+          "other": 0,
+          "prismaDurationMs": 20.058056309521515
+        }
+      },
+      "cpuMedianReductionPercent": -10.412524850894611,
+      "latencyMedianReductionPercent": -11.575644356572457,
+      "latencyP95ReductionPercent": -20.275811981237048
+    },
+    {
+      "kind": "automatic-save",
+      "baseline": {
+        "kind": "automatic-save",
+        "count": 105,
+        "cpuMedianMs": 327.504,
+        "cpuP95Ms": 1023.9280000000001,
+        "cpuP99Ms": 1093.368,
+        "latencyMedianMs": 313.0697379999983,
+        "latencyP95Ms": 673.7003449999975,
+        "latencyP99Ms": 813.6867570000031,
+        "meanRequests": 3,
+        "meanRequestBytes": 1367246,
+        "meanRequestEncodedBytes": 219596.5619047619,
+        "meanResponseBytes": 694.5714285714286,
+        "meanResponseEncodedBytes": 694.5714285714286,
+        "meanSqlStatements": 12.333333333333334,
+        "meanPrivateObjectReads": 2,
+        "meanGzipCalls": 2,
+        "meanGunzipCalls": 5,
+        "meanJsonParses": 21,
+        "meanDatabaseOperations": {
+          "total": 12.333333333333334,
+          "reads": 6,
+          "writes": 2.3333333333333335,
+          "locks": 2,
+          "transactionStatements": 2,
+          "other": 0,
+          "prismaDurationMs": 25.00003607618973
+        }
+      },
+      "leanSave": {
+        "kind": "automatic-save",
+        "count": 105,
+        "cpuMedianMs": 172.39600000000002,
+        "cpuP95Ms": 504.075,
+        "cpuP99Ms": 911.775,
+        "latencyMedianMs": 177.9431939999995,
+        "latencyP95Ms": 393.475658000003,
+        "latencyP99Ms": 728.0656679999993,
+        "meanRequests": 3,
+        "meanRequestBytes": 1367246,
+        "meanRequestEncodedBytes": 219596.2380952381,
+        "meanResponseBytes": 790.5714285714286,
+        "meanResponseEncodedBytes": 790.5714285714286,
+        "meanSqlStatements": 15.333333333333334,
+        "meanPrivateObjectReads": 0,
+        "meanGzipCalls": 2,
+        "meanGunzipCalls": 3,
+        "meanJsonParses": 21,
+        "meanDatabaseOperations": {
+          "total": 15.333333333333334,
+          "reads": 7,
+          "writes": 4.333333333333333,
+          "locks": 2,
+          "transactionStatements": 2,
+          "other": 0,
+          "prismaDurationMs": 31.502452819046656
+        }
+      },
+      "cpuMedianReductionPercent": 47.360642923445205,
+      "latencyMedianReductionPercent": 43.16180313793202,
+      "latencyP95ReductionPercent": 41.594855796013505
+    },
+    {
+      "kind": "checkpoint-confirmation",
+      "baseline": {
+        "kind": "checkpoint-confirmation",
+        "count": 105,
+        "cpuMedianMs": 188.329,
+        "cpuP95Ms": 272.824,
+        "cpuP99Ms": 295.094,
+        "latencyMedianMs": 186.48491099999956,
+        "latencyP95Ms": 327.1581179999994,
+        "latencyP99Ms": 348.22804599999654,
+        "meanRequests": 1,
+        "meanRequestBytes": 211370,
+        "meanRequestEncodedBytes": 44592.44761904762,
+        "meanResponseBytes": 295.14285714285717,
+        "meanResponseEncodedBytes": 295.14285714285717,
+        "meanSqlStatements": 9.333333333333334,
+        "meanPrivateObjectReads": 2,
+        "meanGzipCalls": 1,
+        "meanGunzipCalls": 3,
+        "meanJsonParses": 14,
+        "meanDatabaseOperations": {
+          "total": 9.333333333333334,
+          "reads": 3,
+          "writes": 2.3333333333333335,
+          "locks": 2,
+          "transactionStatements": 2,
+          "other": 0,
+          "prismaDurationMs": 17.420800476190614
+        }
+      },
+      "leanSave": {
+        "kind": "checkpoint-confirmation",
+        "count": 105,
+        "cpuMedianMs": 33.167,
+        "cpuP95Ms": 60.185,
+        "cpuP99Ms": 75.041,
+        "latencyMedianMs": 43.579985000000306,
+        "latencyP95Ms": 74.3507239999999,
+        "latencyP99Ms": 87.32968400000391,
+        "meanRequests": 1,
+        "meanRequestBytes": 211370,
+        "meanRequestEncodedBytes": 44592.619047619046,
+        "meanResponseBytes": 343.14285714285717,
+        "meanResponseEncodedBytes": 343.14285714285717,
+        "meanSqlStatements": 11.333333333333334,
+        "meanPrivateObjectReads": 0,
+        "meanGzipCalls": 1,
+        "meanGunzipCalls": 1,
+        "meanJsonParses": 13,
+        "meanDatabaseOperations": {
+          "total": 11.333333333333334,
+          "reads": 4,
+          "writes": 3.3333333333333335,
+          "locks": 2,
+          "transactionStatements": 2,
+          "other": 0,
+          "prismaDurationMs": 20.1135622857134
+        }
+      },
+      "cpuMedianReductionPercent": 82.38879832633317,
+      "latencyMedianReductionPercent": 76.63082510734587,
+      "latencyP95ReductionPercent": 77.27376460821918
+    },
+    {
+      "kind": "selected-run-recovery",
+      "baseline": {
+        "kind": "selected-run-recovery",
+        "count": 112,
+        "cpuMedianMs": 26.707,
+        "cpuP95Ms": 52.43,
+        "cpuP99Ms": 82.215,
+        "latencyMedianMs": 31.294997999997577,
+        "latencyP95Ms": 75.83697299999767,
+        "latencyP99Ms": 161.00912300001073,
+        "meanRequests": 1,
+        "meanRequestBytes": 0,
+        "meanRequestEncodedBytes": 0,
+        "meanResponseBytes": 349346.5,
+        "meanResponseEncodedBytes": 72460.98214285714,
+        "meanSqlStatements": 8,
+        "meanPrivateObjectReads": 2,
+        "meanGzipCalls": 1,
+        "meanGunzipCalls": 2,
+        "meanJsonParses": 7,
+        "meanDatabaseOperations": {
+          "total": 8,
+          "reads": 8,
+          "writes": 0,
+          "locks": 0,
+          "transactionStatements": 0,
+          "other": 0,
+          "prismaDurationMs": 35.04052403571505
+        }
+      },
+      "leanSave": {
+        "kind": "selected-run-recovery",
+        "count": 112,
+        "cpuMedianMs": 26.507,
+        "cpuP95Ms": 48.438,
+        "cpuP99Ms": 74.398,
+        "latencyMedianMs": 30.568116000002192,
+        "latencyP95Ms": 57.19552100000146,
+        "latencyP99Ms": 154.5394700000179,
+        "meanRequests": 1,
+        "meanRequestBytes": 0,
+        "meanRequestEncodedBytes": 0,
+        "meanResponseBytes": 349126.40178571426,
+        "meanResponseEncodedBytes": 72352.57142857143,
+        "meanSqlStatements": 8,
+        "meanPrivateObjectReads": 2,
+        "meanGzipCalls": 1,
+        "meanGunzipCalls": 2,
+        "meanJsonParses": 7,
+        "meanDatabaseOperations": {
+          "total": 8,
+          "reads": 8,
+          "writes": 0,
+          "locks": 0,
+          "transactionStatements": 0,
+          "other": 0,
+          "prismaDurationMs": 39.89966374107108
+        }
+      },
+      "cpuMedianReductionPercent": 0.7488673381510491,
+      "latencyMedianReductionPercent": 2.3226778924716363,
+      "latencyP95ReductionPercent": 24.58095472771148
+    },
+    {
+      "kind": "final-save",
+      "baseline": {
+        "kind": "final-save",
+        "count": 7,
+        "cpuMedianMs": 1390.171,
+        "cpuP95Ms": 2257.462,
+        "cpuP99Ms": 2257.462,
+        "latencyMedianMs": 1587.4052780000202,
+        "latencyP95Ms": 2091.587739999988,
+        "latencyP99Ms": 2091.587739999988,
+        "meanRequests": 3,
+        "meanRequestBytes": 1359678.4285714286,
+        "meanRequestEncodedBytes": 211390.42857142858,
+        "meanResponseBytes": 706.8571428571429,
+        "meanResponseEncodedBytes": 706.8571428571429,
+        "meanSqlStatements": 14,
+        "meanPrivateObjectReads": 18.142857142857142,
+        "meanGzipCalls": 2,
+        "meanGunzipCalls": 21.142857142857142,
+        "meanJsonParses": 40.285714285714285,
+        "meanDatabaseOperations": {
+          "total": 14,
+          "reads": 7,
+          "writes": 3,
+          "locks": 2,
+          "transactionStatements": 2,
+          "other": 0,
+          "prismaDurationMs": 35.110668714291286
+        }
+      },
+      "leanSave": {
+        "kind": "final-save",
+        "count": 7,
+        "cpuMedianMs": 2564.2290000000003,
+        "cpuP95Ms": 6364.75,
+        "cpuP99Ms": 6364.75,
+        "latencyMedianMs": 2907.1422130000137,
+        "latencyP95Ms": 8512.883697000012,
+        "latencyP99Ms": 8512.883697000012,
+        "meanRequests": 3,
+        "meanRequestBytes": 1359678.4285714286,
+        "meanRequestEncodedBytes": 211392,
+        "meanResponseBytes": 803.8571428571429,
+        "meanResponseEncodedBytes": 803.8571428571429,
+        "meanSqlStatements": 25,
+        "meanPrivateObjectReads": 18.142857142857142,
+        "meanGzipCalls": 3,
+        "meanGunzipCalls": 21.142857142857142,
+        "meanJsonParses": 52.285714285714285,
+        "meanDatabaseOperations": {
+          "total": 25,
+          "reads": 10,
+          "writes": 7,
+          "locks": 4,
+          "transactionStatements": 4,
+          "other": 0,
+          "prismaDurationMs": 92.04126328570835
+        }
+      },
+      "cpuMedianReductionPercent": -84.45421462539502,
+      "latencyMedianReductionPercent": -83.1379959037768,
+      "latencyP95ReductionPercent": -307.0058135357047
+    },
+    {
+      "kind": "final-confirmation",
+      "baseline": {
+        "kind": "final-confirmation",
+        "count": 7,
+        "cpuMedianMs": 1286.896,
+        "cpuP95Ms": 2069.544,
+        "cpuP99Ms": 2069.544,
+        "latencyMedianMs": 1421.4217570000037,
+        "latencyP95Ms": 1901.3583769999968,
+        "latencyP99Ms": 1901.3583769999968,
+        "meanRequests": 1,
+        "meanRequestBytes": 215909.42857142858,
+        "meanRequestEncodedBytes": 45248.142857142855,
+        "meanResponseBytes": 301,
+        "meanResponseEncodedBytes": 301,
+        "meanSqlStatements": 11,
+        "meanPrivateObjectReads": 18.142857142857142,
+        "meanGzipCalls": 1,
+        "meanGunzipCalls": 19.142857142857142,
+        "meanJsonParses": 33.285714285714285,
+        "meanDatabaseOperations": {
+          "total": 11,
+          "reads": 4,
+          "writes": 3,
+          "locks": 2,
+          "transactionStatements": 2,
+          "other": 0,
+          "prismaDurationMs": 28.645019857150537
+        }
+      },
+      "leanSave": {
+        "kind": "final-confirmation",
+        "count": 7,
+        "cpuMedianMs": 2405.963,
+        "cpuP95Ms": 6068.446,
+        "cpuP99Ms": 6068.446,
+        "latencyMedianMs": 2733.1709100000007,
+        "latencyP95Ms": 7970.643386000011,
+        "latencyP99Ms": 7970.643386000011,
+        "meanRequests": 1,
+        "meanRequestBytes": 215909.42857142858,
+        "meanRequestEncodedBytes": 45247.71428571428,
+        "meanResponseBytes": 350,
+        "meanResponseEncodedBytes": 350,
+        "meanSqlStatements": 21,
+        "meanPrivateObjectReads": 18.142857142857142,
+        "meanGzipCalls": 2,
+        "meanGunzipCalls": 19.142857142857142,
+        "meanJsonParses": 44.285714285714285,
+        "meanDatabaseOperations": {
+          "total": 21,
+          "reads": 7,
+          "writes": 6,
+          "locks": 4,
+          "transactionStatements": 4,
+          "other": 0,
+          "prismaDurationMs": 76.7749897142816
+        }
+      },
+      "cpuMedianReductionPercent": -86.9586198107695,
+      "latencyMedianReductionPercent": -92.284302427488,
+      "latencyP95ReductionPercent": -319.2078401640547
+    }
+  ],
+  "coverage": {
+    "baseline": [
+      {
+        "course": "destroyer",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "destroyer",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "lng",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "lng",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "container",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "container",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "cruise",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "cruise",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "drilling",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "drilling",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "icebreaker",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "icebreaker",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "dredger",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "dredger",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      }
+    ],
+    "leanSave": [
+      {
+        "course": "destroyer",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 0,
+          "restore": 0,
+          "freedInstances": 0
+        }
+      },
+      {
+        "course": "destroyer",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "lng",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 0,
+          "restore": 0,
+          "freedInstances": 0
+        }
+      },
+      {
+        "course": "lng",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "container",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 0,
+          "restore": 0,
+          "freedInstances": 0
+        }
+      },
+      {
+        "course": "container",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "cruise",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 0,
+          "restore": 0,
+          "freedInstances": 0
+        }
+      },
+      {
+        "course": "cruise",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "drilling",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 0,
+          "restore": 0,
+          "freedInstances": 0
+        }
+      },
+      {
+        "course": "drilling",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "icebreaker",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 0,
+          "restore": 0,
+          "freedInstances": 0
+        }
+      },
+      {
+        "course": "icebreaker",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      },
+      {
+        "course": "dredger",
+        "kind": "automatic-save",
+        "calls": {
+          "nativeInstances": 0,
+          "restore": 0,
+          "freedInstances": 0
+        }
+      },
+      {
+        "course": "dredger",
+        "kind": "final-save",
+        "calls": {
+          "nativeInstances": 1,
+          "restore": 1,
+          "freedInstances": 1
+        }
+      }
+    ]
+  },
+  "formalVerificationAmortization": [
+    {
+      "version": "0.7.53",
+      "formalConfirmations": 7,
+      "cpuTotalMs": 9604.368,
+      "fixturePackets": 120,
+      "cpuMsAmortizedPerFixturePacket": 80.0364
+    },
+    {
+      "version": "0.7.55",
+      "formalConfirmations": 7,
+      "cpuTotalMs": 22374.948,
+      "fixturePackets": 120,
+      "cpuMsAmortizedPerFixturePacket": 186.4579
+    }
+  ],
+  "httpLoadComparison": [
+    {
+      "version": "0.7.53",
+      "label": "v0753-w0-n10-s300",
+      "elapsedS": 307.804,
+      "requests": 1920,
+      "rps": 6.237735701940196,
+      "actualErrorRate": 0.0010416666666666667,
+      "minimumPacingFraction": 0.8,
+      "correctnessAndPacingPassed": true,
+      "latencyGoalPassed": false,
+      "errors": [
+        {
+          "kind": "checkpoint",
+          "status": 0,
+          "path": "/api/ilab/experiment-runs/<run>",
+          "error": "request timeout"
+        },
+        {
+          "kind": "checkpoint",
+          "status": 0,
+          "path": "/api/ilab/experiment-runs/<run>",
+          "error": "request timeout"
+        }
+      ],
+      "stateFailures": [],
+      "groups": {
+        "run-open": {
+          "requests": 522,
+          "errors": 0,
+          "p50Ms": 275.604290999996,
+          "p95Ms": 902.6439169999794,
+          "p99Ms": 1565.1375000000116,
+          "uploadBytes": 12526857,
+          "downloadBytes": 154552,
+          "statuses": {
+            "200": 522
+          }
+        },
+        "trace-stage": {
+          "requests": 522,
+          "errors": 0,
+          "p50Ms": 1008.2199589999946,
+          "p95Ms": 2225.9373329999944,
+          "p99Ms": 3057.2698340000006,
+          "uploadBytes": 78661414,
+          "downloadBytes": 55854,
+          "statuses": {
+            "200": 522
+          }
+        },
+        "checkpoint": {
+          "requests": 522,
+          "errors": 2,
+          "p50Ms": 1538.8253750000003,
+          "p95Ms": 5482.640833999998,
+          "p99Ms": 20302.315208000015,
+          "uploadBytes": 24282427,
+          "downloadBytes": 154446,
+          "statuses": {
+            "0": 2,
+            "200": 520
+          }
+        },
+        "draft": {
+          "requests": 160,
+          "errors": 0,
+          "p50Ms": 193.35533300000134,
+          "p95Ms": 562.9273750000284,
+          "p99Ms": 1035.923833000008,
+          "uploadBytes": 24290,
+          "downloadBytes": 15010,
+          "statuses": {
+            "200": 160
+          }
+        },
+        "recovery": {
+          "requests": 100,
+          "errors": 0,
+          "p50Ms": 678.53125,
+          "p95Ms": 1651.9195419999996,
+          "p99Ms": 2128.1262080000015,
+          "uploadBytes": 0,
+          "downloadBytes": 6513853,
+          "statuses": {
+            "200": 100
+          }
+        },
+        "page-refresh": {
+          "requests": 50,
+          "errors": 0,
+          "p50Ms": 329.94283399998676,
+          "p95Ms": 961.3045000000002,
+          "p99Ms": 1558.196417000001,
+          "uploadBytes": 0,
+          "downloadBytes": 514541,
+          "statuses": {
+            "200": 50
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 14,
+          "errors": 0,
+          "p50Ms": 608.265625,
+          "p95Ms": 1247.7154590000282,
+          "p99Ms": 1247.7154590000282,
+          "uploadBytes": 0,
+          "downloadBytes": 1054358,
+          "statuses": {
+            "200": 14
+          }
+        },
+        "step-submit": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 1055.2274170000455,
+          "p95Ms": 1249.3218750000233,
+          "p99Ms": 1249.3218750000233,
+          "uploadBytes": 5108,
+          "downloadBytes": 980,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "report-save": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 680.243833000015,
+          "p95Ms": 750.3517499999725,
+          "p99Ms": 750.3517499999725,
+          "uploadBytes": 4126,
+          "downloadBytes": 12944,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 252.97100000001956,
+          "p95Ms": 362.1842919999617,
+          "p99Ms": 362.1842919999617,
+          "uploadBytes": 4141,
+          "downloadBytes": 930,
+          "statuses": {
+            "400": 10
+          }
+        }
+      },
+      "componentAverageCpuCores": {
+        "act-obe-app": 1.0227163531159633,
+        "act-obe-worker": 0.01611251663003571,
+        "act-obe-postgres": 0.05359205384430433,
+        "act-obe-redis": 0.009729841398342222
+      },
+      "cohortHistoryBefore": {
+        "capturedAt": "2026-11-17T08:45:03.523Z",
+        "concurrency": 10,
+        "byCourse": []
+      },
+      "clientCpuSeconds": 28.643036,
+      "eventLoopP95Ms": 21.135359,
+      "eventLoopMaximumMs": 52.101119,
+      "clientRssBytes": 388087808,
+      "uploadBytes": 115508363,
+      "downloadBytes": 8477468,
+      "externalIlabCalls": 0,
+      "aiProviderCalls": 0
+    },
+    {
+      "version": "0.7.55",
+      "label": "v0755-w0-n10-s300",
+      "elapsedS": 318.044,
+      "requests": 2037,
+      "rps": 6.404774182188628,
+      "actualErrorRate": 0,
+      "minimumPacingFraction": 0.8666666666666667,
+      "correctnessAndPacingPassed": true,
+      "latencyGoalPassed": false,
+      "errors": [],
+      "stateFailures": [],
+      "groups": {
+        "run-open": {
+          "requests": 557,
+          "errors": 0,
+          "p50Ms": 87.940042000002,
+          "p95Ms": 676.3281670000288,
+          "p99Ms": 1339.0266249999986,
+          "uploadBytes": 13373123,
+          "downloadBytes": 191595,
+          "statuses": {
+            "200": 557
+          }
+        },
+        "trace-stage": {
+          "requests": 557,
+          "errors": 0,
+          "p50Ms": 321.1369579999882,
+          "p95Ms": 1591.5489170000073,
+          "p99Ms": 2102.588208000001,
+          "uploadBytes": 84069107,
+          "downloadBytes": 59599,
+          "statuses": {
+            "200": 557
+          }
+        },
+        "checkpoint": {
+          "requests": 557,
+          "errors": 0,
+          "p50Ms": 185.39199999999983,
+          "p95Ms": 2071.783875000023,
+          "p99Ms": 14888.197749999992,
+          "uploadBytes": 25946298,
+          "downloadBytes": 192150,
+          "statuses": {
+            "200": 557
+          }
+        },
+        "draft": {
+          "requests": 163,
+          "errors": 0,
+          "p50Ms": 83.17262500000652,
+          "p95Ms": 293.39383400000224,
+          "p99Ms": 572.3426250000002,
+          "uploadBytes": 24746,
+          "downloadBytes": 15292,
+          "statuses": {
+            "200": 163
+          }
+        },
+        "recovery": {
+          "requests": 106,
+          "errors": 0,
+          "p50Ms": 310.14300000001094,
+          "p95Ms": 1143.6909159999923,
+          "p99Ms": 1418.3568750000004,
+          "uploadBytes": 0,
+          "downloadBytes": 6749247,
+          "statuses": {
+            "200": 106
+          }
+        },
+        "page-refresh": {
+          "requests": 50,
+          "errors": 0,
+          "p50Ms": 224.44258299999638,
+          "p95Ms": 833.5952919999982,
+          "p99Ms": 858.3723339999851,
+          "uploadBytes": 0,
+          "downloadBytes": 514660,
+          "statuses": {
+            "200": 50
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 17,
+          "errors": 0,
+          "p50Ms": 450.45770800003083,
+          "p95Ms": 1615.6783750000177,
+          "p99Ms": 1615.6783750000177,
+          "uploadBytes": 0,
+          "downloadBytes": 1262054,
+          "statuses": {
+            "200": 17
+          }
+        },
+        "step-submit": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 10994.40724999999,
+          "p95Ms": 12036.347624999995,
+          "p99Ms": 12036.347624999995,
+          "uploadBytes": 5115,
+          "downloadBytes": 980,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "report-save": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 424.155167000019,
+          "p95Ms": 1434.607583999983,
+          "p99Ms": 1434.607583999983,
+          "uploadBytes": 4147,
+          "downloadBytes": 12983,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 173.89899999997579,
+          "p95Ms": 1037.3555000000051,
+          "p99Ms": 1037.3555000000051,
+          "uploadBytes": 4168,
+          "downloadBytes": 930,
+          "statuses": {
+            "400": 10
+          }
+        }
+      },
+      "componentAverageCpuCores": {
+        "act-obe-app": 0.7824055216715841,
+        "act-obe-worker": 0.014123953945114431,
+        "act-obe-postgres": 0.0550934708307048,
+        "act-obe-redis": 0.008641870729703145
+      },
+      "cohortHistoryBefore": {
+        "capturedAt": "2026-11-17T15:14:06.882Z",
+        "concurrency": 10,
+        "byCourse": []
+      },
+      "clientCpuSeconds": 23.84876,
+      "eventLoopP95Ms": 21.168127,
+      "eventLoopMaximumMs": 62.980095,
+      "clientRssBytes": 391725056,
+      "uploadBytes": 123426704,
+      "downloadBytes": 8999490,
+      "externalIlabCalls": 0,
+      "aiProviderCalls": 0
+    }
+  ],
+  "preservedBehavior": {
+    "samplingChanged": false,
+    "chunkWindowSimulationSeconds": 5,
+    "pageAutosaveIntervalAfterPreviousCompletionSeconds": 5,
+    "ownerAndRoundIsolation": true,
+    "privateCasFormat": "canonical JSON + gzip",
+    "officialGradingUsesServerVerifiedEvidence": true
+  },
+  "remainingScope": [
+    "私有OSS直传与浏览器后台编码",
+    "精简恢复首包与按需曲线",
+    "真实页面正常运行组、刷新组、集中提交和综合带宽",
+    "新链路10/25/50/100/120阶梯与120路持续30分钟验收"
+  ]
+}
