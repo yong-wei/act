@@ -148,7 +148,8 @@ try {
     await prisma.simulationTrace.create({data:{...collision,id:undefined,runId:batchRun.id,
       summaryMetrics: collision.summaryMetrics as Prisma.InputJsonValue,
       sampleStorageUri:pendingChunks[1],checksum:pendingChunks[1].split(':').at(-1)!}});
-    const batchInput = {...checkpointInput,pendingChunks};
+    const batchInput = {...checkpointInput,pendingChunks,
+      baseCheckpointReference:(batchRun.summary as {lastCheckpointReference:string}).lastCheckpointReference};
     await assert.rejects(closeVesselEvidenceRun(user.id,batchRunRef,batchInput),{code:'P2002'});
     assert.deepEqual((await findOwnedVesselRun(user.id,batchRunRef)).summary,batchRun.summary);
     assert.deepEqual((await prisma.simulationTrace.findMany({where:{runId:batchRun.id}})).map((trace)=>trace.chunkIndex),[1]);

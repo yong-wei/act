@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 import { CONTROL_ENGINE_BUILD_HASH, CONTROL_ENGINE_EXPORTS, CONTROL_ENGINE_FILE_HASHES } from './identity.generated';
@@ -20,6 +20,15 @@ export interface GeneratedPackageIdentity {
   readonly files: Record<string, string>;
 }
 
+let verifiedPackage: { directory: string; fingerprint: string; identity: GeneratedPackageIdentity } | undefined;
+
+function packageFingerprint(directory: string): string {
+  return [...REQUIRED_GENERATED_FILES, 'identity.json', '.build-hash'].map((file) => {
+    const stat = statSync(path.join(directory, file), { bigint: true, throwIfNoEntry: false });
+    return stat ? `${file}:${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}` : `${file}:missing`;
+  }).join('|');
+}
+
 function sha256File(filePath: string): string {
   return createHash('sha256').update(readFileSync(filePath)).digest('hex');
 }
@@ -30,6 +39,10 @@ export function generatedPackageDir(cwd = process.cwd()): string {
 
 export function readGeneratedPackageIdentity(cwd = process.cwd()): GeneratedPackageIdentity {
   const dir = generatedPackageDir(cwd);
+  const fingerprint = packageFingerprint(dir);
+  if (verifiedPackage?.directory === dir && verifiedPackage.fingerprint === fingerprint) {
+    return structuredClone(verifiedPackage.identity);
+  }
   const identityPath = path.join(dir, 'identity.json');
   const hashPath = path.join(dir, '.build-hash');
   const missing = REQUIRED_GENERATED_FILES.filter((file) => !existsSync(path.join(dir, file)));
@@ -91,5 +104,8 @@ export function readGeneratedPackageIdentity(cwd = process.cwd()): GeneratedPack
     }
   }
 
+  if (packageFingerprint(dir) === fingerprint) {
+    verifiedPackage = { directory: dir, fingerprint, identity: structuredClone(parsed) };
+  }
   return parsed;
 }

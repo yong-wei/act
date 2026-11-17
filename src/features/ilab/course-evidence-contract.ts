@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { simulationTraceReferencePattern } from '@/features/simulations/public-api';
 import type { VesselSessionConfiguration, VesselSessionInput, VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import type { VesselObservedSample } from '@/lib/control-engine/vessel-session';
 import type { VesselTracePoint } from '@/features/simulations/run-evidence';
 
 const finite = z.number().finite();
-const object = z.record(z.unknown());
+const object = z.record(z.string(), z.unknown());
 const vector = z.array(finite).max(16);
 const sixVector = z.tuple([finite,finite,finite,finite,finite,finite]);
 const measurement = z.object({ value:finite.nullable(),sampledAtS:finite.min(0),arrivedAtS:finite.min(0),
@@ -59,7 +59,7 @@ const tracePoint = z.object({
   longitudinal:z.object({referenceMps:finite.nullable(),filteredMeasurementMps:finite.nullable(),feedbackMps:finite.nullable(),
     integralRpm:finite,unsaturatedRpm:finite,requestedRpm:finite,appliedRpm:finite,integralFrozen:z.boolean()}).optional(),
   timeS:finite.min(0),command:z.object({ headingDeg:finite,shaftRpm:vector,surfaceDeg:vector,azimuthDeg:vector.optional() }),
-  measurements:z.record(measurement),
+  measurements:z.record(z.string(), measurement),
   estimate:z.object({ headingDeg:finite,yawRateDegS:finite,groundBodySpeedMps:finite,
     groundBodyLateralSpeedMps:finite.optional(),northM:finite,eastM:finite }),
   dynamics:object.nullable().optional(),
@@ -130,9 +130,9 @@ export const vesselEvidenceCloseSchema = z.object({
     runtimeVersion: z.string().regex(/^[0-9a-f]{64}$/).optional(),
     parameterHash: z.string().min(1).max(128), timeS: finite.min(0).max(3600),
     controllerTicks: z.number().int().nonnegative(), fineCount: z.number().int().nonnegative(),
-    appliedFinalInput: object, metrics: z.record(finite.nullable()),
+    appliedFinalInput: object, metrics: z.record(z.string(), finite.nullable()),
     parameters: object.optional(), fineStepMetrics: object.optional(),
-    cruiseComfort: object.nullish().transform(value => value ?? undefined),
+    cruiseComfort: object.nullish().transform(value => value ?? undefined).optional(),
     voyage: object.optional(), fuelKg: finite.optional(),
   }).optional(),
 });
@@ -145,7 +145,7 @@ export const vesselEvidenceDirectCloseSchema = vesselEvidenceCloseMetadataSchema
   checkpointReference: z.string().regex(simulationTraceReferencePattern),
 });
 
-const watermarks = z.record(finite.min(0)).refine(value => Object.keys(value).length <= 256);
+const watermarks = z.record(z.string(), finite.min(0)).refine(value => Object.keys(value).length <= 256);
 export const vesselTraceChunkMetadataSchema = z.object({
   schema: z.literal('act.vessel-trace-metadata.v1'), runRef: z.string().uuid(),
   parameterHash: z.string().min(1).max(128), chunkIndex: z.number().int().min(0).max(4096),
