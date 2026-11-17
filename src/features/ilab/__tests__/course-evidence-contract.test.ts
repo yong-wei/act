@@ -11,6 +11,12 @@ const sample = (signal: unknown) => ({ signal, measurement: {
 } });
 
 describe('原始证据分块结构兼容', () => {
+  it('沿用历史UUID格式，保留版本位和变体位未受限的已有运行引用', () => {
+    const runRef = '12345678-abcd-0000-0000-123456789abc';
+    expect(vesselTraceChunkSchema.parse({ ...chunk, runRef }).runRef).toBe(runRef);
+    expect(vesselTraceChunkSchema.safeParse({ ...chunk, runRef: 'invalid-run-reference' }).success).toBe(false);
+  });
+
   it('保留历史分块和传感器联合类型的解析结果', () => {
     const value = { ...chunk, ignored: true, nativeSamples: [sample('Heading'),
       sample({ SurfaceEncoder: 0, ignored: true }), sample({ AzimuthEncoder: 15 }), sample({ ShaftSpeed: 1 }),

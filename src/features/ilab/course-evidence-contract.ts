@@ -5,6 +5,7 @@ import type { VesselObservedSample } from '@/lib/control-engine/vessel-session';
 import type { VesselTracePoint } from '@/features/simulations/run-evidence';
 
 const finite = z.number().finite();
+const uuid = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 const object = z.record(z.string(), z.unknown());
 const vector = z.array(finite).max(16);
 const sixVector = z.tuple([finite,finite,finite,finite,finite,finite]);
@@ -82,7 +83,7 @@ const fineStepPoint = z.object({timeS:finite.min(0),positionNedM:z.tuple([finite
   attitudeDeg:z.tuple([finite,finite,finite]),bodyVelocitySi:sixVector,
   surfaceDeg:vector,shaftRpm:vector,azimuthDeg:vector,motorPowerW:vector});
 export const vesselEvidenceOpeningSchema = z.object({
-  reportClientRef:z.string().uuid(),runRef:z.string().uuid(),
+  reportClientRef:uuid,runRef:uuid,
   courseKey:z.enum(['destroyer','lng','container','cruise','drilling','icebreaker','dredger']),
   courseVersion:z.string().min(1).max(80),stepSequence:z.number().int().min(1).max(20),
   configuration:object,input:object,parameterHash:z.string().min(1).max(128),
@@ -98,7 +99,7 @@ export type VesselEvidenceOpening = Omit<z.infer<typeof vesselEvidenceOpeningSch
 };
 
 export const vesselTraceChunkSchema = z.object({
-  schema:z.literal('act.vessel-trace-chunk.v1'),runRef:z.string().uuid(),
+  schema:z.literal('act.vessel-trace-chunk.v1'),runRef:uuid,
   chunkIndex:z.number().int().min(0).max(4096),
   controlStart:z.number().int().nonnegative(),nativeStart:z.number().int().nonnegative(),
   fineStart:z.number().int().nonnegative().optional(),fineSamples:z.array(fineStepPoint).max(800).optional(),
@@ -147,7 +148,7 @@ export const vesselEvidenceDirectCloseSchema = vesselEvidenceCloseMetadataSchema
 
 const watermarks = z.record(z.string(), finite.min(0)).refine(value => Object.keys(value).length <= 256);
 export const vesselTraceChunkMetadataSchema = z.object({
-  schema: z.literal('act.vessel-trace-metadata.v1'), runRef: z.string().uuid(),
+  schema: z.literal('act.vessel-trace-metadata.v1'), runRef: uuid,
   parameterHash: z.string().min(1).max(128), chunkIndex: z.number().int().min(0).max(4096),
   controlStart: z.number().int().nonnegative(), controlCount: z.number().int().min(0).max(120),
   nativeStart: z.number().int().nonnegative(), nativeCount: z.number().int().min(0).max(6000),
