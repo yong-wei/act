@@ -110,6 +110,24 @@ export interface VesselRunEvidence {
   changes: Array<{ timeS: number; input: VesselSessionInput }>;
   stopReason: 'student' | 'duration' | 'arrival' | 'time_limit' | 'failure' | null;
   failure: string | null;
+  checkpointPreview?: VesselCheckpointPreview;
+}
+
+export interface VesselCheckpointPreview {
+  schema: 'act.vessel-checkpoint-preview.v1';
+  recoverable: true;
+  runtimeVersion?: string;
+  parameterHash: string;
+  timeS: number;
+  controllerTicks: number;
+  fineCount: number;
+  appliedFinalInput: VesselSessionInput;
+  metrics: VesselRunMetrics;
+  parameters?: VesselSessionFrame['parameters'];
+  fineStepMetrics?: VesselSessionFrame['fineStepMetrics'];
+  cruiseComfort?: VesselSessionFrame['cruiseComfort'];
+  voyage?: NonNullable<VesselSessionFrame['containerVoyage']>['progress'];
+  fuelKg?: number;
 }
 
 export interface VesselLocalStepAttempt {

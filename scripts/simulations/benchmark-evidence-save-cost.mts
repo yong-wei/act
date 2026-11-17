@@ -246,6 +246,9 @@ async function runCourse(course: string, reportClientRef: string, fullRun = fals
 async function sourceFingerprint() {
   const files = (await readdir('src/features/ilab')).filter(name => name.startsWith('course-evidence') && name.endsWith('.ts'))
     .map(name => 'src/features/ilab/' + name);
+  files.push(...(await readdir('src/features/ilab/adapters'))
+    .filter(name => name.startsWith('course-evidence') && name.endsWith('.ts'))
+    .map(name => 'src/features/ilab/adapters/' + name));
   files.push('src/lib/data-governance/simulation-trace-cas.ts', 'src/lib/data-governance/simulation-trace-codec.ts',
     'src/features/ilab/adapters/course-session-recovery.ts', 'prisma/schema.prisma');
   const value = createHash('sha256');
@@ -294,9 +297,16 @@ try {
   }
   assert(validFormalCounts,
     'Native creation/restoration counters were not observed in the formal verification control');
+  const ordinaryCounts = coverageSamples.filter(sample => sample.kind === 'automatic-save');
+  if (ordinaryCounts.every(sample => sample.calls.nativeInstances === 0)) {
+    assert(ordinaryCounts.every(sample => sample.calls.restore === 0 && sample.calls.freedInstances === 0));
+    assert(samples.filter(sample => sample.kind === 'automatic-save')
+      .every(sample => sample.cost.privateObjectReads === 0), 'Confirmed chunks were re-read during ordinary saving');
+  }
   assert(samples.every(sample => sample.cost.sql.total > 0), 'SQL statement events were not observed');
   assert(samples.filter(sample => sample.kind === 'checkpoint-confirmation')
-    .every(sample => sample.cost.sql.transactionStatements === 2), 'Database transaction control statements were not observed');
+    .every(sample => sample.cost.sql.transactionStatements >= 2
+      && sample.cost.sql.transactionStatements % 2 === 0), 'Database transaction control statements were not observed');
   assert.equal(await sourceFingerprint(), fingerprint, 'Source changed during measurement');
   const aggregates = [...new Set(samples.map(sample => sample.kind))].map(kind => {
     const rows = samples.filter(sample => sample.kind === kind);

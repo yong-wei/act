@@ -14,8 +14,8 @@ export interface StudentHeadingDesign {
   kpMinimum: number; kpMaximum: number; kdMaximum: number;
 }
 
-export function evaluateVesselHeadingRun(run:VesselRunEvidence) {
-  if (run.stoppedAtMs === null) throw new Error('请在运行结束后查看完整评价。');
+export function evaluateVesselHeadingRun(run:VesselRunEvidence, allowIncomplete = false) {
+  if (run.stoppedAtMs === null && !allowIncomplete) throw new Error('请在运行结束后查看完整评价。');
   const metrics = computeVirtualSimulationStep<VesselRunMetrics>(vesselRunMetricsRequest(run.trace,run.lastTimeS,
     run.configuration.initialHeadingDeg ?? 0));
   if (run.courseKey === 'drilling' && run.trace.some((point) => point.dp)) {

@@ -5793,6 +5793,7 @@ model SimulationRun {
   owner               User?                      @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
   taskSpec            SimulationTaskSpec?        @relation(fields: [taskSpecId], references: [id], onDelete: SetNull)
   traces              SimulationTrace[]
+  evidenceObjects     SimulationEvidenceObject[]
   arenaVirtualPreview ArenaVirtualSimulationRun?
 
   @@unique([sourceDomain, sourceRefId])
@@ -5822,6 +5823,24 @@ model SimulationTrace {
   @@index([runId, createdAt])
   @@index([checksum])
   @@unique([runId, chunkIndex])
+}
+
+model SimulationEvidenceObject {
+  id                String   @id @default(cuid())
+  runId             String
+  purpose           String
+  reference         String
+  checksum          String
+  uncompressedBytes Int?
+  storedBytes       Int?
+  chunkIndex        Int?
+  metadata          Json
+  createdAt         DateTime @default(now())
+
+  run SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, reference])
+  @@index([runId, purpose, chunkIndex])
 }
 
 // Student competency snapshot

@@ -1,5 +1,6 @@
 import { parentPort } from 'node:worker_threads';
-import { vesselTraceChunkSchema, type VesselEvidenceOpening } from '../../src/features/ilab/course-evidence-contract';
+import { vesselTraceChunkSchema, type VesselEvidenceOpening, type VesselTraceChunk } from '../../src/features/ilab/course-evidence-contract';
+import { describeVesselTraceChunk } from '../../src/features/ilab/course-evidence-prefix';
 import { encodeSimulationTrace, decodeSimulationTrace } from '../../src/lib/data-governance/simulation-trace-codec';
 import { prepareVesselEvidenceOpening, prepareVesselEvidenceClose,
   type PrepareVesselCloseInput } from '../../src/features/ilab/course-evidence-compute';
@@ -20,6 +21,7 @@ async function execute(request: EvidenceCpuRequest): Promise<unknown> {
       const parsed = vesselTraceChunkSchema.safeParse(value);
       if (!parsed.success) throw Object.assign(new Error('原始采样分块内容不完整。'), { status: 400 });
       return { runRef: parsed.data.runRef, chunkIndex: parsed.data.chunkIndex,
+        metadata: describeVesselTraceChunk(parsed.data as unknown as VesselTraceChunk),
         encoded: await encodeSimulationTrace(parsed.data) };
     }
     case 'open-prepare':

@@ -1,5 +1,7 @@
 import { sensorKey } from '@/features/simulations/public-api';
-import type { VesselTraceChunk, VesselEvidenceRunMetadata } from './course-evidence-contract';
+import { createHash } from 'node:crypto';
+import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
+import type { VesselTraceChunk, VesselEvidenceRunMetadata, VesselTraceChunkMetadata } from './course-evidence-contract';
 import type { VesselRunStorageSummary } from './course-evidence-contract';
 import { IlabServiceError } from './service-error';
 
@@ -79,4 +81,72 @@ export function validateChunkPrefix(summary: VesselRunStorageSummary, chunk: Ves
     throw new IlabServiceError('控制器修改时间超出当前采样分块。',400);
   }
   return watermarks;
+}
+
+/** 正文在首次接收时检查，后续提交只使用持久化的边界与计数。 */
+export function describeVesselTraceChunk(chunk: VesselTraceChunk): VesselTraceChunkMetadata {
+  const nativeLastWatermarks = validateChunkPrefix({ parameterHash: chunk.parameterHash,
+    chunkCount: chunk.chunkIndex, controlCount: chunk.controlStart, nativeCount: chunk.nativeStart,
+    fineCount: chunk.fineStart ?? 0, lastTimeS: 0, nativeWatermarks: {},
+  } as VesselRunStorageSummary, chunk);
+  const nativeFirstWatermarks: Record<string, number> = {};
+  for (const sample of chunk.nativeSamples) {
+    const key = sensorKey(sample.signal);
+    nativeFirstWatermarks[key] ??= sample.measurement.t_sample_s;
+    nativeFirstWatermarks[`${key}:arrival`] ??= sample.measurement.t_arrive_s;
+  }
+  return { schema: 'act.vessel-trace-metadata.v1', runRef: chunk.runRef,
+    parameterHash: chunk.parameterHash, chunkIndex: chunk.chunkIndex,
+    controlStart: chunk.controlStart, controlCount: chunk.points.length,
+    nativeStart: chunk.nativeStart, nativeCount: chunk.nativeSamples.length,
+    fineStart: chunk.fineStart ?? 0, fineCount: chunk.fineSamples?.length ?? 0,
+    hasFineSamples: chunk.fineSamples !== undefined,
+    fineFirstTimeS: chunk.fineSamples?.[0]?.timeS, fineLastTimeS: chunk.fineSamples?.at(-1)?.timeS,
+    endTimeS: chunk.endTimeS, nativeFirstWatermarks, nativeLastWatermarks,
+    earliestChangeTimeS: chunk.changes.length ? Math.min(...chunk.changes.map(change => change.timeS)) : undefined,
+    firstSampleReceipt: chunk.points.length
+      ? createHash('sha256').update(canonicalJson(chunk.points[0])).digest('hex') : undefined,
+  };
+}
+
+export function validateVesselTraceMetadata(summary: VesselRunStorageSummary, chunk: VesselTraceChunkMetadata) {
+  if (chunk.parameterHash !== summary.parameterHash || chunk.chunkIndex !== summary.chunkCount
+    || chunk.controlStart !== summary.controlCount || chunk.nativeStart !== summary.nativeCount
+    || chunk.fineStart !== (summary.fineCount ?? 0) || chunk.endTimeS < summary.lastTimeS) {
+    throw new IlabServiceError('采样顺序或运行参数不一致，请读取已保存进度后重试。', 409);
+  }
+  if (chunk.fineFirstTimeS !== undefined && chunk.fineFirstTimeS <= (summary.fineLastTimeS ?? -1)) {
+    throw new IlabServiceError('物理细步事件窗口的时间或顺序不一致。', 400);
+  }
+  if (Object.entries(chunk.nativeFirstWatermarks).some(([key, time]) =>
+    time < (summary.nativeWatermarks[key] ?? -1) - 1e-7)) {
+    throw new IlabServiceError('原生仪器记录顺序或缺测状态不一致。', 400);
+  }
+  if (chunk.earliestChangeTimeS !== undefined && chunk.earliestChangeTimeS < summary.lastTimeS - 1e-7) {
+    throw new IlabServiceError('控制器修改时间超出当前采样分块。', 400);
+  }
+}
+
+export function advanceVesselTraceMetadata(summary: VesselRunStorageSummary, chunk: VesselTraceChunkMetadata) {
+  const next = { ...summary, chunkCount: summary.chunkCount + 1,
+    controlCount: summary.controlCount + chunk.controlCount, nativeCount: summary.nativeCount + chunk.nativeCount,
+    lastTimeS: chunk.endTimeS, nativeWatermarks: { ...summary.nativeWatermarks, ...chunk.nativeLastWatermarks } };
+  if (chunk.hasFineSamples) {
+    next.fineCount = (summary.fineCount ?? 0) + chunk.fineCount;
+    next.fineLastTimeS = chunk.fineLastTimeS ?? summary.fineLastTimeS;
+  }
+  return next;
+}
+
+export function confirmedVesselTraceData(run: VesselEvidenceRunMetadata, summary: VesselRunStorageSummary,
+  chunk: VesselTraceChunkMetadata, stored: StoredChunk): StoredVesselTrace {
+  return { runId: run.id, chunkIndex: chunk.chunkIndex, protocolVersion: 'act.vessel-trace-chunk.v1',
+    runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion, seed: run.seed,
+    checksum: stored.checksum, sampleStorageUri: stored.uri, sampleCadence: .05, sampleCount: chunk.controlCount,
+    summaryMetrics: { startTimeS: summary.lastTimeS, endTimeS: chunk.endTimeS,
+      controlStart: chunk.controlStart, nativeStart: chunk.nativeStart, nativeCount: chunk.nativeCount,
+      fineStart: chunk.fineStart, fineCount: chunk.fineCount,
+      ...(stored.uncompressedBytes !== undefined ? { uncompressedBytes: stored.uncompressedBytes } : {}),
+      ...(stored.storedBytes !== undefined ? { storedBytes: stored.storedBytes } : {}) },
+  };
 }

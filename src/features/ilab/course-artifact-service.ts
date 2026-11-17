@@ -14,6 +14,7 @@ import { vesselComparisonFactors } from '@/resources/simulations/experiments/com
 import type { VesselEvidenceOpening } from './course-evidence-contract';
 import { buildVesselCourseReportHtml, type VesselReportEvidence } from '@/features/simulations/course-report';
 import { studentModelSaveSchema } from '@/lib/student-model-artifact-contract';
+import { hasVerifiedVesselEvidence, verifyVesselEvidenceRun } from './course-evidence-chunks';
 export { buildVesselCourseReportHtml } from '@/features/simulations/course-report';
 
 const contentHash = (value: unknown) => createHash('sha256').update(canonicalJson(value)).digest('hex');
@@ -61,6 +62,16 @@ async function ownedRuns(db: Prisma.TransactionClient, userId: string, experimen
 export async function saveVesselCourseArtifact(userId: string, input: VesselCourseArtifactInput) {
   const report = await requireOwnedReport(userId, input);
   const experimentKey = vesselExperimentKey(report);
+  if (input.attempt || input.report?.action === 'submit') {
+    const runs = await prisma.simulationRun.findMany({ where: { ownerUserId: userId,
+      sourceDomain: VESSEL_EVIDENCE_DOMAIN, summary: { path: ['reportId'], equals: report.id } } });
+    for (const run of runs) {
+      const summary = vesselRunStorageSummary(run);
+      if ((summary.controlCount || summary.nativeCount || summary.fineCount) && !hasVerifiedVesselEvidence(run)) {
+        await verifyVesselEvidenceRun(userId, run.sourceRefId);
+      }
+    }
+  }
   const comparison = input.comparison;
   const curve = comparison ? await writeSimulationTraceChunk({schema:'act.vessel-comparison.v1',...comparison}) : null;
   const attempt = input.attempt;

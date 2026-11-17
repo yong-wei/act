@@ -55,7 +55,8 @@ export function vesselEvidenceErrorResponse(error: unknown) {
   rethrowIfNextDynamicError(error);
   const failure = toIlabHttpError(error instanceof EvidenceCpuError
     ? new IlabServiceError(error.message, error.status) : error);
-  return NextResponse.json({ error:failure.message },{ status:failure.status });
+  const savedProgress = error && typeof error === 'object' && 'savedProgress' in error ? error.savedProgress : undefined;
+  return NextResponse.json({ error:failure.message, ...(savedProgress ? { savedProgress } : {}) },{ status:failure.status });
 }
 
 /** 本人恢复点和原始分块按客户端声明压缩，私有响应保持逐请求读取。 */

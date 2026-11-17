@@ -110,6 +110,27 @@ export type VesselTraceChunk = Omit<z.infer<typeof vesselTraceChunkSchema>,'poin
   changes:Array<{ timeS:number;input:VesselSessionInput }>;
 };
 
+export interface VesselTraceChunkMetadata {
+  schema: 'act.vessel-trace-metadata.v1';
+  runRef: string;
+  parameterHash: string;
+  chunkIndex: number;
+  controlStart: number;
+  controlCount: number;
+  nativeStart: number;
+  nativeCount: number;
+  fineStart: number;
+  fineCount: number;
+  hasFineSamples: boolean;
+  fineFirstTimeS?: number;
+  fineLastTimeS?: number;
+  endTimeS: number;
+  nativeFirstWatermarks: Record<string, number>;
+  nativeLastWatermarks: Record<string, number>;
+  earliestChangeTimeS?: number;
+  firstSampleReceipt?: string;
+}
+
 export const vesselEvidenceCloseSchema = z.object({
   checkpoint:z.string().min(1).max(3_000_000),
   endTimeS:finite.min(0).max(3600),
@@ -120,6 +141,15 @@ export const vesselEvidenceCloseSchema = z.object({
   pendingChunks:z.array(z.string().regex(/^simulation-cas:(file|s3):sha256:[0-9a-f]{64}$/)).max(4096).optional(),
   reason:z.enum(['checkpoint','student','duration','arrival','time_limit','failure']),
   failure:z.string().max(8000).nullable(),
+  checkpointPreview: z.object({
+    schema: z.literal('act.vessel-checkpoint-preview.v1'), recoverable: z.literal(true),
+    runtimeVersion: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+    parameterHash: z.string().min(1).max(128), timeS: finite.min(0).max(3600),
+    controllerTicks: z.number().int().nonnegative(), fineCount: z.number().int().nonnegative(),
+    appliedFinalInput: object, metrics: z.record(finite.nullable()),
+    parameters: object.optional(), fineStepMetrics: object.optional(),
+    cruiseComfort: object.optional(), voyage: object.optional(), fuelKg: finite.optional(),
+  }).optional(),
 });
 export type VesselEvidenceClose = z.infer<typeof vesselEvidenceCloseSchema>;
 
@@ -152,4 +182,11 @@ export interface VesselRunStorageSummary {
   validationRuntimeVersion?:string;
   appliedFactors?:string[];
   dredgerModeEvents?:VesselSessionFrame['dredgerEvents'];
+  evidenceVerification?: {
+    status: 'pending' | 'verifying' | 'failed' | 'verified';
+    checkpointHash: string;
+    runtimeVersion: string;
+    evidenceHash?: string;
+    verifiedAt?: string;
+  };
 }

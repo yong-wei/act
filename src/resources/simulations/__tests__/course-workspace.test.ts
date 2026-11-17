@@ -6,6 +6,9 @@ import { VesselCourseWorkspace } from '@/features/simulations/course-workspace';
 const mocks = vi.hoisted(() => ({create:vi.fn(),save:vi.fn()}));
 vi.mock('@/lib/control-engine/vessel-session', () => ({createVesselSimulationSessionBrowser:mocks.create}));
 vi.mock('@/features/simulations/local-evidence-store', () => ({saveRunEvidence:mocks.save}));
+vi.mock('@/resources/simulations/experiments/student-analysis', () => ({
+  evaluateVesselHeadingRun: vi.fn(() => ({ metrics: {}, parameters: {} })),
+}));
 
 const input: VesselSessionInput = {controlMode:'manual',pid:{kp:0,ki:0,kd:0},targetHeadingDeg:0,
   feedback:'measurement',actuators:{shafts:[],surfaces:[]}};
@@ -15,7 +18,7 @@ let revision:number;
 let stored:(VesselRunEvidence & {revision:number})|undefined;
 
 function sessionFixture() {
-  const frame = {timeS:0,input,parameterHash:'fixture',parameters:{},controlSamples:[],samples:[]} as unknown as VesselSessionFrame;
+  const frame = {timeS:0,controllerTicks:0,input,parameterHash:'fixture',parameters:{},controlSamples:[],samples:[]} as unknown as VesselSessionFrame;
   return {read:vi.fn(() => frame),advance:vi.fn(() => frame),setPaused:vi.fn(),
     snapshot:vi.fn(() => 'opaque-lifecycle-checkpoint'),restore:vi.fn(),reset:vi.fn(),dispose:vi.fn()} satisfies VesselSession;
 }

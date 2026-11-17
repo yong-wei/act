@@ -46,7 +46,9 @@ export function vesselRunProgress(run: SimulationRun) {
   return { runRef:run.sourceRefId,reportId:summary.reportId,experimentKey:summary.experimentKey,status:run.status,
     chunkCount:summary.chunkCount,controlCount:summary.controlCount,nativeCount:summary.nativeCount,
     fineCount:summary.fineCount ?? 0,
-    lastTimeS:summary.lastTimeS,parameterHash:summary.parameterHash };
+    lastTimeS:summary.lastTimeS,parameterHash:summary.parameterHash,
+    saveStatus: 'saved', evidenceStatus: summary.evidenceVerification?.status
+      ?? (run.completedAt ? 'verified' : 'pending') };
 }
 
 /** 报告、物理记录及已有生效信封使用同一实验版本和运行引用。 */

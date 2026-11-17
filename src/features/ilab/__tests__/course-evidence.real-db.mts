@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { createServerVesselSession } from '@/lib/control-engine/wasm-server';
 import { closeEvidenceCpuPool } from '@/lib/control-engine/evidence-cpu-pool';
@@ -11,9 +12,11 @@ import { collectVesselTracePoint, type VesselRunEvidence } from '@/features/simu
 import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { uploadVesselRunEvidence } from '@/features/simulations/evidence-upload';
 import { readVesselEvidenceJson } from '@/features/ilab/course-evidence-api';
-import { vesselEvidenceOpeningSchema, vesselTraceChunkSchema, vesselEvidenceCloseSchema } from '@/features/ilab/course-evidence-contract';
+import { vesselEvidenceOpeningSchema as openingSchema, vesselTraceChunkSchema as chunkSchema, vesselEvidenceCloseSchema,
+  type VesselEvidenceOpening, type VesselTraceChunk } from '@/features/ilab/course-evidence-contract';
 import { openVesselEvidenceRun, findOwnedVesselRun } from '@/features/ilab/course-evidence-service';
-import { appendVesselEvidenceChunk, closeVesselEvidenceRun, stageVesselEvidenceChunk, stageVesselEvidenceBytes, readVesselEvidenceChunk } from '@/features/ilab/course-evidence-chunks';
+import { appendVesselEvidenceChunk, closeVesselEvidenceRun, stageVesselEvidenceChunk, stageVesselEvidenceBytes,
+  readVesselEvidenceChunk, verifyVesselEvidenceRun } from '@/features/ilab/course-evidence-chunks';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 import { LNG_COURSE_STEPS, lngCourseDefaultSettings, lngCourseInput } from '@/resources/simulations/experiments/lng-course';
 import {containerCourseConfiguration,containerCourseDefaultSettings,containerCourseInput} from '@/resources/simulations/experiments/container-course';
@@ -24,6 +27,9 @@ import { vesselCourseArtifactSchema } from '@/features/ilab/course-artifact-cont
 import { readVesselReportEvidence, reviewVesselCourseReport } from '@/features/ilab/course-report-review';
 import { vesselStepReviewLimits } from '@/features/ilab/course-report-review-contract';
 import { loadCourseSessionRecovery } from '@/features/ilab/adapters/course-session-recovery';
+
+const vesselEvidenceOpeningSchema = openingSchema.transform(value => value as unknown as VesselEvidenceOpening);
+const vesselTraceChunkSchema = chunkSchema.transform(value => value as unknown as VesselTraceChunk);
 
 config({ path: '.env.local', quiet: true });
 config({ quiet: true });
@@ -102,13 +108,26 @@ try {
     assert.equal(recoveredPartial.resumable,true);
     assert.equal(recoveredPartial.durationS,11);
   } finally { resumed.free(); }
+  const interruptedVerification = await findOwnedVesselRun(user.id, run.id);
+  const savedSummary = interruptedVerification.summary as Record<string, unknown>;
+  await prisma.simulationRun.update({ where: { id: interruptedVerification.id }, data: {
+    summary: { ...savedSummary, evidenceVerification: { status: 'verifying',
+      checkpointHash: savedSummary.checkpointHash, runtimeVersion: interruptedVerification.runtimeVersion } } as never,
+  } });
+  const verifiedProgress = await verifyVesselEvidenceRun(user.id, run.id);
+  assert.equal(verifiedProgress.status, 'running');
+  assert.equal(verifiedProgress.evidenceStatus, 'verified');
+  assert.deepEqual(await verifyVesselEvidenceRun(user.id, run.id), verifiedProgress);
+  const verifiedPrefix = await findOwnedVesselRun(user.id, run.id);
+  assert.equal(verifiedPrefix.completedAt, null);
+  assert((verifiedPrefix.summary as { metrics?: unknown }).metrics);
   const checkpointRequest=captured.find((item) => (item.data as {reason?:string}).reason === 'checkpoint')!;
   const checkpointInput=vesselEvidenceCloseSchema.parse(checkpointRequest.data);
   const repeatedCheckpoints=await Promise.all([
     closeVesselEvidenceRun(user.id,run.id,checkpointInput),
     closeVesselEvidenceRun(user.id,run.id,checkpointInput),
   ]);
-  assert.deepEqual(repeatedCheckpoints,[partial,partial]);
+  assert.deepEqual(repeatedCheckpoints,[verifiedProgress,verifiedProgress]);
   const batchRunRef = randomUUID();
   const openingRequest = captured.find((item) => item.url === '/api/ilab/experiment-runs')!;
   await openVesselEvidenceRun(user.id,vesselEvidenceOpeningSchema.parse({
@@ -127,6 +146,7 @@ try {
     const originalRun = await findOwnedVesselRun(user.id,run.id);
     const collision = await prisma.simulationTrace.findFirstOrThrow({where:{runId:originalRun.id,chunkIndex:1}});
     await prisma.simulationTrace.create({data:{...collision,id:undefined,runId:batchRun.id,
+      summaryMetrics: collision.summaryMetrics as Prisma.InputJsonValue,
       sampleStorageUri:pendingChunks[1],checksum:pendingChunks[1].split(':').at(-1)!}});
     const batchInput = {...checkpointInput,pendingChunks};
     await assert.rejects(closeVesselEvidenceRun(user.id,batchRunRef,batchInput),{code:'P2002'});
@@ -259,7 +279,7 @@ try {
       endTimeS:3,controlCount:points.length,nativeCount:nativeSamples.length,fineCount:fineSamples.length,
       reason:'duration',failure:null}));
     const lngSaved = await findOwnedVesselRun(user.id,lngRunRef);
-    const lngMetrics = (lngSaved.summary as {fineStepMetrics:NonNullable<VesselSessionFrame['fineStepMetrics']>}).fineStepMetrics.values.lng;
+    const lngMetrics = (lngSaved.summary as unknown as {fineStepMetrics:NonNullable<VesselSessionFrame['fineStepMetrics']>}).fineStepMetrics.values.lng;
     assert.equal(lngMetrics?.physicsSamples,360);
     assert.equal(lngMetrics?.lateralWindowDurationS,3);
     await saveVesselCourseArtifact(user.id,vesselCourseArtifactSchema.parse({...lngContext,model:{clientRef:lngModelRef,payload:{
@@ -292,7 +312,7 @@ try {
     const initial = JSON.parse(containerNative.read()) as VesselSessionFrame;
     const rpm = initial.input.actuators.shafts[0].speed_reference_rad_s*30/Math.PI;
     const models = [.2,.6,.9].map((loading,index) => ({id:containerSettings.modelIds[index],channel:'shaft-reference-to-speed',
-      payload:{structure:{kind:'fopdt',k:.05,t_s:160,delay_s:2},operatingPoint:{loadingRatio:loading,speedMps:8,inputOrigin:rpm}}})) as FrozenVesselStudentModel[];
+      payload:{structure:{kind:'fopdt',k:.05,t_s:160,delay_s:2},operatingPoint:{loadingRatio:loading,speedMps:8,inputOrigin:rpm}}})) as unknown as FrozenVesselStudentModel[];
     const input = containerCourseInput(7,containerSettings,initial.input,initial,models);
     const applied = JSON.parse(containerNative.advance(0,JSON.stringify(input))) as VesselSessionFrame;
     const reportClientRef = randomUUID(),runRef = randomUUID();
@@ -331,7 +351,7 @@ try {
     const initial=JSON.parse(cruiseNative.read()) as VesselSessionFrame;
     const model={id:randomUUID(),channel:'fin-to-roll',payload:{
       structure:{kind:'roll_oscillator',natural_freq_rad_s:.3,damping:.05,control_gain:1e6},
-      operatingPoint:{rollInertiaKgM2:initial.parameters.rollInertiaKgM2}}} as FrozenVesselStudentModel;
+      operatingPoint:{rollInertiaKgM2:initial.parameters.rollInertiaKgM2}}} as unknown as FrozenVesselStudentModel;
     const input=cruiseCourseInput(16,cruiseSettings,initial.input,initial,model);
     const applied=JSON.parse(cruiseNative.advance(0,JSON.stringify(input))) as VesselSessionFrame;
     const reportClientRef=randomUUID(),runRef=randomUUID();
@@ -341,7 +361,7 @@ try {
       prediction:'Declared fixture checks actual cruise IMU feedback and two-point comfort evidence',startedAtMs:Date.now()});
     await openVesselEvidenceRun(user.id,opening);
     await assert.rejects(openVesselEvidenceRun(user.id,{...opening,runRef:randomUUID(),
-      input:{...applied.input,feedback:'truth'}}),/课程约定/);
+      input:{...applied.input,feedback:'truth'}} as unknown as VesselEvidenceOpening),/课程约定/);
     const points:VesselRunEvidence['trace']=[],nativeSamples:VesselRunEvidence['nativeSensorSamples']=[];
     const fineSamples:NonNullable<VesselRunEvidence['fineStepSamples']>=[];
     for(let second=0;second<3;second++) {
@@ -360,7 +380,7 @@ try {
     await closeVesselEvidenceRun(user.id,runRef,vesselEvidenceCloseSchema.parse({checkpoint:cruiseNative.snapshot(),endTimeS:3,
       controlCount:points.length,nativeCount:nativeSamples.length,fineCount:fineSamples.length,reason:'student',failure:null}));
     const saved=await findOwnedVesselRun(user.id,runRef);
-    const summary=saved.summary as {cruiseComfort:NonNullable<VesselSessionFrame['cruiseComfort']>};
+    const summary=saved.summary as unknown as {cruiseComfort:NonNullable<VesselSessionFrame['cruiseComfort']>};
     assert.equal(summary.cruiseComfort.physicsSamples,360);
     assert.equal(summary.cruiseComfort.passengers.length,2);
     assert.equal(summary.cruiseComfort.comfortInterpretation,'teaching_proxy_unweighted');

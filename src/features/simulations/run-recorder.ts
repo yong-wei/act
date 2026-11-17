@@ -1,6 +1,7 @@
 import type { VesselSession, VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { saveRunEvidence } from './local-evidence-store';
 import { collectVesselTracePoint, vesselDredgerModeEvents, type VesselRunEvidence } from './run-evidence';
+import { evaluateVesselHeadingRun } from '@/resources/simulations/experiments/student-analysis';
 
 /** 每次实际运行独立保存，写入按版本顺序串行提交。 */
 export class VesselRunRecorder {
@@ -41,6 +42,18 @@ export class VesselRunRecorder {
 
   save(session: VesselSession, reason: VesselRunEvidence['stopReason'] = null, failure: string | null = null) {
     this.run.checkpoint = session.snapshot();
+    session.restore(this.run.checkpoint);
+    const restored = session.read();
+    if (restored.parameterHash !== this.run.parameterHash || Math.abs(restored.timeS - this.run.lastTimeS) > 1e-7
+      || restored.controllerTicks !== this.run.trace.length
+      || (restored.fineStepWindowSampleCount ?? 0) !== (this.run.fineStepSamples?.length ?? 0)) {
+      throw new Error('本机恢复检查未通过，请保留这次运行后重试保存。');
+    }
+    const evaluation = evaluateVesselHeadingRun(this.run, true);
+    this.run.checkpointPreview = { schema: 'act.vessel-checkpoint-preview.v1', recoverable: true,
+      runtimeVersion: session.runtimeVersion, parameterHash: restored.parameterHash, timeS: restored.timeS,
+      controllerTicks: restored.controllerTicks, fineCount: restored.fineStepWindowSampleCount ?? 0,
+      appliedFinalInput: restored.input, ...evaluation };
     if (reason !== null) {
       this.run.stopReason = reason;
       this.run.failure = failure;
