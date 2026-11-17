@@ -22,6 +22,8 @@ import {ICEBREAKER_COURSE_STEPS} from '@/resources/simulations/experiments/icebr
 import {validateIcebreakerEvidence} from '@/resources/simulations/experiments/icebreaker-evidence';
 import {DREDGER_COURSE_STEPS} from '@/resources/simulations/experiments/dredger-course';
 import {validateDredgerEvidence} from '@/resources/simulations/experiments/dredger-evidence';
+import { hasVerifiedVesselEvidence } from './course-evidence-chunks';
+import { IlabServiceError } from './service-error';
 
 /** 从同一报告的实际运行和冻结工件重建验收引用，客户端反馈仅作作品保存。 */
 export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,userId:string,reportId:string,
@@ -36,6 +38,9 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
   const runs:VesselRunSummary[] = [];
   for (const run of storedRuns) {
     const summary = vesselRunStorageSummary(run);
+    if ((summary.controlCount || summary.nativeCount || summary.fineCount) && !hasVerifiedVesselEvidence(run)) {
+      throw new IlabServiceError('运行进度已更新，请先完成当前证据核验后重试提交。', 409);
+    }
     const opening = await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);
     let finalInput:VesselSessionInput | undefined;
     let stopReason:VesselRunSummary['stopReason'] = run.status === 'failed' ? 'failure' : run.status === 'completed' ? 'student' : null;

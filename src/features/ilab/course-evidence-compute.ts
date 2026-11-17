@@ -10,7 +10,8 @@ import { vesselDredgerMetricPoint, vesselDredgerFineMetrics, vesselDredgerModeEv
 import { vesselTraceChunkSchema, type VesselEvidenceOpening, type VesselEvidenceClose,
   type VesselTraceChunk, type VesselEvidenceRunMetadata } from './course-evidence-contract';
 import type { VesselRunStorageSummary } from './course-evidence-contract';
-import { storedTraceData, advanceStoredSummary, validateChunkPrefix, type StoredVesselTrace } from './course-evidence-prefix';
+import { storedTraceData, advanceStoredSummary, validateChunkPrefix, type StoredVesselTrace,
+  type StoredChunk } from './course-evidence-prefix';
 import { calculateVesselRunMetrics } from './course-run-metrics';
 import { IlabServiceError } from './service-error';
 
@@ -65,6 +66,7 @@ export interface PrepareVesselCloseInput {
   input: VesselEvidenceClose;
   closeHash: string;
   traces: Array<{ sampleStorageUri: string | null }>;
+  verifyCheckpoint?: boolean;
 }
 
 export interface PreparedVesselClose {
@@ -74,17 +76,39 @@ export interface PreparedVesselClose {
   simulationEndMs: number;
   summaryUpdates: Record<string, unknown>;
   quality: Record<string, unknown> | null;
+  checkpoint?: StoredChunk;
 }
 
 /** 在数据库事务前完成不可变数据读取、校验、统计与恢复点编码。 */
 export async function prepareVesselEvidenceClose(task: PrepareVesselCloseInput): Promise<PreparedVesselClose> {
   const { run, runRef, summary, input, closeHash } = task;
   const isCheckpoint = input.reason === 'checkpoint';
+  const verifyEvidence = !isCheckpoint || task.verifyCheckpoint === true;
   const pending: StoredVesselTrace[] = [];
   const newPoints: VesselTracePoint[] = [];
   let projected = summary;
   let hasFineSamples = false;
   let firstSampleReceipt: string | undefined;
+  if (verifyEvidence) {
+    let verifiedPrefix: VesselRunStorageSummary = { ...summary, chunkCount: 0, controlCount: 0,
+      nativeCount: 0, fineCount: 0, fineLastTimeS: undefined, lastTimeS: 0, nativeWatermarks: {} };
+    for (const trace of task.traces) {
+      if (!trace.sampleStorageUri) throw new IlabServiceError('原始采样引用缺失。', 409);
+      const parsed = vesselTraceChunkSchema.safeParse(await readSimulationTraceChunk(trace.sampleStorageUri));
+      if (!parsed.success || parsed.data.runRef !== runRef) throw new IlabServiceError('原始采样与当前运行不一致。', 409);
+      const chunk = parsed.data as unknown as VesselTraceChunk;
+      const watermarks = validateChunkPrefix(verifiedPrefix, chunk);
+      verifiedPrefix = advanceStoredSummary(verifiedPrefix, chunk, watermarks);
+      newPoints.push(...chunk.points);
+    }
+    if (verifiedPrefix.chunkCount !== summary.chunkCount || verifiedPrefix.controlCount !== summary.controlCount
+      || verifiedPrefix.nativeCount !== summary.nativeCount || (verifiedPrefix.fineCount ?? 0) !== (summary.fineCount ?? 0)
+      || (verifiedPrefix.fineLastTimeS ?? null) !== (summary.fineLastTimeS ?? null)
+      || verifiedPrefix.lastTimeS > summary.lastTimeS + 1e-7
+      || canonicalJson(verifiedPrefix.nativeWatermarks) !== canonicalJson(summary.nativeWatermarks)) {
+      throw new IlabServiceError('已保存采样与运行水位不一致。', 409);
+    }
+  }
   for (const reference of input.pendingChunks ?? []) {
     const parsed = vesselTraceChunkSchema.safeParse(await readSimulationTraceChunk(reference));
     if (!parsed.success || parsed.data.runRef !== runRef) throw new IlabServiceError('暂存采样与当前运行不一致。',409);
@@ -97,7 +121,7 @@ export async function prepareVesselEvidenceClose(task: PrepareVesselCloseInput):
     if (summary.controlCount === 0 && !firstSampleReceipt && chunk.points.length) {
       firstSampleReceipt = hash(chunk.points[0]);
     }
-    if (!isCheckpoint) newPoints.push(...chunk.points);
+    if (verifyEvidence) newPoints.push(...chunk.points);
   }
   if (input.controlCount !== projected.controlCount || input.nativeCount !== projected.nativeCount
     || (input.fineCount ?? 0) !== (projected.fineCount ?? 0)
@@ -122,14 +146,8 @@ export async function prepareVesselEvidenceClose(task: PrepareVesselCloseInput):
     throw new IlabServiceError('结束状态无法恢复，请检查本机保存的运行。',400);
   } finally { native.free(); }
   let metrics: ReturnType<typeof calculateVesselRunMetrics> | null = null;
-  if (!isCheckpoint) {
-    const points: VesselTracePoint[] = [];
-    for (const trace of task.traces) {
-      if (!trace.sampleStorageUri) throw new IlabServiceError('原始采样引用缺失。',409);
-      const chunk = await readSimulationTraceChunk<VesselTraceChunk>(trace.sampleStorageUri);
-      points.push(...chunk.points);
-    }
-    points.push(...newPoints);
+  if (verifyEvidence) {
+    const points = newPoints;
     if (points.length !== input.controlCount) throw new IlabServiceError('原始控制采样数量不一致。',409);
     metrics = calculateVesselRunMetrics(points, input.endTimeS, opening.configuration.initialHeadingDeg ?? 0,
       frame.iceContact ? { timeS: input.endTimeS, northM: frame.truth.position_ned[0], eastM: frame.truth.position_ned[1],
@@ -148,14 +166,20 @@ export async function prepareVesselEvidenceClose(task: PrepareVesselCloseInput):
     progress.fineLastTimeS = projected.fineLastTimeS;
   }
   return {
-    traces: pending, progress, firstSampleReceipt,
+    traces: pending, progress, firstSampleReceipt, checkpoint,
     simulationEndMs: opening.startedAtMs + Math.round(input.endTimeS * 1000),
     summaryUpdates: { lastTimeS: input.endTimeS, lastCheckpointReference: checkpoint.uri,
-      ...(isCheckpoint ? { checkpointHash: closeHash } : { closeHash, metrics }), fineStepMetrics: frame.fineStepMetrics ?? null,
+      ...(isCheckpoint ? { checkpointHash: closeHash, ...(verifyEvidence ? { metrics } : {}) } : { closeHash, metrics }), fineStepMetrics: frame.fineStepMetrics ?? null,
       parameters: frame.parameters, voyage: frame.containerVoyage?.progress ?? null,
       fuelKg: frame.teachingFuel?.state.fuel_kg ?? null, cruiseComfort: frame.cruiseComfort ?? null,
       ...(frame.dredger ? { dredgerModeEvents: vesselDredgerModeEvents(frame) } : {}),
-      metricsRuntimeVersion: CONTROL_ENGINE_BUILD_HASH, stopReason: isCheckpoint ? null : input.reason },
+      metricsRuntimeVersion: CONTROL_ENGINE_BUILD_HASH, stopReason: isCheckpoint ? null : input.reason,
+      ...(verifyEvidence ? { evidenceVerification: { status: 'verified', checkpointHash: closeHash,
+        runtimeVersion: run.runtimeVersion, verifiedAt: new Date().toISOString(),
+        evidenceHash: hash({ runId: run.id, reportId: summary.reportId, openingHash: summary.openingHash,
+          closeHash, courseVersion: summary.courseVersion, modelVersion: run.modelVersion,
+          runtimeVersion: run.runtimeVersion, validationRuntimeVersion: CONTROL_ENGINE_BUILD_HASH,
+          references: [...task.traces.map(trace => trace.sampleStorageUri), ...(input.pendingChunks ?? [])] }) } } : {}) },
     quality: isCheckpoint ? null : {
       status: input.reason === 'failure' ? 'failed' : 'complete', controlSamples: input.controlCount,
       nativeSamples: input.nativeCount, metrics: { ...metrics }, fineStepSamples: input.fineCount ?? 0,

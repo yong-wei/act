@@ -5,10 +5,15 @@ import { createServerVesselSessionWithAssets } from '@/lib/control-engine/wasm-s
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 import { readSimulationTraceChunk, writeSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
 import { findOwnedVesselRun } from '../course-evidence-service';
-import { closeVesselEvidenceRun } from '../course-evidence-chunks';
+import { closeVesselEvidenceRun, verifyVesselEvidenceRun, hasVerifiedVesselEvidence } from '../course-evidence-chunks';
 import type { VesselEvidenceClose, VesselTraceChunk } from '../course-evidence-contract';
+import { describeVesselTraceChunk } from '../course-evidence-prefix';
+import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generated';
 
-vi.mock('@/lib/prisma', () => ({ prisma: { $transaction: vi.fn() } }));
+vi.mock('@/lib/prisma', () => ({ prisma: { $transaction: vi.fn(), $executeRaw: vi.fn(),
+  simulationEvidenceObject: { findMany: vi.fn() }, simulationTrace: { findMany: vi.fn() },
+} }));
+vi.mock('../course-run-metrics', () => ({ calculateVesselRunMetrics: vi.fn(() => ({ positiveMotorWorkJ: 42 })) }));
 vi.mock('@/lib/control-engine/wasm-server', () => ({ createServerVesselSessionWithAssets: vi.fn() }));
 vi.mock('@/lib/data-governance/simulation-trace-cas', () => ({
   readSimulationTraceChunk: vi.fn(), writeSimulationTraceChunk: vi.fn(),
@@ -16,7 +21,8 @@ vi.mock('@/lib/data-governance/simulation-trace-cas', () => ({
 vi.mock('../course-evidence-service', () => ({
   findOwnedVesselRun: vi.fn(),
   vesselRunStorageSummary: (run: { summary: unknown }) => run.summary,
-  vesselRunProgress: (run: { summary: unknown }) => run.summary,
+  vesselRunProgress: (run: { summary: { evidenceVerification?: { status: string } }; status: string }) =>
+    ({ ...run.summary, status: run.status, evidenceStatus: run.summary.evidenceVerification?.status }),
 }));
 
 const digest = (value: unknown) => createHash('sha256').update(canonicalJson(value)).digest('hex');
@@ -24,7 +30,8 @@ const runRef = '00000000-0000-4000-8000-000000000001';
 const reference = (index: number) => `simulation-cas:file:sha256:${String(index).padStart(64, '0')}`;
 const summary = {
   schema: 'act.vessel-run-storage.v1', reportId: 'report', experimentKey: 'destroyer',
-  openingReference: 'opening', configurationHash: digest({}), parameterHash: 'parameters',
+  openingReference: 'opening', openingHash: 'opening-hash', courseVersion: 'course',
+  configurationHash: digest({}), parameterHash: 'parameters',
   courseKey: 'destroyer', chunkCount: 0, controlCount: 0, nativeCount: 0,
   lastTimeS: 0, nativeWatermarks: {},
 };
@@ -36,7 +43,7 @@ const chunk = (index: number): VesselTraceChunk => ({
   } }],
 });
 const input: VesselEvidenceClose = {
-  checkpoint: 'native-checkpoint', endTimeS: 2, controlCount: 0, nativeCount: 2,
+  checkpoint: '{"input":{}}', endTimeS: 2, controlCount: 0, nativeCount: 2,
   pendingChunks: [reference(1), reference(2)], reason: 'checkpoint', failure: null,
 };
 const tx = {
@@ -48,26 +55,42 @@ const tx = {
 };
 const records = new Map<string, unknown>();
 const native = { restore: vi.fn(), read: vi.fn(), snapshot: vi.fn(), free: vi.fn() };
+let currentRun: Record<string, unknown>;
+let storedTraces: Array<{ sampleStorageUri: string }>;
 
 beforeEach(() => {
   vi.stubEnv('SIMULATION_CPU_WORKERS', '0');
   vi.resetAllMocks();
   records.clear();
-  records.set('opening', { configuration: {} });
+  records.set('opening', { configuration: {}, startedAtMs: 0 });
   records.set(reference(1), chunk(0));
   records.set(reference(2), chunk(1));
-  const run = { id: 'run', sourceRefId: runRef, status: 'running', summary: structuredClone(summary) };
-  vi.mocked(findOwnedVesselRun).mockResolvedValue(run as never);
+  currentRun = { id: 'run', ownerUserId: 'owner', sourceRefId: runRef, status: 'running',
+    runtimeVersion: 'runtime', modelVersion: 'model', completedAt: null, summary: structuredClone(summary) };
+  storedTraces = [];
+  vi.mocked(findOwnedVesselRun).mockImplementation(async () => structuredClone(currentRun) as never);
+  vi.mocked(prisma.simulationEvidenceObject.findMany).mockResolvedValue([]);
+  vi.mocked(prisma.simulationTrace.findMany).mockImplementation((async () => storedTraces) as never);
   vi.mocked(readSimulationTraceChunk).mockImplementation(async (ref) => structuredClone(records.get(ref)));
-  vi.mocked(writeSimulationTraceChunk).mockResolvedValue({ uri: 'saved-checkpoint' } as never);
+  vi.mocked(writeSimulationTraceChunk).mockImplementation(async value => {
+    records.set('saved-checkpoint', value);
+    return { uri: 'saved-checkpoint', checksum: 'checkpoint-hash' } as never;
+  });
   vi.mocked(createServerVesselSessionWithAssets).mockResolvedValue(native as never);
   native.snapshot.mockReturnValue('{"configuration":{}}');
   native.read.mockReturnValue(JSON.stringify({
     parameterHash: 'parameters', controllerTicks: 0, timeS: 2, input: {}, parameters: {},
+    truth: { actuator_states: { positive_motor_work_j: [42] } },
   }));
-  tx.simulationRun.findUniqueOrThrow.mockResolvedValue(run);
+  tx.simulationRun.findUniqueOrThrow.mockImplementation(async () => structuredClone(currentRun));
   tx.virtualSimulationReport.findUniqueOrThrow.mockResolvedValue({ status: 'draft' });
-  tx.simulationRun.update.mockImplementation(async ({ data }) => ({ ...run, ...data }));
+  tx.simulationTrace.createMany.mockImplementation(async ({ data }) => {
+    storedTraces.push(...data.map((trace: { sampleStorageUri: string }) => ({ sampleStorageUri: trace.sampleStorageUri })));
+  });
+  tx.simulationRun.update.mockImplementation(async ({ data }) => {
+    currentRun = { ...currentRun, ...data };
+    return structuredClone(currentRun);
+  });
   vi.mocked(prisma.$transaction).mockImplementation((async (work: (client: typeof tx) => unknown) => work(tx)) as never);
 });
 
@@ -88,7 +111,8 @@ describe('采样批次与恢复点的原子提交', () => {
       nativeWatermarks: { Heading: 1, 'Heading:arrival': 1 }, lastCheckpointReference: 'saved-checkpoint',
       checkpointHash: digest(input) });
     expect(result).not.toHaveProperty('fineCount');
-    expect(native.free).toHaveBeenCalledOnce();
+    expect(native.restore).not.toHaveBeenCalled();
+    expect(createServerVesselSessionWithAssets).not.toHaveBeenCalled();
   });
 
   it('原生仪器先到、控制样本后到时仍记录第一份控制回执和细步水位', async () => {
@@ -148,5 +172,88 @@ describe('采样批次与恢复点的原子提交', () => {
     await expect(closeVesselEvidenceRun('other', runRef, input)).rejects.toMatchObject({ status: 404 });
     expect(readSimulationTraceChunk).not.toHaveBeenCalled();
     expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('已确认目录在普通保存时无需重读正文或创建数值实例', async () => {
+    vi.mocked(prisma.simulationEvidenceObject.findMany).mockResolvedValue([reference(1), reference(2)].map(ref => ({
+      reference: ref, checksum: ref.slice(ref.lastIndexOf(':') + 1), uncompressedBytes: 256, storedBytes: 128,
+      metadata: { schema: 'act.vessel-evidence-object.v1', ownerUserId: 'owner', reportId: summary.reportId,
+        openingHash: summary.openingHash, courseVersion: summary.courseVersion, runtimeVersion: 'runtime', modelVersion: 'model',
+        chunk: describeVesselTraceChunk(records.get(ref) as VesselTraceChunk) },
+    })) as never);
+    const result = await closeVesselEvidenceRun('owner', runRef, input);
+    expect(result).toMatchObject({ chunkCount: 2, nativeCount: 2, lastTimeS: 2, evidenceStatus: 'pending' });
+    expect(readSimulationTraceChunk).not.toHaveBeenCalled();
+    expect(createServerVesselSessionWithAssets).not.toHaveBeenCalled();
+  });
+
+  it('缓存目录绑定账号、轮次和版本，其他轮次引用无法推进进度', async () => {
+    vi.mocked(prisma.simulationEvidenceObject.findMany).mockResolvedValue([{
+      reference: reference(1), checksum: reference(1).slice(-64),
+      metadata: { schema: 'act.vessel-evidence-object.v1', ownerUserId: 'owner', reportId: 'another-report' },
+    }] as never);
+    await expect(closeVesselEvidenceRun('owner', runRef, input)).rejects.toMatchObject({ status: 409 });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(readSimulationTraceChunk).not.toHaveBeenCalled();
+  });
+
+  it('结束时独立核验全部正文，正式指标及回执由服务器确认且复用', async () => {
+    const ending = { ...input, reason: 'student' as const };
+    const result = await closeVesselEvidenceRun('owner', runRef, ending);
+    expect(result).toMatchObject({ status: 'completed', metrics: { positiveMotorWorkJ: 42 },
+      evidenceStatus: 'verified', evidenceVerification: { checkpointHash: digest(ending), evidenceHash: expect.any(String) } });
+    expect(createServerVesselSessionWithAssets).toHaveBeenCalledOnce();
+    expect(native.restore).toHaveBeenCalledExactlyOnceWith(input.checkpoint);
+    expect(tx.simulationTrace.createMany).toHaveBeenCalledOnce();
+    const reads = vi.mocked(readSimulationTraceChunk).mock.calls.length;
+    await closeVesselEvidenceRun('owner', runRef, ending);
+    expect(createServerVesselSessionWithAssets).toHaveBeenCalledOnce();
+    expect(readSimulationTraceChunk).toHaveBeenCalledTimes(reads);
+    expect(hasVerifiedVesselEvidence(currentRun as never)).toBe(true);
+  });
+
+  it('核验失败保留刚保存的原始采样与恢复点，并返回分离的状态', async () => {
+    native.restore.mockImplementation(() => { throw new Error('invalid native checkpoint'); });
+    await expect(closeVesselEvidenceRun('owner', runRef, { ...input, reason: 'student' })).rejects.toMatchObject({
+      status: 400, savedProgress: { nativeCount: 2, lastTimeS: 2, status: 'running', evidenceStatus: 'failed' },
+    });
+    expect(storedTraces).toHaveLength(2);
+    expect(currentRun.completedAt).toBeNull();
+    expect(currentRun.summary).toMatchObject({ lastCheckpointReference: 'saved-checkpoint' });
+    expect(hasVerifiedVesselEvidence(currentRun as never)).toBe(false);
+  });
+
+  it('步骤核验已保存前缀后仍能继续运行，新保存使此前核验失效', async () => {
+    await closeVesselEvidenceRun('owner', runRef, input);
+    const result = await verifyVesselEvidenceRun('owner', runRef);
+    expect(result).toMatchObject({ status: 'running', evidenceStatus: 'verified' });
+    expect(currentRun.completedAt).toBeNull();
+    expect(hasVerifiedVesselEvidence(currentRun as never)).toBe(true);
+    await verifyVesselEvidenceRun('owner', runRef);
+    expect(createServerVesselSessionWithAssets).toHaveBeenCalledOnce();
+    await closeVesselEvidenceRun('owner', runRef, { ...input, pendingChunks: [], endTimeS: 2.5 });
+    expect(hasVerifiedVesselEvidence(currentRun as never)).toBe(false);
+    expect(createServerVesselSessionWithAssets).toHaveBeenCalledOnce();
+  });
+
+  it('正式核验会识别目录确认后正文发生的顺序错误', async () => {
+    await closeVesselEvidenceRun('owner', runRef, input);
+    records.set(reference(2), { ...chunk(1), nativeStart: 99 });
+    await expect(verifyVesselEvidenceRun('owner', runRef)).rejects.toMatchObject({ status: 409 });
+    expect(hasVerifiedVesselEvidence(currentRun as never)).toBe(false);
+    expect(currentRun.summary).toMatchObject({ nativeCount: 2, evidenceVerification: { status: 'failed' } });
+  });
+
+  it('历史运行缺少内核身份时，可由当前兼容版本继续保存', async () => {
+    currentRun.runtimeVersion = 'unrecorded-development';
+    const preview = { schema: 'act.vessel-checkpoint-preview.v1' as const, recoverable: true as const,
+      runtimeVersion: CONTROL_ENGINE_BUILD_HASH, parameterHash: 'parameters', timeS: 2,
+      controllerTicks: 0, fineCount: 0, appliedFinalInput: {}, metrics: {} };
+    await expect(closeVesselEvidenceRun('owner', runRef, { ...input, checkpointPreview: preview }))
+      .resolves.toMatchObject({ nativeCount: 2, evidenceStatus: 'pending' });
+    expect(createServerVesselSessionWithAssets).not.toHaveBeenCalled();
+    await expect(closeVesselEvidenceRun('owner', runRef, { ...input, pendingChunks: [],
+      checkpointPreview: { ...preview, runtimeVersion: 'f'.repeat(64) } }))
+      .rejects.toMatchObject({ status: 409 });
   });
 });

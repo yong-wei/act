@@ -7,8 +7,9 @@ import { evidenceCpuWorkersEnabled, runEvidenceCpuTask } from '@/lib/control-eng
 import { findOwnedVesselRun } from '../course-evidence-service';
 import { stageVesselEvidenceChunk, stageVesselEvidenceBytes } from '../course-evidence-chunks';
 import type { VesselTraceChunk } from '../course-evidence-contract';
+import { describeVesselTraceChunk } from '../course-evidence-prefix';
 
-vi.mock('@/lib/prisma', () => ({ prisma: { simulationTrace: { findUnique: vi.fn() } } }));
+vi.mock('@/lib/prisma', () => ({ prisma: { $executeRaw: vi.fn(), simulationTrace: { findUnique: vi.fn() } } }));
 vi.mock('@/lib/data-governance/simulation-trace-cas', () => ({
   readSimulationTraceChunk: vi.fn(), writeSimulationTraceChunk: vi.fn(), storeEncodedSimulationTrace: vi.fn(),
 }));
@@ -16,7 +17,8 @@ vi.mock('@/lib/control-engine/evidence-cpu-pool', () => ({
   evidenceCpuWorkersEnabled: vi.fn(), runEvidenceCpuTask: vi.fn(),
 }));
 vi.mock('../course-evidence-service', () => ({
-  findOwnedVesselRun: vi.fn(), vesselRunProgress: vi.fn(), vesselRunStorageSummary: vi.fn(),
+  findOwnedVesselRun: vi.fn(), vesselRunProgress: vi.fn(),
+  vesselRunStorageSummary: (run: { summary: unknown }) => run.summary,
 }));
 
 const chunk: VesselTraceChunk = {
@@ -27,10 +29,14 @@ const chunk: VesselTraceChunk = {
 };
 const checksum = createHash('sha256').update(canonicalJson(chunk)).digest('hex');
 const reference = `simulation-cas:file:sha256:${checksum}`;
+const ownedRun = { id: 'owned-run', ownerUserId: 'owner', sourceRefId: chunk.runRef,
+  runtimeVersion: 'runtime', modelVersion: 'model', summary: {
+    reportId: 'report', openingHash: 'opening-hash', courseVersion: 'course', parameterHash: chunk.parameterHash,
+  } };
 
 beforeEach(() => {
   vi.resetAllMocks();
-  vi.mocked(findOwnedVesselRun).mockResolvedValue({ id: 'owned-run', status: 'completed' } as never);
+  vi.mocked(findOwnedVesselRun).mockResolvedValue({ ...ownedRun, status: 'completed' } as never);
   vi.mocked(prisma.simulationTrace.findUnique).mockResolvedValue({ checksum, sampleStorageUri: reference } as never);
 });
 
@@ -40,12 +46,13 @@ describe('合并计算后的原始分块入口', () => {
 
   beforeEach(() => {
     vi.mocked(evidenceCpuWorkersEnabled).mockReturnValue(true);
-    vi.mocked(runEvidenceCpuTask).mockResolvedValue({ runRef: chunk.runRef, chunkIndex: 0, encoded });
+    vi.mocked(runEvidenceCpuTask).mockResolvedValue({ runRef: chunk.runRef, chunkIndex: 0,
+      metadata: describeVesselTraceChunk(chunk), encoded });
     vi.mocked(storeEncodedSimulationTrace).mockResolvedValue({ uri: reference } as never);
   });
 
   it('在所有权检查通过后才持久化编码结果', async () => {
-    vi.mocked(findOwnedVesselRun).mockResolvedValue({ id: 'owned-run', status: 'running' } as never);
+    vi.mocked(findOwnedVesselRun).mockResolvedValue({ ...ownedRun, status: 'running' } as never);
     expect(await stageVesselEvidenceBytes('owner', chunk.runRef, bytes)).toEqual({ reference });
     expect(runEvidenceCpuTask).toHaveBeenCalledWith('trace-stage', bytes);
     expect(findOwnedVesselRun).toHaveBeenCalledWith('owner', chunk.runRef);
@@ -106,7 +113,7 @@ describe('结束保存回执丢失后的分块重试', () => {
   });
 
   it('进行中的运行保持原暂存入口', async () => {
-    vi.mocked(findOwnedVesselRun).mockResolvedValue({ id: 'owned-run', status: 'running' } as never);
+    vi.mocked(findOwnedVesselRun).mockResolvedValue({ ...ownedRun, status: 'running' } as never);
     vi.mocked(writeSimulationTraceChunk).mockResolvedValue({ uri: reference } as never);
     expect(await stageVesselEvidenceChunk('owner', chunk)).toEqual({ reference });
     expect(writeSimulationTraceChunk).toHaveBeenCalledWith(chunk);

@@ -95,7 +95,19 @@ function formatSavedParameters(summary: unknown): string {
     ['有效横稳心高', parameters.effectiveGmTransverseM, 'm'], ['侧向风面积', areas?.lateral, 'm²'],
   ].flatMap(([label, value, unit]) => typeof value === 'number' && Number.isFinite(value)
     ? [`${label}${value.toFixed(4)}${unit}。`] : []);
-  return readings.length ? `以下参数来自本步已保存运行的服务端恢复点。\n${readings.join('\n')}` : '';
+  const state = (summary as { evidenceVerification?: { status?: string } }).evidenceVerification?.status;
+  const source = state && state !== 'verified'
+    ? '以下参数来自服务端建立的运行初态或最近一次完整核验。'
+    : '以下参数来自本步已保存运行的服务端恢复点。';
+  return readings.length ? `${source}\n${readings.join('\n')}` : '';
+}
+
+function formatEvidenceVerification(summary: unknown): string {
+  const state = (summary as { evidenceVerification?: { status?: string } } | null)?.evidenceVerification?.status;
+  if (!state) return '';
+  if (state === 'verified') return '当前保存前缀已通过服务端完整证据核验。';
+  const status = state === 'verifying' ? '正在核验' : state === 'failed' ? '本次核验未通过' : '等待结束或提交时核验';
+  return `原始记录与恢复进度已保存，完整证据${status}。以下已保存采样可用于教学观察，正式评分须使用核验通过的证据。`;
 }
 
 /** 只读取当前账号、当前实验轮次的已提交采样，不使用浏览器自由文本建立实验事实。 */
@@ -131,7 +143,8 @@ export async function loadSimulationKonlingEvidence(userId: string, courseId: st
       orderBy: { updatedAt: 'desc' }, select: { summary: true,
         traces: { orderBy: { chunkIndex: 'desc' }, take: 1, select: { sampleStorageUri: true } } } }),
   ]);
-  const progress = [heading, `本轮已保存${attempts.length}步有效提交。`, formatSavedParameters(run?.summary)].filter(Boolean).join('\n');
+  const progress = [heading, `本轮已保存${attempts.length}步有效提交。`, formatEvidenceVerification(run?.summary),
+    formatSavedParameters(run?.summary)].filter(Boolean).join('\n');
   const reference = run?.traces[0]?.sampleStorageUri;
   if (!reference) return `${progress}\n当前提问步骤尚无服务端采样，先引导学生完成运行和保存。`;
   try {

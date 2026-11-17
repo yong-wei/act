@@ -160,6 +160,18 @@ describe('控灵读取本次本人仿真证据', () => {
     expect(text).not.toContain('private-storage-detail');
   });
 
+  it('轻量保存后的教学观察明确待核验状态和参数来源', async () => {
+    mocks.run.mockResolvedValue({ traces: [{ sampleStorageUri: 'private-cas-reference' }], summary: {
+      parameters: { effectiveGmTransverseM: 2 }, evidenceVerification: { status: 'pending' },
+    } });
+    const text = await loadSimulationKonlingEvidence('owner', 'container-voyage-experiment', 'container-voyage-step-2');
+    expect(text).toContain('原始记录与恢复进度已保存');
+    expect(text).toContain('等待结束或提交时核验');
+    expect(text).toContain('运行初态或最近一次完整核验');
+    expect(text).toContain('正式评分须使用核验通过的证据');
+    expect(text).not.toContain('private-');
+  });
+
   it('在跨船历史后的本次问题中保留当前页面资料，并通过模型系统消息过滤', async () => {
     mocks.run.mockResolvedValue(null);
     const context = await loadSimulationKonlingEvidence('owner', 'container-voyage-experiment', 'container-voyage-step-1');

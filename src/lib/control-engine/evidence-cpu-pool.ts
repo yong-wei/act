@@ -10,6 +10,7 @@ export interface EncodedSimulationTrace {
 export interface PreparedVesselTrace {
   runRef: string;
   chunkIndex: number;
+  metadata: unknown;
   encoded: EncodedSimulationTrace;
 }
 

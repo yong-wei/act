@@ -11,6 +11,8 @@ export interface VesselEvidenceProgress {
   fineCount?: number;
   lastTimeS: number;
   parameterHash: string;
+  saveStatus?: 'saved';
+  evidenceStatus?: 'pending' | 'verifying' | 'failed' | 'verified';
 }
 
 export async function requestVesselEvidence<T = VesselEvidenceProgress>(url: string, value: unknown, method = 'POST'): Promise<T> {
@@ -22,8 +24,11 @@ export async function requestVesselEvidence<T = VesselEvidenceProgress>(url: str
     headers['content-encoding'] = 'gzip';
   }
   const response = await fetch(url, { method, headers, body });
-  const result = await response.json() as T & { error?: string };
-  if (!response.ok) throw new Error(result.error ?? '实验记录上传失败，本机记录已保留。');
+  const result = await response.json() as T & { error?: string; savedProgress?: VesselEvidenceProgress };
+  if (!response.ok) {
+    const message = result.error ?? '实验记录上传失败，本机记录已保留。';
+    throw new Error(result.savedProgress ? `实验进度已保存，证据核验未完成。${message}` : message);
+  }
   return result;
 }
 
@@ -82,6 +87,7 @@ export async function uploadVesselRunEvidence(reportClientRef: string, run: Vess
     checkpoint: run.checkpoint, endTimeS: run.lastTimeS, controlCount: run.trace.length,
     nativeCount: run.nativeSensorSamples.length, reason: completed ? run.stopReason : 'checkpoint', failure: run.failure,
     durationS:run.durationS, pendingChunks,
+    checkpointPreview: run.checkpointPreview,
     ...(run.fineStepSamples ? {fineCount:fineSamples.length} : {}),
   }, 'PUT');
   return progress;

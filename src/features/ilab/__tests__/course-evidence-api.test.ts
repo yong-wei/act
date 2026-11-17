@@ -24,6 +24,16 @@ describe('实验原始证据入口',()=>{
     vi.mocked(getServerAuthSession).mockResolvedValue(null);
     await expect(requireVesselEvidenceAccount(new Request('http://localhost'))).rejects.toMatchObject({status:401});
   });
+  it('核验失败响应保留已保存进度和准确的独立状态', async () => {
+    const error = Object.assign(new EvidenceCpuError('恢复点尚未通过核验。', 400), {
+      savedProgress: { runRef: 'own-run', saveStatus: 'saved', evidenceStatus: 'failed', lastTimeS: 5 },
+    });
+    const response = vesselEvidenceErrorResponse(error);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ savedProgress: {
+      runRef: 'own-run', saveStatus: 'saved', evidenceStatus: 'failed', lastTimeS: 5,
+    } });
+  });
   it('普通及gzip请求使用相同的有界JSON读取',async()=>{
     const data = {schema:'test',values:[1,null,3]};
     expect(await readVesselEvidenceJson(new Request('http://localhost',{method:'POST',body:JSON.stringify(data)}))).toEqual(data);
