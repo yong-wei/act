@@ -308,7 +308,9 @@ async function sourceFingerprint() {
     .map(name => 'src/features/ilab/adapters/' + name));
   files.push('src/features/ilab/adapters/oss-object-store.ts');
   files.push('src/lib/data-governance/simulation-trace-cas.ts', 'src/lib/data-governance/simulation-trace-codec.ts',
-    'src/features/ilab/adapters/course-session-recovery.ts', 'prisma/schema.prisma');
+    'src/features/ilab/adapters/course-session-recovery.ts', 'src/features/ilab/course-run-metrics.ts',
+    'src/lib/control-engine/identity.ts', 'src/lib/control-engine/identity.generated.ts',
+    'src/lib/control-engine/server.ts', 'prisma/schema.prisma', 'package-lock.json');
   const value = createHash('sha256');
   for (const file of files.sort()) value.update(file).update(await readFile(file));
   return value.digest('hex');
