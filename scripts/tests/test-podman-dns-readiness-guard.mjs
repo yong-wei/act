@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 
@@ -11,6 +12,41 @@ function read(file) {
 const deployScript = read('deploy/podman/deploy.sh');
 const serviceScript = read('deploy/podman/configure-service.sh');
 const remoteDeployScript = read('scripts/remote-deploy.sh');
+
+const sharedEnvironment = deployScript.slice(deployScript.indexOf('SHARED_ENV_ARGS=('),
+  deployScript.indexOf('WOLFRAM_ENV_ARGS=('));
+const appEnvironment = deployScript.slice(deployScript.indexOf('APP_ENV_ARGS=('),
+  deployScript.indexOf('if [ -n "${NEXTAUTH_URL:-}" ]'));
+const workerEnvironment = deployScript.slice(deployScript.indexOf('WORKER_ENV_ARGS=('),
+  deployScript.indexOf('echo "- 启动数据治理 worker 容器:'));
+const simulationEvidenceKeys = ['SIMULATION_EVIDENCE_OSS_BUCKET', 'SIMULATION_EVIDENCE_OSS_REGION',
+  'SIMULATION_EVIDENCE_OSS_RAM_ROLE', 'SIMULATION_EVIDENCE_DIRECT_UPLOAD'];
+for (const values of [
+  { SIMULATION_EVIDENCE_OSS_BUCKET: 'private-evidence-fixture', SIMULATION_EVIDENCE_OSS_REGION: 'oss-cn-hangzhou',
+    SIMULATION_EVIDENCE_OSS_RAM_ROLE: 'fixture-role', SIMULATION_EVIDENCE_DIRECT_UPLOAD: '1' },
+  { SIMULATION_EVIDENCE_OSS_BUCKET: 'private-evidence-fixture', SIMULATION_EVIDENCE_DIRECT_UPLOAD: '0' },
+  {},
+]) {
+  const environment = { ...process.env };
+  for (const key of simulationEvidenceKeys) delete environment[key];
+  Object.assign(environment, values);
+  const result = spawnSync('bash', ['-s'], { encoding: 'utf8', env: environment,
+    input: `set -eo pipefail\n${sharedEnvironment}\n${appEnvironment}\n${workerEnvironment}
+printf 'APP\\0'; printf '%s\\0' "\${APP_ENV_ARGS[@]}"
+printf 'WORKER\\0'; printf '%s\\0' "\${WORKER_ENV_ARGS[@]}"\n` });
+  assert.equal(result.status, 0, result.stderr);
+  const argumentsList = result.stdout.split('\0');
+  const workerIndex = argumentsList.indexOf('WORKER');
+  assert.ok(workerIndex > 0);
+  for (const [name, args] of [['app', argumentsList.slice(1, workerIndex)],
+    ['worker', argumentsList.slice(workerIndex + 1)]]) {
+    for (const key of simulationEvidenceKeys) {
+      const actual = args.filter(value => value.startsWith(key + '='));
+      assert.deepEqual(actual, values[key] ? [`${key}=${values[key]}`] : [],
+        `${name}必须接收已配置的${key}，缺省值继续由应用解析`);
+    }
+  }
+}
 
 assert.match(
   deployScript,
