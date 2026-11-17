@@ -1,6 +1,6 @@
 {
   "schema": "act.simulation-cpu-workers.v1",
-  "status": "local-verified-production-pending",
+  "status": "production-measured",
   "baselineRevision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
   "candidateVersion": "0.7.53",
   "profiles": {
@@ -292,5 +292,1268 @@
       }
     ]
   },
-  "independentRequestsUseIdleWorkers": true
+  "independentRequestsUseIdleWorkers": true,
+  "release": {
+    "version": "0.7.53",
+    "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+    "pullRequest": 2210,
+    "ciRun": 44014042324,
+    "ciConclusion": "success",
+    "codexReviewedCommit": "44fc44712cc94f74e80e1299fd2fa20d1b0df3a4",
+    "reviewConclusion": "No new P0/P1 findings"
+  },
+  "production": {
+    "instanceType": "ecs.e-c1m4.large",
+    "vCpuCount": 2,
+    "memoryGiB": 8,
+    "fixedPublicEgressMbps": 3,
+    "node": "v20.20.2",
+    "selectedWorkers": 0,
+    "containerResourceLimits": {
+      "capturedAt": 1794904344.7359138,
+      "cpuCount": 2,
+      "containers": {
+        "act-obe-app": {
+          "affinityCpuCount": 2,
+          "cpuStatistics": {
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_time": 0,
+            "current_bw": -1,
+            "nr_burst": 0,
+            "burst_time": 0
+          },
+          "cpuQuotaUs": -1,
+          "cpuPeriodUs": 100000,
+          "memoryMax": "unlimited",
+          "cgroupVersion": 1
+        },
+        "act-obe-worker": {
+          "affinityCpuCount": 2,
+          "cpuStatistics": {
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_time": 0,
+            "current_bw": -1,
+            "nr_burst": 0,
+            "burst_time": 0
+          },
+          "cpuQuotaUs": -1,
+          "cpuPeriodUs": 100000,
+          "memoryMax": "unlimited",
+          "cgroupVersion": 1
+        }
+      }
+    },
+    "normalCheckpointIntervalSeconds": 5,
+    "normalRecoveryIntervalSeconds": 30,
+    "normalRefreshIntervalSeconds": 60,
+    "criteria": {
+      "maximumErrorRate": 0.01,
+      "minimumPacingFraction": 0.8,
+      "latencyP95Ms": 1500
+    },
+    "sequence": {
+      "version": "0.7.53",
+      "configuredWorkers": 0,
+      "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+      "status": "complete",
+      "phases": [
+        {
+          "label": "v0753-w1-recheck-n10-s300",
+          "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+          "concurrency": 10,
+          "configuredDurationS": 300,
+          "timeScale": 1,
+          "elapsedS": 308.343,
+          "requests": 1904,
+          "rps": 6.174941542373266,
+          "actualErrorRate": 0,
+          "minimumPacingFraction": 0.85,
+          "correctnessAndPacingPassed": true,
+          "latencyGoalPassed": false,
+          "httpErrors": 0,
+          "averageCpuCores": {
+            "act-obe-app": 1.1135058684287122,
+            "act-obe-worker": 0.01287953240129832,
+            "act-obe-postgres": 0.05070704459441695,
+            "act-obe-redis": 0.009424576186977413
+          }
+        },
+        {
+          "label": "v0753-w1-recheck-n20-s300",
+          "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+          "concurrency": 20,
+          "configuredDurationS": 300,
+          "timeScale": 1,
+          "elapsedS": 311.641,
+          "requests": 2292,
+          "rps": 7.354616369476417,
+          "actualErrorRate": 0,
+          "minimumPacingFraction": 0.38333333333333336,
+          "correctnessAndPacingPassed": false,
+          "latencyGoalPassed": false,
+          "httpErrors": 0,
+          "averageCpuCores": {
+            "act-obe-app": 1.1645237821241212,
+            "act-obe-worker": 0.012901332370983438,
+            "act-obe-postgres": 0.05784668534389022,
+            "act-obe-redis": 0.009555772080744545
+          }
+        },
+        {
+          "label": "v0753-w1-recheck-n15-s300",
+          "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+          "concurrency": 15,
+          "configuredDurationS": 300,
+          "timeScale": 1,
+          "elapsedS": 313.196,
+          "requests": 2043,
+          "rps": 6.523071814454846,
+          "actualErrorRate": 0,
+          "minimumPacingFraction": 0.5166666666666667,
+          "correctnessAndPacingPassed": false,
+          "latencyGoalPassed": false,
+          "httpErrors": 0,
+          "averageCpuCores": {
+            "act-obe-app": 1.0558087160803797,
+            "act-obe-worker": 0.014147790509675812,
+            "act-obe-postgres": 0.051974306171385896,
+            "act-obe-redis": 0.009335343756210045
+          }
+        },
+        {
+          "label": "v0753-w1-resume-n10-s1800",
+          "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+          "concurrency": 10,
+          "configuredDurationS": 1800,
+          "timeScale": 1,
+          "elapsedS": 1815.923,
+          "requests": 10426,
+          "rps": 5.741432869124957,
+          "actualErrorRate": 0,
+          "minimumPacingFraction": 0.7805555555555556,
+          "correctnessAndPacingPassed": false,
+          "latencyGoalPassed": false,
+          "httpErrors": 0,
+          "averageCpuCores": {
+            "act-obe-app": 1.0286665495024014,
+            "act-obe-worker": 0.010938116527364544,
+            "act-obe-postgres": 0.04677286475597413,
+            "act-obe-redis": 0.00962204065613467
+          }
+        },
+        {
+          "label": "v0753-w0-n10-s300",
+          "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+          "concurrency": 10,
+          "configuredDurationS": 300,
+          "timeScale": 1,
+          "elapsedS": 307.804,
+          "requests": 1920,
+          "rps": 6.237735701940196,
+          "actualErrorRate": 0.0010416666666666667,
+          "minimumPacingFraction": 0.8,
+          "correctnessAndPacingPassed": true,
+          "latencyGoalPassed": false,
+          "httpErrors": 2,
+          "averageCpuCores": {
+            "act-obe-app": 1.0227163531159633,
+            "act-obe-worker": 0.01611251663003571,
+            "act-obe-postgres": 0.05359205384430433,
+            "act-obe-redis": 0.009729841398342222
+          }
+        },
+        {
+          "label": "v0753-w0-final-n10-s1800",
+          "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+          "concurrency": 10,
+          "configuredDurationS": 1800,
+          "timeScale": 1,
+          "elapsedS": 1813.049,
+          "requests": 11362,
+          "rps": 6.2667914656470955,
+          "actualErrorRate": 0,
+          "minimumPacingFraction": 0.8388888888888889,
+          "correctnessAndPacingPassed": true,
+          "latencyGoalPassed": false,
+          "httpErrors": 0,
+          "averageCpuCores": {
+            "act-obe-app": 1.0615050111052142,
+            "act-obe-worker": 0.011631803725577854,
+            "act-obe-postgres": 0.056697066242177636,
+            "act-obe-redis": 0.010349617614462422
+          }
+        },
+        {
+          "label": "v0753-w0-final-8x-n2-s300",
+          "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+          "concurrency": 2,
+          "configuredDurationS": 300,
+          "timeScale": 8,
+          "elapsedS": 305.779,
+          "requests": 1258,
+          "rps": 4.114082392839273,
+          "actualErrorRate": 0,
+          "minimumPacingFraction": 0.9416666666666667,
+          "correctnessAndPacingPassed": true,
+          "latencyGoalPassed": false,
+          "httpErrors": 0,
+          "averageCpuCores": {
+            "act-obe-app": 0.9484100271193839,
+            "act-obe-worker": 0.01020961894535052,
+            "act-obe-postgres": 0.02999429938896559,
+            "act-obe-redis": 0.009590578624576502
+          }
+        }
+      ],
+      "startedAt": 1794910519.777419,
+      "invalidMeasurements": [
+        {
+          "label": "v0753-w1-recheck-n10-s1800",
+          "reason": "Mac sleep and local DNS/network interruption; missing continuous 30-minute window and final host counters"
+        },
+        {
+          "label": "v0753-w0-n10-s1800",
+          "reason": "Mac sleep and local DNS/network interruption; incomplete duration and missing final host counters"
+        }
+      ],
+      "resumedAt": 1794910519.7775,
+      "fiveMinuteVerifiedNormalConcurrency": 10,
+      "verifiedSustainedNormalConcurrency": 10,
+      "finishedAt": 1794912654.6419861
+    },
+    "phases": [
+      {
+        "label": "v0753-baseline-v52-n10-s300",
+        "revision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+        "startedAt": "2026-11-17T03:34:59.678Z",
+        "capturedAt": "2026-11-17T03:40:07.244Z",
+        "concurrency": 10,
+        "configuredDurationS": 300,
+        "timeScale": 1,
+        "elapsedS": 307.565,
+        "requests": 1924,
+        "rps": 6.255588249638288,
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.8166666666666667,
+        "correctnessAndPacingPassed": true,
+        "latencyGoalPassed": false,
+        "clientCpuSeconds": 21.234399,
+        "eventLoopP95Ms": 21.200895,
+        "eventLoopMaximumMs": 37.322751,
+        "clientRssBytes": 398655488,
+        "uploadBytes": 115462735,
+        "downloadBytes": 8427066,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "httpErrorCount": 0,
+        "stateFailureCount": 0,
+        "configuredWorkers": 0,
+        "averageCpuCores": {
+          "act-obe-app": 0.9977804860516616,
+          "act-obe-worker": 0.011792188601368384,
+          "act-obe-postgres": 0.05303839570209853,
+          "act-obe-redis": 0.00979387337794622
+        },
+        "componentCpuScope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+        "historyAtStart": {
+          "capturedAt": "2026-11-17T03:34:56.803Z",
+          "concurrency": 10,
+          "byCourse": []
+        },
+        "threadCountersCaptured": false,
+        "checkpoint": {
+          "requests": 521,
+          "errors": 0,
+          "p50Ms": 1651.5637499999975,
+          "p95Ms": 6734.858416000032,
+          "p99Ms": 18125.036709000007,
+          "uploadBytes": 24257146,
+          "downloadBytes": 154710,
+          "statuses": {
+            "200": 521
+          }
+        },
+        "recovery": {
+          "requests": 100,
+          "errors": 0,
+          "p50Ms": 595.5537499999991,
+          "p95Ms": 1289.864333000005,
+          "p99Ms": 1378.9580000000424,
+          "uploadBytes": 0,
+          "downloadBytes": 5633091,
+          "statuses": {
+            "200": 100
+          }
+        },
+        "draftP95Ms": 776.2795830000032,
+        "pageRefreshP95Ms": 640.1065409999992,
+        "httpBodyUploadMbps": 3.003273714499374,
+        "httpBodyDownloadMbps": 0.21919440768618018,
+        "httpBodyDownloadOneSecondPeakMbps": 6.020312,
+        "hostMonitorErrorCount": 0,
+        "host": {
+          "sampleCount": 10,
+          "cpuBusyMeanPercent": 83.21339274160741,
+          "cpuBusyMaximumPercent": 90.38398958672308,
+          "minimumAvailableMemoryBytes": 3241095168,
+          "minimumDiskFreeBytes": 11791495168,
+          "maximumDatabaseConnections": 13,
+          "maximumDatabaseLockWaiting": 0
+        }
+      },
+      {
+        "label": "v0753-w1-n10-s300",
+        "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+        "startedAt": "2026-11-17T04:32:55.870Z",
+        "capturedAt": "2026-11-17T04:38:04.551Z",
+        "concurrency": 10,
+        "configuredDurationS": 300,
+        "timeScale": 1,
+        "elapsedS": 308.679,
+        "requests": 1979,
+        "rps": 6.411190913538013,
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.8833333333333333,
+        "correctnessAndPacingPassed": true,
+        "latencyGoalPassed": false,
+        "clientCpuSeconds": 25.429967,
+        "eventLoopP95Ms": 21.200895,
+        "eventLoopMaximumMs": 42.696703,
+        "clientRssBytes": 385433600,
+        "uploadBytes": 120675218,
+        "downloadBytes": 8417025,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "httpErrorCount": 0,
+        "stateFailureCount": 0,
+        "configuredWorkers": 1,
+        "averageCpuCores": {
+          "act-obe-app": 1.1250624611213913,
+          "act-obe-worker": 0.012859903861563287,
+          "act-obe-postgres": 0.04955422547378085,
+          "act-obe-redis": 0.009330997308360983
+        },
+        "componentCpuScope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+        "historyAtStart": {
+          "capturedAt": "2026-11-17T04:32:52.386Z",
+          "concurrency": 10,
+          "byCourse": []
+        },
+        "threadCountersCaptured": true,
+        "appMainThreadCpuCores": 0.2171223907880536,
+        "heaviestAppNonMainThreadCpuCores": 0.6196155999494286,
+        "checkpoint": {
+          "requests": 544,
+          "errors": 0,
+          "p50Ms": 1398.9213330000057,
+          "p95Ms": 3642.151833,
+          "p99Ms": 6179.077874999988,
+          "uploadBytes": 25302940,
+          "downloadBytes": 161494,
+          "statuses": {
+            "200": 544
+          }
+        },
+        "recovery": {
+          "requests": 100,
+          "errors": 0,
+          "p50Ms": 1276.603667000003,
+          "p95Ms": 2463.318666999985,
+          "p99Ms": 2726.380125000025,
+          "uploadBytes": 0,
+          "downloadBytes": 7491268,
+          "statuses": {
+            "200": 100
+          }
+        },
+        "draftP95Ms": 195.53691600000002,
+        "pageRefreshP95Ms": 411.5634170000012,
+        "httpBodyUploadMbps": 3.127526472484361,
+        "httpBodyDownloadMbps": 0.21814311955137863,
+        "httpBodyDownloadOneSecondPeakMbps": 5.019104,
+        "hostMonitorErrorCount": 0,
+        "host": {
+          "sampleCount": 9,
+          "cpuBusyMeanPercent": 85.6403603589045,
+          "cpuBusyMaximumPercent": 89.23594425756848,
+          "minimumAvailableMemoryBytes": 3329429504,
+          "minimumDiskFreeBytes": 8545329152,
+          "maximumDatabaseConnections": 8,
+          "maximumDatabaseLockWaiting": 0
+        }
+      },
+      {
+        "label": "v0753-w2-n10-s300",
+        "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+        "startedAt": "2026-11-17T04:52:43.623Z",
+        "capturedAt": "2026-11-17T04:58:00.230Z",
+        "concurrency": 10,
+        "configuredDurationS": 300,
+        "timeScale": 1,
+        "elapsedS": 316.605,
+        "requests": 1435,
+        "rps": 4.532461584624374,
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.5666666666666667,
+        "correctnessAndPacingPassed": false,
+        "latencyGoalPassed": false,
+        "clientCpuSeconds": 19.320624,
+        "eventLoopP95Ms": 21.151743,
+        "eventLoopMaximumMs": 45.907967,
+        "clientRssBytes": 386416640,
+        "uploadBytes": 81199788,
+        "downloadBytes": 7697956,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "httpErrorCount": 0,
+        "stateFailureCount": 0,
+        "configuredWorkers": 2,
+        "averageCpuCores": {
+          "act-obe-app": 0.8722481806563346,
+          "act-obe-worker": 0.012128144109317918,
+          "act-obe-postgres": 0.041534691277266354,
+          "act-obe-redis": 0.009515596300591515
+        },
+        "componentCpuScope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+        "historyAtStart": {
+          "capturedAt": "2026-11-17T04:52:38.770Z",
+          "concurrency": 10,
+          "byCourse": []
+        },
+        "threadCountersCaptured": true,
+        "appMainThreadCpuCores": 0.17068980622166852,
+        "heaviestAppNonMainThreadCpuCores": 0.24908749619517878,
+        "checkpoint": {
+          "requests": 366,
+          "errors": 0,
+          "p50Ms": 3287.8644580000037,
+          "p95Ms": 7433.555541000038,
+          "p99Ms": 12237.112666999994,
+          "uploadBytes": 17031822,
+          "downloadBytes": 108642,
+          "statuses": {
+            "200": 366
+          }
+        },
+        "recovery": {
+          "requests": 92,
+          "errors": 0,
+          "p50Ms": 2043.4140000000007,
+          "p95Ms": 4215.267999999996,
+          "p99Ms": 7604.172541999986,
+          "uploadBytes": 0,
+          "downloadBytes": 5844350,
+          "statuses": {
+            "200": 92
+          }
+        },
+        "draftP95Ms": 700.0032920000012,
+        "pageRefreshP95Ms": 1278.9600409999985,
+        "httpBodyUploadMbps": 2.0517626190363387,
+        "httpBodyDownloadMbps": 0.1945125566557698,
+        "httpBodyDownloadOneSecondPeakMbps": 3.647504,
+        "hostMonitorErrorCount": 0,
+        "host": {
+          "sampleCount": 10,
+          "cpuBusyMeanPercent": 99.91768501634057,
+          "cpuBusyMaximumPercent": 100.0,
+          "minimumAvailableMemoryBytes": 2984865792,
+          "minimumDiskFreeBytes": 8320065536,
+          "maximumDatabaseConnections": 13,
+          "maximumDatabaseLockWaiting": 0
+        }
+      },
+      {
+        "label": "v0753-w1-recheck-n10-s300",
+        "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+        "startedAt": "2026-11-17T05:00:54.051Z",
+        "capturedAt": "2026-11-17T05:06:02.395Z",
+        "concurrency": 10,
+        "configuredDurationS": 300,
+        "timeScale": 1,
+        "elapsedS": 308.343,
+        "requests": 1904,
+        "rps": 6.174941542373266,
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.85,
+        "correctnessAndPacingPassed": true,
+        "latencyGoalPassed": false,
+        "clientCpuSeconds": 25.690957,
+        "eventLoopP95Ms": 21.184511,
+        "eventLoopMaximumMs": 44.564479,
+        "clientRssBytes": 387612672,
+        "uploadBytes": 114947050,
+        "downloadBytes": 8408247,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "httpErrorCount": 0,
+        "stateFailureCount": 0,
+        "configuredWorkers": 1,
+        "averageCpuCores": {
+          "act-obe-app": 1.1135058684287122,
+          "act-obe-worker": 0.01287953240129832,
+          "act-obe-postgres": 0.05070704459441695,
+          "act-obe-redis": 0.009424576186977413
+        },
+        "componentCpuScope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+        "historyAtStart": {
+          "capturedAt": "2026-11-17T05:00:49.063Z",
+          "concurrency": 10,
+          "byCourse": []
+        },
+        "threadCountersCaptured": true,
+        "appMainThreadCpuCores": 0.22338126698513533,
+        "heaviestAppNonMainThreadCpuCores": 0.60639741192056,
+        "checkpoint": {
+          "requests": 518,
+          "errors": 0,
+          "p50Ms": 1533.7948329999927,
+          "p95Ms": 4455.258749999994,
+          "p99Ms": 5983.253415999992,
+          "uploadBytes": 24100309,
+          "downloadBytes": 153793,
+          "statuses": {
+            "200": 518
+          }
+        },
+        "recovery": {
+          "requests": 100,
+          "errors": 0,
+          "p50Ms": 1328.8687500000233,
+          "p95Ms": 2784.212499999965,
+          "p99Ms": 3567.3965420000022,
+          "uploadBytes": 0,
+          "downloadBytes": 7090906,
+          "statuses": {
+            "200": 100
+          }
+        },
+        "draftP95Ms": 196.95116599998437,
+        "pageRefreshP95Ms": 1431.4332920000015,
+        "httpBodyUploadMbps": 2.982316446295197,
+        "httpBodyDownloadMbps": 0.2181530827682159,
+        "httpBodyDownloadOneSecondPeakMbps": 4.193448,
+        "hostMonitorErrorCount": 0,
+        "host": {
+          "sampleCount": 10,
+          "cpuBusyMeanPercent": 85.26012023977493,
+          "cpuBusyMaximumPercent": 94.72253318407165,
+          "minimumAvailableMemoryBytes": 2998247424,
+          "minimumDiskFreeBytes": 8208367616,
+          "maximumDatabaseConnections": 11,
+          "maximumDatabaseLockWaiting": 0
+        }
+      },
+      {
+        "label": "v0753-w1-recheck-n20-s300",
+        "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+        "startedAt": "2026-11-17T05:06:11.588Z",
+        "capturedAt": "2026-11-17T05:11:23.231Z",
+        "concurrency": 20,
+        "configuredDurationS": 300,
+        "timeScale": 1,
+        "elapsedS": 311.641,
+        "requests": 2292,
+        "rps": 7.354616369476417,
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.38333333333333336,
+        "correctnessAndPacingPassed": false,
+        "latencyGoalPassed": false,
+        "clientCpuSeconds": 25.414956,
+        "eventLoopP95Ms": 21.168127,
+        "eventLoopMaximumMs": 29.589503,
+        "clientRssBytes": 399245312,
+        "uploadBytes": 121648362,
+        "downloadBytes": 15112404,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "httpErrorCount": 0,
+        "stateFailureCount": 0,
+        "configuredWorkers": 1,
+        "averageCpuCores": {
+          "act-obe-app": 1.1645237821241212,
+          "act-obe-worker": 0.012901332370983438,
+          "act-obe-postgres": 0.05784668534389022,
+          "act-obe-redis": 0.009555772080744545
+        },
+        "componentCpuScope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+        "historyAtStart": {
+          "capturedAt": "2026-11-17T05:06:06.927Z",
+          "concurrency": 20,
+          "byCourse": [
+            {
+              "course": "container",
+              "runs": 10,
+              "completed": 8,
+              "chunks": 104
+            },
+            {
+              "course": "cruise",
+              "runs": 5,
+              "completed": 4,
+              "chunks": 51
+            },
+            {
+              "course": "destroyer",
+              "runs": 10,
+              "completed": 8,
+              "chunks": 103
+            },
+            {
+              "course": "dredger",
+              "runs": 3,
+              "completed": 2,
+              "chunks": 52
+            },
+            {
+              "course": "drilling",
+              "runs": 3,
+              "completed": 2,
+              "chunks": 52
+            },
+            {
+              "course": "icebreaker",
+              "runs": 5,
+              "completed": 4,
+              "chunks": 52
+            },
+            {
+              "course": "lng",
+              "runs": 6,
+              "completed": 4,
+              "chunks": 104
+            }
+          ]
+        },
+        "threadCountersCaptured": true,
+        "appMainThreadCpuCores": 0.2423427189562755,
+        "heaviestAppNonMainThreadCpuCores": 0.6386877071126591,
+        "checkpoint": {
+          "requests": 552,
+          "errors": 0,
+          "p50Ms": 4220.249583000026,
+          "p95Ms": 7156.130042000001,
+          "p99Ms": 9605.574792000029,
+          "uploadBytes": 25173143,
+          "downloadBytes": 163905,
+          "statuses": {
+            "200": 552
+          }
+        },
+        "recovery": {
+          "requests": 173,
+          "errors": 0,
+          "p50Ms": 4478.290833999985,
+          "p95Ms": 13151.181625,
+          "p99Ms": 19083.826750000007,
+          "uploadBytes": 0,
+          "downloadBytes": 12602182,
+          "statuses": {
+            "200": 173
+          }
+        },
+        "draftP95Ms": 208.53833400001167,
+        "pageRefreshP95Ms": 558.0489579999994,
+        "httpBodyUploadMbps": 3.122781970279905,
+        "httpBodyDownloadMbps": 0.3879439226545929,
+        "httpBodyDownloadOneSecondPeakMbps": 4.710776,
+        "hostMonitorErrorCount": 0,
+        "host": {
+          "sampleCount": 10,
+          "cpuBusyMeanPercent": 89.16675388203099,
+          "cpuBusyMaximumPercent": 94.46842525979217,
+          "minimumAvailableMemoryBytes": 3342180352,
+          "minimumDiskFreeBytes": 8088662016,
+          "maximumDatabaseConnections": 10,
+          "maximumDatabaseLockWaiting": 0
+        }
+      },
+      {
+        "label": "v0753-w1-recheck-n15-s300",
+        "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+        "startedAt": "2026-11-17T05:11:32.536Z",
+        "capturedAt": "2026-11-17T05:16:45.734Z",
+        "concurrency": 15,
+        "configuredDurationS": 300,
+        "timeScale": 1,
+        "elapsedS": 313.196,
+        "requests": 2043,
+        "rps": 6.523071814454846,
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.5166666666666667,
+        "correctnessAndPacingPassed": false,
+        "latencyGoalPassed": false,
+        "clientCpuSeconds": 22.928106,
+        "eventLoopP95Ms": 21.151743,
+        "eventLoopMaximumMs": 25.624575,
+        "clientRssBytes": 402259968,
+        "uploadBytes": 114038320,
+        "downloadBytes": 12246216,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "httpErrorCount": 0,
+        "stateFailureCount": 0,
+        "configuredWorkers": 1,
+        "averageCpuCores": {
+          "act-obe-app": 1.0558087160803797,
+          "act-obe-worker": 0.014147790509675812,
+          "act-obe-postgres": 0.051974306171385896,
+          "act-obe-redis": 0.009335343756210045
+        },
+        "componentCpuScope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+        "historyAtStart": {
+          "capturedAt": "2026-11-17T05:11:28.593Z",
+          "concurrency": 15,
+          "byCourse": [
+            {
+              "course": "container",
+              "runs": 15,
+              "completed": 11,
+              "chunks": 152
+            },
+            {
+              "course": "cruise",
+              "runs": 10,
+              "completed": 8,
+              "chunks": 104
+            },
+            {
+              "course": "destroyer",
+              "runs": 18,
+              "completed": 14,
+              "chunks": 182
+            },
+            {
+              "course": "dredger",
+              "runs": 7,
+              "completed": 4,
+              "chunks": 109
+            },
+            {
+              "course": "drilling",
+              "runs": 7,
+              "completed": 4,
+              "chunks": 109
+            },
+            {
+              "course": "icebreaker",
+              "runs": 10,
+              "completed": 8,
+              "chunks": 106
+            },
+            {
+              "course": "lng",
+              "runs": 10,
+              "completed": 6,
+              "chunks": 160
+            }
+          ]
+        },
+        "threadCountersCaptured": true,
+        "appMainThreadCpuCores": 0.20871111408589224,
+        "heaviestAppNonMainThreadCpuCores": 0.5933638630015274,
+        "checkpoint": {
+          "requests": 516,
+          "errors": 0,
+          "p50Ms": 3171.2664159999986,
+          "p95Ms": 6005.938041999994,
+          "p99Ms": 8866.097083,
+          "uploadBytes": 23637296,
+          "downloadBytes": 153250,
+          "statuses": {
+            "200": 516
+          }
+        },
+        "recovery": {
+          "requests": 132,
+          "errors": 0,
+          "p50Ms": 6512.335332999995,
+          "p95Ms": 11225.764458999998,
+          "p99Ms": 13469.675333000007,
+          "uploadBytes": 0,
+          "downloadBytes": 9896829,
+          "statuses": {
+            "200": 132
+          }
+        },
+        "draftP95Ms": 332.86550000001444,
+        "pageRefreshP95Ms": 328.5899999999965,
+        "httpBodyUploadMbps": 2.91289339582881,
+        "httpBodyDownloadMbps": 0.31280644708106103,
+        "httpBodyDownloadOneSecondPeakMbps": 6.4348,
+        "hostMonitorErrorCount": 0,
+        "host": {
+          "sampleCount": 9,
+          "cpuBusyMeanPercent": 88.7112524418738,
+          "cpuBusyMaximumPercent": 95.65496232162899,
+          "minimumAvailableMemoryBytes": 3293888512,
+          "minimumDiskFreeBytes": 5972897792,
+          "maximumDatabaseConnections": 8,
+          "maximumDatabaseLockWaiting": 0
+        }
+      },
+      {
+        "label": "v0753-w1-resume-n10-s1800",
+        "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+        "startedAt": "2026-11-17T08:10:56.452Z",
+        "capturedAt": "2026-11-17T08:41:12.385Z",
+        "concurrency": 10,
+        "configuredDurationS": 1800,
+        "timeScale": 1,
+        "elapsedS": 1815.923,
+        "requests": 10426,
+        "rps": 5.741432869124957,
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.7805555555555556,
+        "correctnessAndPacingPassed": false,
+        "latencyGoalPassed": false,
+        "clientCpuSeconds": 139.376302,
+        "eventLoopP95Ms": 22.069247,
+        "eventLoopMaximumMs": 51.937279,
+        "clientRssBytes": 399704064,
+        "uploadBytes": 636345005,
+        "downloadBytes": 42989551,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "httpErrorCount": 0,
+        "stateFailureCount": 0,
+        "configuredWorkers": 1,
+        "averageCpuCores": {
+          "act-obe-app": 1.0286665495024014,
+          "act-obe-worker": 0.010938116527364544,
+          "act-obe-postgres": 0.04677286475597413,
+          "act-obe-redis": 0.00962204065613467
+        },
+        "componentCpuScope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+        "historyAtStart": {
+          "capturedAt": "2026-11-17T08:10:53.031Z",
+          "concurrency": 10,
+          "byCourse": []
+        },
+        "threadCountersCaptured": true,
+        "appMainThreadCpuCores": 0.1856972041799706,
+        "heaviestAppNonMainThreadCpuCores": 0.5948584903231027,
+        "checkpoint": {
+          "requests": 2870,
+          "errors": 0,
+          "p50Ms": 1511.1244579999984,
+          "p95Ms": 5106.45862499997,
+          "p99Ms": 7856.182833999977,
+          "uploadBytes": 133589273,
+          "downloadBytes": 852331,
+          "statuses": {
+            "200": 2870
+          }
+        },
+        "recovery": {
+          "requests": 500,
+          "errors": 0,
+          "p50Ms": 3104.2883750000037,
+          "p95Ms": 9444.249749999959,
+          "p99Ms": 13832.998791000107,
+          "uploadBytes": 0,
+          "downloadBytes": 34628609,
+          "statuses": {
+            "200": 500
+          }
+        },
+        "draftP95Ms": 255.1618749999907,
+        "pageRefreshP95Ms": 419.26500000001397,
+        "httpBodyUploadMbps": 2.803400827017445,
+        "httpBodyDownloadMbps": 0.18938931221202662,
+        "httpBodyDownloadOneSecondPeakMbps": 2.88296,
+        "hostMonitorErrorCount": 0,
+        "host": {
+          "sampleCount": 57,
+          "cpuBusyMeanPercent": 88.10313190826044,
+          "cpuBusyMaximumPercent": 100.0,
+          "minimumAvailableMemoryBytes": 3047739392,
+          "minimumDiskFreeBytes": 5392617472,
+          "maximumDatabaseConnections": 11,
+          "maximumDatabaseLockWaiting": 0
+        }
+      },
+      {
+        "label": "v0753-w0-n10-s300",
+        "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+        "startedAt": "2026-11-17T08:45:07.764Z",
+        "capturedAt": "2026-11-17T08:50:15.570Z",
+        "concurrency": 10,
+        "configuredDurationS": 300,
+        "timeScale": 1,
+        "elapsedS": 307.804,
+        "requests": 1920,
+        "rps": 6.237735701940196,
+        "actualErrorRate": 0.0010416666666666667,
+        "minimumPacingFraction": 0.8,
+        "correctnessAndPacingPassed": true,
+        "latencyGoalPassed": false,
+        "clientCpuSeconds": 28.643036,
+        "eventLoopP95Ms": 21.135359,
+        "eventLoopMaximumMs": 52.101119,
+        "clientRssBytes": 388087808,
+        "uploadBytes": 115508363,
+        "downloadBytes": 8477468,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "httpErrorCount": 2,
+        "stateFailureCount": 0,
+        "configuredWorkers": 0,
+        "averageCpuCores": {
+          "act-obe-app": 1.0227163531159633,
+          "act-obe-worker": 0.01611251663003571,
+          "act-obe-postgres": 0.05359205384430433,
+          "act-obe-redis": 0.009729841398342222
+        },
+        "componentCpuScope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+        "historyAtStart": {
+          "capturedAt": "2026-11-17T08:45:03.523Z",
+          "concurrency": 10,
+          "byCourse": []
+        },
+        "threadCountersCaptured": true,
+        "appMainThreadCpuCores": 0.7437541697847312,
+        "heaviestAppNonMainThreadCpuCores": 0.05261171483379917,
+        "checkpoint": {
+          "requests": 522,
+          "errors": 2,
+          "p50Ms": 1538.8253750000003,
+          "p95Ms": 5482.640833999998,
+          "p99Ms": 20302.315208000015,
+          "uploadBytes": 24282427,
+          "downloadBytes": 154446,
+          "statuses": {
+            "0": 2,
+            "200": 520
+          }
+        },
+        "recovery": {
+          "requests": 100,
+          "errors": 0,
+          "p50Ms": 678.53125,
+          "p95Ms": 1651.9195419999996,
+          "p99Ms": 2128.1262080000015,
+          "uploadBytes": 0,
+          "downloadBytes": 6513853,
+          "statuses": {
+            "200": 100
+          }
+        },
+        "draftP95Ms": 562.9273750000284,
+        "pageRefreshP95Ms": 961.3045000000002,
+        "httpBodyUploadMbps": 3.0021276656573668,
+        "httpBodyDownloadMbps": 0.22033418669023147,
+        "httpBodyDownloadOneSecondPeakMbps": 5.988632,
+        "hostMonitorErrorCount": 0,
+        "host": {
+          "sampleCount": 9,
+          "cpuBusyMeanPercent": 81.23039134073228,
+          "cpuBusyMaximumPercent": 92.91313389857623,
+          "minimumAvailableMemoryBytes": 3423555584,
+          "minimumDiskFreeBytes": 7265292288,
+          "maximumDatabaseConnections": 10,
+          "maximumDatabaseLockWaiting": 0
+        }
+      },
+      {
+        "label": "v0753-w0-final-n10-s1800",
+        "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+        "startedAt": "2026-11-17T10:15:26.415Z",
+        "capturedAt": "2026-11-17T10:45:39.480Z",
+        "concurrency": 10,
+        "configuredDurationS": 1800,
+        "timeScale": 1,
+        "elapsedS": 1813.049,
+        "requests": 11362,
+        "rps": 6.2667914656470955,
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.8388888888888889,
+        "correctnessAndPacingPassed": true,
+        "latencyGoalPassed": false,
+        "clientCpuSeconds": 145.207014,
+        "eventLoopP95Ms": 21.168127,
+        "eventLoopMaximumMs": 48.627711,
+        "clientRssBytes": 412860416,
+        "uploadBytes": 699187006,
+        "downloadBytes": 45590932,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "httpErrorCount": 0,
+        "stateFailureCount": 0,
+        "configuredWorkers": 0,
+        "averageCpuCores": {
+          "act-obe-app": 1.0615050111052142,
+          "act-obe-worker": 0.011631803725577854,
+          "act-obe-postgres": 0.056697066242177636,
+          "act-obe-redis": 0.010349617614462422
+        },
+        "componentCpuScope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+        "historyAtStart": {
+          "capturedAt": "2026-11-17T10:15:23.569Z",
+          "concurrency": 10,
+          "byCourse": []
+        },
+        "threadCountersCaptured": true,
+        "appMainThreadCpuCores": 0.7645822792856913,
+        "heaviestAppNonMainThreadCpuCores": 0.053487577035075236,
+        "checkpoint": {
+          "requests": 3159,
+          "errors": 0,
+          "p50Ms": 1625.2483749999992,
+          "p95Ms": 6851.185917000053,
+          "p99Ms": 16058.49450000003,
+          "uploadBytes": 146959386,
+          "downloadBytes": 938351,
+          "statuses": {
+            "200": 3159
+          }
+        },
+        "recovery": {
+          "requests": 531,
+          "errors": 0,
+          "p50Ms": 999.0567909999518,
+          "p95Ms": 2881.857459000079,
+          "p99Ms": 3701.520917000016,
+          "uploadBytes": 0,
+          "downloadBytes": 33477647,
+          "statuses": {
+            "200": 531
+          }
+        },
+        "draftP95Ms": 638.4646670001093,
+        "pageRefreshP95Ms": 568.1640000001062,
+        "httpBodyUploadMbps": 3.0851323091653895,
+        "httpBodyDownloadMbps": 0.20116800814539484,
+        "httpBodyDownloadOneSecondPeakMbps": 3.77612,
+        "hostMonitorErrorCount": 0,
+        "host": {
+          "sampleCount": 58,
+          "cpuBusyMeanPercent": 80.56366035138208,
+          "cpuBusyMaximumPercent": 88.09446780977031,
+          "minimumAvailableMemoryBytes": 3207892992,
+          "minimumDiskFreeBytes": 6222200832,
+          "maximumDatabaseConnections": 13,
+          "maximumDatabaseLockWaiting": 0
+        }
+      },
+      {
+        "label": "v0753-w0-final-8x-n2-s300",
+        "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+        "startedAt": "2026-11-17T10:45:47.179Z",
+        "capturedAt": "2026-11-17T10:50:52.960Z",
+        "concurrency": 2,
+        "configuredDurationS": 300,
+        "timeScale": 8,
+        "elapsedS": 305.779,
+        "requests": 1258,
+        "rps": 4.114082392839273,
+        "actualErrorRate": 0,
+        "minimumPacingFraction": 0.9416666666666667,
+        "correctnessAndPacingPassed": true,
+        "latencyGoalPassed": false,
+        "clientCpuSeconds": 25.685126,
+        "eventLoopP95Ms": 21.102591,
+        "eventLoopMaximumMs": 53.477375,
+        "clientRssBytes": 388055040,
+        "uploadBytes": 148465945,
+        "downloadBytes": 2114957,
+        "byteScope": "HTTP encoded entity bodies, excluding headers and TLS",
+        "externalIlabCalls": 0,
+        "aiProviderCalls": 0,
+        "httpErrorCount": 0,
+        "stateFailureCount": 0,
+        "configuredWorkers": 0,
+        "averageCpuCores": {
+          "act-obe-app": 0.9484100271193839,
+          "act-obe-worker": 0.01020961894535052,
+          "act-obe-postgres": 0.02999429938896559,
+          "act-obe-redis": 0.009590578624576502
+        },
+        "componentCpuScope": "Entire protocol invocation including login and reports; one fully used vCPU equals 1",
+        "historyAtStart": {
+          "capturedAt": "2026-11-17T10:45:45.746Z",
+          "concurrency": 2,
+          "byCourse": []
+        },
+        "threadCountersCaptured": true,
+        "appMainThreadCpuCores": 0.6935553573324126,
+        "heaviestAppNonMainThreadCpuCores": 0.04705670746333707,
+        "checkpoint": {
+          "requests": 132,
+          "errors": 0,
+          "p50Ms": 1368.7220000000088,
+          "p95Ms": 3167.2677079999994,
+          "p99Ms": 4131.572749999999,
+          "uploadBytes": 6633681,
+          "downloadBytes": 39275,
+          "statuses": {
+            "200": 132
+          }
+        },
+        "recovery": {
+          "requests": 22,
+          "errors": 0,
+          "p50Ms": 207.72141599998577,
+          "p95Ms": 689.2506250000006,
+          "p99Ms": 919.465750000003,
+          "uploadBytes": 0,
+          "downloadBytes": 821910,
+          "statuses": {
+            "200": 22
+          }
+        },
+        "draftP95Ms": 163.45854099999997,
+        "pageRefreshP95Ms": 187.09875000000466,
+        "httpBodyUploadMbps": 3.8842679189872427,
+        "httpBodyDownloadMbps": 0.05533295615460839,
+        "httpBodyDownloadOneSecondPeakMbps": 1.357808,
+        "hostMonitorErrorCount": 0,
+        "host": {
+          "sampleCount": 10,
+          "cpuBusyMeanPercent": 68.03358920128643,
+          "cpuBusyMaximumPercent": 76.116035455278,
+          "minimumAvailableMemoryBytes": 3305086976,
+          "minimumDiskFreeBytes": 6063476736,
+          "maximumDatabaseConnections": 8,
+          "maximumDatabaseLockWaiting": 0
+        }
+      }
+    ],
+    "invalidMeasurements": [
+      {
+        "label": "v0753-w0-n10-s1800",
+        "reason": "Mac sleep and local DNS/network interruption; incomplete duration and missing final host counters",
+        "startedAt": "2026-11-17T08:50:24.452Z",
+        "capturedAt": "2026-11-17T09:04:41.376Z",
+        "elapsedSeconds": 856.917,
+        "requests": 5306,
+        "httpErrorCount": 30,
+        "workflowFailureCount": 10,
+        "generatorEventLoopMaximumMs": 43452.989439,
+        "workflowMessages": [
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online"
+        ]
+      },
+      {
+        "label": "v0753-w1-recheck-n10-s1800",
+        "reason": "Mac sleep and local DNS/network interruption; missing continuous 30-minute window and final host counters",
+        "startedAt": "2026-11-17T05:16:55.690Z",
+        "capturedAt": "2026-11-17T05:44:45.371Z",
+        "elapsedSeconds": 1669.676,
+        "requests": 7850,
+        "httpErrorCount": 28,
+        "workflowFailureCount": 10,
+        "generatorEventLoopMaximumMs": 46841.987071,
+        "workflowMessages": [
+          "page-refresh: request timeout",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online",
+          "run-open: getaddrinfo ENOTFOUND act.adapt-learn.online"
+        ]
+      }
+    ],
+    "comparisonScope": "Sequential mixed-seven-course HTTP phases on the existing shared host; histories and response volumes are recorded separately",
+    "hardware4And8VcpuValidation": "pending",
+    "formalIlabAndAiUpstreamCapacity": "pending",
+    "verified120Concurrency": false,
+    "finalContainerAcceptance": {
+      "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+      "version": "0.7.53",
+      "ready": true,
+      "runtimeReady": true,
+      "configuredWorkers": 0,
+      "persistedCpuWorkers": 0,
+      "workerProbeCompletedJobs": 0,
+      "workerProbeFailedJobs": 0,
+      "nativeAcceptanceChecks": 9,
+      "executionMode": "in-process",
+      "sevenCourseParameterHashesMatch": true,
+      "databaseAndRedisContainersPreserved": true,
+      "runtimeSelectorsPreserved": true
+    },
+    "finalBrowserAcceptance": {
+      "status": "passed",
+      "version": "0.7.53",
+      "originalPage": true,
+      "normalLogin": true,
+      "initialTimeS": 6.4,
+      "checkpointExact": true,
+      "sameRunContinued": true,
+      "continuedTimeS": 8.25
+    },
+    "qaDatabaseCleanup": {
+      "target": "production",
+      "users": 130,
+      "runs": 1004,
+      "reports": 96,
+      "localExperimentRounds": 96
+    },
+    "qaPrivateObjectCleanup": {
+      "removed": 28386,
+      "missing": 0,
+      "shared": 0,
+      "bytes": 2980464140
+    },
+    "transferBundleCleanup": {
+      "removedOwnTransferredBundleBytes": 831221760,
+      "currentAndPreviousImagesRetained": true,
+      "localFrozenBundleRetained": true,
+      "diskFreeBytes": 8698032128
+    },
+    "cleanupVerification": {
+      "verifiedDedicatedAccounts": 130,
+      "capturedRuns": 1004,
+      "remaining": {
+        "User": 0,
+        "IlabExperimentRun": 0,
+        "VirtualSimulationReport": 0,
+        "StudentModelArtifact": 0,
+        "ComparisonArtifact": 0,
+        "AppliedRunEnvelope": 0,
+        "StepSubmissionAttempt": 0,
+        "KonlingSession": 0,
+        "Account": 0,
+        "Session": 0,
+        "SimulationRun": 0,
+        "SimulationTrace": 0,
+        "capturedRunsById": 0
+      },
+      "allScopedCountsZero": true,
+      "capturedAt": "2026-11-17T11:21:06.218Z"
+    },
+    "restartIncident": {
+      "oldImageContainerStartedAt": "2026-11-17T12:39:43.343+08:00",
+      "oldImageContainerStoppedAt": "2026-11-17T12:41:09.936+08:00",
+      "frozenImageContainerRestartedAt": "2026-11-17T12:41:16.892+08:00",
+      "cause": "Configuration restart omitted explicit APP_IMAGE and selected the stale server environment image",
+      "resolution": "Pinned the frozen release image explicitly, verified application and background worker revisions, readiness, native tasks and browser recovery",
+      "liveUserTrafficImpact": "not separately determined"
+    }
+  }
 }

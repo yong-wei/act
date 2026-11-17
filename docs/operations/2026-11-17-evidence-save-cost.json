@@ -1,0 +1,342 @@
+{
+  "schema": "act.evidence-save-cost.v1",
+  "capturedAt": "2026-11-17T12:14:26.047Z",
+  "revision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+  "sourceFingerprint": "c5a3c4eee71400d8a960ab093e5763525dcb9a07e8a6b56e526aedea2bc770a3",
+  "toolFingerprint": "c33ec1a54d0328b4fba77b5f912a4f4409ab46ff62fd3d7d39e2f4c9db1222ff",
+  "inputDigest": "bac5fb3be3caab013797b64c6eea7b9f234c17d567f77d90b9cd7de20eaf2e58",
+  "runtimeVersion": "cf146e828b1fab7e146132d95b42ad99f7e331340b478991aabbf620d9a7ec3d",
+  "node": "v20.20.2",
+  "platform": "linux",
+  "architecture": "x64",
+  "databaseTarget": "production",
+  "rounds": 5,
+  "scope": "Sequential real database and evidence service calls with actual request decoding and response encoding; fixed dedicated identity; session authentication and network latency measured separately by HTTP/browser tests",
+  "cpuScope": "Application process user+system CPU including asynchronous codec threads; database statement duration is reported separately",
+  "countingScope": "Native allocation via synchronous factory/__wrap, plus restore/free V8 counts in a separate pass; delegated builtin IO/codec/JSON entry counters and physical pg SQL entry counts including transaction control. Prisma query duration excludes control statements",
+  "aggregate": [
+    {
+      "kind": "initial-open",
+      "count": 42,
+      "cpuMedianMs": 88.528,
+      "cpuP95Ms": 203.523,
+      "cpuP99Ms": 719.631,
+      "latencyMedianMs": 91.34119600000122,
+      "latencyP95Ms": 225.3177680000008,
+      "latencyP99Ms": 434.92439999999624,
+      "meanRequests": 1,
+      "meanRequestBytes": 136127.14285714287,
+      "meanRequestEncodedBytes": 22188.35714285714,
+      "meanResponseBytes": 287.42857142857144,
+      "meanResponseEncodedBytes": 287.42857142857144,
+      "meanSqlStatements": 10,
+      "meanPrivateObjectReads": 0,
+      "meanGzipCalls": 1,
+      "meanGunzipCalls": 1,
+      "meanJsonParses": 14,
+      "meanDatabaseOperations": {
+        "total": 10.0,
+        "reads": 5.0,
+        "writes": 2.0,
+        "locks": 1.0,
+        "transactionStatements": 2.0,
+        "other": 0.0,
+        "prismaDurationMs": 18.739103023809765
+      }
+    },
+    {
+      "kind": "automatic-save",
+      "count": 105,
+      "cpuMedianMs": 327.504,
+      "cpuP95Ms": 1023.9280000000001,
+      "cpuP99Ms": 1093.368,
+      "latencyMedianMs": 313.0697379999983,
+      "latencyP95Ms": 673.7003449999975,
+      "latencyP99Ms": 813.6867570000031,
+      "meanRequests": 3,
+      "meanRequestBytes": 1367246,
+      "meanRequestEncodedBytes": 219596.5619047619,
+      "meanResponseBytes": 694.5714285714286,
+      "meanResponseEncodedBytes": 694.5714285714286,
+      "meanSqlStatements": 12.333333333333334,
+      "meanPrivateObjectReads": 2,
+      "meanGzipCalls": 2,
+      "meanGunzipCalls": 5,
+      "meanJsonParses": 21,
+      "meanDatabaseOperations": {
+        "total": 12.333333333333334,
+        "reads": 6.0,
+        "writes": 2.3333333333333335,
+        "locks": 2.0,
+        "transactionStatements": 2.0,
+        "other": 0.0,
+        "prismaDurationMs": 25.00003607618973
+      }
+    },
+    {
+      "kind": "checkpoint-confirmation",
+      "count": 105,
+      "cpuMedianMs": 188.329,
+      "cpuP95Ms": 272.824,
+      "cpuP99Ms": 295.094,
+      "latencyMedianMs": 186.48491099999956,
+      "latencyP95Ms": 327.1581179999994,
+      "latencyP99Ms": 348.22804599999654,
+      "meanRequests": 1,
+      "meanRequestBytes": 211370,
+      "meanRequestEncodedBytes": 44592.44761904762,
+      "meanResponseBytes": 295.14285714285717,
+      "meanResponseEncodedBytes": 295.14285714285717,
+      "meanSqlStatements": 9.333333333333334,
+      "meanPrivateObjectReads": 2,
+      "meanGzipCalls": 1,
+      "meanGunzipCalls": 3,
+      "meanJsonParses": 14,
+      "meanDatabaseOperations": {
+        "total": 9.333333333333334,
+        "reads": 3.0,
+        "writes": 2.3333333333333335,
+        "locks": 2.0,
+        "transactionStatements": 2.0,
+        "other": 0.0,
+        "prismaDurationMs": 17.420800476190614
+      }
+    },
+    {
+      "kind": "selected-run-recovery",
+      "count": 112,
+      "cpuMedianMs": 26.707,
+      "cpuP95Ms": 52.43,
+      "cpuP99Ms": 82.215,
+      "latencyMedianMs": 31.294997999997577,
+      "latencyP95Ms": 75.83697299999767,
+      "latencyP99Ms": 161.00912300001073,
+      "meanRequests": 1,
+      "meanRequestBytes": 0,
+      "meanRequestEncodedBytes": 0,
+      "meanResponseBytes": 349346.5,
+      "meanResponseEncodedBytes": 72460.98214285714,
+      "meanSqlStatements": 8,
+      "meanPrivateObjectReads": 2,
+      "meanGzipCalls": 1,
+      "meanGunzipCalls": 2,
+      "meanJsonParses": 7,
+      "meanDatabaseOperations": {
+        "total": 8.0,
+        "reads": 8.0,
+        "writes": 0.0,
+        "locks": 0.0,
+        "transactionStatements": 0.0,
+        "other": 0.0,
+        "prismaDurationMs": 35.04052403571505
+      }
+    },
+    {
+      "kind": "final-save",
+      "count": 7,
+      "cpuMedianMs": 1390.171,
+      "cpuP95Ms": 2257.462,
+      "cpuP99Ms": 2257.462,
+      "latencyMedianMs": 1587.4052780000202,
+      "latencyP95Ms": 2091.587739999988,
+      "latencyP99Ms": 2091.587739999988,
+      "meanRequests": 3,
+      "meanRequestBytes": 1359678.4285714286,
+      "meanRequestEncodedBytes": 211390.42857142858,
+      "meanResponseBytes": 706.8571428571429,
+      "meanResponseEncodedBytes": 706.8571428571429,
+      "meanSqlStatements": 14,
+      "meanPrivateObjectReads": 18.142857142857142,
+      "meanGzipCalls": 2,
+      "meanGunzipCalls": 21.142857142857142,
+      "meanJsonParses": 40.285714285714285,
+      "meanDatabaseOperations": {
+        "total": 14.0,
+        "reads": 7.0,
+        "writes": 3.0,
+        "locks": 2.0,
+        "transactionStatements": 2.0,
+        "other": 0.0,
+        "prismaDurationMs": 35.110668714291286
+      }
+    },
+    {
+      "kind": "final-confirmation",
+      "count": 7,
+      "cpuMedianMs": 1286.896,
+      "cpuP95Ms": 2069.544,
+      "cpuP99Ms": 2069.544,
+      "latencyMedianMs": 1421.4217570000037,
+      "latencyP95Ms": 1901.3583769999968,
+      "latencyP99Ms": 1901.3583769999968,
+      "meanRequests": 1,
+      "meanRequestBytes": 215909.42857142858,
+      "meanRequestEncodedBytes": 45248.142857142855,
+      "meanResponseBytes": 301,
+      "meanResponseEncodedBytes": 301,
+      "meanSqlStatements": 11,
+      "meanPrivateObjectReads": 18.142857142857142,
+      "meanGzipCalls": 1,
+      "meanGunzipCalls": 19.142857142857142,
+      "meanJsonParses": 33.285714285714285,
+      "meanDatabaseOperations": {
+        "total": 11.0,
+        "reads": 4.0,
+        "writes": 3.0,
+        "locks": 2.0,
+        "transactionStatements": 2.0,
+        "other": 0.0,
+        "prismaDurationMs": 28.645019857150537
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "course": "destroyer",
+      "kind": "automatic-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "destroyer",
+      "kind": "final-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "lng",
+      "kind": "automatic-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "lng",
+      "kind": "final-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "container",
+      "kind": "automatic-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "container",
+      "kind": "final-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "cruise",
+      "kind": "automatic-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "cruise",
+      "kind": "final-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "drilling",
+      "kind": "automatic-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "drilling",
+      "kind": "final-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "icebreaker",
+      "kind": "automatic-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "icebreaker",
+      "kind": "final-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "dredger",
+      "kind": "automatic-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    },
+    {
+      "course": "dredger",
+      "kind": "final-save",
+      "calls": {
+        "nativeInstances": 1,
+        "restore": 1,
+        "freedInstances": 1
+      }
+    }
+  ],
+  "checkpointsExact": true,
+  "fixturePacketCounts": {
+    "destroyer": 12,
+    "lng": 24,
+    "container": 12,
+    "cruise": 12,
+    "drilling": 24,
+    "icebreaker": 12,
+    "dredger": 24
+  },
+  "formalVerificationAmortizedCpuMsPerCheckpoint": 80.0364,
+  "formalVerificationAmortizationScope": "One completed run per ship using the unchanged representative fixture packet counts. Ordinary saves and full end verification are measured separately.",
+  "cleanupReceipt": {
+    "sameContainer": true,
+    "processExitedSuccessfully": true,
+    "dedicatedDataCleanupAssertions": true,
+    "applicationRevision": "65639ae334abb72ee2c2d90506f7a22704a1295d",
+    "capturedAt": 1794917667.3633008
+  },
+  "sourceToolFingerprint": "e74526eb0efe34b2e8838c8088880626a622283f1bd616a8f01e3031dc3d488f",
+  "serialization": "Request entity bodies use the existing JSON shape and gzip. Headers, TLS, authentication and network transit are outside this sequential service measurement."
+}
