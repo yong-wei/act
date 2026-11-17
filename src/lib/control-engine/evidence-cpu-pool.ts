@@ -151,7 +151,7 @@ class EvidenceCpuPool {
 
   private dispatch() {
     while (!this.closed && this.queue.length) {
-      let slot = this.slots.find(candidate => candidate.pending.size < JOBS_PER_WORKER);
+      let slot = this.slots.find(candidate => candidate.pending.size === 0);
       if (!slot && this.slots.length < this.workerCount) {
         try { slot = this.createSlot(); }
         catch {
@@ -162,6 +162,7 @@ class EvidenceCpuPool {
           continue;
         }
       }
+      slot ??= this.slots.find(candidate => candidate.pending.size < JOBS_PER_WORKER);
       if (!slot) return;
       const job = this.queue.shift()!;
       slot.pending.set(job.request.id, job);

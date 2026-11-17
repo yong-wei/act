@@ -49,6 +49,17 @@ afterEach(async () => {
 });
 
 describe('实验保存计算队列', () => {
+  it('两个独立请求优先使用两个可用计算线程', async () => {
+    vi.stubEnv('SIMULATION_CPU_WORKERS', '2');
+    const first = runEvidenceCpuTask('encode', {});
+    const second = runEvidenceCpuTask('encode', {});
+    const settled = Promise.allSettled([first, second]);
+    const count = workers.MockWorker.instances.length;
+    await closeEvidenceCpuPool();
+    await settled;
+    expect(count).toBe(2);
+  });
+
   it('乱序完成仍按任务编号返回，空闲线程可由下一请求复用', async () => {
     const first = runEvidenceCpuTask('encode', { owner: 'first' });
     const second = runEvidenceCpuTask('encode', { owner: 'second' });
