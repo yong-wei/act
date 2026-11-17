@@ -113,6 +113,38 @@ export interface VesselRunEvidence {
   checkpointPreview?: VesselCheckpointPreview;
 }
 
+export interface VesselEvidenceProgress {
+  runRef: string;
+  reportId: string;
+  experimentKey: string;
+  status: string;
+  chunkCount: number;
+  controlCount: number;
+  nativeCount: number;
+  fineCount?: number;
+  lastTimeS: number;
+  parameterHash: string;
+  checkpointReference?: string;
+  openingReference?: string;
+  openingHash?: string;
+  transport?: 'oss' | 'legacy';
+  saveStatus?: 'saved';
+  evidenceStatus?: 'pending' | 'verifying' | 'failed' | 'verified';
+}
+
+
+export interface CourseRecoveredRun extends VesselRunEvidence {
+  uploadReceipt?: VesselEvidenceProgress & { reportClientRef: string };
+  resumable?: boolean;
+  traceManifest?: Pick<VesselEvidenceProgress, 'chunkCount' | 'controlCount' | 'nativeCount' | 'fineCount'> & { references?: string[] };
+}
+
+export type CourseRunRecoveryHeader = Omit<CourseRecoveredRun, 'initialCheckpoint' | 'checkpoint'> & {
+  stateObjects: { openingReference: string; checkpointReference: string };
+};
+export type CourseRunRecovery = CourseRecoveredRun | CourseRunRecoveryHeader;
+
+
 export interface VesselCheckpointPreview {
   schema: 'act.vessel-checkpoint-preview.v1';
   recoverable: true;
@@ -204,6 +236,43 @@ export function sensorKey(signal: VesselObservedSample['signal']): string {
   if (typeof signal === 'string') return signal;
   const [name, index] = Object.entries(signal)[0];
   return `${name}${index}`;
+}
+
+export interface VesselTraceChunkData {
+  schema: 'act.vessel-trace-chunk.v1'; runRef: string; parameterHash: string;
+  chunkIndex: number; controlStart: number; nativeStart: number; endTimeS: number;
+  points: VesselTracePoint[]; nativeSamples: VesselObservedSample[];
+  fineStart?: number; fineSamples?: VesselFineStepPoint[];
+  changes: Array<{ timeS: number; input: VesselSessionInput }>;
+}
+
+export interface VesselTraceChunkMetadata {
+  schema: 'act.vessel-trace-metadata.v1'; runRef: string; parameterHash: string;
+  chunkIndex: number; controlStart: number; controlCount: number; nativeStart: number; nativeCount: number;
+  fineStart: number; fineCount: number; hasFineSamples: boolean; endTimeS: number;
+  fineFirstTimeS?: number; fineLastTimeS?: number; earliestChangeTimeS?: number; firstSampleReceipt?: string;
+  nativeFirstWatermarks: Record<string, number>; nativeLastWatermarks: Record<string, number>;
+}
+
+/** 浏览器与服务端共用同一分块边界表示，完整正文检查由各自调用入口负责。 */
+export function vesselTraceMetadata(chunk: VesselTraceChunkData, firstSampleReceipt?: string): VesselTraceChunkMetadata {
+  const nativeFirstWatermarks: Record<string, number> = {};
+  const nativeLastWatermarks: Record<string, number> = {};
+  for (const sample of chunk.nativeSamples) {
+    const key = sensorKey(sample.signal);
+    nativeFirstWatermarks[key] ??= sample.measurement.t_sample_s;
+    nativeFirstWatermarks[`${key}:arrival`] ??= sample.measurement.t_arrive_s;
+    nativeLastWatermarks[key] = sample.measurement.t_sample_s;
+    nativeLastWatermarks[`${key}:arrival`] = sample.measurement.t_arrive_s;
+  }
+  return { schema: 'act.vessel-trace-metadata.v1', runRef: chunk.runRef, parameterHash: chunk.parameterHash,
+    chunkIndex: chunk.chunkIndex, controlStart: chunk.controlStart, controlCount: chunk.points.length,
+    nativeStart: chunk.nativeStart, nativeCount: chunk.nativeSamples.length,
+    fineStart: chunk.fineStart ?? 0, fineCount: chunk.fineSamples?.length ?? 0,
+    hasFineSamples: chunk.fineSamples !== undefined, endTimeS: chunk.endTimeS,
+    fineFirstTimeS: chunk.fineSamples?.[0]?.timeS, fineLastTimeS: chunk.fineSamples?.at(-1)?.timeS,
+    nativeFirstWatermarks, nativeLastWatermarks, firstSampleReceipt,
+    earliestChangeTimeS: chunk.changes.length ? Math.min(...chunk.changes.map(change => change.timeS)) : undefined };
 }
 
 /** 实际双编码器的同步量测投影，原始记录保持独立。 */

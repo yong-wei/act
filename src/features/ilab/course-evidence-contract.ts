@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { simulationTraceReferencePattern } from '@/features/simulations/public-api';
 import type { VesselSessionConfiguration, VesselSessionInput, VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import type { VesselObservedSample } from '@/lib/control-engine/vessel-session';
 import type { VesselTracePoint } from '@/features/simulations/run-evidence';
@@ -110,26 +111,7 @@ export type VesselTraceChunk = Omit<z.infer<typeof vesselTraceChunkSchema>,'poin
   changes:Array<{ timeS:number;input:VesselSessionInput }>;
 };
 
-export interface VesselTraceChunkMetadata {
-  schema: 'act.vessel-trace-metadata.v1';
-  runRef: string;
-  parameterHash: string;
-  chunkIndex: number;
-  controlStart: number;
-  controlCount: number;
-  nativeStart: number;
-  nativeCount: number;
-  fineStart: number;
-  fineCount: number;
-  hasFineSamples: boolean;
-  fineFirstTimeS?: number;
-  fineLastTimeS?: number;
-  endTimeS: number;
-  nativeFirstWatermarks: Record<string, number>;
-  nativeLastWatermarks: Record<string, number>;
-  earliestChangeTimeS?: number;
-  firstSampleReceipt?: string;
-}
+export type { VesselTraceChunkMetadata } from '@/features/simulations/public-api';
 
 export const vesselEvidenceCloseSchema = z.object({
   checkpoint:z.string().min(1).max(3_000_000),
@@ -138,7 +120,9 @@ export const vesselEvidenceCloseSchema = z.object({
   nativeCount:z.number().int().nonnegative(),
   fineCount:z.number().int().nonnegative().optional(),
   durationS:finite.min(0).max(3600).optional(),
-  pendingChunks:z.array(z.string().regex(/^simulation-cas:(file|s3):sha256:[0-9a-f]{64}$/)).max(4096).optional(),
+  pendingChunks:z.array(z.string().regex(simulationTraceReferencePattern)).max(4096).optional(),
+  openingReference: z.string().startsWith('simulation-cas:oss:').regex(simulationTraceReferencePattern).optional(),
+  baseCheckpointReference: z.string().regex(simulationTraceReferencePattern).optional(),
   reason:z.enum(['checkpoint','student','duration','arrival','time_limit','failure']),
   failure:z.string().max(8000).nullable(),
   checkpointPreview: z.object({
@@ -153,6 +137,40 @@ export const vesselEvidenceCloseSchema = z.object({
   }).optional(),
 });
 export type VesselEvidenceClose = z.infer<typeof vesselEvidenceCloseSchema>;
+export type VesselEvidenceSave = Omit<VesselEvidenceClose, 'checkpoint'> & { checkpoint?: string };
+
+export const vesselEvidenceCloseMetadataSchema = vesselEvidenceCloseSchema.omit({ checkpoint: true })
+  .required({ checkpointPreview: true, baseCheckpointReference: true });
+export const vesselEvidenceDirectCloseSchema = vesselEvidenceCloseMetadataSchema.extend({
+  checkpointReference: z.string().regex(simulationTraceReferencePattern),
+});
+
+const watermarks = z.record(finite.min(0)).refine(value => Object.keys(value).length <= 256);
+export const vesselTraceChunkMetadataSchema = z.object({
+  schema: z.literal('act.vessel-trace-metadata.v1'), runRef: z.string().uuid(),
+  parameterHash: z.string().min(1).max(128), chunkIndex: z.number().int().min(0).max(4096),
+  controlStart: z.number().int().nonnegative(), controlCount: z.number().int().min(0).max(120),
+  nativeStart: z.number().int().nonnegative(), nativeCount: z.number().int().min(0).max(6000),
+  fineStart: z.number().int().nonnegative(), fineCount: z.number().int().min(0).max(800),
+  hasFineSamples: z.boolean(), fineFirstTimeS: finite.min(0).optional(), fineLastTimeS: finite.min(0).optional(),
+  endTimeS: finite.min(0).max(3600), nativeFirstWatermarks: watermarks, nativeLastWatermarks: watermarks,
+  earliestChangeTimeS: finite.min(0).optional(), firstSampleReceipt: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+}).refine(value => value.controlCount + value.nativeCount + value.fineCount > 0
+  && (value.controlCount === 0 || Boolean(value.firstSampleReceipt))
+  && (value.hasFineSamples || value.fineCount === 0));
+
+const ossObject = z.object({
+  reference: z.string().startsWith('simulation-cas:oss:').regex(simulationTraceReferencePattern),
+  uncompressedBytes: z.number().int().min(1).max(4 * 1024 * 1024),
+  storedBytes: z.number().int().min(1).max(4 * 1024 * 1024),
+});
+export const vesselEvidenceOssObjectSchema = z.discriminatedUnion('purpose', [
+  ossObject.extend({ purpose: z.literal('opening'), openingHash: z.string().regex(/^[0-9a-f]{64}$/) }),
+  ossObject.extend({ purpose: z.literal('chunk'), chunk: vesselTraceChunkMetadataSchema }),
+  ossObject.extend({ purpose: z.literal('checkpoint'), close: vesselEvidenceCloseMetadataSchema }),
+]);
+export type VesselEvidenceOssObject = z.infer<typeof vesselEvidenceOssObjectSchema>;
+export const vesselEvidenceOssGrantSchema = z.object({ objects: z.array(vesselEvidenceOssObjectSchema).min(1).max(32) });
 
 export interface VesselEvidenceRunMetadata {
   id: string;
@@ -167,6 +185,7 @@ export interface VesselRunStorageSummary {
   experimentKey:string;
   openingHash:string;
   openingReference:string;
+  recoveryHeader?: Omit<VesselEvidenceOpening, 'initialCheckpoint'>;
   configurationHash:string;
   parameterHash:string;
   courseKey:string;

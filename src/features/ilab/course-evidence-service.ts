@@ -6,6 +6,7 @@ import { prepareVesselEvidenceOpening, type PreparedVesselOpening } from './cour
 import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generated';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 import { writeSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
+import { simulationEvidenceDirectUploadEnabled } from '@/features/ilab/adapters/oss-object-store';
 import { findVesselCourse } from '@/resources/simulations/experiments/course-catalog';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION, destroyerCourseVariants } from '@/resources/simulations/experiments/destroyer-course';
 import { IlabServiceError } from './run-lock';
@@ -47,7 +48,10 @@ export function vesselRunProgress(run: SimulationRun) {
     chunkCount:summary.chunkCount,controlCount:summary.controlCount,nativeCount:summary.nativeCount,
     fineCount:summary.fineCount ?? 0,
     lastTimeS:summary.lastTimeS,parameterHash:summary.parameterHash,
-    saveStatus: 'saved', evidenceStatus: summary.evidenceVerification?.status
+    checkpointReference: summary.lastCheckpointReference,
+    openingReference: summary.openingReference, openingHash: summary.openingHash,
+    transport: simulationEvidenceDirectUploadEnabled() ? 'oss' as const : 'legacy' as const,
+    saveStatus: 'saved' as const, evidenceStatus: summary.evidenceVerification?.status
       ?? (run.completedAt ? 'verified' : 'pending') };
 }
 
@@ -227,6 +231,7 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
     throw new IlabServiceError('这个运行引用已经用于其他实验，请开启新的运行。',409);
   }
   const opening = await writeSimulationTraceChunk({ schema:'act.vessel-run-opening.v1',...input });
+  const { initialCheckpoint: _initialCheckpoint, ...recoveryHeader } = input;
   const profile = await prisma.studentProfile.findUnique({ where:{ userId },select:{ classId:true } });
   const save = () => prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT "id" FROM "VirtualSimulationReport" WHERE "clientRef" = ${input.reportClientRef} FOR UPDATE`;
@@ -242,7 +247,8 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
     const summary: VesselRunStorageSummary = { schema:'act.vessel-run-storage.v1',reportId:report.id,experimentKey,
       openingHash,openingReference:opening.uri,configurationHash,parameterHash:frame.parameterHash,courseKey:course.key,
       courseVersion:input.courseVersion,stepSequence:input.stepSequence,chunkCount:0,controlCount:0,nativeCount:0,
-      lastTimeS:0,lastCheckpointReference:opening.uri,nativeWatermarks:{},validationRuntimeVersion:CONTROL_ENGINE_BUILD_HASH,appliedFactors };
+      lastTimeS:0,lastCheckpointReference:opening.uri,nativeWatermarks:{},validationRuntimeVersion:CONTROL_ENGINE_BUILD_HASH,
+      appliedFactors, recoveryHeader };
     const run = await tx.simulationRun.create({ data:{ ownerUserId:userId,classId:profile?.classId ?? null,
       runKind:'vessel-teaching',sourceDomain:VESSEL_EVIDENCE_DOMAIN,sourceRefId:input.runRef,
       status:'running',protocolVersion:'act.vessel-evidence.v2',runtimeVersion:input.runtimeVersion ?? 'unrecorded-development',

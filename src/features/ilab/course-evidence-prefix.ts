@@ -1,4 +1,4 @@
-import { sensorKey } from '@/features/simulations/public-api';
+import { sensorKey, vesselTraceMetadata } from '@/features/simulations/public-api';
 import { createHash } from 'node:crypto';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 import type { VesselTraceChunk, VesselEvidenceRunMetadata, VesselTraceChunkMetadata } from './course-evidence-contract';
@@ -85,28 +85,12 @@ export function validateChunkPrefix(summary: VesselRunStorageSummary, chunk: Ves
 
 /** 正文在首次接收时检查，后续提交只使用持久化的边界与计数。 */
 export function describeVesselTraceChunk(chunk: VesselTraceChunk): VesselTraceChunkMetadata {
-  const nativeLastWatermarks = validateChunkPrefix({ parameterHash: chunk.parameterHash,
+  validateChunkPrefix({ parameterHash: chunk.parameterHash,
     chunkCount: chunk.chunkIndex, controlCount: chunk.controlStart, nativeCount: chunk.nativeStart,
     fineCount: chunk.fineStart ?? 0, lastTimeS: 0, nativeWatermarks: {},
   } as VesselRunStorageSummary, chunk);
-  const nativeFirstWatermarks: Record<string, number> = {};
-  for (const sample of chunk.nativeSamples) {
-    const key = sensorKey(sample.signal);
-    nativeFirstWatermarks[key] ??= sample.measurement.t_sample_s;
-    nativeFirstWatermarks[`${key}:arrival`] ??= sample.measurement.t_arrive_s;
-  }
-  return { schema: 'act.vessel-trace-metadata.v1', runRef: chunk.runRef,
-    parameterHash: chunk.parameterHash, chunkIndex: chunk.chunkIndex,
-    controlStart: chunk.controlStart, controlCount: chunk.points.length,
-    nativeStart: chunk.nativeStart, nativeCount: chunk.nativeSamples.length,
-    fineStart: chunk.fineStart ?? 0, fineCount: chunk.fineSamples?.length ?? 0,
-    hasFineSamples: chunk.fineSamples !== undefined,
-    fineFirstTimeS: chunk.fineSamples?.[0]?.timeS, fineLastTimeS: chunk.fineSamples?.at(-1)?.timeS,
-    endTimeS: chunk.endTimeS, nativeFirstWatermarks, nativeLastWatermarks,
-    earliestChangeTimeS: chunk.changes.length ? Math.min(...chunk.changes.map(change => change.timeS)) : undefined,
-    firstSampleReceipt: chunk.points.length
-      ? createHash('sha256').update(canonicalJson(chunk.points[0])).digest('hex') : undefined,
-  };
+  return vesselTraceMetadata(chunk, chunk.points.length
+    ? createHash('sha256').update(canonicalJson(chunk.points[0])).digest('hex') : undefined);
 }
 
 export function validateVesselTraceMetadata(summary: VesselRunStorageSummary, chunk: VesselTraceChunkMetadata) {

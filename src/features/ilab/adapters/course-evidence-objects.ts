@@ -7,7 +7,7 @@ import { describeVesselTraceChunk, type StoredChunk } from '../course-evidence-p
 import { vesselRunStorageSummary } from '../course-evidence-service';
 import { IlabServiceError } from '../service-error';
 
-type ObjectMetadata = {
+export type VesselEvidenceObjectMetadata = {
   schema: 'act.vessel-evidence-object.v1';
   ownerUserId: string;
   reportId: string;
@@ -18,6 +18,14 @@ type ObjectMetadata = {
   chunk?: VesselTraceChunkMetadata;
 };
 
+export function vesselEvidenceObjectMetadata(run: SimulationRun): VesselEvidenceObjectMetadata {
+  const summary = vesselRunStorageSummary(run);
+  if (!run.ownerUserId) throw new IlabServiceError('实验运行记录不存在。', 404);
+  return { schema: 'act.vessel-evidence-object.v1', ownerUserId: run.ownerUserId,
+    reportId: summary.reportId, openingHash: summary.openingHash, courseVersion: summary.courseVersion,
+    runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion };
+}
+
 /** 内容确认不推进采样水位，唯一引用可以在丢失回执后重复确认。 */
 export async function confirmVesselEvidenceObject(run: SimulationRun, stored: StoredChunk,
   purpose: 'chunk' | 'checkpoint', chunk?: VesselTraceChunkMetadata) {
@@ -25,9 +33,7 @@ export async function confirmVesselEvidenceObject(run: SimulationRun, stored: St
   if (!run.ownerUserId || (chunk && (chunk.runRef !== run.sourceRefId || chunk.parameterHash !== summary.parameterHash))) {
     throw new IlabServiceError('采样对象与本次运行不一致。', 409);
   }
-  const metadata: ObjectMetadata = { schema: 'act.vessel-evidence-object.v1', ownerUserId: run.ownerUserId,
-    reportId: summary.reportId, openingHash: summary.openingHash, courseVersion: summary.courseVersion,
-    runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion, ...(chunk ? { chunk } : {}) };
+  const metadata = { ...vesselEvidenceObjectMetadata(run), ...(chunk ? { chunk } : {}) };
   await prisma.$executeRaw`INSERT INTO "SimulationEvidenceObject"
     ("id", "runId", "purpose", "reference", "checksum", "uncompressedBytes", "storedBytes", "chunkIndex", "metadata")
     VALUES (${randomUUID()}, ${run.id}, ${purpose}, ${stored.uri}, ${stored.checksum},
@@ -47,7 +53,7 @@ export async function loadConfirmedVesselChunks(run: SimulationRun, references: 
   for (const reference of references) {
     const row = indexed.get(reference);
     if (row) {
-      const value = row.metadata as unknown as ObjectMetadata;
+      const value = row.metadata as unknown as VesselEvidenceObjectMetadata;
       if (value.schema !== 'act.vessel-evidence-object.v1' || value.ownerUserId !== run.ownerUserId
         || value.reportId !== summary.reportId || value.openingHash !== summary.openingHash
         || value.courseVersion !== summary.courseVersion || value.runtimeVersion !== run.runtimeVersion
@@ -59,6 +65,9 @@ export async function loadConfirmedVesselChunks(run: SimulationRun, references: 
       confirmed.push({ metadata: value.chunk, stored: { uri: reference, checksum: row.checksum,
         uncompressedBytes: row.uncompressedBytes ?? undefined, storedBytes: row.storedBytes ?? undefined } });
       continue;
+    }
+    if (reference.startsWith('simulation-cas:oss:')) {
+      throw new IlabServiceError('这份采样对象尚未确认上传，请重新提交保存。', 409);
     }
     // 历史暂存引用没有对象目录，仅首次使用时读取并登记边界元数据。
     const parsed = vesselTraceChunkSchema.safeParse(await readSimulationTraceChunk(reference));

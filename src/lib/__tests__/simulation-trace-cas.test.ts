@@ -5,6 +5,13 @@ import path from 'node:path';
 import os from 'node:os';
 import { gunzip, gzip, gzipSync } from 'node:zlib';
 import { readSimulationTraceChunk, writeSimulationTraceChunk } from '../data-governance/simulation-trace-cas';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+
+const s3 = vi.hoisted(() => ({ send: vi.fn(), destroy: vi.fn() }));
+vi.mock('@aws-sdk/client-s3', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@aws-sdk/client-s3')>(),
+  S3Client: class { send = s3.send; destroy = s3.destroy; },
+}));
 
 vi.mock('node:zlib', async (importOriginal) => {
   const original = await importOriginal<typeof import('node:zlib')>();
@@ -22,6 +29,25 @@ beforeEach(async () => {
 afterEach(async () => { vi.unstubAllEnvs(); await rm(root,{ recursive:true,force:true }); });
 
 describe('SimulationTrace私有内容寻址分块', () => {
+  it('旧S3引用继续独立核验gzip正文和内容哈希，并释放连接', async () => {
+    vi.stubEnv('SUBMISSION_S3_ENDPOINT', 'https://private.example');
+    vi.stubEnv('SUBMISSION_S3_BUCKET', 'private-evidence');
+    vi.stubEnv('SUBMISSION_S3_ACCESS_KEY', 'fixture-key');
+    vi.stubEnv('SUBMISSION_S3_SECRET_KEY', 'fixture-secret');
+    const text = '{"schema":"legacy","values":[1,2,null]}';
+    const checksum = createHash('sha256').update(text).digest('hex');
+    const reference = `simulation-cas:s3:sha256:${checksum}`;
+    s3.send.mockResolvedValueOnce({ Body: { transformToByteArray: async () => gzipSync(text) } });
+    await expect(readSimulationTraceChunk(reference)).resolves.toEqual(JSON.parse(text));
+    expect(s3.send.mock.calls[0][0]).toBeInstanceOf(GetObjectCommand);
+    expect(s3.send.mock.calls[0][0].input).toMatchObject({ Bucket: 'private-evidence',
+      Key: `simulation-traces/sha256/${checksum.slice(0, 2)}/${checksum}.json.gz` });
+    expect(s3.destroy).toHaveBeenCalledOnce();
+    s3.send.mockResolvedValueOnce({ Body: { transformToByteArray: async () => gzipSync('{"changed":true}') } });
+    await expect(readSimulationTraceChunk(reference)).rejects.toThrow('校验失败');
+    expect(s3.destroy).toHaveBeenCalledTimes(2);
+  });
+
   it('相同原始分块并发写入后读取同一完整对象', async () => {
     const data = { schema:'test',values:[1,2,null,4],units:'°/s' };
     const [first,second] = await Promise.all([writeSimulationTraceChunk(data),writeSimulationTraceChunk(data)]);

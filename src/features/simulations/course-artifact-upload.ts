@@ -13,12 +13,12 @@ import type { VesselLocalStepAttempt, VesselRunEvidence } from './run-evidence';
 
 export type { CourseRecoveredRun } from './run-recovery';
 export type { VesselRunArchive } from './local-evidence-store';
-import { fetchRecoveredRunHeader, readRecoveredRunChunks, type CourseRecoveredRun } from './run-recovery';
+import { fetchRecoveredRunHeader, readRecoveredRunChunks, readRecoveredRunState, type CourseRecoveredRun, type CourseRunRecovery } from './run-recovery';
 
-export interface CourseSessionRecoveryPayload {
+export interface CourseSessionRecoveryPayload<Run extends CourseRunRecovery = CourseRecoveredRun> {
   report: VesselReportProgress | null;
   reportClientRef: string | null;
-  runs: CourseRecoveredRun[];
+  runs: Run[];
   archivedRuns?: VesselRunArchive[];
   models: FrozenVesselStudentModel[];
   comparisons: VesselModelComparison[];
@@ -39,8 +39,8 @@ export async function fetchCourseSessionRecovery(
   courseKey: VesselCourseKey,
   courseVersion?: string,
   round?: { originId?: string; reportClientRef?: string },
-): Promise<{ authenticated: boolean; userId: string | null; recovery: CourseSessionRecoveryPayload | null }> {
-  const params = new URLSearchParams({ courseKey });
+): Promise<{ authenticated: boolean; userId: string | null; recovery: CourseSessionRecoveryPayload<CourseRunRecovery> | null }> {
+  const params = new URLSearchParams({ courseKey, format: 'references' });
   if (courseVersion) params.set('courseVersion', courseVersion);
   if (round?.originId) params.set('originId', round.originId);
   if (round?.reportClientRef) params.set('reportClientRef', round.reportClientRef);
@@ -51,7 +51,7 @@ export async function fetchCourseSessionRecovery(
     const payload = await response.json() as { error?: string };
     throw new Error(payload.error ?? '云端进度暂时无法读取，请稍后重试。');
   }
-  return response.json() as Promise<{ authenticated: boolean; userId: string | null; recovery: CourseSessionRecoveryPayload | null }>;
+  return response.json() as Promise<{ authenticated: boolean; userId: string | null; recovery: CourseSessionRecoveryPayload<CourseRunRecovery> | null }>;
 }
 
 function recoveredSampleMatches(local: unknown, remote: unknown): boolean {
@@ -98,7 +98,7 @@ function assertRecoveryPrefix(local: VesselRunEvidence, remote: VesselRunEvidenc
 /** 将服务端恢复的运行证据、辨识模型、对照、步骤尝试及草稿写入当前 scopeKey 的 IndexedDB 缓存。 */
 export async function hydrateRecoveredCourseSession(
   scopeKey: string,
-  recovery: CourseSessionRecoveryPayload,
+  recovery: CourseSessionRecoveryPayload<CourseRunRecovery>,
 ): Promise<{ hydratedCount: number }> {
   let hydratedCount = 0;
   const localDraft = await readExperimentDraft(scopeKey);
@@ -121,8 +121,9 @@ export async function hydrateRecoveredCourseSession(
   let hasLocalAdvance = (await listRunEvidence(scopeKey)).some((run) => !recoveredIds.has(run.id));
   let hasRemoteAdvance = false;
   // 按运行逐一恢复，已有相同恢复点仅同步回执，避免读取整份实验的全部采样。
-  for (const header of headers) {
-    const stored = header.traceManifest ? await readRunEvidenceHeader(header.id) : undefined;
+  for (const received of headers) {
+    const stored = received.traceManifest ? await readRunEvidenceHeader(received.id) : undefined;
+    const header = await readRecoveredRunState(received);
     if (header.resumable === false) { hasLocalAdvance ||= Boolean(stored); continue; }
     if (stored && header.traceManifest) {
       assertRecoveryIdentity(stored, header, scopeKey);
