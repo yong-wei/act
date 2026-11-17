@@ -4,7 +4,9 @@ import { createHash } from 'node:crypto';
 import { prepareVesselOssSave, decodeVesselOssObject } from '../evidence-worker-format';
 import { decodeSimulationTrace } from '@/lib/data-governance/simulation-trace-codec';
 import { describeVesselTraceChunk } from '@/features/ilab/course-evidence-prefix';
-import { vesselEvidenceOssObjectSchema } from '@/features/ilab/course-evidence-contract';
+import { vesselEvidenceOpeningSchema, vesselEvidenceOssObjectSchema } from '@/features/ilab/course-evidence-contract';
+import { vesselEvidenceOpeningInput } from '../evidence-opening';
+import { canonicalJson } from '@/lib/student-model-artifact-contract';
 import type { VesselRunEvidence } from '../run-evidence';
 import type { VesselEvidenceProgress } from '../evidence-upload';
 
@@ -21,6 +23,22 @@ const run = { id: runRef, parameterHash: 'parameter', lastTimeS: 6, durationS: 6
 } as unknown as VesselRunEvidence;
 
 describe('浏览器分块编码与恢复格式', () => {
+  it('运行前预测的首尾空白按开户合同归一，直传初态保留同一哈希', async () => {
+    const record = { ...run, courseKey: 'destroyer', courseVersion: 'test-version', stepSequence: 1,
+      configuration: {}, initialInput: {}, initialCheckpoint: '{}', prediction: ' \n保留中间 空格和\n换行。\n ',
+      createdAtMs: 1 } as unknown as VesselRunEvidence;
+    const opening = vesselEvidenceOpeningInput('00000000-0000-4000-8000-000000000002', record);
+    const accepted = vesselEvidenceOpeningSchema.parse(opening);
+    const openingHash = createHash('sha256').update(canonicalJson(accepted)).digest('hex');
+    const prepared = await prepareVesselOssSave(record, { ...progress, openingHash }, opening);
+    const object = prepared.objects.find(object => object.descriptor.purpose === 'opening')!;
+    const { schema, ...decoded } = await decodeVesselOssObject(object.descriptor.reference, object.body) as Record<string, unknown>;
+    expect(schema).toBe('act.vessel-run-opening.v1');
+    expect(decoded.prediction).toBe('保留中间 空格和\n换行。');
+    expect(createHash('sha256').update(canonicalJson(decoded)).digest('hex')).toBe(openingHash);
+    expect(record.prediction).toBe(' \n保留中间 空格和\n换行。\n ');
+  });
+
   it('保留五秒分块、规范序正文、哈希和gzip，与服务端元数据逐项相同', async () => {
     const result = await prepareVesselOssSave(run, progress);
     expect(result.objects).toHaveLength(3);

@@ -45,7 +45,7 @@ export async function uploadVesselRunEvidence(reportClientRef: string,
     }
     return progress;
   }
-  if (progress.transport === 'oss') {
+  if (progress.transport === 'oss' && run.checkpointPreview) {
     try {
       progress = await uploadDirectVesselRunEvidence(reportClientRef, run, progress, requestVesselEvidence);
       uploadProgress.set(key, progress);
@@ -106,5 +106,6 @@ export async function uploadVesselRunEvidence(reportClientRef: string,
     checkpointPreview: run.checkpointPreview,
     ...(run.fineStepSamples ? {fineCount:fineSamples.length} : {}),
   }, 'PUT');
+  uploadProgress.set(key, progress);
   return progress;
 }

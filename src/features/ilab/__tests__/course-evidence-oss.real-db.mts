@@ -37,7 +37,7 @@ frame.input.feedback = 'measurement';
 native.advance(0, JSON.stringify(frame.input));
 const run: VesselRunEvidence = {
   id: runRef, scopeKey: 'direct-evidence-fixture', courseKey: 'destroyer', courseVersion: VESSEL_COURSE_VERSION,
-  stepSequence: 1, prediction: '验证本人原始记录直传、断网、并发提交与独立核验', durationS: 11,
+  stepSequence: 1, prediction: ' \n验证本人原始记录直传、断网、并发提交与独立核验。\n ', durationS: 11,
   createdAtMs: Date.now(), lastTimeS: 0, stoppedAtMs: null, configuration: DESTROYER_COURSE_STEPS[0].configuration,
   initialInput: frame.input, parameterHash: frame.parameterHash, runtimeVersion: CONTROL_ENGINE_BUILD_HASH,
   initialCheckpoint: native.snapshot(), checkpoint: native.snapshot(), trace: [], nativeSensorSamples: [],
@@ -169,7 +169,7 @@ try {
   assert.equal(completed.evidenceStatus, 'verified');
   assert(hasVerifiedVesselEvidence(await findOwnedVesselRun(user.id, runRef)));
   assert.deepEqual(await commitOwnedVesselUpload(user.id, runRef, inputFor(ending)), completed);
-  checks.push('formal-retry', 'formal-success-reused');
+  checks.push('formal-retry', 'formal-success-reused', 'normalized-opening-formal-verification');
   const result = { status: 'passed', controlSamples: completed.controlCount,
     nativeSamples: completed.nativeCount, recoveryBytes: Buffer.byteLength(JSON.stringify(recovery)), checks };
   await writeFile('.logs/direct-evidence-real-db-result.json', JSON.stringify(result, null, 2));

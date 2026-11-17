@@ -37,7 +37,7 @@ export async function readRecoveredRunState(header: CourseRunRecovery): Promise<
     downloadObject<{ schema: string; runRef: string; parameterHash: string; initialCheckpoint: string;
       configuration: VesselRunEvidence['configuration']; input: VesselRunEvidence['initialInput'] }>(header.id, openingGrant),
     downloadObject<{ schema: string; checkpoint: string; endTimeS: number; controlCount: number; nativeCount: number;
-      fineCount?: number }>(header.id, checkpointGrant),
+      fineCount?: number; checkpointPreview?: VesselRunEvidence['checkpointPreview'] }>(header.id, checkpointGrant),
   ]);
   if (opening.schema !== 'act.vessel-run-opening.v1' || opening.runRef !== header.id
     || opening.parameterHash !== header.parameterHash || !opening.initialCheckpoint || !close.checkpoint
@@ -48,7 +48,8 @@ export async function readRecoveredRunState(header: CourseRunRecovery): Promise<
     || (close.fineCount ?? 0) !== (header.traceManifest.fineCount ?? 0)) {
     throw new Error('下载的恢复点与当前实验进度不一致，请重新读取记录。');
   }
-  return { ...metadata, initialCheckpoint: opening.initialCheckpoint, checkpoint: close.checkpoint };
+  return { ...metadata, initialCheckpoint: opening.initialCheckpoint, checkpoint: close.checkpoint,
+    checkpointPreview: close.checkpointPreview };
 }
 
 export async function fetchRecoveredRunHeader(runId: string): Promise<CourseRecoveredRun> {

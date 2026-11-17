@@ -5,11 +5,12 @@ import https from 'node:https';
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs';
 import { gzip, gunzipSync, brotliDecompressSync } from 'node:zlib';
 import { promisify } from 'node:util';
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { monitorEventLoopDelay } from 'node:perf_hooks';
 import assert from 'node:assert/strict';
-import { canonicalJson } from '../../src/lib/student-model-artifact-contract/server-hash.ts';
+import { canonicalJson } from '../../src/lib/student-model-artifact-contract/index.ts';
 import { createHash } from 'node:crypto';
+import { prepareDirectLoadPacket, decodeDirectLoadObject } from './direct-evidence-load.mjs';
 
 const option = (name, fallback) => {
   const i = process.argv.indexOf(name);
@@ -22,6 +23,12 @@ const count = Number(option('--concurrency', '7'));
 const durationS = Number(option('--seconds', '300'));
 const timeScale = Number(option('--time-scale', '1'));
 const label = option('--label', `n${count}-${Date.now()}`);
+const evidenceTransport = option('--transport', 'legacy');
+const behavior = option('--behavior', 'fixed');
+assert(['legacy', 'oss'].includes(evidenceTransport));
+assert(['fixed', 'normal'].includes(behavior));
+const previewFile = option('--previews', '.tmp/load-fixture-previews.json');
+const browserPreviews = evidenceTransport === 'oss' ? JSON.parse(readFileSync(previewFile)) : undefined;
 const fixtureRoot = option('--fixtures', '.tmp/load-fixtures');
 const revision = option('--revision', 'unspecified');
 const runtimeVersion = option('--runtime-version', 'unrecorded-development');
@@ -43,6 +50,11 @@ const fixtures = new Map(
     JSON.parse(gunzipSync(readFileSync(`${fixtureRoot}/${key}.json.gz`))),
   ]),
 );
+if (browserPreviews) {
+  const digest = createHash('sha256');
+  for (const key of fixtureKeys) digest.update(key).update(readFileSync(`${fixtureRoot}/${key}.json.gz`));
+  assert.equal(browserPreviews.inputDigest, digest.digest('hex'), 'Frozen input and derived previews must match');
+}
 const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: Math.max(32, count * 2) });
 const httpAgent = new http.Agent({ keepAlive: true, maxSockets: Math.max(32, count * 2) });
 const compress = promisify(gzip);
@@ -63,7 +75,7 @@ const cpuStart = process.cpuUsage();
 async function request(
   client,
   pathname,
-  { method = 'GET', body, kind = 'read', expected = [200], discard = false } = {},
+  { method = 'GET', body, rawBody, contentType, binary = false, kind = 'read', expected = [200], discard = false } = {},
 ) {
   const url = new URL(pathname, origin);
   let bytes = Buffer.alloc(0);
@@ -74,7 +86,9 @@ async function request(
       ? { cookie: [...client.cookies].map(([k, v]) => `${k}=${v}`).join('; ') }
       : {}),
   };
-  if (body !== undefined) {
+  if (rawBody !== undefined) {
+    bytes = rawBody;headers['content-type'] = contentType;headers['content-length'] = String(bytes.length);
+  } else if (body !== undefined) {
     const plain = Buffer.from(JSON.stringify(body));
     const gzipBody =
       pathname.startsWith('/api/ilab/experiment-runs') ||
@@ -123,6 +137,7 @@ async function request(
           try {
             if (res.headers['content-encoding'] === 'gzip') value = gunzipSync(value);
             if (res.headers['content-encoding'] === 'br') value = brotliDecompressSync(value);
+            if (binary) return resolve(value);
             const text = value.toString();
             try {
               resolve(JSON.parse(text));
@@ -242,6 +257,7 @@ async function verifyRecovery(client) {
     courseVersion: client.fixture.courseVersion,
     originId: client.originId,
     reportClientRef: client.reportClientRef,
+    ...(evidenceTransport === 'oss' ? {format: 'references'} : {}),
   });
   const saved = (
     await request(client, `/api/ilab/course-session-recovery?${params}`, { kind: 'recovery' })
@@ -257,10 +273,31 @@ async function verifyRecovery(client) {
     const restored = row.checkpoint
       ? row
       : (
-          await request(client, `/api/ilab/experiment-runs/${client.runRef}?recovery=1`, {
+          await request(client, `/api/ilab/experiment-runs/${client.runRef}?recovery=1${evidenceTransport === 'oss' ? '&format=references' : ''}`, {
             kind: 'selected-run-recovery',
           })
         ).value;
+    if (restored.stateObjects) {
+      const references = [restored.stateObjects.openingReference, restored.stateObjects.checkpointReference];
+      const grants = (await request(client, `/api/ilab/experiment-runs/${client.runRef}/objects/downloads`,
+        {method: 'POST', body: {references}, kind: 'download-authorize'})).value;
+      for (const grant of grants.objects) {
+        const downloaded = (await request(null, grant.url, {binary: true, kind: 'oss-state-download'})).value;
+        const value = decodeDirectLoadObject(grant.reference, downloaded, gunzipSync);
+        if (grant.reference === restored.stateObjects.checkpointReference) restored.checkpoint = value.checkpoint;
+      }
+      if (behavior === 'fixed') {
+        const chunks = restored.traceManifest.references;
+        for (let first=0;first<chunks.length;first+=32) {
+          const authorizations = (await request(client, `/api/ilab/experiment-runs/${client.runRef}/objects/downloads`,
+            {method:'POST',body:{references:chunks.slice(first,first+32)},kind:'download-authorize'})).value;
+          for (let start=0;start<authorizations.objects.length;start+=4) await Promise.all(authorizations.objects.slice(start,start+4).map(async grant=>{
+            const bytes=(await request(null,grant.url,{binary:true,kind:'oss-curve-download'})).value;
+            const chunk=decodeDirectLoadObject(grant.reference,bytes,gunzipSync);assert.equal(chunk.runRef,client.runRef);
+          }));
+        }
+      }
+    }
     assert.equal(
       restored.checkpoint,
       client.checkpointExpected,
@@ -275,6 +312,7 @@ async function verifyRecovery(client) {
 }
 
 async function packet(client, index, endIndex) {
+  if (evidenceTransport === 'oss') return directPacket(client,index,endIndex);
   const sources = client.fixture.packets.slice(index, endIndex);
   const source = sources.at(-1);
   const opening = sources[0].requests.find((item) => item.path === '/api/ilab/experiment-runs');
@@ -359,12 +397,61 @@ async function packet(client, index, endIndex) {
   }
 }
 
+async function directPacket(client, index, endIndex) {
+  const sources=client.fixture.packets.slice(index,endIndex);
+  const closing=sources.at(-1).requests.find(item=>item.method==='PUT').body;
+  if (!client.directOpening || client.directOpening.runRef!==client.runRef) {
+    client.directOpening={...sources[0].requests.find(item=>item.path==='/api/ilab/experiment-runs').body,
+      runRef:client.runRef, reportClientRef:client.reportClientRef, startedAtMs:client.runStartedAt,runtimeVersion};
+    client.progress=(await request(client,'/api/ilab/experiment-runs',
+      {method:'POST',body:client.directOpening,kind:'run-open'})).value;
+    assert.equal(client.progress.transport,'oss');
+  }
+  if (client.progress.status!=='running') {
+    assert.equal(client.progress.lastTimeS,closing.endTimeS);return;
+  }
+  const sourceChunks=sources.flatMap(source=>source.requests.filter(item=>item.path.includes('/chunks')).map(item=>item.body));
+  const preview=browserPreviews.previews[client.fixture.courseKey][endIndex-1];
+  const batchKey=`${client.runRef}:${endIndex}`;
+  if (client.prepared?.key!==batchKey) client.prepared={key:batchKey,
+    value:prepareDirectLoadPacket(client.directOpening,client.progress,sourceChunks,closing,preview)};
+  const prepared=client.prepared.value;
+  for (let first=0;first<prepared.objects.length;first+=16) {
+    const batch=prepared.objects.slice(first,first+16);
+    const grants=(await request(client,`/api/ilab/experiment-runs/${client.runRef}/objects`,
+      {method:'POST',body:{objects:batch.map(object=>object.descriptor)},kind:'upload-authorize'})).value;
+    const indexed=new Map(grants.objects.map(grant=>[grant.reference,grant]));
+    for (let start=0;start<batch.length;start+=4) await Promise.all(batch.slice(start,start+4).map(async object=>{
+      const grant=indexed.get(object.descriptor.reference);assert(grant);
+      if (grant.confirmed) return;
+      const form=new FormData();for (const [key,value] of Object.entries(grant.fields)) form.append(key,value);
+      form.append('file',new Blob([object.body],{type:'application/gzip'}),'evidence.json.gz');
+      const encoded=new Request(grant.url,{method:'POST',body:form});
+      const response=await request(null,grant.url,{method:'POST',rawBody:Buffer.from(await encoded.arrayBuffer()),
+        contentType:encoded.headers.get('content-type'),kind:'oss-upload',expected:[200,409]});
+      if (response.status===409) assert(response.value.text?.includes('<Code>FileAlreadyExists</Code>'));
+      appendFileSync(`.tmp/load-${label}-references.jsonl`,JSON.stringify({runRef:client.runRef,reference:object.descriptor.reference})+'\n',{mode:0o600});
+    }));
+  }
+  client.progress=(await request(client,`/api/ilab/experiment-runs/${client.runRef}`,
+    {method:'PUT',body:{...prepared.close,checkpointReference:prepared.checkpointReference},
+      kind:prepared.close.reason==='checkpoint'?'checkpoint':'formal-end'})).value;
+  client.checkpointExpected=closing.checkpoint;
+  assert.equal(client.progress.lastTimeS,closing.endTimeS);
+  for (const key of ['controlCount','nativeCount','fineCount']) assert.equal(client.progress[key]??0,closing[key]??0);
+  if (closing.endTimeS===client.fixture.durationS) {
+    assert.equal(client.progress.status,'completed');
+    if (!client.completedRuns.includes(client.runRef)) client.completedRuns.push(client.runRef);
+  }
+}
+
 async function draft(client, tick) {
   const body = {
     activeSeq: 1,
     seq: 1,
     readings: { prediction: `专用压力测试草稿 ${tick}` },
-    courseState: { reportClientRef: client.reportClientRef },
+    courseState: { reportClientRef: client.reportClientRef,
+      ...(behavior === 'normal' ? { activeRunId: client.runRef, plannedRunId: client.runRef } : {}) },
   };
   await request(client, `${client.sessionPath}/${client.originId}`, {
     method: 'PATCH',
@@ -471,6 +558,9 @@ function summary() {
     origin,
     revision,
     runtimeVersion,
+    evidenceTransport,
+    behavior,
+    previewInputDigest: browserPreviews?.inputDigest,
     concurrency: count,
     configuredDurationS: durationS,
     timeScale,
@@ -524,11 +614,19 @@ try {
         while (Date.now() < stopAt && !abort) {
           const cycleStarted = Date.now();
           if (packetIndex === 0) {
-            client.runRef = randomUUID();
+            client.runRef = `00000000-0000-4000-8000-${randomBytes(6).toString('hex')}`;
             client.runStartedAt = Date.now();
           }
+          if (behavior === 'normal' && packetIndex === 0) {
+            await draft(client, tick);
+            lastDraft = Date.now();
+            await sleep(5000);
+          }
+          const desired = behavior === 'normal'
+            ? Math.max(packetIndex+1, Math.floor(((Date.now()-client.runStartedAt)/1000*timeScale)/5))
+            : packetIndex + Math.max(1, Math.round(timeScale));
           const endIndex = Math.min(
-            packetIndex + Math.max(1, Math.round(timeScale)),
+            desired,
             client.fixture.packets.length,
           );
           const previousTime =
@@ -546,15 +644,15 @@ try {
               }
             }
             client.completedPackets = (client.completedPackets ?? 0) + endIndex - packetIndex;
-            if (Date.now() - lastDraft >= 15000) {
+            if (behavior === 'fixed' && Date.now() - lastDraft >= 15000) {
               await draft(client, tick);
               lastDraft = Date.now();
             }
-            if (Date.now() - lastRecovery >= 30000) {
+            if (behavior === 'fixed' && Date.now() - lastRecovery >= 30000) {
               await verifyRecovery(client);
               lastRecovery = Date.now();
             }
-            if (Date.now() - lastPage >= 60000) {
+            if (behavior === 'fixed' && Date.now() - lastPage >= 60000) {
               await request(client, `/simulations/${client.fixture.courseKey}`, {
                 kind: 'page-refresh',
                 discard: true,
@@ -572,7 +670,10 @@ try {
             abort = true;
             break;
           }
-          await sleep((span * 1000) / timeScale - (Date.now() - cycleStarted));
+          if (behavior === 'normal') {
+            const remaining = packetIndex === 0 ? 0 : client.fixture.durationS/timeScale*1000-(Date.now()-client.runStartedAt);
+            await sleep(packetIndex === 0 ? 0 : Math.min(5000,Math.max(0,remaining)));
+          } else await sleep((span * 1000) / timeScale - (Date.now() - cycleStarted));
         }
       }),
     );
