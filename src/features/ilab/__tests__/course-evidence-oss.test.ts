@@ -68,6 +68,16 @@ beforeEach(() => {
 });
 
 describe('本人实验OSS上传、确认与下载', () => {
+  it('不同gzip长度共享正文哈希，分别登记并拒绝引用长度与描述不一致', async () => {
+    const first = { ...descriptor, reference: simulationOssReference(runRef, 'checkpoint', 0, 'a'.repeat(64), 100) };
+    const second = { ...descriptor, reference: simulationOssReference(runRef, 'checkpoint', 0, 'a'.repeat(64), 120), storedBytes: 120 };
+    await authorizeOwnedVesselUploads('owner', runRef, [first]);
+    await authorizeOwnedVesselUploads('owner', runRef, [second]);
+    expect(rows.size).toBe(2);
+    await expect(authorizeOwnedVesselUploads('owner', runRef, [{ ...first, storedBytes: 101 }]))
+      .rejects.toMatchObject({ status: 409 });
+  });
+
   it('重复签发复用同一意向，精确对象描述变化时拒绝', async () => {
     await authorizeOwnedVesselUploads('owner', runRef, [descriptor]);
     await authorizeOwnedVesselUploads('owner', runRef, [descriptor]);

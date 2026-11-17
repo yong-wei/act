@@ -7,6 +7,7 @@ import { describeVesselTraceChunk } from '@/features/ilab/course-evidence-prefix
 import { vesselEvidenceOpeningSchema, vesselEvidenceOssObjectSchema } from '@/features/ilab/course-evidence-contract';
 import { vesselEvidenceOpeningInput } from '../evidence-opening';
 import { canonicalJson } from '@/lib/student-model-artifact-contract';
+import { simulationOssReference, simulationOssLocation, simulationTraceReferencePattern } from '../evidence-reference';
 import type { VesselRunEvidence } from '../run-evidence';
 import type { VesselEvidenceProgress } from '../evidence-upload';
 
@@ -23,6 +24,19 @@ const run = { id: runRef, parameterHash: 'parameter', lastTimeS: 6, durationS: 6
 } as unknown as VesselRunEvidence;
 
 describe('浏览器分块编码与恢复格式', () => {
+  it('相同正文的不同gzip长度分别登记，旧OSS和file/S3引用继续兼容', () => {
+    const checksum = 'a'.repeat(64);
+    const legacy = simulationOssReference(runRef, 'chunk', 2, checksum);
+    const first = simulationOssReference(runRef, 'chunk', 2, checksum, 120);
+    const second = simulationOssReference(runRef, 'chunk', 2, checksum, 140);
+    expect(simulationOssLocation(first)).toMatchObject({ checksum, sequence: 2, storedBytes: 120 });
+    expect(simulationOssLocation(first).key).not.toBe(simulationOssLocation(second).key);
+    expect(simulationOssLocation(legacy).key).toBe(`experiments/${runRef}/chunk/2/${checksum}.json.gz`);
+    for (const backend of ['file', 's3']) expect(simulationTraceReferencePattern.test(`simulation-cas:${backend}:sha256:${checksum}`)).toBe(true);
+    expect(() => simulationOssReference(runRef, 'chunk', 2, checksum, 0)).toThrow('引用无效');
+    expect(() => simulationOssReference(runRef, 'chunk', 2, checksum, 4 * 1024 * 1024 + 1)).toThrow('引用无效');
+  });
+
   it('运行前预测的首尾空白按开户合同归一，直传初态保留同一哈希', async () => {
     const record = { ...run, courseKey: 'destroyer', courseVersion: 'test-version', stepSequence: 1,
       configuration: {}, initialInput: {}, initialCheckpoint: '{}', prediction: ' \n保留中间 空格和\n换行。\n ',

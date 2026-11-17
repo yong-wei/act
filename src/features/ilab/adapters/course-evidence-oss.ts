@@ -23,6 +23,7 @@ function objectMetadata(run: SimulationRun, descriptor: VesselEvidenceOssObject)
   const sequence = descriptor.purpose === 'chunk' ? descriptor.chunk.chunkIndex
     : descriptor.purpose === 'checkpoint' ? descriptor.close.controlCount : 0;
   if (location.runRef !== run.sourceRefId || location.purpose !== descriptor.purpose || location.sequence !== sequence
+    || (location.storedBytes !== undefined && location.storedBytes !== descriptor.storedBytes)
     || (descriptor.purpose === 'chunk' && (descriptor.chunk.runRef !== run.sourceRefId
       || descriptor.chunk.parameterHash !== summary.parameterHash))
     || (descriptor.purpose === 'checkpoint' && descriptor.close.checkpointPreview.parameterHash !== summary.parameterHash)

@@ -10,7 +10,7 @@ function encode(runRef, purpose, sequence, value, metadata) {
   const bytes = Buffer.from(canonicalJson(value));
   const checksum = createHash('sha256').update(bytes).digest('hex');
   const body = gzipSync(bytes);
-  return { body, descriptor: { purpose, reference: simulationOssReference(runRef, purpose, sequence, checksum),
+  return { body, descriptor: { purpose, reference: simulationOssReference(runRef, purpose, sequence, checksum, body.length),
     uncompressedBytes: bytes.length, storedBytes: body.length, ...metadata } };
 }
 
