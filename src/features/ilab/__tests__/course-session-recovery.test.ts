@@ -73,6 +73,14 @@ beforeEach(() => {
 const request = { userId: 'owner', courseKey: 'destroyer' as const, reportClientRef: report.clientRef };
 
 describe('课程恢复的按需读取', () => {
+  it('待核验记录的空舒适性指标恢复为未提供，继续保存可使用预计算摘要', async () => {
+    const run = storedRun('active', 'running');
+    Object.assign(run.summary, { cruiseComfort: null });
+    vi.mocked(prisma.simulationRun.findMany).mockResolvedValue([run] as never);
+    const result = await loadCourseSessionRecovery({ ...request, deferTraceChunks: true });
+    expect(result.runs[0].cruiseComfort).toBeUndefined();
+  });
+
   it('延迟曲线恢复省略数据库分块索引，保留当前检查点和历史回执', async () => {
     vi.mocked(prisma.simulationRun.findMany).mockResolvedValue([
       storedRun('history'), storedRun('active', 'running'),

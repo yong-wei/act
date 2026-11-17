@@ -6,7 +6,7 @@ import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash
 import { readSimulationTraceChunk, writeSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
 import { findOwnedVesselRun } from '../course-evidence-service';
 import { closeVesselEvidenceRun, verifyVesselEvidenceRun, hasVerifiedVesselEvidence } from '../course-evidence-chunks';
-import type { VesselEvidenceClose, VesselTraceChunk } from '../course-evidence-contract';
+import { vesselEvidenceCloseSchema, type VesselEvidenceClose, type VesselTraceChunk } from '../course-evidence-contract';
 import { describeVesselTraceChunk } from '../course-evidence-prefix';
 import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generated';
 
@@ -97,6 +97,19 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe('采样批次与恢复点的原子提交', () => {
+  it('兼容已恢复浏览器提交的空舒适性预计算字段，并保留有效指标', () => {
+    const value = { ...input, checkpointPreview: {
+      schema: 'act.vessel-checkpoint-preview.v1', recoverable: true,
+      parameterHash: 'parameters', timeS: 2, controllerTicks: 0, fineCount: 0,
+      appliedFinalInput: {}, metrics: {}, cruiseComfort: null,
+    } };
+    const parsed = vesselEvidenceCloseSchema.parse(value);
+    expect(parsed.checkpointPreview?.cruiseComfort).toBeUndefined();
+    expect(vesselEvidenceCloseSchema.parse({ ...value, checkpointPreview: {
+      ...value.checkpointPreview, cruiseComfort: { rollRmsDeg: 1 },
+    } }).checkpointPreview?.cruiseComfort).toEqual({ rollRmsDeg: 1 });
+  });
+
   it('多份已校验分块批量入库，累计进度与恢复点只写一次', async () => {
     const result = await closeVesselEvidenceRun('owner', runRef, input);
     expect(tx.simulationTrace.createMany).toHaveBeenCalledExactlyOnceWith({ data: [
