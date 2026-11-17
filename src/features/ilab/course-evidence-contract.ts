@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { VesselSessionConfiguration, VesselSessionInput } from '@/lib/control-engine/vessel-session';
+import type { VesselSessionConfiguration, VesselSessionInput, VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import type { VesselObservedSample } from '@/lib/control-engine/vessel-session';
 import type { VesselTracePoint } from '@/features/simulations/run-evidence';
 
@@ -122,3 +122,34 @@ export const vesselEvidenceCloseSchema = z.object({
   failure:z.string().max(8000).nullable(),
 });
 export type VesselEvidenceClose = z.infer<typeof vesselEvidenceCloseSchema>;
+
+export interface VesselEvidenceRunMetadata {
+  id: string;
+  runtimeVersion: string;
+  modelVersion: string;
+  seed: bigint | null;
+}
+
+export interface VesselRunStorageSummary {
+  schema:'act.vessel-run-storage.v1';
+  reportId:string;
+  experimentKey:string;
+  openingHash:string;
+  openingReference:string;
+  configurationHash:string;
+  parameterHash:string;
+  courseKey:string;
+  courseVersion:string;
+  stepSequence:number;
+  chunkCount:number;
+  controlCount:number;
+  nativeCount:number;
+  fineCount?:number;
+  fineLastTimeS?:number;
+  lastTimeS:number;
+  lastCheckpointReference:string;
+  nativeWatermarks:Record<string,number>;
+  validationRuntimeVersion?:string;
+  appliedFactors?:string[];
+  dredgerModeEvents?:VesselSessionFrame['dredgerEvents'];
+}

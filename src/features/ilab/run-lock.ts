@@ -1,6 +1,7 @@
 import type { IlabExperimentRun, Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { IlabServiceError } from './service-error';
 
 /**
  * 共享实验运行锁与错误语义。
@@ -8,12 +9,7 @@ import { prisma } from '@/lib/prisma';
  * 供七船独立实验（vessel/destroyer）与既有实验 API 共用的运行级事务锁、
  * 错误类型与开放状态断言；与旧 24 步综合课程实现解耦。
  */
-export class IlabServiceError extends Error {
-  constructor(message: string, readonly status: number, readonly retryReport = false) {
-    super(message);
-    this.name = 'IlabServiceError';
-  }
-}
+export { IlabServiceError };
 
 export function toIlabHttpError(error: unknown): { status: number; message: string; retryReport: boolean } {
   if (error instanceof IlabServiceError) {

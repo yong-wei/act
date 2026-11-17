@@ -2,14 +2,18 @@ import { createHash } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { prisma } from '@/lib/prisma';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
-import { writeSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
+import { writeSimulationTraceChunk, storeEncodedSimulationTrace } from '@/lib/data-governance/simulation-trace-cas';
+import { evidenceCpuWorkersEnabled, runEvidenceCpuTask } from '@/lib/control-engine/evidence-cpu-pool';
 import { findOwnedVesselRun } from '../course-evidence-service';
-import { stageVesselEvidenceChunk } from '../course-evidence-chunks';
+import { stageVesselEvidenceChunk, stageVesselEvidenceBytes } from '../course-evidence-chunks';
 import type { VesselTraceChunk } from '../course-evidence-contract';
 
 vi.mock('@/lib/prisma', () => ({ prisma: { simulationTrace: { findUnique: vi.fn() } } }));
 vi.mock('@/lib/data-governance/simulation-trace-cas', () => ({
-  readSimulationTraceChunk: vi.fn(), writeSimulationTraceChunk: vi.fn(),
+  readSimulationTraceChunk: vi.fn(), writeSimulationTraceChunk: vi.fn(), storeEncodedSimulationTrace: vi.fn(),
+}));
+vi.mock('@/lib/control-engine/evidence-cpu-pool', () => ({
+  evidenceCpuWorkersEnabled: vi.fn(), runEvidenceCpuTask: vi.fn(),
 }));
 vi.mock('../course-evidence-service', () => ({
   findOwnedVesselRun: vi.fn(), vesselRunProgress: vi.fn(), vesselRunStorageSummary: vi.fn(),
@@ -28,6 +32,60 @@ beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(findOwnedVesselRun).mockResolvedValue({ id: 'owned-run', status: 'completed' } as never);
   vi.mocked(prisma.simulationTrace.findUnique).mockResolvedValue({ checksum, sampleStorageUri: reference } as never);
+});
+
+describe('合并计算后的原始分块入口', () => {
+  const bytes = Buffer.from(JSON.stringify(chunk));
+  const encoded = { checksum, compressed: new Uint8Array([1, 2]), uncompressedBytes: bytes.length };
+
+  beforeEach(() => {
+    vi.mocked(evidenceCpuWorkersEnabled).mockReturnValue(true);
+    vi.mocked(runEvidenceCpuTask).mockResolvedValue({ runRef: chunk.runRef, chunkIndex: 0, encoded });
+    vi.mocked(storeEncodedSimulationTrace).mockResolvedValue({ uri: reference } as never);
+  });
+
+  it('在所有权检查通过后才持久化编码结果', async () => {
+    vi.mocked(findOwnedVesselRun).mockResolvedValue({ id: 'owned-run', status: 'running' } as never);
+    expect(await stageVesselEvidenceBytes('owner', chunk.runRef, bytes)).toEqual({ reference });
+    expect(runEvidenceCpuTask).toHaveBeenCalledWith('trace-stage', bytes);
+    expect(findOwnedVesselRun).toHaveBeenCalledWith('owner', chunk.runRef);
+    expect(storeEncodedSimulationTrace).toHaveBeenCalledWith(encoded);
+    expect(vi.mocked(findOwnedVesselRun).mock.invocationCallOrder[0])
+      .toBeLessThan(vi.mocked(storeEncodedSimulationTrace).mock.invocationCallOrder[0]);
+    expect(writeSimulationTraceChunk).not.toHaveBeenCalled();
+  });
+
+  it('地址不匹配和其他账号均拒绝且不会写入', async () => {
+    await expect(stageVesselEvidenceBytes('owner', 'other-run', bytes)).rejects.toMatchObject({ status: 400 });
+    expect(findOwnedVesselRun).not.toHaveBeenCalled();
+    vi.mocked(findOwnedVesselRun).mockRejectedValue({ status: 404 });
+    await expect(stageVesselEvidenceBytes('other', chunk.runRef, bytes)).rejects.toMatchObject({ status: 404 });
+    expect(storeEncodedSimulationTrace).not.toHaveBeenCalled();
+  });
+
+  it('已结束运行同正文复用原回执，不同正文或不存在的分块返回409', async () => {
+    expect(await stageVesselEvidenceBytes('owner', chunk.runRef, bytes)).toEqual({ reference });
+    vi.mocked(prisma.simulationTrace.findUnique).mockResolvedValue({ checksum: 'changed', sampleStorageUri: reference } as never);
+    await expect(stageVesselEvidenceBytes('owner', chunk.runRef, bytes)).rejects.toMatchObject({ status: 409 });
+    vi.mocked(prisma.simulationTrace.findUnique).mockResolvedValue(null);
+    await expect(stageVesselEvidenceBytes('owner', chunk.runRef, bytes)).rejects.toMatchObject({ status: 409 });
+    expect(storeEncodedSimulationTrace).not.toHaveBeenCalled();
+  });
+
+  it('计算任务失败时保留原运行与存储', async () => {
+    vi.mocked(runEvidenceCpuTask).mockRejectedValue({ status: 503 });
+    await expect(stageVesselEvidenceBytes('owner', chunk.runRef, bytes)).rejects.toMatchObject({ status: 503 });
+    expect(findOwnedVesselRun).not.toHaveBeenCalled();
+    expect(storeEncodedSimulationTrace).not.toHaveBeenCalled();
+  });
+
+  it('关闭线程后继续支持同一原始字节入口及400校验', async () => {
+    vi.mocked(evidenceCpuWorkersEnabled).mockReturnValue(false);
+    expect(await stageVesselEvidenceBytes('owner', chunk.runRef, bytes)).toEqual({ reference });
+    await expect(stageVesselEvidenceBytes('owner', chunk.runRef, Buffer.from('{'))).rejects.toMatchObject({ status: 400 });
+    await expect(stageVesselEvidenceBytes('owner', 'other-run', bytes)).rejects.toMatchObject({ status: 400 });
+    expect(runEvidenceCpuTask).not.toHaveBeenCalled();
+  });
 });
 
 describe('结束保存回执丢失后的分块重试', () => {

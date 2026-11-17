@@ -1,15 +1,11 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { promisify } from 'node:util';
-import { gunzip, gzip } from 'node:zlib';
-import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
+import { evidenceCpuWorkersEnabled, runEvidenceCpuTask, type EncodedSimulationTrace } from '@/lib/control-engine/evidence-cpu-pool';
+import { encodeSimulationTrace, decodeSimulationTrace } from './simulation-trace-codec';
 
-const MAX_CHUNK_BYTES = 4*1024*1024;
 const referencePattern = /^simulation-cas:(file|s3):sha256:([0-9a-f]{64})$/;
-const compress = promisify(gzip);
-const decompress = promisify(gunzip);
 
 function privateS3() {
   const endpoint = process.env.SUBMISSION_S3_ENDPOINT;
@@ -30,11 +26,13 @@ function objectKey(hash: string) { return `simulation-traces/sha256/${hash.slice
 
 /** SimulationTrace引用的私有原始分块，内容哈希由服务端计算。 */
 export async function writeSimulationTraceChunk(value: unknown) {
-  const bytes = Buffer.from(canonicalJson(value),'utf8');
-  if (bytes.byteLength > MAX_CHUNK_BYTES) throw new Error('原始采样分块过大，请缩短单次上传区间。');
-  const hash = createHash('sha256').update(bytes).digest('hex');
-  // 代表曲线的三级压缩显著减少CPU时间，规范序正文及内容哈希保持不变。
-  const compressed = await compress(bytes,{ level:3 });
+  const encoded = evidenceCpuWorkersEnabled()
+    ? await runEvidenceCpuTask('encode', value) : await encodeSimulationTrace(value);
+  return storeEncodedSimulationTrace(encoded);
+}
+
+export async function storeEncodedSimulationTrace(encoded: EncodedSimulationTrace) {
+  const { checksum: hash, compressed, uncompressedBytes } = encoded;
   const storage = privateS3();
   if (storage) {
     try {
@@ -51,7 +49,7 @@ export async function writeSimulationTraceChunk(value: unknown) {
     } finally { await unlink(temporary).catch((error: NodeJS.ErrnoException) => { if (error.code !== 'ENOENT') throw error; }); }
   }
   return { uri:`simulation-cas:${storage ? 's3' : 'file'}:sha256:${hash}`,
-    checksum:hash,uncompressedBytes:bytes.byteLength,storedBytes:compressed.byteLength };
+    checksum:hash,uncompressedBytes,storedBytes:compressed.byteLength };
 }
 
 export async function readSimulationTraceChunk<T>(reference: string): Promise<T> {
@@ -68,8 +66,8 @@ export async function readSimulationTraceChunk<T>(reference: string): Promise<T>
       compressed = await result.Body.transformToByteArray();
     } finally { storage.client.destroy(); }
   } else { compressed = await readFile(filePath(hash)); }
-  if (compressed.byteLength > MAX_CHUNK_BYTES) throw new Error('原始采样分块大小无效。');
-  const bytes = await decompress(compressed,{ maxOutputLength:MAX_CHUNK_BYTES });
-  if (createHash('sha256').update(bytes).digest('hex') !== hash) throw new Error('原始采样分块校验失败。');
-  return JSON.parse(bytes.toString('utf8')) as T;
+  const value = evidenceCpuWorkersEnabled()
+    ? await runEvidenceCpuTask('decode', { compressed, checksum: hash })
+    : await decodeSimulationTrace(compressed, hash);
+  return value as T;
 }

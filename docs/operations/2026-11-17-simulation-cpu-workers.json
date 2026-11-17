@@ -1,0 +1,296 @@
+{
+  "schema": "act.simulation-cpu-workers.v1",
+  "status": "local-verified-production-pending",
+  "baselineRevision": "ba2e1dafc78ed3ff2e3a8a3719e83d7cb4b1b5f2",
+  "candidateVersion": "0.7.53",
+  "profiles": {
+    "v0752-reproduced": {
+      "elapsedMs": 6738.785957999999,
+      "cpuMs": 8671.536,
+      "eventLoopP95Ms": 13.746175,
+      "eventLoopMaximumMs": 166.854655,
+      "checkpointStringsExact": true,
+      "sampleSelfMs": {
+        "other": 1620.212999999999,
+        "canonical": 414.4439999999992,
+        "native": 2531.8470000000016,
+        "idle": 1193.2839999999974,
+        "schema": 830.7529999999979,
+        "gc": 311.91599999999954
+      }
+    },
+    "v0753-reproduced": {
+      "elapsedMs": 7077.454707999999,
+      "cpuMs": 10086.033,
+      "eventLoopP95Ms": 1.377279,
+      "eventLoopMaximumMs": 137.887743,
+      "checkpointStringsExact": true,
+      "sampleSelfMs": {
+        "other": 946.1949999999974,
+        "idle": 6022.797000000012,
+        "native": 28.584,
+        "schema": 3.766,
+        "canonical": 28.568999999999996,
+        "gc": 182.408
+      }
+    }
+  },
+  "scalability": {
+    "schema": "act.evidence-worker-benchmark.v1",
+    "inputDigest": "c812d7cad7c6d3648a9bf9b90b49742d1ae9a952d41413f12d2e088f66e37bd7",
+    "scope": "Local CPU preparation and private-file IO only, seven existing native first-step checkpoints, no database transaction in measured window",
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v26.0.0",
+    "cpu": "Apple M5 Max",
+    "availableCpuCount": 18,
+    "memoryBytes": 137438953472,
+    "concurrency": 16,
+    "allPreparedDataExact": true,
+    "samples": [
+      {
+        "workers": 0,
+        "round": 0,
+        "operations": 56,
+        "elapsedMs": 1568.2438749999997,
+        "cpuMs": 2080.842,
+        "effectiveCpuCores": 1.326861231962408,
+        "operationsPerSecond": 35.7087318450391,
+        "eventLoopP95Ms": 33.243135,
+        "eventLoopMaximumMs": 66.125823,
+        "rssBytes": 1039958016,
+        "actualWorkers": 0
+      },
+      {
+        "workers": 0,
+        "round": 1,
+        "operations": 56,
+        "elapsedMs": 1592.5987910000003,
+        "cpuMs": 2102.487,
+        "effectiveCpuCores": 1.3201611177161816,
+        "operationsPerSecond": 35.16265384380792,
+        "eventLoopP95Ms": 35.684351,
+        "eventLoopMaximumMs": 65.175551,
+        "rssBytes": 1083260928,
+        "actualWorkers": 0
+      },
+      {
+        "workers": 0,
+        "round": 2,
+        "operations": 56,
+        "elapsedMs": 1568.2559579999997,
+        "cpuMs": 2067.523,
+        "effectiveCpuCores": 1.3183581350054085,
+        "operationsPerSecond": 35.708456718644904,
+        "eventLoopP95Ms": 36.110335,
+        "eventLoopMaximumMs": 67.305471,
+        "rssBytes": 1084260352,
+        "actualWorkers": 0
+      },
+      {
+        "workers": 1,
+        "round": 0,
+        "operations": 56,
+        "elapsedMs": 1780.3091249999998,
+        "cpuMs": 2393.158,
+        "effectiveCpuCores": 1.344237338557707,
+        "operationsPerSecond": 31.455211465031393,
+        "eventLoopP95Ms": 1.159167,
+        "eventLoopMaximumMs": 1.698815,
+        "rssBytes": 1192329216,
+        "actualWorkers": 1
+      },
+      {
+        "workers": 1,
+        "round": 1,
+        "operations": 56,
+        "elapsedMs": 1752.3773329999985,
+        "cpuMs": 2302.79,
+        "effectiveCpuCores": 1.3140948337066864,
+        "operationsPerSecond": 31.95658774250993,
+        "eventLoopP95Ms": 1.153023,
+        "eventLoopMaximumMs": 2.057215,
+        "rssBytes": 1172553728,
+        "actualWorkers": 1
+      },
+      {
+        "workers": 1,
+        "round": 2,
+        "operations": 56,
+        "elapsedMs": 1772.1232499999987,
+        "cpuMs": 2384.175,
+        "effectiveCpuCores": 1.3453776423282082,
+        "operationsPerSecond": 31.600510856115704,
+        "eventLoopP95Ms": 1.154047,
+        "eventLoopMaximumMs": 1.997823,
+        "rssBytes": 1172193280,
+        "actualWorkers": 1
+      },
+      {
+        "workers": 2,
+        "round": 0,
+        "operations": 56,
+        "elapsedMs": 978.899625,
+        "cpuMs": 2385.102,
+        "effectiveCpuCores": 2.4365133452778673,
+        "operationsPerSecond": 57.207091074327465,
+        "eventLoopP95Ms": 1.160191,
+        "eventLoopMaximumMs": 2.117631,
+        "rssBytes": 1379188736,
+        "actualWorkers": 2
+      },
+      {
+        "workers": 2,
+        "round": 1,
+        "operations": 56,
+        "elapsedMs": 952.817750000002,
+        "cpuMs": 2341.537,
+        "effectiveCpuCores": 2.457486754418665,
+        "operationsPerSecond": 58.77304447781318,
+        "eventLoopP95Ms": 1.160191,
+        "eventLoopMaximumMs": 1.891327,
+        "rssBytes": 1376829440,
+        "actualWorkers": 2
+      },
+      {
+        "workers": 2,
+        "round": 2,
+        "operations": 56,
+        "elapsedMs": 978.1182499999995,
+        "cpuMs": 2415.979,
+        "effectiveCpuCores": 2.4700275247905874,
+        "operationsPerSecond": 57.252791265268826,
+        "eventLoopP95Ms": 1.160191,
+        "eventLoopMaximumMs": 1.977343,
+        "rssBytes": 1377992704,
+        "actualWorkers": 2
+      },
+      {
+        "workers": 4,
+        "round": 0,
+        "operations": 56,
+        "elapsedMs": 514.5306660000024,
+        "cpuMs": 2368.042,
+        "effectiveCpuCores": 4.602334042418356,
+        "operationsPerSecond": 108.83705034599383,
+        "eventLoopP95Ms": 1.164287,
+        "eventLoopMaximumMs": 2.028543,
+        "rssBytes": 1688502272,
+        "actualWorkers": 4
+      },
+      {
+        "workers": 4,
+        "round": 1,
+        "operations": 56,
+        "elapsedMs": 534.9989999999998,
+        "cpuMs": 2444.026,
+        "effectiveCpuCores": 4.568281436040069,
+        "operationsPerSecond": 104.67309284690256,
+        "eventLoopP95Ms": 1.163263,
+        "eventLoopMaximumMs": 2.861055,
+        "rssBytes": 1693155328,
+        "actualWorkers": 4
+      },
+      {
+        "workers": 4,
+        "round": 2,
+        "operations": 56,
+        "elapsedMs": 524.7539589999978,
+        "cpuMs": 2436.437,
+        "effectiveCpuCores": 4.643008324592764,
+        "operationsPerSecond": 106.71667938764466,
+        "eventLoopP95Ms": 1.184767,
+        "eventLoopMaximumMs": 1.917951,
+        "rssBytes": 1696186368,
+        "actualWorkers": 4
+      },
+      {
+        "workers": 8,
+        "round": 0,
+        "operations": 56,
+        "elapsedMs": 371.9590410000019,
+        "cpuMs": 2739.329,
+        "effectiveCpuCores": 7.364598512339928,
+        "operationsPerSecond": 150.55421115573776,
+        "eventLoopP95Ms": 1.431551,
+        "eventLoopMaximumMs": 2.037759,
+        "rssBytes": 2548809728,
+        "actualWorkers": 8
+      },
+      {
+        "workers": 8,
+        "round": 1,
+        "operations": 56,
+        "elapsedMs": 341.44316699999763,
+        "cpuMs": 2615.726,
+        "effectiveCpuCores": 7.660794687978097,
+        "operationsPerSecond": 164.00972522610297,
+        "eventLoopP95Ms": 1.430527,
+        "eventLoopMaximumMs": 2.625535,
+        "rssBytes": 2564194304,
+        "actualWorkers": 8
+      },
+      {
+        "workers": 8,
+        "round": 2,
+        "operations": 56,
+        "elapsedMs": 353.19387500000084,
+        "cpuMs": 2574.914,
+        "effectiveCpuCores": 7.290369913691154,
+        "operationsPerSecond": 158.55314591738,
+        "eventLoopP95Ms": 1.241087,
+        "eventLoopMaximumMs": 1.967103,
+        "rssBytes": 2566750208,
+        "actualWorkers": 8
+      }
+    ],
+    "summary": [
+      {
+        "workers": 0,
+        "elapsedMs": 1568.2559579999997,
+        "operationsPerSecond": 35.708456718644904,
+        "cpuMs": 2080.842,
+        "effectiveCpuCores": 1.3201611177161816,
+        "eventLoopP95Ms": 35.684351,
+        "rssMaximumBytes": 1084260352
+      },
+      {
+        "workers": 1,
+        "elapsedMs": 1772.1232499999987,
+        "operationsPerSecond": 31.600510856115704,
+        "cpuMs": 2384.175,
+        "effectiveCpuCores": 1.344237338557707,
+        "eventLoopP95Ms": 1.154047,
+        "rssMaximumBytes": 1192329216
+      },
+      {
+        "workers": 2,
+        "elapsedMs": 978.1182499999995,
+        "operationsPerSecond": 57.252791265268826,
+        "cpuMs": 2385.102,
+        "effectiveCpuCores": 2.457486754418665,
+        "eventLoopP95Ms": 1.160191,
+        "rssMaximumBytes": 1379188736
+      },
+      {
+        "workers": 4,
+        "elapsedMs": 524.7539589999978,
+        "operationsPerSecond": 106.71667938764466,
+        "cpuMs": 2436.437,
+        "effectiveCpuCores": 4.602334042418356,
+        "eventLoopP95Ms": 1.164287,
+        "rssMaximumBytes": 1696186368
+      },
+      {
+        "workers": 8,
+        "elapsedMs": 353.19387500000084,
+        "operationsPerSecond": 158.55314591738,
+        "cpuMs": 2615.726,
+        "effectiveCpuCores": 7.364598512339928,
+        "eventLoopP95Ms": 1.430527,
+        "rssMaximumBytes": 2566750208
+      }
+    ]
+  },
+  "independentRequestsUseIdleWorkers": true
+}

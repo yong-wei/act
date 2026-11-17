@@ -3,6 +3,7 @@ import { promisify } from 'node:util';
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { EvidenceCpuError } from '@/lib/control-engine/evidence-cpu-pool';
 import { IlabServiceError, toIlabHttpError } from './run-lock';
 
 const decompress = promisify(gunzip);
@@ -16,7 +17,7 @@ export async function requireVesselEvidenceAccount(request: Request) {
   return session.user.id;
 }
 
-export async function readVesselEvidenceJson(request: Request): Promise<unknown> {
+export async function readVesselEvidenceBytes(request: Request): Promise<Uint8Array> {
   const declared = Number(request.headers.get('content-length') ?? 0);
   if (declared > MAX_ENCODED_BYTES) throw new IlabServiceError('原始采样分块过大。',413);
   const reader = request.body?.getReader();
@@ -37,16 +38,23 @@ export async function readVesselEvidenceJson(request: Request): Promise<unknown>
   if (encoding && encoding !== 'gzip' && encoding !== 'identity') throw new IlabServiceError('实验数据编码无法识别。',415);
   try {
     if (encoding === 'gzip') bytes = await decompress(bytes,{ maxOutputLength:MAX_ENCODED_BYTES });
-    return JSON.parse(bytes.toString('utf8')) as unknown;
+    return bytes;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ERR_BUFFER_TOO_LARGE') throw new IlabServiceError('原始采样分块过大。',413);
     throw new IlabServiceError('实验数据内容无法解析。',400);
   }
 }
 
+export async function readVesselEvidenceJson(request: Request): Promise<unknown> {
+  const bytes = await readVesselEvidenceBytes(request);
+  try { return JSON.parse(Buffer.from(bytes).toString('utf8')) as unknown; }
+  catch { throw new IlabServiceError('实验数据内容无法解析。',400); }
+}
+
 export function vesselEvidenceErrorResponse(error: unknown) {
   rethrowIfNextDynamicError(error);
-  const failure = toIlabHttpError(error);
+  const failure = toIlabHttpError(error instanceof EvidenceCpuError
+    ? new IlabServiceError(error.message, error.status) : error);
   return NextResponse.json({ error:failure.message },{ status:failure.status });
 }
 
