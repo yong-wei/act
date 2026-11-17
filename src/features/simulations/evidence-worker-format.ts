@@ -42,7 +42,7 @@ export async function prepareVesselOssSave(run: VesselRunEvidence, progress: Ves
   if (opening) {
     if (!progress.openingHash) throw new Error('这次运行的初态回执缺失，请重新读取进度。');
     const encoded = await encode({ schema: 'act.vessel-run-opening.v1', ...opening });
-    openingReference = simulationOssReference(run.id, 'opening', 0, encoded.checksum);
+    openingReference = simulationOssReference(run.id, 'opening', 0, encoded.checksum, encoded.storedBytes);
     objects.push({ body: encoded.body, descriptor: { purpose: 'opening', reference: openingReference,
       uncompressedBytes: encoded.uncompressedBytes, storedBytes: encoded.storedBytes, openingHash: progress.openingHash } });
   }
@@ -76,7 +76,7 @@ export async function prepareVesselOssSave(run: VesselRunEvidence, progress: Ves
     const encoded = await encode(chunk);
     const firstReceipt = chunk.points.length
       ? await checksum(new TextEncoder().encode(canonicalJson(chunk.points[0]))) : undefined;
-    const reference = simulationOssReference(run.id, 'chunk', current.chunkCount, encoded.checksum);
+    const reference = simulationOssReference(run.id, 'chunk', current.chunkCount, encoded.checksum, encoded.storedBytes);
     objects.push({ body: encoded.body, descriptor: { purpose: 'chunk', reference,
       uncompressedBytes: encoded.uncompressedBytes, storedBytes: encoded.storedBytes,
       chunk: vesselTraceMetadata(chunk, firstReceipt) } });
@@ -101,7 +101,7 @@ export async function prepareVesselOssSave(run: VesselRunEvidence, progress: Ves
   };
   const encoded = await encode({ schema: 'act.vessel-run-close.v1', ...close,
     checkpoint: run.checkpoint, appliedFinalInput: preview.appliedFinalInput });
-  const checkpointReference = simulationOssReference(run.id, 'checkpoint', current.controlCount, encoded.checksum);
+  const checkpointReference = simulationOssReference(run.id, 'checkpoint', current.controlCount, encoded.checksum, encoded.storedBytes);
   objects.push({ body: encoded.body, descriptor: { purpose: 'checkpoint', reference: checkpointReference,
     uncompressedBytes: encoded.uncompressedBytes, storedBytes: encoded.storedBytes,
     close: { ...close, checkpointPreview: preview } } });

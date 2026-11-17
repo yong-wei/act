@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { gzipSync } from 'node:zlib';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -11,13 +12,14 @@ import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { collectVesselTracePoint, type VesselRunEvidence } from '@/features/simulations/run-evidence';
 import { vesselEvidenceOpeningInput } from '@/features/simulations/evidence-opening';
 import { prepareVesselOssSave, decodeVesselOssObject } from '@/features/simulations/evidence-worker-format';
-import { vesselEvidenceOpeningSchema, vesselEvidenceOssGrantSchema, vesselEvidenceDirectCloseSchema,
+import { vesselEvidenceOpeningSchema, vesselEvidenceOssGrantSchema, vesselEvidenceOssObjectSchema, vesselEvidenceDirectCloseSchema,
   vesselEvidenceCloseSchema, vesselTraceChunkSchema, type VesselTraceChunk, type VesselEvidenceOpening } from '../course-evidence-contract';
 import { openVesselEvidenceRun, findOwnedVesselRun, vesselRunProgress } from '../course-evidence-service';
 import { authorizeOwnedVesselUploads, commitOwnedVesselUpload, authorizeOwnedVesselDownloads } from '../adapters/course-evidence-oss';
 import { loadCourseSessionRecovery } from '../adapters/course-session-recovery';
 import { hasVerifiedVesselEvidence, stageVesselEvidenceChunk, closeVesselEvidenceRun, readVesselEvidenceChunk } from '../course-evidence-chunks';
-import { simulationOssLocation } from '@/features/simulations/public-api';
+import { simulationOssLocation, simulationOssReference } from '@/features/simulations/public-api';
+import { canonicalJson } from '@/lib/student-model-artifact-contract';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 
 config({ path: '.env.local', quiet: true });
@@ -79,6 +81,32 @@ async function upload(prepared: Awaited<ReturnType<typeof prepare>>) {
     assert([200, 409].includes(response.status), `OSS upload ${response.status}`);
   }
 }
+async function alternativeEncoding(prepared: Awaited<ReturnType<typeof prepare>>): Promise<Awaited<ReturnType<typeof prepare>>> {
+  const original = prepared.objects.find(object => object.descriptor.purpose === 'chunk')!;
+  assert(original.descriptor.purpose === 'chunk');
+  const value = await decodeVesselOssObject(original.descriptor.reference, original.body);
+  const encoded = Buffer.from(canonicalJson(value));
+  const compressed = gzipSync(encoded, { level: 1 });
+  assert.notEqual(compressed.length, original.body.size);
+  const location = simulationOssLocation(original.descriptor.reference);
+  const reference = simulationOssReference(runRef, 'chunk', location.sequence, location.checksum, compressed.length);
+  const replacement = { body: new Blob([new Uint8Array(compressed)]),
+    descriptor: { ...original.descriptor, reference, storedBytes: compressed.length } };
+  const close = { ...prepared.close,
+    pendingChunks: prepared.close.pendingChunks!.map(ref => ref === original.descriptor.reference ? reference : ref) };
+  const checkpoint = { schema: 'act.vessel-run-close.v1', ...close, checkpoint: run.checkpoint,
+    appliedFinalInput: run.checkpointPreview!.appliedFinalInput };
+  const raw = Buffer.from(canonicalJson(checkpoint));
+  const zipped = gzipSync(raw);
+  const checkpointReference = simulationOssReference(runRef, 'checkpoint', close.controlCount,
+    createHash('sha256').update(raw).digest('hex'), zipped.length);
+  return { close, checkpointReference, objects: [
+    ...prepared.objects.filter(object => object !== original && object.descriptor.purpose !== 'checkpoint'), replacement,
+    { body: new Blob([new Uint8Array(zipped)]), descriptor: vesselEvidenceOssObjectSchema.parse({ purpose: 'checkpoint',
+      reference: checkpointReference, uncompressedBytes: raw.length, storedBytes: zipped.length,
+      close: { ...close, checkpointPreview: run.checkpointPreview! } }) },
+  ] };
+}
 const inputFor = (prepared: Awaited<ReturnType<typeof prepare>>) => vesselEvidenceDirectCloseSchema.parse({
   ...prepared.close, checkpointReference: prepared.checkpointReference,
 });
@@ -113,14 +141,16 @@ try {
   assert(!('checkpoint' in (cachedLegacy.recoveryCheckpoint as object)));
   checks.push('legacy-recovery-metadata-backfill');
   await advance(3);
-  const first = await prepare();
-  await authorizeOwnedVesselUploads(user.id, runRef, vesselEvidenceOssGrantSchema.parse({ objects: first.objects.map(object => object.descriptor) }).objects);
-  await assert.rejects(commitOwnedVesselUpload(user.id, runRef, inputFor(first)));
+  const originalEncoding = await prepare();
+  await authorizeOwnedVesselUploads(user.id, runRef, vesselEvidenceOssGrantSchema.parse({ objects: originalEncoding.objects.map(object => object.descriptor) }).objects);
+  await assert.rejects(commitOwnedVesselUpload(user.id, runRef, inputFor(originalEncoding)));
   assert.equal(vesselRunProgress(await findOwnedVesselRun(user.id, runRef)).controlCount, 80);
   checks.push('partial-upload-preserves-progress');
+  await upload(originalEncoding);
+  const first = await alternativeEncoding(originalEncoding);
   await upload(first);
   await upload(first);
-  checks.push('lost-upload-receipt-duplicate-object');
+  checks.push('lost-upload-receipt-duplicate-object', 'different-gzip-encoding-after-partial-upload');
   const repeated = await Promise.all([
     commitOwnedVesselUpload(user.id, runRef, inputFor(first)), commitOwnedVesselUpload(user.id, runRef, inputFor(first)),
   ]);
