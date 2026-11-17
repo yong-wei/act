@@ -256,4 +256,28 @@ describe('采样批次与恢复点的原子提交', () => {
       checkpointPreview: { ...preview, runtimeVersion: 'f'.repeat(64) } }))
       .rejects.toMatchObject({ status: 409 });
   });
+
+  it('进程中断遗留的核验中标记允许从已保存检查点重新核验', async () => {
+    await closeVesselEvidenceRun('owner', runRef, input);
+    currentRun.summary = { ...currentRun.summary as object,
+      evidenceVerification: { status: 'verifying', checkpointHash: digest(input), runtimeVersion: 'runtime' } };
+    await expect(verifyVesselEvidenceRun('owner', runRef)).resolves.toMatchObject({ evidenceStatus: 'verified' });
+  });
+
+  it('同一前缀已核验成功后，迟到的核验失败保留成功回执', async () => {
+    await closeVesselEvidenceRun('owner', runRef, input);
+    let failFirst!: (error: Error) => void;
+    vi.mocked(createServerVesselSessionWithAssets).mockImplementationOnce(() => new Promise((_resolve, reject) => {
+      failFirst = reject;
+    }));
+    const first = verifyVesselEvidenceRun('owner', runRef).then(result => ({ result }), error => ({ error }));
+    await vi.waitFor(() => expect(createServerVesselSessionWithAssets).toHaveBeenCalledOnce());
+    const second = await verifyVesselEvidenceRun('owner', runRef).then(result => ({ result }), error => ({ error }));
+    const completed = structuredClone(currentRun.summary);
+    failFirst(new Error('late verification failure'));
+    const delayed = await first;
+    expect(second).toMatchObject({ result: { evidenceStatus: 'verified' } });
+    expect(delayed).toMatchObject({ result: { evidenceStatus: 'verified' } });
+    expect(currentRun.summary).toEqual(completed);
+  });
 });

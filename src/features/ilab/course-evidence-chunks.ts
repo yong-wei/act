@@ -112,8 +112,7 @@ export async function appendVesselEvidenceChunk(userId: string, chunk: VesselTra
       return vesselRunProgress(current);
     }
     const report = await tx.virtualSimulationReport.findUniqueOrThrow({ where: { id: latest.reportId } });
-    if (current.status !== 'running' || latest.evidenceVerification?.status === 'verifying'
-      || !['draft','revision-requested'].includes(report.status)) {
+    if (current.status !== 'running' || !['draft','revision-requested'].includes(report.status)) {
       throw new IlabServiceError('这次运行已经结束或报告已提交，无法追加采样。',409);
     }
     return vesselRunProgress(await appendStoredChunk(tx, current, chunk, stored));
@@ -124,27 +123,16 @@ export async function appendVesselEvidenceChunk(userId: string, chunk: VesselTra
 export async function closeVesselEvidenceRun(userId: string, runRef: string, input: VesselEvidenceClose) {
   let run = await findOwnedVesselRun(userId, runRef);
   const closeHash = hash(input);
-  const summary = vesselRunStorageSummary(run);
   const previous = run.summary as { closeHash?: string; checkpointHash?: string };
   if (previous.closeHash) {
     if (previous.closeHash !== closeHash) throw new IlabServiceError('这次运行已经以其他结束状态保存。', 409);
     return vesselRunProgress(run);
   }
   const isCheckpoint = input.reason === 'checkpoint';
-  if (summary.evidenceVerification?.status === 'verifying' && previous.checkpointHash !== closeHash) {
-    throw new IlabServiceError('这次运行正在核验证据，请保留当前记录后重试。', 409);
-  }
   if (previous.checkpointHash === closeHash && isCheckpoint) return vesselRunProgress(run);
   if (previous.checkpointHash !== closeHash) {
     const prepared = await prepareVesselCheckpoint(run, input, closeHash);
-    if (!isCheckpoint) {
-      prepared.summaryUpdates.evidenceVerification = { status: 'verifying', checkpointHash: closeHash,
-        runtimeVersion: run.runtimeVersion };
-    }
     run = await commitVesselEvidenceProgress(run, runRef, input, closeHash, prepared, 'save');
-  } else if (!isCheckpoint && summary.evidenceVerification?.status !== 'verifying') {
-    run = await commitVesselEvidenceProgress(run, runRef, input, closeHash,
-      verificationStatePatch(run, closeHash, 'verifying'), 'state');
   }
   if (isCheckpoint) return vesselRunProgress(run);
   try {
@@ -162,7 +150,7 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
   } catch (error) {
     // 原始对象与恢复点已经保存，核验失败只更新核验状态。
     const saved = await commitVesselEvidenceProgress(run, runRef, input, closeHash,
-      verificationStatePatch(run, closeHash, 'failed'), 'state');
+      failedVerificationPatch(run, closeHash), 'state');
     if (saved.completedAt) return vesselRunProgress(saved);
     throw Object.assign(error instanceof Error ? error : new Error('实验记录已保存，证据核验暂未完成。'),
       { savedProgress: vesselRunProgress(saved) });
@@ -185,6 +173,7 @@ async function commitVesselEvidenceProgress(run: SimulationRun, runRef: string, 
       return current;
     }
     if (phase === 'save' && currentCheckpoint === closeHash) return current;
+    if (phase === 'state' && currentCheckpoint === closeHash && hasVerifiedVesselEvidence(current)) return current;
     const report = await tx.virtualSimulationReport.findUniqueOrThrow({ where: { id: summary.reportId } });
     if (current.ownerUserId !== run.ownerUserId || current.status !== 'running'
       || !['draft', 'revision-requested'].includes(report.status) || latest.controlCount !== summary.controlCount
@@ -211,12 +200,11 @@ async function commitVesselEvidenceProgress(run: SimulationRun, runRef: string, 
   }, { timeout: 30_000 });
 }
 
-function verificationStatePatch(run: SimulationRun, checkpointHash: string,
-  status: 'verifying' | 'failed'): PreparedVesselClose {
+function failedVerificationPatch(run: SimulationRun, checkpointHash: string): PreparedVesselClose {
   const summary = vesselRunStorageSummary(run);
   return { traces: [], progress: { chunkCount: summary.chunkCount, controlCount: summary.controlCount,
     nativeCount: summary.nativeCount, lastTimeS: summary.lastTimeS, nativeWatermarks: summary.nativeWatermarks },
-    summaryUpdates: { evidenceVerification: { status, checkpointHash, runtimeVersion: run.runtimeVersion } },
+    summaryUpdates: { evidenceVerification: { status: 'failed', checkpointHash, runtimeVersion: run.runtimeVersion } },
     simulationEndMs: 0, quality: null };
 }
 
@@ -233,18 +221,14 @@ export function hasVerifiedVesselEvidence(run: SimulationRun) {
 
 /** 步骤提交也可核验尚未结束的已保存前缀，保留其继续运行能力。 */
 export async function verifyVesselEvidenceRun(userId: string, runRef: string) {
-  let run = await findOwnedVesselRun(userId, runRef);
+  const run = await findOwnedVesselRun(userId, runRef);
   if (hasVerifiedVesselEvidence(run)) return vesselRunProgress(run);
   const summary = vesselRunStorageSummary(run);
   const checkpointHash = (run.summary as { checkpointHash?: string }).checkpointHash;
   if (!checkpointHash) throw new IlabServiceError('请先保存这次运行的恢复点。', 409);
-  if (summary.evidenceVerification?.status === 'verifying') {
-    throw new IlabServiceError('这次运行正在核验证据，请稍后重试提交。', 409);
-  }
   const saved = await readSimulationTraceChunk(summary.lastCheckpointReference);
   const input = { ...saved as VesselEvidenceClose, reason: 'checkpoint' as const, pendingChunks: [] };
-  run = await commitVesselEvidenceProgress(run, runRef, input, checkpointHash,
-    verificationStatePatch(run, checkpointHash, 'verifying'), 'state');
+  // 同步核验期间保持待核验状态，进程中断后可直接从保存点重试。
   try {
     const traces = await prisma.simulationTrace.findMany({ where: { runId: run.id },
       orderBy: { chunkIndex: 'asc' }, select: { sampleStorageUri: true } });
@@ -256,8 +240,9 @@ export async function verifyVesselEvidenceRun(userId: string, runRef: string) {
     if (prepared.checkpoint) await confirmVesselEvidenceObject(run, prepared.checkpoint, 'checkpoint');
     return vesselRunProgress(await commitVesselEvidenceProgress(run, runRef, input, checkpointHash, prepared, 'state'));
   } catch (error) {
-    await commitVesselEvidenceProgress(run, runRef, input, checkpointHash,
-      verificationStatePatch(run, checkpointHash, 'failed'), 'state');
+    const current = await commitVesselEvidenceProgress(run, runRef, input, checkpointHash,
+      failedVerificationPatch(run, checkpointHash), 'state');
+    if (hasVerifiedVesselEvidence(current)) return vesselRunProgress(current);
     throw error;
   }
 }
