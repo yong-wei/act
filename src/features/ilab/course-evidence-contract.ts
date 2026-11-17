@@ -148,7 +148,8 @@ export const vesselEvidenceCloseSchema = z.object({
     controllerTicks: z.number().int().nonnegative(), fineCount: z.number().int().nonnegative(),
     appliedFinalInput: object, metrics: z.record(finite.nullable()),
     parameters: object.optional(), fineStepMetrics: object.optional(),
-    cruiseComfort: object.optional(), voyage: object.optional(), fuelKg: finite.optional(),
+    cruiseComfort: object.nullish().transform(value => value ?? undefined),
+    voyage: object.optional(), fuelKg: finite.optional(),
   }).optional(),
 });
 export type VesselEvidenceClose = z.infer<typeof vesselEvidenceCloseSchema>;

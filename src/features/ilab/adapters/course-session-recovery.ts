@@ -274,7 +274,7 @@ export async function loadCourseSessionRecovery(input: {
         designStudentModelId: opening.designStudentModelId,
         courseSettings: opening.courseSettings,
         parameters: (run.summary as {parameters?: VesselRunEvidence['parameters']}).parameters,
-        cruiseComfort: (run.summary as {cruiseComfort?: VesselRunEvidence['cruiseComfort']}).cruiseComfort,
+        cruiseComfort: (run.summary as {cruiseComfort?: VesselRunEvidence['cruiseComfort']}).cruiseComfort ?? undefined,
         dredgerModeEvents: summary.dredgerModeEvents,
         parameterHash: summary.parameterHash,
         runtimeVersion: run.runtimeVersion,
