@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { evidenceCpuWorkersEnabled, runEvidenceCpuTask } from '@/lib/control-engine/evidence-cpu-pool';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 import { readSimulationTraceChunk, writeSimulationTraceChunk, storeEncodedSimulationTrace } from '@/lib/data-governance/simulation-trace-cas';
-import { vesselTraceChunkSchema, type VesselEvidenceClose, type VesselTraceChunk,
+import { vesselTraceChunkSchema, vesselEvidenceCloseSchema, type VesselEvidenceClose, type VesselEvidenceSave, type VesselTraceChunk,
   type VesselTraceChunkMetadata } from './course-evidence-contract';
 import { findOwnedVesselRun, vesselRunProgress, vesselRunStorageSummary } from './course-evidence-service';
 import { prepareVesselEvidenceClose, type PreparedVesselClose } from './course-evidence-compute';
@@ -121,8 +121,27 @@ export async function appendVesselEvidenceChunk(userId: string, chunk: VesselTra
 
 /** 先原子保存恢复进度，完整核验只在运行结束时执行。 */
 export async function closeVesselEvidenceRun(userId: string, runRef: string, input: VesselEvidenceClose) {
+  return saveVesselEvidenceRun(userId, runRef, input, hash(input));
+}
+
+export async function closeDirectVesselEvidenceRun(userId: string, runRef: string,
+  input: VesselEvidenceSave, checkpoint: StoredChunk) {
+  return saveVesselEvidenceRun(userId, runRef, input, checkpoint.checksum, checkpoint);
+}
+
+async function readDirectVesselClose(reference: string): Promise<VesselEvidenceClose> {
+  const saved = await readSimulationTraceChunk<Record<string, unknown>>(reference);
+  const parsed = vesselEvidenceCloseSchema.safeParse(saved);
+  if (saved.schema !== 'act.vessel-run-close.v1' || !parsed.success || !parsed.data.checkpointPreview
+    || canonicalJson(saved.appliedFinalInput) !== canonicalJson(parsed.data.checkpointPreview.appliedFinalInput)) {
+    throw new IlabServiceError('已上传恢复点的正文与控制摘要不一致。', 409);
+  }
+  return parsed.data;
+}
+
+async function saveVesselEvidenceRun(userId: string, runRef: string, input: VesselEvidenceSave,
+  closeHash: string, checkpoint?: StoredChunk) {
   let run = await findOwnedVesselRun(userId, runRef);
-  const closeHash = hash(input);
   const previous = run.summary as { closeHash?: string; checkpointHash?: string };
   if (previous.closeHash) {
     if (previous.closeHash !== closeHash) throw new IlabServiceError('这次运行已经以其他结束状态保存。', 409);
@@ -130,18 +149,29 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
   }
   const isCheckpoint = input.reason === 'checkpoint';
   if (previous.checkpointHash === closeHash && isCheckpoint) return vesselRunProgress(run);
+  if (previous.checkpointHash !== closeHash && input.baseCheckpointReference
+    && vesselRunStorageSummary(run).lastCheckpointReference !== input.baseCheckpointReference) {
+    throw new IlabServiceError('这次运行已在另一页面保存，请读取最新恢复点后继续。', 409);
+  }
   if (previous.checkpointHash !== closeHash) {
-    const prepared = await prepareVesselCheckpoint(run, input, closeHash);
+    const prepared = await prepareVesselCheckpoint(run, input, closeHash, checkpoint);
     run = await commitVesselEvidenceProgress(run, runRef, input, closeHash, prepared, 'save');
   }
   if (isCheckpoint) return vesselRunProgress(run);
   try {
+    const fullInput = checkpoint ? await readDirectVesselClose(checkpoint.uri) : input as VesselEvidenceClose;
+    if (checkpoint) {
+      const { checkpoint: _snapshot, ...metadata } = fullInput;
+      if (canonicalJson(metadata) !== canonicalJson(input)) {
+        throw new IlabServiceError('已上传恢复点与提交的保存描述不一致。', 409);
+      }
+    }
     const currentSummary = vesselRunStorageSummary(run);
     const traces = await prisma.simulationTrace.findMany({
       where: { runId: run.id }, orderBy: { chunkIndex: 'asc' }, select: { sampleStorageUri: true },
     });
     const task = { run: { id: run.id, runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion, seed: run.seed },
-      runRef, summary: currentSummary, input: { ...input, pendingChunks: [] }, closeHash, traces };
+      runRef, summary: currentSummary, input: { ...fullInput, pendingChunks: [] }, closeHash, traces, checkpoint };
     const prepared = evidenceCpuWorkersEnabled()
       ? await runEvidenceCpuTask('close-prepare', task) as PreparedVesselClose
       : await prepareVesselEvidenceClose(task);
@@ -157,7 +187,7 @@ export async function closeVesselEvidenceRun(userId: string, runRef: string, inp
   }
 }
 
-async function commitVesselEvidenceProgress(run: SimulationRun, runRef: string, input: VesselEvidenceClose,
+async function commitVesselEvidenceProgress(run: SimulationRun, runRef: string, input: VesselEvidenceSave,
   closeHash: string, prepared: PreparedVesselClose, phase: 'save' | 'complete' | 'state') {
   const summary = vesselRunStorageSummary(run);
   const previousCheckpoint = (run.summary as { checkpointHash?: string }).checkpointHash;
@@ -226,14 +256,18 @@ export async function verifyVesselEvidenceRun(userId: string, runRef: string) {
   const summary = vesselRunStorageSummary(run);
   const checkpointHash = (run.summary as { checkpointHash?: string }).checkpointHash;
   if (!checkpointHash) throw new IlabServiceError('请先保存这次运行的恢复点。', 409);
-  const saved = await readSimulationTraceChunk(summary.lastCheckpointReference);
+  const direct = summary.lastCheckpointReference.startsWith('simulation-cas:oss:');
+  const saved = direct ? await readDirectVesselClose(summary.lastCheckpointReference)
+    : await readSimulationTraceChunk(summary.lastCheckpointReference);
   const input = { ...saved as VesselEvidenceClose, reason: 'checkpoint' as const, pendingChunks: [] };
   // 同步核验期间保持待核验状态，进程中断后可直接从保存点重试。
   try {
     const traces = await prisma.simulationTrace.findMany({ where: { runId: run.id },
       orderBy: { chunkIndex: 'asc' }, select: { sampleStorageUri: true } });
     const task = { run: { id: run.id, runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion, seed: run.seed },
-      runRef, summary: vesselRunStorageSummary(run), input, closeHash: checkpointHash, traces, verifyCheckpoint: true };
+      runRef, summary: vesselRunStorageSummary(run), input, closeHash: checkpointHash, traces, verifyCheckpoint: true,
+      ...(direct ? { checkpoint: { uri: summary.lastCheckpointReference,
+        checksum: summary.lastCheckpointReference.slice(summary.lastCheckpointReference.lastIndexOf(':') + 1) } } : {}) };
     const prepared = evidenceCpuWorkersEnabled()
       ? await runEvidenceCpuTask('close-prepare', task) as PreparedVesselClose
       : await prepareVesselEvidenceClose(task);

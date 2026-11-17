@@ -5,9 +5,11 @@ import { VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destr
 import { loadCourseSessionRecovery, loadOwnedCourseRunRecovery } from '../adapters/course-session-recovery';
 
 vi.mock('@/lib/prisma', () => ({ prisma: {
+  $executeRaw: vi.fn(),
   virtualSimulationReport: { findFirst: vi.fn() },
   ilabExperimentRun: { findFirst: vi.fn() },
   simulationRun: { findMany: vi.fn(), findUnique: vi.fn() },
+  simulationTrace: { findMany: vi.fn() },
   studentModelArtifact: { findMany: vi.fn() },
   comparisonArtifact: { findMany: vi.fn() },
   stepSubmissionAttempt: { findMany: vi.fn() },
@@ -73,6 +75,45 @@ beforeEach(() => {
 const request = { userId: 'owner', courseKey: 'destroyer' as const, reportClientRef: report.clientRef };
 
 describe('课程恢复的按需读取', () => {
+  it('引用首包仅返回活动运行状态引用和必要索引，历史摘要不读取原始正文', async () => {
+    const active = storedRun('00000000-0000-4000-8000-000000000001', 'running');
+    const history = storedRun('history');
+    for (const row of [history, active]) {
+      const { initialCheckpoint: _checkpoint, ...header } = records.get(row.summary.openingReference) as Record<string, unknown>;
+      const { checkpoint: _saved, ...checkpointMetadata } = records.get(row.summary.lastCheckpointReference) as Record<string, unknown>;
+      Object.assign(row.summary, { recoveryHeader: header, recoveryCheckpoint: checkpointMetadata });
+    }
+    const prefix = `simulation-cas:oss:${active.sourceRefId}`;
+    active.summary.openingReference = `${prefix}:opening:0:sha256:${'a'.repeat(64)}`;
+    active.summary.lastCheckpointReference = `${prefix}:checkpoint:1:sha256:${'b'.repeat(64)}`;
+    const reference = `${prefix}:chunk:0:sha256:${'c'.repeat(64)}`;
+    vi.mocked(prisma.simulationRun.findMany).mockResolvedValue([history, active] as never);
+    vi.mocked(prisma.simulationTrace.findMany).mockResolvedValue([{ sampleStorageUri: reference }] as never);
+    const result = await loadCourseSessionRecovery({ ...request, deferTraceChunks: true, lazyHistory: true, deferStateObjects: true });
+    expect(result.runs[0]).not.toHaveProperty('checkpoint');
+    expect(result.runs[0]).not.toHaveProperty('initialCheckpoint');
+    expect(result.runs[0]).toMatchObject({ stateObjects: { openingReference: active.summary.openingReference,
+      checkpointReference: active.summary.lastCheckpointReference }, traceManifest: { references: [reference] } });
+    expect(result.archivedRuns?.[0]).toMatchObject({ id: 'history', configuration, finalInput, sampleCount: 1 });
+    expect(readSimulationTraceChunk).not.toHaveBeenCalled();
+    expect(prisma.$executeRaw).not.toHaveBeenCalled();
+    expect(prisma.simulationTrace.findMany).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
+      where: { runId: active.id, chunkIndex: { lt: 1 } },
+    }));
+  });
+
+  it('旧记录首次读取后只回填同一恢复点的元数据字段', async () => {
+    const history = storedRun('history');
+    vi.mocked(prisma.simulationRun.findMany).mockResolvedValue([history] as never);
+    await loadCourseSessionRecovery({ ...request, deferTraceChunks: true, lazyHistory: true, deferStateObjects: true });
+    expect(prisma.$executeRaw).toHaveBeenCalledOnce();
+    const values = vi.mocked(prisma.$executeRaw).mock.calls[0];
+    expect(values.slice(3)).toEqual([history.id, 'owner', history.summary.lastCheckpointReference]);
+    expect(String(values[1])).not.toContain('initial-checkpoint');
+    expect(String(values[2])).not.toContain('saved-checkpoint');
+    expect(readSimulationTraceChunk).toHaveBeenCalledTimes(2);
+  });
+
   it('待核验记录的空舒适性指标恢复为未提供，继续保存可使用预计算摘要', async () => {
     const run = storedRun('active', 'running');
     Object.assign(run.summary, { cruiseComfort: null });

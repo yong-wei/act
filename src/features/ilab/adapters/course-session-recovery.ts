@@ -7,6 +7,7 @@ import type {
   VesselReportProgress,
   VesselRunArchive,
 } from '@/features/simulations/course-artifact-upload';
+import type { CourseRunRecovery } from '@/features/simulations/public-api';
 import type { VesselReportSections } from '@/features/ilab/course-artifact-contract';
 import type { VesselLocalStepAttempt, VesselRunEvidence, VesselTracePoint } from '@/features/simulations/run-evidence';
 import { findVesselCourse, type VesselCourseKey } from '@/resources/simulations/experiments/course-catalog';
@@ -19,7 +20,7 @@ import type {
 
 import { vesselExperimentKey, vesselReportView } from '../course-artifact-service';
 import type { VesselEvidenceOpening, VesselTraceChunk } from '../course-evidence-contract';
-import { VESSEL_EVIDENCE_DOMAIN, findOwnedVesselRun, vesselRunStorageSummary } from '../course-evidence-service';
+import { VESSEL_EVIDENCE_DOMAIN, findOwnedVesselRun, vesselRunStorageSummary, vesselRunProgress } from '../course-evidence-service';
 import { parseStepDrafts, resolveIlabUploadMode } from './ilab-session-lifecycle';
 import { IlabServiceError } from '../run-lock';
 
@@ -83,7 +84,7 @@ async function safeReadCas<T>(uri: string | null | undefined): Promise<T | null>
  * 为 course-v1（七船统一课程体系）从服务端数据库与 CAS 分块存储重建断点恢复负载，
  * 同时覆盖实验空间自动建号用户与本平台登录用户跨刷新/重新进入的完整状态恢复。
  */
-export async function loadCourseSessionRecovery(input: {
+type CourseSessionRecoveryInput = {
   userId: string;
   courseKey: VesselCourseKey;
   courseVersion?: string;
@@ -92,7 +93,12 @@ export async function loadCourseSessionRecovery(input: {
   deferTraceChunks?: boolean;
   lazyHistory?: boolean;
   onlyRunRef?: string;
-}): Promise<CourseSessionRecoveryPayload> {
+  deferStateObjects?: boolean;
+};
+
+export function loadCourseSessionRecovery(input: CourseSessionRecoveryInput & { deferStateObjects?: false }): Promise<CourseSessionRecoveryPayload>;
+export function loadCourseSessionRecovery(input: CourseSessionRecoveryInput): Promise<CourseSessionRecoveryPayload<CourseRunRecovery>>;
+export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInput): Promise<CourseSessionRecoveryPayload<CourseRunRecovery>> {
   const course = findVesselCourse(input.courseKey);
   if (!course) {
     throw new Error(`未知课程实验: ${input.courseKey}`);
@@ -191,7 +197,7 @@ export async function loadCourseSessionRecovery(input: {
     }),
   ]);
 
-  const runs: CourseRecoveredRun[] = [];
+  const runs: CourseRunRecovery[] = [];
   const archivedRuns: VesselRunArchive[] = [];
   const activeRunRef = typeof activeCourseState?.activeRunId === 'string'
     && dbRuns.some((run) => run.sourceRefId === activeCourseState.activeRunId && run.status === 'running') ? activeCourseState.activeRunId
@@ -200,13 +206,33 @@ export async function loadCourseSessionRecovery(input: {
     const states = await Promise.all(dbRuns.slice(offset, offset + RECOVERY_STATE_BATCH_SIZE).map(async (run) => {
       const summary = vesselRunStorageSummary(run);
       if (summary.reportId !== targetReport.id) return null;
+      const archiveOnly = Boolean(input.lazyHistory && !input.onlyRunRef && run.sourceRefId !== activeRunRef);
+      const deferred = Boolean(input.deferStateObjects && input.deferTraceChunks
+        && summary.openingReference.startsWith('simulation-cas:oss:')
+        && summary.lastCheckpointReference.startsWith('simulation-cas:oss:'));
+      const useMetadata = input.deferStateObjects && (archiveOnly || deferred);
+      const cachedCheckpoint = (run.summary as { recoveryCheckpoint?: RecoveryCheckpoint }).recoveryCheckpoint;
+      const hasCheckpoint = summary.lastCheckpointReference !== summary.openingReference;
       const [opening, closeChunk] = await Promise.all([
-        safeReadCas<VesselEvidenceOpening>(summary.openingReference),
-        summary.lastCheckpointReference && summary.lastCheckpointReference !== summary.openingReference
+        useMetadata && summary.recoveryHeader ? Promise.resolve(summary.recoveryHeader)
+          : safeReadCas<VesselEvidenceOpening>(summary.openingReference),
+        useMetadata && cachedCheckpoint ? Promise.resolve(cachedCheckpoint) : hasCheckpoint
           ? safeReadCas<RecoveryCheckpoint>(summary.lastCheckpointReference)
           : Promise.resolve(null),
       ]);
-      return { run, summary, opening, closeChunk };
+      if (input.deferStateObjects && opening && (!summary.recoveryHeader || (hasCheckpoint && !cachedCheckpoint))) {
+        const { initialCheckpoint: _initialCheckpoint, schema: _schema, ...header } = opening as VesselEvidenceOpening & { schema?: string };
+        const checkpointMetadata = closeChunk ? { reason: closeChunk.reason, failure: closeChunk.failure,
+          durationS: closeChunk.durationS, endTimeS: closeChunk.endTimeS, controlCount: closeChunk.controlCount,
+          nativeCount: closeChunk.nativeCount, fineCount: closeChunk.fineCount, appliedFinalInput: closeChunk.appliedFinalInput } : null;
+        // 只回填JSON缓存字段，条件绑定同一不可变恢复点，保留并发保存的其他进度。
+        await prisma.$executeRaw`UPDATE "SimulationRun" SET "summary" =
+          jsonb_set(jsonb_set("summary", '{recoveryHeader}', ${JSON.stringify(header)}::jsonb, true),
+            '{recoveryCheckpoint}', ${JSON.stringify(checkpointMetadata)}::jsonb, true)
+          WHERE "id" = ${run.id} AND "ownerUserId" = ${input.userId}
+            AND "summary"->>'lastCheckpointReference' = ${summary.lastCheckpointReference}`;
+      }
+      return { run, summary, opening, closeChunk, archiveOnly, deferred };
     }));
     for (const state of states) {
       if (!state?.opening) continue;
@@ -235,7 +261,7 @@ export async function loadCourseSessionRecovery(input: {
         && closeChunk.nativeCount === nativeCount && (closeChunk.fineCount ?? 0) === fineCount
         && Math.abs((closeChunk.endTimeS ?? 0)-summary.lastTimeS) < 1e-7 : summary.lastTimeS === 0;
 
-      if (input.lazyHistory && !input.onlyRunRef && run.sourceRefId !== activeRunRef) {
+      if (state.archiveOnly) {
         archivedRuns.push({
           id: run.sourceRefId, scopeKey: '', courseKey: course.key, courseVersion,
           stepSequence: summary.stepSequence, createdAtMs: opening.startedAtMs,
@@ -248,16 +274,20 @@ export async function loadCourseSessionRecovery(input: {
           sampleCount: controlCount,
           dredgerModeEvents: summary.dredgerModeEvents,
           remoteOnly: true,
-          ...(resumable ? { uploadReceipt: {
-            runRef: run.sourceRefId, reportId: targetReport.id, experimentKey, status: run.status,
-            chunkCount: summary.chunkCount, controlCount, nativeCount, fineCount, lastTimeS: summary.lastTimeS,
-            parameterHash: summary.parameterHash, reportClientRef: targetReport.clientRef,
-          }, uploadedToReportRef: run.completedAt ? targetReport.clientRef : undefined } : {}),
+          ...(resumable ? { uploadReceipt: { ...vesselRunProgress(run), reportClientRef: targetReport.clientRef },
+            uploadedToReportRef: run.completedAt ? targetReport.clientRef : undefined } : {}),
         });
         continue;
       }
 
-      runs.push({
+      const references = input.deferStateObjects && input.deferTraceChunks ? await prisma.simulationTrace.findMany({
+        where: { runId: run.id, chunkIndex: { lt: summary.chunkCount } }, orderBy: { chunkIndex: 'asc' },
+        select: { sampleStorageUri: true },
+      }) : undefined;
+      if (references && (references.length !== summary.chunkCount || references.some(trace => !trace.sampleStorageUri))) {
+        throw new IlabServiceError('实验采样索引暂时不完整，请重新读取进度。', 409);
+      }
+      const recovered: Omit<CourseRecoveredRun, 'initialCheckpoint' | 'checkpoint'> = {
         id: run.sourceRefId,
         scopeKey: '',
         courseKey: course.key,
@@ -278,34 +308,27 @@ export async function loadCourseSessionRecovery(input: {
         dredgerModeEvents: summary.dredgerModeEvents,
         parameterHash: summary.parameterHash,
         runtimeVersion: run.runtimeVersion,
-        initialCheckpoint: opening.initialCheckpoint,
-        checkpoint: closeChunk?.checkpoint ?? opening.initialCheckpoint,
         resumable,
         trace,
         nativeSensorSamples,
         fineStepSamples,
         changes,
-        ...(input.deferTraceChunks ? { traceManifest: { chunkCount: summary.chunkCount, controlCount, nativeCount, fineCount } } : {}),
+        ...(input.deferTraceChunks ? { traceManifest: { chunkCount: summary.chunkCount, controlCount, nativeCount, fineCount,
+          ...(references ? { references: references.map(trace => trace.sampleStorageUri!) } : {}) } } : {}),
         stopReason,
         failure: closeChunk?.failure ?? null,
         ...(resumable
           ? {
-              uploadReceipt: {
-                runRef: run.sourceRefId,
-                reportId: targetReport.id,
-                experimentKey,
-                status: run.status,
-                chunkCount: summary.chunkCount,
-                controlCount,
-                nativeCount,
-                fineCount,
-                lastTimeS: summary.lastTimeS,
-                parameterHash: summary.parameterHash,
-                reportClientRef: targetReport.clientRef,
-              },
+              uploadReceipt: { ...vesselRunProgress(run), reportClientRef: targetReport.clientRef },
             }
           : {}),
-      });
+      };
+      if (state.deferred) runs.push({ ...recovered,
+        stateObjects: { openingReference: summary.openingReference, checkpointReference: summary.lastCheckpointReference } });
+      else {
+        const initialCheckpoint = (opening as VesselEvidenceOpening).initialCheckpoint;
+        runs.push({ ...recovered, initialCheckpoint, checkpoint: closeChunk?.checkpoint ?? initialCheckpoint });
+      }
     }
   }
 
@@ -460,7 +483,9 @@ export async function loadCourseSessionRecovery(input: {
   };
 }
 
-export async function loadOwnedCourseRunRecovery(userId: string, runRef: string): Promise<CourseRecoveredRun> {
+export function loadOwnedCourseRunRecovery(userId: string, runRef: string, deferStateObjects?: false): Promise<CourseRecoveredRun>;
+export function loadOwnedCourseRunRecovery(userId: string, runRef: string, deferStateObjects: boolean): Promise<CourseRunRecovery>;
+export async function loadOwnedCourseRunRecovery(userId: string, runRef: string, deferStateObjects = false): Promise<CourseRunRecovery> {
   const run = await findOwnedVesselRun(userId, runRef);
   const summary = vesselRunStorageSummary(run);
   const report = await prisma.virtualSimulationReport.findFirst({
@@ -469,7 +494,7 @@ export async function loadOwnedCourseRunRecovery(userId: string, runRef: string)
   if (!report?.clientRef || !findVesselCourse(summary.courseKey)) throw new IlabServiceError('实验运行记录不存在。', 404);
   const recovery = await loadCourseSessionRecovery({
     userId, courseKey: summary.courseKey as VesselCourseKey, courseVersion: summary.courseVersion,
-    reportClientRef: report.clientRef, onlyRunRef: runRef, deferTraceChunks: true,
+    reportClientRef: report.clientRef, onlyRunRef: runRef, deferTraceChunks: true, deferStateObjects,
   });
   const recovered = recovery.runs.find((item) => item.id === runRef);
   if (!recovered) throw new IlabServiceError('实验恢复记录暂时不可用。', 409);

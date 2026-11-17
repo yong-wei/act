@@ -67,6 +67,7 @@ export interface PrepareVesselCloseInput {
   closeHash: string;
   traces: Array<{ sampleStorageUri: string | null }>;
   verifyCheckpoint?: boolean;
+  checkpoint?: StoredChunk;
 }
 
 export interface PreparedVesselClose {
@@ -127,6 +128,12 @@ export async function prepareVesselEvidenceClose(task: PrepareVesselCloseInput):
     || (input.fineCount ?? 0) !== (projected.fineCount ?? 0)
     || input.endTimeS < projected.lastTimeS - 1e-7) throw new IlabServiceError('原始采样尚未完整接收，请继续上传。',409);
   const opening = await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);
+  if (summary.openingReference.startsWith('simulation-cas:oss:')) {
+    const { schema, ...declaredOpening } = opening as VesselEvidenceOpening & { schema: string };
+    if (schema !== 'act.vessel-run-opening.v1' || hash(declaredOpening) !== summary.openingHash) {
+      throw new IlabServiceError('已上传初态与本次运行的原始配置不一致。', 409);
+    }
+  }
   const native = await createServerVesselSessionWithAssets(opening.configuration);
   let frame: VesselSessionFrame;
   try {
@@ -137,6 +144,9 @@ export async function prepareVesselEvidenceClose(task: PrepareVesselCloseInput):
       || frame.controllerTicks !== input.controlCount || Math.abs(frame.timeS - input.endTimeS) > 1e-7
       || (frame.fineStepWindowSampleCount ?? 0) !== (input.fineCount ?? 0)) {
       throw new IlabServiceError('结束状态与已经接收的原始采样不一致。',409);
+    }
+    if (task.checkpoint && canonicalJson(input.checkpointPreview?.appliedFinalInput) !== canonicalJson(frame.input)) {
+      throw new IlabServiceError('恢复点的实际控制条件与提交摘要不一致。', 409);
     }
     if (summary.courseKey === 'icebreaker' && input.reason === 'arrival' && frame.truth.position_ned[0] < 800) {
       throw new IlabServiceError('冰区任务尚未抵达北向800m，请保留实际停止原因。',409);
@@ -158,7 +168,8 @@ export async function prepareVesselEvidenceClose(task: PrepareVesselCloseInput):
     metrics.positiveMotorWorkJ = frame.truth.actuator_states.positive_motor_work_j.reduce((sum, value) => sum + value, 0);
     if (frame.dredgerFineMetrics) Object.assign(metrics, vesselDredgerFineMetrics(frame.dredgerFineMetrics));
   }
-  const checkpoint = await writeSimulationTraceChunk({ schema: 'act.vessel-run-close.v1', ...input, appliedFinalInput: frame.input });
+  const checkpoint = task.checkpoint
+    ?? await writeSimulationTraceChunk({ schema: 'act.vessel-run-close.v1', ...input, appliedFinalInput: frame.input });
   const progress: ProgressPatch = { chunkCount: projected.chunkCount, controlCount: projected.controlCount,
     nativeCount: projected.nativeCount, lastTimeS: projected.lastTimeS, nativeWatermarks: projected.nativeWatermarks };
   if (hasFineSamples) {
@@ -169,6 +180,9 @@ export async function prepareVesselEvidenceClose(task: PrepareVesselCloseInput):
     traces: pending, progress, firstSampleReceipt, checkpoint,
     simulationEndMs: opening.startedAtMs + Math.round(input.endTimeS * 1000),
     summaryUpdates: { lastTimeS: input.endTimeS, lastCheckpointReference: checkpoint.uri,
+      recoveryCheckpoint: { reason: input.reason, failure: input.failure, durationS: input.durationS,
+        endTimeS: input.endTimeS, controlCount: input.controlCount, nativeCount: input.nativeCount,
+        fineCount: input.fineCount, appliedFinalInput: frame.input },
       ...(isCheckpoint ? { checkpointHash: closeHash, ...(verifyEvidence ? { metrics } : {}) } : { closeHash, metrics }), fineStepMetrics: frame.fineStepMetrics ?? null,
       parameters: frame.parameters, voyage: frame.containerVoyage?.progress ?? null,
       fuelKg: frame.teachingFuel?.state.fuel_kg ?? null, cruiseComfort: frame.cruiseComfort ?? null,

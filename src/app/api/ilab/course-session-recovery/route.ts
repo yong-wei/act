@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
       originId,
       deferTraceChunks: true,
       lazyHistory: true,
+      deferStateObjects: request.nextUrl.searchParams.get('format') === 'references',
     });
     return await vesselEvidenceJsonResponse(request, {
       authenticated: true,

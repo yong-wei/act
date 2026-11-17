@@ -5,7 +5,7 @@ import { createServerVesselSessionWithAssets } from '@/lib/control-engine/wasm-s
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 import { readSimulationTraceChunk, writeSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
 import { findOwnedVesselRun } from '../course-evidence-service';
-import { closeVesselEvidenceRun, verifyVesselEvidenceRun, hasVerifiedVesselEvidence } from '../course-evidence-chunks';
+import { closeVesselEvidenceRun, closeDirectVesselEvidenceRun, verifyVesselEvidenceRun, hasVerifiedVesselEvidence } from '../course-evidence-chunks';
 import { vesselEvidenceCloseSchema, type VesselEvidenceClose, type VesselTraceChunk } from '../course-evidence-contract';
 import { describeVesselTraceChunk } from '../course-evidence-prefix';
 import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generated';
@@ -200,6 +200,48 @@ describe('采样批次与恢复点的原子提交', () => {
     expect(createServerVesselSessionWithAssets).not.toHaveBeenCalled();
   });
 
+  it('直传检查点普通保存只提交引用，重试不读取、重编码或重新提交进度', async () => {
+    const { checkpoint: _snapshot, ...metadata } = input;
+    const preview = { schema: 'act.vessel-checkpoint-preview.v1' as const, recoverable: true as const,
+      parameterHash: 'parameters', timeS: 2, controllerTicks: 0, fineCount: 0, appliedFinalInput: {}, metrics: {} };
+    const uri = `simulation-cas:oss:${runRef}:checkpoint:0:sha256:${'a'.repeat(64)}`;
+    const direct = { ...metadata, checkpointPreview: preview };
+    vi.mocked(prisma.simulationEvidenceObject.findMany).mockResolvedValue([reference(1), reference(2)].map(ref => ({
+      reference: ref, checksum: ref.slice(-64), metadata: {
+        schema: 'act.vessel-evidence-object.v1', ownerUserId: 'owner', reportId: summary.reportId,
+        openingHash: summary.openingHash, courseVersion: summary.courseVersion, runtimeVersion: 'runtime', modelVersion: 'model',
+        chunk: describeVesselTraceChunk(records.get(ref) as VesselTraceChunk),
+      },
+    })) as never);
+    const stored = { uri, checksum: 'a'.repeat(64), uncompressedBytes: 1024, storedBytes: 256 };
+    await expect(closeDirectVesselEvidenceRun('owner', runRef, direct, stored)).resolves.toMatchObject({
+      nativeCount: 2, lastCheckpointReference: uri, evidenceStatus: 'pending',
+    });
+    await closeDirectVesselEvidenceRun('owner', runRef, direct, stored);
+    expect(readSimulationTraceChunk).not.toHaveBeenCalled();
+    expect(writeSimulationTraceChunk).not.toHaveBeenCalled();
+    expect(createServerVesselSessionWithAssets).not.toHaveBeenCalled();
+    expect(tx.simulationRun.update).toHaveBeenCalledOnce();
+  });
+
+  it('直传正式结束独立读取正文和状态，复用原恢复点及已核验结果', async () => {
+    const { checkpoint: _snapshot, ...metadata } = input;
+    const preview = { schema: 'act.vessel-checkpoint-preview.v1' as const, recoverable: true as const,
+      parameterHash: 'parameters', timeS: 2, controllerTicks: 0, fineCount: 0, appliedFinalInput: {}, metrics: {} };
+    const direct = { ...metadata, reason: 'student' as const, checkpointPreview: preview };
+    const uri = `simulation-cas:oss:${runRef}:checkpoint:0:sha256:${'a'.repeat(64)}`;
+    records.set(uri, { schema: 'act.vessel-run-close.v1', ...direct, checkpoint: input.checkpoint, appliedFinalInput: {} });
+    const stored = { uri, checksum: 'a'.repeat(64) };
+    await expect(closeDirectVesselEvidenceRun('owner', runRef, direct, stored)).resolves.toMatchObject({
+      status: 'completed', lastCheckpointReference: uri, evidenceStatus: 'verified',
+    });
+    expect(readSimulationTraceChunk).toHaveBeenCalledWith(uri);
+    expect(native.restore).toHaveBeenCalledExactlyOnceWith(input.checkpoint);
+    expect(writeSimulationTraceChunk).not.toHaveBeenCalled();
+    await closeDirectVesselEvidenceRun('owner', runRef, direct, stored);
+    expect(createServerVesselSessionWithAssets).toHaveBeenCalledOnce();
+  });
+
   it('缓存目录绑定账号、轮次和版本，其他轮次引用无法推进进度', async () => {
     vi.mocked(prisma.simulationEvidenceObject.findMany).mockResolvedValue([{
       reference: reference(1), checksum: reference(1).slice(-64),
@@ -208,6 +250,15 @@ describe('采样批次与恢复点的原子提交', () => {
     await expect(closeVesselEvidenceRun('owner', runRef, input)).rejects.toMatchObject({ status: 409 });
     expect(prisma.$transaction).not.toHaveBeenCalled();
     expect(readSimulationTraceChunk).not.toHaveBeenCalled();
+  });
+
+  it('暂停时同水位的迟到保存也须匹配客户端读取的恢复点', async () => {
+    await closeVesselEvidenceRun('owner', runRef, input);
+    const previous = structuredClone(currentRun.summary);
+    await expect(closeVesselEvidenceRun('owner', runRef, { ...input, pendingChunks: [],
+      baseCheckpointReference: reference(99) })).rejects.toMatchObject({ status: 409 });
+    expect(currentRun.summary).toEqual(previous);
+    expect(tx.simulationRun.update).toHaveBeenCalledOnce();
   });
 
   it('结束时独立核验全部正文，正式指标及回执由服务器确认且复用', async () => {
