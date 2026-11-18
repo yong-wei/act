@@ -18,7 +18,7 @@ import { openVesselEvidenceRun, findOwnedVesselRun, vesselRunProgress } from '..
 import { authorizeOwnedVesselUploads, commitOwnedVesselUpload, authorizeOwnedVesselDownloads } from '../adapters/course-evidence-oss';
 import { loadCourseSessionRecovery } from '../adapters/course-session-recovery';
 import { hasVerifiedVesselEvidence, stageVesselEvidenceChunk, closeVesselEvidenceRun, readVesselEvidenceChunk } from '../course-evidence-chunks';
-import { simulationOssLocation, simulationOssReference } from '@/features/simulations/public-api';
+import { simulationOssLocation, simulationOssReference, VESSEL_TRACE_COLUMNS } from '@/features/simulations/public-api';
 import { canonicalJson } from '@/lib/student-model-artifact-contract';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 
@@ -27,6 +27,7 @@ config({ quiet: true });
 assert(['127.0.0.1', 'localhost'].includes(new URL(process.env.DATABASE_URL!).hostname), 'Only a local database is permitted');
 assert.equal(process.env.SIMULATION_EVIDENCE_OSS_BUCKET, 'act-simulation-evidence');
 assert.equal(process.env.SIMULATION_EVIDENCE_DIRECT_UPLOAD, '1');
+delete process.env.SIMULATION_EVIDENCE_TRACE_ENCODING;
 const privateRoot = await mkdtemp(path.join(os.tmpdir(), 'act-direct-evidence-'));
 process.env.SIMULATION_EVIDENCE_ROOT = privateRoot;
 for (const key of ['SUBMISSION_S3_ENDPOINT', 'SUBMISSION_S3_BUCKET', 'SUBMISSION_S3_ACCESS_KEY', 'SUBMISSION_S3_SECRET_KEY']) process.env[key] = '';
@@ -169,11 +170,34 @@ try {
   assert.equal(grants.objects.length, first.objects.length);
   await assert.rejects(authorizeOwnedVesselDownloads('unrelated-owner', runRef, [first.checkpointReference]), /不存在/);
   checks.push('reference-only-recovery', 'private-owned-download');
-  process.env.SIMULATION_EVIDENCE_DIRECT_UPLOAD = '0';
+
+  process.env.SIMULATION_EVIDENCE_TRACE_ENCODING = VESSEL_TRACE_COLUMNS;
   await advance(1);
+  const compact = await prepare();
+  const compactChunk = compact.objects.find(object => object.descriptor.purpose === 'chunk')!;
+  assert.equal(simulationOssLocation(compactChunk.descriptor.reference).traceEncoding, VESSEL_TRACE_COLUMNS);
+  await upload(compact);
+  const compactProgress = await commitOwnedVesselUpload(user.id, runRef, inputFor(compact));
+  assert.equal(compactProgress.controlCount, 160);
+  assert.deepEqual(await commitOwnedVesselUpload(user.id, runRef, inputFor(compact)), compactProgress);
+  const recoveryOptions = { userId: user.id, courseKey: 'destroyer', reportClientRef,
+    deferTraceChunks: true, deferStateObjects: true } as const;
+  const currentReader = await loadCourseSessionRecovery({ ...recoveryOptions, supportsTraceColumns: true });
+  const priorReader = await loadCourseSessionRecovery(recoveryOptions);
+  assert.equal(currentReader.runs[0].traceManifest?.references?.at(-1), compactChunk.descriptor.reference);
+  assert.equal(priorReader.runs[0].traceManifest?.references?.at(-1), '');
+  const compactIndex = simulationOssLocation(compactChunk.descriptor.reference).sequence;
+  assert.deepEqual(await readVesselEvidenceChunk(user.id, runRef, compactIndex),
+    await decodeVesselOssObject(compactChunk.descriptor.reference, compactChunk.body));
+  checks.push('mixed-file-json-and-compact-prefix', 'compact-idempotent-save', 'old-client-owned-json-fallback');
+
+  delete process.env.SIMULATION_EVIDENCE_TRACE_ENCODING;
+  process.env.SIMULATION_EVIDENCE_DIRECT_UPLOAD = '0';
   const fallback = await legacySave();
   assert.equal(fallback.transport, 'legacy');
+  assert.equal(fallback.traceEncoding, undefined);
   assert.equal((await readVesselEvidenceChunk(user.id, runRef, 1)).runRef, runRef);
+  assert.equal((await readVesselEvidenceChunk(user.id, runRef, compactIndex)).runRef, runRef);
   checks.push('reader-preserved-with-direct-upload-disabled');
   process.env.SIMULATION_EVIDENCE_DIRECT_UPLOAD = '1';
   await advance(3);
@@ -193,6 +217,7 @@ try {
   checks.push('formal-verification-independent', 'failed-verification-preserves-evidence');
   run.checkpoint = validCheckpoint;
   const ending = await prepare();
+  assert(ending.objects.every(object => !simulationOssLocation(object.descriptor.reference).traceEncoding));
   await upload(ending);
   const completed = await commitOwnedVesselUpload(user.id, runRef, inputFor(ending));
   assert.equal(completed.status, 'completed');

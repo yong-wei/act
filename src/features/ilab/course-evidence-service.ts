@@ -6,6 +6,7 @@ import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generat
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 import { writeSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
 import { simulationEvidenceDirectUploadEnabled } from '@/features/ilab/adapters/oss-object-store';
+import { VESSEL_TRACE_COLUMNS } from '@/features/simulations/public-api';
 import { findVesselCourse } from '@/resources/simulations/experiments/course-catalog';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION, destroyerCourseVariants } from '@/resources/simulations/experiments/destroyer-course';
 import { IlabServiceError } from './run-lock';
@@ -43,13 +44,16 @@ export async function findOwnedVesselRun(userId: string,runRef: string) {
 
 export function vesselRunProgress(run: SimulationRun) {
   const summary = vesselRunStorageSummary(run);
+  const direct = simulationEvidenceDirectUploadEnabled();
   return { runRef:run.sourceRefId,reportId:summary.reportId,experimentKey:summary.experimentKey,status:run.status,
     chunkCount:summary.chunkCount,controlCount:summary.controlCount,nativeCount:summary.nativeCount,
     fineCount:summary.fineCount ?? 0,
     lastTimeS:summary.lastTimeS,parameterHash:summary.parameterHash,
     checkpointReference: summary.lastCheckpointReference,
     openingReference: summary.openingReference, openingHash: summary.openingHash,
-    transport: simulationEvidenceDirectUploadEnabled() ? 'oss' as const : 'legacy' as const,
+    transport: direct ? 'oss' as const : 'legacy' as const,
+    ...(direct && process.env.SIMULATION_EVIDENCE_TRACE_ENCODING === VESSEL_TRACE_COLUMNS
+      ? { traceEncoding: VESSEL_TRACE_COLUMNS } as const : {}),
     saveStatus: 'saved' as const, evidenceStatus: summary.evidenceVerification?.status
       ?? (run.completedAt ? 'verified' : 'pending') };
 }

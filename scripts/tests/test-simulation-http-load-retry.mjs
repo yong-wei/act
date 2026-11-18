@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 
-const source = readFileSync(new URL('../http-load.mjs', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../simulations/http-load.mjs', import.meta.url), 'utf8');
 const packetFunction = source.slice(source.indexOf('async function directPacket('), source.indexOf('\nasync function draft('));
 
 function fixture(endTimeS) {
@@ -21,7 +21,7 @@ function fixture(endTimeS) {
 
 function executable(request) {
   const context = vm.createContext({
-    assert, request, runtimeVersion: 'runtime',
+    assert, request, runtimeVersion: 'runtime', traceEncoding: 'server',
     browserPreviews: { previews: { destroyer: [{}] } },
     prepareDirectLoadPacket: () => ({ objects: [], close: { reason: 'checkpoint' }, checkpointReference: 'checkpoint' }),
   });

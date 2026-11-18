@@ -25,8 +25,10 @@ const timeScale = Number(option('--time-scale', '1'));
 const label = option('--label', `n${count}-${Date.now()}`);
 const evidenceTransport = option('--transport', 'legacy');
 const behavior = option('--behavior', 'fixed');
+const traceEncoding = option('--trace-encoding', 'server');
 assert(['legacy', 'oss'].includes(evidenceTransport));
 assert(['fixed', 'normal'].includes(behavior));
+assert(['server', 'legacy', 'columns-v1'].includes(traceEncoding));
 const previewFile = option('--previews', '.tmp/load-fixture-previews.json');
 const browserPreviews = evidenceTransport === 'oss' ? JSON.parse(readFileSync(previewFile)) : undefined;
 const fixtureRoot = option('--fixtures', '.tmp/load-fixtures');
@@ -257,7 +259,7 @@ async function verifyRecovery(client) {
     courseVersion: client.fixture.courseVersion,
     originId: client.originId,
     reportClientRef: client.reportClientRef,
-    ...(evidenceTransport === 'oss' ? {format: 'references'} : {}),
+    ...(evidenceTransport === 'oss' ? { format: 'references', traceEncoding: 'columns-v1' } : {}),
   });
   const saved = (
     await request(client, `/api/ilab/course-session-recovery?${params}`, { kind: 'recovery' })
@@ -273,7 +275,7 @@ async function verifyRecovery(client) {
     const restored = row.checkpoint
       ? row
       : (
-          await request(client, `/api/ilab/experiment-runs/${client.runRef}?recovery=1${evidenceTransport === 'oss' ? '&format=references' : ''}`, {
+          await request(client, `/api/ilab/experiment-runs/${client.runRef}?recovery=1${evidenceTransport === 'oss' ? '&format=references&traceEncoding=columns-v1' : ''}`, {
             kind: 'selected-run-recovery',
           })
         ).value;
@@ -421,8 +423,10 @@ async function directPacket(client, index, endIndex) {
   const sourceChunks=sources.flatMap(source=>source.requests.filter(item=>item.path.includes('/chunks')).map(item=>item.body));
   const preview=browserPreviews.previews[client.fixture.courseKey][endIndex-1];
   const batchKey=`${client.runRef}:${endIndex}`;
-  if (client.prepared?.key!==batchKey) client.prepared={key:batchKey,
-    value:prepareDirectLoadPacket(client.directOpening,client.progress,sourceChunks,closing,preview)};
+  if (client.prepared?.key !== batchKey) {
+    const progress = traceEncoding === 'server' ? client.progress : { ...client.progress, traceEncoding };
+    client.prepared = { key: batchKey, value: prepareDirectLoadPacket(client.directOpening, progress, sourceChunks, closing, preview) };
+  }
   const prepared=client.prepared.value;
   for (let first=0;first<prepared.objects.length;first+=16) {
     const batch=prepared.objects.slice(first,first+16);
@@ -567,6 +571,7 @@ function summary() {
     revision,
     runtimeVersion,
     evidenceTransport,
+    traceEncoding,
     behavior,
     previewInputDigest: browserPreviews?.inputDigest,
     concurrency: count,

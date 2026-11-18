@@ -1,11 +1,11 @@
 import { canonicalJson } from '@/lib/student-model-artifact-contract';
-import { simulationOssReference } from '@/features/simulations/public-api';
+import { MAX_VESSEL_EVIDENCE_BYTES as MAX_BYTES, VESSEL_TRACE_COLUMNS, simulationOssLocation, simulationOssReference } from './evidence-reference';
+import { decodeVesselTraceColumns, encodeVesselTraceColumns } from './evidence-chunk-columns';
 import { vesselTraceMetadata, type VesselRunEvidence, type VesselTraceChunkData } from './run-evidence';
 import type { VesselEvidenceProgress } from './run-evidence';
 import type { VesselEvidenceOssObject, VesselEvidenceClose } from '@/features/ilab/public-api';
 import type { vesselEvidenceOpeningInput } from './evidence-opening';
 
-const MAX_BYTES = 4 * 1024 * 1024;
 export type PreparedVesselOssObject = { descriptor: VesselEvidenceOssObject; body: Blob };
 export type PreparedVesselOssSave = {
   objects: PreparedVesselOssObject[];
@@ -17,8 +17,8 @@ async function checksum(bytes: Uint8Array<ArrayBuffer>) {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-async function encode(value: unknown) {
-  const bytes = new TextEncoder().encode(canonicalJson(value));
+async function encode(value: unknown, compact?: Uint8Array<ArrayBuffer>) {
+  const bytes = compact ?? new TextEncoder().encode(canonicalJson(value));
   if (bytes.byteLength > MAX_BYTES) throw new Error('单份实验记录过大，请保留本机记录后重试。');
   const hash = await checksum(bytes);
   const body = await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'))).blob();
@@ -73,10 +73,12 @@ export async function prepareVesselOssSave(run: VesselRunEvidence, progress: Ves
       changes: run.changes.filter(change => change.timeS >= current.lastTimeS - 1e-7
         && (change.timeS < endTimeS - 1e-7 || finalChunk)),
     };
-    const encoded = await encode(chunk);
+    const compact = progress.traceEncoding === VESSEL_TRACE_COLUMNS ? encodeVesselTraceColumns(chunk) : undefined;
+    const encoded = await encode(chunk, compact);
     const firstReceipt = chunk.points.length
       ? await checksum(new TextEncoder().encode(canonicalJson(chunk.points[0]))) : undefined;
-    const reference = simulationOssReference(run.id, 'chunk', current.chunkCount, encoded.checksum, encoded.storedBytes);
+    const reference = simulationOssReference(run.id, 'chunk', current.chunkCount, encoded.checksum, encoded.storedBytes,
+      compact ? VESSEL_TRACE_COLUMNS : undefined);
     objects.push({ body: encoded.body, descriptor: { purpose: 'chunk', reference,
       uncompressedBytes: encoded.uncompressedBytes, storedBytes: encoded.storedBytes,
       chunk: vesselTraceMetadata(chunk, firstReceipt) } });
@@ -128,12 +130,15 @@ async function readBounded(stream: ReadableStream<Uint8Array>) {
 }
 
 export async function decodeVesselOssObject(reference: string, body: Blob) {
-  if (body.size > MAX_BYTES) throw new Error('实验记录大小超过允许范围。');
+  const location = simulationOssLocation(reference);
+  if (body.size > MAX_BYTES || (location.storedBytes !== undefined && body.size !== location.storedBytes)) {
+    throw new Error('下载的实验记录长度不一致，请重新读取进度。');
+  }
   const bytes = await readBounded(body.stream().pipeThrough(new DecompressionStream('gzip')));
-  if (await checksum(bytes) !== reference.slice(reference.lastIndexOf(':') + 1)) {
+  if (await checksum(bytes) !== location.checksum) {
     throw new Error('实验记录内容校验失败，请重新读取进度。');
   }
-  return JSON.parse(new TextDecoder().decode(bytes)) as unknown;
+  return location.traceEncoding ? decodeVesselTraceColumns(bytes) : JSON.parse(new TextDecoder().decode(bytes)) as unknown;
 }
 
 export async function downloadVesselOssObject(input: { url: string; reference: string; storedBytes?: number | null }) {

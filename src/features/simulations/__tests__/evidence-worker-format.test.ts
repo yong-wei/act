@@ -7,7 +7,7 @@ import { describeVesselTraceChunk } from '@/features/ilab/course-evidence-prefix
 import { vesselEvidenceOpeningSchema, vesselEvidenceOssObjectSchema } from '@/features/ilab/course-evidence-contract';
 import { vesselEvidenceOpeningInput } from '../evidence-opening';
 import { canonicalJson } from '@/lib/student-model-artifact-contract';
-import { simulationOssReference, simulationOssLocation, simulationTraceReferencePattern } from '../evidence-reference';
+import { simulationOssReference, simulationOssLocation, simulationTraceReferencePattern, VESSEL_TRACE_COLUMNS } from '../evidence-reference';
 import type { VesselRunEvidence } from '../run-evidence';
 import type { VesselEvidenceProgress } from '../evidence-upload';
 
@@ -82,13 +82,37 @@ describe('浏览器分块编码与恢复格式', () => {
     expect(await body.arrayBuffer()).toEqual(await body.arrayBuffer());
   });
 
+  it('紧凑采样与旧格式解出同一数据和元数据，初态及恢复点使用原编码', async () => {
+    const legacy = await prepareVesselOssSave(run, progress);
+    const compact = await prepareVesselOssSave(run, { ...progress, traceEncoding: VESSEL_TRACE_COLUMNS });
+    for (const [index, object] of compact.objects.entries()) {
+      const location = simulationOssLocation(object.descriptor.reference);
+      const decoded = await decodeVesselOssObject(object.descriptor.reference, object.body);
+      const old = legacy.objects[index];
+      if (object.descriptor.purpose !== 'chunk') {
+        expect(location.traceEncoding).toBeUndefined();
+        continue;
+      }
+      expect(location.traceEncoding).toBe(VESSEL_TRACE_COLUMNS);
+      expect(vesselEvidenceOssObjectSchema.safeParse(object.descriptor).success).toBe(true);
+      expect(decoded).toEqual(await decodeVesselOssObject(old.descriptor.reference, old.body));
+      expect(object.descriptor.chunk).toEqual(describeVesselTraceChunk(decoded as never));
+      const stored = new Uint8Array(await object.body.arrayBuffer());
+      await expect(decodeSimulationTrace(stored, location.checksum, location.traceEncoding)).resolves.toEqual(decoded);
+      await expect(decodeSimulationTrace(stored, '0'.repeat(64), location.traceEncoding)).rejects.toThrow('校验失败');
+    }
+  });
+
   it('损坏正文、解压膨胀及缺少浏览器恢复检查均拒绝', async () => {
     const result = await prepareVesselOssSave(run, progress);
     const reference = result.objects[0].descriptor.reference;
-    await expect(decodeVesselOssObject(reference, new Blob([gzipSync('{"wrong":true}')]))).rejects.toThrow('校验失败');
+    const wrong = gzipSync('{"wrong":true}');
+    const wrongReference = simulationOssReference(runRef, 'chunk', 0, simulationOssLocation(reference).checksum, wrong.length);
+    await expect(decodeVesselOssObject(wrongReference, new Blob([wrong]))).rejects.toThrow('校验失败');
     const oversized = Buffer.from(JSON.stringify({ value: 'x'.repeat(4 * 1024 * 1024) }));
     const digest = createHash('sha256').update(oversized).digest('hex');
-    await expect(decodeVesselOssObject(reference.slice(0, -64) + digest, new Blob([gzipSync(oversized)])))
+    const oversizedGzip = gzipSync(oversized);
+    await expect(decodeVesselOssObject(simulationOssReference(runRef, 'chunk', 0, digest, oversizedGzip.length), new Blob([oversizedGzip])))
       .rejects.toThrow('大小超过');
     await expect(prepareVesselOssSave({ ...run, checkpointPreview: undefined }, progress)).rejects.toThrow('恢复检查');
   });

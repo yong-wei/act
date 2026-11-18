@@ -5,6 +5,7 @@ import path from 'node:path';
 import { evidenceCpuWorkersEnabled, runEvidenceCpuTask, type EncodedSimulationTrace } from '@/lib/control-engine/evidence-cpu-pool';
 import { encodeSimulationTrace, decodeSimulationTrace } from './simulation-trace-codec';
 import { readSimulationOssObject } from '@/features/ilab/public-api';
+import { simulationOssLocation } from '@/features/simulations/public-api';
 
 const referencePattern = /^simulation-cas:(file|s3):sha256:([0-9a-f]{64})$/;
 
@@ -55,8 +56,12 @@ export async function storeEncodedSimulationTrace(encoded: EncodedSimulationTrac
 
 export async function readSimulationTraceChunk<T>(reference: string): Promise<T> {
   if (reference.startsWith('simulation-cas:oss:')) {
+    const location = simulationOssLocation(reference);
     const compressed = await readSimulationOssObject(reference);
-    return await decodeSimulationTrace(compressed, reference.slice(reference.lastIndexOf(':') + 1)) as T;
+    if (location.storedBytes !== undefined && compressed.byteLength !== location.storedBytes) {
+      throw new Error('原始采样分块长度不一致。');
+    }
+    return await decodeSimulationTrace(compressed, location.checksum, location.traceEncoding) as T;
   }
   const match = referencePattern.exec(reference);
   if (!match) throw new Error('原始采样引用无效。');

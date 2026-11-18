@@ -7,7 +7,7 @@ import type {
   VesselReportProgress,
   VesselRunArchive,
 } from '@/features/simulations/course-artifact-upload';
-import type { CourseRunRecovery } from '@/features/simulations/public-api';
+import { recoveryTraceReference, type CourseRunRecovery } from '@/features/simulations/public-api';
 import type { VesselReportSections } from '@/features/ilab/course-artifact-contract';
 import type { VesselLocalStepAttempt, VesselRunEvidence, VesselTracePoint } from '@/features/simulations/run-evidence';
 import { findVesselCourse, type VesselCourseKey } from '@/resources/simulations/experiments/course-catalog';
@@ -94,6 +94,7 @@ type CourseSessionRecoveryInput = {
   lazyHistory?: boolean;
   onlyRunRef?: string;
   deferStateObjects?: boolean;
+  supportsTraceColumns?: boolean;
 };
 
 export function loadCourseSessionRecovery(input: CourseSessionRecoveryInput & { deferStateObjects?: false }): Promise<CourseSessionRecoveryPayload>;
@@ -314,7 +315,7 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
         fineStepSamples,
         changes,
         ...(input.deferTraceChunks ? { traceManifest: { chunkCount: summary.chunkCount, controlCount, nativeCount, fineCount,
-          ...(references ? { references: references.map(trace => trace.sampleStorageUri!) } : {}) } } : {}),
+          ...(references ? { references: references.map(trace => recoveryTraceReference(trace.sampleStorageUri!, input.supportsTraceColumns)) } : {}) } } : {}),
         stopReason,
         failure: closeChunk?.failure ?? null,
         ...(resumable
@@ -484,8 +485,9 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
 }
 
 export function loadOwnedCourseRunRecovery(userId: string, runRef: string, deferStateObjects?: false): Promise<CourseRecoveredRun>;
-export function loadOwnedCourseRunRecovery(userId: string, runRef: string, deferStateObjects: boolean): Promise<CourseRunRecovery>;
-export async function loadOwnedCourseRunRecovery(userId: string, runRef: string, deferStateObjects = false): Promise<CourseRunRecovery> {
+export function loadOwnedCourseRunRecovery(userId: string, runRef: string, deferStateObjects: boolean, supportsTraceColumns?: boolean): Promise<CourseRunRecovery>;
+export async function loadOwnedCourseRunRecovery(userId: string, runRef: string, deferStateObjects = false,
+  supportsTraceColumns = false): Promise<CourseRunRecovery> {
   const run = await findOwnedVesselRun(userId, runRef);
   const summary = vesselRunStorageSummary(run);
   const report = await prisma.virtualSimulationReport.findFirst({
@@ -494,7 +496,7 @@ export async function loadOwnedCourseRunRecovery(userId: string, runRef: string,
   if (!report?.clientRef || !findVesselCourse(summary.courseKey)) throw new IlabServiceError('实验运行记录不存在。', 404);
   const recovery = await loadCourseSessionRecovery({
     userId, courseKey: summary.courseKey as VesselCourseKey, courseVersion: summary.courseVersion,
-    reportClientRef: report.clientRef, onlyRunRef: runRef, deferTraceChunks: true, deferStateObjects,
+    reportClientRef: report.clientRef, onlyRunRef: runRef, deferTraceChunks: true, deferStateObjects, supportsTraceColumns,
   });
   const recovered = recovery.runs.find((item) => item.id === runRef);
   if (!recovered) throw new IlabServiceError('实验恢复记录暂时不可用。', 409);
