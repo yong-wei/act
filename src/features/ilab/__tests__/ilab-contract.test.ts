@@ -14,6 +14,7 @@ import {
 } from '@/features/ilab/grant-cookie';
 import {
   decodeIlabTicket,
+  exchangeIlabTicket,
   ilabRefreshSignature,
   ilabRefreshUrl,
   ilabSignature,
@@ -30,6 +31,30 @@ import { assertIlabRunOpen, IlabServiceError } from '@/features/ilab/run-lock';
 import { buildSafeStepWindow } from '@/features/ilab/session-shared';
 
 describe('ilab experiment contract', () => {
+  it.each(['TimeoutError', 'AbortError'])('provides a retry message when ticket exchange raises %s', async (name) => {
+    await expect(exchangeIlabTicket({
+      ticket: 'retry-fixture', appId: '10000', secret: 'fixture-secret',
+      baseUrl: 'https://www.ilab-x.com', devBypass: false,
+      fetcher: async () => { throw new DOMException('The operation was aborted due to timeout', name); },
+    })).rejects.toThrow('实验空间响应超时，请保留当前链接并刷新重试。');
+  });
+
+  it('provides a retry message for an upstream gateway failure', async () => {
+    await expect(exchangeIlabTicket({
+      ticket: 'retry-fixture', appId: '10000', secret: 'fixture-secret',
+      baseUrl: 'https://www.ilab-x.com', devBypass: false,
+      fetcher: async () => new Response('<html>Gateway timeout</html>', { status: 504 }),
+    })).rejects.toThrow('实验空间服务暂不可用，请保留当前链接并稍后刷新重试。');
+  });
+
+  it('provides a retry message for a non-JSON ticket response', async () => {
+    await expect(exchangeIlabTicket({
+      ticket: 'retry-fixture', appId: '10000', secret: 'fixture-secret',
+      baseUrl: 'https://www.ilab-x.com', devBypass: false,
+      fetcher: async () => new Response('<html>Service unavailable</html>', { status: 200 }),
+    })).rejects.toThrow('实验空间服务响应无法识别，请保留当前链接并稍后刷新重试。');
+  });
+
   it('keeps the return destination visible independently of transient step feedback', () => {
     expect(describeIlabConnection('ilab-remote')).toContain('成绩与报告回传实验空间');
     expect(describeIlabConnection('local-only')).toContain('当前账号');

@@ -1,8 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { Prisma, SimulationRun } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { evidenceCpuWorkersEnabled, runEvidenceCpuTask } from '@/lib/control-engine/evidence-cpu-pool';
-import { prepareVesselEvidenceOpening, type PreparedVesselOpening } from './course-evidence-compute';
+import { prepareVesselEvidenceOpening } from './course-evidence-compute';
 import { CONTROL_ENGINE_BUILD_HASH } from '@/lib/control-engine/identity.generated';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 import { writeSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
@@ -221,9 +220,7 @@ export async function openVesselEvidenceRun(userId: string,input: VesselEvidence
   if (existingReport && !['draft','revision-requested'].includes(existingReport.status)) {
     throw new IlabServiceError('这份报告正在复核或已经完成，请先读取报告状态。',409);
   }
-  const prepared = evidenceCpuWorkersEnabled()
-    ? await runEvidenceCpuTask('open-prepare', input) as PreparedVesselOpening
-    : await prepareVesselEvidenceOpening(input);
+  const prepared = await prepareVesselEvidenceOpening(input);
   const { frame, configurationHash, appliedFactors, appliedEnvironment } = prepared;
   const occupied = await prisma.appliedRunEnvelope.findUnique({ where:{ runRef:input.runRef },select:{ userId:true } });
   if (occupied) {

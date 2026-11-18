@@ -300,16 +300,16 @@ export default function SimulationsPage() {
             error?: string;
           };
           if (cancelled) return;
+          if (!response.ok || !body.connected) {
+            setIlabStatus('error');
+            setIlabMessage(body.error || '实验空间连接验证失败，请保留当前链接并刷新重试。');
+            return;
+          }
           window.history.replaceState(
             null,
             '',
             stripIlabUrlParams('/simulations', window.location.search),
           );
-          if (!response.ok || !body.connected) {
-            setIlabStatus('error');
-            setIlabMessage(body.error || '实验空间连接验证失败，当前将以本机练习模式运行。');
-            return;
-          }
           clearIlabOriginSessionStorage();
           setIlabStudentName(body.displayName || '');
           setIlabStatus('connected');

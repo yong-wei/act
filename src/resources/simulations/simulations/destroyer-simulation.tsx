@@ -1198,6 +1198,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   const ai = useOptionalGlobalAI();
   const { data: session, status: sessionStatus, update: updateSession } = useSession();
   const [ilabUserId, setIlabUserId] = useState<string | null>(null);
+  const [verifiedTicket, setVerifiedTicket] = useState('');
   const [ilabConnectionStatus, setIlabConnectionStatus] = useState('');
   const [ilabUploadFailed, setIlabUploadFailed] = useState(false);
   const stepDraftsRef = useRef<Record<string, Record<string, string>>>({});
@@ -1319,8 +1320,10 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   const simTimeRef = useRef(0);
 
   const effectiveUserId = ilabUserId ?? session?.user?.id;
-  const canUseCloudEvidence = sessionStatus === 'authenticated' && (!ilabUserId || session?.user?.id === ilabUserId);
-  const accountReady = !ilabUserId || canUseCloudEvidence;
+  const awaitingIlabIdentity = Boolean(ticket && ticket !== verifiedTicket);
+  const canUseCloudEvidence = !awaitingIlabIdentity && sessionStatus === 'authenticated'
+    && (!ilabUserId || session?.user?.id === ilabUserId);
+  const accountReady = !awaitingIlabIdentity && (!ilabUserId || canUseCloudEvidence);
   const baseScopeKey = `${effectiveUserId ? `account:${effectiveUserId}` : originId ? `ilab:${originId}` : 'local'}:destroyer:${experimentVersion}`;
   const scopeKey = selectedRound?.base === baseScopeKey ? selectedRound.scope : baseScopeKey;
   uploadScopeRef.current = scopeKey;
@@ -1819,6 +1822,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
   }, [manualRudder, resetToken]);
 
   useEffect(() => {
+    if (ticket && ticket === verifiedTicket) return;
     const storageKey = 'act-destroyer-origin';
     let cancelled = false;
 
@@ -1932,17 +1936,21 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
         });
         const body = await response.json() as SessionViewPayload;
         if (cancelled) return;
+        if (!response.ok || !body.originId) {
+          setRecoveryFailed(true);
+          setMessage(body.error || '票据校验失败，请保留当前链接并刷新重试。');
+          return;
+        }
         window.history.replaceState(
           null,
           '',
           stripIlabUrlParams('/simulations/destroyer', window.location.search),
         );
-        if (!response.ok || !body.originId) {
-          setMessage(body.error || '票据校验失败，本次只在本机记录。');
-          return;
-        }
         clearIlabOriginSessionStorage();
         await applyServerSessionView(body, 'ticket');
+        if (cancelled) return;
+        setSessionReady(true);
+        setVerifiedTicket(ticket);
         return;
       }
       const stored = window.sessionStorage.getItem(storageKey);
@@ -1963,11 +1971,15 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       const body = await response.json() as SessionViewPayload;
       if (cancelled || !body.originId || !body.steps) return;
       await applyServerSessionView(body, 'stored');
-    })().catch(handleRuntimeFailure).finally(() => { if (!cancelled) setSessionReady(true); });
+    })().catch((error: unknown) => {
+      if (cancelled) return;
+      setRecoveryFailed(true);
+      handleRuntimeFailure(error);
+    }).finally(() => { if (!cancelled) setSessionReady(true); });
     return () => {
       cancelled = true;
     };
-  }, [ticket, handleRuntimeFailure]);
+  }, [ticket, verifiedTicket, handleRuntimeFailure]);
 
   useEffect(() => {
     if (sessionStatus !== 'authenticated') {
