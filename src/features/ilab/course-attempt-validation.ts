@@ -38,14 +38,20 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
   const runs:VesselRunSummary[] = [];
   for (const run of storedRuns) {
     const summary = vesselRunStorageSummary(run);
-    if ((summary.controlCount || summary.nativeCount || summary.fineCount) && !hasVerifiedVesselEvidence(run)) {
+    const verified = hasVerifiedVesselEvidence(run);
+    if ((summary.controlCount || summary.nativeCount || summary.fineCount) && !verified) {
       throw new IlabServiceError('运行进度已更新，请先完成当前证据核验后重试提交。', 409);
     }
-    const opening = await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);
+    const opening = summary.recoveryHeader
+      ?? await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);
     let finalInput:VesselSessionInput | undefined;
     let stopReason:VesselRunSummary['stopReason'] = run.status === 'failed' ? 'failure' : run.status === 'completed' ? 'student' : null;
     if (run.completedAt) {
-      const ending = await readSimulationTraceChunk<{appliedFinalInput?:VesselSessionInput;checkpoint?:string;reason?:VesselRunSummary['stopReason']}>(summary.lastCheckpointReference);
+      const cachedEnding = summary.recoveryCheckpoint;
+      const ending: {appliedFinalInput?:VesselSessionInput;checkpoint?:string;reason?:VesselRunSummary['stopReason']} =
+        verified && cachedEnding?.appliedFinalInput && cachedEnding.reason && cachedEnding.reason !== 'checkpoint'
+          ? { appliedFinalInput: cachedEnding.appliedFinalInput, reason: cachedEnding.reason }
+          : await readSimulationTraceChunk(summary.lastCheckpointReference);
       finalInput = ending.appliedFinalInput ?? (ending.checkpoint ? JSON.parse(ending.checkpoint).input as VesselSessionInput : undefined);
       stopReason = ending.reason ?? stopReason;
     }
