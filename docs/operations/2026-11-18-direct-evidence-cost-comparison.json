@@ -1258,12 +1258,11 @@
     }
   },
   "remainingAcceptance": [
-    "formal verification performance remediation",
-    "25/50/100/120 sustained-load stages",
-    "fixed refresh comparison",
-    "concentrated final submission and return",
-    "combined bandwidth",
-    "fresh ticket and real upstream return"
+    "120 normal continuous participants for at least 30 minutes with all original criteria. Current 50/100/120 stages failed early.",
+    "Root-cause detail of high-load generic HTTP 500 responses. Bounded-compute-queue HTTP 503 and request timeouts are confirmed.",
+    "A new durable compact evidence format requires user approval before implementation. Sampling and five-second save window are unchanged.",
+    "Public application static assets still use application egress. ESA was measured separately for model resources.",
+    "Real ILAB and AI upstream capacity was not stress-tested. Functional result and HTML attachment upload succeeded in the separate zero-score round."
   ],
   "reductionsPercent": {
     "ordinaryCpuFromBaseline": 80.47779569104499,
@@ -2112,76 +2111,195 @@
     "formalP95Cpu": 49.754842551549736
   },
   "currentNormalLoad": {
-    "revision": "f23718b36a5fb74fa6c266e3551ce97abf4e2bac",
-    "evidenceTransport": "oss",
-    "behavior": "normal",
+    "label": "v0760-w1-normal-n10-s300",
+    "revision": "21eb3e8cab0b7867d6ddc996a756808bad311d46",
     "concurrency": 10,
-    "configuredDurationS": 300,
+    "configuredDurationSeconds": 300,
+    "elapsedSeconds": 319.312,
     "timeScale": 8,
-    "startedAt": "2026-11-17T23:04:37.804Z",
-    "capturedAt": "2026-11-17T23:10:01.331Z",
-    "elapsedS": 323.522,
-    "requests": 4531,
-    "rps": 14.005229937994944,
-    "actualErrorRate": 0,
+    "behavior": "normal",
+    "requests": 4501,
+    "rps": 14.095931252192212,
+    "unexpectedRequestErrors": 0,
+    "unexpectedErrorRate": 0,
+    "flowFailures": 0,
     "minimumPacingFraction": 0.5166666666666667,
-    "status": "failed",
-    "correctnessAndPacingPassed": false,
-    "latencyGoalPassed": false,
-    "eventLoopP95Ms": 22.331391,
-    "clientRssBytes": 1000030208,
-    "uploadBytes": 455051971,
-    "downloadBytes": 13084114,
     "groups": {
-      "checkpoint": {
-        "requests": 233,
+      "draft": {
+        "requests": 179,
         "errors": 0,
-        "p50Ms": 541.3875419999822,
-        "p95Ms": 1140.804250000001,
-        "p99Ms": 1447.8884169999947,
-        "uploadBytes": 395894,
-        "downloadBytes": 184484,
+        "p50Ms": 184.46304099999907,
+        "p95Ms": 484.2445830000215,
+        "p99Ms": 774.1100840000436,
+        "uploadBytes": 46314,
+        "downloadBytes": 16779,
         "statuses": {
-          "200": 233
+          "200": 179
+        }
+      },
+      "run-open": {
+        "requests": 179,
+        "errors": 0,
+        "p50Ms": 1892.4142090000096,
+        "p95Ms": 6579.163124999992,
+        "p99Ms": 8733.190416999998,
+        "uploadBytes": 4363975,
+        "downloadBytes": 118798,
+        "statuses": {
+          "200": 179
+        }
+      },
+      "upload-authorize": {
+        "requests": 400,
+        "errors": 0,
+        "p50Ms": 258.4040420000092,
+        "p95Ms": 631.6762089999975,
+        "p99Ms": 973.2370000000083,
+        "uploadBytes": 1660656,
+        "downloadBytes": 11759542,
+        "statuses": {
+          "200": 400
+        }
+      },
+      "oss-upload": {
+        "requests": 3277,
+        "errors": 0,
+        "p50Ms": 54.27958299999591,
+        "p95Ms": 181.5442500000063,
+        "p99Ms": 320.54037499999686,
+        "uploadBytes": 450864217,
+        "downloadBytes": 0,
+        "statuses": {
+          "200": 3277
+        }
+      },
+      "checkpoint": {
+        "requests": 216,
+        "errors": 0,
+        "p50Ms": 548.0419579999871,
+        "p95Ms": 1441.624416000006,
+        "p99Ms": 1781.2457910000085,
+        "uploadBytes": 370289,
+        "downloadBytes": 171031,
+        "statuses": {
+          "200": 216
         }
       },
       "formal-end": {
-        "requests": 171,
+        "requests": 170,
         "errors": 0,
-        "p50Ms": 6606.234291999994,
-        "p95Ms": 13732.968999999983,
-        "p99Ms": 16722.538875000002,
-        "uploadBytes": 257112,
-        "downloadBytes": 136455,
+        "p50Ms": 4507.272999999999,
+        "p95Ms": 10837.95424999998,
+        "p99Ms": 14349.255958000002,
+        "uploadBytes": 260919,
+        "downloadBytes": 135658,
         "statuses": {
-          "200": 171
+          "200": 170
         }
       },
       "recovery": {
         "requests": 10,
         "errors": 0,
-        "p50Ms": 462.00420799996937,
-        "p95Ms": 721.5605410000426,
-        "p99Ms": 721.5605410000426,
+        "p50Ms": 621.3450000000303,
+        "p95Ms": 827.0066250000382,
+        "p99Ms": 827.0066250000382,
         "uploadBytes": 0,
-        "downloadBytes": 61788,
+        "downloadBytes": 61413,
         "statuses": {
           "200": 10
         }
+      },
+      "selected-run-recovery": {
+        "requests": 10,
+        "errors": 0,
+        "p50Ms": 443.1400830000057,
+        "p95Ms": 541.679124999966,
+        "p99Ms": 541.679124999966,
+        "uploadBytes": 0,
+        "downloadBytes": 23075,
+        "statuses": {
+          "200": 10
+        }
+      },
+      "download-authorize": {
+        "requests": 10,
+        "errors": 0,
+        "p50Ms": 234.5329999999958,
+        "p95Ms": 301.08883299998706,
+        "p99Ms": 301.08883299998706,
+        "uploadBytes": 2125,
+        "downloadBytes": 29310,
+        "statuses": {
+          "200": 10
+        }
+      },
+      "oss-state-download": {
+        "requests": 20,
+        "errors": 0,
+        "p50Ms": 31.916209000046365,
+        "p95Ms": 41.16770799999358,
+        "p99Ms": 51.61037499998929,
+        "uploadBytes": 0,
+        "downloadBytes": 723507,
+        "statuses": {
+          "200": 20
+        }
+      },
+      "step-submit": {
+        "requests": 10,
+        "errors": 0,
+        "p50Ms": 7953.161166999955,
+        "p95Ms": 8817.672290999966,
+        "p99Ms": 8817.672290999966,
+        "uploadBytes": 5058,
+        "downloadBytes": 980,
+        "statuses": {
+          "200": 10
+        }
+      },
+      "report-save": {
+        "requests": 10,
+        "errors": 0,
+        "p50Ms": 1179.1640420000185,
+        "p95Ms": 1465.7887910000281,
+        "p99Ms": 1465.7887910000281,
+        "uploadBytes": 4034,
+        "downloadBytes": 14036,
+        "statuses": {
+          "200": 10
+        }
+      },
+      "incomplete-report-submit": {
+        "requests": 10,
+        "errors": 0,
+        "p50Ms": 340.607416999992,
+        "p95Ms": 488.70020900003146,
+        "p99Ms": 488.70020900003146,
+        "uploadBytes": 4055,
+        "downloadBytes": 650,
+        "statuses": {
+          "400": 10
+        }
       }
     },
-    "stateFailures": 0,
-    "errors": 0
+    "status": "failed",
+    "clientCpuSeconds": 67.372592,
+    "clientEventLoopP95Ms": 22.364159,
+    "clientRssBytes": 985006080,
+    "generatorProcesses": 1,
+    "applicationAverageCpuCores": 1.0644111909418192,
+    "databaseAverageCpuCores": 0.0957680915290733,
+    "externalIlabCalls": 0,
+    "aiProviderCalls": 0
   },
   "currentActivation": {
-    "version": "0.7.58",
-    "revision": "f23718b36a5fb74fa6c266e3551ce97abf4e2bac",
-    "release": "https://github.com/yong-wei/act/releases/tag/v0.7.58",
-    "ciRun": 44188661252,
-    "nativeProbeChecks": 9,
-    "directConfigurationVerified": true,
+    "version": "0.7.60",
+    "revision": "21eb3e8cab0b7867d6ddc996a756808bad311d46",
+    "productionNativeAndCodecChecks": 9,
+    "configuredCpuWorkers": 1,
+    "runtimeRelease": "runtime-b24b84a4ddea4d450ce813a87757298855c5476f26e9e79a782c752",
     "databaseAndRedisIdsPreserved": true,
-    "runtimeCurrentAndPreviousPreserved": true
+    "freeDiskBytes": 26449547264
   },
   "workerConfigurationComparison": {
     "revision": "f23718b36a5fb74fa6c266e3551ce97abf4e2bac",
@@ -2267,5 +2385,2169 @@
       }
     ],
     "decision": "One worker is the next candidate for metadata-save and full-confirmation latency. Opening queue delay requires removing light opening preparation from the shared heavy verification queue. Capacity criteria remain unmet."
+  },
+  "release0760": {
+    "version": "0.7.60",
+    "revision": "21eb3e8cab0b7867d6ddc996a756808bad311d46",
+    "releaseUrl": "https://github.com/yong-wei/act/releases/tag/v0.7.60",
+    "ciRun": 44244709988,
+    "ciAttempt": 2,
+    "ciConclusion": "success",
+    "reviewRange": "e362c60f1eac9cd2dcd35815a6508338d281dce5..bcd6e5f1581cc3d526f49493de0fd4b8f368868c",
+    "reviewReceipt": 6969763464,
+    "newP0P1Findings": 0,
+    "ordinarySaveCostScope": "Reuse unchanged 0.7.58 ordinary-save code measurements. 0.7.60 changes assistant context and step-attempt metadata reuse.",
+    "localStepMetadataCost": {
+      "scope": "Local Node process, six existing 981 representative run metadata, seven alternating pairs, database lookup stubbed, same teaching validator and verdict",
+      "additionalPhysicsSolves": 0,
+      "runs": 6,
+      "pairs": [
+        {
+          "old": {
+            "cpuMs": 28.787,
+            "wallMs": 112.82437500000015,
+            "objectReads": 12,
+            "objectBytes": 298718,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          },
+          "current": {
+            "cpuMs": 0.078,
+            "wallMs": 0.07937500000025466,
+            "objectReads": 0,
+            "objectBytes": 0,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          }
+        },
+        {
+          "old": {
+            "cpuMs": 29.179,
+            "wallMs": 105.8061660000003,
+            "objectReads": 12,
+            "objectBytes": 298718,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          },
+          "current": {
+            "cpuMs": 0.058,
+            "wallMs": 0.05875000000014552,
+            "objectReads": 0,
+            "objectBytes": 0,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          }
+        },
+        {
+          "old": {
+            "cpuMs": 28.998,
+            "wallMs": 66.27608299999974,
+            "objectReads": 12,
+            "objectBytes": 298718,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          },
+          "current": {
+            "cpuMs": 0.263,
+            "wallMs": 0.15099999999983993,
+            "objectReads": 0,
+            "objectBytes": 0,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          }
+        },
+        {
+          "old": {
+            "cpuMs": 28.051,
+            "wallMs": 43.14500000000044,
+            "objectReads": 12,
+            "objectBytes": 298718,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          },
+          "current": {
+            "cpuMs": 0.07,
+            "wallMs": 0.06808400000045367,
+            "objectReads": 0,
+            "objectBytes": 0,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          }
+        },
+        {
+          "old": {
+            "cpuMs": 27.784,
+            "wallMs": 63.91254099999969,
+            "objectReads": 12,
+            "objectBytes": 298718,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          },
+          "current": {
+            "cpuMs": 0.106,
+            "wallMs": 0.11408400000073016,
+            "objectReads": 0,
+            "objectBytes": 0,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          }
+        },
+        {
+          "old": {
+            "cpuMs": 22.429,
+            "wallMs": 41.169167000000016,
+            "objectReads": 12,
+            "objectBytes": 298718,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          },
+          "current": {
+            "cpuMs": 0.103,
+            "wallMs": 0.06045799999992596,
+            "objectReads": 0,
+            "objectBytes": 0,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          }
+        },
+        {
+          "old": {
+            "cpuMs": 21.796,
+            "wallMs": 32.72087499999907,
+            "objectReads": 12,
+            "objectBytes": 298718,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          },
+          "current": {
+            "cpuMs": 0.066,
+            "wallMs": 0.08379100000092876,
+            "objectReads": 0,
+            "objectBytes": 0,
+            "result": {
+              "feedback": null,
+              "outcome": "submitted"
+            }
+          }
+        }
+      ],
+      "old": {
+        "cpuMedianMs": 28.051,
+        "wallMedianMs": 63.91254099999969,
+        "objectReads": 12,
+        "objectBytes": 298718
+      },
+      "current": {
+        "cpuMedianMs": 0.078,
+        "wallMedianMs": 0.07937500000025466,
+        "objectReads": 0,
+        "objectBytes": 0
+      }
+    },
+    "finalTypecheck": {
+      "command": "NODE_OPTIONS=--max-old-space-size=8192 rtk npm run typecheck",
+      "web": {
+        "files": 2981,
+        "status": "passed",
+        "receipt": "08851ce828f413ee4243680a6a8a451a8e882c87ff33f7ea614f189118cdf305"
+      },
+      "worker": {
+        "files": 586,
+        "status": "passed",
+        "receipt": "75c226751c91662525cd252f446dbf2e8bc64b3f6b65c2aa0c4f77cf6e1aaea6"
+      },
+      "initialDefaultHeapAttempt": "exit134; explicit8GiB rerun passed"
+    }
+  },
+  "capacityStages0760": [
+    {
+      "label": "v0760-w1-normal-n10-s300",
+      "revision": "21eb3e8cab0b7867d6ddc996a756808bad311d46",
+      "concurrency": 10,
+      "configuredDurationSeconds": 300,
+      "elapsedSeconds": 319.312,
+      "timeScale": 8,
+      "behavior": "normal",
+      "requests": 4501,
+      "rps": 14.095931252192212,
+      "unexpectedRequestErrors": 0,
+      "unexpectedErrorRate": 0,
+      "flowFailures": 0,
+      "minimumPacingFraction": 0.5166666666666667,
+      "groups": {
+        "draft": {
+          "requests": 179,
+          "errors": 0,
+          "p50Ms": 184.46304099999907,
+          "p95Ms": 484.2445830000215,
+          "p99Ms": 774.1100840000436,
+          "uploadBytes": 46314,
+          "downloadBytes": 16779,
+          "statuses": {
+            "200": 179
+          }
+        },
+        "run-open": {
+          "requests": 179,
+          "errors": 0,
+          "p50Ms": 1892.4142090000096,
+          "p95Ms": 6579.163124999992,
+          "p99Ms": 8733.190416999998,
+          "uploadBytes": 4363975,
+          "downloadBytes": 118798,
+          "statuses": {
+            "200": 179
+          }
+        },
+        "upload-authorize": {
+          "requests": 400,
+          "errors": 0,
+          "p50Ms": 258.4040420000092,
+          "p95Ms": 631.6762089999975,
+          "p99Ms": 973.2370000000083,
+          "uploadBytes": 1660656,
+          "downloadBytes": 11759542,
+          "statuses": {
+            "200": 400
+          }
+        },
+        "oss-upload": {
+          "requests": 3277,
+          "errors": 0,
+          "p50Ms": 54.27958299999591,
+          "p95Ms": 181.5442500000063,
+          "p99Ms": 320.54037499999686,
+          "uploadBytes": 450864217,
+          "downloadBytes": 0,
+          "statuses": {
+            "200": 3277
+          }
+        },
+        "checkpoint": {
+          "requests": 216,
+          "errors": 0,
+          "p50Ms": 548.0419579999871,
+          "p95Ms": 1441.624416000006,
+          "p99Ms": 1781.2457910000085,
+          "uploadBytes": 370289,
+          "downloadBytes": 171031,
+          "statuses": {
+            "200": 216
+          }
+        },
+        "formal-end": {
+          "requests": 170,
+          "errors": 0,
+          "p50Ms": 4507.272999999999,
+          "p95Ms": 10837.95424999998,
+          "p99Ms": 14349.255958000002,
+          "uploadBytes": 260919,
+          "downloadBytes": 135658,
+          "statuses": {
+            "200": 170
+          }
+        },
+        "recovery": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 621.3450000000303,
+          "p95Ms": 827.0066250000382,
+          "p99Ms": 827.0066250000382,
+          "uploadBytes": 0,
+          "downloadBytes": 61413,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 443.1400830000057,
+          "p95Ms": 541.679124999966,
+          "p99Ms": 541.679124999966,
+          "uploadBytes": 0,
+          "downloadBytes": 23075,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "download-authorize": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 234.5329999999958,
+          "p95Ms": 301.08883299998706,
+          "p99Ms": 301.08883299998706,
+          "uploadBytes": 2125,
+          "downloadBytes": 29310,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "oss-state-download": {
+          "requests": 20,
+          "errors": 0,
+          "p50Ms": 31.916209000046365,
+          "p95Ms": 41.16770799999358,
+          "p99Ms": 51.61037499998929,
+          "uploadBytes": 0,
+          "downloadBytes": 723507,
+          "statuses": {
+            "200": 20
+          }
+        },
+        "step-submit": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 7953.161166999955,
+          "p95Ms": 8817.672290999966,
+          "p99Ms": 8817.672290999966,
+          "uploadBytes": 5058,
+          "downloadBytes": 980,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "report-save": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 1179.1640420000185,
+          "p95Ms": 1465.7887910000281,
+          "p99Ms": 1465.7887910000281,
+          "uploadBytes": 4034,
+          "downloadBytes": 14036,
+          "statuses": {
+            "200": 10
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 10,
+          "errors": 0,
+          "p50Ms": 340.607416999992,
+          "p95Ms": 488.70020900003146,
+          "p99Ms": 488.70020900003146,
+          "uploadBytes": 4055,
+          "downloadBytes": 650,
+          "statuses": {
+            "400": 10
+          }
+        }
+      },
+      "status": "failed",
+      "clientCpuSeconds": 67.372592,
+      "clientEventLoopP95Ms": 22.364159,
+      "clientRssBytes": 985006080,
+      "generatorProcesses": 1,
+      "applicationAverageCpuCores": 1.0644111909418192,
+      "databaseAverageCpuCores": 0.0957680915290733,
+      "externalIlabCalls": 0,
+      "aiProviderCalls": 0
+    },
+    {
+      "label": "v0760-parallel-normal-n25-r1-s300",
+      "revision": "21eb3e8cab0b7867d6ddc996a756808bad311d46",
+      "concurrency": 25,
+      "configuredDurationSeconds": 300,
+      "elapsedSeconds": 334.005,
+      "timeScale": 8,
+      "behavior": "normal",
+      "requests": 4706,
+      "rps": 14.089609436984476,
+      "unexpectedRequestErrors": 12,
+      "unexpectedErrorRate": 0.0025499362515937103,
+      "flowFailures": 0,
+      "minimumPacingFraction": 0.175,
+      "groups": {
+        "checkpoint": {
+          "requests": 180,
+          "errors": 0,
+          "p50Ms": 2692.374458000002,
+          "p95Ms": 5149.259582999992,
+          "p99Ms": 6117.542083000008,
+          "uploadBytes": 307247,
+          "downloadBytes": 142452,
+          "statuses": {
+            "200": 180
+          }
+        },
+        "download-authorize": {
+          "requests": 25,
+          "errors": 0,
+          "p50Ms": 707.7655000000377,
+          "p95Ms": 828.5878749999683,
+          "p99Ms": 844.8374169999734,
+          "uploadBytes": 5295,
+          "downloadBytes": 73293,
+          "statuses": {
+            "200": 25
+          }
+        },
+        "draft": {
+          "requests": 179,
+          "errors": 0,
+          "p50Ms": 91.59379199999967,
+          "p95Ms": 1053.3600409999926,
+          "p99Ms": 1947.5032080000092,
+          "uploadBytes": 46235,
+          "downloadBytes": 16700,
+          "statuses": {
+            "200": 179
+          }
+        },
+        "formal-end": {
+          "requests": 181,
+          "errors": 12,
+          "p50Ms": 15415.150332999998,
+          "p95Ms": 30001.590708000003,
+          "p99Ms": 30003.141957999993,
+          "uploadBytes": 318405,
+          "downloadBytes": 134818,
+          "statuses": {
+            "0": 12,
+            "200": 169
+          }
+        },
+        "incomplete-report-submit": {
+          "requests": 25,
+          "errors": 0,
+          "p50Ms": 722.7457080000313,
+          "p95Ms": 2037.1491249999963,
+          "p99Ms": 2039.2636660000426,
+          "uploadBytes": 10125,
+          "downloadBytes": 1660,
+          "statuses": {
+            "400": 25
+          }
+        },
+        "oss-state-download": {
+          "requests": 50,
+          "errors": 0,
+          "p50Ms": 33.14179199998034,
+          "p95Ms": 58.31829199998174,
+          "p99Ms": 260.18258299998706,
+          "uploadBytes": 0,
+          "downloadBytes": 1807206,
+          "statuses": {
+            "200": 50
+          }
+        },
+        "oss-upload": {
+          "requests": 3371,
+          "errors": 0,
+          "p50Ms": 59.56120799999917,
+          "p95Ms": 453.39487499999814,
+          "p99Ms": 994.5689169999969,
+          "uploadBytes": 475669398,
+          "downloadBytes": 0,
+          "statuses": {
+            "200": 3371
+          }
+        },
+        "recovery": {
+          "requests": 25,
+          "errors": 0,
+          "p50Ms": 542.107874999987,
+          "p95Ms": 883.2669590000296,
+          "p99Ms": 920.1035410000477,
+          "uploadBytes": 0,
+          "downloadBytes": 82023,
+          "statuses": {
+            "200": 25
+          }
+        },
+        "report-save": {
+          "requests": 25,
+          "errors": 0,
+          "p50Ms": 2127.76666699996,
+          "p95Ms": 3627.58474999998,
+          "p99Ms": 3739.1270830000285,
+          "uploadBytes": 10061,
+          "downloadBytes": 35025,
+          "statuses": {
+            "200": 25
+          }
+        },
+        "run-open": {
+          "requests": 179,
+          "errors": 0,
+          "p50Ms": 14169.785457999998,
+          "p95Ms": 27650.166291,
+          "p99Ms": 29122.338958,
+          "uploadBytes": 4255989,
+          "downloadBytes": 118748,
+          "statuses": {
+            "200": 179
+          }
+        },
+        "selected-run-recovery": {
+          "requests": 25,
+          "errors": 0,
+          "p50Ms": 892.9923750000307,
+          "p95Ms": 1010.9452499999898,
+          "p99Ms": 1058.6808329999913,
+          "uploadBytes": 0,
+          "downloadBytes": 63171,
+          "statuses": {
+            "200": 25
+          }
+        },
+        "step-submit": {
+          "requests": 25,
+          "errors": 0,
+          "p50Ms": 1702.7144170000101,
+          "p95Ms": 10503.277583000017,
+          "p99Ms": 11313.200583999977,
+          "uploadBytes": 12621,
+          "downloadBytes": 2450,
+          "statuses": {
+            "200": 25
+          }
+        },
+        "upload-authorize": {
+          "requests": 416,
+          "errors": 0,
+          "p50Ms": 745.7899159999797,
+          "p95Ms": 2028.151125000004,
+          "p99Ms": 2738.2246250000026,
+          "uploadBytes": 1800722,
+          "downloadBytes": 12129276,
+          "statuses": {
+            "200": 416
+          }
+        }
+      },
+      "status": "failed",
+      "clientCpuSeconds": 70.826648,
+      "clientEventLoopP95Ms": 22.151167,
+      "clientRssBytes": 1133264896,
+      "generatorProcesses": 1,
+      "applicationAverageCpuCores": 1.1527167174549198,
+      "databaseAverageCpuCores": 0.0983740095772732,
+      "externalIlabCalls": 0,
+      "aiProviderCalls": 0
+    },
+    {
+      "label": "v0760-parallel-normal-n50-r1-s300",
+      "revision": "21eb3e8cab0b7867d6ddc996a756808bad311d46",
+      "concurrency": 50,
+      "configuredDurationSeconds": 300,
+      "elapsedSeconds": 140.631,
+      "timeScale": 8,
+      "behavior": "normal",
+      "requests": 1858,
+      "rps": 13.211880737532976,
+      "unexpectedRequestErrors": 105,
+      "unexpectedErrorRate": 0.05651237890204521,
+      "flowFailures": 5,
+      "minimumPacingFraction": 0.016666666666666666,
+      "groups": {
+        "checkpoint": {
+          "requests": 72,
+          "errors": 0,
+          "p50Ms": 5067.747458000002,
+          "p95Ms": 7918.5200419999965,
+          "p99Ms": 8142.572916000005,
+          "uploadBytes": 121832,
+          "downloadBytes": 56989,
+          "statuses": {
+            "200": 72
+          }
+        },
+        "draft": {
+          "requests": 74,
+          "errors": 0,
+          "p50Ms": 71.82454200000029,
+          "p95Ms": 987.0178339999984,
+          "p99Ms": 2626.9375830000063,
+          "uploadBytes": 19092,
+          "downloadBytes": 6882,
+          "statuses": {
+            "200": 74
+          }
+        },
+        "formal-end": {
+          "requests": 109,
+          "errors": 60,
+          "p50Ms": 30000.469458,
+          "p95Ms": 30002.95120899999,
+          "p99Ms": 30003.189957999988,
+          "uploadBytes": 201303,
+          "downloadBytes": 39099,
+          "statuses": {
+            "0": 60,
+            "200": 49
+          }
+        },
+        "oss-upload": {
+          "requests": 1249,
+          "errors": 0,
+          "p50Ms": 60.879790999999386,
+          "p95Ms": 296.7850419999995,
+          "p99Ms": 563.7782499999994,
+          "uploadBytes": 175368560,
+          "downloadBytes": 0,
+          "statuses": {
+            "200": 1249
+          }
+        },
+        "run-open": {
+          "requests": 118,
+          "errors": 45,
+          "p50Ms": 5718.217540999998,
+          "p95Ms": 30049.74554199999,
+          "p99Ms": 30058.210540999993,
+          "uploadBytes": 2792996,
+          "downloadBytes": 48447,
+          "statuses": {
+            "0": 45,
+            "200": 73
+          }
+        },
+        "upload-authorize": {
+          "requests": 236,
+          "errors": 0,
+          "p50Ms": 411.76566699999967,
+          "p95Ms": 4451.354790999998,
+          "p99Ms": 5610.962292000004,
+          "uploadBytes": 993075,
+          "downloadBytes": 4607326,
+          "statuses": {
+            "200": 236
+          }
+        }
+      },
+      "status": "failed",
+      "clientCpuSeconds": 25.945882,
+      "clientEventLoopP95Ms": 22.085631,
+      "clientRssBytes": 1294467072,
+      "generatorProcesses": 2,
+      "applicationAverageCpuCores": 1.0875331649155144,
+      "databaseAverageCpuCores": 0.08544784163206597,
+      "externalIlabCalls": 0,
+      "aiProviderCalls": 0
+    },
+    {
+      "label": "v0760-parallel-normal-n100-r1-s300",
+      "revision": "21eb3e8cab0b7867d6ddc996a756808bad311d46",
+      "concurrency": 100,
+      "configuredDurationSeconds": 300,
+      "elapsedSeconds": 160.731,
+      "timeScale": 8,
+      "behavior": "normal",
+      "requests": 3021,
+      "rps": 18.79537861395748,
+      "unexpectedRequestErrors": 203,
+      "unexpectedErrorRate": 0.0671962926183383,
+      "flowFailures": 47,
+      "minimumPacingFraction": 0.016666666666666666,
+      "groups": {
+        "checkpoint": {
+          "requests": 105,
+          "errors": 5,
+          "p50Ms": 12012.665292000002,
+          "p95Ms": 16410.180999999997,
+          "p99Ms": 16633.354375000003,
+          "uploadBytes": 178229,
+          "downloadBytes": 79336,
+          "statuses": {
+            "200": 100,
+            "500": 5
+          }
+        },
+        "draft": {
+          "requests": 105,
+          "errors": 1,
+          "p50Ms": 36.8179999999993,
+          "p95Ms": 115.41879100000006,
+          "p99Ms": 4078.4411249999976,
+          "uploadBytes": 27090,
+          "downloadBytes": 9714,
+          "statuses": {
+            "200": 104,
+            "500": 1
+          }
+        },
+        "formal-end": {
+          "requests": 231,
+          "errors": 197,
+          "p50Ms": 30000.911667000008,
+          "p95Ms": 30002.831709000006,
+          "p99Ms": 30003.269375000003,
+          "uploadBytes": 412145,
+          "downloadBytes": 56683,
+          "statuses": {
+            "0": 162,
+            "200": 34,
+            "500": 1,
+            "503": 34
+          }
+        },
+        "oss-upload": {
+          "requests": 2016,
+          "errors": 0,
+          "p50Ms": 71.53283300000476,
+          "p95Ms": 246.4040410000016,
+          "p99Ms": 437.2187909999993,
+          "uploadBytes": 288411939,
+          "downloadBytes": 0,
+          "statuses": {
+            "200": 2016
+          }
+        },
+        "run-open": {
+          "requests": 100,
+          "errors": 0,
+          "p50Ms": 7434.274916999999,
+          "p95Ms": 12246.994917,
+          "p99Ms": 12455.253207999998,
+          "uploadBytes": 2313356,
+          "downloadBytes": 66340,
+          "statuses": {
+            "200": 100
+          }
+        },
+        "upload-authorize": {
+          "requests": 464,
+          "errors": 0,
+          "p50Ms": 5421.412750000003,
+          "p95Ms": 10575.74075,
+          "p99Ms": 11925.334584000004,
+          "uploadBytes": 1891875,
+          "downloadBytes": 7527053,
+          "statuses": {
+            "200": 464
+          }
+        }
+      },
+      "status": "failed",
+      "clientCpuSeconds": 40.462296,
+      "clientEventLoopP95Ms": 22.102015,
+      "clientRssBytes": 2245263360,
+      "generatorProcesses": 4,
+      "applicationAverageCpuCores": 1.093187062739158,
+      "databaseAverageCpuCores": 0.1147070934198739,
+      "externalIlabCalls": 0,
+      "aiProviderCalls": 0
+    },
+    {
+      "label": "v0760-parallel-normal-n120-r1-s300",
+      "revision": "21eb3e8cab0b7867d6ddc996a756808bad311d46",
+      "concurrency": 120,
+      "configuredDurationSeconds": 300,
+      "elapsedSeconds": 177.002,
+      "timeScale": 8,
+      "behavior": "normal",
+      "requests": 3331,
+      "rps": 18.818996395520955,
+      "unexpectedRequestErrors": 261,
+      "unexpectedErrorRate": 0.07835484839387571,
+      "flowFailures": 67,
+      "minimumPacingFraction": 0.016666666666666666,
+      "groups": {
+        "checkpoint": {
+          "requests": 122,
+          "errors": 2,
+          "p50Ms": 15599.935249999995,
+          "p95Ms": 17177.614125,
+          "p99Ms": 18638.743375,
+          "uploadBytes": 206261,
+          "downloadBytes": 95040,
+          "statuses": {
+            "200": 120,
+            "500": 2
+          }
+        },
+        "draft": {
+          "requests": 125,
+          "errors": 0,
+          "p50Ms": 39.191500000000815,
+          "p95Ms": 253.6681669999998,
+          "p99Ms": 1679.8788329999952,
+          "uploadBytes": 32250,
+          "downloadBytes": 11625,
+          "statuses": {
+            "200": 125
+          }
+        },
+        "formal-end": {
+          "requests": 275,
+          "errors": 242,
+          "p50Ms": 30000.484750000003,
+          "p95Ms": 30002.729166000005,
+          "p99Ms": 30003.261541,
+          "uploadBytes": 492912,
+          "downloadBytes": 104503,
+          "statuses": {
+            "0": 150,
+            "200": 33,
+            "500": 2,
+            "503": 90
+          }
+        },
+        "oss-upload": {
+          "requests": 2155,
+          "errors": 0,
+          "p50Ms": 79.33862500000396,
+          "p95Ms": 353.8386249999967,
+          "p99Ms": 926.6391660000008,
+          "uploadBytes": 305873700,
+          "downloadBytes": 0,
+          "statuses": {
+            "200": 2155
+          }
+        },
+        "run-open": {
+          "requests": 137,
+          "errors": 17,
+          "p50Ms": 13949.528957999999,
+          "p95Ms": 30002.781208,
+          "p99Ms": 30054.370417000013,
+          "uploadBytes": 3210079,
+          "downloadBytes": 79697,
+          "statuses": {
+            "0": 15,
+            "200": 120,
+            "500": 2
+          }
+        },
+        "upload-authorize": {
+          "requests": 517,
+          "errors": 0,
+          "p50Ms": 3273.295207999996,
+          "p95Ms": 16135.918166000003,
+          "p99Ms": 16975.958584,
+          "uploadBytes": 2111822,
+          "downloadBytes": 8078602,
+          "statuses": {
+            "200": 517
+          }
+        }
+      },
+      "status": "failed",
+      "clientCpuSeconds": 47.765967,
+      "clientEventLoopP95Ms": 22.085631,
+      "clientRssBytes": 2830401536,
+      "generatorProcesses": 5,
+      "applicationAverageCpuCores": 1.0488944779012666,
+      "databaseAverageCpuCores": 0.11554650139666989,
+      "externalIlabCalls": 0,
+      "aiProviderCalls": 0
+    }
+  ],
+  "currentFixedRecoveryLoad": {
+    "label": "v0760-w1-fixed-n10-s300",
+    "revision": "21eb3e8cab0b7867d6ddc996a756808bad311d46",
+    "concurrency": 10,
+    "configuredDurationSeconds": 300,
+    "elapsedSeconds": 312.669,
+    "timeScale": 8,
+    "behavior": "fixed",
+    "requests": 6505,
+    "rps": 20.804748791853367,
+    "unexpectedRequestErrors": 0,
+    "unexpectedErrorRate": 0,
+    "flowFailures": 0,
+    "minimumPacingFraction": 0.5,
+    "groups": {
+      "run-open": {
+        "requests": 185,
+        "errors": 0,
+        "p50Ms": 3946.5620409999974,
+        "p95Ms": 9539.453208000006,
+        "p99Ms": 13947.029791,
+        "uploadBytes": 4518929,
+        "downloadBytes": 122775,
+        "statuses": {
+          "200": 185
+        }
+      },
+      "upload-authorize": {
+        "requests": 416,
+        "errors": 0,
+        "p50Ms": 286.91312500002095,
+        "p95Ms": 667.0394589999923,
+        "p99Ms": 1525.9402920000139,
+        "uploadBytes": 1738455,
+        "downloadBytes": 12290914,
+        "statuses": {
+          "200": 416
+        }
+      },
+      "oss-upload": {
+        "requests": 3425,
+        "errors": 0,
+        "p50Ms": 52.720415999996476,
+        "p95Ms": 152.44579200000044,
+        "p99Ms": 285.6958329999761,
+        "uploadBytes": 470650442,
+        "downloadBytes": 0,
+        "statuses": {
+          "200": 3425
+        }
+      },
+      "checkpoint": {
+        "requests": 238,
+        "errors": 0,
+        "p50Ms": 681.1651249999995,
+        "p95Ms": 1205.0336249999964,
+        "p99Ms": 1337.7799579999992,
+        "uploadBytes": 400098,
+        "downloadBytes": 188416,
+        "statuses": {
+          "200": 238
+        }
+      },
+      "draft": {
+        "requests": 151,
+        "errors": 0,
+        "p50Ms": 162.62195900001097,
+        "p95Ms": 493.6272909999825,
+        "p99Ms": 787.2389169999951,
+        "uploadBytes": 22913,
+        "downloadBytes": 14155,
+        "statuses": {
+          "200": 151
+        }
+      },
+      "recovery": {
+        "requests": 96,
+        "errors": 0,
+        "p50Ms": 167.19304199999897,
+        "p95Ms": 455.6463330000115,
+        "p99Ms": 1003.4128749999945,
+        "uploadBytes": 0,
+        "downloadBytes": 370828,
+        "statuses": {
+          "200": 96
+        }
+      },
+      "selected-run-recovery": {
+        "requests": 96,
+        "errors": 0,
+        "p50Ms": 189.30099999997765,
+        "p95Ms": 427.2244159999973,
+        "p99Ms": 3697.8327080000017,
+        "uploadBytes": 0,
+        "downloadBytes": 233972,
+        "statuses": {
+          "200": 96
+        }
+      },
+      "download-authorize": {
+        "requests": 192,
+        "errors": 0,
+        "p50Ms": 148.09999999997672,
+        "p95Ms": 397.04483299999265,
+        "p99Ms": 532.2682499999937,
+        "uploadBytes": 88096,
+        "downloadBytes": 2108768,
+        "statuses": {
+          "200": 192
+        }
+      },
+      "oss-state-download": {
+        "requests": 192,
+        "errors": 0,
+        "p50Ms": 38.39387500000885,
+        "p95Ms": 157.25558300000557,
+        "p99Ms": 345.3026250000112,
+        "uploadBytes": 0,
+        "downloadBytes": 7002540,
+        "statuses": {
+          "200": 192
+        }
+      },
+      "oss-curve-download": {
+        "requests": 1256,
+        "errors": 0,
+        "p50Ms": 71.78737500001444,
+        "p95Ms": 233.32674999997835,
+        "p99Ms": 450.3931250000023,
+        "uploadBytes": 0,
+        "downloadBytes": 193545271,
+        "statuses": {
+          "200": 1256
+        }
+      },
+      "page-refresh": {
+        "requests": 50,
+        "errors": 0,
+        "p50Ms": 226.1209159999853,
+        "p95Ms": 499.29008299999987,
+        "p99Ms": 1055.582624999999,
+        "uploadBytes": 0,
+        "downloadBytes": 518981,
+        "statuses": {
+          "200": 50
+        }
+      },
+      "formal-end": {
+        "requests": 178,
+        "errors": 0,
+        "p50Ms": 6848.07929199998,
+        "p95Ms": 11788.342583999998,
+        "p99Ms": 15304.366375000012,
+        "uploadBytes": 275902,
+        "downloadBytes": 142040,
+        "statuses": {
+          "200": 178
+        }
+      },
+      "step-submit": {
+        "requests": 10,
+        "errors": 0,
+        "p50Ms": 4879.257958000002,
+        "p95Ms": 5744.78020899999,
+        "p99Ms": 5744.78020899999,
+        "uploadBytes": 5059,
+        "downloadBytes": 980,
+        "statuses": {
+          "200": 10
+        }
+      },
+      "report-save": {
+        "requests": 10,
+        "errors": 0,
+        "p50Ms": 1207.5994160000118,
+        "p95Ms": 1322.7996660000063,
+        "p99Ms": 1322.7996660000063,
+        "uploadBytes": 4051,
+        "downloadBytes": 14036,
+        "statuses": {
+          "200": 10
+        }
+      },
+      "incomplete-report-submit": {
+        "requests": 10,
+        "errors": 0,
+        "p50Ms": 178.99379199999385,
+        "p95Ms": 499.1630829999922,
+        "p99Ms": 499.1630829999922,
+        "uploadBytes": 4069,
+        "downloadBytes": 650,
+        "statuses": {
+          "400": 10
+        }
+      }
+    },
+    "status": "failed",
+    "clientCpuSeconds": 70.320127,
+    "clientEventLoopP95Ms": 22.593535,
+    "clientRssBytes": 1113112576,
+    "generatorProcesses": 1,
+    "applicationAverageCpuCores": 1.1628407760999286,
+    "databaseAverageCpuCores": 0.11270358140651068,
+    "externalIlabCalls": 0,
+    "aiProviderCalls": 0
+  },
+  "currentColdEntryLoad": {
+    "label": "v0760-cold-n10",
+    "concurrency": 10,
+    "elapsedS": 214.284,
+    "bytes": 258604088,
+    "combinedMbps": 9.654629855705513,
+    "byHost": {
+      "act.adapt-learn.online": {
+        "requests": 716,
+        "bytes": 86330935,
+        "mbps": 3.223047357712195
+      },
+      "static.adapt-learn.online": {
+        "requests": 155,
+        "bytes": 172273153,
+        "mbps": 6.431582497993317
+      }
+    },
+    "requests": 871,
+    "peakOneSecondMbps": 133.196288,
+    "peakSustained10SecondMbps": 52.9278344,
+    "unrecoveredErrors": 1,
+    "requestErrors": 9,
+    "clientMinimumDurationMs": 191034.977959,
+    "clientMaximumDurationMs": 214263.086334,
+    "postPhaseSingleResourceRetry": {
+      "scope": "Single failed resource retried after the measured cold-entry cohort ended",
+      "originalCohortPassed": false,
+      "recoveredResources": [
+        {
+          "host": "act.adapt-learn.online",
+          "path": "/_next/static/chunks/0d2ucvw527wgg.js",
+          "status": 200,
+          "elapsedMs": 146.45191699999998,
+          "encodedBytes": 56076,
+          "decodedBytes": 235370,
+          "sha256": "e93fc0e22445486b5d9cc7d0d6a860b87736454407e3f8951bc2b42aed318280"
+        }
+      ]
+    }
+  },
+  "bandwidth0760": {
+    "v0760-w1-normal-n10-s300": {
+      "hosts": {
+        "act.adapt-learn.online": {
+          "requests": 1204,
+          "uploadBytes": 6717425,
+          "downloadBytes": 12331272,
+          "meanUploadMbps": 0.1682974645487799,
+          "meanDownloadMbps": 0.30894603397304204
+        },
+        "act-simulation-evidence.oss-cn-hangzhou.aliyuncs.com": {
+          "requests": 3297,
+          "uploadBytes": 450864217,
+          "downloadBytes": 723507,
+          "meanUploadMbps": 11.295891591922633,
+          "meanDownloadMbps": 0.018126647291677105
+        }
+      },
+      "combinedUploadMbps": 11.464189056471414,
+      "combinedDownloadMbps": 0.32707268126471917
+    },
+    "v0760-parallel-normal-n25-r1-s300": {
+      "hosts": {
+        "act.adapt-learn.online": {
+          "requests": 1285,
+          "uploadBytes": 6766700,
+          "downloadBytes": 12799616,
+          "meanUploadMbps": 0.16207422044580172,
+          "meanDownloadMbps": 0.3065730393257586
+        },
+        "act-simulation-evidence.oss-cn-hangzhou.aliyuncs.com": {
+          "requests": 3421,
+          "uploadBytes": 475669398,
+          "downloadBytes": 1807206,
+          "meanUploadMbps": 11.39310843849643,
+          "meanDownloadMbps": 0.04328572326761576
+        }
+      },
+      "combinedUploadMbps": 11.555182658942233,
+      "combinedDownloadMbps": 0.34985876259337434
+    },
+    "v0760-parallel-normal-n50-r1-s300": {
+      "hosts": {
+        "act.adapt-learn.online": {
+          "requests": 609,
+          "uploadBytes": 4128298,
+          "downloadBytes": 4758743,
+          "meanUploadMbps": 0.2348442662001977,
+          "meanDownloadMbps": 0.2707080515675776
+        },
+        "act-simulation-evidence.oss-cn-hangzhou.aliyuncs.com": {
+          "requests": 1249,
+          "uploadBytes": 175368560,
+          "downloadBytes": 0,
+          "meanUploadMbps": 9.976096877644332,
+          "meanDownloadMbps": 0.0
+        }
+      },
+      "combinedUploadMbps": 10.21094114384453,
+      "combinedDownloadMbps": 0.2707080515675776
+    },
+    "v0760-parallel-normal-n100-r1-s300": {
+      "hosts": {
+        "act.adapt-learn.online": {
+          "requests": 1005,
+          "uploadBytes": 4822695,
+          "downloadBytes": 7739126,
+          "meanUploadMbps": 0.24003807604009184,
+          "meanDownloadMbps": 0.38519643379310775
+        },
+        "act-simulation-evidence.oss-cn-hangzhou.aliyuncs.com": {
+          "requests": 2016,
+          "uploadBytes": 288411939,
+          "downloadBytes": 0,
+          "meanUploadMbps": 14.355012486701384,
+          "meanDownloadMbps": 0.0
+        }
+      },
+      "combinedUploadMbps": 14.595050562741475,
+      "combinedDownloadMbps": 0.38519643379310775
+    },
+    "v0760-parallel-normal-n120-r1-s300": {
+      "hosts": {
+        "act.adapt-learn.online": {
+          "requests": 1176,
+          "uploadBytes": 6053324,
+          "downloadBytes": 8369467,
+          "meanUploadMbps": 0.27359347352007324,
+          "meanDownloadMbps": 0.3782767200370617
+        },
+        "act-simulation-evidence.oss-cn-hangzhou.aliyuncs.com": {
+          "requests": 2155,
+          "uploadBytes": 305873700,
+          "downloadBytes": 0,
+          "meanUploadMbps": 13.824643789335713,
+          "meanDownloadMbps": 0.0
+        }
+      },
+      "combinedUploadMbps": 14.098237262855786,
+      "combinedDownloadMbps": 0.3782767200370617
+    },
+    "v0760-w1-fixed-n10-s300": {
+      "hosts": {
+        "act.adapt-learn.online": {
+          "requests": 1632,
+          "uploadBytes": 7057572,
+          "downloadBytes": 16006515,
+          "meanUploadMbps": 0.18057618759774713,
+          "meanDownloadMbps": 0.4095453019007321
+        },
+        "act-simulation-evidence.oss-cn-hangzhou.aliyuncs.com": {
+          "requests": 4873,
+          "uploadBytes": 470650442,
+          "downloadBytes": 200547811,
+          "meanUploadMbps": 12.042138926468565,
+          "meanDownloadMbps": 5.131248982150453
+        }
+      },
+      "combinedUploadMbps": 12.222715114066313,
+      "combinedDownloadMbps": 5.540794284051185
+    }
+  },
+  "cloudMetrics0760": {
+    "v0760-w1-normal-n10-s300": {
+      "startTime": "2026-11-18T06:35:00Z",
+      "endTime": "2026-11-18T06:42:00Z",
+      "periodSeconds": 60,
+      "collectedAt": "2026-11-18T06:49:39.487262+00:00",
+      "scope": "Whole bucket and ESA host minute aggregates, distinct from client entity-body accounting",
+      "oss": [
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "CdnSend",
+          "points": 6,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetRecv",
+          "points": 6,
+          "totalValue": 451813982.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetSend",
+          "points": 6,
+          "totalValue": 723507.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetRecv",
+          "points": 6,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetSend",
+          "points": 6,
+          "totalValue": 430857190.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "GetObjectCount",
+          "points": 6,
+          "totalValue": 3210.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "CdnSend",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetRecv",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetSend",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetRecv",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetSend",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "GetObjectCount",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "CdnSend",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetRecv",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetSend",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetRecv",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetSend",
+          "points": 1,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "GetObjectCount",
+          "points": 1,
+          "totalValue": 0.0
+        }
+      ],
+      "esa": [
+        [],
+        [],
+        []
+      ]
+    },
+    "v0760-parallel-normal-n25-r1-s300": {
+      "startTime": "2026-11-18T06:49:00Z",
+      "endTime": "2026-11-18T06:55:00Z",
+      "periodSeconds": 60,
+      "collectedAt": "2026-11-18T07:27:44.055011+00:00",
+      "scope": "Whole bucket and ESA host minute aggregates, distinct from client entity-body accounting",
+      "oss": [
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "CdnSend",
+          "points": 5,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetRecv",
+          "points": 5,
+          "totalValue": 469949127.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetSend",
+          "points": 5,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetRecv",
+          "points": 5,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetSend",
+          "points": 5,
+          "totalValue": 440600730.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "GetObjectCount",
+          "points": 5,
+          "totalValue": 3102.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        }
+      ],
+      "esa": [
+        [],
+        [],
+        []
+      ]
+    },
+    "v0760-parallel-normal-n50-r1-s300": {
+      "startTime": "2026-11-18T06:55:00Z",
+      "endTime": "2026-11-18T06:58:00Z",
+      "periodSeconds": 60,
+      "collectedAt": "2026-11-18T07:27:44.186556+00:00",
+      "scope": "Whole bucket and ESA host minute aggregates, distinct from client entity-body accounting",
+      "oss": [
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "CdnSend",
+          "points": 3,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetRecv",
+          "points": 3,
+          "totalValue": 162704579.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetSend",
+          "points": 3,
+          "totalValue": 1807206.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetRecv",
+          "points": 3,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetSend",
+          "points": 3,
+          "totalValue": 192680869.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "GetObjectCount",
+          "points": 3,
+          "totalValue": 1639.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        }
+      ],
+      "esa": [
+        [],
+        [],
+        []
+      ]
+    },
+    "v0760-parallel-normal-n100-r1-s300": {
+      "startTime": "2026-11-18T06:58:00Z",
+      "endTime": "2026-11-18T07:02:00Z",
+      "periodSeconds": 60,
+      "collectedAt": "2026-11-18T07:27:43.923905+00:00",
+      "scope": "Whole bucket and ESA host minute aggregates, distinct from client entity-body accounting",
+      "oss": [
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "CdnSend",
+          "points": 4,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetRecv",
+          "points": 4,
+          "totalValue": 308801253.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetSend",
+          "points": 4,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetRecv",
+          "points": 4,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetSend",
+          "points": 4,
+          "totalValue": 187466184.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "GetObjectCount",
+          "points": 4,
+          "totalValue": 1438.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        }
+      ],
+      "esa": [
+        [],
+        [],
+        []
+      ]
+    },
+    "v0760-parallel-normal-n120-r1-s300": {
+      "startTime": "2026-11-18T07:07:00Z",
+      "endTime": "2026-11-18T07:11:00Z",
+      "periodSeconds": 60,
+      "collectedAt": "2026-11-18T07:27:50.699087+00:00",
+      "scope": "Whole bucket and ESA host minute aggregates, distinct from client entity-body accounting",
+      "oss": [
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "CdnSend",
+          "points": 3,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetRecv",
+          "points": 3,
+          "totalValue": 306526330.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetSend",
+          "points": 3,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetRecv",
+          "points": 3,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetSend",
+          "points": 3,
+          "totalValue": 124914416.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "GetObjectCount",
+          "points": 3,
+          "totalValue": 1047.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        }
+      ],
+      "esa": [
+        [],
+        [],
+        []
+      ]
+    },
+    "v0760-w1-fixed-n10-s300": {
+      "startTime": "2026-11-18T07:12:00Z",
+      "endTime": "2026-11-18T07:18:00Z",
+      "periodSeconds": 60,
+      "collectedAt": "2026-11-18T07:27:51.364213+00:00",
+      "scope": "Whole bucket and ESA host minute aggregates, distinct from client entity-body accounting",
+      "oss": [
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "CdnSend",
+          "points": 6,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetRecv",
+          "points": 6,
+          "totalValue": 430442464.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetSend",
+          "points": 6,
+          "totalValue": 159121590.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetRecv",
+          "points": 6,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetSend",
+          "points": 6,
+          "totalValue": 387456362.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "GetObjectCount",
+          "points": 6,
+          "totalValue": 3936.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        }
+      ],
+      "esa": [
+        [],
+        [],
+        []
+      ]
+    },
+    "v0760-cold-n10": {
+      "startTime": "2026-11-18T07:19:00Z",
+      "endTime": "2026-11-18T07:24:00Z",
+      "periodSeconds": 60,
+      "collectedAt": "2026-11-18T07:27:51.867796+00:00",
+      "scope": "Whole bucket and ESA host minute aggregates, distinct from client entity-body accounting",
+      "oss": [
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "CdnSend",
+          "points": 2,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetRecv",
+          "points": 2,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "InternetSend",
+          "points": 2,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetRecv",
+          "points": 2,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "IntranetSend",
+          "points": 2,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-simulation-evidence",
+          "metric": "GetObjectCount",
+          "points": 2,
+          "totalValue": 0.0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-models",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "CdnSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "InternetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetRecv",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "IntranetSend",
+          "points": 0,
+          "totalValue": 0
+        },
+        {
+          "bucket": "act-course-assets",
+          "metric": "GetObjectCount",
+          "points": 0,
+          "totalValue": 0
+        }
+      ],
+      "esa": [
+        [
+          {
+            "AggMethod": "sum",
+            "DimensionName": "ClientRequestHost",
+            "DimensionValue": "static.adapt-learn.online",
+            "FieldName": "Traffic",
+            "Value": 172477073
+          }
+        ],
+        [
+          {
+            "AggMethod": "sum",
+            "DimensionName": "EdgeCacheStatus",
+            "DimensionValue": "HIT",
+            "FieldName": "Traffic",
+            "Value": 172477073
+          }
+        ],
+        [
+          {
+            "AggMethod": "sum",
+            "DimensionName": "EdgeCacheStatus",
+            "DimensionValue": "HIT",
+            "FieldName": "Requests",
+            "Value": 155
+          }
+        ]
+      ]
+    }
+  },
+  "evidenceStructure0760": {
+    "scope": "One existing representative 981 five-second trace chunk, structure accounting only",
+    "rawBytes": 1403506,
+    "gzip3Bytes": 194038,
+    "objects": 15108,
+    "arrays": 3925,
+    "keyOccurrences": 49424,
+    "uniqueKeyNames": 102,
+    "repeatedKeyTextBytesIncludingColon": 593546,
+    "keyTextFractionOfRaw": 0.42290236023216143,
+    "controlPoints": 100,
+    "nativeSamples": 4295,
+    "fineSamples": 120,
+    "samplingOrFormatChanged": false
+  },
+  "postLoadPersistence0760": {
+    "scope": "Reserved capacity-test identities, committed metadata and ownership only",
+    "runs": 185,
+    "traces": 2824,
+    "reports": 10,
+    "ownershipFailures": 0,
+    "prefixFailures": 0,
+    "referenceFailures": 0,
+    "completionFailures": 0
+  },
+  "testCleanup0760": {
+    "runsRemoved": 1011,
+    "ossObjectsRemoved": 18066,
+    "ossBytesRemoved": 2449882725,
+    "identitiesRetained": 120,
+    "realOriginalAndZeroScoreProtocolRoundsPreserved": true
+  },
+  "previousActivationBefore0760": {
+    "version": "0.7.58",
+    "revision": "f23718b36a5fb74fa6c266e3551ce97abf4e2bac",
+    "release": "https://github.com/yong-wei/act/releases/tag/v0.7.58",
+    "ciRun": 44188661252,
+    "nativeProbeChecks": 9,
+    "directConfigurationVerified": true,
+    "databaseAndRedisIdsPreserved": true,
+    "runtimeCurrentAndPreviousPreserved": true
   }
 }

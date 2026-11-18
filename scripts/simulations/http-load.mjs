@@ -401,11 +401,19 @@ async function directPacket(client, index, endIndex) {
   const sources=client.fixture.packets.slice(index,endIndex);
   const closing=sources.at(-1).requests.find(item=>item.method==='PUT').body;
   if (!client.directOpening || client.directOpening.runRef!==client.runRef) {
-    client.directOpening={...sources[0].requests.find(item=>item.path==='/api/ilab/experiment-runs').body,
-      runRef:client.runRef, reportClientRef:client.reportClientRef, startedAtMs:client.runStartedAt,runtimeVersion};
-    client.progress=(await request(client,'/api/ilab/experiment-runs',
-      {method:'POST',body:client.directOpening,kind:'run-open'})).value;
-    assert.equal(client.progress.transport,'oss');
+    const opening = {
+      ...sources[0].requests.find(item => item.path === '/api/ilab/experiment-runs').body,
+      runRef: client.runRef,
+      reportClientRef: client.reportClientRef,
+      startedAtMs: client.runStartedAt,
+      runtimeVersion,
+    };
+    const response = await request(client, '/api/ilab/experiment-runs', {
+      method: 'POST', body: opening, kind: 'run-open',
+    });
+    assert.equal(response.value.transport, 'oss');
+    client.directOpening = opening;
+    client.progress = response.value;
   }
   if (client.progress.status!=='running') {
     assert.equal(client.progress.lastTimeS,closing.endTimeS);return;
