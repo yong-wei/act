@@ -10,6 +10,7 @@ import {
   saveFrozenStudentModel, saveModelComparison, saveLocalStepAttempt, saveRunUploadReceipt,
 } from './local-evidence-store';
 import type { VesselLocalStepAttempt, VesselRunEvidence } from './run-evidence';
+import { VESSEL_TRACE_COLUMNS } from './evidence-reference';
 
 export type { CourseRecoveredRun } from './run-recovery';
 export type { VesselRunArchive } from './local-evidence-store';
@@ -40,7 +41,7 @@ export async function fetchCourseSessionRecovery(
   courseVersion?: string,
   round?: { originId?: string; reportClientRef?: string },
 ): Promise<{ authenticated: boolean; userId: string | null; recovery: CourseSessionRecoveryPayload<CourseRunRecovery> | null }> {
-  const params = new URLSearchParams({ courseKey, format: 'references' });
+  const params = new URLSearchParams({ courseKey, format: 'references', traceEncoding: VESSEL_TRACE_COLUMNS });
   if (courseVersion) params.set('courseVersion', courseVersion);
   if (round?.originId) params.set('originId', round.originId);
   if (round?.reportClientRef) params.set('reportClientRef', round.reportClientRef);

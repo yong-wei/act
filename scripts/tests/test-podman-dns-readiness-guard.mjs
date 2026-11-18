@@ -20,10 +20,11 @@ const appEnvironment = deployScript.slice(deployScript.indexOf('APP_ENV_ARGS=(')
 const workerEnvironment = deployScript.slice(deployScript.indexOf('WORKER_ENV_ARGS=('),
   deployScript.indexOf('echo "- 启动数据治理 worker 容器:'));
 const simulationEvidenceKeys = ['SIMULATION_EVIDENCE_OSS_BUCKET', 'SIMULATION_EVIDENCE_OSS_REGION',
-  'SIMULATION_EVIDENCE_OSS_RAM_ROLE', 'SIMULATION_EVIDENCE_DIRECT_UPLOAD'];
+  'SIMULATION_EVIDENCE_OSS_RAM_ROLE', 'SIMULATION_EVIDENCE_DIRECT_UPLOAD', 'SIMULATION_EVIDENCE_TRACE_ENCODING'];
 for (const values of [
   { SIMULATION_EVIDENCE_OSS_BUCKET: 'private-evidence-fixture', SIMULATION_EVIDENCE_OSS_REGION: 'oss-cn-hangzhou',
-    SIMULATION_EVIDENCE_OSS_RAM_ROLE: 'fixture-role', SIMULATION_EVIDENCE_DIRECT_UPLOAD: '1' },
+    SIMULATION_EVIDENCE_OSS_RAM_ROLE: 'fixture-role', SIMULATION_EVIDENCE_DIRECT_UPLOAD: '1',
+    SIMULATION_EVIDENCE_TRACE_ENCODING: 'columns-v1' },
   { SIMULATION_EVIDENCE_OSS_BUCKET: 'private-evidence-fixture', SIMULATION_EVIDENCE_DIRECT_UPLOAD: '0' },
   {},
 ]) {

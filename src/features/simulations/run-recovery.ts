@@ -3,6 +3,7 @@ import { requestVesselEvidence } from './evidence-upload';
 import type { VesselEvidenceProgress } from './run-evidence';
 import { downloadVesselObjectInWorker } from './evidence-worker-client';
 import { canonicalJson } from '@/lib/student-model-artifact-contract';
+import { VESSEL_TRACE_COLUMNS } from './evidence-reference';
 
 export type { CourseRecoveredRun, CourseRunRecoveryHeader, CourseRunRecovery } from './run-evidence';
 import type { CourseRecoveredRun, CourseRunRecovery } from './run-evidence';
@@ -53,7 +54,8 @@ export async function readRecoveredRunState(header: CourseRunRecovery): Promise<
 }
 
 export async function fetchRecoveredRunHeader(runId: string): Promise<CourseRecoveredRun> {
-  const response = await fetch(`/api/ilab/experiment-runs/${encodeURIComponent(runId)}?recovery=1&format=references`, { cache: 'no-store' });
+  const params = new URLSearchParams({ recovery: '1', format: 'references', traceEncoding: VESSEL_TRACE_COLUMNS });
+  const response = await fetch(`/api/ilab/experiment-runs/${encodeURIComponent(runId)}?${params}`, { cache: 'no-store' });
   if (!response.ok) throw new Error('这次运行暂时无法读取，请稍后重试。');
   const run = await response.json() as CourseRunRecovery;
   if (run.id !== runId) throw new Error('云端记录与所选实验不一致，请重新读取进度。');

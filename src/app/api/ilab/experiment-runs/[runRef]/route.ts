@@ -6,6 +6,7 @@ import { findOwnedVesselRun, vesselRunProgress } from '@/features/ilab/course-ev
 import { closeVesselEvidenceRun, readVesselEvidenceChunk } from '@/features/ilab/course-evidence-chunks';
 import { IlabServiceError } from '@/features/ilab/run-lock';
 import { loadOwnedCourseRunRecovery } from '@/features/ilab/adapters/course-session-recovery';
+import { VESSEL_TRACE_COLUMNS } from '@/features/simulations/public-api';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -15,11 +16,12 @@ export async function GET(request: Request, context: Context) {
   try {
     const userId = await requireVesselEvidenceAccount(request);
     const { runRef } = await context.params;
-    if (new URL(request.url).searchParams.get('recovery') === '1') {
+    const params = new URL(request.url).searchParams;
+    if (params.get('recovery') === '1') {
       return await vesselEvidenceJsonResponse(request, await loadOwnedCourseRunRecovery(userId, runRef,
-        new URL(request.url).searchParams.get('format') === 'references'));
+        params.get('format') === 'references', params.get('traceEncoding') === VESSEL_TRACE_COLUMNS));
     }
-    const chunkParam = new URL(request.url).searchParams.get('chunkIndex');
+    const chunkParam = params.get('chunkIndex');
     if (chunkParam !== null) {
       const chunkIndex = Number(chunkParam);
       if (!/^\d+$/.test(chunkParam) || !Number.isInteger(chunkIndex) || chunkIndex > 4096) {
