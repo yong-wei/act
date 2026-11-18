@@ -272,11 +272,24 @@ export async function exchangeIlabTicket(input: {
     throw new Error('实验空间 APPID、密钥或地址未配置。');
   }
   const fetcher = input.fetcher ?? fetch;
-  const response = await fetcher(ilabTokenUrl(input.baseUrl, input.ticket, input.appId, input.secret), {
-    method: 'GET',
-    signal: AbortSignal.timeout(15000),
-  });
-  const body = await response.json() as Record<string, unknown> & { code?: number; msg?: string; access_token?: string; un?: string; dis?: string; expires_time?: number };
+  let response: Response;
+  try {
+    response = await fetcher(ilabTokenUrl(input.baseUrl, input.ticket, input.appId, input.secret), {
+      method: 'GET',
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch (error) {
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      throw new Error('实验空间响应超时，请保留当前链接并刷新重试。');
+    }
+    throw error;
+  }
+  if (response.status >= 500) {
+    throw new Error('实验空间服务暂不可用，请保留当前链接并稍后刷新重试。');
+  }
+  const body = await response.json().catch(() => {
+    throw new Error('实验空间服务响应无法识别，请保留当前链接并稍后刷新重试。');
+  }) as Record<string, unknown> & { code?: number; msg?: string; access_token?: string; un?: string; dis?: string; expires_time?: number };
   if (body.code !== 0 || !body.access_token || !body.un) {
     throw new Error(body.msg || `实验空间票据校验失败（code ${body.code ?? response.status}）。`);
   }

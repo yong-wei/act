@@ -120,6 +120,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const [busy, setBusy] = useState(false);
   const [originId, setOriginId] = useState('');
   const [ilabUserId, setIlabUserId] = useState<string | null>(null);
+  const [verifiedTicket, setVerifiedTicket] = useState('');
   const [sessionCompleted, setSessionCompleted] = useState(false);
   const [uploadFailed, setUploadFailed] = useState(false);
   const [uploadMode, setUploadMode] = useState<'local-only' | 'dev-bypass' | 'ilab-remote'>('local-only');
@@ -154,8 +155,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const [recoveryFailed, setRecoveryFailed] = useState(false);
   const [round, setRound] = useState<{base: string; scope: string} | null>(null);
   const effectiveUserId = ilabUserId ?? session?.user?.id;
-  const canUseCloudEvidence = sessionStatus === 'authenticated' && (!ilabUserId || session?.user?.id === ilabUserId);
-  const accountReady = !ilabUserId || canUseCloudEvidence;
+  const awaitingIlabIdentity = Boolean(ticket && ticket !== verifiedTicket);
+  const canUseCloudEvidence = !awaitingIlabIdentity && sessionStatus === 'authenticated'
+    && (!ilabUserId || session?.user?.id === ilabUserId);
+  const accountReady = !awaitingIlabIdentity && (!ilabUserId || canUseCloudEvidence);
 
   useEffect(() => {
     if (!connectionReady || !ilabUserId || sessionStatus === 'loading'
@@ -538,6 +541,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     designModelId, reportRunIds, courseRunning, tourActive]);
 
   useEffect(() => {
+    if (ticket && ticket === verifiedTicket) return;
     setConnectionReady(false);
     const storageKey = `act-vessel-origin:${experiment.key}`;
     let cancelled = false;
@@ -647,17 +651,19 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
         });
         const body = await response.json() as VesselSessionApiPayload;
         if (cancelled) return;
+        if (!response.ok || !body.originId) {
+          setMessage(body.error || '票据校验失败，请保留当前链接并刷新重试。');
+          return;
+        }
         window.history.replaceState(
           null,
           '',
           stripIlabUrlParams(experiment.route, window.location.search),
         );
-        if (!response.ok || !body.originId) {
-          setMessage(body.error || '票据校验失败，本次只在本机记录。');
-          return;
-        }
         clearIlabOriginSessionStorage();
         hydrateFromSession(body);
+        setConnectionReady(true);
+        setVerifiedTicket(ticket);
         return;
       }
       const stored = window.sessionStorage.getItem(storageKey);
@@ -688,7 +694,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     return () => {
       cancelled = true;
     };
-  }, [draftStorageKey, experiment.key, experiment.route, experiment.steps.length, ticket, nativeCourse]);
+  }, [draftStorageKey, experiment.key, experiment.route, experiment.steps.length, ticket, verifiedTicket, nativeCourse]);
 
   useEffect(() => {
     if (sessionStatus !== 'authenticated') {
@@ -797,7 +803,8 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       setMessage('只读高光工况导览模式下严禁运行正式实验工作区，请先退出导览。');
       return;
     }
-    if (!nativeCourse || readyScope !== scopeKey || busy || courseAdapter.steps[activeSeq - 1].stepKind === 'analysis') return;
+    if (!nativeCourse || !accountReady || readyScope !== scopeKey || busy
+      || courseAdapter.steps[activeSeq - 1].stepKind === 'analysis') return;
     if (getMarineCanvasStatus() !== 'runnable') { setMessage('请等待三维画面就绪后开始。'); return; }
     setBusy(true); setMessage('');
     try {
@@ -828,7 +835,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       setMessage('只读高光工况导览模式下严禁重置正式实验工作区，请先退出导览。');
       return;
     }
-    if (busy) return;
+    if (busy || !accountReady || readyScope !== scopeKey) return;
     setBusy(true);
     try {
       await workspace.current?.pause('student');
@@ -1444,7 +1451,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     },
     message,
     connectionStatus: originId ? describeIlabConnection(uploadMode) : '',
-    busy,
+    busy: busy || awaitingIlabIdentity,
     sessionCompleted,
     uploadFailed,
     retryIlabUpload,
