@@ -187,6 +187,8 @@ export interface VesselRunStorageSummary {
   openingHash:string;
   openingReference:string;
   recoveryHeader?: Omit<VesselEvidenceOpening, 'initialCheckpoint'>;
+  recoveryCheckpoint?: Partial<Pick<VesselEvidenceClose, 'reason' | 'failure' | 'durationS' | 'endTimeS'
+    | 'controlCount' | 'nativeCount' | 'fineCount'>> & { appliedFinalInput?: VesselSessionInput } | null;
   configurationHash:string;
   parameterHash:string;
   courseKey:string;
