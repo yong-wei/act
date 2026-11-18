@@ -5,7 +5,7 @@
   "rounds": 5,
   "cpuWorkers": 0,
   "directMeasurementConfiguration": "Explicit private OSS configuration in diagnostic process; HTTP activation verified separately",
-  "sampling": "Existing five-simulation-second chunks and unchanged sample arrays",
+  "sampling": "Five-simulation-second frozen chunks and unchanged sample arrays in the isolated per-save comparison. HTTP normal phase uses the original 8x page speed, real five-second save cadence after acknowledgement, and immediate new run after an ended run is confirmed. Function timing excludes browser preparation and direct object upload wait, which are counted separately in actual HTTP/browser measurements.",
   "versions": {
     "baseline": {
       "version": "0.7.53",
@@ -930,6 +930,288 @@
           }
         }
       ]
+    },
+    "fasterVerification": {
+      "revision": "f23718b36a5fb74fa6c266e3551ce97abf4e2bac",
+      "node": "v20.20.2",
+      "architecture": "x64",
+      "sourceFingerprint": "731bb78ae1186f13e74d3e24d6f6d2c2bbb6765c03afd748be2813177fd9bb86",
+      "toolFingerprint": "731f135ff4f046b7520b31748e19232204dd1cdb38c5bc95aa7befb07a265541",
+      "coverage": [
+        {
+          "course": "destroyer",
+          "kind": "automatic-save",
+          "calls": {
+            "nativeInstances": 0,
+            "restore": 0,
+            "freedInstances": 0
+          }
+        },
+        {
+          "course": "destroyer",
+          "kind": "final-save",
+          "calls": {
+            "nativeInstances": 1,
+            "restore": 1,
+            "freedInstances": 1
+          }
+        },
+        {
+          "course": "lng",
+          "kind": "automatic-save",
+          "calls": {
+            "nativeInstances": 0,
+            "restore": 0,
+            "freedInstances": 0
+          }
+        },
+        {
+          "course": "lng",
+          "kind": "final-save",
+          "calls": {
+            "nativeInstances": 1,
+            "restore": 1,
+            "freedInstances": 1
+          }
+        },
+        {
+          "course": "container",
+          "kind": "automatic-save",
+          "calls": {
+            "nativeInstances": 0,
+            "restore": 0,
+            "freedInstances": 0
+          }
+        },
+        {
+          "course": "container",
+          "kind": "final-save",
+          "calls": {
+            "nativeInstances": 1,
+            "restore": 1,
+            "freedInstances": 1
+          }
+        },
+        {
+          "course": "cruise",
+          "kind": "automatic-save",
+          "calls": {
+            "nativeInstances": 0,
+            "restore": 0,
+            "freedInstances": 0
+          }
+        },
+        {
+          "course": "cruise",
+          "kind": "final-save",
+          "calls": {
+            "nativeInstances": 1,
+            "restore": 1,
+            "freedInstances": 1
+          }
+        },
+        {
+          "course": "drilling",
+          "kind": "automatic-save",
+          "calls": {
+            "nativeInstances": 0,
+            "restore": 0,
+            "freedInstances": 0
+          }
+        },
+        {
+          "course": "drilling",
+          "kind": "final-save",
+          "calls": {
+            "nativeInstances": 1,
+            "restore": 1,
+            "freedInstances": 1
+          }
+        },
+        {
+          "course": "icebreaker",
+          "kind": "automatic-save",
+          "calls": {
+            "nativeInstances": 0,
+            "restore": 0,
+            "freedInstances": 0
+          }
+        },
+        {
+          "course": "icebreaker",
+          "kind": "final-save",
+          "calls": {
+            "nativeInstances": 1,
+            "restore": 1,
+            "freedInstances": 1
+          }
+        },
+        {
+          "course": "dredger",
+          "kind": "automatic-save",
+          "calls": {
+            "nativeInstances": 0,
+            "restore": 0,
+            "freedInstances": 0
+          }
+        },
+        {
+          "course": "dredger",
+          "kind": "final-save",
+          "calls": {
+            "nativeInstances": 1,
+            "restore": 1,
+            "freedInstances": 1
+          }
+        }
+      ],
+      "version": "0.7.58",
+      "aggregate": {
+        "initial-open": {
+          "kind": "initial-open",
+          "count": 42,
+          "cpuMedianMs": 97.731,
+          "cpuP95Ms": 194.549,
+          "cpuP99Ms": 348.186,
+          "latencyMedianMs": 97.08271400000376,
+          "latencyP95Ms": 203.331005,
+          "latencyP99Ms": 237.0671399999992,
+          "meanRequests": 1,
+          "meanRequestBytes": 136127.14285714287,
+          "meanRequestEncodedBytes": 22186.04761904762,
+          "meanResponseBytes": 663.4285714285714,
+          "meanResponseEncodedBytes": 663.4285714285714,
+          "meanSqlStatements": 10,
+          "meanPrivateObjectReads": 0,
+          "meanOssHeadRequests": 0,
+          "meanOssObjectReads": 0,
+          "meanOssUploadRequests": 0,
+          "meanOssUploadBytes": 0,
+          "meanGzipCalls": 1,
+          "meanGunzipCalls": 1,
+          "meanJsonParses": 14
+        },
+        "automatic-save": {
+          "kind": "automatic-save",
+          "count": 105,
+          "cpuMedianMs": 61.763999999999996,
+          "cpuP95Ms": 103.649,
+          "cpuP99Ms": 349.275,
+          "latencyMedianMs": 90.94716500000504,
+          "latencyP95Ms": 142.5833210000128,
+          "latencyP99Ms": 218.29155299999547,
+          "meanRequests": 2,
+          "meanRequestBytes": 9572.52380952381,
+          "meanRequestEncodedBytes": 3326.847619047619,
+          "meanResponseBytes": 9182.047619047618,
+          "meanResponseEncodedBytes": 9182.047619047618,
+          "meanSqlStatements": 19.666666666666668,
+          "meanPrivateObjectReads": 0,
+          "meanOssHeadRequests": 2.3333333333333335,
+          "meanOssObjectReads": 0,
+          "meanOssUploadRequests": 2.3333333333333335,
+          "meanOssUploadBytes": 216898,
+          "meanGzipCalls": 0,
+          "meanGunzipCalls": 2,
+          "meanJsonParses": 19.333333333333332
+        },
+        "checkpoint-confirmation": {
+          "kind": "checkpoint-confirmation",
+          "count": 105,
+          "cpuMedianMs": 40.686,
+          "cpuP95Ms": 65.936,
+          "cpuP99Ms": 109.003,
+          "latencyMedianMs": 63.34998899999846,
+          "latencyP95Ms": 104.99579200000153,
+          "latencyP99Ms": 145.88641500000085,
+          "meanRequests": 1,
+          "meanRequestBytes": 3134.2380952380954,
+          "meanRequestEncodedBytes": 1376.047619047619,
+          "meanResponseBytes": 790,
+          "meanResponseEncodedBytes": 790,
+          "meanSqlStatements": 14.666666666666666,
+          "meanPrivateObjectReads": 0,
+          "meanOssHeadRequests": 2.3333333333333335,
+          "meanOssObjectReads": 0,
+          "meanOssUploadRequests": 0,
+          "meanOssUploadBytes": 0,
+          "meanGzipCalls": 0,
+          "meanGunzipCalls": 1,
+          "meanJsonParses": 15
+        },
+        "selected-run-recovery": {
+          "kind": "selected-run-recovery",
+          "count": 112,
+          "cpuMedianMs": 14.457,
+          "cpuP95Ms": 29.426,
+          "cpuP99Ms": 53.581,
+          "latencyMedianMs": 20.40374200000224,
+          "latencyP95Ms": 53.03628299999764,
+          "latencyP99Ms": 57.21302500000456,
+          "meanRequests": 1,
+          "meanRequestBytes": 0,
+          "meanRequestEncodedBytes": 0,
+          "meanResponseBytes": 4501.767857142857,
+          "meanResponseEncodedBytes": 1912.0625,
+          "meanSqlStatements": 9,
+          "meanPrivateObjectReads": 0,
+          "meanOssHeadRequests": 0,
+          "meanOssObjectReads": 0,
+          "meanOssUploadRequests": 0,
+          "meanOssUploadBytes": 0,
+          "meanGzipCalls": 1,
+          "meanGunzipCalls": 0,
+          "meanJsonParses": 5
+        },
+        "final-save": {
+          "kind": "final-save",
+          "count": 7,
+          "cpuMedianMs": 1689.121,
+          "cpuP95Ms": 2414.7490000000003,
+          "cpuP99Ms": 2414.7490000000003,
+          "latencyMedianMs": 1671.8726529999985,
+          "latencyP95Ms": 2327.7590930000006,
+          "latencyP99Ms": 2327.7590930000006,
+          "meanRequests": 2,
+          "meanRequestBytes": 9657.142857142857,
+          "meanRequestEncodedBytes": 3349.5714285714284,
+          "meanResponseBytes": 8002.857142857143,
+          "meanResponseEncodedBytes": 8002.857142857143,
+          "meanSqlStatements": 29,
+          "meanPrivateObjectReads": 0,
+          "meanOssHeadRequests": 2,
+          "meanOssObjectReads": 19.142857142857142,
+          "meanOssUploadRequests": 2,
+          "meanOssUploadBytes": 199881.42857142858,
+          "meanGzipCalls": 0,
+          "meanGunzipCalls": 21.142857142857142,
+          "meanJsonParses": 51.285714285714285
+        },
+        "final-confirmation": {
+          "kind": "final-confirmation",
+          "count": 7,
+          "cpuMedianMs": 1674.228,
+          "cpuP95Ms": 2396.282,
+          "cpuP99Ms": 2396.282,
+          "latencyMedianMs": 1650.4597890000005,
+          "latencyP95Ms": 2297.1957640000037,
+          "latencyP99Ms": 2297.1957640000037,
+          "meanRequests": 1,
+          "meanRequestBytes": 3160.8571428571427,
+          "meanRequestEncodedBytes": 1386.2857142857142,
+          "meanResponseBytes": 797.8571428571429,
+          "meanResponseEncodedBytes": 797.8571428571429,
+          "meanSqlStatements": 24,
+          "meanPrivateObjectReads": 0,
+          "meanOssHeadRequests": 2,
+          "meanOssObjectReads": 19.142857142857142,
+          "meanOssUploadRequests": 0,
+          "meanOssUploadBytes": 0,
+          "meanGzipCalls": 0,
+          "meanGunzipCalls": 20.142857142857142,
+          "meanJsonParses": 47.285714285714285
+        }
+      }
     }
   },
   "formalVerificationAmortization": {
@@ -962,6 +1244,16 @@
       "final-save": {
         "totalCpuMs": 19842.089,
         "cpuMsPerFrozenPacket": 165.35074166666666
+      }
+    },
+    "fasterVerification": {
+      "final-save": {
+        "totalCpuMs": 11064.856,
+        "cpuMsPerFrozenPacket": 92.20713333333333
+      },
+      "final-confirmation": {
+        "totalCpuMs": 10945.918,
+        "cpuMsPerFrozenPacket": 91.21598333333333
       }
     }
   },
@@ -1813,5 +2105,167 @@
       }
     ],
     "scope": "Local darwin-arm64 microbenchmarks, not production capacity. Seven frozen trace sets parse identically in Zod v3 and v4. Software identity inputs and returned content are equal. Production confirmation measurement is required after deployment."
+  },
+  "fasterVerificationReductionsPercent": {
+    "formalTotalCpu": 44.490267898586936,
+    "formalMedianCpu": 21.36245187981084,
+    "formalP95Cpu": 49.754842551549736
+  },
+  "currentNormalLoad": {
+    "revision": "f23718b36a5fb74fa6c266e3551ce97abf4e2bac",
+    "evidenceTransport": "oss",
+    "behavior": "normal",
+    "concurrency": 10,
+    "configuredDurationS": 300,
+    "timeScale": 8,
+    "startedAt": "2026-11-17T23:04:37.804Z",
+    "capturedAt": "2026-11-17T23:10:01.331Z",
+    "elapsedS": 323.522,
+    "requests": 4531,
+    "rps": 14.005229937994944,
+    "actualErrorRate": 0,
+    "minimumPacingFraction": 0.5166666666666667,
+    "status": "failed",
+    "correctnessAndPacingPassed": false,
+    "latencyGoalPassed": false,
+    "eventLoopP95Ms": 22.331391,
+    "clientRssBytes": 1000030208,
+    "uploadBytes": 455051971,
+    "downloadBytes": 13084114,
+    "groups": {
+      "checkpoint": {
+        "requests": 233,
+        "errors": 0,
+        "p50Ms": 541.3875419999822,
+        "p95Ms": 1140.804250000001,
+        "p99Ms": 1447.8884169999947,
+        "uploadBytes": 395894,
+        "downloadBytes": 184484,
+        "statuses": {
+          "200": 233
+        }
+      },
+      "formal-end": {
+        "requests": 171,
+        "errors": 0,
+        "p50Ms": 6606.234291999994,
+        "p95Ms": 13732.968999999983,
+        "p99Ms": 16722.538875000002,
+        "uploadBytes": 257112,
+        "downloadBytes": 136455,
+        "statuses": {
+          "200": 171
+        }
+      },
+      "recovery": {
+        "requests": 10,
+        "errors": 0,
+        "p50Ms": 462.00420799996937,
+        "p95Ms": 721.5605410000426,
+        "p99Ms": 721.5605410000426,
+        "uploadBytes": 0,
+        "downloadBytes": 61788,
+        "statuses": {
+          "200": 10
+        }
+      }
+    },
+    "stateFailures": 0,
+    "errors": 0
+  },
+  "currentActivation": {
+    "version": "0.7.58",
+    "revision": "f23718b36a5fb74fa6c266e3551ce97abf4e2bac",
+    "release": "https://github.com/yong-wei/act/releases/tag/v0.7.58",
+    "ciRun": 44188661252,
+    "nativeProbeChecks": 9,
+    "directConfigurationVerified": true,
+    "databaseAndRedisIdsPreserved": true,
+    "runtimeCurrentAndPreviousPreserved": true
+  },
+  "workerConfigurationComparison": {
+    "revision": "f23718b36a5fb74fa6c266e3551ce97abf4e2bac",
+    "phaseScope": "Same ten QA ILAB identities, seven frozen first-step inputs,8x,300s,5s real save cadence,empty starting history",
+    "results": [
+      {
+        "label": "v0758-normal-n10-s300",
+        "workers": 0,
+        "status": "failed",
+        "elapsedSeconds": 323.522,
+        "rps": 14.005229937994944,
+        "unexpectedErrors": 0,
+        "stateFailures": 0,
+        "minimumPacingFraction": 0.5166666666666667,
+        "applicationCpuCores": 0.9968417874882773,
+        "p95Ms": {
+          "draft": 332.28812500002095,
+          "run-open": 961.1565000000046,
+          "upload-authorize": 506.9850420000148,
+          "oss-upload": 120.89983399998164,
+          "checkpoint": 1140.804250000001,
+          "formal-end": 13732.968999999983,
+          "recovery": 721.5605410000426,
+          "selected-run-recovery": 443.8360409999732,
+          "download-authorize": 286.71987499995157,
+          "oss-state-download": 45.185416999971494,
+          "step-submit": 11091.89733300003,
+          "report-save": 784.0489579999703,
+          "incomplete-report-submit": 366.5370000000112
+        }
+      },
+      {
+        "label": "v0758-w1-normal-n10-s300",
+        "workers": 1,
+        "status": "failed",
+        "elapsedSeconds": 320.523,
+        "rps": 15.06288160288029,
+        "unexpectedErrors": 0,
+        "stateFailures": 0,
+        "minimumPacingFraction": 0.5416666666666666,
+        "applicationCpuCores": 1.0923976293441542,
+        "p95Ms": {
+          "draft": 295.35445799999434,
+          "run-open": 6882.283416999999,
+          "upload-authorize": 427.34875000000466,
+          "oss-upload": 270.671875,
+          "checkpoint": 863.3590419999673,
+          "formal-end": 7272.901375000001,
+          "recovery": 1010.5912089999765,
+          "selected-run-recovery": 618.9987909999909,
+          "download-authorize": 413.77624999999534,
+          "oss-state-download": 72.56166599999415,
+          "step-submit": 10101.812875000003,
+          "report-save": 622.1549590000068,
+          "incomplete-report-submit": 297.81529200001387
+        }
+      },
+      {
+        "label": "v0758-w2-normal-n10-s300",
+        "workers": 2,
+        "status": "failed",
+        "elapsedSeconds": 318.577,
+        "rps": 14.313651016865624,
+        "unexpectedErrors": 0,
+        "stateFailures": 0,
+        "minimumPacingFraction": 0.55,
+        "applicationCpuCores": 1.153961612474735,
+        "p95Ms": {
+          "draft": 394.35241599999426,
+          "run-open": 6370.2436670000025,
+          "upload-authorize": 584.1277910000063,
+          "oss-upload": 160.07633300000452,
+          "checkpoint": 1519.4047080000018,
+          "formal-end": 12766.549041999999,
+          "recovery": 707.8713330000173,
+          "selected-run-recovery": 435.4016670000274,
+          "download-authorize": 261.2787910000188,
+          "oss-state-download": 58.271791999985,
+          "step-submit": 9053.24645799998,
+          "report-save": 595.180417000025,
+          "incomplete-report-submit": 247.3733329999959
+        }
+      }
+    ],
+    "decision": "One worker is the next candidate for metadata-save and full-confirmation latency. Opening queue delay requires removing light opening preparation from the shared heavy verification queue. Capacity criteria remain unmet."
   }
 }
