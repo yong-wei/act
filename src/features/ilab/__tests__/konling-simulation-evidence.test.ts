@@ -46,9 +46,11 @@ describe('控灵读取本次本人仿真证据', () => {
     expect(mocks.session).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'owner', vesselId: 'fleet-cruise-adora' } }));
     expect(mocks.report).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'owner', clientRef: 'current-round', experimentKey: 'cruise' } }));
     expect(mocks.run).toHaveBeenCalledWith(expect.objectContaining({ where: { ownerUserId: 'owner', sourceDomain: 'ilab-course',
-      AND: [{ summary: { path: ['reportId'], equals: 'current-report' } }, { summary: { path: ['stepSequence'], equals: 2 } }] } }));
+      AND: [{ summary: { path: ['reportId'], equals: 'current-report' } }, { summary: { path: ['stepSequence'], equals: 2 } }] },
+    select: expect.objectContaining({ traces: { where: { sampleCount: { gt: 0 } },
+      orderBy: { chunkIndex: 'desc' }, take: 1, select: { sampleStorageUri: true } } }) }));
     expect(text).toContain('本页船舶实验第2步');
-    expect(text).toContain('当前操作步骤为第3步');
+    expect(text).toContain('最近一次保存到平台的步骤为第3步');
     expect(text).toContain('已保存1步');
     expect(text).toContain('航向量测11.5000°');
     expect(text).toContain('可能落后于浏览器');
@@ -97,7 +99,7 @@ describe('控灵读取本次本人仿真证据', () => {
     mocks.report.mockResolvedValue(null);
     const text = await loadSimulationKonlingEvidence('owner', 'cruise-comfort-experiment', 'cruise-comfort-step-2');
     expect(text).toContain('本轮尚无已保存');
-    expect(text).toContain('当前操作步骤为第3步');
+    expect(text).toContain('最近一次保存到平台的步骤为第3步');
     expect(mocks.run).not.toHaveBeenCalled();
     expect(mocks.runCount).not.toHaveBeenCalled();
     expect(mocks.read).not.toHaveBeenCalled();
@@ -236,7 +238,7 @@ describe('控灵读取本次本人仿真证据', () => {
       { type: 'text', text: expect.stringContaining('第 1 步：区分瞬时与累计量') },
     ] });
     expect(JSON.stringify(projected.at(-1))).toContain('集装箱船航速、准点与燃油');
-    expect(JSON.stringify(projected.at(-1))).toContain('当前操作步骤为第3步');
+    expect(JSON.stringify(projected.at(-1))).toContain('最近一次保存到平台的步骤为第3步');
     expect(history).toEqual(before);
   });
 

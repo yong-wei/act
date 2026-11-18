@@ -8,10 +8,10 @@ import { activeVesselFactors } from '@/resources/simulations/experiments/compari
 import { vesselDredgerMetricPoint, vesselDredgerFineMetrics, vesselDredgerModeEvents,
   type VesselTracePoint } from '@/features/simulations/public-api';
 import { vesselTraceChunkSchema, type VesselEvidenceOpening, type VesselEvidenceClose,
-  type VesselTraceChunk, type VesselEvidenceRunMetadata } from './course-evidence-contract';
+  type VesselTraceChunk, type VesselEvidenceRunMetadata, type VesselTraceChunkMetadata } from './course-evidence-contract';
 import type { VesselRunStorageSummary } from './course-evidence-contract';
 import { storedTraceData, advanceStoredSummary, validateChunkPrefix, type StoredVesselTrace,
-  type StoredChunk } from './course-evidence-prefix';
+  type StoredChunk, advanceVesselTraceMetadata, validateVesselTraceMetadata } from './course-evidence-prefix';
 import { calculateVesselRunMetrics } from './course-run-metrics';
 import { IlabServiceError } from './service-error';
 
@@ -65,7 +65,7 @@ export interface PrepareVesselCloseInput {
   summary: VesselRunStorageSummary;
   input: VesselEvidenceClose;
   closeHash: string;
-  traces: Array<{ sampleStorageUri: string | null }>;
+  traces: Array<{ sampleStorageUri: string | null; summaryMetrics?: unknown }>;
   verifyCheckpoint?: boolean;
   checkpoint?: StoredChunk;
 }
@@ -90,17 +90,27 @@ export async function prepareVesselEvidenceClose(task: PrepareVesselCloseInput):
   let projected = summary;
   let hasFineSamples = false;
   let firstSampleReceipt: string | undefined;
+  const verifiedReferences: string[] = [];
   if (verifyEvidence) {
     let verifiedPrefix: VesselRunStorageSummary = { ...summary, chunkCount: 0, controlCount: 0,
       nativeCount: 0, fineCount: 0, fineLastTimeS: undefined, lastTimeS: 0, nativeWatermarks: {} };
     for (const trace of task.traces) {
       if (!trace.sampleStorageUri) throw new IlabServiceError('原始采样引用缺失。', 409);
+      const archive = summary.courseKey === 'destroyer' && summary.stepSequence === 1
+        && trace.sampleStorageUri.startsWith('simulation-cas:oss:')
+        ? (trace.summaryMetrics as { nativeArchive?: VesselTraceChunkMetadata } | undefined)?.nativeArchive : undefined;
+      if (archive) {
+        validateVesselTraceMetadata(verifiedPrefix, archive);
+        verifiedPrefix = advanceVesselTraceMetadata(verifiedPrefix, archive);
+        continue;
+      }
       const parsed = vesselTraceChunkSchema.safeParse(await readSimulationTraceChunk(trace.sampleStorageUri));
       if (!parsed.success || parsed.data.runRef !== runRef) throw new IlabServiceError('原始采样与当前运行不一致。', 409);
       const chunk = parsed.data as unknown as VesselTraceChunk;
       const watermarks = validateChunkPrefix(verifiedPrefix, chunk);
       verifiedPrefix = advanceStoredSummary(verifiedPrefix, chunk, watermarks);
       newPoints.push(...chunk.points);
+      verifiedReferences.push(trace.sampleStorageUri);
     }
     if (verifiedPrefix.chunkCount !== summary.chunkCount || verifiedPrefix.controlCount !== summary.controlCount
       || verifiedPrefix.nativeCount !== summary.nativeCount || (verifiedPrefix.fineCount ?? 0) !== (summary.fineCount ?? 0)
@@ -193,7 +203,7 @@ export async function prepareVesselEvidenceClose(task: PrepareVesselCloseInput):
         evidenceHash: hash({ runId: run.id, reportId: summary.reportId, openingHash: summary.openingHash,
           closeHash, courseVersion: summary.courseVersion, modelVersion: run.modelVersion,
           runtimeVersion: run.runtimeVersion, validationRuntimeVersion: CONTROL_ENGINE_BUILD_HASH,
-          references: [...task.traces.map(trace => trace.sampleStorageUri), ...(input.pendingChunks ?? [])] }) } } : {}) },
+          references: [...verifiedReferences, ...(input.pendingChunks ?? [])] }) } } : {}) },
     quality: isCheckpoint ? null : {
       status: input.reason === 'failure' ? 'failed' : 'complete', controlSamples: input.controlCount,
       nativeSamples: input.nativeCount, metrics: { ...metrics }, fineStepSamples: input.fineCount ?? 0,

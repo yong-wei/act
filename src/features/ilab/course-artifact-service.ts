@@ -62,9 +62,10 @@ async function ownedRuns(db: Prisma.TransactionClient, userId: string, experimen
 export async function saveVesselCourseArtifact(userId: string, input: VesselCourseArtifactInput) {
   const report = await requireOwnedReport(userId, input);
   const experimentKey = vesselExperimentKey(report);
-  if (input.attempt || input.report?.action === 'submit') {
+  const neededRunRefs = input.attempt?.runRefs ?? (input.report?.action === 'submit' ? input.report.runRefs : []);
+  if (neededRunRefs.length) {
     const runs = await prisma.simulationRun.findMany({ where: { ownerUserId: userId,
-      sourceDomain: VESSEL_EVIDENCE_DOMAIN, summary: { path: ['reportId'], equals: report.id } } });
+      sourceDomain: VESSEL_EVIDENCE_DOMAIN, sourceRefId: { in: neededRunRefs }, summary: { path: ['reportId'], equals: report.id } } });
     for (const run of runs) {
       const summary = vesselRunStorageSummary(run);
       if ((summary.controlCount || summary.nativeCount || summary.fineCount) && !hasVerifiedVesselEvidence(run)) {

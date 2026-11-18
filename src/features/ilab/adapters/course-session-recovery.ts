@@ -95,6 +95,7 @@ type CourseSessionRecoveryInput = {
   onlyRunRef?: string;
   deferStateObjects?: boolean;
   supportsTraceColumns?: boolean;
+  knownSave?: string;
 };
 
 export function loadCourseSessionRecovery(input: CourseSessionRecoveryInput & { deferStateObjects?: false }): Promise<CourseSessionRecoveryPayload>;
@@ -155,7 +156,7 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
       stepDrafts: drafts.bySeq,
       ...(drafts.activeSeq !== undefined ? { draftActiveSeq: drafts.activeSeq } : {}),
       courseState: { ...drafts.courseState, ...(boundReportRef ? { reportClientRef: boundReportRef } : {}) },
-      updatedAtMs: ilabRunForRecovery.updatedAt.getTime(),
+      updatedAtMs: storedDrafts.updatedAtMs ?? ilabRunForRecovery.updatedAt.getTime(),
     };
   }
 
@@ -172,6 +173,27 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
   }
 
   const experimentKey = vesselExperimentKey(targetReport);
+  const rawReportView = vesselReportView(targetReport);
+  const reportView: VesselReportProgress = {
+    id: rawReportView.id,
+    clientRef: targetReport.clientRef,
+    status: rawReportView.status,
+    revision: rawReportView.revision,
+    score: rawReportView.score,
+    maxScore: rawReportView.maxScore,
+    teacherFeedback: rawReportView.teacherFeedback,
+    sections: (rawReportView.sections && typeof rawReportView.sections === 'object' && !Array.isArray(rawReportView.sections)
+      ? rawReportView.sections : {}) as VesselReportSections,
+    hasReportHtml: rawReportView.hasReportHtml,
+    reviewProgress: rawReportView.reviewProgress,
+  };
+
+  if (input.knownSave && targetReport.clientRef === input.reportClientRef
+    && activeCourseState?.reportClientRef === targetReport.clientRef
+    && activeCourseState.platformSaveId === input.knownSave) {
+    return { report: reportView, reportClientRef: targetReport.clientRef,
+      runs: [], models: [], comparisons: [], attempts: [], ilabRun: ilabRunView, matchesLocalSave: true };
+  }
 
   const [dbRuns, dbModels, dbComparisons, dbAttempts] = await Promise.all([
     prisma.simulationRun.findMany({
@@ -200,9 +222,12 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
 
   const runs: CourseRunRecovery[] = [];
   const archivedRuns: VesselRunArchive[] = [];
-  const activeRunRef = typeof activeCourseState?.activeRunId === 'string'
-    && dbRuns.some((run) => run.sourceRefId === activeCourseState.activeRunId && run.status === 'running') ? activeCourseState.activeRunId
-    : dbRuns.filter((run) => run.status === 'running').at(-1)?.sourceRefId;
+  const resumableRuns = dbRuns.filter((run) => run.status === 'running'
+    && !vesselRunStorageSummary(run).stopReason
+    && (!vesselRunStorageSummary(run).recoveryCheckpoint?.reason
+      || vesselRunStorageSummary(run).recoveryCheckpoint?.reason === 'checkpoint'));
+  const activeRunRef = resumableRuns.find((run) => run.sourceRefId === activeCourseState?.activeRunId)?.sourceRefId
+    ?? resumableRuns.at(-1)?.sourceRefId;
   for (let offset = 0; offset < dbRuns.length; offset += RECOVERY_STATE_BATCH_SIZE) {
     const states = await Promise.all(dbRuns.slice(offset, offset + RECOVERY_STATE_BATCH_SIZE).map(async (run) => {
       const summary = vesselRunStorageSummary(run);
@@ -255,6 +280,8 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
 
       const stopReason = closeChunk?.reason === 'checkpoint' ? null
         : closeChunk?.reason ?? (run.status === 'failed' ? 'failure' : run.status === 'completed' ? 'duration' : null);
+      const stoppedAtMs = run.completedAt?.getTime()
+        ?? (stopReason ? opening.startedAtMs + Math.round(summary.lastTimeS * 1000) : null);
       const controlCount = input.deferTraceChunks ? summary.controlCount : trace.length;
       const nativeCount = input.deferTraceChunks ? summary.nativeCount : nativeSensorSamples.length;
       const fineCount = input.deferTraceChunks ? summary.fineCount ?? 0 : fineStepSamples.length;
@@ -267,7 +294,7 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
           id: run.sourceRefId, scopeKey: '', courseKey: course.key, courseVersion,
           stepSequence: summary.stepSequence, createdAtMs: opening.startedAtMs,
           durationS: summary.lastTimeS, lastTimeS: summary.lastTimeS,
-          stoppedAtMs: run.completedAt?.getTime() ?? null, stopReason,
+          stoppedAtMs, stopReason,
           configuration: opening.configuration, initialInput: opening.input,
           finalInput: closeChunk?.appliedFinalInput ?? opening.input,
           controllerSourceRunId: opening.controllerSourceRunId, designStudentModelId: opening.designStudentModelId,
@@ -276,7 +303,7 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
           dredgerModeEvents: summary.dredgerModeEvents,
           remoteOnly: true,
           ...(resumable ? { uploadReceipt: { ...vesselRunProgress(run), reportClientRef: targetReport.clientRef },
-            uploadedToReportRef: run.completedAt ? targetReport.clientRef : undefined } : {}),
+            uploadedToReportRef: targetReport.clientRef } : {}),
         });
         continue;
       }
@@ -298,7 +325,7 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
         durationS: closeChunk?.durationS ?? summary.lastTimeS,
         createdAtMs: opening.startedAtMs,
         lastTimeS: summary.lastTimeS,
-        stoppedAtMs: run.completedAt ? run.completedAt.getTime() : null,
+        stoppedAtMs,
         configuration: opening.configuration,
         initialInput: opening.input,
         controllerSourceRunId: opening.controllerSourceRunId,
@@ -455,22 +482,6 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
       serverId: attempt.id,
     });
   }
-
-  const rawReportView = vesselReportView(targetReport);
-  const reportView: VesselReportProgress = {
-    id: rawReportView.id,
-    clientRef: rawReportView.clientRef ?? '',
-    status: rawReportView.status,
-    revision: rawReportView.revision,
-    score: rawReportView.score,
-    maxScore: rawReportView.maxScore,
-    teacherFeedback: rawReportView.teacherFeedback,
-    sections: (rawReportView.sections && typeof rawReportView.sections === 'object' && !Array.isArray(rawReportView.sections)
-      ? rawReportView.sections
-      : {}) as VesselReportSections,
-    hasReportHtml: rawReportView.hasReportHtml,
-    reviewProgress: rawReportView.reviewProgress,
-  };
 
   return {
     report: reportView,

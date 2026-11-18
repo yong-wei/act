@@ -124,12 +124,16 @@ export function advanceVesselTraceMetadata(summary: VesselRunStorageSummary, chu
 
 export function confirmedVesselTraceData(run: VesselEvidenceRunMetadata, summary: VesselRunStorageSummary,
   chunk: VesselTraceChunkMetadata, stored: StoredChunk): StoredVesselTrace {
+  const nativeArchive = stored.uri.startsWith('simulation-cas:oss:') && summary.courseKey === 'destroyer'
+    && summary.stepSequence === 1 && chunk.nativeCount > 0 && chunk.controlCount === 0 && chunk.fineCount === 0
+    && chunk.earliestChangeTimeS === undefined ? chunk : undefined;
   return { runId: run.id, chunkIndex: chunk.chunkIndex, protocolVersion: 'act.vessel-trace-chunk.v1',
     runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion, seed: run.seed,
     checksum: stored.checksum, sampleStorageUri: stored.uri, sampleCadence: .05, sampleCount: chunk.controlCount,
     summaryMetrics: { startTimeS: summary.lastTimeS, endTimeS: chunk.endTimeS,
       controlStart: chunk.controlStart, nativeStart: chunk.nativeStart, nativeCount: chunk.nativeCount,
       fineStart: chunk.fineStart, fineCount: chunk.fineCount,
+      ...(nativeArchive ? { nativeArchive } : {}),
       ...(stored.uncompressedBytes !== undefined ? { uncompressedBytes: stored.uncompressedBytes } : {}),
       ...(stored.storedBytes !== undefined ? { storedBytes: stored.storedBytes } : {}) },
   };

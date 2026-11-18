@@ -130,6 +130,7 @@ export interface VesselEvidenceProgress {
   transport?: 'oss' | 'legacy';
   traceEncoding?: typeof import('./evidence-reference').VESSEL_TRACE_COLUMNS;
   saveStatus?: 'saved';
+  savedReason?: VesselRunEvidence['stopReason'] | 'checkpoint';
   evidenceStatus?: 'pending' | 'verifying' | 'failed' | 'verified';
 }
 

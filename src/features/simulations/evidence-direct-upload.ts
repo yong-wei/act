@@ -23,22 +23,22 @@ async function uploadObject(object: PreparedVesselOssSave['objects'][number], au
 }
 
 export async function uploadDirectVesselRunEvidence(reportClientRef: string,
-  run: VesselRunEvidence, progress: VesselEvidenceProgress, request: Request) {
+  run: VesselRunEvidence, progress: VesselEvidenceProgress, request: Request, deferVerification = false) {
   const base = `${progress.chunkCount}:${progress.controlCount}:${progress.nativeCount}:${progress.fineCount ?? 0}:${progress.lastTimeS}`;
   const metadataKey = canonicalJson({ reportClientRef, parameterHash: run.parameterHash,
     endTimeS: run.lastTimeS, durationS: run.durationS, stopped: run.stoppedAtMs !== null,
     reason: run.stopReason, failure: run.failure, checkpointPreview: run.checkpointPreview,
     controlCount: run.trace.length, nativeCount: run.nativeSensorSamples.length,
-    fineCount: run.fineStepSamples?.length ?? 0, changeCount: run.changes.length });
+    fineCount: run.fineStepSamples?.length ?? 0, changeCount: run.changes.length, deferVerification });
   if (!cached || cached.runRef !== run.id || cached.checkpoint !== run.checkpoint || cached.metadataKey !== metadataKey) cached = undefined;
   if (cached) {
     const prepared = await cached.prepared;
     if (progress.checkpointReference === prepared.checkpointReference
-      && (run.stoppedAtMs === null || progress.status !== 'running')) return progress;
+      && (deferVerification || run.stoppedAtMs === null || progress.status !== 'running')) return progress;
     if (cached.base !== base) cached = undefined;
   }
   if (!cached) {
-    const prepared = prepareVesselSaveInWorker(reportClientRef, run, progress);
+    const prepared = prepareVesselSaveInWorker(reportClientRef, run, progress, deferVerification);
     cached = { runRef: run.id, checkpoint: run.checkpoint, metadataKey, base, prepared };
     void prepared.catch(() => { if (cached?.prepared === prepared) cached = undefined; });
   }
@@ -63,6 +63,6 @@ export async function uploadDirectVesselRunEvidence(reportClientRef: string,
       }));
     }
   }
-  return request<VesselEvidenceProgress>(`/api/ilab/experiment-runs/${run.id}`,
+  return request<VesselEvidenceProgress>(`/api/ilab/experiment-runs/${run.id}${deferVerification ? '?defer=1' : ''}`,
     { ...prepared.close, checkpointReference: prepared.checkpointReference }, 'PUT');
 }

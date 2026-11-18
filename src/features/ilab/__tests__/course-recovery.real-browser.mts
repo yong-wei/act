@@ -6,11 +6,15 @@ import {chromium,expect,type BrowserContext,type Page,type Request as Playwright
 import {prisma} from '@/lib/prisma';
 import {readSimulationTraceChunk} from '@/lib/data-governance/simulation-trace-cas';
 import {vesselRunStorageSummary} from '@/features/ilab/course-evidence-service';
+import {simulationOssLocation} from '@/features/simulations/public-api';
+import {writeFile} from 'node:fs/promises';
 
 config({path:'.env.local',quiet:true});
 config({quiet:true});
 const origin=process.env.VESSEL_BROWSER_ORIGIN ?? 'http://127.0.0.1:3002';
 const courseKey=process.env.VESSEL_RECOVERY_COURSE ?? 'cruise';
+const compareBaseline=process.env.VESSEL_RECOVERY_COMPARE === 'baseline';
+const fixtureTicket=process.env.ILAB_IDENTITY_STUB === 'local-first-fixture' ? `qa-local-first-${randomUUID()}` : undefined;
 assert(['cruise','container','drilling','destroyer','lng'].includes(courseKey));
 const experimentKey={cruise:'cruise-comfort',container:'container-voyage',drilling:'drilling-dp',destroyer:'destroyer',lng:'lng-berthing'}[courseKey]!;
 const predictionLabel=courseKey==='destroyer' ? '运行前预测与理由'
@@ -21,6 +25,8 @@ assert(['127.0.0.1','localhost'].includes(new URL(process.env.DATABASE_URL!).hos
 const password=randomBytes(24).toString('base64url');
 const user=await prisma.user.create({data:{name:'原页面跨设备恢复验收夹具',role:'STUDENT',
   employeeNumber:`QA-RECOVERY-${randomUUID()}`,passwordHash:await bcrypt.hash(password,10)}});
+let mappedOwnerId: string | undefined;
+const ownerId = () => mappedOwnerId ?? user.id;
 const browser=await chromium.launch({channel:'chrome',headless:true});
 let first:BrowserContext | undefined;
 let second:BrowserContext | undefined;
@@ -41,6 +47,18 @@ async function enter(context:BrowserContext) {
     console.log(JSON.stringify({phase:'normal-login',pathname:new URL(page.url()).pathname,message:message.slice(-1600)}));
     throw new Error('Normal credentials login did not finish');
   }
+  if (fixtureTicket) {
+    const entry = new URL(`/simulations/${courseKey}?graphics=webgl`, origin);
+    entry.searchParams.set('ticket', fixtureTicket);
+    await page.goto(entry.href, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !new URLSearchParams(location.search).has('ticket'));
+    await expect(page.getByText('实验空间已连接，进度保存到实验空间账号，成绩与报告回传实验空间。', { exact: true })).toBeVisible();
+    const session = await (await context.request.get(`${origin}/api/auth/session`)).json();
+    const actor = await prisma.user.findUniqueOrThrow({ where: { id: session.user.id } });
+    assert(actor.id !== user.id && actor.accountSource === 'ILAB');
+    mappedOwnerId ??= actor.id;
+    assert.equal(mappedOwnerId, actor.id, 'The same local-fixture ticket must recover the same experiment account');
+  }
   await page.locator('[data-marine-status="runnable"]').waitFor();
   await page.getByLabel(predictionLabel,{exact:true}).waitFor();
   await page.getByRole('button',{name:'开始',exact:true}).waitFor({state:'visible'});
@@ -51,11 +69,11 @@ async function enter(context:BrowserContext) {
 async function waitCloud(runId:string,timeS:number) {
   const deadline=Date.now()+30000;
   while(Date.now()<deadline) {
-    const saved=await prisma.simulationRun.findFirst({where:{ownerUserId:user.id,sourceRefId:runId}});
+    const saved=await prisma.simulationRun.findFirst({where:{ownerUserId:ownerId(),sourceRefId:runId}});
     if(saved && Math.abs(vesselRunStorageSummary(saved).lastTimeS-timeS)<1e-7) return saved;
     await new Promise((resolve)=>setTimeout(resolve,250));
   }
-  throw new Error('Automatic cloud checkpoint did not reach the local watermark');
+  throw new Error('Explicit platform save did not reach the local watermark');
 }
 
 async function activeLocalRun(page:Page) {
@@ -73,10 +91,28 @@ async function activeLocalRun(page:Page) {
   });
 }
 
-try {
+async function exercise() {
   first=await browser.newContext({viewport:{width:1801,height:867}});
   const page=await enter(first);
-  const prediction='跨设备恢复夹具，观察本人仪器读数与持续保存的完整恢复点。';
+  const cloudWrites: PlaywrightRequest[] = [];
+  const captureCloudWrite = (request: PlaywrightRequest) => {
+    const url = new URL(request.url());
+    if (['POST', 'PATCH', 'PUT'].includes(request.method()) && (
+      url.pathname.startsWith('/api/ilab/experiment-') || url.pathname.includes('/session/')
+      || url.hostname.endsWith('.aliyuncs.com'))) cloudWrites.push(request);
+  };
+  const measuredWrites = async () => {
+    const result = { appRequests: 0, appBytes: 0, ossRequests: 0 };
+    for (const request of cloudWrites) {
+      const bytes = (await request.sizes()).requestBodySize;
+      if (new URL(request.url()).hostname.endsWith('.aliyuncs.com')) {
+        result.ossRequests++;
+      } else { result.appRequests++; result.appBytes += bytes; }
+    }
+    return result;
+  };
+  page.on('request', captureCloudWrite);
+  const prediction='跨设备恢复夹具，观察本人仪器读数与显式保存的完整恢复点。';
   await page.getByLabel(predictionLabel,{exact:true}).fill(prediction);
   await page.getByRole('button',{name:'开始',exact:true}).click();
   await page.waitForFunction(()=>{
@@ -84,17 +120,65 @@ try {
     return match && Number(match[1])>=6;
   });
   await page.getByRole('button',{name:'暂停',exact:true}).click();
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(5500);
   const local=await activeLocalRun(page);
   assert(local.lastTimeS>=6 && local.lastTimeS<60);
-  let saved;
-  const deadline=Date.now()+30000;
-  while(Date.now()<deadline) {
-    saved=await prisma.simulationRun.findFirst({where:{ownerUserId:user.id,sourceRefId:local.id}});
-    if(saved && Math.abs(vesselRunStorageSummary(saved).lastTimeS-local.lastTimeS)<1e-7) break;
-    await page.waitForTimeout(250);
+  if (compareBaseline) {
+    const saved = await waitCloud(local.id, local.lastTimeS);
+    const stored = await prisma.simulationEvidenceObject.aggregate({ where: { runId: saved.id,
+      reference: { startsWith: 'simulation-cas:oss:' } }, _sum: { storedBytes: true } });
+    console.log(JSON.stringify({ courseKey, phase:'baseline-ordinary', timeS:local.lastTimeS,
+      ossStoredBytes: stored._sum.storedBytes ?? 0, ...await measuredWrites() }));
+    return;
   }
-  assert(saved,'Automatic cloud save did not create the run');
+  assert.deepEqual(cloudWrites, [], 'Ordinary classroom operation must not write cloud evidence');
+  assert.equal(await prisma.simulationRun.count({where:{ownerUserId:ownerId(),sourceRefId:local.id}}), 0);
+  await page.reload({waitUntil:'domcontentloaded'});
+  await expect(page.getByLabel(predictionLabel,{exact:true})).toHaveValue(prediction);
+  await expect(page.getByRole('button',{name:'保存到平台',exact:true})).toBeEnabled();
+  assert.equal((await activeLocalRun(page)).checkpoint, local.checkpoint);
+  const browserSession = await first.newCDPSession(page);
+  await browserSession.send('Network.enable');
+  await browserSession.send('Network.setCacheDisabled', { cacheDisabled: true });
+  await page.reload({waitUntil:'domcontentloaded'});
+  await expect(page.getByLabel(predictionLabel,{exact:true})).toHaveValue(prediction);
+  await expect(page.getByRole('button',{name:'保存到平台',exact:true})).toBeEnabled();
+  assert.equal((await activeLocalRun(page)).checkpoint, local.checkpoint);
+  await browserSession.detach();
+  const tab = await first.newPage();
+  try {
+    tab.on('request', captureCloudWrite);
+    await tab.goto(`${origin}/simulations/${courseKey}?graphics=webgl`, { waitUntil: 'domcontentloaded' });
+    await expect(tab.getByLabel(predictionLabel,{exact:true})).toHaveValue(prediction, { timeout: 60000 });
+    await expect(tab.getByRole('button',{name:'保存到平台',exact:true})).toBeEnabled({ timeout: 60000 });
+    assert.equal((await activeLocalRun(tab)).checkpoint, local.checkpoint);
+  } finally { await tab.close(); }
+  assert.equal(await prisma.simulationRun.count({where:{ownerUserId:ownerId(),sourceRefId:local.id}}), 0);
+  console.log(JSON.stringify({ courseKey, phase:'local-ordinary', timeS:local.lastTimeS, ossStoredBytes: 0,
+    ...await measuredWrites() }));
+  assert.equal(cloudWrites.length,0, 'A local reload must not trigger uploads');
+  const platformSaveStarted=performance.now();
+  await page.getByRole('button',{name:'保存到平台',exact:true}).click();
+  await expect(page.getByText('已保存到平台，可在其他设备继续本次实验。', {exact:true})).toBeVisible({timeout:60000});
+  const saved=await waitCloud(local.id,local.lastTimeS);
+  assert(cloudWrites.some(request => new URL(request.url()).pathname === '/api/ilab/experiment-runs'));
+  const stored = await prisma.simulationEvidenceObject.aggregate({ where: { runId: saved.id,
+    reference: { startsWith: 'simulation-cas:oss:' } }, _sum: { storedBytes: true } });
+  console.log(JSON.stringify({ courseKey, phase:'platform-save', timeS:local.lastTimeS,
+    elapsedMs: performance.now()-platformSaveStarted, ossStoredBytes: stored._sum.storedBytes ?? 0, ...await measuredWrites() }));
+  page.off('request', captureCloudWrite);
+  const privateDownloads: string[] = [];
+  const observeDownload = (request: PlaywrightRequest) => {
+    const url = new URL(request.url());
+    if (url.pathname.endsWith('/objects/downloads') || (request.method() === 'GET' && url.hostname.endsWith('.aliyuncs.com')
+      && url.pathname.includes('/vessel-evidence/'))) privateDownloads.push(url.pathname);
+  };
+  page.on('request',observeDownload);
+  await page.reload({waitUntil:'domcontentloaded'});
+  await expect(page.getByRole('button',{name:'保存到平台',exact:true})).toBeEnabled({timeout:60000});
+  await expect(page.getByLabel(predictionLabel,{exact:true})).toHaveValue(prediction);
+  page.off('request',observeDownload);
+  assert.deepEqual(privateDownloads,[], 'Matching saved progress must restore without downloading evidence');
   const summary=vesselRunStorageSummary(saved);
   assert.equal(summary.lastTimeS,local.lastTimeS);
   assert.equal(saved.status,'running');
@@ -156,6 +240,9 @@ try {
   const continued=await activeLocalRun(recoveredPage);
   assert.equal(continued.id,local.id);
   assert(continued.lastTimeS>local.lastTimeS);
+  const beforeSecondSave=await prisma.simulationRun.findUniqueOrThrow({where:{id:saved.id}});
+  assert.equal(vesselRunStorageSummary(beforeSecondSave).lastTimeS, local.lastTimeS);
+  await recoveredPage.getByRole('button',{name:'保存到平台',exact:true}).click();
   await waitCloud(continued.id,continued.lastTimeS);
   console.log(JSON.stringify({courseKey,phase:'second-browser-advanced',timeS:continued.lastTimeS}));
   debugPage=page;
@@ -180,6 +267,8 @@ try {
   assert(newOrigin && newOrigin!==oldOrigin);
   await recoveredPage.getByLabel(predictionLabel,{exact:true}).fill('New round B prediction');
   await recoveredPage.waitForTimeout(900);
+  await recoveredPage.getByRole('button',{name:'保存到平台',exact:true}).click();
+  await expect(recoveredPage.getByText('已保存到平台，可在其他设备继续本次实验。', {exact:true})).toBeVisible({timeout:60000});
   const before=await prisma.ilabExperimentRun.findUniqueOrThrow({where:{originId:newOrigin}});
   await recoveredPage.getByRole('tab',{name:'评估',exact:true}).click();
   if(courseKey==='destroyer') {
@@ -193,6 +282,8 @@ try {
   await expect(recoveredPage.getByLabel(predictionLabel,{exact:true})).not.toHaveValue('New round B prediction');
   await recoveredPage.getByLabel(courseKey==='destroyer' ? '证据解释与适用边界' : predictionLabel,{exact:true}).fill('Historical round A edited');
   await recoveredPage.waitForTimeout(1500);
+  await recoveredPage.getByRole('button',{name:'保存到平台',exact:true}).click();
+  await expect(recoveredPage.getByText('已保存到平台，可在其他设备继续本次实验。', {exact:true})).toBeVisible({timeout:60000});
   const after=await prisma.ilabExperimentRun.findUniqueOrThrow({where:{originId:newOrigin}});
   assert.deepEqual(after.stepDrafts,before.stepDrafts,'Historical A must never overwrite the new origin B');
   const historical=await prisma.ilabExperimentRun.findUniqueOrThrow({where:{originId:oldOrigin!}});
@@ -229,11 +320,16 @@ try {
     await branchPage.getByRole('tab',{name:'控制',exact:true}).click();
     await expect(branchPage.getByRole('button',{name:'开始',exact:true})).toBeEnabled({timeout:60000});
   }
-  console.log(JSON.stringify({status:'passed',entry:`normal-login-original-${courseKey}-page`,
-    inProgressTimeS:local.lastTimeS,controlSamples:local.traceLength,checkpointExact:true,
+  if (mappedOwnerId) assert.equal(await prisma.simulationRun.count({ where: { ownerUserId: user.id } }), 0);
+  console.log(JSON.stringify({status:'passed',entry:`${fixtureTicket ? 'same-ticket' : 'normal-login'}-original-${courseKey}-page`,
+    inProgressTimeS:local.lastTimeS,controlSamples:local.traceLength,checkpointExact:true,hardReload:true,newTab:true,
     separateBrowserContext:true,sameRunContinued:true,continuedTimeS:continued.lastTimeS,
     returnedBrowserCacheReconciled:true,forceNewOrigin:true,historicalRoundOriginIsolated:true,emptyRoundCrossDeviceIsolation:true,
     ...(courseKey==='cruise' ? {branchConflictKeepsNewRoundAction:true} : {})}));
+}
+
+try {
+  await exercise();
 } catch (error) {
   if (debugPage && !debugPage.isClosed()) {
     const message=(await debugPage.locator('body').innerText()).replaceAll(password,'[omitted]').replaceAll(user.employeeNumber!,'[fixture]');
@@ -245,7 +341,14 @@ try {
   throw error;
 } finally {
   await first?.close();await second?.close();await third?.close();await browser.close();
-  await prisma.simulationRun.deleteMany({where:{ownerUserId:user.id}});
-  await prisma.user.delete({where:{id:user.id}});
+  const ownerUserIds = [...new Set([user.id, ownerId()])];
+  const objects = await prisma.simulationEvidenceObject.findMany({ where: { run: { ownerUserId: { in: ownerUserIds } },
+    reference: { startsWith: 'simulation-cas:oss:' } }, select: { reference: true, storedBytes: true } });
+  if (objects.length) await writeFile(`.logs/recovery-qa-${courseKey}-${randomUUID()}.objects.json`, JSON.stringify(objects.map(object => ({
+    ...object, key: simulationOssLocation(object.reference).key,
+  }))), { mode: 0o600 });
+  await prisma.simulationRun.deleteMany({where:{ownerUserId:{in:ownerUserIds}}});
+  await prisma.evidenceOutbox.deleteMany({ where: { ownerUserId: { in: ownerUserIds } } });
+  await prisma.user.deleteMany({where:{id:{in:ownerUserIds}}});
   await prisma.$disconnect();
 }

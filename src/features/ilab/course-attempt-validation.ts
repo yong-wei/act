@@ -36,11 +36,15 @@ export async function validateSavedVesselAttempt(tx:Prisma.TransactionClient,use
     tx.comparisonArtifact.findMany({where:{userId,experimentKey}}),
   ]);
   const runs:VesselRunSummary[] = [];
+  const selectedRunRefs = new Set(attempt.runRefs);
   for (const run of storedRuns) {
     const summary = vesselRunStorageSummary(run);
     const verified = hasVerifiedVesselEvidence(run);
     if ((summary.controlCount || summary.nativeCount || summary.fineCount) && !verified) {
-      throw new IlabServiceError('运行进度已更新，请先完成当前证据核验后重试提交。', 409);
+      if (selectedRunRefs.has(run.sourceRefId)) {
+        throw new IlabServiceError('所选运行的证据尚未核验，请重试提交。', 409);
+      }
+      continue;
     }
     const opening = summary.recoveryHeader
       ?? await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);

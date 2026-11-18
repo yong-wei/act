@@ -24,6 +24,7 @@ export interface CourseSessionRecoveryPayload<Run extends CourseRunRecovery = Co
   models: FrozenVesselStudentModel[];
   comparisons: VesselModelComparison[];
   attempts: VesselLocalStepAttempt[];
+  matchesLocalSave?: boolean;
   ilabRun: {
     originId: string;
     status: number;
@@ -39,20 +40,48 @@ export interface CourseSessionRecoveryPayload<Run extends CourseRunRecovery = Co
 export async function fetchCourseSessionRecovery(
   courseKey: VesselCourseKey,
   courseVersion?: string,
-  round?: { originId?: string; reportClientRef?: string },
+  round?: { originId?: string; reportClientRef?: string; localScope?: string },
 ): Promise<{ authenticated: boolean; userId: string | null; recovery: CourseSessionRecoveryPayload<CourseRunRecovery> | null }> {
   const params = new URLSearchParams({ courseKey, format: 'references', traceEncoding: VESSEL_TRACE_COLUMNS });
   if (courseVersion) params.set('courseVersion', courseVersion);
   if (round?.originId) params.set('originId', round.originId);
   if (round?.reportClientRef) params.set('reportClientRef', round.reportClientRef);
+  if (round?.localScope && round.reportClientRef) {
+    try {
+      const saveId = localStorage.getItem(cloudSaveKey(round.localScope, round.reportClientRef));
+      if (saveId) params.set('knownSave', saveId);
+    } catch { /* IndexedDB recovery does not require this cache hint. */ }
+  }
   const response = await fetch(`/api/ilab/course-session-recovery?${params.toString()}`, {
     cache: 'no-store',
+    signal: round?.localScope ? AbortSignal.timeout(3000) : undefined,
   });
   if (!response.ok) {
     const payload = await response.json() as { error?: string };
     throw new Error(payload.error ?? '云端进度暂时无法读取，请稍后重试。');
   }
   return response.json() as Promise<{ authenticated: boolean; userId: string | null; recovery: CourseSessionRecoveryPayload<CourseRunRecovery> | null }>;
+}
+
+function cloudSaveKey(scopeKey: string, reportClientRef: string) {
+  return `${scopeKey}:platform-save:${reportClientRef}`;
+}
+
+export function rememberVesselCloudSave(scopeKey: string, reportClientRef: string, saveId: unknown) {
+  if (typeof saveId !== 'string') return;
+  try { localStorage.setItem(cloudSaveKey(scopeKey, reportClientRef), saveId); }
+  catch { /* The next recovery can check the full server manifest. */ }
+}
+
+export async function hasRecoverableLocalDraft(scopeKey: string, draft: VesselExperimentDraft | undefined) {
+  if (!draft?.reportClientRef) return false;
+  if (!draft.activeRunId) return true;
+  const run = await readRunEvidenceHeader(draft.activeRunId);
+  if (!run || run.scopeKey !== scopeKey) return false;
+  try {
+    const snapshot: unknown = JSON.parse(run.checkpoint);
+    return Boolean(snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot));
+  } catch { return false; }
 }
 
 function recoveredSampleMatches(local: unknown, remote: unknown): boolean {
@@ -101,6 +130,7 @@ export async function hydrateRecoveredCourseSession(
   scopeKey: string,
   recovery: CourseSessionRecoveryPayload<CourseRunRecovery>,
 ): Promise<{ hydratedCount: number }> {
+  if (recovery.matchesLocalSave) return { hydratedCount: 0 };
   let hydratedCount = 0;
   const localDraft = await readExperimentDraft(scopeKey);
   if (localDraft?.reportClientRef && recovery.reportClientRef && localDraft.reportClientRef !== recovery.reportClientRef) {
@@ -216,6 +246,7 @@ export async function hydrateRecoveredCourseSession(
     });
   }
 
+  if (recovery.reportClientRef) rememberVesselCloudSave(scopeKey, recovery.reportClientRef, recovery.ilabRun?.courseState?.platformSaveId);
   return { hydratedCount };
 }
 
@@ -268,9 +299,43 @@ export interface VesselReportProgress {
 }
 
 export async function uploadVesselCourseRun(reportClientRef:string,run:VesselRunEvidence) {
-  const receipt = await uploadVesselRunEvidence(reportClientRef,run);
+  const receipt = await uploadVesselRunEvidence(reportClientRef,run,true);
   await saveRunUploadReceipt(run.id,reportClientRef,receipt);
   return receipt;
+}
+
+/** 所选实验记录上传后再更新跨设备恢复入口。 */
+export async function saveVesselCourseDraftToPlatform(courseKey: VesselCourseKey, scopeKey: string,
+  reportClientRef: string, originId: string | undefined, advanceTo?: number) {
+  const draft = await readExperimentDraft(scopeKey);
+  if (!draft || draft.reportClientRef !== reportClientRef || (draft.originId && originId && draft.originId !== originId)) {
+    throw new Error('本机实验轮次已变化，请重新保存当前轮次。');
+  }
+  const target = draft.originId ?? originId;
+  if (!target) throw new Error('本机进度已保存。请恢复平台连接后再次保存到平台。');
+  const activeSeq = advanceTo ?? draft.stepSequence;
+  const advances = activeSeq !== draft.stepSequence;
+  const platformSaveId = crypto.randomUUID();
+  const response = await fetch(`/api/ilab/${courseKey === 'destroyer' ? 'destroyer' : 'vessel'}/session/${encodeURIComponent(target)}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      activeSeq, seq: draft.stepSequence, readings: draft.answers ?? {},
+      courseState: {
+        reportClientRef, platformSaveId, reportRunIds: draft.reportRunIds ?? [],
+        activeRunId: advances ? null : draft.activeRunId,
+        plannedRunId: advances ? null : draft.plannedRunId ?? null,
+        controls: advances ? null : draft.controls ?? null,
+        courseSettings: advances ? null : draft.courseSettings ?? null,
+        designStudentModelId: advances ? null : draft.designStudentModelId ?? null,
+      },
+    }),
+  });
+  const result = await response.json().catch(() => null) as { ok?: boolean; error?: string } | null;
+  if (!response.ok || result?.ok !== true) {
+    throw new Error(result?.error ?? '平台草稿保存未完成，本机进度已保留。');
+  }
+  rememberVesselCloudSave(scopeKey, reportClientRef, platformSaveId);
 }
 
 /** 模型和对照按本人引用顺序上传，回执保存后重试沿用同一工件标识。 */

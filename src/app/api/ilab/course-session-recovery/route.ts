@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
       lazyHistory: true,
       deferStateObjects: request.nextUrl.searchParams.get('format') === 'references',
       supportsTraceColumns: request.nextUrl.searchParams.get('traceEncoding') === VESSEL_TRACE_COLUMNS,
+      knownSave: request.nextUrl.searchParams.get('knownSave') ?? undefined,
     });
     return await vesselEvidenceJsonResponse(request, {
       authenticated: true,

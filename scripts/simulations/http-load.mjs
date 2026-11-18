@@ -27,7 +27,9 @@ const evidenceTransport = option('--transport', 'legacy');
 const behavior = option('--behavior', 'fixed');
 const traceEncoding = option('--trace-encoding', 'server');
 assert(['legacy', 'oss'].includes(evidenceTransport));
-assert(['fixed', 'normal'].includes(behavior));
+assert(['fixed', 'normal', 'classroom'].includes(behavior));
+assert(behavior !== 'classroom' || (evidenceTransport === 'oss' && ['127.0.0.1', 'localhost'].includes(new URL(origin).hostname)),
+  'Use the local test environment for concentrated classroom saves');
 assert(['server', 'legacy', 'columns-v1'].includes(traceEncoding));
 const previewFile = option('--previews', '.tmp/load-fixture-previews.json');
 const browserPreviews = evidenceTransport === 'oss' ? JSON.parse(readFileSync(previewFile)) : undefined;
@@ -69,6 +71,7 @@ const events = [],
   errors = [],
   states = [];
 const downloadIntervals = new Map();
+const classroom = { localWindowS: durationS, ordinaryEvidenceRequests: 0, platformSaveMs: [], submitted: 0, recovered: 0 };
 let startedAt = 0,
   stopAt = 0,
   abort = false;
@@ -445,14 +448,16 @@ async function directPacket(client, index, endIndex) {
       appendFileSync(`.tmp/load-${label}-references.jsonl`,JSON.stringify({runRef:client.runRef,reference:object.descriptor.reference})+'\n',{mode:0o600});
     }));
   }
-  client.progress=(await request(client,`/api/ilab/experiment-runs/${client.runRef}`,
+  const deferred = behavior === 'classroom';
+  client.progress=(await request(client,`/api/ilab/experiment-runs/${client.runRef}${deferred ? '?defer=1' : ''}`,
     {method:'PUT',body:{...prepared.close,checkpointReference:prepared.checkpointReference},
-      kind:prepared.close.reason==='checkpoint'?'checkpoint':'formal-end'})).value;
+      kind:deferred ? 'explicit-confirmation' : prepared.close.reason==='checkpoint'?'checkpoint':'formal-end'})).value;
   client.checkpointExpected=closing.checkpoint;
   assert.equal(client.progress.lastTimeS,closing.endTimeS);
   for (const key of ['controlCount','nativeCount','fineCount']) assert.equal(client.progress[key]??0,closing[key]??0);
   if (closing.endTimeS===client.fixture.durationS) {
-    assert.equal(client.progress.status,'completed');
+    if (deferred) assert.equal(client.progress.evidenceStatus, 'pending');
+    else assert.equal(client.progress.status,'completed');
     if (!client.completedRuns.includes(client.runRef)) client.completedRuns.push(client.runRef);
   }
 }
@@ -463,7 +468,8 @@ async function draft(client, tick) {
     seq: 1,
     readings: { prediction: `专用压力测试草稿 ${tick}` },
     courseState: { reportClientRef: client.reportClientRef,
-      ...(behavior === 'normal' ? { activeRunId: client.runRef, plannedRunId: client.runRef } : {}) },
+      ...(behavior === 'normal' || behavior === 'classroom' ? { activeRunId: client.runRef, plannedRunId: client.runRef } : {}),
+      ...(behavior === 'classroom' ? { platformSaveId: randomUUID() } : {}) },
   };
   await request(client, `${client.sessionPath}/${client.originId}`, {
     method: 'PATCH',
@@ -594,7 +600,36 @@ function summary() {
     byteScope: 'HTTP encoded entity bodies, excluding headers and TLS',
     externalIlabCalls: 0,
     aiProviderCalls: 0,
+    ...(behavior === 'classroom' ? { classroom: { ...classroom, platformSaveP95Ms: quantile(classroom.platformSaveMs, .95) } } : {}),
   };
+}
+
+async function runClassroom(clients) {
+  const ordinaryStart = events.length;
+  // Frozen local runs represent browser work in this window. No cloud saves are scheduled here.
+  await sleep(durationS * 1000);
+  classroom.ordinaryEvidenceRequests = events.length - ordinaryStart;
+  if (abort) return;
+  const exercise = async (phase, work) => {
+    await Promise.all(clients.filter(client => !client.classroomFailed).map(async client => {
+      try { await work(client); }
+      catch (error) {
+        client.classroomFailed = true;
+        states.push({ course: client.fixture.courseKey, phase, message: String(error.message).split('\n')[0].slice(0, 300) });
+      }
+    }));
+  };
+  await exercise('explicit-save', async client => {
+    const began = Date.now();
+    client.runRef = `00000000-0000-4000-8000-${randomBytes(6).toString('hex')}`;
+    client.runStartedAt = startedAt;
+    await directPacket(client, 0, client.fixture.packets.length);
+    await draft(client, 1);
+    classroom.platformSaveMs.push(Date.now() - began);
+  });
+  if (abort) return;
+  await exercise('recover', async client => { await verifyRecovery(client); classroom.recovered++; });
+  await exercise('submit', async client => { await saveReport(client); classroom.submitted++; });
 }
 
 const clients = [];
@@ -616,95 +651,98 @@ try {
       abort = true;
   }, 10000);
   try {
-    await Promise.all(
-      clients.map(async (client) => {
-        await sleep((client.index * 5000) / Math.max(count, 1));
-        let tick = 0,
-          packetIndex = 0,
-          lastDraft = 0,
-          lastRecovery = 0,
-          lastPage = 0;
-        while (Date.now() < stopAt && !abort) {
-          const cycleStarted = Date.now();
-          if (packetIndex === 0) {
-            client.runRef = `00000000-0000-4000-8000-${randomBytes(6).toString('hex')}`;
-            client.runStartedAt = Date.now();
-          }
-          if (behavior === 'normal' && packetIndex === 0) {
-            await draft(client, tick);
-            lastDraft = Date.now();
-            await sleep(5000);
-          }
-          const desired = behavior === 'normal'
-            ? Math.max(packetIndex+1, Math.floor(((Date.now()-client.runStartedAt)/1000*timeScale)/5))
-            : packetIndex + Math.max(1, Math.round(timeScale));
-          const endIndex = Math.min(
-            desired,
-            client.fixture.packets.length,
-          );
-          const previousTime =
-            packetIndex === 0 ? 0 : client.fixture.packets[packetIndex - 1].endTimeS;
-          const span = client.fixture.packets[endIndex - 1].endTimeS - previousTime;
-          try {
-            for (let attempt = 0; ; attempt++) {
-              try {
-                await packet(client, packetIndex, endIndex);
-                break;
-              } catch (error) {
-                const status = error.detail?.status;
-                if (attempt >= 2 || !(status === 0 || status >= 500)) throw error;
-                await sleep(500 * (attempt + 1));
-              }
-            }
-            client.completedPackets = (client.completedPackets ?? 0) + endIndex - packetIndex;
-            if (behavior === 'fixed' && Date.now() - lastDraft >= 15000) {
-              await draft(client, tick);
-              lastDraft = Date.now();
-            }
-            if (behavior === 'fixed' && Date.now() - lastRecovery >= 30000) {
-              await verifyRecovery(client);
-              lastRecovery = Date.now();
-            }
-            if (behavior === 'fixed' && Date.now() - lastPage >= 60000) {
-              await request(client, `/simulations/${client.fixture.courseKey}`, {
-                kind: 'page-refresh',
-                discard: true,
-              });
-              lastPage = Date.now();
-            }
-            packetIndex = endIndex === client.fixture.packets.length ? 0 : endIndex;
-            tick++;
-          } catch (error) {
-            states.push({
-              course: client.fixture.courseKey,
-              tick,
-              message: String(error.message).split('\n')[0].slice(0, 300),
-            });
-            abort = true;
-            break;
-          }
-          if (behavior === 'normal') {
-            const remaining = packetIndex === 0 ? 0 : client.fixture.durationS/timeScale*1000-(Date.now()-client.runStartedAt);
-            await sleep(packetIndex === 0 ? 0 : Math.min(5000,Math.max(0,remaining)));
-          } else await sleep((span * 1000) / timeScale - (Date.now() - cycleStarted));
-        }
-      }),
-    );
-    if (!abort) {
+    if (behavior === 'classroom') await runClassroom(clients);
+    else {
       await Promise.all(
         clients.map(async (client) => {
-          try {
-            await verifyRecovery(client);
-            await saveReport(client);
-          } catch (error) {
-            states.push({
-              course: client.fixture.courseKey,
-              phase: 'concentrated-save',
-              message: String(error.message).split('\n')[0].slice(0, 300),
-            });
+          await sleep((client.index * 5000) / Math.max(count, 1));
+          let tick = 0,
+            packetIndex = 0,
+            lastDraft = 0,
+            lastRecovery = 0,
+            lastPage = 0;
+          while (Date.now() < stopAt && !abort) {
+            const cycleStarted = Date.now();
+            if (packetIndex === 0) {
+              client.runRef = `00000000-0000-4000-8000-${randomBytes(6).toString('hex')}`;
+              client.runStartedAt = Date.now();
+            }
+            if (behavior === 'normal' && packetIndex === 0) {
+              await draft(client, tick);
+              lastDraft = Date.now();
+              await sleep(5000);
+            }
+            const desired = behavior === 'normal'
+              ? Math.max(packetIndex+1, Math.floor(((Date.now()-client.runStartedAt)/1000*timeScale)/5))
+              : packetIndex + Math.max(1, Math.round(timeScale));
+            const endIndex = Math.min(
+              desired,
+              client.fixture.packets.length,
+            );
+            const previousTime =
+              packetIndex === 0 ? 0 : client.fixture.packets[packetIndex - 1].endTimeS;
+            const span = client.fixture.packets[endIndex - 1].endTimeS - previousTime;
+            try {
+              for (let attempt = 0; ; attempt++) {
+                try {
+                  await packet(client, packetIndex, endIndex);
+                  break;
+                } catch (error) {
+                  const status = error.detail?.status;
+                  if (attempt >= 2 || !(status === 0 || status >= 500)) throw error;
+                  await sleep(500 * (attempt + 1));
+                }
+              }
+              client.completedPackets = (client.completedPackets ?? 0) + endIndex - packetIndex;
+              if (behavior === 'fixed' && Date.now() - lastDraft >= 15000) {
+                await draft(client, tick);
+                lastDraft = Date.now();
+              }
+              if (behavior === 'fixed' && Date.now() - lastRecovery >= 30000) {
+                await verifyRecovery(client);
+                lastRecovery = Date.now();
+              }
+              if (behavior === 'fixed' && Date.now() - lastPage >= 60000) {
+                await request(client, `/simulations/${client.fixture.courseKey}`, {
+                  kind: 'page-refresh',
+                  discard: true,
+                });
+                lastPage = Date.now();
+              }
+              packetIndex = endIndex === client.fixture.packets.length ? 0 : endIndex;
+              tick++;
+            } catch (error) {
+              states.push({
+                course: client.fixture.courseKey,
+                tick,
+                message: String(error.message).split('\n')[0].slice(0, 300),
+              });
+              abort = true;
+              break;
+            }
+            if (behavior === 'normal') {
+              const remaining = packetIndex === 0 ? 0 : client.fixture.durationS/timeScale*1000-(Date.now()-client.runStartedAt);
+              await sleep(packetIndex === 0 ? 0 : Math.min(5000,Math.max(0,remaining)));
+            } else await sleep((span * 1000) / timeScale - (Date.now() - cycleStarted));
           }
         }),
       );
+      if (!abort) {
+        await Promise.all(
+          clients.map(async (client) => {
+            try {
+              await verifyRecovery(client);
+              await saveReport(client);
+            } catch (error) {
+              states.push({
+                course: client.fixture.courseKey,
+                phase: 'concentrated-save',
+                message: String(error.message).split('\n')[0].slice(0, 300),
+              });
+            }
+          }),
+        );
+      }
     }
   } finally {
     clearInterval(timer);
@@ -727,19 +765,23 @@ try {
     minimumPacingFraction: 0.8,
   };
   result.actualErrorRate = events.filter((event) => !event.ok).length / Math.max(events.length, 1);
-  result.minimumPacingFraction = Math.min(
+  result.minimumPacingFraction = behavior === 'classroom' ? null : Math.min(
     ...result.clients.map(
       (client) => client.completedPackets / Math.max((durationS * timeScale) / 5, 1),
     ),
   );
-  const slow = Object.entries(result.groups).some(([kind, row]) => row.p95Ms > 1500);
+  if (behavior === 'classroom') result.criteria.minimumPacingFraction = null;
+  const paced = behavior === 'classroom' ? classroom.submitted === count && classroom.recovered === count
+    : result.minimumPacingFraction >= 0.8;
+  const slow = Object.entries(result.groups).some(([kind, row]) => (behavior !== 'classroom'
+    || ['explicit-confirmation', 'recovery', 'selected-run-recovery', 'step-submit', 'report-save'].includes(kind)) && row.p95Ms > 1500);
   result.status =
     !startedAt ||
     abort ||
     states.length ||
     result.actualErrorRate > 0.01 ||
     slow ||
-    result.minimumPacingFraction < 0.8
+    !paced
       ? 'failed'
       : 'passed';
   result.correctnessAndPacingPassed =
@@ -747,7 +789,7 @@ try {
     !abort &&
     states.length === 0 &&
     result.actualErrorRate <= 0.01 &&
-    result.minimumPacingFraction >= 0.8;
+    paced;
   result.latencyGoalPassed = !slow;
   result.downloadBodyBytesPerSecond = Array.from(
     { length: Math.ceil(result.elapsedS) },

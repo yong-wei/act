@@ -38,13 +38,14 @@ export async function PUT(request: Request, context: Context) {
     const userId = await requireVesselEvidenceAccount(request);
     const { runRef } = await context.params;
     const body = await readVesselEvidenceJson(request);
+    const deferVerification = new URL(request.url).searchParams.get('defer') === '1';
     if (body && typeof body === 'object' && 'checkpointReference' in body) {
       const direct = vesselEvidenceDirectCloseSchema.safeParse(body);
       if (!direct.success) throw new IlabServiceError('运行保存描述内容不完整。', 400);
-      return NextResponse.json(await commitOwnedVesselUpload(userId, runRef, direct.data));
+      return NextResponse.json(await commitOwnedVesselUpload(userId, runRef, direct.data, deferVerification));
     }
     const parsed = vesselEvidenceCloseSchema.safeParse(body);
     if (!parsed.success) throw new IlabServiceError('运行结束状态内容不完整。',400);
-    return NextResponse.json(await closeVesselEvidenceRun(userId, runRef, parsed.data));
+    return NextResponse.json(await closeVesselEvidenceRun(userId, runRef, parsed.data, deferVerification));
   } catch (error) { return vesselEvidenceErrorResponse(error); }
 }

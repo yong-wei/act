@@ -263,7 +263,8 @@ export async function listRunEvidence(scopeKey: string): Promise<VesselRunSummar
       courseSettings:run.courseSettings,
       dredgerModeEvents:run.dredgerModeEvents,
       uploadedToReportRef:run.stoppedAtMs !== null && run.uploadReceipt
-        && ['completed','failed'].includes(run.uploadReceipt.status) && run.uploadReceipt.controlCount === run.traceLength
+        && (['completed','failed'].includes(run.uploadReceipt.status) || run.uploadReceipt.savedReason === run.stopReason)
+        && run.uploadReceipt.controlCount === run.traceLength
         && run.uploadReceipt.nativeCount === run.nativeSampleCount && (run.uploadReceipt.fineCount ?? 0) === (run.fineSampleCount ?? 0)
         && Math.abs(run.uploadReceipt.lastTimeS-run.lastTimeS) < 1e-7 ? run.uploadReceipt.reportClientRef : undefined,
       }))].sort((a, b) => b.createdAtMs - a.createdAtMs));

@@ -128,7 +128,7 @@ async function confirmOwnedObjects(run: SimulationRun, references: string[]) {
 
 /** 先确认对象回执，再复用既有报告/运行事务原子提交连续前缀与恢复点。 */
 export async function commitOwnedVesselUpload(userId: string, runRef: string,
-  input: VesselEvidenceSave & { checkpointReference: string }) {
+  input: VesselEvidenceSave & { checkpointReference: string }, deferVerification = false) {
   const run = await findOwnedVesselRun(userId, runRef);
   const { checkpointReference, ...close } = input;
   const confirmed = await confirmOwnedObjects(run, [...(close.pendingChunks ?? []),
@@ -139,7 +139,8 @@ export async function commitOwnedVesselUpload(userId: string, runRef: string,
     throw new IlabServiceError('恢复点与本次保存的描述不一致。', 409);
   }
   return closeDirectVesselEvidenceRun(userId, runRef, close, { uri: checkpointReference,
-    checksum: checkpoint.row.checksum, storedBytes: descriptor.storedBytes, uncompressedBytes: descriptor.uncompressedBytes });
+    checksum: checkpoint.row.checksum, storedBytes: descriptor.storedBytes, uncompressedBytes: descriptor.uncompressedBytes },
+    deferVerification);
 }
 
 export async function authorizeOwnedVesselDownloads(userId: string, runRef: string, references: string[]) {

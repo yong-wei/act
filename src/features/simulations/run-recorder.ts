@@ -10,6 +10,7 @@ export class VesselRunRecorder {
   private writes: Promise<void> = Promise.resolve();
   private lastSavedTimeS: number;
   private lastInput: string;
+  private hasUnsavedSamples = false;
 
   constructor(run: VesselRunEvidence, revision = 0) {
     this.run = run;
@@ -20,6 +21,7 @@ export class VesselRunRecorder {
 
   append(frame: VesselSessionFrame) {
     if (this.run.stoppedAtMs !== null) throw new Error('已结束的运行不能追加采样。');
+    this.hasUnsavedSamples = true;
     const inputKey = JSON.stringify(frame.input);
     if (inputKey !== this.lastInput) {
       this.run.changes.push({ timeS: this.run.lastTimeS, input: structuredClone(frame.input) });
@@ -41,6 +43,8 @@ export class VesselRunRecorder {
   }
 
   save(session: VesselSession, reason: VesselRunEvidence['stopReason'] = null, failure: string | null = null) {
+    // 已恢复且未执行的新标签页无需重写检查点，以免让正在使用的页面产生虚假的版本冲突。
+    if (this.revision > 0 && !this.hasUnsavedSamples && reason === null) return this.writes;
     this.run.checkpoint = session.snapshot();
     session.restore(this.run.checkpoint);
     const restored = session.read();
@@ -60,6 +64,7 @@ export class VesselRunRecorder {
       this.run.stoppedAtMs ??= Date.now();
     }
     this.lastSavedTimeS = this.run.lastTimeS;
+    this.hasUnsavedSamples = false;
     const snapshot: VesselRunEvidence = { ...this.run, trace: this.run.trace.slice(),
       nativeSensorSamples: this.run.nativeSensorSamples.slice(), fineStepSamples:this.run.fineStepSamples?.slice(),
       changes: this.run.changes.slice() };

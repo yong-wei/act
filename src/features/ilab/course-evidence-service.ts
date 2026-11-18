@@ -54,7 +54,8 @@ export function vesselRunProgress(run: SimulationRun) {
     transport: direct ? 'oss' as const : 'legacy' as const,
     ...(direct && process.env.SIMULATION_EVIDENCE_TRACE_ENCODING === VESSEL_TRACE_COLUMNS
       ? { traceEncoding: VESSEL_TRACE_COLUMNS } as const : {}),
-    saveStatus: 'saved' as const, evidenceStatus: summary.evidenceVerification?.status
+    saveStatus: 'saved' as const, savedReason: summary.recoveryCheckpoint?.reason ?? summary.stopReason,
+    evidenceStatus: summary.evidenceVerification?.status
       ?? (run.completedAt ? 'verified' : 'pending') };
 }
 
