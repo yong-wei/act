@@ -7,6 +7,15 @@ import { VESSEL_EVIDENCE_DOMAIN } from '../course-evidence-service';
 import type { VesselTraceChunk } from '../course-evidence-contract';
 import {DREDGER_MODE_LABELS} from '@/resources/simulations/experiments/dredger-experiment';
 
+const uploadStatusDescriptions: Record<string, string> = {
+  pending: '成绩回传尚未确认完成，报告附件回传尚未确认完成。',
+  failed: '成绩回传尚未确认成功，报告附件回传尚未确认完成，可重试。',
+  'score-uploaded': '成绩回传已确认，报告附件回传尚未确认完成，可继续补传。',
+  uploaded: '成绩回传已确认，报告附件回传已确认。',
+  'local-only': '本轮结果保存在平台内。',
+  skipped: '本轮采用演示回传。',
+};
+
 const measurements = [
   ['Heading', '航向', '°'], ['YawRate', '转艏角速度', '°/s'],
   ['North', '北向位置', 'm'], ['East', '东向位置', 'm'], ['SpeedLog', '对水航速', 'm/s'],
@@ -56,7 +65,7 @@ export function attachSimulationKonlingContext(messages: ModelMessage[], context
       ...message,
       content: [...content, {
         type: 'text' as const,
-        text: `[服务端当前实验页面资料]\n当前船型、提问步骤和已保存进度以本条资料为准。涉及历史对话时注明其当时的船型和步骤。\n${context}`,
+        text: `[服务端当前实验页面资料]\n当前船型、提问步骤和已保存进度以本条资料为准。涉及历史对话时注明其当时的船型和步骤。回答进度问题时分别引用运行记录数、有效步骤提交数、教师终审和回传状态。\n${context}`,
       }, ...(pageObservation ? [{ type: 'text' as const, text: pageObservation }] : [])],
     };
   });
@@ -118,13 +127,15 @@ export async function loadSimulationKonlingEvidence(userId: string, courseId: st
   if (!courseKey || !vesselId || !Number.isInteger(sequence) || sequence < 1 || sequence > 20) return '';
   const session = await prisma.ilabExperimentRun.findFirst({ where: { userId, vesselId, ...(originId ? { originId } : {}) },
     orderBy: [{ startTimeMs: 'desc' }, { id: 'desc' }],
-    select: { stepDrafts: true, reportId: true } });
+    select: { stepDrafts: true, reportId: true, uploadStatus: true } });
   const draft = parseStepDrafts(session?.stepDrafts);
   const reportClientRef = typeof draft.courseState?.reportClientRef === 'string' ? draft.courseState.reportClientRef : undefined;
   const report = session?.reportId ? await prisma.virtualSimulationReport.findFirst({
-    where: { userId, id: session.reportId, experimentKey: courseKey }, select: { id: true, clientRef: true },
+    where: { userId, id: session.reportId, experimentKey: courseKey },
+    select: { id: true, clientRef: true, status: true, finalizedAt: true },
   }) : reportClientRef ? await prisma.virtualSimulationReport.findFirst({
-    where: { userId, clientRef: reportClientRef, experimentKey: courseKey }, select: { id: true, clientRef: true },
+    where: { userId, clientRef: reportClientRef, experimentKey: courseKey },
+    select: { id: true, clientRef: true, status: true, finalizedAt: true },
   }) : null;
   const stepContext = SIMULATION_COURSE_AI_CONTEXTS[courseId]?.getStepContext(stepId ?? '');
   const heading = [
@@ -135,15 +146,20 @@ export async function loadSimulationKonlingEvidence(userId: string, courseId: st
       : `服务端保存的当前操作步骤为第${draft.activeSeq}步。`,
   ].filter(Boolean).join('\n');
   if (!report?.clientRef) return `${heading}\n本轮尚无已保存的服务端实验证据，请依据步骤目标指导观察。`;
-  const [attempts, run] = await Promise.all([
+  const [attempts, runCount, run] = await Promise.all([
     prisma.stepSubmissionAttempt.findMany({ where: { userId, experimentKey: `${courseKey}:${report.clientRef}`,
       status: { notIn: ['invalid_run', 'model_mismatch'] } }, select: { stepKey: true }, distinct: ['stepKey'] }),
+    prisma.simulationRun.count({ where: { ownerUserId: userId, sourceDomain: VESSEL_EVIDENCE_DOMAIN,
+      summary: { path: ['reportId'], equals: report.id } } }),
     prisma.simulationRun.findFirst({ where: { ownerUserId: userId, sourceDomain: VESSEL_EVIDENCE_DOMAIN,
       AND: [{ summary: { path: ['reportId'], equals: report.id } }, { summary: { path: ['stepSequence'], equals: sequence } }] },
       orderBy: { updatedAt: 'desc' }, select: { summary: true,
         traces: { orderBy: { chunkIndex: 'desc' }, take: 1, select: { sampleStorageUri: true } } } }),
   ]);
-  const progress = [heading, `本轮已保存${attempts.length}步有效提交。`, formatEvidenceVerification(run?.summary),
+  const progress = [heading, `本轮服务端已保存${runCount}次运行记录。`, `本轮已保存${attempts.length}步有效提交。`,
+    report.status === 'finalized' && report.finalizedAt ? '本轮教师终审已完成。' : '本轮教师终审尚未完成。',
+    uploadStatusDescriptions[session?.uploadStatus ?? ''] ?? '本轮回传状态尚未确认。',
+    formatEvidenceVerification(run?.summary),
     formatSavedParameters(run?.summary)].filter(Boolean).join('\n');
   const reference = run?.traces[0]?.sampleStorageUri;
   if (!reference) return `${progress}\n当前提问步骤尚无服务端采样，先引导学生完成运行和保存。`;

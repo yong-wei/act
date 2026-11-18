@@ -12,7 +12,8 @@ const outcomes: Array<{ path: string; retryRequests: number }> = [];
 
 try {
   for (const vessel of paths) {
-    const context = await browser.newContext();
+    // 正式环境通过现有测试账号的会话建立先登录再携票进入的初始状态。
+    const context = await browser.newContext({ storageState: process.env.VESSEL_BROWSER_STORAGE_STATE });
     const path = `/simulations${vessel ? `/${vessel}` : ''}`;
     const endpoint = !vessel ? '/api/ilab/grant' : vessel === 'destroyer'
       ? '/api/ilab/destroyer/session' : '/api/ilab/vessel/session';

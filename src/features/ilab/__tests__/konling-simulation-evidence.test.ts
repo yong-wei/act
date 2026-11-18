@@ -3,11 +3,11 @@ import type { ModelMessage } from 'ai';
 import type { VesselTracePoint } from '@/features/simulations/run-evidence';
 
 const mocks = vi.hoisted(() => ({
-  session: vi.fn(), report: vi.fn(), attempts: vi.fn(), run: vi.fn(), read: vi.fn(),
+  session: vi.fn(), report: vi.fn(), attempts: vi.fn(), run: vi.fn(), runCount: vi.fn(), read: vi.fn(),
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: {
   ilabExperimentRun: { findFirst: mocks.session }, virtualSimulationReport: { findFirst: mocks.report },
-  stepSubmissionAttempt: { findMany: mocks.attempts }, simulationRun: { findFirst: mocks.run },
+  stepSubmissionAttempt: { findMany: mocks.attempts }, simulationRun: { findFirst: mocks.run, count: mocks.runCount },
 } }));
 vi.mock('@/lib/data-governance/simulation-trace-cas', () => ({ readSimulationTraceChunk: mocks.read }));
 import { attachSimulationKonlingContext, formatSimulationKonlingEvidence, formatSimulationPageObservation,
@@ -26,11 +26,12 @@ const point = {
 describe('控灵读取本次本人仿真证据', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.session.mockResolvedValue({ reportId: null, stepDrafts: { activeSeq: 3,
+    mocks.session.mockResolvedValue({ reportId: null, uploadStatus: 'pending', stepDrafts: { activeSeq: 3,
       courseState: { reportClientRef: 'current-round' }, bySeq: { '3': { prediction: 'private-answer-sentinel' } } } });
-    mocks.report.mockResolvedValue({ id: 'current-report', clientRef: 'current-round' });
+    mocks.report.mockResolvedValue({ id: 'current-report', clientRef: 'current-round', status: 'draft', finalizedAt: null });
     mocks.attempts.mockResolvedValue([{ stepKey: 'cruise-step-1' }]);
     mocks.run.mockResolvedValue({ traces: [{ sampleStorageUri: 'private-cas-reference' }] });
+    mocks.runCount.mockResolvedValue(1);
     mocks.read.mockResolvedValue({ points: [point] });
   });
 
@@ -98,7 +99,51 @@ describe('控灵读取本次本人仿真证据', () => {
     expect(text).toContain('本轮尚无已保存');
     expect(text).toContain('当前操作步骤为第3步');
     expect(mocks.run).not.toHaveBeenCalled();
+    expect(mocks.runCount).not.toHaveBeenCalled();
     expect(mocks.read).not.toHaveBeenCalled();
+  });
+
+  it('分别提供本轮运行数、有效提交数、教师终审与回传状态', async () => {
+    mocks.attempts.mockResolvedValue([]);
+    const text = await loadSimulationKonlingEvidence('owner', 'drilling-dp-experiment', 'drilling-dp-step-1');
+    expect(mocks.runCount).toHaveBeenCalledWith({ where: {
+      ownerUserId: 'owner', sourceDomain: 'ilab-course',
+      summary: { path: ['reportId'], equals: 'current-report' },
+    } });
+    expect(text).toContain('本轮服务端已保存1次运行记录');
+    expect(text).toContain('本轮已保存0步有效提交');
+    expect(text).toContain('本轮教师终审尚未完成');
+    expect(text).toContain('成绩回传尚未确认完成，报告附件回传尚未确认完成');
+    expect(text).toContain('航向量测11.5000°');
+    expect(text).not.toContain('private-');
+  });
+
+  it('教师终审完成与仅成绩回传成功分别表达', async () => {
+    mocks.report.mockResolvedValue({ id: 'current-report', clientRef: 'current-round',
+      status: 'finalized', finalizedAt: new Date('2026-11-18T04:00:00Z') });
+    mocks.session.mockResolvedValue({ reportId: 'current-report', uploadStatus: 'score-uploaded', stepDrafts: {} });
+    mocks.runCount.mockResolvedValue(6);
+    const text = await loadSimulationKonlingEvidence('owner', 'drilling-dp-experiment', 'drilling-dp-step-1', 'current-origin');
+    expect(text).toContain('本轮服务端已保存6次运行记录');
+    expect(text).toContain('本轮教师终审已完成');
+    expect(text).toContain('成绩回传已确认，报告附件回传尚未确认完成');
+    expect(text).not.toContain('报告附件回传已确认');
+    expect(mocks.report).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'owner', id: 'current-report', experimentKey: 'drilling' },
+      select: { id: true, clientRef: true, status: true, finalizedAt: true },
+    }));
+  });
+
+  it.each([
+    ['uploaded', '成绩回传已确认，报告附件回传已确认'],
+    ['failed', '成绩回传尚未确认成功，报告附件回传尚未确认完成'],
+    ['local-only', '本轮结果保存在平台内'],
+    ['skipped', '本轮采用演示回传'],
+    ['unknown', '本轮回传状态尚未确认'],
+  ])('回传状态%s使用已持久化的回执', async (uploadStatus, expected) => {
+    mocks.session.mockResolvedValue({ reportId: 'current-report', uploadStatus, stepDrafts: {} });
+    const text = await loadSimulationKonlingEvidence('owner', 'drilling-dp-experiment', 'drilling-dp-step-1');
+    expect(text).toContain(expected);
   });
 
   it('没有已保存操作步骤时明确其状态，同时标明当前提问步骤', async () => {
@@ -127,6 +172,7 @@ describe('控灵读取本次本人仿真证据', () => {
       effectiveGmTransverseM: 1.164, windAreasM2: { lateral: 12207.9 }, hiddenDerivative: 'private-truth-sentinel' },
       answers: 'private-answer-sentinel' } });
     const text = await loadSimulationKonlingEvidence('owner', 'container-voyage-experiment', 'container-voyage-step-2');
+    expect(text).toContain('本轮服务端已保存1次运行记录');
     expect(text).toContain('本步已保存运行的服务端恢复点');
     expect(text).toContain('有效横稳心高1.1640m');
     expect(text).toContain('侧向风面积12207.9000m²');
