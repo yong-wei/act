@@ -185,6 +185,47 @@ describe('interactive student route query boundary', () => {
     expect(mocks.getServerSession).not.toHaveBeenCalled();
   });
 
+  it('shares verified classroom content briefly after each student is authorized', async () => {
+    const mocks = await loadRouteMocks();
+    const classroom = await import('@/features/classroom/session/public-api');
+    const admission = vi.spyOn(classroom, 'readClassroomSessionUseCase')
+      .mockResolvedValue({ admission: 'ready', status: 'ACTIVE' });
+    vi.stubEnv('INTERACTIVE_CLASSROOM_CAPACITY', '1');
+    try {
+      const { renderBatchAStudent } = await import('../shared/batch-a-classroom-pages');
+      const route = { routeSegment: 'unit-1-1-see-the-full-picture', sessionId: 'shared-session' };
+      mocks.getServerSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+      let release!: () => void;
+      mocks.loadSessionBoundLessonRuntime.mockImplementationOnce(async () => {
+        await new Promise<void>(resolve => { release = resolve; });
+        return { status: 'bound', lessonRuntime: {} as never, revision: {} as never };
+      });
+      const first = renderBatchAStudent({ ...route, searchParams: { step: 'step-04' } });
+      mocks.getServerSession.mockResolvedValueOnce({ user: { id: 'student-2', role: 'STUDENT' } });
+      const second = renderBatchAStudent({ ...route, searchParams: { step: 'step-05' } });
+      await vi.waitFor(() => {
+        expect(admission).toHaveBeenCalledTimes(2);
+        expect(mocks.loadSessionBoundLessonRuntime).toHaveBeenCalledTimes(1);
+      });
+      release();
+      expect((await first)?.props.demoStepId).toBe('step-04');
+      expect((await second)?.props.demoStepId).toBe('step-05');
+      await renderBatchAStudent(route);
+      expect(mocks.loadSessionBoundLessonRuntime).toHaveBeenCalledTimes(1);
+      const clock = vi.spyOn(performance, 'now').mockReturnValue(performance.now() + 5001);
+      try {
+        await renderBatchAStudent(route);
+        await renderBatchAStudent(route);
+        expect(mocks.loadSessionBoundLessonRuntime).toHaveBeenCalledTimes(3);
+      } finally {
+        clock.mockRestore();
+      }
+    } finally {
+      admission.mockRestore();
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('sends non-demo anonymous visitors to the lesson entry and teachers to the teacher route', async () => {
     const mocks = await loadRouteMocks();
     const { renderBatchAStudent } = await import('../shared/batch-a-classroom-pages');
