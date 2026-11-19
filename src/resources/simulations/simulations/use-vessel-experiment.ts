@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
@@ -19,6 +19,7 @@ import { listRunEvidence, readRunEvidence, readExperimentDraft, readStepExperime
 import type { VesselLocalStepAttempt, VesselRunEvidence } from '@/features/simulations/run-evidence';
 import { uploadVesselCourseArtifacts, saveVesselCourseDraftToPlatform, saveVesselCourseReport, fetchCourseSessionRecovery, hasRecoverableLocalDraft,
   hydrateRecoveredCourseSession, resumeVesselVerifications, triggerCourseReportIlabUpload } from '@/features/simulations/course-artifact-upload';
+import { hasPendingVesselCourseSave, withVesselCourseSaveAdmission } from '@/features/simulations/course-save-admission';
 import { buildVesselCourseReportHtml } from '@/features/simulations/course-report';
 import type { VesselReportSections } from '@/features/ilab/course-artifact-contract';
 import { VESSEL_COURSE_VERSION } from '../experiments/destroyer-course';
@@ -894,7 +895,9 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     return () => controller.abort();
   }, [nativeCourse, canUseCloudEvidence, readyScope, scopeKey, busy, reloadCourseEvidence]);
 
-  async function uploadCourseEvidence(bindBeforeVerification = false) {
+  async function uploadCourseEvidence(bindBeforeVerification = false, saveAdmission?: {
+    checkScope: () => void; beforeAttempts: () => Promise<void>;
+  }) {
     if (activeTourNode) {
       setMessage('只读高光工况导览模式下严禁上传或回传正式证据。');
       return;
@@ -904,10 +907,10 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     const upload = courseUploads.current.catch(() => undefined).then(() => {
       if (scopeRef.current !== scopeKey || tourActiveRef.current) return;
       return uploadVesselCourseArtifacts(reportClientRef, courseAdapter.courseKey, scopeKey,
-        () => setMessage('已收件，等待核验。'), bindBeforeVerification ? () => {
+        () => setMessage('已收件，等待核验。'), saveAdmission?.beforeAttempts ?? (bindBeforeVerification ? () => {
           if (scopeRef.current !== scopeKey) throw new Error('实验轮次已切换。');
           return saveVesselCourseDraftToPlatform(courseAdapter.courseKey, scopeKey, reportClientRef, roundOriginRef.current.originId);
-        } : undefined);
+        } : undefined), saveAdmission?.checkScope);
     });
     courseUploads.current = upload;
     const result = await upload;
@@ -915,22 +918,48 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     return result;
   }
 
-  async function saveCourseToPlatform() {
+  async function saveCourseToPlatform(signal?: AbortSignal) {
     if (activeTourNode || busy || !canUseCloudEvidence || readyScope !== scopeKey) return;
     setBusy(true);
     setMessage('');
     try {
       await pauseCourseRun();
-      const saved = await uploadCourseEvidence();
+      const reportClientRef = reportRef.current;
+      const originId = roundOriginRef.current.originId;
+      const saved = await withVesselCourseSaveAdmission(reportClientRef, setMessage, async (checkLease, release) => {
+        let draftSaved = false;
+        const checkScope = () => {
+          if (!draftSaved) checkLease();
+          if (scopeRef.current !== scopeKey || reportRef.current !== reportClientRef) {
+            throw new Error('实验轮次已切换，本机记录已保留。');
+          }
+        };
+        checkScope();
+        return uploadCourseEvidence(false, {checkScope, beforeAttempts: async () => {
+          checkScope();
+          await saveVesselCourseDraftToPlatform(courseAdapter.courseKey, scopeKey, reportClientRef, originId);
+          draftSaved = true;
+          await release();
+        }});
+      }, scopeKey, signal);
       if (!saved || scopeRef.current !== scopeKey) return;
-      await saveVesselCourseDraftToPlatform(courseAdapter.courseKey, scopeKey, reportRef.current, roundOriginRef.current.originId);
       setMessage(saved.pendingCount
         ? '进度已保存到平台。尚未关联运行的预测仍保存在本机。'
         : '已保存到平台，可在其他设备继续本次实验。');
       void refreshAuditTelemetry();
-    } catch (error) { courseFailure(error); }
+    } catch (error) { if (!signal?.aborted) courseFailure(error); }
     finally { setBusy(false); }
   }
+
+  const resumePendingCloudSave = useEffectEvent((signal: AbortSignal) => {
+    if (hasPendingVesselCourseSave(scopeKey, reportRef.current)) void saveCourseToPlatform(signal);
+  });
+  useEffect(() => {
+    if (!nativeCourse || tourActive || !canUseCloudEvidence || readyScope !== scopeKey) return;
+    const controller = new AbortController();
+    resumePendingCloudSave(controller.signal);
+    return () => controller.abort();
+  }, [nativeCourse, tourActive, canUseCloudEvidence, readyScope, scopeKey]);
 
   async function submitCourseStep() {
     if (activeTourNode) {
