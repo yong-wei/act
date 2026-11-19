@@ -396,11 +396,12 @@ export async function resumeVesselVerifications(scopeKey: string, settled: () =>
 }
 
 export async function uploadVesselCourseArtifacts(reportClientRef: string, courseKey: VesselCourseKey, scopeKey: string,
-  onQueued?: () => void, beforeAttempts?: () => Promise<void>) {
+  onQueued?: () => void, beforeAttempts?: () => Promise<void>, checkScope?: () => void) {
   const context = {reportClientRef,courseKey,courseVersion:VESSEL_COURSE_VERSION};
   const uploadedRunIds = new Set<string>();
   let pendingCount = 0;
   for (const summary of await listRunEvidence(scopeKey)) {
+    checkScope?.();
     if (summary.uploadedToReportRef === reportClientRef) {uploadedRunIds.add(summary.id);continue;}
     const run = await readRunEvidence(summary.id);
     if (run) {await uploadVesselCourseRun(reportClientRef,run);uploadedRunIds.add(run.id);}
@@ -408,6 +409,7 @@ export async function uploadVesselCourseArtifacts(reportClientRef: string, cours
   const models = await listFrozenStudentModels(scopeKey);
   const uploadedModelIds = new Set<string>();
   for (const model of models) {
+    checkScope?.();
     if (model.serverId) {uploadedModelIds.add(model.id);continue;}
     if (model.payload.trainingRuns.some((window) => !uploadedRunIds.has(window.runRef))) {pendingCount++;continue;}
     const receipt = await requestVesselEvidence<{id:string;contentHash:string}>('/api/ilab/experiment-reports', {
@@ -419,6 +421,7 @@ export async function uploadVesselCourseArtifacts(reportClientRef: string, cours
   }
   const uploadedComparisonIds = new Set<string>();
   for (const comparison of await listModelComparisons(scopeKey)) {
+    checkScope?.();
     if (comparison.serverId) {uploadedComparisonIds.add(comparison.id);continue;}
     if (!uploadedRunIds.has(comparison.runId) || !uploadedModelIds.has(comparison.modelId)
       || (comparison.actuatorModelId && !uploadedModelIds.has(comparison.actuatorModelId))) {pendingCount++;continue;}
@@ -439,6 +442,7 @@ export async function uploadVesselCourseArtifacts(reportClientRef: string, cours
   }
   await beforeAttempts?.();
   for (const attempt of await listLocalStepAttempts(scopeKey)) {
+    checkScope?.();
     if (attempt.serverId || (attempt.verificationReceipt && !attempt.verificationPending)) continue;
     if (attempt.verificationPending && attempt.verificationReceipt) {
       onQueued?.();

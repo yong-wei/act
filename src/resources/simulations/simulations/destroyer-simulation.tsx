@@ -6,7 +6,7 @@ import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-l
  * 模块化重构版本 - 使用统一物理引擎和控制器
  */
 
-import { Suspense, useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, useEffectEvent, useMemo, type ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
 import { clearIlabOriginSessionStorage, describeIlabConnection, stripIlabUrlParams } from '@/features/ilab/client-grant';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -152,6 +152,7 @@ import {
   fetchCourseSessionRecovery, hydrateRecoveredCourseSession, triggerCourseReportIlabUpload,
   type VesselReportProgress,
 } from '@/features/simulations/course-artifact-upload';
+import { hasPendingVesselCourseSave, withVesselCourseSaveAdmission } from '@/features/simulations/course-save-admission';
 import type { VesselReportSections } from '@/features/ilab/course-artifact-contract';
 import { VESSEL_REPORT_STATUSES } from '@/features/ilab/course-report-review-contract';
 import { listRunEvidence, readExperimentDraft, saveExperimentDraft, readRunEvidence,
@@ -2453,7 +2454,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
     } catch (error) {reportWindow?.close();setMessage(error instanceof Error ? error.message : '暂时无法打开报告。');}
   }
 
-  async function saveCourseToPlatform() {
+  async function saveCourseToPlatform(signal?: AbortSignal) {
     if (busy || !draftReady || !canUseCloudEvidence) return;
     setBusy(true);
     setEvidenceUploadMessage('');
@@ -2463,9 +2464,26 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
     try {
       await persistCurrentRun();
       await saveDraft();
-      const saved = await uploadVesselCourseArtifacts(reportClientRef.current,'destroyer',scopeKey);
-      if (uploadScopeRef.current !== scopeKey) return;
-      await saveVesselCourseDraftToPlatform('destroyer', scopeKey, reportClientRef.current, roundOriginRef.current.originId);
+      const reportRef = reportClientRef.current;
+      const originId = roundOriginRef.current.originId;
+      const saved = await withVesselCourseSaveAdmission(reportRef, setEvidenceUploadMessage, async (checkLease, release) => {
+        let draftSaved = false;
+        const checkScope = () => {
+          if (!draftSaved) checkLease();
+          if (uploadScopeRef.current !== scopeKey || reportClientRef.current !== reportRef) {
+            throw new Error('实验轮次已切换，本机记录已保留。');
+          }
+        };
+        checkScope();
+        return uploadVesselCourseArtifacts(reportRef, 'destroyer', scopeKey,
+          () => setEvidenceUploadMessage('已收件，等待核验。'), async () => {
+            checkScope();
+            await saveVesselCourseDraftToPlatform('destroyer', scopeKey, reportRef, originId);
+            draftSaved = true;
+            await release();
+          }, checkScope);
+      }, scopeKey, signal);
+      if (uploadScopeRef.current !== scopeKey || reportClientRef.current !== reportRef) return;
       setCourseAttempts(await listLocalStepAttempts(scopeKey));
       if (step.seq === 20 && (!courseReport || ['draft','revision-requested'].includes(courseReport.status))) {
         const sections = Object.fromEntries(['problem','identification','validation','comparison','revision','conclusion']
@@ -2476,9 +2494,21 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
       setEvidenceUploadMessage(saved.pendingCount
         ? '进度已保存到平台。尚未关联运行的预测仍保存在本机。'
         : '已保存到平台，可在其他设备继续本次实验。');
-    } catch (error) {setEvidenceUploadMessage(error instanceof Error ? error.message : '同步失败，本机记录已保留。');}
+    } catch (error) {
+      if (!signal?.aborted) setEvidenceUploadMessage(error instanceof Error ? error.message : '同步失败，本机记录已保留。');
+    }
     finally {setBusy(false);}
   }
+
+  const resumePendingCloudSave = useEffectEvent((signal: AbortSignal) => {
+    if (hasPendingVesselCourseSave(scopeKey, reportClientRef.current)) void saveCourseToPlatform(signal);
+  });
+  useEffect(() => {
+    if (!draftReady || !canUseCloudEvidence || !courseStep) return;
+    const controller = new AbortController();
+    resumePendingCloudSave(controller.signal);
+    return () => controller.abort();
+  }, [draftReady, canUseCloudEvidence, courseStep, scopeKey]);
 
   async function openReport() {
     if (courseStep) {
