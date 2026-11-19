@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 
 import type {
   LessonSessionAdapter,
@@ -126,11 +126,12 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     demoStepId,
     followTeacher: true,
     pollIntervalMs: effectivePollInterval,
+    studentSync: true,
   });
   const {
     stateRecords,
     courseStates,
-    teacherStates,
+    teacherStates: individualViewTeacherStates,
     studentViewHydrated,
     fetchStudentViewStates,
     postState,
@@ -150,6 +151,14 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
   const isSyncingStatesRef = useRef(false);
   const stateFailureCountRef = useRef(0);
   const lastHiddenStatePollAtRef = useRef(0);
+  const hasSharedTeacherSync = sessionInfo?.teacherSync !== undefined;
+  const sharedTeacherSync = sessionInfo?.teacherSync;
+  const hasSessionInfo = Boolean(sessionInfo);
+  const sessionStatus = sessionInfo?.status;
+  const waitingForStudentView = !isDemo && hasSessionInfo && sessionStatus !== 'FINISHED' && !studentViewHydrated;
+  const teacherStates = useMemo(() => hasSharedTeacherSync
+    ? sharedTeacherSync ? [sharedTeacherSync] : []
+    : individualViewTeacherStates, [hasSharedTeacherSync, sharedTeacherSync, individualViewTeacherStates]);
 
   // 合并 SSE 和轮询的错误状态
   const combinedError = useMemo(() => error ?? progressError, [error, progressError]);
@@ -173,7 +182,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
       return;
     }
 
-    if (!shouldPollSessionStatus(sessionInfo?.status)) {
+    if (!hasSessionInfo || !shouldPollSessionStatus(sessionStatus)) {
       return;
     }
 
@@ -196,18 +205,19 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     } finally {
       isSyncingStatesRef.current = false;
     }
-  }, [fetchStudentViewStates, sessionInfo?.status]);
+  }, [fetchStudentViewStates, hasSessionInfo, sessionStatus]);
+  const refreshStudentView = useEffectEvent(() => { void syncStates(); });
 
   useEffect(() => {
-    if (isDemo || !shouldPollSessionStatus(sessionInfo?.status)) {
+    if (isDemo || !hasSessionInfo || !shouldPollSessionStatus(sessionStatus)) {
       return;
     }
 
-    void syncStates();
-  }, [isDemo, sessionInfo?.status, syncStates]);
+    refreshStudentView();
+  }, [hasSessionInfo, isDemo, sessionId, sessionStatus]);
 
   useEffect(() => {
-    if (isDemo || !shouldPollSessionStatus(sessionInfo?.status)) {
+    if (isDemo || !hasSessionInfo || !shouldPollSessionStatus(sessionStatus)) {
       return;
     }
 
@@ -220,11 +230,11 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
       if (!pollDecision.shouldRun) {
         return;
       }
-      void syncStates();
-    }, pollIntervalMs ?? 5000);
+      refreshStudentView();
+    }, hasSharedTeacherSync && studentViewHydrated ? 30_000 + Math.random() * 4000 : pollIntervalMs ?? 5000);
 
     return () => window.clearInterval(timer);
-  }, [isDemo, pollIntervalMs, sessionInfo?.status, syncStates]);
+  }, [hasSessionInfo, hasSharedTeacherSync, isDemo, pollIntervalMs, sessionStatus, studentViewHydrated]);
 
   useEffect(() => {
     if (isDemo || typeof document === 'undefined') {
@@ -333,7 +343,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
       activeIndex,
       teacherIndex,
       isOutOfSync: !isDemo && teacherIndex !== activeIndex,
-      loadingSession,
+      loadingSession: loadingSession || waitingForStudentView,
       error: combinedError,
       errorTelemetry: combinedErrorTelemetry,
       courseState,
@@ -359,6 +369,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
       teacherIndex,
       isDemo,
       loadingSession,
+      waitingForStudentView,
       combinedError,
       combinedErrorTelemetry,
       courseState,

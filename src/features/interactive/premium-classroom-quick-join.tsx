@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Loader2, LogIn } from 'lucide-react';
+import { lookupStudentClassroom } from '@/features/classroom/session/student-join-request';
 
 export function PremiumClassroomQuickJoin() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export function PremiumClassroomQuickJoin() {
     }
     setIsJoining(true);
     try {
-      const response = await fetch(`/api/session/join?code=${joinCode}`);
+      const response = await lookupStudentClassroom(joinCode);
       const data = (await response.json()) as { id?: string; studentHref?: string; error?: string };
       if (!response.ok || !data.id || !data.studentHref) {
         throw new Error(data.error || '课堂码无效');

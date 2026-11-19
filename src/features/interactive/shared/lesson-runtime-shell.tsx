@@ -284,8 +284,9 @@ export function LessonRuntimeLoadingShell({
       steps={[]}
       activeIndex={0}
       statusSlot={
-        <PlatformSurface className="flex min-h-[52vh] items-center justify-center">
+        <PlatformSurface className="flex min-h-[52vh] flex-col items-center justify-center gap-3" role="status">
           <Loader2 className="h-6 w-6 animate-spin text-platform-action-primary" />
+          {mode === 'student' ? <p className="text-sm text-muted-foreground">正在连接课堂。入场繁忙时会依次进入，请保留当前页面。</p> : null}
         </PlatformSurface>
       }
     />

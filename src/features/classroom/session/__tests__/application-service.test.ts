@@ -210,6 +210,25 @@ describe('classroom session application service', () => {
     })).resolves.toMatchObject({ id: 'session-1', planTitle: 'Plan' });
   });
 
+  it('checks admission without loading classroom content or presence', async () => {
+    const reserveStudentAdmission = vi.fn().mockResolvedValueOnce(1200).mockResolvedValueOnce(0);
+    const runtime = createLifecycleRuntime({
+      reserveStudentAdmission,
+      loadAccessActor: vi.fn().mockResolvedValue({ id: 'student-1', role: 'STUDENT', profile: { classId: 'class-1' } }),
+    });
+    const input = {
+      actor: { id: 'student-1', role: 'STUDENT' },
+      sessionId: 'session-1',
+      admissionOnly: true,
+    };
+    await expect(readClassroomSession(runtime, input)).resolves.toEqual({ admission: 'waiting', retryAfterMs: 1200 });
+    await expect(readClassroomSession(runtime, input)).resolves.toEqual({ admission: 'ready', status: 'ACTIVE' });
+    expect(reserveStudentAdmission).toHaveBeenCalledWith('session-1', 'student-1');
+    expect(runtime.resolveGeneratedBinding).not.toHaveBeenCalled();
+    expect(runtime.readCachedState).not.toHaveBeenCalled();
+    expect(runtime.loadReadableSession).not.toHaveBeenCalled();
+  });
+
   it('rejects invalid advance transitions', async () => {
     const runtime = createLifecycleRuntime();
     await expect(advanceClassroomSession(runtime, {

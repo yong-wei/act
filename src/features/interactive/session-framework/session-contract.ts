@@ -42,6 +42,7 @@ export interface SessionInfo {
   currentStage?: string | null;
   planTitle?: string;
   updatedAt?: string | Date; // 版本控制时间戳，用于防止页面回跳
+  teacherSync?: SessionStateRecord | null;
 }
 
 export interface TeacherViewStatePayload {

@@ -141,7 +141,7 @@ function appendLifecycleEvent(data: unknown, event: unknown | null): unknown {
   };
 }
 
-function toStudentTeacherSyncRecord(state: ClassroomStateRow) {
+export function toStudentTeacherSyncRecord(state: ClassroomStateRow) {
   return {
     itemId: state.itemId,
     stateKey: state.stateKey,

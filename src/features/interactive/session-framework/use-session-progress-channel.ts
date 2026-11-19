@@ -24,6 +24,7 @@ interface UseSessionProgressChannelOptions {
   demoStepId?: string | null;
   followTeacher?: boolean;
   pollIntervalMs?: number;
+  studentSync?: boolean;
 }
 
 type DemoStepSyncUpdate = {
@@ -107,6 +108,7 @@ export function useSessionProgressChannel({
   demoStepId,
   followTeacher = false,
   pollIntervalMs = 5000,
+  studentSync = false,
 }: UseSessionProgressChannelOptions) {
   const stepIdsSyncKey = getStepIdsSyncKey(stepIds);
   const stableStepIds = useMemo(() => parseStepIdsSyncKey(stepIdsSyncKey), [stepIdsSyncKey]);
@@ -116,6 +118,8 @@ export function useSessionProgressChannel({
   const [teacherIndex, setTeacherIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [errorTelemetry, setErrorTelemetry] = useState<FetchFailureTelemetry | null>(null);
+  const [waiting, setWaiting] = useState<{ sessionId: string; delay: number } | null>(null);
+  const admittedSessionRef = useRef<string | null>(null);
   const initialTeacherSyncRef = useRef(isDemo || !followTeacher);
   const lastTeacherIndexRef = useRef<number | null>(null);
   const initializedTeacherRef = useRef(isDemo || followTeacher);
@@ -173,7 +177,10 @@ export function useSessionProgressChannel({
       return;
     }
 
-    const url = `/api/session/${sessionId}`;
+    const query = studentSync
+      ? `?studentSync=1${admittedSessionRef.current === sessionId ? '' : '&admission=1'}`
+      : '';
+    const url = `/api/session/${sessionId}${query}`;
     const startedAt = Date.now();
 
     if (isSyncingRef.current) {
@@ -185,7 +192,13 @@ export function useSessionProgressChannel({
 
     try {
       const response = await fetch(url, timeout ? { signal: timeout.signal } : undefined);
-      const data = (await response.json().catch(() => ({}))) as SessionInfo & { error?: string };
+      const data = (await response.json().catch(() => ({}))) as SessionInfo & { error?: string; retryAfterMs?: number };
+
+      if (studentSync && response.status === 202 && typeof data.retryAfterMs === 'number') {
+        setWaiting({ sessionId, delay: Math.max(250, Math.min(10_000, data.retryAfterMs)) + Math.random() * 350 });
+        return;
+      }
+      if (studentSync) setWaiting(null);
 
       if (!response.ok) {
         throw toFetchTelemetryError(
@@ -201,6 +214,7 @@ export function useSessionProgressChannel({
           }),
         );
       }
+      if (studentSync) admittedSessionRef.current = sessionId;
 
       const serverTimestamp = getTimestampFromSession(data);
 
@@ -270,6 +284,14 @@ export function useSessionProgressChannel({
       setError(null);
       setErrorTelemetry(null);
     } catch (requestError) {
+      const httpStatus = getFetchFailureTelemetry(requestError)?.status;
+      if (studentSync && admittedSessionRef.current !== sessionId
+        && (typeof httpStatus !== 'number' || httpStatus === 429 || httpStatus >= 500)) {
+        errorCountRef.current += 1;
+        setWaiting({ sessionId, delay: Math.min(8000, 1000 * errorCountRef.current) + Math.random() * 350 });
+        return;
+      }
+      if (studentSync) setWaiting(null);
       const errorMessage = requestError instanceof Error ? requestError.message : '课堂同步失败';
 
       // 错误退避：连续错误时增加跳过次数
@@ -322,7 +344,7 @@ export function useSessionProgressChannel({
       timeout?.clear();
       isSyncingRef.current = false;
     }
-  }, [activeIndex, followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, sessionInfo?.status, stableStepIds]);
+  }, [activeIndex, followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, sessionInfo?.status, stableStepIds, studentSync]);
 
   const patchSession = useCallback(
     async (patch: Record<string, unknown>) => {
@@ -520,6 +542,11 @@ export function useSessionProgressChannel({
       return;
     }
 
+    if (waiting?.sessionId === sessionId) {
+      const retry = window.setTimeout(() => { void syncSession(); }, waiting.delay);
+      return () => window.clearTimeout(retry);
+    }
+
     const timer = window.setInterval(() => {
       // 如果暂停或错误退避中，跳过本次轮询
       if (isPausedRef.current) {
@@ -534,10 +561,10 @@ export function useSessionProgressChannel({
         return;
       }
       void syncSession();
-    }, pollIntervalMs);
+    }, pollIntervalMs + (studentSync ? Math.random() * 850 : 0));
 
     return () => window.clearInterval(timer);
-  }, [isDemo, pollIntervalMs, sessionInfo?.status, syncSession]);
+  }, [isDemo, pollIntervalMs, sessionId, sessionInfo?.status, studentSync, syncSession, waiting]);
 
   useEffect(() => {
     if (isDemo || typeof document === 'undefined') {

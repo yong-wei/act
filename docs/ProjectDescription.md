@@ -145,6 +145,8 @@ Active 图谱工作区 UI 精修（OpenSpec `refine-active-knowledge-workspace-u
 
 公开教学媒体以内容摘要保存在私有 `act-course-models/teaching-media/sha256/`，通过 `static.adapt-learn.online/teaching-media/sha256/` 分发。独立规范目录服务课程音视频、图片、PDF、教材插图与已接受的信息图；课堂固定资源仍以原 Release 清单和内容摘要定位。信息图图片允许匿名读取，保留审核、Authority/Teaching、摘要与资源引用校验；图谱和节点详情继续使用原权限规则。操作与恢复见 [公开教学媒体 ESA 分发](./operations/public-teaching-media-esa.md)。
 
+正式互动课堂支持入场前分批放行。学生先收到候场状态，放行后再加载课堂内容。公共程序资源可使用按版本发布的边缘缓存，身份、课程版本绑定和个人作答继续由应用校验。
+
 互动课程正在从“课程私有组件变体”迁移到“标准模块框架”。新课应使用注册过的模块和 manifest 契约；未注册模块、未声明题型或无法治理的提交结构应被测试闸门拦截。
 
 `1-1` 单元当前已经按“系统全貌”定位完成标准互动课首轮实现，入口路由为 `/interactive-learning/courses/unit-1-1-see-the-full-picture`，学生与教师课堂页位于该路由下的私有 `[sessionId]` 子路由。实现文件包括 `src/lib/unit-1-1-course.ts`、`src/lib/lesson-1-1-ai-contexts.ts` 和 `src/features/interactive/unit-1-1-see-the-full-picture/*`。作者态材料、互动契约和 acceptance 已齐备，manifest audit 已达到 15 steps、91 modules、0 issues。当前剩余工程口径是把 `1-1` 纳入严格实现契约注册，避免后续标准课被旧的 migrated-lesson 语义遗漏。

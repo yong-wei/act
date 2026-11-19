@@ -16,6 +16,10 @@ import {
   resolveGeneratedCoursewareSessionBinding,
 } from '@/lib/smart-courseware/classroom-runtime';
 import { generateUniqueJoinCode } from '@/lib/join-code';
+import { toStudentTeacherSyncRecord } from '../application/state';
+import { loadSharedTeacherSync } from './prisma-state-runtime';
+import { reserveInteractiveStudentAdmission } from './student-admission';
+import { isClassroomCapacityEnabled, loadSharedClassroomRead } from './shared-classroom-reads';
 import {
   advanceClassroomSession,
   endClassroomSession,
@@ -51,28 +55,38 @@ function asReadableSession(session: {
   return session;
 }
 
-export function createPrismaClassroomLifecycleRuntime(): ClassroomLifecycleRuntime {
+export function createPrismaClassroomLifecycleRuntime(studentSync = false): ClassroomLifecycleRuntime {
   return {
     now: () => new Date(),
+    reserveStudentAdmission: reserveInteractiveStudentAdmission,
+    ...(studentSync && isClassroomCapacityEnabled() ? {
+      readStudentTeacherSync: async (sessionId: string) => {
+        const shared = await loadSharedTeacherSync(sessionId);
+        return shared ? toStudentTeacherSyncRecord(shared) : null;
+      },
+    } : {}),
     loadAccessActor: async (actorId) => prisma.user.findUnique({
       where: { id: actorId },
       select: { id: true, role: true, profile: { select: { classId: true } } },
     }),
-    loadAccessSession: async (sessionId) => prisma.classSession.findUnique({
-      where: { id: sessionId },
-      select: {
-        id: true,
-        planId: true,
-        teacherId: true,
-        status: true,
-        classId: true,
-        coursewarePublicationRevisionId: true,
-        coursewareDisplayName: true,
-        coursewareRevisionNumber: true,
-        coursewarePlanRevisionNumber: true,
-        manifestHash: true,
-      },
-    }),
+    loadAccessSession: async (sessionId) => {
+      const load = () => prisma.classSession.findUnique({
+        where: { id: sessionId },
+        select: {
+          id: true,
+          planId: true,
+          teacherId: true,
+          status: true,
+          classId: true,
+          coursewarePublicationRevisionId: true,
+          coursewareDisplayName: true,
+          coursewareRevisionNumber: true,
+          coursewarePlanRevisionNumber: true,
+          manifestHash: true,
+        },
+      });
+      return studentSync ? loadSharedClassroomRead(`access:${sessionId}`, load) : load();
+    },
     resolveGeneratedBinding: async (session) => {
       const generatedResolution = await resolveGeneratedCoursewareSessionBinding(prisma, {
         id: session.id ?? '',
