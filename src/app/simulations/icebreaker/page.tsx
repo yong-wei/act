@@ -17,7 +17,7 @@ export default async function IcebreakerSimulationPage({
       guideHref="/supporting/guide-06-icebreaker.pdf"
       localToolTemplate="ice-propulsion"
     >
-      <IcebreakerSimulation ticket={ticket} />
+      <IcebreakerSimulation classroomEntry={process.env.SIMULATION_ENTRY_QUEUE === '1'} ticket={ticket} />
     </SimulationShell>
   );
 }

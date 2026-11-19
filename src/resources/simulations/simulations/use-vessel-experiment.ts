@@ -18,7 +18,7 @@ import { listRunEvidence, readRunEvidence, readExperimentDraft, readStepExperime
   saveLocalStepAttempt, listExperimentDrafts, type VesselExperimentDraft, type VesselRunSummary } from '@/features/simulations/local-evidence-store';
 import type { VesselLocalStepAttempt, VesselRunEvidence } from '@/features/simulations/run-evidence';
 import { uploadVesselCourseArtifacts, saveVesselCourseDraftToPlatform, saveVesselCourseReport, fetchCourseSessionRecovery, hasRecoverableLocalDraft,
-  hydrateRecoveredCourseSession, triggerCourseReportIlabUpload } from '@/features/simulations/course-artifact-upload';
+  hydrateRecoveredCourseSession, resumeVesselVerifications, triggerCourseReportIlabUpload } from '@/features/simulations/course-artifact-upload';
 import { buildVesselCourseReportHtml } from '@/features/simulations/course-report';
 import type { VesselReportSections } from '@/features/ilab/course-artifact-contract';
 import { VESSEL_COURSE_VERSION } from '../experiments/destroyer-course';
@@ -264,7 +264,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const step = experiment.steps[displayActiveSeq - 1] ?? experiment.steps[0];
   const viewed = experiment.steps[displayViewSeq - 1] ?? step;
   const doneSeqs = nativeCourse ? [...new Set(attempts.filter((attempt) => attempt.scopeKey === scopeKey
-    && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))]
+    && !attempt.verificationPending && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))]
     : records.map((record) => record.seq);
   const viewedRecord = records.find((record) => record.seq === viewSeq);
   const shownSamples = activeTourNode
@@ -295,7 +295,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       explanation: live.readings.interpretation ?? '', durationS: current.plan.durationS,
       checkpoint: null, runConfiguration: current.plan.configuration,
       completedSteps: [...new Set(live.attempts.filter((attempt) => attempt.scopeKey === current.plan.scopeKey
-        && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))], updatedAtMs: Date.now(),
+        && !attempt.verificationPending && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))], updatedAtMs: Date.now(),
       answers: live.readings, plannedRunId: plannedRunRef.current, reportClientRef: reportRef.current,
       originId: roundOriginRef.current.scope === current.plan.scopeKey ? roundOriginRef.current.originId : undefined,
       reportRunIds: live.reportRunIds, courseSettings: Object.fromEntries(Object.entries(live.settings)), designStudentModelId: live.designModelId});
@@ -365,7 +365,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
           setUploadFailed(recovery.ilabRun.retryableUpload);
         }
         savedCourseReportId.current = recovery.report?.id ?? '';
-        if (!recovery.matchesLocalSave && (recovery.reportClientRef || recovery.ilabRun)) {
+        if (recovery.reportClientRef || recovery.ilabRun) {
           await hydrateRecoveredCourseSession(scope, recovery);
           draft = await readExperimentDraft(scope);
         }
@@ -882,7 +882,19 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     finally { setBusy(false); }
   }
 
-  async function uploadCourseEvidence() {
+  useEffect(() => {
+    if (!nativeCourse || !canUseCloudEvidence || readyScope !== scopeKey || busy) return;
+    const controller = new AbortController();
+    void resumeVesselVerifications(scopeKey, () => {
+      void reloadCourseEvidence(scopeKey);
+      setMessage('核验状态已更新，可查看本步记录。');
+    }, controller.signal, () => setMessage('已收件，等待核验。')).catch((error: unknown) => {
+      if (!controller.signal.aborted && error instanceof Error) setMessage(error.message);
+    });
+    return () => controller.abort();
+  }, [nativeCourse, canUseCloudEvidence, readyScope, scopeKey, busy, reloadCourseEvidence]);
+
+  async function uploadCourseEvidence(bindBeforeVerification = false) {
     if (activeTourNode) {
       setMessage('只读高光工况导览模式下严禁上传或回传正式证据。');
       return;
@@ -891,7 +903,11 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     if (scopeRef.current !== scopeKey) return;
     const upload = courseUploads.current.catch(() => undefined).then(() => {
       if (scopeRef.current !== scopeKey || tourActiveRef.current) return;
-      return uploadVesselCourseArtifacts(reportClientRef, courseAdapter.courseKey, scopeKey);
+      return uploadVesselCourseArtifacts(reportClientRef, courseAdapter.courseKey, scopeKey,
+        () => setMessage('已收件，等待核验。'), bindBeforeVerification ? () => {
+          if (scopeRef.current !== scopeKey) throw new Error('实验轮次已切换。');
+          return saveVesselCourseDraftToPlatform(courseAdapter.courseKey, scopeKey, reportClientRef, roundOriginRef.current.originId);
+        } : undefined);
     });
     courseUploads.current = upload;
     const result = await upload;
@@ -937,19 +953,23 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       const runIds = new Set(activeSeq === 20 ? reportRunIds : allRuns.filter((run) => run.stepSequence === activeSeq).map((run) => run.id));
       if (definition.stepKind === 'analysis') for (const model of allModels) for (const training of model.payload.trainingRuns) runIds.add(training.runRef);
       if (activeSeq === courseAdapter.forecastOnlySequence) for (const comparison of evidenceComparisons) runIds.add(comparison.runId);
-      const attempt: VesselLocalStepAttempt = {id: crypto.randomUUID(), scopeKey, stepSequence: activeSeq,
+      const retrying = (await listLocalStepAttempts(scopeKey)).find(item => item.stepSequence === activeSeq && item.verificationPending);
+      const attempt: VesselLocalStepAttempt = retrying ?? {id: crypto.randomUUID(), scopeKey, stepSequence: activeSeq,
         runIds: [...runIds], studentModelIds: allModels.map((model) => model.id),
         comparisonIds: evidenceComparisons.filter((comparison) => runIds.has(comparison.runId)).map((comparison) => comparison.id),
         answers: {...readings}, createdAtMs: Date.now(),
-        status: problem ? 'model_mismatch' : 'pending-review', validationFeedback: problem, serverId: null};
+        status: problem ? 'model_mismatch' : 'pending-review', validationFeedback: problem, serverId: null,
+        verificationPending: canUseCloudEvidence};
       await saveLocalStepAttempt(attempt); await reloadCourseEvidence();
       let uploadFailure: string | null = null;
       if (canUseCloudEvidence) {
         try {
           if (scopeRef.current !== scopeKey) return;
-          await uploadCourseEvidence();
+          await uploadCourseEvidence(true);
           const savedAttempt = (await listLocalStepAttempts(scopeKey)).find((item) => item.id === attempt.id);
-          problem = savedAttempt?.validationFeedback ?? problem;
+          if (!savedAttempt?.serverId && !savedAttempt?.validationFeedback) throw new Error('证据暂未齐备，本机提交已保留。');
+          problem = savedAttempt?.validationFeedback ?? (savedAttempt?.status === 'pending-review' || savedAttempt?.status === 'below_target'
+            ? null : '本步证据尚未通过核验。');
           if (savedAttempt?.serverId && scopeRef.current === scopeKey) {
             await saveVesselCourseDraftToPlatform(courseAdapter.courseKey, scopeKey, reportRef.current,
               roundOriginRef.current.originId, !problem && !doneSeqs.includes(activeSeq) && activeSeq < 20 ? activeSeq + 1 : undefined);
@@ -962,7 +982,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
           }
         } catch (error) { uploadFailure = error instanceof Error ? error.message : '上传失败，本机证据已保留。'; }
       }
-      if (problem) { setMessage(`这次尝试已保留。${problem}`); return; }
+      if (problem || uploadFailure) { setMessage(`这次尝试已保留。${uploadFailure ?? problem}`); return; }
       void refreshAuditTelemetry();
       setMessage(`本步证据已保存，各次尝试均会保留，成绩由教师复核。${uploadFailure ? `上传尚未完成。${uploadFailure}` : ''}`);
       if (!doneSeqs.includes(activeSeq) && activeSeq < 20) {

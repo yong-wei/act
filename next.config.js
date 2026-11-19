@@ -2,6 +2,20 @@ const path = require('node:path');
 
 const buildFilesystemRoot = process.env.ACT_NEXT_BUILD_FILESYSTEM_ROOT;
 
+function publicStaticAssetPrefix() {
+  const origin = process.env.ACT_PUBLIC_NEXT_STATIC_ORIGIN;
+  if (!origin) return '';
+  const target = new URL(origin);
+  if (target.protocol !== 'https:' || target.origin !== origin) {
+    throw new Error('ACT_PUBLIC_NEXT_STATIC_ORIGIN must be a bare HTTPS origin');
+  }
+  const revision = process.env.APP_REVISION;
+  if (!revision || !/^[0-9a-f]{40}$/.test(revision)) {
+    throw new Error('ACT_PUBLIC_NEXT_STATIC_ORIGIN requires a full APP_REVISION');
+  }
+  return `${target.origin}/app-static/${revision}`;
+}
+
 const runtimeCatalogTraceIncludes = [
   './course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
   './course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
@@ -48,6 +62,7 @@ const contentTraceExcludes = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  assetPrefix: publicStaticAssetPrefix(),
   allowedDevOrigins: ['127.0.0.1'],
   experimental: {
     cpus: 2,

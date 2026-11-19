@@ -44,7 +44,7 @@ export default async function DestroyerSimulationPage({
       taskContext={simulationTaskContext}
     >
       <StudentFeedbackTaskPanel context={feedbackContext} surface="simulation-destroyer" className="mb-4" />
-      <DestroyerSimulation ticket={ticket} />
+      <DestroyerSimulation classroomEntry={process.env.SIMULATION_ENTRY_QUEUE === '1'} ticket={ticket} />
     </SimulationShell>
   );
 }

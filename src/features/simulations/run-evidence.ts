@@ -176,6 +176,8 @@ export interface VesselLocalStepAttempt {
   status: 'pending-review' | 'invalid_run' | 'model_mismatch' | 'below_target';
   validationFeedback?: string | null;
   serverId: string | null;
+  verificationPending?: boolean;
+  verificationReceipt?: boolean;
 }
 
 export function vesselDpMetricsRequest(points: VesselTracePoint[], endTimeS: number) {

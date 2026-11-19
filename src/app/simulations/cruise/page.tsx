@@ -150,7 +150,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
         </div>
       ) : null}
     >
-      <CruiseSimulation ticket={getSingleSearchParam(searchParams?.ticket) ?? ''} />
+      <CruiseSimulation classroomEntry={process.env.SIMULATION_ENTRY_QUEUE === '1'} ticket={getSingleSearchParam(searchParams?.ticket) ?? ''} />
       <section className="sr-only" data-simulation-local-note="scene-controls">
         相机、视角和场景工具为任务局部控制。
       </section>

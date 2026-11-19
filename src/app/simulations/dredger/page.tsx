@@ -17,7 +17,7 @@ export default async function DredgerSimulationPage({
       guideHref="/supporting/guide-07-dredger.pdf"
       localToolTemplate="dredger-operation"
     >
-      <DredgerSimulation ticket={ticket} />
+      <DredgerSimulation classroomEntry={process.env.SIMULATION_ENTRY_QUEUE === '1'} ticket={ticket} />
     </SimulationShell>
   );
 }

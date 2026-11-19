@@ -3,3 +3,5 @@ export type { VesselTracePoint, VesselTraceChunkMetadata, CourseRunRecovery } fr
 export { MAX_VESSEL_EVIDENCE_BYTES, VESSEL_TRACE_COLUMNS, recoveryTraceReference,
   simulationOssReference, simulationOssLocation, simulationTraceReferencePattern } from './evidence-reference';
 export { decodeVesselTraceColumns } from './evidence-chunk-columns';
+
+export type { VesselLocalStepAttempt } from './run-evidence';

@@ -74,6 +74,7 @@ RUN --mount=type=cache,id=act-npm-${CACHE_PLATFORM},target=/root/.npm,sharing=lo
 FROM base AS builder
 WORKDIR /app
 ARG APP_REVISION
+ARG ACT_PUBLIC_NEXT_STATIC_ORIGIN=
 ARG NODE_MAX_OLD_SPACE_SIZE=12288
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

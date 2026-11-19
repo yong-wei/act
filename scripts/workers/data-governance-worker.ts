@@ -75,6 +75,7 @@ import type {
 import { createMathDocumentGradingWorker } from './math-document-grading-worker';
 import { createTeacherAssignmentReviewOutboxWorker } from './teacher-assignment-review-outbox-worker';
 import { drainVesselProcessAnalysis } from '@/features/ilab/adapters/course-process-analysis';
+import { drainCourseVerification } from '@/features/ilab/adapters/course-verification-queue';
 import { createDefaultReviewedDerivativeRenderer } from '@/lib/data-governance/teacher-assignment-review-derivative-storage';
 import { defaultReviewedDerivativeOptions } from '@/lib/data-governance/teacher-assignment-review-derivative';
 import {
@@ -123,6 +124,8 @@ let mathDocumentGradingController: Awaited<ReturnType<typeof createMathDocumentG
 let teacherAssignmentReviewController: ReturnType<typeof createTeacherAssignmentReviewOutboxWorker> | null = null;
 let processAnalysisTimer: ReturnType<typeof setInterval> | undefined;
 let processAnalysisTick: Promise<unknown> | undefined;
+let verificationTimer: ReturnType<typeof setInterval> | undefined;
+let verificationTick: Promise<unknown> | undefined;
 let isShuttingDown = false;
 let infrastructureFailureHandled = false;
 
@@ -1120,6 +1123,15 @@ async function startWorkers() {
       .finally(() => { processAnalysisTick = undefined; });
   }, 5_000);
   processAnalysisTimer.unref();
+  if (process.env.SIMULATION_VERIFICATION_QUEUE === '1') {
+    verificationTimer = setInterval(() => {
+      if (isShuttingDown || verificationTick) return;
+      verificationTick = drainCourseVerification()
+        .catch((error: unknown) => logWithThrottle('simulation-verification', 'warn', '实验核验暂未完成', error))
+        .finally(() => { verificationTick = undefined; });
+    }, 1000);
+    verificationTimer.unref();
+  }
   await ensureCoursewareGenerationWorker(redis);
   console.log('[Worker] Smart courseware generation worker started');
   if (isMathDocumentGradingWorkerRequired()) {
@@ -1244,6 +1256,8 @@ async function shutdown(exitCode: number) {
   if (mathDocumentGradingController) cleanupTasks.push(mathDocumentGradingController.close());
   if (teacherAssignmentReviewController) cleanupTasks.push(teacherAssignmentReviewController.close());
   clearInterval(processAnalysisTimer);
+  clearInterval(verificationTimer);
+  if (verificationTick) cleanupTasks.push(verificationTick);
   cleanupTasks.push(closeCoursewareGenerationWorker());
   if (eventQueue) cleanupTasks.push(eventQueue.close());
   if (studentQueue) cleanupTasks.push(studentQueue.close());

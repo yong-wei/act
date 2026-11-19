@@ -148,7 +148,7 @@ import { createVesselSimulationSessionBrowser, type VesselSession, type VesselSe
 import { VESSEL_COURSE_VERSION, destroyerCourseCommands, destroyerCourseVariants, type DestroyerCourseStep } from '../experiments/destroyer-course';
 import { VesselRunRecorder } from '@/features/simulations/run-recorder';
 import {
-  uploadVesselCourseArtifacts, saveVesselCourseDraftToPlatform, saveVesselCourseReport, hasRecoverableLocalDraft,
+  uploadVesselCourseArtifacts, saveVesselCourseDraftToPlatform, saveVesselCourseReport, hasRecoverableLocalDraft, resumeVesselVerifications,
   fetchCourseSessionRecovery, hydrateRecoveredCourseSession, triggerCourseReportIlabUpload,
   type VesselReportProgress,
 } from '@/features/simulations/course-artifact-upload';
@@ -1355,7 +1355,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
     }
     return points;
   }, [scenarioLogic, motion.duration]);
-  const doneSeqs = useMemo(() => step.courseDefinition ? [...new Set(courseAttempts.filter((attempt) => !['invalid_run','model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))]
+  const doneSeqs = useMemo(() => step.courseDefinition ? [...new Set(courseAttempts.filter((attempt) => !attempt.verificationPending && !['invalid_run','model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))]
     : records.map((record) => record.seq), [step.courseDefinition, courseAttempts, records]);
   const viewedRecord = records.find((record) => record.seq === viewSeq);
   const currentRunId = recorderRef.current?.run.id ?? null;
@@ -1621,8 +1621,8 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           if (recovery.report) {
             setCourseReport(recovery.report);
           }
-          if (!recovery.matchesLocalSave && (recovery.reportClientRef || recovery.ilabRun || recovery.attempts.length > 0
-            || recovery.runs.length > 0 || recovery.models.length > 0 || recovery.comparisons.length > 0)) {
+          if (recovery.reportClientRef || recovery.ilabRun || recovery.attempts.length > 0
+            || recovery.runs.length > 0 || recovery.models.length > 0 || recovery.comparisons.length > 0) {
             await hydrateRecoveredCourseSession(scopeKey, recovery);
             if (cancelled) return;
             [draft, attempts, models, comparisons, runs] = await Promise.all([
@@ -2069,6 +2069,22 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
     return { ok: true, steps: finalSteps };
   }
 
+  useEffect(() => {
+    if (!draftReady || !courseStep || !canUseCloudEvidence || busy) return;
+    const controller = new AbortController();
+    void resumeVesselVerifications(scopeKey, () => {
+      void listLocalStepAttempts(scopeKey).then(attempts => {
+        if (!controller.signal.aborted) {
+          setCourseAttempts(attempts);
+          setEvidenceUploadMessage('核验状态已更新，可查看本步记录。');
+        }
+      });
+    }, controller.signal, () => setEvidenceUploadMessage('已收件，等待核验。')).catch((error: unknown) => {
+      if (!controller.signal.aborted && error instanceof Error) setEvidenceUploadMessage(error.message);
+    });
+    return () => controller.abort();
+  }, [draftReady, courseStep, canUseCloudEvidence, busy, scopeKey]);
+
   async function submitStep() {
     const order = assertDestroyerStepOrder(doneSeqs, step.seq);
     if (order) {
@@ -2093,22 +2109,29 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           designKp:(model) => designStudentHeadingController(model).kp });
         const referencedRunIds = new Set(step.seq === 20 ? reportRunIds : runs.filter((run) => run.stepSequence === step.seq).map((run) => run.id));
         if (courseStep.stepKind === 'analysis') for (const model of models) for (const window of model.payload.trainingRuns) referencedRunIds.add(window.runRef);
-        const attempt: VesselLocalStepAttempt = { id: crypto.randomUUID(), scopeKey, stepSequence: step.seq,
+        const retrying = (await listLocalStepAttempts(scopeKey)).find(item => item.stepSequence === step.seq && item.verificationPending);
+        const attempt: VesselLocalStepAttempt = retrying ?? { id: crypto.randomUUID(), scopeKey, stepSequence: step.seq,
           runIds: [...referencedRunIds], studentModelIds: models.map((model) => model.id), comparisonIds: comparisons.map((comparison) => comparison.id),
           answers: { ...readings }, createdAtMs: Date.now(),
           status: problem ? (courseStep.stepKind === 'run' && !runs.some((run) => run.stepSequence === step.seq && run.stopReason !== 'failure' && run.lastTimeS >= (courseStep.runDurationS ?? 0)) ? 'invalid_run' : 'model_mismatch') : 'pending-review',
-          validationFeedback:problem, serverId: null };
+          validationFeedback:problem, serverId: null, verificationPending: canUseCloudEvidence };
         await saveLocalStepAttempt(attempt);
         const nextAttempts = await listLocalStepAttempts(scopeKey);
         setCourseAttempts(nextAttempts);
         if (canUseCloudEvidence) {
           try {
             await saveDraft();
-            await uploadVesselCourseArtifacts(reportClientRef.current,'destroyer',scopeKey);
+            await uploadVesselCourseArtifacts(reportClientRef.current,'destroyer',scopeKey,
+              () => setEvidenceUploadMessage('已收件，等待核验。'), () => {
+                if (uploadScopeRef.current !== scopeKey) throw new Error('实验轮次已切换。');
+                return saveVesselCourseDraftToPlatform('destroyer', scopeKey, reportClientRef.current, roundOriginRef.current.originId);
+              });
             const uploadedAttempts = await listLocalStepAttempts(scopeKey);
             setCourseAttempts(uploadedAttempts);
             const savedAttempt = uploadedAttempts.find((item)=>item.id === attempt.id);
-            if (savedAttempt?.validationFeedback) problem = savedAttempt.validationFeedback;
+            if (!savedAttempt?.serverId && !savedAttempt?.validationFeedback) throw new Error('证据暂未齐备，本机提交已保留。');
+            problem = savedAttempt?.validationFeedback ?? (savedAttempt?.status === 'pending-review' || savedAttempt?.status === 'below_target'
+              ? null : '本步证据尚未通过核验。');
             if (savedAttempt?.serverId && uploadScopeRef.current === scopeKey) {
               await saveVesselCourseDraftToPlatform('destroyer', scopeKey, reportClientRef.current,
                 roundOriginRef.current.originId, !problem && !doneSeqs.includes(step.seq) && step.seq < steps.length ? step.seq + 1 : undefined);
@@ -2128,7 +2151,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                 }
               }
             }
-          } catch (error) { setEvidenceUploadMessage(error instanceof Error ? error.message : '上传失败，本机证据已保留。'); }
+          } catch (error) { setEvidenceUploadMessage(error instanceof Error ? error.message : '上传失败，本机证据已保留。'); return; }
         }
         if (problem) { setMessage(`这次提交已保留。${problem}`); return; }
         const nextDrafts = { ...stepDraftsRef.current };

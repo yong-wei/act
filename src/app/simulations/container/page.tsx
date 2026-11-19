@@ -17,7 +17,7 @@ export default async function ContainerSimulationPage({
       guideHref="/supporting/guide-03-container.pdf"
       localToolTemplate="heading-control"
     >
-      <ContainerSimulation ticket={ticket} />
+      <ContainerSimulation classroomEntry={process.env.SIMULATION_ENTRY_QUEUE === '1'} ticket={ticket} />
     </SimulationShell>
   );
 }

@@ -130,7 +130,17 @@ export async function hydrateRecoveredCourseSession(
   scopeKey: string,
   recovery: CourseSessionRecoveryPayload<CourseRunRecovery>,
 ): Promise<{ hydratedCount: number }> {
-  if (recovery.matchesLocalSave) return { hydratedCount: 0 };
+  if (recovery.matchesLocalSave) {
+    const current = new Map((await listLocalStepAttempts(scopeKey)).map(attempt => [attempt.id, attempt]));
+    for (const attempt of recovery.attempts) {
+      const local = current.get(attempt.id);
+      if (!local || (!local.serverId && attempt.verificationReceipt
+        && (!local.verificationReceipt || (local.verificationPending && !attempt.verificationPending)))) {
+        await saveLocalStepAttempt({ ...attempt, scopeKey, answers: local?.answers ?? attempt.answers });
+      }
+    }
+    return { hydratedCount: 0 };
+  }
   let hydratedCount = 0;
   const localDraft = await readExperimentDraft(scopeKey);
   if (localDraft?.reportClientRef && recovery.reportClientRef && localDraft.reportClientRef !== recovery.reportClientRef) {
@@ -204,16 +214,18 @@ export async function hydrateRecoveredCourseSession(
     }
   }
 
-  const existingAttempts = new Set((await listLocalStepAttempts(scopeKey)).map((item) => item.id));
+  const existingAttempts = new Map((await listLocalStepAttempts(scopeKey)).map((item) => [item.id, item]));
   for (const attempt of recovery.attempts) {
-    if (!existingAttempts.has(attempt.id)) {
+    const local = existingAttempts.get(attempt.id);
+    if (!local || (!local.serverId && (attempt.serverId || (attempt.verificationReceipt
+      && (!local.verificationReceipt || (local.verificationPending && !attempt.verificationPending)))))) {
       await saveLocalStepAttempt({ ...attempt, scopeKey });
       hasRemoteAdvance = true;
       hydratedCount += 1;
     }
   }
 
-  const doneSeqs = Array.from(new Set(recovery.attempts.filter((item) => item.status === 'pending-review').map((item) => item.stepSequence)));
+  const doneSeqs = Array.from(new Set(recovery.attempts.filter((item) => !item.verificationPending && item.status === 'pending-review').map((item) => item.stepSequence)));
   const draftStep = recovery.ilabRun?.draftActiveSeq ?? Math.min(20, Math.max(1, (doneSeqs.length ? Math.max(...doneSeqs) + 1 : 1)));
   if (recovery.reportClientRef || recovery.ilabRun) {
     const draftAnswers = recovery.ilabRun?.stepDrafts[String(draftStep)] ?? {};
@@ -339,7 +351,52 @@ export async function saveVesselCourseDraftToPlatform(courseKey: VesselCourseKey
 }
 
 /** 模型和对照按本人引用顺序上传，回执保存后重试沿用同一工件标识。 */
-export async function uploadVesselCourseArtifacts(reportClientRef: string, courseKey: VesselCourseKey, scopeKey: string) {
+type VerifiedAttempt = { id: string; status: 'submitted' | VesselLocalStepAttempt['status']; validationFeedback: string | null };
+type VerificationReceipt = { verification: string; attemptRef: string; error?: string; result?: VerifiedAttempt };
+
+function saveVerifiedAttempt(attempt: VesselLocalStepAttempt, receipt: VerifiedAttempt) {
+  return saveLocalStepAttempt({ ...attempt, serverId: receipt.id, verificationPending: false,
+    status: receipt.status === 'submitted' ? 'pending-review' : receipt.status, validationFeedback: receipt.validationFeedback });
+}
+
+async function waitForVerification(attempt: VesselLocalStepAttempt, initial?: VerificationReceipt, signal?: AbortSignal) {
+  let receipt = initial;
+  let poll = 0;
+  let failures = 0;
+  for (;;) {
+    if (signal?.aborted) return;
+    if (receipt?.verification === 'applied' && receipt.result) { await saveVerifiedAttempt(attempt, receipt.result); return; }
+    if (receipt?.verification === 'failed') {
+      await saveLocalStepAttempt({ ...attempt, verificationPending: false, status: 'invalid_run',
+        validationFeedback: receipt.error ?? '核验暂未完成，请重新提交。' });
+      return;
+    }
+    await new Promise(resolve => setTimeout(resolve, Math.min(10_000, 2500 + poll++ * 750) + Math.random() * 1000));
+    if (signal?.aborted) return;
+    try {
+      const response = await fetch(`/api/ilab/experiment-reports?verification=${encodeURIComponent(attempt.id)}`,
+        { cache: 'no-store', signal: AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(8000)]) });
+      if (!response.ok) throw new Error();
+      receipt = await response.json() as VerificationReceipt;
+      failures = 0;
+    } catch {
+      if (signal?.aborted) return;
+      if (++failures >= 3) throw new Error('核验回执暂时无法读取，本机记录已保留。');
+    }
+  }
+}
+
+export async function resumeVesselVerifications(scopeKey: string, settled: () => void, signal: AbortSignal,
+  onPending: () => void) {
+  const saved = (await listLocalStepAttempts(scopeKey)).filter(attempt => attempt.verificationPending && attempt.verificationReceipt);
+  if (saved.length && !signal.aborted) onPending();
+  await Promise.all(saved.map(attempt => waitForVerification(attempt, undefined, signal).then(() => {
+    if (!signal.aborted) settled();
+  })));
+}
+
+export async function uploadVesselCourseArtifacts(reportClientRef: string, courseKey: VesselCourseKey, scopeKey: string,
+  onQueued?: () => void, beforeAttempts?: () => Promise<void>) {
   const context = {reportClientRef,courseKey,courseVersion:VESSEL_COURSE_VERSION};
   const uploadedRunIds = new Set<string>();
   let pendingCount = 0;
@@ -380,18 +437,30 @@ export async function uploadVesselCourseArtifacts(reportClientRef: string, cours
     await saveModelComparison({...comparison,serverId:receipt.id});
     uploadedComparisonIds.add(comparison.id);
   }
+  await beforeAttempts?.();
   for (const attempt of await listLocalStepAttempts(scopeKey)) {
-    if (attempt.serverId) continue;
+    if (attempt.serverId || (attempt.verificationReceipt && !attempt.verificationPending)) continue;
+    if (attempt.verificationPending && attempt.verificationReceipt) {
+      onQueued?.();
+      await waitForVerification(attempt);
+      continue;
+    }
     if (attempt.runIds.some((id) => !uploadedRunIds.has(id))
       || attempt.studentModelIds.some((id) => !uploadedModelIds.has(id))
       || attempt.comparisonIds.some((id) => !uploadedComparisonIds.has(id))) {pendingCount++;continue;}
-    const receipt = await requestVesselEvidence<{id:string;status:'submitted'|VesselLocalStepAttempt['status'];validationFeedback:string|null}>('/api/ilab/experiment-reports', {
+    const receipt = await requestVesselEvidence<VerifiedAttempt | VerificationReceipt>('/api/ilab/experiment-reports?queue=1', {
       ...context, attempt:{clientRef:attempt.id,stepSequence:attempt.stepSequence,runRefs:attempt.runIds,
         modelClientRefs:attempt.studentModelIds,comparisonClientRefs:attempt.comparisonIds,answers:attempt.answers,
         validationFeedback:attempt.validationFeedback ?? null,outcome:attempt.status === 'pending-review' ? 'submitted' : attempt.status},
     });
-    await saveLocalStepAttempt({...attempt,serverId:receipt.id,
-      status:receipt.status === 'submitted' ? 'pending-review' : receipt.status,validationFeedback:receipt.validationFeedback});
+    if ('verification' in receipt) {
+      const accepted = { ...attempt, verificationPending: true, verificationReceipt: true };
+      await saveLocalStepAttempt(accepted);
+      onQueued?.();
+      await waitForVerification(accepted, receipt);
+    } else {
+      await saveVerifiedAttempt(attempt, receipt);
+    }
   }
   return {pendingCount};
 }

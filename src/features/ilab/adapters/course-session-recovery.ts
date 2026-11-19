@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { listQueuedCourseAttempts } from './course-verification-queue';
 import { readSimulationTraceChunk } from '@/lib/data-governance/simulation-trace-cas';
 import type { VesselObservedSample, VesselSessionInput } from '@/lib/control-engine/vessel-session';
 import type {
@@ -167,7 +168,7 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
       runs: [],
       models: [],
       comparisons: [],
-      attempts: [],
+      attempts: boundReportRef ? await listQueuedCourseAttempts(input.userId, boundReportRef, course.key) : [],
       ilabRun: ilabRunView,
     };
   }
@@ -192,7 +193,8 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
     && activeCourseState?.reportClientRef === targetReport.clientRef
     && activeCourseState.platformSaveId === input.knownSave) {
     return { report: reportView, reportClientRef: targetReport.clientRef,
-      runs: [], models: [], comparisons: [], attempts: [], ilabRun: ilabRunView, matchesLocalSave: true };
+      runs: [], models: [], comparisons: [], attempts: await listQueuedCourseAttempts(input.userId, targetReport.clientRef, course.key),
+      ilabRun: ilabRunView, matchesLocalSave: true };
   }
 
   const [dbRuns, dbModels, dbComparisons, dbAttempts] = await Promise.all([
@@ -490,7 +492,8 @@ export async function loadCourseSessionRecovery(input: CourseSessionRecoveryInpu
     archivedRuns,
     models,
     comparisons,
-    attempts,
+    attempts: [...attempts, ...(await listQueuedCourseAttempts(input.userId, targetReport.clientRef, course.key))
+      .filter(receipt => !attempts.some(attempt => attempt.id === receipt.id))],
     ilabRun: ilabRunView,
   };
 }

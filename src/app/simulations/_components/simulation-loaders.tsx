@@ -1,6 +1,17 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import type { ComponentType } from 'react';
+import { ClassroomEntry } from './classroom-entry';
+
+function withClassroomEntry<Props extends { ticket?: string }>(Simulation: ComponentType<Props>) {
+  return function GatedSimulation(props: Props & { classroomEntry?: boolean }) {
+    if (!props.classroomEntry) return <Simulation {...props} />;
+    return <ClassroomEntry ticket={props.ticket}>{useGrant =>
+      <Simulation {...props} ticket={useGrant ? undefined : props.ticket} />
+    }</ClassroomEntry>;
+  };
+}
 
 function SimulationBootScreen({ title, detail }: { title: string; detail: string }) {
   return (
@@ -29,58 +40,58 @@ function SimulationBootScreen({ title, detail }: { title: string; detail: string
   );
 }
 
-export const ContainerSimulation = dynamic(
+export const ContainerSimulation = withClassroomEntry(dynamic(
   () => import('@/resources/simulations/simulations/container-simulation'),
   {
     ssr: false,
     loading: () => <SimulationBootScreen title=" MSC 集装箱船航速与准点" detail="正在准备航线、海况与推进系统" />,
   },
-);
+));
 
-export const CruiseSimulation = dynamic(
+export const CruiseSimulation = withClassroomEntry(dynamic(
   () => import('@/resources/simulations/simulations/cruise-simulation'),
   {
     ssr: false,
     loading: () => <SimulationBootScreen title="爱达·魔都号邮轮横摇控制" detail="正在准备波浪谱与减摇鳍" />,
   },
-);
+));
 
-export const DestroyerSimulation = dynamic(
+export const DestroyerSimulation = withClassroomEntry(dynamic(
   () => import('@/resources/simulations/simulations/destroyer-simulation'),
   {
     ssr: false,
     loading: () => <SimulationBootScreen title=" 055 型驱逐舰航向控制" detail="正在准备舰体模型与航向控制器" />,
   },
-);
+));
 
-export const DrillingSimulation = dynamic(
+export const DrillingSimulation = withClassroomEntry(dynamic(
   () => import('@/resources/simulations/simulations/drilling-simulation'),
   {
     ssr: false,
     loading: () => <SimulationBootScreen title="海洋石油981动力定位" detail="正在准备推进器布置与环境载荷" />,
   },
-);
+));
 
-export const LNGSimulation = dynamic(
+export const LNGSimulation = withClassroomEntry(dynamic(
   () => import('@/resources/simulations/simulations/lng-simulation'),
   {
     ssr: false,
     loading: () => <SimulationBootScreen title="长恒号 LNG 大惯性操纵" detail="正在准备大惯性船体与液货舱" />,
   },
-);
+));
 
-export const DredgerSimulation = dynamic(
+export const DredgerSimulation = withClassroomEntry(dynamic(
   () => import('@/resources/simulations/simulations/dredger-simulation').then((module) => module.DredgerSimulation),
   {
     ssr: false,
     loading: () => <SimulationBootScreen title="天鲸号工况切换与作业定位" detail="正在准备钢桩、锚缆与切削机构" />,
   },
-);
+));
 
-export const IcebreakerSimulation = dynamic(
+export const IcebreakerSimulation = withClassroomEntry(dynamic(
   () => import('@/resources/simulations/simulations/icebreaker-simulation'),
   {
     ssr: false,
     loading: () => <SimulationBootScreen title="雪龙2号吊舱与冰区控制" detail="吊舱推进与冰阻力模型初始化中" />,
   },
-);
+));

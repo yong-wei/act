@@ -59,7 +59,8 @@ async function ownedRuns(db: Prisma.TransactionClient, userId: string, experimen
 }
 
 /** 复用四类工件表，同一报告锁串行保护版本、尝试序号和报告状态。 */
-export async function saveVesselCourseArtifact(userId: string, input: VesselCourseArtifactInput) {
+export async function saveVesselCourseArtifact(userId: string, input: VesselCourseArtifactInput,
+  pinned?: Readonly<Record<string, string>>) {
   const report = await requireOwnedReport(userId, input);
   const experimentKey = vesselExperimentKey(report);
   const neededRunRefs = input.attempt?.runRefs ?? (input.report?.action === 'submit' ? input.report.runRefs : []);
@@ -68,6 +69,9 @@ export async function saveVesselCourseArtifact(userId: string, input: VesselCour
       sourceDomain: VESSEL_EVIDENCE_DOMAIN, sourceRefId: { in: neededRunRefs }, summary: { path: ['reportId'], equals: report.id } } });
     for (const run of runs) {
       const summary = vesselRunStorageSummary(run);
+      if (pinned && summary.lastCheckpointReference !== pinned[run.sourceRefId]) {
+        throw new IlabServiceError('所选运行的保存点已变化，请重新提交。', 409);
+      }
       if ((summary.controlCount || summary.nativeCount || summary.fineCount) && !hasVerifiedVesselEvidence(run)) {
         await verifyVesselEvidenceRun(userId, run.sourceRefId);
       }
@@ -185,7 +189,10 @@ export async function saveVesselCourseArtifact(userId: string, input: VesselCour
           validationFeedback:(existing.scoreResult as {validationFeedback?:string})?.validationFeedback ?? null};
       }
       assertReportEditable(current);
-      await ownedRuns(tx,userId,experimentKey,attempt.runRefs);
+      const referenced = await ownedRuns(tx,userId,experimentKey,attempt.runRefs);
+      if (pinned && referenced.some(run => vesselRunStorageSummary(run).lastCheckpointReference !== pinned[run.sourceRefId])) {
+        throw new IlabServiceError('所选运行的保存点已变化，请重新提交。', 409);
+      }
       const modelRefs = [...new Set(attempt.modelClientRefs)];
       const comparisonRefs = [...new Set(attempt.comparisonClientRefs)];
       const models = await tx.studentModelArtifact.findMany({where:{userId,experimentKey,clientRef:{in:modelRefs}},select:{id:true}});
