@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { logClassroomEvent } from '@/lib/classroom-observability';
 import { buildClassroomIdentityPayload } from '@/lib/classroom-lifecycle-contract';
 import type { ClassroomStateRuntime } from '../application/state';
+import { invalidateSharedClassroomRead, loadSharedClassroomRead } from './shared-classroom-reads';
 
 const courseStateKey = 'course';
 const teacherStateKey = 'teacher-sync';
@@ -12,6 +13,14 @@ const userSelect = {
   name: true,
   email: true,
 } as const;
+
+export async function loadSharedTeacherSync(sessionId: string) {
+  return loadSharedClassroomRead(`teacher-sync:${sessionId}`, () => prisma.studentState.findFirst({
+    where: { sessionId, stateKey: teacherStateKey, itemId: 'teacher:course-sync' },
+    orderBy: { submittedAt: 'desc' },
+    select: { itemId: true, stateKey: true, lessonKey: true, submittedAt: true, data: true },
+  }));
+}
 
 export function createPrismaClassroomStateRuntime(): ClassroomStateRuntime {
   return {
@@ -72,41 +81,37 @@ export function createPrismaClassroomStateRuntime(): ClassroomStateRuntime {
       },
       include: { user: { select: userSelect } },
     }),
-    loadLatestTeacherSync: async (sessionId) => prisma.studentState.findFirst({
-      where: {
-        sessionId,
-        stateKey: teacherStateKey,
-        itemId: 'teacher:course-sync',
-      },
-      orderBy: { submittedAt: 'desc' },
-      include: { user: { select: userSelect } },
-    }),
-    upsertStudentState: async (input) => prisma.studentState.upsert({
-      where: {
-        sessionId_userId_stateKey: {
+    loadLatestTeacherSync: loadSharedTeacherSync,
+    upsertStudentState: async (input) => {
+      const saved = await prisma.studentState.upsert({
+        where: {
+          sessionId_userId_stateKey: {
+            sessionId: input.sessionId,
+            userId: input.userId,
+            stateKey: input.stateKey,
+          },
+        },
+        update: {
+          stateKey: input.stateKey,
+          lessonKey: input.lessonKey,
+          itemId: input.itemId,
+          data: input.data as Prisma.InputJsonValue,
+          submittedAt: new Date(),
+          lastClientEventAt: input.lastClientEventAt,
+        },
+        create: {
           sessionId: input.sessionId,
           userId: input.userId,
           stateKey: input.stateKey,
+          lessonKey: input.lessonKey,
+          itemId: input.itemId,
+          data: input.data as Prisma.InputJsonValue,
+          lastClientEventAt: input.lastClientEventAt,
         },
-      },
-      update: {
-        stateKey: input.stateKey,
-        lessonKey: input.lessonKey,
-        itemId: input.itemId,
-        data: input.data as Prisma.InputJsonValue,
-        submittedAt: new Date(),
-        lastClientEventAt: input.lastClientEventAt,
-      },
-      create: {
-        sessionId: input.sessionId,
-        userId: input.userId,
-        stateKey: input.stateKey,
-        lessonKey: input.lessonKey,
-        itemId: input.itemId,
-        data: input.data as Prisma.InputJsonValue,
-        lastClientEventAt: input.lastClientEventAt,
-      },
-    }),
+      });
+      if (input.stateKey === teacherStateKey) invalidateSharedClassroomRead(`teacher-sync:${input.sessionId}`);
+      return saved;
+    },
     buildIdentity: (session) => buildClassroomIdentityPayload(session),
     logState: (payload) => {
       logClassroomEvent('session_state_post', payload);

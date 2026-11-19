@@ -56,6 +56,8 @@ export interface ClassroomLifecycleRuntime {
     profile: { classId: string | null } | null;
   } | null>;
   loadAccessSession(sessionId: string): Promise<ClassroomLifecycleAccessSession | null>;
+  reserveStudentAdmission?(sessionId: string, userId: string): Promise<number>;
+  readStudentTeacherSync?(sessionId: string): Promise<unknown>;
   resolveGeneratedBinding(session: ClassroomLifecycleAccessSession): Promise<
     | { ok: true; identity: Record<string, unknown> | null }
     | { ok: false; recovery: Record<string, unknown> }
@@ -161,6 +163,13 @@ export async function readClassroomSession(
   });
   if (!auth.allowed) throw new ClassroomSessionError('forbidden', 'Forbidden');
 
+  if ((input.requestAdmission || input.admissionOnly) && sessionAccess.status !== 'FINISHED'
+    && normalizeClassroomActorRole(accessUser.role) === 'student' && runtime.reserveStudentAdmission) {
+    const retryAfterMs = await runtime.reserveStudentAdmission(input.sessionId, accessUser.id);
+    if (retryAfterMs > 0) return { admission: 'waiting', retryAfterMs };
+  }
+  if (input.admissionOnly) return { admission: 'ready', status: sessionAccess.status };
+
   const generatedResolution = await runtime.resolveGeneratedBinding(sessionAccess);
   if (!generatedResolution.ok) {
     throw new ClassroomSessionError(
@@ -171,7 +180,9 @@ export async function readClassroomSession(
   }
 
   const cached = await runtime.readCachedState(input.sessionId, generatedResolution.identity);
-  if (cached) return cached;
+  const shared = input.studentSync && runtime.readStudentTeacherSync
+    ? { teacherSync: await runtime.readStudentTeacherSync(input.sessionId) } : {};
+  if (cached) return { ...cached, ...shared };
 
   const session = await runtime.loadReadableSession(input.sessionId);
   if (!session) throw new ClassroomSessionError('not-found', 'Not found');
@@ -180,6 +191,7 @@ export async function readClassroomSession(
     ...session,
     planTitle: session.plan.title,
     classroomIdentity: runtime.buildIdentity(session),
+    ...shared,
   };
 }
 

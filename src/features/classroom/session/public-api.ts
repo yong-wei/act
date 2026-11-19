@@ -10,6 +10,7 @@ import {
   type ClassroomSessionAccessUser,
 } from './access-policy';
 import { createPrismaClassroomLifecycleRuntime } from './adapters/lifecycle-commands';
+export { isClassroomCapacityEnabled } from './adapters/shared-classroom-reads';
 import {
   advanceClassroomSession,
   endClassroomSession,
@@ -44,7 +45,7 @@ export function authorizeClassroomSessionAccessUseCase(input: {
 }
 
 export async function readClassroomSessionUseCase(input: ReadClassroomSessionInput) {
-  return readClassroomSession(createPrismaClassroomLifecycleRuntime(), input);
+  return readClassroomSession(createPrismaClassroomLifecycleRuntime(input.studentSync || input.admissionOnly), input);
 }
 
 export async function advanceClassroomSessionUseCase(input: AdvanceClassroomSessionInput) {

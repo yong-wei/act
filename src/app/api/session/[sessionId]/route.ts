@@ -71,6 +71,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
     if (!userSession?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const query = new URL(request.url).searchParams;
     const result = await readClassroomSessionUseCase({
       actor: {
         id: userSession.user.id,
@@ -78,8 +79,14 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
         profile: userSession.user.profile ?? null,
       },
       sessionId: params.sessionId,
+      ...(query.get('studentSync') === '1' ? { studentSync: true } : {}),
+      ...(query.get('admission') === '1' ? { requestAdmission: true } : {}),
+      ...(query.get('admission') === 'only' ? { admissionOnly: true } : {}),
     });
-    return NextResponse.json(jsonSafeClassroomPayload(result));
+    return NextResponse.json(jsonSafeClassroomPayload(result), {
+      status: result.admission === 'waiting' ? 202 : 200,
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     const mapped = mapError(error);

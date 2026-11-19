@@ -2,10 +2,11 @@ import { prisma } from '@/lib/prisma';
 import { buildSessionParticipantHref, resolveSessionRouteSegment } from '@/lib/classroom-session-route';
 import { logClassroomEvent } from '@/lib/classroom-observability';
 import type { ClassroomJoinRuntime } from '../application/join';
+import { loadSharedClassroomRead } from './shared-classroom-reads';
 
 export function createPrismaClassroomJoinRuntime(): ClassroomJoinRuntime {
   return {
-    findByJoinCode: async (joinCode) => prisma.classSession.findUnique({
+    findByJoinCode: async (joinCode) => loadSharedClassroomRead(`join:${joinCode}`, () => prisma.classSession.findUnique({
       where: { joinCode },
       select: {
         id: true,
@@ -20,7 +21,7 @@ export function createPrismaClassroomJoinRuntime(): ClassroomJoinRuntime {
         courseBundleRevisionId: true,
         courseBundleRevision: { select: { canonicalLessonId: true } },
       },
-    }),
+    }), 0),
     getStudentClassId: async (userId) => {
       const profile = await prisma.studentProfile.findUnique({
         where: { userId },

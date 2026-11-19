@@ -35,6 +35,9 @@ export interface JoinClassroomSessionInput {
 export interface ReadClassroomSessionInput {
   actor: ClassroomSessionActor;
   sessionId: string;
+  studentSync?: boolean;
+  requestAdmission?: boolean;
+  admissionOnly?: boolean;
 }
 
 export interface AdvanceClassroomSessionInput {

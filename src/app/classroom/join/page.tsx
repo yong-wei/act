@@ -1,5 +1,7 @@
 'use client';
 
+import { lookupStudentClassroom } from '@/features/classroom/session/student-join-request';
+
 import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -114,7 +116,7 @@ function JoinClassroomContent() {
       setRecoveryLink(null);
 
       try {
-        const res = await fetch(`/api/session/join?code=${code}`);
+        const res = await lookupStudentClassroom(code);
         const data = await res.json();
 
         if (res.status === 401) {

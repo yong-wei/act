@@ -2,6 +2,8 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import type { ComponentType } from 'react';
 
+import { ClassroomSessionError } from '@/features/classroom/session/errors';
+import { isClassroomCapacityEnabled, readClassroomSessionUseCase } from '@/features/classroom/session/public-api';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { authOptions } from '@/lib/auth';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
@@ -17,6 +19,7 @@ import { TeacherClassroomWaitingRoute } from './teacher-classroom-waiting-route'
 import { isTeacherOrAdminRole, resolveBatchALesson, type BatchACanonicalId } from './batch-a-classroom-shell';
 import { resolveBatchBLesson, type BatchBCanonicalId } from './batch-b-classroom-shell';
 import { resolveStudentRouteDemoStepId, type StudentRouteSearchParams } from './student-route-query';
+import { StudentClassroomAdmission } from './student-classroom-admission';
 
 type EntryPage = ComponentType<{ initialRole?: string; lessonRuntime: RuntimeLessonEntryBundle }>;
 type StudentPage = ComponentType<{
@@ -518,17 +521,30 @@ export async function renderBatchAStudent(input: {
   const lesson = lessonConfig(input.routeSegment);
   if (!lesson) return null;
   const demoStepId = resolveStudentRouteDemoStepId(input.searchParams);
-  await redirectInactiveStudentSessionToLessonEntry(
-    input.sessionId,
-    `/interactive-learning/courses/${input.routeSegment}`,
-  );
+  const entryHref = `/interactive-learning/courses/${input.routeSegment}`;
+  const capacityEnabled = isClassroomCapacityEnabled();
+  if (!capacityEnabled) await redirectInactiveStudentSessionToLessonEntry(input.sessionId, entryHref);
   if (input.sessionId !== 'demo') {
     const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      redirect(`/interactive-learning/courses/${input.routeSegment}`);
-    }
+    if (!session?.user?.id) redirect(entryHref);
     if (isTeacherOrAdminRole(session.user.role)) {
+      if (capacityEnabled) await redirectInactiveStudentSessionToLessonEntry(input.sessionId, entryHref);
       redirect(`/interactive-learning/courses/${input.routeSegment}/teacher/${input.sessionId}`);
+    }
+    if (capacityEnabled) {
+      const admission = await readClassroomSessionUseCase({
+        actor: { id: session.user.id, role: session.user.role, profile: session.user.profile },
+        sessionId: input.sessionId,
+        admissionOnly: true,
+      }).catch((error: unknown) => {
+        if (error instanceof ClassroomSessionError) redirect(entryHref);
+        throw error;
+      });
+      if (admission.status === 'FINISHED') redirect(entryHref);
+      if (admission.admission === 'waiting' && typeof admission.retryAfterMs === 'number') {
+        return <StudentClassroomAdmission sessionId={input.sessionId} entryHref={entryHref}
+          retryAfterMs={admission.retryAfterMs} />;
+      }
     }
   }
   const runtimeResult = await loadSessionBoundLessonRuntime({
