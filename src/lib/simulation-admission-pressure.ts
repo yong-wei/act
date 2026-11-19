@@ -5,7 +5,10 @@ const SAMPLE_MS = 1000;
 const INCREASE_MS = 8000;
 const CONFIRMATION_LIMIT_MS = 1500;
 const FEEDBACK_TTL_MS = 15_000;
-const MAX_CPU = 0.90;
+const MAX_CPU = 0.80;
+const DECREASE_CPU = 0.70;
+const INCREASE_CPU = 0.60;
+const MIN_SPARE_CORES = 0.40;
 
 type HostCpu = { total: number; busy: number; cores: number };
 type State = {
@@ -38,10 +41,10 @@ export function parseAdmissionHostCpu(value: string): HostCpu | undefined {
 export function chooseAdmissionScale(previous: number, cpu: number, spareCores: number, confirmationSlow: boolean,
   healthyForMs: number, effectiveCores: number) {
   if (cpu >= MAX_CPU) return 0;
-  if (cpu >= 0.80 || confirmationSlow) return Math.max(0.5, previous / 2);
+  if (cpu >= DECREASE_CPU || confirmationSlow) return Math.max(0.5, previous / 2);
   if (previous === 0) return 0.5;
   // Leave headroom for unrelated services, even at a low host percentage.
-  if (cpu >= 0.65 || spareCores < 0.65 || healthyForMs < INCREASE_MS) return previous;
+  if (cpu >= INCREASE_CPU || spareCores < MIN_SPARE_CORES || healthyForMs < INCREASE_MS) return previous;
   return Math.min(Math.max(1, Math.min(8, effectiveCores * 2)), previous + 0.5);
 }
 
@@ -75,7 +78,7 @@ async function samplePressure(now: number): Promise<number> {
   const effectiveCores = Math.min(host.cores, availableParallelism(), quotaCores);
   const spareCores = Math.min(host.cores * (MAX_CPU - used), effectiveCores);
   const confirmationSlow = now < state.confirmationSlowUntil;
-  const healthy = used < 0.65 && spareCores >= 0.65 && !confirmationSlow;
+  const healthy = used < INCREASE_CPU && spareCores >= MIN_SPARE_CORES && !confirmationSlow;
   state.healthySince = healthy ? state.healthySince ?? now : undefined;
   const next = chooseAdmissionScale(state.scale, used, spareCores, confirmationSlow,
     now - (state.healthySince ?? now), effectiveCores);
