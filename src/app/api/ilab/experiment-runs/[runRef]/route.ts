@@ -7,6 +7,7 @@ import { closeVesselEvidenceRun, readVesselEvidenceChunk } from '@/features/ilab
 import { IlabServiceError } from '@/features/ilab/run-lock';
 import { loadOwnedCourseRunRecovery } from '@/features/ilab/adapters/course-session-recovery';
 import { VESSEL_TRACE_COLUMNS } from '@/features/simulations/public-api';
+import { recordSimulationConfirmation } from '@/lib/simulation-admission-pressure';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -34,18 +35,25 @@ export async function GET(request: Request, context: Context) {
 }
 
 export async function PUT(request: Request, context: Context) {
+  const started = performance.now();
+  const deferVerification = new URL(request.url).searchParams.get('defer') === '1';
   try {
     const userId = await requireVesselEvidenceAccount(request);
     const { runRef } = await context.params;
     const body = await readVesselEvidenceJson(request);
-    const deferVerification = new URL(request.url).searchParams.get('defer') === '1';
     if (body && typeof body === 'object' && 'checkpointReference' in body) {
       const direct = vesselEvidenceDirectCloseSchema.safeParse(body);
       if (!direct.success) throw new IlabServiceError('运行保存描述内容不完整。', 400);
-      return NextResponse.json(await commitOwnedVesselUpload(userId, runRef, direct.data, deferVerification));
+      const result = await commitOwnedVesselUpload(userId, runRef, direct.data, deferVerification);
+      if (deferVerification) recordSimulationConfirmation(performance.now() - started, false);
+      return NextResponse.json(result);
     }
     const parsed = vesselEvidenceCloseSchema.safeParse(body);
     if (!parsed.success) throw new IlabServiceError('运行结束状态内容不完整。',400);
     return NextResponse.json(await closeVesselEvidenceRun(userId, runRef, parsed.data, deferVerification));
-  } catch (error) { return vesselEvidenceErrorResponse(error); }
+  } catch (error) {
+    const response = vesselEvidenceErrorResponse(error);
+    if (deferVerification && response.status >= 500) recordSimulationConfirmation(performance.now() - started, true);
+    return response;
+  }
 }

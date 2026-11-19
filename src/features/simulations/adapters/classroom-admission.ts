@@ -1,4 +1,5 @@
 import { redisClient } from '@/lib/redis-client';
+import { getSimulationAdmissionScale } from '@/lib/simulation-admission-pressure';
 
 const WINDOW_MS = 5_000;
 const WAITING_TTL_MS = 30_000;
@@ -21,6 +22,7 @@ if not redis.call('ZSCORE', KEYS[2], id) then
 end
 redis.call('ZADD', KEYS[3], now + tonumber(ARGV[3]), id)
 for i = 1, 3 do redis.call('PEXPIRE', KEYS[i], tonumber(ARGV[3]) * 2) end
+if limit == 0 then return 5000 end
 local slot = math.floor(now / interval)
 local used = 0
 if tostring(slot) == redis.call('HGET', KEYS[1], 'slot') then
@@ -43,8 +45,10 @@ export async function reserveSimulationClassroomEntry(browserId: string) {
   if (!Number.isSafeInteger(batch) || batch < 1 || batch > 120) throw new Error('Invalid simulation entry batch size');
   const redis = redisClient.getClient();
   if (!redis) throw new Error('Simulation entry Redis unavailable');
+  const scale = await getSimulationAdmissionScale();
+  const limit = scale ? Math.min(120, Math.ceil(batch * scale)) : 0;
   return Number(await redis.eval(RESERVE, 4,
     'simulation:{classroom-entry}:cursor', 'simulation:{classroom-entry}:waiting',
     'simulation:{classroom-entry}:expires', `simulation:{classroom-entry}:browser:${browserId}`,
-    WINDOW_MS, batch, WAITING_TTL_MS, LEASE_MS, browserId));
+    WINDOW_MS, limit, WAITING_TTL_MS, LEASE_MS, browserId));
 }

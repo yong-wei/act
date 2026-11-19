@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { redisClient } from '@/lib/redis-client';
+import { getSimulationAdmissionScale } from '@/lib/simulation-admission-pressure';
 
 const INTERVAL_MS = 1500;
 const LIMIT = 6;
@@ -49,8 +50,11 @@ redis.call('ZADD', KEYS[3], now + waitingMs, round)
 redis.call('PSETEX', KEYS[6], waitingMs, round)
 for i = 1, 3 do redis.call('PEXPIRE', KEYS[i], waitingMs * 2) end
 local nextAt = tonumber(redis.call('HGET', KEYS[1], 'next') or '0')
+local lastAt = tonumber(redis.call('HGET', KEYS[1], 'last'))
+if lastAt then nextAt = lastAt + interval end
+if limit == 0 then return 5000 end
 if rank == 0 and now >= nextAt and redis.call('ZCARD', KEYS[4]) < limit then
-  redis.call('HSET', KEYS[1], 'next', now + interval)
+  redis.call('HSET', KEYS[1], 'last', now, 'next', now + interval)
   redis.call('ZREM', KEYS[2], round)
   redis.call('ZREM', KEYS[3], round)
   redis.call('PSETEX', KEYS[5], leaseMs, worker)
@@ -69,7 +73,10 @@ export async function updateCourseSaveAdmission(userId: string, roundRef: string
   if (!redis) throw new Error('Simulation save Redis unavailable');
   const round = createHash('sha256').update(JSON.stringify([userId, roundRef])).digest('hex');
   const account = createHash('sha256').update(userId).digest('hex');
+  const scale = action === 'reserve' ? await getSimulationAdmissionScale() : 1;
+  const interval = Math.ceil(INTERVAL_MS / (scale || 1));
+  const limit = scale ? Math.min(24, Math.ceil(LIMIT * scale)) : 0;
   return Number(await redis.eval(ADMIT, 6, `${PREFIX}:cursor`, `${PREFIX}:waiting`, `${PREFIX}:expires`,
     `${PREFIX}:active`, `${PREFIX}:lease:${round}`, `${PREFIX}:account:${account}`,
-    round, worker, action, INTERVAL_MS, LIMIT, CAPACITY, WAITING_MS, LEASE_MS));
+    round, worker, action, interval, limit, CAPACITY, WAITING_MS, LEASE_MS));
 }
