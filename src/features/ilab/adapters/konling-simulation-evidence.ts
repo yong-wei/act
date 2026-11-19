@@ -114,9 +114,9 @@ function formatSavedParameters(summary: unknown): string {
 function formatEvidenceVerification(summary: unknown): string {
   const state = (summary as { evidenceVerification?: { status?: string } } | null)?.evidenceVerification?.status;
   if (!state) return '';
-  if (state === 'verified') return '当前保存前缀已通过服务端完整证据核验。';
+  if (state === 'verified') return '当前保存前缀已通过服务端正式证据核验。';
   const status = state === 'verifying' ? '正在核验' : state === 'failed' ? '本次核验未通过' : '等待结束或提交时核验';
-  return `原始记录与恢复进度已保存，完整证据${status}。以下已保存采样可用于教学观察，正式评分须使用核验通过的证据。`;
+  return `原始记录与恢复进度已保存，正式证据${status}。以下已保存采样可用于教学观察，正式评分须使用核验通过的证据。`;
 }
 
 /** 只读取当前账号、当前实验轮次的已提交采样，不使用浏览器自由文本建立实验事实。 */
@@ -143,7 +143,7 @@ export async function loadSimulationKonlingEvidence(userId: string, courseId: st
     stepContext?.systemPromptExtension,
     draft.activeSeq === undefined
       ? '服务端尚未保存当前操作步骤。'
-      : `服务端保存的当前操作步骤为第${draft.activeSeq}步。`,
+      : `最近一次保存到平台的步骤为第${draft.activeSeq}步。请以本页提问步骤为当前学习目标。`,
   ].filter(Boolean).join('\n');
   if (!report?.clientRef) return `${heading}\n本轮尚无已保存的服务端实验证据，请依据步骤目标指导观察。`;
   const [attempts, runCount, run] = await Promise.all([
@@ -154,7 +154,8 @@ export async function loadSimulationKonlingEvidence(userId: string, courseId: st
     prisma.simulationRun.findFirst({ where: { ownerUserId: userId, sourceDomain: VESSEL_EVIDENCE_DOMAIN,
       AND: [{ summary: { path: ['reportId'], equals: report.id } }, { summary: { path: ['stepSequence'], equals: sequence } }] },
       orderBy: { updatedAt: 'desc' }, select: { summary: true,
-        traces: { orderBy: { chunkIndex: 'desc' }, take: 1, select: { sampleStorageUri: true } } } }),
+        traces: { where: { sampleCount: { gt: 0 } }, orderBy: { chunkIndex: 'desc' }, take: 1,
+          select: { sampleStorageUri: true } } } }),
   ]);
   const progress = [heading, `本轮服务端已保存${runCount}次运行记录。`, `本轮已保存${attempts.length}步有效提交。`,
     report.status === 'finalized' && report.finalizedAt ? '本轮教师终审已完成。' : '本轮教师终审尚未完成。',

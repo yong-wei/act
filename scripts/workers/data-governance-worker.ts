@@ -74,6 +74,8 @@ import type {
 } from './types';
 import { createMathDocumentGradingWorker } from './math-document-grading-worker';
 import { createTeacherAssignmentReviewOutboxWorker } from './teacher-assignment-review-outbox-worker';
+import { drainVesselProcessAnalysis } from '@/features/ilab/adapters/course-process-analysis';
+import { drainCourseVerification } from '@/features/ilab/adapters/course-verification-queue';
 import { createDefaultReviewedDerivativeRenderer } from '@/lib/data-governance/teacher-assignment-review-derivative-storage';
 import { defaultReviewedDerivativeOptions } from '@/lib/data-governance/teacher-assignment-review-derivative';
 import {
@@ -120,6 +122,10 @@ let evidenceFeatureCacheWorker: Worker<EvidenceFeatureCacheJob> | null = null;
 let riskFlagWorker: Worker<RiskFlagScanJob> | null = null;
 let mathDocumentGradingController: Awaited<ReturnType<typeof createMathDocumentGradingWorker>> | null = null;
 let teacherAssignmentReviewController: ReturnType<typeof createTeacherAssignmentReviewOutboxWorker> | null = null;
+let processAnalysisTimer: ReturnType<typeof setInterval> | undefined;
+let processAnalysisTick: Promise<unknown> | undefined;
+let verificationTimer: ReturnType<typeof setInterval> | undefined;
+let verificationTick: Promise<unknown> | undefined;
 let isShuttingDown = false;
 let infrastructureFailureHandled = false;
 
@@ -1109,6 +1115,23 @@ async function startWorkers() {
 
   redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
   prisma = createPrismaClient();
+  const db = prisma;
+  processAnalysisTimer = setInterval(() => {
+    if (isShuttingDown || processAnalysisTick || os.loadavg()[0] >= os.availableParallelism() * 0.65) return;
+    processAnalysisTick = drainVesselProcessAnalysis(db)
+      .catch((error: unknown) => logWithThrottle('simulation-process-analysis', 'warn', '实验过程分析暂未完成', error))
+      .finally(() => { processAnalysisTick = undefined; });
+  }, 5_000);
+  processAnalysisTimer.unref();
+  if (process.env.SIMULATION_VERIFICATION_QUEUE === '1') {
+    verificationTimer = setInterval(() => {
+      if (isShuttingDown || verificationTick) return;
+      verificationTick = drainCourseVerification()
+        .catch((error: unknown) => logWithThrottle('simulation-verification', 'warn', '实验核验暂未完成', error))
+        .finally(() => { verificationTick = undefined; });
+    }, 1000);
+    verificationTimer.unref();
+  }
   await ensureCoursewareGenerationWorker(redis);
   console.log('[Worker] Smart courseware generation worker started');
   if (isMathDocumentGradingWorkerRequired()) {
@@ -1232,6 +1255,9 @@ async function shutdown(exitCode: number) {
   if (riskFlagWorker) cleanupTasks.push(riskFlagWorker.close());
   if (mathDocumentGradingController) cleanupTasks.push(mathDocumentGradingController.close());
   if (teacherAssignmentReviewController) cleanupTasks.push(teacherAssignmentReviewController.close());
+  clearInterval(processAnalysisTimer);
+  clearInterval(verificationTimer);
+  if (verificationTick) cleanupTasks.push(verificationTick);
   cleanupTasks.push(closeCoursewareGenerationWorker());
   if (eventQueue) cleanupTasks.push(eventQueue.close());
   if (studentQueue) cleanupTasks.push(studentQueue.close());
@@ -1239,7 +1265,7 @@ async function shutdown(exitCode: number) {
   if (reportQueue) cleanupTasks.push(reportQueue.close());
   if (evidenceFeatureCacheQueue) cleanupTasks.push(evidenceFeatureCacheQueue.close());
   if (riskFlagQueue) cleanupTasks.push(riskFlagQueue.close());
-  if (prisma) cleanupTasks.push(prisma.$disconnect());
+  if (prisma) cleanupTasks.push(Promise.resolve(processAnalysisTick).then(() => prisma?.$disconnect()));
   if (redis) {
     cleanupTasks.push(
       redis.quit().catch(() => {

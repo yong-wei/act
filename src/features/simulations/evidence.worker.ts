@@ -4,14 +4,14 @@ import type { VesselEvidenceProgress } from './run-evidence';
 import type { vesselEvidenceOpeningInput } from './evidence-opening';
 
 type Request = { id: number } & ({ operation: 'prepare'; run: VesselRunEvidence; progress: VesselEvidenceProgress;
-  opening?: ReturnType<typeof vesselEvidenceOpeningInput> }
+  opening?: ReturnType<typeof vesselEvidenceOpeningInput>; separateProcessData?: boolean }
   | { operation: 'download'; reference: string; url: string; storedBytes?: number | null });
 
 self.onmessage = async (event: MessageEvent<Request>) => {
   const request = event.data;
   try {
     const result = request.operation === 'prepare'
-      ? await prepareVesselOssSave(request.run, request.progress, request.opening)
+      ? await prepareVesselOssSave(request.run, request.progress, request.opening, request.separateProcessData)
       : await downloadVesselOssObject(request);
     self.postMessage({ id: request.id, result });
   } catch (error) {

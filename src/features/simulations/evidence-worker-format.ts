@@ -28,7 +28,7 @@ async function encode(value: unknown, compact?: Uint8Array<ArrayBuffer>) {
 
 /** run中的采样数组只包含服务端前缀之后的记录，避免反复复制完整历史。 */
 export async function prepareVesselOssSave(run: VesselRunEvidence, progress: VesselEvidenceProgress,
-  opening?: ReturnType<typeof vesselEvidenceOpeningInput>): Promise<PreparedVesselOssSave> {
+  opening?: ReturnType<typeof vesselEvidenceOpeningInput>, separateProcessData = false): Promise<PreparedVesselOssSave> {
   if (!run.checkpointPreview) throw new Error('这次实验的恢复检查尚未完成，请再次保存。');
   if (!progress.checkpointReference) throw new Error('这次运行的恢复点回执缺失，请重新读取进度。');
   const preview = { ...run.checkpointPreview, appliedFinalInput: { ...run.checkpointPreview.appliedFinalInput },
@@ -47,6 +47,8 @@ export async function prepareVesselOssSave(run: VesselRunEvidence, progress: Ves
       uncompressedBytes: encoded.uncompressedBytes, storedBytes: encoded.storedBytes, openingHash: progress.openingHash } });
   }
   const fineSamples = run.fineStepSamples ?? [];
+  // 055第1步的评分使用控制采样和细步记录。原生量测仍完整归档供恢复和分析。
+  const separateNative = separateProcessData && run.courseKey === 'destroyer' && run.stepSequence === 1;
   let current = { ...progress };
   let controlOffset = 0;
   let nativeOffset = 0;
@@ -73,16 +75,24 @@ export async function prepareVesselOssSave(run: VesselRunEvidence, progress: Ves
       changes: run.changes.filter(change => change.timeS >= current.lastTimeS - 1e-7
         && (change.timeS < endTimeS - 1e-7 || finalChunk)),
     };
-    const compact = progress.traceEncoding === VESSEL_TRACE_COLUMNS ? encodeVesselTraceColumns(chunk) : undefined;
-    const encoded = await encode(chunk, compact);
-    const firstReceipt = chunk.points.length
-      ? await checksum(new TextEncoder().encode(canonicalJson(chunk.points[0]))) : undefined;
-    const reference = simulationOssReference(run.id, 'chunk', current.chunkCount, encoded.checksum, encoded.storedBytes,
-      compact ? VESSEL_TRACE_COLUMNS : undefined);
-    objects.push({ body: encoded.body, descriptor: { purpose: 'chunk', reference,
-      uncompressedBytes: encoded.uncompressedBytes, storedBytes: encoded.storedBytes,
-      chunk: vesselTraceMetadata(chunk, firstReceipt) } });
-    current = { ...current, chunkCount: current.chunkCount + 1,
+    let parts = [chunk];
+    if (separateNative && chunk.nativeSamples.length && (chunk.points.length || chunk.fineSamples?.length)) {
+      parts = [{ ...chunk, nativeSamples: [] }, { ...chunk, chunkIndex: chunk.chunkIndex + 1,
+        controlStart: chunk.controlStart + chunk.points.length, points: [], changes: [],
+        ...(chunk.fineSamples ? { fineStart: (chunk.fineStart ?? 0) + chunk.fineSamples.length, fineSamples: [] } : {}) }];
+    }
+    for (const part of parts) {
+      const compact = progress.traceEncoding === VESSEL_TRACE_COLUMNS ? encodeVesselTraceColumns(part) : undefined;
+      const encoded = await encode(part, compact);
+      const firstReceipt = part.points.length
+        ? await checksum(new TextEncoder().encode(canonicalJson(part.points[0]))) : undefined;
+      const reference = simulationOssReference(run.id, 'chunk', part.chunkIndex, encoded.checksum, encoded.storedBytes,
+        compact ? VESSEL_TRACE_COLUMNS : undefined);
+      objects.push({ body: encoded.body, descriptor: { purpose: 'chunk', reference,
+        uncompressedBytes: encoded.uncompressedBytes, storedBytes: encoded.storedBytes,
+        chunk: vesselTraceMetadata(part, firstReceipt) } });
+    }
+    current = { ...current, chunkCount: current.chunkCount + parts.length,
       controlCount: current.controlCount + controlEnd - controlOffset,
       nativeCount: current.nativeCount + nativeEnd - nativeOffset,
       fineCount: (current.fineCount ?? 0) + fineEnd - fineOffset, lastTimeS: endTimeS };

@@ -17,7 +17,7 @@ export default async function LNGSimulationPage({
       guideHref="/supporting/guide-02-lng-carrier.pdf"
       localToolTemplate="lng-berthing"
     >
-      <LNGSimulation ticket={ticket} />
+      <LNGSimulation classroomEntry={process.env.SIMULATION_ENTRY_QUEUE === '1'} ticket={ticket} />
     </SimulationShell>
   );
 }

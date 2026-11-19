@@ -17,8 +17,9 @@ import { vesselEvidenceOpeningSchema, vesselEvidenceOssGrantSchema, vesselEviden
 import { openVesselEvidenceRun, findOwnedVesselRun, vesselRunProgress } from '../course-evidence-service';
 import { authorizeOwnedVesselUploads, commitOwnedVesselUpload, authorizeOwnedVesselDownloads } from '../adapters/course-evidence-oss';
 import { loadCourseSessionRecovery } from '../adapters/course-session-recovery';
-import { hasVerifiedVesselEvidence, stageVesselEvidenceChunk, closeVesselEvidenceRun, readVesselEvidenceChunk } from '../course-evidence-chunks';
+import { hasVerifiedVesselEvidence, stageVesselEvidenceChunk, closeVesselEvidenceRun, readVesselEvidenceChunk, verifyVesselEvidenceRun } from '../course-evidence-chunks';
 import { simulationOssLocation, simulationOssReference, VESSEL_TRACE_COLUMNS } from '@/features/simulations/public-api';
+import { drainVesselProcessAnalysis } from '../adapters/course-process-analysis';
 import { canonicalJson } from '@/lib/student-model-artifact-contract';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 
@@ -62,12 +63,12 @@ async function advance(seconds: number) {
     controllerTicks: frame.controllerTicks, fineCount: frame.fineStepWindowSampleCount ?? 0,
     appliedFinalInput: frame.input, metrics: {} as never };
 }
-async function prepare() {
+async function prepare(separateProcessData = false) {
   const progress = vesselRunProgress(await findOwnedVesselRun(user.id, runRef));
   return prepareVesselOssSave({ ...run, trace: run.trace.slice(progress.controlCount),
     nativeSensorSamples: run.nativeSensorSamples.slice(progress.nativeCount),
     fineStepSamples: run.fineStepSamples!.slice(progress.fineCount) }, progress,
-  progress.openingReference.startsWith('simulation-cas:oss:') ? undefined : vesselEvidenceOpeningInput(reportClientRef, run));
+  progress.openingReference.startsWith('simulation-cas:oss:') ? undefined : vesselEvidenceOpeningInput(reportClientRef, run), separateProcessData);
 }
 async function upload(prepared: Awaited<ReturnType<typeof prepare>>) {
   const descriptors = vesselEvidenceOssGrantSchema.parse({ objects: prepared.objects.map(object => object.descriptor) }).objects;
@@ -205,7 +206,9 @@ try {
   run.stoppedAtMs = Date.now();
   run.stopReason = 'duration';
   run.checkpoint = 'invalid-checkpoint';
-  const invalid = await prepare();
+  const invalid = await prepare(true);
+  assert(invalid.objects.some(object => object.descriptor.purpose === 'chunk'
+    && object.descriptor.chunk.controlCount === 0 && object.descriptor.chunk.nativeCount > 0));
   await upload(invalid);
   await assert.rejects(commitOwnedVesselUpload(user.id, runRef, inputFor(invalid)), error => {
     assert.equal((error as { savedProgress: { controlCount: number } }).savedProgress.controlCount, 220);
@@ -219,14 +222,32 @@ try {
   const ending = await prepare();
   assert(ending.objects.every(object => !simulationOssLocation(object.descriptor.reference).traceEncoding));
   await upload(ending);
-  const completed = await commitOwnedVesselUpload(user.id, runRef, inputFor(ending));
+  const saved = await commitOwnedVesselUpload(user.id, runRef, inputFor(ending), true);
+  assert.equal(saved.evidenceStatus, 'pending');
+  assert.equal(saved.savedReason, 'duration');
+  assert.deepEqual(await commitOwnedVesselUpload(user.id, runRef, inputFor(ending), true), saved);
+  assert.equal(await prisma.evidenceOutbox.count({ where: { ownerUserId: user.id } }), 1);
+  const pendingRecovery = await loadCourseSessionRecovery({ userId: user.id, courseKey: 'destroyer', reportClientRef,
+    deferTraceChunks: true, lazyHistory: true, deferStateObjects: true });
+  assert.equal(pendingRecovery.archivedRuns?.[0]?.stopReason, 'duration');
+  const completed = await verifyVesselEvidenceRun(user.id, runRef);
   assert.equal(completed.status, 'completed');
   assert.equal(completed.evidenceStatus, 'verified');
   assert(hasVerifiedVesselEvidence(await findOwnedVesselRun(user.id, runRef)));
   assert.deepEqual(await commitOwnedVesselUpload(user.id, runRef, inputFor(ending)), completed);
+  assert.equal((await prisma.evidenceOutbox.findFirstOrThrow({ where: { ownerUserId: user.id } })).status, 'pending');
+  const drainStarted = performance.now();
+  let drainBatches = 0;
+  while (await drainVesselProcessAnalysis(prisma, user.id)) drainBatches++;
+  const job = await prisma.evidenceOutbox.findFirstOrThrow({ where: { ownerUserId: user.id } });
+  assert.equal(job.status, 'applied');
+  assert.equal((job.payload as { nativeSamples: number }).nativeSamples, run.nativeSensorSamples.length);
+  assert(drainBatches >= 2);
   checks.push('formal-retry', 'formal-success-reused', 'normalized-opening-formal-verification');
+  checks.push('native-only-archive', 'ended-checkpoint-idempotent-and-restorable', 'analysis-independent-of-formal-verification');
   const result = { status: 'passed', controlSamples: completed.controlCount,
-    nativeSamples: completed.nativeCount, recoveryBytes: Buffer.byteLength(JSON.stringify(recovery)), checks };
+    nativeSamples: completed.nativeCount, recoveryBytes: Buffer.byteLength(JSON.stringify(recovery)),
+    drainBatches, drainMs: performance.now() - drainStarted, checks };
   await writeFile('.logs/direct-evidence-real-db-result.json', JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result));
 } finally {
@@ -236,6 +257,7 @@ try {
     objects: objects.filter(object => object.reference.startsWith('simulation-cas:oss:'))
       .map(object => ({ ...object, key: simulationOssLocation(object.reference).key })) }, null, 2), { mode: 0o600 });
   await prisma.simulationRun.deleteMany({ where: { ownerUserId: user.id } });
+  await prisma.evidenceOutbox.deleteMany({ where: { ownerUserId: user.id } });
   await prisma.virtualSimulationReport.deleteMany({ where: { userId: user.id } });
   await prisma.user.delete({ where: { id: user.id } });
   native.free();

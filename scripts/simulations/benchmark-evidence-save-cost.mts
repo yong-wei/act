@@ -13,6 +13,8 @@ import { prepareDirectLoadPacket } from './direct-evidence-load.mjs';
 import { config } from 'dotenv';
 import type { Prisma } from '@prisma/client';
 import type { VesselEvidenceOpening, VesselEvidenceClose } from '../../src/features/ilab/course-evidence-contract';
+import type { VesselRunEvidence, VesselTraceChunkData } from '../../src/features/simulations/run-evidence';
+import { prepareVesselOssSave } from '../../src/features/simulations/evidence-worker-format';
 
 function option(name: string, fallback: string) {
   const index = process.argv.indexOf(name);
@@ -33,7 +35,9 @@ if (target === 'local') {
 const fixtureRoot = path.resolve(option('--fixtures', '.tmp/load-fixtures'));
 const output = path.resolve(option('--output', '.logs/evidence-save-cost.json'));
 const evidenceTransport = option('--transport', 'legacy');
+const classroomComparison = process.argv.includes('--classroom-comparison');
 assert(['legacy', 'oss'].includes(evidenceTransport));
+assert(!classroomComparison || (target === 'local' && evidenceTransport === 'oss'), 'Classroom comparison uses a local database and private OSS');
 const browserPreviews = evidenceTransport === 'oss'
   ? JSON.parse(await readFile(option('--previews', '.tmp/load-fixture-previews.json'), 'utf8')) : undefined;
 const objectReferences = new Set<string>();
@@ -65,7 +69,7 @@ let activeSql: SqlCounts | undefined;
 const compress = promisify(gzip);
 const inspector = new Session();
 type Cost = { cpuMs: number; elapsedMs: number; requests: number; requestBytes: number; requestEncodedBytes: number;
-  responseBytes: number; ossHeadRequests: number; ossObjectReads: number; ossUploadRequests: number; ossUploadBytes: number; responseEncodedBytes: number; privateObjectReads: number; gzipCalls: number;
+  responseBytes: number; ossHeadRequests: number; ossObjectReads: number; ossReadBytes: number; ossUploadRequests: number; ossUploadBytes: number; responseEncodedBytes: number; privateObjectReads: number; gzipCalls: number;
   gunzipCalls: number; jsonParses: number; sql: SqlCounts };
 type Sample = { course: string; kind: string; ordinal: number; cost: Cost };
 type CoverageSample = { course: string; kind: string; calls: Record<string, number> };
@@ -105,8 +109,14 @@ Oss.prototype.head = function (...args: unknown[]) {
   return Reflect.apply(originalOssHead, this, args);
 };
 Oss.prototype.getStream = function (...args: unknown[]) {
-  if (activeCost) activeCost.ossObjectReads++;
-  return Reflect.apply(originalOssGetStream, this, args);
+  const cost = activeCost;
+  if (!cost) return Reflect.apply(originalOssGetStream, this, args);
+  cost.ossObjectReads++;
+  return Promise.resolve(Reflect.apply(originalOssGetStream, this, args)).then(value => {
+    const result = value as { res?: { headers?: Record<string, string> } };
+    cost.ossReadBytes += Number(result.res?.headers?.['content-length'] ?? 0);
+    return value;
+  });
 };
 
 const { default: pg } = await import('pg');
@@ -142,14 +152,14 @@ const { closeEvidenceCpuPool } = await import('../../src/lib/control-engine/evid
 const { CONTROL_ENGINE_BUILD_HASH } = await import('../../src/lib/control-engine/identity.generated');
 
 function emptyCost(): Cost {
-  return { ossHeadRequests: 0, ossObjectReads: 0, ossUploadRequests: 0, ossUploadBytes: 0, cpuMs: 0, elapsedMs: 0, requests: 0, requestBytes: 0, requestEncodedBytes: 0,
+  return { ossHeadRequests: 0, ossObjectReads: 0, ossReadBytes: 0, ossUploadRequests: 0, ossUploadBytes: 0, cpuMs: 0, elapsedMs: 0, requests: 0, requestBytes: 0, requestEncodedBytes: 0,
     responseBytes: 0, responseEncodedBytes: 0, privateObjectReads: 0, gzipCalls: 0, gunzipCalls: 0,
     jsonParses: 0, sql: emptySql() };
 }
 
 function addCost(total: Cost, value: Cost) {
   for (const key of ['cpuMs', 'elapsedMs', 'requests', 'requestBytes', 'requestEncodedBytes',
-    'responseBytes', 'responseEncodedBytes', 'ossHeadRequests', 'ossObjectReads', 'ossUploadRequests', 'ossUploadBytes', 'privateObjectReads', 'gzipCalls', 'gunzipCalls', 'jsonParses'] as const) total[key] += value[key];
+    'responseBytes', 'responseEncodedBytes', 'ossHeadRequests', 'ossObjectReads', 'ossReadBytes', 'ossUploadRequests', 'ossUploadBytes', 'privateObjectReads', 'gzipCalls', 'gunzipCalls', 'jsonParses'] as const) total[key] += value[key];
   for (const key of Object.keys(total.sql) as Array<keyof SqlCounts>) total.sql[key] += value.sql[key];
 }
 
@@ -214,15 +224,18 @@ function coverageCounts(result: Profiler.TakePreciseCoverageReturnType) {
   return calls;
 }
 
-async function directSave(runRef: string, value: unknown) {
+async function directSave(runRef: string, value: unknown, deferVerification = false) {
   return requestCost(value, async request => direct.commitOwnedVesselUpload(userId!, runRef,
-    contract.vesselEvidenceDirectCloseSchema.parse(await api.readVesselEvidenceJson(request))));
+    contract.vesselEvidenceDirectCloseSchema.parse(await api.readVesselEvidenceJson(request)), deferVerification));
 }
 
-async function runCourse(course: string, reportClientRef: string, fullRun = false) {
+async function runCourse(course: string, reportClientRef: string, fullRun = false, localFirst = false) {
   const fixture = fixtures.get(course)!;
-  const packets = fullRun ? fixture.packets : fixture.packets.slice(0, 3);
-  const original = packets[0].requests.find(request => request.method === 'POST' && !request.path.includes('/chunks'))!.body;
+  const packets = localFirst ? [{ requests: [
+    ...fixture.packets.flatMap(packet => packet.requests.filter(request => request.path.includes('/chunks'))),
+    fixture.packets.at(-1)!.requests.find(request => request.method === 'PUT')!,
+  ] }] : fullRun ? fixture.packets : fixture.packets.slice(0, 3);
+  const original = fixture.packets[0].requests.find(request => request.method === 'POST' && !request.path.includes('/chunks'))!.body;
   const opening = { ...original, reportClientRef, runRef: evidenceTransport === 'oss'
     ? `00000000-0000-4000-8000-${randomBytes(6).toString('hex')}` : randomUUID() };
   const opened = await requestCost(opening, async request => service.openVesselEvidenceRun(userId!,
@@ -231,7 +244,7 @@ async function runCourse(course: string, reportClientRef: string, fullRun = fals
   if (recordTiming) samples.push({ course, kind: 'initial-open', ordinal: 0, cost: opened.cost });
   for (const [ordinal, packet] of packets.entries()) {
     const finalPacket = fullRun && ordinal === packets.length - 1;
-    const timed = recordTiming && (!fullRun || finalPacket);
+    const timed = recordTiming && (classroomComparison || !fullRun || finalPacket);
     const counted = recordCoverage && (ordinal === 0 || finalPacket);
     if (counted) await inspector.post('Profiler.takePreciseCoverage');
     const total = emptyCost();
@@ -239,27 +252,33 @@ async function runCourse(course: string, reportClientRef: string, fullRun = fals
     let closing: Record<string, unknown> = { ...originalClose, ...(fullRun ? {} : { reason: 'checkpoint', failure: null }) };
     let saved: Awaited<ReturnType<typeof directSave>>;
     if (evidenceTransport === 'oss') {
+      assert(browserPreviews);
       const sourceChunks = packet.requests.filter(request => request.path.includes('/chunks')).map(request => request.body);
-      const prepared = prepareDirectLoadPacket(opening, progress, sourceChunks, closing, browserPreviews.previews[course][ordinal]);
-      const grant = await requestCost({ objects: prepared.objects.map(object => object.descriptor) }, async request =>
-        direct.authorizeOwnedVesselUploads(userId!, opening.runRef,
-          contract.vesselEvidenceOssGrantSchema.parse(await api.readVesselEvidenceJson(request)).objects));
-      addCost(total, grant.cost);
-      for (const object of prepared.objects) {
-        objectReferences.add(object.descriptor.reference);
-        const authorization = grant.value.objects.find(row => row.reference === object.descriptor.reference)!;
-        if (authorization.confirmed) continue;
-        const form = new FormData();
-        for (const [key, value] of Object.entries(authorization.fields)) form.append(key, value);
-        form.append('file', new Blob([object.body]), 'evidence.json.gz');
-        const encoded = new Request(authorization.url, { method: 'POST', body: form });
-        const body = await encoded.arrayBuffer();
-        const response = await fetch(authorization.url, { method: 'POST', body,
-          headers: { 'content-type': encoded.headers.get('content-type')! } });
-        assert.equal(response.status, 200);
-        total.ossUploadRequests++; total.ossUploadBytes += body.byteLength;
+      const previews = browserPreviews.previews[course];
+      const prepared = localFirst ? await prepareClassroomSave(opening, progress, sourceChunks, closing, previews.at(-1))
+        : prepareDirectLoadPacket(opening, progress, sourceChunks, closing, previews[ordinal]);
+      for (let offset = 0; offset < prepared.objects.length; offset += 16) {
+        const batch = prepared.objects.slice(offset, offset + 16);
+        const grant = await requestCost({ objects: batch.map(object => object.descriptor) }, async request =>
+          direct.authorizeOwnedVesselUploads(userId!, opening.runRef,
+            contract.vesselEvidenceOssGrantSchema.parse(await api.readVesselEvidenceJson(request)).objects));
+        addCost(total, grant.cost);
+        for (const object of batch) {
+          objectReferences.add(object.descriptor.reference);
+          const authorization = grant.value.objects.find(row => row.reference === object.descriptor.reference)!;
+          if (authorization.confirmed) continue;
+          const form = new FormData();
+          for (const [key, value] of Object.entries(authorization.fields)) form.append(key, value);
+          form.append('file', new Blob([object.body]), 'evidence.json.gz');
+          const encoded = new Request(authorization.url, { method: 'POST', body: form });
+          const body = await encoded.arrayBuffer();
+          const response = await fetch(authorization.url, { method: 'POST', body,
+            headers: { 'content-type': encoded.headers.get('content-type')! } });
+          assert.equal(response.status, 200);
+          total.ossUploadRequests++; total.ossUploadBytes += body.byteLength;
+        }
       }
-      saved = await directSave(opening.runRef, { ...prepared.close, checkpointReference: prepared.checkpointReference });
+      saved = await directSave(opening.runRef, { ...prepared.close, checkpointReference: prepared.checkpointReference }, localFirst);
       progress = saved.value;
     } else {
       const repeated = await requestCost(opening, async request => service.openVesselEvidenceRun(userId!,
@@ -274,10 +293,10 @@ async function runCourse(course: string, reportClientRef: string, fullRun = fals
         contract.vesselEvidenceCloseSchema.parse(await api.readVesselEvidenceJson(request)) as VesselEvidenceClose));
     }
     addCost(total, saved.cost);
-    const kind = finalPacket ? 'final-save' : 'automatic-save';
+    const kind = localFirst ? 'explicit-save' : finalPacket ? 'final-save' : 'automatic-save';
     if (timed) {
       samples.push({ course, kind, ordinal, cost: total });
-      samples.push({ course, kind: finalPacket ? 'final-confirmation' : 'checkpoint-confirmation', ordinal, cost: saved.cost });
+      samples.push({ course, kind: localFirst ? 'explicit-confirmation' : finalPacket ? 'final-confirmation' : 'checkpoint-confirmation', ordinal, cost: saved.cost });
     }
     if (counted) coverageSamples.push({ course, kind,
       calls: coverageCounts(await inspector.post('Profiler.takePreciseCoverage')) });
@@ -285,7 +304,13 @@ async function runCourse(course: string, reportClientRef: string, fullRun = fals
     assert.equal(saved.value.controlCount, expected.controlCount);
     assert.equal(saved.value.nativeCount, expected.nativeCount);
     assert.equal(saved.value.lastTimeS, expected.endTimeS);
-    if (!fullRun || finalPacket) {
+    if (localFirst) {
+      assert.equal(saved.value.evidenceStatus, 'pending');
+      const verified = await requestCost(undefined, () => chunks.verifyVesselEvidenceRun(userId!, opening.runRef));
+      assert.equal(verified.value.evidenceStatus, 'verified');
+      if (timed) samples.push({ course, kind: 'selected-formal-verification', ordinal, cost: verified.cost });
+    }
+    if ((!classroomComparison && !fullRun) || finalPacket) {
       const restored = await requestCost(undefined, async () => evidenceTransport === 'oss'
         ? recovery.loadOwnedCourseRunRecovery(userId!, opening.runRef, true)
         : recovery.loadOwnedCourseRunRecovery(userId!, opening.runRef), true);
@@ -294,10 +319,28 @@ async function runCourse(course: string, reportClientRef: string, fullRun = fals
         const state = await readSimulationTraceChunk<{checkpoint: string}>(restored.value.stateObjects.checkpointReference);
         assert.equal(state.checkpoint, expected.checkpoint);
       } else assert.equal(restored.value.checkpoint, expected.checkpoint);
-      if (timed) samples.push({ course, kind: 'selected-run-recovery', ordinal, cost: restored.cost });
+      if (timed) samples.push({ course, kind: localFirst ? 'explicit-selected-run-recovery' : 'selected-run-recovery', ordinal, cost: restored.cost });
     }
   }
   if (fullRun) assert.notEqual((packets.at(-1)!.requests.find(request => request.method === 'PUT')!.body).reason, 'checkpoint');
+}
+
+async function prepareClassroomSave(openingRaw: unknown, progress: ReturnType<typeof service.vesselRunProgress>,
+  source: unknown[], closingRaw: unknown, preview: VesselRunEvidence['checkpointPreview']) {
+  const opening = contract.vesselEvidenceOpeningSchema.parse(openingRaw) as unknown as VesselEvidenceOpening;
+  const close = contract.vesselEvidenceCloseSchema.parse(closingRaw);
+  const trace = source.map(chunk => contract.vesselTraceChunkSchema.parse(chunk) as unknown as VesselTraceChunkData);
+  assert(close.reason !== 'checkpoint');
+  return prepareVesselOssSave({ id: opening.runRef, scopeKey: 'classroom-comparison', courseKey: 'destroyer',
+    courseVersion: opening.courseVersion, stepSequence: opening.stepSequence, durationS: close.durationS,
+    createdAtMs: opening.startedAtMs, stoppedAtMs: opening.startedAtMs + close.endTimeS * 1000,
+    lastTimeS: close.endTimeS, configuration: opening.configuration, runtimeVersion: opening.runtimeVersion,
+    initialInput: opening.input, parameterHash: opening.parameterHash, initialCheckpoint: opening.initialCheckpoint,
+    checkpoint: close.checkpoint, checkpointPreview: preview, stopReason: close.reason, failure: close.failure,
+    trace: trace.flatMap(chunk => chunk.points), nativeSensorSamples: trace.flatMap(chunk => chunk.nativeSamples),
+    ...(trace.some(chunk => chunk.fineSamples) ? { fineStepSamples: trace.flatMap(chunk => chunk.fineSamples ?? []) } : {}),
+    changes: trace.flatMap(chunk => chunk.changes), prediction: opening.prediction ?? '',
+  }, progress, opening, true);
 }
 
 async function sourceFingerprint() {
@@ -309,6 +352,7 @@ async function sourceFingerprint() {
   files.push('src/features/ilab/adapters/oss-object-store.ts');
   files.push('src/lib/data-governance/simulation-trace-cas.ts', 'src/lib/data-governance/simulation-trace-codec.ts',
     'src/features/ilab/adapters/course-session-recovery.ts', 'src/features/ilab/course-run-metrics.ts',
+    'src/features/ilab/adapters/course-process-analysis.ts', 'src/features/simulations/evidence-worker-format.ts',
     'src/lib/control-engine/identity.ts', 'src/lib/control-engine/identity.generated.ts',
     'src/lib/control-engine/server.ts', 'prisma/schema.prisma', 'package-lock.json');
   const value = createHash('sha256');
@@ -333,37 +377,46 @@ try {
     role: 'STUDENT', accountSource: 'PLATFORM' } });
   userId = identity;
   const reports = new Map(courses.map(course => [course, randomUUID()]));
-  for (const course of courses) await runCourse(course, reports.get(course)!);
-  recordTiming = true;
-  for (let round = 0; round < rounds; round++) {
+  if (classroomComparison) {
+    for (let round = -1; round < rounds; round++) {
+      recordTiming = round >= 0;
+      for (const localFirst of round % 2 === 0 ? [false, true] : [true, false]) {
+        await runCourse('destroyer', randomUUID(), true, localFirst);
+      }
+    }
+  } else {
     for (const course of courses) await runCourse(course, reports.get(course)!);
-  }
-  for (const course of courses) await runCourse(course, reports.get(course)!, true);
-  recordTiming = false;
-  inspector.connect();
-  await inspector.post('Profiler.enable');
-  await inspector.post('Profiler.startPreciseCoverage', { callCount: true, detailed: false });
-  recordCoverage = true;
-  for (const course of courses) await runCourse(course, reports.get(course)!, true);
-  recordCoverage = false;
-  await inspector.post('Profiler.stopPreciseCoverage');
-  const formalCounts = coverageSamples.filter(sample => sample.kind === 'final-save');
-  assert.equal(formalCounts.length, 7);
-  const validFormalCounts = formalCounts.every(sample => sample.calls.nativeInstances === 1
-    && sample.calls.restore === 1 && sample.calls.freedInstances === 1);
-  if (!validFormalCounts) {
-    await mkdir(path.dirname(output), { recursive: true });
-    await writeFile(output + '.diagnostics.json', JSON.stringify({ status: 'invalid-counters',
-      coverage: coverageSamples, observedFunctions: Object.fromEntries(observedCoverageFunctions) }, null, 2));
-  }
-  assert(validFormalCounts,
-    'Native creation/restoration counters were not observed in the formal verification control');
-  const ordinaryCounts = coverageSamples.filter(sample => sample.kind === 'automatic-save');
-  if (ordinaryCounts.every(sample => sample.calls.nativeInstances === 0)) {
-    assert(ordinaryCounts.every(sample => sample.calls.restore === 0 && sample.calls.freedInstances === 0));
-    assert(samples.filter(sample => sample.kind === 'automatic-save')
-      .every(sample => sample.cost.privateObjectReads === 0 && sample.cost.ossObjectReads === 0),
-    'Confirmed chunks were re-read during ordinary saving');
+    recordTiming = true;
+    for (let round = 0; round < rounds; round++) {
+      for (const course of courses) await runCourse(course, reports.get(course)!);
+    }
+    for (const course of courses) await runCourse(course, reports.get(course)!, true);
+    recordTiming = false;
+    inspector.connect();
+    await inspector.post('Profiler.enable');
+    await inspector.post('Profiler.startPreciseCoverage', { callCount: true, detailed: false });
+    recordCoverage = true;
+    for (const course of courses) await runCourse(course, reports.get(course)!, true);
+    recordCoverage = false;
+    await inspector.post('Profiler.stopPreciseCoverage');
+    const formalCounts = coverageSamples.filter(sample => sample.kind === 'final-save');
+    assert.equal(formalCounts.length, 7);
+    const validFormalCounts = formalCounts.every(sample => sample.calls.nativeInstances === 1
+      && sample.calls.restore === 1 && sample.calls.freedInstances === 1);
+    if (!validFormalCounts) {
+      await mkdir(path.dirname(output), { recursive: true });
+      await writeFile(output + '.diagnostics.json', JSON.stringify({ status: 'invalid-counters',
+        coverage: coverageSamples, observedFunctions: Object.fromEntries(observedCoverageFunctions) }, null, 2));
+    }
+    assert(validFormalCounts,
+      'Native creation/restoration counters were not observed in the formal verification control');
+    const ordinaryCounts = coverageSamples.filter(sample => sample.kind === 'automatic-save');
+    if (ordinaryCounts.every(sample => sample.calls.nativeInstances === 0)) {
+      assert(ordinaryCounts.every(sample => sample.calls.restore === 0 && sample.calls.freedInstances === 0));
+      assert(samples.filter(sample => sample.kind === 'automatic-save')
+        .every(sample => sample.cost.privateObjectReads === 0 && sample.cost.ossObjectReads === 0),
+      'Confirmed chunks were re-read during ordinary saving');
+    }
   }
   assert(samples.every(sample => sample.cost.sql.total > 0), 'SQL statement events were not observed');
   assert(samples.filter(sample => sample.kind === 'checkpoint-confirmation')
@@ -387,6 +440,7 @@ try {
       meanPrivateObjectReads: rows.reduce((sum, row) => sum + row.cost.privateObjectReads, 0)/rows.length,
       meanOssHeadRequests: rows.reduce((sum, row) => sum + row.cost.ossHeadRequests, 0)/rows.length,
       meanOssObjectReads: rows.reduce((sum, row) => sum + row.cost.ossObjectReads, 0)/rows.length,
+      meanOssReadBytes: rows.reduce((sum, row) => sum + row.cost.ossReadBytes, 0)/rows.length,
       meanOssUploadRequests: rows.reduce((sum, row) => sum + row.cost.ossUploadRequests, 0)/rows.length,
       meanOssUploadBytes: rows.reduce((sum, row) => sum + row.cost.ossUploadBytes, 0)/rows.length,
       meanGzipCalls: rows.reduce((sum, row) => sum + row.cost.gzipCalls, 0)/rows.length,
@@ -396,7 +450,7 @@ try {
   await mkdir(path.dirname(output), { recursive: true });
   const result = { schema: 'act.evidence-save-cost.v1', capturedAt: new Date().toISOString(), revision,
     sourceFingerprint: fingerprint, toolFingerprint, inputDigest: inputHash.digest('hex'), runtimeVersion: CONTROL_ENGINE_BUILD_HASH,
-    evidenceTransport,
+    evidenceTransport, classroomComparison,
     node: process.version, platform: process.platform, architecture: process.arch, databaseTarget: target, rounds,
     scope: 'Sequential real database and evidence service calls with actual request decoding and response encoding; fixed dedicated identity; session authentication and network latency measured separately by HTTP/browser tests',
     cpuScope: 'Application process user+system CPU including asynchronous codec threads; database statement duration is reported separately',
@@ -418,6 +472,7 @@ try {
   inspector.disconnect();
   if (userId) {
     await database.simulationRun.deleteMany({ where: { ownerUserId: userId } });
+    await database.evidenceOutbox.deleteMany({ where: { ownerUserId: userId } });
     await database.virtualSimulationReport.deleteMany({ where: { userId } });
     await database.user.deleteMany({ where: { id: userId } });
     assert.equal(await database.user.count({ where: { id: userId } }), 0);

@@ -17,8 +17,8 @@ import { listRunEvidence, readRunEvidence, readExperimentDraft, readStepExperime
   listFrozenStudentModels, listModelComparisons, saveModelComparison, listLocalStepAttempts,
   saveLocalStepAttempt, listExperimentDrafts, type VesselExperimentDraft, type VesselRunSummary } from '@/features/simulations/local-evidence-store';
 import type { VesselLocalStepAttempt, VesselRunEvidence } from '@/features/simulations/run-evidence';
-import { uploadVesselCourseArtifacts, uploadVesselCourseRun, saveVesselCourseReport, fetchCourseSessionRecovery,
-  hydrateRecoveredCourseSession, triggerCourseReportIlabUpload } from '@/features/simulations/course-artifact-upload';
+import { uploadVesselCourseArtifacts, saveVesselCourseDraftToPlatform, saveVesselCourseReport, fetchCourseSessionRecovery, hasRecoverableLocalDraft,
+  hydrateRecoveredCourseSession, resumeVesselVerifications, triggerCourseReportIlabUpload } from '@/features/simulations/course-artifact-upload';
 import { buildVesselCourseReportHtml } from '@/features/simulations/course-report';
 import type { VesselReportSections } from '@/features/ilab/course-artifact-contract';
 import { VESSEL_COURSE_VERSION } from '../experiments/destroyer-course';
@@ -189,7 +189,6 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const savedCourseReportId = useRef('');
   const plannedRunRef = useRef('');
   const courseUploads = useRef<Promise<unknown>>(Promise.resolve());
-  const lastCloudCheckpoint = useRef('');
   const [courseRunning, setCourseRunning] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => courseAdapter.defaultSettings(1));
   const [models, setModels] = useState<FrozenVesselStudentModel[]>([]);
@@ -265,7 +264,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   const step = experiment.steps[displayActiveSeq - 1] ?? experiment.steps[0];
   const viewed = experiment.steps[displayViewSeq - 1] ?? step;
   const doneSeqs = nativeCourse ? [...new Set(attempts.filter((attempt) => attempt.scopeKey === scopeKey
-    && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))]
+    && !attempt.verificationPending && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))]
     : records.map((record) => record.seq);
   const viewedRecord = records.find((record) => record.seq === viewSeq);
   const shownSamples = activeTourNode
@@ -296,7 +295,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       explanation: live.readings.interpretation ?? '', durationS: current.plan.durationS,
       checkpoint: null, runConfiguration: current.plan.configuration,
       completedSteps: [...new Set(live.attempts.filter((attempt) => attempt.scopeKey === current.plan.scopeKey
-        && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))], updatedAtMs: Date.now(),
+        && !attempt.verificationPending && !['invalid_run', 'model_mismatch'].includes(attempt.status)).map((attempt) => attempt.stepSequence))], updatedAtMs: Date.now(),
       answers: live.readings, plannedRunId: plannedRunRef.current, reportClientRef: reportRef.current,
       originId: roundOriginRef.current.scope === current.plan.scopeKey ? roundOriginRef.current.originId : undefined,
       reportRunIds: live.reportRunIds, courseSettings: Object.fromEntries(Object.entries(live.settings)), designStudentModelId: live.designModelId});
@@ -326,39 +325,6 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     }
   }, [nativeCourse]);
 
-  const syncCurrentCourseRun = useCallback(async () => {
-    const current = workspace.current;
-    const runId = current?.run()?.id;
-    if (!canUseCloudEvidence || !runId || current.plan.scopeKey !== scopeRef.current) return;
-    const scope = current.plan.scopeKey;
-    const report = reportRef.current;
-    courseUploads.current = courseUploads.current.catch(() => undefined).then(async () => {
-      if (scopeRef.current !== scope || !report) return;
-      const saved = await readRunEvidence(runId);
-      if (!saved || saved.scopeKey !== scope) return;
-      const checkpointKey = `${report}:${runId}:${saved.lastTimeS}:${saved.stoppedAtMs}`;
-      if (lastCloudCheckpoint.current === checkpointKey) return;
-      await uploadVesselCourseRun(report, saved);
-      lastCloudCheckpoint.current = checkpointKey;
-      void refreshAuditTelemetry();
-    });
-    await courseUploads.current;
-  }, [canUseCloudEvidence, refreshAuditTelemetry]);
-
-  useEffect(() => {
-    if (!nativeCourse || !canUseCloudEvidence || readyScope !== scopeKey || tourActive) return;
-    let cancelled = false;
-    let timer: number;
-    const sync = async () => {
-      try { await syncCurrentCourseRun(); }
-      catch (error) { if (!cancelled) setMessage(error instanceof Error ? error.message : '云端保存未完成，本机记录已保留。'); }
-      if (!cancelled) timer = window.setTimeout(() => { void sync(); }, 5000);
-    };
-    void sync();
-    return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [nativeCourse, canUseCloudEvidence, readyScope, scopeKey, courseRunning, syncCurrentCourseRun, tourActive]);
-
-
   const activateCourseStep = useCallback(async (sequence: number, scope: string, initial = false,
     replacementSettings?: Settings) => {
     const token = ++activation.current;
@@ -374,16 +340,21 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       const history = await listRunEvidence(scope);
       roundWaveProfile.current = { scope, legacy: history.some((run) => run.configuration.waveTableProfile === undefined) };
     }
+    const localReady = initial && await hasRecoverableLocalDraft(scope, draft);
+    if (initial) savedCourseReportId.current = '';
     if (initial && canUseCloudEvidence) {
       const restored = await fetchCourseSessionRecovery(courseAdapter.courseKey, VESSEL_COURSE_VERSION,
-        draft ? { originId: draft.originId, reportClientRef: draft.reportClientRef }
+        draft ? { originId: draft.originId, reportClientRef: draft.reportClientRef, localScope: localReady ? scope : undefined }
           : scope === baseScopeRef.current ? { originId: originIdRef.current || undefined }
-            : { reportClientRef: scope.slice(`${baseScopeRef.current}:round:`.length) });
+            : { reportClientRef: scope.slice(`${baseScopeRef.current}:round:`.length) }).catch((error: unknown) => {
+        if (!localReady) throw error;
+        return null;
+      });
       if (token !== activation.current || scopeRef.current !== scope) return;
-      if (!restored.authenticated || restored.userId !== effectiveUserId || !restored.recovery) {
+      if (restored && (!restored.authenticated || restored.userId !== effectiveUserId || !restored.recovery)) {
         throw new Error('账号或云端进度暂时无法恢复，请刷新重试。已保存的实验记录将继续保留。');
       }
-      if (restored.authenticated && restored.userId === effectiveUserId && restored.recovery) {
+      if (restored?.recovery) {
         const recovery = restored.recovery;
         if (courseAdapter.courseKey === 'drilling' && [...recovery.runs, ...(recovery.archivedRuns ?? [])]
           .some((run) => run.configuration.waveTableProfile === undefined)) {
@@ -401,7 +372,8 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       }
     }
     if (token !== activation.current || scopeRef.current !== scope) return;
-    if (initial) roundOriginRef.current = { scope, originId: draft?.originId };
+    if (initial) roundOriginRef.current = { scope,
+      originId: draft?.originId ?? (scope === baseScopeRef.current ? originIdRef.current || undefined : undefined) };
     if (initial) sequence = draft?.stepSequence ?? sequence;
     const previousPlan = courseAdapter.previousPlanSequence?.(sequence);
     const planDraft = draft ?? (previousPlan && !replacementSettings ? await readStepExperimentDraft(scope, previousPlan) : undefined);
@@ -512,33 +484,26 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
   }, [activeSeq, nativeCourse]);
 
   useEffect(() => {
-    if (tourActive) return;
-    if (nativeCourse && (!accountReady || readyScope !== scopeKey)) return;
+    if (tourActive || nativeCourse) return;
     stepDraftsRef.current = {...stepDraftsRef.current, [String(activeSeq)]: readings};
     writeLocalDraftStore(draftStorageKey, {
       activeSeq,
       bySeq: stepDraftsRef.current,
     });
-    const draftOriginId = nativeCourse ? roundOriginRef.current.scope === scopeKey
-      ? roundOriginRef.current.originId : undefined : originId;
-    if (!draftOriginId) return;
+    if (!originId) return;
     const timer = window.setTimeout(() => {
-      void fetch(`/api/ilab/vessel/session/${draftOriginId}`, {
+      void fetch(`/api/ilab/vessel/session/${originId}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           activeSeq,
           seq: activeSeq,
           readings: stepDraftsRef.current[String(activeSeq)] ?? {},
-          ...(nativeCourse ? {courseState: {courseSettings: settings, designStudentModelId: designModelId,
-            reportRunIds, reportClientRef: reportRef.current, plannedRunId: plannedRunRef.current,
-            activeRunId: workspace.current?.run()?.id ?? null}} : {}),
         }),
       }).catch(() => undefined);
     }, 450);
     return () => window.clearTimeout(timer);
-  }, [activeSeq, draftStorageKey, originId, readings, nativeCourse, accountReady, readyScope, scopeKey, settings,
-    designModelId, reportRunIds, courseRunning, tourActive]);
+  }, [activeSeq, draftStorageKey, originId, readings, nativeCourse, tourActive]);
 
   useEffect(() => {
     if (ticket && ticket === verifiedTicket) return;
@@ -917,22 +882,54 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
     finally { setBusy(false); }
   }
 
-  async function uploadCourseEvidence() {
+  useEffect(() => {
+    if (!nativeCourse || !canUseCloudEvidence || readyScope !== scopeKey || busy) return;
+    const controller = new AbortController();
+    void resumeVesselVerifications(scopeKey, () => {
+      void reloadCourseEvidence(scopeKey);
+      setMessage('核验状态已更新，可查看本步记录。');
+    }, controller.signal, () => setMessage('已收件，等待核验。')).catch((error: unknown) => {
+      if (!controller.signal.aborted && error instanceof Error) setMessage(error.message);
+    });
+    return () => controller.abort();
+  }, [nativeCourse, canUseCloudEvidence, readyScope, scopeKey, busy, reloadCourseEvidence]);
+
+  async function uploadCourseEvidence(bindBeforeVerification = false) {
     if (activeTourNode) {
       setMessage('只读高光工况导览模式下严禁上传或回传正式证据。');
       return;
     }
-    if (!canUseCloudEvidence) return;
     const reportClientRef = reportRef.current;
     if (scopeRef.current !== scopeKey) return;
-    const upload = courseUploads.current.catch(() => undefined).then(() =>
-      uploadVesselCourseArtifacts(reportClientRef, courseAdapter.courseKey, scopeKey));
+    const upload = courseUploads.current.catch(() => undefined).then(() => {
+      if (scopeRef.current !== scopeKey || tourActiveRef.current) return;
+      return uploadVesselCourseArtifacts(reportClientRef, courseAdapter.courseKey, scopeKey,
+        () => setMessage('已收件，等待核验。'), bindBeforeVerification ? () => {
+          if (scopeRef.current !== scopeKey) throw new Error('实验轮次已切换。');
+          return saveVesselCourseDraftToPlatform(courseAdapter.courseKey, scopeKey, reportClientRef, roundOriginRef.current.originId);
+        } : undefined);
+    });
     courseUploads.current = upload;
     const result = await upload;
-    if (scopeRef.current !== scopeKey) return;
-    await reloadCourseEvidence();
-    setMessage(result.pendingCount ? '已上传可用证据。运行前预测及相应尝试将在对应运行开始后上传。' : '运行、模型、对照及各次提交已上传。');
-    void refreshAuditTelemetry();
+    if (scopeRef.current === scopeKey) await reloadCourseEvidence();
+    return result;
+  }
+
+  async function saveCourseToPlatform() {
+    if (activeTourNode || busy || !canUseCloudEvidence || readyScope !== scopeKey) return;
+    setBusy(true);
+    setMessage('');
+    try {
+      await pauseCourseRun();
+      const saved = await uploadCourseEvidence();
+      if (!saved || scopeRef.current !== scopeKey) return;
+      await saveVesselCourseDraftToPlatform(courseAdapter.courseKey, scopeKey, reportRef.current, roundOriginRef.current.originId);
+      setMessage(saved.pendingCount
+        ? '进度已保存到平台。尚未关联运行的预测仍保存在本机。'
+        : '已保存到平台，可在其他设备继续本次实验。');
+      void refreshAuditTelemetry();
+    } catch (error) { courseFailure(error); }
+    finally { setBusy(false); }
   }
 
   async function submitCourseStep() {
@@ -956,19 +953,27 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       const runIds = new Set(activeSeq === 20 ? reportRunIds : allRuns.filter((run) => run.stepSequence === activeSeq).map((run) => run.id));
       if (definition.stepKind === 'analysis') for (const model of allModels) for (const training of model.payload.trainingRuns) runIds.add(training.runRef);
       if (activeSeq === courseAdapter.forecastOnlySequence) for (const comparison of evidenceComparisons) runIds.add(comparison.runId);
-      const attempt: VesselLocalStepAttempt = {id: crypto.randomUUID(), scopeKey, stepSequence: activeSeq,
+      const retrying = (await listLocalStepAttempts(scopeKey)).find(item => item.stepSequence === activeSeq && item.verificationPending);
+      const attempt: VesselLocalStepAttempt = retrying ?? {id: crypto.randomUUID(), scopeKey, stepSequence: activeSeq,
         runIds: [...runIds], studentModelIds: allModels.map((model) => model.id),
         comparisonIds: evidenceComparisons.filter((comparison) => runIds.has(comparison.runId)).map((comparison) => comparison.id),
         answers: {...readings}, createdAtMs: Date.now(),
-        status: problem ? 'model_mismatch' : 'pending-review', validationFeedback: problem, serverId: null};
+        status: problem ? 'model_mismatch' : 'pending-review', validationFeedback: problem, serverId: null,
+        verificationPending: canUseCloudEvidence};
       await saveLocalStepAttempt(attempt); await reloadCourseEvidence();
       let uploadFailure: string | null = null;
       if (canUseCloudEvidence) {
         try {
           if (scopeRef.current !== scopeKey) return;
-          await uploadCourseEvidence();
+          await uploadCourseEvidence(true);
           const savedAttempt = (await listLocalStepAttempts(scopeKey)).find((item) => item.id === attempt.id);
-          problem = savedAttempt?.validationFeedback ?? problem;
+          if (!savedAttempt?.serverId && !savedAttempt?.validationFeedback) throw new Error('证据暂未齐备，本机提交已保留。');
+          problem = savedAttempt?.validationFeedback ?? (savedAttempt?.status === 'pending-review' || savedAttempt?.status === 'below_target'
+            ? null : '本步证据尚未通过核验。');
+          if (savedAttempt?.serverId && scopeRef.current === scopeKey) {
+            await saveVesselCourseDraftToPlatform(courseAdapter.courseKey, scopeKey, reportRef.current,
+              roundOriginRef.current.originId, !problem && !doneSeqs.includes(activeSeq) && activeSeq < 20 ? activeSeq + 1 : undefined);
+          }
           if (activeSeq === 20 && !problem) {
             const report = await saveVesselCourseReport(reportRef.current, courseAdapter.courseKey, readings as unknown as VesselReportSections, reportRunIds, 'submit');
             savedCourseReportId.current = report.id;
@@ -977,7 +982,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
           }
         } catch (error) { uploadFailure = error instanceof Error ? error.message : '上传失败，本机证据已保留。'; }
       }
-      if (problem) { setMessage(`这次尝试已保留。${problem}`); return; }
+      if (problem || uploadFailure) { setMessage(`这次尝试已保留。${uploadFailure ?? problem}`); return; }
       void refreshAuditTelemetry();
       setMessage(`本步证据已保存，各次尝试均会保留，成绩由教师复核。${uploadFailure ? `上传尚未完成。${uploadFailure}` : ''}`);
       if (!doneSeqs.includes(activeSeq) && activeSeq < 20) {
@@ -1501,7 +1506,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
             reset: resetCourseRun,
             advance: (_seconds: number): ReturnType<typeof advanceCourse> => null,
             freezePrediction: freezeCoursePrediction,
-            upload: () => uploadCourseEvidence().catch(courseFailure),
+            upload: saveCourseToPlatform, canSaveToPlatform: false,
           }
         : {
             scopeKey, plannedRunId: plannedRunRef.current, ready: accountReady && readyScope === scopeKey, running: courseRunning,
@@ -1519,7 +1524,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
             read: (): ReturnType<VesselCourseWorkspace['read']> | null => workspace.current?.read() ?? null,
             latestPoint: (): VesselRunEvidence['trace'][number] | undefined => workspace.current?.run()?.trace.at(-1),
             start: startCourseRun, pause: () => pauseCourseRun().catch(courseFailure), reset: resetCourseRun, advance: advanceCourse,
-            freezePrediction: freezeCoursePrediction, upload: () => uploadCourseEvidence().catch(courseFailure),
+            freezePrediction: freezeCoursePrediction, upload: saveCourseToPlatform, canSaveToPlatform: canUseCloudEvidence,
           }
       : undefined,
   };

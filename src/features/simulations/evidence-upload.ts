@@ -27,7 +27,8 @@ export async function requestVesselEvidence<T = VesselEvidenceProgress>(url: str
 const uploadProgress = new Map<string, VesselEvidenceProgress>();
 
 export async function uploadVesselRunEvidence(reportClientRef: string,
-  run: VesselRunEvidence & { uploadReceipt?: VesselEvidenceProgress & { reportClientRef: string } }) {
+  run: VesselRunEvidence & { uploadReceipt?: VesselEvidenceProgress & { reportClientRef: string } },
+  deferVerification = false) {
   const key = `${reportClientRef}:${run.id}`;
   const receipt = uploadProgress.get(key) ?? (run.uploadReceipt?.reportClientRef === reportClientRef ? run.uploadReceipt : undefined);
   let progress = receipt?.transport === 'oss' ? receipt : await requestVesselEvidence('/api/ilab/experiment-runs', vesselEvidenceOpeningInput(reportClientRef, run));
@@ -45,9 +46,14 @@ export async function uploadVesselRunEvidence(reportClientRef: string,
     }
     return progress;
   }
+  if (deferVerification && run.stoppedAtMs !== null && progress.savedReason === run.stopReason
+    && progress.controlCount === run.trace.length && progress.nativeCount === run.nativeSensorSamples.length
+    && (progress.fineCount ?? 0) === (run.fineStepSamples?.length ?? 0) && Math.abs(progress.lastTimeS - run.lastTimeS) < 1e-7) {
+    return progress;
+  }
   if (progress.transport === 'oss' && run.checkpointPreview) {
     try {
-      progress = await uploadDirectVesselRunEvidence(reportClientRef, run, progress, requestVesselEvidence);
+      progress = await uploadDirectVesselRunEvidence(reportClientRef, run, progress, requestVesselEvidence, deferVerification);
       uploadProgress.set(key, progress);
       return progress;
     }
@@ -60,7 +66,7 @@ export async function uploadVesselRunEvidence(reportClientRef: string,
       if (progress.controlCount > run.trace.length || progress.nativeCount > run.nativeSensorSamples.length
         || (progress.fineCount ?? 0) > (run.fineStepSamples?.length ?? 0) || progress.lastTimeS > run.lastTimeS + 1e-7) throw error;
       if (progress.transport === 'oss') {
-        progress = await uploadDirectVesselRunEvidence(reportClientRef, run, progress, requestVesselEvidence);
+        progress = await uploadDirectVesselRunEvidence(reportClientRef, run, progress, requestVesselEvidence, deferVerification);
         uploadProgress.set(key, progress);
         return progress;
       }
@@ -98,7 +104,7 @@ export async function uploadVesselRunEvidence(reportClientRef: string,
     progress = {...progress, chunkCount:progress.chunkCount + 1, controlCount:controlEnd,
       nativeCount:nativeEnd, fineCount:fineEnd, lastTimeS:endTimeS};
   }
-  progress = await requestVesselEvidence(`/api/ilab/experiment-runs/${run.id}`, {
+  progress = await requestVesselEvidence(`/api/ilab/experiment-runs/${run.id}${deferVerification ? '?defer=1' : ''}`, {
     checkpoint: run.checkpoint, endTimeS: run.lastTimeS, controlCount: run.trace.length,
     nativeCount: run.nativeSensorSamples.length, reason: completed ? run.stopReason : 'checkpoint', failure: run.failure,
     durationS:run.durationS, pendingChunks,

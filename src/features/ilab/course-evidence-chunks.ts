@@ -13,6 +13,7 @@ import { storedTraceData, advanceStoredSummary, validateChunkPrefix, describeVes
   type StoredChunk } from './course-evidence-prefix';
 import { confirmVesselEvidenceObject } from './adapters/course-evidence-objects';
 import { prepareVesselCheckpoint } from './adapters/course-evidence-checkpoint';
+import { enqueueVesselProcessAnalysis } from './adapters/course-process-analysis';
 export { validateChunkPrefix } from './course-evidence-prefix';
 
 const hash = (value: unknown) => createHash('sha256').update(canonicalJson(value)).digest('hex');
@@ -112,7 +113,8 @@ export async function appendVesselEvidenceChunk(userId: string, chunk: VesselTra
       return vesselRunProgress(current);
     }
     const report = await tx.virtualSimulationReport.findUniqueOrThrow({ where: { id: latest.reportId } });
-    if (current.status !== 'running' || !['draft','revision-requested'].includes(report.status)) {
+    if (current.status !== 'running' || !['draft','revision-requested'].includes(report.status)
+      || (latest.recoveryCheckpoint?.reason && latest.recoveryCheckpoint.reason !== 'checkpoint')) {
       throw new IlabServiceError('这次运行已经结束或报告已提交，无法追加采样。',409);
     }
     return vesselRunProgress(await appendStoredChunk(tx, current, chunk, stored));
@@ -120,13 +122,13 @@ export async function appendVesselEvidenceChunk(userId: string, chunk: VesselTra
 }
 
 /** 先原子保存恢复进度，完整核验只在运行结束时执行。 */
-export async function closeVesselEvidenceRun(userId: string, runRef: string, input: VesselEvidenceClose) {
-  return saveVesselEvidenceRun(userId, runRef, input, hash(input));
+export async function closeVesselEvidenceRun(userId: string, runRef: string, input: VesselEvidenceClose, deferVerification = false) {
+  return saveVesselEvidenceRun(userId, runRef, input, hash(input), { deferVerification });
 }
 
 export async function closeDirectVesselEvidenceRun(userId: string, runRef: string,
-  input: VesselEvidenceSave, checkpoint: StoredChunk) {
-  return saveVesselEvidenceRun(userId, runRef, input, checkpoint.checksum, checkpoint);
+  input: VesselEvidenceSave, checkpoint: StoredChunk, deferVerification = false) {
+  return saveVesselEvidenceRun(userId, runRef, input, checkpoint.checksum, { checkpoint, deferVerification });
 }
 
 async function readDirectVesselClose(reference: string): Promise<VesselEvidenceClose> {
@@ -140,7 +142,8 @@ async function readDirectVesselClose(reference: string): Promise<VesselEvidenceC
 }
 
 async function saveVesselEvidenceRun(userId: string, runRef: string, input: VesselEvidenceSave,
-  closeHash: string, checkpoint?: StoredChunk) {
+  closeHash: string, options: { checkpoint?: StoredChunk; deferVerification?: boolean; savedClose?: VesselEvidenceClose }) {
+  const { checkpoint, deferVerification = false, savedClose } = options;
   let run = await findOwnedVesselRun(userId, runRef);
   const previous = run.summary as { closeHash?: string; checkpointHash?: string };
   if (previous.closeHash) {
@@ -148,6 +151,12 @@ async function saveVesselEvidenceRun(userId: string, runRef: string, input: Vess
     return vesselRunProgress(run);
   }
   const isCheckpoint = input.reason === 'checkpoint';
+  const summary = vesselRunStorageSummary(run);
+  if (previous.checkpointHash && previous.checkpointHash !== closeHash
+    && summary.evidenceVerification?.status !== 'failed'
+    && summary.recoveryCheckpoint?.reason && summary.recoveryCheckpoint.reason !== 'checkpoint') {
+    throw new IlabServiceError('这次运行已保存结束状态，请读取已保存进度。', 409);
+  }
   if (previous.checkpointHash === closeHash && isCheckpoint) return vesselRunProgress(run);
   if (previous.checkpointHash !== closeHash && input.baseCheckpointReference
     && vesselRunStorageSummary(run).lastCheckpointReference !== input.baseCheckpointReference) {
@@ -155,11 +164,11 @@ async function saveVesselEvidenceRun(userId: string, runRef: string, input: Vess
   }
   if (previous.checkpointHash !== closeHash) {
     const prepared = await prepareVesselCheckpoint(run, input, closeHash, checkpoint);
-    run = await commitVesselEvidenceProgress(run, runRef, input, closeHash, prepared, 'save');
+    run = await commitVesselEvidenceProgress(run, runRef, input, closeHash, prepared, 'save', deferVerification);
   }
-  if (isCheckpoint) return vesselRunProgress(run);
+  if (isCheckpoint || deferVerification) return vesselRunProgress(run);
   try {
-    const fullInput = checkpoint ? await readDirectVesselClose(checkpoint.uri) : input as VesselEvidenceClose;
+    const fullInput = savedClose ?? (checkpoint ? await readDirectVesselClose(checkpoint.uri) : input as VesselEvidenceClose);
     if (checkpoint) {
       const { checkpoint: _snapshot, ...metadata } = fullInput;
       if (canonicalJson(metadata) !== canonicalJson(input)) {
@@ -168,7 +177,7 @@ async function saveVesselEvidenceRun(userId: string, runRef: string, input: Vess
     }
     const currentSummary = vesselRunStorageSummary(run);
     const traces = await prisma.simulationTrace.findMany({
-      where: { runId: run.id }, orderBy: { chunkIndex: 'asc' }, select: { sampleStorageUri: true },
+      where: { runId: run.id }, orderBy: { chunkIndex: 'asc' }, select: { sampleStorageUri: true, summaryMetrics: true },
     });
     const task = { run: { id: run.id, runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion, seed: run.seed },
       runRef, summary: currentSummary, input: { ...fullInput, pendingChunks: [] }, closeHash, traces, checkpoint };
@@ -188,7 +197,7 @@ async function saveVesselEvidenceRun(userId: string, runRef: string, input: Vess
 }
 
 async function commitVesselEvidenceProgress(run: SimulationRun, runRef: string, input: VesselEvidenceSave,
-  closeHash: string, prepared: PreparedVesselClose, phase: 'save' | 'complete' | 'state') {
+  closeHash: string, prepared: PreparedVesselClose, phase: 'save' | 'complete' | 'state', deferVerification = false) {
   const summary = vesselRunStorageSummary(run);
   const previousCheckpoint = (run.summary as { checkpointHash?: string }).checkpointHash;
   return prisma.$transaction(async (tx) => {
@@ -226,6 +235,10 @@ async function commitVesselEvidenceProgress(run: SimulationRun, runRef: string, 
       simulationEndMs: BigInt(prepared.simulationEndMs),
       terminationReason: input.reason, quality: prepared.quality as unknown as Prisma.InputJsonValue,
     } });
+    if (phase === 'save' && deferVerification && input.reason !== 'checkpoint' && prepared.progress.chunkCount && run.ownerUserId) {
+      await enqueueVesselProcessAnalysis(tx, { runId: run.id, runRef, checkpointHash: closeHash,
+        chunkCount: prepared.progress.chunkCount, ownerUserId: run.ownerUserId, reportId: summary.reportId });
+    }
     return saved;
   }, { timeout: 30_000 });
 }
@@ -257,17 +270,22 @@ export async function verifyVesselEvidenceRun(userId: string, runRef: string) {
   const checkpointHash = (run.summary as { checkpointHash?: string }).checkpointHash;
   if (!checkpointHash) throw new IlabServiceError('请先保存这次运行的恢复点。', 409);
   const direct = summary.lastCheckpointReference.startsWith('simulation-cas:oss:');
+  const stored = direct ? { uri: summary.lastCheckpointReference,
+    checksum: summary.lastCheckpointReference.slice(summary.lastCheckpointReference.lastIndexOf(':') + 1) } : undefined;
   const saved = direct ? await readDirectVesselClose(summary.lastCheckpointReference)
-    : await readSimulationTraceChunk(summary.lastCheckpointReference);
-  const input = { ...saved as VesselEvidenceClose, reason: 'checkpoint' as const, pendingChunks: [] };
+    : await readSimulationTraceChunk<VesselEvidenceClose>(summary.lastCheckpointReference);
+  if (saved.reason !== 'checkpoint') {
+    const { checkpoint: _snapshot, ...metadata } = saved;
+    return saveVesselEvidenceRun(userId, runRef, direct ? metadata : saved, checkpointHash, { checkpoint: stored, savedClose: saved });
+  }
+  const input = { ...saved, reason: 'checkpoint' as const, pendingChunks: [] };
   // 同步核验期间保持待核验状态，进程中断后可直接从保存点重试。
   try {
     const traces = await prisma.simulationTrace.findMany({ where: { runId: run.id },
-      orderBy: { chunkIndex: 'asc' }, select: { sampleStorageUri: true } });
+      orderBy: { chunkIndex: 'asc' }, select: { sampleStorageUri: true, summaryMetrics: true } });
     const task = { run: { id: run.id, runtimeVersion: run.runtimeVersion, modelVersion: run.modelVersion, seed: run.seed },
       runRef, summary: vesselRunStorageSummary(run), input, closeHash: checkpointHash, traces, verifyCheckpoint: true,
-      ...(direct ? { checkpoint: { uri: summary.lastCheckpointReference,
-        checksum: summary.lastCheckpointReference.slice(summary.lastCheckpointReference.lastIndexOf(':') + 1) } } : {}) };
+      checkpoint: stored };
     const prepared = evidenceCpuWorkersEnabled()
       ? await runEvidenceCpuTask('close-prepare', task) as PreparedVesselClose
       : await prepareVesselEvidenceClose(task);

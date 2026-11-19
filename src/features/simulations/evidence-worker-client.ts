@@ -31,8 +31,9 @@ function request<T>(input: Record<string, unknown>): Promise<T> {
   });
 }
 
-export function prepareVesselSaveInWorker(reportClientRef: string, run: VesselRunEvidence, progress: VesselEvidenceProgress) {
-  return request<PreparedVesselOssSave>({ operation: 'prepare', progress,
+export function prepareVesselSaveInWorker(reportClientRef: string, run: VesselRunEvidence, progress: VesselEvidenceProgress,
+  separateProcessData = false) {
+  return request<PreparedVesselOssSave>({ operation: 'prepare', progress, separateProcessData,
     opening: progress.openingReference?.startsWith('simulation-cas:oss:') ? undefined : vesselEvidenceOpeningInput(reportClientRef, run),
     run: { ...run, trace: run.trace.slice(progress.controlCount),
       nativeSensorSamples: run.nativeSensorSamples.slice(progress.nativeCount),

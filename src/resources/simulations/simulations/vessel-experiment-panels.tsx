@@ -56,8 +56,6 @@ export function VesselCourseEvidencePanel<Settings extends object>({session,defa
           onClick={()=>{void session.restartIlabSession();}}>开启新一轮实验</Button>
       </div>
     </SimPanelSection>
-    <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || tourActive}
-      onClick={()=>{void course.upload();}}>{tourActive ? '导览只读禁止上传' : '上传或重试保存本人证据'}</Button>
     {tourActive ? (
       <div className="sim-hud-tile p-2.5 text-xs text-platform-fg-secondary" data-tour-workbench-locked>
         只读高光导览中：已隔离本机实验轮次与模型辨识库，退出导览后可继续编辑本人模型。
@@ -909,6 +907,14 @@ export function VesselExperimentDocks<Settings extends object>({
                       onRestart={() => { void session.restartIlabSession(); }}
                       onRetryUpload={() => { void session.retryIlabUpload(); }}
                     />
+                    {session.course && !tourActive ? <div className="mt-2 space-y-1">
+                      {session.course.canSaveToPlatform ? (
+                        <Button type="button" size="sm" variant="outline" className={simulationUi.buttonOutline}
+                          disabled={session.busy || !session.course.ready}
+                          onClick={() => { void session.course?.upload(); }}>保存到平台</Button>
+                      ) : null}
+                      <p className="text-xs text-platform-fg-secondary">普通操作保存在本机。保存到平台后可换设备继续。</p>
+                    </div> : null}
                   </fieldset>
                 )}
               />

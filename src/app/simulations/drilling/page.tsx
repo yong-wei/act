@@ -17,7 +17,7 @@ export default async function DrillingSimulationPage({
       guideHref="/supporting/guide-05-drilling-platform.pdf"
       localToolTemplate="dp-positioning"
     >
-      <DrillingSimulation ticket={ticket} />
+      <DrillingSimulation classroomEntry={process.env.SIMULATION_ENTRY_QUEUE === '1'} ticket={ticket} />
     </SimulationShell>
   );
 }
