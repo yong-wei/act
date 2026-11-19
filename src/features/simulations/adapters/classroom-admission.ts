@@ -22,13 +22,17 @@ if not redis.call('ZSCORE', KEYS[2], id) then
 end
 redis.call('ZADD', KEYS[3], now + tonumber(ARGV[3]), id)
 for i = 1, 3 do redis.call('PEXPIRE', KEYS[i], tonumber(ARGV[3]) * 2) end
-if limit == 0 then return 5000 end
+local rank = redis.call('ZRANK', KEYS[2], id)
+local spread = tonumber(string.sub(id, 1, 3), 16)
+if limit == 0 then
+  if rank < 3 then return 1500 + spread % 700 end
+  return 4000 + spread
+end
 local slot = math.floor(now / interval)
 local used = 0
 if tostring(slot) == redis.call('HGET', KEYS[1], 'slot') then
   used = tonumber(redis.call('HGET', KEYS[1], 'used') or 0)
 end
-local rank = redis.call('ZRANK', KEYS[2], id)
 if rank < limit - used then
   redis.call('HSET', KEYS[1], 'slot', slot, 'used', used + 1)
   redis.call('ZREM', KEYS[2], id)
@@ -36,7 +40,9 @@ if rank < limit - used then
   redis.call('PSETEX', KEYS[4], ARGV[4], '1')
   return 0
 end
-return math.min(10000, interval - now % interval + math.floor((rank + used) / limit) * interval)
+local wait = math.min(10000, interval - now % interval + math.floor((rank + used) / limit) * interval)
+if rank >= limit then return wait + spread % 3000 end
+return wait
 `;
 
 export async function reserveSimulationClassroomEntry(browserId: string) {
