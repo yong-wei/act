@@ -3,7 +3,11 @@ import { redirect } from 'next/navigation';
 import type { ComponentType } from 'react';
 
 import { ClassroomSessionError } from '@/features/classroom/session/errors';
-import { isClassroomCapacityEnabled, readClassroomSessionUseCase } from '@/features/classroom/session/public-api';
+import {
+  isClassroomCapacityEnabled,
+  loadSharedClassroomRead,
+  readClassroomSessionUseCase,
+} from '@/features/classroom/session/public-api';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { authOptions } from '@/lib/auth';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
@@ -547,11 +551,26 @@ export async function renderBatchAStudent(input: {
       }
     }
   }
-  const runtimeResult = await loadSessionBoundLessonRuntime({
-    sessionId: input.sessionId,
-    expectedCanonicalId: lesson.canonicalId,
-    role: 'student',
-  });
+  const loadClassroomContent = async () => {
+    const runtimeResult = await loadSessionBoundLessonRuntime({
+      sessionId: input.sessionId,
+      expectedCanonicalId: lesson.canonicalId,
+      role: 'student',
+    });
+    const layered = runtimeResult.status === 'bound' || runtimeResult.status === 'legacy'
+      ? resolveLayered(lesson.config, lesson.canonicalId, runtimeResult.lessonRuntime)
+      : null;
+    return { runtimeResult, layered };
+  };
+  // Keep the verified revision briefly. Legacy and drift results are only
+  // shared while their checks are running.
+  const { runtimeResult, layered } = capacityEnabled && input.sessionId !== 'demo'
+    ? await loadSharedClassroomRead(
+      `student-page:${input.sessionId}:${lesson.canonicalId}`,
+      loadClassroomContent,
+      ({ runtimeResult }) => runtimeResult.status === 'bound' ? 5000 : 0,
+    )
+    : await loadClassroomContent();
   if (runtimeResult.status === 'drift') {
     return <CourseBundleDriftState code={runtimeResult.code} sessionId={runtimeResult.sessionId} />;
   }
@@ -559,7 +578,6 @@ export async function renderBatchAStudent(input: {
     redirect(runtimeResult.redirectHref);
   }
   const { StudentPage } = await lesson.config.loadPages();
-  const layered = resolveLayered(lesson.config, lesson.canonicalId, runtimeResult.lessonRuntime);
   return (
     <StudentPage
       sessionId={input.sessionId}

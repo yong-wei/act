@@ -10,7 +10,7 @@ import {
   type ClassroomSessionAccessUser,
 } from './access-policy';
 import { createPrismaClassroomLifecycleRuntime } from './adapters/lifecycle-commands';
-export { isClassroomCapacityEnabled } from './adapters/shared-classroom-reads';
+export { isClassroomCapacityEnabled, loadSharedClassroomRead } from './adapters/shared-classroom-reads';
 import {
   advanceClassroomSession,
   endClassroomSession,

@@ -9,7 +9,11 @@ export function isClassroomCapacityEnabled() {
   return process.env.INTERACTIVE_CLASSROOM_CAPACITY === '1';
 }
 
-export async function loadSharedClassroomRead<T>(key: string, load: () => Promise<T>, ttlMs = VALID_FOR_MS): Promise<T> {
+export async function loadSharedClassroomRead<T>(
+  key: string,
+  load: () => Promise<T>,
+  ttlMs: number | ((value: T) => number) = VALID_FOR_MS,
+): Promise<T> {
   if (!isClassroomCapacityEnabled()) return load();
   const existing = reads.get(key);
   if (existing && existing.expiresAt > performance.now()) return existing.value as Promise<T>;
@@ -21,12 +25,13 @@ export async function loadSharedClassroomRead<T>(key: string, load: () => Promis
   const entry = { expiresAt: Infinity, value: load() };
   reads.set(key, entry);
   try {
-    return await entry.value;
+    const value = await entry.value;
+    const retention = typeof ttlMs === 'function' ? ttlMs(value) : ttlMs;
+    entry.expiresAt = performance.now() + retention;
+    return value;
   } catch (error) {
     if (reads.get(key) === entry) reads.delete(key);
     throw error;
-  } finally {
-    entry.expiresAt = performance.now() + ttlMs;
   }
 }
 
