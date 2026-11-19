@@ -52,7 +52,11 @@ for i = 1, 3 do redis.call('PEXPIRE', KEYS[i], waitingMs * 2) end
 local nextAt = tonumber(redis.call('HGET', KEYS[1], 'next') or '0')
 local lastAt = tonumber(redis.call('HGET', KEYS[1], 'last'))
 if lastAt then nextAt = lastAt + interval end
-if limit == 0 then return 5000 end
+local spread = tonumber(string.sub(round, 1, 3), 16)
+if limit == 0 then
+  if rank < 3 then return 1500 + spread % 700 end
+  return 4000 + spread
+end
 if rank == 0 and now >= nextAt and redis.call('ZCARD', KEYS[4]) < limit then
   redis.call('HSET', KEYS[1], 'last', now, 'next', now + interval)
   redis.call('ZREM', KEYS[2], round)
@@ -63,7 +67,9 @@ if rank == 0 and now >= nextAt and redis.call('ZCARD', KEYS[4]) < limit then
   redis.call('PEXPIRE', KEYS[4], leaseMs * 2)
   return 0
 end
-return math.max(interval, math.min(6000, nextAt - now + rank * interval))
+local wait = math.max(interval, math.min(6000, nextAt - now + rank * interval))
+if rank >= 3 then return wait + spread % 3000 end
+return wait
 `;
 
 export async function updateCourseSaveAdmission(userId: string, roundRef: string, worker: string,
