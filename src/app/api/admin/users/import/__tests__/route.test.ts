@@ -113,17 +113,17 @@ describe('POST /api/admin/users/import', () => {
       batchId: expect.stringMatching(/^admin-user-import-/),
       created: 1,
       updated: 0,
-      failed: 0,
+      failed: 1,
       skippedEmpty: 0,
       totalRows: 1,
       auditRecord: {
         actorId: 'admin-1',
         action: 'admin-users-import',
         batchId: expect.stringMatching(/^admin-user-import-/),
-        outcome: 'completed',
+        outcome: 'completed-with-errors',
         created: 1,
         updated: 0,
-        failed: 0,
+        failed: 1,
         rollbackAvailable: false,
         operationId: expect.stringMatching(/^admin-user-import:/),
         idempotencyKey: expect.stringMatching(/^admin-op:/),
@@ -141,23 +141,10 @@ describe('POST /api/admin/users/import', () => {
         },
       },
     });
-    expect(mocks.hash).toHaveBeenCalledWith('secret', 10);
-    expect(mocks.txPrisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        name: '张三',
-        email: 'zhangsan@example.com',
-        passwordHash: 'hashed-password',
-        role: 'STUDENT',
-        profile: {
-          create: expect.objectContaining({
-            studentNumber: '20240001',
-            className: '自动化2401',
-          }),
-        },
-      }),
-    }));
+    expect(mocks.hash).not.toHaveBeenCalled();
+    expect(mocks.txPrisma.user.create).not.toHaveBeenCalled();
     expect(mocks.prisma.user.create).not.toHaveBeenCalled();
-    expect(mocks.initializeUserProgress).toHaveBeenCalledWith('student-user-1', mocks.txPrisma);
+    expect(mocks.initializeUserProgress).not.toHaveBeenCalled();
     expect(mocks.prisma.$transaction).toHaveBeenCalled();
     expect(mocks.txPrisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { idempotencyKey: expect.stringMatching(/^admin-op:/) },
@@ -178,7 +165,7 @@ describe('POST /api/admin/users/import', () => {
     expect(payload).toMatchObject({
       created: 1,
       updated: 0,
-      failed: 0,
+      failed: 1,
       skippedEmpty: 1,
       totalRows: 2,
     });
@@ -194,17 +181,7 @@ describe('POST /api/admin/users/import', () => {
         ]),
       },
     }));
-    expect(mocks.txPrisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        email: null,
-        profile: {
-          create: expect.objectContaining({
-            studentNumber: '20240003',
-            year: '2024',
-          }),
-        },
-      }),
-    }));
+    expect(mocks.txPrisma.user.create).not.toHaveBeenCalled();
   });
 
   it('updates existing users through the import transaction client', async () => {
@@ -228,13 +205,12 @@ describe('POST /api/admin/users/import', () => {
         outcome: 'completed',
       },
     });
-    expect(mocks.hash).toHaveBeenCalledWith('new-secret', 10);
+    expect(mocks.hash).not.toHaveBeenCalled();
     expect(mocks.txPrisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'existing-student-1' },
       data: expect.objectContaining({
         name: '更新学生',
         email: 'student08@example.com',
-        passwordHash: 'hashed-password',
         role: 'STUDENT',
       }),
     }));
@@ -265,7 +241,7 @@ describe('POST /api/admin/users/import', () => {
       preview: true,
       created: 1,
       updated: 0,
-      failed: 0,
+      failed: 1,
       auditRecord: {
         mode: 'preview',
         rollbackAvailable: false,
@@ -293,22 +269,20 @@ describe('POST /api/admin/users/import', () => {
       preview: true,
       created: 1,
       updated: 0,
-      failed: 1,
-      errors: [{
-        row: 3,
-        accountFingerprint: null,
-        reason: '同批次重复账号，已在第 2 行出现',
-      }],
-      failedRows: [{
-        row: 3,
-        accountFingerprint: null,
-        reason: '同批次重复账号，已在第 2 行出现',
-      }],
+      failed: 2,
+      errors: [
+        { row: 2, accountFingerprint: null, reason: 'central-account-required' },
+        { row: 3, accountFingerprint: null, reason: '同批次重复账号，已在第 2 行出现' },
+      ],
+      failedRows: [
+        { row: 2, accountFingerprint: null, reason: 'central-account-required' },
+        { row: 3, accountFingerprint: null, reason: '同批次重复账号，已在第 2 行出现' },
+      ],
       failedRowArtifact: {
         id: expect.stringMatching(/^admin-user-import-.*:failed-rows$/),
         downloadUrl: expect.stringContaining('/api/admin/operations/artifacts/'),
         piiMinimized: true,
-        rowCount: 1,
+        rowCount: 2,
         authorizedRoles: ['ADMIN'],
         revocable: true,
       },
@@ -372,19 +346,18 @@ describe('POST /api/admin/users/import', () => {
     expect(payload).toMatchObject({
       created: 1,
       updated: 0,
-      failed: 1,
-      errors: [{
-        row: 3,
-        accountFingerprint: null,
-        reason: '同批次重复邮箱，已在第 2 行出现',
-      }],
+      failed: 2,
+      errors: [
+        { row: 2, accountFingerprint: null, reason: 'central-account-required' },
+        { row: 3, accountFingerprint: null, reason: '同批次重复邮箱，已在第 2 行出现' },
+      ],
       auditRecord: {
         outcome: 'completed-with-errors',
       },
     });
     expect(JSON.stringify(payload)).not.toContain('"account":"20240010"');
     expect(mocks.prisma.user.findMany).toHaveBeenCalledTimes(2);
-    expect(mocks.txPrisma.user.create).toHaveBeenCalledTimes(1);
+    expect(mocks.txPrisma.user.create).not.toHaveBeenCalled();
     expect(mocks.txPrisma.adminOperationLedger.upsert).toHaveBeenCalled();
   });
 
@@ -423,12 +396,8 @@ describe('POST /api/admin/users/import', () => {
   });
 
   it('records all planned rows as failed when transaction writes abort', async () => {
-    mocks.txPrisma.user.create
-      .mockResolvedValueOnce({
-        id: 'student-user-11',
-        profile: { id: 'profile-11' },
-      })
-      .mockRejectedValueOnce(
+    mocks.prisma.user.findMany.mockResolvedValue([{ id: 'existing-user' }]);
+    mocks.txPrisma.user.update.mockRejectedValueOnce(
       new Error('Unique constraint failed: Key (email)=(write-fail@example.com), account=20240011, password=secret')
     );
     const file = await buildWorkbookFile([
@@ -449,12 +418,12 @@ describe('POST /api/admin/users/import', () => {
         {
           row: 2,
           accountFingerprint: null,
-          reason: '本批次事务已回滚，该行未提交',
+          reason: '导入写入失败，请检查该行账号、邮箱或学生档案是否与现有数据冲突',
         },
         {
           row: 3,
           accountFingerprint: null,
-          reason: '导入写入失败，请检查该行账号、邮箱或学生档案是否与现有数据冲突',
+          reason: '本批次事务已回滚，该行未提交',
         },
       ],
       auditRecord: {
@@ -471,7 +440,8 @@ describe('POST /api/admin/users/import', () => {
     expect(JSON.stringify(payload)).not.toContain('rollback@example.com');
     expect(JSON.stringify(payload)).not.toContain('20240010');
     expect(JSON.stringify(payload)).not.toContain('secret');
-    expect(mocks.txPrisma.user.create).toHaveBeenCalledTimes(2);
+    expect(mocks.txPrisma.user.create).not.toHaveBeenCalled();
+    expect(mocks.txPrisma.user.update).toHaveBeenCalledTimes(1);
     expect(mocks.txPrisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
     expect(mocks.txPrisma.adminOperationArtifact.upsert).not.toHaveBeenCalled();
     expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
