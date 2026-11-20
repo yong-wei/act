@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Pool } from 'pg';
 
 import { prisma } from '@/lib/prisma';
@@ -173,32 +173,69 @@ describe.runIf(enabled)('classroom live-state / submission evidence PostgreSQL i
 
     // 顺序二：end 先提交 → 后到的提交同样只能成为复盘
     await prisma.classSession.create({ data: { id: 'session-3', joinCode: 'EV0003', planId: 'plan-1', teacherId: 'teacher-1' } });
-    const [firstEnd, firstLateSubmit] = await Promise.allSettled([
+    const [firstEnd, firstLateSubmit] = await Promise.all([
       persistSessionEndTransactionCommand(prisma, { sessionId: 'session-3', endTime }),
       acceptClassifiedSubmissionCommand(prisma, buildInput({ sessionId: 'session-3', userId: 'student-1' })),
     ]);
-    expect(firstEnd.status).toBe('fulfilled');
-    const session3 = await prisma.classSession.findUnique({ where: { id: 'session-3' } });
-    expect(session3?.status).toBe('FINISHED');
-    const acceptedRows = await prisma.studentStepResponse.findMany({ where: { sessionId: 'session-3', evidenceStatus: 'ACCEPTED' } });
-    // 先赢得锁的提交若被接受则序列 ≤ 水位；晚到者一定为复盘
-    for (const row of acceptedRows) {
-      expect(row.submissionSequence ?? 0n).toBeLessThanOrEqual(session3?.acceptedSubmissionWatermark ?? 0n);
-    }
-    const reviewRows = await prisma.studentStepResponse.count({ where: { sessionId: 'session-3', evidenceStatus: 'POST_SESSION_REVIEW' } });
-    const totalRows = await prisma.studentStepResponse.count({ where: { sessionId: 'session-3' } });
-    if ((firstLateSubmit as PromiseFulfilledResult<{ status: string }>).status === 'fulfilled') {
-      const receipt = (firstLateSubmit as PromiseFulfilledResult<{ status: string }>).value;
-      if (receipt.status === 'POST_SESSION_REVIEW') {
-        expect(reviewRows).toBeGreaterThanOrEqual(1);
-      }
-    }
-    expect(totalRows).toBeLessThanOrEqual(1);
+    expect(firstEnd).toMatchObject({ outcome: 'ended', acceptedSubmissionWatermark: 0n });
+    expect(firstLateSubmit).toMatchObject({ status: 'POST_SESSION_REVIEW', submissionSequence: null });
+    expect(await prisma.studentStepResponse.count({
+      where: { sessionId: 'session-3', evidenceStatus: 'POST_SESSION_REVIEW' },
+    })).toBe(1);
 
     // 重复 end 幂等：不新增闭包、不改变水位
     const secondEnd = await persistSessionEndTransactionCommand(prisma, { sessionId: 'session-3', endTime });
-    expect(secondEnd).toMatchObject({ outcome: 'already-ended', acceptedSubmissionWatermark: session3?.acceptedSubmissionWatermark });
+    expect(secondEnd).toMatchObject({ outcome: 'already-ended', acceptedSubmissionWatermark: 0n });
     expect(await prisma.sessionClosureOutbox.count({ where: { sessionId: 'session-3' } })).toBe(1);
+  });
+
+  it('still waits for a lock held outside this application process', async () => {
+    const sessionId = 'session-external-lock';
+    await prisma.classSession.create({
+      data: { id: sessionId, joinCode: 'EV0019', planId: 'plan-1', teacherId: 'teacher-1' },
+    });
+    const pool = new Pool({ connectionString: adminUrl });
+    const external = await pool.connect();
+    try {
+      await external.query('BEGIN');
+      await external.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`class-session-submission:${sessionId}`]);
+      const write = acceptClassifiedSubmissionCommand(prisma, buildInput({ sessionId }));
+      const settled = Promise.allSettled([write]);
+      try {
+        await vi.waitFor(async () => {
+          const { rows } = await external.query(
+            'SELECT EXISTS (SELECT 1 FROM pg_stat_activity WHERE pg_backend_pid() = ANY(pg_blocking_pids(pid))) AS waiting',
+          );
+          expect(rows[0].waiting).toBe(true);
+        });
+      } finally {
+        await external.query('ROLLBACK');
+        await settled;
+      }
+      await expect(write).resolves.toMatchObject({ status: 'ACCEPTED', submissionSequence: 1n });
+    } finally {
+      external.release();
+      await pool.end();
+    }
+  });
+
+  it('rolls back sequence and source log together when the response write fails', async () => {
+    const sessionId = 'session-submission-rollback';
+    await prisma.classSession.create({
+      data: { id: sessionId, joinCode: 'EV0020', planId: 'plan-1', teacherId: 'teacher-1' },
+    });
+    const input = buildInput({ sessionId });
+    await expect(acceptClassifiedSubmissionCommand(prisma, {
+      ...input,
+      response: {
+        ...input.response,
+        buildResponseData: () => { throw new Error('fixture response write failure'); },
+      },
+    })).rejects.toThrow('fixture response write failure');
+
+    expect(await prisma.interactionLog.count({ where: { sessionId } })).toBe(0);
+    await expect(acceptClassifiedSubmissionCommand(prisma, input))
+      .resolves.toMatchObject({ status: 'ACCEPTED', submissionSequence: 1n });
   });
 
   it('bounds the default report by the accepted watermark and gates review evidence behind an explicit recompute', async () => {

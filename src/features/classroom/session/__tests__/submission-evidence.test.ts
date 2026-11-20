@@ -61,6 +61,7 @@ function createTx(sessionOverrides: Record<string, unknown> = {}) {
         ...sessionOverrides,
       }),
       update: vi.fn().mockResolvedValue({}),
+      updateManyAndReturn: vi.fn().mockResolvedValue([{ status: 'ACTIVE', submissionSequence: 3n }]),
     },
     interactionLog: {
       create: vi.fn().mockResolvedValue({ id: 'log-1' }),
@@ -162,10 +163,12 @@ describe('acceptClassifiedSubmissionCommand', () => {
     expect(receipt.sourceLogId).toBe('log-1');
     // 会话锁与序列分配在同一事务内
     expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
-    expect(tx.classSession.update).toHaveBeenCalledWith({
-      where: { id: 'session-1' },
-      data: { submissionSequence: 3n },
+    expect(tx.classSession.updateManyAndReturn).toHaveBeenCalledWith({
+      where: { id: 'session-1', status: { in: ['ACTIVE', 'PAUSED'] } },
+      data: { submissionSequence: { increment: 1 } },
+      select: { status: true, submissionSequence: true },
     });
+    expect(tx.classSession.findUnique).not.toHaveBeenCalled();
     expect(tx.interactionLog.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         submissionIdentity: 'student-1|session-1|lesson-v1|step-08|card|attempt-1',
@@ -182,6 +185,7 @@ describe('acceptClassifiedSubmissionCommand', () => {
   });
 
   it('retains a late submission as POST_SESSION_REVIEW without a sequence or watermark movement', async () => {
+    tx.classSession.updateManyAndReturn.mockResolvedValue([]);
     tx.classSession.findUnique.mockResolvedValue({
       status: 'FINISHED',
       submissionSequence: 7n,
@@ -225,7 +229,7 @@ describe('acceptClassifiedSubmissionCommand', () => {
     });
     expect(tx.interactionLog.create).not.toHaveBeenCalled();
     expect(tx.studentStepResponse.create).not.toHaveBeenCalled();
-    expect(tx.classSession.update).not.toHaveBeenCalled();
+    expect(tx.classSession.updateManyAndReturn).not.toHaveBeenCalled();
   });
 
   it('returns the durable receipt when a concurrent identical submission wins the unique constraint', async () => {
@@ -235,7 +239,7 @@ describe('acceptClassifiedSubmissionCommand', () => {
     });
     tx.studentStepResponse.create.mockRejectedValueOnce(conflictError);
     // 事务回滚后从数据库重读赢家回执
-    db.studentStepResponse.findFirst = tx.studentStepResponse.findFirst.mockResolvedValue({
+    tx.studentStepResponse.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({
       id: 'resp-winner',
       sourceLogId: 'log-winner',
       submissionIdentity: 'student-1|session-1|lesson-v1|step-08|card|attempt-1',
@@ -252,6 +256,33 @@ describe('acceptClassifiedSubmissionCommand', () => {
       evidenceId: 'resp-winner',
       sourceLogId: 'log-winner',
     });
+    expect(tx.studentStepResponse.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits outside the pool, releases after failure and lets other classrooms write', async () => {
+    let rejectFirst!: (error: Error) => void;
+    db.$transaction.mockImplementationOnce(() => new Promise((_, reject) => { rejectFirst = reject; }));
+    const first = acceptClassifiedSubmissionCommand(db as never, buildInput());
+    const failed = expect(first).rejects.toThrow('first write failed');
+    const end = persistSessionEndTransactionCommand(db as never, {
+      sessionId: 'session-1', endTime: new Date(),
+    });
+    const second = acceptClassifiedSubmissionCommand(db as never, buildInput());
+    const other = buildInput();
+    other.sourceEvent.sessionId = 'session-2';
+    await acceptClassifiedSubmissionCommand(db as never, other);
+    expect(db.$transaction).toHaveBeenCalledTimes(2);
+    expect(tx.sessionClosureOutbox.create).not.toHaveBeenCalled();
+    tx.classSession.updateManyAndReturn.mockResolvedValue([]);
+    tx.classSession.update.mockImplementationOnce(async () => {
+      tx.classSession.findUnique.mockResolvedValue({ status: 'FINISHED' });
+      return {};
+    });
+    rejectFirst(new Error('first write failed'));
+    await failed;
+    await expect(end).resolves.toMatchObject({ acceptedSubmissionWatermark: 2n });
+    await expect(second).resolves.toMatchObject({ status: 'POST_SESSION_REVIEW', submissionSequence: null });
+    expect(db.$transaction).toHaveBeenCalledTimes(4);
   });
 });
 
