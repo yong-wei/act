@@ -1,6 +1,8 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
+import { createGzip } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const root = process.cwd();
@@ -67,6 +69,25 @@ function runNextBuild() {
   });
 }
 
+async function packagePublicWasm() {
+  const media = path.join(root, '.next', 'static', 'media');
+  const entries = await fs.promises.readdir(media, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith('.wasm')) continue;
+    const source = path.join(media, entry.name);
+    const destination = `${source}.gz`;
+    const temporary = `${destination}.tmp`;
+    try {
+      await pipeline(fs.createReadStream(source), createGzip({ level: 6 }), fs.createWriteStream(temporary));
+      await fs.promises.rename(temporary, destination);
+      const { atime, mtime } = await fs.promises.stat(source);
+      await fs.promises.utimes(destination, atime, mtime);
+    } finally {
+      await fs.promises.rm(temporary, { force: true });
+    }
+  }
+}
+
 const result = await runNextBuild();
 
 if (result.code !== 0) {
@@ -79,5 +100,7 @@ if (result.code !== 0) {
   const pruneResult = await runNodeScript(path.join(scriptDir, 'prune-next-trace-boundary.mjs'));
   if (pruneResult.code !== 0) {
     process.exitCode = pruneResult.code ?? 1;
+  } else if (process.env.ACT_PUBLIC_NEXT_STATIC_ORIGIN) {
+    await packagePublicWasm();
   }
 }
