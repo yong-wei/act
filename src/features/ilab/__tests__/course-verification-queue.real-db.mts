@@ -44,6 +44,10 @@ try {
   assert(receipts.every(receipt => receipt.verification === 'pending' && receipt.attemptRef === clientRef));
   assert.equal(await prisma.evidenceOutbox.count({ where: { ...where, ownerUserId: user.id } }), 1);
   assert.equal(await prisma.stepSubmissionAttempt.count({ where: { userId: user.id } }), 0);
+  process.env.SIMULATION_ADAPTIVE_ADMISSION = '1';
+  assert.equal(await drainCourseVerification(), false, 'Without a valid pressure sample, do not claim a new job');
+  assert.equal((await readCourseVerification(user.id, clientRef)).verification, 'pending');
+  process.env.SIMULATION_ADAPTIVE_ADMISSION = '0';
   assert.equal((await listQueuedCourseAttempts(user.id, input.reportClientRef, 'destroyer'))[0]?.verificationPending, true);
   await assert.rejects(readCourseVerification(randomUUID(), clientRef), { status: 404 });
   await assert.rejects(enqueueCourseVerification(user.id, {

@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { redisClient } from '@/lib/redis-client';
+import { getHostAdmissionScale } from '@/lib/simulation-admission-pressure';
 import { isClassroomCapacityEnabled } from './shared-classroom-reads';
 
 // Keep waiting leases and admitted slots per classroom, independent of browser storage.
@@ -19,8 +20,13 @@ if not rank then
   redis.call('ZADD', KEYS[2], redis.call('HINCRBY', KEYS[1], 'sequence', 1), id)
   rank = redis.call('ZRANK', KEYS[2], id)
 end
-redis.call('ZADD', KEYS[3], now + 15000, id)
-for i = 1, 3 do redis.call('PEXPIRE', KEYS[i], 30000) end
+redis.call('ZADD', KEYS[3], now + 30000, id)
+for i = 1, 3 do redis.call('PEXPIRE', KEYS[i], 60000) end
+local spread = tonumber(string.sub(id, 1, 3), 16)
+if batch == 0 then
+  if rank < 3 then return 1300 + spread % 550 end
+  return 5200 + spread % 2200
+end
 local slot = math.floor(now / 1000)
 local used = 0
 if tostring(slot) == redis.call('HGET', KEYS[1], 'slot') then
@@ -33,8 +39,10 @@ if rank < batch - used then
   redis.call('PSETEX', KEYS[4], 2700000, '1')
   return 0
 end
-local spread = tonumber(string.sub(id, 1, 3), 16) % 550
-return math.min(2700, 1000 - now % 1000 + math.floor((rank + used) / batch) * 1000) + spread
+local untilNextSlot = 1000 - now % 1000
+local slotsAhead = math.floor((rank + used) / batch)
+if slotsAhead < 2 then return untilNextSlot + spread % 300 end
+return math.min(6500, untilNextSlot + (slotsAhead - 1) * 1000) + spread % 1800
 `;
 
 export async function reserveInteractiveStudentAdmission(sessionId: string, userId: string) {
@@ -45,9 +53,12 @@ export async function reserveInteractiveStudentAdmission(sessionId: string, user
   if (redis?.status !== 'ready') return 2500;
   const prefix = `interactive-classroom:{${createHash('sha256').update(sessionId).digest('hex')}}`;
   const user = createHash('sha256').update(userId).digest('hex');
+  const adaptive = process.platform === 'linux' && process.env.INTERACTIVE_CLASSROOM_ADAPTIVE_ADMISSION !== '0';
+  const scale = adaptive ? await getHostAdmissionScale() : 1;
+  const limit = Math.min(40, Math.ceil(batch * scale));
   try {
     return Number(await redis.eval(RESERVE, 4, `${prefix}:cursor`, `${prefix}:waiting`,
-      `${prefix}:expires`, `${prefix}:student:${user}`, user, batch));
+      `${prefix}:expires`, `${prefix}:student:${user}`, user, limit));
   } catch {
     return 2500;
   }

@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { getSimulationAdmissionScale } from '@/lib/simulation-admission-pressure';
 import { canonicalJson } from '@/lib/student-model-artifact-contract/server-hash';
 import { vesselCourseArtifactSchema, type VesselCourseArtifactInput } from '../course-artifact-contract';
 import { saveVesselCourseArtifact, vesselExperimentKey } from '../course-artifact-service';
@@ -98,6 +99,7 @@ export async function enqueueCourseVerification(userId: string, input: VesselCou
 
 /** 共享事务锁串行分配处理名额，任务回执保存在数据库。 */
 export async function drainCourseVerification() {
+  if (await getSimulationAdmissionScale() === 0) return false;
   const job = await prisma.$transaction(async tx => {
     const now = new Date();
     const [lock] = await tx.$queryRaw<{ acquired: boolean }[]>`SELECT pg_try_advisory_xact_lock(760061, 53) AS acquired`;

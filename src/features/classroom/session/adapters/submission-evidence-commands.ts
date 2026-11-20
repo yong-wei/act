@@ -20,6 +20,26 @@ export function classroomSubmissionSessionLock(sessionId: string) {
   return Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${`class-session-submission:${sessionId}`}))`;
 }
 
+// Keep same-process waiters outside the connection pool. The PostgreSQL lock
+// still orders writes across processes, including during mixed-version deploys.
+const queueKey = Symbol.for('act.classroom.evidence-write-queue');
+const processQueues = globalThis as typeof globalThis & { [queueKey]?: Map<string, Promise<void>> };
+const writeQueue = processQueues[queueKey] ??= new Map<string, Promise<void>>();
+
+async function queueClassroomWrite<T>(sessionId: string, write: () => Promise<T>): Promise<T> {
+  const previous = writeQueue.get(sessionId);
+  let release!: () => void;
+  const turn = new Promise<void>(resolve => { release = resolve; });
+  writeQueue.set(sessionId, turn);
+  await previous;
+  try {
+    return await write();
+  } finally {
+    if (writeQueue.get(sessionId) === turn) writeQueue.delete(sessionId);
+    release();
+  }
+}
+
 type ReceiptSelection = {
   id: string;
   sourceLogId: string | null;
@@ -100,44 +120,48 @@ export async function acceptClassifiedSubmissionCommand(
   prisma: Prisma.TransactionClient,
   input: ClassifiedSubmissionWriteInput,
 ): Promise<ClassroomSubmissionEvidenceReceipt> {
+  const sessionId = input.sourceEvent.sessionId;
   try {
-    return await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw(classroomSubmissionSessionLock(input.sourceEvent.sessionId));
-
-      const session = await tx.classSession.findUnique({
-        where: { id: input.sourceEvent.sessionId },
-        select: { status: true, submissionSequence: true },
-      });
-      if (!session) {
-        throw new ClassroomSessionError('not-found', 'Session not found');
-      }
+    return await queueClassroomWrite(sessionId, () => prisma.$transaction(async (tx) => {
+      await tx.$executeRaw(classroomSubmissionSessionLock(sessionId));
 
       const existing = await readExistingReceipt(tx, {
-        sessionId: input.sourceEvent.sessionId,
+        sessionId,
         userId: input.userId,
         submissionIdentity: input.submissionIdentity,
       });
       if (existing) return existing;
 
-      const preClosure = (PRE_CLOSURE_SESSION_STATUSES as readonly string[]).includes(session.status);
-      // 晚到源日志必须自带显式分类，闭包消费者据此排除（与证据行同语义）
-      const sourceLogEventData = preClosure
+      const [accepted] = await tx.classSession.updateManyAndReturn({
+        where: { id: sessionId, status: { in: [...PRE_CLOSURE_SESSION_STATUSES] } },
+        data: { submissionSequence: { increment: 1 } },
+        select: { status: true, submissionSequence: true },
+      });
+      const session = accepted ?? await tx.classSession.findUnique({
+        where: { id: sessionId },
+        select: { status: true },
+      });
+      if (!session) throw new ClassroomSessionError('not-found', 'Session not found');
+
+      const evidenceStatus = accepted ? ACCEPTED_EVIDENCE_STATUS : POST_SESSION_REVIEW_EVIDENCE_STATUS;
+      const submissionSequence = accepted?.submissionSequence ?? null;
+      // Closure consumers exclude late evidence at both the source and response.
+      const sourceLogEventData = accepted
         ? input.sourceEvent.eventData
         : {
           ...(input.sourceEvent.eventData as Prisma.InputJsonObject),
           afterSessionEnd: true,
-          evidenceStatus: POST_SESSION_REVIEW_EVIDENCE_STATUS,
+          evidenceStatus,
         };
       const sourceLog = await tx.interactionLog.create({
         data: {
           userId: input.userId,
           resourceId: input.sourceEvent.resourceId,
           resourceKey: input.sourceEvent.resourceKey,
-          sessionId: input.sourceEvent.sessionId,
+          sessionId,
           lessonKey: input.sourceEvent.lessonKey,
           stepId: input.sourceEvent.stepId,
           actorRole: input.sourceEvent.actorRole,
-          attemptKey: input.response.attemptKey,
           eventType: input.sourceEvent.eventType,
           clientEventId: input.sourceEvent.clientEventId,
           submissionIdentity: input.submissionIdentity,
@@ -148,55 +172,11 @@ export async function acceptClassifiedSubmissionCommand(
         },
         select: { id: true },
       });
-      const responseData = input.response.buildResponseData(sourceLog.id);
 
-      if (!preClosure) {
-        const reviewRow = await tx.studentStepResponse.create({
-          data: {
-            userId: input.userId,
-            sessionId: input.sourceEvent.sessionId,
-            lessonKey: input.response.lessonKey,
-            stepId: input.response.stepId,
-            attemptKey: input.response.attemptKey,
-            sourceLogId: sourceLog.id,
-            clientEventId: input.response.clientEventId,
-            submissionIdentity: input.submissionIdentity,
-            identityVersion: input.identityVersion,
-            submissionSequence: null,
-            evidenceStatus: POST_SESSION_REVIEW_EVIDENCE_STATUS,
-            submittedAt: input.response.submittedAt,
-            responseData: {
-              ...responseData,
-              submissionIdentity: input.submissionIdentity,
-              identityVersion: input.identityVersion,
-              evidenceStatus: POST_SESSION_REVIEW_EVIDENCE_STATUS,
-            },
-          },
-          select: {
-            id: true,
-            sourceLogId: true,
-            submissionIdentity: true,
-            identityVersion: true,
-            submissionSequence: true,
-            evidenceStatus: true,
-            session: { select: { status: true } },
-          },
-        });
-        return receiptFromRow(
-          { ...reviewRow, sessionStatus: session.status },
-          'POST_SESSION_REVIEW',
-        );
-      }
-
-      const submissionSequence = session.submissionSequence + BigInt(1);
-      await tx.classSession.update({
-        where: { id: input.sourceEvent.sessionId },
-        data: { submissionSequence },
-      });
       const responseRow = await tx.studentStepResponse.create({
         data: {
           userId: input.userId,
-          sessionId: input.sourceEvent.sessionId,
+          sessionId,
           lessonKey: input.response.lessonKey,
           stepId: input.response.stepId,
           attemptKey: input.response.attemptKey,
@@ -205,14 +185,14 @@ export async function acceptClassifiedSubmissionCommand(
           submissionIdentity: input.submissionIdentity,
           identityVersion: input.identityVersion,
           submissionSequence,
-          evidenceStatus: ACCEPTED_EVIDENCE_STATUS,
+          evidenceStatus,
           submittedAt: input.response.submittedAt,
           responseData: {
-            ...responseData,
+            ...input.response.buildResponseData(sourceLog.id),
             submissionIdentity: input.submissionIdentity,
             identityVersion: input.identityVersion,
-            evidenceStatus: ACCEPTED_EVIDENCE_STATUS,
-            submissionSequence: submissionSequence.toString(),
+            evidenceStatus,
+            ...(accepted ? { submissionSequence: accepted.submissionSequence.toString() } : {}),
           },
         },
         select: {
@@ -222,14 +202,10 @@ export async function acceptClassifiedSubmissionCommand(
           identityVersion: true,
           submissionSequence: true,
           evidenceStatus: true,
-          session: { select: { status: true } },
         },
       });
-      return receiptFromRow(
-        { ...responseRow, sessionStatus: session.status },
-        'ACCEPTED',
-      );
-    });
+      return receiptFromRow({ ...responseRow, sessionStatus: session.status }, accepted ? 'ACCEPTED' : 'POST_SESSION_REVIEW');
+    }));
   } catch (error) {
     if (isUniqueConstraintViolation(error)) {
       const receipt = await readExistingReceipt(prisma, {
@@ -259,7 +235,7 @@ export async function persistSessionEndTransactionCommand(
   prisma: Prisma.TransactionClient,
   input: { sessionId: string; endTime: Date },
 ): Promise<SessionEndTransactionOutcome> {
-  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+  return queueClassroomWrite(input.sessionId, () => prisma.$transaction(async (tx) => {
     await tx.$executeRaw(classroomSubmissionSessionLock(input.sessionId));
 
     const session = await tx.classSession.findUnique({
@@ -306,5 +282,5 @@ export async function persistSessionEndTransactionCommand(
       closureRevision,
       acceptedSubmissionWatermark,
     };
-  });
+  }));
 }
