@@ -16,6 +16,9 @@ function publicStaticAssetPrefix() {
   return `${target.origin}/app-static/${revision}`;
 }
 
+const staticAssetPrefix = publicStaticAssetPrefix();
+const workerAssetPrefix = staticAssetPrefix ? new URL(staticAssetPrefix).pathname : undefined;
+
 const runtimeCatalogTraceIncludes = [
   './course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
   './course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
@@ -62,10 +65,11 @@ const contentTraceExcludes = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  assetPrefix: publicStaticAssetPrefix(),
+  assetPrefix: staticAssetPrefix,
   allowedDevOrigins: ['127.0.0.1'],
   experimental: {
     cpus: 2,
+    turbopackWorkerAssetPrefix: workerAssetPrefix,
   },
   turbopack: {
     ...(buildFilesystemRoot ? { root: buildFilesystemRoot } : {}),
@@ -89,6 +93,13 @@ const nextConfig = {
     ],
   },
   output: 'standalone',
+  async rewrites() {
+    if (!workerAssetPrefix) return [];
+    return [{
+      source: `${workerAssetPrefix}/_next/static/:path*`,
+      destination: '/_next/static/:path*',
+    }];
+  },
   async headers() {
     return [{
       source: '/assets/model-releases/:packageId/:version(v\\d+\\.\\d+\\.\\d+)/:path*',
