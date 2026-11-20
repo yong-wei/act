@@ -90,7 +90,7 @@ describe('person_id 映射（signIn 回调）', () => {
   it('既有映射直登且改写会话用户为本地 User（角色回填）', async () => {
     const { authOptions } = await loadAuth(OIDC_ENV);
     accountFindFirst.mockResolvedValue({ id: 'account-1', userId: 'local-user-1' });
-    userFindUnique.mockResolvedValue({ role: 'TEACHER', email: 't@x.c', name: 'T' });
+    userFindUnique.mockResolvedValue({ id: 'local-user-1', role: 'TEACHER', email: 't@x.c', name: 'T' });
     const user = { id: 'oidc-temp' } as { id?: string; role?: string };
     const result = await authOptions.callbacks?.signIn?.({
       user,

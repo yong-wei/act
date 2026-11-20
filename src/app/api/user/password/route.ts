@@ -15,6 +15,12 @@ export async function PATCH(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: '未授权' }, { status: 401 });
   }
+  const migrated = await prisma.account.count({
+    where: { userId: session.user.id, provider: 'platform' },
+  });
+  if (migrated > 0) {
+    return NextResponse.json({ error: '密码由统一身份中心管理' }, { status: 410 });
+  }
 
   const json = await request.json();
   const validation = passwordSchema.safeParse(json);

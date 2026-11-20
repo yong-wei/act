@@ -3,7 +3,8 @@ import { compare } from 'bcryptjs';
 import { getServerSession, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import KeycloakProvider from 'next-auth/providers/keycloak';
-import { authorizeActIdentity, platformAccountId } from '@/lib/platform-access';
+import { authorizeActIdentity } from '@/lib/platform-access';
+import { resolveLocalPlatformUser } from '@/lib/platform-local-account';
 
 /**
  * 统一身份（platform Keycloak）受控接入（issue-2164 阶段 A）：
@@ -127,35 +128,15 @@ export const authOptions: NextAuthOptions = {
       if (!decision.allow || !decision.personId) {
         return false;
       }
-      const prisma = await getPrismaClient();
-      const existing = await prisma.account.findFirst({
-        where: {
-          provider: PLATFORM_ACCOUNT_PROVIDER,
-          OR: [
-            { providerAccountId: platformAccountId(platformIssuer, subject) },
-            { providerAccountId: subject },
-          ],
-        },
-        select: { id: true, userId: true, session_state: true },
-      });
-      if (!existing || (existing.session_state && existing.session_state !== decision.personId)) {
-        return false;
-      }
-      const local = await prisma.user.findUnique({
-        where: { id: existing.userId },
-        select: { role: true, email: true, name: true },
+      const local = await resolveLocalPlatformUser({
+        issuer: platformIssuer,
+        subject,
+        personId: decision.personId,
       });
       if (!local) {
         return false;
       }
-      await prisma.account.update({
-        where: { id: existing.id },
-        data: {
-          providerAccountId: platformAccountId(platformIssuer, subject),
-          session_state: decision.personId,
-        },
-      });
-      applyLocalIdentity(user, existing.userId, { id: existing.userId, role: local.role, email: local.email, name: local.name });
+      applyLocalIdentity(user, local.id, { id: local.id, role: local.role, email: local.email, name: local.name });
       Object.assign(user, {
         platformIssuer,
         platformSubject: subject,
@@ -196,7 +177,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (token.centralAccessDenied) {
-        session.user = undefined;
+        session.user = undefined as never;
         (session as typeof session & { error?: string }).error = 'ACT_ACCESS_DENIED';
         return session;
       }

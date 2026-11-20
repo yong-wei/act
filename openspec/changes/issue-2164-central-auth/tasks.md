@@ -9,12 +9,12 @@
 ## 2. Central access and session lifecycle
 
 - [x] 2.1 Enforce ACT grant, person status, and sessionVersion before local authorization.
-- [ ] 2.2 Implement page-in OIDC transactions, callback, completion, cancellation, and deep-link restoration.
+- [x] 2.2 Implement page-in OIDC transactions, callback, completion, cancellation, and deep-link restoration.
 - [ ] 2.3 Cover revocation, restoration, global disablement, account switching, local logout hold, and global logout while preserving anonymous content.
 
 ## 3. Account administration and migration
 
-- [ ] 3.1 Retire local authentication account creation, enablement, and password writes without weakening business role management.
+- [x] 3.1 Retire local authentication account creation, enablement, and password writes without weakening business role management.
 - [ ] 3.2 Run real roster dry-run, conflict isolation, apply/resume/diff, activation, mapping backfill, and rollback verification.
 
 ## 4. Verification and delivery
