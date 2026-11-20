@@ -287,7 +287,7 @@ export function createPrismaClassroomLifecycleRuntime(studentSync = false): Clas
         generateSessionSummaryReportsSafely(sessionId),
       ]);
     },
-    loadStreamSession: async (sessionId) => prisma.classSession.findUnique({
+    loadStreamSession: (sessionId) => loadSharedClassroomRead(`stream-access:${sessionId}`, () => prisma.classSession.findUnique({
       where: { id: sessionId },
       select: {
         id: true,
@@ -298,7 +298,7 @@ export function createPrismaClassroomLifecycleRuntime(studentSync = false): Clas
         teacherId: true,
         classId: true,
       },
-    }),
+    })),
     loadActorClassId: async (actorId) => {
       const profile = await prisma.studentProfile.findUnique({
         where: { userId: actorId },

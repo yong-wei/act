@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 
 import type { SessionInfo } from './session-contract';
 import {
@@ -15,6 +15,7 @@ import {
   toFetchTelemetryError,
   type FetchFailureTelemetry,
 } from './fetch-diagnostics';
+import { useSessionSSE } from './use-session-sse';
 import { shouldRunHiddenAwarePoll } from './polling-visibility';
 
 interface UseSessionProgressChannelOptions {
@@ -25,6 +26,7 @@ interface UseSessionProgressChannelOptions {
   followTeacher?: boolean;
   pollIntervalMs?: number;
   studentSync?: boolean;
+  enableSSE?: boolean;
 }
 
 type DemoStepSyncUpdate = {
@@ -109,10 +111,13 @@ export function useSessionProgressChannel({
   followTeacher = false,
   pollIntervalMs = 5000,
   studentSync = false,
+  enableSSE = true,
 }: UseSessionProgressChannelOptions) {
   const stepIdsSyncKey = getStepIdsSyncKey(stepIds);
   const stableStepIds = useMemo(() => parseStepIdsSyncKey(stepIdsSyncKey), [stepIdsSyncKey]);
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
+  const live = useSessionSSE(enableSSE && studentSync && !isDemo && sessionInfo?.id === sessionId
+    && sessionInfo.classroomStream && sessionInfo.status !== 'FINISHED' ? sessionId : null);
   const [loadingSession, setLoadingSession] = useState(!isDemo);
   const [activeIndex, setActiveIndex] = useState(0);
   const [teacherIndex, setTeacherIndex] = useState(0);
@@ -120,14 +125,13 @@ export function useSessionProgressChannel({
   const [errorTelemetry, setErrorTelemetry] = useState<FetchFailureTelemetry | null>(null);
   const [waiting, setWaiting] = useState<{ sessionId: string; delay: number } | null>(null);
   const admittedSessionRef = useRef<string | null>(null);
-  const initialTeacherSyncRef = useRef(isDemo || !followTeacher);
   const lastTeacherIndexRef = useRef<number | null>(null);
   const initializedTeacherRef = useRef(isDemo || followTeacher);
   const pendingStepIdRef = useRef<string | null>(null);
   const demoSyncKeyRef = useRef<string | null>(null);
 
   // 版本控制: 记录已知最新状态的时间戳，防止旧状态覆盖新状态
-  const lastKnownTimestampRef = useRef<number>(0);
+  const lastKnownTimestampRef = useRef({ sessionId, at: 0 });
   // PATCH请求进行中标志 - 暂停轮询以避免竞态
   const isPatchingRef = useRef<boolean>(false);
   // 轮询暂停计数器 - 允许暂停指定次数的轮询
@@ -151,11 +155,57 @@ export function useSessionProgressChannel({
    */
   const getTimestampFromSession = useCallback((data: SessionInfo): number => {
     if (data.updatedAt) {
-      const ts = typeof data.updatedAt === 'string' ? new Date(data.updatedAt).getTime() : data.updatedAt.getTime();
+      const ts = /^\d+$/.test(String(data.updatedAt)) ? Number(data.updatedAt) : new Date(data.updatedAt).getTime();
       if (!Number.isNaN(ts)) return ts;
     }
     return Date.now();
   }, []);
+
+  const applySession = useCallback((data: SessionInfo, pushed: boolean) => {
+    const serverTimestamp = getTimestampFromSession(data);
+    const lastKnown = lastKnownTimestampRef.current;
+    const freshProgress = data.id !== lastKnown.sessionId || serverTimestamp >= lastKnown.at;
+    if (freshProgress) lastKnownTimestampRef.current = { sessionId: data.id, at: serverTimestamp };
+
+    setSessionInfo((previous) => {
+      const current = previous?.id === data.id ? previous : null;
+      const previousTeacher = current?.teacherSync;
+      const newTeacher = data.teacherSync;
+      const revision = (record: typeof newTeacher) => new Date(record?.submittedAt ?? 0).getTime();
+      const teacherSync = revision(previousTeacher) > revision(newTeacher) ? previousTeacher : newTeacher;
+      const next = freshProgress
+        ? pushed && current ? { ...current, ...data } : data
+        : current;
+      return next ? { ...next, teacherSync } : previous;
+    });
+
+    if (!freshProgress) return;
+    const nextIndex = data.currentItemId ? stableStepIds.indexOf(data.currentItemId) : -1;
+    if (followTeacher) {
+      if (nextIndex >= 0) {
+        const previousTeacherIndex = lastTeacherIndexRef.current;
+        setTeacherIndex(nextIndex);
+        setActiveIndex((current) => resolveTeacherFollowIndex({
+          activeIndex: current, nextTeacherIndex: nextIndex, previousTeacherIndex,
+        }));
+        lastTeacherIndexRef.current = nextIndex;
+      }
+    } else if (!initializedTeacherRef.current) {
+      if (nextIndex >= 0) {
+        setActiveIndex(nextIndex);
+        setTeacherIndex(nextIndex);
+      }
+      initializedTeacherRef.current = true;
+      pendingStepIdRef.current = null;
+    } else if (nextIndex >= 0) {
+      setTeacherIndex(nextIndex);
+      if (pendingStepIdRef.current === stableStepIds[nextIndex]) pendingStepIdRef.current = null;
+    }
+  }, [followTeacher, getTimestampFromSession, stableStepIds]);
+
+  useEffect(() => {
+    if (live.state) applySession(live.state, true);
+  }, [applySession, live.state]);
 
   const syncSession = useCallback(async () => {
     if (isDemo) {
@@ -216,54 +266,7 @@ export function useSessionProgressChannel({
       }
       if (studentSync) admittedSessionRef.current = sessionId;
 
-      const serverTimestamp = getTimestampFromSession(data);
-
-      // 版本控制: 如果服务器状态比已知最新状态旧，忽略它
-      // 允许500ms的容差以处理网络延迟
-      if (serverTimestamp < lastKnownTimestampRef.current - 500) {
-        console.warn('[SessionSync] Ignoring stale state:', {
-          serverTimestamp,
-          lastKnown: lastKnownTimestampRef.current,
-          diff: lastKnownTimestampRef.current - serverTimestamp,
-        });
-        // 不更新状态，但也不要报错
-        setLoadingSession(false);
-        return;
-      }
-
-      // 更新已知最新时间戳
-      lastKnownTimestampRef.current = serverTimestamp;
-
-      setSessionInfo(data);
-      const nextIndex = data.currentItemId ? stableStepIds.findIndex((stepId) => stepId === data.currentItemId) : -1;
-
-      if (followTeacher) {
-        if (nextIndex >= 0) {
-          const followedIndex = resolveTeacherFollowIndex({
-            activeIndex,
-            nextTeacherIndex: nextIndex,
-            previousTeacherIndex: lastTeacherIndexRef.current,
-          });
-          setTeacherIndex(nextIndex);
-          setActiveIndex(followedIndex);
-          lastTeacherIndexRef.current = nextIndex;
-          initialTeacherSyncRef.current = true;
-        } else if (!initialTeacherSyncRef.current) {
-          initialTeacherSyncRef.current = true;
-        }
-      } else if (!initializedTeacherRef.current) {
-        if (nextIndex >= 0) {
-          setActiveIndex(nextIndex);
-          setTeacherIndex(nextIndex);
-        }
-        initializedTeacherRef.current = true;
-        pendingStepIdRef.current = null;
-      } else if (nextIndex >= 0) {
-        setTeacherIndex(nextIndex);
-        if (pendingStepIdRef.current === stableStepIds[nextIndex]) {
-          pendingStepIdRef.current = null;
-        }
-      }
+      applySession(data, false);
 
       // 成功时重置错误计数
       if (errorCountRef.current > 0) {
@@ -344,7 +347,7 @@ export function useSessionProgressChannel({
       timeout?.clear();
       isSyncingRef.current = false;
     }
-  }, [activeIndex, followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, sessionInfo?.status, stableStepIds, studentSync]);
+  }, [applySession, isDemo, pollIntervalMs, sessionId, sessionInfo?.status, studentSync]);
 
   const patchSession = useCallback(
     async (patch: Record<string, unknown>) => {
@@ -447,7 +450,7 @@ export function useSessionProgressChannel({
         // PATCH成功后，更新已知时间戳并跳过接下来的2次轮询
         // 给服务器时间传播状态，避免竞态
         const serverTimestamp = getTimestampFromSession(data);
-        lastKnownTimestampRef.current = serverTimestamp;
+        lastKnownTimestampRef.current = { sessionId, at: serverTimestamp };
         pollSkipCountRef.current = 2;
 
         // 更新本地sessionInfo以确保一致性
@@ -521,17 +524,18 @@ export function useSessionProgressChannel({
     demoSyncKeyRef.current = nextSync.syncKey;
     setActiveIndex(nextSync.nextIndex);
     setTeacherIndex(nextSync.nextIndex);
-    initialTeacherSyncRef.current = true;
     initializedTeacherRef.current = true;
   }, [demoStepId, isDemo, stableStepIds]);
 
-  useEffect(() => {
-    if (isDemo) {
-      return;
-    }
+  const refreshProgress = useEffectEvent(() => { void syncSession(); });
 
-    void syncSession();
-  }, [isDemo, syncSession]);
+  useEffect(() => {
+    if (!isDemo) refreshProgress();
+  }, [isDemo, sessionId]);
+
+  useEffect(() => {
+    if (!isDemo && live.reconnectAttempt > 0 && !live.isConnected) refreshProgress();
+  }, [isDemo, live.isConnected, live.reconnectAttempt]);
 
   useEffect(() => {
     if (isDemo) {
@@ -561,10 +565,10 @@ export function useSessionProgressChannel({
         return;
       }
       void syncSession();
-    }, pollIntervalMs + (studentSync ? Math.random() * 850 : 0));
+    }, live.isConnected ? 60_000 + Math.random() * 10_000 : pollIntervalMs + (studentSync ? Math.random() * 850 : 0));
 
     return () => window.clearInterval(timer);
-  }, [isDemo, pollIntervalMs, sessionId, sessionInfo?.status, studentSync, syncSession, waiting]);
+  }, [isDemo, live.isConnected, pollIntervalMs, sessionId, sessionInfo?.status, studentSync, syncSession, waiting]);
 
   useEffect(() => {
     if (isDemo || typeof document === 'undefined') {
@@ -596,6 +600,11 @@ export function useSessionProgressChannel({
       syncSession,
       patchCurrentStep,
       finishSession,
+      sseStatus: {
+        isConnected: live.isConnected,
+        reconnectAttempt: live.reconnectAttempt,
+        isFallbackActive: !live.isConnected && live.reconnectAttempt > 0,
+      },
     }),
     [
       sessionInfo,
@@ -609,6 +618,8 @@ export function useSessionProgressChannel({
       syncSession,
       patchCurrentStep,
       finishSession,
+      live.isConnected,
+      live.reconnectAttempt,
     ],
   );
 }

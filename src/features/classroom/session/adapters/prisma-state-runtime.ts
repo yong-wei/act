@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { redisClient } from '@/lib/redis-client';
 import { logClassroomEvent } from '@/lib/classroom-observability';
 import { buildClassroomIdentityPayload } from '@/lib/classroom-lifecycle-contract';
 import type { ClassroomStateRuntime } from '../application/state';
@@ -14,12 +15,16 @@ const userSelect = {
   email: true,
 } as const;
 
-export async function loadSharedTeacherSync(sessionId: string) {
-  return loadSharedClassroomRead(`teacher-sync:${sessionId}`, () => prisma.studentState.findFirst({
+export function readLatestTeacherSync(sessionId: string) {
+  return prisma.studentState.findFirst({
     where: { sessionId, stateKey: teacherStateKey, itemId: 'teacher:course-sync' },
     orderBy: { submittedAt: 'desc' },
     select: { itemId: true, stateKey: true, lessonKey: true, submittedAt: true, data: true },
-  }));
+  });
+}
+
+export function loadSharedTeacherSync(sessionId: string) {
+  return loadSharedClassroomRead(`teacher-sync:${sessionId}`, () => readLatestTeacherSync(sessionId));
 }
 
 export function createPrismaClassroomStateRuntime(): ClassroomStateRuntime {
@@ -109,7 +114,10 @@ export function createPrismaClassroomStateRuntime(): ClassroomStateRuntime {
           lastClientEventAt: input.lastClientEventAt,
         },
       });
-      if (input.stateKey === teacherStateKey) invalidateSharedClassroomRead(`teacher-sync:${input.sessionId}`);
+      if (input.stateKey === teacherStateKey) {
+        invalidateSharedClassroomRead(`teacher-sync:${input.sessionId}`);
+        void redisClient.publishStateChange(input.sessionId, { type: 'teacher-sync', data: null, timestamp: Date.now() });
+      }
       return saved;
     },
     buildIdentity: (session) => buildClassroomIdentityPayload(session),

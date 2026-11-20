@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ sessi
       },
       sessionId: params.sessionId,
     });
-    return openClassroomSessionStreamAdapter(request, classSession);
+    return openClassroomSessionStreamAdapter(request, classSession.id);
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof ClassroomSessionError) {

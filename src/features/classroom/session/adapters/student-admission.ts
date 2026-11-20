@@ -12,6 +12,7 @@ local now = tonumber(clock[1]) * 1000 + math.floor(tonumber(clock[2]) / 1000)
 if redis.call('EXISTS', KEYS[4]) == 1 then return 0 end
 for _, expired in ipairs(redis.call('ZRANGEBYSCORE', KEYS[3], '-inf', now)) do
   redis.call('ZREM', KEYS[2], expired)
+  redis.call('ZREM', KEYS[5], expired)
 end
 redis.call('ZREMRANGEBYSCORE', KEYS[3], '-inf', now)
 local rank = redis.call('ZRANK', KEYS[2], id)
@@ -22,6 +23,7 @@ if not rank then
 end
 redis.call('ZADD', KEYS[3], now + 30000, id)
 for i = 1, 3 do redis.call('PEXPIRE', KEYS[i], 60000) end
+redis.call('PEXPIRE', KEYS[5], 60000)
 local spread = tonumber(string.sub(id, 1, 3), 16)
 if batch == 0 then
   if rank < 3 then return 1300 + spread % 550 end
@@ -32,10 +34,33 @@ local used = 0
 if tostring(slot) == redis.call('HGET', KEYS[1], 'slot') then
   used = tonumber(redis.call('HGET', KEYS[1], 'used') or 0)
 end
-if rank < batch - used then
+local available = batch - used
+local candidate = rank < available
+local holdMs = tonumber(ARGV[3])
+if not candidate and available > 0 and holdMs > 0 then
+  local offered = 0
+  -- A sleeping head holds capacity briefly. Ready candidates can use its
+  -- unused slot after that grace, while the head retains its queue order.
+  for _, head in ipairs(redis.call('ZRANGE', KEYS[2], 0, -1)) do
+    if head == id then
+      candidate = true
+      break
+    end
+    local deadline = tonumber(redis.call('ZSCORE', KEYS[5], head))
+    if not deadline then
+      redis.call('ZADD', KEYS[5], now + holdMs, head)
+      deadline = now + holdMs
+    end
+    if deadline > now then offered = offered + 1 end
+    if offered >= available then break end
+  end
+  redis.call('PEXPIRE', KEYS[5], 60000)
+end
+if candidate then
   redis.call('HSET', KEYS[1], 'slot', slot, 'used', used + 1)
   redis.call('ZREM', KEYS[2], id)
   redis.call('ZREM', KEYS[3], id)
+  redis.call('ZREM', KEYS[5], id)
   redis.call('PSETEX', KEYS[4], 2700000, '1')
   return 0
 end
@@ -56,9 +81,10 @@ export async function reserveInteractiveStudentAdmission(sessionId: string, user
   const adaptive = process.platform === 'linux' && process.env.INTERACTIVE_CLASSROOM_ADAPTIVE_ADMISSION !== '0';
   const scale = adaptive ? await getHostAdmissionScale() : 1;
   const limit = Math.min(40, Math.ceil(batch * scale));
+  const holdMs = process.env.INTERACTIVE_CLASSROOM_HEAD_HOLD === '0' ? 0 : 1500;
   try {
-    return Number(await redis.eval(RESERVE, 4, `${prefix}:cursor`, `${prefix}:waiting`,
-      `${prefix}:expires`, `${prefix}:student:${user}`, user, limit));
+    return Number(await redis.eval(RESERVE, 5, `${prefix}:cursor`, `${prefix}:waiting`,
+      `${prefix}:expires`, `${prefix}:student:${user}`, `${prefix}:head-holds`, user, limit, holdMs));
   } catch {
     return 2500;
   }

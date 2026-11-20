@@ -41,7 +41,8 @@ export interface SessionInfo {
   currentItemId: string | null;
   currentStage?: string | null;
   planTitle?: string;
-  updatedAt?: string | Date; // 版本控制时间戳，用于防止页面回跳
+  updatedAt?: string | Date | number;
+  classroomStream?: boolean;
   teacherSync?: SessionStateRecord | null;
 }
 

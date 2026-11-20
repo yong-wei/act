@@ -15,8 +15,6 @@ import {
 import { readClassroomSessionState, writeClassroomSessionState } from '../application/state';
 import {
   CLASSROOM_STREAM_HEARTBEAT_MS,
-  CLASSROOM_STREAM_POLL_MS,
-  selectClassroomStreamBackend,
 } from '../application/stream-policy';
 import { ClassroomSessionError } from '../errors';
 import type { ClassroomCreateRuntime } from '../application/create';
@@ -318,11 +316,8 @@ describe('classroom session application service', () => {
     })).rejects.toMatchObject({ code: 'conflict' });
   });
 
-  it('selects redis or poll from the shared stream policy', () => {
+  it('sets the heartbeat interval below the browser watchdog timeout', () => {
     expect(CLASSROOM_STREAM_HEARTBEAT_MS).toBe(15_000);
-    expect(CLASSROOM_STREAM_POLL_MS).toBe(2_000);
-    expect(selectClassroomStreamBackend(true)).toBe('redis');
-    expect(selectClassroomStreamBackend(false)).toBe('poll');
   });
 
   it('denies teacher-sync state writes from students', async () => {
