@@ -69,12 +69,12 @@ function runNextBuild() {
   });
 }
 
-async function packagePublicWasm() {
-  const media = path.join(root, '.next', 'static', 'media');
-  const entries = await fs.promises.readdir(media, { withFileTypes: true });
+async function packagePublicStaticAssets() {
+  const directory = path.join(root, '.next', 'static');
+  const entries = await fs.promises.readdir(directory, { withFileTypes: true, recursive: true });
   for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.wasm')) continue;
-    const source = path.join(media, entry.name);
+    if (!entry.isFile() || !/\.(js|css|wasm)$/.test(entry.name)) continue;
+    const source = path.join(entry.parentPath, entry.name);
     const destination = `${source}.gz`;
     const temporary = `${destination}.tmp`;
     try {
@@ -101,6 +101,6 @@ if (result.code !== 0) {
   if (pruneResult.code !== 0) {
     process.exitCode = pruneResult.code ?? 1;
   } else if (process.env.ACT_PUBLIC_NEXT_STATIC_ORIGIN) {
-    await packagePublicWasm();
+    await packagePublicStaticAssets();
   }
 }

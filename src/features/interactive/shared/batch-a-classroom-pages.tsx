@@ -42,11 +42,18 @@ type SharedCanonicalId = BatchACanonicalId | BatchBCanonicalId;
 
 type BatchALessonConfig = {
   canonicalId: SharedCanonicalId;
-  loadPages: () => Promise<BatchAPages>;
   layeredGraph?: boolean;
   studentMetadata?: { title: string; description: string };
   demo?: boolean;
-};
+} & (
+  | { loadPages: () => Promise<BatchAPages> }
+  | { loadPage: { [K in keyof BatchAPages]: () => Promise<BatchAPages[K]> } }
+);
+
+async function loadLessonPage<K extends keyof BatchAPages>(config: BatchALessonConfig, role: K): Promise<BatchAPages[K]> {
+  if ('loadPage' in config) return config.loadPage[role]();
+  return (await config.loadPages())[role];
+}
 
 function pages<E, S, T>(
   load: () => Promise<[E, S, T]>,
@@ -88,16 +95,11 @@ const BATCH_A_LESSONS: Record<string, BatchALessonConfig> = {
   },
   'unit-1-2-modeling-from-object-to-system': {
     canonicalId: '1-2',
-    loadPages: pages(
-      () => Promise.all([
-        import('@/features/interactive/unit-1-2-modeling-from-object-to-system/entry-page'),
-        import('@/features/interactive/unit-1-2-modeling-from-object-to-system/student-page'),
-        import('@/features/interactive/unit-1-2-modeling-from-object-to-system/teacher-page'),
-      ]),
-      (entry, student, teacher) => ({
-        EntryPage: entry.UNIT_1_2CourseEntryPage, StudentPage: student.UNIT_1_2StudentPage, TeacherPage: teacher.UNIT_1_2TeacherPage,
-      }),
-    ),
+    loadPage: {
+      EntryPage: () => import('@/features/interactive/unit-1-2-modeling-from-object-to-system/entry-page').then((page) => page.UNIT_1_2CourseEntryPage),
+      StudentPage: () => import('@/features/interactive/unit-1-2-modeling-from-object-to-system/student-page').then((page) => page.UNIT_1_2StudentPage),
+      TeacherPage: () => import('@/features/interactive/unit-1-2-modeling-from-object-to-system/teacher-page').then((page) => page.UNIT_1_2TeacherPage),
+    },
   },
   'unit-1-3-parameter-pole-migration': {
     canonicalId: '1-3',
@@ -513,7 +515,7 @@ export async function renderBatchAEntry(routeSegment: string) {
   if (!lesson) return null;
   const session = await getServerSession(authOptions);
   const lessonRuntime = await loadLessonRuntimeEntry(lesson.canonicalId);
-  const { EntryPage } = await lesson.config.loadPages();
+  const EntryPage = await loadLessonPage(lesson.config, 'EntryPage');
   return <EntryPage initialRole={session?.user?.role} lessonRuntime={lessonRuntime} />;
 }
 
@@ -577,7 +579,7 @@ export async function renderBatchAStudent(input: {
   if (runtimeResult.status === 'route-mismatch') {
     redirect(runtimeResult.redirectHref);
   }
-  const { StudentPage } = await lesson.config.loadPages();
+  const StudentPage = await loadLessonPage(lesson.config, 'StudentPage');
   return (
     <StudentPage
       sessionId={input.sessionId}
@@ -610,7 +612,7 @@ export async function renderBatchATeacher(input: { routeSegment: string; session
   if (runtimeResult.status === 'route-mismatch') {
     redirect(runtimeResult.redirectHref);
   }
-  const { TeacherPage } = await lesson.config.loadPages();
+  const TeacherPage = await loadLessonPage(lesson.config, 'TeacherPage');
   const layered = resolveLayered(lesson.config, lesson.canonicalId, runtimeResult.lessonRuntime);
   return (
     <TeacherPage
@@ -638,6 +640,6 @@ export async function renderBatchADemo(routeSegment: string) {
   const lesson = lessonConfig(routeSegment);
   if (!lesson?.config.demo) return null;
   const lessonRuntime = await loadLessonRuntimeEntry(lesson.canonicalId);
-  const { StudentPage } = await lesson.config.loadPages();
+  const StudentPage = await loadLessonPage(lesson.config, 'StudentPage');
   return <StudentPage sessionId="demo" lessonRuntime={lessonRuntime} />;
 }

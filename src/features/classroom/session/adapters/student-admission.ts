@@ -9,6 +9,7 @@ local id = ARGV[1]
 local batch = tonumber(ARGV[2])
 local clock = redis.call('TIME')
 local now = tonumber(clock[1]) * 1000 + math.floor(tonumber(clock[2]) / 1000)
+local probe = ARGV[4] == 'probe'
 if redis.call('EXISTS', KEYS[4]) == 1 then return 0 end
 for _, expired in ipairs(redis.call('ZRANGEBYSCORE', KEYS[3], '-inf', now)) do
   redis.call('ZREM', KEYS[2], expired)
@@ -57,6 +58,7 @@ if not candidate and available > 0 and holdMs > 0 then
   redis.call('PEXPIRE', KEYS[5], 60000)
 end
 if candidate then
+  if probe then return 0 end
   redis.call('HSET', KEYS[1], 'slot', slot, 'used', used + 1)
   redis.call('ZREM', KEYS[2], id)
   redis.call('ZREM', KEYS[3], id)
@@ -70,7 +72,7 @@ if slotsAhead < 2 then return untilNextSlot + spread % 300 end
 return math.min(6500, untilNextSlot + (slotsAhead - 1) * 1000) + spread % 1800
 `;
 
-export async function reserveInteractiveStudentAdmission(sessionId: string, userId: string) {
+export async function reserveInteractiveStudentAdmission(sessionId: string, userId: string, mode: 'probe' | 'reserve' = 'reserve') {
   if (!isClassroomCapacityEnabled()) return 0;
   const batch = Number(process.env.INTERACTIVE_CLASSROOM_ADMISSION_BATCH ?? 12);
   if (!Number.isSafeInteger(batch) || batch < 1 || batch > 40) return 3000;
@@ -84,7 +86,7 @@ export async function reserveInteractiveStudentAdmission(sessionId: string, user
   const holdMs = process.env.INTERACTIVE_CLASSROOM_HEAD_HOLD === '0' ? 0 : 1500;
   try {
     return Number(await redis.eval(RESERVE, 5, `${prefix}:cursor`, `${prefix}:waiting`,
-      `${prefix}:expires`, `${prefix}:student:${user}`, `${prefix}:head-holds`, user, limit, holdMs));
+      `${prefix}:expires`, `${prefix}:student:${user}`, `${prefix}:head-holds`, user, limit, holdMs, mode));
   } catch {
     return 2500;
   }
