@@ -608,7 +608,7 @@ export function GerstnerWater({
   microSlopeScale = 1,
   overheadWaveShade = 0,
 }: GerstnerWaterProps) {
-  const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
+  const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.webp');
   // 共享视觉时间：Provider 场景同帧唯一（暂停/倍速政策一致）；未接入场景回退 R3F 时钟。
   const marineVisualTime = useMarineVisualTime();
 

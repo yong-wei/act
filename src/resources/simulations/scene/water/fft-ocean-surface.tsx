@@ -102,7 +102,7 @@ export function FFTOceanSurface({
   const gl = useThree((state) => state.gl);
   const scene = useThree((state) => state.scene);
   const foamField = useMarineFoamField();
-  const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
+  const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.webp');
   foamTexture.wrapS = THREE.RepeatWrapping;
   foamTexture.wrapT = THREE.RepeatWrapping;
   const meshRef = useRef<THREE.Mesh>(null);

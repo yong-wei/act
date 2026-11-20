@@ -210,3 +210,5 @@ unit41-step*.png
 # identity.generated.ts supplies the sealed identity used by the image.
 src/resources/control-system/wasm/control_engine/identity.json
 src/resources/control-system/wasm/control_engine/.build-hash
+src/resources/control-system/wasm/control_analysis/identity.json
+src/resources/control-system/wasm/control_analysis/.build-hash

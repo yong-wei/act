@@ -77,6 +77,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate browser image formats
+        env:
+          IMAGE_CHECK_BASE: ${{ github.event.before }}
+        run: |
+          if ! git cat-file -e "${IMAGE_CHECK_BASE:-HEAD^}^{commit}" 2>/dev/null; then IMAGE_CHECK_BASE=HEAD^; fi
+          npm run verify:image-formats -- "--base=${IMAGE_CHECK_BASE:-HEAD^}"
+
       - name: Generate Prisma Client
         run: npx prisma generate
 
@@ -85,6 +92,9 @@ jobs:
 
       - name: Build control engine WASM
         run: npm run wasm:build:control-engine
+
+      - name: Compare compact and full control analysis
+        run: npx vitest run src/lib/__tests__/control-analysis-build-parity.test.ts
 
       - name: Lint
         run: npm run lint

@@ -24,6 +24,7 @@ import {
 } from '@/lib/runtime-release';
 import { createEcsRamRoleOssClient } from '@/lib/runtime-release-store';
 import { publicTeachingMediaUrlForDigest } from '@/lib/public-teaching-media';
+import { publicImageDeliveryRedirect } from '@/lib/public-image-delivery';
 
 export const dynamic = 'force-dynamic';
 
@@ -159,7 +160,7 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
       return classifiedFailure('missing', 404);
     }
     const publicUrl = await publicTeachingMediaUrlForDigest(releaseObject.sha256);
-    if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
+    if (publicUrl) return publicImageDeliveryRedirect(request, publicUrl);
     return serveBoundReleaseMedia(request, runtimePath, releaseObject.sha256);
   }
 
@@ -189,7 +190,7 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
         return NextResponse.json({ error: 'Runtime media asset was not found.' }, { status: 404 });
       }
       const publicUrl = await publicTeachingMediaUrlForDigest(releaseObject.sha256);
-      if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
+      if (publicUrl) return publicImageDeliveryRedirect(request, publicUrl);
       return NextResponse.redirect(await client.asyncSignatureUrl(releaseObject.objectKey, {
         expires: 300,
         method: 'GET',
@@ -207,7 +208,7 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
       return NextResponse.json({ error: 'Runtime media asset was not found.' }, { status: 404 });
     }
     const publicUrl = await publicTeachingMediaUrlForDigest(releaseObject.sha256);
-    if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
+    if (publicUrl) return publicImageDeliveryRedirect(request, publicUrl);
     return NextResponse.redirect(await client.asyncSignatureUrl(releaseObject.objectKey, {
       expires: 300,
       method: 'GET',

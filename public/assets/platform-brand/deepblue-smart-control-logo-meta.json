@@ -1,9 +1,9 @@
 {
   "brand": "智控深蓝",
-  "asset": "/assets/platform-brand/deepblue-smart-control-logo-small.png",
-  "darkAsset": "/assets/platform-brand/deepblue-smart-control-logo-dark-small.png",
-  "originalAsset": "/assets/platform-brand/deepblue-smart-control-logo.png",
-  "originalDarkAsset": "/assets/platform-brand/deepblue-smart-control-logo-dark.png",
+  "asset": "/assets/platform-brand/deepblue-smart-control-logo-small.webp",
+  "darkAsset": "/assets/platform-brand/deepblue-smart-control-logo-dark-small.webp",
+  "originalAsset": "/assets/platform-brand/deepblue-smart-control-logo.webp",
+  "originalDarkAsset": "/assets/platform-brand/deepblue-smart-control-logo-dark.webp",
   "sourceAsset": "/assets/platform-brand/deepblue-smart-control-logo-source.png",
   "generator": "image2 via Codex image_gen",
   "modelFamily": "image2",
@@ -14,8 +14,8 @@
     "shared-platform-brand-lockup"
   ],
   "lightDarkTreatment": {
-    "light": "Use the transparent PNG directly on light surface-topbar backgrounds; keep the navy/cyan strokes visible without inversion.",
-    "dark": "Use the dedicated high-contrast transparent PNG with cool-white and cyan brush strokes on dark surface-topbar backgrounds; switch through the shared lockup component when the root dark theme class is active."
+    "light": "Use the transparent WebP directly on light surface-topbar backgrounds; keep the navy/cyan strokes visible without inversion.",
+    "dark": "Use the dedicated high-contrast transparent WebP with cool-white and cyan brush strokes on dark surface-topbar backgrounds; switch through the shared lockup component when the root dark theme class is active."
   },
   "fallbackBehavior": {
     "textAlternative": "智控深蓝",

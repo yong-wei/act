@@ -85,10 +85,10 @@ describe('platform entrypoint smoke contracts', () => {
       fallbackBehavior?: { textAlternative?: string; componentFallback?: string };
     };
 
-    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo.png'))).toBe(true);
-    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-dark.png'))).toBe(true);
-    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-small.png'))).toBe(true);
-    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-dark-small.png'))).toBe(true);
+    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo.webp'))).toBe(true);
+    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-dark.webp'))).toBe(true);
+    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-small.webp'))).toBe(true);
+    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-dark-small.webp'))).toBe(true);
     expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-source.png'))).toBe(true);
     expect(lockupSource).toContain('DEEPBLUE_SMART_CONTROL_LOGO_PATH');
     expect(lockupSource).toContain('DEEPBLUE_SMART_CONTROL_LOGO_DARK_PATH');
@@ -105,10 +105,10 @@ describe('platform entrypoint smoke contracts', () => {
     expect(layoutSource).not.toContain('AI-OBE船舶智控平台');
     expect(metadata).toMatchObject({
       brand: '智控深蓝',
-      asset: '/assets/platform-brand/deepblue-smart-control-logo-small.png',
-      darkAsset: '/assets/platform-brand/deepblue-smart-control-logo-dark-small.png',
-      originalAsset: '/assets/platform-brand/deepblue-smart-control-logo.png',
-      originalDarkAsset: '/assets/platform-brand/deepblue-smart-control-logo-dark.png',
+      asset: '/assets/platform-brand/deepblue-smart-control-logo-small.webp',
+      darkAsset: '/assets/platform-brand/deepblue-smart-control-logo-dark-small.webp',
+      originalAsset: '/assets/platform-brand/deepblue-smart-control-logo.webp',
+      originalDarkAsset: '/assets/platform-brand/deepblue-smart-control-logo-dark.webp',
       sourceAsset: '/assets/platform-brand/deepblue-smart-control-logo-source.png',
       generator: 'image2 via Codex image_gen',
       modelFamily: 'image2',

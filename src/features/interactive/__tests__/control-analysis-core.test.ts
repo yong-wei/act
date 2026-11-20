@@ -5,26 +5,28 @@ import { describe, expect, it, vi } from 'vitest';
 
 const repoRoot = process.cwd();
 
-vi.mock('@/lib/control-engine/wasm-browser', () => ({
-  ensureBrowserControlEngine: vi.fn(),
-  invokeBrowserWasm: vi.fn(),
-  isBrowserControlEngineReady: vi.fn(),
-  preloadBrowserControlEngine: vi.fn(),
+vi.mock('@/lib/control-engine/analysis-wasm-browser', () => ({
+  ensureBrowserAnalysis: vi.fn(),
+  computeBrowserAnalysis: vi.fn(),
+  isBrowserAnalysisReady: vi.fn(),
+  browserAnalysisIdentity: vi.fn(() => ({ buildHash: 'compact' })),
 }));
 
 describe('control analysis core foundation', () => {
   it('allows cold analysis to finish downloading after the warm request deadline', async () => {
     const { computeAnalysisBrowser } = await import('@/lib/control-engine/client');
-    const wasm = await import('@/lib/control-engine/wasm-browser');
+    const wasm = await import('@/lib/control-engine/analysis-wasm-browser');
     vi.useFakeTimers();
     try {
-      vi.mocked(wasm.isBrowserControlEngineReady).mockReturnValue(false);
-      vi.mocked(wasm.ensureBrowserControlEngine).mockImplementation(() => new Promise(resolve => {
+      vi.mocked(wasm.isBrowserAnalysisReady).mockReturnValue(false);
+      vi.mocked(wasm.ensureBrowserAnalysis).mockImplementation(() => new Promise(resolve => {
         setTimeout(resolve, 15_000);
       }));
-      vi.mocked(wasm.invokeBrowserWasm).mockReturnValue('{"value":1}');
+      vi.mocked(wasm.computeBrowserAnalysis).mockReturnValue('{"value":1}');
       const outcome = computeAnalysisBrowser({}, { executor: 'worker' });
-      const check = expect(outcome).resolves.toMatchObject({ executor: 'worker', result: { value: 1 } });
+      const check = expect(outcome).resolves.toMatchObject({
+        executor: 'worker', runtimeIdentity: { buildHash: 'compact' }, result: { value: 1 },
+      });
       await vi.advanceTimersByTimeAsync(15_000);
       await check;
     } finally {
@@ -35,15 +37,15 @@ describe('control analysis core foundation', () => {
 
   it('keeps the warm analysis deadline and honors explicit shorter deadlines', async () => {
     const { computeAnalysisBrowser } = await import('@/lib/control-engine/client');
-    const wasm = await import('@/lib/control-engine/wasm-browser');
+    const wasm = await import('@/lib/control-engine/analysis-wasm-browser');
     vi.useFakeTimers();
     try {
-      vi.mocked(wasm.ensureBrowserControlEngine).mockImplementation(() => new Promise(() => undefined));
-      vi.mocked(wasm.isBrowserControlEngineReady).mockReturnValue(true);
+      vi.mocked(wasm.ensureBrowserAnalysis).mockImplementation(() => new Promise(() => undefined));
+      vi.mocked(wasm.isBrowserAnalysisReady).mockReturnValue(true);
       const warm = expect(computeAnalysisBrowser({})).rejects.toMatchObject({ state: 'timeout' });
       await vi.advanceTimersByTimeAsync(12_000);
       await warm;
-      vi.mocked(wasm.isBrowserControlEngineReady).mockReturnValue(false);
+      vi.mocked(wasm.isBrowserAnalysisReady).mockReturnValue(false);
       const cold = expect(computeAnalysisBrowser({}, { timeoutMs: 100 })).rejects.toMatchObject({ state: 'timeout' });
       await vi.advanceTimersByTimeAsync(100);
       await cold;

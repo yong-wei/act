@@ -1,4 +1,5 @@
 const path = require('node:path');
+const legacyRasterRedirects = require('./scripts/assets/legacy-raster-redirects.json');
 
 const buildFilesystemRoot = process.env.ACT_NEXT_BUILD_FILESYSTEM_ROOT;
 
@@ -93,6 +94,9 @@ const nextConfig = {
     ],
   },
   output: 'standalone',
+  async redirects() {
+    return legacyRasterRedirects.map(route => ({ ...route, permanent: true }));
+  },
   async rewrites() {
     if (!workerAssetPrefix) return [];
     return [{

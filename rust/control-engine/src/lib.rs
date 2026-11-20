@@ -26,6 +26,7 @@ use crate::analysis::{
     compute_nonlinear_analysis_inner,
 };
 
+#[cfg(any(not(target_arch = "wasm32"), feature = "full-wasm"))]
 use crate::controllers::{RlTrainingRequest, compute_rl_training_inner};
 
 #[wasm_bindgen]
@@ -52,6 +53,7 @@ pub fn compute_nonlinear_analysis(request_json: &str) -> Result<String, JsValue>
     serde_json::to_string(&result).map_err(|error| JsValue::from_str(&error.to_string()))
 }
 
+#[cfg(any(not(target_arch = "wasm32"), feature = "full-wasm"))]
 #[wasm_bindgen]
 pub fn compute_rl_training(request_json: &str) -> Result<String, JsValue> {
     let request: RlTrainingRequest = serde_json::from_str(request_json)
@@ -60,23 +62,27 @@ pub fn compute_rl_training(request_json: &str) -> Result<String, JsValue> {
     serde_json::to_string(&result).map_err(|error| JsValue::from_str(&error.to_string()))
 }
 
+#[cfg(any(not(target_arch = "wasm32"), feature = "full-wasm"))]
 #[wasm_bindgen]
 pub fn compute_simulation_step(request_json: &str) -> Result<String, JsValue> {
     control_odyssey_runtime::compute_simulation_step_json(request_json)
         .map_err(|error| JsValue::from_str(&error))
 }
 
+#[cfg(any(not(target_arch = "wasm32"), feature = "full-wasm"))]
 #[wasm_bindgen]
 pub fn compute_virtual_simulation_step(request_json: &str) -> Result<String, JsValue> {
     virtual_simulation_runtime::compute_virtual_simulation_step_json(request_json)
         .map_err(|error| JsValue::from_str(&error))
 }
 
+#[cfg(any(not(target_arch = "wasm32"), feature = "full-wasm"))]
 #[wasm_bindgen]
 pub struct VesselSimulationSession {
     inner: sixdof::session::FleetSimulation,
 }
 
+#[cfg(any(not(target_arch = "wasm32"), feature = "full-wasm"))]
 #[wasm_bindgen]
 impl VesselSimulationSession {
     #[wasm_bindgen(constructor)]

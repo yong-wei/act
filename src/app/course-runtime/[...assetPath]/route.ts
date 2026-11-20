@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 
 import { RUNTIME_BLOB_HELPER_NAME } from '@/lib/runtime-content-path';
 import { publicTeachingMediaUrlForPath } from '@/lib/public-teaching-media';
+import { publicImageDeliveryRedirect } from '@/lib/public-image-delivery';
 
 const RUNTIME_ROOT = join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'runtime');
 
@@ -49,7 +50,7 @@ function isPrivateRuntimeGovernancePath(relativePath: string) {
     );
 }
 
-export async function GET(_request: Request, props: { params: Promise<{ assetPath: string[] }> }) {
+export async function GET(request: Request, props: { params: Promise<{ assetPath: string[] }> }) {
   const params = await props.params;
   const segments = params.assetPath ?? [];
   if (!segments.length) {
@@ -76,7 +77,7 @@ export async function GET(_request: Request, props: { params: Promise<{ assetPat
   }
 
   const publicUrl = await publicTeachingMediaUrlForPath(relativePath);
-  if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
+  if (publicUrl) return publicImageDeliveryRedirect(request, publicUrl);
 
   try {
     const buffer = await readFile(/*turbopackIgnore: true*/ absolutePath);

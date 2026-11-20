@@ -63,7 +63,7 @@ export const WORKER_RETRY_MS = 4_000;
 export interface ControlEngineRuntimeIdentity {
   readonly schemaVersion: typeof IDENTITY_SCHEMA;
   readonly protocolVersion: typeof FACADE_PROTOCOL_VERSION;
-  readonly packageDir: typeof GENERATED_PACKAGE_DIR;
+  readonly packageDir: typeof GENERATED_PACKAGE_DIR | 'src/resources/control-system/wasm/control_analysis';
   readonly buildHash: string;
   readonly exports: readonly ControlEngineWasmExport[];
 }

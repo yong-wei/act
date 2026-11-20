@@ -3,6 +3,10 @@ name = "control_engine"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["full-wasm"]
+full-wasm = []
+
 [dependencies]
 num-complex = "0.4"
 serde = { version = "1", features = ["derive"] }

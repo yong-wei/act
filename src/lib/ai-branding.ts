@@ -12,10 +12,10 @@ export const KONLING_BRAND = {
   description: '你的智能学习伙伴，随时解答疑惑',
 
   avatar: {
-    sm: '/images/AI32.png',
-    md: '/images/AI64.png',
-    lg: '/images/AI128.png',
-    xl: '/images/AI1024.png',
+    sm: '/images/AI32.webp',
+    md: '/images/AI64.webp',
+    lg: '/images/AI128.webp',
+    xl: '/images/AI1024.webp',
   },
 
   colors: {
