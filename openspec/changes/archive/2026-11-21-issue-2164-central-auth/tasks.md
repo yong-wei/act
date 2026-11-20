@@ -15,10 +15,10 @@
 ## 3. Account administration and migration
 
 - [x] 3.1 Retire local authentication account creation, enablement, and password writes without weakening business role management.
-- [ ] 3.2 Run real roster dry-run, conflict isolation, apply/resume/diff, activation, mapping backfill, and rollback verification.
+- [x] 3.2 Run real roster dry-run, conflict isolation, apply/resume/diff, activation, mapping backfill, and rollback verification.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Add unit and integration coverage and pass typecheck, relevant suites, build, and strict OpenSpec validation.
-- [ ] 4.2 Complete real browser acceptance, latest-head Codex review, and merge.
-- [ ] 4.3 Deploy ACT, verify production identity, grants, public access, logout, migration, recovery, and rollback, then archive and record platform#11.
+- [x] 4.1 Add unit and integration coverage and pass typecheck, relevant suites, build, and strict OpenSpec validation.
+- [x] 4.2 Complete real browser acceptance, latest-head Codex review, and merge.
+- [x] 4.3 Deploy ACT, verify production identity, grants, public access, logout, migration, recovery, and rollback, then archive and record platform#11.
