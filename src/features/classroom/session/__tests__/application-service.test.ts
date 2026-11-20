@@ -227,6 +227,46 @@ describe('classroom session application service', () => {
     expect(runtime.loadReadableSession).not.toHaveBeenCalled();
   });
 
+  it('checks queued students with the pending identity read and rechecks membership before taking a slot', async () => {
+    const probeStudentAdmission = vi.fn().mockResolvedValueOnce(1300).mockResolvedValueOnce(0);
+    const reserveStudentAdmission = vi.fn();
+    const loadAccessActor = vi.fn()
+      .mockResolvedValueOnce({ id: 'student-1', role: 'STUDENT', profile: { classId: 'class-1' } })
+      .mockResolvedValueOnce({ id: 'student-1', role: 'STUDENT', profile: { classId: 'class-1' } })
+      .mockResolvedValueOnce({ id: 'student-1', role: 'STUDENT', profile: null });
+    const runtime = createLifecycleRuntime({ probeStudentAdmission, reserveStudentAdmission, loadAccessActor });
+    const input = {
+      actor: { id: 'student-1', role: 'STUDENT', profile: { classId: 'class-1' } },
+      sessionId: 'session-1',
+      admissionOnly: true,
+    };
+
+    await expect(readClassroomSession(runtime, input)).resolves.toEqual({ admission: 'waiting', retryAfterMs: 1300 });
+    expect(loadAccessActor).toHaveBeenCalledExactlyOnceWith('student-1', 'waiting');
+    await expect(readClassroomSession(runtime, input)).rejects.toMatchObject({ code: 'forbidden' });
+    expect(loadAccessActor.mock.calls.at(-1)).toEqual(['student-1', undefined]);
+    expect(runtime.loadAccessSession).toHaveBeenLastCalledWith('session-1', 'fresh');
+    expect(reserveStudentAdmission).not.toHaveBeenCalled();
+  });
+
+  it('respects the result of the atomic reservation after the fresh permission check', async () => {
+    const runtime = createLifecycleRuntime({
+      probeStudentAdmission: vi.fn().mockResolvedValue(0),
+      loadAccessActor: vi.fn().mockResolvedValue({ id: 'student-1', role: 'STUDENT', profile: { classId: 'class-1' } }),
+      reserveStudentAdmission: vi.fn().mockResolvedValueOnce(650).mockResolvedValueOnce(0),
+    });
+    const input = {
+      actor: { id: 'student-1', role: 'STUDENT' },
+      sessionId: 'session-1',
+      admissionOnly: true,
+    };
+
+    await expect(readClassroomSession(runtime, input)).resolves.toEqual({ admission: 'waiting', retryAfterMs: 650 });
+    await expect(readClassroomSession(runtime, input)).resolves.toEqual({ admission: 'ready', status: 'ACTIVE' });
+    expect(runtime.loadAccessSession).toHaveBeenLastCalledWith('session-1', 'fresh');
+    expect(runtime.resolveGeneratedBinding).not.toHaveBeenCalled();
+  });
+
   it('rejects invalid advance transitions', async () => {
     const runtime = createLifecycleRuntime();
     await expect(advanceClassroomSession(runtime, {

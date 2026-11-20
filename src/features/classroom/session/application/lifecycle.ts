@@ -50,12 +50,13 @@ export interface ClassroomStreamSession {
 
 export interface ClassroomLifecycleRuntime {
   now(): Date;
-  loadAccessActor(actorId: string): Promise<{
+  loadAccessActor(actorId: string, read?: 'waiting'): Promise<{
     id: string;
     role: string;
     profile: { classId: string | null } | null;
   } | null>;
-  loadAccessSession(sessionId: string): Promise<ClassroomLifecycleAccessSession | null>;
+  loadAccessSession(sessionId: string, read?: 'fresh'): Promise<ClassroomLifecycleAccessSession | null>;
+  probeStudentAdmission?(sessionId: string, userId: string): Promise<number>;
   reserveStudentAdmission?(sessionId: string, userId: string): Promise<number>;
   readStudentTeacherSync?(sessionId: string): Promise<unknown>;
   resolveGeneratedBinding(session: ClassroomLifecycleAccessSession): Promise<
@@ -142,13 +143,14 @@ function normalizeClassroomEvent(
   };
 }
 
-export async function readClassroomSession(
+async function loadAuthorizedClassroom(
   runtime: ClassroomLifecycleRuntime,
   input: ReadClassroomSessionInput,
-): Promise<Record<string, unknown>> {
+  read?: 'waiting' | 'fresh',
+) {
   const [accessUser, sessionAccess] = await Promise.all([
-    runtime.loadAccessActor(input.actor.id),
-    runtime.loadAccessSession(input.sessionId),
+    runtime.loadAccessActor(input.actor.id, read === 'waiting' ? read : undefined),
+    runtime.loadAccessSession(input.sessionId, read === 'fresh' ? read : undefined),
   ]);
   if (!accessUser) throw new ClassroomSessionError('user-not-found', 'User not found');
   if (!sessionAccess) throw new ClassroomSessionError('not-found', 'Not found');
@@ -157,14 +159,40 @@ export async function readClassroomSession(
     actor: {
       id: accessUser.id,
       role: accessUser.role,
-      profile: accessUser.profile ?? input.actor.profile ?? null,
+      profile: read ? accessUser.profile : accessUser.profile ?? input.actor.profile ?? null,
     },
     operation: 'read',
   });
   if (!auth.allowed) throw new ClassroomSessionError('forbidden', 'Forbidden');
+  return { accessUser, sessionAccess };
+}
 
-  if ((input.requestAdmission || input.admissionOnly) && sessionAccess.status !== 'FINISHED'
-    && normalizeClassroomActorRole(accessUser.role) === 'student' && runtime.reserveStudentAdmission) {
+function needsStudentAdmission(status: string | undefined, role: string) {
+  return status !== 'FINISHED' && normalizeClassroomActorRole(role) === 'student';
+}
+
+export async function readClassroomSession(
+  runtime: ClassroomLifecycleRuntime,
+  input: ReadClassroomSessionInput,
+): Promise<Record<string, unknown>> {
+  let access: Awaited<ReturnType<typeof loadAuthorizedClassroom>>;
+  if (input.admissionOnly && runtime.probeStudentAdmission) {
+    const waiting = await loadAuthorizedClassroom(runtime, input, 'waiting').catch((error: unknown) => {
+      if (!(error instanceof ClassroomSessionError) || error.code !== 'forbidden') throw error;
+      return null;
+    });
+    if (waiting && needsStudentAdmission(waiting.sessionAccess.status, waiting.accessUser.role)) {
+      const retryAfterMs = await runtime.probeStudentAdmission(input.sessionId, waiting.accessUser.id);
+      if (retryAfterMs > 0) return { admission: 'waiting', retryAfterMs };
+    }
+    access = await loadAuthorizedClassroom(runtime, input, 'fresh');
+  } else {
+    access = await loadAuthorizedClassroom(runtime, input);
+  }
+  const { accessUser, sessionAccess } = access;
+
+  if ((input.requestAdmission || input.admissionOnly)
+    && needsStudentAdmission(sessionAccess.status, accessUser.role) && runtime.reserveStudentAdmission) {
     const retryAfterMs = await runtime.reserveStudentAdmission(input.sessionId, accessUser.id);
     if (retryAfterMs > 0) return { admission: 'waiting', retryAfterMs };
   }

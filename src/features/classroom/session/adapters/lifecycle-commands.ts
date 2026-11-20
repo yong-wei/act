@@ -59,17 +59,25 @@ export function createPrismaClassroomLifecycleRuntime(studentSync = false): Clas
   return {
     now: () => new Date(),
     reserveStudentAdmission: reserveInteractiveStudentAdmission,
+    ...(isClassroomCapacityEnabled() ? {
+      probeStudentAdmission: (sessionId: string, userId: string) => reserveInteractiveStudentAdmission(sessionId, userId, 'probe'),
+    } : {}),
     ...(studentSync && isClassroomCapacityEnabled() ? {
       readStudentTeacherSync: async (sessionId: string) => {
         const shared = await loadSharedTeacherSync(sessionId);
         return shared ? toStudentTeacherSyncRecord(shared) : null;
       },
     } : {}),
-    loadAccessActor: async (actorId) => prisma.user.findUnique({
-      where: { id: actorId },
-      select: { id: true, role: true, profile: { select: { classId: true } } },
-    }),
-    loadAccessSession: async (sessionId) => {
+    loadAccessActor: (actorId, read) => {
+      const load = () => prisma.user.findUnique({
+        where: { id: actorId },
+        select: { id: true, role: true, profile: { select: { classId: true } } },
+      });
+      return read === 'waiting'
+        ? loadSharedClassroomRead(`admission-actor:${actorId}`, load, (actor) => actor ? 15_000 : 0)
+        : load();
+    },
+    loadAccessSession: async (sessionId, read) => {
       const load = () => prisma.classSession.findUnique({
         where: { id: sessionId },
         select: {
@@ -85,7 +93,7 @@ export function createPrismaClassroomLifecycleRuntime(studentSync = false): Clas
           manifestHash: true,
         },
       });
-      return studentSync ? loadSharedClassroomRead(`access:${sessionId}`, load) : load();
+      return studentSync && read !== 'fresh' ? loadSharedClassroomRead(`access:${sessionId}`, load) : load();
     },
     resolveGeneratedBinding: async (session) => {
       const generatedResolution = await resolveGeneratedCoursewareSessionBinding(prisma, {
