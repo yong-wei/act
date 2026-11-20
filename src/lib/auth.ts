@@ -3,6 +3,7 @@ import { compare } from 'bcryptjs';
 import { getServerSession, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import KeycloakProvider from 'next-auth/providers/keycloak';
+import { authorizeActIdentity, platformAccountId } from '@/lib/platform-access';
 
 /**
  * 统一身份（platform Keycloak）受控接入（issue-2164 阶段 A）：
@@ -119,81 +120,86 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider !== 'keycloak' || !profile?.sub) {
-        return true; // 本地凭据路径维持现状。
-      }
-      const personId = String(profile.sub);
-      const prisma = await getPrismaClient();
-
-      // 1) 既有映射直登。
-      const existing = await prisma.account.findFirst({
-        where: { provider: PLATFORM_ACCOUNT_PROVIDER, providerAccountId: personId },
-        select: { userId: true },
-      });
-      if (existing) {
-        const local = await prisma.user.findUnique({
-          where: { id: existing.userId },
-          select: { role: true, email: true, name: true },
-        });
-        if (!local) {
-          return false; // 映射指向已删除用户：拒绝（不自动改绑）。
-        }
-        applyLocalIdentity(user, existing.userId, { id: existing.userId, role: local.role, email: local.email, name: local.name });
         return true;
       }
-
-      // 2) 声明匹配（email / preferred_username 学号工号）→ 建立关联。
-      const email = typeof profile.email === 'string' ? profile.email.trim().toLowerCase() : '';
-      const username = typeof (profile as { preferred_username?: unknown }).preferred_username === 'string'
-        ? String((profile as { preferred_username?: string }).preferred_username).trim()
-        : '';
-      // email 优先；未命中继续学号/工号（本地账号可能无邮箱或邮箱与 IdP 不同）。
-      const byIdentifier = async () => {
-        if (email) {
-          const byEmail = await prisma.user.findFirst({
-            where: { email },
-            select: { id: true, role: true, email: true, name: true },
-          });
-          if (byEmail) return byEmail;
-        }
-        if (username) {
-          return prisma.user.findFirst({
-            where: {
-              OR: [
-                { employeeNumber: { equals: username, mode: 'insensitive' } },
-                { profile: { is: { studentNumber: { equals: username, mode: 'insensitive' } } } },
-              ],
-            },
-            select: { id: true, role: true, email: true, name: true },
-          });
-        }
-        return null;
-      };
-      const matched = await byIdentifier();
-      if (!matched) {
-        // 未知身份拒绝：不自动建号（账号由管理员预建或按学号匹配）。
+      const subject = String(profile.sub);
+      const decision = await authorizeActIdentity({ issuer: platformIssuer, subject });
+      if (!decision.allow || !decision.personId) {
         return false;
       }
-      await prisma.account.create({
-        data: {
-          userId: matched.id,
-          type: 'oauth',
+      const prisma = await getPrismaClient();
+      const existing = await prisma.account.findFirst({
+        where: {
           provider: PLATFORM_ACCOUNT_PROVIDER,
-          providerAccountId: personId,
+          OR: [
+            { providerAccountId: platformAccountId(platformIssuer, subject) },
+            { providerAccountId: subject },
+          ],
+        },
+        select: { id: true, userId: true, session_state: true },
+      });
+      if (!existing || (existing.session_state && existing.session_state !== decision.personId)) {
+        return false;
+      }
+      const local = await prisma.user.findUnique({
+        where: { id: existing.userId },
+        select: { role: true, email: true, name: true },
+      });
+      if (!local) {
+        return false;
+      }
+      await prisma.account.update({
+        where: { id: existing.id },
+        data: {
+          providerAccountId: platformAccountId(platformIssuer, subject),
+          session_state: decision.personId,
         },
       });
-      applyLocalIdentity(user, matched.id, matched as LocalIdentity);
+      applyLocalIdentity(user, existing.userId, { id: existing.userId, role: local.role, email: local.email, name: local.name });
+      Object.assign(user, {
+        platformIssuer,
+        platformSubject: subject,
+        platformPersonId: decision.personId,
+        centralSessionVersion: decision.sessionVersion,
+      });
       return true;
     },
     async jwt({ token, user }) {
-      // 首次登录时，user 对象存在
       if (user) {
         token.id = user.id;
         token.email = user.email ?? '';
         token.role = user.role ?? UserRole.STUDENT;
+        const central = user as {
+          platformIssuer?: string;
+          platformSubject?: string;
+          platformPersonId?: string;
+          centralSessionVersion?: number;
+        };
+        token.platformIssuer = central.platformIssuer;
+        token.platformSubject = central.platformSubject;
+        token.platformPersonId = central.platformPersonId;
+        token.centralSessionVersion = central.centralSessionVersion;
+      }
+      if (platformOidcEnforced && token.platformIssuer && token.platformSubject) {
+        const decision = await authorizeActIdentity({
+          issuer: String(token.platformIssuer),
+          subject: String(token.platformSubject),
+          sessionVersion: Number(token.centralSessionVersion ?? 0),
+        });
+        token.centralAccessDenied = !decision.allow;
+        if (decision.allow) {
+          token.centralSessionVersion = decision.sessionVersion;
+          token.platformPersonId = decision.personId ?? undefined;
+        }
       }
       return token;
     },
     async session({ session, token }) {
+      if (token.centralAccessDenied) {
+        session.user = undefined;
+        (session as typeof session & { error?: string }).error = 'ACT_ACCESS_DENIED';
+        return session;
+      }
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as UserRole) ?? UserRole.STUDENT;
