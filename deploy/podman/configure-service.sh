@@ -241,30 +241,34 @@ if [ "${ACT_SERVICE_CONFIGURE_ONLY:-0}" != "1" ]; then
   systemctl restart "$SERVICE_NAME"
 fi
 
-if ! podman ps --format '{{.Names}}' | grep -Fxq "$DB_CONTAINER"; then
+is_container_running() {
+  [ "$(podman inspect --type container --format '{{.State.Running}}' "$1")" = true ]
+}
+
+if ! is_container_running "$DB_CONTAINER"; then
   echo "ERROR: systemd 启动后数据库容器未运行: $DB_CONTAINER" >&2
   exit 1
 fi
 
-if ! podman ps --format '{{.Names}}' | grep -Fxq "$REDIS_CONTAINER"; then
+if ! is_container_running "$REDIS_CONTAINER"; then
   echo "ERROR: systemd 启动后 Redis 容器未运行: $REDIS_CONTAINER" >&2
   exit 1
 fi
 
-if ! podman ps --format '{{.Names}}' | grep -Fxq "$APP_CONTAINER"; then
+if ! is_container_running "$APP_CONTAINER"; then
   echo "ERROR: systemd 启动后应用容器未运行: $APP_CONTAINER" >&2
   exit 1
 fi
 
-if ! podman ps --format '{{.Names}}' | grep -Fxq "$WORKER_CONTAINER"; then
+if ! is_container_running "$WORKER_CONTAINER"; then
   echo "ERROR: systemd 启动后 worker 容器未运行: $WORKER_CONTAINER" >&2
   exit 1
 fi
 if [[ "$MATH_DOCUMENT_GRADING_WORKER_REQUIRED" =~ ^(1|true|yes)$ ]]; then
-  if ! podman ps --format '{{.Names}}' | grep -Fxq "$SUBMISSION_SCANNER_CONTAINER"; then
+  if ! is_container_running "$SUBMISSION_SCANNER_CONTAINER"; then
     echo "ERROR: systemd 启动后学生作业扫描 worker 未运行: $SUBMISSION_SCANNER_CONTAINER" >&2; exit 1
   fi
-  if ! podman ps --format '{{.Names}}' | grep -Fxq "$SUBMISSION_GC_CONTAINER"; then
+  if ! is_container_running "$SUBMISSION_GC_CONTAINER"; then
     echo "ERROR: systemd 启动后学生作业 GC worker 未运行: $SUBMISSION_GC_CONTAINER" >&2; exit 1
   fi
 fi
