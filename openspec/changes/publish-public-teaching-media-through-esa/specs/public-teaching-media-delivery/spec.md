@@ -31,8 +31,23 @@ Only an enabled, verified public media index SHALL cause an existing asset entra
 
 #### Scenario: A fixed classroom resource has already published bytes
 - **WHEN** a captured classroom resource resolves to a digest present in the verified delivery index
-- **THEN** its redirect SHALL identify those exact bytes regardless of subsequent active Runtime changes
+- **THEN** its raw redirect SHALL identify those exact bytes regardless of subsequent active Runtime changes
 
 #### Scenario: Active content changes or an index is disabled
 - **WHEN** an ordinary path no longer matches the captured Runtime or its bytes are not qualified for ESA
 - **THEN** the application SHALL use the existing current or pinned source instead of returning old same-path content
+
+### Requirement: Browser image delivery uses verified WebP encodings
+
+New ordinary raster delivery assets SHALL use WebP. Source materials, vector graphics, and format-bound assets SHALL preserve the formats required by their contracts. A browser display encoding derived from an existing public image SHALL be qualified against the exact source digest and SHALL preserve clarity, transparency and any required motion. Exact-byte reads and pinned versions SHALL retain their source identity.
+
+#### Scenario: A new raster image is proposed
+
+- **WHEN** a change adds an ordinary browser delivery image
+- **THEN** admission SHALL verify that the declared WebP format matches the encoded bytes
+
+#### Scenario: The browser requests a qualified public raster for display
+
+- **WHEN** a display request accepts WebP and the source resolves through the exact-digest public media inventory
+- **THEN** the browser SHALL receive a cache-separated WebP representation where supported
+- **AND** raw and download requests SHALL retain their original representation

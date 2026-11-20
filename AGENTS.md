@@ -64,6 +64,10 @@
 
 ## 仿真与数值模型
 
+- 互动课堂集中入场先走轻量候场，Redis 保留队位，放行前重新核验学生归属。互动课堂及已启用自适应放行的实验空间在 CPU 达 90% 时停发新许可。教师进度使用课堂共享推送，断线回退 HTTP。正式交卷保留同堂排队、幂等与数据库事务。
+- 版本化公开 JS、CSS、WASM 提供 gzip 制品并由 ESA 分发；课堂 Worker 执行脚本走同源。课堂分析按可见课步使用紧凑构建，发布前比较同一 Rust 计算输出和冷缓存浏览器传输。
+- 普通浏览器交付位图使用 WebP。保留透明度、文字清晰度和动画。矢量图、作者原件、历史摘要和对格式有约束的模型纹理按各自契约保留。
+
 - 新增或改造仿真必须遵循 `docs/Simulation_Guidelines.md`。
 - 数值模型统一进入 `rust/control-engine`、浏览器 WASM 或服务端 WASM runtime；前端只保留固定步长调度、UI、图表和埋点。
 - 页面使用 `SimulationClock({ dt: 1 / 60, maxSubSteps: 120 })` 推进模型（`SIMULATION_FIXED_STEP_SECONDS`/`SIMULATION_MAX_SUB_STEPS`，见 `src/resources/simulations/lib/simulation-timing.ts`；教学页可用更小的 maxSubSteps）；禁止用 `setInterval` 或可变 `delta` 直接驱动物理模型。

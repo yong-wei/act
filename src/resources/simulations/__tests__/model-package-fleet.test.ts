@@ -239,30 +239,30 @@ describe('homepage posters follow the activated package', () => {
   it('maps every activated package prefix including Tianjing and OSS URLs', async () => {
     const { getShipModelPosterPath } = await import('../ship-model-assets');
     expect(getShipModelPosterPath('/assets/model-releases/type055-nanchang-101/v2.3.0/models/type055-nanchang-101-ship-lod2.glb')).toBe(
-      '/assets/destroyer.png',
+      '/assets/destroyer.webp',
     );
     expect(getShipModelPosterPath('https://static.adapt-learn.online/model-releases/lng-changheng/v1.2.0/models/lng-changheng-ship-lod2.glb')).toBe(
-      '/assets/Lng-carrier.png',
+      '/assets/Lng-carrier.webp',
     );
     expect(getShipModelPosterPath('/assets/model-releases/lng-changheng/v1.2.0/models/lng-changheng-ship-lod2.glb')).toBe(
-      '/assets/Lng-carrier.png',
+      '/assets/Lng-carrier.webp',
     );
     expect(getShipModelPosterPath('/assets/model-releases/msc-tessa/v1.2.0/models/msc-tessa-ship-lod2.glb')).toBe(
-      '/assets/container.png',
+      '/assets/container.webp',
     );
     expect(getShipModelPosterPath('/assets/model-releases/xue-long-2/v1.1.0/models/xue-long-2-ship-lod2.glb')).toBe(
-      '/assets/icebreaker.png',
+      '/assets/icebreaker.webp',
     );
     expect(getShipModelPosterPath('/assets/model-releases/adora-magic-city/v1.1.0/models/adora-magic-city-ship-lod2.glb')).toBe(
-      '/assets/luxury-liner.png',
+      '/assets/luxury-liner.webp',
     );
     expect(getShipModelPosterPath('/assets/model-releases/hysy-981/v1.2.0/models/hysy-981-ship-lod2.glb')).toBe(
-      '/assets/drilling-rig.png',
+      '/assets/drilling-rig.webp',
     );
     expect(getShipModelPosterPath('/assets/model-releases/dredger-tianjing/v1.2.0/models/dredger-tianjing-ship-lod2.glb')).toBe(
-      '/assets/dredger-tianjing.png',
+      '/assets/dredger-tianjing.webp',
     );
-    expect(getShipModelPosterPath('/assets/dredger.glb')).toBe('/assets/dredger-tianjing.png');
+    expect(getShipModelPosterPath('/assets/dredger.glb')).toBe('/assets/dredger-tianjing.webp');
     const preview = readFileSync(path.join(process.cwd(), 'src/resources/simulations/ship-model-preview.tsx'), 'utf8');
     expect(preview).toContain('useGLTF(modelPath, true, true)');
     expect(preview).toContain('useGLTF.preload(modelPath, true, true)');

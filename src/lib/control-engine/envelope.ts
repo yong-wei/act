@@ -150,6 +150,7 @@ export function okEnvelope<TResult>(input: {
   modelRelation?: ControlEngineModelRelation;
   teachingSemantics?: string;
   authoritySource?: ControlEngineAuthoritySource;
+  runtimeIdentity?: ControlEngineRuntimeIdentity;
 }): ControlEngineEnvelope<TResult> {
   const executor = input.executor;
   return {
@@ -161,7 +162,7 @@ export function okEnvelope<TResult>(input: {
     modelRelation: input.modelRelation ?? 'surrogate',
     teachingSemantics: input.teachingSemantics ?? surrogateSemantics(input.capability),
     prohibitsMixedClaims: true,
-    runtimeIdentity: runtimeIdentity(),
+    runtimeIdentity: input.runtimeIdentity ?? runtimeIdentity(),
     canonicalRequestHash: input.canonicalRequestHash,
     requestId: input.requestId,
     result: input.result,

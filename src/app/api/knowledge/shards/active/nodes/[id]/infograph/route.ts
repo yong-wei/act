@@ -12,6 +12,7 @@ import {
   resolveActiveLocaleRequest,
 } from '@/lib/authority-locale-readiness/request';
 import { publicTeachingMediaUrlForBuffer } from '@/lib/public-teaching-media';
+import { publicImageDeliveryRedirect } from '@/lib/public-image-delivery';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -40,7 +41,7 @@ export async function GET(
       );
     }
     const publicUrl = await publicTeachingMediaUrlForBuffer(image, 'image/png');
-    if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
+    if (publicUrl) return publicImageDeliveryRedirect(request, publicUrl);
     return new NextResponse(image, {
       headers: {
         'content-type': 'image/png',

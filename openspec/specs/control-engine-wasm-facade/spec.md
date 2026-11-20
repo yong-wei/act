@@ -85,9 +85,9 @@ The control-engine capability contract SHALL distinguish fixed surrogates from i
 - **THEN** validation SHALL reject the tampered request or mark it non-authoritative
 - **AND** no persisted run or official evaluation SHALL be derived from the claim.
 
-### Requirement: Generated control-engine artifacts have one runtime identity
+### Requirement: Each generated control-engine package has a verified runtime identity
 
-The generated JavaScript, declarations, WASM binary, and build metadata SHALL be produced by the control-engine build script and SHALL be validated as one runtime identity bound to Rust source, lockfile, toolchain, and exported ABI.
+The generated JavaScript, declarations, WASM binary, and build metadata SHALL be produced by the control-engine build script. Each package SHALL have its own identity bound to Rust source, lockfile, toolchain, exported ABI and build profile. Browser analysis MAY load a compact package exposing the same linear and nonlinear results. The result SHALL identify the package that executed it.
 
 #### Scenario: Generated package is complete
 

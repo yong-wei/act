@@ -38,38 +38,38 @@ const CATALOG = {
   'xue-long-2': {
     sourceRel: 'assets/xue_long_2/exports/v1.1.0',
     expectedManifestSha256: 'c5bdf72202e284f44fabd11faec7a1e64340c8c6381f9c6d7322593e2a19cfe4',
-    posters: ['public/assets/icebreaker.png'],
+    posters: ['public/assets/icebreaker.webp'],
   },
   'adora-magic-city': {
     sourceRel: 'assets/adora_magic_city/exports/v1.1.0',
     expectedManifestSha256: 'eb4e19b2fa798912bc1335e902d7b5675e826e8f83990ee724181ca8936ba3bc',
-    posters: ['public/assets/luxury-liner.png'],
+    posters: ['public/assets/luxury-liner.webp'],
   },
   'msc-tessa': {
     sourceRel: 'assets/msc_tessa/exports/v1.2.0',
     expectedManifestSha256: '8f6af2d336236eb6a670aa645263e219ed79acc133f5fe96ed21f0e47c083b7a',
-    posters: ['public/assets/container.png'],
+    posters: ['public/assets/container.webp'],
   },
   'lng-changheng': {
     sourceRel: 'assets/lng_changheng/exports/v1.2.0',
     expectedManifestSha256: 'd58958515c7f5363e039ce7d362fc412168ff3030ba295c1e9de8fb9a90db8e7',
-    posters: ['public/assets/Lng-carrier.png'],
+    posters: ['public/assets/Lng-carrier.webp'],
   },
   'dredger-tianjing': {
     sourceRel: 'models/act-dredger-tianjing/exports/v1.2.0',
     expectedManifestSha256: 'f8ca3b2fc2e3ae31ea2a155028cfd6fda959280a98725c79d29dc96298cfba7d',
-    posters: ['public/assets/dredger.png', 'public/assets/dredger-tianjing.png'],
+    posters: ['public/assets/dredger.webp', 'public/assets/dredger-tianjing.webp'],
   },
   'type055-nanchang-101': {
     sourceRel: 'assets/type_055_destroyer/exports/v2.3.0',
     expectedManifestSha256: 'fcfe6687037081b1d2ff9b1fcdb637ab0869423ab6c80b3ada95fe3291a31474',
     includeOtherGlbs: true,
-    posters: ['public/assets/destroyer.png'],
+    posters: ['public/assets/destroyer.webp'],
   },
   'hysy-981': {
     sourceRel: 'models/hysy981-blender/exports/v1.2.0',
     expectedManifestSha256: 'dfcc09ee3a275b7515079c15409ebf05a8129b6bf8e65b30b053ff2745b50949',
-    posters: ['public/assets/drilling-rig.png'],
+    posters: ['public/assets/drilling-rig.webp'],
   },
 };
 
@@ -167,8 +167,8 @@ function assertFleetRuntimeCatalog(heroRoot, sourceRel, releaseSha) {
 
 function copyPoster(from, dest) {
   mkdirSync(path.dirname(dest), { recursive: true });
-  if (from.endsWith('.webp') && dest.endsWith('.png')) {
-    execFileSync('sips', ['-s', 'format', 'png', from, '--out', dest], { stdio: 'pipe' });
+  if (!from.endsWith('.webp')) {
+    execFileSync('cwebp', ['-quiet', '-lossless', '-exact', '-metadata', 'all', from, '-o', dest], { stdio: 'pipe' });
     if (!statSync(dest, { throwIfNoEntry: false })?.isFile() || statSync(dest).size <= 0) {
       fail(`poster convert failed ${dest}`);
     }

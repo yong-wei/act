@@ -1,6 +1,6 @@
 {
   "name": "ai-obe-platform",
-  "version": "0.7.72",
+  "version": "0.7.73",
   "private": true,
   "packageManager": "npm@11.12.1",
   "engines": {
@@ -63,8 +63,9 @@
     "browser-delivery:qualify-routing": "tsx ./scripts/browser-delivery.ts qualify-routing",
     "browser-delivery:apply": "tsx ./scripts/browser-delivery.ts apply",
     "test:contracts:write": "tsx ./scripts/test-command-contracts.ts --write",
-    "verify:commit": "npm run typecheck && npm run typecheck:konling-scripts && npm run verify:teacher-ai-grading-sensitive-files && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
-    "verify:push": "npm run typecheck && npm run typecheck:konling-scripts && npm run verify:portrait-v2-primary && npm run test:portrait-v2-primary-usage-command",
+    "verify:commit": "npm run verify:image-formats -- --staged && npm run typecheck && npm run typecheck:konling-scripts && npm run verify:teacher-ai-grading-sensitive-files && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
+    "verify:push": "npm run verify:image-formats && npm run typecheck && npm run typecheck:konling-scripts && npm run verify:portrait-v2-primary && npm run test:portrait-v2-primary-usage-command",
+    "verify:image-formats": "node ./scripts/assets/check-image-formats.mjs",
     "lint": "eslint . --max-warnings=0",
     "marine:verify": "tsx ./scripts/tests/marine-verify.ts",
     "test": "tsx ./scripts/test-command-contracts.ts --command test --execute",

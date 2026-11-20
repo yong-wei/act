@@ -13,18 +13,20 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { gzipSync } from 'node:zlib';
 import path from 'node:path';
 import { prepareVesselWaveAssets } from './prepare-vessel-wave-assets.mjs';
 
 const repoRoot = process.cwd();
-await prepareVesselWaveAssets(repoRoot);
+const analysisOnly = process.argv.includes('--analysis-only');
+if (!analysisOnly) await prepareVesselWaveAssets(repoRoot);
 const controlEngineRoot = path.join(repoRoot, 'rust/control-engine');
-const wasmOutDir = path.join(repoRoot, 'src/resources/control-system/wasm/control_engine');
+const wasmOutDir = path.join(repoRoot, 'src/resources/control-system/wasm', analysisOnly ? 'control_analysis' : 'control_engine');
 const wasmPackageFiles = ['index.js', 'index_bg.wasm', 'index.d.ts'];
 const wasmIdentityFiles = ['index.js', 'index.d.ts', 'index_bg.wasm', 'index_bg.wasm.d.ts'];
 const wasmBuildHashFile = path.join(wasmOutDir, '.build-hash');
 const wasmIdentityFile = path.join(wasmOutDir, 'identity.json');
-const identityGeneratedFile = path.join(repoRoot, 'src/lib/control-engine/identity.generated.ts');
+const identityGeneratedFile = path.join(repoRoot, 'src/lib/control-engine', analysisOnly ? 'analysis-identity.generated.ts' : 'identity.generated.ts');
 const wasmExports = [
   'compute_analysis',
   'compute_nonlinear_analysis',
@@ -32,13 +34,28 @@ const wasmExports = [
   'compute_simulation_step',
   'compute_virtual_simulation_step',
   'VesselSimulationSession',
-];
+].slice(0, analysisOnly ? 2 : undefined);
+
+function buildBrowserAnalysis() {
+  if (analysisOnly) return;
+  execFileSync(process.execPath, [process.argv[1], '--analysis-only'], { stdio: 'inherit' });
+}
 
 function sha256File(filePath) {
   return createHash('sha256').update(readFileSync(filePath)).digest('hex');
 }
 
+function assertCompactBudget() {
+  if (analysisOnly) {
+    const wasm = readFileSync(path.join(wasmOutDir, 'index_bg.wasm'));
+    if (gzipSync(wasm).length > 512 * 1024) {
+      throw new Error('课堂分析内核 gzip 制品超过 512 KiB。');
+    }
+  }
+}
+
 function writeIdentityArtifacts(buildHash) {
+  assertCompactBudget();
   const files = Object.fromEntries(
     wasmIdentityFiles
       .filter((file) => existsSync(path.join(wasmOutDir, file)))
@@ -78,7 +95,9 @@ if (process.env.SKIP_WASM_BUILD === '1') {
   if (missing.length) {
     throw new Error(`SKIP_WASM_BUILD=1 但缺少已生成的控制分析 Wasm 文件：${missing.join(', ')}`);
   }
+  assertCompactBudget();
   console.log(`[wasm] SKIP_WASM_BUILD=1，复用已生成的控制分析 Wasm 包：${wasmOutDir}`);
+  buildBrowserAnalysis();
   process.exit(0);
 }
 
@@ -155,6 +174,8 @@ function computeBuildHash() {
   const hash = createHash('sha256');
   hash.update(`wasm-pack:${readCommandVersion('wasm-pack --version')}\n`);
   hash.update(`rustc:${readCommandVersion('rustc --version')}\n`);
+  hash.update(`wasm-opt:${readCommandVersion('wasm-opt --version')}\n`);
+  hash.update(analysisOnly ? 'analysis-only\n' : 'full\n');
   const inputFiles = [
     path.join(repoRoot, 'scripts/wasm/build-control-engine.mjs'),
     path.join(repoRoot, 'rust/control-engine/Cargo.toml'),
@@ -181,6 +202,7 @@ const previousBuildHash = existsSync(wasmBuildHashFile)
 if (process.env.FORCE_WASM_BUILD !== '1' && hasCompleteWasmPackage() && previousBuildHash === buildHash) {
   writeIdentityArtifacts(buildHash);
   console.log(`[wasm] 控制分析 Wasm 输入未变化，复用已生成包：${wasmOutDir}`);
+  buildBrowserAnalysis();
   process.exit(0);
 }
 
@@ -197,9 +219,11 @@ const wasmPackArgs = [
   'index',
 ];
 
+if (analysisOnly) wasmPackArgs.push('--', '--no-default-features');
+
 if (readCommandVersion('wasm-opt --version') === 'unknown') {
   console.warn('[wasm] wasm-opt 不可用，跳过额外二进制优化。');
-  wasmPackArgs.push('--no-opt');
+  wasmPackArgs.splice(1, 0, '--no-opt');
 }
 
 execFileSync(
@@ -231,3 +255,4 @@ if (missing.length) {
 }
 
 writeIdentityArtifacts(buildHash);
+buildBrowserAnalysis();

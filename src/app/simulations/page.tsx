@@ -56,7 +56,7 @@ const simulations: SimulationInfo[] = [
     description: '经典航向控制仿真，学习PID参数整定与船舶操纵性能分析。',
     href: '/simulations/destroyer',
     icon: Ship,
-    previewImage: '/assets/destroyer.png',
+    previewImage: '/assets/destroyer.webp',
     difficulty: 'beginner',
     tags: ['Nomoto模型', 'PID控制', '航向保持'],
     controlFocus: ['航向控制', '舵角响应', '转向特性'],
@@ -82,7 +82,7 @@ const simulations: SimulationInfo[] = [
     description: '模拟大型LNG运输船的操纵特性，体验惯性大、响应慢的控制挑战。',
     href: '/simulations/lng',
     icon: Fuel,
-    previewImage: '/assets/Lng-carrier.png',
+    previewImage: '/assets/Lng-carrier.webp',
     difficulty: 'intermediate',
     tags: ['大惯性系统', '能源运输', '港口靠泊'],
     controlFocus: ['减速控制', '靠泊操作', '安全距离'],
@@ -108,7 +108,7 @@ const simulations: SimulationInfo[] = [
     description: '高速集装箱船的航线规划与经济航速控制，平衡效率与安全。',
     href: '/simulations/container',
     icon: Container,
-    previewImage: '/assets/container.png',
+    previewImage: '/assets/container.webp',
     difficulty: 'intermediate',
     tags: ['航线规划', '经济航速', '定时到达'],
     controlFocus: ['速度控制', '航线跟踪', '油耗优化'],
@@ -134,7 +134,7 @@ const simulations: SimulationInfo[] = [
     description: '邮轮仿真着重乘客舒适度，学习减摇控制和平稳操纵策略。',
     href: '/simulations/cruise',
     icon: Anchor,
-    previewImage: '/assets/luxury-liner.png',
+    previewImage: '/assets/luxury-liner.webp',
     difficulty: 'intermediate',
     tags: ['舒适性控制', '减摇稳定', '平稳操纵'],
     controlFocus: ['横摇控制', '平稳转向', '加速度限制'],
@@ -160,7 +160,7 @@ const simulations: SimulationInfo[] = [
     description: '深水钻井平台DP系统仿真，学习8推进器解耦控制和位置保持。',
     href: '/simulations/drilling',
     icon: Compass,
-    previewImage: '/assets/drilling-rig.png',
+    previewImage: '/assets/drilling-rig.webp',
     difficulty: 'advanced',
     tags: ['动力定位', '解耦控制', '多推进器'],
     controlFocus: ['位置保持', '推力分配', '冗余设计'],
@@ -186,7 +186,7 @@ const simulations: SimulationInfo[] = [
     description: '在有限冰板与浮冰中操作双吊舱，比较冰载荷、航向响应与推进功率约束。',
     href: '/simulations/icebreaker',
     icon: Snowflake,
-    previewImage: '/assets/icebreaker.png',
+    previewImage: '/assets/icebreaker.webp',
     difficulty: 'advanced',
     tags: ['Azipod推进', '冰阻力', '参数摄动'],
     controlFocus: ['推进角度', '破冰策略', '鲁棒控制'],
@@ -212,7 +212,7 @@ const simulations: SimulationInfo[] = [
     description: '通过钢桩有限支承、弹性锚缆与实际切削载荷，比较局部横移控制和安全模式切换。',
     href: '/simulations/dredger',
     icon: Waves,
-    previewImage: '/assets/dredger-tianjing.png',
+    previewImage: '/assets/dredger-tianjing.webp',
     difficulty: 'advanced',
     tags: ['横移切削', '模式切换', '受限控制'],
     controlFocus: ['局部模型辨识', '横移PI', '安全切换'],
@@ -451,7 +451,7 @@ export default function SimulationsPage() {
 
         <section className="sim-catalog-hero rounded-2xl" data-entry-current-context="simulation-hub">
           <Image
-            src="/assets/drilling-rig.png"
+            src="/assets/drilling-rig.webp"
             alt=""
             fill
             priority

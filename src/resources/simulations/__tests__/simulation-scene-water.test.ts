@@ -103,7 +103,7 @@ describe('gerstner water material and component', () => {
 
   it('samples the copied foam noise texture for crest foam', () => {
     const source = readSource('gerstner-water.tsx');
-    expect(source).toContain('ocean-foam-noise-alpha.png');
+    expect(source).toContain('ocean-foam-noise-alpha.webp');
   });
 
   it('mounts GerstnerWater in the sample experiment and retires the local sine water', () => {

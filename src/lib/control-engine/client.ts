@@ -26,6 +26,7 @@ import {
   resolveArenaCruiseRollPlantParameters,
 } from './arena-preview-support';
 import { ensureBrowserControlEngine, invokeBrowserWasm, isBrowserControlEngineReady, preloadBrowserControlEngine } from './wasm-browser';
+import { browserAnalysisIdentity, computeBrowserAnalysis, ensureBrowserAnalysis, isBrowserAnalysisReady } from './analysis-wasm-browser';
 
 export { isBrowserControlEngineReady, preloadBrowserControlEngine };
 export { createVesselSimulationSessionBrowser } from './vessel-session';
@@ -65,10 +66,13 @@ async function invokeJson<TResult>(input: {
 }): Promise<ControlEngineEnvelope<TResult>> {
   const requestId = input.requestId ?? newRequestId();
   const requestJson = JSON.stringify(input.request);
+  const nonlinear = input.exportName === 'compute_nonlinear_analysis';
+  const analysis = nonlinear || input.exportName === 'compute_analysis';
   try {
     const result = await withTimeout((async () => {
-      await ensureBrowserControlEngine();
-      const payload = JSON.parse(invokeBrowserWasm(input.exportName, requestJson)) as TResult;
+      await (analysis ? ensureBrowserAnalysis() : ensureBrowserControlEngine());
+      const raw = analysis ? computeBrowserAnalysis(nonlinear, requestJson) : invokeBrowserWasm(input.exportName, requestJson);
+      const payload = JSON.parse(raw) as TResult;
       assertFiniteTree(payload, input.capability);
       return payload;
     })(), input.timeoutMs ?? DEFAULT_ANALYSIS_TIMEOUT_MS);
@@ -80,6 +84,7 @@ async function invokeJson<TResult>(input: {
       canonicalRequestHash: await canonicalRequestHash(input.request),
       result,
       persisted: false,
+      runtimeIdentity: analysis ? browserAnalysisIdentity() : undefined,
     });
   } catch (error) {
     throw mapFailure(error);
@@ -98,7 +103,7 @@ export async function computeAnalysisBrowser(
     capability,
     request,
     executor: options?.executor ?? 'browser',
-    timeoutMs: options?.timeoutMs ?? (isBrowserControlEngineReady() ? DEFAULT_ANALYSIS_TIMEOUT_MS : COLD_ANALYSIS_TIMEOUT_MS),
+    timeoutMs: options?.timeoutMs ?? (isBrowserAnalysisReady() ? DEFAULT_ANALYSIS_TIMEOUT_MS : COLD_ANALYSIS_TIMEOUT_MS),
     requestId: options?.requestId,
   });
 }

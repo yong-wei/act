@@ -17,6 +17,7 @@ import {
 import { parsePublishedResourceHref } from '@/lib/published-resource-reference';
 import { resolvePublishedResourceFeature } from '@/lib/published-resource-index';
 import { publicTeachingMediaUrlForBuffer } from '@/lib/public-teaching-media';
+import { publicImageDeliveryRedirect } from '@/lib/public-image-delivery';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -57,7 +58,7 @@ export async function GET(
       return NextResponse.json({ error: '信息图引用版本已变化。' }, { status: 409 });
     }
     const publicUrl = await publicTeachingMediaUrlForBuffer(image, 'image/png');
-    if (publicUrl) return NextResponse.redirect(publicUrl, { status: 307, headers: { 'Cache-Control': 'no-store' } });
+    if (publicUrl) return publicImageDeliveryRedirect(request, publicUrl);
     return new NextResponse(image, {
       headers: {
         'content-type': 'image/png',

@@ -1,0 +1,158 @@
+[
+  {
+    "source": "/assets/Lng-carrier.png",
+    "destination": "/assets/Lng-carrier.webp"
+  },
+  {
+    "source": "/assets/container.png",
+    "destination": "/assets/container.webp"
+  },
+  {
+    "source": "/assets/destroyer.png",
+    "destination": "/assets/destroyer.webp"
+  },
+  {
+    "source": "/assets/dredger-tianjing.png",
+    "destination": "/assets/dredger-tianjing.webp"
+  },
+  {
+    "source": "/assets/dredger.png",
+    "destination": "/assets/dredger.webp"
+  },
+  {
+    "source": "/assets/drilling-rig.png",
+    "destination": "/assets/drilling-rig.webp"
+  },
+  {
+    "source": "/assets/icebreaker.png",
+    "destination": "/assets/icebreaker.webp"
+  },
+  {
+    "source": "/assets/luxury-liner.png",
+    "destination": "/assets/luxury-liner.webp"
+  },
+  {
+    "source": "/assets/platform-brand/deepblue-smart-control-logo-dark-small.png",
+    "destination": "/assets/platform-brand/deepblue-smart-control-logo-dark-small.webp"
+  },
+  {
+    "source": "/assets/platform-brand/deepblue-smart-control-logo-dark.png",
+    "destination": "/assets/platform-brand/deepblue-smart-control-logo-dark.webp"
+  },
+  {
+    "source": "/assets/platform-brand/deepblue-smart-control-logo-small.png",
+    "destination": "/assets/platform-brand/deepblue-smart-control-logo-small.webp"
+  },
+  {
+    "source": "/assets/platform-brand/deepblue-smart-control-logo.png",
+    "destination": "/assets/platform-brand/deepblue-smart-control-logo.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/cloud-soft-layer-alpha.png",
+    "destination": "/assets/simulation-scene/environment/cloud-soft-layer-alpha.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/cloud-streaks-alpha.png",
+    "destination": "/assets/simulation-scene/environment/cloud-streaks-alpha.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/env-coastal-city-alpha.png",
+    "destination": "/assets/simulation-scene/environment/env-coastal-city-alpha.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/env-distant-mountains-alpha.png",
+    "destination": "/assets/simulation-scene/environment/env-distant-mountains-alpha.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/env-harbor-port-alpha.png",
+    "destination": "/assets/simulation-scene/environment/env-harbor-port-alpha.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/env-island-chain-alpha.png",
+    "destination": "/assets/simulation-scene/environment/env-island-chain-alpha.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/env-prop-atlas-alpha.png",
+    "destination": "/assets/simulation-scene/environment/env-prop-atlas-alpha.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/env-rocky-islands-alpha.png",
+    "destination": "/assets/simulation-scene/environment/env-rocky-islands-alpha.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/sky-clear-day.png",
+    "destination": "/assets/simulation-scene/environment/sky-clear-day.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/sky-dawn-haze.png",
+    "destination": "/assets/simulation-scene/environment/sky-dawn-haze.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/sky-overcast.png",
+    "destination": "/assets/simulation-scene/environment/sky-overcast.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/sky-storm-blue.png",
+    "destination": "/assets/simulation-scene/environment/sky-storm-blue.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/environment/sky-sunset-warm.png",
+    "destination": "/assets/simulation-scene/environment/sky-sunset-warm.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/textures/contact-shadow-soft.png",
+    "destination": "/assets/simulation-scene/textures/contact-shadow-soft.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/textures/horizon-haze-gradient.png",
+    "destination": "/assets/simulation-scene/textures/horizon-haze-gradient.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/textures/ocean-foam-noise-alpha.png",
+    "destination": "/assets/simulation-scene/textures/ocean-foam-noise-alpha.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/textures/ocean-normal-cross-chop.png",
+    "destination": "/assets/simulation-scene/textures/ocean-normal-cross-chop.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/textures/ocean-normal-long-swell.png",
+    "destination": "/assets/simulation-scene/textures/ocean-normal-long-swell.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/textures/wake-ribbon-foam-rgba.png",
+    "destination": "/assets/simulation-scene/textures/wake-ribbon-foam-rgba.webp"
+  },
+  {
+    "source": "/assets/simulation-scene/textures/waterline-grime-alpha.png",
+    "destination": "/assets/simulation-scene/textures/waterline-grime-alpha.webp"
+  },
+  {
+    "source": "/images/AI1024.png",
+    "destination": "/images/AI1024.webp"
+  },
+  {
+    "source": "/images/AI128.png",
+    "destination": "/images/AI128.webp"
+  },
+  {
+    "source": "/images/AI32.png",
+    "destination": "/images/AI32.webp"
+  },
+  {
+    "source": "/images/AI64.png",
+    "destination": "/images/AI64.webp"
+  },
+  {
+    "source": "/images/CAlogo128.png",
+    "destination": "/images/CAlogo128.webp"
+  },
+  {
+    "source": "/images/extracted/校徽校名组合-横版-提取预览.png",
+    "destination": "/images/extracted/校徽校名组合-横版-提取预览.webp"
+  },
+  {
+    "source": "/images/image.png",
+    "destination": "/images/image.webp"
+  }
+]

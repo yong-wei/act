@@ -136,7 +136,7 @@ export function SharedOceanSurface({ config, backend, scene: sceneId, tier, reso
   const scene = useThree(s => s.scene);
   const visualTime = useMarineVisualTime();
   const [noise, skySource] = useTexture([
-    '/assets/simulation-scene/textures/ocean-foam-noise-alpha.png',
+    '/assets/simulation-scene/textures/ocean-foam-noise-alpha.webp',
     config.skyTexture,
   ]);
   const sky = useMemo(() => {
