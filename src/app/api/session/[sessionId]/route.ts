@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { isClassroomStreamEnabled } from '@/features/classroom/session/adapters/shared-classroom-reads';
 import { authOptions } from '@/lib/auth';
 import { classroomRateLimiter } from '@/lib/rate-limiter';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -83,7 +84,10 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
       ...(query.get('admission') === '1' ? { requestAdmission: true } : {}),
       ...(query.get('admission') === 'only' ? { admissionOnly: true } : {}),
     });
-    return NextResponse.json(jsonSafeClassroomPayload(result), {
+    const payload = result.admission !== 'waiting' && query.get('studentSync') === '1' && isClassroomStreamEnabled()
+      ? { ...result, classroomStream: true }
+      : result;
+    return NextResponse.json(jsonSafeClassroomPayload(payload), {
       status: result.admission === 'waiting' ? 202 : 200,
       headers: { 'Cache-Control': 'private, no-store' },
     });

@@ -1,3 +1,4 @@
+import { renderResolvedMarkup } from './render-resolved-markup';
 import { mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -1084,7 +1085,7 @@ describe('interactive module registry gate', () => {
     expect(fallbackLeakResult.violations[0]?.message).toContain('payload.fallback:internal-leak');
   });
 
-  it('routes shared control workbench compute capabilities through the shared renderer', () => {
+  it('routes shared control workbench compute capabilities through the shared renderer', async () => {
     const registry = createManifestContentModuleRegistry({
       revealProgress: 0,
       allowInlineReveal: false,
@@ -1111,7 +1112,7 @@ describe('interactive module registry gate', () => {
       module: step.modules[0],
       extra: { revealProgress: 0, allowInlineReveal: false },
     }) as ReactElement;
-    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+    const html = await renderResolvedMarkup(createElement(ThemeProvider, null, node));
 
     expect(html).toContain('data-control-workbench-capability="control-workbench"');
     expect(html).toContain('data-control-workbench-module-id="control-workbench-module"');
@@ -1121,7 +1122,7 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('提交会保存当前参数、图形状态和判断');
   });
 
-  it('associates shared control workbench labels with stable unique form fields', () => {
+  it('associates shared control workbench labels with stable unique form fields', async () => {
     const registry = createManifestContentModuleRegistry({
       revealProgress: 0,
       allowInlineReveal: false,
@@ -1149,7 +1150,7 @@ describe('interactive module registry gate', () => {
       module: step.modules[0],
       extra: { revealProgress: 0, allowInlineReveal: false },
     }) as ReactElement;
-    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+    const html = await renderResolvedMarkup(createElement(ThemeProvider, null, node));
 
     expect(html).toContain('for="control-workbench-control-workbench-module-mode"');
     expect(html).toContain('id="control-workbench-control-workbench-module-mode"');

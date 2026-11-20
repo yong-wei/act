@@ -38,3 +38,7 @@ export async function loadSharedClassroomRead<T>(
 export function invalidateSharedClassroomRead(key: string) {
   reads.delete(key);
 }
+
+export function isClassroomStreamEnabled() {
+  return isClassroomCapacityEnabled() && process.env.INTERACTIVE_CLASSROOM_STREAM !== '0';
+}

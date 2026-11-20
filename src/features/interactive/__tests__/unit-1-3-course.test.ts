@@ -1,8 +1,8 @@
+import { renderResolvedMarkup } from './render-resolved-markup';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { createElement } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import { ThemeProvider } from '@/components/providers/theme-provider';
@@ -34,7 +34,7 @@ function renderStep(stepId: string) {
   const manifest = readManifest();
   const step = UNIT_1_3_LESSON_STEPS.find((item) => item.id === stepId);
   if (!step) throw new Error(`Unknown 1-3 step: ${stepId}`);
-  return renderToStaticMarkup(
+  return renderResolvedMarkup(
     createElement(ThemeProvider, null,
       createElement(UNIT_1_3StepContentPanel, { step, manifest }),
     ),
@@ -121,9 +121,9 @@ describe('unit 1-3 parameter pole migration course', () => {
     expect(existsSync(join(routeRoot, 'student.tsx'))).toBe(false);
   });
 
-  it('renders the block diagram and both shared control workbenches from the runtime manifest', () => {
-    expect(renderStep('step-04')).toContain('data-structure-diagram-kind="visual.blockDiagram"');
-    expect(renderStep('step-06')).toContain('data-control-workbench-capability="control-linked-comparison"');
-    expect(renderStep('step-07')).toContain('data-control-workbench-capability="control-root-locus-design-map"');
+  it('renders the block diagram and both shared control workbenches from the runtime manifest', async () => {
+    expect(await renderStep('step-04')).toContain('data-structure-diagram-kind="visual.blockDiagram"');
+    expect(await renderStep('step-06')).toContain('data-control-workbench-capability="control-linked-comparison"');
+    expect(await renderStep('step-07')).toContain('data-control-workbench-capability="control-root-locus-design-map"');
   });
 });

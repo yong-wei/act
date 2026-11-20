@@ -1,7 +1,7 @@
+import { renderResolvedMarkup } from './render-resolved-markup';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createElement } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it, vi } from 'vitest';
 
@@ -198,7 +198,7 @@ describe('unit 1-4 time frequency views course', () => {
     const { UNIT_1_4StepContentPanel } = await import(
       '@/features/interactive/unit-1-4-time-frequency-views/step-panels'
     );
-    const renderStep = (stepId: string, showFrequencyReadings = true) => renderToStaticMarkup(createElement(
+    const renderStep = (stepId: string, showFrequencyReadings = true) => renderResolvedMarkup(createElement(
       ThemeProvider,
       null,
       createElement(UNIT_1_4StepContentPanel, {
@@ -208,10 +208,10 @@ describe('unit 1-4 time frequency views course', () => {
       }),
     ));
 
-    const defaultMarkup = renderStep('step-05');
-    const hiddenMarkup = renderStep('step-10');
-    const hiddenFrequencyMarkup = renderStep('step-07', false);
-    const revealedFrequencyMarkup = renderStep('step-07', true);
+    const defaultMarkup = await renderStep('step-05');
+    const hiddenMarkup = await renderStep('step-10');
+    const hiddenFrequencyMarkup = await renderStep('step-07', false);
+    const revealedFrequencyMarkup = await renderStep('step-07', true);
     const step10Panel = manifest.steps
       .find((step) => step.id === 'step-10')
       ?.modules.find((module) => module.id === 'pole-step-workbench');

@@ -1,14 +1,18 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 
-import { SharedControlWorkbenchComputePanel } from '../control-workbench-compute-panel';
 import { CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS } from '../module-taxonomy';
 import type {
   ManifestModulePlugin,
   ManifestModuleRendererInput,
   ManifestPluginSet,
 } from './plugin-contract';
+
+const SharedControlWorkbenchComputePanel = lazy(async () => {
+  const { SharedControlWorkbenchComputePanel: Panel } = await import('../control-workbench-compute-panel');
+  return { default: Panel };
+});
 
 type WorkbenchPayload = {
   manifest: ManifestModuleRendererInput['manifest'];
@@ -30,13 +34,15 @@ function createPlugin(capabilityRef: (typeof CONTROL_WORKBENCH_COMPUTE_CAPABILIT
     schema: ({ manifest, step, module }) => ({ manifest, step, module }),
     projectRole: (payload) => payload,
     render: ({ payload, onPanelSubmit, showFrequencyReadings }): ReactNode => (
-      <SharedControlWorkbenchComputePanel
-        manifest={payload.manifest}
-        step={payload.step}
-        module={payload.module}
-        onPanelSubmit={onPanelSubmit}
-        showFrequencyReadings={showFrequencyReadings}
-      />
+      <Suspense fallback={<p role="status">正在加载互动内容…</p>}>
+        <SharedControlWorkbenchComputePanel
+          manifest={payload.manifest}
+          step={payload.step}
+          module={payload.module}
+          onPanelSubmit={onPanelSubmit}
+          showFrequencyReadings={showFrequencyReadings}
+        />
+      </Suspense>
     ),
     evidence: { classification: 'activity-response', responseKind: 'control-workbench' },
     missingRenderer: {

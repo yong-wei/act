@@ -1,3 +1,4 @@
+import { renderResolvedMarkup } from './render-resolved-markup';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -687,12 +688,12 @@ describe('unit 1-2 modeling from object to system course', () => {
     }
   });
 
-  it('renders steps 10 and 11 through shared control workbench capabilities instead of static screenshots', () => {
+  it('renders steps 10 and 11 through shared control workbench capabilities instead of static screenshots', async () => {
     const manifest = readManifest();
     const step10 = manifest.steps.find((step) => step.id === 'step-10');
     const step11 = manifest.steps.find((step) => step.id === 'step-11');
     if (!step10 || !step11) throw new Error('step-10 or step-11 missing');
-    const lockedStep10Html = renderToStaticMarkup(
+    const lockedStep10Html = await renderResolvedMarkup(
       createElement(ThemeProvider, null,
         createElement(UNIT_1_2StepContentPanel, {
           step: UNIT_1_2_LESSON_STEPS[9],
@@ -700,7 +701,7 @@ describe('unit 1-2 modeling from object to system course', () => {
         }),
       ),
     );
-    const releasedStep10Html = renderToStaticMarkup(
+    const releasedStep10Html = await renderResolvedMarkup(
       createElement(ThemeProvider, null,
         createElement(UNIT_1_2StepContentPanel, {
           step: UNIT_1_2_LESSON_STEPS[9],
@@ -709,7 +710,7 @@ describe('unit 1-2 modeling from object to system course', () => {
         }),
       ),
     );
-    const lockedStep11Html = renderToStaticMarkup(
+    const lockedStep11Html = await renderResolvedMarkup(
       createElement(ThemeProvider, null,
         createElement(UNIT_1_2StepContentPanel, {
           step: UNIT_1_2_LESSON_STEPS[10],
@@ -717,7 +718,7 @@ describe('unit 1-2 modeling from object to system course', () => {
         }),
       ),
     );
-    const releasedStep11Html = renderToStaticMarkup(
+    const releasedStep11Html = await renderResolvedMarkup(
       createElement(ThemeProvider, null,
         createElement(UNIT_1_2StepContentPanel, {
           step: UNIT_1_2_LESSON_STEPS[10],
