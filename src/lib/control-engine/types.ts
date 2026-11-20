@@ -57,6 +57,7 @@ export const ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID = 'arena_cruise_roll_preview' as
 export const ARENA_PREVIEW_TEACHING_SEMANTICS = 'cruise-roll-virtual-preview-surrogate' as const;
 
 export const DEFAULT_ANALYSIS_TIMEOUT_MS = 12_000;
+export const COLD_ANALYSIS_TIMEOUT_MS = 30_000;
 export const WORKER_RETRY_MS = 4_000;
 
 export interface ControlEngineRuntimeIdentity {

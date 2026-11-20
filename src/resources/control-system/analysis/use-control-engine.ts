@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { computeAnalysisBrowser } from '@/lib/control-engine/client';
-import { ControlEngineFailure, WORKER_RETRY_MS } from '@/lib/control-engine';
+import { COLD_ANALYSIS_TIMEOUT_MS, ControlEngineFailure, WORKER_RETRY_MS } from '@/lib/control-engine';
 import type { ControlEngineEnvelope } from '@/lib/control-engine';
 
 import type { ControlAnalysisRequest, ControlAnalysisResult, ControlEngineState } from './types';
@@ -60,6 +60,7 @@ export function useControlEngine(
   const requestKey = useMemo(() => JSON.stringify(request), [request]);
   const cacheRef = useRef<Map<string, ControlAnalysisResult>>(new Map());
   const workerRef = useRef<Worker | null>(null);
+  const workerReadyRef = useRef(false);
   const latestRequestIdRef = useRef<string | null>(null);
   const [state, setState] = useState<KeyedControlEngineState>(() => ({
     requestKey,
@@ -199,12 +200,15 @@ export function useControlEngine(
       });
     };
 
-    const workerRetryTimer = window.setTimeout(runBrowserFacade, WORKER_RETRY_MS);
+    // Give a cold worker time to load the engine before starting a second download on the page.
+    const workerRetryDelay = workerReadyRef.current ? WORKER_RETRY_MS : COLD_ANALYSIS_TIMEOUT_MS + WORKER_RETRY_MS;
+    const workerRetryTimer = window.setTimeout(runBrowserFacade, workerRetryDelay);
 
     const handleMessage = (event: MessageEvent<WorkerMessage>) => {
       const message = event.data;
       if (message.id !== latestRequestIdRef.current || settled) return;
       if (message.ok) {
+        workerReadyRef.current = true;
         settled = true;
         window.clearTimeout(workerRetryTimer);
         const result = JSON.parse(message.resultJson) as ControlAnalysisResult;
@@ -218,6 +222,7 @@ export function useControlEngine(
     const handleError = () => {
       workerRef.current?.terminate();
       workerRef.current = null;
+      workerReadyRef.current = false;
       window.clearTimeout(workerRetryTimer);
       runBrowserFacade();
     };
@@ -238,6 +243,7 @@ export function useControlEngine(
     return () => {
       workerRef.current?.terminate();
       workerRef.current = null;
+      workerReadyRef.current = false;
     };
   }, []);
 

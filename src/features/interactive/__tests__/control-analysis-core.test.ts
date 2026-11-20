@@ -1,11 +1,58 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 const repoRoot = process.cwd();
 
+vi.mock('@/lib/control-engine/wasm-browser', () => ({
+  ensureBrowserControlEngine: vi.fn(),
+  invokeBrowserWasm: vi.fn(),
+  isBrowserControlEngineReady: vi.fn(),
+  preloadBrowserControlEngine: vi.fn(),
+}));
+
 describe('control analysis core foundation', () => {
+  it('allows cold analysis to finish downloading after the warm request deadline', async () => {
+    const { computeAnalysisBrowser } = await import('@/lib/control-engine/client');
+    const wasm = await import('@/lib/control-engine/wasm-browser');
+    vi.useFakeTimers();
+    try {
+      vi.mocked(wasm.isBrowserControlEngineReady).mockReturnValue(false);
+      vi.mocked(wasm.ensureBrowserControlEngine).mockImplementation(() => new Promise(resolve => {
+        setTimeout(resolve, 15_000);
+      }));
+      vi.mocked(wasm.invokeBrowserWasm).mockReturnValue('{"value":1}');
+      const outcome = computeAnalysisBrowser({}, { executor: 'worker' });
+      const check = expect(outcome).resolves.toMatchObject({ executor: 'worker', result: { value: 1 } });
+      await vi.advanceTimersByTimeAsync(15_000);
+      await check;
+    } finally {
+      vi.useRealTimers();
+      vi.resetAllMocks();
+    }
+  });
+
+  it('keeps the warm analysis deadline and honors explicit shorter deadlines', async () => {
+    const { computeAnalysisBrowser } = await import('@/lib/control-engine/client');
+    const wasm = await import('@/lib/control-engine/wasm-browser');
+    vi.useFakeTimers();
+    try {
+      vi.mocked(wasm.ensureBrowserControlEngine).mockImplementation(() => new Promise(() => undefined));
+      vi.mocked(wasm.isBrowserControlEngineReady).mockReturnValue(true);
+      const warm = expect(computeAnalysisBrowser({})).rejects.toMatchObject({ state: 'timeout' });
+      await vi.advanceTimersByTimeAsync(12_000);
+      await warm;
+      vi.mocked(wasm.isBrowserControlEngineReady).mockReturnValue(false);
+      const cold = expect(computeAnalysisBrowser({}, { timeoutMs: 100 })).rejects.toMatchObject({ state: 'timeout' });
+      await vi.advanceTimersByTimeAsync(100);
+      await cold;
+    } finally {
+      vi.useRealTimers();
+      vi.resetAllMocks();
+    }
+  });
+
   it('builds a 4-1 analysis request with reserved runtime extension fields', async () => {
     const { buildUnit41AnalysisRequest } = await import(
       '@/resources/control-system/analysis/unit-4-1-request-builder'
