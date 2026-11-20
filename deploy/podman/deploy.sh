@@ -1339,6 +1339,11 @@ fi
 if [ -n "${NEXTAUTH_SECRET:-}" ]; then
   APP_ENV_ARGS+=(-e NEXTAUTH_SECRET="$NEXTAUTH_SECRET")
 fi
+for platform_auth_env_name in PLATFORM_APP_TOKEN PLATFORM_OIDC_CLIENT_SECRET ACT_ROSTER_EXPORT_TOKEN ROSTER_INSTITUTION PLATFORM_OIDC_ISSUER PLATFORM_OIDC_CLIENT_ID PLATFORM_ACCESS_URL PLATFORM_OIDC_ENFORCED; do
+  if [ -n "${!platform_auth_env_name:-}" ]; then
+    APP_ENV_ARGS+=(-e "${platform_auth_env_name}=${!platform_auth_env_name}")
+  fi
+done
 if [ -n "${AI_PROVIDER:-}" ]; then
   APP_ENV_ARGS+=(-e AI_PROVIDER="$AI_PROVIDER")
 fi
