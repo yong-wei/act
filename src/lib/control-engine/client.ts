@@ -11,6 +11,7 @@ import {
 } from './envelope';
 import {
   DEFAULT_ANALYSIS_TIMEOUT_MS,
+  COLD_ANALYSIS_TIMEOUT_MS,
   ARENA_PREVIEW_TEACHING_SEMANTICS,
   type ArenaCruiseRollPreviewRequest,
   type ArenaCruiseRollPreviewResult,
@@ -97,7 +98,7 @@ export async function computeAnalysisBrowser(
     capability,
     request,
     executor: options?.executor ?? 'browser',
-    timeoutMs: options?.timeoutMs,
+    timeoutMs: options?.timeoutMs ?? (isBrowserControlEngineReady() ? DEFAULT_ANALYSIS_TIMEOUT_MS : COLD_ANALYSIS_TIMEOUT_MS),
     requestId: options?.requestId,
   });
 }
