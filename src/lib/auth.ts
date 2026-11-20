@@ -124,7 +124,11 @@ export const authOptions: NextAuthOptions = {
         return true;
       }
       const subject = String(profile.sub);
-      const decision = await authorizeActIdentity({ issuer: platformIssuer, subject });
+      const decision = await authorizeActIdentity(
+        { issuer: platformIssuer, subject },
+        fetch,
+        { allowSessionRenewal: true },
+      );
       if (!decision.allow || !decision.personId) {
         return false;
       }
@@ -160,6 +164,13 @@ export const authOptions: NextAuthOptions = {
         token.platformSubject = central.platformSubject;
         token.platformPersonId = central.platformPersonId;
         token.centralSessionVersion = central.centralSessionVersion;
+      }
+      if (platformOidcEnforced && token.id && (!token.platformIssuer || !token.platformSubject)) {
+        const prisma = await getPrismaClient();
+        const migrated = await prisma.account.count({
+          where: { userId: String(token.id), provider: PLATFORM_ACCOUNT_PROVIDER },
+        });
+        if (migrated > 0) token.centralAccessDenied = true;
       }
       if (platformOidcEnforced && token.platformIssuer && token.platformSubject) {
         const decision = await authorizeActIdentity({

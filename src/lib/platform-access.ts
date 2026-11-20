@@ -12,19 +12,20 @@ export interface CentralDecision {
 }
 
 export function platformAccountId(issuer: string, subject: string): string {
-  return `${issuer}\0${subject}`;
+  return `${issuer}|${subject}`;
 }
 
 export async function authorizeActIdentity(
   identity: CentralIdentity,
   fetchImpl: typeof fetch = fetch,
+  options: { allowSessionRenewal?: boolean } = {},
 ): Promise<CentralDecision> {
   const endpoint = process.env.PLATFORM_ACCESS_URL?.trim() ?? '';
   const token = process.env.PLATFORM_APP_TOKEN?.trim() ?? '';
   if (!endpoint || !token || !identity.issuer || !identity.subject) {
     return { allow: false, reason: 'unavailable', personId: null, sessionVersion: identity.sessionVersion ?? 0 };
   }
-  try {
+  const request = async (sessionVersion: number): Promise<CentralDecision> => {
     const response = await fetchImpl(endpoint, {
       method: 'POST',
       headers: {
@@ -35,7 +36,7 @@ export async function authorizeActIdentity(
         issuer: identity.issuer,
         subject: identity.subject,
         requestedAppId: 'act',
-        sessionVersion: identity.sessionVersion ?? 0,
+        sessionVersion,
       }),
       signal: AbortSignal.timeout(3000),
     });
@@ -52,8 +53,19 @@ export async function authorizeActIdentity(
       allow: body.allow,
       reason: typeof body.reason === 'string' ? body.reason : body.allow ? 'grant' : 'no-eligibility',
       personId: typeof body.personId === 'string' ? body.personId : null,
-      sessionVersion: typeof body.sessionVersion === 'number' ? body.sessionVersion : identity.sessionVersion ?? 0,
+      sessionVersion: typeof body.sessionVersion === 'number' ? body.sessionVersion : sessionVersion,
     };
+  };
+  try {
+    const initial = await request(identity.sessionVersion ?? 0);
+    if (
+      options.allowSessionRenewal
+      && initial.reason === 'session'
+      && initial.sessionVersion > (identity.sessionVersion ?? 0)
+    ) {
+      return request(initial.sessionVersion);
+    }
+    return initial;
   } catch {
     return { allow: false, reason: 'unavailable', personId: null, sessionVersion: identity.sessionVersion ?? 0 };
   }

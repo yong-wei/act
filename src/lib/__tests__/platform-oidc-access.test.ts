@@ -36,7 +36,7 @@ vi.mock('bcryptjs', () => ({
 
 vi.mock('@/lib/platform-access', () => ({
   authorizeActIdentity: (...args: unknown[]) => authorizeActIdentity(...args),
-  platformAccountId: (issuer: string, subject: string) => `${issuer}\0${subject}`,
+  platformAccountId: (issuer: string, subject: string) => `${issuer}|${subject}`,
 }));
 
 async function loadAuth(env: Record<string, string>) {
@@ -104,7 +104,7 @@ describe('person_id 映射（signIn 回调）', () => {
     expect(accountUpdate).toHaveBeenCalledWith({
       where: { id: 'account-1' },
       data: {
-        providerAccountId: `${OIDC_ENV.PLATFORM_OIDC_ISSUER}\0person-42`,
+        providerAccountId: `${OIDC_ENV.PLATFORM_OIDC_ISSUER}|person-42`,
         session_state: 'person-central',
       },
     });
@@ -237,5 +237,23 @@ describe('迁移账号旧凭据收紧（authorize）', () => {
     userFindFirst.mockResolvedValue({ ...USER, passwordHash: 'wrong-hash' });
     const result = await authorizeWith(OIDC_ENV, 'a@b.c', 'pw');
     expect(result).toBeNull();
+  });
+});
+
+describe('强制模式下历史 JWT', () => {
+  it('已映射但缺少中央字段的旧会话必须失效', async () => {
+    const { authOptions } = await loadAuth({ ...OIDC_ENV, PLATFORM_OIDC_ENFORCED: 'true' });
+    accountCount.mockResolvedValue(1);
+    const token = await authOptions.callbacks?.jwt?.({
+      token: { id: 'u1', role: 'STUDENT' },
+      user: undefined,
+    });
+    expect(token.centralAccessDenied).toBe(true);
+    const session = await authOptions.callbacks?.session?.({
+      session: { user: { id: 'u1', role: 'STUDENT' } },
+      token,
+    });
+    expect(session.user).toBeUndefined();
+    expect(session.error).toBe('ACT_ACCESS_DENIED');
   });
 });

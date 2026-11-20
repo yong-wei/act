@@ -10,7 +10,7 @@
 
 - [x] 2.1 Enforce ACT grant, person status, and sessionVersion before local authorization.
 - [x] 2.2 Implement page-in OIDC transactions, callback, completion, cancellation, and deep-link restoration.
-- [ ] 2.3 Cover revocation, restoration, global disablement, account switching, local logout hold, and global logout while preserving anonymous content.
+- [x] 2.3 Cover revocation, restoration, global disablement, account switching, local logout hold, and global logout while preserving anonymous content.
 
 ## 3. Account administration and migration
 

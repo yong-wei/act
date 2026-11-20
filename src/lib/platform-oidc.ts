@@ -15,8 +15,12 @@ export function requestOrigin(request: Request): string {
 }
 
 export function assertSameOrigin(request: Request): void {
+  const expected = requestOrigin(request);
   const origin = request.headers.get('origin') ?? '';
-  if (origin !== requestOrigin(request)) throw new Error('invalid-origin');
+  const referer = request.headers.get('referer') ?? '';
+  if (origin === expected || referer.startsWith(`${expected}/`)) return;
+  if (!origin && !referer && request.headers.get('sec-fetch-site') === 'same-origin') return;
+  throw new Error('invalid-origin');
 }
 
 export async function exchangePlatformCode(input: {

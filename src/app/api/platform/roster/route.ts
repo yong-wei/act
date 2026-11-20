@@ -15,7 +15,7 @@ function identityOf(account: {
   providerAccountId: string;
   session_state: string | null;
 }, fallbackIssuer: string) {
-  const parts = account.providerAccountId.split('\0');
+  const parts = account.providerAccountId.split('|');
   const issuer = parts.length === 2 ? parts[0] : fallbackIssuer;
   const subject = parts.at(-1) ?? '';
   if (!issuer || !subject || !account.session_state) return null;

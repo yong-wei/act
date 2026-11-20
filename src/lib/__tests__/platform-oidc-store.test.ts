@@ -39,6 +39,8 @@ describe('in-page OIDC transaction lifecycle', () => {
   it('rejects external return targets', () => {
     expect(sanitizeReturnTo('https://evil.example')).toBe('/');
     expect(sanitizeReturnTo('//evil.example')).toBe('/');
+    expect(sanitizeReturnTo('/\\evil.example/path')).toBe('/');
+    expect(sanitizeReturnTo('/%5C%5Cevil.example/path')).toBe('/');
     expect(sanitizeReturnTo('/safe')).toBe('/safe');
   });
 });

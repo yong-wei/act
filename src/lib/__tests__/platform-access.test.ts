@@ -11,7 +11,7 @@ beforeEach(() => {
 
 describe('central ACT access decisions', () => {
   it('binds issuer and subject into the account key', () => {
-    expect(platformAccountId(identity.issuer, identity.subject)).toBe(`${identity.issuer}\0${identity.subject}`);
+    expect(platformAccountId(identity.issuer, identity.subject)).toBe(`${identity.issuer}|${identity.subject}`);
   });
 
   it('accepts an authoritative grant and returns person/session data', async () => {
@@ -30,6 +30,16 @@ describe('central ACT access decisions', () => {
     expect(denied.reason).toBe('no-eligibility');
     const unavailable = await authorizeActIdentity(identity, vi.fn(async () => new Response(JSON.stringify({ message: 'down' }), { status: 503 })) as typeof fetch);
     expect(unavailable.reason).toBe('unavailable');
+  });
+
+  it('renews only a new OIDC login after a session-version revocation', async () => {
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ allow: false, reason: 'session', sessionVersion: 3 }), { status: 403 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ allow: true, reason: 'grant', personId: 'person-1', sessionVersion: 3 }), { status: 200 }));
+    const result = await authorizeActIdentity(identity, fetchImpl as typeof fetch, { allowSessionRenewal: true });
+    expect(result.allow).toBe(true);
+    expect(result.sessionVersion).toBe(3);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 
   it('fails closed on non-authoritative or malformed responses', async () => {

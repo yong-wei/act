@@ -111,6 +111,7 @@ export function PlatformOidcLoginButton() {
     setBusy(true);
     try {
       await fetch(`/api/auth/platform/transactions/${transaction.transactionId}/cancel`, { method: 'POST', body: '{}' });
+      setBusy(false);
       setOpen(false);
     } catch {
       setBusy(false);
@@ -124,7 +125,11 @@ export function PlatformOidcLoginButton() {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setBusy(false);
+          setError(null);
+          setOpen(true);
+        }}
         className="block w-full rounded-md border border-input bg-secondary px-4 py-2.5 text-center text-sm font-medium transition-colors hover:bg-secondary/80"
       >
         统一身份登录（校园账号）

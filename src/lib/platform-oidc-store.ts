@@ -44,7 +44,14 @@ function clean(now: number): void {
 }
 
 export function sanitizeReturnTo(value: unknown): string {
-  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/';
+  if (typeof value !== 'string' || value.includes('\\') || /%5c/i.test(value)) return '/';
+  try {
+    const target = new URL(value, 'http://act.local');
+    if (target.origin !== 'http://act.local') return '/';
+    return `${target.pathname}${target.search}${target.hash}`;
+  } catch {
+    return '/';
+  }
 }
 
 export function transactionCookieName(state: string): string {

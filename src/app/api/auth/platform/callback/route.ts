@@ -6,8 +6,9 @@ import { createPlatformSessionToken } from '@/lib/platform-session';
 
 function html(origin: string, transactionId: string, outcome: 'complete' | 'error') {
   const type = outcome === 'complete' ? 'act-login-complete' : 'act-login-error';
-  const message = JSON.stringify({ type, outcome, transactionId });
-  return new Response(`<!doctype html><html><body><script>window.parent.postMessage(${message},${JSON.stringify(origin)});</script></body></html>`, {
+  const message = JSON.stringify({ type, outcome, transactionId }).replaceAll('<', '\\u003c');
+  const targetOrigin = JSON.stringify(origin).replaceAll('<', '\\u003c');
+  return new Response(`<!doctype html><html><body><script>window.parent.postMessage(${message},${targetOrigin});</script></body></html>`, {
     headers: {
       'content-type': 'text/html; charset=utf-8',
       'cache-control': 'no-store',
@@ -33,7 +34,11 @@ export async function GET(request: Request) {
       nonce: transaction.nonce,
       origin,
     });
-    const decision = await authorizeActIdentity({ issuer: identity.issuer, subject: identity.subject });
+    const decision = await authorizeActIdentity(
+      { issuer: identity.issuer, subject: identity.subject },
+      fetch,
+      { allowSessionRenewal: true },
+    );
     if (!decision.allow || !decision.personId || (identity.personId && identity.personId !== decision.personId)) {
       return html(origin, state, 'error');
     }
