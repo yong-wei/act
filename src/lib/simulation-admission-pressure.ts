@@ -19,9 +19,11 @@ type State = {
   confirmationSlowUntil: number;
   nextSampleAt: number;
   sample?: Promise<number>;
+  sampling?: boolean;
   lastSampleAt?: number;
   timer?: ReturnType<typeof setInterval>;
   lastReportedScale?: number;
+  lastReportedReason?: string;
 };
 
 const key = Symbol.for('act.simulation.admission-pressure');
@@ -66,10 +68,11 @@ export function measureAdmissionCpu(previous: Sample, current: Sample, elapsedMs
   return { used, spareCores, effectiveCores };
 }
 
-function reportScale(scale: number, cpu: number | null, cores: number | null, confirmationSlow: boolean) {
-  if (scale !== state.lastReportedScale) {
+function reportScale(scale: number, cpu: number | null, cores: number | null, confirmationSlow: boolean, reason?: string, elapsedMs?: number) {
+  if (scale !== state.lastReportedScale || reason !== state.lastReportedReason) {
     state.lastReportedScale = scale;
-    console.info('[simulation-admission]', JSON.stringify({ scale, cpu, cores, confirmationSlow }));
+    state.lastReportedReason = reason;
+    console.info('[simulation-admission]', JSON.stringify({ scale, cpu, cores, confirmationSlow, reason, elapsedMs }));
   }
   return scale;
 }
@@ -84,16 +87,20 @@ async function samplePressure(now: number): Promise<number> {
   const [maximum, period] = quota.trim().split(/\s+/).map(Number);
   const quotaCores = maximum > 0 && period > 0 ? maximum / period : Infinity;
   const quotaUsage = usage.match(/^usage_usec\s+(\d+)$/m)?.[1];
-  const current = host && { ...host, quotaCores, quotaUsage: quotaUsage === undefined ? undefined : Number(quotaUsage) };
+  const observedAt = performance.now();
+  const lateRead = observedAt - now > 3 * SAMPLE_MS;
+  const current = !lateRead && host ? { ...host, quotaCores, quotaUsage: quotaUsage === undefined ? undefined : Number(quotaUsage) } : undefined;
   const previous = state.previous;
-  const elapsed = now - (state.lastSampleAt ?? -Infinity);
-  state.lastSampleAt = now;
+  const elapsed = observedAt - (state.lastSampleAt ?? observedAt);
+  state.lastSampleAt = observedAt;
   state.previous = current;
   const pressure = current && previous && measureAdmissionCpu(previous, current, elapsed, availableParallelism());
   if (!pressure) {
     state.healthySince = undefined;
-    state.scale = 1;
-    return reportScale(0, null, null, false);
+    state.scale = 0;
+    const reason = lateRead ? 'slow-read' : !host ? 'host-unavailable' : !previous ? 'no-baseline' :
+      elapsed > 3 * SAMPLE_MS ? 'sample-gap' : 'counter-change';
+    return reportScale(0, null, null, false, reason, Math.round(elapsed));
   }
   const { used, effectiveCores, spareCores } = pressure;
   const confirmationSlow = now < state.confirmationSlowUntil;
@@ -108,9 +115,10 @@ async function samplePressure(now: number): Promise<number> {
 
 function refreshPressure(): Promise<number> {
   const now = performance.now();
-  if (!state.sample || now >= state.nextSampleAt) {
+  if (!state.sample || (!state.sampling && now >= state.nextSampleAt)) {
     state.nextSampleAt = now + SAMPLE_MS;
-    state.sample = samplePressure(now);
+    state.sampling = true;
+    state.sample = samplePressure(now).finally(() => { state.sampling = false; });
   }
   return state.sample;
 }

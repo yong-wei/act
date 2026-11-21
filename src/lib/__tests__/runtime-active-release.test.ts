@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, rename, rm, stat, utimes, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -73,6 +73,44 @@ afterEach(async () => {
 });
 
 describe('active runtime release manifest', () => {
+  it('shares immutable verification across concurrent readers and fences each receipt', async () => {
+    const { root, manifest } = await blobFixture();
+    const results = await Promise.all(Array.from({ length: 12 }, () => readActiveRuntimeReleaseManifest(root)));
+    const first = results[0]!;
+    expect(results.every(value => value === first)).toBe(true);
+    expect(Object.isFrozen(first)).toBe(true);
+    expect(Object.isFrozen(first.files)).toBe(true);
+    expect(Object.isFrozen(first.files[0])).toBe(true);
+    await writeActiveReceipt(root, { ...manifest, treeSha256: 'f'.repeat(64) });
+    await expect(readActiveRuntimeReleaseManifest(root)).rejects.toMatchObject({ code: 'runtime-active-release-receipt-mismatch' });
+    await writeActiveReceipt(root, manifest);
+    await expect(readActiveRuntimeReleaseManifest(root)).resolves.toBe(first);
+  });
+
+  it('rejects both an in-place edit and an atomic replacement with the same size and restored mtime', async () => {
+    const { root, manifest } = await blobFixture();
+    const file = path.join(root, ACT_RUNTIME_BLOB_MATERIALIZED_MANIFEST_FILENAME);
+    const valid = serializeRuntimeBlobReleaseManifest(manifest);
+    const corrupt = valid.replace(manifest.treeSha256, 'f'.repeat(64));
+    const fixedTime = new Date('2025-01-01T00:00:00Z');
+    await utimes(file, fixedTime, fixedTime);
+    await readActiveRuntimeReleaseManifest(root);
+    const before = await stat(file);
+    for (const replace of [false, true]) {
+      const target = replace ? file + '.next' : file;
+      await writeFile(target, corrupt);
+      await utimes(target, fixedTime, fixedTime);
+      if (replace) await rename(target, file);
+      expect((await stat(file)).size).toBe(before.size);
+      await expect(readActiveRuntimeReleaseManifest(root)).rejects.toMatchObject({ code: 'runtime-active-release-manifest-invalid' });
+      await writeFile(file, valid);
+      await utimes(file, fixedTime, fixedTime);
+      await expect(readActiveRuntimeReleaseManifest(root)).resolves.toEqual(manifest);
+    }
+    await rm(file);
+    await expect(readActiveRuntimeReleaseManifest(root)).resolves.toBeNull();
+  });
+
   it('uses the mounted manifest only for exact media objects', async () => {
     const { root, manifest } = await fixture();
 

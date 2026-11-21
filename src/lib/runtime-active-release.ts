@@ -1,6 +1,7 @@
 import 'server-only';
 
-import { lstat, readFile } from 'node:fs/promises';
+import type { BigIntStats } from 'node:fs';
+import { lstat, open, readFile, type FileHandle } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
@@ -78,6 +79,58 @@ async function assertActiveReceiptMatchesManifest(receiptPath: string, manifest:
   }
 }
 
+// Cache the verified, immutable document only. The active receipt is checked on every read.
+const cacheKey = Symbol.for('act.verified-mounted-runtime-manifest.v1');
+const shared = globalThis as typeof globalThis & {
+  [cacheKey]?: { key: string; result: Promise<AnyActRuntimeReleaseManifest> };
+};
+
+function fileVersion(filePath: string, stat: BigIntStats) {
+  return [filePath, stat.dev, stat.ino, stat.size, stat.mtimeNs, stat.ctimeNs].join(':');
+}
+
+async function verifyManifestFile(file: FileHandle, filePath: string, key: string) {
+  const source = await file.readFile('utf8');
+  if (fileVersion(filePath, await file.stat({ bigint: true })) !== key) {
+    throw new RuntimeActiveReleaseError('runtime-active-release-manifest-invalid', 'Runtime manifest changed during verification.');
+  }
+  try {
+    const manifest = parseAnyRuntimeReleaseManifest(JSON.parse(source));
+    for (const item of manifest.files) {
+      if ('source' in item && item.source) Object.freeze(item.source);
+      Object.freeze(item);
+    }
+    Object.freeze(manifest.files);
+    return Object.freeze(manifest);
+  } catch (error) {
+    throw new RuntimeActiveReleaseError('runtime-active-release-manifest-invalid', 'Active runtime release manifest is invalid.', { cause: error });
+  }
+}
+
+async function readMountedManifest(filePath: string) {
+  let file: FileHandle | undefined;
+  try {
+    file = await open(filePath, 'r');
+    const key = fileVersion(filePath, await file.stat({ bigint: true }));
+    const cached = shared[cacheKey];
+    if (cached?.key === key) return await cached.result;
+    const result = verifyManifestFile(file, filePath, key);
+    shared[cacheKey] = { key, result };
+    try {
+      return await result;
+    } catch (error) {
+      if (shared[cacheKey]?.result === result) delete shared[cacheKey];
+      throw error;
+    }
+  } catch (error) {
+    if (!file && (error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    if (error instanceof RuntimeActiveReleaseError) throw error;
+    throw new RuntimeActiveReleaseError('runtime-active-release-manifest-unreadable', 'Active runtime release manifest cannot be read.', { cause: error });
+  } finally {
+    await file?.close();
+  }
+}
+
 export async function readActiveRuntimeReleaseManifest(
   runtimeRoot = path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'runtime'),
   activeReceiptPath = process.env[ACT_RUNTIME_ACTIVE_RECEIPT_PATH_ENV]?.trim() || path.join(runtimeRoot, ACT_RUNTIME_ACTIVE_RECEIPT_FILENAME),
@@ -88,19 +141,8 @@ export async function readActiveRuntimeReleaseManifest(
     path.join(runtimeRoot, ACT_RUNTIME_RELEASE_MANIFEST_FILENAME),
   ];
   for (const manifestPath of manifestPaths) {
-    let source: string;
-    try {
-      source = await readFile(manifestPath, 'utf8');
-    } catch (error) {
-      if (typeof error === 'object' && error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') continue;
-      throw new RuntimeActiveReleaseError('runtime-active-release-manifest-unreadable', 'Active runtime release manifest cannot be read.', { cause: error });
-    }
-    try {
-      manifest = parseAnyRuntimeReleaseManifest(JSON.parse(source));
-      break;
-    } catch (error) {
-      throw new RuntimeActiveReleaseError('runtime-active-release-manifest-invalid', 'Active runtime release manifest is invalid.', { cause: error });
-    }
+    manifest = await readMountedManifest(manifestPath);
+    if (manifest) break;
   }
   if (!manifest) return null;
   // v1 remains the activated filesystem fallback; the candidate race exists
