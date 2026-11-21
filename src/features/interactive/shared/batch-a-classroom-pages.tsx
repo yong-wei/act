@@ -1,4 +1,3 @@
-import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import type { ComponentType } from 'react';
 
@@ -9,7 +8,7 @@ import {
   readClassroomSessionUseCase,
 } from '@/features/classroom/session/public-api';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
-import { authOptions } from '@/lib/auth';
+import { getRenderAuthSession } from '@/lib/render-auth-session';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import { loadLessonRuntimeEntry, loadSessionBoundLessonRuntime, type RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
@@ -513,7 +512,7 @@ export function batchAStudentMetadata(routeSegment: string) {
 export async function renderBatchAEntry(routeSegment: string) {
   const lesson = lessonConfig(routeSegment);
   if (!lesson) return null;
-  const session = await getServerSession(authOptions);
+  const session = await getRenderAuthSession();
   const lessonRuntime = await loadLessonRuntimeEntry(lesson.canonicalId);
   const EntryPage = await loadLessonPage(lesson.config, 'EntryPage');
   return <EntryPage initialRole={session?.user?.role} lessonRuntime={lessonRuntime} />;
@@ -531,7 +530,7 @@ export async function renderBatchAStudent(input: {
   const capacityEnabled = isClassroomCapacityEnabled();
   if (!capacityEnabled) await redirectInactiveStudentSessionToLessonEntry(input.sessionId, entryHref);
   if (input.sessionId !== 'demo') {
-    const session = await getServerSession(authOptions);
+    const session = await getRenderAuthSession();
     if (capacityEnabled && session?.error === 'ACT_ACCESS_UNAVAILABLE') {
       return <StudentClassroomAdmission sessionId={input.sessionId} entryHref={entryHref} retryAfterMs={3000} />;
     }
@@ -598,7 +597,7 @@ export async function renderBatchAStudent(input: {
 export async function renderBatchATeacher(input: { routeSegment: string; sessionId: string }) {
   const lesson = lessonConfig(input.routeSegment);
   if (!lesson) return null;
-  const session = await getServerSession(authOptions);
+  const session = await getRenderAuthSession();
   if (!session?.user || !isTeacherOrAdminRole(session.user.role)) {
     redirect(buildLoginRedirectForPath(
       `/interactive-learning/courses/${input.routeSegment}/teacher/${input.sessionId}`,
@@ -630,7 +629,7 @@ export async function renderBatchATeacher(input: { routeSegment: string; session
 
 export async function renderBatchAWaiting(input: { routeSegment: string; sessionId: string }) {
   if (!lessonConfig(input.routeSegment)) return null;
-  const session = await getServerSession(authOptions);
+  const session = await getRenderAuthSession();
   if (!session?.user || !isTeacherOrAdminRole(session.user.role)) {
     redirect(buildLoginRedirectForPath(
       `/interactive-learning/courses/${input.routeSegment}/teacher/${input.sessionId}/waiting`,

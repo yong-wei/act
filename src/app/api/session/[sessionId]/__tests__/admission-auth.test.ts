@@ -11,6 +11,17 @@ import { GET } from '../route';
 
 describe('课堂候场的中央准入', () => {
   beforeEach(() => { vi.clearAllMocks(); });
+  it('measures the current session and queue checks separately without caching a waiting response', async () => {
+    mocks.session.mockResolvedValue({ user: { id: 'test-student', role: 'STUDENT' } });
+    mocks.read.mockResolvedValue({ admission: 'waiting', retryAfterMs: 900 });
+    const response = await GET(new Request('http://localhost/api/session/test?admission=only'), {
+      params: Promise.resolve({ sessionId: 'test' }),
+    });
+    expect(response.status).toBe(202);
+    expect(response.headers.get('cache-control')).toBe('private, no-store');
+    expect(response.headers.get('server-timing')).toMatch(/^session;dur=\d+\.\d, classroom;dur=\d+\.\d$/);
+  });
+
   it.each([
     ['admission=only', 'ACT_ACCESS_UNAVAILABLE', 202],
     ['studentSync=1&admission=1', 'ACT_ACCESS_UNAVAILABLE', 202],

@@ -5,6 +5,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   ClassroomSessionError,
   classroomAuthenticationResponse,
+  classroomReadHeaders,
   classroomSessionErrorBody,
   classroomSessionHttpStatus,
   jsonSafeClassroomPayload,
@@ -15,7 +16,9 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
+    const start = performance.now();
     const userSession = await getServerSession(authOptions);
+    const sessionChecked = performance.now();
     if (!userSession?.user?.id) {
       return classroomAuthenticationResponse(userSession?.error, '请先登录');
     }
@@ -29,7 +32,7 @@ export async function GET(request: Request) {
       },
       joinCode: searchParams.get('code') ?? '',
     });
-    return NextResponse.json(jsonSafeClassroomPayload(result));
+    return NextResponse.json(jsonSafeClassroomPayload(result), { headers: classroomReadHeaders(start, sessionChecked) });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof ClassroomSessionError) {

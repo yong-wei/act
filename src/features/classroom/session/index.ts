@@ -13,7 +13,7 @@ export {
   regenerateClassroomSessionJoinCodeUseCase,
 } from './public-api';
 export { ClassroomSessionError } from './errors';
-export { classroomAuthenticationResponse, classroomSessionErrorBody, classroomSessionHttpStatus } from './http';
+export { classroomAuthenticationResponse, classroomReadHeaders, classroomSessionErrorBody, classroomSessionHttpStatus } from './http';
 export { jsonSafeClassroomPayload } from './json-safe';
 export type {
   ClassroomSessionAccessOperation,

@@ -27,8 +27,8 @@ vi.mock('@/features/lesson-engine/course-bundle-drift-state', () => ({
   CourseBundleDriftState: vi.fn(() => null),
 }));
 
-vi.mock('@/lib/auth', () => ({
-  authOptions: { providers: [] },
+vi.mock('@/lib/auth', async () => ({
+  getServerAuthSession: (await import('next-auth')).getServerSession,
 }));
 
 vi.mock('@/lib/interactive-session-access', () => ({

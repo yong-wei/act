@@ -2,6 +2,13 @@ import { ClassroomSessionError } from './errors';
 import { jsonSafeClassroomPayload } from './json-safe';
 import type { Session } from 'next-auth';
 
+export function classroomReadHeaders(start: number, sessionChecked: number) {
+  return {
+    'Cache-Control': 'private, no-store',
+    'Server-Timing': `session;dur=${(sessionChecked - start).toFixed(1)}, classroom;dur=${(performance.now() - sessionChecked).toFixed(1)}`,
+  };
+}
+
 export function classroomAuthenticationResponse(error: Session['error'], message = 'Unauthorized') {
   if (error === 'ACT_ACCESS_UNAVAILABLE') {
     return Response.json({ error: '正在核验课堂访问资格，请稍后重试。' }, {

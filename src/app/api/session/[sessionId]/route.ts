@@ -8,6 +8,7 @@ import {
   ClassroomSessionError,
   advanceClassroomSessionUseCase,
   classroomAuthenticationResponse,
+  classroomReadHeaders,
   classroomSessionErrorBody,
   classroomSessionHttpStatus,
   jsonSafeClassroomPayload,
@@ -69,7 +70,9 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
 export async function GET(request: Request, props: { params: Promise<{ sessionId: string }> }) {
   const params = await props.params;
   try {
+    const start = performance.now();
     const userSession = await getServerSession(authOptions);
+    const sessionChecked = performance.now();
     const query = new URL(request.url).searchParams;
     if (!userSession?.user?.id) {
       if (userSession?.error === 'ACT_ACCESS_UNAVAILABLE' &&
@@ -96,7 +99,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
       : result;
     return NextResponse.json(jsonSafeClassroomPayload(payload), {
       status: result.admission === 'waiting' ? 202 : 200,
-      headers: { 'Cache-Control': 'private, no-store' },
+      headers: classroomReadHeaders(start, sessionChecked),
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
