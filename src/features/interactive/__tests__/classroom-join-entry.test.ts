@@ -18,7 +18,7 @@ describe('classroom join entry', () => {
   it('keeps session join and adds class join on the same page', () => {
     const source = readFileSync(join(repoRoot, 'src/app/classroom/join/page.tsx'), 'utf8');
 
-    expect(source).toContain('/api/session/join');
+    expect(source).toContain('await lookupStudentClassroom(code)');
     expect(source).toContain('/api/classes/join');
     expect(source).toContain("type JoinMode = 'session' | 'class'");
   });

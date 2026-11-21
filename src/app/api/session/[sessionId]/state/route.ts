@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   ClassroomSessionError,
+  classroomAuthenticationResponse,
   classroomSessionErrorBody,
   classroomSessionHttpStatus,
   jsonSafeClassroomPayload,
@@ -30,7 +31,7 @@ export async function POST(request: Request, props: { params: Promise<{ sessionI
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return classroomAuthenticationResponse(session?.error);
     }
 
     const body = await request.json();
@@ -58,7 +59,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return classroomAuthenticationResponse(session?.error);
     }
 
     const { searchParams } = new URL(request.url);

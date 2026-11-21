@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Session } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 
 /**
  * 统一身份受控接入单测（issue-2164 阶段 A）。
@@ -241,6 +243,25 @@ describe('迁移账号旧凭据收紧（authorize）', () => {
 });
 
 describe('强制模式下历史 JWT', () => {
+  it('中央超时、明确拒绝和恢复授权逐次核验，只有实际准入才恢复用户', async () => {
+    const { authOptions } = await loadAuth({ ...OIDC_ENV, PLATFORM_OIDC_ENFORCED: 'true' });
+    const jwt = authOptions.callbacks!.jwt!;
+    const toSession = authOptions.callbacks!.session!;
+    const token: JWT = { id: 'u1', email: 't@example.test', role: 'TEACHER', platformIssuer: 'issuer', platformSubject: 'sub', centralSessionVersion: 4 };
+    for (const [reason, expected] of [
+      ['unavailable', 'ACT_ACCESS_UNAVAILABLE'], ['session', 'ACT_ACCESS_DENIED'], ['grant', undefined],
+    ] as const) {
+      authorizeActIdentity.mockResolvedValue({ allow: reason === 'grant', reason, sessionVersion: 4, personId: 'p1' });
+      const current = await jwt({ token } as Parameters<typeof jwt>[0]);
+      const session = await toSession({
+        session: { user: { id: 'u1', role: 'TEACHER' }, expires: '2099-01-01' }, token: current,
+      } as Parameters<typeof toSession>[0]) as Session;
+      expect(session.error).toBe(expected);
+      expect(session.user?.id).toBe(expected ? undefined : 'u1');
+    }
+    expect(authorizeActIdentity).toHaveBeenCalledTimes(3);
+  });
+
   it('已映射但缺少中央字段的旧会话必须失效', async () => {
     const { authOptions } = await loadAuth({ ...OIDC_ENV, PLATFORM_OIDC_ENFORCED: 'true' });
     accountCount.mockResolvedValue(1);

@@ -3,6 +3,7 @@ import { type UserRole } from '@prisma/client';
 
 declare module 'next-auth' {
   interface Session {
+    error?: 'ACT_ACCESS_DENIED' | 'ACT_ACCESS_UNAVAILABLE';
     user: {
       id: string;
       role: UserRole;

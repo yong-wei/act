@@ -532,6 +532,9 @@ export async function renderBatchAStudent(input: {
   if (!capacityEnabled) await redirectInactiveStudentSessionToLessonEntry(input.sessionId, entryHref);
   if (input.sessionId !== 'demo') {
     const session = await getServerSession(authOptions);
+    if (capacityEnabled && session?.error === 'ACT_ACCESS_UNAVAILABLE') {
+      return <StudentClassroomAdmission sessionId={input.sessionId} entryHref={entryHref} retryAfterMs={3000} />;
+    }
     if (!session?.user?.id) redirect(entryHref);
     if (isTeacherOrAdminRole(session.user.role)) {
       if (capacityEnabled) await redirectInactiveStudentSessionToLessonEntry(input.sessionId, entryHref);

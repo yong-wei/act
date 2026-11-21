@@ -1,5 +1,18 @@
 import { ClassroomSessionError } from './errors';
 import { jsonSafeClassroomPayload } from './json-safe';
+import type { Session } from 'next-auth';
+
+export function classroomAuthenticationResponse(error: Session['error'], message = 'Unauthorized') {
+  if (error === 'ACT_ACCESS_UNAVAILABLE') {
+    return Response.json({ error: '正在核验课堂访问资格，请稍后重试。' }, {
+      status: 503, headers: { 'Cache-Control': 'private, no-store', 'Retry-After': '3' },
+    });
+  }
+  if (error === 'ACT_ACCESS_DENIED') {
+    return Response.json({ error: '无法进入这间课堂。' }, { status: 403 });
+  }
+  return Response.json({ error: message }, { status: 401 });
+}
 
 export function classroomSessionHttpStatus(error: ClassroomSessionError): number {
   switch (error.code) {

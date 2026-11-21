@@ -18,6 +18,7 @@ describe('student classroom lookup', () => {
     await vi.runAllTimersAsync();
     expect((await result).status).toBe(200);
     expect(fetch).toHaveBeenCalledTimes(3);
+    expect(fetch).toHaveBeenLastCalledWith('/api/session/join?code=123456', expect.objectContaining({ cache: 'no-store' }));
   });
 
   it('surfaces an invalid classroom or unauthorized request immediately', async () => {

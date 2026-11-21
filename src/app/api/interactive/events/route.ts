@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { classroomAuthenticationResponse } from '@/features/classroom/session/http';
 import { readGovernedCourseStudentDemoStep } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
 import { prisma } from '@/lib/prisma';
 import { eventRateLimiter } from '@/lib/rate-limiter';
@@ -898,7 +899,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return classroomAuthenticationResponse(session?.error);
     }
 
     // 限流检查：防止事件上报过载
@@ -1427,7 +1428,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return classroomAuthenticationResponse(session?.error);
     }
 
     const isTeacher = session.user.role === 'TEACHER';

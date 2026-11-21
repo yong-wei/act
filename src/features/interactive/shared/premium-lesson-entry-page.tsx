@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { lookupStudentClassroom } from '@/features/classroom/session/student-join-request';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -186,7 +187,7 @@ export function PremiumLessonEntryPage({
 
     setIsJoining(true);
     try {
-      const response = await fetch(`/api/session/join?code=${joinCode}`);
+      const response = await lookupStudentClassroom(joinCode);
       const data = (await response.json()) as JoinSessionResponse & { error?: string };
       if (!response.ok || !data.id || !data.studentHref) {
         throw new Error(data.error || '课堂码无效');

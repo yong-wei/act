@@ -164,6 +164,8 @@ export const authOptions: NextAuthOptions = {
         token.platformSubject = central.platformSubject;
         token.platformPersonId = central.platformPersonId;
         token.centralSessionVersion = central.centralSessionVersion;
+        delete token.centralAccessDenied;
+        delete token.centralAccessUnavailable;
       }
       if (platformOidcEnforced && token.id && (!token.platformIssuer || !token.platformSubject)) {
         const prisma = await getPrismaClient();
@@ -179,6 +181,7 @@ export const authOptions: NextAuthOptions = {
           sessionVersion: Number(token.centralSessionVersion ?? 0),
         });
         token.centralAccessDenied = !decision.allow;
+        token.centralAccessUnavailable = !decision.allow && decision.reason === 'unavailable';
         if (decision.allow) {
           token.centralSessionVersion = decision.sessionVersion;
           token.platformPersonId = decision.personId ?? undefined;
@@ -189,7 +192,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token.centralAccessDenied) {
         session.user = undefined as never;
-        (session as typeof session & { error?: string }).error = 'ACT_ACCESS_DENIED';
+        session.error = token.centralAccessUnavailable ? 'ACT_ACCESS_UNAVAILABLE' : 'ACT_ACCESS_DENIED';
         return session;
       }
       if (session.user) {

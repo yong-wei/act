@@ -5,6 +5,7 @@ import { classroomRateLimiter } from '@/lib/rate-limiter';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   ClassroomSessionError,
+  classroomAuthenticationResponse,
   openClassroomSessionStreamUseCase,
 } from '@/features/classroom/session';
 import { openClassroomSessionStreamAdapter } from '@/features/classroom/session/adapters/sse';
@@ -16,6 +17,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ sessi
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
+      if (session?.error) return classroomAuthenticationResponse(session.error);
       return new Response('Unauthorized', { status: 401 });
     }
     const limitCheck = classroomRateLimiter.check(`sse:${session.user.id}`, {

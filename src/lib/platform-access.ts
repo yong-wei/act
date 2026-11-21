@@ -38,7 +38,8 @@ export async function authorizeActIdentity(
         requestedAppId: 'act',
         sessionVersion,
       }),
-      signal: AbortSignal.timeout(3000),
+      // Leave time for the classroom's 7 s browser deadline after a slow session check.
+      signal: AbortSignal.timeout(identity.sessionVersion === undefined ? 3000 : 5000),
     });
     const body = await response.json() as {
       allow?: unknown;

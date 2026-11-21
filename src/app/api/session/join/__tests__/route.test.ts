@@ -39,6 +39,14 @@ describe('GET /api/session/join', () => {
     });
   });
 
+  it('中央暂不可用时保留扫码重试，且不查询课堂', async () => {
+    mocks.getServerSession.mockResolvedValue({ error: 'ACT_ACCESS_UNAVAILABLE' });
+    const response = await GET(new Request('http://localhost/api/session/join?code=123456'));
+    expect(response.status).toBe(503);
+    expect(response.headers.get('Retry-After')).toBe('3');
+    expect(mocks.prisma.classSession.findUnique).not.toHaveBeenCalled();
+  });
+
   it('returns a generic evidence route for finished sessions without exposing raw classroom links', async () => {
     mocks.prisma.classSession.findUnique.mockResolvedValue({
       id: 'session-finished-1',

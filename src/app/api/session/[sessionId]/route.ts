@@ -7,6 +7,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   ClassroomSessionError,
   advanceClassroomSessionUseCase,
+  classroomAuthenticationResponse,
   classroomSessionErrorBody,
   classroomSessionHttpStatus,
   jsonSafeClassroomPayload,
@@ -33,7 +34,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return classroomAuthenticationResponse(session?.error);
     }
     const limitCheck = classroomRateLimiter.check(session.user.id);
     if (!limitCheck.allowed) {
@@ -69,10 +70,16 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
   const params = await props.params;
   try {
     const userSession = await getServerSession(authOptions);
-    if (!userSession?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
     const query = new URL(request.url).searchParams;
+    if (!userSession?.user?.id) {
+      if (userSession?.error === 'ACT_ACCESS_UNAVAILABLE' &&
+          (query.get('admission') === 'only' || query.get('admission') === '1')) {
+        return NextResponse.json({ admission: 'waiting', retryAfterMs: 3000 }, {
+          status: 202, headers: { 'Cache-Control': 'private, no-store' },
+        });
+      }
+      return classroomAuthenticationResponse(userSession?.error);
+    }
     const result = await readClassroomSessionUseCase({
       actor: {
         id: userSession.user.id,

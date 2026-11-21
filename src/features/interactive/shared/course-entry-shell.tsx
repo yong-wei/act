@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { lookupStudentClassroom } from '@/features/classroom/session/student-join-request';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import type { ReactNode } from 'react';
@@ -246,7 +247,7 @@ export function CourseEntryShell({
 
     setIsJoining(true);
     try {
-      const response = await fetch(`/api/session/join?code=${joinCode}`);
+      const response = await lookupStudentClassroom(joinCode);
       const data = (await response.json()) as JoinSessionResponse & { error?: string };
       if (!response.ok || !data.id || !data.studentHref) {
         if (!roleResolved && isJoinAuthenticationFailure(response.status)) {

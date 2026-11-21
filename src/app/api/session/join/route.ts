@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   ClassroomSessionError,
+  classroomAuthenticationResponse,
   classroomSessionErrorBody,
   classroomSessionHttpStatus,
   jsonSafeClassroomPayload,
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
   try {
     const userSession = await getServerSession(authOptions);
     if (!userSession?.user?.id) {
-      return NextResponse.json({ error: '请先登录' }, { status: 401 });
+      return classroomAuthenticationResponse(userSession?.error, '请先登录');
     }
 
     const { searchParams } = new URL(request.url);
