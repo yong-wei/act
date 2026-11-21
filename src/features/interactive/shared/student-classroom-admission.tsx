@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { admissionRetryDelay } from '../session-framework/admission-retry-delay';
 
 export function StudentClassroomAdmission({ sessionId, entryHref, retryAfterMs }: {
   sessionId: string;
@@ -15,7 +16,7 @@ export function StudentClassroomAdmission({ sessionId, entryHref, retryAfterMs }
     const lifetime = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
     function schedule(delay: number) {
-      timer = setTimeout(poll, delay + Math.random() * 350);
+      timer = setTimeout(poll, admissionRetryDelay(delay));
     }
     async function poll() {
       let delay = 2500;
@@ -35,8 +36,8 @@ export function StudentClassroomAdmission({ sessionId, entryHref, retryAfterMs }
           if (admission.admission === 'ready') {
             router.refresh();
             delay = 5000;
-          } else if (typeof admission.retryAfterMs === 'number') {
-            delay = Math.max(250, Math.min(10_000, admission.retryAfterMs));
+          } else if (Number.isFinite(admission.retryAfterMs)) {
+            delay = admission.retryAfterMs;
           }
         }
       } catch {
