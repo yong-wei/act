@@ -11,6 +11,8 @@ import {
   jsonSafeClassroomPayload,
 } from '@/features/classroom/session';
 import { joinClassroomSessionUseCase } from '@/features/classroom/session/join-api';
+import { isClassroomCapacityEnabled } from '@/features/classroom/session/adapters/shared-classroom-reads';
+import { studentEntryTarget } from '@/features/classroom/session/student-entry-target';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +34,12 @@ export async function GET(request: Request) {
       },
       joinCode: searchParams.get('code') ?? '',
     });
-    return NextResponse.json(jsonSafeClassroomPayload(result), { headers: classroomReadHeaders(start, sessionChecked) });
+    const canWaitAtEntry = userSession.user.role === 'STUDENT' && isClassroomCapacityEnabled()
+      && typeof result.id === 'string' && typeof result.studentHref === 'string'
+      && studentEntryTarget(result.studentHref)?.sessionId === result.id;
+    return NextResponse.json(jsonSafeClassroomPayload(canWaitAtEntry ? { ...result, waitAtEntry: true } : result), {
+      headers: classroomReadHeaders(start, sessionChecked),
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof ClassroomSessionError) {

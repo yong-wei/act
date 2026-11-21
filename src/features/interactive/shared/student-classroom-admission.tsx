@@ -1,13 +1,43 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import { classroomWaitFragment, studentEntryTarget } from '@/features/classroom/session/student-entry-target';
 import { admissionRetryDelay } from '../session-framework/admission-retry-delay';
 
-export function StudentClassroomAdmission({ sessionId, entryHref, retryAfterMs }: {
+function subscribeToFragment(changed: () => void) {
+  window.addEventListener('hashchange', changed);
+  return () => window.removeEventListener('hashchange', changed);
+}
+
+function readWaitingHref() {
+  const hash = window.location.hash;
+  return hash.startsWith(classroomWaitFragment) ? hash.slice(classroomWaitFragment.length) : '';
+}
+
+export function useStudentClassroomEntry() {
+  const router = useRouter();
+  const href = useSyncExternalStore(subscribeToFragment, readWaitingHref, () => '');
+  const target = studentEntryTarget(href);
+
+  function enter(studentHref: string, waitAtEntry?: boolean) {
+    if (waitAtEntry && studentEntryTarget(studentHref)) {
+      window.location.hash = classroomWaitFragment + studentHref;
+    } else {
+      router.push(studentHref);
+    }
+  }
+
+  const waiting = target && <StudentClassroomAdmission key={href} sessionId={target.sessionId}
+    entryHref={target.entryHref} readyHref={target.href} retryAfterMs={0} />;
+  return { enter, waiting };
+}
+
+export function StudentClassroomAdmission({ sessionId, entryHref, retryAfterMs, readyHref }: {
   sessionId: string;
   entryHref: string;
   retryAfterMs: number;
+  readyHref?: string;
 }) {
   const router = useRouter();
   const [rejected, setRejected] = useState(false);
@@ -34,7 +64,12 @@ export function StudentClassroomAdmission({ sessionId, entryHref, retryAfterMs }
           const admission = await response.json();
           if (lifetime.signal.aborted) return;
           if (admission.admission === 'ready') {
-            router.refresh();
+            if (readyHref) {
+              if (readWaitingHref() !== readyHref) return;
+              router.replace(admission.status === 'FINISHED' ? entryHref : readyHref);
+            } else {
+              router.refresh();
+            }
             delay = 5000;
           } else if (Number.isFinite(admission.retryAfterMs)) {
             delay = admission.retryAfterMs;
@@ -45,12 +80,14 @@ export function StudentClassroomAdmission({ sessionId, entryHref, retryAfterMs }
       }
       if (!lifetime.signal.aborted) schedule(delay);
     }
-    schedule(retryAfterMs);
+    // An entry click has no receipt yet. A server-rendered waiter already has one.
+    if (readyHref) timer = setTimeout(poll, 0);
+    else schedule(retryAfterMs);
     return () => {
       lifetime.abort();
       clearTimeout(timer);
     };
-  }, [retryAfterMs, router, sessionId]);
+  }, [entryHref, readyHref, retryAfterMs, router, sessionId]);
 
   return (
     <main className="mx-auto flex min-h-[50vh] max-w-lg flex-col justify-center gap-3 px-6"

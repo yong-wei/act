@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { lookupStudentClassroom } from '@/features/classroom/session/student-join-request';
+import { useStudentClassroomEntry } from './student-classroom-admission';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -37,6 +38,7 @@ export interface PremiumLessonEntryPageConfig {
 interface JoinSessionResponse {
   id: string;
   studentHref?: string;
+  waitAtEntry?: boolean;
   existingSessionId?: string;
   requiresExplicitChoice?: boolean;
   error?: string;
@@ -70,6 +72,7 @@ export function PremiumLessonEntryPage({
 }) {
   const { data: authSession } = useSession();
   const router = useRouter();
+  const { enter, waiting } = useStudentClassroomEntry();
   const teacherLauncher = useTeacherClassroomLauncher();
   const [joinCode, setJoinCode] = useState('');
   const [isCreating, setIsCreating] = useState(false);
@@ -192,7 +195,7 @@ export function PremiumLessonEntryPage({
       if (!response.ok || !data.id || !data.studentHref) {
         throw new Error(data.error || '课堂码无效');
       }
-      router.push(data.studentHref);
+      enter(data.studentHref, data.waitAtEntry);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '加入失败，请稍后重试');
     } finally {
@@ -200,6 +203,7 @@ export function PremiumLessonEntryPage({
     }
   };
 
+  if (waiting) return waiting;
   return (
     <div
       className="premium-lesson-shell"

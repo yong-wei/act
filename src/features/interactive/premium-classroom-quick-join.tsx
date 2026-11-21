@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Loader2, LogIn } from 'lucide-react';
 import { lookupStudentClassroom } from '@/features/classroom/session/student-join-request';
+import { useStudentClassroomEntry } from './shared/student-classroom-admission';
 
 export function PremiumClassroomQuickJoin() {
-  const router = useRouter();
+  const { enter, waiting } = useStudentClassroomEntry();
   const [joinCode, setJoinCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,11 +21,11 @@ export function PremiumClassroomQuickJoin() {
     setIsJoining(true);
     try {
       const response = await lookupStudentClassroom(joinCode);
-      const data = (await response.json()) as { id?: string; studentHref?: string; error?: string };
+      const data = (await response.json()) as { id?: string; studentHref?: string; waitAtEntry?: boolean; error?: string };
       if (!response.ok || !data.id || !data.studentHref) {
         throw new Error(data.error || '课堂码无效');
       }
-      router.push(data.studentHref);
+      enter(data.studentHref, data.waitAtEntry);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '加入失败');
     } finally {
@@ -33,6 +33,7 @@ export function PremiumClassroomQuickJoin() {
     }
   };
 
+  if (waiting) return waiting;
   return (
     <section className="mb-6 rounded-2xl border border-cyan-400/25 bg-slate-900/70 p-5">
       <h2 className="text-lg font-semibold text-white">课堂快速加入</h2>

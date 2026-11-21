@@ -1,6 +1,7 @@
 'use client';
 
 import { lookupStudentClassroom } from '@/features/classroom/session/student-join-request';
+import { useStudentClassroomEntry } from '@/features/interactive/shared/student-classroom-admission';
 
 import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -17,6 +18,7 @@ type JoinMode = 'session' | 'class';
 interface SessionJoinInfo {
   id: string;
   studentHref: string;
+  waitAtEntry?: boolean;
   plan: { title: string };
   teacher: { name: string };
   class?: { name: string };
@@ -74,6 +76,7 @@ function buildJoinCallbackPath(mode: JoinMode, code: string) {
 
 function JoinClassroomContent() {
   const router = useRouter();
+  const { enter, waiting } = useStudentClassroomEntry();
   const searchParams = useSearchParams();
   const [joinMode, setJoinMode] = useState<JoinMode>('session');
   const [joinCode, setJoinCode] = useState('');
@@ -187,7 +190,9 @@ function JoinClassroomContent() {
     [joinCode, router],
   );
 
+  const isWaiting = waiting !== null;
   useEffect(() => {
+    if (isWaiting) return;
     const rawCodeFromUrl = searchParams.get('code') ?? '';
     const modeFromUrl: JoinMode = searchParams.get('mode') === 'class' ? 'class' : 'session';
     const codeFromUrl = sanitizeCode(rawCodeFromUrl, modeFromUrl);
@@ -208,11 +213,11 @@ function JoinClassroomContent() {
     }
 
     void lookupSession(codeFromUrl);
-  }, [joinClass, lookupSession, searchParams]);
+  }, [isWaiting, joinClass, lookupSession, searchParams]);
 
   const joinSession = () => {
     if (sessionInfo) {
-      router.push(sessionInfo.studentHref);
+      enter(sessionInfo.studentHref, sessionInfo.waitAtEntry);
     }
   };
 
@@ -220,6 +225,7 @@ function JoinClassroomContent() {
     router.push('/profile');
   };
 
+  if (waiting) return waiting;
   return (
     <JoinClassroomShell
       joinMode={joinMode}
