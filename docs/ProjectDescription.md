@@ -88,12 +88,14 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 管理员端面向平台运行与配置：
 
 - `/admin`：管理入口。
-- `/admin/users`：用户管理、导入、重置密码。
+- `/admin/users`：本地业务角色、学生档案和教学班关系管理；认证账号创建、全局启停和密码管理由统一身份中心承担。
 - `/admin/config`：平台配置、AI 供应商和模型配置。
 - `/admin/states`：系统使用量统计。
 - `/admin/data-governance`：数据治理状态、事实分布、队列健康、风险清单和快照明细。
 
 管理员配置进入 `PlatformSetting` 或 AI 配置相关表；数据治理看板读取 `LearningEventBatch`、`LearningFact`、`StudentCompetencySnapshot`、`ClassCompetencySnapshot`、`StudentRiskFlag` 等治理表。管理员端不承担课程正文编辑职责。
+
+统一身份登录在当前页面内完成，中央 `(issuer, subject)` 经 `person_id` 映射到原 ACT `User.id`。受保护会话先校验 ACT 应用准入、中央人员状态和会话版本，再沿用本地角色、教学班、课堂与资源权限。公开课程、媒体和演示保持匿名访问；本地认证账号创建、全局启停和密码写入口已退役。
 
 ## 平台壳层与 UI 治理
 

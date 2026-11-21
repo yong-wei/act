@@ -29,6 +29,7 @@ export function UserMenu({ user, variant = 'default', accountHref, accountLabel 
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [oidcEnabled, setOidcEnabled] = useState(false);
 
   const displayName = user.name || user.email || '用户';
   const initials = displayName.charAt(0).toUpperCase();
@@ -48,8 +49,31 @@ export function UserMenu({ user, variant = 'default', accountHref, accountLabel 
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [open, handleOutsideClick]);
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/login' });
+  useEffect(() => {
+    fetch('/api/auth/platform/mode')
+      .then((response) => response.ok ? response.json() : { enabled: false })
+      .then((body: { enabled?: boolean }) => setOidcEnabled(body.enabled === true))
+      .catch(() => setOidcEnabled(false));
+  }, []);
+
+  const handleSignOut = async (global = false) => {
+    if (!oidcEnabled) {
+      await signOut({ callbackUrl: '/login' });
+      return;
+    }
+    const response = await fetch('/api/auth/platform/logout', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ global }),
+    });
+    if (!response.ok) return;
+    const result = await response.json() as { logout_url: string | null };
+    sessionStorage.setItem('act_oidc_logout_hold', '1');
+    if (global && result.logout_url) {
+      window.location.assign(result.logout_url);
+      return;
+    }
+    window.location.assign('/login');
   };
 
   const handlePasswordSubmit = async () => {
@@ -153,23 +177,34 @@ export function UserMenu({ user, variant = 'default', accountHref, accountLabel 
               {accountLabel}
             </Link>
           )}
+          {!oidcEnabled ? (
+            <button type="button"
+              onClick={() => {
+                closeMenu();
+                setPasswordOpen(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-accent hover:text-accent-foreground"
+            >
+              <KeyRound className="h-4 w-4" />
+              修改密码
+            </button>
+          ) : null}
           <button type="button"
-            onClick={() => {
-              closeMenu();
-              setPasswordOpen(true);
-            }}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-accent hover:text-accent-foreground"
-          >
-            <KeyRound className="h-4 w-4" />
-            修改密码
-          </button>
-          <button type="button"
-            onClick={handleSignOut}
+            onClick={() => void handleSignOut(false)}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-rose-300 transition hover:bg-rose-500/10"
           >
             <LogOut className="h-4 w-4" />
-            退出登录
+            退出本应用
           </button>
+          {oidcEnabled ? (
+            <button type="button"
+              onClick={() => void handleSignOut(true)}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-rose-300 transition hover:bg-rose-500/10"
+            >
+              <LogOut className="h-4 w-4" />
+              退出全平台
+            </button>
+          ) : null}
         </div>
       )}
 

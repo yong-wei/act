@@ -170,7 +170,7 @@ describe('admin users API/UI query contract', () => {
     });
   });
 
-  it('unwraps smart lesson class references before the admin teacher deletion path removes classes', async () => {
+  it('retires the admin teacher deletion path instead of deleting classes', async () => {
     mocks.prisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER' });
     mocks.tx.class.findMany.mockResolvedValue([{ id: 'class-1' }, { id: 'class-2' }]);
 
@@ -179,22 +179,9 @@ describe('admin users API/UI query contract', () => {
       { method: 'DELETE' },
     ), { params: Promise.resolve({ id: 'teacher-1' }) });
 
-    expect(response.status).toBe(200);
-    expect(mocks.detachSmartLessonTasksForDeletedClass).toHaveBeenNthCalledWith(
-      1,
-      mocks.tx,
-      'teacher-1',
-      'class-1',
-    );
-    expect(mocks.detachSmartLessonTasksForDeletedClass).toHaveBeenNthCalledWith(
-      2,
-      mocks.tx,
-      'teacher-1',
-      'class-2',
-    );
-    expect(mocks.tx.class.deleteMany).toHaveBeenCalledWith({ where: { teacherId: 'teacher-1' } });
-    expect(mocks.prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
-      isolationLevel: 'Serializable',
-    });
+    expect(response.status).toBe(410);
+    expect(mocks.detachSmartLessonTasksForDeletedClass).not.toHaveBeenCalled();
+    expect(mocks.tx.class.deleteMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
   });
 });

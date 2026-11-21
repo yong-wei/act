@@ -17,6 +17,7 @@ import {
 } from './fetch-diagnostics';
 import { useSessionSSE } from './use-session-sse';
 import { shouldRunHiddenAwarePoll } from './polling-visibility';
+import { admissionRetryDelay } from './admission-retry-delay';
 
 interface UseSessionProgressChannelOptions {
   sessionId: string;
@@ -245,7 +246,7 @@ export function useSessionProgressChannel({
       const data = (await response.json().catch(() => ({}))) as SessionInfo & { error?: string; retryAfterMs?: number };
 
       if (studentSync && response.status === 202 && typeof data.retryAfterMs === 'number') {
-        setWaiting({ sessionId, delay: Math.max(250, Math.min(10_000, data.retryAfterMs)) + Math.random() * 350 });
+        setWaiting({ sessionId, delay: admissionRetryDelay(data.retryAfterMs) });
         return;
       }
       if (studentSync) setWaiting(null);

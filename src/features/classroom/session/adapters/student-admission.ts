@@ -69,7 +69,8 @@ end
 local untilNextSlot = 1000 - now % 1000
 local slotsAhead = math.floor((rank + used) / batch)
 if slotsAhead < 2 then return untilNextSlot + spread % 300 end
-return math.min(6500, untilNextSlot + (slotsAhead - 1) * 1000) + spread % 1800
+-- Far-back students can wait longer between probes within their 30-second lease.
+return math.min(14000, untilNextSlot + (slotsAhead - 1) * 1000) + spread % 1800
 `;
 
 export async function reserveInteractiveStudentAdmission(sessionId: string, userId: string, mode: 'probe' | 'reserve' = 'reserve') {

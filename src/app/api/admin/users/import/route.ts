@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createHash } from 'node:crypto';
-import { hash } from 'bcryptjs';
 import { UserRole, type Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireAdminSession } from '@/lib/admin';
@@ -52,15 +51,7 @@ type ImportUserWithProfile = Prisma.UserGetPayload<{
   };
 }>;
 
-type PlannedImportOperation =
-  | {
-      type: 'create';
-      rowNumber: number;
-      row: ImportRow;
-      role: UserRole;
-      passwordHash: string;
-    }
-  | {
+type PlannedImportOperation = {
       type: 'update';
       rowNumber: number;
       userId: string;
@@ -174,47 +165,6 @@ function pickNonEmptyProfileUpdate(row: ImportRow): Prisma.StudentProfileUpdateI
   }
 
   return data;
-}
-
-async function createUserFromImport(
-  db: ImportDb,
-  row: ImportRow,
-  role: UserRole,
-  passwordHash: string
-) {
-  const user = await db.user.create({
-    data: {
-      name: row.name,
-      email: row.email || null,
-      passwordHash,
-      role,
-      employeeNumber: role === UserRole.STUDENT ? null : row.account,
-      profile:
-        role === UserRole.STUDENT
-          ? {
-              create: {
-                studentNumber: row.account,
-                className: row.className || null,
-                major: row.major || null,
-                year: row.year || null,
-                techScore: 0,
-                ethicsScore: 100,
-              },
-            }
-          : undefined,
-    },
-    include: {
-      profile: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  });
-
-  if (role === UserRole.STUDENT) {
-    await initializeUserProgress(user.id, db);
-  }
 }
 
 async function updateUserByAccount(
@@ -472,15 +422,7 @@ export async function POST(request: Request) {
     }
 
     if (!existing) {
-      if (mode === 'commit') {
-        plannedOperations.push({
-          type: 'create',
-          rowNumber,
-          row: importRow,
-          role,
-          passwordHash: await hash(importRow.password || '123456', 10),
-        });
-      }
+      errors.push({ row: rowNumber, account: importRow.account, reason: 'central-account-required' });
       created += 1;
       continue;
     }
@@ -493,7 +435,7 @@ export async function POST(request: Request) {
         hasProfile: Boolean(existing.profile),
         row: importRow,
         role,
-        passwordHash: importRow.password ? await hash(importRow.password, 10) : null,
+        passwordHash: null,
       });
     }
     updated += 1;
@@ -585,11 +527,6 @@ export async function POST(request: Request) {
   const applyPlannedOperations = async (db: ImportDb) => {
     for (const operation of plannedOperations) {
       try {
-        if (operation.type === 'create') {
-          await createUserFromImport(db, operation.row, operation.role, operation.passwordHash);
-          continue;
-        }
-
         await updateUserByAccount(
           db,
           operation.userId,
