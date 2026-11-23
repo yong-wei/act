@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Session } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
+import { ILAB_GRANT_COOKIE_NAME, sealIlabGrant } from '@/features/ilab/grant-cookie';
 
 /**
  * 统一身份受控接入单测（issue-2164 阶段 A）。
@@ -15,6 +16,11 @@ const accountCount = vi.fn();
 const authorizeActIdentity = vi.fn();
 const userFindFirst = vi.fn();
 const userFindUnique = vi.fn();
+const readCookie = vi.fn();
+
+vi.mock('next/headers', () => ({
+  cookies: async () => ({ get: readCookie }),
+}));
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -68,8 +74,11 @@ const OIDC_ENV = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  readCookie.mockReset();
   authorizeActIdentity.mockResolvedValue({ allow: true, personId: 'person-central', sessionVersion: 1, reason: 'grant' });
 });
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe('provider 受控启用', () => {
   it('未配置时 providers 仅本地凭据（零行为变化）', async () => {
@@ -276,5 +285,49 @@ describe('强制模式下历史 JWT', () => {
     });
     expect(session.user).toBeUndefined();
     expect(session.error).toBe('ACT_ACCESS_DENIED');
+  });
+
+  function setExperimentGrant(userId: string, issuedAtMs = Date.now()) {
+    vi.stubEnv('ILAB_SECRET', 'test-grant-key');
+    readCookie.mockImplementation((name: string) => name === ILAB_GRANT_COOKIE_NAME
+      ? { value: sealIlabGrant({
+          v: 1, appId: 'test-app', username: 'learner', displayName: 'Test Learner',
+          userId, issuedAtMs, accessToken: 'test-token', expiresAtMs: null, bypass: false,
+        }) }
+      : undefined);
+  }
+
+  it('同一实验空间学生已有中央映射时，认可有效的同账号实验授权', async () => {
+    const { authOptions } = await loadAuth({ ...OIDC_ENV, PLATFORM_OIDC_ENFORCED: 'true' });
+    accountCount.mockResolvedValue(1);
+    setExperimentGrant('student');
+    const jwt = authOptions.callbacks!.jwt!;
+    const token: JWT = { id: 'student', email: '', role: 'STUDENT', centralAccessDenied: true };
+    const result = await jwt({ token } as Parameters<typeof jwt>[0]);
+    expect(result.centralAccessDenied).toBe(false);
+    expect(authorizeActIdentity).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['other-student', 0, 'STUDENT'],
+    ['student', 73, 'STUDENT'],
+    ['student', 0, 'TEACHER'],
+  ] as const)('拒绝不匹配、过期或非学生的实验授权 (%s, %s, %s)', async (grantOwner, grantAgeHours, role) => {
+    const { authOptions } = await loadAuth({ ...OIDC_ENV, PLATFORM_OIDC_ENFORCED: 'true' });
+    accountCount.mockResolvedValue(1);
+    setExperimentGrant(grantOwner, Date.now() - grantAgeHours * 60 * 60 * 1000);
+    const jwt = authOptions.callbacks!.jwt!;
+    const token: JWT = { id: 'student', email: '', role };
+    expect((await jwt({ token } as Parameters<typeof jwt>[0])).centralAccessDenied).toBe(true);
+  });
+
+  it('中央登录被撤权时，遗留的同账号实验授权不能改变中央核验结果', async () => {
+    const { authOptions } = await loadAuth({ ...OIDC_ENV, PLATFORM_OIDC_ENFORCED: 'true' });
+    setExperimentGrant('student');
+    authorizeActIdentity.mockResolvedValue({ allow: false, reason: 'revoked' });
+    const jwt = authOptions.callbacks!.jwt!;
+    const token: JWT = { id: 'student', email: '', role: 'STUDENT', platformIssuer: 'issuer', platformSubject: 'sub' };
+    expect((await jwt({ token } as Parameters<typeof jwt>[0])).centralAccessDenied).toBe(true);
+    expect(authorizeActIdentity).toHaveBeenCalledOnce();
   });
 });

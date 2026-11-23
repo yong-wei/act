@@ -1,8 +1,10 @@
 import { UserRole } from '@prisma/client';
 import { compare } from 'bcryptjs';
 import { getServerSession, type NextAuthOptions } from 'next-auth';
+import { cookies } from 'next/headers';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import KeycloakProvider from 'next-auth/providers/keycloak';
+import { ILAB_GRANT_COOKIE_NAME, unsealIlabGrant } from '@/features/ilab/grant-cookie';
 import { authorizeActIdentity } from '@/lib/platform-access';
 import { resolveLocalPlatformUser } from '@/lib/platform-local-account';
 
@@ -39,6 +41,13 @@ type PrismaModule = typeof import('@/lib/prisma');
 async function getPrismaClient(): Promise<PrismaModule['prisma']> {
   const { prisma } = await import('@/lib/prisma');
   return prisma;
+}
+
+async function hasMatchingIlabGrant(userId: string): Promise<boolean> {
+  const jar = await cookies();
+  const grant = unsealIlabGrant(jar.get(ILAB_GRANT_COOKIE_NAME)?.value);
+  if (!grant || grant.userId !== userId) return false;
+  return !grant.bypass || process.env.NODE_ENV !== 'production';
 }
 
 export const authOptions: NextAuthOptions = {
@@ -172,7 +181,13 @@ export const authOptions: NextAuthOptions = {
         const migrated = await prisma.account.count({
           where: { userId: String(token.id), provider: PLATFORM_ACCOUNT_PROVIDER },
         });
-        if (migrated > 0) token.centralAccessDenied = true;
+        if (migrated > 0) {
+          // 已关联统一账号的实验空间学生仍可凭同一账号的已验签实验授权使用标准会话。
+          const ilabSession = token.role === UserRole.STUDENT && !token.platformIssuer && !token.platformSubject
+            && await hasMatchingIlabGrant(String(token.id));
+          token.centralAccessDenied = !ilabSession;
+          delete token.centralAccessUnavailable;
+        }
       }
       if (platformOidcEnforced && token.platformIssuer && token.platformSubject) {
         const decision = await authorizeActIdentity({

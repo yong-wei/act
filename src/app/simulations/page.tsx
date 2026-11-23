@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { clearIlabOriginSessionStorage, stripIlabUrlParams } from '@/features/ilab/client-grant';
@@ -270,6 +270,8 @@ function simulationTaskFit(simulation: SimulationInfo) {
 
 export default function SimulationsPage() {
   const { data: session, update: updateSession } = useSession();
+  const updateSessionRef = useRef(updateSession);
+  updateSessionRef.current = updateSession;
   const searchParams = useSearchParams();
   const compatibilitySource = searchParams.get('compat');
   const arrivalTicket = searchParams.get('ticket')?.trim() ?? '';
@@ -315,7 +317,7 @@ export default function SimulationsPage() {
           setIlabStatus('connected');
           setIlabMessage('');
           if (body.userId && session?.user?.id !== body.userId) {
-            void updateSession();
+            void updateSessionRef.current();
           }
         } catch {
           if (!cancelled) {
@@ -339,7 +341,7 @@ export default function SimulationsPage() {
           setIlabStudentName(body.displayName || '');
           setIlabStatus('connected');
           if (body.userId && session?.user?.id !== body.userId) {
-            void updateSession();
+            void updateSessionRef.current();
           }
         }
       } catch {
@@ -349,7 +351,7 @@ export default function SimulationsPage() {
     return () => {
       cancelled = true;
     };
-  }, [arrivalTicket, session?.user?.id, updateSession]);
+  }, [arrivalTicket, session?.user?.id]);
 
   async function handleDisconnectIlab() {
     try {
