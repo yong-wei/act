@@ -69,7 +69,7 @@ describe('ACT unified login', () => {
     expect(authorize.searchParams.get('prompt')).toBe('none');
     expect(authorize.href).not.toContain(reference);
     expect(await (await finishAuthorization()).text()).toContain('act-login-complete');
-    expect(verifyPortalLaunch).toHaveBeenCalledWith(identity, reference);
+    expect(verifyPortalLaunch).toHaveBeenCalledWith(issuer, reference, 'person');
     expect((await finishLogin('__Secure-next-auth.session-token=previous-session')).status).toBe(409);
     const response = await finishLogin(`${cookie}; __Secure-next-auth.session-token=previous-session`);
     expect(response.cookies.get('__Secure-next-auth.session-token')?.value).toBe('new-session');

@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     if (!decision.allow || !decision.personId || (identity.personId && identity.personId !== decision.personId)) {
       return html(origin, state, 'error');
     }
-    if (transaction.launchReference && !await verifyPortalLaunch(identity, transaction.launchReference)) {
+    if (transaction.launchReference && !await verifyPortalLaunch(identity.issuer, transaction.launchReference, decision.personId)) {
       return html(origin, state, 'error');
     }
     const user = await resolveLocalPlatformUser({
