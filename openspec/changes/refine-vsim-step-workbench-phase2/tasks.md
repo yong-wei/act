@@ -15,4 +15,4 @@
 - [x] 3.1 更新 `destroyer-evidence.test.ts` / `lng-evidence.test.ts` 并新增 `vsim-step-workbench-phase2.test.tsx` 与 `vsim-all-steps-e2e-contract.test.ts`，在真实 WASM 会话上验证全 7 船 140 步仿真可运行、表单可填写、校验全通过。
 - [x] 3.2 依次通过 Vitest 仿真与治理全集、ESLint `--max-warnings=0`、`NODE_OPTIONS="--max-old-space-size=8192" typecheck` 及 `openspec validate --strict`。
 - [x] 3.3 在 `http://localhost:3011` 完成 GPU-Chrome Playwright 7 船真实交互仿真与表单提交验收及明暗双主题截图视觉核查。
-- [ ] 3.4 完成 `integration` 提交合并至 `main` 并升级发布版本号、完成阿里云与校内（网络可达范围内）镜像构建、推送与运行态验收，清理收尾释放 Docker 内存。
+- [x] 3.4 完成 `integration` 提交合并至 `main` 并升级发布版本号、完成阿里云与校内（网络可达范围内）镜像构建、推送与运行态验收，清理收尾释放 Docker 内存。
