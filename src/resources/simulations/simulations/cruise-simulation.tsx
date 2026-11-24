@@ -62,6 +62,7 @@ import { platformHeadingToSceneRad } from '../scene/heading';
 import { WaterHuggingLine } from '../scene/lines';
 
 import type { Vector2 } from '../core/types';
+import { readRunEvidence } from '@/features/simulations/local-evidence-store';
 import { cruiseCourseExperiment as cruiseExperiment } from '../experiments/cruise-experiment';
 import {
   cruiseCourseAdapter,
@@ -69,7 +70,15 @@ import {
   CRUISE_COURSE_STEPS,
 } from '../experiments/cruise-course';
 import { CruiseCourseControls } from '../experiments/cruise-course-controls';
-import { CruiseComfortReadout } from '../experiments/cruise-comfort-readout';
+import {
+  computeCruiseMultiObjectiveMetrics,
+  CruiseComfortReadout,
+} from '../experiments/cruise-comfort-readout';
+import {
+  buildCruiseRunObservation,
+  getCruiseRunObservation,
+  recordCruiseRunObservation,
+} from '../experiments/cruise-evidence';
 import { vesselSampleMark } from './vessel-experiment';
 import { VesselExperimentDocks, VesselCourseEvidencePanel } from './vessel-experiment-panels';
 import { useVesselExperiment } from './use-vessel-experiment';
@@ -468,7 +477,7 @@ function CruiseForceVectors({
             />
             {fin.faulted ? (
               <Html position={fin.start} center>
-                <div className="rounded bg-rose-600/90 px-2 py-0.5 text-[11px] font-medium text-white whitespace-nowrap shadow">
+                <div className="rounded border border-[hsl(var(--platform-brand-danger)/0.6)] bg-[hsl(var(--platform-brand-danger)/0.92)] px-2 py-0.5 text-[11px] font-medium text-platform-fg-inverse whitespace-nowrap shadow">
                   左减摇鳍冻结（t≥180s）
                 </div>
               </Html>
@@ -482,12 +491,16 @@ function CruiseForceVectors({
 
 function HUD({
   state,
+  activeSeq,
+  finsEnabled,
   finWearIntegralDeg,
   finFaultLocked,
   showForceVectors,
   onToggleForceVectors,
 }: {
   state: CruiseSimulationState;
+  activeSeq: number;
+  finsEnabled: boolean;
   finWearIntegralDeg: number;
   finFaultLocked: boolean;
   showForceVectors: boolean;
@@ -495,6 +508,7 @@ function HUD({
 }) {
   const error = ((state.targetHeading - state.heading + 540) % 360) - 180;
   const roll = toDegrees(state.rollAngle);
+  const showComfortFocus = (activeSeq >= 6 && activeSeq <= 19) || finsEnabled;
   return (
     <SimPanelStack>
       <SimStatusStrip
@@ -504,6 +518,7 @@ function HUD({
         time={`${state.time.toFixed(1)} s`}
       >
         <SimChip icon={Timer}>剩余{Math.max(0, state.runDurationSec - state.time).toFixed(1)}s</SimChip>
+        {activeSeq === 1 ? <SimChip tone="accent">第1步聚焦：执行器与六维力矩</SimChip> : null}
       </SimStatusStrip>
       <SimPanelSection title="3D 执行器推力与鳍升力矢量" icon={Navigation}>
         <SimToggleRow
@@ -555,6 +570,15 @@ function HUD({
           <SimNotice tone="warning">当前来流下鳍控制能力下降，请结合实际力矩评价。</SimNotice>
         ) : null}
       </SimPanelSection>
+      {showComfortFocus ? (
+        <SimNotice tone={finFaultLocked ? 'danger' : finsEnabled ? 'accent' : 'warning'} data-cruise-hud-focus>
+          {finFaultLocked
+            ? '左减摇鳍已于 t=180s 卡阻冻结，请重点对比左右鳍饱和、稳态横倾与乘客点不适度变化。'
+            : finsEnabled
+              ? '减摇鳍闭环已激活：重点关注限幅告警、鳍高频磨损积分与稳态统计窗舒适度代理。'
+              : `第 ${activeSeq} 步舒适性与共振对照期：减摇鳍当前关闭，可重点观察稳态横摇峰值与均方根。`}
+        </SimNotice>
+      ) : null}
       <CruiseComfortReadout comfort={state.comfort}
         finAnglesDeg={[state.portFinAngle, state.starboardFinAngle]}
         timeS={state.time}
@@ -995,6 +1019,97 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
   }, [session.course?.running, simulate]);
 
   const finFaultLocked = Boolean(state.time >= 180 && session.activeSeq === 19);
+  const finsEnabled = Boolean(session.course?.settings.finsEnabled);
+
+  useEffect(() => {
+    const runId = session.course?.plannedRunId;
+    if (!runId || state.time <= 0) return;
+    const finAnglesDeg: [number, number] = [state.portFinAngle, state.starboardFinAngle];
+    const msiPercent = computeCruiseMultiObjectiveMetrics({
+      comfort: state.comfort,
+      finAnglesDeg,
+      timeS: state.time,
+      finWearIntegralDeg,
+      finFaultLocked,
+    }).msiPercent;
+    recordCruiseRunObservation(
+      runId,
+      buildCruiseRunObservation({
+        comfort: state.comfort,
+        samples: session.shownSamples,
+        finAnglesDeg,
+        msiPercent,
+        finWearIntegralDeg,
+      }),
+    );
+  }, [
+    session.course?.plannedRunId,
+    state.time,
+    state.comfort,
+    state.portFinAngle,
+    state.starboardFinAngle,
+    session.shownSamples,
+    finWearIntegralDeg,
+    finFaultLocked,
+  ]);
+
+  useEffect(() => {
+    const runs = session.course?.runs ?? [];
+    const targetRuns = runs.filter(
+      (run) =>
+        run.stoppedAtMs !== null &&
+        (run.stepSequence === session.activeSeq || run.stepSequence === 6) &&
+        !getCruiseRunObservation(run.id),
+    );
+    if (targetRuns.length === 0) return;
+    let cancelled = false;
+    for (const summary of targetRuns) {
+      void readRunEvidence(summary.id)
+        .then((evidence) => {
+          if (cancelled || !evidence) return;
+          const samples = cruiseCourseTraceSamples(evidence.trace);
+          const lastSample = samples.at(-1);
+          const finAnglesDeg: [number, number] = [
+            lastSample?.values.portFin ?? 0,
+            lastSample?.values.starboardFin ?? 0,
+          ];
+          const wear = evidence.trace.reduce(
+            (acc, pt, idx) => {
+              const p = pt.truth.surfaceDeg[0] ?? 0;
+              const s = pt.truth.surfaceDeg[1] ?? 0;
+              if (idx === 0) return { lastP: p, lastS: s, total: 0 };
+              return {
+                lastP: p,
+                lastS: s,
+                total: acc.total + Math.abs(p - acc.lastP) + Math.abs(s - acc.lastS),
+              };
+            },
+            { lastP: 0, lastS: 0, total: 0 },
+          ).total;
+          const msiPercent = computeCruiseMultiObjectiveMetrics({
+            comfort: evidence.cruiseComfort ?? null,
+            finAnglesDeg,
+            timeS: evidence.lastTimeS,
+            finWearIntegralDeg: wear,
+            finFaultLocked: summary.stepSequence === 19 && evidence.lastTimeS >= 180,
+          }).msiPercent;
+          recordCruiseRunObservation(
+            summary.id,
+            buildCruiseRunObservation({
+              comfort: evidence.cruiseComfort ?? null,
+              samples,
+              finAnglesDeg,
+              msiPercent,
+              finWearIntegralDeg: wear,
+            }),
+          );
+        })
+        .catch(() => undefined);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [session.course?.runs, session.activeSeq]);
 
   return (
     <SceneEnvironmentProvider>
@@ -1036,6 +1151,8 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
                 status={
                   <HUD
                     state={state}
+                    activeSeq={session.activeSeq}
+                    finsEnabled={finsEnabled}
                     finWearIntegralDeg={finWearIntegralDeg}
                     finFaultLocked={finFaultLocked}
                     showForceVectors={showForceVectors}
@@ -1043,7 +1160,14 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
                   />
                 }
                 controls={<CruiseCourseControls session={session} timeS={state.time} />}
-                assessment={<VesselCourseEvidencePanel session={session} defaultChannel="fin-to-roll" />}
+                assessment={
+                  <VesselCourseEvidencePanel
+                    session={session}
+                    courseKey="cruise"
+                    stepSequence={session.step.seq}
+                    defaultChannel="fin-to-roll"
+                  />
+                }
               />
               {!isEmbedded ? (
                 <SimulationTopBar

@@ -11,6 +11,7 @@ import {
   Crosshair,
   Eye,
   Lightbulb,
+  ListOrdered,
   PanelLeft,
   PanelRight,
   SlidersHorizontal,
@@ -225,7 +226,9 @@ export function ExperimentStepAreas({
   seq,
   title,
   goal,
+  actionSteps,
   watch,
+  conditionText,
   hint,
   hintAttribute,
   prediction,
@@ -235,7 +238,9 @@ export function ExperimentStepAreas({
   seq: number;
   title: string;
   goal: string;
+  actionSteps?: string[];
   watch?: string;
+  conditionText?: string;
   hint?: string;
   hintAttribute?: string;
   prediction?: ReactNode;
@@ -243,6 +248,12 @@ export function ExperimentStepAreas({
   submission?: ReactNode;
 }) {
   const { status: readiness } = useSimulationReadiness();
+  const normalizedGoal = goal.trim();
+  const normalizedWatch = watch?.trim() ?? '';
+  const showWatch = Boolean(normalizedWatch && normalizedWatch !== normalizedGoal);
+  const normalizedCondition = conditionText?.trim() ?? '';
+  const normalizedHint = hint?.trim() ?? '';
+
   return (
     <div className="space-y-4">
       <section className="sim-hud-brief p-3 pl-4" data-step-brief>
@@ -256,25 +267,50 @@ export function ExperimentStepAreas({
             <p className="mt-0.5 text-sm font-semibold leading-5 text-platform-fg-primary">第 {seq} 步 · {title}</p>
           </div>
         </div>
-        <div className="mt-3 space-y-1.5 text-xs leading-5">
+        <div className="mt-3 space-y-2 text-xs leading-5">
           <p className="flex gap-2 text-platform-fg-primary" data-step-goal>
             <Crosshair className="mt-0.5 h-3.5 w-3.5 shrink-0 text-platform-action-primary" aria-hidden="true" />
             <span>本步目标：{goal}</span>
           </p>
-          {watch ? (
-            <p className="flex gap-2 text-platform-fg-primary">
+          {actionSteps && actionSteps.length > 0 ? (
+            <div className="space-y-1 rounded-md border border-platform-fg-primary/10 bg-platform-canvas/40 px-2.5 py-1.5" data-step-actions>
+              <p className="flex items-center gap-1.5 font-medium text-platform-fg-primary">
+                <ListOrdered className="h-3.5 w-3.5 shrink-0 text-platform-action-primary" aria-hidden="true" />
+                <span>操作步骤</span>
+              </p>
+              <ol className="space-y-0.5 pl-1 text-platform-fg-secondary">
+                {actionSteps.map((item, idx) => (
+                  <li key={`${idx}-${item}`} className="flex gap-1.5">
+                    <span className="shrink-0 font-mono font-semibold text-platform-action-primary">{idx + 1}.</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
+          {showWatch ? (
+            <p className="flex gap-2 text-platform-fg-primary" data-step-watch>
               <Eye className="mt-0.5 h-3.5 w-3.5 shrink-0 text-platform-action-primary" aria-hidden="true" />
-              <span>本步要看：{watch}</span>
+              <span>本步重点观察：{normalizedWatch}</span>
             </p>
           ) : null}
-          {hint ? (
+          {normalizedCondition ? (
+            <div
+              className="flex items-start gap-1.5 rounded-md border border-platform-action-primary/20 bg-platform-action-primary/10 px-2 py-1 text-[11px] text-platform-fg-secondary"
+              data-step-condition
+            >
+              <SlidersHorizontal className="mt-0.5 h-3 w-3 shrink-0 text-platform-action-primary" aria-hidden="true" />
+              <span><strong className="font-medium text-platform-fg-primary">本步工况：</strong>{normalizedCondition}</span>
+            </div>
+          ) : null}
+          {normalizedHint ? (
             <p
               className="flex gap-2 rounded-md bg-[hsl(var(--platform-brand-evidence)/0.1)] px-2 py-1.5 text-platform-fg-secondary"
               data-step-hint
               {...(hintAttribute ? { [hintAttribute]: '' } : {})}
             >
               <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[hsl(var(--platform-brand-evidence))]" aria-hidden="true" />
-              <span>{hint}</span>
+              <span>{normalizedHint}</span>
             </p>
           ) : null}
         </div>

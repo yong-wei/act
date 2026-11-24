@@ -1,3 +1,5 @@
+import type { VesselCruiseComfort } from '@/lib/control-engine/vessel-session';
+import type { VesselSample } from '../simulations/vessel-experiment';
 import type { VesselCourseEvidence } from './course-adapter';
 import { CRUISE_COURSE_STEPS, cruiseStudentRollModel, type CruiseCourseStep } from './cruise-course';
 import type { VesselRunSummary } from '@/features/simulations/local-evidence-store';
@@ -41,8 +43,11 @@ export function validateCruiseCourseEvidence(
   const rollModels = models.filter(
     (model) => model.channel === 'fin-to-roll' && model.payload.structure.kind === 'roll_oscillator',
   );
-  if (step.sequence !== 20 && (!answers.observation?.trim() || !answers.interpretation?.trim()))
-    return '请记录本人观察，并解释因果关系与模型边界。';
+  if (
+    step.sequence !== 20 &&
+    (!answers.prediction?.trim() || !answers.observation?.trim() || !answers.interpretation?.trim())
+  )
+    return '请保存运行前预测、本人观察，并解释因果关系与模型边界。';
   if (step.stepKind === 'run' && own.length < step.minimumRuns)
     return `本步需要至少${step.minimumRuns}次完整独立运行。`;
   if (
@@ -231,4 +236,127 @@ export function validateCruiseCourseEvidence(
       return '请完成报告六部分，并说明教学舒适性代理的适用范围。';
   }
   return null;
+}
+
+export interface CruiseRunObservation {
+  rollPeakDeg: number | null;
+  rollRmsDeg: number | null;
+  msiPercent: number | null;
+  finWorkMj: number | null;
+  propulsionWorkMj: number | null;
+  wearIntegralDeg: number | null;
+  maxFinAbsDeg: number | null;
+  finMomentSteadyNm: number | null;
+  finMomentPeakNm: number | null;
+  rollSteadyDeg: number | null;
+  headingSettlingS: number | null;
+  pax1AccelRms: number | null;
+  pax1AccelPeak: number | null;
+  pax1JerkRms: number | null;
+  pax2AccelRms: number | null;
+  pax2AccelPeak: number | null;
+  pax2JerkRms: number | null;
+}
+
+const OBS_STORAGE_KEY = 'act-cruise-run-obs-v1';
+const runObsCache = new Map<string, CruiseRunObservation>();
+let storageHydrated = false;
+
+function hydrateObsCache(): void {
+  if (storageHydrated || typeof window === 'undefined') return;
+  storageHydrated = true;
+  try {
+    const raw = window.sessionStorage.getItem(OBS_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Record<string, CruiseRunObservation>;
+    for (const [id, entry] of Object.entries(parsed)) {
+      if (entry && typeof entry === 'object' && !runObsCache.has(id)) runObsCache.set(id, entry);
+    }
+  } catch {
+    // Ignore restricted storage environments.
+  }
+}
+
+export function recordCruiseRunObservation(runId: string, obs: CruiseRunObservation): void {
+  if (!runId) return;
+  hydrateObsCache();
+  runObsCache.set(runId, obs);
+  if (typeof window === 'undefined') return;
+  try {
+    const entries = [...runObsCache.entries()].slice(-40);
+    window.sessionStorage.setItem(OBS_STORAGE_KEY, JSON.stringify(Object.fromEntries(entries)));
+  } catch {
+    // Ignore quota or privacy errors.
+  }
+}
+
+export function getCruiseRunObservation(runId: string): CruiseRunObservation | undefined {
+  hydrateObsCache();
+  return runObsCache.get(runId);
+}
+
+export function extractCruiseMetric(
+  run: VesselRunSummary,
+  key: keyof CruiseRunObservation,
+  digits = 3,
+): string | null {
+  const val = getCruiseRunObservation(run.id)?.[key];
+  return typeof val === 'number' && Number.isFinite(val) ? val.toFixed(digits) : null;
+}
+
+export function buildCruiseRunObservation(input: {
+  comfort: VesselCruiseComfort | null;
+  samples: VesselSample[];
+  finAnglesDeg: [number, number];
+  msiPercent: number | null;
+  finWearIntegralDeg: number;
+}): CruiseRunObservation {
+  const { comfort, samples, finAnglesDeg, msiPercent, finWearIntegralDeg } = input;
+  const rollVals = samples
+    .map((s) => (Number.isFinite(s.values.roll) ? s.values.roll : s.values.actualRoll))
+    .filter((v) => Number.isFinite(v));
+  const finMomentVals = samples
+    .map((s) => s.values.finMoment)
+    .filter((v) => Number.isFinite(v));
+  const windowRollVals = samples
+    .filter((s) => s.time >= 120)
+    .map((s) => (Number.isFinite(s.values.roll) ? s.values.roll : s.values.actualRoll))
+    .filter((v) => Number.isFinite(v));
+  const peakPool = windowRollVals.length >= 10 ? windowRollVals : rollVals;
+  const fallbackPeak = peakPool.reduce((best, v) => Math.max(best, Math.abs(v)), 0);
+
+  let headingSettlingS: number | null = null;
+  const turnSamples = samples.filter((s) => s.time >= 20 && Number.isFinite(s.values.heading));
+  if (turnSamples.length >= 5) {
+    let settledIdx = -1;
+    for (let i = turnSamples.length - 1; i >= 0; i -= 1) {
+      if (Math.abs(turnSamples[i].values.heading - 20) > 1.0) break;
+      settledIdx = i;
+    }
+    if (settledIdx >= 0 && settledIdx < turnSamples.length - 1) {
+      headingSettlingS = Math.max(0, turnSamples[settledIdx].time - 20);
+    }
+  }
+
+  const pax1 = comfort?.passengers[0];
+  const pax2 = comfort?.passengers[1];
+  return {
+    rollPeakDeg: comfort?.rollPeakDeg ?? (peakPool.length > 0 ? fallbackPeak : null),
+    rollRmsDeg: comfort?.rollRmsDeg ?? null,
+    msiPercent,
+    finWorkMj: comfort ? comfort.finServoElectricWorkJ / 1e6 : null,
+    propulsionWorkMj: comfort ? comfort.positivePropulsionWorkJ / 1e6 : null,
+    wearIntegralDeg: finWearIntegralDeg,
+    maxFinAbsDeg: Math.max(Math.abs(finAnglesDeg[0]), Math.abs(finAnglesDeg[1])),
+    finMomentSteadyNm: finMomentVals.length > 0 ? finMomentVals[finMomentVals.length - 1] : null,
+    finMomentPeakNm: finMomentVals.length > 0 ? finMomentVals.reduce((m, v) => Math.max(m, Math.abs(v)), 0) : null,
+    rollSteadyDeg: rollVals.length > 0 ? rollVals[rollVals.length - 1] : null,
+    headingSettlingS,
+    pax1AccelRms: pax1?.horizontalAccelerationRmsMps2 ?? null,
+    pax1AccelPeak: pax1?.horizontalAccelerationPeakMps2 ?? null,
+    pax1JerkRms: pax1?.jerkRmsMps3 ?? null,
+    pax2AccelRms: pax2?.horizontalAccelerationRmsMps2 ?? null,
+    pax2AccelPeak: pax2?.horizontalAccelerationPeakMps2 ?? null,
+    pax2JerkRms: pax2?.jerkRmsMps3 ?? null,
+  };
 }

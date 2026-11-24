@@ -66,12 +66,10 @@ import type { ControlMode, Vector2 } from '../core/types';
 import { containerCourseExperiment as containerExperiment } from '../experiments/container-experiment';
 import { containerCourseAdapter, containerCourseTraceSamples } from '../experiments/container-course';
 import { ContainerCourseControls } from '../experiments/container-course-controls';
-import { ContainerVoyageTradeoff } from '../experiments/container-voyage-tradeoff';
-import { VesselModelWorkbench } from '../experiments/model-workbench';
+import { computeContainerTradeoffMetrics } from '../experiments/container-voyage-tradeoff';
 import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
-import { Button } from '@/components/ui/button';
 import { vesselSampleMark } from './vessel-experiment';
-import { VesselExperimentDocks } from './vessel-experiment-panels';
+import { VesselCourseEvidencePanel, VesselExperimentDocks } from './vessel-experiment-panels';
 import { useVesselExperiment } from './use-vessel-experiment';
 import { toDegrees, toRadians, CONTAINER_MSC_PARAMS } from '../core/constants';
 import {
@@ -111,6 +109,7 @@ interface ContainerSimulationState {
   gainSchedulingEnabled: boolean;
   currentK: number;
   currentT: number;
+  speedError: number;
 }
 
 // ============ 集装箱船模型组件 ============
@@ -250,7 +249,7 @@ function HeadingIndicator({
 
 // ============ HUD 组件 ============
 
-function HUD({ state }: { state: ContainerSimulationState }) {
+function HUD({ state, stepSequence }: { state: ContainerSimulationState; stepSequence: number }) {
   const headingError = state.targetHeading - state.heading;
   const normalizedError = headingError > 180 ? headingError - 360 : headingError < -180 ? headingError + 360 : headingError;
 
@@ -275,8 +274,12 @@ function HUD({ state }: { state: ContainerSimulationState }) {
       ) : null}
       <SimPanelSection title="当前装载与航速" icon={Gauge}>
         <SimReadoutGrid>
-          <SimReadout label="当前本人模型增益" value={Number.isFinite(state.currentK) ? state.currentK.toFixed(4) : '尚未选择'} />
-          <SimReadout label="当前本人模型时间常数" value={Number.isFinite(state.currentT) ? state.currentT.toFixed(1) : '尚未选择'} unit="s" />
+          {stepSequence >= 7 && stepSequence <= 19 ? (
+            <>
+              <SimReadout label="当前本人模型增益" value={Number.isFinite(state.currentK) ? state.currentK.toFixed(4) : '尚未选择'} />
+              <SimReadout label="当前本人模型时间常数" value={Number.isFinite(state.currentT) ? state.currentT.toFixed(1) : '尚未选择'} unit="s" />
+            </>
+          ) : null}
           <SimReadout label="质量" value={(state.massKg / 1e6).toFixed(3)} unit="千吨" />
           <SimReadout label="吃水" value={state.draftM.toFixed(2)} unit="m" />
           <SimReadout label="横稳心高" value={state.gmM?.toFixed(3) ?? '—'} unit="m" />
@@ -286,29 +289,22 @@ function HUD({ state }: { state: ContainerSimulationState }) {
           <SimReadout label="航速" value={state.speed.toFixed(1)} unit="m/s" />
         </SimReadoutGrid>
       </SimPanelSection>
-      <SimPanelSection title="航程与教学估计燃油" icon={Gauge}>
-        <SimReadoutGrid>
-          <SimReadout label="北向实际航程" value={state.position.x.toFixed(1)} unit="m" />
-          <SimReadout label="当前轴功率" value={(state.powerW / 1e6).toFixed(2)} unit="MW" />
-          <SimReadout label="累计燃油" value={state.fuelKg.toFixed(2)} unit="kg" />
-          <SimReadout label="累计横偏峰值" value={state.voyage?.progress.maximumCrossTrackM.toFixed(2) ?? '—'} unit="m" />
-          <SimReadout label="末段航向平均误差" value={state.voyage?.meanFinalHeadingErrorDeg.toFixed(3) ?? '—'} unit="°" />
-        </SimReadoutGrid>
-        {state.voyage?.progress.termination ? <p className="mt-2 text-xs text-platform-fg-secondary">
-          {state.voyage.progress.termination.reason === 'arrived' ? '已实际到达' : '航次达到运行时限'}，
-          {state.voyage.eligibleForFuelComparison ? '满足本教学航次的燃油比较条件。' : '需结合到达时间、末速、横偏和航向约束解释结果。'}
-        </p> : null}
-        <p className="mt-2 text-xs text-platform-fg-secondary">燃油采用教学发动机曲线，实际轴功率积分保留推进、制动和怠速影响。</p>
-      </SimPanelSection>
-      <ContainerVoyageTradeoff
-        timeS={state.time}
-        positionX={state.position.x}
-        speedMps={state.speed}
-        powerW={state.powerW}
-        fuelKg={state.fuelKg}
-        rudderDeg={state.rudder}
-        voyage={state.voyage}
-      />
+      {stepSequence >= 11 && stepSequence <= 19 ? (
+        <SimPanelSection title="航程与教学估计燃油" icon={Gauge}>
+          <SimReadoutGrid>
+            <SimReadout label="北向实际航程" value={state.position.x.toFixed(1)} unit="m" />
+            <SimReadout label="当前轴功率" value={(state.powerW / 1e6).toFixed(2)} unit="MW" />
+            <SimReadout label="累计燃油" value={state.fuelKg.toFixed(2)} unit="kg" />
+            <SimReadout label="累计横偏峰值" value={state.voyage?.progress.maximumCrossTrackM.toFixed(2) ?? '—'} unit="m" />
+            <SimReadout label="末段航向平均误差" value={state.voyage?.meanFinalHeadingErrorDeg.toFixed(3) ?? '—'} unit="°" />
+          </SimReadoutGrid>
+          {state.voyage?.progress.termination ? <p className="mt-2 text-xs text-platform-fg-secondary">
+            {state.voyage.progress.termination.reason === 'arrived' ? '已实际到达' : '航次达到运行时限'}，
+            {state.voyage.eligibleForFuelComparison ? '满足本教学航次的燃油比较条件。' : '需结合到达时间、末速、横偏和航向约束解释结果。'}
+          </p> : null}
+          <p className="mt-2 text-xs text-platform-fg-secondary">燃油采用教学发动机曲线，实际轴功率积分保留推进、制动和怠速影响。</p>
+        </SimPanelSection>
+      ) : null}
       <SimPanelSection
         title="相对风量测"
         icon={Wind}
@@ -535,7 +531,8 @@ function containerStateFromFrame(frame: VesselSessionFrame, running: boolean, co
     fuelKg: frame.teachingFuel?.state.fuel_kg ?? 0, voyage: frame.containerVoyage,
     windSpeed: wind ?? 0, windDirection: direction ?? 0, targetHeading: frame.headingReferenceDeg ?? frame.input.targetHeadingDeg,
     controlMode: frame.input.controlMode, gainSchedulingEnabled: frame.input.containerSpeed?.schedulingEnabled ?? false,
-    currentK: weighted('k'), currentT: weighted('t_s')};
+    currentK: weighted('k'), currentT: weighted('t_s'),
+    speedError: controller?.errorMps ?? 0};
 }
 
 export default function ContainerSimulation({ ticket = '' }: { ticket?: string }) {
@@ -561,7 +558,7 @@ export default function ContainerSimulation({ ticket = '' }: { ticket?: string }
     time: 0, position: {x: 0, z: 0}, heading: 0, yawRate: 0, rudder: 0, speed: 8, loadRatio: .6,
     rollAngle: 0, pitchAngle: 0, heaveM: 0, draftM: 16.8, seaState: 0, massKg: 216e6, gmM: 2,
     powerW: 0, fuelKg: 0, windSpeed: 0, windDirection: 0, targetHeading: 0,
-    controlMode: 'pd', gainSchedulingEnabled: false, currentK: NaN, currentT: NaN});
+    controlMode: 'pd', gainSchedulingEnabled: false, currentK: NaN, currentT: NaN, speedError: 0});
 
   useEffect(() => {
     const course = sessionRef.current.course;
@@ -583,6 +580,7 @@ export default function ContainerSimulation({ ticket = '' }: { ticket?: string }
     lastTimeRef.current = timestamp;
     let frame = course.read();
     clockRef.current.advance(elapsed, (dt) => {
+      if (!course.running) return;
       frame = course.advance(dt);
       if (!frame) return;
       const point = course.latestPoint();
@@ -590,7 +588,7 @@ export default function ContainerSimulation({ ticket = '' }: { ticket?: string }
         const sample = containerCourseTraceSamples([point])[0];
         current.trackLatest(sample);
         const mark = vesselSampleMark(frame.timeS);
-        if (mark > markRef.current) {markRef.current = mark; current.observe(sample);}
+        if (mark > markRef.current || !course.running) {markRef.current = Math.max(markRef.current, mark); current.observe(sample);}
       }
       bindingRef.current = {rudderDeg: (frame.truth.actuator_states.control_surface_angles_rad[0] ?? 0) * 180 / Math.PI,
         speedMps: frame.waterVelocityBody[0], attainedCount: 0, advancing: course.running};
@@ -626,6 +624,16 @@ export default function ContainerSimulation({ ticket = '' }: { ticket?: string }
     return () => {if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);};
   }, [session.course?.running, simulationLoop]);
 
+  const assessmentTradeoff = computeContainerTradeoffMetrics({
+    timeS: simState.time,
+    positionX: simState.position.x,
+    speedMps: simState.speed,
+    powerW: simState.powerW,
+    fuelKg: simState.fuelKg,
+    rudderDeg: simState.rudder,
+    voyage: simState.voyage,
+  });
+
   return (
     <SceneEnvironmentProvider>
     <SceneSoundscapeProvider>
@@ -651,37 +659,29 @@ export default function ContainerSimulation({ ticket = '' }: { ticket?: string }
       <VesselExperimentDocks
         experiment={containerExperiment}
         session={session}
-        status={<HUD state={simState} />}
+        status={<HUD state={simState} stepSequence={session.step.seq} />}
         controls={<ContainerCourseControls session={session} timeS={simState.time} />}
         assessment={(
           <div className="space-y-4">
-          {session.course ? <SimPanelSection title="本机实验轮次" icon={Gauge}>
-            <div className="space-y-2"><select className="sim-hud-input" aria-label="本机实验轮次" value={session.course.scopeKey}
-              disabled={session.busy || session.tour.active || !session.course.ready} onChange={(event) => {void session.course?.selectRound(event.target.value);}}>
-              {session.course.rounds.map((draft) => <option key={draft.scopeKey} value={draft.scopeKey}>
-                {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步
-              </option>)}</select>
-              <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || session.tour.active || !session.course.ready}
-                onClick={() => {void session.restartIlabSession();}}>开启新一轮实验</Button></div>
-          </SimPanelSection> : null}
-          {session.course ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || session.tour.active}
-            onClick={() => {void session.course?.upload();}}>{session.tour.active ? '导览只读禁止上传' : '上传或重试保存本人证据'}</Button> : null}
-          {session.course ? (session.tour.active ? (
-            <div className="sim-hud-tile p-2.5 text-xs text-platform-fg-secondary" data-tour-workbench-locked>
-              只读高光导览中：已隔离本机实验轮次与模型辨识库，退出导览后可继续编辑本人模型。
-            </div>
-          ) : <VesselModelWorkbench scopeKey={session.course.scopeKey} runs={session.course.runs}
-            onArtifactsChange={session.course.onArtifactsChange} defaultChannel="shaft-reference-to-speed" />) : null}
-          <SimulationAssessmentPanel
-            pendingReview
-            title="航线控制评估"
-            metrics={[
-              { id: 'heading-error', label: '航向误差', value: Math.abs(simState.targetHeading - simState.heading), max: 40, better: 'lower', unit: '°' },
-              { id: 'roll', label: '横摇角', value: Math.abs(toDegrees(simState.rollAngle)), max: 12, better: 'lower', unit: '°' },
-              { id: 'wind', label: '风速工况', value: simState.windSpeed, max: 25, better: 'lower', unit: 'm/s' },
-            ]}
-          />
-          <p className="text-xs leading-5 text-platform-fg-secondary">采用冻结教学标称参数与代表波浪工况，燃油属于教学估计。本人局部模型的残差及调度超域随证据保存。</p>
+            <VesselCourseEvidencePanel
+              session={session}
+              courseKey="container"
+              stepSequence={session.step.seq}
+              defaultChannel="shaft-reference-to-speed"
+            />
+            {session.step.seq >= 7 && session.step.seq <= 19 ? (
+              <SimulationAssessmentPanel
+                pendingReview
+                title="航速与航次评估"
+                metrics={[
+                  { id: 'speed-error', label: '航速跟踪偏差', value: Math.abs(simState.speedError), max: 2, better: 'lower', unit: 'm/s', precision: 2 },
+                  { id: 'voyage-eta', label: '6000m 进度 / ETA', value: assessmentTradeoff.projectedEtaS ?? 900, max: 1200, better: 'lower', unit: 's', precision: 1 },
+                  { id: 'teaching-fuel', label: '累计教学油耗', value: simState.fuelKg, max: 6000, better: 'lower', unit: 'kg', precision: 1 },
+                  { id: 'cross-track', label: '航迹横偏', value: Math.abs(simState.voyage?.progress.maximumCrossTrackM ?? simState.position.z), max: 150, better: 'lower', unit: 'm', precision: 1 },
+                ]}
+              />
+            ) : null}
+            <p className="text-xs leading-5 text-platform-fg-secondary">采用冻结教学标称参数与代表波浪工况，燃油属于教学估计。本人局部模型的残差及调度超域随证据保存。</p>
           </div>
         )}
       />

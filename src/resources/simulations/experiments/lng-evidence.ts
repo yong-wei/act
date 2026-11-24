@@ -43,8 +43,8 @@ export function validateLngCourseEvidence(step: LngCourseStep, evidence: {
         && Number(model.payload.operatingPoint.inputOrigin) === local.shaftReferenceRpm
         && Number(model.payload.operatingPoint.speedMps) === local.speedMps;
     })));
-  if (step.sequence !== 20 && (!answers.observation?.trim() || !answers.interpretation?.trim())) {
-    return '请记录本人观察，并解释原因与适用边界。';
+  if (step.sequence !== 20 && (!answers.prediction?.trim() || !answers.observation?.trim() || !answers.interpretation?.trim())) {
+    return '请先填写运行前预测、记录本人观察，并解释原因与适用边界。';
   }
   if (step.stepKind === 'run' && own.length < step.minimumRuns) return `本步需要至少${step.minimumRuns}次完整运行，失败方案的证据也会保留。`;
   const ownIds = new Set(own.map((run) => run.id));

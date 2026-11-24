@@ -1,4 +1,7 @@
+import type { SketchPlotId } from '@/features/ilab/sketch-plots';
+import type { VesselRunSummary } from '@/features/simulations/local-evidence-store';
 import type { ControlMode } from '../core/types';
+import type { SketchActualCurveSeries, SketchAxisBounds } from '../experiments/sketch-coordinate-templates';
 
 export interface VesselField {
   key: string;
@@ -6,6 +9,62 @@ export interface VesselField {
   unit?: string;
   kind: 'number' | 'choice' | 'text' | 'sketch';
   choices?: string[];
+}
+
+export interface StepSketchSpec {
+  mode: 'prediction' | 'analysis';
+  plotId: SketchPlotId;
+  label: string;
+  hint: string;
+  lockPlotId?: boolean;
+  coordinateOverride?: Partial<SketchAxisBounds> & { title?: string; subtitle?: string };
+  promptFocus: string;
+  overlayExtractor?: (samples: VesselSample[], runs: VesselRunSummary[]) => SketchActualCurveSeries[];
+}
+
+export interface StepPredictionSpec {
+  kind: 'choice' | 'numeric_target' | 'ranking' | 'text';
+  prompt: string;
+  options?: Array<{ value: string; label: string; detail?: string }>;
+  rankItems?: string[];
+  unit?: string;
+  targetPlaceholder?: string;
+  allowRationale?: boolean;
+  rationalePlaceholder?: string;
+  sketch?: StepSketchSpec;
+}
+
+export interface StepObservationMetricDef {
+  key: string;
+  label: string;
+  unit?: string;
+  seriesId?: string;
+  pickMode?: 'peak' | 'steady' | 'min' | 'max' | 'manual';
+  placeholder?: string;
+  extract?: (run: VesselRunSummary) => string | null;
+}
+
+export interface StepObservationSlotDef {
+  id: string;
+  label: string;
+  conditionHint?: string;
+  matcher?: (run: VesselRunSummary) => boolean;
+  metrics: StepObservationMetricDef[];
+}
+
+export interface StepObservationSpec {
+  kind: 'channel_match' | 'structured_metrics' | 'multi_run_slots' | 'artifact_binding' | 'text';
+  prompt: string;
+  pairs?: Array<{ id: string; item: string; choices: string[]; hint?: string }>;
+  metrics?: StepObservationMetricDef[];
+  slots?: StepObservationSlotDef[];
+  artifactKind?: 'model' | 'comparison' | 'dual_model' | 'dp_model' | 'spectrum' | 'capacity';
+  placeholder?: string;
+}
+
+export interface StepInterpretationSpec {
+  placeholder: string;
+  checklist: string[];
 }
 
 export interface VesselStep {
@@ -20,6 +79,12 @@ export interface VesselStep {
   maxPoints: number;
   expectTime: number;
   fields: VesselField[];
+  actionSteps?: string[];
+  conditionText?: string;
+  predictionSpec?: StepPredictionSpec;
+  observationSpec?: StepObservationSpec;
+  interpretationSpec?: StepInterpretationSpec;
+  sketchSpec?: StepSketchSpec;
 }
 
 export interface VesselSample {

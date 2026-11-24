@@ -20,9 +20,8 @@ import {SimulationTopBar, simulationUi} from '../components/simulation-ui';
 import {dredgerCourseExperiment as dredgerExperiment, dredgerTraceSamples, DREDGER_MODE_LABELS} from '../experiments/dredger-experiment';
 import {dredgerCourseAdapter} from '../experiments/dredger-course-adapter';
 import {DredgerCourseControls} from '../experiments/dredger-course-controls';
-import {VesselModelWorkbench} from '../experiments/model-workbench';
 import {vesselSampleMark} from './vessel-experiment';
-import {VesselExperimentDocks} from './vessel-experiment-panels';
+import {VesselCourseEvidencePanel, VesselExperimentDocks} from './vessel-experiment-panels';
 import {useVesselExperiment} from './use-vessel-experiment';
 import type {VesselSessionFrame} from '@/lib/control-engine/vessel-session';
 import {useSimulationSceneTheme, simulationScenePalette} from '../components/simulation-theme';
@@ -411,9 +410,14 @@ export function DredgerSimulation({ticket = ''}: {ticket?: string}) {
         session={session}
         status={<HUD frame={frame} isRunning={isRunning} />}
         controls={<DredgerCourseControls session={session} timeS={frame?.timeS ?? 0} />}
-        assessment={session.course && !session.tour.active ? <VesselModelWorkbench scopeKey={session.course.scopeKey}
-          runs={session.course.runs} onArtifactsChange={session.course.onArtifactsChange}
-          defaultChannel="winch-reference-to-sway" /> : null}
+        assessment={
+          <VesselCourseEvidencePanel
+            session={session}
+            courseKey="dredger"
+            stepSequence={session.step.seq}
+            defaultChannel="winch-reference-to-sway"
+          />
+        }
       />
 
       <SimulationTopBar

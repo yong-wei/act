@@ -80,7 +80,7 @@ function DrillingPlatformModel(props: {
       />
       {props.t2FaultActive ? (
         <Html position={[props.position.x, 26, props.position.z]} center>
-          <div className="rounded border border-rose-400/60 bg-rose-600/90 px-2.5 py-1 text-xs font-semibold text-white whitespace-nowrap shadow">
+          <div className="rounded border border-[hsl(var(--platform-brand-danger)/0.6)] bg-[hsl(var(--platform-brand-danger)/0.92)] px-2.5 py-1 text-xs font-semibold text-platform-fg-inverse whitespace-nowrap shadow">
             T2 断桨故障 · 7 推力器重分配
           </div>
         </Html>
@@ -125,7 +125,7 @@ function WellheadSafetyEnvelopeRings({
         <meshBasicMaterial color={simulationScenePalette.danger} side={THREE.DoubleSide} transparent opacity={0.92} />
       </mesh>
       <Html position={[0, 8, 0]} center>
-        <div className="rounded border border-slate-500/40 bg-slate-950/80 px-2 py-0.5 text-[10px] font-medium text-slate-100 whitespace-nowrap shadow">
+        <div className="sim-hud-tile px-2 py-0.5 text-[10px] font-medium text-platform-fg-primary whitespace-nowrap shadow">
           井口安全包络：1.0m 绿 · 1.5m 黄 · 2.5m 红(EDS 紧急解脱)
         </div>
       </Html>
@@ -701,7 +701,12 @@ export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
           <DrillingCourseControls session={session} timeS={metrics.time} />
         )}
         assessment={(
-          <VesselCourseEvidencePanel session={session} defaultChannel="dp-low-frequency" />
+          <VesselCourseEvidencePanel
+            session={session}
+            defaultChannel="dp-low-frequency"
+            courseKey="drilling"
+            stepSequence={session.step.seq}
+          />
         )}
       />
 

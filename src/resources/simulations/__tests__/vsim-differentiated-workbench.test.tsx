@@ -69,6 +69,8 @@ vi.mock('@/features/simulations/local-evidence-store', () => ({
 vi.mock('@/features/simulations/course-artifact-upload', () => ({
   fetchCourseSessionRecovery: courseMocks.fetchCourseSessionRecovery,
   hydrateRecoveredCourseSession: courseMocks.hydrateRecoveredCourseSession,
+  hasRecoverableLocalDraft: vi.fn(() => false),
+  resumeVesselVerifications: vi.fn().mockResolvedValue(undefined),
   uploadVesselCourseArtifacts: courseMocks.uploadVesselCourseArtifacts,
   uploadVesselCourseRun: courseMocks.uploadVesselCourseRun,
   saveVesselCourseReport: courseMocks.saveVesselCourseReport,

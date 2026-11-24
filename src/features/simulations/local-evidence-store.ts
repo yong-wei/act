@@ -37,7 +37,7 @@ interface TraceChunk { runId: string; start: number; points: VesselRunEvidence['
 interface SensorChunk { runId: string; start: number; points: VesselObservedSample[] }
 interface FineStepChunk { runId:string;start:number;points:VesselFineStepPoint[] }
 export interface VesselRunSummary extends Pick<VesselRunEvidence, 'id' | 'scopeKey' | 'courseVersion' | 'stepSequence' |
-  'createdAtMs' | 'stoppedAtMs' | 'lastTimeS' | 'configuration' | 'initialInput' | 'stopReason' | 'controllerSourceRunId' | 'designStudentModelId' | 'courseSettings' | 'dredgerModeEvents'> {
+  'createdAtMs' | 'stoppedAtMs' | 'lastTimeS' | 'configuration' | 'parameters' | 'initialInput' | 'stopReason' | 'controllerSourceRunId' | 'designStudentModelId' | 'courseSettings' | 'dredgerModeEvents'> {
   durationS: number;
   sampleCount: number;
   finalInput?:VesselSessionInput;
@@ -259,7 +259,7 @@ export async function listRunEvidence(scopeKey: string): Promise<VesselRunSummar
       sampleCount: run.traceLength, stopReason: run.stopReason,
       finalInput:run.changes.at(-1)?.input ?? run.initialInput,
       scopeKey: run.scopeKey, courseVersion: run.courseVersion, lastTimeS: run.lastTimeS,
-      configuration: run.configuration, initialInput: run.initialInput, controllerSourceRunId: run.controllerSourceRunId,designStudentModelId:run.designStudentModelId,
+      configuration: run.configuration, parameters: run.parameters, initialInput: run.initialInput, controllerSourceRunId: run.controllerSourceRunId,designStudentModelId:run.designStudentModelId,
       courseSettings:run.courseSettings,
       dredgerModeEvents:run.dredgerModeEvents,
       uploadedToReportRef:run.stoppedAtMs !== null && run.uploadReceipt

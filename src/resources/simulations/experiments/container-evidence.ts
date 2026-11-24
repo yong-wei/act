@@ -23,11 +23,12 @@ export function validateContainerCourseEvidence(step: ContainerCourseStep, evide
   const {runs, models, comparisons, answers} = evidence;
   const complete = (run: VesselRunSummary) => run.stoppedAtMs !== null && run.stopReason !== 'failure'
     && (run.lastTimeS >= (CONTAINER_COURSE_STEPS[run.stepSequence - 1]?.runDurationS ?? Infinity) - 1e-7
+      || (run.stepSequence === 2 && run.stopReason === 'duration' && run.lastTimeS >= 1 - 1e-7)
       || Boolean(run.configuration.containerVoyage && ['arrival', 'time_limit'].includes(run.stopReason ?? '')));
   const speedModels = models.filter((model) => model.channel === 'shaft-reference-to-speed' && model.payload.structure.kind === 'fopdt');
   const own = runs.filter((run) => run.stepSequence === step.sequence && complete(run));
-  if (step.sequence !== 20 && (!answers.observation?.trim() || !answers.interpretation?.trim())) {
-    return '请记录本人观察，并解释因果关系及模型边界。';
+  if (step.sequence !== 20 && (!answers.prediction?.trim() || !answers.observation?.trim() || !answers.interpretation?.trim())) {
+    return '请先填写运行前预测、记录本人观察，并解释因果关系及模型边界。';
   }
   if (step.stepKind === 'run' && own.length < step.minimumRuns) return `本步需要至少${step.minimumRuns}次完整独立运行。`;
   if (step.speedControl && own.some((run) => !run.initialInput.containerSpeed?.models.every((point) =>

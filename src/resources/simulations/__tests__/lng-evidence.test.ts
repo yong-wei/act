@@ -25,12 +25,17 @@ function run(sequence: number, id: string): VesselRunSummary {
     sampleCount: 12000, configuration: step.configuration, initialInput: input, finalInput: input,
     stopReason: 'duration', designStudentModelId: model.id, courseSettings: {...settings}};
 }
-const answers = {observation: '已记录本人证据', interpretation: '依据量测解释惯性与外推边界'};
-function validate(sequence: number, runs: VesselRunSummary[], comparisons: DestroyerComparisonEvidence[] = [], models = [model]) {
-  return validateLngCourseEvidence(LNG_COURSE_STEPS[sequence - 1], {runs, models, comparisons, answers});
+const answers = {prediction: '预期制动与降速滞后', observation: '已记录本人证据', interpretation: '依据量测解释惯性与外推边界'};
+function validate(sequence: number, runs: VesselRunSummary[], comparisons: DestroyerComparisonEvidence[] = [], models = [model], customAnswers = answers) {
+  return validateLngCourseEvidence(LNG_COURSE_STEPS[sequence - 1], {runs, models, comparisons, answers: customAnswers});
 }
 
 describe('LNG专项证据验收', () => {
+  it('缺少运行前预测时应明确拦截第1至19步提交', () => {
+    const first = run(1, 'step1');
+    expect(validate(1, [first], [], [model], {prediction: '', observation: '已记录', interpretation: '已解释'})).toContain('预测');
+  });
+
   it('两种反车强度需要不同的真实末端命令', () => {
     const first = run(6, 'first'), second = run(6, 'second');
     expect(validate(6, [first, second])).toContain('两种反车强度');

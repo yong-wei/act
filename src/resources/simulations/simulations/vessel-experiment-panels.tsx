@@ -6,7 +6,11 @@ import { CheckCircle2, Crosshair, FileText, Lock, Radio, Sparkles } from 'lucide
 
 import { Button } from '@/components/ui/button';
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
+import type { VesselRunSummary } from '@/features/simulations/local-evidence-store';
+import type { VesselSessionConfiguration, VesselSessionInput } from '@/lib/control-engine/vessel-session';
 import { cn } from '@/lib/utils';
+import type { VesselCourseKey } from '../experiments/course-catalog';
+import { resolveVesselCourseKey } from '../experiments/vessel-workbench-policy';
 import type { VesselReportSectionKey } from '../experiments/step20-evidence-workbench';
 import { simulationScenePalette } from '../components/simulation-theme';
 import {
@@ -26,6 +30,13 @@ import {
   type VesselStep,
 } from './vessel-experiment';
 import { SketchPad } from './sketch-pad';
+import {
+  StepInterpretationStage,
+  StepObservationStage,
+  StepPredictionStage,
+  resolveActiveObservationSlotKey,
+  synthesizeObservationSummary,
+} from './vessel-step-structured-fields';
 import type { VesselExperimentController } from './use-vessel-experiment';
 import { VesselModelWorkbench } from '../experiments/model-workbench';
 import { ThreeLayerTopology } from '../experiments/three-layer-topology';
@@ -35,35 +46,121 @@ import { IlabTelemetryDrawer, IlabTelemetryToggleButton } from '../experiments/i
 import { HighlightTourBanner, HighlightTourToggleButton } from '../experiments/highlight-tour-bar';
 import { Step20EvidenceWorkbench, type Step20RunSummary } from '../experiments/step20-evidence-workbench';
 import type { FrozenVesselStudentModel, IdentificationChannel, VesselModelComparison } from '../experiments/student-analysis';
-import { SimPanelSection } from '../components/simulation-panels';
 
 Chart.register(...registerables);
 
-export function VesselCourseEvidencePanel<Settings extends object>({session,defaultChannel}:{
-  session:VesselExperimentController<Settings>;defaultChannel:IdentificationChannel | 'dp-low-frequency';
+const EMPTY_TOUR_INPUT: VesselSessionInput = {
+  controlMode: 'manual',
+  pid: { kp: 0, ki: 0, kd: 0 },
+  targetHeadingDeg: 0,
+  feedback: 'measurement',
+  actuators: { shafts: [], surfaces: [] },
+};
+
+const VALID_STOP_REASONS = new Set(['student', 'duration', 'failure', 'arrival', 'time_limit']);
+
+function asVesselRunSummary(run: VesselRunSummary | Step20RunSummary): VesselRunSummary {
+  if ('scopeKey' in run && 'sampleCount' in run) return run;
+  const stopReason =
+    run.stopReason && VALID_STOP_REASONS.has(run.stopReason)
+      ? (run.stopReason as VesselRunSummary['stopReason'])
+      : null;
+  const configuration: VesselSessionConfiguration = run.configuration ?? {};
+  return {
+    id: run.id,
+    scopeKey: 'tour-readonly',
+    courseVersion: '',
+    stepSequence: run.stepSequence,
+    createdAtMs: run.createdAtMs,
+    stoppedAtMs: run.createdAtMs,
+    lastTimeS: run.lastTimeS,
+    durationS: run.lastTimeS,
+    sampleCount: 0,
+    configuration,
+    initialInput: EMPTY_TOUR_INPUT,
+    stopReason,
+  };
+}
+
+export function VesselCourseEvidencePanel<Settings extends object>({
+  session,
+  defaultChannel,
+  courseKey,
+  stepSequence,
+}: {
+  session: VesselExperimentController<Settings>;
+  defaultChannel: IdentificationChannel | 'dp-low-frequency';
+  courseKey?: VesselCourseKey;
+  stepSequence?: number;
 }) {
-  const course=session.course;
+  const course = session.course;
   const tourActive = Boolean(session.tour?.active);
+  const resolvedStepSequence = stepSequence ?? session.step.seq;
+  const isStep20 = resolvedStepSequence >= 20;
+  const [roundOpen, setRoundOpen] = useState(isStep20);
+  useEffect(() => {
+    setRoundOpen(isStep20);
+  }, [isStep20]);
+
   if (!course) return null;
-  return <div className="space-y-4">
-    <SimPanelSection title="本机实验轮次">
-      <div className="space-y-2"><select className="sim-hud-input" aria-label="本机实验轮次" value={course.scopeKey}
-        disabled={session.busy || tourActive || !course.canSelectRound} onChange={(event)=>{void course.selectRound(event.target.value);}}>
-        {course.rounds.map((draft)=><option key={draft.scopeKey} value={draft.scopeKey}>
-          {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步
-        </option>)}</select>
-        <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || tourActive || !course.canSelectRound}
-          onClick={()=>{void session.restartIlabSession();}}>开启新一轮实验</Button>
-      </div>
-    </SimPanelSection>
-    {tourActive ? (
-      <div className="sim-hud-tile p-2.5 text-xs text-platform-fg-secondary" data-tour-workbench-locked>
-        只读高光导览中：已隔离本机实验轮次与模型辨识库，退出导览后可继续编辑本人模型。
-      </div>
-    ) : (
-      <VesselModelWorkbench scopeKey={course.scopeKey} runs={course.runs} onArtifactsChange={course.onArtifactsChange} defaultChannel={defaultChannel} />
-    )}
-  </div>;
+  const resolvedCourseKey = resolveVesselCourseKey(courseKey, defaultChannel);
+
+  return (
+    <div className="space-y-4">
+      <details
+        data-round-manager
+        open={roundOpen}
+        onToggle={(event) => setRoundOpen(event.currentTarget.open)}
+        className="sim-panel-section"
+      >
+        <summary className="cursor-pointer select-none text-xs font-semibold tracking-wide text-platform-fg-primary">
+          本机实验轮次与新开一轮（{course.rounds.length} 轮记录）
+        </summary>
+        <div className="mt-2.5 space-y-2">
+          <select
+            className="sim-hud-input"
+            aria-label="本机实验轮次"
+            value={course.scopeKey}
+            disabled={session.busy || tourActive || !course.canSelectRound}
+            onChange={(event) => {
+              void course.selectRound(event.target.value);
+            }}
+          >
+            {course.rounds.map((draft) => (
+              <option key={draft.scopeKey} value={draft.scopeKey}>
+                {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步
+              </option>
+            ))}
+          </select>
+          <Button
+            size="sm"
+            variant="outline"
+            className={simulationUi.buttonOutline}
+            disabled={session.busy || tourActive || !course.canSelectRound}
+            onClick={() => {
+              void session.restartIlabSession();
+            }}
+          >
+            开启新一轮实验
+          </Button>
+        </div>
+      </details>
+      {tourActive ? (
+        <div className="sim-hud-tile p-2.5 text-xs text-platform-fg-secondary" data-tour-workbench-locked>
+          只读高光导览中：已隔离本机实验轮次与模型辨识库，退出导览后可继续编辑本人模型。
+        </div>
+      ) : (
+        <VesselModelWorkbench
+          scopeKey={course.scopeKey}
+          runs={course.runs}
+          onArtifactsChange={course.onArtifactsChange}
+          defaultChannel={defaultChannel}
+          courseKey={resolvedCourseKey}
+          stepSequence={resolvedStepSequence}
+        />
+      )}
+    </div>
+  );
 }
 
 const SERIES_COLORS = [
@@ -187,21 +284,33 @@ export function VesselCurve({
   stepTitle?: string;
   predictionTarget?: number | null;
   comparison?: VesselModelComparison | null;
-  onPickSample?: (snippet: string) => void;
+  onPickSample?: (
+    snippet: string,
+    detail?: { seriesId: string; timeS: number; value: number; formattedValue: string },
+  ) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
   const chartTheme = useSimulationChartTheme();
   const globalAi = useOptionalGlobalAI();
   const last = samples[samples.length - 1];
+  const [focusedSeriesId, setFocusedSeriesId] = useState<string | null>(null);
+  const visibleSeries = useMemo(
+    () => experiment.series.filter((item) => visible[item.id] !== false),
+    [experiment.series, visible],
+  );
   const primarySeries =
-    experiment.series.find((item) => visible[item.id] !== false) ?? experiment.series[0];
+    visibleSeries.find((item) => item.id === focusedSeriesId) ??
+    visibleSeries[0] ??
+    experiment.series[0];
   const [pickedHint, setPickedHint] = useState('');
 
   const samplesRef = useRef(samples);
+  const visibleSeriesRef = useRef(visibleSeries);
   const primarySeriesRef = useRef(primarySeries);
   const onPickSampleRef = useRef(onPickSample);
   samplesRef.current = samples;
+  visibleSeriesRef.current = visibleSeries;
   primarySeriesRef.current = primarySeries;
   onPickSampleRef.current = onPickSample;
 
@@ -245,15 +354,20 @@ export function VesselCurve({
         animation: false,
         interaction: { mode: 'nearest', intersect: false },
         onClick: (_event, elements) => {
-          const idx = elements[0]?.index;
-          const seriesItem = primarySeriesRef.current;
+          const first = elements[0];
+          const idx = first?.index;
+          const seriesItem =
+            (first?.datasetIndex != null ? visibleSeriesRef.current[first.datasetIndex] : undefined) ??
+            primarySeriesRef.current;
           const sampleList = samplesRef.current;
           if (idx == null || !seriesItem || !sampleList[idx] || !onPickSampleRef.current) return;
+          setFocusedSeriesId(seriesItem.id);
           const sample = sampleList[idx];
           const val = vesselValue(sample, seriesItem.id);
           if (!Number.isFinite(val)) return;
-          const text = `[实测 t=${sample.time.toFixed(1)}s: ${seriesItem.label}=${val.toFixed(seriesItem.digits ?? 2)}]`;
-          onPickSampleRef.current(text);
+          const formattedValue = val.toFixed(seriesItem.digits ?? 2);
+          const text = `[实测 t=${sample.time.toFixed(1)}s: ${seriesItem.label}=${formattedValue}]`;
+          onPickSampleRef.current(text, { seriesId: seriesItem.id, timeS: sample.time, value: val, formattedValue });
           setPickedHint(text);
         },
         plugins: { legend: { display: false } },
@@ -350,8 +464,9 @@ export function VesselCurve({
       chosen = valid.reduce((best, item) => (Math.abs(item.v) >= Math.abs(best.v) ? item : best), valid[0]);
     }
     const label = mode === 'peak' ? '峰值' : '稳态';
-    const text = `[实测 t=${chosen.t.toFixed(1)}s ${label}: ${primarySeries.label}=${chosen.v.toFixed(primarySeries.digits ?? 2)}]`;
-    onPickSample(text);
+    const formattedValue = chosen.v.toFixed(primarySeries.digits ?? 2);
+    const text = `[实测 t=${chosen.t.toFixed(1)}s ${label}: ${primarySeries.label}=${formattedValue}]`;
+    onPickSample(text, { seriesId: primarySeries.id, timeS: chosen.t, value: chosen.v, formattedValue });
     setPickedHint(text);
   };
 
@@ -375,24 +490,44 @@ export function VesselCurve({
       <div className="flex flex-wrap gap-1.5" data-vessel-series>
         {experiment.series.map((series, index) => {
           const on = visible[series.id] !== false;
+          const isPrimary = primarySeries?.id === series.id;
           return (
-            <label
+            <div
               key={series.id}
               className={cn(
-                'flex cursor-pointer items-center gap-1.5 rounded-md border px-1.5 py-1 text-[11px] transition',
-                on ? 'border-platform-fg-primary/15 bg-platform-fg-primary/5 text-platform-fg-primary' : 'border-transparent text-platform-fg-muted',
+                'flex items-center gap-1 rounded-md border px-1.5 py-1 text-[11px] transition',
+                on
+                  ? isPrimary && visibleSeries.length > 1
+                    ? 'border-platform-action-primary/60 bg-platform-action-primary/10 text-platform-fg-primary'
+                    : 'border-platform-fg-primary/15 bg-platform-fg-primary/5 text-platform-fg-primary'
+                  : 'border-transparent text-platform-fg-muted',
               )}
             >
-              <input type="checkbox" className="h-3 w-3" checked={on} onChange={() => onToggle(series.id)} aria-label={series.label} />
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: seriesColor(index), boxShadow: on ? `0 0 6px ${seriesColor(index)}` : undefined }} />
-              <span>{series.label}</span>
-              <span className="font-mono tabular-nums text-platform-fg-secondary" data-vessel-series-value={series.id}>
-                {Number.isFinite(vesselValue(last, series.id)) ? vesselValue(last, series.id).toFixed(series.digits ?? 1) : '—'}
-              </span>
-            </label>
+              <label className="flex cursor-pointer items-center gap-1.5">
+                <input type="checkbox" className="h-3 w-3" checked={on} onChange={() => onToggle(series.id)} aria-label={series.label} />
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: seriesColor(index), boxShadow: on ? `0 0 6px ${seriesColor(index)}` : undefined }} />
+                <span>{series.label}</span>
+              </label>
+              <button
+                type="button"
+                disabled={!on}
+                onClick={() => setFocusedSeriesId(series.id)}
+                title={on ? '设为当前拾取曲线' : '勾选显示后可拾取'}
+                className="font-mono tabular-nums text-platform-fg-secondary hover:text-platform-action-primary disabled:cursor-default disabled:hover:text-platform-fg-secondary"
+              >
+                <span data-vessel-series-value={series.id}>
+                  {Number.isFinite(vesselValue(last, series.id)) ? vesselValue(last, series.id).toFixed(series.digits ?? 1) : '—'}
+                </span>
+              </button>
+            </div>
           );
         })}
       </div>
+      {onPickSample && visibleSeries.length > 1 && primarySeries ? (
+        <p className="text-[10px] text-platform-fg-muted">
+          当前拾取曲线：{primarySeries.label}（点击曲线点或数值芯片可快速切换拾取通道）
+        </p>
+      ) : null}
       <div className="sim-hud-tile h-44 w-full p-1.5">
         <canvas ref={canvasRef} />
       </div>
@@ -493,8 +628,12 @@ export function VesselStepForm({
   runs = [],
   samples,
   courseRunning = false,
+  stepHasRunStarted = false,
+  showInlinePrediction = true,
   stepDone = false,
   tourActive = false,
+  activePickSlot,
+  onChangeActivePickSlot,
   onChange,
   onSubmit,
   onReport,
@@ -514,11 +653,15 @@ export function VesselStepForm({
   studentModel?: FrozenVesselStudentModel | null;
   models?: FrozenVesselStudentModel[];
   comparisons?: VesselModelComparison[];
-  runs?: Step20RunSummary[];
+  runs?: Array<VesselRunSummary | Step20RunSummary>;
   samples?: VesselSample[];
   courseRunning?: boolean;
+  stepHasRunStarted?: boolean;
+  showInlinePrediction?: boolean;
   stepDone?: boolean;
   tourActive?: boolean;
+  activePickSlot?: string | null;
+  onChangeActivePickSlot?: (slotKey: string) => void;
   onChange: (key: string, value: string) => void;
   onSubmit: () => void;
   onReport: () => void;
@@ -527,20 +670,36 @@ export function VesselStepForm({
   onRetryUpload?: () => void;
 }) {
   const [step20Section, setStep20Section] = useState<VesselReportSectionKey>('problem');
-  const hasExplicitSketchField = step.fields.some((field) => field.kind === 'sketch');
+  const structuredRuns = useMemo(() => runs.map(asVesselRunSummary), [runs]);
+  const hasObservationField = step.fields.some((field) => field.key === 'observation');
+  const hasInterpretationField = step.fields.some((field) => field.key === 'interpretation');
+  const hasPredictionField = step.fields.some((field) => field.key === 'prediction');
   const latestSampleTime = samples && samples.length > 0 ? samples[samples.length - 1].time : null;
   const requiredWindowS =
     step.seq === 19 && step.minRunS >= 180 ? 180 : Math.min(step.minRunS || 0, 15);
+  const stepCompletedRuns = structuredRuns.filter(
+    (run) =>
+      run.stepSequence === step.seq &&
+      run.stoppedAtMs !== null &&
+      run.stopReason !== 'failure' &&
+      (run.stopReason === 'duration' ||
+        run.stopReason === 'arrival' ||
+        run.stopReason === 'time_limit' ||
+        run.lastTimeS >= requiredWindowS - 1e-6),
+  );
+  const hasCompletedStepRun = stepCompletedRuns.length > 0;
   const windowBlockedReason =
     !tourActive &&
     !stepDone &&
     step.seq < 20 &&
     requiredWindowS > 0 &&
+    !(hasCompletedStepRun && !courseRunning) &&
     ((courseRunning && (latestSampleTime === null || latestSampleTime < requiredWindowS)) ||
-      (latestSampleTime !== null && latestSampleTime > 0 && latestSampleTime < requiredWindowS))
+      (!hasCompletedStepRun && latestSampleTime !== null && latestSampleTime > 0 && latestSampleTime < requiredWindowS))
       ? `尚未到达有效稳态/故障观测窗口（当前 ${(latestSampleTime ?? 0).toFixed(1)}s，需运行至 ≥${requiredWindowS}s），暂不可正式提交。`
       : null;
   const submitDisabled = busy || tourActive || Boolean(windowBlockedReason);
+  const predictionLocked = Boolean(courseRunning || stepHasRunStarted || (samples?.length ?? 0) > 0);
 
   return (
     <div className="w-full space-y-2.5">
@@ -555,45 +714,148 @@ export function VesselStepForm({
           runs={runs}
         />
       ) : null}
-      {step.fields.map((field) => (
-        <label key={field.key} className="block space-y-1 text-xs text-platform-fg-secondary">
-          <span className="flex items-baseline justify-between gap-2">
-            <span>{field.label}</span>
-            {field.unit ? <span className="font-mono text-[10px] text-platform-fg-muted">{field.unit}</span> : null}
-          </span>
-          {field.kind === 'text' ? (
-            <textarea value={readings[field.key] ?? ''} onChange={(event) => onChange(field.key, event.target.value)} aria-label={field.label} rows={3} className="sim-hud-input" />
-          ) : null}
-          {field.kind === 'number' ? (
-            <input value={readings[field.key] ?? ''} onChange={(event) => onChange(field.key, event.target.value)} aria-label={field.label} inputMode="decimal" className="sim-hud-input font-mono tabular-nums" />
-          ) : null}
-          {field.kind === 'choice' ? (
-            <span className="flex flex-wrap gap-1">
-              {field.choices?.map((choice) => (
-                <Button key={choice} type="button" size="sm" variant={readings[field.key] === choice ? 'default' : 'outline'} className={readings[field.key] === choice ? simulationUi.buttonPrimary : simulationUi.buttonOutline} onClick={() => onChange(field.key, choice)}>
-                  {choice}
-                </Button>
-              ))}
-            </span>
-          ) : null}
-          {field.kind === 'sketch' ? (
-            <SketchPad
-              label={field.label}
-              hint="画出奈奎斯特图、伯德图、根轨迹图或时域响应图。"
-              value={readings.sketchImage}
+      {step.seq !== 20 && showInlinePrediction && step.predictionSpec && !hasPredictionField ? (
+        <StepPredictionStage
+          spec={step.predictionSpec}
+          stepSeq={step.seq}
+          stepTitle={step.title}
+          readings={readings}
+          samples={samples ?? []}
+          runs={structuredRuns}
+          locked={predictionLocked}
+          studentModel={studentModel}
+          onChange={onChange}
+        />
+      ) : null}
+      {step.fields.map((field) => {
+        if (step.seq !== 20 && field.key === 'prediction' && !showInlinePrediction) {
+          return null;
+        }
+        if (step.seq !== 20 && field.key === 'prediction' && step.predictionSpec) {
+          return (
+            <StepPredictionStage
+              key={field.key}
+              spec={step.predictionSpec}
+              stepSeq={step.seq}
+              stepTitle={step.title}
+              readings={readings}
+              samples={samples ?? []}
+              runs={structuredRuns}
+              locked={predictionLocked}
               studentModel={studentModel}
-              onChange={(dataUrl) => onChange('sketchImage', dataUrl)}
+              onChange={onChange}
             />
-          ) : null}
-        </label>
-      ))}
-      {step.seq === 19 && !hasExplicitSketchField ? (
+          );
+        }
+        if (step.seq !== 20 && field.key === 'observation' && step.observationSpec) {
+          return (
+            <StepObservationStage
+              key={field.key}
+              spec={step.observationSpec}
+              readings={readings}
+              samples={samples ?? []}
+              runs={structuredRuns}
+              models={models}
+              comparisons={comparisons}
+              stepSeq={step.seq}
+              onChange={onChange}
+              activePickSlot={activePickSlot}
+              onChangeActivePickSlot={onChangeActivePickSlot}
+            />
+          );
+        }
+        if (step.seq !== 20 && field.key === 'interpretation' && step.interpretationSpec) {
+          return (
+            <StepInterpretationStage
+              key={field.key}
+              spec={step.interpretationSpec}
+              value={readings.interpretation ?? ''}
+              checksValue={readings.interpChecks ?? ''}
+              onChange={onChange}
+            />
+          );
+        }
+        return (
+          <label key={field.key} className="block space-y-1 text-xs text-platform-fg-secondary">
+            <span className="flex items-baseline justify-between gap-2">
+              <span>{field.label}</span>
+              {field.unit ? <span className="font-mono text-[10px] text-platform-fg-muted">{field.unit}</span> : null}
+            </span>
+            {field.kind === 'text' ? (
+              <textarea value={readings[field.key] ?? ''} onChange={(event) => onChange(field.key, event.target.value)} aria-label={field.label} rows={3} className="sim-hud-input" />
+            ) : null}
+            {field.kind === 'number' ? (
+              <input value={readings[field.key] ?? ''} onChange={(event) => onChange(field.key, event.target.value)} aria-label={field.label} inputMode="decimal" className="sim-hud-input font-mono tabular-nums" />
+            ) : null}
+            {field.kind === 'choice' ? (
+              <span className="flex flex-wrap gap-1">
+                {field.choices?.map((choice) => (
+                  <Button key={choice} type="button" size="sm" variant={readings[field.key] === choice ? 'default' : 'outline'} className={readings[field.key] === choice ? simulationUi.buttonPrimary : simulationUi.buttonOutline} onClick={() => onChange(field.key, choice)}>
+                    {choice}
+                  </Button>
+                ))}
+              </span>
+            ) : null}
+            {field.kind === 'sketch' ? (
+              <SketchPad
+                label={field.label}
+                hint="画出奈奎斯特图、伯德图、根轨迹图或时域响应图。"
+                value={readings.sketchImage}
+                studentModel={studentModel}
+                onChange={(dataUrl) => onChange('sketchImage', dataUrl)}
+              />
+            ) : null}
+          </label>
+        );
+      })}
+      {step.seq !== 20 && step.observationSpec && !hasObservationField ? (
+        <StepObservationStage
+          spec={step.observationSpec}
+          readings={readings}
+          samples={samples ?? []}
+          runs={structuredRuns}
+          models={models}
+          comparisons={comparisons}
+          stepSeq={step.seq}
+          onChange={onChange}
+          activePickSlot={activePickSlot}
+          onChangeActivePickSlot={onChangeActivePickSlot}
+        />
+      ) : null}
+      {step.seq !== 20 && step.interpretationSpec && !hasInterpretationField ? (
+        <StepInterpretationStage
+          spec={step.interpretationSpec}
+          value={readings.interpretation ?? ''}
+          checksValue={readings.interpChecks ?? ''}
+          onChange={onChange}
+        />
+      ) : null}
+      {step.sketchSpec ? (
         <SketchPad
-          label="第 19 步手绘机理草图与本人模型解析叠合"
-          hint="完成草图识别后可叠加本人冻结模型理论参考线，辅助图层不计入识图图像流。"
+          key={`step-sketch-${step.seq}-${step.sketchSpec.plotId}`}
+          mode={step.sketchSpec.mode}
+          defaultPlotId={step.sketchSpec.plotId}
+          lockPlotId={step.sketchSpec.lockPlotId}
+          label={step.sketchSpec.label}
+          hint={step.sketchSpec.hint}
+          coordinateOverride={step.sketchSpec.coordinateOverride}
+          context={{
+            mode: step.sketchSpec.mode,
+            plotId: step.sketchSpec.plotId,
+            stepSeq: step.seq,
+            stepTitle: step.title,
+            promptFocus: step.sketchSpec.promptFocus,
+          }}
           value={readings.sketchImage}
           studentModel={studentModel}
+          disabled={step.sketchSpec.mode === 'prediction' ? predictionLocked : false}
+          actualSeries={step.sketchSpec.overlayExtractor?.(samples ?? [], structuredRuns)}
           onChange={(dataUrl) => onChange('sketchImage', dataUrl)}
+          onRecognized={(verdict) => {
+            onChange('sketchKind', verdict.sketchKind);
+            onChange('sketchBlank', verdict.sketchBlank ? '1' : '0');
+            onChange('sketchEvaluation', verdict.sketchEvaluation);
+          }}
         />
       ) : null}
       {tourActive ? (
@@ -637,29 +899,48 @@ export function VesselReportHistory({
   signedIn,
   reports,
   onOpen,
+  defaultExpanded = false,
 }: {
   signedIn: boolean;
   reports: Array<{ id: string; score: number | null; maxScore: number; createdAt: string }>;
   onOpen: (id: string) => void;
+  defaultExpanded?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  useEffect(() => {
+    setExpanded(defaultExpanded);
+  }, [defaultExpanded]);
+
   return (
-    <div className="w-full min-w-0 space-y-2" data-vessel-report-history>
-      <p className={simulationUi.sectionTitle}>过往实验报告</p>
-      {!signedIn ? <p className="text-xs text-platform-fg-secondary">登录后可以查看这个实验已经保存的报告和成绩。</p> : null}
-      {signedIn && reports.length === 0 ? <p className="text-xs text-platform-fg-secondary">还没有保存过报告。完成最后一步后，报告会记在当前账号下。</p> : null}
-      {signedIn ? (
-        <ul className="space-y-1.5">
-          {reports.map((report) => (
-            <li key={report.id} className="sim-hud-tile flex items-center gap-2 px-2.5 py-2 text-xs text-platform-fg-secondary">
-              <FileText className="h-3.5 w-3.5 shrink-0 text-platform-action-primary" aria-hidden="true" />
-              <span className="min-w-0 flex-1 truncate">{new Date(report.createdAt).toLocaleString('zh-CN', { hour12: false })}</span>
-              <span className="sim-hud-value shrink-0">{report.score === null ? '待复核' : `成绩 ${report.score}/${report.maxScore}`}</span>
-              <Button type="button" size="sm" variant="outline" className={cn(simulationUi.buttonOutline, 'h-7 px-2')} onClick={() => onOpen(report.id)}>查看</Button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
+    <details
+      className="w-full min-w-0 rounded-lg border border-platform-fg-primary/10 bg-platform-canvas/40 px-2.5 py-2"
+      data-vessel-report-history
+      open={expanded}
+      onToggle={(event) => setExpanded(event.currentTarget.open)}
+    >
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-2 text-xs font-semibold tracking-wide text-platform-fg-primary">
+        <span>过往实验报告</span>
+        <span className="font-mono text-[11px] font-normal text-platform-fg-secondary">
+          {signedIn ? `${reports.length} 份` : '未登录'}
+        </span>
+      </summary>
+      <div className="mt-2 space-y-2">
+        {!signedIn ? <p className="text-xs text-platform-fg-secondary">登录后可以查看这个实验已经保存的报告和成绩。</p> : null}
+        {signedIn && reports.length === 0 ? <p className="text-xs text-platform-fg-secondary">还没有保存过报告。完成最后一步后，报告会记在当前账号下。</p> : null}
+        {signedIn ? (
+          <ul className="space-y-1.5">
+            {reports.map((report) => (
+              <li key={report.id} className="sim-hud-tile flex items-center gap-2 px-2.5 py-2 text-xs text-platform-fg-secondary">
+                <FileText className="h-3.5 w-3.5 shrink-0 text-platform-action-primary" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate">{new Date(report.createdAt).toLocaleString('zh-CN', { hour12: false })}</span>
+                <span className="sim-hud-value shrink-0">{report.score === null ? '待复核' : `成绩 ${report.score}/${report.maxScore}`}</span>
+                <Button type="button" size="sm" variant="outline" className={cn(simulationUi.buttonOutline, 'h-7 px-2')} onClick={() => onOpen(report.id)}>查看</Button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    </details>
   );
 }
 
@@ -677,6 +958,11 @@ export function VesselExperimentDocks<Settings extends object>({
   assessment?: ReactNode;
 }) {
   const [telemetryOpen, setTelemetryOpen] = useState(false);
+  const [activePickSlot, setActivePickSlot] = useState<string | null>(null);
+  useEffect(() => {
+    setActivePickSlot(null);
+  }, [session.step.seq]);
+
   const last = session.shownSamples[session.shownSamples.length - 1];
   const tourActive = Boolean(session.tour?.active);
   const effectiveModels: FrozenVesselStudentModel[] =
@@ -687,17 +973,13 @@ export function VesselExperimentDocks<Settings extends object>({
     tourActive && session.tour?.node
       ? session.tour.node.comparisons
       : (session.course?.comparisons ?? []);
-  const effectiveRuns: Step20RunSummary[] =
-    tourActive && session.tour?.node
-      ? session.tour.node.runs
-      : (session.course?.runs ?? []).map((run) => ({
-          id: run.id,
-          stepSequence: run.stepSequence,
-          lastTimeS: run.lastTimeS,
-          stopReason: run.stopReason,
-          createdAtMs: run.createdAtMs,
-          configuration: run.configuration,
-        }));
+  const effectiveCourseRuns: VesselRunSummary[] = useMemo(
+    () =>
+      tourActive && session.tour?.node
+        ? session.tour.node.runs.map(asVesselRunSummary)
+        : (session.course?.runs ?? []),
+    [tourActive, session.tour?.node, session.course?.runs],
+  );
   const latestModel = effectiveModels.at(-1) ?? null;
   const latestComparison = effectiveComparisons.at(-1) ?? null;
   const latestDiagnostics = useMemo(() => {
@@ -713,16 +995,54 @@ export function VesselExperimentDocks<Settings extends object>({
     });
   }, [latestComparison]);
 
+  const explicitTargetStr = session.readings.predictionTarget?.trim() ?? '';
+  const explicitTarget = explicitTargetStr !== '' ? Number(explicitTargetStr) : Number.NaN;
   const predictionMatch =
     typeof session.readings.prediction === 'string'
       ? /-?\d+(?:\.\d+)?/.exec(session.readings.prediction)
       : null;
-  const predictionTarget =
-    session.step.seq <= 18 && predictionMatch && Number.isFinite(Number(predictionMatch[0]))
+  const fallbackTarget =
+    predictionMatch && Number.isFinite(Number(predictionMatch[0]))
       ? Number(predictionMatch[0])
       : null;
+  const predictionTarget =
+    session.step.seq <= 18
+      ? Number.isFinite(explicitTarget)
+        ? explicitTarget
+        : fallbackTarget
+      : null;
 
-  const handlePickSample = (snippet: string) => {
+  const stepHasRunStarted = Boolean(session.course?.hasStarted || (session.shownSamples?.length ?? 0) > 0);
+  const predictionLocked = Boolean(session.course?.running || stepHasRunStarted);
+
+  const handlePickSample = (
+    snippet: string,
+    detail?: { seriesId: string; timeS: number; value: number; formattedValue: string },
+  ) => {
+    const obsSpec = session.step.observationSpec;
+    if (obsSpec && (obsSpec.kind === 'structured_metrics' || obsSpec.kind === 'multi_run_slots')) {
+      const targetKey = resolveActiveObservationSlotKey(
+        obsSpec,
+        activePickSlot,
+        detail?.seriesId,
+        session.readings,
+      );
+      if (targetKey) {
+        const nextVal = detail ? detail.formattedValue : snippet;
+        const nextReadings: VesselReadings = { ...session.readings, [targetKey]: nextVal };
+        session.setReading(targetKey, nextVal);
+        session.setReading('observation', synthesizeObservationSummary(obsSpec, nextReadings));
+        return;
+      }
+    }
+    if (obsSpec && (obsSpec.kind === 'channel_match' || obsSpec.kind === 'artifact_binding')) {
+      const prevNote = session.readings.obs_note?.trim() ?? '';
+      const nextNote = prevNote ? `${prevNote}\n${snippet}` : snippet;
+      const nextReadings: VesselReadings = { ...session.readings, obs_note: nextNote };
+      session.setReading('obs_note', nextNote);
+      session.setReading('observation', synthesizeObservationSummary(obsSpec, nextReadings));
+      return;
+    }
     const obsField =
       session.step.fields.find((field) => field.key === 'observation') ??
       session.step.fields.find((field) => field.kind === 'text') ??
@@ -874,8 +1194,25 @@ export function VesselExperimentDocks<Settings extends object>({
                 seq={session.step.seq}
                 title={session.step.title}
                 goal={session.step.goal}
+                actionSteps={session.step.actionSteps}
                 watch={session.step.watch}
+                conditionText={session.step.conditionText}
                 hint={session.step.suggestion}
+                prediction={session.step.predictionSpec ? (
+                  <StepPredictionStage
+                    spec={session.step.predictionSpec}
+                    stepSeq={session.step.seq}
+                    stepTitle={session.step.title}
+                    vesselTitle={experiment.title}
+                    readings={session.readings}
+                    samples={session.shownSamples}
+                    runs={effectiveCourseRuns}
+                    locked={predictionLocked}
+                    originId={session.originId}
+                    studentModel={latestModel}
+                    onChange={session.setReading}
+                  />
+                ) : undefined}
                 controls={controls}
                 submission={(
                   <fieldset
@@ -895,11 +1232,15 @@ export function VesselExperimentDocks<Settings extends object>({
                       studentModel={latestModel}
                       models={effectiveModels}
                       comparisons={effectiveComparisons}
-                      runs={effectiveRuns}
+                      runs={effectiveCourseRuns}
                       samples={session.shownSamples}
                       courseRunning={Boolean(session.course?.running)}
+                      stepHasRunStarted={stepHasRunStarted}
+                      showInlinePrediction={!session.step.predictionSpec}
                       stepDone={session.doneSeqs.includes(session.step.seq)}
                       tourActive={tourActive}
+                      activePickSlot={activePickSlot}
+                      onChangeActivePickSlot={setActivePickSlot}
                       onChange={session.setReading}
                       onSubmit={() => { void session.submitStep(); }}
                       onReport={session.openReport}
@@ -929,6 +1270,7 @@ export function VesselExperimentDocks<Settings extends object>({
                   signedIn={session.sessionStatus === 'authenticated'}
                   reports={session.pastReports ?? []}
                   onOpen={(id) => { void session.openStoredReport(id); }}
+                  defaultExpanded={session.step.seq === experiment.steps.length}
                 />
                 {assessment}
               </div>

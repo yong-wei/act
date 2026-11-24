@@ -86,7 +86,7 @@ export function containerCourseConfiguration(sequence: number,
   return config;
 }
 
-const durations = [60, 1, 600, 600, 600, 600, 600, 600, 600, 900,
+const durations = [60, 20, 600, 600, 600, 600, 600, 600, 600, 900,
   1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200];
 const minimumRuns: Record<number, number> = {2: 3, 5: 2, 6: 2, 8: 2, 9: 2, 10: 2, 12: 2, 13: 2, 14: 2, 15: 2, 16: 2, 19: 2, 20: 5};
 

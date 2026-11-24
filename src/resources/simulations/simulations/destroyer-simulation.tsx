@@ -2893,8 +2893,8 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
             content: (
               <div className="w-full min-w-0 space-y-4">
                 {!courseStep || draftReady ? <>
-                {courseStep ? <VesselModelWorkbench key={scopeKey} scopeKey={scopeKey} runs={runSummaries} onArtifactsChange={handleArtifactsChange} /> : null}
-                {courseStep ? <SimPanelSection title="信号来源对照"><VesselSignalCurve trace={recorderRef.current?.run.trace ?? []}
+                {courseStep ? <VesselModelWorkbench key={scopeKey} scopeKey={scopeKey} runs={runSummaries} onArtifactsChange={handleArtifactsChange} courseKey="destroyer" stepSequence={step.seq} /> : null}
+                {courseStep && step.seq >= 3 && step.seq <= 19 ? <SimPanelSection title="信号来源对照"><VesselSignalCurve trace={recorderRef.current?.run.trace ?? []}
                   postRun={recorderRef.current?.run.stoppedAtMs != null}
                   comparison={modelComparisons.filter((comparison) => comparison.runId === recorderRef.current?.run.id).at(-1)} /></SimPanelSection> : null}
                 {courseStep ? <SimPanelSection title="本机实验历史">
@@ -2915,12 +2915,12 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                     {!report.hasReportHtml ? ' · 报告正文尚未整理' : ''}
                   </button>)}</div>
                 </SimPanelSection> : null}
-                <DestroyerReportHistory
+                {!courseStep ? <DestroyerReportHistory
                   signedIn={sessionStatus === 'authenticated'}
                   reports={pastReports ?? []}
                   onOpen={(id) => { void openStoredReport(id); }}
-                />
-                <SimulationAssessmentPanel
+                /> : null}
+                {!courseStep || (step.seq >= 9 && step.seq <= 19) ? <SimulationAssessmentPanel
                   title="机动任务评估"
                   pendingReview={Boolean(courseStep)}
                   metrics={[
@@ -2929,7 +2929,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                     { id: 'yaw', label: '转艏速率', value: Math.abs(hudState.yawRate), max: 8, better: 'lower', unit: '°/s' },
                     { id: 'rudder', label: '舵角幅值', value: Math.abs(hudState.rudder), max: 35, better: 'lower', unit: '°' },
                   ]}
-                />
+                /> : null}
                 </> : <p role="status" className="text-xs text-platform-fg-secondary">正在恢复本轮实验记录…</p>}
               </div>
             ),

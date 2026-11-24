@@ -19,6 +19,7 @@ describe('集装箱船原页面课程合同', () => {
     expect(CONTAINER_COURSE_STEPS).toHaveLength(20);
     expect(validateExperiment(CONTAINER_COURSE_STEPS)).toEqual([]);
     expect(CONTAINER_COURSE_STEPS.reduce((sum,step) => sum+step.points,0)).toBe(100);
+    expect(CONTAINER_COURSE_STEPS[1].runDurationS).toBe(20);
     expect(containerCourseConfiguration(2)).toMatchObject({initialWaterSpeedMps:0,loadingRatio:.2});
     expect(containerCourseConfiguration(11).containerVoyage?.segmentSpeedsMps).toEqual([8,8,8,8]);
     expect(containerCourseConfiguration(19,{...containerCourseDefaultSettings(19),validationSeed:29})).toMatchObject({seed:29,loadingRatio:.8});
@@ -62,8 +63,9 @@ describe('集装箱船原页面课程合同', () => {
       stopReason:'arrival', lastTimeS:800, configuration:containerCourseConfiguration(15,{...settings,meanWaveResistanceEnabled:enabled}),
       createdAtMs: 1, initialInput:containerCourseInput(15,settings,input,frame(0),models)}) as VesselRunSummary;
     const evidence = {runs:[run(false),run(true)],models:models.map((model) => ({...model,createdAtMs:0})),
-      comparisons:[],answers:{observation:'读数',interpretation:'边界'}};
+      comparisons:[],answers:{prediction:'增阻会提高油耗',observation:'读数',interpretation:'边界'}};
     expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[14],evidence)).toBeNull();
+    expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[14],{...evidence,answers:{observation:'读数',interpretation:'边界'}})).toContain('预测');
     const reordered = evidence.models.map((model) => ({...model,payload:{...model.payload,
       structure:{delay_s:2,t_s:160,k:.05,kind:'fopdt' as const}}}));
     expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[14],{...evidence,models:reordered})).toBeNull();
@@ -73,5 +75,28 @@ describe('集装箱船原页面课程合同', () => {
     expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[14],{...evidence,runs:[run(true),run(true)]})).toContain('分别关闭与开启');
     const changed = run(true); changed.configuration.seed = 29;
     expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[14],{...evidence,runs:[run(false),changed]})).toContain('同一波场');
+  });
+
+  it('第2步支持20秒平衡运行时长且兼容历史1秒已保存运行', () => {
+    const mkStep2Run = (loadingRatio: .2 | .6 | .9, lastTimeS: number) => ({
+      id: `step2-${loadingRatio}-${lastTimeS}`,
+      stepSequence: 2,
+      stoppedAtMs: 100,
+      stopReason: 'duration',
+      lastTimeS,
+      configuration: containerCourseConfiguration(2, { ...containerCourseDefaultSettings(2), loadingRatio }),
+      createdAtMs: 10,
+      initialInput: containerCourseInput(2, { ...containerCourseDefaultSettings(2), loadingRatio }, input, frame(0), []),
+    }) as VesselRunSummary;
+
+    const answers = { prediction: '0.2 < 0.6 < 0.9', observation: '六项读数已采集', interpretation: '装载同时改变惯量与受风面积' };
+    expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[1], {
+      runs: [mkStep2Run(.2, 20), mkStep2Run(.6, 20), mkStep2Run(.9, 20)],
+      models: [], comparisons: [], answers,
+    })).toBeNull();
+    expect(validateContainerCourseEvidence(CONTAINER_COURSE_STEPS[1], {
+      runs: [mkStep2Run(.2, 1), mkStep2Run(.6, 1), mkStep2Run(.9, 1)],
+      models: [], comparisons: [], answers,
+    })).toBeNull();
   });
 });

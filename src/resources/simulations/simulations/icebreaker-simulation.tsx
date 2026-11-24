@@ -27,11 +27,10 @@ import { SimulationTopBar, simulationUi } from '../components/simulation-ui';
 import { icebreakerCourseExperiment as iceExperiment, icebreakerTraceSamples } from '../experiments/icebreaker-experiment';
 import { icebreakerCourseAdapter } from '../experiments/icebreaker-course-adapter';
 import { IcebreakerCourseControls } from '../experiments/icebreaker-course-controls';
-import { VesselModelWorkbench } from '../experiments/model-workbench';
 import type { VesselSessionFrame } from '@/lib/control-engine/vessel-session';
 import { IceContactField } from '../scene/ice-contact-field';
 import { vesselSampleMark } from './vessel-experiment';
-import { VesselExperimentDocks } from './vessel-experiment-panels';
+import { VesselCourseEvidencePanel, VesselExperimentDocks } from './vessel-experiment-panels';
 import { useVesselExperiment } from './use-vessel-experiment';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
@@ -61,7 +60,6 @@ import { platformHeadingToSceneRad } from '../scene/heading';
 import { WaterHuggingLine } from '../scene/lines';
 import { ArrowDownFromLine, Compass, Gauge, Orbit, Snowflake, Video } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import {
   SimPanelSection, SimPanelStack, SimReadout, SimReadoutGrid, SimStatusStrip, SimNotice,
 } from '../components/simulation-panels';
@@ -464,7 +462,6 @@ export default function IcebreakerSimulation({ ticket = '' }: { ticket?: string 
   const heading = toRadians(frame?.attitudeDeg.heading ?? 0);
   const time = frame?.timeS ?? 0;
   const running = session.course?.running ?? false;
-  const course = session.course;
   return (
     <SceneEnvironmentProvider><SceneSoundscapeProvider><TeachingAnnotationsProvider><SceneQualityProvider>
       <div className={simulationUi.root} data-sim-ui>
@@ -489,25 +486,17 @@ export default function IcebreakerSimulation({ ticket = '' }: { ticket?: string 
             <IceStatusPanel frame={frame} /><AzipodStatusPanel frame={frame} />
           </SimPanelStack>}
           controls={<IcebreakerCourseControls session={session} timeS={time} />}
-          assessment={<div className="space-y-3">
-            {Math.abs(position.z) > 25 ? <SimNotice tone="warning">实际横偏超过25m通道边界，本次结果继续保存。</SimNotice> : null}
-            {course ? <SimPanelSection title="本机实验轮次" icon={Gauge}>
-              <select className="sim-hud-input" aria-label="本机实验轮次" value={course.scopeKey}
-                disabled={session.busy || session.tour.active || !course.ready}
-                onChange={(event) => { void course.selectRound(event.target.value); }}>
-                {course.rounds.map((draft) => <option key={draft.scopeKey} value={draft.scopeKey}>
-                  {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步
-                </option>)}
-              </select>
-              <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || session.tour.active || !course.ready}
-                onClick={() => { void session.restartIlabSession(); }}>开启新一轮实验</Button>
-            </SimPanelSection> : null}
-            {course ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || session.tour.active}
-              onClick={() => { void course.upload(); }}>上传或重试保存本人证据</Button> : null}
-            {course && !session.tour.active ? <VesselModelWorkbench scopeKey={course.scopeKey} runs={course.runs}
-              onArtifactsChange={course.onArtifactsChange} defaultChannel="azimuth-to-yaw" /> : null}
-            {session.tour.active ? <SimNotice>只读导览中已隔离本人模型库，退出后可继续实验。</SimNotice> : null}
-          </div>} />
+          assessment={(
+            <div className="space-y-3">
+              {Math.abs(position.z) > 25 ? <SimNotice tone="warning">实际横偏超过25m通道边界，本次结果继续保存。</SimNotice> : null}
+              <VesselCourseEvidencePanel
+                session={session}
+                courseKey="icebreaker"
+                stepSequence={session.step.seq}
+                defaultChannel="azimuth-to-yaw"
+              />
+            </div>
+          )} />
         <CameraViewSwitcher currentMode={cameraMode} onModeChange={setCameraMode}
           onViewReset={() => setViewResetCount((value) => value + 1)} views={CAMERA_SHOT_VIEWS}
           gridEnabled={showGrid} onToggleGrid={() => setShowGrid((value) => !value)} speedScale={speedScale}

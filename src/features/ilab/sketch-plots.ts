@@ -7,30 +7,72 @@ export const SKETCH_PLOTS = [
   { id: 'time-response', label: '时域响应图' },
 ] as const;
 
-export type SketchPlotId = (typeof SKETCH_PLOTS)[number]['id'];
+export const SKETCH_COORDINATE_PLOTS = [
+  ...SKETCH_PLOTS,
+  { id: 'frequency-amplitude', label: '共振幅频图' },
+  { id: 'planar-envelope', label: '平面轨迹与警戒圈图' },
+] as const;
+
+export type SketchPlotId = (typeof SKETCH_COORDINATE_PLOTS)[number]['id'];
 
 export type SketchVerdict = {
   plotKind: SketchPlotId | 'other';
   blank: boolean;
   evaluation: string;
+  featureChecks?: string[];
+  socraticHint?: string;
 };
 
-const PLOT_IDS = new Set<string>([...SKETCH_PLOTS.map((plot) => plot.id), 'other']);
+const SKETCH_PLOT_ID_SET = new Set<string>(SKETCH_COORDINATE_PLOTS.map((plot) => plot.id));
+const PLOT_IDS = new Set<string>([...SKETCH_PLOT_ID_SET, 'other']);
+
+export function isSketchPlotId(value: string): value is SketchPlotId {
+  return SKETCH_PLOT_ID_SET.has(value);
+}
 
 export function sketchIdForLabel(label: string): SketchPlotId | null {
-  return SKETCH_PLOTS.find((plot) => plot.label === label.trim())?.id ?? null;
+  return SKETCH_COORDINATE_PLOTS.find((plot) => plot.label === label.trim())?.id ?? null;
 }
 
 export function sketchLabelForId(id: string): string {
-  return SKETCH_PLOTS.find((plot) => plot.id === id)?.label ?? '手绘图';
+  return SKETCH_COORDINATE_PLOTS.find((plot) => plot.id === id)?.label ?? '手绘图';
+}
+
+export function parseSketchFeatureChecks(rawChecks: unknown, rawJson?: string): string[] | undefined {
+  const toList = (items: unknown[]) => {
+    const cleaned = items
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.replace(/\s+/g, ' ').trim().slice(0, 80))
+      .filter(Boolean)
+      .slice(0, 6);
+    return cleaned.length > 0 ? cleaned : undefined;
+  };
+  if (Array.isArray(rawChecks)) return toList(rawChecks);
+  if (rawJson) {
+    try {
+      const parsed = JSON.parse(rawJson);
+      return Array.isArray(parsed) ? toList(parsed) : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
 }
 
 export function sketchVerdictFields(verdict: SketchVerdict): Record<string, string> {
-  return {
+  const fields: Record<string, string> = {
     sketchKind: verdict.plotKind,
     sketchBlank: verdict.blank ? '1' : '0',
     sketchEvaluation: verdict.evaluation.replace(/\s+/g, ' ').trim().slice(0, 80),
   };
+  if (verdict.featureChecks && verdict.featureChecks.length > 0) {
+    fields.sketchFeatureChecks = JSON.stringify(verdict.featureChecks);
+  }
+  if (verdict.socraticHint) {
+    const cleanedHint = verdict.socraticHint.replace(/\s+/g, ' ').trim().slice(0, 140);
+    if (cleanedHint) fields.sketchSocraticHint = cleanedHint;
+  }
+  return fields;
 }
 
 export function parseSketchVerdict(text: string): SketchVerdict | null {
@@ -51,11 +93,22 @@ export function parseSketchVerdict(text: string): SketchVerdict | null {
   const evaluation = typeof record.evaluation === 'string'
     ? record.evaluation.replace(/\s+/g, ' ').trim().slice(0, 80)
     : '';
-  return {
+  const verdict: SketchVerdict = {
     plotKind: plotKind as SketchVerdict['plotKind'],
     blank: record.blank === true,
     evaluation,
   };
+  const checks = parseSketchFeatureChecks(record.featureChecks);
+  if (checks) {
+    verdict.featureChecks = checks;
+  }
+  if (typeof record.socraticHint === 'string') {
+    const hint = record.socraticHint.replace(/\s+/g, ' ').trim().slice(0, 140);
+    if (hint) {
+      verdict.socraticHint = hint;
+    }
+  }
+  return verdict;
 }
 
 /** 识别结果和所选图种不一致时返回学生可见的失败说明。通过时返回 null。 */

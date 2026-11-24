@@ -22,7 +22,9 @@ export function validateDrillingCourseEvidence(step: VesselCourseStep, evidence:
     && run.lastTimeS + 1e-7 >= (DRILLING_RUN_DURATIONS_S[run.stepSequence - 1] ?? Infinity);
   const own = runs.filter((run) => run.stepSequence === step.sequence && complete(run));
   const dpModels = models.filter((model) => model.channel === 'dp-low-frequency' && model.payload.structure.kind === 'dp_low_freq3');
-  if (step.sequence !== 20 && (!answers.observation?.trim() || !answers.interpretation?.trim())) return '请记录本人观察，并说明因果关系和适用边界。';
+  if (step.sequence !== 20 && (!answers.prediction?.trim() || !answers.observation?.trim() || !answers.interpretation?.trim())) {
+    return '请填写运行前预测、本人观察，并说明因果关系和适用边界。';
+  }
   if (step.stepKind === 'run' && own.length < step.minimumRuns) return `本步需要至少${step.minimumRuns}次完整独立运行。`;
   if (step.sequence === 3 && !['x', 'y', 'yaw'].every((axis) => own.some((run) => run.courseSettings?.excitationAxis === axis))) {
     return '请保留纯纵向、横向和艏摇三次完整物理激励。';

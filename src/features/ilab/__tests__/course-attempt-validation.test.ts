@@ -16,7 +16,7 @@ const opening = {
 };
 const ending = { reason: 'duration', appliedFinalInput: { targetHeadingDeg: 0 } };
 const attempt = { stepSequence: 1, runRefs: ['run-ref'], modelClientRefs: [], comparisonClientRefs: [],
-  answers: { observation: '本次直航的航向稳定。', interpretation: '按相同初态比较执行器响应。' }, outcome: 'submitted' as const };
+  answers: { prediction: '直航应保持航向稳定。', observation: '本次直航的航向稳定。', interpretation: '按相同初态比较执行器响应。' }, outcome: 'submitted' as const };
 const tx = {
   simulationRun: { findMany: vi.fn() }, studentModelArtifact: { findMany: vi.fn() },
   comparisonArtifact: { findMany: vi.fn() },

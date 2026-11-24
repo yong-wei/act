@@ -14,6 +14,12 @@ interface RollDesign {
   bins: Array<{ frequencyHz: number; openAmplitudeDegPerMNm: number; closedAmplitudeDegPerMNm: number }>;
 }
 
+function freqToSvgX(hz: number): number {
+  const safeHz = Math.max(0.01, Math.min(1.0, hz));
+  const ratio = (Math.log10(safeHz) + 2) / 2;
+  return 30 + 270 * Math.max(0, Math.min(1, ratio));
+}
+
 export function CruiseRollDesign({
   model,
   settings,
@@ -30,7 +36,9 @@ export function CruiseRollDesign({
         dampingRatio: settings.dampingRatio,
         stiffnessFraction: settings.stiffnessFraction,
         lowPassCutoffHz: settings.lowPassCutoffHz,
-        notch: null,
+        notch: settings.notchEnabled
+          ? { centerHz: settings.notchCenterHz, bandwidthHz: settings.notchBandwidthHz }
+          : null,
       };
       return {
         design: computeVirtualSimulationStep<RollDesign>({
@@ -43,7 +51,15 @@ export function CruiseRollDesign({
     } catch (error) {
       return { design: null, error: error instanceof Error ? error.message : '请核对本人横摇模型。' };
     }
-  }, [model, settings.dampingRatio, settings.stiffnessFraction, settings.lowPassCutoffHz]);
+  }, [
+    model,
+    settings.dampingRatio,
+    settings.stiffnessFraction,
+    settings.lowPassCutoffHz,
+    settings.notchEnabled,
+    settings.notchCenterHz,
+    settings.notchBandwidthHz,
+  ]);
   if (!result) return null;
   if (!result.design)
     return (
@@ -66,6 +82,20 @@ export function CruiseRollDesign({
           }`,
       )
       .join(' ');
+
+  const notchCenter = settings.notchEnabled && Number.isFinite(settings.notchCenterHz) ? settings.notchCenterHz : null;
+  const halfBw = Number.isFinite(settings.notchBandwidthHz) ? settings.notchBandwidthHz / 2 : 0.03;
+  const stopband =
+    notchCenter !== null
+      ? {
+          xLow: freqToSvgX(Math.max(0.01, notchCenter - halfBw)),
+          xHigh: freqToSvgX(Math.min(1.0, notchCenter + halfBw)),
+          xCenter: freqToSvgX(notchCenter),
+          centerHz: notchCenter,
+          outOfBand: notchCenter > 1.0,
+        }
+      : null;
+
   return (
     <div className="space-y-2 rounded border border-platform-border p-2">
       <p className="text-xs leading-5 text-platform-fg-secondary">
@@ -79,18 +109,60 @@ export function CruiseRollDesign({
         className="w-full"
       >
         <path d="M30 15V115H304" fill="none" stroke="currentColor" opacity=".4" />
+        {stopband ? (
+          <g data-cruise-notch-stopband>
+            {!stopband.outOfBand ? (
+              <rect
+                x={stopband.xLow}
+                y={15}
+                width={Math.max(3, stopband.xHigh - stopband.xLow)}
+                height={100}
+                fill="#ef4444"
+                fillOpacity={0.14}
+                stroke="#ef4444"
+                strokeOpacity={0.45}
+                strokeWidth={0.8}
+                strokeDasharray="3 2"
+              />
+            ) : null}
+            <line
+              x1={stopband.xCenter}
+              y1={15}
+              x2={stopband.xCenter}
+              y2={115}
+              stroke="#ef4444"
+              strokeWidth={1.3}
+              strokeDasharray="4 3"
+              opacity={0.85}
+            />
+            <text
+              x={stopband.xCenter > 215 ? stopband.xCenter - 4 : stopband.xCenter + 4}
+              y={25}
+              textAnchor={stopband.xCenter > 215 ? 'end' : 'start'}
+              fontSize="8.5"
+              fontWeight="600"
+              fill="#ef4444"
+            >
+              陷波中心 {stopband.centerHz.toFixed(2)} Hz
+            </text>
+          </g>
+        ) : null}
         <polyline points={line(false)} fill="none" stroke="#f59e0b" strokeWidth="1.5" />
         <polyline points={line(true)} fill="none" stroke="#22d3ee" strokeWidth="1.5" />
         <text x="30" y="132" fontSize="9" fill="currentColor">
           0.01
+        </text>
+        <text x="160" y="132" fontSize="9" fill="currentColor">
+          0.1
         </text>
         <text x="265" y="132" fontSize="9" fill="currentColor">
           1 Hz
         </text>
       </svg>
       <p className="text-xs leading-5 text-platform-fg-secondary">
-        橙色为本人局部模型，青色为理想力矩反馈，幅值单位°/(MN·m)，频率为对数坐标。
-        理想响应假设线性横摇、无限力矩和零测量时延，实际鳍能力、滤波、耦合及能量以运行记录为依据。
+        橙色为本人局部模型，青色为理想力矩反馈
+        {settings.notchEnabled ? `，红色虚线区为陷波停带（带宽 ${settings.notchBandwidthHz.toFixed(2)} Hz）` : ''}
+        ，幅值单位°/(MN·m)，频率为对数坐标。理想响应假设线性横摇、无限力矩和零测量时延，实际鳍能力、滤波、耦合及能量以运行记录为依据。
       </p>
     </div>
   );

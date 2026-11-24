@@ -52,9 +52,10 @@ describe('981原页面二十步合同', () => {
   });
 
   it('差频对照只更改载荷开关，未见工况必须保留两个样本和冻结方案', () => {
-    const answers = { observation: '本人观测', interpretation: '因果与边界' };
+    const answers = { prediction: '预期二阶慢漂会抬高平均定位偏移与推力均值', observation: '本人观测', interpretation: '因果与边界' };
     const first = run(10), second = run(11);
     expect(validateDrillingCourseEvidence(DRILLING_COURSE_STEPS[10], { runs: [first, second], models: [], comparisons: [], answers })).toBeNull();
+    expect(validateDrillingCourseEvidence(DRILLING_COURSE_STEPS[10], { runs: [first, second], models: [], comparisons: [], answers: { observation: '本人观测', interpretation: '因果与边界' } })).toContain('预测');
     second.courseSettings!.energyWeight = 2;
     expect(validateDrillingCourseEvidence(DRILLING_COURSE_STEPS[10], { runs: [first, second], models: [], comparisons: [], answers })).toContain('第10步');
     const source = run(16), validation = run(19), unseen = run(19, 29);

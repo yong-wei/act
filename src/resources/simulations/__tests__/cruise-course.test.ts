@@ -100,10 +100,11 @@ describe('邮轮原页面课程合同', () => {
         initialInput: cruiseCourseInput(sequence, settings, initial, frame(0), model),
         designStudentModelId: model.id, courseSettings: { ...settings }, stopReason: 'duration' };
     }
-    const answers = { observation: 'fixture', interpretation: 'fixture' };
+    const answers = { prediction: '预期共振峰值随阻尼增大而降低', observation: 'fixture', interpretation: 'fixture' };
     const models = [{ ...model, createdAtMs: 1 }];
     const speeds = ([4, 8, 10] as const).map((speedMps) => run(13, { speedMps }));
     expect(validateCruiseCourseEvidence(CRUISE_COURSE_STEPS[12], { runs: speeds, models, comparisons: [], answers })).toBeNull();
+    expect(validateCruiseCourseEvidence(CRUISE_COURSE_STEPS[12], { runs: speeds, models, comparisons: [], answers: { observation: 'fixture', interpretation: 'fixture' } })).toContain('预测');
     const mixedSpeeds = [...speeds.slice(0, 2), run(13, { speedMps: 10, dampingRatio: .7 })];
     expect(validateCruiseCourseEvidence(CRUISE_COURSE_STEPS[12], { runs: mixedSpeeds, models, comparisons: [], answers }))
       .toContain('固定其余条件');

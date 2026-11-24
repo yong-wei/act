@@ -2,6 +2,7 @@ import { cruiseExperiment } from '../simulations/vessel-experiments';
 import type { VesselExperiment, VesselField } from '../simulations/vessel-experiment';
 import { VESSEL_REPORT_SECTION_LABELS } from '@/features/ilab/course-artifact-contract';
 import { CRUISE_COURSE_STEPS } from './cruise-course';
+import { CRUISE_STEP_SPECS } from './cruise-step-specs';
 import { VESSEL_COURSES } from './course-catalog';
 
 export const cruiseCourseExperiment: VesselExperiment = {
@@ -9,9 +10,16 @@ export const cruiseCourseExperiment: VesselExperiment = {
   title: VESSEL_COURSES.cruise.title,
   courseVersion: CRUISE_COURSE_STEPS[0].experimentVersion,
   steps: CRUISE_COURSE_STEPS.map((step) => {
+    const spec = CRUISE_STEP_SPECS[step.sequence];
     const fields: VesselField[] =
       step.sequence === 20
-        ? Object.entries(VESSEL_REPORT_SECTION_LABELS).map(([key, label]) => ({ key, label, kind: 'text' }))
+        ? Object.entries(VESSEL_REPORT_SECTION_LABELS).map(([key, label]) => ({
+            key,
+            label: spec?.reportFieldGuides?.[key]
+              ? `${label} — ${spec.reportFieldGuides[key]}`
+              : label,
+            kind: 'text',
+          }))
         : [
             { key: 'prediction', label: '运行前预测与方案依据', kind: 'text' },
             { key: 'observation', label: '本人读数与比较结果', kind: 'text' },
@@ -20,15 +28,21 @@ export const cruiseCourseExperiment: VesselExperiment = {
     return {
       seq: step.sequence,
       title: step.title,
-      goal: step.learningObjective,
-      watch: step.learningObjective,
-      suggestion: step.hints[0],
+      goal: spec?.goal ?? step.learningObjective,
+      actionSteps: spec?.actionSteps,
+      watch: spec?.watch ?? step.rubric.performanceCriteria ?? step.learningObjective,
+      conditionText: spec?.conditionText,
+      suggestion: spec?.suggestion ?? step.hints[0],
       scene: 'cruise-course',
       duration: step.runDurationS ?? 600,
       minRunS: step.runDurationS ?? 0,
       maxPoints: step.points,
       expectTime: 6,
       fields,
+      predictionSpec: spec?.predictionSpec,
+      observationSpec: spec?.observationSpec,
+      interpretationSpec: spec?.interpretationSpec,
+      sketchSpec: spec?.sketchSpec,
     };
   }),
   series: [

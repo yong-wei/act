@@ -72,11 +72,10 @@ import type {
 } from '../core/types';
 import { lngCourseExperiment as lngExperiment } from '../experiments/lng-experiment';
 import { LNG_COURSE_STEPS, type LngCourseSettings } from '../experiments/lng-course';
-import { VesselModelWorkbench } from '../experiments/model-workbench';
 import { ModelComparisonCurve } from '../experiments/model-comparison-curve';
 import type { VesselSessionFrame, VesselFineStepMetrics } from '@/lib/control-engine/vessel-session';
 import { vesselSampleMark } from './vessel-experiment';
-import { VesselExperimentDocks } from './vessel-experiment-panels';
+import { VesselCourseEvidencePanel, VesselExperimentDocks } from './vessel-experiment-panels';
 import { useVesselExperiment } from './use-vessel-experiment';
 import type { VesselExperimentController } from './use-vessel-experiment';
 import { Button } from '@/components/ui/button';
@@ -350,9 +349,12 @@ function ControlPanel({ state, session }: { state: LNGSimulationState; session: 
   if (!course) return null;
   const definition = LNG_COURSE_STEPS[session.activeSeq - 1];
   const settings = course.settings;
-  const locked = session.busy || course.running || state.time > 0;
+  const locked = session.busy || course.running || state.time > 0 || session.tour.active;
   const update = (patch: Partial<LngCourseSettings>) => course.setSettings((previous) => ({ ...previous, ...patch }));
   const forecast = course.comparisons.filter((item) => item.purpose === 'forecast' && item.runId === course.plannedRunId).at(-1);
+  const stillWaterRuns = course.runs.filter(
+    (run) => (run.stepSequence === 8 || run.stepSequence === 9) && run.stoppedAtMs !== null && run.stopReason !== 'failure',
+  );
   const selectControls: Array<{ key: 'excitationPercent' | 'reverseFraction' | 'loadingRatio' | 'headingRampS' | 'filterTauS' | 'validationSeed'; label: string; values: number[]; visible: boolean }> = [
     { key: 'excitationPercent', label: '轴速参考阶跃 / %', values: [3, 5, 8], visible: session.activeSeq === 2 },
     { key: 'reverseFraction', label: '反车额定转速比例', values: [.3, .6], visible: session.activeSeq === 6 },
@@ -403,6 +405,29 @@ function ControlPanel({ state, session }: { state: LNGSimulationState; session: 
           <SimToggleRow label="给定Smith结构" htmlFor="lng-smith" control={<SimSwitchInput id="lng-smith" checked={settings.smithEnabled}
             disabled={locked} onChange={() => update({smithEnabled: !settings.smithEnabled})} />} />
         </> : null}
+        {session.activeSeq === 16 ? <SimField label="已冻结的静水靠泊方案">
+          <select className="sim-hud-input" aria-label="引用第8/9步静水靠泊方案" disabled={locked} value="" onChange={(event) => {
+            const source = course.runs.find((run) => run.id === event.target.value);
+            if (!source) return;
+            const frozen = source.courseSettings as Partial<LngCourseSettings> | undefined;
+            const longitudinal = source.initialInput.longitudinal;
+            const berthPlan = source.initialInput.berthPlan;
+            if (!frozen && !longitudinal && !berthPlan) return;
+            const nextHeadingNodes = frozen?.headingNodes ?? berthPlan?.headingNodes;
+            course.setSettings((previous) => ({
+              ...previous,
+              kpMultiplier: frozen?.kpMultiplier ?? longitudinal?.kpMultiplier ?? previous.kpMultiplier,
+              tiMultiplier: frozen?.tiMultiplier ?? longitudinal?.tiMultiplier ?? previous.tiMultiplier,
+              antiWindup: frozen?.antiWindup ?? longitudinal?.antiWindup ?? previous.antiWindup,
+              brakingDistanceM: frozen?.brakingDistanceM ?? berthPlan?.brakingDistanceM ?? previous.brakingDistanceM,
+              speedNodes: structuredClone(frozen?.speedNodes ?? berthPlan?.nodes ?? previous.speedNodes),
+              headingNodes: nextHeadingNodes ? structuredClone(nextHeadingNodes) : undefined,
+            }));
+            course.setDesignModelId(source.designStudentModelId ?? '');
+          }}><option value="">选择第 8/9 步静水靠泊方案</option>{stillWaterRuns
+            .map((run) => <option key={run.id} value={run.id}>第{run.stepSequence}步 · {run.durationS.toFixed(1)} s · {new Date(run.createdAtMs).toLocaleTimeString('zh-CN')}</option>)}</select>
+          {stillWaterRuns.length === 0 ? <p className="mt-1 text-xs text-platform-fg-secondary">请先在第 8 或第 9 步完成一次完整静水靠泊运行。</p> : null}
+        </SimField> : null}
         {session.activeSeq === 19 ? <SimField label="已冻结的综合方案">
           <select className="sim-hud-input" aria-label="引用第18步综合方案" disabled={locked} value="" onChange={(event) => {
             const source = course.runs.find((run) => run.id === event.target.value);
@@ -452,7 +477,7 @@ function ControlPanel({ state, session }: { state: LNGSimulationState; session: 
         <p className="text-xs leading-5 text-platform-fg-secondary">航向参考在节点之间连续变化，实际转向由船体与执行器响应决定。</p>
       </div>
     </SimPanelSection> : null}
-    {definition.speedControl ? <>
+    {definition.berthTask ? <>
       <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={locked || !course.ready || !course.designModelId}
         onClick={() => { void course.freezePrediction(); }}>冻结速度与距离预测</Button>
       {forecast ? <ModelComparisonCurve comparison={forecast} /> : null}
@@ -709,34 +734,25 @@ export function LNGSimulation({ ticket = '' }: { ticket?: string }) {
         )}
         assessment={(
           <div className="space-y-4">
-          {session.course ? <SimPanelSection title="本机实验轮次" icon={Timer}>
-            <div className="space-y-2"><select className="sim-hud-input" aria-label="本机实验轮次" value={session.course.scopeKey}
-              disabled={session.busy || session.tour.active || !session.course.ready} onChange={(event) => {void session.course?.selectRound(event.target.value);}}>
-              {session.course.rounds.map((draft, index) => <option key={draft.scopeKey} value={draft.scopeKey}>
-                {new Date(draft.updatedAtMs).toLocaleString('zh-CN')} · 已保存{draft.completedSteps.length}步{index === 0 ? ' · 最近' : ''}
-              </option>)}</select>
-              <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || session.tour.active || !session.course.ready}
-                onClick={() => {void session.restartIlabSession();}}>开启新一轮实验</Button></div>
-          </SimPanelSection> : null}
-          {session.course ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={session.busy || session.tour.active}
-            onClick={() => { void session.course?.upload(); }}>{session.tour.active ? '导览只读禁止上传' : '上传或重试保存本人证据'}</Button> : null}
-          {session.course ? (session.tour.active ? (
-            <div className="sim-hud-tile p-2.5 text-xs text-platform-fg-secondary" data-tour-workbench-locked>
-              只读高光导览中：已隔离本机实验轮次与模型辨识库，退出导览后可继续编辑本人模型。
-            </div>
-          ) : <VesselModelWorkbench scopeKey={session.course.scopeKey} runs={session.course.runs}
-            onArtifactsChange={session.course.onArtifactsChange} defaultChannel="shaft-reference-to-speed" />) : null}
-          <SimulationAssessmentPanel
-            title="运行质量评估"
-            pendingReview
-            metrics={[
-              { id: 'heading-error', label: '航向误差', value: Math.abs(state.heading - state.targetHeading), max: 30, better: 'lower', unit: '°', precision: 1 },
-              { id: 'rudder', label: '舵角幅值', value: Math.abs(state.rudder), max: 35, better: 'lower', unit: '°', precision: 1 },
-              { id: 'sloshing', label: '液面幅值真值', value: state.sloshHeightM, max: .1 * state.liquidDepthM, better: 'lower', unit: 'm', precision: 3 },
-              { id: 'roll', label: '横摇真值', value: Math.abs(state.rollRad * 180 / Math.PI), max: 8, better: 'lower', unit: '°', precision: 2 },
-            ]}
-          />
-          <p className="text-xs leading-5 text-platform-fg-secondary">采用教学标称参数及既有零航速代表波浪数据。局部模型的速度、加载与低速外推误差随本人对照保留。</p>
+            <VesselCourseEvidencePanel
+              session={session}
+              courseKey="lng"
+              stepSequence={session.step.seq}
+              defaultChannel="shaft-reference-to-speed"
+            />
+            {session.step.seq >= 13 && session.step.seq <= 19 ? (
+              <SimulationAssessmentPanel
+                title="运行质量评估"
+                pendingReview
+                metrics={[
+                  { id: 'heading-error', label: '航向误差', value: Math.abs(state.heading - state.targetHeading), max: 30, better: 'lower', unit: '°', precision: 1 },
+                  { id: 'rudder', label: '舵角幅值', value: Math.abs(state.rudder), max: 35, better: 'lower', unit: '°', precision: 1 },
+                  { id: 'sloshing', label: '液面幅值真值', value: state.sloshHeightM, max: .1 * state.liquidDepthM, better: 'lower', unit: 'm', precision: 3 },
+                  { id: 'roll', label: '横摇真值', value: Math.abs(state.rollRad * 180 / Math.PI), max: 8, better: 'lower', unit: '°', precision: 2 },
+                ]}
+              />
+            ) : null}
+            <p className="text-xs leading-5 text-platform-fg-secondary">采用教学标称参数及既有零航速代表波浪数据。局部模型的速度、加载与低速外推误差随本人对照保留。</p>
           </div>
         )}
       />
