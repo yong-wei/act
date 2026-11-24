@@ -5,6 +5,7 @@ interface Transaction {
   nonce: string;
   codeVerifier: string;
   returnTo: string;
+  launchReference: string | null;
   expiresAt: number;
 }
 
@@ -58,7 +59,7 @@ export function transactionCookieName(state: string): string {
   return `act_oidc_tx_${createHash('sha256').update(state).digest('hex').slice(0, 16)}`;
 }
 
-export function createOidcTransaction(returnTo: string) {
+export function createOidcTransaction(returnTo: string, launchReference: string | null = null) {
   const current = store();
   const now = Date.now();
   clean(now);
@@ -67,6 +68,7 @@ export function createOidcTransaction(returnTo: string) {
     nonce: randomBytes(24).toString('base64url'),
     codeVerifier: randomBytes(36).toString('base64url'),
     returnTo: sanitizeReturnTo(returnTo),
+    launchReference,
     expiresAt: now + 10 * 60 * 1000,
   };
   current.transactions.set(transaction.state, transaction);

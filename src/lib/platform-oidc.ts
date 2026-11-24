@@ -23,6 +23,17 @@ export function assertSameOrigin(request: Request): void {
   throw new Error('invalid-origin');
 }
 
+export async function verifyPortalLaunch(identity: { issuer: string; subject: string }, reference: string): Promise<boolean> {
+  const response = await fetch(new URL('/api/apps/act/verify-launch', identity.issuer), {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ reference, subject: identity.subject }),
+    redirect: 'error',
+    signal: AbortSignal.timeout(5000),
+  });
+  return response.status === 204;
+}
+
 export async function exchangePlatformCode(input: {
   code: string;
   iss: string;
