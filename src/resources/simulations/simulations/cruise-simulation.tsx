@@ -935,6 +935,7 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
     lastTimeRef.current = timestamp;
     let frame = course.read();
     clockRef.current.advance(elapsed, (dt) => {
+      if (!course.running) return;
       frame = course.advance(dt);
       if (!frame) return;
       const portDeg = ((frame.truth.actuator_states.control_surface_angles_rad[0] ?? 0) * 180) / Math.PI;
@@ -988,7 +989,7 @@ export default function CruiseSimulation({ ticket = '' }: { ticket?: string }) {
       const position = { x: frame.truth.position_ned[0], z: frame.truth.position_ned[1] };
       setTrajectory((previous) => [...previous.slice(-1200), position]);
     }
-    animationRef.current = requestAnimationFrame(simulate);
+    if (course.running) animationRef.current = requestAnimationFrame(simulate);
   }, []);
 
   useEffect(() => {

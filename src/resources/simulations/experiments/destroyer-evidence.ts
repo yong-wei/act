@@ -43,6 +43,7 @@ export function validateDestroyerCourseEvidence(step: DestroyerCourseStep, evide
   const ownRuns = runs.filter((run) => run.stepSequence === step.sequence && run.stopReason !== 'failure'
     && run.lastTimeS+1e-7 >= (step.runDurationS ?? 0));
   if (step.sequence !== 20 && !answers.interpretation?.trim()) return '请填写证据解释与适用边界。';
+  if (step.requiredArtifacts.includes('prediction') && !answers.prediction?.trim()) return '请先填写运行前预测与理由。';
   if (step.stepKind === 'run' && ownRuns.length < step.minimumRuns) return `本步需要至少${step.minimumRuns}次完整运行，各次记录均会保留。`;
   const hullModels = models.filter((model) => model.channel === 'rudder-to-yaw');
   const ownRunIds = new Set(ownRuns.map((run) => run.id));

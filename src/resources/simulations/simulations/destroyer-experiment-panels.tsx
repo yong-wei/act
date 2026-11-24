@@ -1,16 +1,19 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { Compass, FileText, Radio, Target } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import type { VesselRunSummary } from '@/features/simulations/local-evidence-store';
+import type { VesselTracePoint } from '@/features/simulations/run-evidence';
 import { cn } from '@/lib/utils';
 import { simulationScenePalette } from '../components/simulation-theme';
 import { formatAxisTick, simulationUi, useSimulationChartTheme } from '../components/simulation-ui';
 import {
   DESTROYER_CURVE_SERIES,
   DESTROYER_EXPERIMENT_STEPS,
+  DESTROYER_EXPERIMENT_TITLE,
   destroyerFrontierSeq,
   type DestroyerExperimentStep,
   type DestroyerReadings,
@@ -25,9 +28,12 @@ import {
   SimReadoutGrid,
   SimStatusStrip,
 } from '../components/simulation-panels';
+import { Step20EvidenceWorkbench, type VesselReportSectionKey } from '../experiments/step20-evidence-workbench';
+import type { FrozenVesselStudentModel, VesselModelComparison } from '../experiments/student-analysis';
 import { SketchPad } from './sketch-pad';
+import type { VesselSample } from './vessel-experiment';
 import { StepNode } from './vessel-experiment-panels';
-import type { VesselTracePoint } from '@/features/simulations/run-evidence';
+import { StepInterpretationStage, StepObservationStage } from './vessel-step-structured-fields';
 
 Chart.register(...registerables);
 
@@ -318,6 +324,12 @@ export function DestroyerStepForm({
   reportEnabled,
   showRestart = false,
   connectionStatus = '',
+  studentModel = null,
+  models = [],
+  comparisons = [],
+  runs = [],
+  samples = [],
+  originId,
   onChange,
   onSubmit,
   onReport,
@@ -331,61 +343,66 @@ export function DestroyerStepForm({
   reportEnabled: boolean;
   showRestart?: boolean;
   connectionStatus?: string;
+  studentModel?: FrozenVesselStudentModel | null;
+  models?: FrozenVesselStudentModel[];
+  comparisons?: VesselModelComparison[];
+  runs?: VesselRunSummary[];
+  samples?: VesselSample[];
+  originId?: string;
   onChange: (key: string, value: string) => void;
   onSubmit: () => void;
   onReport: () => void;
   onAsk: () => void;
   onRestart?: () => void;
 }) {
-  const showReport = step.courseDefinition ? step.seq === 20 : step.scene === 'review';
+  const [step20Section, setStep20Section] = useState<VesselReportSectionKey>('problem');
+  const isCourse = Boolean(step.courseDefinition);
+  const showReport = isCourse ? step.seq === 20 : step.scene === 'review';
   return (
     <div className="space-y-2.5">
-      {step.fields.filter((field) => field.stage !== 'prediction').map((field) => (
-        <label key={field.key} className="block space-y-1 text-xs text-platform-fg-secondary">
-          <span className="flex items-baseline justify-between gap-2">
-            <span>{field.label}</span>
-            {field.unit ? <span className="font-mono text-[10px] text-platform-fg-muted">{field.unit}</span> : null}
-          </span>
-          {field.kind === 'text' ? (
-            <textarea
-              value={readings[field.key] ?? ''}
-              onChange={(event) => onChange(field.key, event.target.value)}
-              aria-label={field.label}
-              rows={3}
-              className="sim-hud-input"
-            />
-          ) : null}
-          {field.kind === 'number' ? (
-            <input
-              value={readings[field.key] ?? ''}
-              onChange={(event) => onChange(field.key, event.target.value)}
-              aria-label={field.label}
-              inputMode="decimal"
-              className="sim-hud-input font-mono tabular-nums"
-            />
-          ) : null}
-          {field.kind === 'choice' ? (
-            <span className="flex flex-wrap gap-1">
-              {field.choices?.map((choice) => (
-                <Button
-                  key={choice}
-                  type="button"
-                  size="sm"
-                  variant={readings[field.key] === choice ? 'default' : 'outline'}
-                  className={readings[field.key] === choice ? simulationUi.buttonPrimary : simulationUi.buttonOutline}
-                  onClick={() => onChange(field.key, choice)}
-                >
-                  {choice}
-                </Button>
-              ))}
+      {isCourse && step.seq === 20 ? <>
+        {step.observationSpec?.prompt ? <p className="text-xs leading-5 text-platform-fg-secondary">{step.observationSpec.prompt}</p> : null}
+        <Step20EvidenceWorkbench readings={readings} activeSection={step20Section} onSelectSection={setStep20Section}
+          onInsertSnippet={(section, nextText) => onChange(section, nextText)} models={models} comparisons={comparisons} runs={runs} />
+      </> : null}
+      {step.fields.filter((field) => field.stage !== 'prediction').map((field) => {
+        if (isCourse && step.seq !== 20 && field.key === 'observation' && step.observationSpec) {
+          return <StepObservationStage key={field.key} spec={step.observationSpec} readings={readings} samples={samples} runs={runs} models={models} comparisons={comparisons} stepSeq={step.seq} onChange={onChange} />;
+        }
+        if (isCourse && step.seq !== 20 && field.key === 'interpretation' && step.interpretationSpec) {
+          return <StepInterpretationStage key={field.key} spec={step.interpretationSpec} value={readings.interpretation ?? ''} checksValue={readings.interpChecks ?? ''} onChange={onChange} />;
+        }
+        if (isCourse && field.kind === 'sketch' && step.sketchSpec) {
+          const sketch = step.sketchSpec;
+          return <div key={field.key} className="space-y-1 text-xs text-platform-fg-secondary">
+            <SketchPad key={`step-sketch-${step.seq}-${sketch.plotId}`} mode={sketch.mode} defaultPlotId={sketch.plotId} lockPlotId={sketch.lockPlotId}
+              label={sketch.label} hint={sketch.hint} coordinateOverride={sketch.coordinateOverride}
+              context={{ mode: sketch.mode, plotId: sketch.plotId, stepSeq: step.seq, stepTitle: step.title, vesselTitle: DESTROYER_EXPERIMENT_TITLE, promptFocus: sketch.promptFocus, originId }}
+              value={readings.sketchImage ?? ''} studentModel={studentModel} actualSeries={sketch.overlayExtractor?.(samples, runs)}
+              onChange={(dataUrl) => onChange('sketchImage', dataUrl)}
+              onRecognized={(verdict) => { onChange('sketchKind', verdict.sketchKind); onChange('sketchBlank', verdict.sketchBlank ? '1' : '0'); onChange('sketchEvaluation', verdict.sketchEvaluation); }} />
+          </div>;
+        }
+        return (
+          <label key={field.key} className="block space-y-1 text-xs text-platform-fg-secondary">
+            <span className="flex items-baseline justify-between gap-2">
+              <span>{field.label}</span>
+              {field.unit ? <span className="font-mono text-[10px] text-platform-fg-muted">{field.unit}</span> : null}
             </span>
-          ) : null}
-          {field.kind === 'sketch' ? (
-            <SketchPad label={field.label} hint="画出奈奎斯特图、伯德图、根轨迹图或时域响应图。"
-              value={readings.sketchImage ?? ''} onChange={(dataUrl) => onChange('sketchImage', dataUrl)} />
-          ) : null}
-        </label>
-      ))}
+            {field.kind === 'text' ? <textarea value={readings[field.key] ?? ''} onChange={(event) => onChange(field.key, event.target.value)} aria-label={field.label} rows={3} className="sim-hud-input" /> : null}
+            {field.kind === 'number' ? <input value={readings[field.key] ?? ''} onChange={(event) => onChange(field.key, event.target.value)} aria-label={field.label} inputMode="decimal" className="sim-hud-input font-mono tabular-nums" /> : null}
+            {field.kind === 'choice' ? (
+              <span className="flex flex-wrap gap-1">
+                {field.choices?.map((choice) => (
+                  <Button key={choice} type="button" size="sm" variant={readings[field.key] === choice ? 'default' : 'outline'}
+                    className={readings[field.key] === choice ? simulationUi.buttonPrimary : simulationUi.buttonOutline} onClick={() => onChange(field.key, choice)}>{choice}</Button>
+                ))}
+              </span>
+            ) : null}
+            {field.kind === 'sketch' ? <SketchPad label={field.label} hint="画出奈奎斯特图、伯德图、根轨迹图或时域响应图。" value={readings.sketchImage ?? ''} onChange={(dataUrl) => onChange('sketchImage', dataUrl)} /> : null}
+          </label>
+        );
+      })}
       <div className="grid grid-cols-2 gap-2">
         <Button type="button" size="sm" disabled={busy} onClick={onSubmit} data-destroyer-submit className={cn(simulationUi.buttonPrimary, 'col-span-2 h-9')}>
           提交本步

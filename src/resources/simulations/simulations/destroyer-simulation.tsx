@@ -41,6 +41,7 @@ import { Slider } from '@/components/ui/slider';
 import {
   SimField,
   SimLockedChip,
+  SimNotice,
   SimPanelSection,
   SimPanelStack,
   SimRunControls,
@@ -129,6 +130,12 @@ import {
 } from './destroyer-experiment';
 import { withLatestSample } from './vessel-experiment';
 import { DestroyerReportHistory, DestroyerStatusPanel, DestroyerStepForm, DestroyerStepList } from './destroyer-experiment-panels';
+import { StepPredictionStage } from './vessel-step-structured-fields';
+import {
+  resolveDestroyerActiveHullModel,
+  resolveDestroyerKpMultiplier,
+  toDestroyerVesselSamples,
+} from '../experiments/destroyer-step-specs';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
@@ -902,15 +909,17 @@ function SimulationEngine({
 
     if (frameDt <= 0) return;
 
-    const stepSimulation = (dt: number) => {
+    const stepSimulation = (dt: number): boolean => {
+      if (finishedRef.current || !executionRef.current) return false;
       const previousTime = simTimeRef.current;
       const simTime = previousTime + dt;
 
       if (simTime > duration + 1e-8) {
         if (!finishedRef.current) onFinished();
         finishedRef.current = true;
+        executionRef.current = false;
         simRef.current.advancing = false;
-        return;
+        return false;
       }
 
       const sim = simRef.current;
@@ -920,7 +929,7 @@ function SimulationEngine({
       if (courseStep) {
         const session = nativeSessionRef.current;
         const input = nativeInputRef.current;
-        if (!session || !input) return;
+        if (!session || !input) return false;
         const physical = advanceDestroyerCourseSession(session, input, {
           dtS: dt, targetHeadingDeg: targetHeading,
           controlMode: controlMode === 'manual' || controlMode === 'p' || controlMode === 'pd' ? controlMode : 'pid', pid: pidGains,
@@ -1024,6 +1033,14 @@ function SimulationEngine({
         lastChartSampleRef.current = simTime;
         onChartDataUpdate(sample);
       }
+      if (!courseStep && simTime >= duration - 1e-8) {
+        if (!finishedRef.current) onFinished();
+        finishedRef.current = true;
+        executionRef.current = false;
+        simRef.current.advancing = false;
+        return false;
+      }
+      return true;
     };
 
     try {
@@ -1043,8 +1060,25 @@ function SimulationEngine({
           stepSimulation(seconds);
           pendingSeconds -= seconds;
         }
+      } else if (finishedRef.current || simTimeRef.current >= duration - 1e-8) {
+        if (!finishedRef.current) onFinished();
+        finishedRef.current = true;
+        executionRef.current = false;
+        simRef.current.advancing = false;
+        clockRef.current.reset();
       } else {
-        clockRef.current.advance(frameDt, stepSimulation);
+        clockRef.current.advance(frameDt, (dt) => {
+          if (finishedRef.current || !executionRef.current) return false;
+          const remaining = duration - simTimeRef.current;
+          if (remaining <= 1e-8) {
+            if (!finishedRef.current) onFinished();
+            finishedRef.current = true;
+            executionRef.current = false;
+            simRef.current.advancing = false;
+            return false;
+          }
+          return stepSimulation(Math.min(dt, remaining));
+        });
       }
     } catch (error) {
       finishedRef.current = true;
@@ -1373,7 +1407,15 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           ? getCrossTrackError(new THREE.Vector3(north,0,east),guidePath,true) : NaN };
     });
   }, [currentRunId,displayBucket,guidePath]);
-  const shownSamples = courseStep ? draftReady ? measuredSamples : [] : viewSeq === activeSeq ? samples : viewedRecord?.samples ?? [];
+  const shownSamples = useMemo(
+    () => (courseStep ? (draftReady ? measuredSamples : []) : viewSeq === activeSeq ? samples : viewedRecord?.samples ?? []),
+    [courseStep, draftReady, measuredSamples, viewSeq, activeSeq, samples, viewedRecord?.samples],
+  );
+  const shownVesselSamples = useMemo(() => toDestroyerVesselSamples(shownSamples), [shownSamples]);
+  const activeHullModel = useMemo(
+    () => resolveDestroyerActiveHullModel(studentModels, designStudentModelId, predictionModelId),
+    [studentModels, designStudentModelId, predictionModelId],
+  );
   useEffect(() => {
     const stored = window.localStorage.getItem(`${baseScopeKey}:active-round`);
     setSelectedRound({base:baseScopeKey,scope:stored?.startsWith(`${baseScopeKey}:round:`) ? stored : baseScopeKey});
@@ -1446,7 +1488,15 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
     if (!runtimeReady || !sessionReady || !draftReady || busy) return;
     if (getMarineCanvasStatus() !== 'runnable') { setMessage('请等待三维画面就绪后开始。'); return; }
     if (courseStep?.stepKind === 'analysis') return;
-    if (!courseStep) { executionRef.current = true; setIsRunning(true); return; }
+    if (!courseStep) {
+      if (simTimeRef.current >= motion.duration - 1e-8) {
+        setMessage('本次运行已结束，请重置后开始新的运行。');
+        return;
+      }
+      executionRef.current = true;
+      setIsRunning(true);
+      return;
+    }
     const physical = nativeSessionRef.current;
     if (!physical) return;
     if (recorderRef.current?.run.stoppedAtMs !== null && recorderRef.current) {
@@ -1483,10 +1533,14 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           throw new Error('请先选择第16步或第17步保存的控制方案。');
         }
         const checkpoint = physical.snapshot();
+        const kpMultiplier = step.seq === 9 && activeHeadingDesign
+          ? resolveDestroyerKpMultiplier(pidGains.kp, activeHeadingDesign.kp)
+          : undefined;
         recorderRef.current = new VesselRunRecorder({ id: plannedRunId || crypto.randomUUID(), scopeKey, courseKey: 'destroyer',
           courseVersion: experimentVersion, stepSequence: step.seq, prediction, durationS: motion.duration,
           createdAtMs: Date.now(), lastTimeS: initial.timeS, stoppedAtMs: null,
-          configuration: courseStep.configuration, initialInput: structuredClone(initial.input), controllerSourceRunId,designStudentModelId,
+          configuration: courseStep.configuration, initialInput: structuredClone(initial.input), controllerSourceRunId, designStudentModelId,
+          ...(kpMultiplier !== undefined ? { courseSettings: { kpMultiplier } } : {}),
           parameterHash: initial.parameterHash, initialCheckpoint: checkpoint, checkpoint, trace: [], nativeSensorSamples: [], changes: [],
           runtimeVersion:physical.runtimeVersion,
           stopReason: null, failure: null });
@@ -2708,10 +2762,26 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                 seq={step.seq}
                 title={step.title}
                 goal={step.goal}
+                actionSteps={step.actionSteps}
                 watch={step.watch}
+                conditionText={step.conditionText}
                 hint={step.suggestion}
                 hintAttribute="data-destroyer-suggestion"
-                prediction={courseStep?.stepKind === 'run' ? (
+                prediction={courseStep && step.predictionSpec ? (
+                  <StepPredictionStage
+                    spec={step.predictionSpec}
+                    stepSeq={step.seq}
+                    stepTitle={step.title}
+                    vesselTitle={DESTROYER_EXPERIMENT_TITLE}
+                    readings={readings}
+                    samples={shownVesselSamples}
+                    runs={runSummaries}
+                    locked={isRunning || hudState.time > 0}
+                    originId={originId || undefined}
+                    studentModel={activeHullModel}
+                    onChange={(key, value) => setReadings((prev) => ({ ...prev, [key]: value }))}
+                  />
+                ) : courseStep?.stepKind === 'run' ? (
                   <label className="block space-y-1 text-xs text-platform-fg-secondary">
                     <span>运行前预测与理由</span>
                     <textarea className="sim-hud-input" rows={3} aria-label="运行前预测与理由"
@@ -2744,26 +2814,34 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                       kd:{ min:0,max:activeHeadingDesign.kdMaximum,step:.01,digits:2 },
                     } : undefined}
                   >
-                    {courseStep && step.seq >= 9 && step.seq < 18 ? <SimPanelSection title="基于本人模型的控制设计">
-                      <select className="sim-hud-input" aria-label="用于控制设计的一阶船体模型" value={designStudentModelId}
-                        disabled={isRunning || hudState.time > 0} onChange={(event) => setDesignStudentModelId(event.target.value)}>
-                        <option value="">选择8 m/s工况的本人一阶模型</option>{studentModels.filter((model) => model.channel === 'rudder-to-yaw'
-                          && model.payload.structure.kind === 'nomoto1' && Number(model.payload.operatingPoint.speedMps) === 8)
-                          .map((model,index) => <option key={model.id} value={model.id}>{model.label} · 版本{index+1}</option>)}
-                      </select>
-                      {activeHeadingDesign ? <div className="mt-2 space-y-2 text-xs text-platform-fg-secondary">
-                        <p>{studentModelFormula(studentModels.find((model) => model.id === designStudentModelId)!.payload.structure)}</p>
-                        <p>ζ = {activeHeadingDesign.dampingRatio}，ωₙ = {activeHeadingDesign.naturalFrequencyRadS.toFixed(4)} rad/s</p>
-                        <p>建议Kp = {activeHeadingDesign.kp.toFixed(3)}，Kd = {activeHeadingDesign.kd.toFixed(2)}。Kp可调为建议值的0.2–3倍，Ki上限为Kp/30。</p>
-                        <button type="button" className={simulationUi.buttonOutline} disabled={isRunning || hudState.time > 0}
-                          onClick={() => setPidGains({ kp:activeHeadingDesign.kp,ki:controlMode === 'pid' ? activeHeadingDesign.ki : 0,
-                            kd:controlMode === 'pd' || controlMode === 'pid' ? activeHeadingDesign.kd : 0 })}>应用建议初值</button>
-                        {step.seq === 9 ? <SimSegmented ariaLabel="比例增益相对建议值" value={String(pidGains.kp/activeHeadingDesign.kp)}
-                          onChange={(value) => setPidGains({ kp:activeHeadingDesign.kp*Number(value),ki:0,kd:0 })}
-                          disabled={isRunning || hudState.time > 0}
-                          options={[{ value:'0.5',label:'0.5倍' },{ value:'1',label:'1倍' },{ value:'2',label:'2倍' }]} /> : null}
-                      </div> : null}
-                    </SimPanelSection> : null}
+                    {courseStep && step.seq >= 9 && step.seq < 18 ? (() => {
+                      const designModels = studentModels.filter((model) => model.channel === 'rudder-to-yaw'
+                        && model.payload.structure.kind === 'nomoto1' && Number(model.payload.operatingPoint.speedMps) === 8);
+                      return <SimPanelSection title="基于本人模型的控制设计">
+                        <select className="sim-hud-input" aria-label="用于控制设计的一阶船体模型" value={designStudentModelId}
+                          disabled={isRunning || hudState.time > 0} onChange={(event) => setDesignStudentModelId(event.target.value)}>
+                          <option value="">选择8 m/s工况的本人一阶模型</option>
+                          {designModels.map((model, index) => <option key={model.id} value={model.id}>{model.label} · 版本{index + 1}</option>)}
+                        </select>
+                        {designModels.length === 0 ? (
+                          <SimNotice tone="warning" className="mt-2" data-destroyer-empty-design-model-hint>
+                            暂无可用的 8 m/s 本人一阶船体模型：请先在第 3 步完成 +5° 舵阶跃运行，并在第 4 步「评估」页签辨识并冻结 8 m/s 船体模型。
+                          </SimNotice>
+                        ) : null}
+                        {activeHeadingDesign ? <div className="mt-2 space-y-2 text-xs text-platform-fg-secondary">
+                          <p>{studentModelFormula(studentModels.find((model) => model.id === designStudentModelId)!.payload.structure)}</p>
+                          <p>阻尼比 ζ = {activeHeadingDesign.dampingRatio}，固有频率 ωₙ = {activeHeadingDesign.naturalFrequencyRadS.toFixed(4)} rad/s</p>
+                          <p>建议Kp = {activeHeadingDesign.kp.toFixed(3)}，Kd = {activeHeadingDesign.kd.toFixed(2)}。Kp可调为建议值的0.2–3倍，Ki上限为Kp/30。</p>
+                          <button type="button" className={simulationUi.buttonOutline} disabled={isRunning || hudState.time > 0}
+                            onClick={() => setPidGains({ kp: activeHeadingDesign.kp, ki: controlMode === 'pid' ? activeHeadingDesign.ki : 0,
+                              kd: controlMode === 'pd' || controlMode === 'pid' ? activeHeadingDesign.kd : 0 })}>应用建议初值</button>
+                          {step.seq === 9 ? <SimSegmented ariaLabel="比例增益相对建议值" value={String(pidGains.kp / activeHeadingDesign.kp)}
+                            onChange={(value) => setPidGains({ kp: activeHeadingDesign.kp * Number(value), ki: 0, kd: 0 })}
+                            disabled={isRunning || hudState.time > 0}
+                            options={[{ value: '0.5', label: '0.5倍' }, { value: '1', label: '1倍' }, { value: '2', label: '2倍' }]} /> : null}
+                        </div> : null}
+                      </SimPanelSection>;
+                    })() : null}
                     {courseStep && [18,19].includes(step.seq) ? <SimField label="已冻结的本人控制方案">
                       <select className="sim-hud-input" aria-label="已冻结的本人控制方案" value={controllerSourceRunId} disabled={isRunning || hudState.time > 0}
                         onChange={(event) => {
@@ -2797,35 +2875,49 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                       </select>
                     </SimField> : null}
                     {courseStep && step.seq >= 15 ? <SimField label="微分滤波时间常数" value="s">
-                      <select className="sim-hud-input" aria-label="微分滤波时间常数" value={derivativeFilterTauS} disabled={[18,19].includes(step.seq)}
+                      <select className="sim-hud-input" aria-label="微分滤波时间常数" value={derivativeFilterTauS} disabled={isRunning || hudState.time > 0 || [18,19].includes(step.seq)}
                         onChange={(event) => setDerivativeFilterTauS(Number(event.target.value))}>
                         {[0,0.2,1,3].map((value) => <option key={value} value={value}>{value === 0 ? '原始微分' : `${value} s`}</option>)}
                       </select>
                     </SimField> : null}
                     {courseStep && step.seq === 12 ? <SimPanelSection title="积分抗饱和">
                       <SimSegmented ariaLabel="积分抗饱和" value={integralTrackingEnabled ? 'on' : 'off'}
+                        disabled={isRunning || hudState.time > 0}
                         onChange={(value) => setIntegralTrackingEnabled(value === 'on')}
                         options={[{ value: 'off', label: '关闭' }, { value: 'on', label: '开启' }]} />
                       <SimField label="积分回算时间" value="s"><input type="number" className="sim-hud-input" aria-label="积分回算时间"
+                        disabled={isRunning || hudState.time > 0}
                         min={0.05} max={100} step={0.05} value={integralTrackingTimeS}
                         onChange={(event) => { const value = Number(event.target.value); if (Number.isFinite(value) && value >= .05 && value <= 100) setIntegralTrackingTimeS(value); }} /></SimField>
                     </SimPanelSection> : null}
                   </ControlPanel>
-                  {courseStep && step.seq === 10 ? <SimPanelSection title="运行前的独立闭环预测">
-                    <div className="space-y-2">
-                      <select className="sim-hud-input" aria-label="预测采用的本人船体模型" value={predictionModelId} disabled={isRunning || hudState.time > 0} onChange={(event) => setPredictionModelId(event.target.value)}>
-                        <option value="">选择本人船体模型</option>{studentModels.filter((model) => model.channel === 'rudder-to-yaw')
-                          .map((model,index) => <option key={model.id} value={model.id}>{model.label} · 版本{index+1}</option>)}
-                      </select>
-                      <select className="sim-hud-input" aria-label="预测采用的本人舵机模型" value={predictionActuatorId} disabled={isRunning || hudState.time > 0} onChange={(event) => setPredictionActuatorId(event.target.value)}>
-                        <option value="">选择本人舵机模型</option>{studentModels.filter((model) => model.channel === 'rudder-servo')
-                          .map((model,index) => <option key={model.id} value={model.id}>{model.label} · 版本{index+1}</option>)}
-                      </select>
-                      <button type="button" className={simulationUi.buttonOutline} disabled={isRunning || hudState.time > 0} onClick={() => { void freezeModelPrediction(); }}>冻结独立闭环预测</button>
-                      {modelComparisons.filter((comparison) => comparison.runId === plannedRunId && comparison.purpose === 'forecast').at(-1)
-                        ? <ModelComparisonCurve comparison={modelComparisons.filter((comparison) => comparison.runId === plannedRunId && comparison.purpose === 'forecast').at(-1)!} /> : null}
-                    </div>
-                  </SimPanelSection> : null}
+                  {courseStep && step.seq === 10 ? (() => {
+                    const hullModels = studentModels.filter((model) => model.channel === 'rudder-to-yaw');
+                    const actuatorModels = studentModels.filter((model) => model.channel === 'rudder-servo');
+                    return <SimPanelSection title="运行前的独立闭环预测">
+                      <div className="space-y-2">
+                        <select className="sim-hud-input" aria-label="预测采用的本人船体模型" value={predictionModelId} disabled={isRunning || hudState.time > 0} onChange={(event) => setPredictionModelId(event.target.value)}>
+                          <option value="">选择本人船体模型</option>
+                          {hullModels.map((model, index) => <option key={model.id} value={model.id}>{model.label} · 版本{index + 1}</option>)}
+                        </select>
+                        <select className="sim-hud-input" aria-label="预测采用的本人舵机模型" value={predictionActuatorId} disabled={isRunning || hudState.time > 0} onChange={(event) => setPredictionActuatorId(event.target.value)}>
+                          <option value="">选择本人舵机模型</option>
+                          {actuatorModels.map((model, index) => <option key={model.id} value={model.id}>{model.label} · 版本{index + 1}</option>)}
+                        </select>
+                        {hullModels.length === 0 || actuatorModels.length === 0 ? (
+                          <SimNotice tone="warning" data-destroyer-empty-prediction-model-hint>
+                            {[
+                              hullModels.length === 0 ? '缺少本人船体模型：请先在第 4 步（基于第 3 步阶跃）评估页签冻结 8 m/s 船体模型。' : '',
+                              actuatorModels.length === 0 ? '缺少本人舵机模型：请先在第 2 步完成 ±5° 舵阶跃，并在评估页签选择「舵指令 → 实际舵角」冻结舵机模型。' : '',
+                            ].filter(Boolean).join(' ')}
+                          </SimNotice>
+                        ) : null}
+                        <button type="button" className={simulationUi.buttonOutline} disabled={isRunning || hudState.time > 0} onClick={() => { void freezeModelPrediction(); }}>冻结独立闭环预测</button>
+                        {modelComparisons.filter((comparison) => comparison.runId === plannedRunId && comparison.purpose === 'forecast').at(-1)
+                          ? <ModelComparisonCurve comparison={modelComparisons.filter((comparison) => comparison.runId === plannedRunId && comparison.purpose === 'forecast').at(-1)!} /> : null}
+                      </div>
+                    </SimPanelSection>;
+                  })() : null}
                   </div>
                 )}
                 submission={(
@@ -2853,6 +2945,12 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
                     busy={busy || Boolean(courseStep && courseReport && !['draft','revision-requested'].includes(courseReport.status))}
                     reportEnabled={courseStep ? reportRunIds.length > 0 && !isRunning : records.some((record) => record.seq === DESTROYER_EXPERIMENT_STEPS.length) || Boolean(reportHtml)}
                     showRestart={sessionCompleted || Boolean(courseStep && draftReady && courseAttempts.length)}
+                    studentModel={activeHullModel}
+                    models={studentModels}
+                    comparisons={modelComparisons}
+                    runs={runSummaries}
+                    samples={shownVesselSamples}
+                    originId={originId || undefined}
                     onChange={(key, value) => setReadings((prev) => ({ ...prev, [key]: value }))}
                     onSubmit={() => { void submitStep(); }}
                     onReport={() => { void openReport(); }}

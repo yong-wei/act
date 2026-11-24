@@ -2,6 +2,7 @@ import { lngExperiment } from '../simulations/vessel-experiments';
 import type { VesselExperiment, VesselField } from '../simulations/vessel-experiment';
 import { VESSEL_REPORT_SECTION_LABELS } from '@/features/ilab/course-artifact-contract';
 import { LNG_COURSE_STEPS } from './lng-course';
+import { LNG_STEP_SPECS } from './lng-step-specs';
 import { VESSEL_COURSES } from './course-catalog';
 import type { VesselTracePoint } from '@/features/simulations/run-evidence';
 
@@ -23,15 +24,31 @@ export const lngCourseExperiment: VesselExperiment = {
   title: VESSEL_COURSES.lng.title,
   courseVersion: LNG_COURSE_STEPS[0].experimentVersion,
   steps: LNG_COURSE_STEPS.map((step) => {
+    const spec = LNG_STEP_SPECS[step.sequence];
     const fields: VesselField[] = step.sequence === 20
       ? Object.entries(VESSEL_REPORT_SECTION_LABELS).map(([key, label]) => ({ key, label, kind: 'text' }))
       : [{ key: 'prediction', label: '运行或分析前的预测', kind: 'text' },
         { key: 'observation', label: observationLabels[step.sequence] ?? '本次方案、读数与比较结果', kind: 'text' },
         { key: 'interpretation', label: '依据本人证据解释原因与适用边界', kind: 'text' }];
-    return { seq: step.sequence, title: step.title, goal: step.learningObjective,
-      watch: observationLabels[step.sequence] ?? '比较指令、仪器量测、实际运动及约束状态，保留本次方案的证据。',
-      suggestion: step.hints[0], scene: 'lng-course', duration: step.runDurationS ?? 1200,
-      minRunS: step.runDurationS ?? 0, maxPoints: step.points, expectTime: 6, fields };
+    return {
+      seq: step.sequence,
+      title: step.title,
+      goal: spec?.goal ?? step.learningObjective,
+      watch: spec?.watch ?? (observationLabels[step.sequence] ?? '比较指令、仪器量测、实际运动及约束状态，保留本次方案的证据。'),
+      suggestion: spec?.suggestion ?? step.hints[0],
+      actionSteps: spec?.actionSteps,
+      conditionText: spec?.conditionText,
+      predictionSpec: spec?.predictionSpec,
+      observationSpec: spec?.observationSpec,
+      interpretationSpec: spec?.interpretationSpec,
+      sketchSpec: spec?.sketchSpec,
+      scene: 'lng-course',
+      duration: step.runDurationS ?? 1200,
+      minRunS: step.runDurationS ?? 0,
+      maxPoints: step.points,
+      expectTime: 6,
+      fields,
+    };
   }),
   series: [
     { id: 'referenceRpm', label: '轴速指令 r/min' },
@@ -48,6 +65,8 @@ export const lngCourseExperiment: VesselExperiment = {
     { id: 'slosh', label: '液面幅值真值 m', digits: 3 },
   ],
 };
+
+export const LNG_COURSE_EXPERIMENT = lngCourseExperiment;
 
 export function lngCourseTraceSamples(trace: VesselTracePoint[]) {
   return trace.filter((_, index) => index % 20 === 0 || index === trace.length - 1).map((point) => {

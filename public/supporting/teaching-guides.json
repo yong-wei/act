@@ -2,7 +2,7 @@
   "schema": "act.virtual-simulation-guides.v1",
   "courseVersion": "seven-vessel-2026.11.14",
   "edition": "2026.11.16",
-  "inputHash": "9b6d3ea6f3938722d8b82cea88b764560c3c061448a28d82632feae19d11408e",
+  "inputHash": "825a6ed7b944dd5679e56a82775be746967515847e8f999d708fa875dd2d2a97",
   "inputFiles": {
     "scripts/simulations/generate-teaching-guides.mts": "2d290110e7230c89067f087b2f83eeb3015438a1827cbb216430efe2f0045c22",
     "src/resources/simulations/experiments/catalog/teaching-cards.json": "fdaf39d9cb34e2015da6a436dba73b79607112572350745f7ce7fe91f0f3647b",
@@ -10,13 +10,13 @@
     "src/features/ilab/course-report-review-contract.ts": "09d4fb6232a356f1950f8383221dfe242c93006915f84c3db3c9ea68f6334cfd",
     "src/resources/simulations/experiments/destroyer-course.ts": "bad6068b4150c77d27c3c47352d4e5c2bbe42f7c360e9eb7a622a11794a90b1a",
     "src/resources/simulations/experiments/lng-course.ts": "8915d80472a4f1b54e9617bc08a244721047503eb1c9eefffc574718eccee5f2",
-    "src/resources/simulations/experiments/container-course.ts": "acc3854e67c9e518a31a52ae03494767851a9c8d056ba3c0441fcebc844a835e",
+    "src/resources/simulations/experiments/container-course.ts": "f000e8496969192872be5f5e6d209b28a769553a19c23bfe583dad8ea65aa8bb",
     "src/resources/simulations/experiments/cruise-course.ts": "ed572731fb7b2aa63fb294367482249c3b68a829fbf158156aaec64dfa42ef73",
     "src/resources/simulations/experiments/drilling-course.ts": "3afff1512d3c07a969af415bdfe5a8e2ec987830b12d190c52283d4a16caff92",
     "src/resources/simulations/experiments/icebreaker-course.ts": "d8b350ef3706baa29fcdc45efda0e50b198de2031504dd34402c0c2350ba2ade",
     "src/resources/simulations/experiments/dredger-course.ts": "219dd605b81d38d3f0f52cf6e6ad66289fb81a3893359f7e904d19d433a48b2f",
     "docs/teaching/virtual-simulations/examples.json": "480b817aa20ee74edc499dc92694b5b57b121a7ec4dcfd250a3dc40f1c8d00f3",
-    "src/resources/simulations/simulations/destroyer-experiment.ts": "0737ae5f3cc41c64032c6342048f30c83de4cf85bd621445f6d30e67e0131d24",
+    "src/resources/simulations/simulations/destroyer-experiment.ts": "5518ed196cc30f3ed4d3f801e3659a31f81db64053ec4c8268a5241b0aeab451",
     "src/resources/simulations/simulations/vessel-experiments.ts": "924901c25752adce16db314cce0b7bae002b8b62cf4a15a3aaa3fa1b74cd3b7d",
     "docs/teaching/virtual-simulations/platform-operation-manual.source.md": "625e40cb9029ee3cbedbb0b9f88ac8fbf8622a0a03e45746e80eaa75f0d8cab4"
   },
@@ -25,55 +25,55 @@
       "name": "guide-01-destroyer.pdf",
       "pages": 18,
       "bytes": 1235004,
-      "sha256": "7a88e2b38a099d56599292a5040e230ab0f6e2e46806c841b26e672788a57627"
+      "sha256": "efdbd83a12ed38cd5cb36eaa60f49cb0208a86dfa6d89a0d4ae88a7de234139a"
     },
     {
       "name": "guide-02-lng-carrier.pdf",
       "pages": 17,
       "bytes": 1283867,
-      "sha256": "3d2442885bcc498136a2b437ccc0fa780904537a100e00e6af1a381d8cf96102"
+      "sha256": "a27a307930f9c2e475df72c903ab9fb58b6e92ce8a172478c6875c2cbaa754c3"
     },
     {
       "name": "guide-03-container.pdf",
       "pages": 17,
-      "bytes": 1232899,
-      "sha256": "1782f74ec1c43e902048b1beeef174839be1663cc93591bdcdd0ec3465038894"
+      "bytes": 1232897,
+      "sha256": "6f58a831ef6efe296291c0c00dbb992acc91f04c237ed751963d3a039147e9eb"
     },
     {
       "name": "guide-04-cruise.pdf",
       "pages": 17,
       "bytes": 1234688,
-      "sha256": "bd15ea54cfbd53f0b43fa162e10b49ad27e622f84b9b06836b9291d81e00db86"
+      "sha256": "8d8d626fc5c6d615716ebd1b6cc02b6a59a443d076da9d0829b1e6a84ce5332a"
     },
     {
       "name": "guide-05-drilling-platform.pdf",
       "pages": 17,
       "bytes": 1215274,
-      "sha256": "72e2ef7197fa1533ccc25454a2d9ee5eddd37fc797f673f4feb7f1626f438691"
+      "sha256": "244666eead6f2b527a865b22a3253c1ec26da79457109bce10dfc4c627088941"
     },
     {
       "name": "guide-06-icebreaker.pdf",
       "pages": 18,
       "bytes": 1235666,
-      "sha256": "8f0be4302ed6e4f93336193cc3cd648efb989143f84abd335f9346ecc7ad46f7"
+      "sha256": "7ea7ff5f7c61f578b507fbd4ea1a21ff2432edafe1a65b0cc7a4f35c0f1d8255"
     },
     {
       "name": "guide-07-dredger.pdf",
       "pages": 18,
       "bytes": 1262470,
-      "sha256": "4ecbda38249b237c4de1b136e10b4505e9449e9298c2b2373cbbcf8da6f53e9b"
+      "sha256": "a7469d077d93f884fba299f28cae3b4ace4f3ec28ba3c6b04f11544fde7f06b3"
     },
     {
       "name": "experiment-guide-compilation.pdf",
       "pages": 123,
-      "bytes": 4291269,
-      "sha256": "37c94c5618a690190dfa15763266a66fac5191460d7676964d77adfb3aa2ff51"
+      "bytes": 4291267,
+      "sha256": "16e84b097d32fc8247042f8277f06f67faf072d64e2b7ec228953dae2e825c71"
     },
     {
       "name": "platform-operation-manual.pdf",
       "pages": 3,
       "bytes": 397372,
-      "sha256": "75bf877133652a1e533c2afd60174c2dac62fa7ad0576cb6613a6c52cf6c6d9f"
+      "sha256": "cb57eff627b3e7d930fb978ec206c94d63a2a751ec224710a1b94613e530b268"
     }
   ]
 }

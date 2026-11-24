@@ -271,6 +271,7 @@ export function DredgerSimulation({ticket = ''}: {ticket?: string}) {
     lastTimeRef.current = timestamp;
     let next = course.read();
     clockRef.current.advance(elapsed, (dt) => {
+      if (!course.running) return;
       next = course.advance(dt);
       if (!next) return;
       projectFrame(next);

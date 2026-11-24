@@ -76,6 +76,21 @@ describe('LNG专项证据验收', () => {
     expect(validate(15, [first, second])).toBeNull();
   });
 
+  it('风流干扰第16步缺少静水参考或同套参数重复提交被拦截，复现静水后再改一项策略通过', () => {
+    const first = run(16, 'rerun'), second = run(16, 'revised');
+    expect(validate(16, [first, second])).toContain('静水');
+    const source8 = run(8, 'still8');
+    source8.createdAtMs = 5;
+    expect(validate(16, [source8, first, second])).toContain('修改');
+    const bothChanged = [structuredClone(first), structuredClone(second)];
+    bothChanged[0].initialInput.berthPlan!.brakingDistanceM = 1350;
+    bothChanged[1].initialInput.berthPlan!.brakingDistanceM = 1400;
+    expect(validate(16, [source8, ...bothChanged])).toContain('复现');
+    second.initialInput = structuredClone(second.initialInput);
+    second.initialInput.berthPlan!.headingNodes = [{timeS: 0, headingDeg: 0}, {timeS: 120, headingDeg: -6}];
+    expect(validate(16, [source8, first, second])).toBeNull();
+  });
+
   it('未见工况先保留同一冻结方案的两种种子，再保留有据修正', () => {
     const source = run(18, 'source'); source.createdAtMs = 5;
     const first = run(19, 'seed17'), second = run(19, 'seed29'), revised = run(19, 'revision');

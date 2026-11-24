@@ -115,11 +115,27 @@ export function validateLngCourseEvidence(step: LngCourseStep, evidence: {
     && first.courseSettings.headingRampS !== second.courseSettings.headingRampS))) {
     return '请保留同填充率、同航向终值下两种转向斜坡的完整运行。';
   }
+  if (step.sequence === 16) {
+    const stillWater = runs.filter((run) => [8, 9].includes(run.stepSequence) && complete(run));
+    if (stillWater.length === 0) {
+      return '请先完成第 8 或第 9 步静水靠泊运行，并在控制栏引用该静水方案复现风流基准。';
+    }
+    if (!stillWater.some((source) => own.some((run) =>
+      run.createdAtMs >= source.createdAtMs && speedScheme(run) === speedScheme(source)
+    ))) {
+      return '请先保持第 8 或第 9 步冻结的静水靠泊方案不变，在风流干扰下完成一次完整复现运行。';
+    }
+    if (!own.some((first, index) => own.slice(index + 1).some((second) =>
+      condition(first) === condition(second) && speedScheme(first) !== speedScheme(second)
+    ))) {
+      return '请保留复现静水方案与至少一次修改速度、转向或控制策略的完整运行。';
+    }
+  }
   if (step.sequence === 19) {
     const frozen = runs.filter((run) => run.stepSequence === 18 && complete(run));
     if (!frozen.some((source) => [17, 29].every((seed) => own.some((run) => run.configuration.seed === seed
       && run.createdAtMs >= source.createdAtMs && speedScheme(run) === speedScheme(source))))) {
-      return '请先保持第18步冻结方案，完成seed17/.70与seed29/.95两种未见工况，再保留一次有依据的修正。';
+      return '请先保持第18步冻结方案，完成70%与95%两种未见装载工况，再保留一次有依据的修正。';
     }
     if (!own.some((run) => frozen.some((source) => speedScheme(run) !== speedScheme(source)))) {
       return '两种未见工况的原方案均需保留，再提交一次控制或速度计划修正的运行。';

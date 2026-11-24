@@ -1,9 +1,16 @@
 import { sketchLabelForId, sketchReadingError, SKETCH_PLOTS } from '@/features/ilab/sketch-plots';
 
 import type { ControlMode } from '../core/types';
-import { runReachesMinimum } from './vessel-experiment';
+import {
+  runReachesMinimum,
+  type StepInterpretationSpec,
+  type StepObservationSpec,
+  type StepPredictionSpec,
+  type StepSketchSpec,
+} from './vessel-experiment';
 import { DESTROYER_COURSE_STEPS, VESSEL_COURSE_VERSION, destroyerCourseCommands,
   type DestroyerCourseStep } from '../experiments/destroyer-course';
+import { DESTROYER_STEP_SPECS } from '../experiments/destroyer-step-specs';
 import { VESSEL_COURSES } from '../experiments/course-catalog';
 
 export const DESTROYER_EXPERIMENT_TITLE = '055 型驱逐舰航向控制';
@@ -48,6 +55,12 @@ export interface DestroyerExperimentStep {
   expectTime: number;
   fields: DestroyerField[];
   courseDefinition?: DestroyerCourseStep;
+  actionSteps?: string[];
+  conditionText?: string;
+  predictionSpec?: StepPredictionSpec;
+  observationSpec?: StepObservationSpec;
+  interpretationSpec?: StepInterpretationSpec;
+  sketchSpec?: StepSketchSpec;
 }
 
 export interface DestroyerSample {
@@ -335,41 +348,56 @@ function currentCourseFields(sequence: number): DestroyerField[] {
     { key: 'revision', label: '实际修订、未见工况与不可行性判断', kind: 'text' },
     { key: 'conclusion', label: '工程结论与适用范围', kind: 'text' },
   ];
-  const extra: Record<number, DestroyerField[]> = {
-    1: [{ key: 'signalAnnotations', label: '说明舵指令、实际舵角、转艏速率、航向、航速与横摇的因果关系及单位', kind: 'text' }],
-    2: [{ key: 'actuatorTimeConstantS', label: '由量测估计的舵机时间常数', unit: 's', kind: 'number' },
-      {key:'estimatedRudderRateDegS',label:'由量测估计的舵机速率上限',unit:'°/s',kind:'number'},
-      {key:'measurementWindowStartS',label:'选定量测窗口起点',unit:'s',kind:'number'},
-      {key:'measurementWindowEndS',label:'选定量测窗口终点',unit:'s',kind:'number'},
-      {key:'measurementPoint1',label:'选定量测点1及读数',kind:'text'},
-      {key:'measurementPoint2',label:'选定量测点2及读数',kind:'text'}],
-    3: [{ key: 'steadyYawRateDegS', label: '所选稳态窗口的转艏速率', unit: '°/s', kind: 'number' }],
-    4: [{key:'modelChoiceReason',label:'模型结构、训练窗口及执行器初始段处理的依据',kind:'text'}],
-    8: [{ key: 'sketchImage', label: '本人模型的时域、频域或根轨迹特征图', kind: 'sketch' },
-      {key:'modelCharacteristics',label:'本人模型的极点、航向积分环节及频域特征',kind:'text'}],
-    10: [{ key: 'designReason', label: '由阻尼比、自然频率或极点选取PD参数的依据', kind: 'text' }],
-    13: [{ key: 'trackJudgment', label: '航向保持与航迹保持的区别，以及对水、对地速度和横偏证据', kind: 'text' }],
-  };
+  if (sequence === 2) return [
+    { key: 'prediction', label: '运行前预测与理由', kind: 'text', stage: 'prediction' },
+    { key: 'actuatorTimeConstantS', label: '由量测估计的舵机时间常数', unit: 's', kind: 'number' },
+    { key: 'estimatedRudderRateDegS', label: '由量测估计的舵机速率上限', unit: '°/s', kind: 'number' },
+    { key: 'measurementWindowStartS', label: '选定量测窗口起点', unit: 's', kind: 'number' },
+    { key: 'measurementWindowEndS', label: '选定量测窗口终点', unit: 's', kind: 'number' },
+    { key: 'measurementPoint1', label: '选定量测点1及读数', kind: 'text' },
+    { key: 'measurementPoint2', label: '选定量测点2及读数', kind: 'text' },
+    { key: 'interpretation', label: '证据解释与适用边界', kind: 'text', stage: 'interpretation' },
+  ];
+  if (sequence === 8) return [
+    { key: 'sketchImage', label: '本人模型的时域、频域或根轨迹特征图', kind: 'sketch' },
+    { key: 'observation', label: '运行中观察与采集', kind: 'text', stage: 'observation' },
+    { key: 'interpretation', label: '证据解释与适用边界', kind: 'text', stage: 'interpretation' },
+  ];
   return [
     { key: 'prediction', label: '运行前预测与理由', kind: 'text', stage: 'prediction' },
-    ...(extra[sequence] ?? []),
+    { key: 'observation', label: '运行中观察与采集', kind: 'text', stage: 'observation' },
     { key: 'interpretation', label: '证据解释与适用边界', kind: 'text', stage: 'interpretation' },
   ];
 }
 
-export const DESTROYER_CURRENT_STEPS: DestroyerExperimentStep[] = DESTROYER_COURSE_STEPS.map((contract, index) => ({
-  seq: contract.sequence, title: contract.title, goal: contract.learningObjective,
-  watch: VESSEL_COURSES.destroyer.steps[index].interaction,
-  suggestion: VESSEL_COURSES.destroyer.steps[index].condition,
-  scene: contract.stepKind === 'analysis' ? 'review' : 'straight',
-  duration: contract.runDurationS ?? 0, minRunS: contract.runDurationS ?? 0,
-  modes: contract.allowedModes, defaultMode: contract.controlMode,
-  gains: contract.studentControls.map((control) => control.key)
-    .filter((key): key is DestroyerGain => key === 'kp' || key === 'ki' || key === 'kd'),
-  disturbance: contract.configuration.environment !== 'P0', maxPoints: contract.points,
-  expectTime: contract.runDurationS ?? 300,
-  fields: currentCourseFields(contract.sequence), courseDefinition: contract,
-}));
+export const DESTROYER_CURRENT_STEPS: DestroyerExperimentStep[] = DESTROYER_COURSE_STEPS.map((contract, index) => {
+  const spec = DESTROYER_STEP_SPECS[contract.sequence];
+  return {
+    seq: contract.sequence,
+    title: contract.title,
+    goal: spec?.goal ?? contract.learningObjective,
+    watch: spec?.watch ?? VESSEL_COURSES.destroyer.steps[index].interaction,
+    suggestion: spec?.suggestion ?? VESSEL_COURSES.destroyer.steps[index].condition,
+    actionSteps: spec?.actionSteps,
+    conditionText: spec?.conditionText,
+    predictionSpec: spec?.predictionSpec,
+    observationSpec: spec?.observationSpec,
+    interpretationSpec: spec?.interpretationSpec,
+    sketchSpec: spec?.sketchSpec,
+    scene: contract.stepKind === 'analysis' ? 'review' : 'straight',
+    duration: contract.runDurationS ?? 0,
+    minRunS: contract.runDurationS ?? 0,
+    modes: contract.allowedModes,
+    defaultMode: contract.controlMode,
+    gains: contract.studentControls.map((control) => control.key)
+      .filter((key): key is DestroyerGain => key === 'kp' || key === 'ki' || key === 'kd'),
+    disturbance: contract.configuration.environment !== 'P0',
+    maxPoints: contract.points,
+    expectTime: contract.runDurationS ?? 300,
+    fields: currentCourseFields(contract.sequence),
+    courseDefinition: contract,
+  };
+});
 
 export function destroyerStepsForVersion(version = 'legacy-v1'): DestroyerExperimentStep[] {
   if (version === 'legacy-v1') return DESTROYER_EXPERIMENT_STEPS;

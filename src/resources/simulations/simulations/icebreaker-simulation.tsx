@@ -8,10 +8,7 @@ import { MarineLine as Line } from '@/resources/simulations/scene/lines/marine-l
  */
 
 import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type ReactNode } from 'react';
-import {
-  OrbitControls,
-  PerspectiveCamera,
-  } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { MarineCanvas } from '../scene/marine-canvas';
@@ -40,20 +37,9 @@ import {
   useEnvironmentWaterColors,
 } from '../scene/environment';
 import { GERSTNER_WATER_BASE_Y } from '../scene/water';
-import {
-  SceneSoundscapeProvider,
-  SoundscapeAmbienceDriver,
-} from '../scene/audio';
-import {
-  TeachingAnnotationsProvider,
-  useTeachingAnnotations,
-} from '../scene/annotations';
-import {
-  SceneQualityDriver,
-  SceneQualityProvider,
-  useSceneQuality,
-  MarinePerformanceEvidenceProbe,
-} from '../scene/quality';
+import { SceneSoundscapeProvider, SoundscapeAmbienceDriver } from '../scene/audio';
+import { TeachingAnnotationsProvider, useTeachingAnnotations } from '../scene/annotations';
+import { SceneQualityDriver, SceneQualityProvider, useSceneQuality, MarinePerformanceEvidenceProbe } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { icebreakerXuelongSceneVisual } from '../profiles/icebreaker-xuelong-scene';
 import { platformHeadingToSceneRad } from '../scene/heading';
@@ -416,6 +402,7 @@ export default function IcebreakerSimulation({ ticket = '' }: { ticket?: string 
     lastTimeRef.current = timestamp;
     let next = course.read();
     clockRef.current.advance(elapsed, (dt) => {
+      if (!course.running) return;
       next = course.advance(dt);
       if (!next) return;
       const point = course.latestPoint();

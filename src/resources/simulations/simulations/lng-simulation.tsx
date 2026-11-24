@@ -14,7 +14,7 @@ import {
   } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { Compass, Video, Orbit, ArrowDownFromLine, Droplets, SlidersHorizontal, Timer } from 'lucide-react';
+import { Compass, Video, Orbit, ArrowDownFromLine, Droplets, Timer } from 'lucide-react';
 import { MarineCanvas } from '../scene/marine-canvas';
 import { MarineWater } from '../scene/water/marine-water';
 import { SimulationClock } from '@/lib/simulation';
@@ -26,16 +26,12 @@ import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
 import {
-  SimField,
   SimNotice,
   SimPanelSection,
   SimPanelStack,
   SimReadout,
   SimReadoutGrid,
-  SimRunControls,
   SimStatusStrip,
-  SimSwitchInput,
-  SimToggleRow,
   simToneForMagnitude,
   type SimRunState,
 } from '../components/simulation-panels';
@@ -71,14 +67,11 @@ import type {
   Vector2,
 } from '../core/types';
 import { lngCourseExperiment as lngExperiment } from '../experiments/lng-experiment';
-import { LNG_COURSE_STEPS, type LngCourseSettings } from '../experiments/lng-course';
-import { ModelComparisonCurve } from '../experiments/model-comparison-curve';
+import { LngCourseControls } from '../experiments/lng-course-controls';
 import type { VesselSessionFrame, VesselFineStepMetrics } from '@/lib/control-engine/vessel-session';
 import { vesselSampleMark } from './vessel-experiment';
 import { VesselCourseEvidencePanel, VesselExperimentDocks } from './vessel-experiment-panels';
 import { useVesselExperiment } from './use-vessel-experiment';
-import type { VesselExperimentController } from './use-vessel-experiment';
-import { Button } from '@/components/ui/button';
 import { toRadians, LNG_CHANGHENG_PARAMS } from '../core/constants';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
@@ -344,148 +337,6 @@ function runStateOf(state: { isRunning: boolean; isPaused: boolean; isCompleted:
   return state.isPaused ? 'paused' : 'running';
 }
 
-function ControlPanel({ state, session }: { state: LNGSimulationState; session: VesselExperimentController }) {
-  const course = session.course;
-  if (!course) return null;
-  const definition = LNG_COURSE_STEPS[session.activeSeq - 1];
-  const settings = course.settings;
-  const locked = session.busy || course.running || state.time > 0 || session.tour.active;
-  const update = (patch: Partial<LngCourseSettings>) => course.setSettings((previous) => ({ ...previous, ...patch }));
-  const forecast = course.comparisons.filter((item) => item.purpose === 'forecast' && item.runId === course.plannedRunId).at(-1);
-  const stillWaterRuns = course.runs.filter(
-    (run) => (run.stepSequence === 8 || run.stepSequence === 9) && run.stoppedAtMs !== null && run.stopReason !== 'failure',
-  );
-  const selectControls: Array<{ key: 'excitationPercent' | 'reverseFraction' | 'loadingRatio' | 'headingRampS' | 'filterTauS' | 'validationSeed'; label: string; values: number[]; visible: boolean }> = [
-    { key: 'excitationPercent', label: '轴速参考阶跃 / %', values: [3, 5, 8], visible: session.activeSeq === 2 },
-    { key: 'reverseFraction', label: '反车额定转速比例', values: [.3, .6], visible: session.activeSeq === 6 },
-    { key: 'loadingRatio', label: '液舱填充率', values: [.30, .70, .95], visible: [12, 14].includes(session.activeSeq) },
-    { key: 'headingRampS', label: '转向斜坡 / s', values: [5, 20, 60], visible: [13, 15].includes(session.activeSeq) },
-    { key: 'filterTauS', label: '航速量测滤波 / s', values: [.2, 1, 3], visible: session.activeSeq === 17 },
-    { key: 'validationSeed', label: '未见工况种子', values: [17, 29], visible: session.activeSeq === 19 },
-  ];
-  return <SimPanelStack>
-    <SimRunControls running={course.running} primaryLabel={course.completed ? '已结束' : course.running ? '暂停' : '开始'}
-      disabled={session.busy} primaryDisabled={!course.ready || course.completed || definition.stepKind === 'analysis'}
-      onPrimary={() => { void (course.running ? course.pause() : course.start()); }} onReset={() => { void course.reset(); }} />
-    {definition.berthTask && definition.stepKind === 'run' ? <Button size="sm" variant="outline" className={simulationUi.buttonOutline}
-      disabled={session.busy || !course.canFinish} onClick={() => {void course.finish();}}>结束本次靠泊并保留记录</Button> : null}
-    {session.activeSeq === 20 ? <SimPanelSection title="报告引用的本人运行" icon={Timer}>
-      <div className="space-y-2">{course.runs.filter((run) => run.stoppedAtMs !== null).map((run) =>
-        <label key={run.id} className="flex items-center gap-2 text-xs text-platform-fg-secondary">
-          <input type="checkbox" checked={course.reportRunIds.includes(run.id)} onChange={(event) => course.setReportRunIds((previous) =>
-            event.target.checked ? [...previous, run.id] : previous.filter((id) => id !== run.id))} />
-          第{run.stepSequence}步 · {run.durationS.toFixed(1)} s · {new Date(run.createdAtMs).toLocaleTimeString('zh-CN')}
-        </label>)}</div>
-    </SimPanelSection> : null}
-    {selectControls.filter((control) => control.visible).map((control) => <SimField key={control.key} label={control.label}>
-      <select className="sim-hud-input" aria-label={control.label} disabled={locked} value={settings[control.key]}
-        onChange={(event) => update({[control.key]: Number(event.target.value)})}>
-        {control.values.map((value) => <option key={value} value={value}>{value}</option>)}
-      </select>
-    </SimField>)}
-    {definition.speedControl ? <SimPanelSection title="本人航速控制方案" icon={SlidersHorizontal}>
-      <div className="space-y-3">
-        <SimField label="冻结的航速模型">
-          <select className="sim-hud-input" aria-label="控制所用航速模型" disabled={locked} value={course.designModelId}
-            onChange={(event) => course.setDesignModelId(event.target.value)}>
-            <option value="">选择本人模型</option>
-            {course.models.filter((model) => model.channel === 'shaft-reference-to-speed' && model.payload.structure.kind === 'fopdt')
-              .map((model, index) => <option key={model.id} value={model.id}>{model.label} · 版本{index + 1}</option>)}
-          </select>
-        </SimField>
-        {([['kpMultiplier', 'Kp相对IMC建议值', .2, 3], ['tiMultiplier', 'Ti相对IMC建议值', .3, 3]] as const).map(([key, label, min, max]) =>
-          <SimField key={key} label={label}><input className="sim-hud-input" type="number" aria-label={label}
-            min={min} max={max} step={.1} disabled={locked} value={settings[key]} onChange={(event) => update({[key]: Number(event.target.value)})} /></SimField>)}
-        <SimToggleRow label="积分抗饱和回算" htmlFor="lng-integral-tracking" control={<SimSwitchInput id="lng-integral-tracking"
-          checked={settings.antiWindup} disabled={locked} onChange={() => update({antiWindup: !settings.antiWindup})} />} />
-        {session.activeSeq === 11 ? <>
-          <SimField label="额外命令时延 / s"><select className="sim-hud-input" aria-label="额外命令时延" disabled={locked}
-            value={settings.additionalCommandDelayS} onChange={(event) => update({additionalCommandDelayS: Number(event.target.value) as 0 | 5})}>
-            <option value={0}>0</option><option value={5}>5</option></select></SimField>
-          <SimToggleRow label="给定Smith结构" htmlFor="lng-smith" control={<SimSwitchInput id="lng-smith" checked={settings.smithEnabled}
-            disabled={locked} onChange={() => update({smithEnabled: !settings.smithEnabled})} />} />
-        </> : null}
-        {session.activeSeq === 16 ? <SimField label="已冻结的静水靠泊方案">
-          <select className="sim-hud-input" aria-label="引用第8/9步静水靠泊方案" disabled={locked} value="" onChange={(event) => {
-            const source = course.runs.find((run) => run.id === event.target.value);
-            if (!source) return;
-            const frozen = source.courseSettings as Partial<LngCourseSettings> | undefined;
-            const longitudinal = source.initialInput.longitudinal;
-            const berthPlan = source.initialInput.berthPlan;
-            if (!frozen && !longitudinal && !berthPlan) return;
-            const nextHeadingNodes = frozen?.headingNodes ?? berthPlan?.headingNodes;
-            course.setSettings((previous) => ({
-              ...previous,
-              kpMultiplier: frozen?.kpMultiplier ?? longitudinal?.kpMultiplier ?? previous.kpMultiplier,
-              tiMultiplier: frozen?.tiMultiplier ?? longitudinal?.tiMultiplier ?? previous.tiMultiplier,
-              antiWindup: frozen?.antiWindup ?? longitudinal?.antiWindup ?? previous.antiWindup,
-              brakingDistanceM: frozen?.brakingDistanceM ?? berthPlan?.brakingDistanceM ?? previous.brakingDistanceM,
-              speedNodes: structuredClone(frozen?.speedNodes ?? berthPlan?.nodes ?? previous.speedNodes),
-              headingNodes: nextHeadingNodes ? structuredClone(nextHeadingNodes) : undefined,
-            }));
-            course.setDesignModelId(source.designStudentModelId ?? '');
-          }}><option value="">选择第 8/9 步静水靠泊方案</option>{stillWaterRuns
-            .map((run) => <option key={run.id} value={run.id}>第{run.stepSequence}步 · {run.durationS.toFixed(1)} s · {new Date(run.createdAtMs).toLocaleTimeString('zh-CN')}</option>)}</select>
-          {stillWaterRuns.length === 0 ? <p className="mt-1 text-xs text-platform-fg-secondary">请先在第 8 或第 9 步完成一次完整静水靠泊运行。</p> : null}
-        </SimField> : null}
-        {session.activeSeq === 19 ? <SimField label="已冻结的综合方案">
-          <select className="sim-hud-input" aria-label="引用第18步综合方案" disabled={locked} value="" onChange={(event) => {
-            const source = course.runs.find((run) => run.id === event.target.value);
-            if (!source?.courseSettings) return;
-            const frozen = source.courseSettings as unknown as LngCourseSettings;
-            course.setSettings({...frozen, validationSeed: settings.validationSeed});
-            course.setDesignModelId(source.designStudentModelId ?? '');
-          }}><option value="">选择第18步本人方案</option>{course.runs.filter((run) => run.stepSequence === 18 && run.stoppedAtMs !== null)
-            .map((run) => <option key={run.id} value={run.id}>{run.durationS.toFixed(1)} s · {new Date(run.createdAtMs).toLocaleTimeString('zh-CN')}</option>)}</select>
-        </SimField> : null}
-      </div>
-    </SimPanelSection> : null}
-    {definition.berthTask ? <SimPanelSection title="减速计划" icon={Timer}>
-      <div className="space-y-2">
-        <SimField label="减速起点 / m"><input type="number" className="sim-hud-input" aria-label="减速起点" disabled={locked}
-          min={300} max={1500} value={settings.brakingDistanceM} onChange={(event) => update({brakingDistanceM: Number(event.target.value)})} /></SimField>
-        {settings.speedNodes.map((node, index) => <div key={index} className="grid grid-cols-2 gap-2">
-          <SimField label={`节点${index + 1}剩余距离 / m`}><input type="number" className="sim-hud-input" aria-label={`节点${index + 1}剩余距离`}
-            disabled={locked} min={0} value={node.distanceM} onChange={(event) => update({speedNodes: settings.speedNodes.map((item, at) => at === index ? {...item, distanceM: Number(event.target.value)} : item)})} /></SimField>
-          <SimField label={`节点${index + 1}航速 / m/s`}><input type="number" className="sim-hud-input" aria-label={`节点${index + 1}航速`}
-            disabled={locked} min={0} max={4} step={.1} value={node.speedMps} onChange={(event) => update({speedNodes: settings.speedNodes.map((item, at) => at === index ? {...item, speedMps: Number(event.target.value)} : item)})} /></SimField>
-        </div>)}
-        <div className="flex gap-2"><Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={locked || settings.speedNodes.length >= 4}
-          onClick={() => update({speedNodes: [...settings.speedNodes, {distanceM: (settings.speedNodes.at(-1)?.distanceM ?? 60) / 2, speedMps: 0}]})}>增加节点</Button>
-          <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={locked || settings.speedNodes.length <= 1}
-            onClick={() => update({speedNodes: settings.speedNodes.slice(0, -1)})}>删除末节点</Button></div>
-        <p className="text-xs leading-5 text-platform-fg-secondary">节点按剩余距离递减排列。航速为0至4m/s，船艏越线将按实际失败轨迹停止。</p>
-      </div>
-    </SimPanelSection> : null}
-    {[16, 18, 19].includes(session.activeSeq) ? <SimPanelSection title="时序转向计划" icon={Compass}>
-      <div className="space-y-2">{(settings.headingNodes ?? [{timeS: 0, headingDeg: 0}]).map((node, index, nodes) =>
-        <div key={index} className="grid grid-cols-2 gap-2">
-          <SimField label={`转向节点${index + 1}时刻 / s`}><input className="sim-hud-input" type="number"
-            aria-label={`转向节点${index + 1}时刻`} min={0} max={1200} disabled={locked || index === 0} value={node.timeS}
-            onChange={(event) => update({headingNodes: nodes.map((item, at) => at === index ? {...item, timeS: Number(event.target.value)} : item)})} /></SimField>
-          <SimField label={`转向节点${index + 1}航向 / °`}><input className="sim-hud-input" type="number"
-            aria-label={`转向节点${index + 1}航向`} min={-30} max={30} step={.5} disabled={locked} value={node.headingDeg}
-            onChange={(event) => update({headingNodes: nodes.map((item, at) => at === index ? {...item, headingDeg: Number(event.target.value)} : item)})} /></SimField>
-        </div>)}
-        <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" className={simulationUi.buttonOutline}
-          disabled={locked || (settings.headingNodes?.length ?? 1) >= 4 || (settings.headingNodes?.at(-1)?.timeS ?? 0) >= 1200} onClick={() => {
-            const nodes = settings.headingNodes ?? [{timeS: 0, headingDeg: 0}];
-            update({headingNodes: [...nodes, {timeS: Math.min(1200, nodes.at(-1)!.timeS + 200), headingDeg: 0}]});
-          }}>增加转向节点</Button>
-          <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={locked}
-            onClick={() => update({headingNodes: undefined})}>恢复直航</Button></div>
-        <p className="text-xs leading-5 text-platform-fg-secondary">航向参考在节点之间连续变化，实际转向由船体与执行器响应决定。</p>
-      </div>
-    </SimPanelSection> : null}
-    {definition.berthTask ? <>
-      <Button size="sm" variant="outline" className={simulationUi.buttonOutline} disabled={locked || !course.ready || !course.designModelId}
-        onClick={() => { void course.freezePrediction(); }}>冻结速度与距离预测</Button>
-      {forecast ? <ModelComparisonCurve comparison={forecast} /> : null}
-    </> : null}
-    {state.time > 0 ? <p className="text-xs text-platform-fg-secondary">本次方案已冻结。重置后可以修订参数，各次运行独立保留。</p> : null}
-  </SimPanelStack>;
-}
-
 function Scene({
   state,
   trajectory,
@@ -660,6 +511,7 @@ export function LNGSimulation({ ticket = '' }: { ticket?: string }) {
     lastTimeRef.current = timestamp;
     let frame = course.read();
     clockRef.current.advance(frameDt, (dt) => {
+      if (!course.running) return;
       frame = course.advance(dt);
       if (!frame) return;
       const point = course.latestPoint();
@@ -686,7 +538,7 @@ export function LNGSimulation({ ticket = '' }: { ticket?: string }) {
       const position = {x: frame.truth.position_ned[0], z: frame.truth.position_ned[1]};
       setTrajectory((previous) => [...previous.slice(-499), position]);
     }
-    animationRef.current = requestAnimationFrame(simulationStep);
+    if (course.running) animationRef.current = requestAnimationFrame(simulationStep);
   }, []);
 
   useEffect(() => {speedScaleRef.current = speedScale;}, [speedScale]);
@@ -729,9 +581,7 @@ export function LNGSimulation({ ticket = '' }: { ticket?: string }) {
         experiment={lngExperiment}
         session={session}
         status={<StatusPanel state={state} />}
-        controls={(
-<ControlPanel state={state} session={session} />
-        )}
+        controls={<LngCourseControls session={session} timeS={state.time} />}
         assessment={(
           <div className="space-y-4">
             <VesselCourseEvidencePanel

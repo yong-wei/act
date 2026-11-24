@@ -544,6 +544,7 @@ export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
     lastTimeRef.current = timestamp;
     let actual = course.read();
     clockRef.current.advance(elapsed, (dt) => {
+      if (!course.running) return;
       actual = course.advance(dt);
       if (!actual) return;
       projectFrame(actual, course.running);
@@ -563,7 +564,7 @@ export function DrillingSimulation({ ticket = '' }: { ticket?: string }) {
       const point = { x: actual.truth.position_ned[0], z: actual.truth.position_ned[1] };
       setTrajectory((previous) => [...previous.slice(-1200), point]);
     }
-    animationRef.current = requestAnimationFrame(simulate);
+    if (course.running) animationRef.current = requestAnimationFrame(simulate);
   }, [projectFrame]);
 
   useEffect(() => { speedScaleRef.current = speedScale; }, [speedScale]);
