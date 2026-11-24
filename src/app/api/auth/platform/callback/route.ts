@@ -50,6 +50,8 @@ export async function GET(request: NextRequest) {
       issuer: identity.issuer,
       subject: identity.subject,
       personId: decision.personId,
+      sessionVersion: decision.sessionVersion,
+      provisioning: decision.actProvisioning,
     });
     if (!user) return html(origin, state, 'account-pending');
     const sessionToken = await createPlatformSessionToken({

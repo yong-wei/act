@@ -565,6 +565,7 @@ model User {
   accountSource  String    @default("PLATFORM")
   passwordHash   String?
   employeeNumber String? // 工号（教师/管理员使用）
+  platformRoleVersion Int?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
