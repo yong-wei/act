@@ -2,13 +2,21 @@ import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import { createPrismaClient } from '../src/lib/prisma-client.ts';
-import { openDirectory } from '../../platform/directory/account-directory.mjs';
-import { createGrantService } from '../../platform/directory/app-grants.mjs';
-import { createGrantServer } from '../../platform/auth/grant-api.mjs';
+import { authorizeActIdentity } from '../src/lib/platform-access.ts';
+import { resolveLocalPlatformUser } from '../src/lib/platform-local-account.ts';
 
-const env = Object.fromEntries(readFileSync(new URL('../../platform/deploy/keycloak/.env', import.meta.url), 'utf8')
+const platformRoot = process.env.ACT_PLATFORM_REPO
+  ? pathToFileURL(resolve(process.env.ACT_PLATFORM_REPO) + '/')
+  : new URL('../../platform/', import.meta.url);
+const { openDirectory } = await import(new URL('directory/account-directory.mjs', platformRoot));
+const { createGrantService } = await import(new URL('directory/app-grants.mjs', platformRoot));
+const { createGrantServer } = await import(new URL('auth/grant-api.mjs', platformRoot));
+
+const env = Object.fromEntries(readFileSync(new URL('deploy/keycloak/.env', platformRoot), 'utf8')
   .split('\n').filter((line) => line.includes('=')).map((line) => {
     const index = line.indexOf('=');
     return [line.slice(0, index), line.slice(index + 1)];
@@ -24,8 +32,9 @@ const container = 'act-central-login-directory';
 const databasePassword = randomBytes(18).toString('base64url');
 const appToken = randomBytes(24).toString('base64url');
 const clientSecret = randomBytes(24).toString('base64url');
-const userId = `act-e2e-${Date.now().toString(36)}`;
 const personId = `act-e2e-person-${Date.now().toString(36)}`;
+const externalPersonId = `${personId}-external`;
+const conflictPersonId = `${personId}-conflict`;
 const username = `act-e2e-${Date.now().toString(36)}`;
 let directory;
 let grantServer;
@@ -123,8 +132,8 @@ try {
   directory = await openDirectory(connectionString);
   const grants = createGrantService(directory);
   await directory.reserveAccount({
-    personId, displayName: 'ACT E2E', username, operationId: userId,
-    localLinks: [{ appId: 'act', localUserId: userId, basis: 'test' }],
+    personId, displayName: 'ACT E2E', username, operationId: personId,
+    affiliations: [{ kind: 'teacher', sourceApp: 'achieve', sourceId: username }],
   });
   await grants.writeGrant({ personId, appId: 'act', op: 'allow', version: 1, source: 'test', actor: 'test' });
   grantServer = createGrantServer({ grants, directory, operatorToken: randomBytes(18).toString('base64url'), appTokens: { [appToken]: 'act-api' } });
@@ -133,11 +142,9 @@ try {
   await directory.bindIdentity({ personId, issuer, subject: keycloakUserId, username, actor: 'test' });
 
   process.env.DATABASE_URL ||= appEnv.DATABASE_URL;
+  process.env.PLATFORM_ACCESS_URL = 'http://127.0.0.1:18182/access';
+  process.env.PLATFORM_APP_TOKEN = appToken;
   prisma = createPrismaClient();
-  await prisma.user.create({ data: { id: userId, name: 'ACT E2E', role: 'TEACHER', employeeNumber: 'E2E-ACT' } });
-  await prisma.account.create({ data: {
-    userId, type: 'oauth', provider: 'platform', providerAccountId: `${issuer}|${keycloakUserId}`, session_state: personId,
-  } });
   nextApp = spawn('npx', ['next', 'dev', '-p', '15174'], {
     cwd: new URL('..', import.meta.url),
     env: {
@@ -202,8 +209,11 @@ try {
     throw error;
   }
   const session = await page.evaluate(async () => (await fetch('/api/auth/session')).json());
-  assert.equal(session.user.id, userId);
+  const userId = session.user.id;
+  assert.ok(userId);
   assert.equal(session.user.role, 'TEACHER');
+  assert.equal((await directory.getAccount(personId)).localLinks.find(({ appId }) => appId === 'act')?.localUserId, userId);
+  assert.equal((await prisma.user.findUnique({ where: { id: userId } })).passwordHash, null);
   const roster = await page.evaluate(async () => (await fetch('/api/platform/roster', { headers: { authorization: 'Bearer act-e2e-roster' } })).json());
   assert.equal(roster.apps.act.accounts.find((account) => account.localUserId === userId).localUserId, userId);
   assert.equal(JSON.stringify(roster).includes('passwordHash'), false);
@@ -218,6 +228,56 @@ try {
   await page.waitForURL(/\/profile/, { timeout: 30000 });
   const restored = await page.evaluate(async () => (await fetch('/api/auth/session')).json());
   assert.equal(restored.user.id, userId);
+
+  await grants.writeActRole({ personId, role: 'TEACHER', actor: 'test-admin' });
+  const priorRoleDecision = await authorizeActIdentity({ issuer, subject: keycloakUserId }, fetch, { allowSessionRenewal: true });
+  await grants.writeActRole({ personId, role: 'STUDENT', actor: 'test-admin' });
+  const staleRole = await page.evaluate(async () => (await fetch('/api/auth/session')).json());
+  assert.equal(staleRole.user, undefined);
+  await page.goto(`${origin}/login?callbackUrl=%2Fprofile`);
+  await page.getByRole('button', { name: '统一身份登录（校园账号）' }).click();
+  await page.waitForURL(/\/profile/, { timeout: 30000 });
+  const changedRole = await page.evaluate(async () => (await fetch('/api/auth/session')).json());
+  assert.equal(changedRole.user.id, userId);
+  assert.equal(changedRole.user.role, 'STUDENT');
+  assert.equal(await resolveLocalPlatformUser({
+    issuer, subject: keycloakUserId, personId,
+    sessionVersion: priorRoleDecision.sessionVersion, provisioning: priorRoleDecision.actProvisioning,
+  }), null);
+  assert.equal((await prisma.user.findUnique({ where: { id: userId } })).role, 'STUDENT');
+
+  const externalSubject = `${externalPersonId}-subject`;
+  await directory.reserveAccount({ personId: externalPersonId, displayName: 'ACT external E2E', operationId: externalPersonId });
+  await directory.bindIdentity({ personId: externalPersonId, issuer, subject: externalSubject, username: externalSubject, actor: 'test' });
+  await grants.writeGrant({ personId: externalPersonId, appId: 'act', op: 'allow', version: 1 });
+  const externalDecision = await authorizeActIdentity({ issuer, subject: externalSubject }, fetch, { allowSessionRenewal: true });
+  assert.equal(externalDecision.actProvisioning.rosterKind, 'external');
+  const resolveExternal = () => resolveLocalPlatformUser({
+    issuer, subject: externalSubject, personId: externalPersonId,
+    sessionVersion: externalDecision.sessionVersion, provisioning: externalDecision.actProvisioning,
+  });
+  const [first, second] = await Promise.all([resolveExternal(), resolveExternal()]);
+  assert.equal(first.id, second.id);
+  const external = await prisma.user.findUnique({ where: { id: first.id }, include: { profile: true } });
+  assert.equal(external.role, 'STUDENT');
+  assert.equal(external.profile.classId, null);
+  assert.equal(external.profile.studentNumber, null);
+  assert.equal(external.passwordHash, null);
+  assert.equal((await directory.getAccount(externalPersonId)).localLinks[0].localUserId, external.id);
+
+  const conflictSubject = `${conflictPersonId}-subject`;
+  await directory.reserveAccount({
+    personId: conflictPersonId, displayName: 'ACT conflict E2E', operationId: conflictPersonId,
+    externalIds: [{ institution: 'just', identifierType: 'student_no', value: conflictSubject }],
+  });
+  await directory.bindIdentity({ personId: conflictPersonId, issuer, subject: conflictSubject, username: conflictSubject, actor: 'test' });
+  await grants.writeGrant({ personId: conflictPersonId, appId: 'act', op: 'allow', version: 1 });
+  const conflictDecision = await authorizeActIdentity({ issuer, subject: conflictSubject }, fetch, { allowSessionRenewal: true });
+  await prisma.studentProfile.update({ where: { userId: external.id }, data: { studentNumber: conflictSubject } });
+  assert.equal(await resolveLocalPlatformUser({
+    issuer, subject: conflictSubject, personId: conflictPersonId,
+    sessionVersion: conflictDecision.sessionVersion, provisioning: conflictDecision.actProvisioning,
+  }), null);
 
   const legacy = await page.evaluate(async () => (await fetch('/api/user/password', {
     method: 'PATCH', headers: { 'content-type': 'application/json' },
@@ -240,7 +300,9 @@ try {
   await browser?.close().catch(() => {});
   stop(nextApp);
   if (prisma) {
-    await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+    await prisma.user.deleteMany({
+      where: { accounts: { some: { provider: 'platform', session_state: { in: [personId, externalPersonId, conflictPersonId] } } } },
+    }).catch(() => {});
     await prisma.$disconnect().catch(() => {});
   }
   if (grantServer) await new Promise((resolve) => grantServer.close(resolve));

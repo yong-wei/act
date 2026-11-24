@@ -9,7 +9,7 @@ import { ILAB_GRANT_COOKIE_NAME, sealIlabGrant } from '@/features/ilab/grant-coo
  */
 
 const prismaMock = vi.fn();
-const accountFindFirst = vi.fn();
+const accountFindMany = vi.fn();
 const accountCreate = vi.fn();
 const accountUpdate = vi.fn();
 const accountCount = vi.fn();
@@ -22,10 +22,10 @@ vi.mock('next/headers', () => ({
   cookies: async () => ({ get: readCookie }),
 }));
 
-vi.mock('@/lib/prisma', () => ({
-  prisma: {
+vi.mock('@/lib/prisma', () => {
+  const prisma = {
     account: {
-      findFirst: (...args: unknown[]) => accountFindFirst(...args),
+      findMany: (...args: unknown[]) => accountFindMany(...args),
       create: (...args: unknown[]) => accountCreate(...args),
       update: (...args: unknown[]) => accountUpdate(...args),
       count: (...args: unknown[]) => accountCount(...args),
@@ -35,8 +35,10 @@ vi.mock('@/lib/prisma', () => ({
       findUnique: (...args: unknown[]) => userFindUnique(...args),
     },
     $connect: prismaMock,
-  },
-}));
+    $executeRaw: vi.fn(),
+  };
+  return { prisma: { ...prisma, $transaction: (work: (tx: typeof prisma) => unknown) => work(prisma) } };
+});
 
 vi.mock('bcryptjs', () => ({
   compare: vi.fn(async (_password: string, hash: string) => hash === 'valid-hash'),
@@ -100,7 +102,7 @@ describe('provider 受控启用', () => {
 describe('person_id 映射（signIn 回调）', () => {
   it('既有映射直登且改写会话用户为本地 User（角色回填）', async () => {
     const { authOptions } = await loadAuth(OIDC_ENV);
-    accountFindFirst.mockResolvedValue({ id: 'account-1', userId: 'local-user-1' });
+    accountFindMany.mockResolvedValue([{ id: 'account-1', userId: 'local-user-1', providerAccountId: 'person-42' }]);
     userFindUnique.mockResolvedValue({ id: 'local-user-1', role: 'TEACHER', email: 't@x.c', name: 'T' });
     const user = { id: 'oidc-temp' } as { id?: string; role?: string };
     const result = await authOptions.callbacks?.signIn?.({
@@ -123,7 +125,7 @@ describe('person_id 映射（signIn 回调）', () => {
 
   it('映射指向已删除用户时拒绝（不自动改绑）', async () => {
     const { authOptions } = await loadAuth(OIDC_ENV);
-    accountFindFirst.mockResolvedValue({ userId: 'deleted-user' });
+    accountFindMany.mockResolvedValue([{ userId: 'deleted-user', providerAccountId: 'person-42' }]);
     userFindUnique.mockResolvedValue(null);
     const result = await authOptions.callbacks?.signIn?.({
       user: {} as { id: string },
@@ -135,7 +137,7 @@ describe('person_id 映射（signIn 回调）', () => {
 
   it('无可信映射时不得按 email 自动并号', async () => {
     const { authOptions } = await loadAuth(OIDC_ENV);
-    accountFindFirst.mockResolvedValue(null);
+    accountFindMany.mockResolvedValue([]);
     const user = { id: 'oidc-temp' } as { id: string };
     const result = await authOptions.callbacks?.signIn?.({
       user,
@@ -149,7 +151,7 @@ describe('person_id 映射（signIn 回调）', () => {
 
   it('无可信映射时不得按学号或工号自动并号', async () => {
     const { authOptions } = await loadAuth(OIDC_ENV);
-    accountFindFirst.mockResolvedValue(null);
+    accountFindMany.mockResolvedValue([]);
     const user = { id: 'oidc-temp' } as { id?: string };
     const result = await authOptions.callbacks?.signIn?.({
       user,
@@ -163,7 +165,7 @@ describe('person_id 映射（signIn 回调）', () => {
 
   it('声明匹配不到任何用户时拒绝且不自动建号', async () => {
     const { authOptions } = await loadAuth(OIDC_ENV);
-    accountFindFirst.mockResolvedValue(null);
+    accountFindMany.mockResolvedValue([]);
     userFindFirst.mockResolvedValue(null);
     const result = await authOptions.callbacks?.signIn?.({
       user: {} as { id: string },
@@ -183,7 +185,7 @@ describe('person_id 映射（signIn 回调）', () => {
       profile: { sub: 'person-42' },
     });
     expect(result).toBe(false);
-    expect(accountFindFirst).not.toHaveBeenCalled();
+    expect(accountFindMany).not.toHaveBeenCalled();
   });
 
   it('本地凭据路径不经过映射逻辑', async () => {
@@ -194,7 +196,7 @@ describe('person_id 映射（signIn 回调）', () => {
       profile: undefined,
     });
     expect(result).toBe(true);
-    expect(accountFindFirst).not.toHaveBeenCalled();
+    expect(accountFindMany).not.toHaveBeenCalled();
   });
 });
 
@@ -251,9 +253,9 @@ describe('迁移账号旧凭据收紧（authorize）', () => {
   });
 });
 
-describe('强制模式下历史 JWT', () => {
-  it('中央超时、明确拒绝和恢复授权逐次核验，只有实际准入才恢复用户', async () => {
-    const { authOptions } = await loadAuth({ ...OIDC_ENV, PLATFORM_OIDC_ENFORCED: 'true' });
+describe('会话中央准入和旧凭据切换', () => {
+  it.each(['false', 'true'])('中央会话核验与旧凭据开关无关（%s）', async (enforced) => {
+    const { authOptions } = await loadAuth({ ...OIDC_ENV, PLATFORM_OIDC_ENFORCED: enforced });
     const jwt = authOptions.callbacks!.jwt!;
     const toSession = authOptions.callbacks!.session!;
     const token: JWT = { id: 'u1', email: 't@example.test', role: 'TEACHER', platformIssuer: 'issuer', platformSubject: 'sub', centralSessionVersion: 4 };

@@ -145,6 +145,8 @@ export const authOptions: NextAuthOptions = {
         issuer: platformIssuer,
         subject,
         personId: decision.personId,
+        sessionVersion: decision.sessionVersion,
+        provisioning: decision.actProvisioning,
       });
       if (!local) {
         return false;
@@ -189,7 +191,7 @@ export const authOptions: NextAuthOptions = {
           delete token.centralAccessUnavailable;
         }
       }
-      if (platformOidcEnforced && token.platformIssuer && token.platformSubject) {
+      if (token.platformIssuer && token.platformSubject) {
         const decision = await authorizeActIdentity({
           issuer: String(token.platformIssuer),
           subject: String(token.platformSubject),
