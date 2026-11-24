@@ -72,15 +72,16 @@ function LoginContent() {
             <CardTitle className="text-xl text-foreground">登录继续</CardTitle>
           </CardHeader>
           <CardContent>
-            <CredentialLoginForm
-              callbackUrl={callbackUrl}
-              onSuccess={({ redirectPath }) => router.push(
-                appendLoginPageHashToRedirectPath(redirectPath, window.location.hash),
+            <PlatformOidcLoginButton
+              legacyLogin={(
+                <CredentialLoginForm
+                  callbackUrl={callbackUrl}
+                  onSuccess={({ redirectPath }) => router.push(
+                    appendLoginPageHashToRedirectPath(redirectPath, window.location.hash),
+                  )}
+                />
               )}
             />
-            <div className="mt-3">
-              <PlatformOidcLoginButton />
-            </div>
           </CardContent>
         </Card>
 

@@ -7,8 +7,12 @@ export async function POST(request: Request) {
   if (!config) return NextResponse.json({ error: 'disabled' }, { status: 404 });
   try {
     assertSameOrigin(request);
+    const { launchReference, reauthenticate } = await request.json() as { launchReference?: unknown; reauthenticate?: unknown };
+    if (launchReference != null && (typeof launchReference !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(launchReference))) {
+      return NextResponse.json({ error: 'invalid-launch' }, { status: 400 });
+    }
     const origin = requestOrigin(request);
-    const transaction = createOidcTransaction(new URL(request.url).searchParams.get('return_to') ?? '/');
+    const transaction = createOidcTransaction(new URL(request.url).searchParams.get('return_to') ?? '/', launchReference ?? null);
     const authorize = new URL(`${config.issuer}/protocol/openid-connect/auth`);
     authorize.search = new URLSearchParams({
       client_id: config.clientId,
@@ -20,6 +24,8 @@ export async function POST(request: Request) {
       code_challenge: codeChallenge(transaction.codeVerifier),
       code_challenge_method: 'S256',
     }).toString();
+    if (transaction.launchReference) authorize.searchParams.set('prompt', 'none');
+    else if (reauthenticate === true) authorize.searchParams.set('prompt', 'login');
     const response = NextResponse.json({ transactionId: transaction.state, authorizeUrl: authorize.toString(), mode: 'in-page' });
     response.cookies.set(transactionCookieName(transaction.state), transaction.state, {
       httpOnly: true,
