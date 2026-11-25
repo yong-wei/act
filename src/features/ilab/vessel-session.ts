@@ -15,11 +15,20 @@ import {
 import { findVesselExperiment, VESSEL_EXPERIMENTS } from '@/resources/simulations/simulations/vessel-experiments';
 import { VESSEL_COURSE_VERSION } from '@/resources/simulations/experiments/destroyer-course';
 
+import type { VesselCourseKey } from '@/resources/simulations/experiments/course-catalog';
+
 import { emptyAiLedger, isAiUsageLedger, recordAiCall, type AiUsageLedger } from './ai-data';
 import { buildAuditTelemetry, maskOriginId, type VesselAuditTelemetry } from './telemetry-redaction';
 import type { IlabGrantPayload } from './grant-cookie';
 import { recognizeSketch } from './sketch-recognition';
-import { ILAB_PROJECT_TITLE, buildIlabUploadBody, type IlabUploadBody, type StoredIlabStep } from './payload';
+import {
+  ILAB_VESSEL_SHORT_LABEL,
+  buildIlabUploadBody,
+  formatIlabProjectTitle,
+  formatIlabStepTitle,
+  type IlabUploadBody,
+  type StoredIlabStep,
+} from './payload';
 import { assertIlabRunOpen, IlabServiceError, toIlabHttpError, withIlabRunLock } from './run-lock';
 import { buildSafeStepWindow, ilabConfig, safeUploadWithAutoRefresh } from './session-shared';
 import type { IlabAuthUserSummary } from './adapters/ilab-account-service';
@@ -437,14 +446,20 @@ export async function completeVesselSession(originId: string): Promise<{
 
   const bypass = uploadMode === 'dev-bypass';
   const config = ilabConfig();
+  const routeSlug = experiment.route.split('/').at(-1) as VesselCourseKey | undefined;
+  const shortLabel = (routeSlug && ILAB_VESSEL_SHORT_LABEL[routeSlug]) || experiment.title;
+  const labeledSteps = steps.map((step) => ({
+    ...step,
+    title: formatIlabStepTitle(shortLabel, step.title),
+  }));
   const upload = buildIlabUploadBody({
     username: run.ilabUsername,
     appId: bypass ? 'dev' : run.appId,
     originId: run.originId,
-    title: ILAB_PROJECT_TITLE,
+    title: formatIlabProjectTitle(experiment.title),
     childProjectTitle: experiment.title,
     status: 1,
-    steps,
+    steps: labeledSteps,
     ledger: readLedger(run.aiLedger),
     pointTotal: maxPointsTotal,
     runStartTimeMs: Number(run.startTimeMs),

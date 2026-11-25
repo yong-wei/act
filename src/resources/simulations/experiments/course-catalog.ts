@@ -10,7 +10,7 @@ import dredger from './catalog/dredger.json';
 import teachingCards from './catalog/teaching-cards.json';
 
 export type VesselCourseKey = 'destroyer' | 'lng' | 'container' | 'cruise' | 'drilling' | 'icebreaker' | 'dredger';
-export const VESSEL_GUIDE_EDITION = '2026.11.16';
+export const VESSEL_GUIDE_EDITION = '2026.11.25';
 export const VESSEL_TEACHING_CARDS = teachingCards;
 
 export interface VesselCourseStep {

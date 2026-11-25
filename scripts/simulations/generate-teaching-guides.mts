@@ -14,11 +14,20 @@ import {CRUISE_COURSE_STEPS} from '../../src/resources/simulations/experiments/c
 import {DRILLING_COURSE_STEPS} from '../../src/resources/simulations/experiments/drilling-course';
 import {ICEBREAKER_COURSE_STEPS} from '../../src/resources/simulations/experiments/icebreaker-course';
 import {DREDGER_COURSE_STEPS} from '../../src/resources/simulations/experiments/dredger-course';
+import {DESTROYER_STEP_SPECS} from '../../src/resources/simulations/experiments/destroyer-step-specs';
+import {LNG_STEP_SPECS} from '../../src/resources/simulations/experiments/lng-step-specs';
+import {CONTAINER_STEP_SPECS} from '../../src/resources/simulations/experiments/container-step-specs';
+import {CRUISE_STEP_SPECS} from '../../src/resources/simulations/experiments/cruise-step-specs';
+import {DRILLING_STEP_SPECS} from '../../src/resources/simulations/experiments/drilling-step-specs';
+import {ICEBREAKER_STEP_SPECS} from '../../src/resources/simulations/experiments/icebreaker-step-specs';
+import {DREDGER_STEP_SPECS} from '../../src/resources/simulations/experiments/dredger-step-specs';
+import {getVesselWorkbenchPolicy, WORKBENCH_CHANNEL_LABELS} from '../../src/resources/simulations/experiments/vessel-workbench-policy';
 import {vesselCourseStepReviewLimits} from '../../src/features/ilab/course-report-review-contract';
 import {VESSEL_REPORT_SECTION_LABELS} from '../../src/features/ilab/course-artifact-contract';
 import {createServerVesselSession} from '../../src/lib/control-engine/wasm-server';
 import type {VesselSessionFrame} from '../../src/lib/control-engine/vessel-session';
 import type {ExperimentStep} from '../../src/resources/simulations/contracts/experiment-step';
+import type {VesselStep} from '../../src/resources/simulations/simulations/vessel-experiment';
 import {DESTROYER_EXPERIMENT_STEPS} from '../../src/resources/simulations/simulations/destroyer-experiment';
 import {VESSEL_EXPERIMENTS} from '../../src/resources/simulations/simulations/vessel-experiments';
 
@@ -28,6 +37,13 @@ const check = process.argv.includes('--check');
 const printPdf = process.argv.includes('--pdf');
 const stepsByCourse = {destroyer: DESTROYER_COURSE_STEPS, lng: LNG_COURSE_STEPS, container: CONTAINER_COURSE_STEPS,
   cruise: CRUISE_COURSE_STEPS, drilling: DRILLING_COURSE_STEPS, icebreaker: ICEBREAKER_COURSE_STEPS, dredger: DREDGER_COURSE_STEPS};
+type GuideStepWorkbenchSpec = Partial<Pick<VesselStep,
+  'goal' | 'actionSteps' | 'watch' | 'conditionText' | 'suggestion' |
+  'predictionSpec' | 'observationSpec' | 'interpretationSpec' | 'sketchSpec'>>;
+const stepSpecsByCourse: Record<VesselCourseKey, Readonly<Record<number, GuideStepWorkbenchSpec>>> = {
+  destroyer: DESTROYER_STEP_SPECS, lng: LNG_STEP_SPECS, container: CONTAINER_STEP_SPECS,
+  cruise: CRUISE_STEP_SPECS, drilling: DRILLING_STEP_SPECS, icebreaker: ICEBREAKER_STEP_SPECS, dredger: DREDGER_STEP_SPECS,
+};
 interface Example {
   courseVersion: string; outputChannel: string; outputUnit: string; outputKind: string; sourceKind: string; sourceDigest: string;
   timeS: number[]; measured: number[]; predicted: number[]; metrics: Record<string, number | null>;
@@ -58,9 +74,28 @@ const artifactLabels: Record<string, string> = {prediction: '运行前预测', r
   'frozen-prediction': '运行前冻结预测', 'five-own-runs': '至少五组本人运行', 'six-own-runs': '至少六组本人运行'};
 const sourceFiles = ['scripts/simulations/generate-teaching-guides.mts',
   'src/resources/simulations/experiments/catalog/teaching-cards.json', 'src/resources/simulations/experiments/course-catalog.ts',
-  'src/features/ilab/course-report-review-contract.ts', ...Object.keys(stepsByCourse).map((key) => `src/resources/simulations/experiments/${key}-course.ts`),
+  'src/resources/simulations/experiments/vessel-workbench-policy.ts',
+  'src/features/ilab/course-report-review-contract.ts',
+  ...Object.keys(stepsByCourse).flatMap((key) => [
+    `src/resources/simulations/experiments/${key}-course.ts`,
+    `src/resources/simulations/experiments/${key}-step-specs.ts`,
+    `src/resources/simulations/experiments/${key}-step-specs-early.ts`,
+    `src/resources/simulations/experiments/${key}-step-specs-late.ts`,
+  ]),
   'docs/teaching/virtual-simulations/examples.json',
   'src/resources/simulations/simulations/destroyer-experiment.ts', 'src/resources/simulations/simulations/vessel-experiments.ts'];
+const sanitizeCell = (text: string) => text.replace(/\r?\n+/g, ' ').replace(/\|/g, '\\|').trim();
+const predictionKindLabels: Record<string, string> = {
+  choice: '定向选择判断', numeric_target: '定量数值预估', ranking: '因果/性能排序', text: '机理预测说明',
+};
+const observationKindLabels: Record<string, string> = {
+  channel_match: '通道物理角色配对', structured_metrics: '结构化指标读数（支持从曲线一键提取）',
+  multi_run_slots: '多工况槽位对比读数（支持分槽位一键提取）', artifact_binding: '模型或独立对照作品绑定', text: '文本记录',
+};
+const artifactKindLabels: Record<string, string> = {
+  model: '冻结局部模型', comparison: '独立对照曲线与指标', dual_model: '多工况/双工况局部模型组',
+  dp_model: '三通道低频定位模型', spectrum: '频谱分析峰值', capacity: '受限控制与能力包络',
+};
 const sha256 = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
 const inputFiles = Object.fromEntries(sourceFiles.map((file) => [file, sha256(readFileSync(file))]));
 const plotCache = new Map<VesselCourseKey, string>();
@@ -131,24 +166,62 @@ function stepMarkdown(key: VesselCourseKey, step: ExperimentStep & {sequence: nu
   const sequence = step.sequence;
   const card = VESSEL_TEACHING_CARDS[key];
   const limits = vesselCourseStepReviewLimits(key, sequence);
+  const spec = stepSpecsByCourse[key]?.[sequence];
+  const policy = getVesselWorkbenchPolicy(key, sequence);
   const initialLabels: Record<string, string> = {speedMps: '初始对水航速 / m/s', headingDeg: '初始航向 / °', loadingRatio: '装载率', seed: '随机种子'};
   const initial = Object.entries(step.initialCondition).map(([name, value]) => `${initialLabels[name]} ${value}`).join('，');
+  const conditionDesc = spec?.conditionText ? `${spec.conditionText}（${initial}）` : initial;
   const controls = step.studentControls.map((control) => `${control.label} ${control.min}-${control.max}${control.unit}${control.lockedReason ? `（${control.lockedReason}）` : ''}`).join('，');
   const goals = card.goals.filter((goal) => goal.steps.includes(sequence)).map((goal) => goal.text).join('，');
   const score = sequence === 20 ? '模型假设3分，本人证据3分，方案比较2分，适用边界2分'
     : `预测${limits.prediction}分，证据${limits.operation}分，性能${limits.performance}分，解释${limits.interpretation}分`;
-  return [`<a id="${key}-step-${sequence}"></a>`, `### 第${sequence}步 ${step.title}`, '',
-    '| 项目 | 本步要求 |', '| --- | --- |', `| 目标与认知 | ${step.learningObjective}，${cognitive[step.cognitiveLevel]} |`,
-    `| 能力证据 | ${goals} |`, `| 初态与条件 | ${initial} |`, `| 本步启用因素 | ${step.factorMask.join('、')} |`,
-    `| 合同参数范围 | ${controls} |`, `| 事件与操作 | ${step.eventTimeline.join('。') || '整理本人已有证据'} |`,
-    `| 时长与结束 | ${step.runDurationS === undefined ? '分析步骤' : `${step.runDurationS}s`}，${step.termination} |`,
-    `| 量测与统计窗 | ${step.measurementSignals.map((signal) => signalLabels[signal]).join('、')}，${step.observationWindowS.join('-')}s |`,
+  const actionSummary = spec?.actionSteps?.length ? spec.actionSteps.map((line, i) => `${i + 1}. ${line}`).join(' ') : null;
+  const predSpec = spec?.predictionSpec;
+  const sketchSpec = predSpec?.sketch ?? spec?.sketchSpec;
+  const predParts: string[] = [];
+  if (predSpec) predParts.push(`${predictionKindLabels[predSpec.kind] ?? '运行前预测'}：${predSpec.prompt}`);
+  if (predSpec?.options?.length) predParts.push(`候选项：${predSpec.options.map((o) => o.label).join('；')}`);
+  if (predSpec?.rankItems?.length) predParts.push(`排序对象：${predSpec.rankItems.join('、')}`);
+  if (sketchSpec) predParts.push(`坐标轴多模态手绘板「${sketchSpec.label}」：${sketchSpec.hint}`);
+  const obsSpec = spec?.observationSpec;
+  const obsParts: string[] = [];
+  if (obsSpec) {
+    obsParts.push(`${observationKindLabels[obsSpec.kind] ?? '观测记录'}：${obsSpec.prompt}`);
+    if (obsSpec.pairs?.length) obsParts.push(`配对项目：${obsSpec.pairs.map((p) => p.item).join('、')}`);
+    if (obsSpec.metrics?.length) obsParts.push(`读数指标：${obsSpec.metrics.map((m) => (m.unit ? `${m.label}(${m.unit})` : m.label)).join('、')}`);
+    if (obsSpec.slots?.length) obsParts.push(`工况槽位：${obsSpec.slots.map((s) => `${s.label}[${s.metrics.map((m) => (m.unit ? `${m.label}(${m.unit})` : m.label)).join('、')}]`).join('；')}`);
+    if (obsSpec.artifactKind) obsParts.push(`绑定工件：${artifactKindLabels[obsSpec.artifactKind] ?? '模型或对照工件'}`);
+  }
+  const interpSummary = spec?.interpretationSpec?.checklist?.length
+    ? spec.interpretationSpec.checklist.map((item, i) => `${i + 1}. ${item}`).join(' ')
+    : null;
+  const channels = policy.allowedChannels.map((ch) => WORKBENCH_CHANNEL_LABELS[ch]).filter(Boolean);
+  const workbenchSummary = [policy.stepFocusNote, (policy.showIdentify || policy.showValidate) && channels.length ? `开放通道：${channels.join('、')}` : '']
+    .filter(Boolean).join(' ');
+  const rows = [
+    `| 目标与认知 | ${sanitizeCell(`${spec?.goal ?? step.learningObjective}（${cognitive[step.cognitiveLevel]}）`)} |`,
+    `| 能力证据 | ${sanitizeCell(goals)} |`,
+    `| 初态与条件 | ${sanitizeCell(conditionDesc)} |`,
+    `| 本步启用因素 | ${sanitizeCell(step.factorMask.join('、'))} |`,
+    `| 合同参数范围 | ${sanitizeCell(controls)} |`,
+    actionSummary ? `| 三阶段操作流程 | ${sanitizeCell(actionSummary)} |` : null,
+    predParts.length ? `| 阶段一 · 运行前预测 | ${sanitizeCell(predParts.join('；'))} |` : null,
+    obsParts.length ? `| 阶段二 · 观测与提取 | ${sanitizeCell(obsParts.join('；'))} |` : null,
+    interpSummary ? `| 阶段三 · 解释核对 | ${sanitizeCell(interpSummary)} |` : null,
+    workbenchSummary ? `| 评估工作台要点 | ${sanitizeCell(workbenchSummary)} |` : null,
+    `| 事件与操作 | ${sanitizeCell(step.eventTimeline.join('。') || '整理本人已有证据')} |`,
+    `| 时长与结束 | ${sanitizeCell(`${step.runDurationS === undefined ? '分析步骤' : `${step.runDurationS}s`}，${step.termination}`)} |`,
+    `| 量测与统计窗 | ${sanitizeCell(`${step.measurementSignals.map((signal) => signalLabels[signal]).join('、')}，${step.observationWindowS.join('-')}s`)} |`,
     `| 最少运行 | ${step.minimumRuns}组${step.stepKind === 'analysis' ? '已有证据，按本步工件要求引用' : '实际记录'} |`,
     `| 训练与验证 | ${{training: '训练或方案设计', validation: '独立验证', none: '汇总分析'}[step.trainValidationRole]} |`,
-    `| 提交工件 | ${step.requiredArtifacts.map((artifact) => artifactLabels[artifact]).join('、')} |`,
-    `| 评价 | ${score}，${step.rubric.performanceCriteria ?? step.rubric.evidenceCriteria ?? '按本人证据与解释复核'} |`,
-    `| 观察问题 | ${step.hints.join('。')} |`, `| 常见误判与核对 | ${card.misconception} |`, '',
-    '先记录自己的预测，再操作、读数并解释差异。实际未达目标、缺测或保护退出的记录与分析继续保存。', ''].join('\n');
+    `| 提交工件 | ${sanitizeCell(step.requiredArtifacts.map((artifact) => artifactLabels[artifact]).join('、'))} |`,
+    `| 评价 | ${sanitizeCell(`${score}，${step.rubric.performanceCriteria ?? step.rubric.evidenceCriteria ?? '按本人证据与解释复核'}`)} |`,
+    `| 观察问题 | ${sanitizeCell(step.hints.join('。'))} |`,
+    `| 常见误判与核对 | ${sanitizeCell(card.misconception)} |`,
+  ].filter((line): line is string => Boolean(line));
+  return [`<a id="${key}-step-${sequence}"></a>`, `### 第${sequence}步 ${step.title}`, '',
+    '| 项目 | 本步要求 |', '| --- | --- |', ...rows, '',
+    '先完成阶段一预测（含必需的坐标轴多模态手绘），再运行仿真并用阶段二结构化观测/一键提取记录实测证据，最后按阶段三核对清单解释差异。实际未达目标、缺测或保护退出的记录与分析继续保存。', ''].join('\n');
 }
 
 function guideMarkdown(key: VesselCourseKey, pages: Record<string, number> = {}) {
@@ -182,14 +255,15 @@ function guideMarkdown(key: VesselCourseKey, pages: Record<string, number> = {})
     '| 步骤 | 启用因素 | 合同调整项 | 固定条件 |', '| --- | --- | --- | --- |', conditions, '',
     'P0表示平静环境，N0表示理想仪器等级。W表示风，V表示波浪，C表示流，E表示组合环境，N1/N2表示相应噪声与时延等级。冰区和专项机构按本步工况独立记录。', '',
     '## 评分与六部分报告', '',
+    '右侧任务区采用「运行前预测（含坐标轴多模态手绘） → 仿真控制与结构化观测（支持一键提取与实测叠合） → 因果解释核对」三阶段交互工作台；控制区按当前步骤仅开放合同允许的参数，评估页签按步骤切换辨识通道并在跨步及刷新后持久保存已冻结模型与对照状态。', '',
     '每个实验满分100分，二十步分值依次为3、3、3、3、4、4、4、4、5、5、5、5、6、6、6、6、6、6、6、10分。前19步的预测占30%、操作与证据占40%、解释占30%。设计步骤将40%分为证据与性能各20%。', '',
     '第20步按模型假设3分、本人证据3分、方案比较2分和适用边界2分复核。缺证据、数值无效、模型失配、性能不足和解释错误分别记录。', '',
     ...Object.values(VESSEL_REPORT_SECTION_LABELS).map((label, index) => `${index + 1}. ${label}。引用本人运行、模型、独立对照和修改依据。`), '',
-    '报告比较至少两种方案，并保留独立验证与未见工况。页面过程状态帮助检查完整性，教师依据固定量规查看尝试、反馈、退回修改并确认最终成绩。', '',
+    '报告按步骤序号升序整理本人运行汇总表与单次详情，汇总表以「仿真时长 (s)」标明物理仿真秒数，与实验空间记录的学生操作用时相区分；报告内附冻结模型公式、实测与预测曲线及教师分步量规表。报告比较至少两种方案，并保留独立验证与未见工况。教师依据固定量规查看尝试、反馈、退回修改并确认最终成绩。', '',
     '## 设备准备、恢复与数据', '',
     '使用支持硬件加速的现代桌面浏览器，先完成页面中的网络与图形检查。三维场景就绪后开始，按需要暂停、折叠面板、调整视图和运行速率。图形接口与质量档由页面统一管理。', '',
     '普通平台账号和实验空间入口均将实验保存到当前账号。实验空间核验身份后建立专用来源账号并绑定本轮记录，控灵使用同一账号及本页步骤。刷新、重新打开或更换设备后核对原轮次、草稿与运行时间，再继续实验。', '',
-    '网络失败时保留本机结果并按页面入口继续上传。教师确认最终成绩后按实验空间规则回传，附件重试复用已成功成绩。新的独立实验轮次通过“重新开始新一轮实验”建立，历史结果分别保留。', '',
+    '网络失败时保留本机结果并按页面入口继续上传。教师确认最终成绩后按实验空间规则回传：实验名称自动拼接当前船型标题，20个步骤名称自动加注船型短标签前缀（如`[055舰]`、`[LNG船]`、`[集装箱]`、`[邮轮]`、`[981平台]`、`[雪龙2]`、`[天鲸号]`），步骤操作用时依据各步首次保存提交时刻计算，便于教师与学生在多船共用入口中准确区分各船过程记录与HTML附件。附件重试复用已成功成绩，新的独立实验轮次通过“重新开始新一轮实验”建立，历史结果分别保留。', '',
     '控灵提供本步机理与有来源的观察提示。学生保留本人预测、量测和解释，报告引用实际作品。账号资料、原始答案和私有运行记录按平台访问权限保存，公开示例采用脱敏的软件验收数据。', '',
     '## 旧版迁移与教学证据', '', card.legacyMigration, '',
     '旧步骤的操作背景与新能力目标按本册二十步重新对应，旧成绩保留其原课程版本。新版报告固定引用本次材料版本。旧版PDF可由历史发布标签追溯。', '',

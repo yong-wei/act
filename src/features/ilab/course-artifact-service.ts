@@ -51,7 +51,7 @@ async function requireOwnedReport(userId: string, input: VesselCourseArtifactInp
 
 async function ownedRuns(db: Prisma.TransactionClient, userId: string, experimentKey: string, refs: string[]) {
   const unique = [...new Set(refs)];
-  const runs = await db.simulationRun.findMany({ where:{ ownerUserId:userId, sourceDomain:VESSEL_EVIDENCE_DOMAIN, sourceRefId:{in:unique} } });
+  const runs = await db.simulationRun.findMany({ where:{ ownerUserId:userId, sourceDomain:VESSEL_EVIDENCE_DOMAIN, sourceRefId:{in:unique} }, orderBy:{ createdAt:'asc' } });
   if (runs.length !== unique.length || runs.some((run) => vesselRunStorageSummary(run).experimentKey !== experimentKey)) {
     throw new IlabServiceError('引用的运行记录不属于本次实验。',404);
   }
@@ -243,11 +243,14 @@ function assertReportEditable(report: VirtualSimulationReport) {
 
 async function assembleVesselReportEvidence(tx:Prisma.TransactionClient,userId:string,experimentKey:string,
   runs:Awaited<ReturnType<typeof ownedRuns>>):Promise<VesselReportEvidence> {
+  const sortedRuns = [...runs].sort((a,b) => vesselRunStorageSummary(a).stepSequence - vesselRunStorageSummary(b).stepSequence
+    || a.createdAt.getTime() - b.createdAt.getTime()
+    || a.sourceRefId.localeCompare(b.sourceRefId));
   const [models,comparisons] = await Promise.all([
     tx.studentModelArtifact.findMany({where:{userId,experimentKey},orderBy:{createdAt:'asc'}}),
-    tx.comparisonArtifact.findMany({where:{userId,experimentKey,physicalRunRef:{in:runs.map((run)=>run.sourceRefId)}},orderBy:{createdAt:'asc'}}),
+    tx.comparisonArtifact.findMany({where:{userId,experimentKey,physicalRunRef:{in:sortedRuns.map((run)=>run.sourceRefId)}},orderBy:{createdAt:'asc'}}),
   ]);
-  const runData = await Promise.all(runs.map(async (run)=> {
+  const runData = await Promise.all(sortedRuns.map(async (run)=> {
     const summary = vesselRunStorageSummary(run);
     const opening = await readSimulationTraceChunk<VesselEvidenceOpening>(summary.openingReference);
     const end = run.completedAt ? await readSimulationTraceChunk<{appliedFinalInput?:VesselEvidenceOpening['input']}>(summary.lastCheckpointReference) : null;

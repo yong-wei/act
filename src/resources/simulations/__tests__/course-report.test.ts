@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildVesselCourseReportHtml, type VesselReportEvidence } from '@/features/simulations/course-report';
+import { VESSEL_GUIDE_EDITION } from '@/resources/simulations/experiments/course-catalog';
 
 const payload: VesselReportEvidence['models'][number]['payload'] = {
   structure: { kind: 'fopdt', k: .08, t_s: 210, delay_s: 1 },
@@ -30,9 +31,32 @@ describe('本人实验报告的对照来源', () => {
     const run = structuredClone(evidence.runs[0]);
     run.configuration.vessel = 'dredger-tianjing';
     const html = buildVesselCourseReportHtml('天鲸号', {}, {...evidence, runs: [run]});
-    expect(html).toContain('课程版本 seven-vessel-2026.11.14，指导书版本 2026.11.16');
-    expect(html).toContain('https://act.adapt-learn.online/supporting/2026.11.16/guide-07-dredger.pdf');
+    expect(html).toContain(`课程版本 seven-vessel-2026.11.14，指导书版本 ${VESSEL_GUIDE_EDITION}`);
+    expect(html).toContain(`https://act.adapt-learn.online/supporting/${VESSEL_GUIDE_EDITION}/guide-07-dredger.pdf`);
     expect(buildVesselCourseReportHtml('旧报告', {})).not.toContain('查看本版实验指导书');
+  });
+
+  it('运行汇总表标注仿真时长并按步序升序稳定排列', () => {
+    const base = evidence.runs[0];
+    const html = buildVesselCourseReportHtml('邮轮', {}, {
+      ...evidence,
+      runs: [
+        { ...structuredClone(base), id: 'run-14-a', stepSequence: 14, timeS: 600 },
+        { ...structuredClone(base), id: 'run-9', stepSequence: 9, timeS: 300 },
+        { ...structuredClone(base), id: 'run-1', stepSequence: 1, timeS: 60 },
+        { ...structuredClone(base), id: 'run-14-b', stepSequence: 14, timeS: 450 },
+      ],
+    });
+    expect(html).toContain('<th class="num">仿真时长 (s)</th>');
+    expect(html).not.toContain('<th class="num">时长 (s)</th>');
+    const pos1 = html.indexOf('<td>运行1</td><td>第1步</td><td class="num">60.0</td>');
+    const pos9 = html.indexOf('<td>运行2</td><td>第9步</td><td class="num">300.0</td>');
+    const pos14a = html.indexOf('<td>运行3</td><td>第14步</td><td class="num">600.0</td>');
+    const pos14b = html.indexOf('<td>运行4</td><td>第14步</td><td class="num">450.0</td>');
+    expect(pos1).toBeGreaterThan(-1);
+    expect(pos1).toBeLessThan(pos9);
+    expect(pos9).toBeLessThan(pos14a);
+    expect(pos14a).toBeLessThan(pos14b);
   });
 
   it('同一次运行的不同模型对照显示相应模型序号与真实窗口', () => {

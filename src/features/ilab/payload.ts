@@ -1,3 +1,5 @@
+import type { VesselCourseKey } from '@/resources/simulations/experiments/course-catalog';
+
 import { assertAiDataKeys, buildAiData, type AiUsageLedger, type IlabAiData } from './ai-data';
 
 /**
@@ -7,6 +9,37 @@ import { assertAiDataKeys, buildAiData, type AiUsageLedger, type IlabAiData } fr
 export const ILAB_PROJECT_TITLE = '面向深远海作业的船舶智能航行与动力定位控制虚拟仿真实验';
 const ILAB_EXPERIMENT_TITLE = '船舶智能航行与动力定位控制';
 const ILAB_MAX_POINTS = 106;
+
+export const ILAB_VESSEL_SHORT_LABEL: Record<VesselCourseKey, string> = {
+  destroyer: '055驱逐舰',
+  lng: 'LNG船',
+  container: '集装箱船',
+  cruise: '邮轮',
+  drilling: '981平台',
+  icebreaker: '雪龙2号',
+  dredger: '天鲸号',
+};
+
+export function formatIlabProjectTitle(
+  childProjectTitle: string,
+  baseTitle = ILAB_PROJECT_TITLE,
+): string {
+  const normalizedBase = clip(baseTitle, 100);
+  const normalizedChild = clip(childProjectTitle, 100);
+  if (!normalizedChild || normalizedBase.includes(normalizedChild)) {
+    return normalizedBase;
+  }
+  return clip(`${normalizedBase} - ${normalizedChild}`, 100);
+}
+
+export function formatIlabStepTitle(vesselShortLabel: string, stepTitle: string): string {
+  const normalizedTitle = clip(stepTitle, 100);
+  const normalizedPrefix = `[${clip(vesselShortLabel, 24)}]`;
+  if (!normalizedPrefix || normalizedPrefix === '[]' || normalizedTitle.startsWith(normalizedPrefix)) {
+    return normalizedTitle;
+  }
+  return clip(`${normalizedPrefix} ${normalizedTitle}`, 100);
+}
 
 export interface StoredIlabStep {
   seq: number;
@@ -136,7 +169,7 @@ export function buildIlabUploadBody(input: {
     const rawSpanMs = Math.max(1000, maxStepEnd - baseStart);
     timeUsed = Math.max(1, Math.ceil(rawSpanMs / 1000));
     const anchoredStart = maxStepEnd - timeUsed * 1000;
-    if (hasRunStart && anchoredStart < runStart) {
+    if (hasRunStart && minStepStart >= runStart && anchoredStart < runStart) {
       startTime = runStart;
       endTime = startTime + timeUsed * 1000;
     } else {

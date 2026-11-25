@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
+import { stableStringify } from '@/lib/control-engine/envelope';
 import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
 import { clearIlabOriginSessionStorage, describeIlabConnection, stripIlabUrlParams } from '@/features/ilab/client-grant';
 import { applyLocalSketchVerdict } from '@/features/ilab/sketch-client';
@@ -786,7 +787,7 @@ export function useVesselExperiment<Settings extends object = LngCourseSettings>
       const openingInput = current.run()?.initialInput ?? input;
       if (courseAdapter.requiresForecast?.(activeSeq) && !(await listModelComparisons(scopeKey)).some((comparison) =>
         comparison.runId === plannedRunRef.current && comparison.purpose === 'forecast'
-        && comparison.modelId === designModelId && JSON.stringify(comparison.controllerInput) === JSON.stringify(openingInput))) {
+        && comparison.modelId === designModelId && stableStringify(comparison.controllerInput) === stableStringify(openingInput))) {
         throw new Error('请先冻结与本次方案一致的本人模型预测，再执行本步。');
       }
       await current.start(plannedRunRef.current, readings.prediction ?? '', input, designModelId || undefined);

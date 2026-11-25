@@ -1,11 +1,12 @@
 import type {VesselRunSummary} from '@/features/simulations/local-evidence-store';
+import {stableStringify} from '@/lib/control-engine/envelope';
 import type {VesselCourseEvidence} from './course-adapter';
 import {ICEBREAKER_COURSE_STEPS,type IcebreakerCourseStep} from './icebreaker-course';
 
 function controller(run:VesselRunSummary,variable?:'filter'|'schedule'|'ramp'|'gains') {
   const input=run.initialInput;
   const settings=run.courseSettings;
-  return JSON.stringify([run.designStudentModelId,input.controlMode,
+  return stableStringify([run.designStudentModelId,input.controlMode,
     variable==='gains' ? null : [input.pid.kp,input.pid.ki,input.pid.kd],
     variable==='filter' ? null : input.derivativeFilterTauS,
     variable==='schedule' ? null : input.iceHeadingSchedule,
@@ -16,7 +17,7 @@ function controller(run:VesselRunSummary,variable?:'filter'|'schedule'|'ramp'|'g
 
 function condition(run:VesselRunSummary) {
   const c=run.configuration;
-  return JSON.stringify([c.initialWaterSpeedMps,c.environment,c.environmentSwitches,c.noiseLevel,c.seed,
+  return stableStringify([c.initialWaterSpeedMps,c.environment,c.environmentSwitches,c.noiseLevel,c.seed,
     c.ice?.thicknessM,c.ice?.flexuralStrengthPa,c.azimuthJamFault]);
 }
 
@@ -50,13 +51,13 @@ export function validateIcebreakerEvidence(step:IcebreakerCourseStep,evidence:Ve
   if (step.closedLoop && !own.every((run)=>comparisons.some((comparison)=>comparison.runId===run.id
     && comparison.purpose==='forecast' && comparison.modelId===run.designStudentModelId
     && comparison.createdAtMs<=run.createdAtMs
-    && JSON.stringify(comparison.controllerInput)===JSON.stringify(run.initialInput)))) {
+    && stableStringify(comparison.controllerInput)===stableStringify(run.initialInput)))) {
     return '请在每次闭环开始前冻结对应本人模型与控制方案的独立预测。';
   }
   const pair=(variable:'filter'|'schedule'|'ramp'|'gains',different:(a:VesselRunSummary,b:VesselRunSummary)=>boolean)=>
     own.some((first,index)=>own.slice(index+1).some((second)=>condition(first)===condition(second)
       && controller(first,variable)===controller(second,variable) && different(first,second)));
-  if (step.sequence===5 && !pair('gains',(a,b)=>JSON.stringify(a.initialInput.pid)!==JSON.stringify(b.initialInput.pid))) {
+  if (step.sequence===5 && !pair('gains',(a,b)=>stableStringify(a.initialInput.pid)!==stableStringify(b.initialInput.pid))) {
     return '请固定工况并保留两组不同增益的实际闭环运行。';
   }
   if (step.sequence===6 && ![.5,4].every((speed)=>own.some((run)=>run.configuration.initialWaterSpeedMps===speed))) {

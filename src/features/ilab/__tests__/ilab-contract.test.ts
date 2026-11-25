@@ -22,8 +22,15 @@ import {
   refreshIlabAccessToken,
 } from '@/features/ilab/ilab-client';
 import {
+  buildCourseStepWindows,
+  stepMetaForCourse,
+} from '@/features/ilab/adapters/ilab-course-upload';
+import {
   ILAB_PROJECT_TITLE,
+  ILAB_VESSEL_SHORT_LABEL,
   buildIlabUploadBody,
+  formatIlabProjectTitle,
+  formatIlabStepTitle,
   IlabPayloadError,
   type StoredIlabStep,
 } from '@/features/ilab/payload';
@@ -371,5 +378,138 @@ describe('ilab experiment contract', () => {
     expect(ilabPos).toBeGreaterThan(llmPos);
     expect(aiProviderPos).toBeGreaterThan(ilabPos);
     expect(deployScript).toContain('APP_ENV_ARGS+=(-e "${ilab_env_name}=${!ilab_env_name}")');
+  });
+
+  it('formats project and step titles with vessel labels without duplication or overflow', () => {
+    expect(formatIlabProjectTitle('集装箱船航速、准点与燃油')).toBe(
+      `${ILAB_PROJECT_TITLE} - 集装箱船航速、准点与燃油`,
+    );
+    expect(formatIlabProjectTitle(ILAB_PROJECT_TITLE)).toBe(ILAB_PROJECT_TITLE);
+    expect(formatIlabProjectTitle('超长实验名称'.repeat(30)).length).toBeLessThanOrEqual(100);
+
+    expect(formatIlabStepTitle('邮轮', '认识吊舱与减摇鳍')).toBe('[邮轮] 认识吊舱与减摇鳍');
+    expect(formatIlabStepTitle('邮轮', '[邮轮] 认识吊舱与减摇鳍')).toBe('[邮轮] 认识吊舱与减摇鳍');
+    expect(formatIlabStepTitle('055驱逐舰', '超长步骤名称'.repeat(30)).length).toBeLessThanOrEqual(100);
+  });
+
+  it('resolves all 7 vessels step metadata with vessel prefixes and course expectTime', () => {
+    const keys = Object.keys(ILAB_VESSEL_SHORT_LABEL) as Array<keyof typeof ILAB_VESSEL_SHORT_LABEL>;
+    expect(keys).toHaveLength(7);
+    for (const key of keys) {
+      const prefix = `[${ILAB_VESSEL_SHORT_LABEL[key]}] `;
+      const first = stepMetaForCourse(key, 1);
+      const last = stepMetaForCourse(key, 20);
+      expect(first.title.startsWith(prefix)).toBe(true);
+      expect(last.title.startsWith(prefix)).toBe(true);
+      expect(last.expectTime).toBe(300);
+    }
+    expect(stepMetaForCourse('container', 1).expectTime).toBe(60);
+    expect(stepMetaForCourse('container', 3).expectTime).toBe(600);
+    expect(stepMetaForCourse('container', 11).expectTime).toBe(1200);
+    expect(stepMetaForCourse('cruise', 1).expectTime).toBe(60);
+    expect(stepMetaForCourse('cruise', 5).expectTime).toBe(600);
+  });
+
+  it('prevents idle pauses from compressing subsequent step durations to 1s', () => {
+    const runStartMs = Date.UTC(2026, 10, 25, 1, 0, 0);
+    const attemptsBySeq = new Map<number, Array<{ createdAt: Date; updatedAt: Date }>>();
+    // 第 1 步开始后停顿了 60 分钟才提交，第 2 步实际耗时 240 秒，第 3 步耗时 180 秒。
+    const step1End = runStartMs + 3600 * 1000;
+    const step2Start = step1End + 2000;
+    const step2End = step2Start + 240 * 1000;
+    const step3Start = step2End + 2000;
+    const step3End = step3Start + 180 * 1000;
+    attemptsBySeq.set(1, [{ createdAt: new Date(step1End), updatedAt: new Date(step1End) }]);
+    attemptsBySeq.set(2, [{ createdAt: new Date(step2End), updatedAt: new Date(step2End) }]);
+    attemptsBySeq.set(3, [{ createdAt: new Date(step3End), updatedAt: new Date(step3End) }]);
+    let prev = step3End;
+    for (let seq = 4; seq <= 20; seq += 1) {
+      const start = prev + 2000;
+      const end = start + 90 * 1000;
+      attemptsBySeq.set(seq, [{ createdAt: new Date(end), updatedAt: new Date(end) }]);
+      prev = end;
+    }
+
+    const windows = buildCourseStepWindows({ runStartMs, attemptsBySeq, nowMs: prev + 5_000 });
+    expect(windows).toHaveLength(20);
+    expect(windows[0]!.timeUsed).toBe(1800);
+    expect(windows[1]!.timeUsed).toBe(241);
+    expect(windows[2]!.timeUsed).toBe(181);
+    expect(windows[3]!.timeUsed).toBe(91);
+
+    const steps: StoredIlabStep[] = windows.map((w, index) => ({
+      seq: index + 1,
+      ...stepMetaForCourse('cruise', index + 1),
+      ...w,
+      earnedPoints: 5,
+      maxPoints: 5,
+      repeatCount: 1,
+      evaluation: '已核验',
+      remarks: '完成。',
+    }));
+    const body = buildIlabUploadBody({
+      username: 'stu',
+      appId: '110382',
+      originId: 'vcrz_window_test',
+      title: formatIlabProjectTitle('邮轮转向、减摇与舒适性'),
+      childProjectTitle: '邮轮转向、减摇与舒适性',
+      status: 1,
+      runStartTimeMs: runStartMs,
+      steps,
+      ledger: emptyAiLedger(),
+    });
+    expect(body.title).toContain('邮轮转向、减摇与舒适性');
+    expect(body.steps[1]!.timeUsed).toBe(241);
+    expect(body.steps[2]!.timeUsed).toBe(181);
+  });
+
+  it('ignores mutated updatedAt from teacher review and bounds all step endTimes <= nowMs', () => {
+    const runStartMs = Date.UTC(2026, 10, 25, 6, 0, 0);
+    const reviewNowMs = runStartMs + 1000 * 1000;
+    const attemptsBySeq = new Map<number, Array<{ createdAt: Date; updatedAt: Date }>>();
+    for (let seq = 1; seq <= 20; seq += 1) {
+      const submittedAt = runStartMs + seq * 45 * 1000;
+      attemptsBySeq.set(seq, [{
+        createdAt: new Date(submittedAt),
+        // 模拟教师复核执行 Prisma update 时将所有 20 步的 updatedAt 全量覆写为终审时刻
+        updatedAt: new Date(reviewNowMs),
+      }]);
+    }
+
+    const windows = buildCourseStepWindows({ runStartMs, attemptsBySeq, nowMs: reviewNowMs });
+    expect(windows).toHaveLength(20);
+    for (let i = 0; i < windows.length; i += 1) {
+      const w = windows[i]!;
+      expect(w.startTime).toBeGreaterThanOrEqual(runStartMs);
+      expect(w.endTime).toBeGreaterThan(w.startTime);
+      expect(w.endTime).toBeLessThanOrEqual(reviewNowMs - 2000);
+      if (i > 0) {
+        expect(w.startTime).toBeGreaterThan(windows[i - 1]!.endTime);
+      }
+    }
+
+    const steps: StoredIlabStep[] = windows.map((w, index) => ({
+      seq: index + 1,
+      ...stepMetaForCourse('destroyer', index + 1),
+      ...w,
+      earnedPoints: 5,
+      maxPoints: 5,
+      repeatCount: 1,
+      evaluation: '已核验',
+      remarks: '完成。',
+    }));
+    const body = buildIlabUploadBody({
+      username: 'stu',
+      appId: '110382',
+      originId: 'dds_review_bounds',
+      title: formatIlabProjectTitle('055型驱逐舰航向控制'),
+      childProjectTitle: '055型驱逐舰航向控制',
+      status: 1,
+      runStartTimeMs: runStartMs,
+      steps,
+      ledger: emptyAiLedger(),
+    });
+    expect(body.endTime).toBeLessThanOrEqual(reviewNowMs);
+    expect(body.steps.every((s) => s.endTime <= body.endTime && s.startTime >= body.startTime)).toBe(true);
   });
 });

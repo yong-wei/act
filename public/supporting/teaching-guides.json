@@ -1,79 +1,101 @@
 {
   "schema": "act.virtual-simulation-guides.v1",
   "courseVersion": "seven-vessel-2026.11.14",
-  "edition": "2026.11.16",
-  "inputHash": "825a6ed7b944dd5679e56a82775be746967515847e8f999d708fa875dd2d2a97",
+  "edition": "2026.11.25",
+  "inputHash": "75cf6698877af5a6c8600de1add3e555f160b66ca3aa03b7ef91399d9b8c1a80",
   "inputFiles": {
-    "scripts/simulations/generate-teaching-guides.mts": "2d290110e7230c89067f087b2f83eeb3015438a1827cbb216430efe2f0045c22",
+    "scripts/simulations/generate-teaching-guides.mts": "9834b41bf4e7b1d49e66797f82f02cd1110c8715b9458cb38818a9035b08c79a",
     "src/resources/simulations/experiments/catalog/teaching-cards.json": "fdaf39d9cb34e2015da6a436dba73b79607112572350745f7ce7fe91f0f3647b",
-    "src/resources/simulations/experiments/course-catalog.ts": "7c08dcb4148929f8239e39b79f4849119927ab5a8b8ebbe27caac0b2fc86aef3",
+    "src/resources/simulations/experiments/course-catalog.ts": "4e9a28b9c163804107acdd96b51f0b81aa6869f613cf809daa4e9e4f74135de7",
+    "src/resources/simulations/experiments/vessel-workbench-policy.ts": "004cf090d0ed41633526df6a184a14b29edc1edf041b4ed4d8f4838047dcf1ae",
     "src/features/ilab/course-report-review-contract.ts": "09d4fb6232a356f1950f8383221dfe242c93006915f84c3db3c9ea68f6334cfd",
     "src/resources/simulations/experiments/destroyer-course.ts": "bad6068b4150c77d27c3c47352d4e5c2bbe42f7c360e9eb7a622a11794a90b1a",
+    "src/resources/simulations/experiments/destroyer-step-specs.ts": "baf899d97cbd84d9624beac0f99bf4f0d11b25bd8e55538c5b2eef73969bbaed",
+    "src/resources/simulations/experiments/destroyer-step-specs-early.ts": "868849d7cd79594363e02f1482dadc5127db166161ec66e414817030f26a55a2",
+    "src/resources/simulations/experiments/destroyer-step-specs-late.ts": "eb4dcdfccb1187d2cf57341d5af717ed6e5eff631fc241d8fd1df6fc0209b1ef",
     "src/resources/simulations/experiments/lng-course.ts": "8915d80472a4f1b54e9617bc08a244721047503eb1c9eefffc574718eccee5f2",
+    "src/resources/simulations/experiments/lng-step-specs.ts": "ff88202dcf5c95b0fb5e418b5e63923a6fa1e108bf34ec96c0e6c960e898a3b5",
+    "src/resources/simulations/experiments/lng-step-specs-early.ts": "f591a67a2c0f90b2d315c28ea83fdc08bb7decb0c2ff4b53393262bba01479b2",
+    "src/resources/simulations/experiments/lng-step-specs-late.ts": "9e73b51ed7ea391a7e99d48aa349cbf02823cde897f93d4712d30e6cd6f7d965",
     "src/resources/simulations/experiments/container-course.ts": "f000e8496969192872be5f5e6d209b28a769553a19c23bfe583dad8ea65aa8bb",
+    "src/resources/simulations/experiments/container-step-specs.ts": "4fec5d7ba3f9975ec5e4286886f028cafc74b4b26149b8a928825a3cbebf2be7",
+    "src/resources/simulations/experiments/container-step-specs-early.ts": "006d81fbf1dd2b2788292bc3decf4c8e02f0a63ec55670e8d6703554467a2ff0",
+    "src/resources/simulations/experiments/container-step-specs-late.ts": "982e90fff7e2be849913516a2e827de57899fa49e2091908009072709f56646c",
     "src/resources/simulations/experiments/cruise-course.ts": "ed572731fb7b2aa63fb294367482249c3b68a829fbf158156aaec64dfa42ef73",
+    "src/resources/simulations/experiments/cruise-step-specs.ts": "fc2d638764dad4a2234e56e27307dda3e76402302a74c68d5ff85366ab3fea89",
+    "src/resources/simulations/experiments/cruise-step-specs-early.ts": "961b64764ce38ed4d0ebb2574c52974a5dd64a4e2040228ce1a9ca80b94026de",
+    "src/resources/simulations/experiments/cruise-step-specs-late.ts": "6d0d93354e449c33753dbda64ad89b6befb39c47d42d23e1223503c78ce71a13",
     "src/resources/simulations/experiments/drilling-course.ts": "3afff1512d3c07a969af415bdfe5a8e2ec987830b12d190c52283d4a16caff92",
+    "src/resources/simulations/experiments/drilling-step-specs.ts": "ab176dc067638d8a19637f6a9ea54fa5b1d96992794373f3db5172ae5bbc2bc4",
+    "src/resources/simulations/experiments/drilling-step-specs-early.ts": "fbfe7cc7c00c07d71fe276f8ed41b08536b2f37f73c149188c24da551c8f2bc6",
+    "src/resources/simulations/experiments/drilling-step-specs-late.ts": "debcf4df723b3d50c95316936e44d00fb95b5575e95aeb94eb80096a9891147f",
     "src/resources/simulations/experiments/icebreaker-course.ts": "d8b350ef3706baa29fcdc45efda0e50b198de2031504dd34402c0c2350ba2ade",
+    "src/resources/simulations/experiments/icebreaker-step-specs.ts": "1eed921111e9cf3213508ce86d8e0218a53b8d69af9e064e62aa08bd9f15c178",
+    "src/resources/simulations/experiments/icebreaker-step-specs-early.ts": "9c16cda262ccf6000a88fdf6d25e7e2a4e8ded359657970aac9b13b5608ec240",
+    "src/resources/simulations/experiments/icebreaker-step-specs-late.ts": "430bc172bec467fec34164473c950c3291c799e76f9aace9e4d53d01ca8d42fb",
     "src/resources/simulations/experiments/dredger-course.ts": "219dd605b81d38d3f0f52cf6e6ad66289fb81a3893359f7e904d19d433a48b2f",
+    "src/resources/simulations/experiments/dredger-step-specs.ts": "e690ee47c0f25e513f681944b1a7f85f50dcee49ad1d98cdddb07381292ad594",
+    "src/resources/simulations/experiments/dredger-step-specs-early.ts": "02368e34f8ae2df67e37914057a655a5e5e098efcdf134effbd5f1347591ceb2",
+    "src/resources/simulations/experiments/dredger-step-specs-late.ts": "9f8c03a4d8735d0de2a8586d0142d93e4a4e2a10fe85017cebc613cfaac6f3e8",
     "docs/teaching/virtual-simulations/examples.json": "480b817aa20ee74edc499dc92694b5b57b121a7ec4dcfd250a3dc40f1c8d00f3",
     "src/resources/simulations/simulations/destroyer-experiment.ts": "5518ed196cc30f3ed4d3f801e3659a31f81db64053ec4c8268a5241b0aeab451",
     "src/resources/simulations/simulations/vessel-experiments.ts": "924901c25752adce16db314cce0b7bae002b8b62cf4a15a3aaa3fa1b74cd3b7d",
-    "docs/teaching/virtual-simulations/platform-operation-manual.source.md": "625e40cb9029ee3cbedbb0b9f88ac8fbf8622a0a03e45746e80eaa75f0d8cab4"
+    "docs/teaching/virtual-simulations/platform-operation-manual.source.md": "0c4e9a3e2e5a1dde157c15bdd6252da9312502a11789fb2499de5d16ffa92884"
   },
   "files": [
     {
       "name": "guide-01-destroyer.pdf",
-      "pages": 18,
-      "bytes": 1235004,
-      "sha256": "efdbd83a12ed38cd5cb36eaa60f49cb0208a86dfa6d89a0d4ae88a7de234139a"
+      "pages": 25,
+      "bytes": 1557091,
+      "sha256": "c9683c3c145fafdfed038af3bedfea57a7719cada3936801aa8a74f737924687"
     },
     {
       "name": "guide-02-lng-carrier.pdf",
-      "pages": 17,
-      "bytes": 1283867,
-      "sha256": "a27a307930f9c2e475df72c903ab9fb58b6e92ce8a172478c6875c2cbaa754c3"
+      "pages": 26,
+      "bytes": 1611425,
+      "sha256": "1f16c72ca951ff66e19113eb712fb5e33f7b101b9e2d74f3b96eab3a50303973"
     },
     {
       "name": "guide-03-container.pdf",
-      "pages": 17,
-      "bytes": 1232897,
-      "sha256": "6f58a831ef6efe296291c0c00dbb992acc91f04c237ed751963d3a039147e9eb"
+      "pages": 25,
+      "bytes": 1559762,
+      "sha256": "e5ce0f87dedf92cfee48843782b22d9a0541e132bae78cbf7a557cec570e085e"
     },
     {
       "name": "guide-04-cruise.pdf",
-      "pages": 17,
-      "bytes": 1234688,
-      "sha256": "8d8d626fc5c6d615716ebd1b6cc02b6a59a443d076da9d0829b1e6a84ce5332a"
+      "pages": 25,
+      "bytes": 1556086,
+      "sha256": "1c4c145b2b39d83a57426d0859a2743d7ac57fe9fbb9ed5e2374b274773e642d"
     },
     {
       "name": "guide-05-drilling-platform.pdf",
-      "pages": 17,
-      "bytes": 1215274,
-      "sha256": "244666eead6f2b527a865b22a3253c1ec26da79457109bce10dfc4c627088941"
+      "pages": 25,
+      "bytes": 1571294,
+      "sha256": "dfd8c7abe5071867a275d575bfcc8964164d1af0fd002517f960939783c2e99a"
     },
     {
       "name": "guide-06-icebreaker.pdf",
-      "pages": 18,
-      "bytes": 1235666,
-      "sha256": "7ea7ff5f7c61f578b507fbd4ea1a21ff2432edafe1a65b0cc7a4f35c0f1d8255"
+      "pages": 26,
+      "bytes": 1602446,
+      "sha256": "c01e1c6d37c0a68586bbbee6f1893e52ebcad0402cd74ebfcdfab12c7791e8c8"
     },
     {
       "name": "guide-07-dredger.pdf",
-      "pages": 18,
-      "bytes": 1262470,
-      "sha256": "a7469d077d93f884fba299f28cae3b4ace4f3ec28ba3c6b04f11544fde7f06b3"
+      "pages": 26,
+      "bytes": 1622846,
+      "sha256": "88b1d101c719bd3f839274a56f028864ac34d66f768d8386f124ac908ab606d1"
     },
     {
       "name": "experiment-guide-compilation.pdf",
-      "pages": 123,
-      "bytes": 4291267,
-      "sha256": "16e84b097d32fc8247042f8277f06f67faf072d64e2b7ec228953dae2e825c71"
+      "pages": 179,
+      "bytes": 5612154,
+      "sha256": "366f83eea7a82f36750801a96c54eedb977ecc6ee45413133f64467afb03ec31"
     },
     {
       "name": "platform-operation-manual.pdf",
       "pages": 3,
-      "bytes": 397372,
-      "sha256": "cb57eff627b3e7d930fb978ec206c94d63a2a751ec224710a1b94613e530b268"
+      "bytes": 515121,
+      "sha256": "1592919d0eb7cf78e8b6f0770c3b8d67c9128318f6ae5da3d3c8a5dd46485268"
     }
   ]
 }

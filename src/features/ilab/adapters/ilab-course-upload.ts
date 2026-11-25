@@ -1,16 +1,27 @@
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
-import { STEP_SCORE_DISTRIBUTION } from '@/resources/simulations/contracts/experiment-step';
+import { STEP_SCORE_DISTRIBUTION, type ExperimentStep } from '@/resources/simulations/contracts/experiment-step';
+import { CONTAINER_COURSE_STEPS } from '@/resources/simulations/experiments/container-course';
 import { findVesselCourse, type VesselCourseKey } from '@/resources/simulations/experiments/course-catalog';
+import { CRUISE_COURSE_STEPS } from '@/resources/simulations/experiments/cruise-course';
 import { DESTROYER_COURSE_STEPS } from '@/resources/simulations/experiments/destroyer-course';
-import { findVesselExperiment } from '@/resources/simulations/simulations/vessel-experiments';
+import { DREDGER_COURSE_STEPS } from '@/resources/simulations/experiments/dredger-course';
+import { DRILLING_COURSE_STEPS } from '@/resources/simulations/experiments/drilling-course';
+import { ICEBREAKER_COURSE_STEPS } from '@/resources/simulations/experiments/icebreaker-course';
+import { LNG_COURSE_STEPS } from '@/resources/simulations/experiments/lng-course';
 
 import { emptyAiLedger, isAiUsageLedger } from '../ai-data';
 import { vesselExperimentKey } from '../course-artifact-service';
 import { summarizeVesselReview, type VesselStepReview } from '../course-report-review-contract';
 import type { IlabGrantPayload } from '../grant-cookie';
-import { ILAB_PROJECT_TITLE, buildIlabUploadBody, type StoredIlabStep } from '../payload';
+import {
+  ILAB_VESSEL_SHORT_LABEL,
+  buildIlabUploadBody,
+  formatIlabProjectTitle,
+  formatIlabStepTitle,
+  type StoredIlabStep,
+} from '../payload';
 import { IlabServiceError } from '../run-lock';
 import { ilabConfig, safeUploadWithAutoRefresh } from '../session-shared';
 import { parseStepDrafts, resolveIlabUploadMode } from './ilab-session-lifecycle';
@@ -25,6 +36,16 @@ const VESSEL_ID_BY_COURSE_KEY: Record<VesselCourseKey, string> = {
   dredger: 'fleet-dredger-tianjing',
 };
 
+const COURSE_STEPS_BY_KEY: Record<VesselCourseKey, readonly ExperimentStep[]> = {
+  destroyer: DESTROYER_COURSE_STEPS,
+  lng: LNG_COURSE_STEPS,
+  container: CONTAINER_COURSE_STEPS,
+  cruise: CRUISE_COURSE_STEPS,
+  drilling: DRILLING_COURSE_STEPS,
+  icebreaker: ICEBREAKER_COURSE_STEPS,
+  dredger: DREDGER_COURSE_STEPS,
+};
+
 function parseStepSeq(stepKey: string): number | null {
   const match = /-step-(\d+)$/.exec(stepKey);
   if (!match) return null;
@@ -32,27 +53,99 @@ function parseStepSeq(stepKey: string): number | null {
   return Number.isInteger(seq) && seq >= 1 && seq <= 20 ? seq : null;
 }
 
-function stepMetaForCourse(courseKey: VesselCourseKey, seq: number): {
+export function stepMetaForCourse(courseKey: VesselCourseKey, seq: number): {
   title: string;
   expectTime: number;
   scoringModel: string;
 } {
-  if (courseKey === 'destroyer') {
-    const step = DESTROYER_COURSE_STEPS[seq - 1];
-    return {
-      title: step?.title ?? `第 ${seq} 步`,
-      expectTime: step?.runDurationS ?? 300,
-      scoringModel: step?.rubric.kind === 'design' ? '预测与模型辨识+设计性能控制+证据推理' : '预测+仿真采样+因果解释',
-    };
-  }
-  const vesselId = VESSEL_ID_BY_COURSE_KEY[courseKey];
-  const experiment = findVesselExperiment(vesselId);
-  const step = experiment?.steps[seq - 1];
+  const step = COURSE_STEPS_BY_KEY[courseKey]?.[seq - 1];
+  const rawTitle = findVesselCourse(courseKey)?.steps[seq - 1]?.title ?? step?.title ?? `第 ${seq} 步`;
+  const title = formatIlabStepTitle(ILAB_VESSEL_SHORT_LABEL[courseKey], rawTitle);
+  const runDuration = step?.runDurationS;
+  const expectTime = typeof runDuration === 'number' && Number.isFinite(runDuration) && runDuration > 0
+    ? Math.max(60, Math.round(runDuration))
+    : seq === 20
+      ? 300
+      : 180;
+  const isDesignOrAnalysis = step?.rubric.kind === 'design' || step?.stepKind === 'analysis' || seq === 20;
+  const scoringModel = isDesignOrAnalysis
+    ? '预测与模型辨识+设计性能控制+证据推理'
+    : '预测+仿真采样+因果解释';
   return {
-    title: findVesselCourse(courseKey)?.steps[seq - 1]?.title ?? step?.title ?? `第 ${seq} 步`,
-    expectTime: step?.expectTime ?? 300,
-    scoringModel: '预测+仿真采样+因果解释',
+    title,
+    expectTime,
+    scoringModel,
   };
+}
+
+export interface StepAttemptTimestamp {
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ComputedStepWindow {
+  startTime: number;
+  endTime: number;
+  timeUsed: number;
+}
+
+/**
+ * 根据实验启动时间与各步骤不可变创建时间 `createdAt` 计算不重叠、无挤压且绝不超出当前时刻的起止时间窗口。
+ * 忽略会被教师复核 `@updatedAt` 覆盖的 `updatedAt`，若中间存在超过 1800 秒的长时间停顿则把空闲停顿留在两步之间，
+ * 并在所有情况下将每步结束时间严格钳制在 `nowMs - 2000` 以内。
+ */
+export function buildCourseStepWindows(input: {
+  runStartMs: number;
+  attemptsBySeq: ReadonlyMap<number, readonly StepAttemptTimestamp[]>;
+  nowMs?: number;
+}): ComputedStepWindow[] {
+  const ceilingMs = Math.floor((input.nowMs ?? Date.now()) - 2000);
+  const effectiveStartMs = Math.min(Math.floor(input.runStartMs), ceilingMs - 20 * 2000);
+  let maxAttemptMs = effectiveStartMs + 20 * 2000;
+  for (const list of input.attemptsBySeq.values()) {
+    for (const item of list) {
+      const ms = Math.floor(item.createdAt.getTime());
+      if (ms > maxAttemptMs) maxAttemptMs = ms;
+    }
+  }
+  const effectiveEndMs = Math.min(ceilingMs, maxAttemptMs);
+
+  let cursorMs = effectiveStartMs;
+  let prevActualEndMs = effectiveStartMs;
+  const windows: ComputedStepWindow[] = [];
+
+  for (let seq = 1; seq <= 20; seq += 1) {
+    const remainingSteps = 20 - seq;
+    const maxAllowedEndMs = effectiveEndMs - remainingSteps * 2000;
+    const maxDurationHere = Math.max(1, Math.min(1800, Math.floor((maxAllowedEndMs - cursorMs) / 1000)));
+    const seqAttempts = input.attemptsBySeq.get(seq) ?? [];
+    if (seqAttempts.length > 0) {
+      const sortedCreatedMs = seqAttempts.map((item) => Math.floor(item.createdAt.getTime())).sort((a, b) => a - b);
+      const firstCreatedMs = sortedCreatedMs[0]!;
+      const lastCreatedMs = sortedCreatedMs[sortedCreatedMs.length - 1]!;
+      const clampedEndMs = Math.max(cursorMs + 1000, Math.min(maxAllowedEndMs, lastCreatedMs));
+      const baselineStartMs = Math.max(cursorMs, prevActualEndMs);
+      let rawSeconds = Math.round((clampedEndMs - baselineStartMs) / 1000);
+      if (rawSeconds <= 0) {
+        rawSeconds = Math.round((lastCreatedMs - firstCreatedMs) / 1000);
+      }
+      const timeUsed = Math.max(1, Math.min(maxDurationHere, rawSeconds > 0 ? rawSeconds : 5));
+      const anchoredStartMs = clampedEndMs - timeUsed * 1000;
+      const startTime = anchoredStartMs >= cursorMs ? anchoredStartMs : cursorMs;
+      const endTime = startTime + timeUsed * 1000;
+      prevActualEndMs = Math.max(prevActualEndMs, clampedEndMs);
+      cursorMs = endTime + 1000;
+      windows.push({ startTime, endTime, timeUsed });
+    } else {
+      const startTime = cursorMs;
+      const timeUsed = 1;
+      const endTime = startTime + 1000;
+      cursorMs = endTime + 1000;
+      windows.push({ startTime, endTime, timeUsed });
+    }
+  }
+
+  return windows;
 }
 
 function stepEvaluationLabel(status: string): string {
@@ -250,7 +343,7 @@ export async function uploadCourseReportToIlab(input: {
   );
 
   const runStartMs = Number(run.startTimeMs);
-  let cursorMs = runStartMs;
+  const stepWindows = buildCourseStepWindows({ runStartMs, attemptsBySeq });
   const storedSteps: StoredIlabStep[] = [];
 
   for (let seq = 1; seq <= 20; seq += 1) {
@@ -266,20 +359,14 @@ export async function uploadCourseReportToIlab(input: {
       earnedPoints = Math.max(0, Math.min(maxPoints, sum));
     }
 
-    const startTime = cursorMs;
-    const timeUsed = Math.max(
-      1,
-      Math.min(1800, seqAttempts.length > 0 ? Math.max(1, Math.round((seqAttempts.at(-1)!.updatedAt.getTime() - startTime) / 1000)) || 5 : 1),
-    );
-    const endTime = startTime + timeUsed * 1000;
-    cursorMs = endTime + 1000;
+    const window = stepWindows[seq - 1]!;
 
     storedSteps.push({
       seq,
       title: meta.title,
-      startTime,
-      endTime,
-      timeUsed,
+      startTime: window.startTime,
+      endTime: window.endTime,
+      timeUsed: window.timeUsed,
       expectTime: meta.expectTime,
       earnedPoints,
       maxPoints,
@@ -297,7 +384,7 @@ export async function uploadCourseReportToIlab(input: {
     username: run.ilabUsername,
     appId: bypass ? 'dev' : run.appId,
     originId: run.originId,
-    title: ILAB_PROJECT_TITLE,
+    title: formatIlabProjectTitle(courseTitle),
     childProjectTitle: courseTitle,
     status: 1,
     steps: storedSteps,

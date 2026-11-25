@@ -4,6 +4,7 @@ import { validateExperiment } from '../contracts/experiment-step';
 import { ICEBREAKER_COURSE_STEPS, icebreakerConfiguration, icebreakerDefaultSettings,
   icebreakerCourseInput, icebreakerHeadingReference } from '../experiments/icebreaker-course';
 import { icebreakerCourseAdapter } from '../experiments/icebreaker-course-adapter';
+import { validateIcebreakerEvidence } from '../experiments/icebreaker-evidence';
 import { createServerVesselSession, invokeServerWasm } from '@/lib/control-engine/wasm-server';
 
 vi.mock('../physics/simulation-engine-facade', async () => {
@@ -130,4 +131,71 @@ describe('雪龙2号专项课程合同', () => {
       expect(JSON.stringify(frame.controlSamples)).not.toContain('iceScene');
     } finally { ice.free(); }
   }, 120000);
+
+  it('闭环预测 controllerInput 比较对 JSON 键序无关（兼容 Postgres jsonb 与 CAS 恢复）', () => {
+    const reverseKeys = (val: unknown): unknown => {
+      if (Array.isArray(val)) return val.map(reverseKeys);
+      if (val && typeof val === 'object') {
+        return Object.fromEntries(Object.entries(val as Record<string, unknown>).reverse().map(([k, v]) => [k, reverseKeys(v)]));
+      }
+      return val;
+    };
+    const model = {
+      id: 'open-yaw-model',
+      channel: 'azimuth-to-yaw' as const,
+      createdAtMs: 100,
+      payload: {
+        experimentKey: 'icebreaker-ice:r1',
+        lineageKey: 'step-3',
+        structure: { kind: 'nomoto1' as const, k: 0.07, t_s: 28 },
+        ioContract: { inputChannel: 'EquivalentAzimuth', outputChannel: 'YawRate', inputUnit: '°', outputUnit: '°/s' },
+        operatingPoint: { speedMps: 4, iceThicknessM: 0, inputOrigin: 0, outputOrigin: 0 },
+        identification: { algorithm: 'oe_lsq' as const, settings: {}, identifiedOk: true, residualRms: 0.01 },
+        trainingRuns: [{ runRef: 'step3-run', startS: 0, endS: 100 }],
+        validationRuns: [],
+        sampleDt: 0.2,
+      },
+    };
+    const configuration = icebreakerConfiguration(5);
+    const makeRun = (id: string, kp: number) => ({
+      id,
+      scopeKey: 'icebreaker-ice:r1',
+      courseVersion: 'seven-vessel-2026.11.14',
+      stepSequence: 5,
+      createdAtMs: 1000,
+      stoppedAtMs: 2000,
+      lastTimeS: 400,
+      durationS: 400,
+      sampleCount: 100,
+      configuration,
+      initialInput: { ...initial, controlMode: 'pid' as const, pid: { kp, ki: 0.02, kd: 8 }, derivativeFilterTauS: 0.2 },
+      designStudentModelId: model.id,
+      stopReason: 'duration' as const,
+    });
+    const runs = [makeRun('run-1', 1.2), makeRun('run-2', 1.8)];
+    const comparisons = runs.map((run, idx) => ({
+      id: `cmp-${idx}`,
+      modelId: model.id,
+      actuatorModelId: null,
+      runId: run.id,
+      mode: 'independent_closed_loop' as const,
+      purpose: 'forecast' as const,
+      createdAtMs: 500,
+      actualSampleCount: 0,
+      controllerInput: reverseKeys(run.initialInput) as VesselSessionInput,
+    }));
+    const evidence = {
+      runs,
+      models: [model],
+      comparisons,
+      answers: { prediction: '预测有效', observation: '记录超调', interpretation: '双组增益机理一致' },
+    };
+    expect(validateIcebreakerEvidence(ICEBREAKER_COURSE_STEPS[4]!, evidence)).toBeNull();
+
+    const mismatched = {
+      ...evidence,
+      comparisons: comparisons.map((c, idx) => idx === 0 ? { ...c, controllerInput: { ...c.controllerInput, targetHeadingDeg: 99 } } : c),
+    };
+    expect(validateIcebreakerEvidence(ICEBREAKER_COURSE_STEPS[4]!, mismatched)).toContain('独立预测');
+  });
 });

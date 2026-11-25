@@ -15,6 +15,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { MarineCanvas } from '../scene/marine-canvas';
 import { MarineWater } from '../scene/water/marine-water';
+import { stableStringify } from '@/lib/control-engine/envelope';
 import { SimulationClock } from '@/lib/simulation';
 import {
   advanceAttainment,
@@ -1524,7 +1525,7 @@ export default function DestroyerSimulation({ ticket = '' }: { ticket?: string }
           headingIntegralTracking: { enabled: integralTrackingEnabled, timeS: integralTrackingTimeS }, feedback: 'measurement',
         });
         if (step.seq === 10 && !modelComparisons.some((comparison) => comparison.runId === plannedRunId
-          && comparison.purpose === 'forecast' && JSON.stringify(comparison.controllerInput) === JSON.stringify(initial.input))) {
+          && comparison.purpose === 'forecast' && stableStringify(comparison.controllerInput) === stableStringify(initial.input))) {
           throw new Error('请先用当前控制参数冻结独立闭环预测，再开始物理侧运行。');
         }
         if ([18,19].includes(step.seq) && !runSummaries.some((run) => run.id === controllerSourceRunId

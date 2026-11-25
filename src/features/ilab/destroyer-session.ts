@@ -20,7 +20,14 @@ import {
 import { emptyAiLedger, isAiUsageLedger, recordAiCall, type AiUsageLedger } from './ai-data';
 import type { IlabGrantPayload } from './grant-cookie';
 import { recognizeSketch } from './sketch-recognition';
-import { ILAB_PROJECT_TITLE, buildIlabUploadBody, type IlabUploadBody, type StoredIlabStep } from './payload';
+import {
+  ILAB_VESSEL_SHORT_LABEL,
+  buildIlabUploadBody,
+  formatIlabProjectTitle,
+  formatIlabStepTitle,
+  type IlabUploadBody,
+  type StoredIlabStep,
+} from './payload';
 import { assertIlabRunOpen, IlabServiceError, toIlabHttpError, withIlabRunLock } from './run-lock';
 import { buildSafeStepWindow, ilabConfig, safeUploadWithAutoRefresh } from './session-shared';
 import type { IlabAuthUserSummary } from './adapters/ilab-account-service';
@@ -394,14 +401,19 @@ export async function completeDestroyerSession(originId: string): Promise<{
 
   const bypass = uploadMode === 'dev-bypass';
   const config = ilabConfig();
+  const shortLabel = ILAB_VESSEL_SHORT_LABEL.destroyer;
+  const labeledSteps = steps.map((step) => ({
+    ...step,
+    title: formatIlabStepTitle(shortLabel, step.title),
+  }));
   const upload = buildIlabUploadBody({
     username: run.ilabUsername,
     appId: bypass ? 'dev' : run.appId,
     originId: run.originId,
-    title: ILAB_PROJECT_TITLE,
+    title: formatIlabProjectTitle(DESTROYER_EXPERIMENT_TITLE),
     childProjectTitle: DESTROYER_EXPERIMENT_TITLE,
     status: 1,
-    steps,
+    steps: labeledSteps,
     ledger,
     pointTotal: DESTROYER_MAX_POINTS,
     runStartTimeMs: Number(run.startTimeMs),
