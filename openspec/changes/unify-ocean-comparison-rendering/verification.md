@@ -307,3 +307,15 @@ rtk proxy git diff --check
 七包完整文件从 169,771,786 字节减少到 66,614,767 字节。这里统计全部档位与贴图，浏览器实际下载量另测。三个模型包测试文件共 39 项通过，生产 Web / worker 类型检查通过。独立 Chrome 使用与仿真一致的加载器和解码器，实际解码七个代理和 21 个模型档位，无加载错误。055 两张新 WebP 贴花均保留透明通道。浏览器解码记录见 `.logs/2026-11-25-fleet-codec.browser.json`。
 
 已使用 ACT 发布身份和 OSS 命令行发布七个新版本目录，新增 175 个对象、失败 0。私有模型桶下的全部文件经 ESA 逐对象校验 SHA-256、字节数、MIME、跨域和不可变缓存，代表对象通过 HTTPS 重定向和 Range 测试。OSS 已存在的历史版本保留。回执见 `artifacts/model-releases/oss-publication.json` 与 `esa-verification.json`。
+
+## 2026-11-26 阿里云 0.7.82
+
+应用和 worker 均运行 `e7b5726165cd9f9b2ea106ccfc5c7ff5af857b6e`，公网首页、认证、readyz 和后台任务验证通过。数据库及 Redis 的容器身份、启动时刻与 Runtime 激活回执经前后核对一致。构建增量包 806,891,520 字节，SHA-256 为 `f5aa123a407c11b75fab6f087eef813136bc8e6f05567e977b0f46f5f99a55e7`。版本化应用静态资源共 1,179 个，抽查 JS、CSS、WASM 的 gzip 和解压后摘要通过。本机生产构建及 TypeScript 均通过。
+
+使用中央测试班账号，以七个独立 Chrome 上下文访问七个正式入口，七船均经 ESA 挂载各自新版本，未观察到船模加载或页面错误。初版浏览器断言固定要求 LOD0，触发了自动画质模式下的测试超时。复测按正式模型确已挂载和版本匹配判定。另一次在 055 浏览器中让 ESA 代理请求返回 503，同源读取 45,052 字节代理并实际挂载。释放边缘请求后升级至 ESA 的 LOD2。
+
+按相同启用档位对比版本文件，七船的代理、LOD2 及各自引用纹理的去重文件总量由 22.43 MB 减至 10.38 MB。加上最高档船体及引用纹理由 125.61 MB 减至 47.67 MB。两组字节数只含船体 GLB 和引用资源。
+
+应用上线后按浏览器真实路由做 10 路及 120 路请求回放。120 路均获入场许可，7,579 次边缘请求中 7,540 次命中缓存。所有新模型路径请求通过。整个回放有 35 次资源请求重试后仍超时，按路径和主机带宽的结论见 `docs/operations/2026-11-18-simulation-direct-evidence.md`。
+
+回执见 `.logs/v0782-live-components.json`、`.logs/v0782-compressed-public-browser-entries.json`、`.logs/v0782-live-model-fallback.json`、`.logs/2026-11-26-fleet-model-closure-comparison.json` 和 `.logs/load-v0782-4cpu-direct-n120.json`。
