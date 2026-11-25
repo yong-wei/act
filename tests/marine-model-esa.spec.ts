@@ -52,7 +52,7 @@ for (const api of ['webgl', 'webgpu'] as const) for (const unavailable of [false
       await page.goto(APP_ORIGIN + '/__model-delivery');
       await page.evaluate(async api => { const fixture = await import('/__model-delivery.js'); await fixture.mount(api); }, api);
       await page.waitForFunction(() => window.__modelDelivery?.url.endsWith('ship-proxy.glb'));
-      expect(requests[0]).toBe(ESA_ORIGIN + '/model-releases/type055-nanchang-101/v2.3.0/models/type055-nanchang-101-ship-proxy.glb');
+      expect(requests[0]).toBe(ESA_ORIGIN + '/model-releases/type055-nanchang-101/v2.4.0/models/type055-nanchang-101-ship-proxy.glb');
       const proxy = await page.evaluate(() => window.__modelDelivery!);
       expect(proxy.url.startsWith(unavailable ? '/assets/' : ESA_ORIGIN)).toBe(true);
       expect(proxy.api).toBe(api === 'webgl' ? 'WebGLBackend' : 'WebGPUBackend');

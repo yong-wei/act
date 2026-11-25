@@ -82,7 +82,6 @@ def put_object(ossutil: str, endpoint: str, region: str, key: str, path: Path, d
         "--body", f"file://{path.resolve()}",
         "--content-type", content_type,
         "--cache-control", "public, max-age=31536000, immutable",
-        "--object-acl", "private",
         "--forbid-overwrite",
         "--metadata", f"sha256={digest}",
     ])
@@ -112,9 +111,31 @@ def main() -> None:
     ossutil, endpoint, region = require_env()
     if not LOCAL_ROOT.is_dir():
         raise SystemExit(f"missing {LOCAL_ROOT}")
-    files = sorted(path for path in LOCAL_ROOT.rglob("*") if path.is_file())
-    if not files:
-        raise SystemExit("no-local-model-release-files")
+    # The private bucket's ACL is inherited. Publish only files named by the current fleet manifests.
+    manifests = sorted(LOCAL_ROOT.glob("*/*/manifest.json"))
+    packages = {
+        path: json.loads(path.read_text())
+        for path in manifests
+    }
+    fleet = {
+        path: manifest for path, manifest in packages.items()
+        if manifest.get("schema") == "act-fleet-model-release/1"
+    }
+    if len(fleet) != 7:
+        raise SystemExit("expected-seven-current-packages")
+    files: list[Path] = []
+    for manifest_path, manifest in fleet.items():
+        folder = manifest_path.parent
+        if (folder.parent.name, folder.name) != (manifest["packageId"], f"v{manifest['modelVersion']}"):
+            raise SystemExit(f"manifest-version-mismatch:{manifest_path}")
+        files.append(manifest_path)
+        for record in [*manifest["artifacts"].values(), *manifest["textures"]]:
+            path = folder / record["file"]
+            if not path.resolve().is_relative_to(folder.resolve()) or not path.is_file():
+                raise SystemExit(f"invalid-manifest-object:{path}")
+            if path.stat().st_size != record["bytes"] or sha256_file(path) != record["sha256"]:
+                raise SystemExit(f"manifest-object-drift:{path}")
+            files.append(path)
     objects: list[dict[str, object]] = []
     errors: list[str] = []
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:

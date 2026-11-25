@@ -66,12 +66,13 @@ export function validateReceivedModelPackage(
   }
   const manifestDigest = io.sha256('manifest.json');
   if (manifestDigest !== descriptor.releaseManifestSha256) throw new Error('manifest-sha-mismatch');
-  // 分母封闭：候选目录只允许 manifest + 已登记角色文件 + 内容寻址 textures/<sha>.png。
+  // 分母封闭：候选目录只允许 manifest + 已登记角色文件 + 内容寻址 textures/<sha>.<格式>。
   const declared = new Set([...files, 'manifest.json']);
-  const textureSidecar = /^textures\/[0-9a-f]{64}\.png$/;
+  const textureSidecar = /^textures\/([0-9a-f]{64})\.(?:png|webp)$/;
   for (const present of io.listFiles()) {
-    if (textureSidecar.test(present)) {
-      const digest = present.slice('textures/'.length, -'.png'.length);
+    const texture = textureSidecar.exec(present);
+    if (texture) {
+      const [, digest] = texture;
       if (io.sha256(present) !== digest) throw new Error(`texture-sha-mismatch:${present}`);
       continue;
     }
@@ -174,8 +175,9 @@ export function validateModelPackageInterface(
       if (!imageNames.includes(decal)) violations.push({ kind: 'decal-image-missing', detail: `${lodRole}:${decal}` });
     }
     for (const image of json.images ?? []) {
-      if (contract.decalImages.includes(String(image.name ?? '')) && image.mimeType !== 'image/png') {
-        violations.push({ kind: 'decal-not-png', detail: `${lodRole}:${String(image.name)}` });
+      if (contract.decalImages.includes(String(image.name ?? ''))
+        && image.mimeType !== 'image/png' && image.mimeType !== 'image/webp') {
+        violations.push({ kind: 'decal-image-format', detail: `${lodRole}:${String(image.name)}` });
       }
     }
   }

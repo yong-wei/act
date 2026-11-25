@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { FLEET_ACTIVE_PACKAGES, XUE_LONG_2_V110 } from '../model-packages/fleet-packages';
+import { FLEET_ACTIVE_PACKAGES, XUE_LONG_2_V120 } from '../model-packages/fleet-packages';
 import { createMarinePropulsors } from '../model-packages/marine-propulsors';
 import type { BindingTelemetrySource } from '../components/semantic-bindings-rig';
 
@@ -38,7 +38,7 @@ describe('received independent proxies and propulsion interfaces', () => {
     });
   }
   it('keeps declared pod position, shaft direction and RPM activity identical across proxy and full-node mounts', () => {
-    const descriptor = XUE_LONG_2_V110;
+    const descriptor = XUE_LONG_2_V120;
     const proxy = new THREE.Group(), full = new THREE.Group(), pivots: THREE.Group[] = [];
     for (const anchor of descriptor.propulsionAnchors!) {
       const pivot = new THREE.Group(); pivot.position.set(...anchor.azimuthPivotModelM!);

@@ -4,7 +4,7 @@
  *
  * 源目录必须含 release.json，并与 fleet-runtime-releases.json 的 manifestSha256 一致。
  * 复制 models/ 三档主舰、静态代理、独立推进器接口、可选 055 辅助 GLB 与 textures/。
- * GLB 图像 URI 为 ../textures/<sha>.png，不得只收 GLB。
+ * GLB 外部图像 URI 为 ../textures/<sha>.<格式>，不得只收 GLB。
  * 只保留当前激活版本；同 packageId 的旧目录与收据在接收成功后删除。
  * 服务回退只走 registry 单文件链，不保留旧版本化包。
  */
@@ -36,39 +36,39 @@ const OTHER_ROLE_BY_FILE = {
 
 const CATALOG = {
   'xue-long-2': {
-    sourceRel: 'assets/xue_long_2/exports/v1.1.0',
-    expectedManifestSha256: 'c5bdf72202e284f44fabd11faec7a1e64340c8c6381f9c6d7322593e2a19cfe4',
+    sourceRel: 'assets/xue_long_2/exports/v1.2.0',
+    expectedManifestSha256: '02145a8c9ab234e4ed3bc05fced79de5bed532c33c73b2c9dcc708ebd971df9a',
     posters: ['public/assets/icebreaker.webp'],
   },
   'adora-magic-city': {
-    sourceRel: 'assets/adora_magic_city/exports/v1.1.0',
-    expectedManifestSha256: 'eb4e19b2fa798912bc1335e902d7b5675e826e8f83990ee724181ca8936ba3bc',
+    sourceRel: 'assets/adora_magic_city/exports/v1.2.0',
+    expectedManifestSha256: '22bb35156abbfd5b8300817ebf839d521752e0621c870eb150e21d39eb7cdd5f',
     posters: ['public/assets/luxury-liner.webp'],
   },
   'msc-tessa': {
-    sourceRel: 'assets/msc_tessa/exports/v1.2.0',
-    expectedManifestSha256: '8f6af2d336236eb6a670aa645263e219ed79acc133f5fe96ed21f0e47c083b7a',
+    sourceRel: 'assets/msc_tessa/exports/v1.3.0',
+    expectedManifestSha256: '86a8e945ffcd2a06e3cc117e7fc6349a309207a922e96fa0f052e9f24064244a',
     posters: ['public/assets/container.webp'],
   },
   'lng-changheng': {
-    sourceRel: 'assets/lng_changheng/exports/v1.2.0',
-    expectedManifestSha256: 'd58958515c7f5363e039ce7d362fc412168ff3030ba295c1e9de8fb9a90db8e7',
+    sourceRel: 'assets/lng_changheng/exports/v1.3.0',
+    expectedManifestSha256: '72844657b35dd9c1c7c5f0119639d8a9175642243d55a38c4261eac92aee9f28',
     posters: ['public/assets/Lng-carrier.webp'],
   },
   'dredger-tianjing': {
-    sourceRel: 'models/act-dredger-tianjing/exports/v1.2.0',
-    expectedManifestSha256: 'f8ca3b2fc2e3ae31ea2a155028cfd6fda959280a98725c79d29dc96298cfba7d',
+    sourceRel: 'models/act-dredger-tianjing/exports/v1.3.0',
+    expectedManifestSha256: 'fc3fec88e9d7e42e80c08162225970e3eea649e158622aa2997f3d40cbff5642',
     posters: ['public/assets/dredger.webp', 'public/assets/dredger-tianjing.webp'],
   },
   'type055-nanchang-101': {
-    sourceRel: 'assets/type_055_destroyer/exports/v2.3.0',
-    expectedManifestSha256: 'fcfe6687037081b1d2ff9b1fcdb637ab0869423ab6c80b3ada95fe3291a31474',
+    sourceRel: 'assets/type_055_destroyer/exports/v2.4.0',
+    expectedManifestSha256: '75a894682cca7d6dcc3db00d096d2e4cf96f40b441cceb66a56db3cc25ef0b46',
     includeOtherGlbs: true,
     posters: ['public/assets/destroyer.webp'],
   },
   'hysy-981': {
-    sourceRel: 'models/hysy981-blender/exports/v1.2.0',
-    expectedManifestSha256: 'dfcc09ee3a275b7515079c15409ebf05a8129b6bf8e65b30b053ff2745b50949',
+    sourceRel: 'models/hysy981-blender/exports/v1.3.0',
+    expectedManifestSha256: 'e9202f18c4ffccdf66c20528cf53bbc6652dd33550f038b442e9b2692682ce14',
     posters: ['public/assets/drilling-rig.webp'],
   },
 };
@@ -255,7 +255,7 @@ function receivePackage(packageId, heroRoot, sourceOverride) {
   }
 
   for (const texture of release.textures ?? []) {
-    if (!/^textures\/[0-9a-f]{64}\.png$/.test(texture.file)) {
+    if (!/^textures\/[0-9a-f]{64}\.(?:webp|png)$/.test(texture.file)) {
       fail(`unexpected texture path ${texture.file}`);
     }
     planned.push({

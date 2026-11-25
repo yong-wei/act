@@ -1,0 +1,256 @@
+{
+  "schema": "act-model-release-receipt/1",
+  "packageId": "xue-long-2",
+  "modelVersion": "1.2.0",
+  "capturedAt": "2026-11-25T14:53:42.647Z",
+  "packageTreeDigest": "7f70eaab6abf8d4a0504f4cac2bfc92aeb4f50e7944d0e1c5e556bd4880884cb",
+  "sourceCommitAtCapture": "78cc2614d3acc991dbd9dbf3f7f8ead8b6af1add",
+  "packageDirty": false,
+  "sourceRelease": "3DModels:assets/xue_long_2/exports/v1.2.0",
+  "upstreamReleaseSha256": "02145a8c9ab234e4ed3bc05fced79de5bed532c33c73b2c9dcc708ebd971df9a",
+  "manifestSha256": "1fdffbc200820c2ea8778ad027c5c53fe316128da6825a82726f919145b579bb",
+  "sourceBlendSha256": "75a83f4ab05e7c535fd7e341529e84e94d9a5de039585e88d2893eba6db90a96",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "roles": {
+    "ship-lod0": {
+      "file": "models/xue-long-2-ship-lod0.glb",
+      "sha256": "0d8a578f7d8fb2f89b9031ed226ab006f5db0c95797d35d15d865741d55657f5",
+      "bytes": 2573932,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "models/xue-long-2-ship-lod1.glb",
+      "sha256": "8b2fd933a18f50b625e8445b0379e8db290234027c92b38372039a2e7f6a70de",
+      "bytes": 2079336,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "models/xue-long-2-ship-lod2.glb",
+      "sha256": "19e6261ccd23720fd7b86490894ebc81bcf0ae2dc5331e5afda8d408ba82d8ea",
+      "bytes": 932448,
+      "kind": "ship",
+      "lod": 2
+    },
+    "ship-proxy": {
+      "file": "models/xue-long-2-ship-proxy.glb",
+      "sha256": "9982a57a62ba37b19545dc93d2c290a8c8530416581261508d85d92834753af2",
+      "bytes": 36928,
+      "kind": "proxy",
+      "lod": null
+    },
+    "propulsion-anchors": {
+      "file": "interfaces/propulsion-anchors.json",
+      "sha256": "82b6f42fda7b5d0a0f2fbc6c1da28dc85b38b651620c5b039754603329f9b7e2",
+      "bytes": 5305,
+      "kind": "interface",
+      "lod": null
+    }
+  },
+  "textures": [
+    {
+      "file": "textures/0bb2da9c6b4389d2c0b0eda0ba4d2edec053907b08a1aeb13d98294ca1e7efc5.webp",
+      "sha256": "0bb2da9c6b4389d2c0b0eda0ba4d2edec053907b08a1aeb13d98294ca1e7efc5",
+      "bytes": 1034560
+    },
+    {
+      "file": "textures/30b4457842ad54d27689dc9fcc7b378426ceac3a95e1c295302bf4d9da8fb8b8.webp",
+      "sha256": "30b4457842ad54d27689dc9fcc7b378426ceac3a95e1c295302bf4d9da8fb8b8",
+      "bytes": 3290802
+    },
+    {
+      "file": "textures/38b42d71aa60a45ec375ba0ac5f342229eef861af2ff204f14ac9cf909982d3d.webp",
+      "sha256": "38b42d71aa60a45ec375ba0ac5f342229eef861af2ff204f14ac9cf909982d3d",
+      "bytes": 196118
+    },
+    {
+      "file": "textures/76cb0250f30bd31b0db3b56b0fb6a8b879f260466eb5ba816f60420e1a6f92de.webp",
+      "sha256": "76cb0250f30bd31b0db3b56b0fb6a8b879f260466eb5ba816f60420e1a6f92de",
+      "bytes": 70856
+    },
+    {
+      "file": "textures/827f24b38aa2cf5de9c09b48b145eed939a6524ab5ff8dbaaba4b2f5cbddaf05.webp",
+      "sha256": "827f24b38aa2cf5de9c09b48b145eed939a6524ab5ff8dbaaba4b2f5cbddaf05",
+      "bytes": 1800
+    },
+    {
+      "file": "textures/84477642e1851580c60efc7810387502fa5c556580e8e9aec1ba949b77c70a5d.webp",
+      "sha256": "84477642e1851580c60efc7810387502fa5c556580e8e9aec1ba949b77c70a5d",
+      "bytes": 26744
+    },
+    {
+      "file": "textures/87df52b1861f7cd06f2fa24eab55aa883fa6d4af61840c41fccb07f70631c8bd.webp",
+      "sha256": "87df52b1861f7cd06f2fa24eab55aa883fa6d4af61840c41fccb07f70631c8bd",
+      "bytes": 3288512
+    },
+    {
+      "file": "textures/895e0dc5c3e88fb03025e46b25e3bb17b7e3d9348ce2cd5c07a7601c1a0cfb9d.webp",
+      "sha256": "895e0dc5c3e88fb03025e46b25e3bb17b7e3d9348ce2cd5c07a7601c1a0cfb9d",
+      "bytes": 680
+    },
+    {
+      "file": "textures/a876fb5c68ef28963ed7b2148a73af44288fba4a3bc6c488bd83611e31cd4516.webp",
+      "sha256": "a876fb5c68ef28963ed7b2148a73af44288fba4a3bc6c488bd83611e31cd4516",
+      "bytes": 24350
+    },
+    {
+      "file": "textures/e93e6a0f90ea841b7cddf87d6beaf715f32d9a6b13d9ea5693779b2e21e4fddd.webp",
+      "sha256": "e93e6a0f90ea841b7cddf87d6beaf715f32d9a6b13d9ea5693779b2e21e4fddd",
+      "bytes": 192780
+    },
+    {
+      "file": "textures/f93b9732d2456c78e8995a716cc76694f228d02aaca4ba49ca858827b9dd560f.webp",
+      "sha256": "f93b9732d2456c78e8995a716cc76694f228d02aaca4ba49ca858827b9dd560f",
+      "bytes": 1035958
+    }
+  ],
+  "copiedFiles": [
+    {
+      "file": "models/xue-long-2-ship-lod0.glb",
+      "sha256": "0d8a578f7d8fb2f89b9031ed226ab006f5db0c95797d35d15d865741d55657f5",
+      "bytes": 2573932,
+      "role": "ship-lod0",
+      "kind": "ship",
+      "lod": 0
+    },
+    {
+      "file": "models/xue-long-2-ship-lod1.glb",
+      "sha256": "8b2fd933a18f50b625e8445b0379e8db290234027c92b38372039a2e7f6a70de",
+      "bytes": 2079336,
+      "role": "ship-lod1",
+      "kind": "ship",
+      "lod": 1
+    },
+    {
+      "file": "models/xue-long-2-ship-lod2.glb",
+      "sha256": "19e6261ccd23720fd7b86490894ebc81bcf0ae2dc5331e5afda8d408ba82d8ea",
+      "bytes": 932448,
+      "role": "ship-lod2",
+      "kind": "ship",
+      "lod": 2
+    },
+    {
+      "file": "models/xue-long-2-ship-proxy.glb",
+      "sha256": "9982a57a62ba37b19545dc93d2c290a8c8530416581261508d85d92834753af2",
+      "bytes": 36928,
+      "role": "ship-proxy",
+      "kind": "proxy",
+      "lod": null
+    },
+    {
+      "file": "interfaces/propulsion-anchors.json",
+      "sha256": "82b6f42fda7b5d0a0f2fbc6c1da28dc85b38b651620c5b039754603329f9b7e2",
+      "bytes": 5305,
+      "role": "propulsion-anchors",
+      "kind": "interface",
+      "lod": null
+    },
+    {
+      "file": "textures/0bb2da9c6b4389d2c0b0eda0ba4d2edec053907b08a1aeb13d98294ca1e7efc5.webp",
+      "sha256": "0bb2da9c6b4389d2c0b0eda0ba4d2edec053907b08a1aeb13d98294ca1e7efc5",
+      "bytes": 1034560,
+      "role": "texture:0bb2da9c6b4389d2c0b0eda0ba4d2edec053907b08a1aeb13d98294ca1e7efc5",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/30b4457842ad54d27689dc9fcc7b378426ceac3a95e1c295302bf4d9da8fb8b8.webp",
+      "sha256": "30b4457842ad54d27689dc9fcc7b378426ceac3a95e1c295302bf4d9da8fb8b8",
+      "bytes": 3290802,
+      "role": "texture:30b4457842ad54d27689dc9fcc7b378426ceac3a95e1c295302bf4d9da8fb8b8",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/38b42d71aa60a45ec375ba0ac5f342229eef861af2ff204f14ac9cf909982d3d.webp",
+      "sha256": "38b42d71aa60a45ec375ba0ac5f342229eef861af2ff204f14ac9cf909982d3d",
+      "bytes": 196118,
+      "role": "texture:38b42d71aa60a45ec375ba0ac5f342229eef861af2ff204f14ac9cf909982d3d",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/76cb0250f30bd31b0db3b56b0fb6a8b879f260466eb5ba816f60420e1a6f92de.webp",
+      "sha256": "76cb0250f30bd31b0db3b56b0fb6a8b879f260466eb5ba816f60420e1a6f92de",
+      "bytes": 70856,
+      "role": "texture:76cb0250f30bd31b0db3b56b0fb6a8b879f260466eb5ba816f60420e1a6f92de",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/827f24b38aa2cf5de9c09b48b145eed939a6524ab5ff8dbaaba4b2f5cbddaf05.webp",
+      "sha256": "827f24b38aa2cf5de9c09b48b145eed939a6524ab5ff8dbaaba4b2f5cbddaf05",
+      "bytes": 1800,
+      "role": "texture:827f24b38aa2cf5de9c09b48b145eed939a6524ab5ff8dbaaba4b2f5cbddaf05",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/84477642e1851580c60efc7810387502fa5c556580e8e9aec1ba949b77c70a5d.webp",
+      "sha256": "84477642e1851580c60efc7810387502fa5c556580e8e9aec1ba949b77c70a5d",
+      "bytes": 26744,
+      "role": "texture:84477642e1851580c60efc7810387502fa5c556580e8e9aec1ba949b77c70a5d",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/87df52b1861f7cd06f2fa24eab55aa883fa6d4af61840c41fccb07f70631c8bd.webp",
+      "sha256": "87df52b1861f7cd06f2fa24eab55aa883fa6d4af61840c41fccb07f70631c8bd",
+      "bytes": 3288512,
+      "role": "texture:87df52b1861f7cd06f2fa24eab55aa883fa6d4af61840c41fccb07f70631c8bd",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/895e0dc5c3e88fb03025e46b25e3bb17b7e3d9348ce2cd5c07a7601c1a0cfb9d.webp",
+      "sha256": "895e0dc5c3e88fb03025e46b25e3bb17b7e3d9348ce2cd5c07a7601c1a0cfb9d",
+      "bytes": 680,
+      "role": "texture:895e0dc5c3e88fb03025e46b25e3bb17b7e3d9348ce2cd5c07a7601c1a0cfb9d",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/a876fb5c68ef28963ed7b2148a73af44288fba4a3bc6c488bd83611e31cd4516.webp",
+      "sha256": "a876fb5c68ef28963ed7b2148a73af44288fba4a3bc6c488bd83611e31cd4516",
+      "bytes": 24350,
+      "role": "texture:a876fb5c68ef28963ed7b2148a73af44288fba4a3bc6c488bd83611e31cd4516",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/e93e6a0f90ea841b7cddf87d6beaf715f32d9a6b13d9ea5693779b2e21e4fddd.webp",
+      "sha256": "e93e6a0f90ea841b7cddf87d6beaf715f32d9a6b13d9ea5693779b2e21e4fddd",
+      "bytes": 192780,
+      "role": "texture:e93e6a0f90ea841b7cddf87d6beaf715f32d9a6b13d9ea5693779b2e21e4fddd",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/f93b9732d2456c78e8995a716cc76694f228d02aaca4ba49ca858827b9dd560f.webp",
+      "sha256": "f93b9732d2456c78e8995a716cc76694f228d02aaca4ba49ca858827b9dd560f",
+      "bytes": 1035958,
+      "role": "texture:f93b9732d2456c78e8995a716cc76694f228d02aaca4ba49ca858827b9dd560f",
+      "kind": "texture",
+      "lod": null
+    }
+  ],
+  "integrity": "source-and-destination-hashes-verified"
+}

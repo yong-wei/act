@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MODELS = ROOT / "public/assets/model-releases"
 ORIGIN = "https://act.adapt-learn.online"
 ESA = "https://static.adapt-learn.online/"
-CONTENT_TYPES = {".glb": "model/gltf-binary", ".json": "application/json", ".png": "image/png"}
+CONTENT_TYPES = {".glb": "model/gltf-binary", ".json": "application/json", ".png": "image/png", ".webp": "image/webp"}
 
 
 def digest(path: Path) -> str:

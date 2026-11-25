@@ -1,0 +1,152 @@
+{
+  "schema": "act-model-release-receipt/1",
+  "packageId": "adora-magic-city",
+  "modelVersion": "1.2.0",
+  "capturedAt": "2026-11-25T14:53:42.761Z",
+  "packageTreeDigest": "4a54c9d93e020ac8c90bdd5451153345a21efe59ee4e7c2ce0762a87fbf4f79d",
+  "sourceCommitAtCapture": "78cc2614d3acc991dbd9dbf3f7f8ead8b6af1add",
+  "packageDirty": false,
+  "sourceRelease": "3DModels:assets/adora_magic_city/exports/v1.2.0",
+  "upstreamReleaseSha256": "22bb35156abbfd5b8300817ebf839d521752e0621c870eb150e21d39eb7cdd5f",
+  "manifestSha256": "0c99f592fc94be26aba920eb7d1f710aa5802d9b036db1a542bc03f5f4205386",
+  "sourceBlendSha256": "473c8e50d23ae21c11af75a71cb55fc03ea7f6f571acefb92f418070ed80dc19",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "roles": {
+    "ship-lod0": {
+      "file": "models/adora-magic-city-ship-lod0.glb",
+      "sha256": "fb0880579e94ade28dd8746b1ea07d99d328629c3564e57d389d199656be3ac4",
+      "bytes": 8805028,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "models/adora-magic-city-ship-lod1.glb",
+      "sha256": "f2f3ba2f6016a1f28a9bebcd596b6c26a217509d42d0c183cf02af4599ecf69c",
+      "bytes": 2494168,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "models/adora-magic-city-ship-lod2.glb",
+      "sha256": "45c2d532c54627271cd5738900226ad19b88e8a54f2da88ec9f98d1ca74bb7e8",
+      "bytes": 861580,
+      "kind": "ship",
+      "lod": 2
+    },
+    "ship-proxy": {
+      "file": "models/adora-magic-city-ship-proxy.glb",
+      "sha256": "9bcc54e6158e96eebb82534d53ae0d099e2bf3a73ee70be75d86715d03c4a8b9",
+      "bytes": 66092,
+      "kind": "proxy",
+      "lod": null
+    },
+    "propulsion-anchors": {
+      "file": "interfaces/propulsion-anchors.json",
+      "sha256": "6ae2007f6a4078dd5b21436056c3367f2c9cba04223368630e087d24bd5554dd",
+      "bytes": 5365,
+      "kind": "interface",
+      "lod": null
+    }
+  },
+  "textures": [
+    {
+      "file": "textures/4e33889f84e1bd59ccae7da95254dfb8ca42ffdc3b764b78a605e261d8c3652b.webp",
+      "sha256": "4e33889f84e1bd59ccae7da95254dfb8ca42ffdc3b764b78a605e261d8c3652b",
+      "bytes": 140256
+    },
+    {
+      "file": "textures/a7053e26cb1890483d1709d8ea9bbb37bc2990f7a75fc73db246e37630a042f4.webp",
+      "sha256": "a7053e26cb1890483d1709d8ea9bbb37bc2990f7a75fc73db246e37630a042f4",
+      "bytes": 140302
+    },
+    {
+      "file": "textures/e010ad4b75afb8acf67cbb8fccf8b5c50c065440e6019a2854321dbe2e1aca8f.webp",
+      "sha256": "e010ad4b75afb8acf67cbb8fccf8b5c50c065440e6019a2854321dbe2e1aca8f",
+      "bytes": 24588
+    }
+  ],
+  "copiedFiles": [
+    {
+      "file": "models/adora-magic-city-ship-lod0.glb",
+      "sha256": "fb0880579e94ade28dd8746b1ea07d99d328629c3564e57d389d199656be3ac4",
+      "bytes": 8805028,
+      "role": "ship-lod0",
+      "kind": "ship",
+      "lod": 0
+    },
+    {
+      "file": "models/adora-magic-city-ship-lod1.glb",
+      "sha256": "f2f3ba2f6016a1f28a9bebcd596b6c26a217509d42d0c183cf02af4599ecf69c",
+      "bytes": 2494168,
+      "role": "ship-lod1",
+      "kind": "ship",
+      "lod": 1
+    },
+    {
+      "file": "models/adora-magic-city-ship-lod2.glb",
+      "sha256": "45c2d532c54627271cd5738900226ad19b88e8a54f2da88ec9f98d1ca74bb7e8",
+      "bytes": 861580,
+      "role": "ship-lod2",
+      "kind": "ship",
+      "lod": 2
+    },
+    {
+      "file": "models/adora-magic-city-ship-proxy.glb",
+      "sha256": "9bcc54e6158e96eebb82534d53ae0d099e2bf3a73ee70be75d86715d03c4a8b9",
+      "bytes": 66092,
+      "role": "ship-proxy",
+      "kind": "proxy",
+      "lod": null
+    },
+    {
+      "file": "interfaces/propulsion-anchors.json",
+      "sha256": "6ae2007f6a4078dd5b21436056c3367f2c9cba04223368630e087d24bd5554dd",
+      "bytes": 5365,
+      "role": "propulsion-anchors",
+      "kind": "interface",
+      "lod": null
+    },
+    {
+      "file": "textures/4e33889f84e1bd59ccae7da95254dfb8ca42ffdc3b764b78a605e261d8c3652b.webp",
+      "sha256": "4e33889f84e1bd59ccae7da95254dfb8ca42ffdc3b764b78a605e261d8c3652b",
+      "bytes": 140256,
+      "role": "texture:4e33889f84e1bd59ccae7da95254dfb8ca42ffdc3b764b78a605e261d8c3652b",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/a7053e26cb1890483d1709d8ea9bbb37bc2990f7a75fc73db246e37630a042f4.webp",
+      "sha256": "a7053e26cb1890483d1709d8ea9bbb37bc2990f7a75fc73db246e37630a042f4",
+      "bytes": 140302,
+      "role": "texture:a7053e26cb1890483d1709d8ea9bbb37bc2990f7a75fc73db246e37630a042f4",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/e010ad4b75afb8acf67cbb8fccf8b5c50c065440e6019a2854321dbe2e1aca8f.webp",
+      "sha256": "e010ad4b75afb8acf67cbb8fccf8b5c50c065440e6019a2854321dbe2e1aca8f",
+      "bytes": 24588,
+      "role": "texture:e010ad4b75afb8acf67cbb8fccf8b5c50c065440e6019a2854321dbe2e1aca8f",
+      "kind": "texture",
+      "lod": null
+    }
+  ],
+  "integrity": "source-and-destination-hashes-verified"
+}

@@ -1,0 +1,360 @@
+{
+  "schema": "act-model-release-receipt/1",
+  "packageId": "hysy-981",
+  "modelVersion": "1.3.0",
+  "capturedAt": "2026-11-25T14:53:43.164Z",
+  "packageTreeDigest": "3ae29907a0d47316af1fbd7054ed4f2ca14b3fa71d1008bc09aebd88b141f493",
+  "sourceCommitAtCapture": "78cc2614d3acc991dbd9dbf3f7f8ead8b6af1add",
+  "packageDirty": false,
+  "sourceRelease": "3DModels:models/hysy981-blender/exports/v1.3.0",
+  "upstreamReleaseSha256": "e9202f18c4ffccdf66c20528cf53bbc6652dd33550f038b442e9b2692682ce14",
+  "manifestSha256": "53aec0d07e2764f8949ba3f2dab6a0fee9d964b406d716194b7464db8a60a8d8",
+  "sourceBlendSha256": "4021d91a3b8bcd98dcb6d3e144c09c3dc0d41f323c5bc7113a7a8a5bcec9f1cc",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "roles": {
+    "ship-lod0": {
+      "file": "models/hysy-981-ship-lod0.glb",
+      "sha256": "26d8d822518b04f25f6d35323aaef667bc100606d160666af10bd3ce23568c10",
+      "bytes": 2393360,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "models/hysy-981-ship-lod1.glb",
+      "sha256": "9866caff074e2884a6ab0ad1ee4eafd376c1a57431116a7e3bff19d20eec5cfd",
+      "bytes": 1690104,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "models/hysy-981-ship-lod2.glb",
+      "sha256": "5bd374e60d49e3e229dcf3dc64b9aba30ce46db04dfb0606d2a8a0c11a99a287",
+      "bytes": 778852,
+      "kind": "ship",
+      "lod": 2
+    },
+    "ship-proxy": {
+      "file": "models/hysy-981-ship-proxy.glb",
+      "sha256": "e0adcdfbbfe794af348043fa3985bcca878895c59f7fcb4bf5757c78b221a99c",
+      "bytes": 92384,
+      "kind": "proxy",
+      "lod": null
+    },
+    "propulsion-anchors": {
+      "file": "interfaces/propulsion-anchors.json",
+      "sha256": "10cd760bea8ca2d79c03fe7fec6833ffa6c3eaf719d8be161d5f59294ef23700",
+      "bytes": 22865,
+      "kind": "interface",
+      "lod": null
+    }
+  },
+  "textures": [
+    {
+      "file": "textures/023f9fdac35695636eaea6acb5c0a71e2f688144d2102e40118787fa378dc232.webp",
+      "sha256": "023f9fdac35695636eaea6acb5c0a71e2f688144d2102e40118787fa378dc232",
+      "bytes": 102524
+    },
+    {
+      "file": "textures/0582ecf4b4a50803838c9ba4629e6984c340be8cae0d6710b421609957032ab1.webp",
+      "sha256": "0582ecf4b4a50803838c9ba4629e6984c340be8cae0d6710b421609957032ab1",
+      "bytes": 27790
+    },
+    {
+      "file": "textures/1996d81ee31f758bbaf8beed7e7dacc66cf88759c7c707bbda1547c3475cacc3.webp",
+      "sha256": "1996d81ee31f758bbaf8beed7e7dacc66cf88759c7c707bbda1547c3475cacc3",
+      "bytes": 103322
+    },
+    {
+      "file": "textures/1fbf33a83c4836b0722e9d082e39690aab9d1e5778b826b5ddbc804de3eaef59.webp",
+      "sha256": "1fbf33a83c4836b0722e9d082e39690aab9d1e5778b826b5ddbc804de3eaef59",
+      "bytes": 53014
+    },
+    {
+      "file": "textures/36bb6fad959473ad91aeafa835c33c5b6f54e79bb1cd3e8adb8452230494df02.webp",
+      "sha256": "36bb6fad959473ad91aeafa835c33c5b6f54e79bb1cd3e8adb8452230494df02",
+      "bytes": 15896
+    },
+    {
+      "file": "textures/51b81cd65e17cec224ce7c7ff2def648544e22df489ecff79af1c984765f282a.webp",
+      "sha256": "51b81cd65e17cec224ce7c7ff2def648544e22df489ecff79af1c984765f282a",
+      "bytes": 36968
+    },
+    {
+      "file": "textures/59b13ab6cb8a4113d9f805b4e96b46d473952a393b44fbdd7c7ffcd87fb68b1e.webp",
+      "sha256": "59b13ab6cb8a4113d9f805b4e96b46d473952a393b44fbdd7c7ffcd87fb68b1e",
+      "bytes": 20272
+    },
+    {
+      "file": "textures/6e0078cdd2ec3ef08fe946b9265b994e25231e347dea38bb76e6692be82fdeb4.webp",
+      "sha256": "6e0078cdd2ec3ef08fe946b9265b994e25231e347dea38bb76e6692be82fdeb4",
+      "bytes": 37352
+    },
+    {
+      "file": "textures/950fbc97fb45fe5b50ee2cf80e1e34e0631bc420e434e4f6dcb72b3a65f44a3a.webp",
+      "sha256": "950fbc97fb45fe5b50ee2cf80e1e34e0631bc420e434e4f6dcb72b3a65f44a3a",
+      "bytes": 4378
+    },
+    {
+      "file": "textures/9f88b463117f2f4c6c44afe34e0c214b670b02c895b315d81953a70cf2cda441.webp",
+      "sha256": "9f88b463117f2f4c6c44afe34e0c214b670b02c895b315d81953a70cf2cda441",
+      "bytes": 22942
+    },
+    {
+      "file": "textures/9fcb217f3cf7b07f7fdd38d41c3bdfa903ef041ac71e245fbd9404db48528fc5.webp",
+      "sha256": "9fcb217f3cf7b07f7fdd38d41c3bdfa903ef041ac71e245fbd9404db48528fc5",
+      "bytes": 95902
+    },
+    {
+      "file": "textures/b1c5cc384469e9aa4c5121dafeae6c075f9fe601b700edf81ff54fad7c02f243.webp",
+      "sha256": "b1c5cc384469e9aa4c5121dafeae6c075f9fe601b700edf81ff54fad7c02f243",
+      "bytes": 7666
+    },
+    {
+      "file": "textures/b8489aa985aacec9261e20ff0fd62fae904ad881a8223a8de8f3f0b0d7e57e8a.webp",
+      "sha256": "b8489aa985aacec9261e20ff0fd62fae904ad881a8223a8de8f3f0b0d7e57e8a",
+      "bytes": 14366
+    },
+    {
+      "file": "textures/ceaa5cdd0b3145fb7a362e677ea58e6725da6d3cb951e6240526ac51adec5016.webp",
+      "sha256": "ceaa5cdd0b3145fb7a362e677ea58e6725da6d3cb951e6240526ac51adec5016",
+      "bytes": 56800
+    },
+    {
+      "file": "textures/d04e5fcb5ee6f0933adc270d8fe1acf9ba1db5299381ab814e58ce899268699a.webp",
+      "sha256": "d04e5fcb5ee6f0933adc270d8fe1acf9ba1db5299381ab814e58ce899268699a",
+      "bytes": 31116
+    },
+    {
+      "file": "textures/de1f3042d752054b9b1109983b130abdb503a9401573f04d8f35d6061f23b142.webp",
+      "sha256": "de1f3042d752054b9b1109983b130abdb503a9401573f04d8f35d6061f23b142",
+      "bytes": 46820
+    },
+    {
+      "file": "textures/e622bd72ed0784ad10ced78721fc5ab3ebe7162c33fb5b16a674c1c512fb1d7b.webp",
+      "sha256": "e622bd72ed0784ad10ced78721fc5ab3ebe7162c33fb5b16a674c1c512fb1d7b",
+      "bytes": 19310
+    },
+    {
+      "file": "textures/f68be2e336c402f00446b451a39a8f238b7135429243ec4544bf3fc17a630b64.webp",
+      "sha256": "f68be2e336c402f00446b451a39a8f238b7135429243ec4544bf3fc17a630b64",
+      "bytes": 128350
+    },
+    {
+      "file": "textures/fe257f4ff8fafd727c28339dc3b4099a8d2e9a086240931cc49b106bb8431b54.webp",
+      "sha256": "fe257f4ff8fafd727c28339dc3b4099a8d2e9a086240931cc49b106bb8431b54",
+      "bytes": 15930
+    }
+  ],
+  "copiedFiles": [
+    {
+      "file": "models/hysy-981-ship-lod0.glb",
+      "sha256": "26d8d822518b04f25f6d35323aaef667bc100606d160666af10bd3ce23568c10",
+      "bytes": 2393360,
+      "role": "ship-lod0",
+      "kind": "ship",
+      "lod": 0
+    },
+    {
+      "file": "models/hysy-981-ship-lod1.glb",
+      "sha256": "9866caff074e2884a6ab0ad1ee4eafd376c1a57431116a7e3bff19d20eec5cfd",
+      "bytes": 1690104,
+      "role": "ship-lod1",
+      "kind": "ship",
+      "lod": 1
+    },
+    {
+      "file": "models/hysy-981-ship-lod2.glb",
+      "sha256": "5bd374e60d49e3e229dcf3dc64b9aba30ce46db04dfb0606d2a8a0c11a99a287",
+      "bytes": 778852,
+      "role": "ship-lod2",
+      "kind": "ship",
+      "lod": 2
+    },
+    {
+      "file": "models/hysy-981-ship-proxy.glb",
+      "sha256": "e0adcdfbbfe794af348043fa3985bcca878895c59f7fcb4bf5757c78b221a99c",
+      "bytes": 92384,
+      "role": "ship-proxy",
+      "kind": "proxy",
+      "lod": null
+    },
+    {
+      "file": "interfaces/propulsion-anchors.json",
+      "sha256": "10cd760bea8ca2d79c03fe7fec6833ffa6c3eaf719d8be161d5f59294ef23700",
+      "bytes": 22865,
+      "role": "propulsion-anchors",
+      "kind": "interface",
+      "lod": null
+    },
+    {
+      "file": "textures/023f9fdac35695636eaea6acb5c0a71e2f688144d2102e40118787fa378dc232.webp",
+      "sha256": "023f9fdac35695636eaea6acb5c0a71e2f688144d2102e40118787fa378dc232",
+      "bytes": 102524,
+      "role": "texture:023f9fdac35695636eaea6acb5c0a71e2f688144d2102e40118787fa378dc232",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/0582ecf4b4a50803838c9ba4629e6984c340be8cae0d6710b421609957032ab1.webp",
+      "sha256": "0582ecf4b4a50803838c9ba4629e6984c340be8cae0d6710b421609957032ab1",
+      "bytes": 27790,
+      "role": "texture:0582ecf4b4a50803838c9ba4629e6984c340be8cae0d6710b421609957032ab1",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/1996d81ee31f758bbaf8beed7e7dacc66cf88759c7c707bbda1547c3475cacc3.webp",
+      "sha256": "1996d81ee31f758bbaf8beed7e7dacc66cf88759c7c707bbda1547c3475cacc3",
+      "bytes": 103322,
+      "role": "texture:1996d81ee31f758bbaf8beed7e7dacc66cf88759c7c707bbda1547c3475cacc3",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/1fbf33a83c4836b0722e9d082e39690aab9d1e5778b826b5ddbc804de3eaef59.webp",
+      "sha256": "1fbf33a83c4836b0722e9d082e39690aab9d1e5778b826b5ddbc804de3eaef59",
+      "bytes": 53014,
+      "role": "texture:1fbf33a83c4836b0722e9d082e39690aab9d1e5778b826b5ddbc804de3eaef59",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/36bb6fad959473ad91aeafa835c33c5b6f54e79bb1cd3e8adb8452230494df02.webp",
+      "sha256": "36bb6fad959473ad91aeafa835c33c5b6f54e79bb1cd3e8adb8452230494df02",
+      "bytes": 15896,
+      "role": "texture:36bb6fad959473ad91aeafa835c33c5b6f54e79bb1cd3e8adb8452230494df02",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/51b81cd65e17cec224ce7c7ff2def648544e22df489ecff79af1c984765f282a.webp",
+      "sha256": "51b81cd65e17cec224ce7c7ff2def648544e22df489ecff79af1c984765f282a",
+      "bytes": 36968,
+      "role": "texture:51b81cd65e17cec224ce7c7ff2def648544e22df489ecff79af1c984765f282a",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/59b13ab6cb8a4113d9f805b4e96b46d473952a393b44fbdd7c7ffcd87fb68b1e.webp",
+      "sha256": "59b13ab6cb8a4113d9f805b4e96b46d473952a393b44fbdd7c7ffcd87fb68b1e",
+      "bytes": 20272,
+      "role": "texture:59b13ab6cb8a4113d9f805b4e96b46d473952a393b44fbdd7c7ffcd87fb68b1e",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/6e0078cdd2ec3ef08fe946b9265b994e25231e347dea38bb76e6692be82fdeb4.webp",
+      "sha256": "6e0078cdd2ec3ef08fe946b9265b994e25231e347dea38bb76e6692be82fdeb4",
+      "bytes": 37352,
+      "role": "texture:6e0078cdd2ec3ef08fe946b9265b994e25231e347dea38bb76e6692be82fdeb4",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/950fbc97fb45fe5b50ee2cf80e1e34e0631bc420e434e4f6dcb72b3a65f44a3a.webp",
+      "sha256": "950fbc97fb45fe5b50ee2cf80e1e34e0631bc420e434e4f6dcb72b3a65f44a3a",
+      "bytes": 4378,
+      "role": "texture:950fbc97fb45fe5b50ee2cf80e1e34e0631bc420e434e4f6dcb72b3a65f44a3a",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/9f88b463117f2f4c6c44afe34e0c214b670b02c895b315d81953a70cf2cda441.webp",
+      "sha256": "9f88b463117f2f4c6c44afe34e0c214b670b02c895b315d81953a70cf2cda441",
+      "bytes": 22942,
+      "role": "texture:9f88b463117f2f4c6c44afe34e0c214b670b02c895b315d81953a70cf2cda441",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/9fcb217f3cf7b07f7fdd38d41c3bdfa903ef041ac71e245fbd9404db48528fc5.webp",
+      "sha256": "9fcb217f3cf7b07f7fdd38d41c3bdfa903ef041ac71e245fbd9404db48528fc5",
+      "bytes": 95902,
+      "role": "texture:9fcb217f3cf7b07f7fdd38d41c3bdfa903ef041ac71e245fbd9404db48528fc5",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/b1c5cc384469e9aa4c5121dafeae6c075f9fe601b700edf81ff54fad7c02f243.webp",
+      "sha256": "b1c5cc384469e9aa4c5121dafeae6c075f9fe601b700edf81ff54fad7c02f243",
+      "bytes": 7666,
+      "role": "texture:b1c5cc384469e9aa4c5121dafeae6c075f9fe601b700edf81ff54fad7c02f243",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/b8489aa985aacec9261e20ff0fd62fae904ad881a8223a8de8f3f0b0d7e57e8a.webp",
+      "sha256": "b8489aa985aacec9261e20ff0fd62fae904ad881a8223a8de8f3f0b0d7e57e8a",
+      "bytes": 14366,
+      "role": "texture:b8489aa985aacec9261e20ff0fd62fae904ad881a8223a8de8f3f0b0d7e57e8a",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/ceaa5cdd0b3145fb7a362e677ea58e6725da6d3cb951e6240526ac51adec5016.webp",
+      "sha256": "ceaa5cdd0b3145fb7a362e677ea58e6725da6d3cb951e6240526ac51adec5016",
+      "bytes": 56800,
+      "role": "texture:ceaa5cdd0b3145fb7a362e677ea58e6725da6d3cb951e6240526ac51adec5016",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/d04e5fcb5ee6f0933adc270d8fe1acf9ba1db5299381ab814e58ce899268699a.webp",
+      "sha256": "d04e5fcb5ee6f0933adc270d8fe1acf9ba1db5299381ab814e58ce899268699a",
+      "bytes": 31116,
+      "role": "texture:d04e5fcb5ee6f0933adc270d8fe1acf9ba1db5299381ab814e58ce899268699a",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/de1f3042d752054b9b1109983b130abdb503a9401573f04d8f35d6061f23b142.webp",
+      "sha256": "de1f3042d752054b9b1109983b130abdb503a9401573f04d8f35d6061f23b142",
+      "bytes": 46820,
+      "role": "texture:de1f3042d752054b9b1109983b130abdb503a9401573f04d8f35d6061f23b142",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/e622bd72ed0784ad10ced78721fc5ab3ebe7162c33fb5b16a674c1c512fb1d7b.webp",
+      "sha256": "e622bd72ed0784ad10ced78721fc5ab3ebe7162c33fb5b16a674c1c512fb1d7b",
+      "bytes": 19310,
+      "role": "texture:e622bd72ed0784ad10ced78721fc5ab3ebe7162c33fb5b16a674c1c512fb1d7b",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/f68be2e336c402f00446b451a39a8f238b7135429243ec4544bf3fc17a630b64.webp",
+      "sha256": "f68be2e336c402f00446b451a39a8f238b7135429243ec4544bf3fc17a630b64",
+      "bytes": 128350,
+      "role": "texture:f68be2e336c402f00446b451a39a8f238b7135429243ec4544bf3fc17a630b64",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/fe257f4ff8fafd727c28339dc3b4099a8d2e9a086240931cc49b106bb8431b54.webp",
+      "sha256": "fe257f4ff8fafd727c28339dc3b4099a8d2e9a086240931cc49b106bb8431b54",
+      "bytes": 15930,
+      "role": "texture:fe257f4ff8fafd727c28339dc3b4099a8d2e9a086240931cc49b106bb8431b54",
+      "kind": "texture",
+      "lod": null
+    }
+  ],
+  "integrity": "source-and-destination-hashes-verified"
+}

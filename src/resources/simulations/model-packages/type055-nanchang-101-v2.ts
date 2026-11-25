@@ -3,11 +3,11 @@ import { RELEASED_PROPULSION_ANCHORS } from './released-propulsion-anchors';
  * type055-nanchang-101 版本化模型包的 ACT 侧只读描述符。
  *
  * 身份由 `scripts/models/receive-fleet-model-release.mjs` 接收时逐文件核验，
- * 收据位于 `artifacts/model-releases/type055-nanchang-101-v2.3.0/receipt.json`。
+ * 收据位于 `artifacts/model-releases/type055-nanchang-101-v2.4.0/receipt.json`。
  * 本模块只登记当前激活版；旧版描述符与目录已退役。
  * ACT 不修补上游模型字节（缺陷返回 3DModels 发新版本）。
  *
- * v2.3.0：ACT_RUNTIME_ONLY，GLB 在 models/，贴图在 textures/；
+ * v2.4.0：ACT_RUNTIME_ONLY，压缩 GLB 在 models/，WebP 贴图在 textures/；
  * 声明矩阵一次挂载（含 Y=−7.05）。加载失败只回退 registry 单文件链。
  */
 
@@ -119,25 +119,25 @@ const HERO_055_TO_SCENE = [
   0, 0, 0, 1,
 ] as const;
 
-const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.3.0';
+const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.4.0';
 
 export const TYPE055_NANCHANG_101_V2: VersionedModelPackageDescriptor = {
   packageId: 'type055-nanchang-101',
   shipId: 'type_055_destroyer_101_nanchang',
-  modelVersion: '2.3.0',
-  releaseManifestSha256: 'b8abeb1b6dd6f14cd32a02630488a336638fc5ff97cbb66a9eb32bcac58583dc',
+  modelVersion: '2.4.0',
+  releaseManifestSha256: 'b93ebdd2384bbf78604202ee0d84f4e41c598604c3d8301b1222acea4a239a69',
   sourceBlendSha256: 'eafce990f09757d4631305516bb80f8a5d95a920b1321c375c446dc117aaac83',
   baseUrl: BASE_URL,
   roles: {
     'ship-proxy': artifact(BASE_URL, 'ship-proxy', 'models/type055-nanchang-101-ship-proxy.glb', '3b6e2458ee2b10cb895bf00692798edcf6874be0577066fa59ddaec4578d4b48', 45052),
-    'propulsion-anchors': artifact(BASE_URL, 'propulsion-anchors', 'interfaces/propulsion-anchors.json', '54b645da219f75cba3e93e65d092b2caaa51cc7335e0728e6a0ec20ec110f0e4', 5758),
-    'ship-lod0': artifact(BASE_URL, 'ship-lod0', 'models/type055-nanchang-101-ship-lod0.glb', 'ca07f94f0cbc015b42fe492bd050b39b9a89887ce4f872af241ada109ece6bfd', 3370584),
-    'ship-lod1': artifact(BASE_URL, 'ship-lod1', 'models/type055-nanchang-101-ship-lod1.glb', '83c01d5a97a09b3ea9e9305d2ecad39cc4374f3b11ecb289eaa8a7011c32dbcd', 1569240),
-    'ship-lod2': artifact(BASE_URL, 'ship-lod2', 'models/type055-nanchang-101-ship-lod2.glb', '61586d12b971e63bc9fa4afbaca8f39a0d7ff33aeaeba685cda3c98fc0bbc556', 988780),
-    collision: artifact(BASE_URL, 'collision', 'models/type055-nanchang-101-collision.glb', '24fcb99fe32a66b992511048ad2f4b5d06c249379cc9734de82de056d9f7991d', 52472),
-    payload: artifact(BASE_URL, 'payload', 'models/type055-nanchang-101-weapon-payloads.glb', 'c17a578374da69aa2617502cf26c5a928f4416ef5ddddb058bf919a3cec6ede8', 200848),
-    demo: artifact(BASE_URL, 'demo', 'models/type055-nanchang-101-weapon-demo.glb', 'bcbbf38947fbb2e90942b162cc1c6fcd3e82f506de1c6616c66ee498bc3e767b', 185120),
-    'interactive-systems': artifact(BASE_URL, 'interactive-systems', 'models/type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
+    'propulsion-anchors': artifact(BASE_URL, 'propulsion-anchors', 'interfaces/propulsion-anchors.json', '191551353ddd9a70af0e228b02358c50791892925e74a307edad5499886eae8b', 5766),
+    'ship-lod0': artifact(BASE_URL, 'ship-lod0', 'models/type055-nanchang-101-ship-lod0.glb', 'fb329aa219a30cbc6437c976ba8478c98ac301bbdf18fc6252d1877283a10a34', 1504364),
+    'ship-lod1': artifact(BASE_URL, 'ship-lod1', 'models/type055-nanchang-101-ship-lod1.glb', '391bc35795c1663c8494a03fdd99c0886c446f086559ec22bae5cdf902c5b4bb', 797356),
+    'ship-lod2': artifact(BASE_URL, 'ship-lod2', 'models/type055-nanchang-101-ship-lod2.glb', '47bfcc34387dbfca6d4e46ae76bc87579bd7ccbf233b129332984892a683a2f1', 548344),
+    collision: artifact(BASE_URL, 'collision', 'models/type055-nanchang-101-collision.glb', '43866aa270c7c0cbff262aac82f6c158acbb31a4d120de202b4e2206ab01ad80', 30196),
+    payload: artifact(BASE_URL, 'payload', 'models/type055-nanchang-101-weapon-payloads.glb', 'a6c82b415861cc7675a22a850244c75efca6decb633a67b66e565386e1ce88f6', 188528),
+    demo: artifact(BASE_URL, 'demo', 'models/type055-nanchang-101-weapon-demo.glb', '59c5555cba1b7df5b53f72916fc98579ad2c5f3fb7fc758071a236f89a6dcb90', 164904),
+    'interactive-systems': artifact(BASE_URL, 'interactive-systems', 'models/type055-nanchang-101-interactive-systems.glb', '3a145891714801c98f8e79461b8c64e8f523067eeb10315c6e428c56f9f5895b', 13092),
   },
   propulsionAnchors: RELEASED_PROPULSION_ANCHORS['type055-nanchang-101'],
   coordinateBasis: { forward: '+X', up: '+Y' },
