@@ -319,3 +319,7 @@ rtk proxy git diff --check
 应用上线后按浏览器真实路由做 10 路及 120 路请求回放。120 路均获入场许可，7,579 次边缘请求中 7,540 次命中缓存。所有新模型路径请求通过。整个回放有 35 次资源请求重试后仍超时，按路径和主机带宽的结论见 `docs/operations/2026-11-18-simulation-direct-evidence.md`。
 
 回执见 `.logs/v0782-live-components.json`、`.logs/v0782-compressed-public-browser-entries.json`、`.logs/v0782-live-model-fallback.json`、`.logs/2026-11-26-fleet-model-closure-comparison.json` 和 `.logs/load-v0782-4cpu-direct-n120.json`。
+
+## 2026-11-26 共用海面贴图的 ESA 分发
+
+此前场景 307 配置指向旧修订的静态路径，文件缺失时仍由应用域名发送正文。已从阿里云当前 0.7.82 修订发布 20 张 WebP、共 3,022,388 字节，经版本化程序静态目录提供。逐个核对 ESA 的正文摘要、MIME、CORS、不可变缓存和 HIT，应用路径 307 以及带 `scene_origin=1` 的同源 200 均通过。Chrome 七个正式入口各从 ESA 读取四张共用场景贴图，页面和船模加载错误为零。发布方式及凭据轮转记录见 `server-ops`。

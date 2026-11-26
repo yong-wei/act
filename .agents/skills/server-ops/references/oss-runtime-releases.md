@@ -7,7 +7,8 @@
 - 先以只读方式检查 ECS 的磁盘、容器挂载、现有 runtime 体积、RAM Role metadata、`ossfs` 与 `ossutil` 可用性。没有可用 ECS RAM Role 时，停止 OSS 写入、挂载和切换，只提交所需最小 RAM policy；不得改用长期 AccessKey 或把密钥写入仓库、`.env`、脚本或主机配置文件。
 - 需要通过 ECS 控制台投予实例的角色，必须按“云服务 → 云服务器 ECS / ECS”创建，并在信任策略中使用 `ecs.aliyuncs.com`。信任当前云账号的普通 RAM 角色不能由 ECS 扮演；为实例角色创建前应复用已审计的最小 OSS 自定义策略，而不是授予 OSS 全权限。
 - 常规服务 ECS 只持有 `act-runtime-oss-read`，只读 ossfs 与 Podman runtime bind 仍必须只读。日常 v2 发布由本机受限 publisher 身份完成：启动时用 caller identity 校验账户、principal、Bucket、Region、endpoint 与前缀，并以本机 `flock` 串行。凭据只来自本机受管 credential provider；不得写入仓库、`.env`、脚本、release manifest 或日志。ECS 只执行只读物化、应用 smoke 和受锁的本地选择；浏览器不获得永久 OSS URL。
-- 本机 publisher 凭据的固定存放位置（2026-08-25 核实）：
+- 自 2026-11-25 起，本机正式发布使用 `act-publisher` 对应的 ACT 发布 RAM 用户，凭据存于 macOS 钥匙串。`~/.config/act/runtime-publisher.env` 在运行时读取凭据，`publisher-env.zsh` 装配 Runtime 发布环境。启用及轮转日期见[发布凭据记录](oss-esa-model-delivery.md#本机发布凭据与轮转)。
+- 既有本机开发只读配置和共用工具位置（2026-08-25 核实）：
   - `~/.config/act/runtime-dev-read.env`（mode 0400）：`ALIBABA_CLOUD_ACCESS_KEY_ID` / `ALIBABA_CLOUD_ACCESS_KEY_SECRET` 与 `ACT_RUNTIME_OSS_BUCKET` / `ACT_RUNTIME_OSS_ENDPOINT` / `ACT_RUNTIME_OSS_REGION` / `ACT_RUNTIME_OSS_EXPECTED_RAM_USER`（`act-runtime-dev-read`）/ `ACT_RUNTIME_OSS_EXPECTED_ACCOUNT_ID`。发布前 `source` 该文件；不得回显、复制或移动其内容。
   - 安装与重置入口：`~/.config/act/install-runtime-dev-read-credentials.zsh`（隐藏输入读取 AK/SK，umask 077 原子写入；目标文件已存在时拒绝覆盖，重置需先手动删除旧文件再运行）。
   - 发布工件 spool 与 artifact 目录：`~/.local/state/act-runtime-publisher/artifacts/`（旧 `deploy-runtime-blob-release.sh` 的历史落点）。日常发布索引用仓库内 `var/cache/runtime-release/index.sqlite`，不再走该编排目录。
