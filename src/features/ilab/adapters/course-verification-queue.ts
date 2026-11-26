@@ -105,9 +105,12 @@ export function courseVerificationConcurrency(): number {
 export async function drainCourseVerification() {
   if (await getSimulationAdmissionScale() === 0) return false;
   const job = await prisma.$transaction(async tx => {
-    const now = new Date();
-    const [lock] = await tx.$queryRaw<{ acquired: boolean }[]>`SELECT pg_try_advisory_xact_lock(760061, 53) AS acquired`;
+    const [lock] = await tx.$queryRaw<{ acquired: boolean; now: Date }[]>`
+      SELECT pg_try_advisory_xact_lock(760061, 53) AS acquired,
+             timezone('UTC', clock_timestamp()) AS now
+    `;
     if (!lock?.acquired) return;
+    const { now } = lock;
     const limit = courseVerificationConcurrency();
     const active = await tx.evidenceOutbox.findMany({
       where: { eventType: EVENT, status: 'processing', availableAt: { gt: now } },
@@ -119,8 +122,11 @@ export async function drainCourseVerification() {
       correlationId: { notIn: active.map(item => item.correlationId) },
     }, orderBy: [{ availableAt: 'asc' }, { id: 'asc' }] });
     if (!next) return;
-    return tx.evidenceOutbox.update({ where: { id: next.id }, data: { status: 'processing',
-      availableAt: new Date(now.getTime() + LEASE_MS) } });
+    const claimed = { status: 'processing', availableAt: new Date(now.getTime() + LEASE_MS) };
+    const receipt = await tx.evidenceOutbox.updateMany({
+      where: { id: next.id, status: next.status, availableAt: next.availableAt }, data: claimed,
+    });
+    if (receipt.count) return { ...next, ...claimed };
   });
   if (!job) return false;
   const payload = job.payload as unknown as Work;
@@ -128,9 +134,15 @@ export async function drainCourseVerification() {
   let heartbeat: Promise<unknown> | undefined;
   const timer = setInterval(() => {
     if (heartbeat) return;
-    const next = new Date(Date.now() + LEASE_MS);
-    heartbeat = prisma.evidenceOutbox.updateMany({ where: { id: job.id, status: 'processing', availableAt: lease },
-      data: { availableAt: next } }).then(receipt => { if (receipt.count) lease = next; }).catch(() => undefined)
+    // Expired leases can be reclaimed by another report slot and must never be revived.
+    heartbeat = prisma.$queryRaw<{ availableAt: Date }[]>`
+      UPDATE "EvidenceOutbox"
+      SET "availableAt" = date_trunc('milliseconds', timezone('UTC', clock_timestamp())) + ${LEASE_MS} * interval '1 millisecond',
+          "updatedAt" = timezone('UTC', clock_timestamp())
+      WHERE id = ${job.id} AND status = 'processing' AND "availableAt" = ${lease}
+        AND "availableAt" > timezone('UTC', clock_timestamp())
+      RETURNING "availableAt"
+    `.then(([renewed]) => { if (renewed) lease = renewed.availableAt; }).catch(() => undefined)
       .finally(() => { heartbeat = undefined; });
   }, 30_000);
   const settle = async (data: Prisma.EvidenceOutboxUpdateManyMutationInput) => {
