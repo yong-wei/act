@@ -68,6 +68,38 @@ try {
   assert.deepEqual(storedReceipt?.answers, {}, 'Lightweight applied receipts do not duplicate formal answers');
   assert.equal(await prisma.stepSubmissionAttempt.count({ where: { userId: user.id } }), 1);
   assert.equal((await enqueueCourseVerification(user.id, input)).result?.id, receipt.result?.id);
+  const leaseAttempt = async (reportClientRef: string) => {
+    const clientRef = randomUUID();
+    await enqueueCourseVerification(user.id, { ...input, reportClientRef, attempt: { ...input.attempt!, clientRef } });
+    return clientRef;
+  };
+  const lease = async (ref: string, availableAt: Date) => prisma.evidenceOutbox.updateMany({
+    where: { ...where, ownerUserId: user.id, causationId: ref }, data: { status: 'processing', availableAt },
+  });
+  const validLease = new Date(Date.now() + 60_000);
+  const expiredLease = new Date(Date.now() - 1000);
+  const held = await leaseAttempt(input.reportClientRef);
+  const sameReport = await leaseAttempt(input.reportClientRef);
+  const otherReport = await leaseAttempt(randomUUID());
+  await lease(held, validLease);
+  process.env.SIMULATION_VERIFICATION_CONCURRENCY = '1';
+  assert.equal(await drainCourseVerification(), false, 'Single-slot rollback honors the existing lease');
+  process.env.SIMULATION_VERIFICATION_CONCURRENCY = '2';
+  await lease(otherReport, validLease);
+  const thirdReport = await leaseAttempt(randomUUID());
+  assert.equal(await drainCourseVerification(), false, 'Two live leases exhaust the shared limit');
+  await lease(otherReport, expiredLease);
+  assert(await drainCourseVerification(), 'Another report can run while the first report holds a lease');
+  assert.equal((await readCourseVerification(user.id, otherReport)).verification, 'applied');
+  assert.equal((await readCourseVerification(user.id, sameReport)).verification, 'pending');
+  assert(await drainCourseVerification());
+  assert.equal((await readCourseVerification(user.id, thirdReport)).verification, 'applied');
+  assert.equal(await drainCourseVerification(), false, 'The same-report task still waits for the owner');
+  await lease(held, expiredLease);
+  assert(await drainCourseVerification());
+  assert(await drainCourseVerification());
+  assert.equal((await readCourseVerification(user.id, sameReport)).verification, 'applied');
+  assert.equal(await prisma.stepSubmissionAttempt.count({ where: { userId: user.id } }), 5);
   const configuration = DESTROYER_COURSE_STEPS[0].configuration;
   const native = createServerVesselSession(configuration);
   const runRef = randomUUID();
@@ -92,7 +124,7 @@ try {
       data: { summary: { ...(run.summary as object), lastCheckpointReference: 'different-checkpoint' } } });
     assert(await drainCourseVerification());
     assert.equal((await readCourseVerification(user.id, nextRef)).verification, 'failed');
-    assert.equal(await prisma.stepSubmissionAttempt.count({ where: { userId: user.id } }), 1);
+    assert.equal(await prisma.stepSubmissionAttempt.count({ where: { userId: user.id } }), 5);
   } finally { native.free(); }
   console.log(JSON.stringify({ duplicateRequests: 10, ingestionMs, workerMs, formalStatus: receipt.result?.status,
     changedCheckpointRejected: true }));

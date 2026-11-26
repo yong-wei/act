@@ -75,7 +75,7 @@ import type {
 import { createMathDocumentGradingWorker } from './math-document-grading-worker';
 import { createTeacherAssignmentReviewOutboxWorker } from './teacher-assignment-review-outbox-worker';
 import { drainVesselProcessAnalysis } from '@/features/ilab/adapters/course-process-analysis';
-import { drainCourseVerification } from '@/features/ilab/adapters/course-verification-queue';
+import { courseVerificationConcurrency, drainCourseVerification } from '@/features/ilab/adapters/course-verification-queue';
 import { createDefaultReviewedDerivativeRenderer } from '@/lib/data-governance/teacher-assignment-review-derivative-storage';
 import { defaultReviewedDerivativeOptions } from '@/lib/data-governance/teacher-assignment-review-derivative';
 import {
@@ -125,7 +125,7 @@ let teacherAssignmentReviewController: ReturnType<typeof createTeacherAssignment
 let processAnalysisTimer: ReturnType<typeof setInterval> | undefined;
 let processAnalysisTick: Promise<unknown> | undefined;
 let verificationTimer: ReturnType<typeof setInterval> | undefined;
-let verificationTick: Promise<unknown> | undefined;
+const verificationTicks = new Set<Promise<unknown>>();
 let isShuttingDown = false;
 let infrastructureFailureHandled = false;
 
@@ -1124,11 +1124,13 @@ async function startWorkers() {
   }, 5_000);
   processAnalysisTimer.unref();
   if (process.env.SIMULATION_VERIFICATION_QUEUE === '1') {
+    const verificationConcurrency = courseVerificationConcurrency();
     verificationTimer = setInterval(() => {
-      if (isShuttingDown || verificationTick) return;
-      verificationTick = drainCourseVerification()
+      if (isShuttingDown || verificationTicks.size >= verificationConcurrency) return;
+      const tick = drainCourseVerification()
         .catch((error: unknown) => logWithThrottle('simulation-verification', 'warn', '实验核验暂未完成', error))
-        .finally(() => { verificationTick = undefined; });
+        .finally(() => { verificationTicks.delete(tick); });
+      verificationTicks.add(tick);
     }, 1000);
     verificationTimer.unref();
   }
@@ -1257,7 +1259,7 @@ async function shutdown(exitCode: number) {
   if (teacherAssignmentReviewController) cleanupTasks.push(teacherAssignmentReviewController.close());
   clearInterval(processAnalysisTimer);
   clearInterval(verificationTimer);
-  if (verificationTick) cleanupTasks.push(verificationTick);
+  cleanupTasks.push(...verificationTicks);
   cleanupTasks.push(closeCoursewareGenerationWorker());
   if (eventQueue) cleanupTasks.push(eventQueue.close());
   if (studentQueue) cleanupTasks.push(studentQueue.close());
@@ -1265,7 +1267,7 @@ async function shutdown(exitCode: number) {
   if (reportQueue) cleanupTasks.push(reportQueue.close());
   if (evidenceFeatureCacheQueue) cleanupTasks.push(evidenceFeatureCacheQueue.close());
   if (riskFlagQueue) cleanupTasks.push(riskFlagQueue.close());
-  if (prisma) cleanupTasks.push(Promise.resolve(processAnalysisTick).then(() => prisma?.$disconnect()));
+  if (prisma) cleanupTasks.push(Promise.allSettled([processAnalysisTick, ...verificationTicks]).then(() => prisma?.$disconnect()));
   if (redis) {
     cleanupTasks.push(
       redis.quit().catch(() => {

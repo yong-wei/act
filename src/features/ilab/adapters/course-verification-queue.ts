@@ -97,15 +97,26 @@ export async function enqueueCourseVerification(userId: string, input: VesselCou
   return view(job, ref);
 }
 
-/** 共享事务锁串行分配处理名额，任务回执保存在数据库。 */
+export function courseVerificationConcurrency(): number {
+  return process.env.SIMULATION_VERIFICATION_CONCURRENCY === '1' ? 1 : 2;
+}
+
+/** 共享事务锁只保护名额分配。同一报告的有效租约互斥。 */
 export async function drainCourseVerification() {
   if (await getSimulationAdmissionScale() === 0) return false;
   const job = await prisma.$transaction(async tx => {
     const now = new Date();
     const [lock] = await tx.$queryRaw<{ acquired: boolean }[]>`SELECT pg_try_advisory_xact_lock(760061, 53) AS acquired`;
-    if (!lock?.acquired || await tx.evidenceOutbox.count({ where: { eventType: EVENT, status: 'processing', availableAt: { gt: now } } })) return;
+    if (!lock?.acquired) return;
+    const limit = courseVerificationConcurrency();
+    const active = await tx.evidenceOutbox.findMany({
+      where: { eventType: EVENT, status: 'processing', availableAt: { gt: now } },
+      select: { correlationId: true }, take: limit,
+    });
+    if (active.length >= limit) return;
     const next = await tx.evidenceOutbox.findFirst({ where: {
       eventType: EVENT, status: { in: ['pending', 'processing'] }, availableAt: { lte: now },
+      correlationId: { notIn: active.map(item => item.correlationId) },
     }, orderBy: [{ availableAt: 'asc' }, { id: 'asc' }] });
     if (!next) return;
     return tx.evidenceOutbox.update({ where: { id: next.id }, data: { status: 'processing',
